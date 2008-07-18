@@ -28,7 +28,7 @@ $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_d
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
 <head>
-<title><?php echo $cfg_sitename." - ".$LANG['poweredby']." ".$stgs_release; ?></title>
+<title><?php echo getSiteName()." - ".$LANG['poweredby']." ".getCurrentVersion(); ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="../<?php getTheme($_SESSION['login_id']); ?>" />
@@ -36,7 +36,7 @@ $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_d
 </head>
 <body>
 	<div><a name="top"></a></div>
-	<div id="header"><?php echo "<h1 id=\"logo\">$cfg_sitename</h1><p>".$LANG['welcome']." <a href=\"../profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"../settings.php\">".$LANG['link_settings']."</a> | <a href=\"../logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
+	<div id="header"><?php echo "<h1 id=\"logo\">".getSiteName()."</h1><p>".$LANG['welcome']." <a href=\"../profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"../settings.php\">".$LANG['link_settings']."</a> | <a href=\"../logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
 	<?php displayTopNav("fix"); ?>
 	<div id="pagetitle"><?php echo $LANG['admin_upgrade']; ?></div>
 	<div id="leftcolumn">
@@ -53,10 +53,10 @@ $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_d
 			if (isset($_POST['upgrade'])) {
 				upgrade($_POST['version']);
 			} else {
-				echo "<h2>".$LANG['upgrade_check']."</h2><p><b>".$LANG['cur_version'].":</b> &nbsp;$stgs_release</p><p><b>".$LANG['latest_version'].":</b> &nbsp;&nbsp;&nbsp;";
+				echo "<h2>".$LANG['upgrade_check']."</h2><p><b>".$LANG['cur_version'].":</b> &nbsp;".getCurrentVersion()."</p><p><b>".$LANG['latest_version'].":</b> &nbsp;&nbsp;&nbsp;";
 				$ver = file("http://www.haudenschilt.com/fcms/latest_version.php");
-				$uptodate = false;
-				if (str_replace(".", "", substr($ver[0], 18)) >= str_replace(".", "",substr($stgs_release, 18))) {
+				$uptodate = false; 
+				if (str_pad(str_replace(".", "", substr($ver[0], 18)), 4, "0") <= str_pad(str_replace(".", "",substr(getCurrentVersion(), 18)), 4, "0")) {
 					$uptodate = true;
 					echo $ver[0]." <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:green\">Awesome, your installation is up to date.</span>";
 				} else {
@@ -68,17 +68,12 @@ $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_d
 			} ?>
 		</div><!-- .centercontent -->
 	</div><!-- #content -->
-	<div id="footer">
-		<p>
-			<a href="http://www.haudenschilt.com/fcms/" class="ft"><?php echo $LANG['link_home']; ?></a> | <a href="http://www.haudenschilt.com/forum/index.php" class="ft"><?php echo $LANG['link_support']; ?></a> | <a href="../help.php" class="ft"><?php echo $LANG['link_help']; ?></a><br />
-			<a href="http://www.haudenschilt.com/fcms/"><?php echo $stgs_release; ?></a> - Copyright &copy; 2006/07 Ryan Haudenschilt.  
-		</p>
-	</div>
+	<?php displayFooter("fix"); ?>
 </body>
 </html>
 <?php
 function upgrade ($version) {
-	global $LANG, $cfg_mysql_db;
+	global $LANG, $cfg_mysql_db, $cfg_sitename, $cfg_contact_email, $cfg_use_news, $cfg_use_prayers;
 	echo "<h2>".$LANG['upgrading_to']." $version</h2><p>".$LANG['upgrade_process']."...</p>";
 	/*
 	 * FCMS 0.9.5
@@ -142,7 +137,7 @@ function upgrade ($version) {
 	 * Rename the message board tables
 	 */
 	echo "<p>Upgrading Message Board...";
-	$result = mysql_query("SHOW TABLES FROM $cfg_mysql_db") or die("</p><p style=\"color:red\">".$LANG['not_search_tables']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$result = mysql_query("SHOW TABLES FROM `$cfg_mysql_db`") or die("</p><p style=\"color:red\">".$LANG['not_search_tables']."</p><p style=\"color:red\">".mysql_error()."</p>");
 	$threads_posts_fixed = false;
 	if (mysql_num_rows($result) > 0) {
 		while($r = mysql_fetch_array($result)) {
@@ -199,6 +194,92 @@ function upgrade ($version) {
 		}
 		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
 	}
+	/*
+	 * FCMS 1.5
+	 * Change charset to utf8.
+	 */
+	echo "<p>Upgrading FCMS DB charset...";
+	$result = mysql_query("SHOW TABLE STATUS FROM `$cfg_mysql_db` LIKE 'fcms_address'") or die("</p><p style=\"color:red\">Could not show table status</p><p style=\"color:red\">".mysql_error()."</p>");
+	$utf8_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			$found = strpos($r['Collation'], 'utf8_');
+			if ($found !== false) { $utf8_fixed = true; }
+		}
+	}
+	if ($utf8_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+		mysql_query("SET NAMES utf8") or die("<h1>Error</h1><p><b>Could not set encoding</b></p>" . mysql_error());
+		mysql_query("ALTER TABLE `fcms_address` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_address` MODIFY `address` VARCHAR(50) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_address` MODIFY `city` VARCHAR(50) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_address` MODIFY `state` VARCHAR(50) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_address` MODIFY `zip` VARCHAR(10) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_address` MODIFY `home` VARCHAR(20) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_address` MODIFY `work` VARCHAR(20) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_address` MODIFY `cell` VARCHAR(20) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_board_posts` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_board_posts` MODIFY `post` TEXT CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_board_threads` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_board_threads` MODIFY `subject` VARCHAR(50) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_calendar` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_calendar` MODIFY `title` VARCHAR(50) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_calendar` MODIFY `desc` TEXT CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_gallery_category` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_gallery_category` MODIFY `name` VARCHAR(50) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_gallery_comments` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_gallery_comments` MODIFY `comment` TEXT CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_gallery_photos` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_gallery_photos` MODIFY `filename` VARCHAR(25) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_gallery_photos` MODIFY `caption` TEXT CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_news` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_news` MODIFY `title` VARCHAR(50) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_news` MODIFY `news` TEXT CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_news_comments` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_news_comments` MODIFY `comment` TEXT CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_polls` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_polls` MODIFY `question` TEXT CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_poll_options` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_poll_options` MODIFY `option` TEXT CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_prayers` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_prayers` MODIFY `for` VARCHAR(50) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_prayers` MODIFY `desc` TEXT CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_users` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_users` MODIFY `fname` VARCHAR(25) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_users` MODIFY `lname` VARCHAR(25) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_users` MODIFY `username` VARCHAR(25) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_users` MODIFY `password` VARCHAR(255) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
+		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
+	}
+	/*
+	 * FCMS 1.5
+	 * Add Config to DB.
+	 */
+	echo "<p>Upgrading FCMS config...";
+	$result = mysql_query("SHOW TABLES FROM `$cfg_mysql_db`") or die("</p><p style=\"color:red\">".$LANG['not_search_tables']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$config_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r[0] == 'fcms_config') { $config_fixed = true; }
+		}
+	}
+	if ($config_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+		mysql_query("CREATE TABLE `fcms_config` (`sitename` varchar(50) NOT NULL DEFAULT 'My Site', `contact` varchar(50) NOT NULL DEFAULT 'nobody@yoursite.com', `nav_top1` set('familynews','prayers','none') NOT NULL default 'familynews', `nav_top2` set('familynews','prayers','none') NOT NULL default 'prayers', `current_version` varchar(50) NOT NULL DEFAULT 'Family Connections') ENGINE=InnoDB DEFAULT CHARSET=utf8") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		$sql = "INSERT INTO `fcms_config` (`sitename`, `contact`, `nav_top1`, `nav_top2`, `current_version`) VALUES ('".addslashes($cfg_sitename)."', '".addslashes($cfg_contact_email)."', ";
+		if($cfg_use_news == 'YES') {
+			if ($cfg_use_prayers == 'YES') { $sql .= "'familynews', 'prayers', "; } else { $sql .= "'familynews', 'none', "; }
+		} else { 
+			if ($cfg_use_prayers == 'YES') { $sql .= "'none', 'prayers', "; } else { $sql .= "'none', 'none', "; }
+		}
+		$sql .= "'Family Connections 1.5')";
+		mysql_query($sql) or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
+	}
+
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.5'");
 	echo "<p style=\"color:green\">Upgrade is finished.</p>";
 }
 ?>

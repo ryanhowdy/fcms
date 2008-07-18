@@ -26,7 +26,7 @@ header("Cache-control: private");
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
 <head>
-<title><?php echo $cfg_sitename." - ".$LANG['poweredby']." ".$stgs_release; ?></title>
+<title><?php echo getSiteName()." - ".$LANG['poweredby']." ".getCurrentVersion(); ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="../<?php getTheme($_SESSION['login_id']); ?>" />
@@ -34,7 +34,7 @@ header("Cache-control: private");
 </head>
 <body>
 	<div><a name="top"></a></div>
-	<div id="header"><?php echo "<h1 id=\"logo\">$cfg_sitename</h1><p>".$LANG['welcome']." <a href=\"../profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"../settings.php\">".$LANG['link_settings']."</a> | <a href=\"../logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
+	<div id="header"><?php echo "<h1 id=\"logo\">".getSiteName()."</h1><p>".$LANG['welcome']." <a href=\"../profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"../settings.php\">".$LANG['link_settings']."</a> | <a href=\"../logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
 	<?php displayTopNav("fix"); ?>
 	<div id="pagetitle"><?php echo $LANG['admin_members']; ?></div>
 	<div id="leftcolumn">
@@ -57,8 +57,8 @@ header("Cache-control: private");
 							mysql_query("UPDATE fcms_users SET activated = 1 WHERE id = $id") or die('<h1>Activate Error (admin/members.php 71)</h1>' . mysql_error());
 							$result = mysql_query("SELECT `email` FROM `fcms_users` WHERE id = $id") or die('<h1>Find email (admin/members.php 71</h1>' . mysql_error());
 							$r = mysql_fetch_array($result);
-							$msg = $LANG['mail_msg_activate1']." $cfg_sitename ".$LANG['mail_msg_activate2'];
-							mail($r['email'], $LANG['mail_sub_activate']." $cfg_sitename", $msg);
+							$msg = $LANG['mail_msg_activate1']." ".getSiteName()." ".$LANG['mail_msg_activate2'];
+							mail($r['email'], $LANG['mail_sub_activate']." $cfg_sitename", $msg, $email_headers);
 						} else {
 							mysql_query("UPDATE fcms_users SET activated = 0 WHERE id = $id") or die('<h1>Activate Error (admin/members.php 77)</h1>' . mysql_error());
 						}
@@ -105,11 +105,6 @@ header("Cache-control: private");
 			<p>&nbsp;</p>
 		</div><!-- .centercontent -->
 	</div><!-- #content -->
-	<div id="footer">
-		<p>
-			<a href="http://www.haudenschilt.com/fcms/" class="ft"><?php echo $LANG['link_home']; ?></a> | <a href="http://www.haudenschilt.com/forum/index.php" class="ft"><?php echo $LANG['link_support']; ?></a> | <a href="../help.php" class="ft"><?php echo $LANG['link_help']; ?></a><br />
-			<a href="http://www.haudenschilt.com/fcms/"><?php echo $stgs_release; ?></a> - Copyright &copy; 2006/07 Ryan Haudenschilt.  
-		</p>
-	</div>
+	<?php displayFooter("fix"); ?>
 </body>
 </html>

@@ -34,7 +34,7 @@ class FamilyNews {
 			$displayname = getUserDisplayName($usersnews);
 			echo "<h2><a href=\"?getnews=$usersnews&amp;newsid=".$row['id']."\">".$row['title']."</a>";
 			if ($_SESSION['login_id'] == $usersnews || checkAccess($_SESSION['login_id']) < 2) {
-				echo " &nbsp;<form class=\"frm_inline\" method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"hidden\" name=\"title\" value=\"".htmlentities($row['title'])."\"/><input type=\"hidden\" name=\"news\" value=\"".htmlentities($row['news'])."\"/><input type=\"submit\" name=\"editnews\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_news']."\"/></div></form>";
+				echo " &nbsp;<form class=\"frm_inline\" method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"hidden\" name=\"title\" value=\"".htmlentities($row['title'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"news\" value=\"".htmlentities($row['news'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"submit\" name=\"editnews\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_news']."\"/></div></form>";
 			}
 			if (checkAccess($_SESSION['login_id']) < 2) {
 				echo " &nbsp;<form class=\"frm_inline\" method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"delnews\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_delete_news']."\" onclick=\"javascript:return confirm('".$LANG['js_delete_news']."');\"/></div></form>";
@@ -52,9 +52,9 @@ class FamilyNews {
 					while($row = $this->db2->get_row()) {
 						$displayname = getUserDisplayName($row['user']);
 						if ($this->cur_user_id == $row['user'] || checkAccess($this->cur_user_id) < 2) {
-							echo "<div class=\"comment_block\"><form action=\"?getnews=$usersnews&amp;newsid=$id\" method=\"post\"><input type=\"submit\" name=\"delcom\" id=\"delcom\" value=\" \" class=\"gal_delcombtn\" title=\"".$LANG['title_del_comment']."\" onclick=\"javascript:return confirm('".$LANG['js_del_comment']."'); \"/><span>".$row['date']."</span><b>$displayname</b><br/>" . htmlentities(stripslashes($row['comment'])) . "<input type=\"hidden\" name=\"id\" value=\"".$row['id']."\"></form></div>";
+							echo "<div class=\"comment_block\"><form action=\"?getnews=$usersnews&amp;newsid=$id\" method=\"post\"><input type=\"submit\" name=\"delcom\" id=\"delcom\" value=\" \" class=\"gal_delcombtn\" title=\"".$LANG['title_del_comment']."\" onclick=\"javascript:return confirm('".$LANG['js_del_comment']."'); \"/><span>".$row['date']."</span><b>$displayname</b><br/>" . htmlentities(stripslashes($row['comment']), ENT_COMPAT, 'UTF-8') . "<input type=\"hidden\" name=\"id\" value=\"".$row['id']."\"></form></div>";
 						} else {
-							echo "<div class=\"comment_block\"><span>".$row['date']."</span><b>$displayname</b><br/>" . htmlentities(stripslashes($row['comment'])) . "</div>";
+							echo "<div class=\"comment_block\"><span>".$row['date']."</span><b>$displayname</b><br/>" . htmlentities(stripslashes($row['comment']), ENT_COMPAT, 'UTF-8') . "</div>";
 						}
 					}
 				} else {

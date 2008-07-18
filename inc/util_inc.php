@@ -2,7 +2,11 @@
 include_once('language.php');
 $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 mysql_select_db($cfg_mysql_db);
-$stgs_release = "Family Connections 1.4";
+$email_headers = 'From: ' . getSiteName() . ' <' . getContactEmail() . '>' . "\r\n" . 
+	'Reply-To: ' . getContactEmail() . "\r\n" . 
+	'Content-Type: text/plain; charset=UTF-8;' . "\r\n" . 
+	'MIME-Version: 1.0' . "\r\n" . 
+	'X-Mailer: PHP/' . phpversion();
 $smileydir = "themes/images/smileys/";
 $smiley_array = array(':smile:', ':none:', ':)', '=)', ':wink:', ';)', ':tongue:', ':biggrin:', ':sad:', ':(', ':sick:', ':cry:', ':shocked:', ':cool:', ':sleep:', 'zzz', ':angry:', ':mad:', ':embarrassed:', ':shy:', 
 	':rolleyes:', ':nervous:', ':doh:', ':love:', ':please:', ':1please:', ':hrmm:', ':quiet:', ':clap:', ':twitch:', ':blah:', ':bored:', ':crazy:', ':excited:', ':noidea:', ':disappointed:', ':banghead:', 
@@ -36,11 +40,11 @@ function displayTopNav ($d = "") {
 	global $cfg_use_news, $cfg_use_prayers, $LANG;
 	if (!empty($d)) { $d = "../"; }
 	echo '<div id="topmenu"><ul id="navlist"><li><span><a class="firstlastnavmenu" href="' . $d . 'home.php">'.$LANG['link_home'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'gallery/index.php">'.$LANG['link_gallery'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'messageboard.php">'.$LANG['link_board'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'addressbook.php">'.$LANG['link_address'].'</a></span></li>';
-	if ($cfg_use_news == 'YES' && $cfg_use_prayers == 'YES') {
+	if (usingFamilyNews() && usingPrayers()) {
 		echo '<li><span><a class="navmenu" href="' . $d . 'familynews.php">'.$LANG['link_news'].'</a></span></li><li><span><a class="firstlastnavmenu" href="' . $d . 'prayers.php">'.$LANG['link_prayer'].'</a></span></li>';
 	} else {
-		if ($cfg_use_news == 'YES') { echo '<li><span><a class="navmenu" href="' . $d . 'familynews.php">'.$LANG['link_news'].'</a></span></li><li><span><a class="firstlastnavmenu" href="#">&nbsp;</a></span></li>'; }
-		elseif ($cfg_use_prayers == 'YES') { echo '<li><span><a class="navmenu" href="' . $d . 'prayers.php">'.$LANG['link_prayer'].'</a></span></li><li><span><a class="firstlastnavmenu" href="#">&nbsp;</a></span></li>'; }
+		if (usingFamilyNews()) { echo '<li><span><a class="navmenu" href="' . $d . 'familynews.php">'.$LANG['link_news'].'</a></span></li><li><span><a class="firstlastnavmenu" href="#">&nbsp;</a></span></li>'; }
+		elseif (usingPrayers()) { echo '<li><span><a class="navmenu" href="' . $d . 'prayers.php">'.$LANG['link_prayer'].'</a></span></li><li><span><a class="firstlastnavmenu" href="#">&nbsp;</a></span></li>'; }
 		else { echo '<li><span><a class="navmenu" href="#">&nbsp;</a></span></li><li><span><a class="firstlastnavmenu" href="#">&nbsp;</a></span></li>'; }
 	}
 	echo "</ul></div>";
@@ -66,7 +70,17 @@ function displayAdminNav ($d = "") {
 	if (checkAccess($_SESSION['login_id']) < 2) { echo "\t\t\t\t<li><a href=\"".$d."upgrade.php\">".$LANG['link_admin_upgrade']."</a></li>\n"; }
 	echo "\t\t\t</ul>\n\t\t</div>\n\t";
 }
-
+function displayFooter ($d = "") { 
+	global $LANG; 
+	if (!empty($d)) { $d = "../"; } ?>
+	<div id="footer">
+		<p>
+			<a href="http://www.haudenschilt.com/fcms/" class="ft"><?php echo $LANG['link_home']; ?></a> | <a href="http://www.haudenschilt.com/forum/index.php" class="ft"><?php echo $LANG['link_support']; ?></a> | <a href="<?php echo $d; ?>help.php" class="ft"><?php echo $LANG['link_help']; ?></a><br />
+			<a href="http://www.haudenschilt.com/fcms/"><?php echo getCurrentVersion(); ?></a> - Copyright &copy; 2006/07 Ryan Haudenschilt.  
+		</p>
+	</div>
+<?php
+}
 function checkAccess ($userid) {
 	$result = mysql_query("SELECT access FROM fcms_users WHERE id = $userid") or die('<h1>Access Error (util.inc.php 47)</h1>' . mysql_error());
 	$r = mysql_fetch_array($result);
@@ -136,6 +150,16 @@ function escape_string ($string) {
 		return mysql_real_escape_string($string);
 	}
 }
+// html_entity_decode for PHP 4.3.0 and earlier:
+function unhtmlentities($string) {
+    // replace numeric entities
+    $string = preg_replace('~&#x([0-9a-f]+);~ei', 'chr(hexdec("\\1"))', $string);
+    $string = preg_replace('~&#([0-9]+);~e', 'chr("\\1")', $string);
+    // replace literal entities
+    $trans_tbl = get_html_translation_table(HTML_ENTITIES);
+    $trans_tbl = array_flip($trans_tbl);
+    return strtr($string, $trans_tbl);
+}
 function getPostsById($user_id) {
 	$result = mysql_query("SELECT * FROM fcms_board_posts") or die('<h1>Posts Error (util.inc.php 116)</h1>' . mysql_error());
 	$total = mysql_num_rows($result);
@@ -167,13 +191,15 @@ function getCommentsById ($user_id) {
 	$result = mysql_query("SELECT * FROM `fcms_gallery_comments`");
 	$total = mysql_num_rows($result);
 	mysql_free_result($result);
-	$result = mysql_query("SELECT * FROM `fcms_news_comments`");
-	$total = $total + mysql_num_rows($result);
-	mysql_free_result($result);
-	$result = mysql_query("SELECT COUNT(*) AS count FROM `fcms_news_comments` WHERE `user` = $user_id") or die(mysql_error());
-	$r = mysql_fetch_array($result);
-	$count = $r['count'];
-	mysql_free_result($result);
+	if (usingFamilyNews()) {
+		$result = mysql_query("SELECT * FROM `fcms_news_comments`");
+		$total = $total + mysql_num_rows($result);
+		mysql_free_result($result);
+		$result = mysql_query("SELECT COUNT(*) AS count FROM `fcms_news_comments` WHERE `user` = $user_id") or die(mysql_error());
+		$r = mysql_fetch_array($result);
+		$count = $r['count'];
+		mysql_free_result($result);
+	}
 	$result = mysql_query("SELECT COUNT(*) AS count FROM `fcms_gallery_comments` WHERE `user` = $user_id") or die(mysql_error());
 	$r = mysql_fetch_array($result);
 	$count = $count + $r['count'];
@@ -185,6 +211,7 @@ function getNewsComments ($news_id) {
 	return  $found['c'] ? $found['c'] : 0;
 }
 function getUserRankById ($user_id) {
+	$points = 0; $news_count = 0; 
 	$result = mysql_query("SELECT count(user) AS c FROM fcms_board_posts WHERE user = $user_id") or die('<h1>Count Error (util.inc.php 139)</h1>' . mysql_error());
 	$found = mysql_fetch_array($result);
 	$post_count = $found['c'];
@@ -205,11 +232,28 @@ function getUserRankById ($user_id) {
 	$found = mysql_fetch_array($result);
 	$calendar_count = $found['c'];
 	mysql_free_result($result);
-	$result = mysql_query("SELECT count(user) AS c FROM fcms_news WHERE user = $user_id") or die('<h1>Count Error (util.inc.php 159)</h1>' . mysql_error());
-	$found = mysql_fetch_array($result);
-	$news_count = $found['c'];
+	if (usingFamilyNews()) {
+		$result = mysql_query("SELECT count(user) AS c FROM fcms_news WHERE user = $user_id") or die('<h1>Count Error (util.inc.php 159)</h1>' . mysql_error());
+		$found = mysql_fetch_array($result);
+		$news_count = $found['c'];
+	}
 	$points = ($post_count / 75) + ($photo_count / 25) + ($comments_count / 20) + ($calendar_count / 5) + ($news_count / 10) + ($vote_count / 4);
 	return $points;
+}
+function getContactEmail() {
+	$result = mysql_query("SELECT `contact` FROM `fcms_config`");
+	$r = mysql_fetch_array($result);
+	return $r['contact'];
+}
+function getSiteName() {
+	$result = mysql_query("SELECT `sitename` FROM `fcms_config`");
+	$r = mysql_fetch_array($result);
+	return $r['sitename'];
+}
+function getCurrentVersion() {
+	$result = mysql_query("SELECT `current_version` FROM `fcms_config`");
+	$r = mysql_fetch_array($result);
+	return $r['current_version'];
 }
 function displayMBToolbar () {
 	global $LANG;
@@ -338,6 +382,28 @@ function fixDST ($date, $userid, $format = 'F j, Y, g:i a') {
 		return date($format, strtotime($date));
 	}
 }
+function usingFamilyNews() {
+	$result = mysql_query("SELECT `nav_top1`, `nav_top2` FROM `fcms_config`");
+	$r = mysql_fetch_array($result);
+	if ($r['nav_top1'] == 'familynews') {
+		return true;
+	} else if ($r['nav_top2'] == 'familynews') {
+		return true;
+	} else {
+		return false;
+	}
+}
+function usingPrayers() {
+	$result = mysql_query("SELECT `nav_top1`, `nav_top2` FROM `fcms_config`");
+	$r = mysql_fetch_array($result);
+	if ($r['nav_top1'] == 'prayers') {
+		return true;
+	} else if ($r['nav_top2'] == 'prayers') {
+		return true;
+	} else {
+		return false;
+	}
+}
 function displayWhatsNewAll($userid) {
 	global $cfg_mysql_host, $cfg_use_news, $cfg_use_prayers, $LANG;
 	$t_result = mysql_query("SELECT `timezone` FROM `fcms_users` WHERE `id` = $userid");
@@ -347,11 +413,11 @@ function displayWhatsNewAll($userid) {
 	$yesterday  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")-1, date("Y")));
 	$sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u WHERE p.`thread` = t.`id` AND p.`user` = u.`id` AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) "
 		. "UNION SELECT a.`id`, `updated` AS 'date', 0 AS title, `user` AS userid, `entered_by` AS id2, 0 AS id3, 'ADDRESS' AS type FROM `fcms_users` AS u, `fcms_address` AS a WHERE u.`id` = a.`user` AND 'date' >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) ";
-	if ($cfg_use_news == 'YES') { $sql .= "UNION SELECT n.`id` AS id, n.`date`, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type FROM `fcms_users` AS u, `fcms_news` AS n WHERE u.`id` = n.`user` AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' "; }
-	if($cfg_use_prayers == 'YES') { $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type FROM `fcms_prayers` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) "; }
-	$sql .= "UNION SELECT DISTINCT p.`category` AS id, `date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(`date`) AS id3, 'GALLERY' AS type FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_gallery_category` AS c WHERE p.`user` = u.`id` AND p.`category` = c.`id` AND 'date' >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) GROUP BY userid, title, id3 "
-		. "UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)  AND nc.`user` = u.`id` AND n.`id` = nc.`news` "
-		. "UNION SELECT p.`id`, gc.`date`, `comment` AS title, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND gc.`user` = u.`id` AND gc.`photo` = p.`id` ";
+	if (usingFamilyNews()) { $sql .= "UNION SELECT n.`id` AS id, n.`date`, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type FROM `fcms_users` AS u, `fcms_news` AS n WHERE u.`id` = n.`user` AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' "; }
+	if (usingPrayers()) { $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type FROM `fcms_prayers` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) "; }
+	$sql .= "UNION SELECT DISTINCT p.`category` AS id, `date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(`date`) AS id3, 'GALLERY' AS type FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_gallery_category` AS c WHERE p.`user` = u.`id` AND p.`category` = c.`id` AND 'date' >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) GROUP BY userid, title, id3 ";
+	if (usingFamilyNews()) { $sql .= "UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)  AND nc.`user` = u.`id` AND n.`id` = nc.`news` "; }
+	$sql .= "UNION SELECT p.`id`, gc.`date`, `comment` AS title, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND gc.`user` = u.`id` AND gc.`photo` = p.`id` ";
 	$sql .= "ORDER BY date DESC LIMIT 0, 35";
 	$result = mysql_query($sql) or die("<h1>Latest Info Error (util.inc.php 345)</h1>" . mysql_error() . "<h6>$sql</h6>");
 	$lastday = '0-0';
@@ -388,7 +454,7 @@ function displayWhatsNewAll($userid) {
 			$subject = $r['title'];
 			$pos = strpos($subject, '#ANOUNCE#');
 			if ($pos !== false) { $subject = substr($subject, 9, strlen($subject)-9); }
-			echo "<a href=\"messageboard.php?thread=" . $r['id2'] . "\" title=\"" . htmlentities($subject) . "\">$subject</a>. <small><i>$rdate</i></small></p>\n";
+			echo "<a href=\"messageboard.php?thread=" . $r['id2'] . "\" title=\"" . htmlentities($subject, ENT_COMPAT, 'UTF-8') . "\">$subject</a>. <small><i>$rdate</i></small></p>\n";
 		} elseif ($r['type'] == 'ADDRESS') {
 			$new_result = mysql_query("SELECT `joindate`, `password` FROM `fcms_users` WHERE `id` = " . $r['userid']);
 			$n = mysql_fetch_array($new_result);
@@ -425,7 +491,7 @@ function displayWhatsNewAll($userid) {
 			if ($r['id2'] < $limit) { $limit = $r['id2']; }
 			$photos = mysql_query("SELECT * FROM `fcms_gallery_photos` WHERE `category` = " . $r['id'] . " AND DAYOFYEAR(`date`) = " . $r['id3'] . " ORDER BY `date` DESC LIMIT $limit") or die("<h1>Photo Info Error (util.inc.php 405)</h1>" . mysql_error());
 			while ($p=mysql_fetch_array($photos)) {
-				echo "<a href=\"gallery/index.php?uid=" . $r['userid'] . "&amp;cid=" . $r['id'] . "\"><img src=\"gallery/photos/member" . $r['userid'] . "/tb_" . $p['filename'] . "\" alt=\"".htmlentities($p['caption'])."\"/></a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+				echo "<a href=\"gallery/index.php?uid=" . $r['userid'] . "&amp;cid=" . $r['id'] . "\"><img src=\"gallery/photos/member" . $r['userid'] . "/tb_" . $p['filename'] . "\" alt=\"".htmlentities($p['caption'], ENT_COMPAT, 'UTF-8')."\"/></a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 			}
 			echo "</p>\n";
 		} elseif ($r['type'] == 'NEWSCOM') {

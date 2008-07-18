@@ -1,9 +1,14 @@
 <?php
 session_start();
+$stripcap = 'true';
 if (get_magic_quotes_gpc()) {
 	$_REQUEST = array_map('stripslashes', $_REQUEST);
 	$_GET = array_map('stripslashes', $_GET);
-	$_POST = array_map('stripslashes', $_POST);
+	// a bug found with an array in $_POST
+	if (!isset($_POST['addphoto'])) {
+		$stripcap = 'false';
+		$_POST = array_map('stripslashes', $_POST);
+	}
 	$_COOKIE = array_map('stripslashes', $_COOKIE);
 }
 include_once('../inc/config_inc.php');
@@ -34,7 +39,7 @@ $gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cf
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
 <head>
-<title><?php echo $cfg_sitename." - ".$LANG['poweredby']." ".$stgs_release; ?></title>
+<title><?php echo getSiteName()." - ".$LANG['poweredby']." ".getCurrentVersion(); ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="../<?php getTheme($_SESSION['login_id']); ?>" />
@@ -42,7 +47,7 @@ $gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cf
 </head>
 <body id="body-gallery">
 	<a name="top"></a>
-	<div id="header"><?php echo "<h1 id=\"logo\">$cfg_sitename</h1><p>".$LANG['welcome']." <a href=\"../profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"../settings.php\">".$LANG['link_settings']."</a> | <a href=\"../logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
+	<div id="header"><?php echo "<h1 id=\"logo\">".getSiteName()."</h1><p>".$LANG['welcome']." <a href=\"../profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"../settings.php\">".$LANG['link_settings']."</a> | <a href=\"../logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
 	<?php displayTopNav("fix"); ?>
 	<div id="pagetitle"><?php echo $LANG['link_gallery']; ?></div>
 	<div id="leftcolumn">
@@ -55,15 +60,10 @@ $gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cf
 		} ?></div>
 	<div id="content">
 		<div id="gallery" class="centercontent">
-			<div class="comment_block">
-				<p class="center"><a href="index.php"><?php echo $LANG['gallery_home']; ?></a> | <a href="?view=member"><?php echo $LANG['member_gal']; ?></a> | <a href="?view=toprated&amp;u=<?php if (isset($_GET['uid'])) { echo $_GET['uid']; } elseif (isset($_GET['u'])) { echo $_GET['u']; } else { echo "0"; } ?>"><?php echo $LANG['top_rated']; ?></a> | <a href="?view=views&amp;u=<?php if (isset($_GET['uid'])) { echo $_GET['uid']; } elseif (isset($_GET['u'])) { echo $_GET['u']; } else { echo "0"; } ?>"><?php echo $LANG['most_viewed']; ?></a></p>
-				<?php if (checkAccess($_SESSION['login_id']) <= 3 || checkAccess($_SESSION['login_id']) == 8 || checkAccess($_SESSION['login_id']) == 5) { ?>
-				<p class="center"><b><?php echo $LANG['actions']; ?>: </b><a href="?action=upload"><?php echo $LANG['upload_photos']; ?></a> | <a href="?action=category"><?php echo $LANG['create_edit_cat']; ?></a></p>
-				<?php } ?>
-			</div>
 			<?php
 			$show_latest = true;
 			if (isset($_GET['action']) && (checkAccess($_SESSION['login_id']) <= 3 || checkAccess($_SESSION['login_id']) == 8 || checkAccess($_SESSION['login_id']) == 5)) {
+				$gallery->displayGalleryMenu();
 				if ($_GET['action'] == "upload") {
 					$show_latest = false;
 					$last_cat = 0;
@@ -73,7 +73,7 @@ $gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cf
 						} else { 
 							$last_cat = $_POST['category'];
 							if (isset($_POST['rotate'])) { $rotate = $_POST['rotate']; } else { $rotate = '0'; }
-							$gallery->uploadPhoto($last_cat, $_FILES['photo_filename'], $_POST['photo_caption'], $rotate);
+							$gallery->uploadPhoto($last_cat, $_FILES['photo_filename'], $_POST['photo_caption'], $rotate, $stripcap);
 						}
 					}
 					if (isset($_GET['photos'])) { $gallery->displayUploadForm($_GET['photos'], $last_cat); } else { $gallery->displayUploadForm(1, $last_cat); }
@@ -105,9 +105,11 @@ $gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cf
 			}
 			if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid'])) {
 				$show_latest = false;
+				$gallery->displayGalleryMenu($_GET['uid']);
 				$gallery->showCategories($_GET['uid']);
 			} elseif (isset($_GET['cid']) && !isset($_GET['pid'])) {
 				$show_latest = false;
+				$gallery->displayGalleryMenu($_GET['uid']);
 				$gallery->showCategories($_GET['uid'], $_GET['cid']);
 			} elseif (isset($_GET['pid'])) {
 				$show_latest = false;
@@ -118,6 +120,7 @@ $gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cf
 			}
 			if (isset($_GET['commentpid']) || isset($_GET['topratedpid']) || isset($_GET['viewspid'])) {
 				$show_latest = false;
+				$gallery->displayGalleryMenu();
 				if (isset($_GET['commentpid'])) { $photo = $_GET['commentpid']; } elseif (isset($_GET['topratedpid'])) { $photo = $_GET['topratedpid']; } elseif (isset($_GET['viewspid'])) { $photo = $_GET['viewspid']; }
 				$pid = substr($photo, 0, strpos($photo, '.'));
 				if (isset($_POST['addcom'])) { mysql_query("INSERT INTO `fcms_gallery_comments`(`photo`, `comment`, `date`, `user`) VALUES($pid, '" . addslashes($_POST['comment']) . "', NOW(), " . $_SESSION['login_id'] . ")") or die('<h1>Comment Error (gallery/index.php 119)</h1>' . mysql_error()); }
@@ -125,11 +128,11 @@ $gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cf
 				if (isset($_GET['vote'])) { mysql_query("UPDATE `fcms_gallery_photos` SET `votes` = `votes`+1, `rating` = `rating`+" . $_GET['vote'] . " WHERE `id` = $pid") or die('<h1>Vote Error (gallery/index.php 121)</h1>' . mysql_error()); }
 				if (isset($_GET['commentpid'])) { $gallery->showAllPhoto($photo); } elseif (isset($_GET['topratedpid'])) { $gallery->showAllPhoto($photo, "toprated"); } elseif (isset($_GET['viewspid'])) { $gallery->showAllPhoto($photo, "views"); }
 			}
-			if($_POST['add_editphoto']) {
+			if(isset($_POST['add_editphoto'])) {
 				mysql_query("UPDATE `fcms_gallery_photos` SET category='" . addslashes($_POST['category']) . "', caption='" . addslashes($_POST['photo_caption']) . "' WHERE id=" . $_POST['photo_id']) or die('<h1>Edit Photo Error (gallery/index.php 125)</h1>' . mysql_error());
 				echo "<p class=\"ok-alert\">".$LANG['ok_photo_info']."</p>";
 			}
-			if($_POST['editphoto']) {
+			if(isset($_POST['editphoto'])) {
 				$show_latest = false;
 				$gallery->displayEditPhotoForm($_POST['photo']);
 			}
@@ -148,6 +151,7 @@ $gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cf
 				echo "<meta http-equiv='refresh' content='0;URL=?uid=" . $photo_user_id . "&amp;cid=" . $photo_cat_id . "'>";
 			}
 			if (isset($_GET['view'])) {
+				$gallery->displayGalleryMenu($_GET['u']);
 				if ($_GET['view'] == "comments") {
 					if (isset($_GET['page'])) { $gallery->displayLatestTopMost("comments", $_GET['u'], (($_GET['page'] * 16) - 16)); } else { $gallery->displayLatestTopMost("comments", $_GET['u'], 0); }
 				} elseif ($_GET['view'] == "member") {
@@ -158,16 +162,12 @@ $gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cf
 					if (isset($_GET['page'])) { $gallery->displayLatestTopMost("views", $_GET['u'], (($_GET['page'] * 16) - 16)); } else { $gallery->displayLatestTopMost("views", $_GET['u'], 0); }
 				}
 			} elseif ($show_latest) {
+				$gallery->displayGalleryMenu();
 				$gallery->displayLatestCategories();
 				$gallery->displayLatestTopMost();
 			} ?>
 		</div><!-- #gallery .centercontent -->
 	</div><!-- #content -->
-	<div id="footer">
-		<p>
-			<a href="http://www.haudenschilt.com/fcms/" class="ft"><?php echo $LANG['link_home']; ?></a> | <a href="http://www.haudenschilt.com/forum/index.php" class="ft"><?php echo $LANG['link_support']; ?></a> | <a href="../help.php" class="ft"><?php echo $LANG['link_help']; ?></a><br />
-			<a href="http://www.haudenschilt.com/fcms/"><?php echo $stgs_release; ?></a> - Copyright &copy; 2006/07 Ryan Haudenschilt.  
-		</p>
-	</div>
+	<?php displayFooter("fix"); ?>
 </body>
 </html>

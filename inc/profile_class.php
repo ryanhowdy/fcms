@@ -37,11 +37,14 @@ class Profile {
 		$date = gmdate(" j, Y", strtotime($row['joindate']));
 		echo "<div class=\"small\"><p><b>".$LANG['join_date'].":</b><br/>".$LANG[$monthName]."$date</p>";
 		$monthName = gmdate("F", strtotime($row['activity'] . $this->tz_offset));
-		$date = fixDST(gmdate('F j, Y, g:i a', strtotime($row['activity'] . $this->tz_offset)), $_SESSION['login_id'], 'j, Y, g:i a');
+		$date = fixDST(gmdate('n/j/Y g:i a', strtotime($row['activity'] . $this->tz_offset)), $_SESSION['login_id'], 'j, Y, g:i a');
 		echo "<p><b>".$LANG['last_visit'].":</b><br/>".$LANG[$monthName]." $date</div>";
 		if (checkAccess($_SESSION['login_id']) != 10) {
 			echo "<div><b>".$LANG['stats']."</b></div><div class=\"small\"><p><b>".$LANG['posts'].":</b> " . getPostsById($userid) . "</p><p><b>".$LANG['photos'].":</b> " . getPhotosById($userid) . "</p>";
-			echo "<p><b>".$LANG['link_news']."</b> " . getFamilyNewsById($userid) . "</p><p><b>".$LANG['comments'].":</b> " . getCommentsById($userid) . "</p></div>";
+			if (usingFamilyNews()) {
+				echo "<p><b>".$LANG['link_news']."</b> " . getFamilyNewsById($userid) . "</p>";
+			}
+			echo "<p><b>".$LANG['comments'].":</b> " . getCommentsById($userid) . "</p></div>";
 		}
 		echo "</div>\n<div class=\"main-info\"><h3>" . $row['lname'] . ", " . $row['fname'] . "</h3>$rank_img</div>\n";
 		echo "<div class=\"main-info\"><h2>".$LANG['rank']."</h2><div><b>".$LANG['points'].":</b> $points</div><div><b>".$LANG['rank'].":</b> $rank</div>";

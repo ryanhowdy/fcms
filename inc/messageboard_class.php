@@ -122,7 +122,7 @@ class MessageBoard {
 			echo "<b>".$LANG['posts']."</b>" . $this->getUserPostCountById($row['user']) . "\n\t\t\t\t\t\t</td>\n\t\t\t\t\t\t<td class=\"post\">\n";
 			echo "\t\t\t\t\t\t\t<div class=\"subject\"><b>$subject</b> - $date ";
 			if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
-				echo "<form method=\"post\" action=\"messageboard.php?reply=$thread_id\"><div><input type=\"hidden\" name=\"quote\" value=\"[SPAN=q]".$LANG['quoting'].": " . $displayname . "[/SPAN][QUOTE]" . htmlentities($post) . "[/QUOTE]\"/><input type=\"submit\" class=\"quotebtn\" value=\" \" name=\"quotepost\" title=\"".$LANG['title_quote']."\"/></div></form> &nbsp;";
+				echo "<form method=\"post\" action=\"messageboard.php?reply=$thread_id\"><div><input type=\"hidden\" name=\"quote\" value=\"[SPAN=q]".$LANG['quoting'].": " . $displayname . "[/SPAN][QUOTE]" . htmlentities($post, ENT_COMPAT, 'UTF-8') . "[/QUOTE]\"/><input type=\"submit\" class=\"quotebtn\" value=\" \" name=\"quotepost\" title=\"".$LANG['title_quote']."\"/></div></form> &nbsp;";
 			}
 			if ($this->cur_user_id == $row['user'] || checkAccess($this->cur_user_id) < 3) {
 				echo "<form method=\"post\" action=\"messageboard.php\"><div><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"editpost\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_post']."\"/></div></form> &nbsp;";
@@ -136,6 +136,11 @@ class MessageBoard {
 			$alt++;
 		}
 		if (!$first) { echo "\t\t\t\t</tbody>\n\t\t\t</table>\n"; }
+		echo "<p><a href=\"messageboard.php\">".$LANG['msg_board_home']."</a>";
+		if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
+			echo " | <a href=\"messageboard.php?reply=$thread_id\">".$LANG['reply']."</a>";
+		}
+		echo "</p>\n";
 		$this->displayPages($page, $thread_id);
 		echo "\t\t\t<div class=\"top\"><a href=\"#top\">".$LANG['back_top']."</a></div>\n";
 	}
@@ -235,7 +240,7 @@ class MessageBoard {
 			echo "\t\t\t\t<div><label for=\"subject\">".$LANG['subject']."</label>: <input type=\"text\" name=\"subject\" id=\"subject\" class=\"required\" title=\"".$LANG['title_msg_subject']."\" size=\"50\"/></div>\n";
 			echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar fsub = new LiveValidation('subject', { validMessage: \"\", wait: 500});\n\t\t\t\t\tfsub.add(Validate.Presence, {failureMessage: \"".$LANG['lv_sorry_req']."\"});\n\t\t\t\t</script>\n\t\t\t\t";
 		}
-		echo "\t\t\t\t<div><label for=\"showname\">".$LANG['name']."</label>: <input type=\"text\" disabled=\"disabled\" name=\"showname\" id=\"showname\" title=\"".$LANg['your_name']."\" value=\"" . getUserDisplayName($this->cur_user_id) . "\" size=\"50\" /> &nbsp;<a href=\"#\" onclick=\"window.open('inc/upimages.php','name','width=700,height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no'); return false;\">(".$LANG['upload_image'].")</a></div>\n";
+		echo "\t\t\t\t<div><label for=\"showname\">".$LANG['name']."</label>: <input type=\"text\" disabled=\"disabled\" name=\"showname\" id=\"showname\" title=\"".$LANG['your_name']."\" value=\"" . getUserDisplayName($this->cur_user_id) . "\" size=\"50\" /> &nbsp;<a href=\"#\" onclick=\"window.open('inc/upimages.php','name','width=700,height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no'); return false;\">(".$LANG['upload_image'].")</a></div>\n";
 		if($type == 'new') {
 			if(checkAccess($this->cur_user_id) <= 2) { echo "\t\t\t\t<p><label for=\"sticky\">".$LANG['admin_tools']."</label>: <input type=\"checkbox\" name=\"sticky\" id=\"sticky\" value=\"sticky\" />".$LANG['make_announcement']."</p>\n"; }
 		}
@@ -302,7 +307,7 @@ class MessageBoard {
 			while($row = $this->db->get_row()) {
 				$displayname = getUserDisplayName($row['userid']);
 				$subject = $row['subject'];
-				$subject_full = htmlentities($row['subject']);
+				$subject_full = htmlentities($row['subject'], ENT_COMPAT, 'UTF-8');
 				$pos = strpos($subject, '#ANOUNCE#');
 				if($pos !== false) { $subject = substr($subject, 9, strlen($subject)-9); }
 				if(strlen($subject) > 23) { $subject = substr($subject, 0, 20) . "..."; }

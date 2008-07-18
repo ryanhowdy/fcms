@@ -128,6 +128,7 @@ $LANG = array(
 	'already_install4' =>	'I just want to vew my site.',
 	'already_install5' =>	'YES',
 	'already_install6' =>	'I want to run the installation anyway. (not recommended)',
+	'install_next' =>		'Next >>',
 	'login_success' =>		'Login Successfull.',
 	'logout_success' =>		'Logout Successfull.',
 	'continue' =>			'Continue',
@@ -173,7 +174,8 @@ $LANG = array(
 	'reg_msg1' =>			'You have been successfully registered at',
 	'reg_msg2' =>			'Your account information has been emailed to',
 	'reg_msg3' =>			'Please remember your username and password for this site.',
-	'reg_msg4' =>			'Unfortunately your account must be activated before you can login.',
+	'reg_msg4' =>			'Unfortunately your account must be activated before you can',
+	'reg_msg5' =>			'login and begin using the site',
 	'mail_reg1' =>			'Membership',
 	'mail_reg2' =>			'Dear',
 	'mail_reg3' =>			'Thank you for registering at',
@@ -248,6 +250,7 @@ $LANG = array(
 	'of' =>					'of',
 	'member_gal' =>			'Member Gallery',
 	'js_del_photo' =>				'Are you sure you want to DELETE this photo? &#92;nComments will also be deleted.',
+	'js_del_cat' =>					'Are you sure you want to DELETE this category? &#92;nAll Images will also be deleted.',
 	'err_photo_not_found' =>		'The Photo you are trying to view can not be found!',
 	'upload_photos' =>		'Upload Photos',
 	'select_cat' =>			'Select Category',
@@ -290,6 +293,9 @@ $LANG = array(
 	'ok_cat_edit2' =>		'was updated successfully.',
 	'ok_cat_del' =>			'The category was deleted successfully.',
 	'ok_photo_info' =>		'Photo information successfully updated.',
+	'view_my_photos' =>		'View My Photos',
+	'view_photos_me' =>		'View Photos of Me',
+	'view_photos_of' =>		'View Photos of',
 
 	// Message Board
 

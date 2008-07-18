@@ -34,7 +34,7 @@ $settings = new Settings($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_m
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
 <head>
-<title><?php echo $cfg_sitename . " - " . $LANG['poweredby'] . " " . $stgs_release; ?></title>
+<title><?php echo getSiteName() . " - " . $LANG['poweredby'] . " " . getCurrentVersion(); ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="<?php getTheme($_SESSION['login_id']); ?>" />
@@ -120,11 +120,6 @@ $settings = new Settings($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_m
 			} ?>
 		</div><!-- .centercontent -->
 	</div><!-- #content -->
-	<div id="footer">
-		<p>
-			<a href="http://www.haudenschilt.com/fcms/" class="ft"><?php echo $LANG['link_home']; ?></a> | <a href="http://www.haudenschilt.com/forum/index.php" class="ft"><?php echo $LANG['link_support']; ?></a> | <a href="help.php" class="ft"><?php echo $LANG['link_help']; ?></a><br />
-			<a href="http://www.haudenschilt.com/fcms/"><?php echo $stgs_release; ?></a> - Copyright &copy; 2006/07 Ryan Haudenschilt.  
-		</p>
-	</div>
+	<?php displayFooter(); ?>
 </body>
 </html>

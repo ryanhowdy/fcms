@@ -88,9 +88,9 @@ if (isset($_GET['newsid'])) {
 		while($row = mysql_fetch_array($result)) {
 			$displayname = getUserDisplayName($row['user']);
 			if ($_SESSION['login_id'] == $row['user'] || checkAccess($_SESSION['login_id']) < 2) {
-				echo "<div class=\"comment_block\"><form action=\"familynews_comments.php?newsid=$news_id\" method=\"post\"><input type=\"submit\" name=\"delcom\" id=\"delcom\" value=\" \" class=\"gal_delcombtn\" title=\"".$LANG['title_del_comment']."\" onclick=\"javascript:return confirm('".$LANG['js_del_comment']."'); \"/><span>".$row['date']."</span><b>$displayname</b><br/>" . htmlentities(stripslashes($row['comment'])) . "<input type=\"hidden\" name=\"id\" value=\"".$row['id']."\"></form></div>";
+				echo "<div class=\"comment_block\"><form action=\"familynews_comments.php?newsid=$news_id\" method=\"post\"><input type=\"submit\" name=\"delcom\" id=\"delcom\" value=\" \" class=\"gal_delcombtn\" title=\"".$LANG['title_del_comment']."\" onclick=\"javascript:return confirm('".$LANG['js_del_comment']."'); \"/><span>".$row['date']."</span><b>$displayname</b><br/>" . htmlentities(stripslashes($row['comment']), ENT_COMPAT, 'UTF-8') . "<input type=\"hidden\" name=\"id\" value=\"".$row['id']."\"></form></div>";
 			} else {
-				echo "<div class=\"comment_block\"><span>".$row['date']."</span><b>$displayname</b><br/>" . htmlentities(stripslashes($row['comment'])) . "</div>";
+				echo "<div class=\"comment_block\"><span>".$row['date']."</span><b>$displayname</b><br/>" . htmlentities(stripslashes($row['comment']), ENT_COMPAT, 'UTF-8') . "</div>";
 			}
 		}
 	} else { echo "<p class=\"center\">".$LANG['no_comments']."</p>"; }

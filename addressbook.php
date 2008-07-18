@@ -50,7 +50,7 @@ if (isset($_GET['csv'])) {
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
 <head>
-<title><?php echo $cfg_sitename . " - " . $LANG['poweredby'] . " " . $stgs_release; ?></title>
+<title><?php echo getSiteName() . " - " . $LANG['poweredby'] . " " . getCurrentVersion(); ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="<?php getTheme($_SESSION['login_id']); ?>" />
@@ -59,7 +59,7 @@ if (isset($_GET['csv'])) {
 </head>
 <body id="body-addressbook">
 	<div><a name="top"></a></div>
-	<div id="header"><?php echo "<h1 id=\"logo\">$cfg_sitename</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
+	<div id="header"><?php echo "<h1 id=\"logo\">".getSiteName()."</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
 	<?php displayTopNav(); ?>
 	<div id="pagetitle"><?php echo $LANG['link_address']; ?></div>
 	<div id="leftcolumn">
@@ -96,9 +96,9 @@ if (isset($_GET['csv'])) {
 				$email = $_POST['email'];
 				$name = $_POST['name'];
 				$msg = $_POST['msg'];
-				$msg = $msg . "<br/>-" . $name;
+				$msg = $msg . "\r\n-" . $name;
 				foreach ($_POST['emailaddress'] as $email) {
-					mail($email, "$subject", "$email", "$msg");
+					mail($email, "$subject", "$email", "$msg", $email_headers);
 				}
 				echo "<p class=\"ok-alert\" id=\"msg\">".$LANG['msg_sent']."<br/>";
 				echo "$msg</p>";
@@ -154,8 +154,8 @@ if (isset($_GET['csv'])) {
 				echo "<table class=\"sortable\">\n\t\t\t\t<thead><tr><th class=\"sortfirstasc\">".$LANG['name']."</th><th>".$LANG['phone_num']."</th><th>".$LANG['email']."</th><th class=\"nosort\"><a class=\"helpimg\" href=\"help.php#address-massemail\"></a></th></tr></thead>\n\t\t\t\t<tbody>\n";
 				$result = mysql_query($sql) or die("<h1>Addresses Error (addressbook.php 130)</h1>" . mysql_error());
 				while($r = mysql_fetch_array($result)) {
-					echo "\t\t\t\t\t<tr><td><a href=\"?address=".$r['id']."\">".$r['lname'].", ".$r['fname']."</a></td><td>".$r['home']."</td><td><a href=\"mailto:".htmlentities($r['email'])."\">".$r['email']."</a></td><td>";
-					if (!empty($r['email'])) { echo "<input type=\"checkbox\" name=\"massemail[]\" value=\"".htmlentities($r['email'])."\"/>"; }
+					echo "\t\t\t\t\t<tr><td><a href=\"?address=".$r['id']."\">".$r['lname'].", ".$r['fname']."</a></td><td>".$r['home']."</td><td><a href=\"mailto:".htmlentities($r['email'], ENT_COMPAT, 'UTF-8')."\">".$r['email']."</a></td><td>";
+					if (!empty($r['email'])) { echo "<input type=\"checkbox\" name=\"massemail[]\" value=\"".htmlentities($r['email'], ENT_COMPAT, 'UTF-8')."\"/>"; }
 					echo "</td></tr>\n";
 				}
 				echo "\n\t\t\t\t</tbody>\n\t\t\t</table>\t\t\t\t\t<div class=\"alignright\"><input ";
@@ -164,11 +164,6 @@ if (isset($_GET['csv'])) {
 			} echo "\n"; ?>
 		</div><!-- #centercontent -->
 	</div><!-- #content -->
-	<div id="footer">
-		<p>
-			<a href="http://www.haudenschilt.com/fcms/" class="ft"><?php echo $LANG['link_home']; ?></a> | <a href="http://www.haudenschilt.com/forum/index.php" class="ft"><?php echo $LANG['link_support']; ?></a> | <a href="help.php" class="ft"><?php echo $LANG['link_help']; ?></a><br />
-			<a href="http://www.haudenschilt.com/fcms/"><?php echo $stgs_release; ?></a> - Copyright &copy; 2006/07 Ryan Haudenschilt.  
-		</p>
-	</div>
+	<?php displayFooter(); ?>
 </body>
 </html>

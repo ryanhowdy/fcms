@@ -184,7 +184,7 @@ class Admin {
 			if ($i < 2) { echo "<h3>" . $row['question'] . "</h3>"; }
 			echo "<div class=\"field-row\"><div class=\"field-label\"><label for=\"show$i\">".$LANG['option']." $i:</label></div> <div class=\"field-widget\"><input type=\"text\" name=\"show$i\" id=\"show$i\" ";
 			if ($i < 3) { echo "class=\"required\""; } else { echo "class=\"\""; }
-			echo " size=\"50\" value=\"" . htmlentities($row['option']) . "\"/><input type=\"hidden\" name=\"option$i\" class=\"\" value=\"" . $row['id'] . "\"/>";
+			echo " size=\"50\" value=\"" . htmlentities($row['option'], ENT_COMPAT, 'UTF-8') . "\"/><input type=\"hidden\" name=\"option$i\" class=\"\" value=\"" . $row['id'] . "\"/>";
 			if ($i >= 3) { echo "<input type=\"button\" name=\"deleteoption\" class=\"delbtn\" onclick=\"document.editform.show$i.value=''; \" />"; }
 			echo "</div></div>";
 			$i++;

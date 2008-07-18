@@ -11,7 +11,7 @@ include_once('inc/language.php');
 ?>
 <html>
 <head>
-<title><?php echo $LANG['reg_for']." ".$cfg_sitename; ?></title>
+<title><?php echo $LANG['reg_for']." ".getSiteName(); ?></title>
 <link rel="stylesheet" type="text/css" href="themes/datechooser.css" />
 <script type="text/javascript" src="inc/datechooser.js"></script>
 <script type="text/javascript">
@@ -30,6 +30,8 @@ include_once('inc/language.php');
 <style type="text/css">
 html { font-size: 100%; background: #9ccef0 url(themes/images/default/bg.png) repeat-x; }
 body { font-size: 12pt; line-height: 24pt; text-align: center; font-family: Verdana, Sans-Serif; }
+a { color: #02876c; font-weight: bold; text-decoration: none; }
+a:hover { color: #000; background-color: #9ccef0; }
 p { font-size: 10pt; line-height: 14pt; }
 #column { width: 600px; margin: 50px auto; padding: 10px; text-align: left; background-color: #fff; }
 h1 { color: #fff; margin-top: 100px; }
@@ -66,7 +68,7 @@ if (isset($_POST['submit'])) {
 		$birthday = $_POST['year'] . "-" . str_pad($_POST['month'], 2, "0", STR_PAD_LEFT) . "-" . str_pad($_POST['day'], 2, "0", STR_PAD_LEFT);
 		$address = empty($_POST['address']) ? "NULL" : addslashes($_POST['address']);
 		$city = empty($_POST['city']) ? "NULL" : addslashes($_POST['city']);
-		$state = empty($_POST['state']) ? "" : $_POST['state'];
+		$state = empty($_POST['state']) ? "" : addslashes($_POST['state']);
 		$zip = empty($_POST['zip']) ? "" : $_POST['zip'];
 		$home = empty($_POST['home']) ? "" : $_POST['home'];
 		$work = empty($_POST['work']) ? "" : $_POST['work'];
@@ -79,45 +81,43 @@ if (isset($_POST['submit'])) {
 		mysql_query("INSERT INTO `fcms_address`(`user`, `updated`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`) VALUES ($lastid, NOW(), '$address', '$city', '$state', '$zip', '$home', '$work', '$cell')") or die("<h1>Error (REG002)</h1>" . mysql_error());
 		mysql_query("INSERT INTO `fcms_calendar`(`date`, `title`, `created_by`, `type`) VALUES ('$birthday', '$fname $lname', $lastid, 'Birthday')") or die("<h1>Error (REG003)</h1>" . mysql_error());
 		echo '<div id="msg"><h1>'.$LANG['reg_success'].'</h1><p>'.$LANG['reg_msg1'].' ' . $cfg_sitename . '. '.$LANG['reg_msg2'].' ' . $email . '. <br/><b>'.$LANG['reg_msg3'].'</b></p>'
-			. '<p>'.$LANG['reg_msg4'].'</div>';
-		$subject = "$cfg_sitename ".$LANG['mail_reg1']; 
-		$message = $LANG['mail_reg2']." $fname $lname, 
+			. '<p>'.$LANG['reg_msg4'].' <a href="index.php">'.$LANG['reg_msg5'].'</a>.</div>';
+		$subject = getSiteName()." ".$LANG['mail_reg1']; 
+		$message = $LANG['mail_reg2']." ".stripslashes($fname)." ".stripslashes($lname).", 
 
-".$LANG['mail_reg3']." $cfg_sitename
+".$LANG['mail_reg3']." ".getSiteName()."
 
-".$LANG['mail_reg4']." $cfg_sitename, ".$LANG['mail_reg5']."
+".$LANG['mail_reg4']." ".getSiteName().", ".$LANG['mail_reg5']."
 
 ".$LANG['mail_reg6']."
-".$LANG['username'].": $username 
+".$LANG['username'].": ".stripslashes($username)." 
 ".$LANG['password'].": $password
 
 ".$LANG['mail_reg7']." 
-".$LANG['mail_reg8']." $cfg_sitename ".$LANG['mail_reg9']."
+".$LANG['mail_reg8']." ".getSiteName()." ".$LANG['mail_reg9']."
 
 ".$LANG['mail_reg10'];
 		$now = date('F j, Y, g:i a');
-		$subject2 = $LANG['mail_reg_adm1']." $cfg_sitename";
-		$message2 = $LANG['mail_reg_adm2']." $cfg_sitename:
+		$subject2 = $LANG['mail_reg_adm1']." ".getSiteName();
+		$message2 = $LANG['mail_reg_adm2']." ".getSiteName().":
 	
 ".$LANG['mail_reg_adm3'].": $now
 
-".$LANG['username'].": $username
-".$LANG['name'].": $fname $lname
+".$LANG['username'].": ".stripslashes($username)."
+".$LANG['name'].": ".stripslashes($fname)." ".stripslashes($lname)."
 ".$LANG['mail_reg_adm4'].": $birthday
 
 ".$LANG['mail_reg_adm5'].":
-$address
-$city, $state $zip
+".stripslashes($address)."
+".stripslashes($city).", ".stripslashes($state)." $zip
 
 ".$LANG['home_phone'].": $home
 ".$LANG['work_phone'].": $work
 ".$LANG['mobile_phone'].": $cell
 
 ".$LANG['mail_reg_adm5'];
-		$subject = addslashes($subject); $message = addslashes($message);
-		$subject2 = addslashes($subject2); $message2 = addslashes($message2);
-		mail($email, $subject, $message);
-		mail($cfg_contact_email, $subject2, $message2);
+		mail($email, $subject, $message, $email_headers);
+		mail(getContactEmail(), $subject2, $message2, $email_headers);
 	}
 } else { displayForm(); } ?>
 </body>

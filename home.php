@@ -37,7 +37,7 @@ $poll = new Poll('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
 <head>
-<title><?php echo $cfg_sitename . " - " . $LANG['poweredby'] . " " . $stgs_release; ?></title>
+<title><?php echo getSiteName() . " - " . $LANG['poweredby'] . " " . getCurrentVersion(); ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="<?php getTheme($_SESSION['login_id']); ?>" />
@@ -119,7 +119,12 @@ $poll = new Poll('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_
 				echo "\t\t\t</div>\n\t\t\t<div class=\"half\">\n";
 				$gallery->displayWhatsNewGallery();
 				echo "\n\t\t\t\t<h3>".$LANG['comments']."</h3>\n\t\t\t\t<ul class=\"twolines\">\n";
-				$result = mysql_query("SELECT n.`user` AS 'id', n.`id` as 'id2', `comment`, nc.`date`, nc.`user`, 'NEWS' AS 'check' FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)  AND nc.`user` = u.`id` AND n.`id` = nc.`news` UNION SELECT `filename` AS 'id', 0 as 'id2', `comment`, gc.`date`, gc.`user`, `category` AS 'check' FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND gc.`user` = u.`id` AND gc.`photo` = p.`id` ORDER BY `date` DESC LIMIT 5");
+				$sql_comments = '';
+				if (usingFamilyNews()) {
+					$sql_comments = "SELECT n.`user` AS 'id', n.`id` as 'id2', `comment`, nc.`date`, nc.`user`, 'NEWS' AS 'check' FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)  AND nc.`user` = u.`id` AND n.`id` = nc.`news` UNION ";
+				}
+				$sql_comments .= "SELECT `filename` AS 'id', 0 as 'id2', `comment`, gc.`date`, gc.`user`, `category` AS 'check' FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND gc.`user` = u.`id` AND gc.`photo` = p.`id` ORDER BY `date` DESC LIMIT 5";
+				$result = mysql_query($sql_comments);
 				if (mysql_num_rows($result) > 0) {
 					while ($com = mysql_fetch_array($result)) {
 						$comment = $com['comment'];
@@ -132,7 +137,7 @@ $poll = new Poll('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_
 						} else {
 							echo "familynews.php?getnews=" . $com['id'] . "&amp;newsid=" . $com['id2'];
 						}
-						echo "\">$comment</a><br/><span>".$com['date']." - <a href=\"profile.php?member=".htmlentities($com['user'])."\" class=\"u\">".getUserDisplayName($com['user'])."</a></span></li>\n";
+						echo "\">$comment</a><br/><span>".$com['date']." - <a href=\"profile.php?member=".htmlentities($com['user'], ENT_COMPAT, 'UTF-8')."\" class=\"u\">".getUserDisplayName($com['user'])."</a></span></li>\n";
 					}
 				} else {
 					echo "\t\t\t\t\t<li><i>".$LANG['nothing_new_30']."</i></li>\n";
@@ -142,11 +147,6 @@ $poll = new Poll('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_
 			?>
 		</div><!-- .centercontent -->
 	</div><!-- #content -->
-	<div id="footer">
-		<p>
-			<a href="http://www.haudenschilt.com/fcms/" class="ft"><?php echo $LANG['link_home']; ?></a> | <a href="http://www.haudenschilt.com/forum/index.php" class="ft"><?php echo $LANG['link_support']; ?></a> | <a href="help.php" class="ft"><?php echo $LANG['link_help']; ?></a><br />
-			<a href="http://www.haudenschilt.com/fcms/"><?php echo $stgs_release; ?></a> - Copyright &copy; 2006/07 Ryan Haudenschilt.  
-		</p>
-	</div>
+	<?php displayFooter(); ?>
 </body>
 </html>

@@ -21,13 +21,34 @@ class PhotoGallery {
 		$this->tz_offset = $row['timezone'];
 	}
 
+	function displayGalleryMenu ($uid = '0') {
+		global $LANG;
+		echo "\t\t\t<div class=\"gal_menu\">\n\t\t\t\t<p class=\"center\"><a href=\"index.php\">".$LANG['gallery_home']."</a> | <a href=\"?view=member\">".$LANG['member_gal']."</a> |";
+		echo " <a href=\"?view=toprated&amp;u=$uid\">".$LANG['top_rated']."</a> | <a href=\"?view=views&amp;u=$uid\">".$LANG['most_viewed']."</a></p>\n";
+		if (checkAccess($this->cur_user_id) <= 3 || checkAccess($this->cur_user_id) == 8 || checkAccess($cur_user_id) == 5) {
+			echo "\t\t\t\t<p class=\"center\"><b>".$LANG['actions'].": </b><a href=\"?action=upload\">".$LANG['upload_photos']."</a> | <a href=\"?action=category\">".$LANG['create_edit_cat']."</a></p>\n";
+		}
+		echo "\t\t\t</div>\n";
+	}
+
+	function displaySideMenu () {
+		global $LANG;
+		echo "\t<div class=\"gal_sidemenu\"><b>".$LANG['link_gallery']."</b><br/><b>Viewing Options</b><br/><br/>\n\t\t<a href=\"?uid=".$this->cur_user_id."\">".$LANG['view_my_photos']."</a><br/>\n\t\t<a href=\"?myphotos=".$this->cur_user_id."\">".$LANG['view_photos_me']."</a><br/>\n\t\t";
+		echo "<form action=\"index.php\" method=\"get\">".$LANG['view_photos_of']."<br/><select name=\"uid\">";
+		$this->db->query("SELECT `id` FROM `fcms_users` WHERE `activated` > 0") or die('<h1>View Photos Of Error (gallery.class.php 38)</h1>' . mysql_error());
+		while ($row = $this->db->get_row()) {
+			echo "<option value=\"".$row['id']."\">".getUserDisplayName($row['id'])."</a>";
+		}
+		echo "</select></form></div>\n\t";
+	}
+
 	function displayLatestCategories() {
 		global $LANG;
 		$this->db->query("SELECT p.id, p.`date`, p.filename, c.name, p.user, p.category FROM fcms_gallery_photos AS p, fcms_gallery_category AS c WHERE p.category = c.id GROUP BY category ORDER BY `date` DESC LIMIT 4") or die('<h1>Latest Error (gallery.class.php 32)</h1>' . mysql_error());
 		while ($row = $this->db->get_row()) {
 			$monthName = date('M', strtotime($row['date']));
 			$date = date('. j, Y', strtotime($row['date']));
-			$cat_array[] = "<div class=\"cat_name\">".$row['name']."</div><a href=\"?uid=" . $row['user'] . "&amp;cid=" . $row['category'] . "&amp;pid=" . $row['id'] . "\"><img class=\"photo\" src=\"photos/member" . $row[user] . "/tb_" . $row['filename'] . "\" alt=\"\"/></a><div class=\"cat_info\">".$LANG[$monthName]."$date</div>";
+			$cat_array[] = "<div class=\"cat_name\">".$row['name']."</div><a href=\"?uid=" . $row['user'] . "&amp;cid=" . $row['category'] . "&amp;pid=" . $row['id'] . "\"><img class=\"photo\" src=\"photos/member" . $row['user'] . "/tb_" . $row['filename'] . "\" alt=\"\"/></a><div class=\"cat_info\">".$LANG[$monthName]."$date</div>";
 		}
 		if (!empty($cat_array)) {
 			echo "<h4>".$LANG['latest_cat']."</h4>\n\t\t\t<div class=\"gal_row clearfix\">\n\t\t\t\t";
@@ -176,7 +197,7 @@ class PhotoGallery {
 		}
 		$this->db->query("SELECT `caption`, `user`, `views`, `votes`, `rating` FROM `fcms_gallery_photos` WHERE `filename` = '$photo_filename'") or die('<h1>Photo Error (gallery.class.php 179)</h1>' . mysql_error());
 		$row = $this->db->get_row();
-		echo "<p class=\"center\"><a href=\"photos/member" . $row['user'] . "/$photo_filename\"><img class=\"photo\" src=\"photos/member" . $row['user'] . "/$photo_filename\" alt=\"".htmlentities($row['caption'])."\" /></a></p><div class=\"comment_block\"><p class=\"center\">".htmlentities($row['caption'])."</p></div>";
+		echo "<p class=\"center\"><a href=\"photos/member" . $row['user'] . "/$photo_filename\"><img class=\"photo\" src=\"photos/member" . $row['user'] . "/$photo_filename\" alt=\"".htmlentities($row['caption'], ENT_COMPAT, 'UTF-8')."\" /></a></p><div class=\"comment_block\"><p class=\"center\">".htmlentities($row['caption'], ENT_COMPAT, 'UTF-8')."</p></div>";
 		if ($row['votes'] <= 0) { $rating = 0; $width = 0; } else { $rating = ($row['rating'] / $row['votes']) * 100; $width = $rating / 5; }
 		echo "<ul class=\"star-rating small-star\"><li class=\"current-rating\" style=\"width:$width%\">Currently " . $row['rating'] . "/5 Stars.</li><li><a href=\"?$url" . "$photo_filename&amp;vote=1\" title=\"".$LANG['title_stars1']."\" class=\"one-star\">1</a></li><li><a href=\"?$url" . "$photo_filename&amp;vote=2\" title=\"".$LANG['title_stars2']."\" class=\"two-stars\">2</a></li><li><a href=\"?$url" . "$photo_filename&amp;vote=3\" title=\"".$LANG['title_stars3']."\" class=\"three-stars\">3</a></li><li><a href=\"?$url" . "$photo_filename&amp;vote=4\" title=\"".$LANG['title_stars4']."\" class=\"four-stars\">4</a></li><li><a href=\"?$url" . "$photo_filename&amp;vote=5\" title=\"".$LANG['title_stars5']."\" class=\"five-stars\">5</a></li></ul>";
 		echo "<p class=\"center\"><small>".$LANG['views'].": " . $row['views'] . "</small></p>";
@@ -189,9 +210,9 @@ class PhotoGallery {
 					$displayname = getUserDisplayName($row['user']);
 					$date = fixDST(gmdate('Y-m-d h:i:s', strtotime($row['date'] . $this->tz_offset)), $this->cur_user_id, 'M. d, Y (h:i a)');
 					if ($this->cur_user_id == $row['user'] || checkAccess($this->cur_user_id) < 2) {
-						echo "<div class=\"comment_block\"><form action=\"?$url" . "$photo_filename\" method=\"post\"><input type=\"submit\" name=\"delcom\" id=\"delcom\" value=\" \" class=\"gal_delcombtn\" title=\"".$LANG['title_del_comment']."\" onclick=\"javascript:return confirm('".$LANG['js_del_comment']."'); \"/><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'])."<input type=\"hidden\" name=\"id\" value=\"".$row['id']."\"></form></div>";
+						echo "<div class=\"comment_block\"><form action=\"?$url" . "$photo_filename\" method=\"post\"><input type=\"submit\" name=\"delcom\" id=\"delcom\" value=\" \" class=\"gal_delcombtn\" title=\"".$LANG['title_del_comment']."\" onclick=\"javascript:return confirm('".$LANG['js_del_comment']."'); \"/><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'], ENT_COMPAT, 'UTF-8')."<input type=\"hidden\" name=\"id\" value=\"".$row['id']."\"></form></div>";
 					} else {
-						echo "<div class=\"comment_block\"><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'])."</div>";
+						echo "<div class=\"comment_block\"><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'], ENT_COMPAT, 'UTF-8')."</div>";
 					}
 				}
 			} else {
@@ -209,7 +230,7 @@ class PhotoGallery {
 			$this->db->query("SELECT u.`id`, `fname`, `lname`, `displayname`, `username`, `name` AS `category` FROM `fcms_gallery_category` AS c, `fcms_users` AS u, `fcms_gallery_photos` AS p WHERE p.`category` = c.`id` AND p.`user` = u.`id` AND p.`category` = $cid LIMIT 1") or die('<h1>Category Error (gallery.class.php 207)</h1>' . mysql_error());
 			$category = $this->db->get_row();
 			$displayname = getUserDisplayName($category['id']);
-			echo "<p><a href=\"?view=member\">".$LANG['member_gal']."</a> &gt; <a href=\"?uid=$uid\">$displayname</a> &gt; <a href=\"?uid=$uid&amp;cid=$cid\">".$category['category']."</a></p>\n";
+			echo "<p class=\"breadcrumbs\"><a href=\"?view=member\">".$LANG['member_gal']."</a> &gt; <a href=\"?uid=$uid\">$displayname</a> &gt; <a href=\"?uid=$uid&amp;cid=$cid\">".$category['category']."</a></p>\n";
 			$this->db->query("SELECT `filename` FROM `fcms_gallery_photos` WHERE `category` = $cid ORDER BY `date`") or die('<h1>Photo Error (gallery.class.php 208)</h1>' . mysql_error());
 			while ($row = $this->db->get_row()) { $photo_arr[] = $row['filename']; }
 			$total_photos = count($photo_arr);
@@ -228,7 +249,7 @@ class PhotoGallery {
 			if($this->cur_user_id == $photo['user'] || checkAccess($this->cur_user_id) < 2) {
 				echo "<div class=\"edit_del_photo\"><form action=\"index.php\" method=\"post\"><div><input type=\"hidden\" name=\"photo\" id=\"photo\" value=\"$pid\"/>".$LANG['edit']." <input type=\"submit\" name=\"editphoto\" id=\"editphoto\" value=\" \" class=\"gal_editbtn\" /></div></form>&nbsp;&nbsp;<form action=\"index.php\" method=\"post\"><div><input type=\"hidden\" name=\"photo\" id=\"photo\" value=\"$pid\"/>".$LANG['delete']." <input type=\"submit\" name=\"deletephoto\" id=\"addcom\" value=\" \" class=\"gal_delbtn\" onclick=\"javascript:return confirm('".$LANG['js_del_photo']."'); \"/></div></form></div>";
 			}
-			echo "<p class=\"center\"><a href=\"photos/member" . $photo['user'] . "/" . $photo['filename'] . "\"><img class=\"photo\" src=\"photos/member" . $photo['user'] . "/" . $photo['filename'] . "\" alt=\"".htmlentities($photo['caption'])."\" /></a></p><div class=\"comment_block\"><p class=\"center\">".htmlentities($photo['caption'])."</p></div>";
+			echo "<p class=\"center\"><a href=\"photos/member" . $photo['user'] . "/" . $photo['filename'] . "\"><img class=\"photo\" src=\"photos/member" . $photo['user'] . "/" . $photo['filename'] . "\" alt=\"".htmlentities($photo['caption'], ENT_COMPAT, 'UTF-8')."\" /></a></p><div class=\"comment_block\"><p class=\"center\">".htmlentities($photo['caption'], ENT_COMPAT, 'UTF-8')."</p></div>";
 			if ($photo['votes'] <= 0) { $rating = 0; $width = 0; } else { $rating = ($photo['rating'] / $photo['votes']) * 100; $width = $rating / 5; }
 			echo "<ul class=\"star-rating small-star\"><li class=\"current-rating\" style=\"width:$width%\">Currently " . $photo['rating'] . "/5 Stars.</li><li><a href=\"?uid=$uid&amp;cid=$cid&amp;pid=$pid&amp;vote=1\" title=\"".$LANG['title_stars1']."\" class=\"one-star\">1</a></li><li><a href=\"?uid=$uid&amp;cid=$cid&amp;pid=$pid&amp;vote=2\" title=\"".$LANG['title_stars2']."\" class=\"two-stars\">2</a></li><li><a href=\"?uid=$uid&amp;cid=$cid&amp;pid=$pid&amp;vote=3\" title=\"".$LANG['title_stars3']."\" class=\"three-stars\">3</a></li><li><a href=\"?uid=$uid&amp;cid=$cid&amp;pid=$pid&amp;vote=4\" title=\"".$LANG['title_stars4']."\" class=\"four-stars\">4</a></li><li><a href=\"?uid=$uid&amp;cid=$cid&amp;pid=$pid&amp;vote=5\" title=\"".$LANG['title_stars5']."\" class=\"five-stars\">5</a></li></ul>";
 			echo "<p class=\"center\"><small>".$LANG['views'].": " . $photo['views'] . "</small></p>";
@@ -240,9 +261,9 @@ class PhotoGallery {
 						$displayname = getUserDisplayName($row['user']);
 						$date = fixDST(gmdate('Y-m-d h:i:s', strtotime($row['date'] . $this->tz_offset)), $this->cur_user_id, 'M. d, Y (h:i a)');
 						if ($this->cur_user_id == $row['user'] || checkAccess($this->cur_user_id) < 2) {
-							echo "<div class=\"comment_block\"><form action=\"?page=photo&amp;uid=$uid&amp;cid=$cid&amp;pid=$pid\" method=\"post\"><input type=\"submit\" name=\"delcom\" id=\"delcom\" value=\" \" class=\"gal_delcombtn\" title=\"".$LANG['title_del_comment']."\" onclick=\"javascript:return confirm('".$LANG['js_del_comment']."'); \"/><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'])."<input type=\"hidden\" name=\"id\" value=\"".$row['id']."\"></form></div>";
+							echo "<div class=\"comment_block\"><form action=\"?page=photo&amp;uid=$uid&amp;cid=$cid&amp;pid=$pid\" method=\"post\"><input type=\"submit\" name=\"delcom\" id=\"delcom\" value=\" \" class=\"gal_delcombtn\" title=\"".$LANG['title_del_comment']."\" onclick=\"javascript:return confirm('".$LANG['js_del_comment']."'); \"/><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'], ENT_COMPAT, 'UTF-8')."<input type=\"hidden\" name=\"id\" value=\"".$row['id']."\"></form></div>";
 						} else {
-							echo "<div class=\"comment_block\"><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'])."</div>";
+							echo "<div class=\"comment_block\"><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'], ENT_COMPAT, 'UTF-8')."</div>";
 						}
 					}
 				} else {
@@ -298,7 +319,7 @@ class PhotoGallery {
 		}
 	}
 
-	function uploadPhoto ($category, $files, $captions, $rotateoptions) {
+	function uploadPhoto ($category, $files, $captions, $rotateoptions, $stripcap) {
 		global $LANG;
 		$known_photo_types = array('image/pjpeg' => 'jpg', 'image/jpeg' => 'jpg', 'image/gif' => 'gif', 'image/bmp' => 'bmp', 'image/x-png' => 'png');
 		$gd_function_suffix = array('image/pjpeg' => 'JPEG', 'image/jpeg' => 'JPEG', 'image/gif' => 'GIF', 'image/bmp' => 'WBMP', 'image/x-png' => 'PNG');
@@ -310,6 +331,7 @@ class PhotoGallery {
 				if (!array_key_exists($photos_uploaded['type'][$i], $known_photo_types)) {
 					echo "<p class=\"error-alert\">".$LANG['err_not_file1']." ".($i+1)." ".$LANG['err_not_file2']."</p><br />";
 				} else {
+					if ($stripcap == 'true') { $photos_caption[$i] = stripslashes($photos_caption[$i]); }
 					$this->db->query("INSERT INTO `fcms_gallery_photos`(`date`, `caption`, `category`, `user`) VALUES(NOW(), '".addslashes($photos_caption[$i])."', '" . addslashes($category) . "', $this->cur_user_id)") or die('<h1>New Photo Error (gallery.class.php 305)</h1>' . mysql_error());
 					$new_id = mysql_insert_id();
 					$filetype = $photos_uploaded['type'][$i];
@@ -386,19 +408,19 @@ class PhotoGallery {
 				if ($uid < 1 && $cid < 1) {
 					$categories[] = "<div class=\"cat_name\">$displayname</div><a href=\"?uid=" . $row['id'] . "\"><img class=\"photo\" src=\"photos/member" . $row['id'] . "/tb_" . $row['filename'] . "\" alt=\"".$LANG['alt_view_cat_for']." $displayname\"/></a><div class=\"cat_info\">".$LANG['photos']." (" . $row['c'] . ")</div>";
 				} elseif ($cid < 1) {
-					$categories[] = "<div class=\"cat_name\">".$row['category']."</div><a href=\"?uid=$uid&amp;cid=" . $row['cid'] . "\"><img class=\"photo\" src=\"photos/member$uid/tb_" . $row['filename'] . "\" alt=\"".$LANG['alt_view_photos_in']." ".htmlentities($row['category'])."\"/></a><div class=\"cat_info\">".$LANG['photos']." (" . $row['c'] . ")</div>";
+					$categories[] = "<div class=\"cat_name\">".$row['category']."</div><a href=\"?uid=$uid&amp;cid=" . $row['cid'] . "\"><img class=\"photo\" src=\"photos/member$uid/tb_" . $row['filename'] . "\" alt=\"".$LANG['alt_view_photos_in']." ".htmlentities($row['category'], ENT_COMPAT, 'UTF-8')."\"/></a><div class=\"cat_info\">".$LANG['photos']." (" . $row['c'] . ")</div>";
 				} else {
-					$categories[] = "<a href=\"?uid=$uid&amp;cid=$cid&amp;pid=" . $row['pid'] . "\"><img class=\"photo\" src=\"photos/member$uid/tb_" . $row['filename'] . "\" alt=\"".htmlentities($row['caption'])."\"/></a>";
+					$categories[] = "<a href=\"?uid=$uid&amp;cid=$cid&amp;pid=" . $row['pid'] . "\"><img class=\"photo\" src=\"photos/member$uid/tb_" . $row['filename'] . "\" alt=\"".htmlentities($row['caption'], ENT_COMPAT, 'UTF-8')."\"/></a>";
 				}
 			}
 			if ($uid < 1 && $cid < 1) {
-				echo "<h4>".$LANG['photos']."</h4>";
+				echo "<h4>".$LANG['member_gal']."</h4>";
 			} elseif ($cid < 1) {
-				echo "<p><a href=\"?view=member\">".$LANG['member_gal']."</a> &gt; $displayname</p>\n";
+				echo "<p class=\"breadcrumbs\"><a href=\"?view=member\">".$LANG['member_gal']."</a> &gt; $displayname</p>\n";
 			} else {
 				$this->db2->query("SELECT `name` FROM `fcms_gallery_category` AS c, `fcms_gallery_photos` AS p WHERE p.`category` = c.`id` AND p.`category`=$cid LIMIT 1");
 				$row = $this->db2->get_row();
-				echo "<p><a href=\"?view=member\">".$LANG['member_gal']."</a> &gt; <a href=\"?uid=$uid\">$displayname</a> &gt; ".$row['name']."</p>\n";
+				echo "<p class=\"breadcrumbs\"><a href=\"?view=member\">".$LANG['member_gal']."</a> &gt; <a href=\"?uid=$uid\">$displayname</a> &gt; ".$row['name']."</p>\n";
 			}
 			echo "\t\t\t<div class=\"gal_row clearfix\">";
 			$i = 0;
@@ -423,7 +445,7 @@ class PhotoGallery {
 		$this->db->query("SELECT * FROM fcms_gallery_category WHERE user=" . $this->cur_user_id) or die('<h1>Category Error (gallery.class.php 413)</h1>' . mysql_error());
 		if ($this->db->count_rows() > 0) {
 			while ($row = $this->db->get_row()) {
-				echo "<li><form action=\"index.php?action=category\" method=\"post\"><input type=\"text\" name=\"cat_name\" id=\"cat_name\" size=\"60\" value=\"".htmlentities($row['name'])."\"/><input type=\"hidden\" name=\"cid\" id=\"cid\" value=\"" . $row['id'] . "\"/> &nbsp;<input type=\"submit\" name=\"editcat\" class=\"editbtn\" value=\" \"/></form> &nbsp;";
+				echo "<li><form action=\"index.php?action=category\" method=\"post\"><input type=\"text\" name=\"cat_name\" id=\"cat_name\" size=\"60\" value=\"".htmlentities($row['name'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"cid\" id=\"cid\" value=\"" . $row['id'] . "\"/> &nbsp;<input type=\"submit\" name=\"editcat\" class=\"editbtn\" value=\" \"/></form> &nbsp;";
 				echo "<form action=\"index.php?action=category\" method=\"post\"><input type=\"hidden\" name=\"cid\" id=\"cid\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"delcat\" class=\"delbtn\" value=\" \" onclick=\"javascript:return confirm('".$LANG['js_del_cat']."'); \"/></form></li>\n\t\t";
 			}
 		} else {
@@ -451,7 +473,7 @@ class PhotoGallery {
 				$date = gmdate('. j, Y, g:i a', strtotime($found['date'] . $this->tz_offset));
 				echo "\t\t\t\t\t<li";
 				if (strtotime($date) >= strtotime($today) && strtotime($date) > $tomorrow) { echo " class=\"new\""; }
-				echo "><a href=\"gallery/index.php?uid=" . $row['user'] . "&amp;cid=" . $row['cid'] . "\" title=\"" . htmlentities($full_category) . "\">$category</a> - " . $row['c'] . " ".$LANG['new_photos']."<br/><span>".$LANG[$monthName]."$date - <a class=\"u\" href=\"profile.php?member=" . $row['user'] . "\">$displayname</a></span></li>\n";			
+				echo "><a href=\"gallery/index.php?uid=" . $row['user'] . "&amp;cid=" . $row['cid'] . "\" title=\"" . htmlentities($full_category, ENT_COMPAT, 'UTF-8') . "\">$category</a> - " . $row['c'] . " ".$LANG['new_photos']."<br/><span>".$LANG[$monthName]."$date - <a class=\"u\" href=\"profile.php?member=" . $row['user'] . "\">$displayname</a></span></li>\n";			
 			}
 			echo "\t\t\t\t</ul>\n";
 		} else {

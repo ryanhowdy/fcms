@@ -1,5 +1,5 @@
 
-FAMILY CONNECTIONS 1.4
+FAMILY CONNECTIONS 1.5
 ........................
 
   Keep your family "Connected" with this content management system (CMS) designed 
@@ -11,7 +11,7 @@ FAMILY CONNECTIONS 1.4
 
 I. Installation
 
-  1. Upload the entire contents of FCMS_1.4.zip to your web host.
+  1. Upload the entire contents of FCMS_1.5.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -21,14 +21,15 @@ I. Installation
     gallery/photos/
     gallery/upimages/
 
-  3. Run the install.php file.
+  3. Go to http://www.yourdomain.com/fcms/ where yourdomain.com is your domain and  
+     fcms/ is the directory you used to install FCMS.
 
-  4. Delete the install.php file from your web host.
+  4. It is recommended that you delete the install.php file after installation.
 
 
 
 
-II. Upgrading from 1.3 or 1.3.1 to 1.4
+II. Upgrading from 1.4 to 1.5
 
   1. Delete all files except for the files in the following directories:
 
@@ -36,15 +37,30 @@ II. Upgrading from 1.3 or 1.3.1 to 1.4
     gallery/photos/
     gallery/upimages/
 
-  2. Upload the entire contents of FCMS_1.4.zip except for the files and 
+  2. Upload the entire contents of FCMS_1.5.zip except for the files and 
      directories listed in step #1 above.
 
-  3. Delete the install.php files from your web host.
+  3. Login as the administrator and visit the upgrade section and run the
+     upgrade script.
 
+  4. Delete the install.php files from your web host.
 
 
 
 III. Change Log
+
+ 1.5
+  - fixed "Sitename: special characters" bug id 1991922 
+  - fixed "Multi-language - Character Encoding" bug id 1993128 
+  - fixed "Magic Quotes causes default "A" as caption in Gallery" bug id 1992332 
+  - fixed "(Profile) Last Visited date not working" bug id 1992291 
+  - fixed "PHP Notices (Gallery and Calendar)" bug id 1993876 
+  - added "Easy Installation" feature request id 1995356 
+  - added "Move some configuration to DB" feature request id 1993883 
+  - added "Optimize Photo Gallery Design" feature request id 1990146 
+  - added "Help Integration" feature request id 1839811 
+  - added "Reply link at bottom of post list" feature request id 1992902 
+
 
  1.4
   - fixed "Can't install Address Book (MySQL 5)" bug id 1974803 

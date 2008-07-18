@@ -25,7 +25,7 @@ header("Cache-control: private"); ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
 <head>
-<title><?php echo $cfg_sitename . " - " . $LANG['poweredby'] . " " . $stgs_release; ?></title>
+<title><?php echo getSiteName() . " - " . $LANG['poweredby'] . " " . getCurrentVersion(); ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="<?php getTheme($_SESSION['login_id']); ?>" />
@@ -58,16 +58,16 @@ header("Cache-control: private"); ?>
 			<p>&nbsp;</p>
 			<h4>Personal Settings</h4>
 			<p><a href="#settings-avatar">How do I add/change my avatar?</a></p>
-			<p><a href="#settings-avatar">How do I change my theme?</a></p>
-			<p><a href="#settings-avatar">How do I change my password?</a></p>
+			<p><a href="#settings-theme">How do I change my theme?</a></p>
+			<p><a href="#settings-password">How do I change my password?</a></p>
 			<p>&nbsp;</p>
 			<h4>Address Book</h4>
 			<p><a href="#address-massemail">How do I email multiple people (Mass Email)?</a></p>
 			<p>&nbsp;</p>
 			<h4>Administration</h4>
 			<p><a href="#adm-access">Member Access Levels</a></p>
-			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-			<p><b><a name="gallery-howworks">How does the Photo Gallery work?</a></b></p>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="gallery-howworks">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How does the Photo Gallery work?</b></p>
 			<p>
 				Each member of the website has his/her own Category on the Photo Gallery.  This category will not show up until that member creates a new sub-category and 
 				uploads at least one photo.  You can not upload photos until you have created a category.  It is best to create a new category each time you upload a new group 
@@ -75,8 +75,8 @@ header("Cache-control: private"); ?>
 			</p>
 			<p>&nbsp;</p>
 			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
-			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-			<p><b><a name="gallery-addphoto">How do I add a photo?</a></b></p>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="gallery-addphoto">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I add a photo?</b></p>
 			<ol>
 				<li>Choose <a href="gallery/index.php?action=upload">Upload Photos</a> from the <a href="gallery/index.php">Photo Gallery</a> menu.</li>
 				<li>Choose a category from the drop down menu.<br/><b>Note:</b> You must have at least one category to upload photos.  If you do not have a existing category you must <a href="#gallery-addcat">add a category</a> first.</li>
@@ -86,8 +86,8 @@ header("Cache-control: private"); ?>
 			</ol>
 			<p>&nbsp;</p>
 			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
-			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>			
-			<p><b><a name="gallery-chgphoto">How do I edit/change a photo?</a></b></p>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="gallery-chgphoto">&nbsp;</a></p><p>&nbsp;</p>			
+			<p><b>How do I edit/change a photo?</b></p>
 			<p>You can only edit/change the photo's caption and category.</p>
 			<ol>
 				<li>Navigate to the photo you would like to edit.</li>
@@ -100,8 +100,8 @@ header("Cache-control: private"); ?>
 			</ol>
 			<p>&nbsp;</p>
 			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
-			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-			<p><b><a name="gallery-delphoto">How do I delete a photo?</a></b></p>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="gallery-delphoto">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I delete a photo?</b></p>
 			<ol>
 				<li>Navigate to the photo you would like to edit.</li>
 				<li>Click the delete button <img src="themes/images/default/image_delete.gif"/>, located above the photo and to the right.</li>
@@ -110,8 +110,8 @@ header("Cache-control: private"); ?>
 			<p><b>Note:</b> you can only delete your own photos.  Once you delete a photo it is gone forever, you cannot undo a delete.</p>
 			<p>&nbsp;</p>
 			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
-			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-			<p><b><a name="gallery-addcat">How do I add a category?</a></b></p>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="gallery-addcat">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I add a category?</b></p>
 			<ol>
 				<li>Choose <a href="gallery/index.php?action=category">Create/Edit Category</a> from the <a href="gallery/index.php">Photo Gallery</a> menu.</li>
 				<li>Fill out the category name.</li>
@@ -120,8 +120,8 @@ header("Cache-control: private"); ?>
 			<p>A list of previously created categories will be listed below.</p>
 			<p>&nbsp;</p>
 			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
-			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-			<p><b><a name="gallery-chgcat">How do I rename a category?</a></b></p>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="gallery-chgcat">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I rename a category?</b></p>
 			<ol>
 				<li>Choose <a href="gallery/index.php?action=category">Create/Edit Category</a> from the <a href="gallery/index.php">Photo Gallery</a> menu.</li>
 				<li>Scroll down to the list of categories and find the one you want to change.</li>
@@ -130,8 +130,8 @@ header("Cache-control: private"); ?>
 			</ol>
 			<p>&nbsp;</p>
 			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
-			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-			<p><b><a name="gallery-delcat">How do I delete a category?</a></b></p>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="gallery-delcat">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I delete a category?</b></p>
 			<ol>
 				<li>Choose <a href="gallery/index.php?action=category">Create/Edit Category</a> from the <a href="gallery/index.php">Photo Gallery</a> menu.</li>
 				<li>Scroll down to the list of categories and find the one you want to delete.</li>
@@ -139,12 +139,38 @@ header("Cache-control: private"); ?>
 			</ol>
 			<p>&nbsp;</p>
 			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
-			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-			<p><b><a name="settings-avatar">How do I add/change my avatar?</a></b></p>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="settings-avatar">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I add/change my avatar?</b></p>
+			<p>An avatar is just a graphical representation of a person.  You can upload a picture of yourself or any picture that you feel represents you.</p>
+			<ol>
+				<li>Click on the <a href="settings.php">My Settings</a> link in the top right hand corner of the site.</li>
+				<li>Click the browse button, which will pop open a menu allowing you to search your computer for an avatar.  (Avatar's must be one of the following file types .jpg, .jpeg .gif or .bmp or .png)</li>
+				<li>Once you have choosen your avatar, scroll down to the bottom of the Settings page and click the Submit button.</li>
+			</ol>
+			<p>Note: You can upload animated avatar's as long as the are smaller than 80 pixels x 80 pixels.  Uploading an avatar larger than this will result in the loss of animation.</p>
 			<p>&nbsp;</p>
 			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
-			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-			<p><b><a name="address-massemail">How do I email multiple people (Mass Email)?</a></b></p>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="settings-theme">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I change my theme?</b></p>
+			<ol>
+				<li>Click on the <a href="settings.php">My Settings</a> link in the top right hand corner of the site.</li>
+				<li>Choose your theme from the drop down menu.</li>
+				<li>Scroll down to the bottom of the Settings page and click the Submit button.</li>
+				<li>Click continue and your theme will automatically be applied to the site.</li>
+			</ol>
+			<p>&nbsp;</p>
+			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="settings-password">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I change my password?</b></p>
+			<ol>
+				<li>Click on the <a href="settings.php">My Settings</a> link in the top right hand corner of the site.</li>
+				<li>Type in your new password.</li>
+				<li>Click the Submit button.</li>
+			</ol>
+			<p>&nbsp;</p>
+			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="address-massemail">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I email multiple people (Mass Email)?</b></p>
 			<ol>
 				<li>Check the checkboxes to the right of the email addresses of the members you want to email.</li>
 				<li>Click the <b>Email</b> button at the bottom right hand corner of the address book.</li>
@@ -152,8 +178,8 @@ header("Cache-control: private"); ?>
 			</ol>
 			<p>&nbsp;</p>
 			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
-			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-			<p><b><a name="adm-access">Member Access Levels</a></b></p>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="adm-access">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>Member Access Levels</b></p>
 			<p>Family Connections has ten different member access levels.  These levels are meant to limit the amount of access each family member has to the website.</p>
 			<ol>
 				<li><b>Admin</b> - this is the access level given to the account that was setup during the installation of FCMS. This is the only level that has the ability to change other members access levels. This level can add, update and delete all information on the site.</li>
@@ -192,11 +218,6 @@ header("Cache-control: private"); ?>
 			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
 		</div><!-- .centercontent -->
 	</div><!-- #content -->
-	<div id="footer">
-		<p>
-			<a href="http://www.haudenschilt.com/fcms/" class="ft"><?php echo $LANG['link_home']; ?></a> | <a href="http://www.haudenschilt.com/forum/index.php" class="ft"><?php echo $LANG['link_support']; ?></a> | <a href="help.php" class="ft"><?php echo $LANG['link_help']; ?></a><br />
-			<a href="http://www.haudenschilt.com/fcms/"><?php echo $stgs_release; ?></a> - Copyright &copy; 2006/07 Ryan Haudenschilt.  
-		</p>
-	</div>
+	<?php displayFooter(); ?>
 </body>
 </html>

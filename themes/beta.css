@@ -376,7 +376,7 @@ a.email {
 	width: 500px;
 	text-align: right;
 }
-.comment_block {
+.gal_menu, .comment_block {
 	margin: 0 auto 15px auto;
 	padding: 3px;
 	width: 450px;

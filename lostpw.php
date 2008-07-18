@@ -7,7 +7,7 @@ include_once('inc/language.php');
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head>
-<title><?php echo $cfg_sitename . " - " . $LANG['poweredby'] . " " . $stgs_release; ?></title>
+<title><?php echo getSiteName() . " - " . $LANG['poweredby'] . " " . getCurrentVersion(); ?></title>
 <link rel="stylesheet" type="text/css" href="themes/login.css" />
 </head>
 <body onload="document.resetform.email.focus()">
@@ -33,17 +33,17 @@ include_once('inc/language.php');
 			}
 			$new_pass = md5($pass);
 			$sql = mysql_query("UPDATE fcms_users SET password='$new_pass' WHERE email='$email'") or die("<h1>New Password Error (lostpw.php 51)</h1>" . mysql_error());
-			$subject = "$cfg_sitename ".$LANG['pw_reset']; 
-			$message = $LANG['lost_pw_msg1']." $cfg_sitename ".$LANG['lost_pw_msg2']." 
+			$subject = getSiteName()." ".$LANG['pw_reset']; 
+			$message = $LANG['lost_pw_msg1']." ".getSiteName()." ".$LANG['lost_pw_msg2']." 
 
 ".$LANG['lost_pw_msg3'].": $pass 
 
 ".$LANG['lost_pw_msg4']." 
-".$LANG['lost_pw_msg5']." $cfg_sitename ".$LANG['lost_pw_msg6']."
+".$LANG['lost_pw_msg5']." ".getSiteName()." ".$LANG['lost_pw_msg6']."
 
 ".$LANG['lost_pw_msg7']; 
 
-			mail($email, $subject, $message);
+			mail($email, $subject, $message, $email_headers);
 			echo "<p>".$LANG['pw_sent']."</p><p><a href=\"index.php\">".$LANG['continue']."</a></p>";
 		}
 	} else { displayForm(); } ?>

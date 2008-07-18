@@ -22,8 +22,6 @@ class Calendar {
 					if ($r['created_by'] == $this->cur_user_id) { $days[] = $r['day']; }
 				} else { $days[] = $r['day']; }
 			}
-		} else {
-			$days[] = $r['day'];
 		}
 		return $days;
 	}
@@ -101,7 +99,7 @@ class Calendar {
 					echo "<div class=\"events\">";
 					echo date('d', strtotime($row['date']));
 					if (!empty($row['desc'])) {
-						$desc = "<dfn title=\"".htmlentities($row['desc'])."\">".$row['title']."</dfn>";
+						$desc = "<dfn title=\"".htmlentities($row['desc'], ENT_COMPAT, 'UTF-8')."\">".$row['title']."</dfn>";
 					} else {
 						$desc = $row['title'];
 					}
@@ -162,9 +160,9 @@ class Calendar {
 			}
 			if ($show) {
 				if (checkAccess($this->cur_user_id) < 2 || $this->cur_user_id == $row['created_by']) {
-					echo "<p>- <a title=\"".htmlentities($row['desc'])."\" href=\"?edit=".$row['id']."\">".$row['title']."</a></p>";
+					echo "<p>- <a title=\"".htmlentities($row['desc'], ENT_COMPAT, 'UTF-8')."\" href=\"?edit=".$row['id']."\">".$row['title']."</a></p>";
 				} else {
-					echo "<p>- <span title=\"".htmlentities($row['desc'])."\">".$row['title']."</span></p>";
+					echo "<p>- <span title=\"".htmlentities($row['desc'], ENT_COMPAT, 'UTF-8')."\">".$row['title']."</span></p>";
 				}
 			}
 		}
@@ -191,10 +189,10 @@ class Calendar {
 				echo "<script src=\"inc/prototype.js\" type=\"text/javascript\"></script>\n\t\t\t<script type=\"text/javascript\" src=\"inc/livevalidation.js\"></script><br/>\n\t\t\t";
 				echo "<form id=\"frm\" method=\"post\" action=\"calendar.php\">\n\t\t\t\t";
 				echo "<div class=\"field-row clearfix\"><div class=\"field-label\"><label for=\"title\"><b>".$LANG['title']."</b></label>:</div><div class=\"field-widget\"><span><input type=\"text\" class=\"required\" id=\"title\" name=\"title\" size=\"40\"";
-				if ($type == 'edit') { echo " value=\"" . htmlentities($row['title'])  . "\""; } echo "/></span></div></div>\n\t\t\t\t";
+				if ($type == 'edit') { echo " value=\"" . htmlentities($row['title'], ENT_COMPAT, 'UTF-8')  . "\""; } echo "/></span></div></div>\n\t\t\t\t";
 				echo "<script type=\"text/javascript\">\n\t\t\t\t\tvar ftitle = new LiveValidation('title', { validMessage: \"".$LANG['lv_thanks']."\", wait: 500});\n\t\t\t\t\tftitle.add(Validate.Presence, {failureMessage: \"".$LANG['lv_sorry_req']."\"});\n\t\t\t\t</script>\n\t\t\t\t";
 				echo "<div class=\"field-row clearfix\"><div class=\"field-label\"><label for=\"desc\"><b>".$LANG['desc']."</b></label>:</div><div class=\"field-widget\"><span><input type=\"text\" id=\"desc\" name=\"desc\" size=\"50\"";
-				if ($type == 'edit') { echo " value=\"" . htmlentities($row['desc']) . "\""; } echo "/></span></div></div>\n\t\t\t\t";
+				if ($type == 'edit') { echo " value=\"" . htmlentities($row['desc'], ENT_COMPAT, 'UTF-8') . "\""; } echo "/></span></div></div>\n\t\t\t\t";
 				echo "<div class=\"field-row clearfix\"><div class=\"field-label\"><label for=\"sday\"><b>".$LANG['sdate']."</b></label>:</div><div class=\"field-widget\"><select id=\"sday\" name=\"sday\">";
 				$d = 1;
 				while($d <= 31) {
