@@ -73,7 +73,8 @@ $poll = new Poll('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_
 		if (isset($_GET['action'])) {
 			if ($_GET['action'] == "results") {
 				$poll_id = $_GET['poll_id'] ? $_GET['poll_id'] : $_POST['poll_id'];
-				$poll->displayResults($poll_id);
+				// Santizing user input - poll_id - only allow digits 0-9
+				if (preg_match('/^\d+$/', $poll_id)) { $poll->displayResults($poll_id); }
 			} elseif ($_GET['action'] == "pastpolls") {
 				$poll->displayPastPolls();
 			}
@@ -100,21 +101,26 @@ $poll = new Poll('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_
 				include_once('inc/familynews_class.php');
 				include_once('inc/gallery_class.php');
 				include_once('inc/prayers_class.php');
+				include_once('inc/recipes_class.php');
 				$mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 				$book = new AddressBook($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 				$news = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 				$gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 				$prayers = new Prayers($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+				$recs = new Recipes($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 				echo "<div class=\"half\">\n";
 				$today = date('Y-m-d');
 				$tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
 				$mboard->displayWhatsNewMessageBoard();
 				$book->displayWhatsNewAddressBook();
-				if($cfg_use_news == 'YES') {
+				if (usingFamilyNews()) {
 					$news->displayWhatsNewFamilyNews();
 				}
-				if($cfg_use_prayers == 'YES') {
+				if (usingPrayers()) {
 					$prayers->displayWhatsNewPrayers();
+				}
+				if (usingRecipes()) {
+					$recs->displayWhatsNewRecipes();
 				}
 				echo "\t\t\t</div>\n\t\t\t<div class=\"half\">\n";
 				$gallery->displayWhatsNewGallery();

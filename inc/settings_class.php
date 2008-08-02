@@ -141,7 +141,7 @@ class Settings {
 			$y++;
 		} 
 		echo "</select></div></div>\n";
-		echo "<h2 class=\"bg\">".$LANG['login_info']."</h2><div class=\"field-row clearfix\"><div class=\"field-label\"><label for=\"uname\"><b>Username</b></label>:</div><div class=\"field-widget\"><span><input disabled=\"disabled\" type=\"text\" name=\"uname\" size=\"50\" id=\"uname\" value=\"" . $row['username'] . "\"/></span></div></div>\n";
+		echo "<h2 class=\"bg\">".$LANG['login_info']."</h2><div class=\"field-row clearfix\"><div class=\"field-label\"><label for=\"uname\"><b>".$LANG['username']."</b></label>:</div><div class=\"field-widget\"><span><input disabled=\"disabled\" type=\"text\" name=\"uname\" size=\"50\" id=\"uname\" value=\"" . $row['username'] . "\"/></span></div></div>\n";
 		echo "<div class=\"field-row clearfix\"><div class=\"field-label\"><label for=\"pass\"><b>".$LANG['password']."</b></label>:</div><div class=\"field-widget\"><span><input type=\"password\" name=\"pass\" size=\"50\" id=\"pass\"/></span><br/><small>(".$LANG['password_desc'].")</small></div></div>\n";
 		echo "<p><input type=\"submit\" name=\"submit\" value=\"".$LANG['submit']."\"/></p></form>\n";
 	}

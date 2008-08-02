@@ -20,7 +20,7 @@ class AddressBook {
 	function displayToolbar () {
 		global $LANG;
 		if (checkAccess($_SESSION['login_id']) <= 5) {
-			echo "<p><a class=\"add_address\" href=\"?add=yes\">".$LANG['add_address']."</a> | <small><a href=\"?csv=export\" onclick=\"javascript:return confirm('".$LANG['js_sure_export']."');\">".$LANG['export']."</a></small></p>\n\t\t\t";
+			echo "<div class=\"clearfix\"><a class=\"link_block add_address\" href=\"?add=yes\">".$LANG['add_address']."</a><a class=\"link_block export\" href=\"?csv=export\" onclick=\"javascript:return confirm('".$LANG['js_sure_export']."');\">".$LANG['export']."</a></div>\n\t\t\t";
 		}
 		echo "<p class=\"center addresstoolbar\"><a class=\"u\" href=\"addressbook.php\">".$LANG['show_all']."</a> ";
 		$this->db->query("SELECT `lname` FROM `fcms_users` AS u, `fcms_address` as a WHERE u.`id` = a.`user` AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' ORDER BY `lname`") or die("<h1>Address Letter Error (addressbook.class.php 21)</h1>" . mysql_error());

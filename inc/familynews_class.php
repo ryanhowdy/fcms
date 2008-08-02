@@ -34,10 +34,10 @@ class FamilyNews {
 			$displayname = getUserDisplayName($usersnews);
 			echo "<h2><a href=\"?getnews=$usersnews&amp;newsid=".$row['id']."\">".$row['title']."</a>";
 			if ($_SESSION['login_id'] == $usersnews || checkAccess($_SESSION['login_id']) < 2) {
-				echo " &nbsp;<form class=\"frm_inline\" method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"hidden\" name=\"title\" value=\"".htmlentities($row['title'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"news\" value=\"".htmlentities($row['news'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"submit\" name=\"editnews\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_news']."\"/></div></form>";
+				echo " &nbsp;<form class=\"frm_line\" method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"hidden\" name=\"title\" value=\"".htmlentities($row['title'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"news\" value=\"".htmlentities($row['news'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"submit\" name=\"editnews\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_news']."\"/></div></form>";
 			}
 			if (checkAccess($_SESSION['login_id']) < 2) {
-				echo " &nbsp;<form class=\"frm_inline\" method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"delnews\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_delete_news']."\" onclick=\"javascript:return confirm('".$LANG['js_delete_news']."');\"/></div></form>";
+				echo " &nbsp;<form class=\"frm_line\" method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"delnews\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_delete_news']."\" onclick=\"javascript:return confirm('".$LANG['js_delete_news']."');\"/></div></form>";
 			}
 			echo "</h2><b>".$LANG[$monthName]." $date</b><span> - $displayname</span><p>";
 			if ($id <= 0) {

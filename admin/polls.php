@@ -114,7 +114,7 @@ $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_d
 					$result = mysql_query("SELECT * FROM fcms_polls ORDER BY `started` DESC") or die('<h1>Get Poll Error (admin/polls.php 122)</h1>' . mysql_error());
 					while($r = mysql_fetch_array($result)) {
 						echo "<a href=\"?page=admin_polls&amp;editpoll=" . $r['id'] . "\">" . $r['question'] . "</a> - " . $r['started'];
-						echo " <form class=\"formline\" action=\"polls.php\" method=\"post\"><div><input type=\"submit\" name=\"delsubmit\" class=\"delbtn\" value=\" \" onclick=\"javascript:return confirm('".$LANG['js_delete_poll']."'); \"/><input type=\"hidden\" name=\"pollid\" value=\"" . $r['id'] . "\"/></div></form><br/>";
+						echo " <form class=\"frm_line\" action=\"polls.php\" method=\"post\"><div><input type=\"submit\" name=\"delsubmit\" class=\"delbtn\" value=\" \" onclick=\"javascript:return confirm('".$LANG['js_delete_poll']."'); \"/><input type=\"hidden\" name=\"pollid\" value=\"" . $r['id'] . "\"/></div></form><br/>";
 					}
 				}
 			}

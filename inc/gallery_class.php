@@ -23,10 +23,10 @@ class PhotoGallery {
 
 	function displayGalleryMenu ($uid = '0') {
 		global $LANG;
-		echo "\t\t\t<div class=\"gal_menu\">\n\t\t\t\t<p class=\"center\"><a href=\"index.php\">".$LANG['gallery_home']."</a> | <a href=\"?view=member\">".$LANG['member_gal']."</a> |";
-		echo " <a href=\"?view=toprated&amp;u=$uid\">".$LANG['top_rated']."</a> | <a href=\"?view=views&amp;u=$uid\">".$LANG['most_viewed']."</a></p>\n";
-		if (checkAccess($this->cur_user_id) <= 3 || checkAccess($this->cur_user_id) == 8 || checkAccess($cur_user_id) == 5) {
-			echo "\t\t\t\t<p class=\"center\"><b>".$LANG['actions'].": </b><a href=\"?action=upload\">".$LANG['upload_photos']."</a> | <a href=\"?action=category\">".$LANG['create_edit_cat']."</a></p>\n";
+		echo "\t\t\t<div class=\"gal_menu\">\n\t\t\t\t<div class=\"clearfix\"><a class=\"link_block home\" href=\"index.php\">".$LANG['gallery_home']."</a> <a class=\"link_block member\" href=\"?view=member\">".$LANG['member_gal']."</a> ";
+		echo "<a class=\"link_block rated\" href=\"?view=toprated&amp;u=$uid\">".$LANG['top_rated']."</a> <a class=\"link_block viewed\" href=\"?view=views&amp;u=$uid\">".$LANG['most_viewed']."</a></div>\n";
+		if (checkAccess($this->cur_user_id) <= 3 || checkAccess($this->cur_user_id) == 8 || checkAccess($this->cur_user_id) == 5) {
+			echo "\t\t\t\t<div class=\"clearfix\"><b>".$LANG['actions'].": </b><a class=\"link_block_sub\" href=\"?action=upload\">".$LANG['upload_photos']."</a> <a class=\"link_block_sub\" href=\"?action=category\">".$LANG['create_edit_cat']."</a></div>\n";
 		}
 		echo "\t\t\t</div>\n";
 	}
@@ -247,7 +247,7 @@ class PhotoGallery {
 				echo "<p class=\"center\"><a href=\"?uid=$uid&amp;cid=$cid&amp;pid=$prev_pid\"><<</a> ".$LANG['photo']." "; echo $cur+1; echo " ".$LANG['of']." $total_photos <a href=\"?uid=$uid&amp;cid=$cid&amp;pid=$next_pid\">>></a></p>";
 			}
 			if($this->cur_user_id == $photo['user'] || checkAccess($this->cur_user_id) < 2) {
-				echo "<div class=\"edit_del_photo\"><form action=\"index.php\" method=\"post\"><div><input type=\"hidden\" name=\"photo\" id=\"photo\" value=\"$pid\"/>".$LANG['edit']." <input type=\"submit\" name=\"editphoto\" id=\"editphoto\" value=\" \" class=\"gal_editbtn\" /></div></form>&nbsp;&nbsp;<form action=\"index.php\" method=\"post\"><div><input type=\"hidden\" name=\"photo\" id=\"photo\" value=\"$pid\"/>".$LANG['delete']." <input type=\"submit\" name=\"deletephoto\" id=\"addcom\" value=\" \" class=\"gal_delbtn\" onclick=\"javascript:return confirm('".$LANG['js_del_photo']."'); \"/></div></form></div>";
+				echo "<div class=\"edit_del_photo\"><form class=\"frm_line\" action=\"index.php\" method=\"post\"><div><input type=\"hidden\" name=\"photo\" id=\"photo\" value=\"$pid\"/>".$LANG['edit']." <input type=\"submit\" name=\"editphoto\" id=\"editphoto\" value=\" \" class=\"gal_editbtn\" /></div></form>&nbsp;&nbsp;<form class=\"frm_line\" action=\"index.php\" method=\"post\"><div><input type=\"hidden\" name=\"photo\" id=\"photo\" value=\"$pid\"/>".$LANG['delete']." <input type=\"submit\" name=\"deletephoto\" id=\"addcom\" value=\" \" class=\"gal_delbtn\" onclick=\"javascript:return confirm('".$LANG['js_del_photo']."'); \"/></div></form></div>";
 			}
 			echo "<p class=\"center\"><a href=\"photos/member" . $photo['user'] . "/" . $photo['filename'] . "\"><img class=\"photo\" src=\"photos/member" . $photo['user'] . "/" . $photo['filename'] . "\" alt=\"".htmlentities($photo['caption'], ENT_COMPAT, 'UTF-8')."\" /></a></p><div class=\"comment_block\"><p class=\"center\">".htmlentities($photo['caption'], ENT_COMPAT, 'UTF-8')."</p></div>";
 			if ($photo['votes'] <= 0) { $rating = 0; $width = 0; } else { $rating = ($photo['rating'] / $photo['votes']) * 100; $width = $rating / 5; }
@@ -445,8 +445,8 @@ class PhotoGallery {
 		$this->db->query("SELECT * FROM fcms_gallery_category WHERE user=" . $this->cur_user_id) or die('<h1>Category Error (gallery.class.php 413)</h1>' . mysql_error());
 		if ($this->db->count_rows() > 0) {
 			while ($row = $this->db->get_row()) {
-				echo "<li><form action=\"index.php?action=category\" method=\"post\"><input type=\"text\" name=\"cat_name\" id=\"cat_name\" size=\"60\" value=\"".htmlentities($row['name'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"cid\" id=\"cid\" value=\"" . $row['id'] . "\"/> &nbsp;<input type=\"submit\" name=\"editcat\" class=\"editbtn\" value=\" \"/></form> &nbsp;";
-				echo "<form action=\"index.php?action=category\" method=\"post\"><input type=\"hidden\" name=\"cid\" id=\"cid\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"delcat\" class=\"delbtn\" value=\" \" onclick=\"javascript:return confirm('".$LANG['js_del_cat']."'); \"/></form></li>\n\t\t";
+				echo "<li><form class=\"frm_line\" action=\"index.php?action=category\" method=\"post\"><input type=\"text\" name=\"cat_name\" id=\"cat_name\" size=\"60\" value=\"".htmlentities($row['name'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"cid\" id=\"cid\" value=\"" . $row['id'] . "\"/> &nbsp;<input type=\"submit\" name=\"editcat\" class=\"editbtn\" value=\" \"/></form> &nbsp;";
+				echo "<form class=\"frm_line\" action=\"index.php?action=category\" method=\"post\"><input type=\"hidden\" name=\"cid\" id=\"cid\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"delcat\" class=\"delbtn\" value=\" \" onclick=\"javascript:return confirm('".$LANG['js_del_cat']."'); \"/></form></li>\n\t\t";
 			}
 		} else {
 			echo "<li><i>".$LANG['no_cats']."</i></li>";

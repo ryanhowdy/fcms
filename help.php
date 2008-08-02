@@ -66,6 +66,8 @@ header("Cache-control: private"); ?>
 			<p>&nbsp;</p>
 			<h4>Administration</h4>
 			<p><a href="#adm-access">Member Access Levels</a></p>
+			<p><a href="#adm-sections-add">How do I add an optional section?</a></p>
+			<p><a href="#adm-sections-nav">How do I change the site navigation?</a></p>
 			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="gallery-howworks">&nbsp;</a></p><p>&nbsp;</p>
 			<p><b>How does the Photo Gallery work?</b></p>
 			<p>
@@ -215,6 +217,25 @@ header("Cache-control: private"); ?>
 			<p>* Can add/edit/delete all members information<br/>^ Has limited access to Administration</p>
 			<p>&nbsp;</p>
 			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="adm-sections-add">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I add an optional section?</b></p>
+			<p>Family Connections has three optional sections: Family News, Prayer Concerns and Recipes.  In order to use these sections you must first add them to the site (some sections may have been previously added during installation).  Adding an optional section, allows that section to be used in the <a href="#adm-sections-nav">site navigation</a>.</p>
+			<p>To add an optional section:</p>
+			<ol>
+				<li>Click the <a href="admin/config.php">Configuration</a> link on the Administration sub menu.</li>
+				<li>Expand the <u>Sections</u> by clicking the <b>Show/Hide</b> link.</li>
+				<li>Click the <b>Add</b> link beside the section you want to add.</li>
+			</ol>
+			<p>Note: If a section has been previously added it will say "Already Added" beside the section.</p>
+			<p>&nbsp;</p>
+			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
+			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p><a name="adm-sections-nav">&nbsp;</a></p><p>&nbsp;</p>
+			<p><b>How do I change the site navigation?</b></p>
+			<p>You can only change the navigation position of a few of the sections.  They are:  Family News, Prayer Concerns, Recipes and Calendar.  The navigation is broken down into two parts, (1) the Top Navigation and the (2) the Side Navigation.  The Top Navigation can hold links for up to 6 sections.</p>
+			<p>To change a </p>
+			<p>&nbsp;</p>
+			<div class="top"><a href="#top"><?php echo $LANG['back_top']; ?></a></div>
+			
 			<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
 		</div><!-- .centercontent -->
 	</div><!-- #content -->

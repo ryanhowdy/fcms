@@ -36,8 +36,8 @@ header("Cache-control: private");
 if (isset($_GET['csv'])) {
 	$show = false;
 	if ($_GET['csv'] == 'export') {
-		$csv = "address, city, state, zip, home, work, cell\015\012";
-		$result = mysql_query("SELECT `address`, `city`, `state`, `zip`, `home`, `work`, `cell` FROM `fcms_address`");
+		$csv = "lname, fname, address, city, state, zip, home, work, cell\015\012";
+		$result = mysql_query("SELECT `lname`, `fname`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell` FROM `fcms_address` AS a, `fcms_users` AS u WHERE a.`user` = u.`id` ORDER BY `lname`, `fname`");
 		while ($row = mysql_fetch_assoc($result)) {
 			$csv .= '"'.join('","', str_replace('"', '""', $row))."\"\015\012";
 		}
@@ -138,9 +138,12 @@ if (isset($_GET['csv'])) {
 				}
 			}
 			if (isset($_GET['address'])) {
-				$book->displayToolbar();
-				$book->displayAddress($_GET['address']);
-				$show = false;
+				// Santizing user input - address - only allow digits 0-9
+				if (preg_match('/^\d+$/', $_GET['address'])) {
+					$book->displayToolbar();
+					$book->displayAddress($_GET['address']);
+					$show = false;
+				}
 			}
 			if ($show) {
 				$book->displayToolbar();

@@ -57,7 +57,6 @@ $mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg
 		<div id="messageboard" class="centercontent">
 			<?php
 			$show_threads = true;
-			// Submit A New Post
 			if (isset($_POST['post_submit'])) {
 				$show_threads = false;
 				$subject = addslashes($_POST['subject']);
@@ -72,7 +71,6 @@ $mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg
 				mysql_query("INSERT INTO `fcms_board_posts`(`date`, `thread`, `user`, `post`) VALUES (NOW(), $new_thread_id, " . $_SESSION['login_id'] . ", '$post')") or die("<h1>New Post Error (messageboard.php 68)</h1>" . mysql_error());
 				echo "<meta http-equiv='refresh' content='0;URL=messageboard.php?thread=" . $new_thread_id . "'>";
 			}
-			// Submit A Reply to A Post
 			if (isset($_POST['reply_submit'])) {
 				$show_threads = false;
 				$post = addslashes($_POST['post']);
@@ -81,7 +79,6 @@ $mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg
 				mysql_query("INSERT INTO `fcms_board_posts`(`date`, `thread`, `user`, `post`) VALUES (NOW(), $thread_id, " . $_SESSION['login_id'] . ", '$post')") or die("<h1>New Post Error (messageboard.php 76)</h1>" . mysql_error());
 				echo "<meta http-equiv='refresh' content='0;URL=messageboard.php?thread=" . $thread_id . "'>";
 			}
-			// Submit Editing A Post
 			if (isset($_POST['edit_submit'])) {
 				$show_threads = false;
 				$id = $_POST['id'];
@@ -97,7 +94,6 @@ $mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg
 				mysql_query("UPDATE fcms_board_posts SET post='$post' WHERE id=$id") or die("<h1>Edit Post Error (messageboard.php 91)</h1>" . mysql_error());
 				echo "<meta http-equiv='refresh' content='0;URL=messageboard.php?thread=" . $thread_id . "'>";
 			}
-			// Deleting a Post
 			if (isset($_POST['delpost'])) {
 				$show_threads = false;
 				$id = $_POST['id'];
@@ -127,7 +123,6 @@ $mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg
 					echo "<meta http-equiv='refresh' content='0;URL=messageboard.php?thread=" . $thread . "'>";
 				}
 			}
-			// Displaying the Post you want to Edit
 			if (isset($_POST['editpost'])) {
 				$show_threads = false;
 				$id = $_POST['id'];
@@ -138,7 +133,6 @@ $mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg
 				}
 				$mboard->displayForm('edit', $thread_id, $id, $post);
 			}
-			// Showing a Thread of Posts
 			if (isset($_GET['thread'])) {
 				$show_threads = false;
 				$page = 1;
@@ -156,7 +150,6 @@ $mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg
 					}
 				}
 			}
-			// Display the Thread List
 			if ($show_threads) {
 				$page = 1;
 				if (isset($_GET['page'])) { $page = $_GET['page']; }

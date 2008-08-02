@@ -278,8 +278,28 @@ function upgrade ($version) {
 		mysql_query($sql) or die("</p><p style=\"color:red\">".mysql_error()."</p>");
 		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
 	}
+	/*
+	 * FCMS 1.6
+	 * Update Config.
+	 */
+	echo "<p>Upgrading FCMS config again...";
+	$result = mysql_query("SHOW COLUMNS FROM `fcms_config`") or die("</p><p style=\"color:red\">".$LANG['not_search_fields']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r[Field] == 'nav_side1') { $config_fixed = true; }
+		}
+	}
+	if ($config_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+		mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top1` `nav_top1` TINYINT(1) NOT NULL DEFAULT '1' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top2` `nav_top2` TINYINT(1) NOT NULL DEFAULT '2' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_config` ADD `nav_side1` TINYINT(1) NOT NULL DEFAULT '3' AFTER `nav_side1`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_config` ADD `nav_side2` TINYINT(1) NOT NULL DEFAULT '0' AFTER `nav_side2`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
+	}
 
-	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.5'");
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.6'");
 	echo "<p style=\"color:green\">Upgrade is finished.</p>";
 }
 ?>

@@ -300,5 +300,65 @@ class Admin {
 		}
 	}
 
+	function displayAdminConfig () {
+		global $LANG, $cfg_mysql_db;
+		//SITENAME and CONTACT
+		echo "<form action=\"config.php\" method=\"post\">\n\t\t\t\t<fieldset><legend>".$LANG['site_info']."</legend>\n";
+		echo "<div style=\"text-align:right\"><a href=\"#\" onclick=\"$('site_info').toggle(); return false\">".$LANG['show_hide']."</a></div><div id=\"site_info\" style=\"display:none;\">";
+		echo "\t\t\t\t<div class=\"field-row clearfix\"><div class=\"field-label\"><label for=\"sitename\">".$LANG['site_name'].":</label></div><div class=\"field-widget\"><input type=\"text\" name=\"sitename\" size=\"50\"/></div></div>\n";
+		echo "\t\t\t\t<div class=\"field-row clearfix\"><div class=\"field-label\"><label for=\"contact\">".$LANG['contact'].":</label></div><div class=\"field-widget\"><input type=\"text\" name=\"contact\" size=\"50\"/></div></div>\n";
+		echo "\t\t\t\t<p><input type=\"submit\" name=\"submit-sitename\" value=\"Save\"/></p></div>\n\t\t\t\t</fieldset>\n\t\t\t</form>\n\t\t\t";
+		//SECTIONS
+		$this->db->query("SHOW TABLES FROM `$cfg_mysql_db`") or die('<h1>Show Tables Error (admin_class.php 304)</h1>' . mysql_error());
+		$recipes_exists = false; $news_exists = false; $prayers_exists = false;
+		if ($this->db->count_rows() > 0) {
+			while($r = $this->db->get_row()) {
+				if ($r[0] == 'fcms_recipes') { $recipes_exists = true; }
+				if ($r[0] == 'fcms_news') { $news_exists = true; }
+				if ($r[0] == 'fcms_prayers') { $prayers_exists = true; }
+			}
+		}
+		$this->db->query("SELECT `nav_top1`, `nav_top2`, `nav_side1`, `nav_side2` FROM `fcms_config`") or die("<h1>Get Nav Error (admin_class.php 313)</h1>" . mysql_error());
+		$r = $this->db->get_row();
+		echo "<form action=\"config.php\" method=\"post\">\n\t\t\t\t<fieldset><legend>".$LANG['sections']."</legend>\n";
+		echo "<div style=\"text-align:right\"><a href=\"#\" onclick=\"$('sections').toggle(); return false\">".$LANG['show_hide']."</a></div><div id=\"sections\" style=\"display:none;\">";
+		echo "\t\t\t\t<div style=\"width: 90%; text-align: right;\"><a class=\"help\" href=\"../help.php#adm-sections-add\">Help</a></div>\n\t\t\t\t<h3>".$LANG['opt_sections']."</h3>\n";
+		echo "\t\t\t\t<div class=\"cfg-sections clearfix\"><span class=\"newnews\">".$LANG['link_news']."</span>";
+		if (!$news_exists) { echo "<a class=\"add\" href=\"?addsection=news\">".$LANG['add']."</a>"; } else { echo "<small>".$LANG['already_added']."</small>"; }
+		echo "</div>\n\t\t\t\t<div class=\"cfg-sections clearfix\"><span class=\"newprayer\">".$LANG['link_prayer']."</span>";
+		if (!$prayers_exists) { echo "<a class=\"add\" href=\"?addsection=prayers\">".$LANG['add']."</a>"; } else { echo "<small>".$LANG['already_added']."</small>"; }
+		echo "</div>\n\t\t\t\t<div class=\"cfg-sections clearfix\"><span class=\"newrecipe\">".$LANG['link_recipes']."</span>";
+		if (!$recipes_exists) { echo "<a class=\"add\" href=\"?addsection=recipes\">".$LANG['add']."</a>"; } else { echo "<small>".$LANG['already_added']."</small>"; }
+		echo "</div><p>&nbsp;</p>\n\t\t\t\t<div style=\"width: 90%; text-align: right;\"><a class=\"help\" href=\"../help.php#adm-sections-nav\">Help</a></div>\n\t\t\t\t<h3>".$LANG['navigation']."</h3>\n";
+		$i = 0;
+		while ($i < 4) {
+			echo "\t\t\t\t<div class=\"field-row clearfix\"><div class=\"field-label\"><label for=\"";
+			switch ($i) {
+				case 0: echo "nav_top1\">".$LANG['top_nav1'].":</label></div><div class=\"field-widget\"><select name=\"nav_top1"; break;
+				case 1: echo "nav_top2\">".$LANG['top_nav2'].":</label></div><div class=\"field-widget\"><select name=\"nav_top2"; break;
+				case 2: echo "nav_side1\">".$LANG['side_nav1'].":</label></div><div class=\"field-widget\"><select name=\"nav_side1"; break;
+				case 3: echo "nav_side2\">".$LANG['side_nav2'].":</label></div><div class=\"field-widget\"><select name=\"nav_side2"; break;
+			}
+			echo "\"><option value=\"0\">".$LANG['none']."</option>";
+			if (tableExists('fcms_news') && tableExists('fcms_news_comments')) {
+				echo "<option value=\"1\""; if ($r[$i] == 1) { echo " selected=\"selected\""; }
+				echo ">".$LANG['link_news']."</option>";
+			}
+			if (tableExists('fcms_prayers')) {
+				echo "<option value=\"2\""; if ($r[$i] == 2) { echo " selected=\"selected\""; }
+				echo ">".$LANG['link_prayer']."</option>";
+			}
+			echo "<option value=\"3\""; if ($r[$i] == 3) { echo " selected=\"selected\""; }
+			echo ">".$LANG['link_calendar']."</option>";
+			if (tableExists('fcms_recipes')) {
+				echo "<option value=\"4\""; if ($r[$i] == 4) { echo " selected=\"selected\""; }
+				echo ">".$LANG['link_recipes']."</option>";
+			}
+			echo "</select></div></div>\n";
+			$i++;
+		}
+		echo "\t\t\t\t<p><input type=\"submit\" name=\"submit-sections\" value=\"Save\"/></p></div>\n\t\t\t\t</fieldset>\n\t\t\t</form>\n\t\t\t";
+	}
+
 
 } ?>

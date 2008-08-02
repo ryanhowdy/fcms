@@ -1,5 +1,5 @@
 <!--
-Family Connections - a family oriented CMS -- http://www.haudenschilt.com/fcms/
+Family Connections - a family oriented CMS - http://www.haudenschilt.com/fcms/
 
 Copyright (C) 2007 Ryan Haudenschilt
 
@@ -103,13 +103,55 @@ if (isset($_POST['submit1'])) {
 		mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 		mysql_select_db($cfg_mysql_db);
 		mysql_query("TRUNCATE TABLE `fcms_config`") or die(mysql_error());
-		$sql = "INSERT INTO `fcms_config` (`sitename`, `contact`, `nav_top1`, `nav_top2`, `current_version`) VALUES ('".addslashes($_POST['sitename'])."', '".addslashes($_POST['contact'])."', ";
+		$sql = "INSERT INTO `fcms_config` (`sitename`, `contact`, `nav_top1`, `nav_top2`, `nav_side1`, `nav_side2`, `current_version`) VALUES ('".addslashes($_POST['sitename'])."', '".addslashes($_POST['contact'])."', ";
+		$pray = false; $cal = false; $rec = false;
+		// nav_top1
 		if(isset($_POST['sections-news'])) {
-			if(isset($_POST['sections-prayers'])) { $sql .= "'familynews', 'prayers', "; } else { $sql .= "'familynews', 'none', "; }
-		} else { 
-			if(isset($_POST['sections-prayers'])) { $sql .= "'none', 'prayers', "; } else { $sql .= "'none', 'none', "; }
+			$sql .= "1, ";
+		} else {
+			if (isset($_POST['sections-prayers'])) {
+				$sql .= "2, ";
+				$pray = true;
+			} else {
+				if (isset($_POST['sections-recipes'])) {
+					$sql .= "4, ";
+					$rec = true;
+				} else {
+					$sql .= "3, ";
+					$cal = true;
+				}
+			}
 		}
-		$sql .= "'Family Connections 1.5')";
+		// nav_top2
+		if (isset($_POST['sections-prayers']) && !$pray) {
+			$sql .= "2, ";
+		} else {
+			if (isset($_POST['sections-recipes']) && !$rec) {
+				$sql .= "4, ";
+				$rec = true;
+			} elseif (!$cal) {
+				$sql .= "3, ";
+				$cal = true;
+			} else {
+				$sql .= "0, ";
+			}
+		}
+		// nav_side1
+		if (isset($_POST['sections-recipes']) && !$rec) {
+			$sql .= "4, ";
+		} elseif (!$cal) {
+			$sql .= "3, ";
+			$cal = true;
+		} else {
+			$sql .= "0, ";
+		}
+		// nav_side2
+		if (!$cal) {
+			$sql .= "3, ";
+		} else {
+			$sql .= "0, ";
+		}
+		$sql .= "'Family Connections 1.6')";
 		mysql_query($sql) or die(mysql_error());
 		displayStepFive();
 	}
@@ -117,6 +159,7 @@ if (isset($_POST['submit1'])) {
 	if (!isset($_POST['username']) || !isset($_POST['password']) || !isset($_POST['fname']) || !isset($_POST['lname']) || !isset($_POST['email'])) {
 		displayStepFive("<p class=\"error\">".$LANG['err_required']."</p>");
 	} else {
+		$birthday = $_POST['year'] . "-" . str_pad($_POST['month'], 2, "0", STR_PAD_LEFT) . "-" . str_pad($_POST['day'], 2, "0", STR_PAD_LEFT);
 		setupDatabase($_POST['fname'], $_POST['lname'], $_POST['email'], $birthday, $_POST['username'], $_POST['password'], $_POST['address'], $_POST['city'], $_POST['state'], $_POST['zip'], $_POST['home'], $_POST['work'], $_POST['cell']);
 	}
 } else {
@@ -229,7 +272,7 @@ function displayStepThree () {
 			mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Connection made, but database could not be found!</b></p>" . mysql_error());
 			echo "<h3 style=\"color:#0c0\">Awesome!</h3><div>A connection was successfully made to the database.  Please proceed to the next step.</div>";
 			mysql_query("DROP TABLE IF EXISTS `fcms_config`") or die("<h1>Error</h1><p><b>Could not drop `fcms_config` table.</b></p>" . mysql_error());
-			mysql_query("CREATE TABLE `fcms_config` (`sitename` varchar(50) NOT NULL DEFAULT 'My Site', `contact` varchar(50) NOT NULL DEFAULT 'nobody@yoursite.com', `nav_top1` set('familynews','prayers','none') NOT NULL default 'familynews', `nav_top2` set('familynews','prayers','none') NOT NULL default 'prayers', `current_version` varchar(50) NOT NULL DEFAULT 'Family Connections') ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
+			mysql_query("CREATE TABLE `fcms_config` (`sitename` varchar(50) NOT NULL DEFAULT 'My Site', `contact` varchar(50) NOT NULL DEFAULT 'nobody@yoursite.com', `nav_top1` TINYINT(1) NOT NULL default '1', `nav_top2` TINYINT(1) NOT NULL default '2', `nav_side1` TINYINT(1) NOT NULL default '3', `nav_side2` TINYINT(1) NOT NULL default '3', `current_version` varchar(50) NOT NULL DEFAULT 'Family Connections') ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
 		} ?>
 		<p style="text-align:right;"><input id="submit" name="submit3" type="submit"  value="<?php echo $LANG['next']; ?> >>"/></p>
 	</div>
@@ -264,7 +307,8 @@ function displayStepFour ($error = '0') {
 			<input type="checkbox" checked="checked" disabled="disabled" name="sections-book" id="sections-book" value="" /><?php echo $LANG['link_address']; ?> <span class="error">(<?php echo $LANG['required']; ?>)</span><br />
 			<input type="checkbox" checked="checked" disabled="disabled" name="sections-calendar" id="sections-calendar" value="" /><?php echo $LANG['link_calendar']; ?> <span class="error">(<?php echo $LANG['required']; ?>)</span><br />
 			<input type="checkbox" name="sections-news" id="sections-news" value="familynews" /><?php echo $LANG['link_news']; ?><br/>
-			<input type="checkbox" name="sections-prayers" id="sections-prayers" value="prayerconcerns" /><?php echo $LANG['link_prayer']; ?>
+			<input type="checkbox" name="sections-prayers" id="sections-prayers" value="prayerconcerns" /><?php echo $LANG['link_prayer']; ?><br/>
+			<input type="checkbox" name="sections-recipes" id="sections-recipes" value="recipes" /><?php echo $LANG['link_recipes']; ?>
 		</div></div>
 		<p><?php echo $LANG['sections_desc']; ?></p>
 		<p style="text-align:right;"><input id="submit" name="submit4" type="submit"  value="<?php echo $LANG['next']; ?> >>"/></p>
@@ -390,6 +434,7 @@ function setupDatabase ($fname, $lname, $email, $birthday, $username, $password,
 		mysql_query("DROP TABLE IF EXISTS `fcms_prayers`") or die("<h1>Error</h1><p><b>Could not drop `fcms_prayers` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_board_posts`") or die("<h1>Error</h1><p><b>Could not drop `fcms_board_posts` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_board_threads`") or die("<h1>Error</h1><p><b>Could not drop `fcms_board_threads` table.</b></p>" . mysql_error());
+		mysql_query("DROP TABLE IF EXISTS `fcms_recipes`") or die("<h1>Error</h1><p><b>Could not drop `fcms_recipes` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_user_awards`") or die("<h1>Error</h1><p><b>Could not drop `fcms_user_awards` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_users`") or die("<h1>Error</h1><p><b>Could not drop `fcms_users` table.</b></p>" . mysql_error());
 		mysql_query("SET NAMES utf8") or die("<h1>Error</h1><p><b>Could not set encoding</b></p>" . mysql_error());
@@ -431,6 +476,10 @@ function setupDatabase ($fname, $lname, $email, $birthday, $username, $password,
 		mysql_query("ALTER TABLE `fcms_board_posts` ADD CONSTRAINT `fcms_posts_ibfk_1` FOREIGN KEY (`thread`) REFERENCES `fcms_board_threads` (`id`) ON DELETE CASCADE, ADD CONSTRAINT `fcms_posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
 		mysql_query("INSERT INTO `fcms_board_posts` (`id`, `date`, `thread`, `user`, `post`) VALUES (NULL, NOW(), 1, 1, '".$LANG['welcome_post']."')") or die(mysql_error());
 		mysql_query("CREATE TABLE `fcms_user_awards` (`id` int(11) NOT NULL auto_increment, `user` int(11) NOT NULL default '0', `type` varchar(20) NOT NULL default '0', `value` smallint(4) NOT NULL default '0', `count` smallint(4) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `user` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
+		if (usingRecipes()) {
+			mysql_query("CREATE TABLE `fcms_recipes` (`id` INT(11) NOT NULL AUTO_INCREMENT, `category` VARCHAR(50) NOT NULL, `name` VARCHAR(50) NOT NULL DEFAULT 'My Recipe', `recipe` TEXT NOT NULL, `user` INT(11) NOT NULL, `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
+			mysql_query("ALTER TABLE `fcms_recipes` ADD CONSTRAINT `fcms_recipes_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
+		}
 		mysql_query("ALTER TABLE `fcms_user_awards` ADD CONSTRAINT `fcms_user_awards_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
 		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (1, 1, 'top5poster', 1, 0)") or die(mysql_error());
 		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (2, 1, 'top5poster', 2, 0)") or die(mysql_error());

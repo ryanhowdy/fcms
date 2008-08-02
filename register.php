@@ -172,7 +172,7 @@ function displayForm ($error = '0') {
 			$m = 1;
 			while ($m <= 12) {
 				if ($month == $m) { echo "<option value=\"$m\" selected=\"selected\">" . date('M', mktime(0, 0, 0, $m, 1, 2006)) . "</option>"; }
-				else { echo "<option value=\"$m\">" . date('M', mktime(0, 0, 0, $m, 1, 2006)) . "</option>"; }
+				else { echo "<option value=\"$m\">" . $LANG[date('M', mktime(0, 0, 0, $m, 1, 2006))] . "</option>"; }
 				$m++;
 			}
 			echo '</select><select name="year">';

@@ -1,7 +1,7 @@
 <?php
 /*
- * Family Connections 1.4 -- English (United States)
- * Updated: 9 June 2008  
+ * Family Connections 1.6 -- English (United States)
+ * Updated: 1 July 2008  
  * Translator: Ryan Haudenschilt
  *
  * To create a new language file, copy this file and replace the 
@@ -27,6 +27,7 @@ $LANG = array(
 	'link_address' =>		'Address Book',
 	'link_news' =>			'Family News',
 	'link_prayer' =>		'Prayer Concerns',
+	'link_recipes' =>		'Recipes',
 	'link_calendar' =>		'Calendar',
 	'link_settings' =>		'My Settings',
 	'link_profiles' =>		'Member Profiles',
@@ -35,6 +36,7 @@ $LANG = array(
 	'link_logout' =>		'Logout',
 	'link_support' =>		'Support Forum',
 	'link_help' =>			'Help',
+	'link_admin_config' =>		'Configuration',
 	'link_admin_members' =>		'Members',
 	'link_admin_board' =>		'Message Board',
 	'link_admin_polls' =>		'Polls',
@@ -219,6 +221,8 @@ $LANG = array(
 	'new_news1' =>			'has added',
 	'new_news2' =>			'to his/her Family News.',
 	'added_concern' =>		'has added a Prayer Concern for',
+	'added_recipe1' =>		'has added the',
+	'added_recipe2' =>		'recipe.',
 	'added_photos1' =>		'has added',
 	'added_photos2' =>		'new photos to the',
 	'added_photos3' =>		'category.',
@@ -403,6 +407,41 @@ $LANG = array(
 	'info_prayers3' =>			'How do I add a Prayer Concern?',
 	'info_prayers4' =>			'If you would like to add a new prayer concern, simply click the',
 	'info_prayers5' =>			'link in the top right hand corner of this page.',
+
+	// Recipes
+
+	'add_recipe' =>				'Add a new Recipe',
+	'edit_recipe' =>			'Edit Recipe',
+	'del_recipe' =>				'Delete this Recipe',
+	'js_del_recipe' =>			'Are you sure you want to DELETE this Recipe?',
+	'latest_recipe' =>			'Latest Recipe',
+	'recipe_name' =>			'Recipe Name',
+	'recipe_cat' =>				'Recipe Category',
+	'recipe_cats' =>			'Recipe Categories',
+	'appetizer' =>				'Appetizer',
+	'breakfast' =>				'Breakfast',
+	'dessert' =>				'Dessert',
+	'entree_meat' =>			'Entree (Meat)',
+	'entree_seafood' =>			'Entree (Seafood)',
+	'entree_veg' =>				'Entree (Vegetarian)',
+	'salad' =>					'Salad',
+	'side_dish' =>				'Side Dish',
+	'soup' =>					'Soup',
+	'ok_recipe_add' =>			'Recipe Added Successfully.',
+	'ok_recipe_edit' =>			'Recipe Updated Successfully.',
+	'ok_recipe_del' =>			'Recipe Deleted Successfully.',
+	'info_recipes1' =>			'Welcome to the Recipes section!',
+	'info_recipes2' =>			'Currently no one has added any delicious recipes yet.',
+	'info_recipes3' =>			'How do I add a Recipe?',
+	'info_recipes4' =>			'If you would like to add a new recipe, simply click the',
+	'info_recipes5' =>			'link in the top right hand corner of this page.',
+	'err_no_cat' =>				'The Category you are trying to view does not exist!',
+	'err_no_recipes1' =>		'The Bad News',
+	'err_no_recipes2' =>		'No recipes have been added for this category.',
+	'err_no_recipes3' =>		'The Good News',
+	'err_no_recipes4' =>		'You could be the first one to add a recipe, simply click the',
+	'err_no_recipes5' =>		'link and begin adding your favorite recipe or',
+	'err_no_recipes6' =>		'return to the Recipe home page',
 
 	// Calendar 
 
@@ -618,6 +657,14 @@ $LANG = array(
 
 	// Administration
 
+	'admin_config' =>			'Administration: Configuration',
+	'sections' =>				'Sections',
+	'opt_sections' =>			'Optional Sections',
+	'already_added' =>			'Already Added',
+	'top_nav1' =>				'Top Navigation 1',
+	'top_nav2' =>				'Top Navigation 2',
+	'side_nav1' =>				'Side Navigation 1',
+	'side_nav2' =>				'Side Navigation 2',
 	'err_no_access1' =>			'You do not have access to view this page.',
 	'err_no_access3' =>			'contact',
 	'err_no_access4' =>			'your website\'s administrator if you feel you should have access to this page.',
@@ -687,6 +734,7 @@ $LANG = array(
 	'not_update_user' =>		'Could not update user data.  FCMS could not be upgraded.',
 	'no_changes' =>				'No changes needed.',
 	'complete' =>				'Complete.',
+	'show_hide' =>				'Show/Hide +-',
 
 	// LiveValidation
 

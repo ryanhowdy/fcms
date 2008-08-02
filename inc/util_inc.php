@@ -40,12 +40,22 @@ function displayTopNav ($d = "") {
 	global $cfg_use_news, $cfg_use_prayers, $LANG;
 	if (!empty($d)) { $d = "../"; }
 	echo '<div id="topmenu"><ul id="navlist"><li><span><a class="firstlastnavmenu" href="' . $d . 'home.php">'.$LANG['link_home'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'gallery/index.php">'.$LANG['link_gallery'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'messageboard.php">'.$LANG['link_board'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'addressbook.php">'.$LANG['link_address'].'</a></span></li>';
-	if (usingFamilyNews() && usingPrayers()) {
-		echo '<li><span><a class="navmenu" href="' . $d . 'familynews.php">'.$LANG['link_news'].'</a></span></li><li><span><a class="firstlastnavmenu" href="' . $d . 'prayers.php">'.$LANG['link_prayer'].'</a></span></li>';
-	} else {
-		if (usingFamilyNews()) { echo '<li><span><a class="navmenu" href="' . $d . 'familynews.php">'.$LANG['link_news'].'</a></span></li><li><span><a class="firstlastnavmenu" href="#">&nbsp;</a></span></li>'; }
-		elseif (usingPrayers()) { echo '<li><span><a class="navmenu" href="' . $d . 'prayers.php">'.$LANG['link_prayer'].'</a></span></li><li><span><a class="firstlastnavmenu" href="#">&nbsp;</a></span></li>'; }
-		else { echo '<li><span><a class="navmenu" href="#">&nbsp;</a></span></li><li><span><a class="firstlastnavmenu" href="#">&nbsp;</a></span></li>'; }
+	$result = mysql_query("SELECT `nav_top1`, `nav_top2` FROM `fcms_config`");
+	$r = mysql_fetch_array($result);
+	// 0 = none, 1 = familynews, 2 = prayer concerns, 3 = calendar, 4 = recipes, 5 = book/moview review
+	switch ($r['nav_top1']) {
+		case 1: echo '<li><span><a class="navmenu" href="' . $d . 'familynews.php">'.$LANG['link_news'].'</a></span></li>'; break;
+		case 2: echo '<li><span><a class="navmenu" href="' . $d . 'prayers.php">'.$LANG['link_prayer'].'</a></span></li>'; break;
+		case 3: echo '<li><span><a class="navmenu" href="' . $d . 'calendar.php">'.$LANG['link_calendar'].'</a></span></li>'; break;
+		case 4: echo '<li><span><a class="navmenu" href="' . $d . 'recipes.php">'.$LANG['link_recipes'].'</a></span></li>'; break;
+		default: echo '<li><span><a class="navmenu" href="#">&nbsp;</a></span></li>'; break;
+	}
+	switch ($r['nav_top2']) {
+		case 1: echo '<li><span><a class="firstlastnavmenu" href="' . $d . 'familynews.php">'.$LANG['link_news'].'</a></span></li>'; break;
+		case 2: echo '<li><span><a class="firstlastnavmenu" href="' . $d . 'prayers.php">'.$LANG['link_prayer'].'</a></span></li>'; break;
+		case 3: echo '<li><span><a class="firstlastnavmenu" href="' . $d . 'calendar.php">'.$LANG['link_calendar'].'</a></span></li>'; break;
+		case 4: echo '<li><span><a class="firstlastnavmenu" href="' . $d . 'recipes.php">'.$LANG['link_recipes'].'</a></span></li>'; break;
+		default: echo '<li><span><a class="firstlastnavmenu" href="#">&nbsp;</a></span></li>'; break;
 	}
 	echo "</ul></div>";
 }
@@ -53,7 +63,21 @@ function displaySideNav ($d = "") {
 	global $LANG;
 	if (!empty($d)) { $d = "../"; }
 	echo "<div class=\"firstmenu menu\">\n\t\t\t<ul>\n\t\t\t\t";
-	echo "<li><a href=\"".$d."calendar.php\" title=\"".$LANG['link_title_calendar']."\">".$LANG['link_calendar']."</a></li>\n\t\t\t\t";
+	$result = mysql_query("SELECT `nav_side1`, `nav_side2` FROM `fcms_config`");
+	$r = mysql_fetch_array($result);
+	// 0 = none, 1 = familynews, 2 = prayer concerns, 3 = calendar, 4 = recipes, 5 = book/moview review
+	switch ($r['nav_side1']) {
+		case 1: echo "<li><a href=\"".$d."familynews.php\">".$LANG['link_news']."</a></li>\n\t\t\t\t"; break;
+		case 2: echo "<li><a href=\"".$d."prayers.php\">".$LANG['link_prayer']."</a></li>\n\t\t\t\t"; break;
+		case 3: echo "<li><a href=\"".$d."calendar.php\" title=\"".$LANG['link_title_calendar']."\">".$LANG['link_calendar']."</a></li>\n\t\t\t\t"; break;
+		case 4: echo "<li><a href=\"".$d."recipes.php\">".$LANG['link_recipes']."</a></li>\n\t\t\t\t"; break;
+	}
+	switch ($r['nav_side2']) {
+		case 1: echo "<li><a href=\"".$d."familynews.php\">".$LANG['link_news']."</a></li>\n\t\t\t\t"; break;
+		case 2: echo "<li><a href=\"".$d."prayers.php\">".$LANG['link_prayer']."</a></li>\n\t\t\t\t"; break;
+		case 3: echo "<li><a href=\"".$d."calendar.php\" title=\"".$LANG['link_title_calendar']."\">".$LANG['link_calendar']."</a></li>\n\t\t\t\t"; break;
+		case 4: echo "<li><a href=\"".$d."recipes.php\">".$LANG['link_recipes']."</a></li>\n\t\t\t\t"; break;
+	}
 	echo "<li><a href=\"".$d."profile.php\" title=\"".$LANG['link_title_profiles']."\">".$LANG['link_profiles']."</a></li>\n\t\t\t\t";
 	echo "<li><a href=\"".$d."contact.php\" title=\"".$LANG['link_title_contact']."\">".$LANG['link_contact']."</a></li>\n\t\t\t\t";
 	echo "<li><a href=\"".$d."help.php\" title=\"".$LANG['link_get_help']."\">".$LANG['link_get_help']."</a></li>\n\t\t\t\t";
@@ -63,6 +87,7 @@ function displayAdminNav ($d = "") {
 	global $LANG;
 	if ($d == 'fix') { $d = "admin/"; } elseif ($d == 'fixgal') { $d = "../admin/"; }
 	echo "\t<div class=\"menu\">\n\t\t\t<ul>\n";
+	if (checkAccess($_SESSION['login_id']) < 2) { echo "\t\t\t\t<li><a href=\"".$d."config.php\">".$LANG['link_admin_config']."</a></li>\n"; }
 	if (checkAccess($_SESSION['login_id']) < 2) { echo "\t\t\t\t<li><a href=\"".$d."members.php\">".$LANG['link_admin_members']."</a></li>\n"; }
 	if (checkAccess($_SESSION['login_id']) < 2) { echo "\t\t\t\t<li><a href=\"".$d."board.php\">".$LANG['link_admin_board']."</a></li>\n"; }
 	echo "\t\t\t\t<li><a href=\"".$d."polls.php\">".$LANG['link_admin_polls']."</a></li>\n";
@@ -382,26 +407,41 @@ function fixDST ($date, $userid, $format = 'F j, Y, g:i a') {
 		return date($format, strtotime($date));
 	}
 }
+/*
+ *  To find out which optional sections are being used:
+ *  1 = familynews, 2 = prayer concerns, 3 = calendar, 4 = recipes, 5 = book/moview review
+ */
 function usingFamilyNews() {
-	$result = mysql_query("SELECT `nav_top1`, `nav_top2` FROM `fcms_config`");
+	return usingSection(1);
+}
+function usingPrayers() {
+	return usingSection(2);
+}
+function usingRecipes() {
+	return usingSection(4);
+}
+function usingSection ($i) {
+	$result = mysql_query("SELECT `nav_top1`, `nav_top2`, `nav_side1`, `nav_side2` FROM `fcms_config`");
 	$r = mysql_fetch_array($result);
-	if ($r['nav_top1'] == 'familynews') {
+	if ($r['nav_top1'] == $i) {
 		return true;
-	} else if ($r['nav_top2'] == 'familynews') {
+	} else if ($r['nav_top2'] == $i) {
+		return true;
+	} else if ($r['nav_side1'] == $i) {
+		return true;
+	} else if ($r['nav_side2'] == $i) {
 		return true;
 	} else {
 		return false;
 	}
 }
-function usingPrayers() {
-	$result = mysql_query("SELECT `nav_top1`, `nav_top2` FROM `fcms_config`");
-	$r = mysql_fetch_array($result);
-	if ($r['nav_top1'] == 'prayers') {
-		return true;
-	} else if ($r['nav_top2'] == 'prayers') {
-		return true;
-	} else {
+function tableExists ($tbl) {
+	global $cfg_mysql_db;
+	$table = mysql_query("SHOW TABLES FROM `$cfg_mysql_db` LIKE '".$tbl."'");
+	if (mysql_fetch_row($table) === false) {
 		return false;
+	} else {
+		return true ;
 	}
 }
 function displayWhatsNewAll($userid) {
@@ -415,6 +455,7 @@ function displayWhatsNewAll($userid) {
 		. "UNION SELECT a.`id`, `updated` AS 'date', 0 AS title, `user` AS userid, `entered_by` AS id2, 0 AS id3, 'ADDRESS' AS type FROM `fcms_users` AS u, `fcms_address` AS a WHERE u.`id` = a.`user` AND 'date' >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) ";
 	if (usingFamilyNews()) { $sql .= "UNION SELECT n.`id` AS id, n.`date`, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type FROM `fcms_users` AS u, `fcms_news` AS n WHERE u.`id` = n.`user` AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' "; }
 	if (usingPrayers()) { $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type FROM `fcms_prayers` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) "; }
+	if (usingRecipes()) { $sql .= "UNION SELECT `id` AS id, `date`, `name` AS title, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type FROM `fcms_recipes` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) "; }
 	$sql .= "UNION SELECT DISTINCT p.`category` AS id, `date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(`date`) AS id3, 'GALLERY' AS type FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_gallery_category` AS c WHERE p.`user` = u.`id` AND p.`category` = c.`id` AND 'date' >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) GROUP BY userid, title, id3 ";
 	if (usingFamilyNews()) { $sql .= "UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)  AND nc.`user` = u.`id` AND n.`id` = nc.`news` "; }
 	$sql .= "UNION SELECT p.`id`, gc.`date`, `comment` AS title, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND gc.`user` = u.`id` AND gc.`photo` = p.`id` ";
@@ -483,6 +524,22 @@ function displayWhatsNewAll($userid) {
 			echo "\t\t\t<p class=\"newprayer\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
 			echo getUserDisplayName($r['userid']);
 			echo "</a> ".$LANG['added_concern']." <a href=\"prayers.php\">".$r['title']."</a>. <small><i>$rdate</i></small></p>\n";
+		} elseif ($r['type'] == 'RECIPES') {
+			switch ($r['id2']) {
+				case $LANG['appetizer']: $url = "recipes.php?category=1&amp;id=".$r['id']; break;
+				case $LANG['breakfast']: $url = "recipes.php?category=2&amp;id=".$r['id']; break;
+				case $LANG['dessert']: $url = "recipes.php?category=3&amp;id=".$r['id']; break;
+				case $LANG['entree_meat']: $url = "recipes.php?category=4&amp;id=".$r['id']; break;
+				case $LANG['entree_seafood']: $url = "recipes.php?category=5&amp;id=".$r['id']; break;
+				case $LANG['entree_veg']: $url = "recipes.php?category=6&amp;id=".$r['id']; break;
+				case $LANG['salad']: $url = "recipes.php?category=7&amp;id=".$r['id']; break;
+				case $LANG['side_dish']: $url = "recipes.php?category=8&amp;id=".$r['id']; break;
+				case $LANG['soup']: $url = "recipes.php?category=9&amp;id=".$r['id']; break;
+				default: $url = "recipes.php"; break;
+			}
+			echo "\t\t\t<p class=\"newrecipe\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
+			echo getUserDisplayName($r['userid']);
+			echo "</a> ".$LANG['added_recipe1']." <a href=\"$url\">".$r['title']."</a> ".$LANG['added_recipe2']." <small><i>$rdate</i></small></p>\n";
 		} elseif ($r['type'] == 'GALLERY') {
 			echo "\t\t\t<p class=\"newphoto\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
 			echo getUserDisplayName($r['userid']);

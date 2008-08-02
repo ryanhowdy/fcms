@@ -81,7 +81,7 @@ $img_dir = opendir("../gallery/upimages");
 while ($file = readdir($img_dir)) { $images_in_dir[] = $file; }
 natcasesort($images_in_dir);
 reset($images_in_dir);
-$i = 0; $total_size = 0;
+$i = 0;  $total_size = 0;
 foreach ($images_in_dir as $file) {
 	$img_name_arr = explode(".", $file);
 	$img_type = end($img_name_arr);

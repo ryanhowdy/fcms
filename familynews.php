@@ -68,9 +68,9 @@ $fnews = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_my
 		<div id="familynews" class="centercontent">
 			<?php 
 			if (checkAccess($_SESSION['login_id']) < 6 || checkAccess($_SESSION['login_id']) == 9) {
-				echo "\t\t\t<p class=\"center\">";
-				if ($fnews->hasNews($_SESSION['login_id'])) { echo "<a href=\"?getnews=".$_SESSION['login_id']."\">".$LANG['my_news']."</a> | "; }
-				echo "<a href=\"?addnews=yes\">".$LANG['add_news']."</a></p>\n";
+				echo "\t\t\t<div class=\"clearfix\">";
+				if ($fnews->hasNews($_SESSION['login_id'])) { echo "<a class=\"link_block news\" href=\"?getnews=".$_SESSION['login_id']."\">".$LANG['my_news']."</a> "; }
+				echo "<a class=\"link_block add\" href=\"?addnews=yes\">".$LANG['add_news']."</a></div>\n";
 			}
 			$show_last5 = true;
 			if(isset($_POST['submitadd'])) {
@@ -90,10 +90,15 @@ $fnews = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_my
 			}
 			if (isset($_GET['getnews'])) {
 				$show_last5 = false;
-				$page = 1;
-				$nid = 0;
-				if (isset($_GET['newspage'])) { $page = $_GET['newspage']; }
-				if (isset($_GET['newsid'])) { $nid = $_GET['newsid']; }
+				$page = 1; $nid = 0;
+				if (isset($_GET['newspage'])) { 
+					// Santizing user input - newspage - only allow digits 0-9
+					if (preg_match('/^\d+$/', $_GET['newspage'])) { $page = $_GET['newspage']; }
+				}
+				if (isset($_GET['newsid'])) {
+					// Santizing user input - newsid - only allow digits 0-9
+					if (preg_match('/^\d+$/', $_GET['newsid'])) { $nid = $_GET['newsid']; }
+				}
 				if (isset($_POST['addcom'])) {
 					$com = ltrim($_POST['comment']);
 					if (!empty($com)) {
@@ -103,7 +108,10 @@ $fnews = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_my
 				if (isset($_POST['delcom'])) {
 					mysql_query("DELETE FROM fcms_news_comments WHERE id=" . $_POST['id']) or die('<h1>Delete Error (familynews.php 118)</h1>' . mysql_error());
 				}
-				$fnews->showFamilyNews($_GET['getnews'], $nid, $page);
+				// Santizing user input - getnews - only allow digits 0-9
+				if (preg_match('/^\d+$/', $_GET['getnews'])) {
+					$fnews->showFamilyNews($_GET['getnews'], $nid, $page);
+				}
 			}
 			if (isset($_GET['addnews']) && (checkAccess($_SESSION['login_id']) < 6 || checkAccess($_SESSION['login_id']) == 9)) { 
 				$show_last5 = false;

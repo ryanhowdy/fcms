@@ -1,5 +1,5 @@
 
-FAMILY CONNECTIONS 1.5
+FAMILY CONNECTIONS 1.6
 ........................
 
   Keep your family "Connected" with this content management system (CMS) designed 
@@ -11,7 +11,7 @@ FAMILY CONNECTIONS 1.5
 
 I. Installation
 
-  1. Upload the entire contents of FCMS_1.5.zip to your web host.
+  1. Upload the entire contents of FCMS_1.6.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -29,25 +29,58 @@ I. Installation
 
 
 
-II. Upgrading from 1.4 to 1.5
+II. Upgrading from 1.5 to 1.6
 
-  1. Delete all files except for the files in the following directories:
+  1. Replace the following files on your web host.
 
-    gallery/avatar/
-    gallery/photos/
-    gallery/upimages/
+    admin/config.php
+    admin/polls.php
+    admin/upgrade.php
+    inc/addressbook_class.php
+    inc/admin_class.php
+    inc/familynews_class.php
+    inc/gallery_class.php
+    inc/language.php
+    inc/messageboard_class.php
+    inc/prayers_class.php
+    inc/recipes_class.php
+    inc/settings_class.php
+    inc/util_inc.php
+    themes/alpha.css
+    themes/beta.css
+    themes/default.css
+    themes/images/default/export.gif
+    themes/images/default/home.gif
+    themes/images/default/new_recipe.gif
+    themes/images/default/top_rated.gif
+    addressbook.php
+    familynews.php
+    help.php
+    home.php
+    install.php
+    messageboard.php
+    prayers.php
+    recipes.php
+    register.php
 
-  2. Upload the entire contents of FCMS_1.5.zip except for the files and 
-     directories listed in step #1 above.
+  2. Run the upgrade.php script.
 
-  3. Login as the administrator and visit the upgrade section and run the
-     upgrade script.
-
-  4. Delete the install.php files from your web host.
+  3. Delete the install.php files from your web host.
 
 
 
 III. Change Log
+
+ 1.6
+  - fixed "Guest can't access Photo Gallery" bug id 2031350 
+  - fixed "Notice: Undefined variable: birthday" bug id 2028203 
+  - fixed "Multiple SQL Injection Vulnerabilities" bug id 2019933 
+  - fixed "Language File defects" bug id 2020728 
+  - added "New optional Recipes section" feature request id 1782730
+  - added "Admin: Configuration" feature request id 2007820
+  - added "Themes: CSS Cleanup" feature request id 2014385 
+  - added "Change default member settings" feature request id 1992905 
+
 
  1.5
   - fixed "Sitename: special characters" bug id 1991922 

@@ -30,10 +30,10 @@ class Prayers {
 				$displayname = getUserDisplayName($r['user']);
 				echo "\t\t\t<hr/><div><h4>".$LANG[$monthName]." $date";
 					if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {
-						echo " &nbsp;<form class=\"frm_inline\" method=\"post\" action=\"prayers.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"hidden\" name=\"for\" value=\"".htmlentities($r['for'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"desc\" value=\"".htmlentities($r['desc'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"submit\" name=\"editprayer\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_prayer']."\"/></div></form>";
+						echo " &nbsp;<form class=\"frm_line\" method=\"post\" action=\"prayers.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"hidden\" name=\"for\" value=\"".htmlentities($r['for'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"desc\" value=\"".htmlentities($r['desc'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"submit\" name=\"editprayer\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_prayer']."\"/></div></form>";
 					}
 					if (checkAccess($_SESSION['login_id']) < 2) {
-						echo " &nbsp;<form class=\"frm_inline\" method=\"post\" action=\"prayers.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"submit\" name=\"delprayer\" value=\" \" class=\"delbtn\" title=\"Delete this Prayer Concern.\" onclick=\"javascript:return confirm('Are you sure you want to DELETE this Prayer Concern?');\"/></div></form>";
+						echo " &nbsp;<form class=\"frm_line\" method=\"post\" action=\"prayers.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"submit\" name=\"delprayer\" value=\" \" class=\"delbtn\" title=\"Delete this Prayer Concern.\" onclick=\"javascript:return confirm('Are you sure you want to DELETE this Prayer Concern?');\"/></div></form>";
 					}
 				echo "</h4><b><a href=\"profile.php?member=" . $r['id'] . "\">$displayname</a> ".$LANG['asks_pray']."...</b><br/>&nbsp;&nbsp;&nbsp;&nbsp;".$r['for']."<br/><br/><b>".$LANG['because']."...</b><br/>&nbsp;&nbsp;&nbsp;&nbsp;";
 				parse($r['desc']);

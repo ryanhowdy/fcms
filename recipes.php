@@ -28,8 +28,8 @@ if (isset($_SESSION['login_id'])) {
 	exit();
 }
 header("Cache-control: private");
-include_once('inc/prayers_class.php');
-$prayers = new Prayers($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+include_once('inc/recipes_class.php');
+$rec = new Recipes($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
@@ -41,11 +41,11 @@ $prayers = new Prayers($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mys
 <link rel="shortcut icon" href="themes/images/favicon.ico"/>
 <script src="inc/prototype.js" type="text/javascript"></script>
 </head>
-<body id="body-prayers">
+<body id="body-recipe">
 	<div><a name="top"></a></div>
-	<div id="header"><?php echo "<h1 id=\"logo\">$cfg_sitename</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
+	<div id="header"><?php echo "<h1 id=\"logo\">".getSiteName()."</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
 	<?php displayTopNav(); ?>
-	<div id="pagetitle"><?php echo $LANG['link_prayer']; ?></div>
+	<div id="pagetitle"><?php echo $LANG['link_recipes']; ?></div>
 	<div id="leftcolumn">
 		<h2><?php echo $LANG['navigation']; ?></h2>
 		<?php
@@ -55,45 +55,55 @@ $prayers = new Prayers($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mys
 			displayAdminNav("fix");
 		} ?></div>
 	<div id="content">
-		<div id="prayers" class="centercontent">
+		<div id="recipe" class="centercontent">
 			<?php
 			$show = true;
 			if (isset($_POST['submitadd'])) {
-				$for = addslashes($_POST['for']);
-				$desc = addslashes($_POST['desc']);
-				mysql_query("INSERT INTO `fcms_prayers`(`for`, `desc`, `user`, `date`) VALUES('$for', '$desc', " . $_SESSION['login_id'] . ", NOW())") or die("<h1>New Prayer Error (prayers.php 69)</h1>" . mysql_error());
-				echo "<p class=\"ok-alert\" id=\"add\">".$LANG['ok_pray_add']."</p>";
+				$name = addslashes($_POST['name']);
+				$recipe = addslashes($_POST['post']);
+				mysql_query("INSERT INTO `fcms_recipes`(`name`, `category`, `recipe`, `user`, `date`) VALUES('$name', '".$_POST['category']."', '$recipe', " . $_SESSION['login_id'] . ", NOW())") or die("<h1>New Recipe Error (recipes.php 62)</h1>" . mysql_error());
+				echo "<p class=\"ok-alert\" id=\"add\">".$LANG['ok_recipe_add']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('add').toggle()\",3000); }</script>";
 			} 
 			if (isset($_POST['submitedit'])) {
-				$for = addslashes($_POST['for']);
-				$desc = addslashes($_POST['desc']);
-				mysql_query("UPDATE `fcms_prayers` SET `for` = '$for', `desc` = '$desc' WHERE `id` = " . $_POST['id']) or die("<h1>Edit Prayer Error (prayers.php 69)</h1>" . mysql_error());
-				echo "<p class=\"ok-alert\" id=\"edit\">".$LANG['ok_pray_edit']."</p>";
+				$name = addslashes($_POST['name']);
+				$recipe = addslashes($_POST['post']);
+				mysql_query("UPDATE `fcms_recipes` SET `name` = '$name', `category` = '".$_POST['category']."', `recipe` = '$recipe' WHERE `id` = " . $_POST['id']) or die("<h1>Edit Recipe Error (recipes.php 68)</h1>" . mysql_error());
+				echo "<p class=\"ok-alert\" id=\"edit\">".$LANG['ok_recipe_edit']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('edit').toggle()\",3000); }</script>";
 			}
-			if (isset($_POST['delprayer'])) {
-				mysql_query("DELETE FROM `fcms_prayers` WHERE id = " . $_POST['id']) or die("<h1>Delete Prayers Error (prayers.php 83)</h1>" . mysql_error());
-				echo "<p class=\"ok-alert\" id=\"del\">".$LANG['ok_pray_del']."</p>";
+			if (isset($_POST['delrecipe'])) {
+				mysql_query("DELETE FROM `fcms_recipes` WHERE id = " . $_POST['id']) or die("<h1>Delete Recipe Error (recipes.php 73)</h1>" . mysql_error());
+				echo "<p class=\"ok-alert\" id=\"del\">".$LANG['ok_recipe_del']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('del').toggle()\",2000); }</script>";
 			}
-			if (isset($_GET['addconcern']) && checkAccess($_SESSION['login_id']) <= 5) {
+			if (isset($_GET['addrecipe']) && checkAccess($_SESSION['login_id']) <= 5) {
 				$show = false;
-				$prayers->displayForm('add');
+				$rec->displayForm('add');
 			}
-			if (isset($_POST['editprayer'])) {
+			if (isset($_POST['editrecipe'])) {
 				$show = false;
-				$prayers->displayForm('edit', $_POST['id'], $_POST['for'], $_POST['desc']);
+				$rec->displayForm('edit', $_POST['id'], $_POST['name'], $_POST['category'], $_POST['post']);
+			}
+			if (isset($_GET['category'])) {
+				$show = false;
+				echo "<div class=\"clearfix\"><a class=\"link_block home\" href=\"recipes.php\">".$LANG['recipe_cats']."</a>";
+				if (checkAccess($_SESSION['login_id']) <= 5) {
+					echo "<a class=\"link_block add\" href=\"?addrecipe=yes\">".$LANG['add_recipe']."</a>";
+				}
+				echo "</div>\n";
+				$page = 1; $id = 0;
+				if (isset($_GET['page'])) { $page = $_GET['page']; }
+				if (isset($_GET['id'])) { $id = $_GET['id']; }
+				$rec->showRecipeInCategory($_GET['category'], $page, $id);
 			}
 			if ($show) {
 				if (checkAccess($_SESSION['login_id']) <= 5) {
-					echo "<div class=\"clearfix\"><a class=\"link_block add\" href=\"?addconcern=yes\">".$LANG['add_prayer']."</a></div>\n";
+					echo "<div class=\"clearfix\"><a class=\"link_block add\" href=\"?addrecipe=yes\">".$LANG['add_recipe']."</a></div>\n";
 				}
-				$page = 1;
-				if (isset($_GET['page'])) { $page = $_GET['page']; }
-				$prayers->showPrayers($page);
+				$rec->showRecipes();
 			} ?>
-		</div><!-- #prayers .centercontent -->
+			</div><!-- #recipe .centercontent -->
 	</div><!-- #content -->
 	<?php displayFooter(); ?>
 </body>
