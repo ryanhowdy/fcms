@@ -1,5 +1,5 @@
 
-FAMILY CONNECTIONS 1.6.2
+FAMILY CONNECTIONS 1.6.3
 ........................
 
   Keep your family "Connected" with this content management system (CMS) designed 
@@ -11,7 +11,7 @@ FAMILY CONNECTIONS 1.6.2
 
 I. Installation
 
-  1. Upload the entire contents of FCMS_1.6.2.zip to your web host.
+  1. Upload the entire contents of FCMS_1.6.3.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -29,13 +29,20 @@ I. Installation
 
 
 
-II. Upgrading from 1.6 or 1.6.1 to 1.6.2
+II. Upgrading from 1.6.2 to 1.6.3
 
   1. Replace the following files on your web host.
 
+    admin/awards.php
+    admin/board.php
+    admin/config.php
     admin/members.php
+    admin/polls.php
     admin/upgrade.php
-    index.php
+    gallery/index.php
+    themes/alpha.css
+    themes/beta.css
+    themes/default.css
     install.php
 
   2. Run the upgrade.php script.
@@ -45,6 +52,12 @@ II. Upgrading from 1.6 or 1.6.1 to 1.6.2
 
 
 III. Change Log
+
+ 1.6.3
+   - fixed "Access Denied page problems" bug id 2046762 
+   - fixed "topmenu displaying offscreen in FF2" bug id 2047877 
+   - fixed "Upgrade to 1.6 code error" bug id 2041620 
+
 
  1.6.2
    - fixed "Upgrade to 1.6 code error" bug id 2041620 

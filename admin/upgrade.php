@@ -5,7 +5,7 @@ include_once('../inc/util_inc.php');
 include_once('../inc/language.php');
 if (isset($_SESSION['login_id'])) {
 	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage();
+		displayLoginPage("fix");
 		exit();
 	}
 } elseif (isset($_COOKIE['fcms_login_id'])) {
@@ -14,11 +14,11 @@ if (isset($_SESSION['login_id'])) {
 		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
 		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
 	} else {
-		displayLoginPage();
+		displayLoginPage("fix");
 		exit();
 	}
 } else {
-	displayLoginPage();
+	displayLoginPage("fix");
 	exit();
 }
 header("Cache-control: private");
@@ -84,7 +84,7 @@ function upgrade ($version) {
 	$user_dst_fixed = false;
 	if (mysql_num_rows($result) > 0) {
 		while($r = mysql_fetch_array($result)) {
-			if ($r[Field] == 'dst') { $user_dst_fixed = true; }
+			if ($r['Field'] == 'dst') { $user_dst_fixed = true; }
 		}
 	}
 	if ($user_dst_fixed) {
@@ -103,7 +103,7 @@ function upgrade ($version) {
 	$user_frontpage_fixed = false;
 	if (mysql_num_rows($result) > 0) {
 		while($r = mysql_fetch_array($result)) {
-			if ($r[Field] == 'frontpage') { $user_frontpage_fixed = true; }
+			if ($r['Field'] == 'frontpage') { $user_frontpage_fixed = true; }
 		}
 	}
 	if ($user_frontpage_fixed) {
@@ -122,7 +122,7 @@ function upgrade ($version) {
 	$cal_private_fixed = false;
 	if (mysql_num_rows($result) > 0) {
 		while($r = mysql_fetch_array($result)) {
-			if ($r[Field] == 'private') { $cal_private_fixed = true; }
+			if ($r['Field'] == 'private') { $cal_private_fixed = true; }
 		}
 	}
 	if ($cal_private_fixed) {
@@ -160,7 +160,7 @@ function upgrade ($version) {
 	$address_user_fixed = false;
 	if (mysql_num_rows($result) > 0) {
 		while($r = mysql_fetch_array($result)) {
-			if ($r[Field] == 'user') { $address_user_fixed = true; }
+			if ($r['Field'] == 'user') { $address_user_fixed = true; }
 		}
 	}
 	if ($address_user_fixed) {
@@ -178,7 +178,7 @@ function upgrade ($version) {
 	$address_user_fixed = false;
 	if (mysql_num_rows($result) > 0) {
 		while($r = mysql_fetch_array($result)) {
-			if ($r[Field] == 'entered_by') { $address_user_fixed = true; }
+			if ($r['Field'] == 'entered_by') { $address_user_fixed = true; }
 		}
 	}
 	if ($address_user_fixed) {
@@ -284,9 +284,10 @@ function upgrade ($version) {
 	 */
 	echo "<p>Upgrading FCMS config again...";
 	$result = mysql_query("SHOW COLUMNS FROM `fcms_config`") or die("</p><p style=\"color:red\">".$LANG['not_search_fields']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$config_fixed = false;
 	if (mysql_num_rows($result) > 0) {
 		while($r = mysql_fetch_array($result)) {
-			if ($r[Field] == 'nav_side1') { $config_fixed = true; }
+			if ($r['Field'] == 'nav_side1') { $config_fixed = true; }
 		}
 	}
 	if ($config_fixed) {
@@ -295,11 +296,11 @@ function upgrade ($version) {
 		mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top1` `nav_top1` TINYINT(1) NOT NULL DEFAULT '1' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
 		mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top2` `nav_top2` TINYINT(1) NOT NULL DEFAULT '2' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
 		mysql_query("ALTER TABLE `fcms_config` ADD `nav_side1` TINYINT(1) NOT NULL DEFAULT '3' AFTER `nav_top2`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-		mysql_query("ALTER TABLE `fcms_config` ADD `nav_side2` TINYINT(1) NOT NULL DEFAULT '0' AFTER `nav_side2`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_config` ADD `nav_side2` TINYINT(1) NOT NULL DEFAULT '0' AFTER `nav_side1`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
 		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
 	}
 
-	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.6.2'");
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.6.3'");
 	echo "<p style=\"color:green\">Upgrade is finished.</p>";
 }
 ?>

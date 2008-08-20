@@ -5,7 +5,7 @@ include_once('../inc/util_inc.php');
 include_once('../inc/language.php');
 if (isset($_SESSION['login_id'])) {
 	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage();
+		displayLoginPage("fix");
 		exit();
 	}
 } elseif (isset($_COOKIE['fcms_login_id'])) {
@@ -14,11 +14,11 @@ if (isset($_SESSION['login_id'])) {
 		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
 		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
 	} else {
-		displayLoginPage();
+		displayLoginPage("fix");
 		exit();
 	}
 } else {
-	displayLoginPage();
+	displayLoginPage("fix");
 	exit();
 }
 header("Cache-control: private");

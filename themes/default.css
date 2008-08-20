@@ -114,6 +114,7 @@ a:hover {
 #header a { color: #fff; }
 #header a:hover { color: #000; }
 #topmenu {
+	clear: left;
 	overflow: hidden;
 	display: inline-block;
 	text-align: center;

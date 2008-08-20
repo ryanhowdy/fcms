@@ -123,6 +123,7 @@ a:hover {
 	color: #999;
 }
 #topmenu {
+	clear: left;
 	overflow: hidden;
 	display: inline-block;
 	text-align: left;

@@ -97,14 +97,11 @@ function displayAdminNav ($d = "") {
 }
 function displayFooter ($d = "") { 
 	global $LANG; 
-	if (!empty($d)) { $d = "../"; } ?>
-	<div id="footer">
-		<p>
-			<a href="http://www.haudenschilt.com/fcms/" class="ft"><?php echo $LANG['link_home']; ?></a> | <a href="http://www.haudenschilt.com/forum/index.php" class="ft"><?php echo $LANG['link_support']; ?></a> | <a href="<?php echo $d; ?>help.php" class="ft"><?php echo $LANG['link_help']; ?></a><br />
-			<a href="http://www.haudenschilt.com/fcms/"><?php echo getCurrentVersion(); ?></a> - Copyright &copy; 2006/07 Ryan Haudenschilt.  
-		</p>
-	</div>
-<?php
+	if (!empty($d)) { $d = "../"; }
+	echo "<div id=\"footer\">\n\t\t<p>\n\t\t\t";
+	echo "<a href=\"" . $d . "index.php\" class=\"ft\">" . $LANG['link_home'] . "</a> | <a href=\"http://www.haudenschilt.com/forum/index.php\" class=\"ft\">";
+	echo $LANG['link_support'] . "</a> | <a href=\"" . $d . "help.php\" class=\"ft\">" . $LANG['link_help'] . "</a><br />\n\t\t\t";
+	echo "<a href=\"http://www.haudenschilt.com/fcms/\">" . getCurrentVersion() . "</a> - Copyright &copy; 2006-2008 Ryan Haudenschilt.\n\t\t</p>\n\t</div>\n";
 }
 function checkAccess ($userid) {
 	$result = mysql_query("SELECT access FROM fcms_users WHERE id = $userid") or die('<h1>Access Error (util.inc.php 47)</h1>' . mysql_error());
@@ -389,14 +386,15 @@ function isLoggedIn ($userid, $username, $password) {
 		return false;
 	}
 }
-function displayLoginPage () {
+function displayLoginPage ($d = "") {
 	global $LANG;
-	echo "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
-		. "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"".$LANG['lang']."\" lang=\"".$LANG['lang']."\"><head><link rel=\"stylesheet\" type=\"text/css\" href=\"themes/default.css\" /></head>"
-		. "<body><div id=\"header\"><h1 id=\"logo\">$cfg_sitename</h1></div><div id=\"content\"><div class=\"centercontent\" style=\"padding: 0 0 300px 0;\">"
-		. "<div class=\"error-alert\"><h1>".$LANG['access_denied1']."</h1><p>".$LANG['access_denied2']."</p><p><a href=\"index.php\">".$LANG['access_denied3']."</a></p></div></div></div>"
-		. "<div id=\"footer\"><p><a href=\"http://www.haudenschilt.com/fcms/\" class=\"ft\">".$LANG['link_home']."</a> | <a href=\"http://www.haudenschilt.com/forum/index.php\" class=\"ft\">".$LANG['link_support']."</a> | <a href=\"help.php\" class=\"ft\">".$LANG['link_help']."</a><br />"
-		. "<a href=\"http://www.haudenschilt.com/fcms/\">$stgs_release</a> - Copyright &copy; 2006/07 Ryan Haudenschilt.</p></div></body></html>";
+	if (!empty($d)) { $d = "../"; }
+	echo "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n"
+		. "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"".$LANG['lang']."\" lang=\"".$LANG['lang']."\">\n<head><link rel=\"stylesheet\" type=\"text/css\" href=\"" . $d . "themes/default.css\" /></head>\n"
+		. "<body>\n\t<div id=\"header\"><h1 id=\"logo\">$cfg_sitename</h1></div>\n\t<div id=\"content\">\n\t\t<div class=\"centercontent\" style=\"padding: 0 0 300px 0;\">\n"
+		. "\t\t\t<div class=\"error-alert\">\n\t\t\t\t<h1>".$LANG['access_denied1']."</h1>\n\t\t\t\t<p>".$LANG['access_denied2']."</p>\n\t\t\t\t<p><a href=\"" . $d . "index.php\">".$LANG['access_denied3']."</a></p>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\t";
+	displayFooter($d);
+	echo "</body>\n</html>";
 }
 function fixDST ($date, $userid, $format = 'F j, Y, g:i a') {
 	$result = mysql_query("SELECT `dst` FROM `fcms_users` WHERE `id` = $userid");
