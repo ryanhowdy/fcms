@@ -58,7 +58,7 @@ header("Cache-control: private");
 							$result = mysql_query("SELECT `email` FROM `fcms_users` WHERE id = $id") or die('<h1>Find email (admin/members.php 71</h1>' . mysql_error());
 							$r = mysql_fetch_array($result);
 							$msg = $LANG['mail_msg_activate1']." ".getSiteName()." ".$LANG['mail_msg_activate2'];
-							mail($r['email'], $LANG['mail_sub_activate']." $cfg_sitename", $msg, $email_headers);
+							mail($r['email'], $LANG['mail_sub_activate']." getSiteName(), $msg, $email_headers);
 						} else {
 							mysql_query("UPDATE fcms_users SET activated = 0 WHERE id = $id") or die('<h1>Activate Error (admin/members.php 77)</h1>' . mysql_error());
 						}

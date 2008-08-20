@@ -53,7 +53,7 @@ header("Cache-control: private"); ?>
 				$name = $_POST['name'];
 				$msg = $_POST['msg'];
 				$msg = $msg . "<br/>-" . $name;
-				mail($cfg_contact_email, "$subject", "$email", "$msg");
+				mail(getContactEmail(), "$subject", "$email", "$msg");
 				echo $LANG['msg_received']."<br/>";
 				echo "<p>$msg</p>";
 			} else { 

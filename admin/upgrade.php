@@ -58,9 +58,9 @@ $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_d
 				$uptodate = false; 
 				if (str_pad(str_replace(".", "", substr($ver[0], 18)), 4, "0") <= str_pad(str_replace(".", "",substr(getCurrentVersion(), 18)), 4, "0")) {
 					$uptodate = true;
-					echo $ver[0]." <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:green\">Awesome, your installation is up to date.</span>";
+					echo $ver[0] . " <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:green\">Awesome, your installation is up to date.</span>";
 				} else {
-					echo $ver[0]." <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:red\">Bummer!, your installation is out of date.</span>";
+					echo $ver[0]." <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:red\">Bummer!, your installation is out of date.  <a href=\"http://www.haudenschilt.com/fcms/download.html\">Download latest version.</a></span>";
 				}
 				echo "</p>\n\t\t\t<form method=\"post\" action=\"upgrade.php\"><div><input type=\"hidden\" name=\"version\" value=\"$ver[0]\"/><input type=\"submit\" name=\"upgrade\" value=\"".$LANG['link_admin_upgrade']."\"";
 				if ($uptodate) { echo " onclick=\"javascript:return confirm('".$LANG['js_upgrade']."');\""; }

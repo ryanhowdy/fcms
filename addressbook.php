@@ -96,9 +96,8 @@ if (isset($_GET['csv'])) {
 				$email = $_POST['email'];
 				$name = $_POST['name'];
 				$msg = $_POST['msg'];
-				$msg = $msg . "\r\n-" . $name;
 				foreach ($_POST['emailaddress'] as $email) {
-					mail($email, "$subject", "$email", "$msg", $email_headers);
+					mail($email, $subject, "$msg\r\n-$name", $email_headers);
 				}
 				echo "<p class=\"ok-alert\" id=\"msg\">".$LANG['msg_sent']."<br/>";
 				echo "$msg</p>";

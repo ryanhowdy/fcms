@@ -80,7 +80,7 @@ if (isset($_POST['submit'])) {
 		$lastid = mysql_insert_id();
 		mysql_query("INSERT INTO `fcms_address`(`user`, `updated`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`) VALUES ($lastid, NOW(), '$address', '$city', '$state', '$zip', '$home', '$work', '$cell')") or die("<h1>Error (REG002)</h1>" . mysql_error());
 		mysql_query("INSERT INTO `fcms_calendar`(`date`, `title`, `created_by`, `type`) VALUES ('$birthday', '$fname $lname', $lastid, 'Birthday')") or die("<h1>Error (REG003)</h1>" . mysql_error());
-		echo '<div id="msg"><h1>'.$LANG['reg_success'].'</h1><p>'.$LANG['reg_msg1'].' ' . $cfg_sitename . '. '.$LANG['reg_msg2'].' ' . $email . '. <br/><b>'.$LANG['reg_msg3'].'</b></p>'
+		echo '<div id="msg"><h1>'.$LANG['reg_success'].'</h1><p>'.$LANG['reg_msg1'].' ' . getSiteName() . '. '.$LANG['reg_msg2'].' ' . $email . '. <br/><b>'.$LANG['reg_msg3'].'</b></p>'
 			. '<p>'.$LANG['reg_msg4'].' <a href="index.php">'.$LANG['reg_msg5'].'</a>.</div>';
 		$subject = getSiteName()." ".$LANG['mail_reg1']; 
 		$message = $LANG['mail_reg2']." ".stripslashes($fname)." ".stripslashes($lname).", 

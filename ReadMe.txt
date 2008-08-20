@@ -1,5 +1,5 @@
 
-FAMILY CONNECTIONS 1.6
+FAMILY CONNECTIONS 1.6.1
 ........................
 
   Keep your family "Connected" with this content management system (CMS) designed 
@@ -11,7 +11,7 @@ FAMILY CONNECTIONS 1.6
 
 I. Installation
 
-  1. Upload the entire contents of FCMS_1.6.zip to your web host.
+  1. Upload the entire contents of FCMS_1.6.1.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -29,38 +29,15 @@ I. Installation
 
 
 
-II. Upgrading from 1.5 to 1.6
+II. Upgrading from 1.6 to 1.6.1
 
   1. Replace the following files on your web host.
 
-    admin/config.php
-    admin/polls.php
+    admin/members.php
     admin/upgrade.php
-    inc/addressbook_class.php
-    inc/admin_class.php
-    inc/familynews_class.php
-    inc/gallery_class.php
-    inc/language.php
-    inc/messageboard_class.php
-    inc/prayers_class.php
-    inc/recipes_class.php
-    inc/settings_class.php
-    inc/util_inc.php
-    themes/alpha.css
-    themes/beta.css
-    themes/default.css
-    themes/images/default/export.gif
-    themes/images/default/home.gif
-    themes/images/default/new_recipe.gif
-    themes/images/default/top_rated.gif
     addressbook.php
-    familynews.php
-    help.php
-    home.php
+    contact.php
     install.php
-    messageboard.php
-    prayers.php
-    recipes.php
     register.php
 
   2. Run the upgrade.php script.
@@ -70,6 +47,12 @@ II. Upgrading from 1.5 to 1.6
 
 
 III. Change Log
+
+ 1.6.1
+   - fixed "Contact and Mass Email not working" bug id 2034316 
+   - fixed "Missing Sitename" bug id 2034212 
+   - added download latest version link on upgrade page.
+
 
  1.6
   - fixed "Guest can't access Photo Gallery" bug id 2031350 
