@@ -1,5 +1,5 @@
 
-FAMILY CONNECTIONS 1.6.1
+FAMILY CONNECTIONS 1.6.2
 ........................
 
   Keep your family "Connected" with this content management system (CMS) designed 
@@ -11,7 +11,7 @@ FAMILY CONNECTIONS 1.6.1
 
 I. Installation
 
-  1. Upload the entire contents of FCMS_1.6.1.zip to your web host.
+  1. Upload the entire contents of FCMS_1.6.2.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -29,16 +29,14 @@ I. Installation
 
 
 
-II. Upgrading from 1.6 to 1.6.1
+II. Upgrading from 1.6 or 1.6.1 to 1.6.2
 
   1. Replace the following files on your web host.
 
     admin/members.php
     admin/upgrade.php
-    addressbook.php
-    contact.php
+    index.php
     install.php
-    register.php
 
   2. Run the upgrade.php script.
 
@@ -47,6 +45,12 @@ II. Upgrading from 1.6 to 1.6.1
 
 
 III. Change Log
+
+ 1.6.2
+   - fixed "Upgrade to 1.6 code error" bug id 2041620 
+   - fixed "Fatal Error on installation" bug id 2037719
+   - fixed "Parse Error: admin/members.php" bug id 2037718
+
 
  1.6.1
    - fixed "Contact and Mass Email not working" bug id 2034316 
