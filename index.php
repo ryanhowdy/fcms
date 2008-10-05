@@ -1,8 +1,8 @@
 <?php
 /*
-Family Connections - a family oriented CMS -- http://www.haudenschilt.com/fcms/
+Family Connections - a family oriented CMS -- http://www.familycms.com/
 
-Copyright (C) 2007 Ryan Haudenschilt
+Copyright (C) 2007-08 Ryan Haudenschilt
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -40,11 +40,13 @@ if (!file_exists('inc/config_inc.php')) {
 		}
 		$user = escape_string($user);
 		$pass = escape_string($pass);
-		$pass = md5($pass); 
-		$result = mysql_query("SELECT * FROM fcms_users WHERE username='$user' AND password='$pass'") or die("<h1>Login Check Error (index.php 39)</h1>" . mysql_error());
+		$pass = md5($pass);
+		$sql = "SELECT * FROM `fcms_users` WHERE `username` = '$user' AND `password` = '$pass'";
+		$result = mysql_query($sql) or displaySQLError('Login Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
 		$login_check = mysql_num_rows($result);
 		if($login_check > 0) {
-			$a = mysql_query("SELECT activated FROM fcms_users WHERE username='$user' AND password='$pass'") or die("<h1>Activated Check Error (index.php 42)</h1>" . mysql_error());
+			$sql = "SELECT `activated` FROM `fcms_users` WHERE `username` = '$user' AND `password` = '$pass'";
+			$a = mysql_query($sql) or displaySQLError('Activated Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
 			$answer = mysql_fetch_array($a);
 			$account_is_active = $answer['activated'];
 			if($account_is_active > 0) {
@@ -58,7 +60,8 @@ if (!file_exists('inc/config_inc.php')) {
 						$_SESSION['login_uname'] = $row['username'];
 						$_SESSION['login_pw'] = $row['password'];
 					}
-					mysql_query("UPDATE fcms_users SET activity=NOW() WHERE id=" . $row['id']) or die("<h1>Activity Error (index.php 56)</h1>" . mysql_error());
+					$sql = "UPDATE `fcms_users` SET `activity` = NOW() WHERE `id` = " . $row['id'];
+					mysql_query($sql) or displaySQLError('Activity Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
 					echo "<h3>".$LANG['login_success']."<h3><a href=\"home.php\">".$LANG['continue']."</a>.";
 					echo "<meta http-equiv='refresh' content='0;URL=home.php'>";
 				}
@@ -78,7 +81,8 @@ if (!file_exists('inc/config_inc.php')) {
 			$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
 			$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
 		}
-		mysql_query("UPDATE fcms_users SET activity=NOW() WHERE id=" . $_SESSION['login_id']) or die("<h1>Activity Error (index.php 76)</h1>" . mysql_error());
+		$sql = "UPDATE `fcms_users` SET `activity` = NOW() WHERE `id` = " . $_SESSION['login_id'];
+		mysql_query($sql) or displaySQLError('Activity2 Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
 		echo "<h3>".$LANG['already_login']."</h3><a href=\"home.php\">".$LANG['continue']."</a>.";
 		echo "<meta http-equiv='refresh' content='0;URL=home.php'>";
 	}

@@ -61,19 +61,22 @@ $rec = new Recipes($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_d
 			if (isset($_POST['submitadd'])) {
 				$name = addslashes($_POST['name']);
 				$recipe = addslashes($_POST['post']);
-				mysql_query("INSERT INTO `fcms_recipes`(`name`, `category`, `recipe`, `user`, `date`) VALUES('$name', '".$_POST['category']."', '$recipe', " . $_SESSION['login_id'] . ", NOW())") or die("<h1>New Recipe Error (recipes.php 62)</h1>" . mysql_error());
+				$sql = "INSERT INTO `fcms_recipes`(`name`, `category`, `recipe`, `user`, `date`) VALUES('$name', '".$_POST['category']."', '$recipe', " . $_SESSION['login_id'] . ", NOW())";
+				mysql_query($sql) or displaySQLError('New Recipe Error', 'recipes.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\" id=\"add\">".$LANG['ok_recipe_add']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('add').toggle()\",3000); }</script>";
 			} 
 			if (isset($_POST['submitedit'])) {
 				$name = addslashes($_POST['name']);
 				$recipe = addslashes($_POST['post']);
-				mysql_query("UPDATE `fcms_recipes` SET `name` = '$name', `category` = '".$_POST['category']."', `recipe` = '$recipe' WHERE `id` = " . $_POST['id']) or die("<h1>Edit Recipe Error (recipes.php 68)</h1>" . mysql_error());
+				$sql = "UPDATE `fcms_recipes` SET `name` = '$name', `category` = '".$_POST['category']."', `recipe` = '$recipe' WHERE `id` = " . $_POST['id'];
+				mysql_query($sql) or displaySQLError('Edit Recipe Error', 'recipes.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\" id=\"edit\">".$LANG['ok_recipe_edit']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('edit').toggle()\",3000); }</script>";
 			}
 			if (isset($_POST['delrecipe'])) {
-				mysql_query("DELETE FROM `fcms_recipes` WHERE id = " . $_POST['id']) or die("<h1>Delete Recipe Error (recipes.php 73)</h1>" . mysql_error());
+				$sql = "DELETE FROM `fcms_recipes` WHERE `id` = " . $_POST['id'];
+				mysql_query($sql) or displaySQLError('Delete Recipe Error', 'recipes.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\" id=\"del\">".$LANG['ok_recipe_del']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('del').toggle()\",2000); }</script>";
 			}

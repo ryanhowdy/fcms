@@ -384,6 +384,11 @@ hr {
 	color: #c1c1c1;
 	background-color: #c1c1c1;
 }
+.rss {
+	margin-right: 20px;
+	padding: 0 0 0 18px;
+	background: transparent url("images/default/rss.gif") no-repeat 0 0;
+}
 
 
 /* =HOME
@@ -414,10 +419,55 @@ hr {
 	margin: 0 0 0 5px;
 }
 #content .half .twolines li { padding: 7px 0 3px 25px; }
-.poll {
+ul.poll { 
+	width: 90%;
+	margin: 30px auto;
+	border-top: 1px solid #eee;
+}
+ul.poll li {
+	position: relative;
 	display: block;
-	height: 10px;
-	background: transparent url("images/default/poll_bar.gif") repeat-x;
+	border-bottom: 1px solid #eee;
+	_zoom: 1;
+}
+ul.poll li a {
+	display: block;
+	color: #1d70b5;
+	padding: 4px 10px;
+	position: relative;
+	z-index: 2;
+}
+ul.poll li a:hover {
+	color: #000;
+	text-decoration: none;
+}
+ul.poll .count {
+	display: block;
+	position: absolute;
+	top: 0;
+	right: 0;
+	margin: 0 0.3em;
+	text-align: right;
+	color: #999;
+	font-weight: bold;
+	font-size: 0.875em;
+	line-height: 2em;
+}
+ul.poll .index {
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	background: #dceadd;
+	text-indent: -9999px;
+	overflow: hidden;
+	line-height: 2em;
+}
+p.poll {
+	text-align: center;
+	font-size: 12px;
+	font-style: italic;
 }
 .newthread, .newpost, .newaddress, .newnews, .newprayer, .newphoto, .newcom, .newmember { padding: 2px 0 2px 24px; }
 .newthread { background: transparent url(images/default/new_thread.gif) no-repeat 0px 4px; }

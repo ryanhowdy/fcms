@@ -47,7 +47,7 @@ header("Cache-control: private"); ?>
 	<div id="content">
 		<div id="messageboard" class="centercontent">
 			<?php
-			if($_POST['submit']) {
+			if(isset($_POST['submit'])) {
 				$subject = $_POST['subject'];
 				$email = $_POST['email'];
 				$name = $_POST['name'];

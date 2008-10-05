@@ -29,7 +29,7 @@ class Recipes {
 			echo "<p>&nbsp;</p><h2>".$LANG['latest_recipe']."</h2><br/>";
 			while($r = $this->db->get_row()) {
 				$displayname = getUserDisplayName($r['user']);
-				$date = fixDST(gmdate('n/j/Y g:i a', strtotime($row['date'] . $this->tz_offset)), $_SESSION['login_id'], 'F j, Y, g:i a');
+				$date = fixDST(gmdate('n/j/Y g:i a', strtotime($r['date'] . $this->tz_offset)), $_SESSION['login_id'], 'F j, Y, g:i a');
 				echo "\t\t\t<h4>".$r['name']."</h4><small><i>Submitted by <a href=\"profile.php?member=" . $r['user'] . "\">$displayname</a> on $date</i></small><p>";
 				parse($r['recipe']);
 				echo "</p><p>&nbsp;</p>\n\t\t\t";
@@ -44,15 +44,15 @@ class Recipes {
 		$from = (($page * 5) - 5);
 		if ($id > 0) { echo "<h2><a href=\"recipes.php?category=$cat\">"; } else { echo "<h2>"; }
 		switch ($cat) {
-			case 1: echo $LANG['appetizer']; $cat_name .= $LANG['appetizer']; break;
-			case 2: echo $LANG['breakfast']; $cat_name .= $LANG['breakfast']; break;
-			case 3: echo $LANG['dessert']; $cat_name .= $LANG['dessert']; break;
-			case 4: echo $LANG['entree_meat']; $cat_name .= $LANG['entree_meat']; break;
-			case 5: echo $LANG['entree_seafood']; $cat_name .= $LANG['entree_seafood']; break;
-			case 6: echo $LANG['entree_veg']; $cat_name .= $LANG['entree_veg']; break;
-			case 7: echo $LANG['salad']; $cat_name .= $LANG['salad']; break;
-			case 8: echo $LANG['side_dish']; $cat_name .= $LANG['side_dish']; break;
-			case 9: echo $LANG['soup']; $cat_name .= $LANG['soup']; break;
+			case 1: echo $LANG['appetizer']; $cat_name = $LANG['appetizer']; break;
+			case 2: echo $LANG['breakfast']; $cat_name = $LANG['breakfast']; break;
+			case 3: echo $LANG['dessert']; $cat_name = $LANG['dessert']; break;
+			case 4: echo $LANG['entree_meat']; $cat_name = $LANG['entree_meat']; break;
+			case 5: echo $LANG['entree_seafood']; $cat_name = $LANG['entree_seafood']; break;
+			case 6: echo $LANG['entree_veg']; $cat_name = $LANG['entree_veg']; break;
+			case 7: echo $LANG['salad']; $cat_name = $LANG['salad']; break;
+			case 8: echo $LANG['side_dish']; $cat_name = $LANG['side_dish']; break;
+			case 9: echo $LANG['soup']; $cat_name = $LANG['soup']; break;
 			default: echo "<p class=\"error-alert\">".$LANG['err_no_cat']."</p>"; break;
 		}
 		if ($id > 0) { echo "</a></h2><br/>"; } else { echo "</h2><br/>"; }
@@ -62,7 +62,7 @@ class Recipes {
 		if ($this->db->count_rows() > 0) {
 			while($r = $this->db->get_row()) {
 				$displayname = getUserDisplayName($r['user']);
-				$date = fixDST(gmdate('n/j/Y g:i a', strtotime($row['date'] . $this->tz_offset)), $_SESSION['login_id'], 'F j, Y, g:i a');
+				$date = fixDST(gmdate('n/j/Y g:i a', strtotime($r['date'] . $this->tz_offset)), $_SESSION['login_id'], 'F j, Y, g:i a');
 				echo "\t\t\t<h4>";
 				if ($id > 0) { echo $r['name']; } else { echo "<a href=\"recipes.php?category=$cat&amp;id=".$r['id']."\">".$r['name']."</a>"; }
 				if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {

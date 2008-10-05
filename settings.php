@@ -56,7 +56,7 @@ $settings = new Settings($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_m
 </head>
 <body id="body-settings">
 	<div><a name="top"></a></div>
-	<div id="header"><?php echo "<h1 id=\"logo\">$cfg_sitename</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
+	<div id="header"><?php echo "<h1 id=\"logo\">" . getSiteName() . "</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
 	<?php displayTopNav(); ?>
 	<div id="pagetitle"><?php echo $LANG['link_settings']; ?></div>
 	<div id="leftcolumn">
@@ -78,7 +78,8 @@ $settings = new Settings($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_m
 				if ($_POST['lname']) { $sql .= "lname = '".addslashes($_POST['lname'])."', "; }
 				if ($_POST['email']) { 
 					if ($_POST['email'] != $emailstart) {
-						$result = mysql_query("SELECT email FROM fcms_users WHERE email='" . $_POST['email'] . "'") or die("<h1>Get Email Error (settings.php 79)</h1>" . mysql_error());
+						$sql = "SELECT `email` FROM `fcms_users` WHERE email='" . $_POST['email'] . "'";
+						$result = mysql_query($sql) or displaySQLError('Email Check Error', 'settings.php [' . __LINE__ . ']', $sql, mysql_error());
 						$email_check = mysql_num_rows($result);
 						if ($email_check > 0) { 
 							echo "<p class=\"error-alert\">".$LANG['err_email1']." (" . $_POST['email'] . ") ".$LANG['err_email2']."</p>";
@@ -108,7 +109,7 @@ $settings = new Settings($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_m
 					if ($_POST['avatar_orig'] != '0x0.gif') { unlink("gallery/avatar/" . $_POST['avatar_orig']); }
 				}
 				$sql .= "theme = '" . $_POST['theme'] . "' WHERE id = " . $_SESSION['login_id'];
-				mysql_query($sql) or die("<h1>Update Settings Error (settings.php 102)</h1>" . mysql_error());
+				mysql_query($sql) or displaySQLError('Update Settings Error', 'settings.php [' . __LINE__ . ']', $sql, mysql_error());
 				if ($orig_pass != md5($_POST['pass']) && !empty($_POST['pass']) && isset($_COOKIE['fcms_login_id'])){
 					echo "<p class=\"ok-alert\">".$LANG['ok_stgs_logout1']."</p><p><a href=\"logout.php\">".$LANG['ok_stgs_logout2']."</a>.</p>";
 					echo "<meta http-equiv='refresh' content='5;URL=logout.php'>";

@@ -11,7 +11,7 @@ include_once('../inc/util_inc.php');
 include_once('../inc/language.php');
 if (isset($_SESSION['login_id'])) {
 	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage("fix");
+		displayLoginPage();
 		exit();
 	}
 } elseif (isset($_COOKIE['fcms_login_id'])) {
@@ -20,11 +20,11 @@ if (isset($_SESSION['login_id'])) {
 		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
 		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
 	} else {
-		displayLoginPage("fix");
+		displayLoginPage();
 		exit();
 	}
 } else {
-	displayLoginPage("fix");
+	displayLoginPage();
 	exit();
 }
 header("Cache-control: private");
@@ -60,11 +60,13 @@ $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_d
 				echo "<p class=\"error-alert\"><b>".$LANG['err_no_access1']."</b><br/>".$LANG['err_no_access_board2']." <a href=\"../contact.php\">".$LANG['err_no_access3']."</a> ".$LANG['err_no_access4']."</a>";				
 			} else {
 				if (isset($_GET['del'])) {
-					mysql_query("DELETE FROM `fcms_board_threads` WHERE `id`=" . $_GET['del']) or die('<h1>Delete Error (admin/board.php 69)</h1>' . mysql_error());
+					$sql = "DELETE FROM `fcms_board_threads` WHERE `id`=" . $_GET['del'];
+					mysql_query($sql) or displaySQLError('Delete Thread Error', 'admin/board.php [' . __LINE__ . ']', $sql, mysql_error());
 					echo "<meta http-equiv='refresh' content='0;URL=board.php'>";
 				} elseif (isset($_POST['edit_submit'])) {
-					if($_POST['sticky']) { $subject = "#ANOUNCE#" . $_POST['subject']; } else { $subject = $_POST['subject']; }
-					mysql_query("UPDATE `fcms_board_threads` SET `subject` = '".addslashes($subject)."' WHERE `id` = " . $_POST['threadid']) or die('<h1>Edit Error (admin/board.php 75)</h1>' . mysql_error());
+					if (isset($_POST['sticky'])) { $subject = "#ANOUNCE#" . $_POST['subject']; } else { $subject = $_POST['subject']; }
+					$sql = "UPDATE `fcms_board_threads` SET `subject` = '".addslashes($subject)."' WHERE `id` = " . $_POST['threadid'];
+					mysql_query($sql) or displaySQLError('Edit Thread Error', 'admin/board.php [' . __LINE__ . ']', $sql, mysql_error());
 				}
 				if (isset($_GET['edit'])) {
 					$admin->displayEditThread($_GET['edit']);

@@ -5,7 +5,7 @@ include_once('../inc/util_inc.php');
 include_once('../inc/language.php');
 if (isset($_SESSION['login_id'])) {
 	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage("fix");
+		displayLoginPage();
 		exit();
 	}
 } elseif (isset($_COOKIE['fcms_login_id'])) {
@@ -14,11 +14,11 @@ if (isset($_SESSION['login_id'])) {
 		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
 		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
 	} else {
-		displayLoginPage("fix");
+		displayLoginPage();
 		exit();
 	}
 } else {
-	displayLoginPage("fix");
+	displayLoginPage();
 	exit();
 }
 header("Cache-control: private");
@@ -31,6 +31,8 @@ header("Cache-control: private");
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="../<?php getTheme($_SESSION['login_id']); ?>" />
 <link rel="shortcut icon" href="themes/images/favicon.ico"/>
+<script src="../inc/prototype.js" type="text/javascript"></script>
+<script src="../inc/livevalidation.js" type="text/javascript"></script>
 </head>
 <body>
 	<div><a name="top"></a></div>
@@ -54,28 +56,34 @@ header("Cache-control: private");
 					$access = (int)$_POST['access'];
 					if (!empty($access) && is_numeric($access) && $access <= 10 && $access > 0) {
 						if($_POST['activated'] > 0) {
-							mysql_query("UPDATE fcms_users SET activated = 1 WHERE id = $id") or die('<h1>Activate Error (admin/members.php 71)</h1>' . mysql_error());
-							$result = mysql_query("SELECT `email` FROM `fcms_users` WHERE id = $id") or die('<h1>Find email (admin/members.php 71</h1>' . mysql_error());
+							$sql = "UPDATE fcms_users SET activated = 1 WHERE id = $id";
+							mysql_query($sql) or displaySQLError('Activate Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
+							$sql = "SELECT `email` FROM `fcms_users` WHERE id = $id";
+							$result = mysql_query($sql) or displaySQLError('Get Email Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
 							$r = mysql_fetch_array($result);
 							$msg = $LANG['mail_msg_activate1']." ".getSiteName()." ".$LANG['mail_msg_activate2'];
 							mail($r['email'], $LANG['mail_sub_activate'] . getSiteName(), $msg, $email_headers);
 						} else {
-							mysql_query("UPDATE `fcms_users` SET `activated` = 0 WHERE id = $id") or die('<h1>Activate Error (admin/members.php 77)</h1>' . mysql_error());
+							$sql = "UPDATE `fcms_users` SET `activated` = 0 WHERE id = $id";
+							mysql_query($sql) or displaySQLError('Activate Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
 						}
-						mysql_query("UPDATE fcms_users SET access = $access WHERE id = $id") or die('<h1>Access Error (admin/members.php 79)</h1>' . mysql_error());
-						echo "<p class=\"ok-alert\">".$LANG['update_success']."</p>";
+						$sql = "UPDATE fcms_users SET access = $access WHERE id = $id";
+						mysql_query($sql) or displaySQLError('Access Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
+						echo "<p class=\"ok-alert\" id=\"update\">".$LANG['update_success']."</p>";
+						echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('update').toggle()\",3000); }</script>";
 					}
-					echo "<meta http-equiv='refresh' content='0;URL=members.php'>";
 				}
 				if (isset($_POST['del'])) {
 					$id = $_POST['id'];
-					mysql_query("DELETE FROM fcms_users WHERE id = $id") or die('<h1>Delete Error (admin/members.php 86)</h1>' . mysql_error());
+					$sql = "DELETE FROM fcms_users WHERE id = $id";
+					mysql_query($sql) or displaySQLError('Delete User Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
 					echo "<meta http-equiv='refresh' content='0;URL=members.php'>";
 				} ?>
 				<p class="info-alert"><?php echo $LANG['info_edit_members']; ?></p>
 				<table width="100%"><thead><tr><th><?php echo $LANG['id']; ?></th><th><?php echo $LANG['uname_flname']; ?></th><th width="20%"><a class="help u" title="<?php echo $LANG['title_access_help']; ?>" href="../help.php#adm-access"><?php echo $LANG['access_level']; ?></a></th><th><?php echo $LANG['activated']; ?></th><th><?php echo $LANG['edit_delete']; ?></th></tr></thead><tbody>
 				<?php 
-				$result = mysql_query("SELECT * FROM fcms_users WHERE password != 'NONMEMBER' ORDER BY `id`") or die('<h1>Get Members Error (admin/members.php 87)</h1>' . mysql_error());
+				$sql = "SELECT * FROM fcms_users WHERE password != 'NONMEMBER' ORDER BY `id`";
+				$result = mysql_query($sql) or displaySQLError('Member Info Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
 				while($r=mysql_fetch_array($result)) {
 					if ($r['id'] > 1) {
 						echo "<tr><form method=\"post\" action=\"members.php\"><td><b>".$r['id']."</b>:</td><td> <b>".$r['username']."</b> &nbsp;(".$r['fname']." ".$r['lname'].")</td>"; 

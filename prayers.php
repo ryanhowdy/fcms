@@ -43,7 +43,7 @@ $prayers = new Prayers($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mys
 </head>
 <body id="body-prayers">
 	<div><a name="top"></a></div>
-	<div id="header"><?php echo "<h1 id=\"logo\">$cfg_sitename</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
+	<div id="header"><?php echo "<h1 id=\"logo\">" . getSiteName() . "</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
 	<?php displayTopNav(); ?>
 	<div id="pagetitle"><?php echo $LANG['link_prayer']; ?></div>
 	<div id="leftcolumn">
@@ -61,19 +61,22 @@ $prayers = new Prayers($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mys
 			if (isset($_POST['submitadd'])) {
 				$for = addslashes($_POST['for']);
 				$desc = addslashes($_POST['desc']);
-				mysql_query("INSERT INTO `fcms_prayers`(`for`, `desc`, `user`, `date`) VALUES('$for', '$desc', " . $_SESSION['login_id'] . ", NOW())") or die("<h1>New Prayer Error (prayers.php 69)</h1>" . mysql_error());
+				$sql = "INSERT INTO `fcms_prayers`(`for`, `desc`, `user`, `date`) VALUES('$for', '$desc', " . $_SESSION['login_id'] . ", NOW())";
+				mysql_query($sql) or displaySQLError('New Prayer Error', 'prayers.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\" id=\"add\">".$LANG['ok_pray_add']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('add').toggle()\",3000); }</script>";
 			} 
 			if (isset($_POST['submitedit'])) {
 				$for = addslashes($_POST['for']);
 				$desc = addslashes($_POST['desc']);
-				mysql_query("UPDATE `fcms_prayers` SET `for` = '$for', `desc` = '$desc' WHERE `id` = " . $_POST['id']) or die("<h1>Edit Prayer Error (prayers.php 69)</h1>" . mysql_error());
+				$sql = "UPDATE `fcms_prayers` SET `for` = '$for', `desc` = '$desc' WHERE `id` = " . $_POST['id'];
+				mysql_query($sql) or displaySQLError('Edit Prayer Error', 'prayers.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\" id=\"edit\">".$LANG['ok_pray_edit']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('edit').toggle()\",3000); }</script>";
 			}
 			if (isset($_POST['delprayer'])) {
-				mysql_query("DELETE FROM `fcms_prayers` WHERE id = " . $_POST['id']) or die("<h1>Delete Prayers Error (prayers.php 83)</h1>" . mysql_error());
+				$sql = "DELETE FROM `fcms_prayers` WHERE `id` = " . $_POST['id'];
+				mysql_query($sql) or displaySQLError('Delete Prayer Error', 'prayers.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\" id=\"del\">".$LANG['ok_pray_del']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('del').toggle()\",2000); }</script>";
 			}

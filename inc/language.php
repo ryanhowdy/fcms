@@ -1,7 +1,7 @@
 <?php
 /*
- * Family Connections 1.6 -- English (United States)
- * Updated: 1 July 2008  
+ * Family Connections 1.7 -- English (United States)
+ * Updated: 19 September 2008  
  * Translator: Ryan Haudenschilt
  *
  * To create a new language file, copy this file and replace the 
@@ -177,6 +177,7 @@ $LANG = array(
 	'reg_msg2' =>			'Your account information has been emailed to',
 	'reg_msg3' =>			'Please remember your username and password for this site.',
 	'reg_msg4' =>			'Unfortunately your account must be activated before you can',
+	'reg_msg4_2' =>			'Unfortunately you must activate your account before you can',
 	'reg_msg5' =>			'login and begin using the site',
 	'mail_reg1' =>			'Membership',
 	'mail_reg2' =>			'Dear',
@@ -195,10 +196,14 @@ $LANG = array(
 	'mail_reg_adm5' =>		'Address',
 	'mail_reg_adm6' =>		'To Activate the user above please visit the Members Administration section of the website.',
 	'reg' =>				'Register',
+	'link_to_activate' =>	'Please visit the following link to activate your account',
 	'mem_account' =>		'Member Account Info',
 	'contact_title' =>		'Contact',
 	'msg_received' =>		'The following message has been received:',
 	'err_access_3plus' =>	'You do not have permission to perform this task.  You must have an access level of 3 (Member) or higher.',
+	'rss_feed' =>			'RSS Feed',
+	'rss_feeds' =>			'RSS Feeds',
+	'no_rss' =>				'The feed you requested is not available.',
 
 	// Home
 
@@ -261,6 +266,7 @@ $LANG = array(
 	'upload_options' =>		'Upload Options',
 	'rotate_left' =>		'Rotate Left',
 	'rotate_right' =>		'Rotate Right',
+	'who_in_photo' =>		'Who is in this photo?',
 	'caption' =>			'Caption',
 	'edit_photo' =>			'Edit Photo',
 	'change_cat' =>			'Change Category',
@@ -300,6 +306,10 @@ $LANG = array(
 	'view_my_photos' =>		'View My Photos',
 	'view_photos_me' =>		'View Photos of Me',
 	'view_photos_of' =>		'View Photos of',
+	'photos_of' =>			'Photos of',
+	'from_the_cat' =>		'From the Category',
+	'no_category1' =>		'Uh Oh!',
+	'no_category2' =>		'The category you are trying to view doesn\'t exist.',
 
 	// Message Board
 
@@ -519,6 +529,7 @@ $LANG = array(
 	'view_results' =>		'View Results',
 	'prev_polls' =>			'Previous Polls',
 	'vote' =>				'Vote',
+	'no_prev_polls' =>		'No previous polls',
 
 	// Profile
 
@@ -735,6 +746,22 @@ $LANG = array(
 	'no_changes' =>				'No changes needed.',
 	'complete' =>				'Complete.',
 	'show_hide' =>				'Show/Hide +-',
+	'section_twice' =>			'You cannot have the same section twice.',
+	'config_success' =>			'Your configuration changes were updated successfully.',
+	'admin_activation' =>		'Admin Activation',
+	'auto_activation' =>		'Auto Activation',
+	'account_activation' =>		'Account Activation',
+	'activate_yes1' =>			'Alright!',
+	'activate_yes2' =>			'Your account is now active.  You can now',
+	'activate_yes3' =>			'login',
+	'activate_yes4' =>			'and begin using the site.',
+	'activate_no1' =>			'Invalid Code!',
+	'activate_no2' =>			'Could not activate member.',
+	'full_size_photo_info' =>	'By default, the use of Full Sized Photos is turned off to save on storage space and bandwidth.  Turning this feature on can eat up significant space and bandwidth.',
+	'full_size_photos' =>		'Full Size Photos',
+	'full_size_off' =>			'OFF (2 photos)',
+	'full_size_on' =>			'ON (3 photos)',
+	'save' =>					'Save',
 
 	// LiveValidation
 

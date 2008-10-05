@@ -75,28 +75,15 @@ if (isset($_POST['submit'])) {
 		$cell = empty($_POST['cell']) ? "" : $_POST['cell'];
 		$username = addslashes($_POST['username']);
 		$password = $_POST['password'];
-		$md5pass = md5($password); 
-		mysql_query("INSERT INTO `fcms_users`(`access`, `joindate`, `fname`, `lname`, `email`, `birthday`, `username`, `password`) VALUES (3, NOW(), '$fname', '$lname', '$email', '$birthday', '$username', '$md5pass')") or die("<h1>Error (REG001)</h1>" . mysql_error());
+		$md5pass = md5($password);
+		$sql = "INSERT INTO `fcms_users`(`access`, `joindate`, `fname`, `lname`, `email`, `birthday`, `username`, `password`) VALUES (3, NOW(), '$fname', '$lname', '$email', '$birthday', '$username', '$md5pass')";
+		mysql_query($sql) or displaySQLError('New User Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
 		$lastid = mysql_insert_id();
-		mysql_query("INSERT INTO `fcms_address`(`user`, `updated`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`) VALUES ($lastid, NOW(), '$address', '$city', '$state', '$zip', '$home', '$work', '$cell')") or die("<h1>Error (REG002)</h1>" . mysql_error());
-		mysql_query("INSERT INTO `fcms_calendar`(`date`, `title`, `created_by`, `type`) VALUES ('$birthday', '$fname $lname', $lastid, 'Birthday')") or die("<h1>Error (REG003)</h1>" . mysql_error());
-		echo '<div id="msg"><h1>'.$LANG['reg_success'].'</h1><p>'.$LANG['reg_msg1'].' ' . getSiteName() . '. '.$LANG['reg_msg2'].' ' . $email . '. <br/><b>'.$LANG['reg_msg3'].'</b></p>'
-			. '<p>'.$LANG['reg_msg4'].' <a href="index.php">'.$LANG['reg_msg5'].'</a>.</div>';
-		$subject = getSiteName()." ".$LANG['mail_reg1']; 
-		$message = $LANG['mail_reg2']." ".stripslashes($fname)." ".stripslashes($lname).", 
-
-".$LANG['mail_reg3']." ".getSiteName()."
-
-".$LANG['mail_reg4']." ".getSiteName().", ".$LANG['mail_reg5']."
-
-".$LANG['mail_reg6']."
-".$LANG['username'].": ".stripslashes($username)." 
-".$LANG['password'].": $password
-
-".$LANG['mail_reg7']." 
-".$LANG['mail_reg8']." ".getSiteName()." ".$LANG['mail_reg9']."
-
-".$LANG['mail_reg10'];
+		$sql = "INSERT INTO `fcms_address`(`user`, `updated`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`) VALUES ($lastid, NOW(), '$address', '$city', '$state', '$zip', '$home', '$work', '$cell')";
+		mysql_query($sql) or displaySQLError('New Address Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
+		$sql = "INSERT INTO `fcms_calendar`(`date`, `title`, `created_by`, `type`) VALUES ('$birthday', '$fname $lname', $lastid, 'Birthday')";
+		mysql_query($sql) or displaySQLError('New Calendar Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
+		$subject = getSiteName()." ".$LANG['mail_reg1'];
 		$now = date('F j, Y, g:i a');
 		$subject2 = $LANG['mail_reg_adm1']." ".getSiteName();
 		$message2 = $LANG['mail_reg_adm2']." ".getSiteName().":
@@ -116,7 +103,39 @@ if (isset($_POST['submit'])) {
 ".$LANG['mobile_phone'].": $cell
 
 ".$LANG['mail_reg_adm5'];
-		mail($email, $subject, $message, $email_headers);
+		$sql = "SELECT `auto_activate` FROM `fcms_config`";
+		$result = mysql_query($sql) or displaySQLError('Activation Check Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
+		$row = mysql_fetch_assoc($result);
+		if ($row['auto_activate'] == 1) {
+			//bug in some versions of php, needs some value here
+			$code = uniqid('');
+			$sql = "UPDATE `fcms_users` SET `activate_code` = '$code' WHERE `id` = $lastid";
+			mysql_query($sql) or displaySQLError('Activation Code Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
+			$message = $LANG['link_to_activate'] . ":
+
+" . getDomainAndDir() . "activate.php?uid=$lastid&code=$code";
+			echo '<div id="msg"><h1>'.$LANG['reg_success'].'</h1><p>'.$LANG['reg_msg1'].' ' . getSiteName() . '. '.$LANG['reg_msg2'].' ' . $email . '. <br/><b>'.$LANG['reg_msg3'].'</b></p>'
+				. '<p>'.$LANG['reg_msg4_2'].' <a href="index.php">'.$LANG['reg_msg5'].'</a>.</div>';
+			mail($email, $subject, $message, $email_headers);
+		} elseif ($row['auto_activate'] == 0) {
+			$message = $LANG['mail_reg2']." ".stripslashes($fname)." ".stripslashes($lname).", 
+
+".$LANG['mail_reg3']." ".getSiteName()."
+
+".$LANG['mail_reg4']." ".getSiteName().", ".$LANG['mail_reg5']."
+
+".$LANG['mail_reg6']."
+".$LANG['username'].": ".stripslashes($username)." 
+".$LANG['password'].": $password
+
+".$LANG['mail_reg7']." 
+".$LANG['mail_reg8']." ".getSiteName()." ".$LANG['mail_reg9']."
+
+".$LANG['mail_reg10'];
+			echo '<div id="msg"><h1>'.$LANG['reg_success'].'</h1><p>'.$LANG['reg_msg1'].' ' . getSiteName() . '. '.$LANG['reg_msg2'].' ' . $email . '. <br/><b>'.$LANG['reg_msg3'].'</b></p>'
+				. '<p>'.$LANG['reg_msg4'].' <a href="index.php">'.$LANG['reg_msg5'].'</a>.</div>';
+			mail($email, $subject, $message, $email_headers);
+		}
 		mail(getContactEmail(), $subject2, $message2, $email_headers);
 	}
 } else { displayForm(); } ?>

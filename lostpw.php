@@ -12,11 +12,12 @@ include_once('inc/language.php');
 </head>
 <body onload="document.resetform.email.focus()">
 	<?php
-	if($_POST['email']) {
+	if(isset($_POST['email'])) {
 		$email = $_POST['email'];
 		$link = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 		mysql_select_db($cfg_mysql_db, $link);
-		$sql_check = mysql_query("SELECT * FROM `fcms_users` WHERE `email` = '$email'") or die("<h1>Email Error (lostpw.php 35)</h1>" . mysql_error());
+		$sql = "SELECT * FROM `fcms_users` WHERE `email` = '$email'";
+		$sql_check = mysql_query($sql) or displaySQLError('Email Error', 'lostpw.php [' . __LINE__ . ']', $sql, mysql_error());
 		$sql_check_num = mysql_num_rows($sql_check);
 		if($sql_check_num == 0) { 
 			echo '<p class="error-alert">'.$LANG['err_email_not_found'].'</p>';
@@ -32,7 +33,8 @@ include_once('inc/language.php');
 				$i++;
 			}
 			$new_pass = md5($pass);
-			$sql = mysql_query("UPDATE fcms_users SET password='$new_pass' WHERE email='$email'") or die("<h1>New Password Error (lostpw.php 51)</h1>" . mysql_error());
+			$sql = "UPDATE `fcms_users` SET `password` = '$new_pass' WHERE `email` = '$email'";
+			mysql_query($sql) or displaySQLError('Update Password Error', 'lostpw.php [' . __LINE__ . ']', $sql, mysql_error());
 			$subject = getSiteName()." ".$LANG['pw_reset']; 
 			$message = $LANG['lost_pw_msg1']." ".getSiteName()." ".$LANG['lost_pw_msg2']." 
 

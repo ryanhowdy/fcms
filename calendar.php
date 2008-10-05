@@ -77,23 +77,26 @@ $calendar = new Calendar($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_m
 			$showcal = true;
 			if (isset($_GET['edit'])) {
 				if (checkAccess($_SESSION['login_id']) <= 5) { $showcal = $calendar->displayForm('edit', $_GET['edit']); }
-			} else if ($_GET['add']) {
+			} elseif (isset($_GET['add'])) {
 				if (checkAccess($_SESSION['login_id']) <= 5) { $showcal = $calendar->displayForm($_GET['add']); }
 			}
 			if (isset($_POST['edit'])) {
 				$date = $_POST['syear'] . "-" . str_pad($_POST['smonth'], 2, "0", STR_PAD_LEFT) . "-" . str_pad($_POST['sday'], 2, "0", STR_PAD_LEFT);
 				if (isset($_POST['private'])) { $private = 1; } else { $private = 0; }
-				mysql_query("UPDATE `fcms_calendar` SET `date`='$date', `title`='".addslashes($_POST['title'])."', `desc`='".addslashes($_POST['desc'])."', `type`='".addslashes($_POST['type'])."', `private`=$private WHERE id = " . $_POST["id"]) or die("<h1>Edit Calendar Error (calendar.php 81)</h1>" . mysql_error());
+				$sql = "UPDATE `fcms_calendar` SET `date`='$date', `title`='".addslashes($_POST['title'])."', `desc`='".addslashes($_POST['desc'])."', `type`='".addslashes($_POST['type'])."', `private`=$private WHERE id = " . $_POST["id"];
+				mysql_query($sql) or displaySQLError('Edit Calendar Error', 'calendar.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\" id=\"msg\"><b>".$LANG['ok_cal_update']."</b><br/>$date - ".$_POST['type']."<br/>".$_POST['title']."<br/>".$_POST['desc']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('msg').toggle()\",3000); }</script>";
 			} else if (isset($_POST['add'])) {
 				$date = $_POST['syear'] . "-" . str_pad($_POST['smonth'], 2, "0", STR_PAD_LEFT) . "-" . str_pad($_POST['sday'], 2, "0", STR_PAD_LEFT);
 				if (isset($_POST['private'])) { $private = 1; } else { $private = 0; }
-				mysql_query("INSERT INTO `fcms_calendar`(`date`, `title`, `desc`, `created_by`, `type`, `private`) VALUES ('$date', '".addslashes($_POST['title'])."', '".addslashes($_POST['desc'])."', " . $_SESSION['login_id'] . ", '".addslashes($_POST['type'])."', $private)") or die("<h1>Add Calendar Error (calendar.php 86)</h1>" . mysql_error());
+				$sql = "INSERT INTO `fcms_calendar`(`date`, `title`, `desc`, `created_by`, `type`, `private`) VALUES ('$date', '".addslashes($_POST['title'])."', '".addslashes($_POST['desc'])."', " . $_SESSION['login_id'] . ", '".addslashes($_POST['type'])."', $private)";
+				mysql_query($sql) or displaySQLError('Add Calendar Error', 'calendar.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\" id=\"msg\"><b>".$LANG['ok_cal_add']."</b><br/>$date - ".$_POST['type']."<br/>".$_POST['title']."<br/>".$_POST['desc']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('msg').toggle()\",3000); }</script>";
 			} else if (isset($_POST['delete'])) {
-				mysql_query("DELETE FROM `fcms_calendar` WHERE id = " . $_POST["id"]) or die("<h1>Delete Calendar Error (calendar.php 90)</h1>" . mysql_error());
+				$sql = "DELETE FROM `fcms_calendar` WHERE id = " . $_POST["id"];
+				mysql_query($sql) or displaySQLError('Delete Calendar Error', 'calendar.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\" id=\"msg\">".$LANG['ok_cal_delete']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('msg').toggle()\",3000); }</script>";
 			}

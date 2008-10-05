@@ -33,7 +33,7 @@ header("Cache-control: private"); ?>
 </head>
 <body id="body-help">
 	<div><a name="top"></a></div>
-	<div id="header"><h1 id="logo"><?php echo $cfg_sitename; ?></h1><p>Welcome <a href="profile.php?member=<?php echo $_SESSION['login_id']; ?>"><?php echo getUserDisplayName($_SESSION['login_id']); ?></a> | <a href="settings.php">My Settings</a> | <a href="logout.php" title="Logout">Logout</a></p></div>
+	<div id="header"><?php echo "<h1 id=\"logo\">" . getSiteName() . "</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
 	<?php displayTopNav(); ?>
 	<div id="pagetitle"><?php echo $LANG['link_help']; ?></div>
 	<div id="leftcolumn">

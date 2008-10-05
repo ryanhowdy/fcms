@@ -39,17 +39,19 @@ $fnews = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_my
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="<?php getTheme($_SESSION['login_id']); ?>" />
 <link rel="shortcut icon" href="themes/images/favicon.ico"/>
+<script src="inc/prototype.js" type="text/javascript"></script>
 </head>
 <body id="body-familynews">
 	<div><a name="top"></a></div>
-	<div id="header"><?php echo "<h1 id=\"logo\">$cfg_sitename</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
+	<div id="header"><?php echo "<h1 id=\"logo\">" . getSiteName() . "</h1><p>".$LANG['welcome']." <a href=\"profile.php?member=".$_SESSION['login_id']."\">"; echo getUserDisplayName($_SESSION['login_id']); echo "</a> | <a href=\"settings.php\">".$LANG['link_settings']."</a> | <a href=\"logout.php\" title=\"".$LANG['link_logout']."\">".$LANG['link_logout']."</a></p>"; ?></div>
 	<?php displayTopNav(); ?>
 	<div id="pagetitle"><?php echo $LANG['link_news']; ?></div>
 	<div id="leftcolumn">
 		<h2><?php echo $LANG['navigation']; ?></h2>
 		<div class="firstmenu menu">
 			<ul><?php
-				$result = mysql_query("SELECT u.id, fname, lname, displayname, username, MAX(`date`) AS d FROM fcms_news AS n, fcms_users AS u WHERE u.id = n.user AND username != 'SITENEWS' AND `password` != 'SITENEWS' GROUP BY id ORDER BY d DESC") or die("<h1>News Users Error (familynews.php 45)</h1>" . mysql_error());
+				$sql = "SELECT u.id, fname, lname, displayname, username, MAX(`date`) AS d FROM fcms_news AS n, fcms_users AS u WHERE u.id = n.user AND username != 'SITENEWS' AND `password` != 'SITENEWS' GROUP BY id ORDER BY d DESC";
+				$result = mysql_query($sql) or displaySQLError('Get News Users Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
 				while($r=mysql_fetch_array($result)) {
 					$date = fixDST(gmdate('M. j', strtotime($r['d'] . $fnews->tz_offset)), $_SESSION['login_id'], 'M. j');
 					$displayname = getUserDisplayName($r['id']);
@@ -74,18 +76,19 @@ $fnews = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_my
 			}
 			$show_last5 = true;
 			if(isset($_POST['submitadd'])) {
-				$show_last5 = false;
 				$title = addslashes($_POST['title']);
 				$news = addslashes($_POST['post']);
-				mysql_query("INSERT INTO `fcms_news`(`title`, `news`, `user`, `date`) VALUES('$title', '$news', " . $_SESSION['login_id'] . ", NOW())") or die("<h1>Add News Error (familynews.php 69)</h1>" . mysql_error());
-				echo "<p class=\"ok-alert\">".$LANG['ok_news_add']."<br/><a href=\"familynews.php?getnews=".$_SESSION['login_id']."\">".$LANG['refresh_page']."</a>.</p>";
-				echo "<meta http-equiv='refresh' content='0;URL=familynews.php?getnews=" . $_SESSION['login_id'] . "'>";
+				$sql = "INSERT INTO `fcms_news`(`title`, `news`, `user`, `date`) VALUES('$title', '$news', " . $_SESSION['login_id'] . ", NOW())";
+				mysql_query($sql) or displaySQLError('Add News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
+				echo "<p class=\"ok-alert\" id=\"add\">".$LANG['ok_news_add']."</p>";
+				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('add').toggle()\",3000); }</script>";
 			} elseif (isset($_POST['submitedit'])) {
 				$show_last5 = false;
 				$title = addslashes($_POST['title']);
 				$news = addslashes($_POST['post']);
-				mysql_query("UPDATE `fcms_news` SET `title` = '$title', `news` = '$news' WHERE `id` = ".$_POST['id']) or die("<h1>Edit News Error (familynews.php 70)</h1>" . mysql_error());
-				echo "<p class=\"ok-alert\">".$LANG['ok-news-edit']."<br/><a href=\"familynews.php?getnews=".$_POST['user']."\">".$LANG['refresh_page']."</a>.</p>";
+				$sql = "UPDATE `fcms_news` SET `title` = '$title', `news` = '$news' WHERE `id` = ".$_POST['id'];
+				mysql_query($sql) or displaySQLError('Edit News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
+				echo "<p class=\"ok-alert\">".$LANG['ok_news_edit']."<br/><a href=\"familynews.php?getnews=".$_POST['user']."\">".$LANG['refresh_page']."</a>.</p>";
 				echo "<meta http-equiv='refresh' content='0;URL=familynews.php?getnews=".$_POST['user']."'>";
 			}
 			if (isset($_GET['getnews'])) {
@@ -102,11 +105,13 @@ $fnews = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_my
 				if (isset($_POST['addcom'])) {
 					$com = ltrim($_POST['comment']);
 					if (!empty($com)) {
-						mysql_query("INSERT INTO `fcms_news_comments`(`news`, `comment`, `date`, `user`) VALUES($nid, '" . addslashes($com) . "', NOW(), " . $_SESSION['login_id'] . ")") or die('<h1>New Comment Error (familynews.php 114)</h1>' . mysql_error());
+						$sql = "INSERT INTO `fcms_news_comments`(`news`, `comment`, `date`, `user`) VALUES($nid, '" . addslashes($com) . "', NOW(), " . $_SESSION['login_id'] . ")";
+						mysql_query($sql) or displaySQLError('New Comment Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
 					}
 				}
 				if (isset($_POST['delcom'])) {
-					mysql_query("DELETE FROM fcms_news_comments WHERE id=" . $_POST['id']) or die('<h1>Delete Error (familynews.php 118)</h1>' . mysql_error());
+					$sql = "DELETE FROM fcms_news_comments WHERE id = " . $_POST['id'];
+					mysql_query($sql) or displaySQLError('Delete Comment Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
 				}
 				// Santizing user input - getnews - only allow digits 0-9
 				if (preg_match('/^\d+$/', $_GET['getnews'])) {
@@ -121,7 +126,8 @@ $fnews = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_my
 				$fnews->displayForm('edit', $_POST['user'], $_POST['id'], $_POST['title'], $_POST['news']);
 			} elseif (isset($_POST['delnews'])) {
 				$show_last5 = false;
-				mysql_query("DELETE FROM `fcms_news` WHERE id = ".$_POST['id']) or die("<h1>Delete News Error (familynews.php 92)</h1>" . mysql_error());
+				$sql = "DELETE FROM `fcms_news` WHERE id = ".$_POST['id'];
+				mysql_query($sql) or displaySQLError('Delete News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\">".$LANG['ok-news-delete']."<br/><a href=\"familynews.php?getnews=" . $_POST['user'] . "\">".$LANG['refresh_page']."</a>.</p>";
 				echo "<meta http-equiv='refresh' content='0;URL=familynews.php?getnews=" . $_POST['user'] . "'>";
 			}

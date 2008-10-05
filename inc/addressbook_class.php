@@ -12,7 +12,8 @@ class AddressBook {
 	function AddressBook ($current_user_id, $type, $host, $database, $user, $pass) {
 		$this->cur_user_id = $current_user_id;
 		$this->db = new database($type, $host, $database, $user, $pass);
-		$this->db->query("SELECT timezone FROM fcms_users WHERE id = $current_user_id") or die('<h1>Timezone Error (addressbook.class.php 15)</h1>' . mysql_error());
+		$sql = "SELECT timezone FROM fcms_users WHERE id = $current_user_id";
+		$this->db->query($sql) or displaySQLError('Timezone Error', 'inc/addressbook_class.php [' . __LINE__ . ']', $sql, mysql_error());
 		$row = $this->db->get_row();
 		$this->tz_offset = $row['timezone'];
 	}
@@ -23,7 +24,8 @@ class AddressBook {
 			echo "<div class=\"clearfix\"><a class=\"link_block add_address\" href=\"?add=yes\">".$LANG['add_address']."</a><a class=\"link_block export\" href=\"?csv=export\" onclick=\"javascript:return confirm('".$LANG['js_sure_export']."');\">".$LANG['export']."</a></div>\n\t\t\t";
 		}
 		echo "<p class=\"center addresstoolbar\"><a class=\"u\" href=\"addressbook.php\">".$LANG['show_all']."</a> ";
-		$this->db->query("SELECT `lname` FROM `fcms_users` AS u, `fcms_address` as a WHERE u.`id` = a.`user` AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' ORDER BY `lname`") or die("<h1>Address Letter Error (addressbook.class.php 21)</h1>" . mysql_error());
+		$sql = "SELECT `lname` FROM `fcms_users` AS u, `fcms_address` as a WHERE u.`id` = a.`user` AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' ORDER BY `lname`";
+		$this->db->query($sql) or displaySQLError('Address Letter Error', 'inc/addressbook_class.php [' . __LINE__ . ']', $sql, mysql_error());
 		$prev_letter = -1;
 		while($r = $this->db->get_row()) {
 			$letter = strtoupper(substr($r['lname'], 0, 1));
@@ -35,7 +37,8 @@ class AddressBook {
 
 	function displayAddress ($aid) {
 		global $LANG;
-		$this->db->query("SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`, `email`, `birthday`, `password` FROM `fcms_address` AS a, `fcms_users` AS u WHERE a.`user` = u.`id` AND a.`id` = " . $aid) or die('<h1>Get Addresses Error (addressbook.class.php 29)</h1>' . mysql_error());
+		$sql = "SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`, `email`, `birthday`, `password` FROM `fcms_address` AS a, `fcms_users` AS u WHERE a.`user` = u.`id` AND a.`id` = $aid";
+		$this->db->query($sql) or displaySQLError('Get Address Error', 'inc/addressbook_class.php [' . __LINE__ . ']', $sql, mysql_error());
 		if ($this->db->count_rows() > 0) {
 			while($r = $this->db->get_row()) {
 				echo "\t\t\t<div class=\"address\">\n\t\t\t\t<p><img src=\"gallery/avatar/" . $r['avatar'] . "\"/><b>" . $r['lname'] . ", " . $r['fname'] . "</b></p>\n";
@@ -82,7 +85,8 @@ class AddressBook {
 	function displayForm ($type, $addressid = '0') {
 		global $LANG;
 		if($type == 'edit') {
-			$this->db->query("SELECT a.`id`, u.`id` AS uid, `fname`, `lname`, `email`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell` FROM `fcms_users` AS u, `fcms_address` AS a WHERE a.`id` = $addressid AND a.`user` = u.`id`") or die('<h1>Address Error (addressbook.class.php 77)</h1>' . mysql_error());
+			$sql = "SELECT a.`id`, u.`id` AS uid, `fname`, `lname`, `email`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell` FROM `fcms_users` AS u, `fcms_address` AS a WHERE a.`id` = $addressid AND a.`user` = u.`id`";
+			$this->db->query($sql) or displaySQLError('Get Edit Address Error', 'inc/addressbook_class.php [' . __LINE__ . ']', $sql, mysql_error());
 			$row=$this->db->get_row();
 		}
 		echo "<script src=\"inc/prototype.js\" type=\"text/javascript\"></script>\n\t\t\t<script type=\"text/javascript\" src=\"inc/livevalidation.js\"></script>\n";
@@ -98,15 +102,15 @@ class AddressBook {
 			echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"lname\">".$LANG['last_name']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"lname\" id=\"lname\" class=\"required\" title=\"".$LANG['title_lname']."\" size=\"25\"/></div></div>\n";
 			echo "\t\t\t<script type=\"text/javascript\">\n\t\t\t\tvar flname = new LiveValidation('lname', { validMessage: \"".$LANG['lv_thanks']."\", wait: 500});\n\t\t\t\tflname.add(Validate.Presence, {failureMessage: \"".$LANG['lv_sorry_req']."\"});\n\t\t\t</script>\n";
 		}
-		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"email\">".$LANG['email']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"email\" id=\"email\" class=\"validate-email\" title=\"".$LANG['title_email']."\" size=\"50\" value=\"".htmlentities(stripslashes($row['email']), ENT_COMPAT, 'UTF-8')."\"/></div></div>\n";
+		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"email\">".$LANG['email']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"email\" id=\"email\" class=\"validate-email\" title=\"".$LANG['title_email']."\" size=\"50\"/></div></div>\n";
 		echo "\t\t\t<script type=\"text/javascript\">\n\t\t\t\tvar femail = new LiveValidation('email', { validMessage: \"".$LANG['lv_thanks']."\", wait: 500});\n\t\t\t\tfemail.add( Validate.Email, { failureMessage: \"".$LANG['lv_bad_email']."\" } );\n\t\t\t</script>\n";
-		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"address\">".$LANG['street']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"address\" id=\"address\" title=\"".$LANG['title_street']."\" size=\"25\" value=\"".htmlentities(stripslashes($row['address']), ENT_COMPAT, 'UTF-8')."\"/></div></div>\n";
-		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"city\">".$LANG['city_town']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"city\" id=\"city\" title=\"".$LANG['title_city_town']."\" size=\"50\" value=\"".htmlentities(stripslashes($row['city']), ENT_COMPAT, 'UTF-8')."\"/></div></div>\n";
-		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"state\">".$LANG['state_prov']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"state\" id=\"state\" class=\"\" title=\"".$LANG['title_state_prov']."\" size=\"50\" value=\"".htmlentities(stripslashes($row['state']), ENT_COMPAT, 'UTF-8')."\"/></div></div>\n";
-		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"zip\">".$LANG['zip_pos']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"zip\" id=\"zip\" class=\"\" title=\"".$LANG['title_zip_pos']."\" size=\"10\" value=\"".htmlentities(stripslashes($row['zip']), ENT_COMPAT, 'UTF-8')."\"/></div></div>\n";
-		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"home\">".$LANG['home_phone']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"home\" id=\"home\" class=\"validate-phone\" title=\"".$LANG['title_phone']."\" size=\"20\" value=\"".htmlentities(stripslashes($row['home']), ENT_COMPAT, 'UTF-8')."\"/></div></div>\n";
-		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"work\">".$LANG['work_phone']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"work\" id=\"work\" class=\"validate-phone\" title=\"".$LANG['title_phone']."\" size=\"20\" value=\"".htmlentities(stripslashes($row['work']), ENT_COMPAT, 'UTF-8')."\"/></div></div>\n";
-		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"cell\">".$LANG['mobile_phone']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"cell\" id=\"cell\" class=\"validate-phone\" title=\"".$LANG['title_phone']."\" size=\"20\" value=\"".htmlentities(stripslashes($row['cell']), ENT_COMPAT, 'UTF-8')."\"/></div></div>\n";
+		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"address\">".$LANG['street']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"address\" id=\"address\" title=\"".$LANG['title_street']."\" size=\"25\"/></div></div>\n";
+		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"city\">".$LANG['city_town']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"city\" id=\"city\" title=\"".$LANG['title_city_town']."\" size=\"50\"/></div></div>\n";
+		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"state\">".$LANG['state_prov']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"state\" id=\"state\" class=\"\" title=\"".$LANG['title_state_prov']."\" size=\"50\"/></div></div>\n";
+		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"zip\">".$LANG['zip_pos']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"zip\" id=\"zip\" class=\"\" title=\"".$LANG['title_zip_pos']."\" size=\"10\"/></div></div>\n";
+		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"home\">".$LANG['home_phone']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"home\" id=\"home\" class=\"validate-phone\" title=\"".$LANG['title_phone']."\" size=\"20\"/></div></div>\n";
+		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"work\">".$LANG['work_phone']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"work\" id=\"work\" class=\"validate-phone\" title=\"".$LANG['title_phone']."\" size=\"20\"/></div></div>\n";
+		echo "\t\t\t<div class=\"field-row\"><div class=\"field-label\"><label for=\"cell\">".$LANG['mobile_phone']."</label>:</div> <div class=\"field-widget\"><input type=\"text\" name=\"cell\" id=\"cell\" class=\"validate-phone\" title=\"".$LANG['title_phone']."\" size=\"20\"/></div></div>\n";
 		echo "\t\t\t</fieldset>\n";
 		if($type == 'edit') {
 			echo "\t\t\t<div><input type=\"hidden\" name=\"aid\" value=\"$addressid\"/></div>\n";
@@ -123,7 +127,8 @@ class AddressBook {
 		$today = date('Y-m-d');
 		$tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
 		echo "\t\t\t\t<h3>".$LANG['link_address']."</h3>\n\t\t\t\t<ul>\n";
-		$this->db->query("SELECT a.id, u.id AS user, lname, fname, displayname, username, updated FROM fcms_users AS u, fcms_address AS a WHERE u.id = a.user AND updated >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) ORDER BY updated DESC LIMIT 0, 5") or die('<h1>New Error (addressbook.class.php 123)</h1>' . mysql_error());
+		$sql = "SELECT a.id, u.id AS user, lname, fname, displayname, username, updated FROM fcms_users AS u, fcms_address AS a WHERE u.id = a.user AND updated >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) ORDER BY updated DESC LIMIT 0, 5";
+		$this->db->query($sql) or displaySQLError('New Addresses Error', 'inc/addressbook_class.php [' . __LINE__ . ']', $sql, mysql_error());
 		if ($this->db->count_rows() > 0) {
 			while($row = $this->db->get_row()) {
 				$displayname = getUserDisplayName($row['user']);

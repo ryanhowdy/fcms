@@ -299,8 +299,48 @@ function upgrade ($version) {
 		mysql_query("ALTER TABLE `fcms_config` ADD `nav_side2` TINYINT(1) NOT NULL DEFAULT '0' AFTER `nav_side1`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
 		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
 	}
+	/*
+	 * FCMS 1.7
+	 * Add Photo Gallery Tag.
+	 */
+	echo "<p>Upgrading Photo Gallery...";
+	$sql = "SHOW TABLES FROM `$cfg_mysql_db`";
+	$result = mysql_query($sql) or die("</p><p style=\"color:red\">".$LANG['not_search_tables']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$tag_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r[0] == 'fcms_gallery_photos_tags') { $tag_fixed = true; }
+		}
+	}
+	if ($tag_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+		mysql_query("CREATE TABLE `fcms_gallery_photos_tags` (`id` int(11) NOT NULL auto_increment, `user` int(11) NOT NULL default '0', `photo` int(11) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `tag_photo_ind` (`photo`), KEY `tag_user_ind` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_gallery_photos_tags` ADD CONSTRAINT `fcms_gallery_photos_tags_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE, ADD CONSTRAINT `fcms_gallery_photos_tags_ibfk_2` FOREIGN KEY (`photo`) REFERENCES `fcms_gallery_photos` (`id`) ON DELETE CASCADE") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
+	}
+	/*
+	 * FCMS 1.7
+	 * Update Config.
+	 */
+	echo "<p>Upgrading FCMS config a 3rd time...";
+	$result = mysql_query("SHOW COLUMNS FROM `fcms_config`") or die("</p><p style=\"color:red\">".$LANG['not_search_fields']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$config_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r['Field'] == 'auto_activate' || $r['Field'] == 'auto_activate') { $config_fixed = true; }
+		}
+	}
+	if ($config_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+		mysql_query("ALTER TABLE `fcms_config` ADD `auto_activate` TINYINT( 1 ) NOT NULL DEFAULT '0'") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_config` ADD `full_size_photos` TINYINT( 1 ) NOT NULL DEFAULT '0'") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
+	}
 
-	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.6.3'");
+
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.7'");
 	echo "<p style=\"color:green\">Upgrade is finished.</p>";
 }
 ?>

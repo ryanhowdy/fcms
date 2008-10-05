@@ -24,8 +24,9 @@ class Profile {
 		$this->db->query("SELECT u.fname, u.lname, u.email, u.birthday, u.avatar, u.username, u.joindate, u.activity FROM fcms_users AS u, fcms_address AS a WHERE u.id = $userid AND u.id = a.user") or die('<h1>Profile Error (profile.class.php 30)</h1>' . mysql_error());
 		$row = $this->db->get_row();
 		$points = round(getUserRankById($userid), 2);
-		if($points > 50) { $rank_img = "<div title=\"".$LANG['edler']." ($points)\" class=\"rank7\"></div>"; $rank = $LANG['edler']; $next_rank = "<i>none</i>"; }
-		elseif($points > 30) { $rank_img = "<div title=\"".$LANG['adult']." ($points)\" class=\"rank6\"></div>"; $rank = $LANG['adult']; $next_rank = $LANG['edler']; $pts = 50; }
+		$pts = 0;
+		if($points > 50) { $rank_img = "<div title=\"".$LANG['elder']." ($points)\" class=\"rank7\"></div>"; $rank = $LANG['elder']; $next_rank = "<i>none</i>"; }
+		elseif($points > 30) { $rank_img = "<div title=\"".$LANG['adult']." ($points)\" class=\"rank6\"></div>"; $rank = $LANG['adult']; $next_rank = $LANG['elder']; $pts = 50; }
 		elseif($points > 20) { $rank_img = "<div title=\"".$LANG['mature_adult']." ($points)\" class=\"rank5\"></div>"; $rank = $LANG['mature_adult']; $next_rank = $LANG['adult']; $pts = 30; }
 		elseif($points > 10) { $rank_img = "<div title=\"".$LANG['young_adult']." ($points)\" class=\"rank4\"></div>"; $rank = $LANG['young_adult']; $next_rank = $LANG['mature_adult']; $pts = 20; }
 		elseif($points > 5) { $rank_img = "<div title=\"".$LANG['teenager']." ($points)\" class=\"rank3\"></div>"; $rank = $LANG['teenager']; $next_rank = $LANG['young_adult']; $pts = 10; }
@@ -48,9 +49,14 @@ class Profile {
 		}
 		echo "</div>\n<div class=\"main-info\"><h3>" . $row['lname'] . ", " . $row['fname'] . "</h3>$rank_img</div>\n";
 		echo "<div class=\"main-info\"><h2>".$LANG['rank']."</h2><div><b>".$LANG['points'].":</b> $points</div><div><b>".$LANG['rank'].":</b> $rank</div>";
-		$ptsToGo =  $pts - round($points, 2);
-		echo "<div><b>".$LANG['next_rank'].":</b> $next_rank <small>($ptsToGo ".$LANG['pts_go'].")</small></div>";
-		$this->displayPointsToGo($ptsToGo);
+		$ptsToGo = $pts - round($points, 2);
+		echo "<div><b>".$LANG['next_rank'].":</b> $next_rank";
+		if ($ptsToGo > 0) {
+			echo " <small>($ptsToGo ".$LANG['pts_go'].")</small></div>";
+			$this->displayPointsToGo($ptsToGo);
+		} else { 
+			echo "</div>";
+		}
 		echo "</div>\n";
 		if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
 			echo "<div class=\"main-info\"><h2>".$LANG['last5_posts']."</h2>"; $this->displayLast5Posts($userid); echo"</div>\n";

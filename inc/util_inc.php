@@ -1,4 +1,5 @@
 <?php
+set_error_handler("fcmsErrorHandler");
 include_once('language.php');
 $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 mysql_select_db($cfg_mysql_db);
@@ -101,7 +102,7 @@ function displayFooter ($d = "") {
 	echo "<div id=\"footer\">\n\t\t<p>\n\t\t\t";
 	echo "<a href=\"" . $d . "index.php\" class=\"ft\">" . $LANG['link_home'] . "</a> | <a href=\"http://www.haudenschilt.com/forum/index.php\" class=\"ft\">";
 	echo $LANG['link_support'] . "</a> | <a href=\"" . $d . "help.php\" class=\"ft\">" . $LANG['link_help'] . "</a><br />\n\t\t\t";
-	echo "<a href=\"http://www.haudenschilt.com/fcms/\">" . getCurrentVersion() . "</a> - Copyright &copy; 2006-2008 Ryan Haudenschilt.\n\t\t</p>\n\t</div>\n";
+	echo "<a href=\"http://www.familycms.com\">" . getCurrentVersion() . "</a> - Copyright &copy; 2006-2008 Ryan Haudenschilt.\n\t\t</p>\n\t</div>\n";
 }
 function checkAccess ($userid) {
 	$result = mysql_query("SELECT access FROM fcms_users WHERE id = $userid") or die('<h1>Access Error (util.inc.php 47)</h1>' . mysql_error());
@@ -345,6 +346,37 @@ function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h,
 	echo "<img src=\"" . $destination . $filename . "\" alt=\"\"/>";
 	return $filename;
 }
+// include page in url (index.php?uid=0)
+function displayPages ($url, $cur_page, $total_pages) {
+	global $LANG;
+	if ($total_pages > 1) {
+		echo "\t\t\t<div class=\"pages clearfix\">\n\t\t\t\t<ul>\n";
+		if ($cur_page > 1) {
+			$prev = ($cur_page - 1);
+			echo "\t\t\t\t\t<li><a title=\"".$LANG['title_first_page']."\" class=\"first\" href=\"$url&amp;page=1\"></a></li>\n";
+			echo "\t\t\t\t\t<li><a title=\"".$LANG['title_prev_page']."\" class=\"previous\" href=\"$url&amp;page=$prev\"></a></li>\n";
+		} 
+		if ($total_pages > 8) {
+			if ($cur_page > 2) {
+				for ($i = ($cur_page-2); $i <= ($cur_page+5); $i++) {
+					if ($i <= $total_pages) { echo "\t\t\t\t\t<li><a href=\"$url&amp;page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n"; }
+				} 
+			} else {
+				for ($i = 1; $i <= 8; $i++) { echo "\t\t\t\t\t<li><a href=\"$url&amp;page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n"; } 
+			}
+		} else {
+			for ($i = 1; $i <= $total_pages; $i++) {
+				echo "\t\t\t\t\t<li><a href=\"$url&amp;page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n";
+			} 
+		}
+		if ($cur_page < $total_pages) { 
+			$next = ($cur_page + 1); 
+			echo "\t\t\t\t\t<li><a title=\"" . $LANG['title_next_page'] . "\" class=\"next\" href=\"$url&amp;page=$next\"></a></li>\n";
+			echo "\t\t\t\t\t<li><a title=\"" . $LANG['title_last_page'] . "\" class=\"last\" href=\"$url&amp;page=$total_pages\"></a></li>\n";
+		} 
+		echo "\t\t\t\t</ul>\n\t\t\t</div>\n";
+	}	
+}
 function formatSize($file_size){
 	if ($file_size >= 1073741824) {
 		$file_size = round($file_size / 1073741824 * 100) / 100 . "Gb";
@@ -391,7 +423,7 @@ function displayLoginPage ($d = "") {
 	if (!empty($d)) { $d = "../"; }
 	echo "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n"
 		. "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"".$LANG['lang']."\" lang=\"".$LANG['lang']."\">\n<head><link rel=\"stylesheet\" type=\"text/css\" href=\"" . $d . "themes/default.css\" /></head>\n"
-		. "<body>\n\t<div id=\"header\"><h1 id=\"logo\">$cfg_sitename</h1></div>\n\t<div id=\"content\">\n\t\t<div class=\"centercontent\" style=\"padding: 0 0 300px 0;\">\n"
+		. "<body>\n\t<div id=\"header\"><h1 id=\"logo\">" . getSiteName() . "</h1></div>\n\t<div id=\"content\">\n\t\t<div class=\"centercontent\" style=\"padding: 0 0 300px 0;\">\n"
 		. "\t\t\t<div class=\"error-alert\">\n\t\t\t\t<h1>".$LANG['access_denied1']."</h1>\n\t\t\t\t<p>".$LANG['access_denied2']."</p>\n\t\t\t\t<p><a href=\"" . $d . "index.php\">".$LANG['access_denied3']."</a></p>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\t";
 	displayFooter($d);
 	echo "</body>\n</html>";
@@ -441,6 +473,46 @@ function tableExists ($tbl) {
 	} else {
 		return true ;
 	}
+}
+function getDomainAndDir () {
+	$pageURL = 'http';
+	if ($_SERVER["HTTPS"] == "on") { $pageURL .= "s"; }
+	$pageURL .= "://";
+	if ($_SERVER["SERVER_PORT"] != "80") {
+		$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+	} else {
+		$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+	}
+	// Return the domain and any directories, but exlude the register.php from the end
+	return substr($pageURL, 0, -12);
+}
+function displaySQLError ($heading, $file, $sql, $error) {
+	echo "<div class=\"error-alert\"><big><b>$heading</b></big><br/><small><b>File:</b> $file</small><br/><small><b>Statement:</b> $sql</small><br/>";
+	echo "<small><b>Error:</b> $error</small><br/><small><b>MySQL Version:</b> " . mysql_get_server_info() . "</small><br/>";
+	echo "<small><b>PHP Version:</b> " . phpversion() . "</small></div>";
+}
+function fcmsErrorHandler($errno, $errstr, $errfile, $errline) {
+    switch ($errno) {
+		case E_USER_ERROR:
+			echo "<div class=\"error-alert\"><big><b>Fatal Error</b></big><br/><small><b>$errstr</b></small><br/>";
+			echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+			exit(1);
+			break;
+		case E_USER_WARNING:
+			echo "<div class=\"error-alert\"><big><b>Warning</b></big><br/><small><b>$errstr</b></small><br/>";
+			echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+			break;
+		case E_USER_NOTICE:
+			echo "<div class=\"error-alert\"><big><b>Notice</b></big><br/><small><b>$errstr</b></small><br/>";
+			echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+			break;
+		default:
+			echo "<div class=\"error-alert\"><big><b>Error</b></big><br/><small><b>$errstr</b></small><br/>";
+			echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+			break;
+    }
+    // Don't execute PHP internal error handler
+    return true;
 }
 function displayWhatsNewAll($userid) {
 	global $cfg_mysql_host, $cfg_use_news, $cfg_use_prayers, $LANG;
@@ -556,7 +628,7 @@ function displayWhatsNewAll($userid) {
 		} elseif ($r['type'] == 'GALCOM') {
 			echo "\t\t\t<p class=\"newcom\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
 			echo getUserDisplayName($r['userid']);
-			echo "</a> ".$LANG['com_gallery']." <small><i>$rdate</i></small><br/><a href=\"gallery/index.php?commentpid=" . $r['id3'] . "\"><img src=\"gallery/photos/member" . $r['id2'] . "/tb_" . $r['id3'] . "\"/></a></p>\n";
+			echo "</a> ".$LANG['com_gallery']." <small><i>$rdate</i></small><br/><a href=\"gallery/index.php?uid=0&amp;cid=comments&amp;pid=" . $r['id'] . "\"><img src=\"gallery/photos/member" . $r['id2'] . "/tb_" . $r['id3'] . "\"/></a></p>\n";
 		}
 		$lastday = $day;
 	}
