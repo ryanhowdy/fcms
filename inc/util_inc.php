@@ -40,7 +40,7 @@ function getUserDisplayName ($userid, $display = 0) {
 function displayTopNav ($d = "") {
 	global $cfg_use_news, $cfg_use_prayers, $LANG;
 	if (!empty($d)) { $d = "../"; }
-	echo '<div id="topmenu"><ul id="navlist"><li><span><a class="firstlastnavmenu" href="' . $d . 'home.php">'.$LANG['link_home'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'gallery/index.php">'.$LANG['link_gallery'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'messageboard.php">'.$LANG['link_board'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'addressbook.php">'.$LANG['link_address'].'</a></span></li>';
+	echo '<div id="topmenu"><ul id="navlist"><li><span><a class="firstnavmenu" href="' . $d . 'home.php">'.$LANG['link_home'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'gallery/index.php">'.$LANG['link_gallery'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'messageboard.php">'.$LANG['link_board'].'</a></span></li><li><span><a class="navmenu" href="' . $d . 'addressbook.php">'.$LANG['link_address'].'</a></span></li>';
 	$result = mysql_query("SELECT `nav_top1`, `nav_top2` FROM `fcms_config`");
 	$r = mysql_fetch_array($result);
 	// 0 = none, 1 = familynews, 2 = prayer concerns, 3 = calendar, 4 = recipes, 5 = book/moview review
@@ -52,11 +52,11 @@ function displayTopNav ($d = "") {
 		default: echo '<li><span><a class="navmenu" href="#">&nbsp;</a></span></li>'; break;
 	}
 	switch ($r['nav_top2']) {
-		case 1: echo '<li><span><a class="firstlastnavmenu" href="' . $d . 'familynews.php">'.$LANG['link_news'].'</a></span></li>'; break;
-		case 2: echo '<li><span><a class="firstlastnavmenu" href="' . $d . 'prayers.php">'.$LANG['link_prayer'].'</a></span></li>'; break;
-		case 3: echo '<li><span><a class="firstlastnavmenu" href="' . $d . 'calendar.php">'.$LANG['link_calendar'].'</a></span></li>'; break;
-		case 4: echo '<li><span><a class="firstlastnavmenu" href="' . $d . 'recipes.php">'.$LANG['link_recipes'].'</a></span></li>'; break;
-		default: echo '<li><span><a class="firstlastnavmenu" href="#">&nbsp;</a></span></li>'; break;
+		case 1: echo '<li><span><a class="lastnavmenu" href="' . $d . 'familynews.php">'.$LANG['link_news'].'</a></span></li>'; break;
+		case 2: echo '<li><span><a class="lastnavmenu" href="' . $d . 'prayers.php">'.$LANG['link_prayer'].'</a></span></li>'; break;
+		case 3: echo '<li><span><a class="lastnavmenu" href="' . $d . 'calendar.php">'.$LANG['link_calendar'].'</a></span></li>'; break;
+		case 4: echo '<li><span><a class="lastnavmenu" href="' . $d . 'recipes.php">'.$LANG['link_recipes'].'</a></span></li>'; break;
+		default: echo '<li><span><a class="lastnavmenu" href="#">&nbsp;</a></span></li>'; break;
 	}
 	echo "</ul></div>";
 }
@@ -87,7 +87,7 @@ function displaySideNav ($d = "") {
 function displayAdminNav ($d = "") {
 	global $LANG;
 	if ($d == 'fix') { $d = "admin/"; } elseif ($d == 'fixgal') { $d = "../admin/"; }
-	echo "\t<div class=\"menu\">\n\t\t\t<ul>\n";
+	echo "\t<div class=\"adminmenu menu\">\n\t\t\t<ul>\n";
 	if (checkAccess($_SESSION['login_id']) < 2) { echo "\t\t\t\t<li><a href=\"".$d."config.php\">".$LANG['link_admin_config']."</a></li>\n"; }
 	if (checkAccess($_SESSION['login_id']) < 2) { echo "\t\t\t\t<li><a href=\"".$d."members.php\">".$LANG['link_admin_members']."</a></li>\n"; }
 	if (checkAccess($_SESSION['login_id']) < 2) { echo "\t\t\t\t<li><a href=\"".$d."board.php\">".$LANG['link_admin_board']."</a></li>\n"; }
@@ -214,6 +214,7 @@ function getCommentsById ($user_id) {
 	$result = mysql_query("SELECT * FROM `fcms_gallery_comments`");
 	$total = mysql_num_rows($result);
 	mysql_free_result($result);
+	$count = 0;
 	if (usingFamilyNews()) {
 		$result = mysql_query("SELECT * FROM `fcms_news_comments`");
 		$total = $total + mysql_num_rows($result);
@@ -476,12 +477,14 @@ function tableExists ($tbl) {
 }
 function getDomainAndDir () {
 	$pageURL = 'http';
-	if ($_SERVER["HTTPS"] == "on") { $pageURL .= "s"; }
+	if (isset($_SERVER["HTTPS"])) { if ($_SERVER["HTTPS"] == "on") { $pageURL .= "s"; } }
 	$pageURL .= "://";
-	if ($_SERVER["SERVER_PORT"] != "80") {
-		$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
-	} else {
-		$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+	if (isset($_SERVER["SERVER_PORT"])) {
+		if ($_SERVER["SERVER_PORT"] != "80") {
+			$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+		} else {
+			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+		}
 	}
 	// Return the domain and any directories, but exlude the register.php from the end
 	return substr($pageURL, 0, -12);
@@ -492,27 +495,30 @@ function displaySQLError ($heading, $file, $sql, $error) {
 	echo "<small><b>PHP Version:</b> " . phpversion() . "</small></div>";
 }
 function fcmsErrorHandler($errno, $errstr, $errfile, $errline) {
-    switch ($errno) {
-		case E_USER_ERROR:
-			echo "<div class=\"error-alert\"><big><b>Fatal Error</b></big><br/><small><b>$errstr</b></small><br/>";
-			echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
-			exit(1);
-			break;
-		case E_USER_WARNING:
-			echo "<div class=\"error-alert\"><big><b>Warning</b></big><br/><small><b>$errstr</b></small><br/>";
-			echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
-			break;
-		case E_USER_NOTICE:
-			echo "<div class=\"error-alert\"><big><b>Notice</b></big><br/><small><b>$errstr</b></small><br/>";
-			echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
-			break;
-		default:
-			echo "<div class=\"error-alert\"><big><b>Error</b></big><br/><small><b>$errstr</b></small><br/>";
-			echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
-			break;
-    }
-    // Don't execute PHP internal error handler
-    return true;
+	$pos = strpos($errstr, "It is not safe to rely on the system's timezone settings");
+	if ($pos === false) {
+		switch ($errno) {
+			case E_USER_ERROR:
+				echo "<div class=\"error-alert\"><big><b>Fatal Error</b></big><br/><small><b>$errstr</b></small><br/>";
+				echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+				exit(1);
+				break;
+			case E_USER_WARNING:
+				echo "<div class=\"error-alert\"><big><b>Warning</b></big><br/><small><b>$errstr</b></small><br/>";
+				echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+				break;
+			case E_USER_NOTICE:
+				echo "<div class=\"error-alert\"><big><b>Notice</b></big><br/><small><b>$errstr</b></small><br/>";
+				echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+				break;
+			default:
+				echo "<div class=\"error-alert\"><big><b>Error</b></big><br/><small><b>$errstr</b></small><br/>";
+				echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+				break;
+		}
+	}
+	// Don't execute PHP internal error handler
+	return true;
 }
 function displayWhatsNewAll($userid) {
 	global $cfg_mysql_host, $cfg_use_news, $cfg_use_prayers, $LANG;

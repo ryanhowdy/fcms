@@ -49,14 +49,14 @@ $poll = new Poll('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_
 	<?php displayTopNav(); ?>
 	<div id="pagetitle"><?php echo $LANG['link_home']; ?></div>
 	<div id="leftcolumn">
-		<h2><?php echo $LANG['navigation']; ?></h2>
+		<h2 class="firstmenu"><?php echo $LANG['navigation']; ?></h2>
 		<?php
 		displaySideNav();
 		if(checkAccess($_SESSION['login_id']) < 3) { 
-			echo "\t<h2>".$LANG['admin']."</h2>\n\t"; 
+			echo "\t<h2 class=\"adminmenu\">".$LANG['admin']."</h2>\n\t"; 
 			displayAdminNav("fix");
 		}
-		echo "\t<h2>".$LANG['link_calendar']."</h2>";
+		echo "\t<h2 class=\"calmenu\">".$LANG['link_calendar']."</h2>";
 		$year  = isset($_GET['year']) ? $_GET['year'] : date('Y');
 		$month = isset($_GET['month']) ? str_pad($_GET['month'], 2, 0, STR_PAD_LEFT) : date('m');
 		$day = isset($_GET['day']) ? str_pad($_GET['day'], 2, 0, STR_PAD_LEFT) : date('d');
@@ -67,8 +67,9 @@ $poll = new Poll('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_
 		if (!isset($_POST['vote']) && !isset($_GET['poll_id']) && !isset($_GET['action'])) {
 			$poll->displayPoll();
 		}
-		echo "<h2>".$LANG['mem_online']."</h2>";
-		displayMembersOnline(); ?>
+		echo "<h2 class=\"membermenu\">".$LANG['mem_online']."</h2><div class=\"membermenu\">";
+		displayMembersOnline();
+		echo "</div>\n"; ?>
 	</div>
 	<div id="content">
 		<div class="centercontent">

@@ -24,7 +24,7 @@ mysql_select_db($cfg_mysql_db, $link);
 				$sql = "UPDATE `fcms_users` SET `activated` = 1 WHERE `id` = " . $_GET['uid'];
 				mysql_query($sql) or displaySQLError('Activation Error', 'activate.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p><b>" . $LANG['activate_yes1'] . "</b></p><p>" . $LANG['activate_yes2'] . " <a href=\"index.php\">" . $LANG['activate_yes3'] . "</a> " . $LANG['activate_yes4'] . "</p>";
-				echo "<meta http-equiv='refresh' content='0;URL=index.php'>";
+				echo "<meta http-equiv='refresh' content='3;URL=index.php'>";
 			} else {
 				echo "<p><b>" . $LANG['activate_no1'] . "</b></p><p>" . $LANG['activate_no2'] . "</p>";
 			}

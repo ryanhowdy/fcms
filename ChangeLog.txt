@@ -1,3 +1,9 @@
+ 1.7.1
+    - fixed "Timezones in PHP5" bug id 2136646 
+    - fixed "Auto Activate doesn't work on upgrade" bug id 2153255 
+    - added "Add additional classes for theme creation" feature request id 2153279 
+
+
  1.7
     - fixed "Undefined variable/index" bug id 2136558 
     - fixed "Rotating Photo doesn't rotate thumbnail" bug id 2082344

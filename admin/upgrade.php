@@ -328,7 +328,7 @@ function upgrade ($version) {
 	$config_fixed = false;
 	if (mysql_num_rows($result) > 0) {
 		while($r = mysql_fetch_array($result)) {
-			if ($r['Field'] == 'auto_activate' || $r['Field'] == 'auto_activate') { $config_fixed = true; }
+			if ($r['Field'] == 'auto_activate' || $r['Field'] == 'full_size_photos') { $config_fixed = true; }
 		}
 	}
 	if ($config_fixed) {
@@ -338,9 +338,27 @@ function upgrade ($version) {
 		mysql_query("ALTER TABLE `fcms_config` ADD `full_size_photos` TINYINT( 1 ) NOT NULL DEFAULT '0'") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
 		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
 	}
+	/*
+	 * FCMS 1.7.1
+	 * Update Config.
+	 */
+	echo "<p>Upgrading Users...";
+	$result = mysql_query("SHOW COLUMNS FROM `fcms_users`") or die("</p><p style=\"color:red\">".$LANG['not_search_fields']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$config_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r['Field'] == 'activate_code') { $config_fixed = true; }
+		}
+	}
+	if ($config_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+		mysql_query("ALTER TABLE `fcms_config` ADD `activate_code` CHAR( 13 ) NULL") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
+	}
 
 
-	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.7'");
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.7.1'");
 	echo "<p style=\"color:green\">Upgrade is finished.</p>";
 }
 ?>
