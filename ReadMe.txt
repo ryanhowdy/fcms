@@ -1,5 +1,5 @@
 
-FAMILY CONNECTIONS 1.7.2
+FAMILY CONNECTIONS 1.7.3
 
   Keep your family "Connected" with this content management system (CMS) designed 
   specifically with family's in mind. Key features are: a message board, a photo 
@@ -11,7 +11,7 @@ FAMILY CONNECTIONS 1.7.2
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_1.7.2.zip to your web host.
+  1. Upload the entire contents of FCMS_1.7.3.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -29,17 +29,17 @@ I. Installation
 
 
 
-II. Upgrading from 1.7.1 to 1.7.2
+II. Upgrading from 1.7.2 to 1.7.3
 --------------------------------
 
   1. Replace the following files on your web host.
 
     admin/members.php
     admin/upgrade.php
+    gallery/index.php
     inc/gallery_class.php
-    inc/language.php
+    familynews.php
     install.php
-    rss.php
 
   2. Run the upgrade.php script.
 
@@ -51,11 +51,11 @@ II. Upgrading from 1.7.1 to 1.7.2
 III. Change Log
 ----------------
 
- 1.7.2
-    - fixed "Latest Comments showing wrong member name" bug id 2211964 
-    - fixed "Ampersand breaks RSS Feeds" bug id 2185062 
-    - fixed "Can't vote for pic in Top Rated view (1.7.1)" bug id 2184446 
-    - fixed "Register: Email address already in use." bug id 2155485 
+ 1.7.3
+    - fixed "Deleting comments in the Latest Comment view causes errors" bug id 2255695
+    - fixed "Error deleting photo" bug id 2255671 
+    - fixed "Cannot de-activate members" bug id 2225757  
+    - fixed "No confimation given when deleting family news" bug id 2234868  
 
 
   For the full change log please refer to the included "ChangeLog.txt" file.

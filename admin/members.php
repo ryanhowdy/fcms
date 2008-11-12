@@ -56,23 +56,21 @@ header("Cache-control: private");
 					$access = (int)$_POST['access'];
 					if (!empty($access) && is_numeric($access) && $access <= 10 && $access > 0) {
 						if (isset($_POST['activated'])) {
-							if ($_POST['activated'] > 0) {
-								$sql = "UPDATE fcms_users SET activated = 1 WHERE id = $id";
-								mysql_query($sql) or displaySQLError('Activate Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
-								$sql = "SELECT `email` FROM `fcms_users` WHERE id = $id";
-								$result = mysql_query($sql) or displaySQLError('Get Email Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
-								$r = mysql_fetch_array($result);
-								$msg = $LANG['mail_msg_activate1']." ".getSiteName()." ".$LANG['mail_msg_activate2'];
-								mail($r['email'], $LANG['mail_sub_activate'] . getSiteName(), $msg, $email_headers);
-							} else {
-								$sql = "UPDATE `fcms_users` SET `activated` = 0 WHERE id = $id";
-								mysql_query($sql) or displaySQLError('Activate Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
-							}
-							$sql = "UPDATE fcms_users SET access = $access WHERE id = $id";
-							mysql_query($sql) or displaySQLError('Access Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
-							echo "<p class=\"ok-alert\" id=\"update\">".$LANG['update_success']."</p>";
-							echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('update').toggle()\",3000); }</script>";
+							$sql = "UPDATE fcms_users SET activated = 1 WHERE id = $id";
+							mysql_query($sql) or displaySQLError('Activate Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
+							$sql = "SELECT `email` FROM `fcms_users` WHERE id = $id";
+							$result = mysql_query($sql) or displaySQLError('Get Email Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
+							$r = mysql_fetch_array($result);
+							$msg = $LANG['mail_msg_activate1']." ".getSiteName()." ".$LANG['mail_msg_activate2'];
+							mail($r['email'], $LANG['mail_sub_activate'] . getSiteName(), $msg, $email_headers);
+						} else {
+							$sql = "UPDATE `fcms_users` SET `activated` = 0 WHERE id = $id";
+							mysql_query($sql) or displaySQLError('Activate Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
 						}
+						$sql = "UPDATE fcms_users SET access = $access WHERE id = $id";
+						mysql_query($sql) or displaySQLError('Access Error', 'admin/members.php [' . __LINE__ . ']', $sql, mysql_error());
+						echo "<p class=\"ok-alert\" id=\"update\">".$LANG['update_success']."</p>";
+						echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('update').toggle()\",3000); }</script>";
 					}
 				}
 				if (isset($_POST['del'])) {

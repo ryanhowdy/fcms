@@ -1,3 +1,10 @@
+ 1.7.3
+    - fixed "Deleting comments in the Latest Comment view causes errors" bug id 2255695
+    - fixed "Error deleting photo" bug id 2255671 
+    - fixed "Cannot de-activate members" bug id 2225757  
+    - fixed "No confimation given when deleting family news" bug id 2234868  
+
+
  1.7.2
     - fixed "Latest Comments showing wrong member name" bug id 2211964 
     - fixed "Ampersand breaks RSS Feeds" bug id 2185062 

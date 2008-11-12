@@ -189,7 +189,7 @@ class PhotoGallery {
 						$displayname = getUserDisplayName($row['user']);
 						$date = fixDST(gmdate('Y-m-d h:i:s', strtotime($row['date'] . $this->tz_offset)), $this->cur_user_id, 'M. d, Y (h:i a)');
 						if ($this->cur_user_id == $row['user'] || checkAccess($this->cur_user_id) < 2) {
-							echo "<div class=\"comment_block\"><form action=\"?page=photo&amp;uid=$uid&amp;cid=$cid&amp;pid=$pid\" method=\"post\"><input type=\"submit\" name=\"delcom\" id=\"delcom\" value=\" \" class=\"gal_delcombtn\" title=\"".$LANG['title_del_comment']."\" onclick=\"javascript:return confirm('".$LANG['js_del_comment']."'); \"/><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'], ENT_COMPAT, 'UTF-8')."<input type=\"hidden\" name=\"id\" value=\"".$row['id']."\"></form></div>";
+							echo "<div class=\"comment_block\"><form action=\"?page=photo&amp;uid=$uid&amp;cid=$urlcid&amp;pid=$pid\" method=\"post\"><input type=\"submit\" name=\"delcom\" id=\"delcom\" value=\" \" class=\"gal_delcombtn\" title=\"".$LANG['title_del_comment']."\" onclick=\"javascript:return confirm('".$LANG['js_del_comment']."'); \"/><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'], ENT_COMPAT, 'UTF-8')."<input type=\"hidden\" name=\"id\" value=\"".$row['id']."\"></form></div>";
 						} else {
 							echo "<div class=\"comment_block\"><span>$date</span><b>$displayname</b><br/>".htmlentities($row['comment'], ENT_COMPAT, 'UTF-8')."</div>";
 						}

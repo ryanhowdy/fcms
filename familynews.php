@@ -128,7 +128,7 @@ $fnews = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_my
 				$show_last5 = false;
 				$sql = "DELETE FROM `fcms_news` WHERE id = ".$_POST['id'];
 				mysql_query($sql) or displaySQLError('Delete News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
-				echo "<p class=\"ok-alert\">".$LANG['ok-news-delete']."<br/><a href=\"familynews.php?getnews=" . $_POST['user'] . "\">".$LANG['refresh_page']."</a>.</p>";
+				echo "<p class=\"ok-alert\">".$LANG['ok_news_delete']."<br/><a href=\"familynews.php?getnews=" . $_POST['user'] . "\">".$LANG['refresh_page']."</a>.</p>";
 				echo "<meta http-equiv='refresh' content='0;URL=familynews.php?getnews=" . $_POST['user'] . "'>";
 			}
 			if ($show_last5) {

@@ -353,12 +353,12 @@ function upgrade ($version) {
 	if ($config_fixed) {
 		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
 	} else {
-		mysql_query("ALTER TABLE `fcms_config` ADD `activate_code` CHAR( 13 ) NULL") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+		mysql_query("ALTER TABLE `fcms_users` ADD `activate_code` CHAR( 13 ) NULL") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
 		echo "<span style=\"color:green\">".$LANG['complete']."</span></p>";
 	}
 
 
-	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.7.2'");
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.7.3'");
 	echo "<p style=\"color:green\">Upgrade is finished.</p>";
 }
 ?>

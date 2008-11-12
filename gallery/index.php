@@ -214,7 +214,7 @@ $gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cf
 				$sql = "SELECT `full_size_photos` FROM `fcms_config`";
 				$result = mysql_query($sql) or displaySQLError('Full Size Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
 				$r = mysql_fetch_array($result);
-				if ($r['full_sized_photos'] == 1) {
+				if ($r['full_size_photos'] == 1) {
 					unlink("photos/member$photo_user_id/full_" . $file_photo);
 				}
 				$gallery->displayGalleryMenu($photo_user_id);
