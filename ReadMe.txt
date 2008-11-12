@@ -1,5 +1,5 @@
 
-FAMILY CONNECTIONS 1.7.1
+FAMILY CONNECTIONS 1.7.2
 
   Keep your family "Connected" with this content management system (CMS) designed 
   specifically with family's in mind. Key features are: a message board, a photo 
@@ -11,7 +11,7 @@ FAMILY CONNECTIONS 1.7.1
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_1.7.1.zip to your web host.
+  1. Upload the entire contents of FCMS_1.7.2.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -29,16 +29,17 @@ I. Installation
 
 
 
-II. Upgrading from 1.7 to 1.7.1
+II. Upgrading from 1.7.1 to 1.7.2
 --------------------------------
 
   1. Replace the following files on your web host.
 
+    admin/members.php
     admin/upgrade.php
-    inc/util_inc.php
-    activate.php
-    home.php
+    inc/gallery_class.php
+    inc/language.php
     install.php
+    rss.php
 
   2. Run the upgrade.php script.
 
@@ -50,10 +51,11 @@ II. Upgrading from 1.7 to 1.7.1
 III. Change Log
 ----------------
 
- 1.7.1
-    - fixed "Timezones in PHP5" bug id 2136646 
-    - fixed "Auto Activate doesn't work on upgrade" bug id 2153255 
-    - added "Add additional classes for theme creation" feature request id 2153279 
+ 1.7.2
+    - fixed "Latest Comments showing wrong member name" bug id 2211964 
+    - fixed "Ampersand breaks RSS Feeds" bug id 2185062 
+    - fixed "Can't vote for pic in Top Rated view (1.7.1)" bug id 2184446 
+    - fixed "Register: Email address already in use." bug id 2155485 
 
 
   For the full change log please refer to the included "ChangeLog.txt" file.

@@ -124,10 +124,10 @@ function displayFeedAll () {
 			$link = "gallery/index.php?commentpid=" . $line['id3']; 
 		} 
 		
-		$output .= "<item><title>$title</title> 
+		$output .= "<item><title><![CDATA[$title]]></title> 
 		<pubDate>" . gmdate('D, d M Y H:i:s', strtotime($line['date'])) . " GMT</pubDate> 
 		<link>$urlRoot/$link</link> 
-		<guid isPermaLink=\"false\">$urlRoot $title " . gmdate('D, d M Y H:i:s', strtotime($line['date'])) . "</guid> 
+		<guid isPermaLink=\"false\"><![CDATA[$urlRoot $title " . gmdate('D, d M Y H:i:s', strtotime($line['date'])) . "]]></guid> 
 		</item> 
 		"; 
 	} 
@@ -169,12 +169,12 @@ function displayFeedPhotoGallery () {
 		if ($title == "") {
 			$title = htmlentities($line['name']);
 		}
-		$output .= "<item><title>".$title."</title> 
+		$output .= "<item><title><![CDATA[$title]]></title> 
 		<pubDate>" . gmdate('D, d M Y H:i:s', strtotime($line['date'])) . " GMT</pubDate> 
 		<link>".htmlentities( $urlroot."/gallery/photos/member".$line['user']."/".$line['filename'])."</link>              
 		<description><![CDATA[<img src=\"$urlroot/gallery/photos/member".$line['user']."/".$line['filename']."\" border=\"0\" />]]></description> 
 		<enclosure url=\"".$urlroot."/gallery/photos/member".$line['user']."/".$line['filename']."\" type=\"". returnMIMEType("./gallery/photos/member".$line['user']."/".$line['filename']) ."\" length=\"". filesize("./gallery/photos/member".$line['user']."/".$line['filename'])."\" /> 
-		<guid isPermaLink=\"true\">".$urlroot."/gallery/photos/member".$line['user']."/".$line['filename']."</guid> 
+		<guid isPermaLink=\"true\"><![CDATA[".$urlroot."/gallery/photos/member".$line['user']."/".$line['filename']."]]></guid> 
 		</item> 
 		"; 
 	} 

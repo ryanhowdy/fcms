@@ -1,3 +1,10 @@
+ 1.7.2
+    - fixed "Latest Comments showing wrong member name" bug id 2211964 
+    - fixed "Ampersand breaks RSS Feeds" bug id 2185062 
+    - fixed "Can't vote for pic in Top Rated view (1.7.1)" bug id 2184446 
+    - fixed "Register: Email address already in use." bug id 2155485 
+
+
  1.7.1
     - fixed "Timezones in PHP5" bug id 2136646 
     - fixed "Auto Activate doesn't work on upgrade" bug id 2153255 

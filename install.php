@@ -151,7 +151,7 @@ if (isset($_POST['submit1'])) {
 		} else {
 			$sql .= "0, ";
 		}
-		$sql .= "'Family Connections 1.7.1')";
+		$sql .= "'Family Connections 1.7.2')";
 		mysql_query($sql) or die(mysql_error());
 		displayStepFive();
 	}

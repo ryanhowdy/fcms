@@ -291,7 +291,7 @@ class PhotoGallery {
 					$url = "?uid=0&amp;cid=comments&amp;pid=" . $row['pid'];
 					$comment = $row['comment'];
 					if(strlen($comment) > 25) { $comment = substr($comment, 0, 22) . "..."; }
-					$cat_info = "<div class=\"cat_info\"><b>" . getUserDisplayName($row['uid']) . ":</b> $comment</div>";
+					$cat_info = "<div class=\"cat_info\"><b>" . getUserDisplayName($row['user']) . ":</b> $comment</div>";
 				} elseif ($row['type'] == 'RATED') {
 					if ($first) {
 						echo "\t\t\t<h3>" . $LANG['top_rated'];
@@ -302,7 +302,7 @@ class PhotoGallery {
 					}
 					$width = ($row['r'] / 5) * 100;
 					$url = "?uid=0&amp;cid=toprated" . $row['category'] . "&amp;pid=" . $row['pid'];
-					$cat_info .= "<div class=\"cat_info\"><ul class=\"star-rating small-star\"><li class=\"current-rating\" style=\"width:$width%\">Currently " . $row['r'] . "/5 Stars.</li><li><a href=\"?$url" . $row['filename'] . "&amp;vote=1\" title=\"".$LANG['title_stars1']."\" class=\"one-star\">1</a></li><li><a href=\"?$url" . $row['filename'] . "&amp;vote=2\" title=\"".$LANG['title_stars2']."\" class=\"two-stars\">2</a></li><li><a href=\"?$url" . $row['filename'] . "&amp;vote=3\" title=\"".$LANG['title_stars3']."\" class=\"three-stars\">3</a></li><li><a href=\"?$url" . $row['filename'] . "&amp;vote=4\" title=\"".$LANG['title_stars4']."\" class=\"four-stars\">4</a></li><li><a href=\"?$url" . $row['filename'] . "&amp;vote=5\" title=\"".$LANG['title_stars5']."\" class=\"five-stars\">5</a></li></ul></div>";
+					$cat_info .= "<div class=\"cat_info\"><ul class=\"star-rating small-star\"><li class=\"current-rating\" style=\"width:$width%\">Currently " . $row['r'] . "/5 Stars.</li><li><a href=\"$url&amp;vote=1\" title=\"".$LANG['title_stars1']."\" class=\"one-star\">1</a></li><li><a href=\"$url&amp;vote=2\" title=\"".$LANG['title_stars2']."\" class=\"two-stars\">2</a></li><li><a href=\"$url&amp;vote=3\" title=\"".$LANG['title_stars3']."\" class=\"three-stars\">3</a></li><li><a href=\"$url&amp;vote=4\" title=\"".$LANG['title_stars4']."\" class=\"four-stars\">4</a></li><li><a href=\"$url&amp;vote=5\" title=\"".$LANG['title_stars5']."\" class=\"five-stars\">5</a></li></ul></div>";
 				} elseif ($row['type'] == 'VIEWED') {
 					if ($first) {
 						echo "\t\t\t<h3>" . $LANG['most_viewed'];
