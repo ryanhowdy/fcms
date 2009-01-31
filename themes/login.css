@@ -9,7 +9,7 @@ label { display: inline-block; width: 100px; }
 .rem { width: 140px; }
 p, span { margin-left: 30px; }
 .center { text-align: center; }
-.err-msg { width: 70%; margin: -50px 0 75px 0; }
+.err-msg { width: 70%; margin: -50px auto 75px auto; }
 .err-msg h2 { color: #fff; font-size: 24pt; font-weight: bold; }
 #oops { margin: 50px 0 0 0; }
 #oops h1 { font-size: 24pt; color: #fff; font-weight: bold; margin-bottom: 40px; }

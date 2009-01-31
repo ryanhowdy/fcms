@@ -1,5 +1,8 @@
 /*
-Updated: 30 July 2008
+Beta Theme
+ - fixed 900px wide layout
+
+Updated: 5 December 2008
 Author: Ryan Haudenschilt
 ––––––––––––––––––––––––––––––––––––––––––––––––*/ 
 
@@ -41,7 +44,7 @@ body {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
-	display: inline-block;
+	display: block;
 	text-align: left;
 	width: 100%; /* safari and opera */
 	background-color: #fff;
@@ -95,16 +98,15 @@ body {
 #footer {
 	width: 100%;
 	overflow: hidden;
-	display: inline-block;
 	text-align: left;
-    clear: left;
-    border-top: 8px solid #6b92d7;
-    background-color: #fff;
+	clear: left;
+	border-top: 8px solid #6b92d7;
+	background-color: #fff;
 }
 #footer p {
-    margin: 20px;
-    text-align: center;
-    line-height: 1.7em;
+	margin: 20px;
+	text-align: center;
+	line-height: 1.7em;
 }
 
 
@@ -121,7 +123,7 @@ a:hover {
 #topmenu {
 	clear: left;
 	overflow: hidden;
-	display: inline-block;
+	display: block;
 	text-align: left;
 	width: 100%;
 	margin: 0;
@@ -581,7 +583,7 @@ blockquote {
 	width: 165px;
 	height: 139px;
 	text-align: center;
-	margin: 10px 0 25px 0;
+	padding: 10px 0 25px 0;
 }
 #gallery .cat .cat_name {
 	display: block;
@@ -622,7 +624,7 @@ blockquote {
 	float: left;
 	margin-right: 5px;
 }
-
+.gal_sidemenu { padding: 12px; }
 
 /* =ADDRESSBOOK
 ––––––––––––––––––––––––––––––––––––––––––––––––*/
@@ -842,6 +844,7 @@ sortable td, sortable th {
 	border: 1px solid #b2d1f0;
 }
 sortable thead, sortable tfoot { background-color: #b2d1f0; }
+
 sortable tr.rowodd { }
 sortable tr.roweven { background-color: #f2f8fd; }
 sortable .sortcol {

@@ -1,5 +1,6 @@
 /*
-Updated: 29 July 2008
+Default Theme
+Updated: 18 November 2008
 Author: Ryan Haudenschilt
 ––––––––––––––––––––––––––––––––––––––––––––––––*/ 
 
@@ -87,7 +88,6 @@ body {
 #footer {
 	width: 100%;
 	overflow: hidden;
-	display: inline-block;
 	text-align: left;
     clear: left;
 	margin: 100px 0 0 0;
@@ -550,7 +550,7 @@ blockquote {
 	float: left;
 	width: 24%;
 	text-align: center;
-	margin: 10px 0 25px 0;
+	padding: 10px 0 25px 0;
 }
 #gallery .cat .cat_name {
 	display: block;

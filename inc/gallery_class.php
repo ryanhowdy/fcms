@@ -24,10 +24,10 @@ class PhotoGallery {
 
 	function displayGalleryMenu ($uid = '0') {
 		global $LANG;
-		echo "<div class=\"gal_menu\">\n\t\t\t\t<div class=\"clearfix\"><a class=\"link_block home\" href=\"index.php\">".$LANG['gallery_home']."</a> <a class=\"link_block member\" href=\"?uid=0\">".$LANG['member_gal']."</a> ";
+		echo "<div class=\"gal_menu\">\n\t\t\t\t<div class=\"gal_main_menu clearfix\"><a class=\"link_block home\" href=\"index.php\">".$LANG['gallery_home']."</a> <a class=\"link_block member\" href=\"?uid=0\">".$LANG['member_gal']."</a> ";
 		echo "<a class=\"link_block rated\" href=\"?uid=$uid&amp;cid=toprated\">".$LANG['top_rated']."</a> <a class=\"link_block viewed\" href=\"?uid=$uid&amp;cid=mostviewed\">".$LANG['most_viewed']."</a></div>\n";
 		if (checkAccess($this->cur_user_id) <= 3 || checkAccess($this->cur_user_id) == 8 || checkAccess($this->cur_user_id) == 5) {
-			echo "\t\t\t\t<div class=\"clearfix\"><b>".$LANG['actions'].": </b><a class=\"link_block_sub\" href=\"?action=upload\">".$LANG['upload_photos']."</a> <a class=\"link_block_sub\" href=\"?action=category\">".$LANG['create_edit_cat']."</a></div>\n";
+			echo "\t\t\t\t<div class=\"gal_sub_menu clearfix\"><b>".$LANG['actions'].": </b><a class=\"link_block_sub\" href=\"?action=upload\">".$LANG['upload_photos']."</a> <a class=\"link_block_sub\" href=\"?action=category\">".$LANG['create_edit_cat']."</a></div>\n";
 		}
 		echo "\t\t\t</div>\n";
 	}

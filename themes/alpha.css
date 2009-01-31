@@ -1,5 +1,8 @@
 /*
-Updated: 28 July 2008
+Alpha Theme
+ - fixed 800px wide layout
+
+Updated: 5 December 2008
 Author: Ryan Haudenschilt
 ––––––––––––––––––––––––––––––––––––––––––––––––*/ 
 
@@ -42,7 +45,7 @@ body {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
-	display: inline-block;
+	display: block;
 	text-align: left;
 	width: 100%; /* safari and opera */
 	background: url(images/alpha/header_bg.jpg) repeat-x;
@@ -98,7 +101,6 @@ body {
 #footer {
 	width: 100%;
 	overflow: hidden;
-	display: inline-block;
 	text-align: left;
     clear: left;
     border-top: 8px solid #857bb9;
@@ -125,7 +127,7 @@ a:hover {
 #topmenu {
 	clear: left;
 	overflow: hidden;
-	display: inline-block;
+	display: block;
 	text-align: left;
 	width: 100%;
 	margin: 0;
@@ -603,7 +605,7 @@ blockquote {
 	width: 139px;
 	height: 139px;
 	text-align: center;
-	margin: 10px 0 25px 0;
+	padding: 10px 0 25px 0;
 }
 #gallery .cat .cat_name {
 	display: block;
@@ -634,6 +636,7 @@ blockquote {
 	border: 1px solid #c1c1c1;
 	background-color: #f5f5f5;
 }
+.gal_menu { width: 95%; }
 .comment_block form { margin: 0; }
 .comment_block input, .comment_block span {
 	float: right;
@@ -644,6 +647,7 @@ blockquote {
 	float: left;
 	margin-right: 5px;
 }
+.gal_sidemenu { padding: 12px; }
 
 
 /* =ADDRESSBOOK

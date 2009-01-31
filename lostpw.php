@@ -26,6 +26,7 @@ include_once('inc/language.php');
 			$salt = "abchefghjkmnpqrstuvwxyz0123456789";
 			srand((double)microtime()*1000000);
 			$i = 0;
+			$pass = 0;
 			while ($i <= 7) {
 				$num = rand() % 33;
 				$tmp = substr($salt, $num, 1);

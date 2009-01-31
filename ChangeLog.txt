@@ -1,3 +1,11 @@
+ 1.7.4
+    - fixed "Photo Gallery display problems in IE7" bug id 2309109 
+    - fixed "Footer display problems in FF 3" bug id 2309036
+    - fixed "Undefined var on password reset" bug id 2371816 
+    - fixed "Various Theme issues" bug id 2392772 
+    - added "Add additional classes for theme creation" feature request id 2153279 
+
+
  1.7.3
     - fixed "Deleting comments in the Latest Comment view causes errors" bug id 2255695
     - fixed "Error deleting photo" bug id 2255671 
