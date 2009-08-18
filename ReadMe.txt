@@ -1,4 +1,4 @@
-FAMILY CONNECTIONS 1.8.1
+FAMILY CONNECTIONS 1.8.2
 
   Keep your family "Connected" with this content management system (CMS) designed 
   specifically with family's in mind. Key features are: a message board, a photo 
@@ -10,7 +10,7 @@ FAMILY CONNECTIONS 1.8.1
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_1.8.1.zip to your web host.
+  1. Upload the entire contents of FCMS_1.8.2.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -29,13 +29,17 @@ I. Installation
 
 
 
-II. Upgrading from 1.8 to 1.8.1
+II. Upgrading from 1.8.1 to 1.8.2
 --------------------------------
 
   1. Replace the following files on your web host.
 
     admin/upgrade.php
-    documents.php
+    activate.php
+    addressbook.php
+    home.php
+    recipes.php
+    register.php
     install.php
 
   2. Run the upgrade.php script.
@@ -48,9 +52,8 @@ II. Upgrading from 1.8 to 1.8.1
 III. Change Log
 ----------------
 
- 1.8.1
-    - fixed "Cannot install 1.8, when omitting optional sections" bug id 2675600
-    - fixed "Documents section allows access to unintended files" bug id 2675608
+ 1.8.2
+    - fixed "Multiple SQL Injections" bug id 2722736
 
 
   For the full change log please refer to the included "ChangeLog.txt" file.
