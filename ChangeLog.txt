@@ -1,12 +1,3 @@
- 1.8.2
-    - fixed "Multiple SQL Injections" bug id 2722736
-
-
- 1.8.1
-    - fixed "Cannot install 1.8, when omitting optional sections" bug id 2675600
-    - fixed "Documents section allows access to unintended files" bug id 2675608
-
-
  1.8
     - fixed "Cannot edit Address Book entries" bug id 2540797
     - fixed "Cannot vote for photo when viewing Latest Comments" bug id 2531076

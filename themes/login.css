@@ -1,6 +1,6 @@
-body { font: 14px/160% Verdana, Arial, sans-serif; color: #555; text-align: center; background: #9ccef0 url(images/default/bg.png) repeat-x; padding-top: 50px; }
-#login_box { width: 320px; margin: 0 auto; padding: 20px 20px 50px 20px; background: transparent url(images/default/login_bg.gif) 0 0 no-repeat; text-align: left; }
-#login_header { text-indent: -9999px; background: #fff url(images/default/logo.jpg) center center no-repeat; height: 110px; }
+body { font: 14px/160% Verdana, Arial, sans-serif; color: #555; text-align: center; background: #9ccef0 url(default/images/bg.png) repeat-x; padding-top: 50px; }
+#login_box { width: 320px; margin: 0 auto; padding: 20px 20px 50px 20px; background: transparent url(default/images/login_bg.gif) 0 0 no-repeat; text-align: left; }
+#login_header { text-indent: -9999px; background: #fff url(default/images/logo.jpg) center center no-repeat; height: 110px; }
 form { background-color: #e9f3fb; padding: 10px; }
 label { display: block; font-weight: bold; }
 label.rem { display: inline; padding-right: 15px; }

@@ -1,6 +1,6 @@
 /*
-DateChooser 2.4
-May 2, 2007
+DateChooser 2.9
+February 13, 2008
 For usage details see http://yellow5.us/projects/datechooser/
 
 Creative Commons Attribution 2.0 License
@@ -27,19 +27,19 @@ if (!objPHPDate)
 		GetTimezoneOffset: function()
 		{
 			var objLocal = new Date();
-			objLocal.setHours(0);
+			objLocal.setHours(12);
 			objLocal.setMinutes(0);
 			objLocal.setSeconds(0);
 			objLocal.setMilliseconds(0);
 
 			var objUTC = new Date();
-			objUTC.setFullYear(objLocal.getUTCFullYear());
-			objUTC.setMonth(objLocal.getUTCMonth());
-			objUTC.setDate(objLocal.getUTCDate());
-			objUTC.setHours(objLocal.getUTCHours());
-			objUTC.setMinutes(objLocal.getUTCMinutes());
-			objUTC.setSeconds(objLocal.getUTCSeconds());
 			objUTC.setMilliseconds(objLocal.getUTCMilliseconds());
+			objUTC.setSeconds(objLocal.getUTCSeconds());
+			objUTC.setMinutes(objLocal.getUTCMinutes());
+			objUTC.setHours(objLocal.getUTCHours());
+			objUTC.setDate(objLocal.getUTCDate());
+			objUTC.setMonth(objLocal.getUTCMonth());
+			objUTC.setFullYear(objLocal.getUTCFullYear());
 
 			this.sTimezoneOffset = ((objLocal.getTime() - objUTC.getTime()) / (1000 * 3600));
 			var bNegative = (this.sTimezoneOffset < 0);
@@ -152,7 +152,7 @@ function DateChooser()
 	var objSelectedDate = null;
 
 	var objStartDate = new Date();
-	objStartDate.setHours(0);
+	objStartDate.setHours(12);
 	objStartDate.setMinutes(0);
 	objStartDate.setSeconds(0);
 	objStartDate.setMilliseconds(0);
@@ -188,8 +188,8 @@ function DateChooser()
 					objMonthYear.setFullYear(objMonthYear.getFullYear() - 1);
 					if (objEarliestDate && objEarliestDate.getTime() > objMonthYear.getTime())
 					{
-						objMonthYear.setFullYear(objEarliestDate.getFullYear());
 						objMonthYear.setMonth(objEarliestDate.getMonth());
+						objMonthYear.setFullYear(objEarliestDate.getFullYear());
 					}
 				}
 				else if (sClass == 'previousmonth')
@@ -197,22 +197,22 @@ function DateChooser()
 					objMonthYear.setMonth(objMonthYear.getMonth() - 1);
 					if (objEarliestDate && objEarliestDate.getTime() > objMonthYear.getTime())
 					{
-						objMonthYear.setFullYear(objEarliestDate.getFullYear());
 						objMonthYear.setMonth(objEarliestDate.getMonth());
+						objMonthYear.setFullYear(objEarliestDate.getFullYear());
 					}
 				}
 				else if (sClass == 'currentdate')
 				{
-					objMonthYear.setFullYear(objStartDate.getFullYear());
 					objMonthYear.setMonth(objStartDate.getMonth());
+					objMonthYear.setFullYear(objStartDate.getFullYear());
 				}
 				else if (sClass == 'nextmonth')
 				{
 					objMonthYear.setMonth(objMonthYear.getMonth() + 1);
 					if (objLatestDate && objLatestDate.getTime() < objMonthYear.getTime())
 					{
-						objMonthYear.setFullYear(objLatestDate.getFullYear());
 						objMonthYear.setMonth(objLatestDate.getMonth());
+						objMonthYear.setFullYear(objLatestDate.getFullYear());
 					}
 				}
 				else if (sClass == 'nextyear')
@@ -220,8 +220,8 @@ function DateChooser()
 					objMonthYear.setFullYear(objMonthYear.getFullYear() + 1);
 					if (objLatestDate && objLatestDate.getTime() < objMonthYear.getTime())
 					{
-						objMonthYear.setFullYear(objLatestDate.getFullYear());
 						objMonthYear.setMonth(objLatestDate.getMonth());
+						objMonthYear.setFullYear(objLatestDate.getFullYear());
 					}
 				}
 
@@ -297,7 +297,7 @@ function DateChooser()
 		var objTempDate = new Date(objMonthYear);
 
 		var objToday = new Date();
-		objToday.setHours(0);
+		objToday.setHours(12);
 		objToday.setMinutes(0);
 		objToday.setSeconds(0);
 		objToday.setMilliseconds(0);
@@ -332,7 +332,7 @@ function DateChooser()
 		ndTH = xb.createElement('th');
 		ndTH.setAttribute('colspan', '3');
 		/*@cc_on@*/
-		/*@if(@_jscript_version < 6)
+		/*@if(@_jscript)
 			ndTH.colSpan = '3';
 		/*@end@*/
 		ndTR.appendChild(ndTH);
@@ -382,7 +382,7 @@ function DateChooser()
 			for (nDay = 0; nDay < 7; ++nDay)
 			{
 				var nWeek = (nWeekStartDay + nDay) % objPHPDate.aLetterDay.length;
-				if ((objTempDate.getDay() == nWeek) && (objTempDate.getMonth() == objMonthYear.getMonth()))
+				if ((objTempDate.getUTCDay() == nWeek) && (objTempDate.getMonth() == objMonthYear.getMonth()))
 				{
 					nTime = objTempDate.getTime();
 					sWeekday = objTempDate.getPHPDate('w');
@@ -451,7 +451,7 @@ function DateChooser()
 			objMonthYear.setTime(objStartDate.getTime());
 		}
 
-		objMonthYear.setHours(0);
+		objMonthYear.setHours(12);
 		objMonthYear.setMinutes(0);
 		objMonthYear.setSeconds(0);
 		objMonthYear.setMilliseconds(0);
@@ -631,7 +631,7 @@ function DateChooser()
 		if (!arguments.length || !(typeof(arguments[0]) == 'object') || !arguments[0].getTime) return false;
 
 		objStartDate.setTime(arguments[0].getTime());
-		objStartDate.setHours(0);
+		objStartDate.setHours(12);
 		objStartDate.setMinutes(0);
 		objStartDate.setSeconds(0);
 		objStartDate.setMilliseconds(0);
@@ -660,7 +660,7 @@ function DateChooser()
 
 		objEarliestDate = new Date();
 		objEarliestDate.setTime(arguments[0].getTime());
-		objEarliestDate.setHours(0);
+		objEarliestDate.setHours(12);
 		objEarliestDate.setMinutes(0);
 		objEarliestDate.setSeconds(0);
 		objEarliestDate.setMilliseconds(0);
@@ -688,7 +688,7 @@ function DateChooser()
 
 		objLatestDate = new Date();
 		objLatestDate.setTime(arguments[0].getTime());
-		objLatestDate.setHours(0);
+		objLatestDate.setHours(12);
 		objLatestDate.setMinutes(0);
 		objLatestDate.setSeconds(0);
 		objLatestDate.setMilliseconds(0);
@@ -747,8 +747,14 @@ function DateChooser()
 
 	this.setSelectedDate = function(objDate)
 	{
-		if (!objSelectedDate) objSelectedDate = new Date();
+		if (!objSelectedDate) objSelectedDate = new Date(objDate);
+
 		objSelectedDate.setTime(objDate.getTime());
+		objSelectedDate.setHours(12);
+		objSelectedDate.setMinutes(0);
+		objSelectedDate.setSeconds(0);
+		objSelectedDate.setMilliseconds(0);
+
 		UpdateFields();
 
 		return true;
@@ -929,7 +935,7 @@ events.add(window, 'load', function()
 	var nFieldID = 0;
 
 	objDate = new Date();
-	objDate.setHours(0);
+	objDate.setHours(12);
 	objDate.setMinutes(0);
 	objDate.setMilliseconds(0);
 
@@ -991,9 +997,9 @@ events.add(window, 'load', function()
 		if (sStartDate)
 		{
 			objDate = new Date();
-			objDate.setFullYear(parseInt(sStartDate.substring(4), 10));
-			objDate.setMonth(parseInt(sStartDate.substring(0, 2), 10) - 1);
 			objDate.setDate(parseInt(sStartDate.substring(2, 4), 10));
+			objDate.setMonth(parseInt(sStartDate.substring(0, 2), 10) - 1);
+			objDate.setFullYear(parseInt(sStartDate.substring(4), 10));
 
 			ndDateChooser.DateChooser.setStartDate(objDate);
 		}
@@ -1001,9 +1007,9 @@ events.add(window, 'load', function()
 		if (sEarliestDate)
 		{
 			objDate = new Date();
-			objDate.setFullYear(parseInt(sEarliestDate.substring(4), 10));
-			objDate.setMonth(parseInt(sEarliestDate.substring(0, 2), 10) - 1);
 			objDate.setDate(parseInt(sEarliestDate.substring(2, 4), 10));
+			objDate.setMonth(parseInt(sEarliestDate.substring(0, 2), 10) - 1);
+			objDate.setFullYear(parseInt(sEarliestDate.substring(4), 10));
 
 			ndDateChooser.DateChooser.setEarliestDate(objDate);
 		}
@@ -1011,9 +1017,9 @@ events.add(window, 'load', function()
 		if (sLatestDate)
 		{
 			objDate = new Date();
-			objDate.setFullYear(parseInt(sLatestDate.substring(4), 10));
-			objDate.setMonth(parseInt(sLatestDate.substring(0, 2), 10) - 1);
 			objDate.setDate(parseInt(sLatestDate.substring(2, 4), 10));
+			objDate.setMonth(parseInt(sLatestDate.substring(0, 2), 10) - 1);
+			objDate.setFullYear(parseInt(sLatestDate.substring(4), 10));
 
 			ndDateChooser.DateChooser.setLatestDate(objDate);
 		}
