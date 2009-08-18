@@ -44,13 +44,28 @@ if (!file_exists('inc/config_inc.php')) {
 		$sql = "SELECT * FROM `fcms_users` WHERE `username` = '$user' AND `password` = '$pass'";
 		$result = mysql_query($sql) or displaySQLError('Login Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
 		$login_check = mysql_num_rows($result);
-		if($login_check > 0) {
-			$sql = "SELECT `activated` FROM `fcms_users` WHERE `username` = '$user' AND `password` = '$pass'";
-			$a = mysql_query($sql) or displaySQLError('Activated Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
-			$answer = mysql_fetch_array($a);
-			$account_is_active = $answer['activated'];
-			if($account_is_active > 0) {
-				while($row = mysql_fetch_array($result)) { 
+		$row = mysql_fetch_array($result);
+		if ($login_check > 0) {
+			if ($row['activated'] > 0) {
+				if ($rem >= 1) {
+					setcookie('fcms_login_id', $row['id'], time() + (30*(24*3600)), '/');  // 30 days
+					setcookie('fcms_login_uname', $row['username'], time() + (30*(24*3600)), '/');  // 30 days
+					setcookie('fcms_login_pw', $row['password'], time() + (30*(24*3600)), '/');  // 30 days
+				} else {
+					$_SESSION['login_id'] = $row['id'];
+					$_SESSION['login_uname'] = $row['username'];
+					$_SESSION['login_pw'] = $row['password'];
+				}
+				$sql = "UPDATE `fcms_users` SET `activity` = NOW() WHERE `id` = " . $row['id'];
+				mysql_query($sql) or displaySQLError('Activity Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+				$sql = "UPDATE `fcms_users` SET `login_attempts` = '0' WHERE `id` = " . $row['id'];
+				mysql_query($sql) or displaySQLError('Login Attempt Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+				echo "<h3>".$LANG['login_success']."<h3><a href=\"home.php\">".$LANG['continue']."</a>.";
+				echo "<meta http-equiv='refresh' content='0;URL=home.php'>";
+			} elseif ($row['activated'] < 0) {
+				if (gmdate('YmdHis') > gmdate('YmdHis', strtotime($row['locked']))) {
+					$sql = "UPDATE `fcms_users` SET `activated` = '1' WHERE `id` = " . $row['id'];
+					mysql_query($sql) or displaySQLError('Activated Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
 					if ($rem >= 1) {
 						setcookie('fcms_login_id', $row['id'], time() + (30*(24*3600)), '/');  // 30 days
 						setcookie('fcms_login_uname', $row['username'], time() + (30*(24*3600)), '/');  // 30 days
@@ -62,15 +77,37 @@ if (!file_exists('inc/config_inc.php')) {
 					}
 					$sql = "UPDATE `fcms_users` SET `activity` = NOW() WHERE `id` = " . $row['id'];
 					mysql_query($sql) or displaySQLError('Activity Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+					$sql = "UPDATE `fcms_users` SET `login_attempts` = '0' WHERE `id` = " . $row['id'];
+					mysql_query($sql) or displaySQLError('Login Attempt Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
 					echo "<h3>".$LANG['login_success']."<h3><a href=\"home.php\">".$LANG['continue']."</a>.";
 					echo "<meta http-equiv='refresh' content='0;URL=home.php'>";
+				} else {
+					displayHeader();
+					echo '<div class="err-msg"><h2>Hold On a Second!</h2><p>You have exceeded the number of allowed login attempts.</p><p>Your account has been locked for 1 hour.</p></div>';
+					displayLogin();
 				}
 			} else {
 				displayHeader();
 				echo '<div class="err-msg"><h2>'.$LANG['err_active1'].'</h2><p>'.$LANG['err_active2'].'</p></div>';
 				displayLogin();
 			}
-		} else { 
+		} else {
+			$sql = "SELECT * FROM `fcms_users` WHERE `username` = '$user'";
+			$result = mysql_query($sql) or displaySQLError('Valid Username Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+			$valid_username = mysql_num_rows($result);
+			if ($valid_username > 0) {
+				$r = mysql_fetch_array($result);
+				if ($r['login_attempts'] > 4) {
+					$sql = "UPDATE `fcms_users` SET `activated` = '-1', `locked` = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE `id` = " . $r['id'];
+					mysql_query($sql) or displaySQLError('Login Limit Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+					displayHeader();
+					echo '<div class="err-msg"><h2>Hold On a Second!</h2><p>You have exceeded the number of allowed login attempts.</p><p>Your account has been locked for 1 hour.</p></div>';
+					displayLogin();
+					exit(0);
+				}
+				$sql = "UPDATE `fcms_users` SET `login_attempts` = `login_attempts`+1 WHERE `id` = " . $r['id'];
+				mysql_query($sql) or displaySQLError('Login Attempt Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+			}
 			displayHeader();
 			echo '<div class="err-msg"><h2>'.$LANG['err_invalid1'].'</h2/><p>'.$LANG['err_invalid2'].'</p><p>'.$LANG['err_invalid3'].'</p></div>';
 			displayLogin();
@@ -82,7 +119,9 @@ if (!file_exists('inc/config_inc.php')) {
 			$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
 		}
 		$sql = "UPDATE `fcms_users` SET `activity` = NOW() WHERE `id` = " . $_SESSION['login_id'];
-		mysql_query($sql) or displaySQLError('Activity2 Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+		mysql_query($sql) or displaySQLError('Activity Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+		$sql = "UPDATE `fcms_users` SET `login_attempts` = '0' WHERE `id` = " . $_SESSION['login_id'];
+		mysql_query($sql) or displaySQLError('Login Attempt Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
 		echo "<h3>".$LANG['already_login']."</h3><a href=\"home.php\">".$LANG['continue']."</a>.";
 		echo "<meta http-equiv='refresh' content='0;URL=home.php'>";
 	}
@@ -99,9 +138,9 @@ function displayHeader($login = true) {
 }
 function displayLogin() {
 	global $LANG;
-	echo '<div id="login_box"><form action="index.php" method="post"><h1 id="login_header">'.$LANG['login_to'].' ' . getSiteName() . '</h1>'
+	echo '<div id="login_box"><h1 id="login_header">'.$LANG['login_to'].' ' . getSiteName() . '</h1><form action="index.php" method="post">'
 		. '<p><label for="user">'.$LANG['username'].':</label><input type="text" name="user" id="user"/></p>'
-		. '<p><label for="pass">'.$LANG['password'].':</label><input type="password" name="pass" id="pass"/><span><a href="lostpw.php">'.$LANG['forgot_pass'].'</a></span></p>'
-		. '<p><label class="rem" for="rem">'.$LANG['remember_me'].'</label><input name="rem" id="rem" type="checkbox" value="1" /><input type="submit" name="submit" id="submit" value="'.$LANG['login'].'" /></p>'
-		. '<div id="register">'.$LANG['no_account'].' <a href="register.php">'.$LANG['register_here'].'</a>.</div></form></div></body></html>';
+		. '<p><label for="pass">'.$LANG['password'].':</label><input type="password" name="pass" id="pass"/></p>'
+		. '<p><label class="rem" for="rem">'.$LANG['remember_me'].'</label><input class="rem" name="rem" id="rem" type="checkbox" value="1" /><input type="submit" name="submit" id="submit" value="'.$LANG['login'].'" /></p><div class="clear"></div>'
+		. '</form><p class="center"><a href="lostpw.php">'.$LANG['forgot_pass'].'</a> | <a href="register.php">Register</a></p></div></body></html>';
 } ?>

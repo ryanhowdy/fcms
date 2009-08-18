@@ -1,46 +1,1 @@
-.calendar * {
-	margin: 0px;
-	padding: 0px;
-	border: 0px;
-	font-family: Tahoma, serif;
-	font-weight: normal;
-	color: #000;
-}
-.calendar {
-	padding-bottom: 2px;
-	border: 1px solid #aaa;
-	font-size: small;
-	background: #fff;
-}
-.calendar table {
-	border-collapse: collapse;
-	font-size: 90%;
-}
-.calendar thead td { border-bottom: 1px solid #aaa; }
-.calendar thead th {
-	padding: 2px 0px;
-	vertical-align: middle;
-	background: #ddd;
-}
-.calendar thead th a {
-	font-size: 95%;
-	font-weight: bold;
-}
-.calendar a {
-	padding: 0px 2px;
-	color: #000;
-	text-decoration: none;
-}
-.calendar thead td { font-weight: bold; }
-.calendar td, .calendar th {
-	padding: 1px;
-	text-align: center;
-}
-.calendar tbody td { width: 20px; }
-.calendar .selectedday { background: #ddd; }
-.calendar .today {
-	font-weight: bold;
-	background-color: #b2d1f0;
-}
-.calendarlink, .calendaricon { margin: 0px 3px; }
-.calendaricon { cursor: pointer; }
+.calendar * {	margin: 0px;	padding: 0px;	border: 0px;	font-family: Tahoma, serif;	font-weight: normal;	color: #000;}.calendar {	padding-bottom: 2px;	border: 1px solid #aaa;	font-size: small;	background: #fff;}.calendar table {	border-collapse: collapse;	font-size: 90%;}.calendar thead td { border-bottom: 1px solid #aaa; }.calendar thead th {	padding: 2px 0px;	vertical-align: middle;	background: #ddd;}.calendar thead th a {	font-size: 95%;	font-weight: bold;}.calendar a {	padding: 0px 2px;	color: #000;	text-decoration: none;}.calendar thead td { font-weight: bold; }.calendar td, .calendar th {	padding: 1px;	text-align: center;}.calendar tbody td { width: 20px; }.calendar .selectedday { background: #ddd; }.calendar .today {	font-weight: bold;	background-color: #b2d1f0;}.calendarlink, .calendaricon { margin: 0px 3px; }.calendaricon { cursor: pointer; }

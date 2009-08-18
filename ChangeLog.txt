@@ -1,3 +1,20 @@
+ 1.8
+    - fixed "Cannot edit Address Book entries" bug id 2540797
+    - fixed "Cannot vote for photo when viewing Latest Comments" bug id 2531076
+    - fixed "Pages on Top Rated and Most Viewed don't work" bug id 2531146
+    - fixed "Captions disappear when editing" bug id 2540787
+    - fixed "Recipe title disppears when editing recipe" bug id 2528700
+    - fixed "Sending email from FCMS has escaped quotes" bug id 2562008
+    - fixed "Pages links on Tagged Photos view don't work" bug id 2549701
+    - fixed "Special characters cause error on registration" bug id 2549242
+    - fixed "Member ID is wrong on Prayer Concerns" bug id 2512258
+    - fixed "Popups missing sitename and version" bug id 2563999
+    - added "Lock account after 5 failed login attempts" feature request id 2524376
+    - added "Add additional notifications to the homepage" feature request id 2187394
+    - added "Add documents to the site?" feature request id 1816831
+    - added "Private Messages (PM)" feature request id 1850324
+
+
  1.7.4
     - fixed "Photo Gallery display problems in IE7" bug id 2309109 
     - fixed "Footer display problems in FF 3" bug id 2309036

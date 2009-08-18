@@ -1,21 +1,23 @@
-body { text-align: center; background: #9ccef0 url(images/default/bg.png) repeat-x; padding-top: 150px; }
-body, h1, #submit, input { font: 14pt Arial; }
-#login_box { width: 500px; margin: 0 auto; background-color: #fff; text-align: left; }
-#login_header { color: #fff; font-weight: bold; background: #000 url(images/default/login.gif) 15px center no-repeat; padding: 15px 0 15px 50px; }
-#reset_header { color: #fff; font-weight: bold; background-color: #000; padding: 15px 0 15px 15px; }
-#user { width: 330px; }
-#pass { width: 150px; }
-label { display: inline-block; width: 100px; }
-.rem { width: 140px; }
-p, span { margin-left: 30px; }
+body { font: 14px/160% Verdana, Arial, sans-serif; color: #555; text-align: center; background: #9ccef0 url(images/default/bg.png) repeat-x; padding-top: 50px; }
+#login_box { width: 320px; margin: 0 auto; padding: 20px 20px 50px 20px; background: transparent url(images/default/login_bg.gif) 0 0 no-repeat; text-align: left; }
+#login_header { text-indent: -9999px; background: #fff url(images/default/logo.jpg) center center no-repeat; height: 110px; }
+form { background-color: #e9f3fb; padding: 10px; }
+label { display: block; font-weight: bold; }
+label.rem { display: inline; padding-right: 15px; }
+.rem { margin-top: 10px; float: left; }
+input { border: 1px solid #b2d1f0; color: #555; font: 26px Verdana, Arial, sans-serif; padding: 2px 3px; }
+#user, #pass, #email { width: 290px; }
+#submit, #reset { float: right; border: 1px solid #3e8ec1; color: #000; background-color: #b2d1f0; font-size: 18px; }
+#reset { float: none; }
+a { color: #555; }
+a:hover { color: #000; background-color: #9ccef0; }
 .center { text-align: center; }
-.err-msg { width: 70%; margin: -50px auto 75px auto; }
+.clear { clear: both; }
+:focus { outline: 0; }
+.err-msg { width: 60%; margin: 0 auto 50px auto; font: bold 16px/160% Verdana, Arial, sans-serif; color: #000; }
 .err-msg h2 { color: #fff; font-size: 24pt; font-weight: bold; }
 #oops { margin: 50px 0 0 0; }
+#oops p { font: 16px/160% Verdana, Arial, sans-serif; color: #000; }
 #oops h1 { font-size: 24pt; color: #fff; font-weight: bold; margin-bottom: 40px; }
 #oops a { color: #000; text-decoration: underline; }
 #oops a:hover { color: #000; text-decoration: none; }
-#submit { margin: 10px 0 0 200px; }
-#register { text-align: center; background-color: #eee; padding: 10px 0; }
-a { color: #02876c; font-weight: bold; text-decoration: none; }
-a:hover { color: #000; background-color: #9ccef0; }
