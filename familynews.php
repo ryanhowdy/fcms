@@ -30,17 +30,23 @@ if (isset($_SESSION['login_id'])) {
 header("Cache-control: private");
 include_once('inc/familynews_class.php');
 $fnews = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$pagetitle = $LANG['link_familynews'];
-$d = "";
-$admin_d = "admin/";
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['link_familynews'];
+$TMPL['path'] = "";
+$TMPL['admin_path'] = "admin/";
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">
 		<h2><?php echo $LANG['navigation']; ?></h2>
 		<div class="firstmenu menu">
 			<ul><?php
-				$sql = "SELECT u.id, fname, lname, displayname, username, MAX(`date`) AS d FROM fcms_news AS n, fcms_users AS u WHERE u.id = n.user AND username != 'SITENEWS' AND `password` != 'SITENEWS' GROUP BY id ORDER BY d DESC";
-				$result = mysql_query($sql) or displaySQLError('Get News Users Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
+				$sql = "SELECT u.`id`, `fname`, `lname`, `displayname`, `username`, MAX(`date`) AS d "
+                     . "FROM `fcms_news` AS n, `fcms_users` AS u, `fcms_user_settings` AS s "
+                     . "WHERE u.`id` = n.`user` "
+                     . "AND u.`id` = s.`user` GROUP BY id ORDER BY d DESC";
+				$result = mysql_query($sql) or displaySQLError(
+                    'Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
 				while($r=mysql_fetch_array($result)) {
 					$date = fixDST(gmdate('M. j', strtotime($r['d'] . $fnews->tz_offset)), $_SESSION['login_id'], 'M. j');
 					$displayname = getUserDisplayName($r['id']);
@@ -54,23 +60,53 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 				} ?>
 			</ul>
 		</div>
+        <p>&nbsp;</p>
 	</div>
 	<div id="content">
 		<div id="familynews" class="centercontent">
 			<?php 
 			if (checkAccess($_SESSION['login_id']) < 6 || checkAccess($_SESSION['login_id']) == 9) {
-				echo "\t\t\t<div class=\"clearfix\">";
-				if ($fnews->hasNews($_SESSION['login_id'])) { echo "<a class=\"link_block news\" href=\"?getnews=".$_SESSION['login_id']."\">".$LANG['my_news']."</a> "; }
-				echo "<a class=\"link_block add\" href=\"?addnews=yes\">".$LANG['add_news']."</a></div>\n";
+				echo "\t\t\t<div id=\"sections_menu\" class=\"clearfix\"><ul>";
+				if ($fnews->hasNews($_SESSION['login_id'])) {
+                    echo "<li><a class=\"news\" href=\"?getnews=".$_SESSION['login_id']."\">".$LANG['my_news']."</a></li>";
+                }
+				echo "<li><a class=\"add\" href=\"?addnews=yes\">".$LANG['add_news']."</a></li></ul></div>\n";
 			}
 			$show_last5 = true;
-			if(isset($_POST['submitadd'])) {
+			if (isset($_POST['submitadd'])) {
 				$title = addslashes($_POST['title']);
 				$news = addslashes($_POST['post']);
 				$sql = "INSERT INTO `fcms_news`(`title`, `news`, `user`, `date`) VALUES('$title', '$news', " . $_SESSION['login_id'] . ", NOW())";
 				mysql_query($sql) or displaySQLError('Add News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<p class=\"ok-alert\" id=\"add\">".$LANG['ok_news_add']."</p>";
 				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('add').toggle()\",3000); }</script>";
+                // Email members
+                $sql = "SELECT u.`email`, s.`user` "
+                     . "FROM `fcms_user_settings` AS s, `fcms_users` AS u "
+                     . "WHERE `email_updates` = '1'"
+                     . "AND u.`id` = s.`user`";
+				$result = mysql_query($sql) or displaySQLError('Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                if (mysql_num_rows($result) > 0) {
+                    while ($r = mysql_fetch_array($result)) {
+                        $name = getUserDisplayName($_SESSION['login_id']);
+                        $subject = "$name " . $LANG['new_news1'] . " $title " . $LANG['new_news2'];
+                        $email = $r['email'];
+                        $name = getUserDisplayName($r['user']);
+                        $url = getDomainAndDir();
+                        $msg = $LANG['dear'] . " $name,
+$name " . $LANG['new_news1'] . " $title " . $LANG['new_news2'] . "
+
+{$url}familynews.php?getnews=" . $_SESSION['login_id'] . "
+
+----
+" . $LANG['opt_out_updates'] . "
+
+{$url}settings.php
+
+";
+                        mail($email, $subject, $msg, $email_headers);
+                    }
+                }
 			} elseif (isset($_POST['submitedit'])) {
 				$show_last5 = false;
 				$title = addslashes($_POST['title']);

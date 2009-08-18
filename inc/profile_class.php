@@ -14,51 +14,125 @@ class Profile {
 		$this->cur_user_id = $current_user_id;
 		$this->db = new database($type, $host, $database, $user, $pass);
 		$this->db2 = new database($type, $host, $database, $user, $pass);
-		$this->db->query("SELECT timezone FROM fcms_users WHERE id = $current_user_id") or die('<h1>Timezone Error (profile.class.php 16)</h1>' . mysql_error());
+		$this->db->query("SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id") or die('<h1>Timezone Error (profile.class.php 16)</h1>' . mysql_error());
 		$row = $this->db->get_row();
 		$this->tz_offset = $row['timezone'];
 	}
 
-	function displayProfile ($userid) {
+	function displayProfile ($userid)
+    {
 		global $LANG;
-		$this->db->query("SELECT u.fname, u.lname, u.email, u.birthday, u.avatar, u.username, u.joindate, u.activity FROM fcms_users AS u, fcms_address AS a WHERE u.id = $userid AND u.id = a.user") or die('<h1>Profile Error (profile.class.php 30)</h1>' . mysql_error());
+        $sql = "SELECT u.fname, u.lname, u.email, u.birthday, u.avatar, u.username, u.joindate, u.activity "
+             . "FROM fcms_users AS u, fcms_address AS a "
+             . "WHERE u.id = $userid "
+             . "AND u.id = a.user";
+		$this->db->query($sql) or displaySQLError(
+            'Profile Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 		$row = $this->db->get_row();
+        // Rank Info
 		$points = round(getUserRankById($userid), 2);
 		$pts = 0;
-		if($points > 50) { $rank_img = "<div title=\"".$LANG['elder']." ($points)\" class=\"rank7\"></div>"; $rank = $LANG['elder']; $next_rank = "<i>none</i>"; }
-		elseif($points > 30) { $rank_img = "<div title=\"".$LANG['adult']." ($points)\" class=\"rank6\"></div>"; $rank = $LANG['adult']; $next_rank = $LANG['elder']; $pts = 50; }
-		elseif($points > 20) { $rank_img = "<div title=\"".$LANG['mature_adult']." ($points)\" class=\"rank5\"></div>"; $rank = $LANG['mature_adult']; $next_rank = $LANG['adult']; $pts = 30; }
-		elseif($points > 10) { $rank_img = "<div title=\"".$LANG['young_adult']." ($points)\" class=\"rank4\"></div>"; $rank = $LANG['young_adult']; $next_rank = $LANG['mature_adult']; $pts = 20; }
-		elseif($points > 5) { $rank_img = "<div title=\"".$LANG['teenager']." ($points)\" class=\"rank3\"></div>"; $rank = $LANG['teenager']; $next_rank = $LANG['young_adult']; $pts = 10; }
-		elseif($points > 3) { $rank_img = "<div title=\"".$LANG['kid']." ($points)\" class=\"rank2\"></div>"; $rank = $LANG['kid']; $next_rank = $LANG['teenager']; $pts = 5; }
-		elseif($points > 1) { $rank_img = "<div title=\"".$LANG['toddler']." ($points)\" class=\"rank1\"></div>"; $rank = $LANG['toddler']; $next_rank = $LANG['kid']; $pts = 3; }
-		else { $rank_img = "<div title=\"".$LANG['baby']." ($points)\" class=\"rank0\"></div>"; $rank = $LANG['baby']; $next_rank = $LANG['toddler']; $pts = 1; }
-		echo "<div id=\"side-info\"><div><b>".$LANG['mem_details']."</b></div><div class=\"center\"><img src=\"gallery/avatar/" . $row['avatar'] . "\" alt=\"avatar\"/><br/>" . $row['username'];
-		echo "<br/><a href=\"privatemsg.php?compose=new&amp;id=$userid\">" . $LANG['send_pm'] . "</a></div>";
-		$monthName = gmdate("F", strtotime($row['joindate']));
-		$date = gmdate(" j, Y", strtotime($row['joindate']));
-		echo "<div class=\"small\"><p><b>".$LANG['join_date'].":</b><br/>".$LANG[$monthName]."$date</p>";
-		$monthName = gmdate("F", strtotime($row['activity'] . $this->tz_offset));
-		$date = fixDST(gmdate('n/j/Y g:i a', strtotime($row['activity'] . $this->tz_offset)), $_SESSION['login_id'], 'j, Y, g:i a');
-		echo "<p><b>".$LANG['last_visit'].":</b><br/>".$LANG[$monthName]." $date</div>";
+		if ($points > 50) { 
+            $rank_img = "<div title=\"".$LANG['elder']." ($points)\" class=\"rank7\"></div>";
+            $rank = $LANG['elder'];
+            $next_rank = "<i>none</i>";
+        } elseif ($points > 30) {
+            $rank_img = "<div title=\"".$LANG['adult']." ($points)\" class=\"rank6\"></div>";
+            $rank = $LANG['adult'];
+            $next_rank = $LANG['elder'];
+            $pts = 50;
+        } elseif ($points > 20) {
+            $rank_img = "<div title=\"".$LANG['mature_adult']." ($points)\" class=\"rank5\"></div>";
+            $rank = $LANG['mature_adult'];
+            $next_rank = $LANG['adult'];
+            $pts = 30;
+        } elseif ($points > 10) {
+            $rank_img = "<div title=\"".$LANG['young_adult']." ($points)\" class=\"rank4\"></div>";
+            $rank = $LANG['young_adult'];
+            $next_rank = $LANG['mature_adult'];
+            $pts = 20;
+        } elseif ($points > 5) {
+            $rank_img = "<div title=\"".$LANG['teenager']." ($points)\" class=\"rank3\"></div>";
+            $rank = $LANG['teenager'];
+            $next_rank = $LANG['young_adult'];
+            $pts = 10;
+        } elseif ($points > 3) {
+            $rank_img = "<div title=\"".$LANG['kid']." ($points)\" class=\"rank2\"></div>";
+            $rank = $LANG['kid'];
+            $next_rank = $LANG['teenager'];
+            $pts = 5;
+        } elseif ($points > 1) {
+            $rank_img = "<div title=\"".$LANG['toddler']." ($points)\" class=\"rank1\"></div>";
+            $rank = $LANG['toddler'];
+            $next_rank = $LANG['kid'];
+            $pts = 3;
+        } else {
+            $rank_img = "<div title=\"".$LANG['baby']." ($points)\" class=\"rank0\"></div>";
+            $rank = $LANG['baby'];
+            $next_rank = $LANG['toddler'];
+            $pts = 1;
+        }
+        // Dates Info
+		$joinMonthName = gmdate("F", strtotime($row['joindate']));
+        $joinMonthName = getLangMonthName($joinMonthName);
+		$joinDate = gmdate(" j, Y", strtotime($row['joindate']));
+		$activityMonthName = gmdate("F", strtotime($row['activity'] . $this->tz_offset));
+        $activityMonthName = getLangMonthName($activityMonthName);
+		$activityDate = fixDST(gmdate('n/j/Y g:i a', strtotime($row['activity'] . $this->tz_offset)), $_SESSION['login_id'], 'j, Y, g:i a');
+        // Stats Info
 		if (checkAccess($_SESSION['login_id']) != 10) {
-			echo "<div><b>".$LANG['stats']."</b></div><div class=\"small\"><p><b>".$LANG['posts'].":</b> " . getPostsById($userid) . "</p><p><b>".$LANG['photos'].":</b> " . getPhotosById($userid) . "</p>";
+            $postsCount = getPostsById($userid);
+            $photosCount = getPhotosById($userid);
+            $commentsCount = getCommentsById($userid);
+			$stats = <<<HTML
+                    <div><b>{$LANG['stats']}</b></div>
+                    <div class="small">
+                        <p><b>{$LANG['posts']}:</b> {$postsCount}</p>
+                        <p><b>{$LANG['photos']}:</b> {$photosCount}</p>
+
+HTML;
 			if (usingFamilyNews()) {
-				echo "<p><b>".$LANG['link_familynews']."</b> " . getFamilyNewsById($userid) . "</p>";
+				$stats .= "                        <p><b>".$LANG['link_familynews']."</b> " . getFamilyNewsById($userid) . "</p>\n";
 			}
-			echo "<p><b>".$LANG['comments'].":</b> " . getCommentsById($userid) . "</p></div>";
+			$stats .= "                        <p><b>".$LANG['comments'].":</b> $commentsCount</p>\n";
+            $stats .= "                    </div>\n";
 		}
-		echo "</div>\n<div class=\"main-info\"><h3>" . $row['lname'] . ", " . $row['fname'] . "</h3>$rank_img</div>\n";
-		echo "<div class=\"main-info\"><h2>".$LANG['rank']."</h2><div><b>".$LANG['points'].":</b> $points</div><div><b>".$LANG['rank'].":</b> $rank</div>";
 		$ptsToGo = $pts - round($points, 2);
-		echo "<div><b>".$LANG['next_rank'].":</b> $next_rank";
 		if ($ptsToGo > 0) {
-			echo " <small>($ptsToGo ".$LANG['pts_go'].")</small></div>";
-			$this->displayPointsToGo($ptsToGo);
+			$ptsToGo = "<small>($ptsToGo " . $LANG['pts_go'] . ")</small>";
 		} else { 
-			echo "</div>";
+			$ptsToGo = "";
 		}
-		echo "</div>\n";
+
+        // Print the profile info
+		echo <<<HTML
+            <div id="side-info">
+                <div><b>{$LANG['mem_details']}</b></div>
+                <div class="center">
+                    <a href="privatemsg.php?compose=new&amp;id=$userid">{$LANG['send_pm']}</a>
+                </div>
+                <div class="small">
+                    <p><b>{$LANG['join_date']}:</b><br/>{$joinMonthName}{$joinDate}</p>
+                    <p><b>{$LANG['last_visit']}:</b><br/>{$activityMonthName}{$activityDate}</p>
+{$stats}
+                </div>
+            </div>
+            <div class="main-info">
+                <img class="avatar" src="gallery/avatar/{$row['avatar']}" alt="avatar"/>
+                <h3>{$row['fname']} {$row['lname']}</h3>
+                <h4>{$row['username']}</h4>
+                {$rank_img}
+            </div>
+            <div class="main-info">
+                <h2>{$LANG['rank']}</h2>
+                <div><b>{$LANG['points']}:</b> {$points}</div>
+                <div><b>{$LANG['rank']}:</b> {$rank}</div>
+                <div><b>{$LANG['next_rank']}:</b> {$next_rank} {$ptsToGo}</div>
+
+HTML;
+		$this->displayPointsToGo($ptsToGo);
+		echo "            </div>\n";
 		if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
 			echo "<div class=\"main-info\"><h2>".$LANG['last5_posts']."</h2>"; $this->displayLast5Posts($userid); echo"</div>\n";
 		}
@@ -126,7 +200,7 @@ class Profile {
 				$subject = stripslashes($row['subject']);
 				$pos = strpos($subject, '#ANOUNCE#');
 				if($pos !== false) { $subject = substr($subject, 9, strlen($subject)-9); }
-				echo "<p class=\"small\"><a href=\"messageboard.php?thread=" . $row['id'] . "\">$subject</a> <i>".$LANG[$monthName]."$date</i><br/>$post</p>";
+				echo "<p class=\"small\"><a href=\"messageboard.php?thread=" . $row['id'] . "\">$subject</a> <i>" . getLangMonthName($monthName) . "$date</i><br/>$post</p>";
 			}
 		} else {
 			echo "<p>".$LANG['none']."</p>";

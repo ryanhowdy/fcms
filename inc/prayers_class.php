@@ -14,7 +14,7 @@ class Prayers {
 		$this->cur_user_id = $current_user_id;
 		$this->db = new database($type, $host, $database, $user, $pass);
 		$this->db2 = new database($type, $host, $database, $user, $pass);
-		$this->db->query("SELECT `timezone` FROM `fcms_users` WHERE `id` = $current_user_id") or die('<h1>Timezone Error (prayers_class.php 17)</h1>' . mysql_error());
+		$this->db->query("SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id") or die('<h1>Timezone Error (prayers_class.php 17)</h1>' . mysql_error());
 		$row = $this->db->get_row();
 		$this->tz_offset = $row['timezone'];
 	}
@@ -28,12 +28,12 @@ class Prayers {
 				$monthName = gmdate('F', strtotime($r['date'] . $this->tz_offset));
 				$date = fixDST(gmdate('F j, Y g:i a', strtotime($r['date'] . $this->tz_offset)), $this->cur_user_id, 'j, Y g:i a');
 				$displayname = getUserDisplayName($r['user']);
-				echo "\t\t\t<hr/><div><h4>".$LANG[$monthName]." $date";
+				echo "\t\t\t<hr/><div><h4>" . getLangMonthName($monthName) . " $date";
 					if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {
-						echo " &nbsp;<form class=\"frm_line\" method=\"post\" action=\"prayers.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"hidden\" name=\"for\" value=\"".htmlentities($r['for'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"desc\" value=\"".htmlentities($r['desc'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"submit\" name=\"editprayer\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_prayer']."\"/></div></form>";
+						echo " &nbsp;<form method=\"post\" action=\"prayers.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"hidden\" name=\"for\" value=\"".htmlentities($r['for'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"desc\" value=\"".htmlentities($r['desc'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"submit\" name=\"editprayer\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_prayer']."\"/></div></form>";
 					}
 					if (checkAccess($_SESSION['login_id']) < 2) {
-						echo " &nbsp;<form class=\"frm_line\" method=\"post\" action=\"prayers.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"submit\" name=\"delprayer\" value=\" \" class=\"delbtn\" title=\"Delete this Prayer Concern.\" onclick=\"javascript:return confirm('Are you sure you want to DELETE this Prayer Concern?');\"/></div></form>";
+						echo " &nbsp;<form method=\"post\" action=\"prayers.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"submit\" name=\"delprayer\" value=\" \" class=\"delbtn\" title=\"Delete this Prayer Concern.\" onclick=\"javascript:return confirm('Are you sure you want to DELETE this Prayer Concern?');\"/></div></form>";
 					}
 				echo "</h4><b><a href=\"profile.php?member=" . $r['user'] . "\">$displayname</a> ".$LANG['asks_pray']."...</b><br/>&nbsp;&nbsp;&nbsp;&nbsp;".$r['for']."<br/><br/><b>".$LANG['because']."...</b><br/>&nbsp;&nbsp;&nbsp;&nbsp;";
 				parse($r['desc']);
@@ -86,11 +86,11 @@ class Prayers {
 		echo "<div><label for=\"for\">".$LANG['pray_for']."</label>: <input type=\"text\" name=\"for\" id=\"for\" class=\"required\" title=\"".$LANG['title_pray_for']."\" size=\"50\"";
 		if ($type == 'edit') { echo " value=\"".htmlentities($for, ENT_COMPAT, 'UTF-8')."\""; }
 		echo "/></div><br/>\n\t\t\t\t";
-		echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar ffor = new LiveValidation('for', { validMessage: \"".$LANG['lv_thanks']."\", wait: 500});\n\t\t\t\t\tffor.add(Validate.Presence, {failureMessage: \"".$LANG['lv_sorry_req']."\"});\n\t\t\t\t</script>\n\t\t\t\t";
+		echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar ffor = new LiveValidation('for', { validMessage: \"\", wait: 500});\n\t\t\t\t\tffor.add(Validate.Presence, {failureMessage: \"\"});\n\t\t\t\t</script>\n\t\t\t\t";
 		echo "<div><textarea name=\"desc\" id=\"desc\" class=\"required\" rows=\"10\" cols=\"63\" title=\"".$LANG['title_desc_pray']."\">";
 		if ($type == 'edit') { echo $desc; }
 		echo "</textarea></div>\n\t\t\t\t";
-		echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar fdesc = new LiveValidation('desc', { validMessage: \"".$LANG['lv_thanks']."\", wait: 500});\n\t\t\t\t\tfdesc.add(Validate.Presence, {failureMessage: \"".$LANG['lv_sorry_req']."\"});\n\t\t\t\t</script>\n\t\t\t\t";
+		echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar fdesc = new LiveValidation('desc', { validMessage: \"\", wait: 500});\n\t\t\t\t\tfdesc.add(Validate.Presence, {failureMessage: \"\"});\n\t\t\t\t</script>\n\t\t\t\t";
 		if ($type == 'add') {
 			echo "<div><input type=\"submit\" name=\"submitadd\" value=\"".$LANG['submit']."\"/></div>";
 		} else {
@@ -103,16 +103,27 @@ class Prayers {
 		global $LANG;
 		$today = date('Y-m-d');
 		$tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
-		$this->db->query("SELECT `for` , `date` FROM `fcms_prayers` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) ORDER BY `date` DESC LIMIT 0 , 5");
+		$this->db->query("SELECT * FROM `fcms_prayers` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) ORDER BY `date` DESC LIMIT 0 , 5");
 		if ($this->db->count_rows() > 0) {
-			echo "\n\t\t\t\t<h3>".$LANG['link_prayer']."</h3>\n\t\t\t\t<ul>\n";
+			echo "\n\t\t\t\t<h3>".$LANG['link_prayers']."</h3>\n\t\t\t\t<ul>\n";
 			while ($r = $this->db->get_row()) {
 				$for = $r['for'];
+				$displayname = getUserDisplayName($r['user']);
 				$monthName = gmdate('M', strtotime($r['date'] . $this->tz_offset));
 				$date = gmdate('. j, Y, g:i a', strtotime($r['date'] . $this->tz_offset));
-				echo "\t\t\t\t\t<li";
-				if(strtotime($r['date']) >= strtotime($today) && strtotime($r['date']) > $tomorrow) { echo " class=\"new\""; }
-				echo "><a href=\"prayers.php\">$for</a> - <span>".$LANG[$monthName]."$date</span></li>\n";			
+				if (
+                    strtotime($r['date']) >= strtotime($today) && 
+                    strtotime($r['date']) > $tomorrow
+                ) {
+                    $full_date = $LANG['today'];
+                    $d = ' class="today"';
+                } else {
+                    $full_date = getLangMonthName($monthName) . $date;
+                    $d = '';
+                }
+                echo "\t\t\t\t\t<li><div$d>$full_date</div>";
+				echo "<a href=\"prayers.php\">$for</a> - <a class=\"u\" ";
+                echo "href=\"profile.php?member=" . $r['user'] . "\">$displayname</a></li>\n";
 			}
 			echo "\t\t\t\t</ul>\n";
 		}

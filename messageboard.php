@@ -30,9 +30,10 @@ if (isset($_SESSION['login_id'])) {
 header("Cache-control: private");
 include_once('inc/messageboard_class.php');
 $mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$pagetitle = $LANG['link_board'];
-$d = "";
-$admin_d = "admin/";
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['link_board'];
+$TMPL['path'] = "";
+$TMPL['admin_path'] = "admin/";
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">
@@ -50,26 +51,109 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 			if (isset($_POST['post_submit'])) {
 				$show_threads = false;
 				$subject = addslashes($_POST['subject']);
+                $userid = $_SESSION['login_id'];
 				if (empty($subject)) { $subject = "subject"; }
 				if (isset($_POST['sticky'])) { $subject = "#ANOUNCE#" . $subject; }
 				if (isset($_POST['username'])) { $username = $_POST['username']; }
 				$post = addslashes($_POST['post']);
-				$sql = "INSERT INTO `fcms_board_threads`(`subject`, `started_by`, `updated`, `updated_by`) VALUES ('$subject', " . $_SESSION['login_id'] . ", NOW(), " . $_SESSION['login_id'] . ")";
-				mysql_query($sql) or displaySQLError('New Thread Error', 'messageboard.php [' . __LINE__ . ']', $sql, mysql_error());
+				$sql = "INSERT INTO `fcms_board_threads` "
+                        . "(`subject`, `started_by`, `updated`, `updated_by`) "
+                     . "VALUES ('$subject', $userid, NOW(), $userid)";
+				mysql_query($sql) or displaySQLError(
+                    'Thread Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
 				$new_thread_id = mysql_insert_id();
-				$sql = "INSERT INTO `fcms_board_posts`(`date`, `thread`, `user`, `post`) VALUES (NOW(), $new_thread_id, " . $_SESSION['login_id'] . ", '$post')";
-				mysql_query($sql) or displaySQLError('New Post Error', 'messageboard.php [' . __LINE__ . ']', $sql, mysql_error());
-				echo "<meta http-equiv='refresh' content='0;URL=messageboard.php?thread=" . $new_thread_id . "'>";
+				$sql = "INSERT INTO `fcms_board_posts`(`date`, `thread`, `user`, `post`) "
+                     . "VALUES (NOW(), $new_thread_id, $userid, '$post')";
+				mysql_query($sql) or displaySQLError(
+                    'Post Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+				echo "<meta http-equiv='refresh' content='0;URL=messageboard.php?thread=$new_thread_id'>";
+                // Email members
+                $sql = "SELECT u.`email`, s.`user` "
+                     . "FROM `fcms_user_settings` AS s, `fcms_users` AS u "
+                     . "WHERE `email_updates` = '1'"
+                     . "AND u.`id` = s.`user`";
+                $result = mysql_query($sql) or displaySQLError(
+                    'Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', 
+                    $sql, mysql_error()
+                );
+                if (mysql_num_rows($result) > 0) {
+                    while ($r = mysql_fetch_array($result)) {
+                        $name = getUserDisplayName($_SESSION['login_id']);
+                        $thread_subject = $subject;
+                        $subject = "$name " . $LANG['started_thread'] . " $thread_subject";
+                        $email = $r['email'];
+                        $name = getUserDisplayName($r['user']);
+                        $url = getDomainAndDir();
+                        $msg = $LANG['dear'] . " $name,
+$name " . $LANG['started_thread'] . " $thread_subject
+
+{$url}messageboard.php?thread=$new_thread_id
+
+----
+" . $LANG['opt_out_updates'] . "
+
+{$url}settings.php
+
+";
+                        mail($email, $subject, $msg, $email_headers);
+                    }
+                }
 			}
 			if (isset($_POST['reply_submit'])) {
 				$show_threads = false;
 				$post = addslashes($_POST['post']);
 				$thread_id = $_POST['thread_id'];
-				$sql = "UPDATE `fcms_board_threads` SET `updated` = NOW(), `updated_by` = " . $_SESSION['login_id'] . " WHERE `id` = $thread_id";
-				mysql_query($sql) or displaySQLError('Update Thread Error', 'messageboard.php [' . __LINE__ . ']', $sql, mysql_error());
-				$sql = "INSERT INTO `fcms_board_posts`(`date`, `thread`, `user`, `post`) VALUES (NOW(), $thread_id, " . $_SESSION['login_id'] . ", '$post')";
-				mysql_query($sql) or displaySQLError('Reply Error', 'messageboard.php [' . __LINE__ . ']', $sql, mysql_error());
-				echo "<meta http-equiv='refresh' content='0;URL=messageboard.php?thread=" . $thread_id . "'>";
+				$sql = "UPDATE `fcms_board_threads` "
+                     . "SET `updated` = NOW(), `updated_by` = " . $_SESSION['login_id'] . " "
+                     . "WHERE `id` = $thread_id";
+				mysql_query($sql) or displaySQLError(
+                    'Update Thread Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+				$sql = "INSERT INTO `fcms_board_posts`(`date`, `thread`, `user`, `post`) "
+                     . "VALUES (NOW(), $thread_id, " . $_SESSION['login_id'] . ", '$post')";
+				mysql_query($sql) or displaySQLError(
+                    'Reply Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+				echo "<meta http-equiv='refresh' content='0;URL=messageboard.php?thread=$thread_id'>";
+                // Email members
+                $sql = "SELECT u.`email`, s.`user` "
+                     . "FROM `fcms_user_settings` AS s, `fcms_users` AS u "
+                     . "WHERE `email_updates` = '1'"
+                     . "AND u.`id` = s.`user`";
+                $result = mysql_query($sql) or displaySQLError(
+                    'Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', 
+                    $sql, mysql_error()
+                );
+                if (mysql_num_rows($result) > 0) {
+                    while ($r = mysql_fetch_array($result)) {
+                        $name = getUserDisplayName($_SESSION['login_id']);
+                        $sql = "SELECT `subject` FROM `fcms_board_threads` WHERE `id` = $thread_id";
+                        $subject = mysql_query($sql) or displaySQLError(
+                            'Subject Error', __FILE__ . ' [' . __LINE__ . ']', 
+                            $sql, mysql_error()
+                        );
+                        $row = mysql_fetch_array($subject);
+                        $thread_subject = $row['subject'];
+                        $subject = "$name " . $LANG['replied_to'] . " $thread_subject";
+                        $email = $r['email'];
+                        $name = getUserDisplayName($r['user']);
+                        $url = getDomainAndDir();
+                        $msg = $LANG['dear'] . " $name,
+$name " . $LANG['replied_to'] . " $thread_subject
+
+{$url}messageboard.php?thread=$thread_id
+
+----
+" . $LANG['opt_out_updates'] . "
+
+{$url}settings.php
+
+";
+                        mail($email, $subject, $msg, $email_headers);
+                    }
+                }
 			}
 			if (isset($_POST['edit_submit'])) {
 				$show_threads = false;

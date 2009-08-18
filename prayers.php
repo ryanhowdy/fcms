@@ -30,9 +30,10 @@ if (isset($_SESSION['login_id'])) {
 header("Cache-control: private");
 include_once('inc/prayers_class.php');
 $prayers = new Prayers($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$pagetitle = $LANG['link_prayers'];
-$d = "";
-$admin_d = "admin/";
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['link_prayers'];
+$TMPL['path'] = "";
+$TMPL['admin_path'] = "admin/";
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">
@@ -50,10 +51,44 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 			if (isset($_POST['submitadd'])) {
 				$for = addslashes($_POST['for']);
 				$desc = addslashes($_POST['desc']);
-				$sql = "INSERT INTO `fcms_prayers`(`for`, `desc`, `user`, `date`) VALUES('$for', '$desc', " . $_SESSION['login_id'] . ", NOW())";
-				mysql_query($sql) or displaySQLError('New Prayer Error', 'prayers.php [' . __LINE__ . ']', $sql, mysql_error());
+				$sql = "INSERT INTO `fcms_prayers`(`for`, `desc`, `user`, `date`) "
+                     . "VALUES('$for', '$desc', " . $_SESSION['login_id'] . ", NOW())";
+				mysql_query($sql) or displaySQLError(
+                    'New Prayer Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
 				echo "<p class=\"ok-alert\" id=\"add\">".$LANG['ok_pray_add']."</p>";
-				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('add').toggle()\",3000); }</script>";
+				echo "<script type=\"text/javascript\">window.onload=function(){ ";
+                echo "var t=setTimeout(\"$('add').toggle()\",3000); }</script>";
+                // Email members
+                $sql = "SELECT u.`email`, s.`user` "
+                     . "FROM `fcms_user_settings` AS s, `fcms_users` AS u "
+                     . "WHERE `email_updates` = '1'"
+                     . "AND u.`id` = s.`user`";
+                $result = mysql_query($sql) or displaySQLError(
+                    'Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', 
+                    $sql, mysql_error()
+                );
+                if (mysql_num_rows($result) > 0) {
+                    while ($r = mysql_fetch_array($result)) {
+                        $name = getUserDisplayName($_SESSION['login_id']);
+                        $subject = "$name " . $LANG['added_concern'] . " $for.";
+                        $email = $r['email'];
+                        $name = getUserDisplayName($r['user']);
+                        $url = getDomainAndDir();
+                        $msg = $LANG['dear'] . " $name,
+$name " . $LANG['added_concern'] . " $for.
+
+{$url}prayers.php
+
+----
+" . $LANG['opt_out_updates'] . "
+
+{$url}settings.php
+
+";
+                        mail($email, $subject, $msg, $email_headers);
+                    }
+                }
 			} 
 			if (isset($_POST['submitedit'])) {
 				$for = addslashes($_POST['for']);
@@ -79,7 +114,8 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 			}
 			if ($show) {
 				if (checkAccess($_SESSION['login_id']) <= 5) {
-					echo "<div class=\"clearfix\"><a class=\"link_block add\" href=\"?addconcern=yes\">".$LANG['add_prayer']."</a></div>\n";
+					echo "<div id=\"sections_menu\" class=\"clearfix\"><ul><li><a class=\"add\" href=\"?addconcern=yes\">";
+                    echo $LANG['add_prayer']."</a></li></ul></div>\n";
 				}
 				$page = 1;
 				if (isset($_GET['page'])) { $page = $_GET['page']; }

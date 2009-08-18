@@ -57,7 +57,7 @@ class Poll {
 			}
 		}
 		if ($poll_exists) {
-			echo "<h2>".$LANG['link_admin_polls']."</h2>";
+			echo "<h2 class=\"pollmenu\">".$LANG['link_admin_polls']."</h2>";
 			echo "<form method=\"post\" action=\"home.php\">";
 			$i = 0;
 			$id = '';

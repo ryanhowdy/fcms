@@ -64,7 +64,7 @@ h2 { color: #fff; font-weight: bold; background-color: #000; margin: 0; padding:
 .LV_invalid { display: block; font-size: 8pt; font-weight: bold; color : #c00; }
 .LV_invalid_field, input.LV_invalid_field:hover, input.LV_invalid_field:active, textarea.LV_invalid_field:hover, textarea.LV_invalid_field:active { border: 1px solid #c00; }
 #submit { font-size: 14pt; line-height: 24pt; font-family: Verdana, Sans-Serif; border: none; }
-#install { margin: 50px 0 0 0; width: 60%; }
+#install { margin: 50px auto 0 auto; width: 60%; }
 #install p { font-size: 14pt; line-height: 24pt; }
 #install div { float: left; width:48%; padding:10px; font-size: 8pt; }
 #install .nbtn { color: #000; padding:10px 25px; background-color: #fff; border: 1px solid #000; }
@@ -117,6 +117,7 @@ if (isset($_POST['submit1'])) {
         } elseif ($_POST['sections-prayers']) {
             $sql .= "'prayers', 'none', 'none', 'none', ";
 			$pray = true;
+            $none = true;
         } else {
             $sql .= "'none', 'none', 'none', 'none', ";
 			$none = true;
@@ -130,6 +131,7 @@ if (isset($_POST['submit1'])) {
         } elseif (isset($_POST['sections-prayers']) && !$pray) {
             $sql .= "'prayers', 'none', 'none', ";
 			$pray = true;
+            $none = true;
         } elseif (!$none) {
             $sql .= "'none', 'none', 'none', ";
 			$none = true;
@@ -140,17 +142,18 @@ if (isset($_POST['submit1'])) {
         } elseif (isset($_POST['sections-prayers']) && !$pray) {
             $sql .= "'prayers', 'none', ";
 			$pray = true;
+            $none = true;
         } elseif (!$none) {
             $sql .= "'none', 'none', ";
 			$none = true;
         }
         // section4
-        if (isset($_POST['sections-prayers']) && !pray) {
+        if (isset($_POST['sections-prayers']) && !$pray) {
             $sql .= "'prayers', ";
         } elseif (!$none) {
             $sql .= "'none', ";
         }
-		$sql .= "'Family Connections 1.9')";
+		$sql .= "'Family Connections 2.0')";
 		mysql_query($sql) or die($sql . "<br/><br/>" . mysql_error());
 		displayStepFive();
 	}
@@ -211,7 +214,7 @@ function displayStepOne () {
 		<div>Your site is ready to be installed.  Please proceed to the next step.</div>
 		<p style="text-align:right;"><input id="submit" name="submit1" type="submit"  value="<?php echo $LANG['next']; ?> >>"/></p>
 		<?php } else { ?>
-		<div>Unfortunatly your site is not ready to be installed.  Please make sure that the folders above exist and have the <a href="http://www.haudenschilt.com/fcms/support/faq.html#chmod">proper permissions set</a>.</div>
+		<div>Unfortunatly your site is not ready to be installed.  Please make sure that the folders above exist and have the <a href="http://www.familycms.com/wiki/FAQCHMOD">proper permissions set</a>.</div>
 		<?php } ?>
 	</div>
 	</form><?php
@@ -363,7 +366,7 @@ function displayStepFive ($error = '0') {
 				else { echo "<option value=\"$d\">$d</option>"; }
 				$d++;
 			}
-			echo '</select><select name="month">';
+			echo '</select><select id="month" name="month">';
 			$m = 1;
 			while ($m <= 12) {
 				$lang_month = "".date('M', mktime(0, 0, 0, $m, 1, 2006));
@@ -371,7 +374,7 @@ function displayStepFive ($error = '0') {
 				else { echo "<option value=\"$m\">" . $LANG[$lang_month] . "</option>"; }
 				$m++;
 			}
-			echo '</select><select name="year">';
+			echo '</select><select id="year" name="year">';
 			$y = 1900;
 			while ($y - 5 <= date('Y')) {
 				if ($year == $y) { echo "<option value=\"$y\" selected=\"selected\">$y</option>"; }
@@ -423,6 +426,8 @@ function setupDatabase ($fname, $lname, $email, $birthday, $username, $password,
 		die("<h1>Connection Error (install.php 194)</h1>" . mysql_error());
 	} else {
 		mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Database could not be found!</b></p>" . mysql_error());
+		mysql_query("DROP TABLE IF EXISTS `fcms_chat`") or die("<h1>Error</h1><p><b>Could not drop 'fcms_chat' table.</b></p>" . mysql_error());
+		mysql_query("DROP TABLE IF EXISTS `fcms_chat_messages`") or die("<h1>Error</h1><p><b>Could not drop 'fcms_chat_messages' table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_address`") or die("<h1>Error</h1><p><b>Could not drop `fcms_address` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_privatemsg`") or die("<h1>Error</h1><p><b>Could not drop `fcms_privatemsg` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_documents`") or die("<h1>Error</h1><p><b>Could not drop `fcms_documents` table.</b></p>" . mysql_error());
@@ -441,10 +446,14 @@ function setupDatabase ($fname, $lname, $email, $birthday, $username, $password,
 		mysql_query("DROP TABLE IF EXISTS `fcms_board_threads`") or die("<h1>Error</h1><p><b>Could not drop `fcms_board_threads` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_recipes`") or die("<h1>Error</h1><p><b>Could not drop `fcms_recipes` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_user_awards`") or die("<h1>Error</h1><p><b>Could not drop `fcms_user_awards` table.</b></p>" . mysql_error());
+		mysql_query("DROP TABLE IF EXISTS `fcms_user_settings`") or die("<h1>Error</h1><p><b>Could not drop `fcms_user_settings` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_users`") or die("<h1>Error</h1><p><b>Could not drop `fcms_users` table.</b></p>" . mysql_error());
 		mysql_query("SET NAMES utf8") or die("<h1>Error</h1><p><b>Could not set encoding</b></p>" . mysql_error());
-		mysql_query("CREATE TABLE `fcms_users` (`id` int(25) NOT NULL auto_increment, `access` tinyint(1) NOT NULL default '3', `activity` datetime NOT NULL default '0000-00-00 00:00:00', `joindate` timestamp NOT NULL default CURRENT_TIMESTAMP, `fname` varchar(25) NOT NULL default 'fname', `lname` varchar(25) NOT NULL default 'lname', `email` varchar(50) NOT NULL default 'me@mail.com', `birthday` date NOT NULL default '0000-00-00', `theme` varchar(25) NOT NULL default 'default.css', `username` varchar(25) NOT NULL default '0', `password` varchar(255) NOT NULL default '0', `avatar` varchar(25) NOT NULL default '0x0.gif', `boardsort` set('ASC','DESC') NOT NULL default 'ASC', `showavatar` set('YES','NO') NOT NULL default 'YES', `displayname` set('1','2','3') NOT NULL default '1', `frontpage` set('1','2') NOT NULL default '1', `timezone` set('-12 hours','-11 hours','-10 hours','-9 hours','-8 hours','-7 hours','-6 hours','-5 hours','-4 hours','-3 hours -30 minutes','-3 hours','-2 hours','-1 hours','-0 hours','+1 hours','+2 hours','+3 hours','+3 hours +30 minutes','+4 hours','+4 hours +30 minutes','+5 hours','+5 hours +30 minutes','+6 hours','+7 hours','+8 hours','+9 hours','+9 hours +30 minutes','+10 hours','+11 hours','+12 hours') NOT NULL default '-5 hours', `dst` tinyint(1) NOT NULL default '0', `activate_code` char(13) NULL, `activated` tinyint(1) NOT NULL default '0', `login_attempts` TINYINT(1) NOT NULL DEFAULT '0', `locked` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', PRIMARY KEY  (`id`), UNIQUE KEY `username` (`username`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
+		mysql_query("CREATE TABLE `fcms_users` (`id` int(25) NOT NULL auto_increment, `access` tinyint(1) NOT NULL default '3', `activity` datetime NOT NULL default '0000-00-00 00:00:00', `joindate` timestamp NOT NULL default CURRENT_TIMESTAMP, `fname` varchar(25) NOT NULL default 'fname', `lname` varchar(25) NOT NULL default 'lname', `email` varchar(50) NOT NULL default 'me@mail.com', `birthday` date NOT NULL default '0000-00-00', `username` varchar(25) NOT NULL default '0', `password` varchar(255) NOT NULL default '0', `avatar` varchar(25) NOT NULL default 'no_avatar.jpg', `activate_code` char(13) NULL, `activated` tinyint(1) NOT NULL default '0', `login_attempts` TINYINT(1) NOT NULL DEFAULT '0', `locked` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', PRIMARY KEY  (`id`), UNIQUE KEY `username` (`username`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
 		mysql_query("INSERT INTO `fcms_users` (`id`, `access`, `joindate`, `fname`, `lname`, `email`, `birthday`, `username`, `password`, `activated`) VALUES (1, 1, NOW(), '".addslashes($fname)."', '".addslashes($lname)."', '".addslashes($email)."', '$birthday', '".addslashes($username)."', '$password', 1)") or die(mysql_error());
+        mysql_query("CREATE TABLE `fcms_user_settings` (`id` INT(11) NOT NULL AUTO_INCREMENT, `user` INT(11) NOT NULL, `theme` varchar(25) NOT NULL default 'default', `boardsort` SET('ASC', 'DESC') NOT NULL DEFAULT 'ASC', `showavatar` TINYINT(1) NOT NULL DEFAULT '1', `displayname` SET('1','2','3') NOT NULL DEFAULT '1', `frontpage` set('1','2') NOT NULL default '1', `timezone` set('-12 hours', '-11 hours', '-10 hours', '-9 hours', '-8 hours', '-7 hours', '-6 hours', '-5 hours', '-4 hours', '-3 hours -30 minutes', '-3 hours', '-2 hours', '-1 hours', '-0 hours', '+1 hours', '+2 hours', '+3 hours', '+3 hours +30 minutes', '+4 hours', '+4 hours +30 minutes', '+5 hours', '+5 hours +30 minutes', '+6 hours', '+7 hours', '+8 hours', '+9 hours', '+9 hours +30 minutes', '+10 hours', '+11 hours', '+12 hours') NOT NULL DEFAULT '-5 hours', `dst` TINYINT(1) NOT NULL DEFAULT '0', `email_updates` TINYINT(1) NOT NULL DEFAULT '0', PRIMARY KEY (`id`), KEY `user_ind` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
+		mysql_query("ALTER TABLE `fcms_user_settings` ADD CONSTRAINT `fcms_user_stgs_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
+		mysql_query("INSERT INTO `fcms_user_settings` (`id`, `user`) VALUES (NULL, 1)") or die(mysql_error());
 		mysql_query("CREATE TABLE `fcms_address` (`id` int(11) NOT NULL auto_increment, `user` int(11) NOT NULL default '0', `entered_by` INT(11) NOT NULL DEFAULT '0', `updated` timestamp NOT NULL default CURRENT_TIMESTAMP, `address` varchar(50) default NULL, `city` varchar(50) default NULL, `state` varchar(50) default NULL, `zip` varchar(10) default NULL, `home` varchar(20) default NULL, `work` varchar(20) default NULL, `cell` varchar(20) default NULL, PRIMARY KEY  (`id`), KEY `user_ind` (`user`), KEY `ent_ind` (`entered_by`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
 		mysql_query("ALTER TABLE `fcms_address` ADD CONSTRAINT `fcms_address_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
 		mysql_query("INSERT INTO `fcms_address` (`id`, `user`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`) VALUES (NULL, 1, '".addslashes($address)."', '".addslashes($city)."', '".addslashes($state)."', '".addslashes($zip)."', '".addslashes($home)."', '".addslashes($work)."', '".addslashes($cell)."')") or die(mysql_error());
@@ -493,6 +502,8 @@ function setupDatabase ($fname, $lname, $email, $birthday, $username, $password,
 			mysql_query("CREATE TABLE `fcms_documents` (`id` INT(11) NOT NULL AUTO_INCREMENT, `name` VARCHAR(50) NOT NULL, `description` TEXT NOT NULL, `user` INT(11) NOT NULL, `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
 			mysql_query("ALTER TABLE `fcms_documents` ADD CONSTRAINT `fcms_documents_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
 		}
+		mysql_query("CREATE TABLE `fcms_chat` ( `chat_id` INT(11) NOT NULL AUTO_INCREMENT, `chat_name` VARCHAR(64) DEFAULT NULL, `start_time` DATETIME DEFAULT NULL, PRIMARY KEY  (`chat_id`)) ENGINE=INNODB DEFAULT CHARSET=utf8") or die(mysql_error());
+		mysql_query("CREATE TABLE `fcms_chat_messages` ( `message_id` INT(11) NOT NULL AUTO_INCREMENT, `chat_id` INT(11) NOT NULL DEFAULT '0', `user_id` INT(11) NOT NULL DEFAULT '0', `user_name` VARCHAR(64) DEFAULT NULL, `message` TEXT, `post_time` DATETIME DEFAULT NULL, PRIMARY KEY  (`message_id`)) ENGINE=INNODB DEFAULT CHARSET=utf8");
 		mysql_query("CREATE TABLE `fcms_user_awards` (`id` int(11) NOT NULL auto_increment, `user` int(11) NOT NULL default '0', `type` varchar(20) NOT NULL default '0', `value` smallint(4) NOT NULL default '0', `count` smallint(4) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `user` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
 		mysql_query("ALTER TABLE `fcms_user_awards` ADD CONSTRAINT `fcms_user_awards_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
 		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (1, 1, 'top5poster', 1, 0)") or die(mysql_error());

@@ -44,9 +44,10 @@ if (isset($_GET['download'])) {
 	@readfile($filename);
 	exit(0);
 }
-$pagetitle = $LANG['link_documents'];
-$d = "";
-$admin_d = "admin/";
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['link_documents'];
+$TMPL['path'] = "";
+$TMPL['admin_path'] = "admin/";
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">
@@ -63,12 +64,40 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 			$show = true;
 			if (isset($_POST['submitadd'])) {
 				$doc = $_FILES['doc']['name'];
+                $doc = str_replace (" ", "_", $doc);
 				$desc = addslashes($_POST['desc']);
-				if ($docs->uploadDocument($_FILES['doc']['type'], $_FILES['doc']['name'], $_FILES['doc']['tmp_name'])) {
+				if ($docs->uploadDocument($_FILES['doc']['type'], $doc, $_FILES['doc']['tmp_name'])) {
 					$sql = "INSERT INTO `fcms_documents`(`name`, `description`, `user`, `date`) VALUES('$doc', '$desc', " . $_SESSION['login_id'] . ", NOW())";
 					mysql_query($sql) or displaySQLError('New Document Error', 'documents.php [' . __LINE__ . ']', $sql, mysql_error());
 					echo "<p class=\"ok-alert\" id=\"add\">".$LANG['ok_doc_add']."</p>";
 					echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('add').toggle()\",3000); }</script>";
+                    // Email members
+                    $sql = "SELECT u.`email`, s.`user` "
+                         . "FROM `fcms_user_settings` AS s, `fcms_users` AS u "
+                         . "WHERE `email_updates` = '1'"
+                         . "AND u.`id` = s.`user`";
+                    $result = mysql_query($sql) or displaySQLError('Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                    if (mysql_num_rows($result) > 0) {
+                        while ($r = mysql_fetch_array($result)) {
+                            $name = getUserDisplayName($_SESSION['login_id']);
+                            $subject = "$name " . $LANG['added_docs'] . " ($doc)";
+                            $email = $r['email'];
+                            $name = getUserDisplayName($r['user']);
+                            $url = getDomainAndDir();
+                            $msg = $LANG['dear'] . " $name,
+$name " . $LANG['added_docs'] . " ($doc)
+
+{$url}documents.php
+
+----
+" . $LANG['opt_out_updates'] . "
+
+{$url}settings.php
+
+";
+                            mail($email, $subject, $msg, $email_headers);
+                        }
+                    }
 				}
 			} 
 			if (isset($_POST['deldoc'])) {
@@ -84,7 +113,8 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 			}
 			if ($show) {
 				if (checkAccess($_SESSION['login_id']) <= 5) {
-					echo "<div class=\"clearfix\"><a class=\"link_block add\" href=\"?adddoc=yes\">" . $LANG['add_document'] . "</a></div>\n";
+					echo "<div id=\"sections_menu\" class=\"clearfix\"><ul><li><a class=\"add\" href=\"?adddoc=yes\">";
+                    echo $LANG['add_document'] . "</a></li></ul></div>\n";
 				}
 				$page = 1;
 				if (isset($_GET['page'])) { $page = $_GET['page']; }

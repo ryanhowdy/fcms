@@ -24,16 +24,17 @@ if (isset($_SESSION['login_id'])) {
 header("Cache-control: private");
 include_once('../inc/admin_class.php');
 $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$pagetitle = $LANG['admin_upgrade'];
-$d = "../";
-$admin_d = "";
-include_once(getTheme($_SESSION['login_id'], $d) . 'header.php');
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['admin_upgrade'];
+$TMPL['path'] = "../";
+$TMPL['admin_path'] = "";
+include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
 ?>
 	<div id="leftcolumn">
         <?php
-        include_once(getTheme($_SESSION['login_id'], $d) . 'sidenav.php');
+        include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'sidenav.php');
         if (checkAccess($_SESSION['login_id']) < 3) {
-            include_once(getTheme($_SESSION['login_id'], $d) . 'adminnav.php');
+            include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'adminnav.php');
         }
         ?>
 	</div>
@@ -280,14 +281,29 @@ function upgrade ($version) {
 			if ($r['Field'] == 'nav_side1') { $config_fixed = true; }
 		}
 	}
+	// nav_top1 etc have been removed since 1.9
+	// need to check and make sure we don't try to update these fields
+	$result2 = mysql_query("SHOW COLUMNS FROM `fcms_config`") or die("</p><p style=\"color:red\">".$LANG['not_search_fields']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	// assume that we are upgrading from 1.9 or later
+	$fcms19_fixed = true;
+	if (mysql_num_rows($result2) > 0) {
+		while($r = mysql_fetch_array($result2)) {
+			// if nav_top1 exists then we are upgrading from earlier than 1.9
+			if ($r['Field'] == 'nav_top1') { $fcms19_fixed = false; }
+		}
+	}
 	if ($config_fixed) {
 		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
 	} else {
-		mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top1` `nav_top1` TINYINT(1) NOT NULL DEFAULT '1' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-		mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top2` `nav_top2` TINYINT(1) NOT NULL DEFAULT '2' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-		mysql_query("ALTER TABLE `fcms_config` ADD `nav_side1` TINYINT(1) NOT NULL DEFAULT '3' AFTER `nav_top2`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-		mysql_query("ALTER TABLE `fcms_config` ADD `nav_side2` TINYINT(1) NOT NULL DEFAULT '0' AFTER `nav_side1`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-		echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+		if ($fcms19_fixed) {
+			echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+		} else {
+			mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top1` `nav_top1` TINYINT(1) NOT NULL DEFAULT '1' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+			mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top2` `nav_top2` TINYINT(1) NOT NULL DEFAULT '2' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+			mysql_query("ALTER TABLE `fcms_config` ADD `nav_side1` TINYINT(1) NOT NULL DEFAULT '3' AFTER `nav_top2`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+			mysql_query("ALTER TABLE `fcms_config` ADD `nav_side2` TINYINT(1) NOT NULL DEFAULT '0' AFTER `nav_side1`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+			echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+		}
 	}
 	/*
 	 * FCMS 1.7
@@ -400,12 +416,16 @@ function upgrade ($version) {
 	if ($config_fixed) {
 		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
 	} else {
-		mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top1` `nav_top1` TINYINT(1) NOT NULL DEFAULT '3' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-		mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top2` `nav_top2` TINYINT(1) NOT NULL DEFAULT '1' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-		mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_side1` `nav_side1` TINYINT(1) NOT NULL DEFAULT '4' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-		mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_side2` `nav_side2` TINYINT(1) NOT NULL DEFAULT '5' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-		mysql_query("ALTER TABLE `fcms_config` ADD `nav_side3` TINYINT(1) NOT NULL DEFAULT '2' AFTER `nav_side2`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-		echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+		if ($fcms19_fixed) {
+			echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+		} else {
+			mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top1` `nav_top1` TINYINT(1) NOT NULL DEFAULT '3' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+			mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top2` `nav_top2` TINYINT(1) NOT NULL DEFAULT '1' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+			mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_side1` `nav_side1` TINYINT(1) NOT NULL DEFAULT '4' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+			mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_side2` `nav_side2` TINYINT(1) NOT NULL DEFAULT '5' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+			mysql_query("ALTER TABLE `fcms_config` ADD `nav_side3` TINYINT(1) NOT NULL DEFAULT '2' AFTER `nav_side2`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+			echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+		}
 	}
 	/*
 	 * FCMS 1.8
@@ -448,8 +468,69 @@ function upgrade ($version) {
 		@mysql_query("ALTER TABLE `fcms_config` DROP `nav_side3`");  //Surpressing errors here because dropping the old field doesn't stop any functionality
 		echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
 	}
+	/*
+	 * FCMS 2.0
+	 * User Settings.
+	 */
+	echo "<p><b>(2.0)</b> Adding User Settings...";
+	$sql = "SHOW TABLES FROM `$cfg_mysql_db`";
+	$result = mysql_query($sql) or die("</p><p style=\"color:red\">".$LANG['not_search_tables']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$user_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r[0] == 'fcms_user_settings') { $user_fixed = true; }
+		}
+	}
+	if ($user_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+		mysql_query("CREATE TABLE `fcms_user_settings` ("
+            . "`id` INT(11) NOT NULL AUTO_INCREMENT, "
+            . "`user` INT(11) NOT NULL, "
+            . "`theme` varchar(25) NOT NULL default 'default', "
+            . "`boardsort` SET('ASC', 'DESC') NOT NULL DEFAULT 'ASC', "
+            . "`showavatar` TINYINT(1) NOT NULL DEFAULT '1', "
+            . "`displayname` SET('1','2','3') NOT NULL DEFAULT '1', "
+            . "`frontpage` set('1','2') NOT NULL default '1', "
+            . "`timezone` set('-12 hours', '-11 hours', '-10 hours', '-9 hours', '-8 hours', '-7 hours', '-6 hours', '-5 hours', '-4 hours', '-3 hours -30 minutes', '-3 hours', '-2 hours', '-1 hours', '-0 hours', '+1 hours', '+2 hours', '+3 hours', '+3 hours +30 minutes', '+4 hours', '+4 hours +30 minutes', '+5 hours', '+5 hours +30 minutes', '+6 hours', '+7 hours', '+8 hours', '+9 hours', '+9 hours +30 minutes', '+10 hours', '+11 hours', '+12 hours') NOT NULL DEFAULT '-5 hours', "
+            . "`dst` TINYINT(1) NOT NULL DEFAULT '0', "
+            . "`email_updates` TINYINT(1) NOT NULL DEFAULT '0', "
+            . "PRIMARY KEY (`id`), KEY `user_ind` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
+		mysql_query("ALTER TABLE `fcms_user_settings` ADD CONSTRAINT `fcms_user_stgs_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
+        $result = mysql_query("SELECT * FROM `fcms_users`") or die(mysql_error());
+        while ($r = mysql_fetch_array($result)) {
+            if ($r['showavatar'] == 'YES') {
+                $showavatar = '1';
+            } else {
+                $showavatar = '0';
+            }
+            mysql_query("INSERT INTO `fcms_user_settings` (`user`, `theme`, `boardsort`, `showavatar`, `displayname`, `frontpage`, `timezone`, `dst`) "
+                . "VALUES ("
+                . "'" . $r['id'] . "', "
+                . "'" . $r['theme'] . "', "
+                . "'" . $r['boardsort'] . "', "
+                . "'$showavatar', "
+                . "'" . $r['displayname'] . "', "
+                . "'" . $r['frontpage'] . "', "
+                . "'" . $r['timezone'] . "', "
+                . "'" . $r['dst'] . "')") or die("<b>Transfering User Settings</b><br/>" . mysql_error());
+        }
+        mysql_query("ALTER TABLE `fcms_users` DROP `boardsort`") or die(mysql_error());
+        mysql_query("ALTER TABLE `fcms_users` DROP `showavatar`") or die(mysql_error());
+        mysql_query("ALTER TABLE `fcms_users` DROP `displayname`") or die(mysql_error());
+        mysql_query("ALTER TABLE `fcms_users` DROP `timezone`") or die(mysql_error());
+        mysql_query("ALTER TABLE `fcms_users` DROP `dst`") or die(mysql_error());
+		echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+	}
+	/*
+	 * FCMS 2.0
+	 * Update Avatar.
+	 */
+	echo "<p><b>(2.0)</b> Upgrading FCMS avatar...";
+	$result = mysql_query("SHOW COLUMNS FROM `fcms_config`") or die("</p><p style=\"color:red\">".$LANG['not_search_fields']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	mysql_query("ALTER TABLE `fcms_users` ALTER `avatar` SET DEFAULT 'no_avatar.jpg'") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
 
-	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 1.9'");
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.0'");
 	echo "<p style=\"color:green\"><b>Upgrade is finished.</b></p>";
 }
 ?>

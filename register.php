@@ -82,6 +82,8 @@ if (isset($_POST['submit'])) {
 		$sql = "INSERT INTO `fcms_users`(`access`, `joindate`, `fname`, `lname`, `email`, `birthday`, `username`, `password`) VALUES (3, NOW(), '$fname', '$lname', '$email', '$birthday', '$username', '$md5pass')";
 		mysql_query($sql) or displaySQLError('New User Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
 		$lastid = mysql_insert_id();
+		$sql = "INSERT INTO `fcms_user_settings`(`user`) VALUES ($lastid)";
+		mysql_query($sql) or displaySQLError('User Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
 		$sql = "INSERT INTO `fcms_address`(`user`, `updated`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`) VALUES ($lastid, NOW(), '$address', '$city', '$state', '$zip', '$home', '$work', '$cell')";
 		mysql_query($sql) or displaySQLError('New Address Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
 		$sql = "INSERT INTO `fcms_calendar`(`date`, `title`, `created_by`, `type`) VALUES ('$birthday', '$fname $lname', $lastid, 'Birthday')";

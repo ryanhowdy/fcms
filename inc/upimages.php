@@ -76,7 +76,11 @@ if (isset($_POST['upload'])) {
 <table><tr><th><?php echo $LANG['upd_images']; ?></th><th><?php echo $LANG['filename']; ?></th><th></th><th></th><th></th></tr>
 <?php
 $img_dir = opendir("../gallery/upimages");
-while ($file = readdir($img_dir)) { $images_in_dir[] = $file; }
+while ($file = readdir($img_dir)) {
+    if ($file !== 'index.htm') {
+        $images_in_dir[] = $file;
+    }
+}
 natcasesort($images_in_dir);
 reset($images_in_dir);
 $i = 0;  $total_size = 0;

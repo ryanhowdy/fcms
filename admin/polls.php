@@ -30,22 +30,26 @@ if (isset($_SESSION['login_id'])) {
 header("Cache-control: private");
 include_once('../inc/admin_class.php');
 $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$pagetitle = $LANG['admin_polls'];
-$d = "../";
-$admin_d = "";
-include_once(getTheme($_SESSION['login_id'], $d) . 'header.php');
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['admin_polls'];
+$TMPL['path'] = "../";
+$TMPL['admin_path'] = "";
+
+include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
 ?>
 	<div id="leftcolumn">
         <?php
-        include_once(getTheme($_SESSION['login_id'], $d) . 'sidenav.php');
+        include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'sidenav.php');
         if (checkAccess($_SESSION['login_id']) < 3) {
-            include_once(getTheme($_SESSION['login_id'], $d) . 'adminnav.php');
+            include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'adminnav.php');
         }
         ?>
 	</div>
 	<div id="content">
-		<div id="vote" class="centercontent">
-			<p style="text-align: right;"><a href="?addpoll=yes"><?php echo $LANG['add_new_poll']; ?></a></p>
+		<div id="polls" class="centercontent">
+			<div id="sections_menu" class="clearfix">
+                <ul><li><a class="add" href="?addpoll=yes"><?php echo $LANG['add_new_poll']; ?></a></li></ul>
+            </div>
 			<?php
 			if (checkAccess($_SESSION['login_id']) > 2) {
 				echo "<p class=\"error-alert\"><b>".$LANG['err_no_access1']."</b><br/>".$LANG['err_no_access_polls2']." <a href=\"../contact.php\">".$LANG['err_no_access3']."</a> ".$LANG['err_no_access4']."</a>";

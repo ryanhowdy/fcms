@@ -24,9 +24,10 @@ if (isset($_SESSION['login_id'])) {
 header("Cache-control: private");
 include_once('inc/profile_class.php');
 $profile = new Profile($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$pagetitle = $LANG['link_profiles'];
-$d = "";
-$admin_d = "admin/";
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['link_profiles'];
+$TMPL['path'] = "";
+$TMPL['admin_path'] = "admin/";
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">

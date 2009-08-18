@@ -3,18 +3,23 @@ include_once('database_class.php');
 include_once('util_inc.php');
 include_once('language.php');
 
-class MessageBoard {
+class MessageBoard
+{
 
 	var $db;
 	var $db2;
 	var $tz_offset;
 	var $cur_user_id;
 
-	function MessageBoard ($current_user_id, $type, $host, $database, $user, $pass) {
+	function MessageBoard ($current_user_id, $type, $host, $database, $user, $pass)
+    {
 		$this->cur_user_id = $current_user_id;
 		$this->db = new database($type, $host, $database, $user, $pass);
 		$this->db2 = new database($type, $host, $database, $user, $pass);
-		$this->db->query("SELECT timezone FROM fcms_users WHERE id = $current_user_id") or die('<h1>Timezone Error (messageboard.class.php 16)</h1>' . mysql_error());
+        $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
+		$this->db->query($sql) or displaySQLError(
+            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 		$row = $this->db->get_row();
 		$this->tz_offset = $row['timezone'];
 	}
@@ -24,9 +29,9 @@ class MessageBoard {
 		$from = (($page * 25) - 25);
 		if ($type == 'announcement') {
 			if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
-				echo "<div class=\"clearfix\"><a class=\"link_block add_thread\" href=\"messageboard.php?reply=new\">".$LANG['new_msg']."</a></div>\n\t\t\t";
+				$this->displayMessageBoardMenu();
 			}
-			echo "<table id=\"threadlist\" cellpadding=\"0\" cellspacing=\"0\">\n\t\t\t\t<thead><tr><th class=\"images\">&nbsp;</th><th class=\"subject\">".$LANG['subject']."</th><th class=\"replies\">".$LANG['replies']."</th><th class=\"views\">".$LANG['views']."</th><th class=\"updated\">".$LANG['last_updated']."</th></tr></thead>\n\t\t\t\t<tbody>\n";
+			echo "<table id=\"threadlist\" cellpadding=\"0\" cellspacing=\"0\">\n\t\t\t\t<thead><tr><th class=\"images\">&nbsp;</th><th class=\"subject\">".$LANG['subject']."</th><th class=\"info\">&nbsp;</th><th class=\"replies\">".$LANG['replies']."</th><th class=\"views\">".$LANG['views']."</th><th class=\"updated\">".$LANG['last_updated']."</th></tr></thead>\n\t\t\t\t<tbody>\n";
 			$this->db->query("SELECT fcms_board_threads.id, subject, started_by, updated, updated_by, views, user FROM fcms_board_threads, fcms_board_posts WHERE fcms_board_threads.id = fcms_board_posts.thread AND subject LIKE '#ANOUNCE#%' GROUP BY fcms_board_threads.id ORDER BY updated DESC") or die('<h1>Announcements Error (messageboard.class.php 27)</h1>' . mysql_error());
 		} else {
 			$this->db->query("SELECT fcms_board_threads.id, subject, started_by, updated, updated_by, views, user FROM fcms_board_threads, fcms_board_posts WHERE fcms_board_threads.id = fcms_board_posts.thread AND subject NOT LIKE '#ANOUNCE#%' GROUP BY fcms_board_threads.id ORDER BY updated DESC LIMIT " . $from . ", 29") or die('<h1>Threads Error (messageboard.class.php 35)</h1>' . mysql_error());
@@ -52,13 +57,7 @@ class MessageBoard {
 				echo '<td class="images">'; if ($type == 'announcement') { echo '<div class="announcement">&nbsp;</div>'; }  echo '&nbsp;</td>';
 				$last_updated = fixDST(gmdate('m/d/Y h:ia', strtotime($row['updated'] . $this->tz_offset)), $this->cur_user_id, 'm/d/Y h:ia') . "<br/>".$LANG['by']." <a class=\"u\" href=\"profile.php?member=" . $row['updated_by'] . "\">$updated_by</a>";
 			}
-			echo '<td class="subject">'; if ($type == 'announcement') { echo "<small><b>".$LANG['announcement'].": </b></small>"; } echo '<a href="messageboard.php?thread=' . $row['id'] . '">';
-			if($this->getNumberOfPosts($row['id']) >= 20) {
-				echo "<span class=\"hot\">$subject</span>";
-			} else {
-				echo $subject;
-			}
-			echo '</a><br/>';
+			echo '<td class="subject">'; if ($type == 'announcement') { echo "<small><b>".$LANG['announcement'].": </b></small>"; } echo '<a href="messageboard.php?thread=' . $row['id'] . '">'.$subject.'</a><br/>';
 			if($this->getNumberOfPosts($row['id']) > 15) { 
 				$num_posts = $this->getNumberOfPosts($row['id']);
 				echo "<span>".$LANG['page']." ";
@@ -66,7 +65,10 @@ class MessageBoard {
 				for($i=1;$i<=$times2loop;$i++) { echo "<a href=\"messageboard.php?thread=" . $row['id'] . "&amp;page=$i\">$i</a> "; }
 				echo "</span><br/>";
 			}
-			echo '<span><a class="u" href="profile.php?member=' . $row['started_by'] . '">' . $started_by . '</a></span></td><td class="replies">';
+			echo '<span><a class="u" href="profile.php?member=' . $row['started_by'] . '">' . $started_by . '</a></span></td>';
+            echo '<td class="info">';
+            if ($this->getNumberOfPosts($row['id']) > 20) { echo '<div class="hot">&nbsp;</div>'; } else { echo "&nbsp;"; }
+            echo '</td><td class="replies">';
 			echo $this->getNumberOfPosts($row['id']) - 1;
 			echo '</td><td class="views">' . $row['views'] . '</td><td class="updated">' . $last_updated . "</td></tr>\n";
 			$alt++;
@@ -81,11 +83,7 @@ class MessageBoard {
 		global $LANG;
 		$from = (($page * 15) - 15); 
 		$this->db->query("UPDATE fcms_board_threads  SET views=(views + 1) WHERE id=$thread_id") or die('<h1>+View Error (messageboard.class.php 83)</h1>' . mysql_error());
-		echo "<div class=\"clearfix\"><a class=\"link_block home\" href=\"messageboard.php\">".$LANG['msg_board_home']."</a>";
-		if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
-			echo " <a class=\"link_block add_post\" href=\"messageboard.php?reply=$thread_id\">".$LANG['reply']."</a>";
-		}
-		echo "</div>\n";
+		$this->displayMessageBoardMenu($thread_id);
 		$this->displayPages($page, $thread_id);
 		$sort = $this->getSortOrder($this->cur_user_id);
 		$showavatar = $this->getShowAvatar($this->cur_user_id);
@@ -117,30 +115,28 @@ class MessageBoard {
 			elseif($points > 3) { echo "<div title=\"".$LANG['kid']." ($points)\" class=\"rank2\"></div>"; }
 			elseif($points > 1) { echo "<div title=\"".$LANG['toddler']." ($points)\" class=\"rank1\"></div>"; }
 			else { echo "<div title=\"".$LANG['baby']." ($points)\" class=\"rank0\"></div>"; }
-			if($showavatar == 'YES') { echo "<img src=\"gallery/avatar/" . $row['avatar'] . "\" alt=\"$displayname\"/><br/><br/>"; }
+			if ($showavatar > 0) { echo "<img src=\"gallery/avatar/" . $row['avatar'] . "\" alt=\"$displayname\"/><br/><br/>"; }
 			if ($this->hasAwards($row['user'])) { $this->showAwards($row['user']); }
 			echo "<b>".$LANG['posts']."</b>" . $this->getUserPostCountById($row['user']) . "\n\t\t\t\t\t\t</td>\n\t\t\t\t\t\t<td class=\"post\">\n";
-			echo "\t\t\t\t\t\t\t<div class=\"subject\"><b>$subject</b> - $date ";
+            echo "\t\t\t\t\t\t\t<div class=\"header clearfix\">\n";
+			echo "\t\t\t\t\t\t\t\t<div class=\"subject\"><b>$subject</b> - $date</div>\n";
+            echo "\t\t\t\t\t\t\t\t<div class=\"actions\">";
 			if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
-				echo "<form class=\"frm_line\" method=\"post\" action=\"messageboard.php?reply=$thread_id\"><div><input type=\"hidden\" name=\"quote\" value=\"[SPAN=q]".$LANG['quoting'].": " . $displayname . "[/SPAN][QUOTE]" . htmlentities($post, ENT_COMPAT, 'UTF-8') . "[/QUOTE]\"/><input type=\"submit\" class=\"quotebtn\" value=\" \" name=\"quotepost\" title=\"".$LANG['title_quote']."\"/></div></form> &nbsp;";
+				echo "<form method=\"post\" action=\"messageboard.php?reply=$thread_id\"><div><input type=\"hidden\" name=\"quote\" value=\"[SPAN=q]".$LANG['quoting'].": " . $displayname . "[/SPAN][QUOTE]" . htmlentities($post, ENT_COMPAT, 'UTF-8') . "[/QUOTE]\"/><input type=\"submit\" class=\"quotebtn\" value=\" \" name=\"quotepost\" title=\"".$LANG['title_quote']."\"/></div></form> &nbsp;";
 			}
 			if ($this->cur_user_id == $row['user'] || checkAccess($this->cur_user_id) < 3) {
-				echo "<form class=\"frm_line\" method=\"post\" action=\"messageboard.php\"><div><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"editpost\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_post']."\"/></div></form> &nbsp;";
+				echo "<form method=\"post\" action=\"messageboard.php\"><div><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"editpost\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_post']."\"/></div></form> &nbsp;";
 			}
 			if (checkAccess($this->cur_user_id) < 2) {
-				echo "<form class=\"frm_line\" method=\"post\" action=\"messageboard.php\"><div><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"hidden\" name=\"thread\" value=\"$thread_id\"/><input type=\"submit\" name=\"delpost\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_del_post']."\" onclick=\"javascript:return confirm('".$LANG['js_del_post']."');\" /></div></form>";
+				echo "<form method=\"post\" action=\"messageboard.php\"><div><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"hidden\" name=\"thread\" value=\"$thread_id\"/><input type=\"submit\" name=\"delpost\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_del_post']."\" onclick=\"javascript:return confirm('".$LANG['js_del_post']."');\" /></div></form>";
 			}
-			echo "</div>\n\t\t\t\t\t\t\t<div class=\"msg\">";
-			parse($post);
+			echo "</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"msg\">";
+			parse($post, 1);
 			echo "</div>\n\t\t\t\t\t\t</td>\n\t\t\t\t\t</tr>\n";
 			$alt++;
 		}
 		if (!$first) { echo "\t\t\t\t</tbody>\n\t\t\t</table>\n"; }
-		echo "<div class=\"clearfix\"><a class=\"link_block home\" href=\"messageboard.php\">".$LANG['msg_board_home']."</a>";
-		if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
-			echo " <a class=\"link_block add_post\" href=\"messageboard.php?reply=$thread_id\">".$LANG['reply']."</a>";
-		}
-		echo "</div>\n";
+        $this->displayMessageBoardMenu($thread_id);
 		$this->displayPages($page, $thread_id);
 		echo "\t\t\t<div class=\"top\"><a href=\"#top\">".$LANG['back_top']."</a></div>\n";
 	}
@@ -151,17 +147,25 @@ class MessageBoard {
 		return $row['c'];
 	}
 
-	function getSortOrder ($user_id) {
-		$this->db2->query("SELECT boardsort FROM fcms_users WHERE id = $user_id") or die('<h1>Sort Error (messageboard.class.php 138)</h1>' . mysql_error());
+	function getSortOrder ($user_id)
+    {
+        $sql = "SELECT `boardsort` FROM `fcms_user_settings` WHERE `user` = $user_id";
+		$this->db2->query($sql) or displaySQLError(
+            'Sort Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 		$row=$this->db2->get_row();
 		return $row['boardsort'];
 	}
 
-	function getShowAvatar ($user_id) {
-		$this->db2->query("SELECT showavatar FROM fcms_users WHERE id = $user_id") or die('<h1>Avatar Error (messageboard.class.php 144)</h1>' . mysql_error());
+	function getShowAvatar ($user_id)
+    {
+        $sql = "SELECT `showavatar` FROM `fcms_user_settings` WHERE `user` = $user_id";
+		$this->db2->query($sql) or displaySQLError(
+            'Avatar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 		$row=$this->db2->get_row();
 		return $row['showavatar'];
-}
+    }
 
 	function getUserPostCountById ($user_id) {
 		$this->db2->query("SELECT * FROM fcms_board_posts") or die('<h1>Posts Error (messageboard.class.php 150)</h1>' . mysql_error());
@@ -175,7 +179,9 @@ class MessageBoard {
 			return $count . " (" . round((($count/$total)*100), 1) . "%)";
 		}
 	}
-
+    
+    // TODO
+    // remove this and use standard pages function
 	function displayPages ($page = '1', $thread_id = '0') {
 		global $LANG;
 		if($thread_id < 1) {
@@ -219,9 +225,10 @@ class MessageBoard {
 	// new reply edit
 	function displayForm ($type, $thread_id = '0', $post_id = '0', $post = 'error') {
 		global $LANG;
-		echo "<script src=\"inc/prototype.js\" type=\"text/javascript\"></script>\n\t\t\t<script type=\"text/javascript\" src=\"inc/livevalidation.js\"></script>\n";
-		echo "\t\t\t<script type=\"text/javascript\" src=\"inc/messageboard.inc.js\"></script>\n\t\t\t<form id=\"postform\" method=\"post\" action=\"messageboard.php\">\n\t\t\t\t";
-		if($type == 'new') { 
+		echo "<script type=\"text/javascript\" src=\"inc/livevalidation.js\"></script>\n";
+		echo "\t\t\t<script type=\"text/javascript\" src=\"inc/fcms.js\"></script>\n\t\t\t";
+        echo "<form id=\"postform\" method=\"post\" action=\"messageboard.php\">\n\t\t\t\t";
+		if ($type == 'new') { 
 			echo "<h2>".$LANG['new_msg']."</h2>\n";
 		} elseif($type == 'reply') {
 			$this->db->query("SELECT `post` FROM `fcms_board_posts` WHERE `thread` = " . $thread_id . " ORDER BY `date` DESC LIMIT 1") or die('<h1>Post Error (messageboard.class.php 211)</h1>' . mysql_error());
@@ -236,17 +243,17 @@ class MessageBoard {
 		} elseif($type == 'edit') {
 			echo "<h2>".$LANG['edit']."</h2>\n";
 		}
-		if($type == 'new') {
+		if ($type == 'new') {
 			echo "\t\t\t\t<div><label for=\"subject\">".$LANG['subject']."</label>: <input type=\"text\" name=\"subject\" id=\"subject\" class=\"required\" title=\"".$LANG['title_msg_subject']."\" size=\"50\"/></div>\n";
-			echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar fsub = new LiveValidation('subject', { validMessage: \"\", wait: 500});\n\t\t\t\t\tfsub.add(Validate.Presence, {failureMessage: \"".$LANG['lv_sorry_req']."\"});\n\t\t\t\t</script>\n\t\t\t\t";
+			echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar fsub = new LiveValidation('subject', { validMessage: \"\", wait: 500});\n\t\t\t\t\tfsub.add(Validate.Presence, {failureMessage: \"\"});\n\t\t\t\t</script>\n\t\t\t\t";
 		}
 		echo "\t\t\t\t<div><label for=\"showname\">".$LANG['name']."</label>: <input type=\"text\" disabled=\"disabled\" name=\"showname\" id=\"showname\" title=\"".$LANG['your_name']."\" value=\"" . getUserDisplayName($this->cur_user_id) . "\" size=\"50\" /> &nbsp;<a href=\"#\" onclick=\"window.open('inc/upimages.php','name','width=700,height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no'); return false;\">(".$LANG['upload_image'].")</a></div>\n";
-		if($type == 'new') {
+		if ($type == 'new') {
 			if(checkAccess($this->cur_user_id) <= 2) { echo "\t\t\t\t<p><label for=\"sticky\">".$LANG['admin_tools']."</label>: <input type=\"checkbox\" name=\"sticky\" id=\"sticky\" value=\"sticky\" />".$LANG['make_announcement']."</p>\n"; }
 		}
 		echo "\t\t\t\t<script type=\"text/javascript\">var bb = new BBCode();</script>\n";
 		displayMBToolbar();
-		if($type == 'edit') {
+		if ($type == 'edit') {
 			$pos = strpos($post, "[size=small][i]".$LANG['edited']);
 			if ($pos !== false) { $post = substr($post, 0, $pos); }
 			echo "\t\t\t\t<div><textarea name=\"post\" id=\"post\" class=\"required\" rows=\"10\" cols=\"63\">$post</textarea></div>\n";
@@ -254,7 +261,7 @@ class MessageBoard {
 			echo "\t\t\t\t<div><textarea name=\"post\" id=\"post\" class=\"required\" rows=\"10\" cols=\"63\">$post</textarea></div>\n";
 		} else {
 			echo "\t\t\t\t<div><textarea name=\"post\" id=\"post\" class=\"required\" rows=\"10\" cols=\"63\"></textarea></div>\n";
-			echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar fpost = new LiveValidation('post', { validMessage: \"\", wait: 500});\n\t\t\t\t\tfpost.add(Validate.Presence, {failureMessage: \"".$LANG['lv_sorry_req']."\"});\n\t\t\t\t</script>\n\t\t\t\t";
+			echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar fpost = new LiveValidation('post', { validMessage: \"\", wait: 500});\n\t\t\t\t\tfpost.add(Validate.Presence, {failureMessage: \"\"});\n\t\t\t\t</script>\n\t\t\t\t";
 		}
 		echo "\t\t\t\t<script type=\"text/javascript\">bb.init('post');</script>\n\t\t\t\t<p id=\"smileys\">";
 		displaySmileys();
@@ -297,12 +304,45 @@ class MessageBoard {
 		}
 	}
 
-	function displayWhatsNewMessageBoard () {
+    function displayMessageBoardMenu ($thread_id = '') {
+        global $LANG;
+        if ($thread_id == '') {
+            echo '<div id="sections_menu" class="clearfix">' . "\n";
+            echo '<ul><li><a class="add_thread" href="messageboard.php?reply=new">'
+                . $LANG['new_msg'] . "</a></li></ul>\n";
+            echo "</div>\n";
+        } else {
+            echo '<div id="sections_menu" class="clearfix">' . "\n<ul>\n";
+            echo '<li><a class="home" href="messageboard.php">'
+                . $LANG['msg_board_home'] . "</a></li>\n";
+            if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
+                echo '<li><a class="add_post" href="messageboard.php?reply=' . $thread_id . '">'
+                    . $LANG['reply'] . "</a></li>\n";
+            }
+            echo "</ul>\n</div>\n";
+		}
+
+    }
+
+	function displayWhatsNewMessageBoard ()
+    {
 		global $LANG;
 		$today = date('Y-m-d');
 		$tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
-		echo "\t\t\t\t<h3>" . $LANG['link_board'] . "</h3>\n\t\t\t\t<ul class=\"twolines\">\n";
-		$this->db->query("SELECT * FROM (SELECT p.id, `date`, subject, u.id AS userid, fname, lname, displayname, username, thread FROM fcms_board_posts AS p, fcms_board_threads AS t, fcms_users AS u WHERE p.thread = t.id AND p.user = u.id AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) ORDER BY `date` DESC) AS r GROUP BY subject ORDER BY `date` DESC LIMIT 0, 5") or die('<h1>Posts Error (messageboard.class.php 287)</h1>' . mysql_error());
+		echo "\t\t\t\t<h3>" . $LANG['link_board'] . "</h3>\n\t\t\t\t<ul>\n";
+        $sql = "SELECT * "
+             . "FROM ("
+                . "SELECT p.id, `date`, subject, u.id AS userid, fname, lname, username, thread "
+                . "FROM fcms_board_posts AS p, fcms_board_threads AS t, fcms_users AS u "
+                . "WHERE p.thread = t.id "
+                . "AND p.user = u.id "
+                . "AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) "
+                . "ORDER BY `date` DESC"
+             . ") AS r "
+             . "GROUP BY subject "
+             . "ORDER BY `date` DESC "
+             . "LIMIT 0, 5";
+		$this->db->query($sql) or die('<h1>Posts Error (messageboard.class.php 287)</h1>' . mysql_error());
 		if ($this->db->count_rows() > 0) {
 			while($row = $this->db->get_row()) {
 				$displayname = getUserDisplayName($row['userid']);
@@ -311,18 +351,36 @@ class MessageBoard {
 				$pos = strpos($subject, '#ANOUNCE#');
 				if($pos !== false) { $subject = substr($subject, 9, strlen($subject)-9); }
 				if(strlen($subject) > 23) { $subject = substr($subject, 0, 20) . "..."; }
-				echo "\t\t\t\t\t<li";
-				if(strtotime($row['date']) >= strtotime($today) && strtotime($row['date']) > $tomorrow) { echo " class=\"new\""; }
-				echo "><a href=\"messageboard.php?thread=" . $row['thread'] . "\" title=\"$subject_full\">$subject</a> ";
+                $monthName = gmdate('M', strtotime($row['date'] . $this->tz_offset));
+                $date = fixDST(
+                    gmdate('n/j/Y g:i a', strtotime($row['date'] . $this->tz_offset)), 
+                    $this->cur_user_id, '. j, Y, g:i a'
+                );
+				if (
+                    strtotime($row['date']) >= strtotime($today) && 
+                    strtotime($row['date']) > $tomorrow
+                ) { 
+                    $full_date = $LANG['today'];
+                    $d = ' class="today"';
+                } else {
+                    $full_date = getLangMonthName($monthName) . $date;
+                    $d = '';
+                }
+				echo "\t\t\t\t\t<li><div$d>$full_date</div>";
+				echo "<a href=\"messageboard.php?thread=" . $row['thread'] . "\" ";
+                echo "title=\"$subject_full\">$subject</a> ";
 				if ($this->getNumberOfPosts($row['thread']) > 15) {
 					$num_posts = $this->getNumberOfPosts($row['thread']);
-					echo "<span>(".$LANG['page']." ";
+					echo "(".$LANG['page']." ";
 					$times2loop = ceil($num_posts/15);
-					for($i=1;$i<=$times2loop;$i++) { echo "<a href=\"messageboard.php?thread=" . $row['thread'] . "&amp;page=$i\" title=\"".$LANG['page']." $i\">$i</a> "; }
-					echo ")</span>";
+					for ($i=1; $i<=$times2loop; $i++) {
+                        echo "<a href=\"messageboard.php?thread=" . $row['thread'];
+                        echo "&amp;page=$i\" title=\"".$LANG['page']." $i\">$i</a> ";
+                    }
+					echo ")";
 				}
-				echo "<br/>" . gmdate('M. j, Y, g:i a', strtotime($row['date'] . $this->tz_offset));
-				echo "<br/><span><a class=\"u\" href=\"profile.php?member=" . $row['userid'] . "\">$displayname</a></span></li>\n";
+				echo " - <a class=\"u\" href=\"profile.php?member=" . $row['userid'];
+                echo "\">$displayname</a></li>\n";
 			}
 		} else {
 			echo "\t\t\t\t\t<li><i>".$LANG['nothing_new_30']."</i></li>\n";

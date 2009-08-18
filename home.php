@@ -33,9 +33,17 @@ include_once('inc/poll_class.php');
 mysql_query("UPDATE `fcms_users` SET `activity`=NOW() WHERE `id`=" . $_SESSION['login_id']);
 $calendar = new Calendar($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 $poll = new Poll('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$pagetitle = $LANG['link_home'];
-$d = "";
-$admin_d = "admin/";
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['link_home'];
+$TMPL['path'] = "";
+$TMPL['admin_path'] = "admin/";
+$TMPL['javascript'] = <<<HTML
+<script type="text/javascript">
+//<![CDATA[
+addLoadEvent(initLatestInfoHighlight);
+//]]>
+</script>
+HTML;
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">
@@ -94,8 +102,11 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 				$month = isset($_GET['month']) ? str_pad($_GET['month'], 2, 0, STR_PAD_LEFT) : date('m');
 				$calendar->displayTodaysEvents($month, $day, $year);
 				echo "<h2>".$LANG['whats_new']."</h2>\n";
-				$sql = "SELECT `frontpage` FROM `fcms_users` WHERE `id` = " . $_SESSION['login_id'];
-				$result = mysql_query($sql) or displaySQLError('Frontpage Settings Error', 'home.php [' . __LINE__ . ']', $sql, mysql_error());
+				$sql = "SELECT `frontpage` FROM `fcms_user_settings` "
+                     . "WHERE `user` = " . $_SESSION['login_id'];
+				$result = mysql_query($sql) or displaySQLError(
+                    'Frontpage Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
 				$r = mysql_fetch_array($result);
 				mysql_free_result($result);
 				if ($r['frontpage'] < 2) {
@@ -108,10 +119,12 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 					include_once('inc/prayers_class.php');
 					include_once('inc/recipes_class.php');
 					include_once('inc/documents_class.php');
+					include_once('inc/database_class.php');
+                    $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 					$mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 					$book = new AddressBook($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 					$news = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-					$gallery = new PhotoGallery($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+					$gallery = new PhotoGallery($_SESSION['login_id'], $database);
 					$prayers = new Prayers($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 					$recs = new Recipes($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 					$docs = new Documents($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
@@ -119,38 +132,73 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 					$today = date('Y-m-d');
 					$tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
 					$mboard->displayWhatsNewMessageBoard();
-					$book->displayWhatsNewAddressBook();
 					if (usingFamilyNews()) {
 						$news->displayWhatsNewFamilyNews();
+					}
+					$book->displayWhatsNewAddressBook();
+					if (usingRecipes()) {
+						$recs->displayWhatsNewRecipes();
 					}
 					if (usingPrayers()) {
 						$prayers->displayWhatsNewPrayers();
 					}
-					if (usingRecipes()) {
-						$recs->displayWhatsNewRecipes();
-					}
 					echo "\t\t\t</div>\n\t\t\t<div class=\"half\">\n";
 					$gallery->displayWhatsNewGallery();
-					echo "\n\t\t\t\t<h3>".$LANG['comments']."</h3>\n\t\t\t\t<ul class=\"twolines\">\n";
+					echo "\n\t\t\t\t<h3>".$LANG['comments']."</h3>\n\t\t\t\t<ul>\n";
 					$sql_comments = '';
 					if (usingFamilyNews()) {
-						$sql_comments = "SELECT n.`user` AS 'id', n.`id` as 'id2', `comment`, nc.`date`, nc.`user`, 'NEWS' AS 'check' FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)  AND nc.`user` = u.`id` AND n.`id` = nc.`news` UNION ";
+						$sql_comments = "SELECT n.`user` AS 'id', n.`id` as 'id2', `comment`, "
+                                         . "nc.`date`, nc.`user`, 'NEWS' AS 'check' "
+                                      . "FROM `fcms_news_comments` AS nc, `fcms_news` AS n, "
+                                         . "`fcms_users` AS u "
+                                      . "WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) "
+                                      . "AND nc.`user` = u.`id` "
+                                      . "AND n.`id` = nc.`news` "
+                                      . "UNION ";
 					}
-					$sql_comments .= "SELECT `filename` AS 'id', p.`id` as 'id2', `comment`, gc.`date`, gc.`user`, `category` AS 'check' FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND gc.`user` = u.`id` AND gc.`photo` = p.`id` ORDER BY `date` DESC LIMIT 5";
+					$sql_comments .= "SELECT `filename` AS 'id', p.`id` as 'id2', `comment`, "
+                                      . "gc.`date`, gc.`user`, `category` AS 'check' "
+                                   . "FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, "
+                                      . "`fcms_gallery_photos` AS p "
+                                   . "WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) "
+                                   . "AND gc.`user` = u.`id` "
+                                   . "AND gc.`photo` = p.`id` "
+                                   . "ORDER BY `date` DESC LIMIT 5";
 					$result = mysql_query($sql_comments);
 					if (mysql_num_rows($result) > 0) {
 						while ($com = mysql_fetch_array($result)) {
+                            $monthName = gmdate('M', strtotime($com['date'] . $gallery->tz_offset));
+                            $date = fixDST(
+                                gmdate('n/j/Y g:i a', strtotime($com['date'] . $gallery->tz_offset)), 
+                                $gallery->cur_user_id, '. j, Y, g:i a'
+                            );
 							$comment = $com['comment'];
-							if (strlen($comment) > 30) { $comment = substr($comment, 0, 27) . "..."; }
-							echo "\t\t\t\t\t<li";
-							if(strtotime($com['date']) >= strtotime($today) && strtotime($com['date']) > $tomorrow) { echo " class=\"new\""; }
-							echo "><a href=\"";
+							if (strlen($comment) > 30) {
+                                $comment = substr($comment, 0, 27) . "...";
+                            }
+							if (
+                                strtotime($com['date']) >= strtotime($today) && 
+                                strtotime($com['date']) > $tomorrow
+                            ) {
+                                $full_date = $LANG['today'];
+                                $d = ' class="today"';
+                            } else {
+                                $full_date = getLangMonthName($monthName) . $date;
+                                $d = '';
+                            }
+							echo "\t\t\t\t\t<li><div$d>" . getLangMonthName($monthName);
+                            echo "$date</div><a href=\"";
 							if ($com['check'] !== 'NEWS') {
-								echo "gallery/index.php?uid=0&amp;cid=comments&amp;pid=" . $com['id2'];
+								echo "gallery/index.php?uid=0&amp;cid=comments&amp;pid=" 
+                                    . $com['id2'];
 							} else {
-								echo "familynews.php?getnews=" . $com['id'] . "&amp;newsid=" . $com['id2'];
+								echo "familynews.php?getnews=" . $com['id'] . "&amp;newsid=" 
+                                    . $com['id2'];
 							}
-							echo "\">$comment</a><br/><span>".$com['date']." - <a href=\"profile.php?member=".htmlentities($com['user'], ENT_COMPAT, 'UTF-8')."\" class=\"u\">".getUserDisplayName($com['user'])."</a></span></li>\n";
+							echo "\">$comment</a> - <a href=\"profile.php?member=";
+                            echo htmlentities($com['user'], ENT_COMPAT, 'UTF-8');
+                            echo "\" class=\"u\">" . getUserDisplayName($com['user']);
+                            echo "</a></li>\n";
 						}
 					} else {
 						echo "\t\t\t\t\t<li><i>".$LANG['nothing_new_30']."</i></li>\n";
@@ -162,7 +210,8 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                     }
 					echo "\n\t\t\t</div>\n";
 				}
-				echo "<p class=\"alignright\"><a class=\"rss\" href=\"rss.php?feed=all\">" . $LANG['rss_feed'] . "</a></p>";
+				echo "<p class=\"alignright\"><a class=\"rss\" href=\"rss.php?feed=all\">";
+                echo $LANG['rss_feed'] . "</a></p>";
 			} ?>
 		</div><!-- .centercontent -->
 	</div><!-- #content -->

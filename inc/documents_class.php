@@ -14,7 +14,7 @@ class Documents {
 		$this->cur_user_id = $current_user_id;
 		$this->db = new database($type, $host, $database, $user, $pass);
 		$this->db2 = new database($type, $host, $database, $user, $pass);
-		$this->db->query("SELECT `timezone` FROM `fcms_users` WHERE `id` = $current_user_id") or die('<h1>Timezone Error (prayers_class.php 17)</h1>' . mysql_error());
+		$this->db->query("SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id") or die('<h1>Timezone Error (prayers_class.php 17)</h1>' . mysql_error());
 		$row = $this->db->get_row();
 		$this->tz_offset = $row['timezone'];
 	}
@@ -32,7 +32,7 @@ class Documents {
 				$date = fixDST(gmdate('m/d/Y h:ia', strtotime($r['date'] . $this->tz_offset)), $this->cur_user_id, 'm/d/Y h:ia');
 				echo "\t\t\t\t\t<tr><td><a href=\"?download=" . $r['name'] . "\">" . $r['name'] . "</a>";
 				if (checkAccess($_SESSION['login_id']) < 3 || $_SESSION['login_id'] == $r['user']) {
-					echo "&nbsp;<form class=\"frm_line\" method=\"post\" action=\"documents.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"hidden\" name=\"name\" value=\"".$r['name']."\"/><input type=\"submit\" name=\"deldoc\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_del_doc']."\"/></div></form>";
+					echo "&nbsp;<form method=\"post\" action=\"documents.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"hidden\" name=\"name\" value=\"".$r['name']."\"/><input type=\"submit\" name=\"deldoc\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_del_doc']."\"/></div></form>";
 				}
 				echo "</td><td>" . $r['description'] . "</td><td>" . getUserDisplayName($r['user']) . "</td><td>$date</td></tr>\n";
 			}
@@ -40,7 +40,7 @@ class Documents {
 			$sql = "SELECT count(`id`) AS c FROM `fcms_documents`";
 			$this->db2->query($sql) or displaySQLError('Count Documents Error', 'inc/documents_class.php [' . __LINE__ . ']', $sql, mysql_error());
 			while ($r = $this->db2->get_row()) { $docscount = $r['c']; }
-			$total_pages = ceil($docscount / 5); 
+			$total_pages = ceil($docscount / 25); 
 			if ($total_pages > 1) {
 				echo "<div class=\"pages clearfix\"><ul>"; 
 				if ($page > 1) { 
@@ -103,16 +103,27 @@ class Documents {
 		global $LANG;
 		$today = date('Y-m-d');
 		$tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
-		$this->db->query("SELECT `name`, `date` FROM `fcms_documents` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) ORDER BY `date` DESC LIMIT 0 , 5");
+		$this->db->query("SELECT * FROM `fcms_documents` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) ORDER BY `date` DESC LIMIT 0 , 5");
 		if ($this->db->count_rows() > 0) {
 			echo "\n\t\t\t\t<h3>".$LANG['link_documents']."</h3>\n\t\t\t\t<ul>\n";
 			while ($r = $this->db->get_row()) {
 				$name = $r['name'];
+				$displayname = getUserDisplayName($r['user']);
 				$monthName = gmdate('M', strtotime($r['date'] . $this->tz_offset));
 				$date = gmdate('. j, Y, g:i a', strtotime($r['date'] . $this->tz_offset));
-				echo "\t\t\t\t\t<li";
-				if(strtotime($r['date']) >= strtotime($today) && strtotime($r['date']) > $tomorrow) { echo " class=\"new\""; }
-				echo "><a href=\"documents.php\">$name</a> - <span>".$LANG[$monthName]."$date</span></li>\n";			
+				if (
+                    strtotime($r['date']) >= strtotime($today) && 
+                    strtotime($r['date']) > $tomorrow
+                ) {
+                    $full_date = $LANG['today'];
+                    $d = ' class="today"';
+                } else {
+                    $full_date = getLangMonthName($monthName) . $date;
+                    $d = '';
+                }
+                echo "\t\t\t\t\t<li><div$d>$full_date</div>";
+				echo "<a href=\"documents.php\">$name</a> - <a class=\"u\" ";
+                echo "href=\"profile.php?member=" . $r['user'] . "\">$displayname</a></li>\n";
 			}
 			echo "\t\t\t\t</ul>\n";
 		}

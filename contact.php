@@ -28,9 +28,10 @@ if (isset($_SESSION['login_id'])) {
 	exit();
 }
 header("Cache-control: private");
-$pagetitle = $LANG['contact_title'];
-$d = "";
-$admin_d = "admin/";
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['contact_title'];
+$TMPL['path'] = "";
+$TMPL['admin_path'] = "admin/";
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">
@@ -58,26 +59,36 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 				echo $LANG['msg_received']."<br/>";
 				echo "<p>$msg<br/>- $name</p>";
 			} else {
-				echo "<br/>\n\t\t\t<form method=\"post\" class=\"contactform\" action=\"contact.php\">\n\t\t\t\t";
-				echo "<p><label for=\"email\">" . $LANG['your_email'] . ":";
-				if (isset($_POST['submit']) && empty($_POST['email'])) { echo " <span class=\"error\">" . $LANG['required'] . "</span>"; }
-				echo "</label><input type=\"text\" id=\"email\" name=\"email\" size=\"30\"";
-				if (isset($_POST['email'])) { echo " value=\"" . htmlentities($_POST['email'], ENT_COMPAT, 'UTF-8') . "\""; }
-				echo "/></p>\n\t\t\t\t<p><label for=\"name\">" . $LANG['your_name'] . ":";
-				if (isset($_POST['submit']) && empty($_POST['name'])) { echo " <span class=\"error\">" . $LANG['required'] . "</span>"; }
-				echo "</label><input type=\"text\" id=\"name\" name=\"name\" size=\"30\"";
-				if (isset($_POST['name'])) { echo " value=\"" . htmlentities($_POST['name'], ENT_COMPAT, 'UTF-8') . "\""; }
-				echo "/></p>\n\t\t\t\t<p><label for=\"subject\">" . $LANG['subject'] . ":";
-				if (isset($_POST['submit']) && empty($_POST['subject'])) { echo " <span class=\"error\">" . $LANG['required'] . "</span>"; }
-				echo "</label><input type=\"text\" id=\"subject\" name=\"subject\" size=\"30\"";
-				if (isset($_POST['subject'])) { echo " value=\"" . htmlentities($_POST['subject'], ENT_COMPAT, 'UTF-8') . "\""; }
-				echo "/></p>\n\t\t\t\t<p><label for=\"msg\">" . $LANG['message'] . ":";
-				if (isset($_POST['submit']) && empty($_POST['msg'])) { echo " <span class=\"error\">" . $LANG['required'] . "</span>"; }
-				echo "</label><textarea name=\"msg\" rows=\"10\" cols=\"40\">";
-				if (isset($_POST['msg'])) { echo $_POST['msg']; }
-				echo "</textarea></p>\n\t\t\t\t";
-				echo "<p><input type=\"submit\" name=\"submit\" value=\"".$LANG['submit']."\"/></p>\n\t\t\t";
-				echo "</form>\n\t\t\t<p>&nbsp;</p><p>&nbsp;</p>\n";	
+                $email = $name = $subject = $msg = '';
+				if (isset($_POST['email'])) { $email = htmlentities($_POST['email'], ENT_COMPAT, 'UTF-8'); }
+				if (isset($_POST['name'])) { $name = htmlentities($_POST['name'], ENT_COMPAT, 'UTF-8'); }
+				if (isset($_POST['subject'])) { $subject = htmlentities($_POST['subject'], ENT_COMPAT, 'UTF-8'); }
+				if (isset($_POST['msg'])) { $msg = $_POST['msg']; }
+				echo <<<HTML
+            <fieldset>
+                <form method="post" class="contactform" action="contact.php">
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="email"><b>{$LANG['your_email']}</b></label></div>
+				        <div class="field-widget"><input type="text" id="email" name="email" size="30" value="{$email}"/></div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="name"><b>{$LANG['your_name']}</b></label></div>
+				        <div class="field-widget"><input type="text" id="name" name="name" size="30" value="{$name}"/></div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="subject"><b>{$LANG['subject']}</b></label></div>
+                        <div class="field-widget"><input type="text" id="subject" name="subject" size="30" value="{$subject}"/></div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="msg"><b>{$LANG['message']}</b></label></div>
+                        <div class="field-widget"><textarea name="msg" rows="10" cols="40">{$msg}</textarea></div>
+                    </div>
+                    <p><input type="submit" name="submit" value="{$LANG['submit']}"/></p>
+                </form>
+            </fieldset>
+            <p>&nbsp;</p><p>&nbsp;</p>
+
+HTML;
 			} ?>
 		</div><!-- #contact .centercontent -->
 	</div><!-- #content -->

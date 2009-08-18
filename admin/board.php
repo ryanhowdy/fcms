@@ -30,16 +30,17 @@ if (isset($_SESSION['login_id'])) {
 header("Cache-control: private");
 include_once('../inc/admin_class.php');
 $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$pagetitle = $LANG['admin_board'];
-$d = "../";
-$admin_d = "";
-include_once(getTheme($_SESSION['login_id'], $d) . 'header.php');
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['admin_board'];
+$TMPL['path'] = "../";
+$TMPL['admin_path'] = "";
+include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
 ?>
 	<div id="leftcolumn">
         <?php
-        include_once(getTheme($_SESSION['login_id'], $d) . 'sidenav.php');
+        include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'sidenav.php');
         if (checkAccess($_SESSION['login_id']) < 3) {
-            include_once(getTheme($_SESSION['login_id'], $d) . 'adminnav.php');
+            include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'adminnav.php');
         }
         ?>
 	</div>

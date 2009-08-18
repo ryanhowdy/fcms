@@ -22,7 +22,7 @@ if (isset($_SESSION['login_id'])) {
 	exit();
 }
 header("Cache-control: private");
-$timezone_sql = mysql_query("SELECT timezone FROM fcms_users WHERE id = " . $_SESSION['login_id']) or die('<h1>Timezone Error (familynews_comments.class.php 24)</h1>' . mysql_error());
+$timezone_sql = mysql_query("SELECT `timezone` FROM `fcms_user_settings` WHERE `id` = " . $_SESSION['login_id']) or die('<h1>Timezone Error (familynews_comments.class.php 24)</h1>' . mysql_error());
 $ftimezone = mysql_fetch_array($timezone_sql);
 $tz_offset = $ftimezone['timezone'];
 ?>
@@ -36,10 +36,10 @@ $tz_offset = $ftimezone['timezone'];
 .center { text-align: center; }
 .edit_del_photo { margin: 0 auto -12px auto; width: 500px; text-align: right; }
 .gal_delcombtn, .gal_addcombtn, .gal_editbtn, .gal_delbtn { border: 0; width: 16px; height: 16px; cursor: pointer; vertical-align: middle; }
-.gal_delcombtn { background: url("../themes/images/default/comments_delete.gif") top left no-repeat; }
-.gal_addcombtn { background: url("../themes/images/default/comments_add.gif") top left no-repeat; }
-.gal_delbtn { background: url("../themes/images/default/image_delete.gif") top left no-repeat; }
-.gal_editbtn { background: url("../themes/images/default/image_edit.gif") top left no-repeat; }
+.gal_delcombtn { background: url("../themes/default/images/comments_delete.gif") top left no-repeat; }
+.gal_addcombtn { background: url("../themes/default/images/comments_add.gif") top left no-repeat; }
+.gal_delbtn { background: url("../themes/default/images/image_delete.gif") top left no-repeat; }
+.gal_editbtn { background: url("../themes/default/images/image_edit.gif") top left no-repeat; }
 .comment_block { margin: 0 auto 15px auto; padding: 3px; width: 450px; border: 1px solid #c1c1c1; background-color: #f5f5f5; }
 .comment_block form { margin: 0; }
 .comment_block input, .comment_block span { float: right; padding-right: 5px; }
@@ -60,7 +60,7 @@ if (isset($_GET['newsid'])) {
 		mysql_query("DELETE FROM fcms_news_comments WHERE id=" . $_POST['id']) or die('<h1>Delete Error (familynews_comments.class.php 83)</h1>' . mysql_error());
 	}
 	echo "<h3>".$LANG['comments']."</h3><p class=\"center\"><form action=\"familynews_comments.php?newsid=$news_id\" method=\"post\">".$LANG['add_comment']."<br/><input type=\"text\" name=\"comment\" id=\"comment\" size=\"50\" title=\"".$LANG['add_comment']."\"/> <input type=\"submit\" name=\"addcom\" id=\"addcom\" value=\" \" class=\"gal_addcombtn\" /></form></p><p class=\"center\">&nbsp;</p>";
-	$result = mysql_query("SELECT c.id, comment, `date`, fname, lname, displayname, username, user FROM fcms_news_comments AS c, fcms_users AS u WHERE news = $news_id AND c.user = u.id ORDER BY `date`") or die("<h1>Error (FNC004)</h1>" . mysql_error());
+	$result = mysql_query("SELECT c.id, comment, `date`, user FROM fcms_news_comments AS c, fcms_users AS u WHERE news = $news_id AND c.user = u.id ORDER BY `date`") or die("<h1>Error (FNC004)</h1>" . mysql_error());
 	if (mysql_num_rows($result) > 0) { 
 		while($row = mysql_fetch_array($result)) {
 			$displayname = getUserDisplayName($row['user']);

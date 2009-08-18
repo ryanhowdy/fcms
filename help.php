@@ -22,9 +22,10 @@ if (isset($_SESSION['login_id'])) {
 	exit();
 }
 header("Cache-control: private");
-$pagetitle = $LANG['link_help'];
-$d = "";
-$admin_d = "admin/";
+// Setup the Template variables;
+$TMPL['pagetitle'] = $LANG['link_help'];
+$TMPL['path'] = "";
+$TMPL['admin_path'] = "admin/";
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">

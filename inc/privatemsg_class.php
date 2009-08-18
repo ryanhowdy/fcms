@@ -14,7 +14,7 @@ class PrivateMessage {
 		$this->cur_user_id = $current_user_id;
 		$this->db = new database($type, $host, $database, $user, $pass);
 		$this->db2 = new database($type, $host, $database, $user, $pass);
-		$this->db->query("SELECT timezone FROM fcms_users WHERE id = $current_user_id") or die('<h1>Timezone Error (profile.class.php 16)</h1>' . mysql_error());
+		$this->db->query("SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id") or die('<h1>Timezone Error (profile.class.php 16)</h1>' . mysql_error());
 		$row = $this->db->get_row();
 		$this->tz_offset = $row['timezone'];
 	}
@@ -33,7 +33,7 @@ class PrivateMessage {
 				echo " class=\"new\"";
 			}
 			echo "><td class=\"img\"></td><td><a href=\"?pm=" . $r['id'] . "\">" . $r['title'] . "</a></td><td>" . getUserDisplayName($r['from']) . "</td><td>";
-			echo $LANG[$monthName] . "$date";
+			echo getLangMonthName($monthName) . "$date";
 			echo "</td><td><input type=\"checkbox\" name=\"del[]\" value=\"" . $r['id'] . "\"/></td></tr>\n";
 		}
 		echo "<tr><th colspan=\"5\" class=\"pm_footer\"><input type=\"submit\" name=\"delete\" value=\"".$LANG['delete']."\" onclick=\"javascript:return confirm('".$LANG['js_pm_delete']."'); \"/> " . $LANG['selected_msgs'] . "</th></tr>\n";

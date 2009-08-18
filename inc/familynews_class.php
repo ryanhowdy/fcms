@@ -14,7 +14,7 @@ class FamilyNews {
 		$this->cur_user_id = $current_user_id;
 		$this->db = new database($type, $host, $database, $user, $pass);
 		$this->db2 = new database($type, $host, $database, $user, $pass);
-		$this->db->query("SELECT `timezone` FROM `fcms_users` WHERE `id` = $current_user_id") or die('<h1>Timezone Error (familynews.class.php 16)</h1>' . mysql_error());
+		$this->db->query("SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id") or die('<h1>Timezone Error (familynews.class.php 16)</h1>' . mysql_error());
 		$row = $this->db->get_row();
 		$this->tz_offset = $row['timezone'];
 	}
@@ -34,20 +34,20 @@ class FamilyNews {
 			$displayname = getUserDisplayName($usersnews);
 			echo "<h2><a href=\"?getnews=$usersnews&amp;newsid=".$row['id']."\">".$row['title']."</a>";
 			if ($_SESSION['login_id'] == $usersnews || checkAccess($_SESSION['login_id']) < 2) {
-				echo " &nbsp;<form class=\"frm_line\" method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"hidden\" name=\"title\" value=\"".htmlentities($row['title'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"news\" value=\"".htmlentities($row['news'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"submit\" name=\"editnews\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_news']."\"/></div></form>";
+				echo " &nbsp;<form method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"hidden\" name=\"title\" value=\"".htmlentities($row['title'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"news\" value=\"".htmlentities($row['news'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"submit\" name=\"editnews\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_news']."\"/></div></form>";
 			}
 			if (checkAccess($_SESSION['login_id']) < 2) {
-				echo " &nbsp;<form class=\"frm_line\" method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"delnews\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_delete_news']."\" onclick=\"javascript:return confirm('".$LANG['js_delete_news']."');\"/></div></form>";
+				echo " &nbsp;<form method=\"post\" action=\"familynews.php\"><div><input type=\"hidden\" name=\"user\" value=\"$usersnews\"/><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"delnews\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_delete_news']."\" onclick=\"javascript:return confirm('".$LANG['js_delete_news']."');\"/></div></form>";
 			}
-			echo "</h2><b>".$LANG[$monthName]." $date</b><span> - $displayname</span><p>";
+			echo "</h2><b>" . getLangMonthName($monthName) . " $date</b><span> - $displayname</span><p>";
 			if ($id <= 0) {
-				parse(rtrim(substr($row['news'], 0, 300)));
+				parse(rtrim(substr($row['news'], 0, 300)), 1);
 				if (strlen($row['news']) > 300) { echo "...<br/><br/><a href=\"?getnews=$usersnews&amp;newsid=" . $row['id'] . "\">".$LANG['read_more']."</a>"; }
 				echo "</p><p>&nbsp;</p><p style=\"text-align: right\"><a href=\"#\" onclick=\"window.open('inc/familynews_comments.php?newsid=" . $row['id'] . "', '_Comments', 'height=400,width=550,resizable=yes,scrollbars=yes');return false;\">".$LANG['comments']."</a> - " . getNewsComments($row['id']) . "</p>\n\t\t\t";
 			} else {
-				parse($row['news']);
+				parse($row['news'], 1);
 				echo "<p>&nbsp;</p><h3>".$LANG['comments']."</h3><p class=\"center\"><form action=\"?getnews=$usersnews&amp;newsid=$id\" method=\"post\">".$LANG['add_comment']."<br/><input type=\"text\" name=\"comment\" id=\"comment\" size=\"50\" title=\"".$LANG['add_comment']."\"/> <input type=\"submit\" name=\"addcom\" id=\"addcom\" value=\" \" class=\"gal_addcombtn\" /></form></p><p class=\"center\">&nbsp;</p>";
-				$this->db2->query("SELECT c.id, comment, `date`, fname, lname, displayname, username, user FROM fcms_news_comments AS c, fcms_users AS u WHERE news = $id AND c.user = u.id ORDER BY `date`") or die('<h1>News Comments Error (familynews.class.php 51)</h1>' . mysql_error());
+				$this->db2->query("SELECT c.id, comment, `date`, fname, lname, username, user FROM fcms_news_comments AS c, fcms_users AS u WHERE news = $id AND c.user = u.id ORDER BY `date`") or die('<h1>News Comments Error (familynews.class.php 51)</h1>' . mysql_error());
 				if ($this->db->count_rows() > 0) { 
 					while($row = $this->db2->get_row()) {
 						$displayname = getUserDisplayName($row['user']);
@@ -111,7 +111,7 @@ class FamilyNews {
 			echo " value=\"$title\"";
 		}
 		echo " size=\"50\"/> &nbsp;<a href=\"#\" onclick=\"window.open('inc/upimages.php','name','width=700,height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no'); return false;\">(".$LANG['upload_image'].")</a></div>\n<br/>";
-		echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar ftitle = new LiveValidation('title', { validMessage: \"\", wait: 500});\n\t\t\t\t\tftitle.add(Validate.Presence, {failureMessage: \"".$LANG['lv_sorry_req']."\"});\n\t\t\t\t</script>\n\t\t\t\t";
+		echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar ftitle = new LiveValidation('title', { validMessage: \"\", wait: 500});\n\t\t\t\t\tftitle.add(Validate.Presence, {failureMessage: \"\"});\n\t\t\t\t</script>\n\t\t\t\t";
 		echo "\t\t\t\t<script type=\"text/javascript\">var bb = new BBCode();</script>\n";
 		displayMBToolbar();
 		echo "\t\t\t\t<div><textarea name=\"post\" id=\"post\" rows=\"10\" cols=\"63\" class=\"required\"";
@@ -139,8 +139,8 @@ class FamilyNews {
 				$monthName = fixDST(gmdate('F j, Y g:i a', strtotime($row['date'] . $this->tz_offset)), $this->cur_user_id, 'F');
 				$date = fixDST(gmdate('F j, Y g:i a', strtotime($row['date'] . $this->tz_offset)), $this->cur_user_id, 'j, Y g:i a');
 				$displayname = getUserDisplayName($row['user']);
-				echo "<h2><a href=\"?getnews=".$row['user']."&amp;newsid=".$row['id']."\">".$row['title']."</a></h2><b>".$LANG[$monthName]." $date</b><span> - $displayname</span><p>";
-				parse(rtrim(substr($row['news'], 0, 300)));
+				echo "<h2><a href=\"?getnews=".$row['user']."&amp;newsid=".$row['id']."\">".$row['title']."</a></h2><b>" . getLangMonthName($monthName) . " $date</b><span> - $displayname</span><p>";
+				parse(rtrim(substr($row['news'], 0, 300)), 1);
 				if (strlen($row['news']) > 300) {
 					echo "...<br/><br/><a href=\"?getnews=".$row['user']."&amp;newsid=" . $row['id'] . "\">".$LANG['read_more']."</a>";
 				}
@@ -164,16 +164,27 @@ class FamilyNews {
 		global $LANG;
 		$today = date('Y-m-d');
 		$tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
-		$this->db->query("SELECT n.`id`, u.`id` AS userid, n.`date` FROM `fcms_users` AS u, `fcms_news` AS n WHERE u.`id` = n.`user` AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' ORDER BY `date` DESC LIMIT 0, 5");
+		$this->db->query("SELECT n.`id`, n.`title`, u.`id` AS userid, n.`date` FROM `fcms_users` AS u, `fcms_news` AS n WHERE u.`id` = n.`user` AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' ORDER BY `date` DESC LIMIT 0, 5");
 		if ($this->db->count_rows() > 0) {
-			echo "\t\t\t\t<h3>".$LANG['link_news']."</h3>\n\t\t\t\t<ul>\n";
+			echo "\t\t\t\t<h3>".$LANG['link_familynews']."</h3>\n\t\t\t\t<ul>\n";
 			while ($row = $this->db->get_row()) {
 				$displayname = getUserDisplayName($row['userid']);
 				$monthName = gmdate('M', strtotime($row['date'] . $this->tz_offset));
 				$date = gmdate('. j, Y, g:i a', strtotime($row['date'] . $this->tz_offset));
-				echo "\t\t\t\t\t<li";
-				if(strtotime($row['date']) >= strtotime($today) && strtotime($row['date']) > $tomorrow) { echo " class=\"new\""; }
-				echo "><a href=\"familynews.php?getnews=".$row['userid']."&amp;newsid=".$row['id']."\">$displayname</a> - <span>".$LANG[$monthName]."$date</span></li>\n";
+                if (
+                    strtotime($row['date']) >= strtotime($today) && 
+                    strtotime($row['date']) > $tomorrow
+                ) {
+                    $full_date = $LANG['today'];
+                    $d = ' class="today"';
+                } else {
+                    $full_date = getLangMonthName($monthName) . $date;
+                    $d = '';
+                }
+                echo "\t\t\t\t\t<li><div$d>$full_date</div>";
+				echo "<a href=\"familynews.php?getnews=" . $row['userid'] . "&amp;newsid=";
+                echo $row['id'] . "\">" . $row['title'] . "</a> - <a class=\"u\" ";
+                echo "href=\"profile.php?member=" . $row['userid'] . "\">$displayname</a></li>\n";
 			}
 			echo "\t\t\t\t</ul>\n";
 		}
