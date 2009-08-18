@@ -7,6 +7,7 @@
                 for ($i = 1; $i < $sections; $i++) { ?>
                 <li><a href="<?php echo $TMPL['path']; displayOptSection($i+1, 1, 'URL'); ?>"><?php displayOptSection($i+1, 1); ?></a></span></li>
                 <?php } } ?>
+                <li><a href="<?php echo $TMPL['path'] . 'chat.php'; ?>"><?php echo $LANG['link_chat']; ?></a></li>
                 <li><a href="<?php echo $TMPL['path'] . 'profile.php'; ?>"><?php echo $LANG['link_profiles']; ?></a></li>
                 <li><a href="<?php echo $TMPL['path'] . 'contact.php'; ?>"><?php echo $LANG['link_contact']; ?></a></li>
                 <li><a href="<?php echo $TMPL['path'] . 'help.php'; ?>"><?php echo $LANG['link_get_help']; ?></a></li>

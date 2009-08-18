@@ -153,7 +153,7 @@ if (isset($_POST['submit1'])) {
         } elseif (!$none) {
             $sql .= "'none', ";
         }
-		$sql .= "'Family Connections 2.0')";
+		$sql .= "'Family Connections 2.0.1')";
 		mysql_query($sql) or die($sql . "<br/><br/>" . mysql_error());
 		displayStepFive();
 	}
@@ -426,7 +426,7 @@ function setupDatabase ($fname, $lname, $email, $birthday, $username, $password,
 		die("<h1>Connection Error (install.php 194)</h1>" . mysql_error());
 	} else {
 		mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Database could not be found!</b></p>" . mysql_error());
-		mysql_query("DROP TABLE IF EXISTS `fcms_chat`") or die("<h1>Error</h1><p><b>Could not drop 'fcms_chat' table.</b></p>" . mysql_error());
+		mysql_query("DROP TABLE IF EXISTS `fcms_chat_users`") or die("<h1>Error</h1><p><b>Could not drop 'fcms_chat' table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_chat_messages`") or die("<h1>Error</h1><p><b>Could not drop 'fcms_chat_messages' table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_address`") or die("<h1>Error</h1><p><b>Could not drop `fcms_address` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_privatemsg`") or die("<h1>Error</h1><p><b>Could not drop `fcms_privatemsg` table.</b></p>" . mysql_error());
@@ -502,8 +502,8 @@ function setupDatabase ($fname, $lname, $email, $birthday, $username, $password,
 			mysql_query("CREATE TABLE `fcms_documents` (`id` INT(11) NOT NULL AUTO_INCREMENT, `name` VARCHAR(50) NOT NULL, `description` TEXT NOT NULL, `user` INT(11) NOT NULL, `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
 			mysql_query("ALTER TABLE `fcms_documents` ADD CONSTRAINT `fcms_documents_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
 		}
-		mysql_query("CREATE TABLE `fcms_chat` ( `chat_id` INT(11) NOT NULL AUTO_INCREMENT, `chat_name` VARCHAR(64) DEFAULT NULL, `start_time` DATETIME DEFAULT NULL, PRIMARY KEY  (`chat_id`)) ENGINE=INNODB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_chat_messages` ( `message_id` INT(11) NOT NULL AUTO_INCREMENT, `chat_id` INT(11) NOT NULL DEFAULT '0', `user_id` INT(11) NOT NULL DEFAULT '0', `user_name` VARCHAR(64) DEFAULT NULL, `message` TEXT, `post_time` DATETIME DEFAULT NULL, PRIMARY KEY  (`message_id`)) ENGINE=INNODB DEFAULT CHARSET=utf8");
+		mysql_query("CREATE TABLE `fcms_chat_users` (`user_name` VARCHAR(64) DEFAULT NULL) ENGINE=INNODB DEFAULT CHARSET=utf8") or die(mysql_error());
+		mysql_query("CREATE TABLE `fcms_chat_messages` (`message_id` INT(11) NOT NULL AUTO_INCREMENT, `chat_id` INT(11) NOT NULL DEFAULT '0', `user_id` INT(11) NOT NULL DEFAULT '0', `user_name` VARCHAR(64) DEFAULT NULL, `message` TEXT, `post_time` DATETIME DEFAULT NULL, PRIMARY KEY  (`message_id`)) ENGINE=INNODB DEFAULT CHARSET=utf8");
 		mysql_query("CREATE TABLE `fcms_user_awards` (`id` int(11) NOT NULL auto_increment, `user` int(11) NOT NULL default '0', `type` varchar(20) NOT NULL default '0', `value` smallint(4) NOT NULL default '0', `count` smallint(4) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `user` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
 		mysql_query("ALTER TABLE `fcms_user_awards` ADD CONSTRAINT `fcms_user_awards_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
 		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (1, 1, 'top5poster', 1, 0)") or die(mysql_error());

@@ -34,6 +34,148 @@ header("Cache-control: private");
 $TMPL['pagetitle'] = $LANG['link_chat'];
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
+$TMPL['javascript'] = <<<HTML
+<script type="text/javascript">
+//<![CDATA[
+window.onload = startChat;
+var sendReq = getXmlHttpRequestObject();
+var receiveReq = getXmlHttpRequestObject();
+var receiveReq2 = getXmlHttpRequestObject();
+var lastMessage = 0;
+var mTimer;
+var username = '
+HTML;
+$TMPL['javascript'] .= getUserDisplayName($_SESSION['login_id'],2);
+$TMPL['javascript'] .= <<<HTML
+'
+function startChat() {
+    document.getElementById('txt_message').focus();
+    sendEnterChatText();
+    getChatText();
+}		
+function getXmlHttpRequestObject() {
+    if (window.XMLHttpRequest) {
+        return new XMLHttpRequest();
+    } else if(window.ActiveXObject) {
+        return new ActiveXObject("Microsoft.XMLHTTP");
+    } else {
+        document.getElementById('p_status').innerHTML = 'Status: Cound not create XmlHttpRequest Object.  Consider upgrading your browser.';
+    }
+}
+function getChatText() {
+    if (receiveReq.readyState == 4 || receiveReq.readyState == 0) {
+        receiveReq.open("GET", 'inc/getChat.php?chat=text&last=' + lastMessage, true);
+        receiveReq.onreadystatechange = handleReceiveChat; 
+        receiveReq.send(null);
+    }
+    getUsers();
+}
+function getUsers() {
+    if (receiveReq2.readyState == 4 || receiveReq2.readyState == 0) {
+        receiveReq2.open("GET", 'inc/getChat.php?users=online', true);
+        receiveReq2.onreadystatechange = handleReceiveUsers; 
+        receiveReq2.send(null);
+    }			
+}
+function sendEnterChatText() {
+    if (sendReq.readyState == 4 || sendReq.readyState == 0) {
+        sendReq.open("POST", 'inc/getChat.php?enter=chat&last=' + lastMessage, true);
+        sendReq.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        sendReq.onreadystatechange = handleSendChat; 
+        var param = 'message=' + username + ' entered the chat.';
+        param += '&name=' + username;
+        param += '&user_id=0';
+        param += '&enter=chat';
+        sendReq.send(param);
+    }							
+}
+function sendChatText() {
+    if(document.getElementById('txt_message').value == '') {
+        alert("You have not entered a message");
+        return;
+    }
+    if (sendReq.readyState == 4 || sendReq.readyState == 0) {
+        sendReq.open("POST", 'inc/getChat.php?chat=text&last=' + lastMessage, true);
+        sendReq.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        sendReq.onreadystatechange = handleSendChat; 
+        var param = 'message=' + document.getElementById('txt_message').value;
+        param += '&name=' + username;
+        param += '&user_id=1';
+        param += '&chat=text';
+        sendReq.send(param);
+        document.getElementById('txt_message').value = '';
+    }							
+}
+function endChat() {
+    if (sendReq.readyState == 4 || sendReq.readyState == 0) {
+        sendReq.open("POST", 'inc/getChat.php?exit=chat', true);
+        sendReq.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        sendReq.onreadystatechange = handleSendChat; 
+        var param = 'message=' + username + ' left.';
+        param += '&name=' + username;
+        param += '&user_id=0';
+        param += '&exit=chat';
+        sendReq.send(param);
+    }							
+}
+function handleSendChat() {
+    clearInterval(mTimer);
+    getChatText();
+}
+function handleReceiveChat() {
+    if (receiveReq.readyState == 4) {
+        var chat_div = document.getElementById('div_chat');
+        var xmldoc = receiveReq.responseXML;
+        var message_nodes = xmldoc.getElementsByTagName("message"); 
+        var n_messages = message_nodes.length
+        for (i = 0; i < n_messages; i++) {
+            var user_node = message_nodes[i].getElementsByTagName("user");
+            var text_node = message_nodes[i].getElementsByTagName("text");
+            var time_node = message_nodes[i].getElementsByTagName("time");
+            chat_div.innerHTML += '<span class="chat_info">'+ user_node[0].firstChild.nodeValue + '(</span>';
+            chat_div.innerHTML += '<span class="chat_info">' + time_node[0].firstChild.nodeValue + ')&nbsp;&nbsp;</span>';
+            chat_div.innerHTML += '<span class="chat_text">' + text_node[0].firstChild.nodeValue + '</span><br/>';
+            chat_div.scrollTop = chat_div.scrollHeight;
+            lastMessage = (message_nodes[i].getAttribute('id'));
+        }
+        mTimer = setTimeout('getChatText();',2000); //Refresh our chat in 2 seconds
+    }
+}
+function handleReceiveUsers() {
+    if (receiveReq2.readyState == 4) {
+        var users_div = document.getElementById('div_users');
+        var xmldoc = receiveReq2.responseXML;
+        var online_nodes = xmldoc.getElementsByTagName("online"); 
+        var n_online = online_nodes.length
+        users_div.innerHTML = '';
+        for (i = 0; i < n_online; i++) {
+            var user_node = online_nodes[i].getElementsByTagName("user");
+            users_div.innerHTML += '<b>' + user_node[0].firstChild.nodeValue + '<b/><br/>';
+        }
+        mTimer = setTimeout('getChatText();',3000);
+    }
+}
+function blockSubmit() {
+    sendChatText();
+    return false;
+}
+function resetChat() {
+    if (sendReq.readyState == 4 || sendReq.readyState == 0) {
+        sendReq.open("POST", 'inc/getChat.php?chat=text&last=' + lastMessage, true);
+        sendReq.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        sendReq.onreadystatechange = handleResetChat; 
+        var param = 'action=reset';
+        sendReq.send(param);
+        document.getElementById('txt_message').value = '';
+    }							
+}
+function handleResetChat() {
+    document.getElementById('div_chat').innerHTML = '';
+    getChatText();
+}	
+//]]>
+</script>
+HTML;
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">
@@ -47,117 +189,13 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 	<div id="content">
 		<div id="chat" class="centercontent">
 		<style type="text/css" media="screen">
-			.chat_info {
-				font-style: italic;
-				font-size: 9px;
-				font-weight: bold;
-			}
-			.chat_text {
-				font-size: 9px;
-			}
+			.chat_info { font-style:italic; font-size:9px; font-weight:bold; }
+			.chat_text { font-size:9px; }
+            #div_chat { float:left; height:300px; width:390px; overflow:auto; background-color:#ccc; border:1px solid #555; }
+            #div_users { float:left; margin-left:10px; height:300px; width:100px; overflow:auto; background-color:#ccc; border:1px solid #555; }
 		</style>
-		<script language="JavaScript" type="text/javascript">
-			var sendReq = getXmlHttpRequestObject();
-			var receiveReq = getXmlHttpRequestObject();
-			var lastMessage = 0;
-			var mTimer;
-			var username = "<?php getUserDisplayName($_SESSION['login_id'],2); ?>";
-			//Function for initializating the page.
-			function startChat() {
-				//Set the focus to the Message Box.
-				document.getElementById('txt_message').focus();
-				//Start Recieving Messages.
-				getChatText();
-			}		
-			//Gets the browser specific XmlHttpRequest Object
-			function getXmlHttpRequestObject() {
-				if (window.XMLHttpRequest) {
-					return new XMLHttpRequest();
-				} else if(window.ActiveXObject) {
-					return new ActiveXObject("Microsoft.XMLHTTP");
-				} else {
-					document.getElementById('p_status').innerHTML = 'Status: Cound not create XmlHttpRequest Object.  Consider upgrading your browser.';
-				}
-			}
-			
-			//Gets the current messages from the server
-			function getChatText() {
-				if (receiveReq.readyState == 4 || receiveReq.readyState == 0) {
-					receiveReq.open("GET", 'inc/getChat.php?chat=1&last=' + lastMessage, true);
-					receiveReq.onreadystatechange = handleReceiveChat; 
-					receiveReq.send(null);
-				}			
-			}
-			//Add a message to the chat server.
-			function sendChatText() {
-				if(document.getElementById('txt_message').value == '') {
-					alert("You have not entered a message");
-					return;
-				}
-				if (sendReq.readyState == 4 || sendReq.readyState == 0) {
-					sendReq.open("POST", 'inc/getChat.php?chat=1&last=' + lastMessage, true);
-					sendReq.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-					sendReq.onreadystatechange = handleSendChat; 
-					var param = 'message=' + document.getElementById('txt_message').value;
-					param += '&name=' + username;
-					param += '&chat=1';
-					sendReq.send(param);
-					document.getElementById('txt_message').value = '';
-				}							
-			}
-			//When our message has been sent, update our page.
-			function handleSendChat() {
-				//Clear out the existing timer so we don't have 
-				//multiple timer instances running.
-				clearInterval(mTimer);
-				getChatText();
-			}
-			//Function for handling the return of chat text
-			function handleReceiveChat() {
-				if (receiveReq.readyState == 4) {
-					var chat_div = document.getElementById('div_chat');
-					var xmldoc = receiveReq.responseXML;
-					var message_nodes = xmldoc.getElementsByTagName("message"); 
-					var n_messages = message_nodes.length
-					for (i = 0; i < n_messages; i++) {
-						var user_node = message_nodes[i].getElementsByTagName("user");
-						var text_node = message_nodes[i].getElementsByTagName("text");
-						var time_node = message_nodes[i].getElementsByTagName("time");
-						chat_div.innerHTML += '<font class="chat_info">'+ user_node[0].firstChild.nodeValue + '(</font>';
-						chat_div.innerHTML += '<font class="chat_info">' + time_node[0].firstChild.nodeValue + ')&nbsp;&nbsp;</font>';
-						chat_div.innerHTML += '<font class="chat_text">' + text_node[0].firstChild.nodeValue + '</font><br/>';
-						chat_div.scrollTop = chat_div.scrollHeight;
-						lastMessage = (message_nodes[i].getAttribute('id'));
-					}
-					mTimer = setTimeout('getChatText();',2000); //Refresh our chat in 2 seconds
-				}
-			}
-			//This functions handles when the user presses enter.  Instead of submitting the form, we
-			//send a new message to the server and return false.
-			function blockSubmit() {
-				sendChatText();
-				return false;
-			}
-			//This cleans out the database so we can cleanup the database periodically, only and admin will have this ability
-			function resetChat() {
-				if (sendReq.readyState == 4 || sendReq.readyState == 0) {
-					sendReq.open("POST", 'inc/getChat.php?chat=1&last=' + lastMessage, true);
-					sendReq.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-					sendReq.onreadystatechange = handleResetChat; 
-					var param = 'action=reset';
-					sendReq.send(param);
-					document.getElementById('txt_message').value = '';
-				}							
-			}
-			//This function handles the response after the page has been refreshed.
-			function handleResetChat() {
-				document.getElementById('div_chat').innerHTML = '';
-				getChatText();
-			}	
-		</script>
 	</head>
-	<body onload="javascript:startChat();">
-
+	<body onbeforeunload="javascript:endChat();">
         <noscript>
             <style type="text/css">
             #div_chat, input, #pagetitle {display: none;}
@@ -173,9 +211,9 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
             </div>
         </noscript>
 
-		<div id="div_chat" style="height: 300px; width: 500px; overflow: auto; background-color: #CCCCCC; border: 1px solid #555555;">
-			
-		</div>
+		<div id="div_chat"></div>
+        <div id="div_users"></div>
+        <div style="clear:both"></div>
 		<form id="frmmain" name="frmmain" onsubmit="return blockSubmit();">
 			<?php
             if (checkAccess($_SESSION['login_id']) < 3) {

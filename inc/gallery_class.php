@@ -1455,7 +1455,7 @@ HTML;
         } else {
             // Check height
             if ($orig_height > $max_height) {
-                $width = (int)($thumb_max_height * $orig_width / $orig_height);
+                $width = (int)($max_height * $orig_width / $orig_height);
                 return array($width, $max_height);
             // No need to resize if it's smaller than max
             } else {

@@ -1,3 +1,14 @@
+ 2.0.1
+    - fixed "Upgrading to 2.0 can cause some members themes not to work" Ticket #76
+    - fixed "Upgrading to 2.0 can prevent users from editing settings" Ticket #78
+    - fixed "Admin members doesn't show all members" Ticket #74
+    - fixed "Chat Room doesn't ouput username" Ticket #75
+    - fixed "Upgrading to 2.0 doesn't include Chat" Ticket #77
+    - fixed "Uploading photos tall photos causes errors" Ticket #79
+    - fixed "Alpha and Beta themes don't include Chat" Ticket #84
+    - fixed Download link on upgrade screen
+    - added "Show users online in Chat" Ticket #80
+
  2.0
     - fixed "Documents with spaces doesn't always work" Ticket #1
     - fixed "May - short/long version translation" Ticket #2

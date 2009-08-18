@@ -263,7 +263,7 @@ HTML;
                     </div>
                     <p>
                         <input type="hidden" id="id" name="id" value="{$id}"/>
-                        <input class="primary" type="submit" id="edit" name="edit" value="{$LANG['edit']}"/>&nbsp;&nbsp; 
+                        <input class="primary" type="submit" id="edit" name="edit" value="{$LANG['edit']}"/>&nbsp;&nbsp;
                         <input class="secondary" type="submit" id="delete" name="delete" value="{$LANG['delete']}"/> or 
                         <a class="u" href="members.php">{$LANG['cancel']}</a>
                     </p>
@@ -412,8 +412,8 @@ HTML;
 HTML;
             }
         }
-    echo "\n";
-    echo <<<HTML
+        echo "\n";
+        echo <<<HTML
                     </tbody>
                 </table>
                 <p style="text-align:right">
@@ -423,6 +423,16 @@ HTML;
                 </p>
             </form>
 HTML;
+
+        // Remove the LIMIT from the $sql statement 
+        // used above, so we can get the total count
+        $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
+        $this->db->query($sql) or displaySQLError(
+            'Page Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $count = $this->db->count_rows();
+        $total_pages = ceil($count / 15); 
+        displayPages("members.php", $page, $total_pages);
     }
     
     /**

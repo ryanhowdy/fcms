@@ -51,7 +51,7 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
 					$uptodate = true;
 					echo $ver[0] . " <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:green\">Awesome, your installation is up to date.</span>";
 				} else {
-					echo $ver[0]." <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:red\">Bummer!, your installation is out of date.  <a href=\"http://www.haudenschilt.com/fcms/download.html\">Download latest version.</a></span>";
+					echo $ver[0]." <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:red\">Bummer!, your installation is out of date.  <a href=\"http://www.familycms.com/download.php\">Download latest version.</a></span>";
 				}
 				echo "</p>\n\t\t\t<form method=\"post\" action=\"upgrade.php\"><div><input type=\"hidden\" name=\"version\" value=\"$ver[0]\"/><input type=\"submit\" name=\"upgrade\" value=\"".$LANG['link_admin_upgrade']."\"";
 				if ($uptodate) { echo " onclick=\"javascript:return confirm('".$LANG['js_upgrade']."');\""; }
@@ -529,8 +529,29 @@ function upgrade ($version) {
 	echo "<p><b>(2.0)</b> Upgrading FCMS avatar...";
 	$result = mysql_query("SHOW COLUMNS FROM `fcms_config`") or die("</p><p style=\"color:red\">".$LANG['not_search_fields']."</p><p style=\"color:red\">".mysql_error()."</p>");
 	mysql_query("ALTER TABLE `fcms_users` ALTER `avatar` SET DEFAULT 'no_avatar.jpg'") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+	echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+	/*
+	 * FCMS 2.0.1
+	 * Chat Room.
+	 */
+	echo "<p><b>(2.0.1)</b> Adding Chat...";
+	$sql = "SHOW TABLES FROM `$cfg_mysql_db`";
+	$result = mysql_query($sql) or die("</p><p style=\"color:red\">".$LANG['not_search_tables']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$chat_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r[0] == 'fcms_chat') { $chat_fixed = true; }
+		}
+	}
+	if ($chat_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+		mysql_query("CREATE TABLE `fcms_chat_users` (`user_name` VARCHAR(64) NOT NULL) ENGINE=INNODB DEFAULT CHARSET=utf8") or die(mysql_error());
+		mysql_query("CREATE TABLE `fcms_chat_messages` ( `message_id` INT(11) NOT NULL AUTO_INCREMENT, `chat_id` INT(11) NOT NULL DEFAULT '0', `user_id` INT(11) NOT NULL DEFAULT '0', `user_name` VARCHAR(64) DEFAULT NULL, `message` TEXT, `post_time` DATETIME DEFAULT NULL, PRIMARY KEY  (`message_id`)) ENGINE=INNODB DEFAULT CHARSET=utf8");
+    }
+	echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
 
-	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.0'");
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.0.1'");
 	echo "<p style=\"color:green\"><b>Upgrade is finished.</b></p>";
 }
 ?>

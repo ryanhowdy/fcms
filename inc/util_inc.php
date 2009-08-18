@@ -24,7 +24,7 @@ function getTheme ($userid, $d = "")
     if (empty($userid)) {
         return $d . "themes/default/";
     } else {
-        $result = mysql_query("SELECT `theme` FROM `fcms_user_settings` WHERE `id` = $userid") or die('<h1>Theme Error (util.inc.php 18)</h1>' . mysql_error());
+        $result = mysql_query("SELECT `theme` FROM `fcms_user_settings` WHERE `user` = $userid") or die('<h1>Theme Error (util.inc.php 18)</h1>' . mysql_error());
         $r = mysql_fetch_array($result);
         $pos = strpos($r['theme'], '.css');
         if ($pos === false) {
@@ -481,30 +481,40 @@ function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h,
 function displayPages ($url, $cur_page, $total_pages)
 {
     global $LANG;
+
+    // Check if we have a index.php url or a index.php?uid=0 url
+    $end = substr($url, strlen($url) - 4);
+    if ($end == '.php') {
+        $divider = '?';
+    } else {
+        $divider = '&amp;';
+    }
+
+    global $LANG;
     if ($total_pages > 1) {
         echo "\t\t\t<div class=\"pages clearfix\">\n\t\t\t\t<ul>\n";
         if ($cur_page > 1) {
             $prev = ($cur_page - 1);
-            echo "\t\t\t\t\t<li><a title=\"".$LANG['title_first_page']."\" class=\"first\" href=\"$url&amp;page=1\"></a></li>\n";
-            echo "\t\t\t\t\t<li><a title=\"".$LANG['title_prev_page']."\" class=\"previous\" href=\"$url&amp;page=$prev\"></a></li>\n";
+            echo "\t\t\t\t\t<li><a title=\"".$LANG['title_first_page']."\" class=\"first\" href=\"$url{$divider}page=1\"></a></li>\n";
+            echo "\t\t\t\t\t<li><a title=\"".$LANG['title_prev_page']."\" class=\"previous\" href=\"$url{$divider}page=$prev\"></a></li>\n";
         } 
         if ($total_pages > 8) {
             if ($cur_page > 2) {
                 for ($i = ($cur_page-2); $i <= ($cur_page+5); $i++) {
-                    if ($i <= $total_pages) { echo "\t\t\t\t\t<li><a href=\"$url&amp;page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n"; }
+                    if ($i <= $total_pages) { echo "\t\t\t\t\t<li><a href=\"$url{$divider}page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n"; }
                 } 
             } else {
-                for ($i = 1; $i <= 8; $i++) { echo "\t\t\t\t\t<li><a href=\"$url&amp;page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n"; } 
+                for ($i = 1; $i <= 8; $i++) { echo "\t\t\t\t\t<li><a href=\"$url{$divider}page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n"; } 
             }
         } else {
             for ($i = 1; $i <= $total_pages; $i++) {
-                echo "\t\t\t\t\t<li><a href=\"$url&amp;page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n";
+                echo "\t\t\t\t\t<li><a href=\"$url{$divider}page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n";
             } 
         }
         if ($cur_page < $total_pages) { 
             $next = ($cur_page + 1); 
-            echo "\t\t\t\t\t<li><a title=\"" . $LANG['title_next_page'] . "\" class=\"next\" href=\"$url&amp;page=$next\"></a></li>\n";
-            echo "\t\t\t\t\t<li><a title=\"" . $LANG['title_last_page'] . "\" class=\"last\" href=\"$url&amp;page=$total_pages\"></a></li>\n";
+            echo "\t\t\t\t\t<li><a title=\"" . $LANG['title_next_page'] . "\" class=\"next\" href=\"$url{$divider}page=$next\"></a></li>\n";
+            echo "\t\t\t\t\t<li><a title=\"" . $LANG['title_last_page'] . "\" class=\"last\" href=\"$url{$divider}page=$total_pages\"></a></li>\n";
         } 
         echo "\t\t\t\t</ul>\n\t\t\t</div>\n";
     }    

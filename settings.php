@@ -138,7 +138,7 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                         $sql .= "dst = '0', ";
                     }
                 }
-                $sql .= "theme = '" . $_POST['theme'] . "' WHERE id = " . $_SESSION['login_id'];
+                $sql .= "theme = '" . $_POST['theme'] . "' WHERE `user` = " . $_SESSION['login_id'];
                 mysql_query($sql) or displaySQLError(
                     'Update Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
