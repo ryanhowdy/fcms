@@ -365,7 +365,7 @@ class Calendar
                 }
                 // Print the rounded box beginning part
                 if ($first & $show) {
-                    echo "\n\t\t\t<div>"
+                    echo "\n\t\t\t<div id=\"todaysevents\">"
                     . '<b class="rounded-box"><b class="rounded-box1"><b></b></b>'
                     . '<b class="rounded-box2"><b></b></b><b class="rounded-box3"></b>'
                     . '<b class="rounded-box4"></b><b class="rounded-box5"></b></b>'
@@ -647,10 +647,8 @@ class Calendar
                             . "title=\"".$LANG['add_cal']."\"/> ";
                     }
                     if ($type == 'edit') {
-                        echo "<input type=\"submit\" name=\"delete\" value=\""
-                            . $LANG['delete'] . "\" title=\"" . $LANG['delete_cal']
-                            . "\" onclick=\"javascript:return confirm('" 
-                            . $LANG['js_delete_cal'] . "');\"/>";
+                        echo '<input type="submit" id="delcal" name="delete" value="'
+                            . $LANG['delete'].'" title="'.$LANG['delete_cal'].'"/>';
                     }
                     echo "</p>\n\t\t\t</form>\n\t\t\t</fieldset>\n";
                 }
@@ -744,6 +742,7 @@ class Calendar
                 $i++;
             }
         }
+
         
         // Loop through the multidimensional array and insert valid event data into db
         foreach ($events as $event) {
@@ -811,7 +810,7 @@ class Calendar
     {
         global $LANG;
         echo "<h2>" . $LANG['import'] . "</h2>\n\t\t\t<br/>\n\t\t\t";
-        echo "<form enctype=\"multipart/form-data\" id=\"frm\" method=\"post\" ";
+        echo "<form enctype=\"multipart/form-data\" method=\"post\" ";
         echo "action=\"calendar.php\">\n\t\t\t\t";
         echo "<p><input type=\"file\" id=\"file\" name=\"file\"/></p>\n\t\t\t\t";
         echo "<p><input type=\"submit\" name=\"import\" value=\"" . $LANG['import'] . "\"/></p>";

@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (!isset($_SESSION)) {
+    session_start();
+}
 if (get_magic_quotes_gpc()) {
 	$_REQUEST = array_map('stripslashes', $_REQUEST);
 	$_GET = array_map('stripslashes', $_GET);
@@ -9,41 +11,36 @@ if (get_magic_quotes_gpc()) {
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
 include_once('inc/language.php');
-if (isset($_SESSION['login_id'])) {
-	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage();
-		exit();
-	}
-} elseif (isset($_COOKIE['fcms_login_id'])) {
-	if (isLoggedIn($_COOKIE['fcms_login_id'], $_COOKIE['fcms_login_uname'], $_COOKIE['fcms_login_pw'])) {
-		$_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-	} else {
-		displayLoginPage();
-		exit();
-	}
-} else {
-	displayLoginPage();
-	exit();
-}
+
+// Check that the user is logged in
+isLoggedIn();
+
 header("Cache-control: private");
+
+// include classes
 include_once('inc/calendar_class.php');
 include_once('inc/poll_class.php');
+include_once('inc/database_class.php');
+include_once('inc/alerts_class.php');
 mysql_query("UPDATE `fcms_users` SET `activity`=NOW() WHERE `id`=" . $_SESSION['login_id']);
 $calendar = new Calendar($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$poll = new Poll('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$poll = new Poll($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$alert = new Alerts($database);
+
 // Setup the Template variables;
 $TMPL['pagetitle'] = $LANG['link_home'];
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
-$TMPL['javascript'] = <<<HTML
+$TMPL['javascript'] = '
+<script type="text/javascript" src="inc/tablesort.js"></script>
 <script type="text/javascript">
 //<![CDATA[
-addLoadEvent(initLatestInfoHighlight);
+Event.observe(window, \'load\', function() {
+    initLatestInfoHighlight();
+});
 //]]>
-</script>
-HTML;
+</script>';
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">
@@ -61,7 +58,7 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 		$month = date("m", mktime(0,0,0,$month+1,1,2006));
 		$calendar->displayMonthEvents($month, $year);
 		if (!isset($_POST['vote']) && !isset($_GET['poll_id']) && !isset($_GET['action'])) {
-			$poll->displayPoll();
+			$poll->displayPoll('0', false);
 		}
 		echo "<h2 class=\"membermenu\">".$LANG['mem_online']."</h2><div class=\"membermenu\">";
 		displayMembersOnline();
@@ -71,6 +68,8 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 		<div class="centercontent">
 			<?php
 			$showWhatsNew = true;
+
+            // Show Poll, hide everything else
 			if(isset($_GET['poll_id']) && !isset($_GET['action']) && !isset($_POST['vote'])) {
 				// Santizing user input - poll_id - only allow digits 0-9
 				if (preg_match('/^\d+$/', $_GET['poll_id'])) {
@@ -80,12 +79,12 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 			}
 			if (isset($_POST['vote'])) {
 				$showWhatsNew = false;
-				$poll->placeVote($_SESSION['login_id'], $_POST['option_id']);
 				if (isset($_GET['poll_id'])) {
 					$poll_id = $_GET['poll_id'];
 				} else {
 					$poll_id = $_POST['poll_id'];
 				}
+				$poll->placeVote($_SESSION['login_id'], $_POST['option_id'], $poll_id);
 				$poll->displayResults($poll_id);
 			}
 			if (isset($_GET['action'])) {
@@ -93,14 +92,42 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 				if ($_GET['action'] == "results") {
 					$poll_id = $_GET['poll_id'] ? $_GET['poll_id'] : $_POST['poll_id'];
 					// Santizing user input - poll_id - only allow digits 0-9
-					if (preg_match('/^\d+$/', $poll_id)) { $poll->displayResults($poll_id); }
+					if (preg_match('/^\d+$/', $poll_id)) {
+                        $poll->displayResults($poll_id);
+                    } else {
+                        $showWhatsNew = true;
+                    }
 				} elseif ($_GET['action'] == "pastpolls") {
-					$poll->displayPastPolls();
+                    $page = 1;
+                    if (isset($_GET['page'])) { $page = $_GET['page']; }
+					$poll->displayPastPolls($page);
 				}
 			}
+
+            // If were not showing poll stuff, show the latest info
 			if ($showWhatsNew) {
+
+                // Remove an alert
+                if (isset($_GET['alert'])) {
+                    $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
+                            VALUES (
+                                '".escape_string($_GET['alert'])."', 
+                                ".$_SESSION['login_id']."
+                            )";
+                    mysql_query($sql) or displaySQLError(
+                        'Remove Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    );
+                }
+
+                // Show Alerts
+                $alert->displayNewAdminHome($_SESSION['login_id']);
+                $alert->displayNewUserHome($_SESSION['login_id']);
+
+                // Show any events happening today
 				$month = isset($_GET['month']) ? str_pad($_GET['month'], 2, 0, STR_PAD_LEFT) : date('m');
 				$calendar->displayTodaysEvents($month, $day, $year);
+
+                // Show what's new based on user's settings
 				echo "<h2>".$LANG['whats_new']."</h2>\n";
 				$sql = "SELECT `frontpage` FROM `fcms_user_settings` "
                      . "WHERE `user` = " . $_SESSION['login_id'];
@@ -109,8 +136,12 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                 );
 				$r = mysql_fetch_array($result);
 				mysql_free_result($result);
+
+                // All by date
 				if ($r['frontpage'] < 2) {
 					displayWhatsNewAll($_SESSION['login_id']);
+
+                // Last 5 by category
 				} else {
 					include_once('inc/messageboard_class.php');
 					include_once('inc/addressbook_class.php');

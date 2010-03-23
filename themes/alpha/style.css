@@ -2,8 +2,8 @@
 Theme Name:         Alpha
 Description:        Fixed layout.  Default theme is required for this theme to work as it uses some default images.
 Screen Size:        800x600
-FCMS Compatible:    2.0
-Updated:            August 27, 2009
+FCMS Compatible:    2.1
+Updated:            October 29, 2009
 Author:             Ryan Haudenschilt
 ------------------------------------------------*/
 
@@ -267,8 +267,8 @@ h5 { font-size: 10px; }
     font-weight: bold;
     background-color: #b2d1f0;
     padding: 5px 5px 5px 12px;
-    margin: 0;
 }
+#leftcolumn h2.pollmenu, #leftcolumn h2.membermenu { margin: 15px 0 0 0; }
 #leftcolumn h3 { 
     font-size: 14px;
     font-weight: bold;
@@ -286,6 +286,7 @@ h5 { font-size: 10px; }
     font-weight: bold;
     padding: 25px 0 0 0;
     border-bottom:1px solid #ccc;
+    margin: 0 0 15px 0;
 }
 #content h2 a { 
     color: #315c88;
@@ -329,7 +330,10 @@ p { margin: 3px 0 9px 0; }
 p.mouseover { background-color: #f6f6f6; }
 ol { padding: 0 0 0 20px; }
 form.frm_line, form.frm_line div { display: inline; }
-input, textarea { padding: 2px; }
+input, textarea {
+    margin-right: 5px;
+    padding: 2px;
+}
 fieldset { padding: 5px; }
 #smileys img, #more img { cursor: pointer; }
 .top {
@@ -358,11 +362,17 @@ fieldset { padding: 5px; }
     list-style-type: none;
     margin: 0 10px 0 0;
 }
-#sections_menu li a.add, #sections_menu li a.add_address, #sections_menu li a.export, 
-#sections_menu li a.add_thread, #sections_menu li a.add_post, #sections_menu li a.news,
-#sections_menu li a.home { padding-left: 18px; }
+#sections_menu li a.add, 
+#sections_menu li a.add_address, 
+#sections_menu li a.edit_address, 
+#sections_menu li a.export, 
+#sections_menu li a.add_thread, 
+#sections_menu li a.add_post, 
+#sections_menu li a.news,
+#sections_menu li a.home { padding: 0 0 0 18px; }
 .add { background: transparent url(../default/images/add.gif) 0 50% no-repeat; }
 .add_address { background: transparent url(../default/images/book_add.gif) 0 50% no-repeat; }
+#sections_menu li a.edit_address { background: transparent url(../default/images/book_edit.gif) 0 50% no-repeat; }
 .add_thread { background: transparent url(../default/images/new_thread.gif) 0 50% no-repeat; }
 .add_post { background: transparent url(../default/images/board_quote.gif) 0 50% no-repeat; }
 .home { background: transparent url(../default/images/home.gif) 0 50% no-repeat; }
@@ -381,6 +391,11 @@ hr {
     padding: 0 0 0 18px;
     background: transparent url(../default/images/rss.gif) no-repeat 0 0;
 }
+span.date {
+    color: #999;
+    font-size: 13px;
+}
+span.date form, span.date form div { display: inline }
 
 
 /* =HOME
@@ -411,55 +426,53 @@ hr {
     margin: 0 0 0 5px;
 }
 #content .half .twolines li { padding: 7px 0 3px 25px; }
-ul.poll { 
-    width: 90%;
-    margin: 30px auto;
-    border-top: 1px solid #eee;
-}
 ul.poll li {
-    position: relative;
+    background-color: #d8e9f8;
     display: block;
-    border-bottom: 1px solid #eee;
+    margin: 5px 0;
+    position: relative;
     _zoom: 1;
 }
-ul.poll li a {
+ul.poll li div {
+    text-align: right;
+    color: #000;
     display: block;
-    color: #1d70b5;
+    font-size: 10px;
+    line-height: 18px;
     padding: 4px 10px;
     position: relative;
     z-index: 2;
 }
-ul.poll li a:hover {
-    color: #000;
-    text-decoration: none;
-}
-ul.poll .count {
+ul.poll li div b {
+    text-align: left;
     display: block;
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 0 0.3em;
-    text-align: right;
-    color: #999;
+    font-size: 14px;
     font-weight: bold;
-    font-size: 0.875em;
-    line-height: 2em;
 }
 ul.poll .index {
+    background: #9ccef0;
     display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
     height: 100%;
-    background: #dceadd;
-    text-indent: -9999px;
-    overflow: hidden;
+    left: 0;
     line-height: 2em;
+    overflow: hidden;
+    position: absolute;
+    text-indent: -9999px;
+    top: 0;
 }
 p.poll {
     text-align: center;
-    font-size: 12px;
-    font-style: italic;
+    font: italic 12px Verdana, Arial, sans-serif;;
+}
+ul.whovoted { margin: 0 0 20px 0; }
+ul.whovoted li {
+    list-style-type: none;
+    margin: 0 0 0 20px;
+}
+ul.whovoted img {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
 }
 .newthread, .newpost, .newaddress, .newnews, .newprayer, .newphoto, .newcom, .newmember, .newrecipe, .newcal, .newpoll, .newdocument { padding: 2px 0 2px 24px; }
 .newthread { background: transparent url(../default/images/new_thread.gif) no-repeat 0px 4px; }
@@ -478,7 +491,10 @@ p.poll {
 /* =MESSAGE =BOARD
 ------------------------------------------------*/
 #threadlist td, #postlist td { vertical-align: text-top; }
-#threadlist { width: 99%; }
+#threadlist {
+    margin: 10px 0 0 0;
+    width: 99%;
+}
 #threadlist th {
     font-weight: bold;
     height: 30px;
@@ -508,10 +524,11 @@ p.poll {
     padding-right: 20px;
 }
 #postlist {
-    width: 99%;
     border-top: 1px solid #666;
     border-left: 1px solid #666;
     border-right: 1px solid #666;
+    margin: 15px 0 0 0;
+    width: 99%;
 }
 #postlist .alt .side, #postlist .alt .header { background-color: #b2d1f0; }
 #postlist .side {
@@ -547,6 +564,7 @@ p.poll {
     width: 28%;
 }
 #postlist .actions form, #postlist .actions form div { display: inline; }
+
 #postlist .msg { padding: 15px 15px 30px 15px; }
 #messageboard .msg h1, #messageboard .msg h2, #messageboard .msg h3, #messageboard .msg h4, #messageboard .msg h5, #messageboard .msg h6 {
     color: #000;
@@ -581,6 +599,10 @@ blockquote {
     background: url(../default/images/quote.gif) no-repeat 2px 0px;
     margin: 0 25px;
     padding: 5px 0 5px 30px;
+}
+#showname, #subject {
+    margin: 0 0 10px 0;
+    * margin: 0;
 }
 .award {
     width: 10px;
@@ -623,11 +645,13 @@ blockquote {
     line-height: 12px;
 }
 .gallery_cat form, .edit_del_photo form, .edit_del_photo div { display: inline; }
+.gallery_cat { list-style-type: none; }
+.gallery_cat li { padding: 2px 0; }
 .photo {
     border: 1px solid #c1c1c1;
     padding: 5px;
 }
-.gal_menu, .comment_block, .caption, .photo_details {
+.gal_menu {
     margin: 0 auto 15px auto;
     padding: 3px;
     width: 450px;
@@ -636,17 +660,35 @@ blockquote {
 }
 .gal_menu { width: 95%; }
 #sections_menu .gal_menu li { margin: 0 10px; }
+.comment_block {
+    padding: 5px 0 10px 0;
+    border-top: 1px solid #ccc;
+}
 .comment_block form { margin: 0; }
-.comment_block input, .comment_block span {
+.comment_block input {
     float: right;
     padding-right: 5px;
 }
 .comment_block img {
-    display: block;
-    float: left;
-    margin-right: 5px;
+    width: 50px;
+    height: 50px;
+    padding: 0 15px 15px 0;
 }
-#photo_nav { padding: 0 20px; }
+.comment_block b {
+    display: block;
+    margin: -65px 0 0 0;
+    padding: 0 0 0 65px;
+}
+.comment_block span {
+    color: #999;
+    font-size: 13px;
+    padding: 0 0 0 65px;
+}
+.comment_block p { padding: 0 0 0 65px; }
+#photo_nav {
+    padding: 0 20px;
+    margin: 0 0 10px 0;
+}
 #photo_nav .info { float: left; }
 #photo_nav .prev_next {
     border: 1px solid #666;
@@ -668,17 +710,20 @@ blockquote {
     background-color: #f0eaba;
     color: #000;
 }
-#gallery .edit_del_photo {
-    border-left: 1px solid #c1c1c1;
-    border-bottom: 1px solid #c1c1c1;
-    float: right;
-    padding: 3px;
+#photo_details {
+    margin: -15px 0 0 0;
+    padding: 0 0 0 400px;
+}
+#photo_details_sub {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
 }
 #gallery .edit_del_photo form, #gallery .edit_del_photo form div { display: inline; }
+#caption { width: 350px; }
 .gal_sidemenu { padding: 12px; }
-.caption { text-align: center; }
-.photo_details { font-size: small; }
-.photo_details p { margin: 2px 0 5px 0; }
 .multi-checkbox {
     background-color: #fff;
     height: 100px;
@@ -704,7 +749,6 @@ blockquote {
     display: block;
     float: left;
     margin: 0 2px 0 1px;
-    * margin: 0 1px 0 0;
     width: 18px;
 }
 #addresstoolbar li a, #addresstoolbar li span {
@@ -721,12 +765,17 @@ blockquote {
     background-color: #ccc;
     border: 1px solid #000;
 }
-.address img {
+div#address {
+    border: 1px solid #c1c1c1;
+    margin: 20px 50px 50px 50px;
+    padding: 15px;
+}
+#address .edit_del_menu { float: right; }
+#address img {
     vertical-align: middle;
     padding-right: 10px;
 }
-.address { margin: 0 50px; }
-.address b.label {
+#address b.label {
     display: block;
     float: left;
     color: gray;
@@ -734,13 +783,13 @@ blockquote {
     width: 70px;
     text-align: right;
 }
-.address span.data {
+#address span.data {
     display: block;
     float: left;
     padding-left: 15px;
 }
-.address span.data i { color: silver; }
-.addressbox form, .addressbox form div { display: inline; }
+#address span.data i { color: silver; }
+#.addressbox form, #addressbox form div { display: inline; }
 a.email {
     padding: 0 8px;
     background: transparent url(../default/images/email.gif) no-repeat center center;
@@ -748,6 +797,78 @@ a.email {
 .del_address, .edit_address { padding: 2px 18px 2px 0; }
 .del_address { background: transparent url(../default/images/book_delete.gif) no-repeat center right; }
 .edit_address { background: transparent url(../default/images/book_edit.gif) no-repeat center right; }
+
+
+/* =FAMILY =NEWS
+------------------------------------------------*/
+#familynews h3 { clear: both; }
+#familynews h2, #familynews #addform h3, #familynews #editform h3 { clear: none; }
+#news-list {
+    border: 1px solid #b2d1f0;
+    font-size: 12px;
+    float: right;
+    margin: 0 0 20px 20px;
+    width: 140px;
+}
+#news-list h2 {
+    background-color: #b2d1f0;
+    font: bold 11px/11px Verdana, sans-serif;
+    padding: 10px;
+}
+#news-list ul { list-style: none; }
+#news-list li { padding: 5px; }
+.news-post {
+    float: left;
+    width: 390px;
+}
+.news-comments {
+    text-align: right;
+    font-size: 13px;
+}
+
+
+/* =RECIPES
+------------------------------------------------*/
+#recipe .cat_row {
+    clear: both;
+    padding: 0 0 30px 0;
+}
+#recipe .cat {
+    float: left;
+    width: 170px;
+    text-align: center;
+    margin: 0 5px;
+}
+#recipe .cat li { list-style-type: none; }
+#recipe .cat li a {
+    display: block;
+    background-color: #dceadd;
+    color: #333;
+    font-weight: bold;
+    overflow: hidden;
+    padding: 10px 0;
+    -moz-border-radius: 10px; 
+    -webkit-border-radius: 10px; 
+}
+#recipe .cat li a:hover {
+    background-color: #f0eaba;
+    text-decoration: none;
+}
+#recipe .cat li a span {
+    display: block;
+    font-weight: normal;
+}
+
+
+/* =DOCUMENTS
+------------------------------------------------*/
+#docs td form, #docs td form div { display: inline; }
+#docs { margin: 15px 0 0 0; }
+
+
+/* =PRAYERS
+------------------------------------------------*/
+#prayers h4 form, #prayers h4 form div { display: inline; }
 
 
 /* =CALENDAR
@@ -980,37 +1101,6 @@ a.new_pm {
 }
 
 
-/* =FAMILY =NEWS
-------------------------------------------------*/
-#familynews h2 form, #familynews h2 form div { display: inline; }
-
-
-/* =RECIPES
-------------------------------------------------*/
-#recipe h4 form, #recipe h4 form div { display: inline; }
-#recipe .cat_row {
-    clear: both;
-    padding: 0 0 30px 0;
-    
-}
-#recipe .cat {
-    float: left;
-    width: 32%;
-    text-align: center;
-    margin: 10px 0 25px 0;
-}
-
-
-/* =DOCUMENTS
-------------------------------------------------*/
-#docs td form, #docs td form div { display: inline; }
-
-
-/* =PRAYERS
-------------------------------------------------*/
-#prayers h4 form, #prayers h4 form div { display: inline; }
-
-
 /* =SETTINGS
 ------------------------------------------------*/
 fieldset {
@@ -1136,6 +1226,7 @@ fieldset .field-label b, fieldset .field-label img {
 
 /* =ROUNDED =CORNERS
 ------------------------------------------------*/
+#todaysevents { margin: 0 0 30px 0; }
 .rounded-box { display: block }
 .rounded-box * {
     display: block;
@@ -1191,6 +1282,10 @@ fieldset .field-label b, fieldset .field-label img {
     font-size: 0px;
     height: 16px;
     line-height: 0px;
+    * overflow: hiddent;
+    * padding: 40px 0 0 0;
+    text-indent: -9999px;
+    vertical-align: middle;
     width: 16px;
 }
 .delbtn { background: transparent url(../default/images/delete.gif) top left no-repeat; }
@@ -1211,15 +1306,22 @@ fieldset .field-label b, fieldset .field-label img {
     border: 1px solid #c1c1c1;
     background-color: #f6f6f6;
     color: #c1c1c1;
+    * margin: 10px 0 0 0;
     width: 520px;
 }
 .toolbar .button {
     margin: 0 0 0 -3px;
+    * margin: 0 0 0 -5px;
     padding: 0;
     width: 20px;
     height: 20px;
     border: 1px solid #f6f6f6;
     cursor: pointer;
+    cursor: hand;
+}
+.toolbar .bold {
+    margin: 0;
+    * margin: 0 0 0 -10px;
 }
 .toolbar .color {
     margin: -2px 0 2px -4px;
@@ -1258,6 +1360,57 @@ fieldset .field-label b, fieldset .field-label img {
 .maroon { background-color: #800000; }
 .red { background-color: #ff0000; }
 .yellow { background-color: #ffff00; }
+
+
+/* =CHAT =ROOM
+------------------------------------------------*/
+#chat_box {
+    background-color: #e6eff3;
+    padding: 10px;
+    margin: 0 0 30px 0;
+}
+#div_chat {
+    background-color: #fff;
+    float: left;
+    font: normal 13px/16px Tahoma, Arial, Helvetica, sans-serif;
+    height: 300px;
+    overflow: auto;
+    padding: 5px;
+    width: 365px;
+}
+#div_users {
+    background-color: #fff;
+    float: left;
+    font: normal 13px/16px Tahoma, Arial, Helvetica, sans-serif;
+    height: 300px;
+    margin: 0 0 0 10px;
+    overflow: auto;
+    padding: 5px;
+    width: 140px;
+}
+.chat_msg {
+    border-bottom: 1px solid #eee;
+    clear: both;
+    margin: 0 0 20px 0;
+    padding: 10px 0;
+}
+.chat_info { float: left; }
+.chat_user {
+    background-color: #3e8ec1;
+    color: #fff;
+    margin: 0 5px 0 0;
+    padding: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+}
+.sys { background-color: #999; }
+.me { background-color: #333; }
+.chat_time {
+    color: #999;
+    margin: 0 5px 0 0;
+}
+.chat_text { float: left; }
+#btn_reset_chat, #txt_message { margin: 10px 0 0 0; }
 
 
 /* =VALIDATION
@@ -1313,6 +1466,7 @@ fieldset .field-label b, fieldset .field-label img {
     border-top: 2px solid #74a8f5;
     border-bottom: 2px solid #74a8f5;
 }
+.info-alert h3 { padding-top: 10px; }
 .ok-alert {
     background: #f2fae7 url(../default/images/ok.gif) center no-repeat;
     background-position: 15px 50%;
@@ -1404,3 +1558,5 @@ fieldset .field-label b, fieldset .field-label img {
 .rank5 { background: transparent url(../default/images/rank5.gif) no-repeat center center; }
 .rank6 { background: transparent url(../default/images/rank6.gif) no-repeat center center; }
 .rank7 { background: transparent url(../default/images/rank7.gif) no-repeat center center; }
+
+ 	  	 

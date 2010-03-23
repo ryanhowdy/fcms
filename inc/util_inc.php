@@ -71,6 +71,24 @@ function getUserDisplayName ($userid, $display = 0, $isMember = true)
 }
 
 /*
+ *  getUserEmail
+ *  
+ *  @param  $userid - the id of the desired user
+ *  @return  a string of the users email
+ */
+function getUserEmail ($userid)
+{
+    $sql = "SELECT `email` "
+         . "FROM `fcms_users` "
+         . "WHERE `id` = $userid";
+    $result = mysql_query($sql) or displaySQLError(
+        'Email Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $r = mysql_fetch_array($result);
+    return $r['email'];
+}
+
+/*
  *  displayOptSection
  *  
  *  @param  $start      starting section
@@ -139,17 +157,15 @@ function displayFooter ($d = "")
     if (!empty($d)) { $d = "../"; }
     $ver = getCurrentVersion();
     $date = date('Y');
-    echo <<<HTML
-        <div id="footer">
-            <p>
-                <a href="{$d}index.php" class="ft">{$LANG['link_home']}</a> | 
-                <a href="http://www.familycms.com/forum/index.php" class="ft">{$LANG['link_support']}</a> | 
-                <a href="{$d}help.php" class="ft">{$LANG['link_help']}</a><br />
-                <a href="http://www.familycms.com">{$ver}</a> - Copyright &copy; 2006-{$date} Ryan Haudenschilt.
-            </p>
-        </div>
-
-HTML;
+    echo '
+    <div id="footer">
+        <p>
+            <a href="'.$d.'index.php" class="ft">'.$LANG['link_home'].'</a> | 
+            <a href="http://www.familycms.com/forum/index.php" class="ft">'.$LANG['link_support'].'</a> | 
+            <a href="'.$d.'help.php" class="ft">'.$LANG['link_help'].'</a><br />
+            <a href="http://www.familycms.com">'.$ver.'</a> - Copyright &copy; 2006-'.$date.' Ryan Haudenschilt.
+        </p>
+    </div>';
 }
 
 function displayNewPM ($userid, $d = "")
@@ -171,51 +187,71 @@ function checkAccess ($userid)
     return $r['access'];
 }
 
-function parse ($data, $allowVideo = 0)
+function parse ($data)
 {
     $data = htmlentities($data, ENT_COMPAT, 'UTF-8');
     $data = parse_smilies($data);
-    $data = parse_bbcodes($data, $allowVideo);
+    $data = parse_bbcodes($data);
     $data = bbcode_quote($data);
     $data = nl2br_nospaces($data);
     echo $data;
 }
 
-function parse_bbcodes ($data, $allowVideo)
+function parse_bbcodes ($data)
 {
-    $search = array('/\[ins\](.*?)\[\/ins\]/is', '/\[del\](.*?)\[\/del\]/is', '/\[h1\](.*?)\[\/h1\]/is', '/\[h2\](.*?)\[\/h2\]/is', '/\[h3\](.*?)\[\/h3\]/is', '/\[h4\](.*?)\[\/h4\]/is', '/\[h5\](.*?)\[\/h5\]/is', '/\[h6\](.*?)\[\/h6\]/is', 
-        '/\[b\](.*?)\[\/b\]/is', '/\[i\](.*?)\[\/i\]/is', '/\[u\](.*?)\[\/u\]/is', '/\[url\=(.*?)\](.*?)\[\/url\]/is', '/\[url\](.*?)\[\/url\]/is', '/\[align\=(left|center|right)\](.*?)\[\/align\]/is','/\[img\=(.*?)\]/is', '/\[img\](.*?)\[\/img\]/is', 
-        '/\[mail\=(.*?)\](.*?)\[\/mail\]/is', '/\[mail\](.*?)\[\/mail\]/is', '/\[font\=(.*?)\](.*?)\[\/font\]/is', '/\[size\=(.*?)\](.*?)\[\/size\]/is', '/\[color\=(.*?)\](.*?)\[\/color\]/is', '/\[span\](.*?)\[\/span\]/is', '/\[span\=(.*?)\](.*?)\[\/span\]/is');
-    $replace = array('<ins>$1</ins>', '<del>$1</del>', '<h1>$1</h1>', '<h2>$1</h2>', '<h3>$1</h3>', '<h4>$1</h4>', '<h5>$1</h5>', '<h6>$1</h6>', 
-        '<b>$1</b>', '<i>$1</i>', '<u>$1</u>', '<a href="$1">$2</a>', '<a href="$1">$1</a>', '<div style="text-align: $1;">$2</div>', '<img src="$1" />','<img src="$1" />', 
-        '<a href="mailto:$1">$2</a>', '<a href="mailto:$1">$1</a>', '<span style="font-family: $1;">$2</span>', '<span style="font-size: $1;">$2</span>','<span style="color: $1;">$2</span>', '<span>$1</span>', '<span class="$1">$2</span>');
+    $search = array(
+        '/\[ins\](.*?)\[\/ins\]/is', 
+        '/\[del\](.*?)\[\/del\]/is', 
+        '/\[h1\](.*?)\[\/h1\]/is', 
+        '/\[h2\](.*?)\[\/h2\]/is', 
+        '/\[h3\](.*?)\[\/h3\]/is', 
+        '/\[h4\](.*?)\[\/h4\]/is', 
+        '/\[h5\](.*?)\[\/h5\]/is', 
+        '/\[h6\](.*?)\[\/h6\]/is', 
+        '/\[b\](.*?)\[\/b\]/is', 
+        '/\[i\](.*?)\[\/i\]/is', 
+        '/\[u\](.*?)\[\/u\]/is', 
+        '/\[url\=(.*?)\](.*?)\[\/url\]/is', 
+        '/\[url\](.*?)\[\/url\]/is', 
+        '/\[align\=(left|center|right)\](.*?)\[\/align\]/is', 
+        '/\[img\=(.*?)\]/is', 
+        '/\[img\](.*?)\[\/img\]/is', 
+        '/\[mail\=(.*?)\](.*?)\[\/mail\]/is', 
+        '/\[mail\](.*?)\[\/mail\]/is', 
+        '/\[font\=(.*?)\](.*?)\[\/font\]/is', 
+        '/\[size\=(.*?)\](.*?)\[\/size\]/is', 
+        '/\[color\=(.*?)\](.*?)\[\/color\]/is', 
+        '/\[span\](.*?)\[\/span\]/is', 
+        '/\[span\=(.*?)\](.*?)\[\/span\]/is', 
+        '/\[video\](.*?)\[\/video\]/ise'
+    );
+    $replace = array(
+        '<ins>$1</ins>', 
+        '<del>$1</del>', 
+        '<h1>$1</h1>', 
+        '<h2>$1</h2>', 
+        '<h3>$1</h3>', 
+        '<h4>$1</h4>', 
+        '<h5>$1</h5>', 
+        '<h6>$1</h6>', 
+        '<b>$1</b>', 
+        '<i>$1</i>', 
+        '<u>$1</u>', 
+        '<a href="$1">$2</a>', 
+        '<a href="$1">$1</a>', 
+        '<div style="text-align: $1;">$2</div>', 
+        '<img src="$1"/>', 
+        '<img src="$1"/>', 
+        '<a href="mailto:$1">$2</a>', 
+        '<a href="mailto:$1">$1</a>', 
+        '<span style="font-family: $1;">$2</span>', 
+        '<span style="font-size: $1;">$2</span>', 
+        '<span style="color: $1;">$2</span>', 
+        '<span>$1</span>', 
+        '<span class="$1">$2</span>',
+        'unhtmlentities("\\1")'
+    );
     $data = preg_replace ($search, $replace, $data);
-    if ($allowVideo > 0) {
-        $found = 0;
-        // find all video tags
-        while (is_integer($found)) {
-            $start = stripos($data, '[video]');
-            $found = $start;
-            $end = stripos($data, '[/video]');
-            if ($start !== false && $end !== false) {
-                // add/subtract here because we don't want to include '[video]' or '[/video]'
-                $video_code = substr($data, $start+7, $end-7);
-                $regx = '/&lt;object.*?&gt;.*?(&lt;param.*?&gt;&lt;\/param&gt;)*.*?&lt;embed.*?&gt;.*?&lt;\/.mbed&gt;.*?&lt;\/object&gt;/is';
-                if (preg_match($regx, $video_code)) {
-                    $video_code = unhtmlentities($video_code);
-                    if ($start - 7 < 0) {
-                        $start = 0;
-                    } else {
-                        $start = $start - 7;
-                    }
-                    $data_beg = substr($data, 0, $start);
-                    $data_end = substr($data, $end+8);
-                    $data = $data_beg . $video_code . $data_end;
-                }
-            }
-        }
-    }
-    
     return $data; 
 }
 
@@ -362,33 +398,52 @@ function getNewsComments ($news_id)
 
 function getUserRankById ($user_id)
 {
-    $points = 0; $news_count = 0; 
-    $result = mysql_query("SELECT count(user) AS c FROM fcms_board_posts WHERE user = $user_id") or die('<h1>Count Error (util.inc.php 139)</h1>' . mysql_error());
+    $points = 0;
+    $news_count = 0;
+    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_board_posts` WHERE `user` = $user_id";
+    $result = mysql_query($sql)  or displaySQLError(
+        'Count Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $found = mysql_fetch_array($result);
     $post_count = $found['c'];
-    mysql_free_result($result);
-    $result = mysql_query("SELECT count(user) AS c FROM fcms_gallery_photos WHERE user = $user_id") or die('<h1>Count Error (util.inc.php 143)</h1>' . mysql_error());
+    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_photos` WHERE `user` = $user_id";
+    $result = mysql_query($sql)  or displaySQLError(
+        'Count Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $found = mysql_fetch_array($result);
     $photo_count = $found['c'];
-    mysql_free_result($result);
-    $result = mysql_query("SELECT count(user) AS c FROM fcms_gallery_comments WHERE user = $user_id") or die('<h1>Count Error (util.inc.php 147)</h1>' . mysql_error());
+    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_comments` WHERE `user` = $user_id";
+    $result = mysql_query($sql)  or displaySQLError(
+        'Count Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $found = mysql_fetch_array($result);
     $comments_count = $found['c'];
-    mysql_free_result($result);
-    $result = mysql_query("SELECT count(user) AS c FROM fcms_poll_users WHERE user = $user_id") or die('<h1>Count Error (util.inc.php 151)</h1>' . mysql_error());
+    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_poll_votes` WHERE `user` = $user_id";
+    $result = mysql_query($sql)  or displaySQLError(
+        'Count Polls Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $found = mysql_fetch_array($result);
     $vote_count = $found['c'];
-    mysql_free_result($result);
-    $result = mysql_query("SELECT count(created_by) AS c FROM fcms_calendar WHERE created_by = $user_id") or die('<h1>Count Error (util.inc.php 155)</h1>' . mysql_error());
+    $sql = "SELECT COUNT(`created_by`) AS c FROM `fcms_calendar` WHERE `created_by` = $user_id";
+    $result = mysql_query($sql)  or displaySQLError(
+        'Count Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $found = mysql_fetch_array($result);
     $calendar_count = $found['c'];
-    mysql_free_result($result);
     if (usingFamilyNews()) {
-        $result = mysql_query("SELECT count(user) AS c FROM fcms_news WHERE user = $user_id") or die('<h1>Count Error (util.inc.php 159)</h1>' . mysql_error());
+        $sql = "SELECT COUNT(`user`) AS c FROM `fcms_news` WHERE `user` = $user_id";
+        $result = mysql_query($sql)  or displaySQLError(
+            'Count News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $found = mysql_fetch_array($result);
         $news_count = $found['c'];
     }
-    $points = ($post_count / 75) + ($photo_count / 25) + ($comments_count / 20) + ($calendar_count / 5) + ($news_count / 10) + ($vote_count / 4);
+    $points = ($post_count / 75) + 
+              ($photo_count / 25) + 
+              ($comments_count / 20) + 
+              ($calendar_count / 5) + 
+              ($news_count / 10) + 
+              ($vote_count / 10);
     return $points;
 }
 
@@ -416,36 +471,38 @@ function getCurrentVersion()
 function displayMBToolbar ()
 {
     global $LANG;
-    echo "\t\t\t\t<div class=\"toolbar\">\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"bold button\" onclick=\"bb.insertCode('B', 'bold');\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['b_txt']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"italic button\" onclick=\"bb.insertCode('I', 'italic');\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['i_txt']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"underline button\" onclick=\"bb.insertCode('U', 'underline');\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['u_txt']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"left_align button\" onclick=\"bb.insertCode('ALIGN=LEFT', 'left right', 'ALIGN');\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['left_txt']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"center_align button\" onclick=\"bb.insertCode('ALIGN=CENTER', 'center', 'ALIGN');\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['center_txt']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"right_align button\" onclick=\"bb.insertCode('ALIGN=RIGHT', 'align right', 'ALIGN');\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['right_txt']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"h1 button\" onclick=\"bb.insertCode('H1', 'heading 1');\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['h1_txt']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"h2 button\" onclick=\"bb.insertCode('H2', 'heading 2');\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['h2_txt']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"h3 button\" onclick=\"bb.insertCode('H3', 'heading 3');\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['h3_txt']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"board_quote button\" onclick=\"bb.insertCode('QUOTE', 'quote');\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['blockquote']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"board_images button\" onclick=\"bb.insertImage();\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['ins_image']."\" />\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"links button\" onclick=\"bb.insertLink();\" onmouseout=\"style.border='1px solid #f6f6f6';\" onmouseover=\"style.border='1px solid #c1c1c1';\" title=\"".$LANG['ins_link']."\" />&nbsp;&nbsp;|&nbsp;&nbsp;\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"black color\" onclick=\"bb.insertCode('COLOR=BLACK', 'black colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['black_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"white color\" onclick=\"bb.insertCode('COLOR=WHITE', 'white colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['white_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"gray color\" onclick=\"bb.insertCode('COLOR=GRAY', 'gray colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['gray_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"silver color\" onclick=\"bb.insertCode('COLOR=SILVER', 'silver colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['silver_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"maroon color\" onclick=\"bb.insertCode('COLOR=MAROON', 'maroon colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['maroon_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"red color\" onclick=\"bb.insertCode('COLOR=RED', 'red colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['red_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"olive color\" onclick=\"bb.insertCode('COLOR=OLIVE', 'olive colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['olive_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"yellow color\" onclick=\"bb.insertCode('COLOR=YELLOW', 'yellow colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['yellow_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"green color\" onclick=\"bb.insertCode('COLOR=GREEN', 'green colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['green_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"lime color\" onclick=\"bb.insertCode('COLOR=LIME', 'lime colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['lime_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"teal color\" onclick=\"bb.insertCode('COLOR=TEAL', 'teal colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['teal_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"aqua color\" onclick=\"bb.insertCode('COLOR=AQUA', 'aqua colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['aqua_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"navy color\" onclick=\"bb.insertCode('COLOR=NAVY', 'navy colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['navy_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"blue color\" onclick=\"bb.insertCode('COLOR=BLUE', 'blue colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['blue_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"purple color\" onclick=\"bb.insertCode('COLOR=PURPLE', 'purple colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['purple_txt']."\"/>\n";
-    echo "\t\t\t\t\t<input type=\"button\" class=\"fuchsia color\" onclick=\"bb.insertCode('COLOR=FUCHSIA', 'pink colored text', 'COLOR');\" onmouseout=\"style.border='1px solid #000000';\" onmouseover=\"style.border='1px solid #ffffff';\" title=\"".$LANG['pink_txt']."\"/>\n";
-    echo "\t\t\t\t</div>\n";
+    echo '
+            <div id="toolbar" class="toolbar hideme">
+                <input type="button" class="bold button" onclick="bb.insertCode(\'B\', \'bold\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['b_txt'].'" />
+                <input type="button" class="italic button" onclick="bb.insertCode(\'I\', \'italic\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['i_txt'].'"/>
+                <input type="button" class="underline button" onclick="bb.insertCode(\'U\', \'underline\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['u_txt'].'"/>
+                <input type="button" class="left_align button" onclick="bb.insertCode(\'ALIGN=LEFT\', \'left right\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['left_txt'].'"/>
+                <input type="button" class="center_align button" onclick="bb.insertCode(\'ALIGN=CENTER\', \'center\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['center_txt'].'"/>
+                <input type="button" class="right_align button" onclick="bb.insertCode(\'ALIGN=RIGHT\', \'align right\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['right_txt'].'"/>
+                <input type="button" class="h1 button" onclick="bb.insertCode(\'H1\', \'heading 1\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['h1_txt'].'"/>
+                <input type="button" class="h2 button" onclick="bb.insertCode(\'H2\', \'heading 2\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['h2_txt'].'"/>
+                <input type="button" class="h3 button" onclick="bb.insertCode(\'H3\', \'heading 3\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['h3_txt'].'"/>
+                <input type="button" class="board_quote button" onclick="bb.insertCode(\'QUOTE\', \'quote\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['blockquote'].'"/>
+                <input type="button" class="board_images button" onclick="bb.insertImage();" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['ins_image'].'"/>
+                <input type="button" class="links button" onclick="bb.insertLink();" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['ins_link'].'"/>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <input type="button" class="black color" onclick="bb.insertCode(\'COLOR=BLACK\', \'black colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['black_txt'].'"/>
+                <input type="button" class="white color" onclick="bb.insertCode(\'COLOR=WHITE\', \'white colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['white_txt'].'"/>
+                <input type="button" class="gray color" onclick="bb.insertCode(\'COLOR=GRAY\', \'gray colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['gray_txt'].'"/>
+                <input type="button" class="silver color" onclick="bb.insertCode(\'COLOR=SILVER\', \'silver colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['silver_txt'].'"/>
+                <input type="button" class="maroon color" onclick="bb.insertCode(\'COLOR=MAROON\', \'maroon colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['maroon_txt'].'"/>
+                <input type="button" class="red color" onclick="bb.insertCode(\'COLOR=RED\', \'red colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['red_txt'].'"/>
+                <input type="button" class="olive color" onclick="bb.insertCode(\'COLOR=OLIVE\', \'olive colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['olive_txt'].'"/>
+                <input type="button" class="yellow color" onclick="bb.insertCode(\'COLOR=YELLOW\', \'yellow colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['yellow_txt'].'"/>
+                <input type="button" class="green color" onclick="bb.insertCode(\'COLOR=GREEN\', \'green colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['green_txt'].'"/>
+                <input type="button" class="lime color" onclick="bb.insertCode(\'COLOR=LIME\', \'lime colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['lime_txt'].'"/>
+                <input type="button" class="teal color" onclick="bb.insertCode(\'COLOR=TEAL\', \'teal colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['teal_txt'].'"/>
+                <input type="button" class="aqua color" onclick="bb.insertCode(\'COLOR=AQUA\', \'aqua colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['aqua_txt'].'"/>
+                <input type="button" class="navy color" onclick="bb.insertCode(\'COLOR=NAVY\', \'navy colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['navy_txt'].'"/>
+                <input type="button" class="blue color" onclick="bb.insertCode(\'COLOR=BLUE\', \'blue colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['blue_txt'].'"/>
+                <input type="button" class="purple color" onclick="bb.insertCode(\'COLOR=PURPLE\', \'purple colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['purple_txt'].'"/>
+                <input type="button" class="fuchsia color" onclick="bb.insertCode(\'COLOR=FUCHSIA\', \'pink colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['pink_txt'].'"/>
+            </div>';
 }
 
 function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h, $max_w, $unique = 'no')
@@ -500,31 +557,47 @@ function displayPages ($url, $cur_page, $total_pages)
 
     global $LANG;
     if ($total_pages > 1) {
-        echo "\t\t\t<div class=\"pages clearfix\">\n\t\t\t\t<ul>\n";
+        echo '
+            <div class="pages clearfix">
+                <ul>';
         if ($cur_page > 1) {
             $prev = ($cur_page - 1);
-            echo "\t\t\t\t\t<li><a title=\"".$LANG['title_first_page']."\" class=\"first\" href=\"$url{$divider}page=1\"></a></li>\n";
-            echo "\t\t\t\t\t<li><a title=\"".$LANG['title_prev_page']."\" class=\"previous\" href=\"$url{$divider}page=$prev\"></a></li>\n";
+            echo '
+                    <li><a title="'.$LANG['title_first_page'].'" class="first" href="'.$url.$divider.'page=1"></a></li>
+                    <li><a title="'.$LANG['title_prev_page'].'" class="previous" href="'.$url.$divider.'page='.$prev.'"></a></li>';
         } 
         if ($total_pages > 8) {
             if ($cur_page > 2) {
                 for ($i = ($cur_page-2); $i <= ($cur_page+5); $i++) {
-                    if ($i <= $total_pages) { echo "\t\t\t\t\t<li><a href=\"$url{$divider}page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n"; }
+                    if ($i <= $total_pages) {
+                        $class = $cur_page == $i ? ' class="current"' : '';
+                        echo '
+                    <li><a href="'.$url.$divider.'page='.$i.'"'.$class.'>'.$i.'</a></li>';
+                    }
                 } 
             } else {
-                for ($i = 1; $i <= 8; $i++) { echo "\t\t\t\t\t<li><a href=\"$url{$divider}page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n"; } 
+                for ($i = 1; $i <= 8; $i++) {
+                    $class = $cur_page == $i ? ' class="current"' : '';
+                    echo '
+                    <li><a href="'.$url.$divider.'page='.$i.'"'.$class.'>'.$i.'</a></li>';
+                } 
             }
         } else {
             for ($i = 1; $i <= $total_pages; $i++) {
-                echo "\t\t\t\t\t<li><a href=\"$url{$divider}page=$i\"";  if($cur_page == $i) { echo " class=\"current\""; } echo ">$i</a></li>\n";
+                $class = $cur_page == $i ? ' class="current"' : '';
+                echo '
+                    <li><a href="'.$url.$divider.'page='.$i.'"'.$class.'>'.$i.'</a></li>';
             } 
         }
         if ($cur_page < $total_pages) { 
-            $next = ($cur_page + 1); 
-            echo "\t\t\t\t\t<li><a title=\"" . $LANG['title_next_page'] . "\" class=\"next\" href=\"$url{$divider}page=$next\"></a></li>\n";
-            echo "\t\t\t\t\t<li><a title=\"" . $LANG['title_last_page'] . "\" class=\"last\" href=\"$url{$divider}page=$total_pages\"></a></li>\n";
+            $next = ($cur_page + 1);
+            echo '
+                    <li><a title="'.$LANG['title_next_page'].'" class="next" href="'.$url.$divider.'page='.$next.'"></a></li>
+                    <li><a title="'.$LANG['title_last_page'].'" class="last" href="'.$url.$divider.'page='.$total_pages.'"></a></li>';
         } 
-        echo "\t\t\t\t</ul>\n\t\t\t</div>\n";
+        echo '
+                </ul>
+            </div>';
     }    
 }
 
@@ -564,48 +637,96 @@ function displayMembersOnline ()
     echo "</p><br/><br/>\n";
 }
 
-function isLoggedIn ($userid, $username, $password)
+/**
+ * isLoggedIn
+ * 
+ * Checks whether user is logged in or not.  If user is logged in 
+ * it just returns, if not, it redirects to login screen.
+ * returns  boolean
+ */
+function isLoggedIn ($d = '')
 {
-    $result = mysql_query("SELECT * FROM `fcms_users` WHERE `id` = $userid LIMIT 1") or die('<h1>Login Error (util.inc.php 275)</h1>' . mysql_error());
-    if (mysql_num_rows($result) > 0) {
-        $r = mysql_fetch_array($result);
-        if ($r['username'] !== $username) { return false; } elseif ($r['password'] !== $password) { return false; } else { return true; }
+    if ($d != '') {
+        $up = '../';
     } else {
-        return false;
+        $up = '';
+    }
+
+    // User has a session
+    if (isset($_SESSION['login_id'])) {
+        $id = $_SESSION['login_id'];
+        $user = $_SESSION['login_uname'];
+        $pass = $_SESSION['login_pw'];
+    // User has a cookie
+    } elseif (isset($_COOKIE['fcms_login_id'])) {
+        $_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
+        $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
+        $_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
+        $id = $_SESSION['login_id'];
+        $user = $_SESSION['login_uname'];
+        $pass = $_SESSION['login_pw'];
+    // User has nothing
+    } else {
+        $url = basename($_SERVER["REQUEST_URI"]);
+		//echo "<meta http-equiv='refresh' content='0;URL=index.php?err=login&amp;url=$url'>";
+        header("Location: {$up}index.php?err=login&url=$d$url");
+        exit();
+    }
+
+    // User's session/cookie credentials are good
+    if (checkLoginInfo($id, $user, $pass)) {
+        $sql = "SELECT `access`, `site_off` 
+                FROM `fcms_users` AS u, `fcms_config` 
+                WHERE u.`id` = $id LIMIT 1";
+        $result = mysql_query($sql) or displaySQLError(
+            'Site Status Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $r = mysql_fetch_array($result);
+        // Site is off and your not an admin
+        if ($r['site_off'] == 1 && $r['access'] > 1) {
+		    //echo "<meta http-equiv='refresh' content='0;URL=index.php?err=off'>";
+            header("Location: {$up}index.php?err=off");
+            exit();
+        // Good login, you may proceed
+        } else {
+            return;
+        }
+    // The user's session/cookie credentials are bad
+    } else {
+		//echo "<meta http-equiv='refresh' content='0;URL=index.php?err=login'>";
+        header("Location: {$up}index.php?err=login");
+        exit();
     }
 }
 
-function displayLoginPage ($d = "")
+/**
+ * checkLoginInfo
+ * 
+ * Checks the user's username/pw combo
+ *
+ * @param   $userid     the id of the user you want to check
+ * @param   $username   the username of the user
+ * @param   $password   the password of the user
+ * returns  boolean
+ */
+function checkLoginInfo ($userid, $username, $password)
 {
-    global $LANG;
-    if (!empty($d)) {
-        $d = "../";
+    $sql = "SELECT `username`, `password` FROM `fcms_users` WHERE `id` = $userid LIMIT 1";
+    $result = mysql_query($sql) or displaySQLError(
+        'Login Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    if (mysql_num_rows($result) > 0) {
+        $r = mysql_fetch_array($result);
+        if ($r['username'] !== $username) {
+            return false;
+        } elseif ($r['password'] !== $password) {
+            return false;
+        } else {
+            return true;
+        }
+    } else {
+        return false;
     }
-    $sitename = getSiteName();
-    echo <<<HTML
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{$LANG['lang']}" lang="{$LANG['lang']}">
-<head>
-<link rel="stylesheet" type="text/css" href="{$d}themes/default/style.css"/>
-</head>
-<body>
-    <div id="header">
-        <div id="logo">
-            <a href="{$d}index.php"><img src="{$d}themes/default/images/logo.jpg"/></a>
-        </div>
-    </div>
-    <div id="content">
-        <div class="centercontent" style="padding: 0 0 300px 0;">
-            <div class="error-alert">
-                <h1>{$LANG['access_denied1']}</h1>
-                <p>{$LANG['access_denied2']}</p>
-                <p><a href="{$d}index.php">{$LANG['access_denied3']}</a></p>
-            </div>
-        </div>
-    </div>
-HTML;
-    displayFooter($d);
-    echo "</body>\n</html>";
 }
 
 /**
@@ -781,19 +902,85 @@ function displayWhatsNewAll ($userid)
     $tz_offset = $t['timezone'];
     $today = date('Y-m-d');
     $yesterday  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")-1, date("Y")));
-    $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u WHERE p.`thread` = t.`id` AND p.`user` = u.`id` AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) "
-        . "UNION SELECT a.`id`, `updated` AS 'date', 0 AS title, `user` AS userid, `entered_by` AS id2, 0 AS id3, 'ADDRESS' AS type FROM `fcms_users` AS u, `fcms_address` AS a WHERE u.`id` = a.`user` AND 'date' >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) ";
-    if (usingFamilyNews()) { $sql .= "UNION SELECT n.`id` AS id, n.`date`, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type FROM `fcms_users` AS u, `fcms_news` AS n WHERE u.`id` = n.`user` AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' "; }
-    if (usingPrayers()) { $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type FROM `fcms_prayers` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) "; }
-    if (usingRecipes()) { $sql .= "UNION SELECT `id` AS id, `date`, `name` AS title, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type FROM `fcms_recipes` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) "; }
-    if (usingdocuments()) { $sql .= "UNION SELECT d.`id` AS 'id', d.`date`, `name` AS title, d.`user` AS userid, 0 AS id2, 0 AS id3, 'DOCS' AS type FROM `fcms_documents` AS d, `fcms_users` AS u WHERE d.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)  AND d.`user` = u.`id` "; }
-    $sql .= "UNION SELECT DISTINCT p.`category` AS id, `date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(`date`) AS id3, 'GALLERY' AS type FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_gallery_category` AS c WHERE p.`user` = u.`id` AND p.`category` = c.`id` AND 'date' >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) GROUP BY userid, title, id3 ";
-    if (usingFamilyNews()) { $sql .= "UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)  AND nc.`user` = u.`id` AND n.`id` = nc.`news` "; }
-    $sql .= "UNION SELECT p.`id`, gc.`date`, `comment` AS title, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND gc.`user` = u.`id` AND gc.`photo` = p.`id` ";
-    $sql .= "UNION SELECT c.`id`, c.`date_added` AS date, `title`, `created_by` AS userid, `date` AS id2, `type` AS id3, 'CALENDAR' AS type FROM `fcms_calendar` AS c, `fcms_users` AS u WHERE c.`date_added` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND c.`created_by` = u.`id` AND `private` < 1 ";
-    $sql .= "UNION SELECT `id`, `started` AS date, `question`, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type FROM `fcms_polls` WHERE `started` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) ";
-    $sql .= "ORDER BY date DESC LIMIT 0, 35";
-    $result = mysql_query($sql) or die("<h1>Latest Info Error (util.inc.php 345)</h1>" . mysql_error() . "<h6>$sql</h6>");
+    $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type 
+            FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
+            WHERE p.`thread` = t.`id` 
+            AND p.`user` = u.`id` 
+            AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
+
+            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.entered_by AS id2, u.joindate AS id3, 'ADDRESSEDIT' AS type
+            FROM fcms_address AS a, fcms_users AS u
+            WHERE a.user = u.id
+            AND DATE_FORMAT(a.updated, '%Y-%m-%d %h') != DATE_FORMAT(u.joindate, '%Y-%m-%d %h') 
+            AND a.updated >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
+
+            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.entered_by AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
+            FROM fcms_address AS a, fcms_users AS u
+            WHERE a.user = u.id
+            AND u.`password` = 'NONMEMBER' 
+            AND a.updated >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
+
+            UNION SELECT `id`, `joindate` AS date, 0 AS title, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
+            FROM `fcms_users` 
+            WHERE `password` != 'NONMEMBER' 
+            AND `activated` > 0 
+            AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) ";
+    if (usingFamilyNews()) {
+        $sql .= "UNION SELECT n.`id` AS id, n.`date`, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type 
+                 FROM `fcms_users` AS u, `fcms_news` AS n 
+                 WHERE u.`id` = n.`user` 
+                 AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
+                 AND `username` != 'SITENEWS' 
+                 AND `password` != 'SITENEWS' ";
+    }
+    if (usingPrayers()) {
+        $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type 
+                 FROM `fcms_prayers` 
+                 WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) ";
+    }
+    if (usingRecipes()) {
+        $sql .= "UNION SELECT `id` AS id, `date`, `name` AS title, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type 
+                 FROM `fcms_recipes` 
+                 WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) ";
+    }
+    if (usingdocuments()) {
+        $sql .= "UNION SELECT d.`id` AS 'id', d.`date`, `name` AS title, d.`user` AS userid, 0 AS id2, 0 AS id3, 'DOCS' AS type 
+                 FROM `fcms_documents` AS d, `fcms_users` AS u 
+                 WHERE d.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
+                 AND d.`user` = u.`id` ";
+    }
+    $sql .= "UNION SELECT DISTINCT p.`category` AS id, `date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(`date`) AS id3, 'GALLERY' AS type 
+             FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_gallery_category` AS c 
+             WHERE p.`user` = u.`id` 
+             AND p.`category` = c.`id` 
+             AND 'date' >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
+             GROUP BY userid, title, id3 ";
+    if (usingFamilyNews()) {
+        $sql .= "UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
+                 FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u 
+                 WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
+                 AND nc.`user` = u.`id` 
+                 AND n.`id` = nc.`news` ";
+    }
+    $sql .= "UNION SELECT p.`id`, gc.`date`, `comment` AS title, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type 
+             FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p 
+             WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
+             AND gc.`user` = u.`id` 
+             AND gc.`photo` = p.`id` 
+
+             UNION SELECT c.`id`, c.`date_added` AS date, `title`, `created_by` AS userid, `date` AS id2, `type` AS id3, 'CALENDAR' AS type 
+             FROM `fcms_calendar` AS c, `fcms_users` AS u 
+             WHERE c.`date_added` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
+             AND c.`created_by` = u.`id` AND `private` < 1 
+
+             UNION SELECT `id`, `started` AS date, `question`, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type 
+             FROM `fcms_polls` 
+             WHERE `started` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
+
+             ORDER BY date DESC LIMIT 0, 35";
+    $result = mysql_query($sql) or displaySQLError(
+        'Latest Info Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $lastday = '0-0';
     while ($r=mysql_fetch_array($result)) {
         $day = date('Y-m-d', strtotime($r['date']));
@@ -829,29 +1016,23 @@ function displayWhatsNewAll ($userid)
             $pos = strpos($subject, '#ANOUNCE#');
             if ($pos !== false) { $subject = substr($subject, 9, strlen($subject)-9); }
             echo "<a href=\"messageboard.php?thread=" . $r['id2'] . "\" title=\"" . htmlentities($subject, ENT_COMPAT, 'UTF-8') . "\">$subject</a>. <small><i>$rdate</i></small></p>\n";
-        } elseif ($r['type'] == 'ADDRESS') {
-            $new_result = mysql_query("SELECT `joindate`, `password` FROM `fcms_users` WHERE `id` = " . $r['userid']);
-            $n = mysql_fetch_array($new_result);
-            if (date('Y-m-d H', strtotime($n['joindate'])) == date('Y-m-d H', strtotime($r['date'])) AND $n['password'] != 'NONMEMBER') {
-                // A new user joined the site
-                echo "\t\t\t<p class=\"newmember\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
-                echo getUserDisplayName($r['userid']);
-                echo "</a> ".$LANG['joined_site']." <small><i>$rdate</i></small></p>\n";
-            } else {
-                // A user has added an address for a non-member
-                if ($r['userid'] != $r['id2']) {
-                    echo "\t\t\t<p class=\"newaddress\"><a class=\"u\" href=\"profile.php?member=" . $r['id2'] . "\">";
-                    echo getUserDisplayName($r['id2']);
-                    echo "</a> ".$LANG['added_address']." <a href=\"addressbook.php?address=" . $r['id'] . "\">";
-                    echo getUserDisplayName($r['userid'], 2, false);
-                    echo "</a>. <small><i>$rdate</i></small></p>\n";
-                // User updated his/her address
-                } else {
-                    echo "\t\t\t<p class=\"newaddress\"><a class=\"u\" href=\"profile.php?member=" . $r['id2'] . "\">";
-                    echo getUserDisplayName($r['id2']);
-                    echo "</a> ".$LANG['upd_address1']." <a href=\"addressbook.php?address=" . $r['id'] . "\">".$LANG['upd_address2']."</a>. <small><i>$rdate</i></small></p>\n";
-                }
-            }
+        } elseif ($r['type'] == 'JOINED') {
+            // A new user joined the site
+            echo "\t\t\t<p class=\"newmember\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
+            echo getUserDisplayName($r['userid']);
+            echo "</a> ".$LANG['joined_site']." <small><i>$rdate</i></small></p>\n";
+        } elseif ($r['type'] == 'ADDRESSEDIT') {
+            // User updated his/her address
+            echo "\t\t\t<p class=\"newaddress\"><a class=\"u\" href=\"profile.php?member=" . $r['id2'] . "\">";
+            echo getUserDisplayName($r['id2']);
+            echo "</a> ".$LANG['upd_address1']." <a href=\"addressbook.php?address=" . $r['id'] . "\">".$LANG['upd_address2']."</a>. <small><i>$rdate</i></small></p>\n";
+        } elseif ($r['type'] == 'ADDRESSADD') {
+            // A user has added an address for a non-member
+            echo "\t\t\t<p class=\"newaddress\"><a class=\"u\" href=\"profile.php?member=" . $r['id2'] . "\">";
+            echo getUserDisplayName($r['id2']);
+            echo "</a> ".$LANG['added_address']." <a href=\"addressbook.php?address=" . $r['id'] . "\">";
+            echo getUserDisplayName($r['userid'], 2, false);
+            echo "</a>. <small><i>$rdate</i></small></p>\n";
         } elseif ($r['type'] == 'NEWS') {
             echo "\t\t\t<p class=\"newnews\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
             echo getUserDisplayName($r['userid']);

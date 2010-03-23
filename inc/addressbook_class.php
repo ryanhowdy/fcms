@@ -3,13 +3,15 @@ include_once('database_class.php');
 include_once('util_inc.php');
 include_once('language.php');
 
-class AddressBook {
+class AddressBook
+{
 
 	var $db;
 	var $cur_user_id;
 	var $tz_offset;
 
-	function AddressBook ($current_user_id, $type, $host, $database, $user, $pass) {
+	function AddressBook ($current_user_id, $type, $host, $database, $user, $pass)
+    {
 		$this->cur_user_id = $current_user_id;
 		$this->db = new database($type, $host, $database, $user, $pass);
 		$sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
@@ -18,13 +20,18 @@ class AddressBook {
 		$this->tz_offset = $row['timezone'];
 	}
 
-	function displayToolbar () {
+	function displayToolbar ()
+    {
 		global $LANG;
 		if (checkAccess($_SESSION['login_id']) <= 5) {
+            // TODO
+            // Remove the inline js
 			echo <<<HTML
             <div id="sections_menu" class="clearfix">
                 <ul>
                     <li><a class="add_address" href="?add=yes">{$LANG['add_address']}</a></li>
+                    <li><a class="edit_address" href="?address={$_SESSION['login_id']}">{$LANG['my_address']}</a></li>
+                    <li><a class="import" href="?csv=import">{$LANG['import']}</a></li>
                     <li><a class="export" href="?csv=export" onclick="javascript:return confirm('{$LANG['js_sure_export']}');">{$LANG['export']}</a></li>
                 </ul>
             </div>
@@ -32,8 +39,13 @@ class AddressBook {
 HTML;
 		}
 		echo '<div id="addresstoolbar" class="clearfix"><ul>';
-		$sql = "SELECT `lname` FROM `fcms_users` AS u, `fcms_address` as a WHERE u.`id` = a.`user` AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' ORDER BY `lname`";
-		$this->db->query($sql) or displaySQLError('Address Letter Error', 'inc/addressbook_class.php [' . __LINE__ . ']', $sql, mysql_error());
+		$sql = "SELECT `lname` 
+                FROM `fcms_users` AS u, `fcms_address` as a 
+                WHERE u.`id` = a.`user` 
+                ORDER BY `lname`";
+		$this->db->query($sql) or displaySQLError(
+            'Address Letter Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 		$prev_letter = -1;
         $letters = array();
 		while($r = $this->db->get_row()) {
@@ -52,52 +64,151 @@ HTML;
 		echo '<p><a class="u" href="addressbook.php">' . $LANG['show_all'] . '</a></p>';
 	}
 
-	function displayAddress ($aid) {
+	function displayAddress ($aid)
+    {
 		global $LANG;
-		$sql = "SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`, `email`, `birthday`, `password` FROM `fcms_address` AS a, `fcms_users` AS u WHERE a.`user` = u.`id` AND a.`id` = $aid";
-		$this->db->query($sql) or displaySQLError('Get Address Error', 'inc/addressbook_class.php [' . __LINE__ . ']', $sql, mysql_error());
+		$sql = "SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `address`, `city`, `state`, 
+                    `zip`, `home`, `work`, `cell`, `email`, `birthday`, `password` 
+                FROM `fcms_address` AS a, `fcms_users` AS u 
+                WHERE a.`user` = u.`id` 
+                AND a.`id` = $aid";
+		$this->db->query($sql) or displaySQLError(
+            'Get Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 		if ($this->db->count_rows() > 0) {
-			while($r = $this->db->get_row()) {
-				echo "\t\t\t<div class=\"address\">\n\t\t\t\t<p><img src=\"gallery/avatar/" . $r['avatar'] . "\"/><b>" . $r['lname'] . ", " . $r['fname'] . "</b></p>\n";
-				if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {
-					echo "\t\t\t\t<p class=\"alignright\">";
-					if ($r['password'] == 'NONMEMBER') { echo "<a class=\"del_address\" href=\"?del=" . $r['id'] . "&amp;u=".$r['user']."\" onclick=\"javascript:return confirm('".$LANG['js_sure_del']."');\">".$LANG['delete']."</a>&nbsp;&nbsp;"; }
-					echo "<a class=\"edit_address\" href=\"?edit=" . $r['id'] . "&amp;u=".$r['user']."\">".$LANG['edit']."</a></p>\n";
-				}
-				echo "\t\t\t\t<p class=\"clearfix\"><b class=\"label\">".$LANG['address']."</b><span class=\"data\">";
-				if (empty($r['address']) or $r['address'] == 'NULL') {
-					echo "<i>(".$LANG['none'].")</i>";
-				} else {
-					echo $r['address'] . "<br/>" . $r['city'] . ", " . $r['state'] . " " . $r['zip'];
-				}
-				echo "</span></p>\n\t\t\t\t<p class=\"clearfix\"><b class=\"label\">".$LANG['address_email']."</b><span class=\"data\">";
-				if (empty($r['email']) or $r['email'] == 'NULL') {
-					echo "<i>(".$LANG['none'].")</i>";
-				} else {
-					echo $r['email'] . " <a class=\"email\" href=\"mailto:" . $r['email'] . "\" title=\"Email This Member\">&nbsp;</a>";
-				}
-				echo "</span></p>\n\t\t\t\t<p class=\"clearfix\"><b class=\"label\">".$LANG['address_home']."</b><span class=\"data\">";
-				if (empty($r['home']) or $r['home'] == 'NULL') {
-					echo "<i>(".$LANG['none'].")</i>";
-				} else {
-					echo $r['home'];
-				}
-				echo "</span></p>\n\t\t\t\t<p class=\"clearfix\"><b class=\"label\">".$LANG['address_work']."</b><span class=\"data\">";
-				if (empty($r['work']) or $r['work'] == 'NULL') {
-					echo "<i>(".$LANG['none'].")</i>";
-				} else {
-					echo $r['work'];
-				}
-				echo "</span></p>\n\t\t\t\t<p class=\"clearfix\"><b class=\"label\">".$LANG['address_mobile']."</b><span class=\"data\">";
-				if (empty($r['cell']) or $r['cell'] == 'NULL') {
-					echo "<i>(".$LANG['none'].")</i>";
-				} else {
-					echo $r['cell'];
-				}
-				echo "</span></p>\n\t\t\t</div>\n";
-			}
-		}
+			$r = $this->db->get_row();
+
+            // Set up vars
+            // Edit / Delete links
+            $edit_del = '';
+            if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {
+                $edit_del = '<div class="edit_del_menu">
+                    <form action="addressbook.php" method="post">
+                        <div>
+                            <input type="hidden" name="id" value="'.$r['id'].'"/>
+                            <input type="submit" id="edit" name="edit" class="editbtn" value="'.$LANG['edit'].'"/>';
+                if ($r['password'] == 'NONMEMBER') {
+                    $edit_del .='
+                            <input type="submit" id="del" name="del" class="delbtn" value="'.$LANG['delete'].'"/>';
+                }
+                $edit_del .= '
+                        </div>
+                    </form>
+                </div>';
+            }
+            // Address
+            $address = '';
+            if (empty($r['address']) && empty($r['state'])) {
+                $address = "<i>(".$LANG['none'].")</i>";
+            } else {
+                if (!empty($r['address'])) {
+                    $address .= $r['address'] . "<br/>";
+                }
+                if (!empty($r['city'])) {
+                    $address .= $r['city'] . ", ";
+                }
+                $address .= $r['state'] . " " . $r['zip'];
+            }
+            // Email
+            if (empty($r['email'])) {
+                $email = "<i>(" . $LANG['none'] . ")</i>";
+            } else {
+                // TODO
+                // Add 'Email This Member' to language file
+                $email = $r['email'] . ' <a class="email" href="mailto:' . $r['email'] . '" title="Email This Member">&nbsp;</a>';
+            }
+            // Phone Numbers
+            $home = empty($r['home']) ? "<i>(" . $LANG['none'] . ")</i>" : $r['home'];
+            $work = empty($r['work']) ? "<i>(" . $LANG['none'] . ")</i>" : $r['work'];
+            $cell = empty($r['cell']) ? "<i>(" . $LANG['none'] . ")</i>" : $r['cell'];
+            
+            // Display address
+            echo <<<HTML
+
+            <div id="address">
+                {$edit_del}
+                <p><img src="gallery/avatar/{$r['avatar']}"/><b>{$r['lname']}, {$r['fname']}</b></p>
+                <p class="clearfix"><b class="label">{$LANG['address']}</b><span class="data">{$address}</span></p>
+                <p class="clearfix"><b class="label">{$LANG['address_email']}</b><span class="data">{$email}</span></p>
+                <p class="clearfix"><b class="label">{$LANG['address_home']}</b><span class="data">{$home}</span></p>
+                <p class="clearfix"><b class="label">{$LANG['address_work']}</b><span class="data">{$work}</span></p>
+                <p class="clearfix"><b class="label">{$LANG['address_mobile']}</b><span class="data">{$cell}</span></p>
+            </div>
+
+HTML;
+		} else {
+            echo '<p class="error-alert">Could not find address ($aid).</p>';
+        }
 	}
+
+    function displayAddressList ($letter = '', $page = 1)
+    {
+        global $LANG;
+		$from = (($page * 25) - 25);
+        if ($letter !== '') {
+            $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` 
+                    FROM `fcms_users` AS u, `fcms_address` as a WHERE u.`id` = a.`user` 
+                    AND `lname` LIKE '" . escape_string($_GET['letter']) . "%' 
+                    ORDER BY `lname`";
+        } else {
+            $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` 
+                    FROM `fcms_users` AS u, `fcms_address` as a 
+                    WHERE u.`id` = a.`user` 
+                    ORDER BY `lname`
+                    LIMIT $from, 25";
+        }
+        echo '
+            <form action="addressbook.php" id="mass_mail_form" name="mass_mail_form" method="post">
+                <table class="sortable">
+                    <thead>
+                        <tr>
+                            <th class="sortfirstasc">'.$LANG['name'].'</th>
+                            <th>'.$LANG['phone_num'].'</th>
+                            <th>'.$LANG['email'].'</th>
+                            <th class="nosort"><a class="helpimg" href="help.php#address-massemail"></a></th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+        $result = mysql_query($sql) or displaySQLError(
+            'Get Addresses Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        while ($r = mysql_fetch_array($result)) {
+            $email = '';
+            if (!empty($r['email'])) {
+                $email = '<input type="checkbox" name="massemail[]" value="'.htmlentities($r['email'], ENT_COMPAT, 'UTF-8').'"/>';
+            }
+            echo '
+                        <tr>
+                            <td><a href="?address='.$r['id'].'">'.$r['lname'].', '.$r['fname'].'</a></td>
+                            <td>'.$r['home'].'</td>
+                            <td><a href="mailto:'.htmlentities($r['email'], ENT_COMPAT, 'UTF-8').'">'.$r['email'].'</a></td>
+                            <td>'.$email.'</td>
+                        </tr>';
+        }
+        $dis = '';
+        if (checkAccess($_SESSION['login_id']) > 3) {
+            $dis = 'disabled="disabled"';
+        }
+        echo '
+                    </tbody>
+                </table>
+                <div class="alignright"><input '.$dis.' type="submit" name="emailsubmit" value="'.$LANG['email'].'"/></div>
+                <p>&nbsp;</p>
+            </form>';
+
+        // Display Pages
+        if ($letter == '') {
+            // Remove the LIMIT from the $sql statement 
+            // used above, so we can get the total count
+            $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
+            $result = mysql_query($sql) or displaySQLError(
+                'Page Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
+        }
+        $count = mysql_num_rows($result);
+        $total_pages = ceil($count / 25); 
+        displayPages("addressbook.php", $page, $total_pages);
+    }
 
 	function displayForm ($type, $addressid = '0')
     {
@@ -133,7 +244,7 @@ HTML;
                         <div class="field-widget"><input class="frm_text" type="text" name="fname" id="fname" title="{$LANG['title_fname']}" size="25"/></div>
                     </div>
                     <script type="text/javascript">
-                        var ffname = new LiveValidation('fname', {validMessage: ""});
+                        var ffname = new LiveValidation('fname', { onlyOnSubmit: true });
                         ffname.add(Validate.Presence, {failureMessage: ""});
                     </script>
 			        <div class="field-row clearfix">
@@ -141,7 +252,7 @@ HTML;
                         <div class="field-widget"><input class="frm_text" type="text" name="lname" id="lname" title="{$LANG['title_lname']}" size="25"/></div>
                     </div>
                     <script type="text/javascript">
-                        var flname = new LiveValidation('lname', { validMessage: ""});
+                        var flname = new LiveValidation('lname', { onlyOnSubmit: true });
                         flname.add(Validate.Presence, {failureMessage: ""});
                     </script>
 
@@ -162,7 +273,7 @@ HTML;
                         <div class="field-widget"><input class="frm_text" type="text" name="email" id="email" title="{$LANG['title_email']}" size="50" value="{$email}"/></div>
                     </div>
 		            <script type="text/javascript">
-                        var femail = new LiveValidation('email', { validMessage: "", wait: 500});
+                        var femail = new LiveValidation('email', { onlyOnSubmit: true });
                         femail.add( Validate.Email, { failureMessage: "{$LANG['lv_bad_email']}"});
                     </script>
                     <div class="field-row clearfix">
@@ -185,23 +296,48 @@ HTML;
                         <div class="field-label"><label for="home"><b>{$LANG['home_phone']}</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="home" id="home" title="{$LANG['title_phone']}" size="20" value="{$home}"/></div>
                     </div>
+                    <script type="text/javascript">
+                        var fhome = new LiveValidation('home', { onlyOnSubmit: true });
+                        fhome.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
+                    </script>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="work"><b>{$LANG['work_phone']}</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="work" id="work" title="{$LANG['title_phone']}" size="20" value="{$work}"/></div>
                     </div>
+                    <script type="text/javascript">
+                        var fwork = new LiveValidation('work', { onlyOnSubmit: true });
+                        fwork.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
+                    </script>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="cell"><b>{$LANG['mobile_phone']}</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="cell" id="cell" title="{$LANG['title_phone']}" size="20" value="{$cell}"/></div>
                     </div>
+                    <script type="text/javascript">
+                        var fcell = new LiveValidation('cell', { onlyOnSubmit: true });
+                        fcell.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
+                    </script>
                 </fieldset>
-
 HTML;
 		if($type == 'edit') {
-			echo "\t\t\t<div><input type=\"hidden\" name=\"aid\" value=\"$addressid\"/></div>\n";
-			echo "\t\t\t<div><input type=\"hidden\" name=\"uid\" value=\"".$row['uid']."\"/></div>\n";
-			echo "\t\t\t<p><input type=\"submit\" name=\"editsubmit\" value=\"".$LANG['edit_address']."\"/> " . $LANG['or'] . " <a href=\"addressbook.php\">" . $LANG['cancel'] . "</a></p></form>\n";
+			echo '
+                <div>
+                    <input type="hidden" name="aid" value="'.$addressid.'"/>
+                    <input type="hidden" name="uid" value="'.$row['uid'].'"/>
+                </div>
+                <p>
+                    <input type="submit" name="editsubmit" value="'.$LANG['edit_address'].'"/> 
+                    '.$LANG['or'].' 
+                    <a href="addressbook.php?address='.$addressid.'">'.$LANG['cancel'].'</a>
+                </p>
+            </form>';
 		} else {
-			echo "\t\t\t<p><input type=\"submit\" name=\"addsubmit\" value=\"".$LANG['add_address']."\"/> " . $LANG['or'] . " <a href=\"addressbook.php\">" . $LANG['cancel'] . "</a></p></form>\n";
+			echo '
+                <p>
+                    <input type="submit" name="addsubmit" value="'.$LANG['add_address'].'"/> 
+                    '.$LANG['or'].' 
+                    <a href="addressbook.php">'.$LANG['cancel'].'</a>
+                </p>
+            </form>';
 		}
 	}
 
@@ -227,6 +363,39 @@ HTML;
 		echo "<p><input type=\"submit\" name=\"sendemailsubmit\" value=\"".$LANG['send_mass_email']."\"/>";
 		echo " " . $LANG['or'] . " <a href=\"addressbook.php\">" . $LANG['cancel'] . "</a></p>\n\t\t\t</form><p>&nbsp;</p><p>&nbsp;</p>";
 	}
+
+    /*
+     *  userHasAddress
+     *
+     *  Checks whether or not the user has entered address info.
+     *
+     *  @param      $id    the user's id
+     *  @return     true/false
+     */
+    function userHasAddress ($id)
+    {
+        $sql = "SELECT * FROM `fcms_address` WHERE `user` = $id";
+		$this->db->query($sql) or displaySQLError(
+            'Has Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        if ($this->db->count_rows() == 1) {
+            $r = $this->db->get_row();
+            // Must fill in at least state and one phone number to be
+            // considered having address info filled out
+            if (
+                !empty($r['state']) && 
+                ( !empty($r['home']) || !empty($r['work']) || !empty($r['cell']) )
+            ) {
+                return true;
+            } else {
+                return false;
+            }
+        } elseif ($this->db->count_rows() > 1) {
+            die("Multiple Addresses found!");
+        } else {
+            return false;
+        }
+    }
 
 	function displayWhatsNewAddressBook ()
     {
@@ -267,6 +436,274 @@ HTML;
 		}
 		echo "\t\t\t\t</ul>\n";
 	}
+
+    /*
+     *  displayImportForm
+     *
+     *  Displays the form to allow csv imports.
+     */
+    function displayImportForm ()
+    {
+        global $LANG;
+        echo '
+            <h2>'.$LANG['import'].'</h2><br/>
+            <form method="post" name="csv-form" action="addressbook.php?csv=import" enctype="multipart/form-data" >
+                <div><input type="file" name="csv" id="csv" /></div>
+                <p>
+                    <input type="submit" id="import" name="import" value="'.$LANG['import'].'"/> or 
+                    <a href="addressbook.php">'.$LANG['cancel'].'</a>
+                </p>
+            </form>';
+    }
+
+    /*
+     *  importAddressCsv
+     *
+     *  Imports a CSV file into the address book
+     *
+     *  @param      $file   the csv file
+     *  @return     nothing
+     */
+    function importAddressCsv ($file)
+    {
+        global $LANG;
+        if (!in_array($file['type'], array('text/plain', 'text/x-csv'))) {
+            echo '
+            <p class="error-alert">'.$file['name'].' ('.$file['type'].') is not a CSV file.</p>';
+        } else {
+
+            // Read in the file and parse the data to an array of arrays
+            $row = 0;
+            $addresses = array();
+            $handle = fopen($file['tmp_name'], "r");
+            while (($data = fgetcsv($handle, 4096, ",")) !== FALSE) {
+                if ($row == 0) {
+                    // Get Column headers
+                    $headers = $data;
+                    $row++;
+                } else {
+                    $num = count($data);
+                    $row++;
+                    for ($i=0; $i < $num; $i++) {
+                        if ($data[$i]) {
+                            $addresses[$row][$headers[$i]] = $data[$i];
+                        }
+                    }
+                }
+            }
+            
+            // Loop through the multidimensional array and insert valid addresses into db
+            $i = 0;
+            foreach ($addresses as $address) {
+                // First Name
+                $fname = '';
+                if (isset($address['First Name'])) {
+                    // Outlook
+                    $fname = $address['First Name'];
+                } elseif (isset($address['Given Name'])) {
+                    // Gmail
+                    $fname = $address['Given Name'];
+                }
+                // Last Name
+                $lname = '';
+                if (isset($address['Last Name'])) {
+                    // Outlook
+                    $lname = $address['Last Name'];
+                } elseif (isset($address['Family Name'])) {
+                    // Gmail
+                    $lname = $address['Family Name'];
+                }
+                // Email
+                $email = '';
+                if (isset($address['E-mail Address'])) {
+                    // Outlook
+                    $email = $address['E-mail Address'];
+                } elseif (isset($address['E-mail 1 - Value'])) {
+                    // Gmail
+                    $email = $address['E-mail 1 - Value'];
+                }
+                // Street Address
+                $street = '';
+                $city = '';
+                $state = '';
+                $zip = '';
+                if (isset($address['Home Address'])) {
+                    // Outlook (all in one)
+                    // Try to parse the data into individual fields
+                    // This only works for US formatted addressess
+                    $endStreet = strpos($address['Home Address'], "\n");
+                    if ($endStreet !== false) {
+                        $street = substr($address['Home Address'], 0, $endStreet-1);
+                        $endCity = strpos($address['Home Address'], ",", $endStreet);
+                        if ($endCity !== false) {
+                            $city = substr($address['Home Address'], $endStreet+1, ($endCity - $endStreet)-1);
+                            $tmpZip = substr($address['Home Address'], -5);
+                            if (is_numeric($tmpZip)) {
+                                $endZip = strpos($address['Home Address'], $tmpZip, $endCity);
+                                if ($endZip !== false) {
+                                    $state = substr($address['Home Address'], $endCity+2);
+                                    $state = substr($state, 0, -6);  // 5 zip + space
+                                    $zip = $tmpZip;
+                                }
+                            } else {
+                                $state = substr($address['Home Address'], $endCity);
+                            }
+                        }
+                    // Can't figure out which part is which
+                    } else {
+                        $street = $address['Home Address'];
+                    }
+                } elseif (isset($address['Home Street'])) {
+                    // Outlook
+                    $street = $address['Home Street'];
+                } elseif (isset($address['Address 1 - Formatted'])) {
+                    // Gmail (all in one)
+                    // Try to parse the data into individual fields
+                    // This only works for US formatted addressess
+                    $endStreet = strpos($address['Address 1 - Formatted'], "\n");
+                    if ($endStreet !== false) {
+                        $street = substr($address['Address 1 - Formatted'], 0, $endStreet-1);
+                        $endCity = strpos($address['Address 1 - Formatted'], ",", $endStreet);
+                        if ($endCity !== false) {
+                            $city = substr($address['Address 1 - Formatted'], $endStreet+1, ($endCity - $endStreet)-1);
+                            $tmpZip = substr($address['Address 1 - Formatted'], -5);
+                            if (is_numeric($tmpZip)) {
+                                $endZip = strpos($address['Address 1 - Formatted'], $tmpZip, $endCity);
+                                if ($endZip !== false) {
+                                    $state = substr($address['Address 1 - Formatted'], $endCity+2);
+                                    $state = substr($state, 0, -6);  // 5 zip + space
+                                    $zip = $tmpZip;
+                                }
+                            } else {
+                                $state = substr($address['Address 1 - Formatted'], $endCity);
+                            }
+                        }
+                    // Can't figure out which part is which
+                    } else {
+                        $street = $address['Home Address'];
+                    }
+                } elseif (isset($address['Address 1 - Street'])) {
+                    // Gmail
+                    $street = $address['Address 1 - Street'];
+                }
+                // City
+                if (isset($address['Home City'])) {
+                    // Outlook
+                    $city = $address['Home City'];
+                } elseif (isset($address['Address 1 - City'])) {
+                    // Gmail
+                    $city = $address['Address 1 - City'];
+                }
+                // State
+                if (isset($address['Home State'])) {
+                    // Outlook
+                    $state = $address['Home State'];
+                } elseif (isset($address['Address 1 - Region'])) {
+                    // Gmail
+                    $state = $address['Address 1 - Region'];
+                }
+                // Zip
+                if (isset($address['Home Postal Code'])) {
+                    // Outlook
+                    $zip = $address['Home Postal Code'];
+                } elseif (isset($address['Address 1 - Postal Code'])) {
+                    // Gmail
+                    $zip = $address['Address 1 - Postal Code'];
+                }
+                // Phone Numbers
+                $home = '';
+                $work = '';
+                $cell = '';
+                // Outlook
+                if (isset($address['Home Phone'])) {
+                    $home = $address['Home Phone'];
+                }
+                if (isset($address['Business Phone'])) {
+                    $work = $address['Business Phone'];
+                }
+                if (isset($address['Mobile Phone'])) {
+                    $cell = $address['Mobile Phone'];
+                }
+                // Gmail
+                if (isset($address['Phone 1 - Type'])) {
+                    switch ($address['Phone 1 - Type']) {
+                        case 'Home':
+                            $home = $address['Phone 1 - Type'];
+                            break;
+                        case 'Work':
+                            $work = $address['Phone 1 - Type'];
+                            break;
+                        case 'Mobile':
+                            $cell = $address['Phone 1 - Type'];
+                            break;
+                    }
+                }
+                if (isset($address['Phone 2 - Type'])) {
+                    switch ($address['Phone 2 - Type']) {
+                        case 'Home':
+                            $home = $address['Phone 2 - Type'];
+                            break;
+                        case 'Work':
+                            $work = $address['Phone 2 - Type'];
+                            break;
+                        case 'Mobile':
+                            $cell = $address['Phone 2 - Type'];
+                            break;
+                    }
+                }
+                if (isset($address['Phone 3 - Type'])) {
+                    switch ($address['Phone 3 - Type']) {
+                        case 'Home':
+                            $home = $address['Phone 3 - Type'];
+                            break;
+                        case 'Work':
+                            $work = $address['Phone 3 - Type'];
+                            break;
+                        case 'Mobile':
+                            $cell = $address['Phone 3 - Type'];
+                            break;
+                    }
+                }
+
+                // Create non-member
+                $uniq = uniqid("");
+                $sql = "INSERT INTO `fcms_users` ("
+                        . "`access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`"
+                     . ") VALUES ("
+                        . "3, "
+                        . "NOW(), "
+                        . "'" . addslashes($fname) . "', "
+                        . "'" . addslashes($lname) . "', "
+                        . "'" . addslashes($email) . "', "
+                        . "'NONMEMBER-$uniq', "
+                        . "'NONMEMBER')";
+                mysql_query($sql) or displaySQLError(
+                    'Add Non-Member Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+                $id = mysql_insert_id();
+                // Create address for non-member
+                $sql = "INSERT INTO `fcms_address`("
+                        . "`user`, `entered_by`, `updated`, `address`, `city`, `state`, "
+                        . "`zip`, `home`, `work`, `cell`"
+                     . ") VALUES ("
+                        . "$id, "
+                        . $_SESSION['login_id'] . ", "
+                        . "NOW(), "
+                        . "'" . addslashes($street) . "', "
+                        . "'" . addslashes($city) . "', "
+                        . "'" . addslashes($state) . "', "
+                        . "'" . addslashes($zip) . "', "
+                        . "'" . addslashes($home) . "', "
+                        . "'" . addslashes($work) . "', "
+                        . "'" . addslashes($cell) . "')";
+                mysql_query($sql) or displaySQLError(
+                    'New Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+                $i++;
+            }
+            echo '<p class="ok-alert">('.$i.') addresses successfully added.</p>';
+        }
+    }
 
 }
 ?>

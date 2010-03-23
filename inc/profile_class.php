@@ -79,7 +79,7 @@ class Profile {
 		$joinDate = gmdate(" j, Y", strtotime($row['joindate']));
 		$activityMonthName = gmdate("F", strtotime($row['activity'] . $this->tz_offset));
         $activityMonthName = getLangMonthName($activityMonthName);
-		$activityDate = fixDST(gmdate('n/j/Y g:i a', strtotime($row['activity'] . $this->tz_offset)), $_SESSION['login_id'], 'j, Y, g:i a');
+		$activityDate = fixDST(gmdate('n/j/Y g:i a', strtotime($row['activity'] . $this->tz_offset)), $_SESSION['login_id'], ' j, Y, g:i a');
         // Stats Info
 		if (checkAccess($_SESSION['login_id']) != 10) {
             $postsCount = getPostsById($userid);
@@ -197,9 +197,10 @@ HTML;
 					'/\[mail\=(.*?)\](.*?)\[\/mail\]/is', '/\[mail\](.*?)\[\/mail\]/is', '/\[font\=(.*?)\](.*?)\[\/font\]/is', '/\[size\=(.*?)\](.*?)\[\/size\]/is', '/\[color\=(.*?)\](.*?)\[\/color\]/is', '/\[span\](.*?)\[\/span\]/is', '/\[span\=(.*?)\](.*?)\[\/span\]/is');
 				$replace = array('$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$2', '$1', '$2', '$1', '1', '$2', '$1', '$2', '$2','$2', '$1', '$2');
 				$post = preg_replace($search, $replace, stripslashes($row['post']));
+                $post = htmlentities($post, ENT_COMPAT, 'UTF-8');
 				$subject = stripslashes($row['subject']);
 				$pos = strpos($subject, '#ANOUNCE#');
-				if($pos !== false) { $subject = substr($subject, 9, strlen($subject)-9); }
+				if ($pos !== false) { $subject = substr($subject, 9, strlen($subject)-9); }
 				echo "<p class=\"small\"><a href=\"messageboard.php?thread=" . $row['id'] . "\">$subject</a> <i>" . getLangMonthName($monthName) . "$date</i><br/>$post</p>";
 			}
 		} else {

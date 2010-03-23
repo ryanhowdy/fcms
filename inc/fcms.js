@@ -1,3 +1,16 @@
+/* =GENERAL =GLOBAL
+------------------------------------------------*/
+function addLoadEvent(func) {   
+    var oldonload = window.onload;
+    if (typeof window.onload != 'function'){
+        window.onload = func;
+    } else {
+        window.onload = function(){
+        oldonload();
+        func();
+        }
+    }
+}
 function initTextFieldHighlight() {
     if (!$$('input[type="text"], input[type="password"]')) { return; }
     $$('input[type="text"], input[type="password"]').each(function(item) {
@@ -30,90 +43,6 @@ function initSubmitHighlight() {
             item.removeClassName('mouseover');
         });
     });
-}
-function initLatestInfoHighlight() {
-    if (!$$('p.newthread,p.newpost,p.newaddress,p.newnews,p.newprayer,p.newphoto,p.newcom,p.newmember,p.newrecipe,p.newcal,p.newpoll,p.newdocument')) { return; }
-    $$('p.newthread,p.newpost,p.newaddress,p.newnews,p.newprayer,p.newphoto,p.newcom,p.newmember,p.newrecipe,p.newcal,p.newpoll,p.newdocument').each(function(item) {
-        item.observe('mouseover', function() {
-            item.addClassName('mouseover');
-        });
-        item.observe('mouseout', function() {
-            item.removeClassName('mouseover');
-        });
-    });
-}
-function initCalendarHighlight() {
-    if (!$$('#big_calendar td')) { return; }
-    $$('#big_calendar td').each(function(item) {
-        item.observe('mouseover', function() {
-            var link = item.childNodes[1];
-            if (link) {
-                if (link.getAttribute('href')) {
-                    item.addClassName('mouseover');
-                    item.setAttribute('onclick', "document.location.href='"+link+"'");
-                }
-            }
-        });
-        item.observe('mouseout', function() {
-            item.removeClassName('mouseover');
-        });
-    });
-}
-function initCheckAll()
-{
-    // http://www.dustindiaz.com/basement/checkAll.html
-    var frm = $('mass_mail_form');
-    if (frm) {
-        // Create Check All box
-        var chk = document.createElement('input');
-        chk.setAttribute('type', 'checkbox');
-        chk.setAttribute('name', 'allbox');
-        chk.setAttribute('value', 'Check All');
-        chk.setAttribute('onClick', "checkAll(document.mass_mail_form);");
-        var atext = document.createTextNode("Select All");
-        chk.appendChild(atext);
-        var head = document.getElementsByTagName('thead')[0];
-        // get the last <th>
-        var cell = head.childNodes[0].lastChild;
-        cell.appendChild(chk);
-        
-        // Add CheckCheckAll() to each checkbox
-        for (var i=0; i<frm.elements.length; i++) {
-            var e = frm.elements[i];
-            if ((e.name != 'allbox') && (e.type=='checkbox') && (!e.disabled)) {
-                e.setAttribute('onClick', "checkCheckAll(document.mass_mail_form);");
-            }
-        }
-    }
-    return true;
-}
-function checkAll(frmobj)
-{
-    for (var i=0; i<frmobj.elements.length; i++) {
-        var e = frmobj.elements[i];
-        if ((e.name != 'allbox') && (e.type=='checkbox') && (!e.disabled)) {
-            e.checked = frmobj.allbox.checked;
-        }
-    }
-}
-function checkCheckAll(frmobj)
-{	
-    var TotalBoxes = 0;
-    var TotalOn = 0;
-    for (var i=0;i<frmobj.elements.length;i++) {
-        var e = frmobj.elements[i];
-        if ((e.name != 'allbox') && (e.type=='checkbox')){
-            TotalBoxes++;
-            if (e.checked) {
-                TotalOn++;
-            }
-        }
-    }
-    if (TotalBoxes==TotalOn) {
-        frmobj.allbox.checked=true;
-    } else {
-        frmobj.allbox.checked=false;
-    }
 }
 function addSmiley(smileystring) {
     if (!document.getElementById('post')) { return; }
@@ -219,19 +148,193 @@ BBCode.prototype.insertLink=function(html) {
 
 
 
-function addLoadEvent(func) {   
-    var oldonload = window.onload;
-    if (typeof window.onload != 'function'){
-        window.onload = func;
-    } else {
-        window.onload = function(){
-        oldonload();
-        func();
+/* =HOME
+------------------------------------------------*/
+function initLatestInfoHighlight() {
+    if (!$$('p.newthread,p.newpost,p.newaddress,p.newnews,p.newprayer,p.newphoto,p.newcom,p.newmember,p.newrecipe,p.newcal,p.newpoll,p.newdocument')) { return; }
+    $$('p.newthread,p.newpost,p.newaddress,p.newnews,p.newprayer,p.newphoto,p.newcom,p.newmember,p.newrecipe,p.newcal,p.newpoll,p.newdocument').each(function(item) {
+        item.observe('mouseover', function() {
+            item.addClassName('mouseover');
+        });
+        item.observe('mouseout', function() {
+            item.removeClassName('mouseover');
+        });
+    });
+}
+
+/* =PHOTO =GALLERY
+------------------------------------------------*/
+function hideUploadOptions(rotateText, tagText) {
+    // Hide Rotate options
+    if ($('rotate-options')) {
+        var rDiv = $('rotate-options');
+        var rPara = document.createElement('p');
+        if (rDiv.style.setAttribute) {
+            rDiv.style.setAttribute('cssText', 'display:none');
+            rPara.style.setAttribute('cssText', 'text-align:center');
+        } else {
+            rDiv.setAttribute('style', 'display:none');
+            rPara.setAttribute('style', 'text-align:center');
+        }
+        var rLink = Element.extend(document.createElement('a'));
+        rLink.href = '#';
+        rLink.addClassName('u');
+        rLink.appendChild(document.createTextNode(rotateText));
+        rLink.onclick = function() { $('rotate-options').toggle(); return false; };
+        rPara.appendChild(rLink);
+        rDiv.insert({'before':rPara});
+    }
+    // Hide Tag Options
+    if ($('tag-options')) {
+        var tDiv = $('tag-options');
+        var tPara = Element.extend(document.createElement('p'));
+        if (tDiv.style.setAttribute) {
+            tDiv.style.setAttribute('cssText', 'display:none');
+            tPara.style.setAttribute('cssText', 'text-align:center');
+        } else {
+            tDiv.setAttribute('style', 'display:none');
+            tPara.setAttribute('style', 'text-align:center');
+        }
+        var tLink = Element.extend(document.createElement('a'));
+        tLink.href = '#';
+        tLink.addClassName('u');
+        tLink.appendChild(document.createTextNode(tagText));
+        tLink.onclick = function() { $('tag-options').toggle(); return false; };
+        tPara.appendChild(tLink);
+        tDiv.insert({'before':tPara});
+    }
+}
+function hidePhotoDetails(txt) {
+    if ($('photo_details_sub')) {
+        var pDiv = $('photo_details_sub');
+        var pPara = document.createElement('p');
+        if (pDiv.style.setAttribute) {
+            pDiv.style.setAttribute('cssText', 'display:none');
+        } else {
+            pDiv.setAttribute('style', 'display:none');
+        }
+        var pLink = Element.extend(document.createElement('a'));
+        pLink.href = '#';
+        pLink.appendChild(document.createTextNode(txt));
+        pLink.onclick = function() { $('photo_details_sub').toggle(); return false; };
+        pPara.appendChild(pLink);
+        pDiv.insert({'before':pPara});
+    }
+}
+function initConfirmPhotoDelete(txt) {
+    if ($('deletephoto')) {
+        var item = $('deletephoto');
+        item.onclick = function() { return confirm(txt); };
+        var hid = document.createElement('input');
+        hid.setAttribute('type', 'hidden');
+        hid.setAttribute('name', 'confirmed');
+        hid.setAttribute('value', 'true');
+        item.insert({'after':hid});
+    }
+}
+function initConfirmCommentDelete(txt) {
+    if (!$$('.delcom input[type="submit"]')) { return; }
+    $$('.delcom input[type="submit"]').each(function(item) {
+        item.onclick = function() { return confirm(txt); };
+        var hid = document.createElement('input');
+        hid.setAttribute('type', 'hidden');
+        hid.setAttribute('name', 'confirmedcom');
+        hid.setAttribute('value', 'true');
+        item.insert({'after':hid});
+    });
+}
+function initConfirmCategoryDelete(txt) {
+    if (!$$('.frm_line input[type="submit"]')) { return; }
+    $$('.frm_line input[type="submit"]').each(function(item) {
+        item.onclick = function() { return confirm(txt); };
+        var hid = document.createElement('input');
+        hid.setAttribute('type', 'hidden');
+        hid.setAttribute('name', 'confirmedcat');
+        hid.setAttribute('value', 'true');
+        item.insert({'after':hid});
+    });
+}
+
+/* =CALENDAR
+------------------------------------------------*/
+function initCalendarHighlight() {
+    if (!$$('#big_calendar td.monthDay, #big_calendar td.monthToday')) { return; }
+    $$('#big_calendar td.monthDay, #big_calendar td.monthToday').each(function(item) {
+        item.observe('mouseover', function() {
+            var link = item.childNodes[1];
+            if (link) {
+                if (link.getAttribute('href')) {
+                    item.addClassName('mouseover');
+                    item.setAttribute('onclick', "document.location.href='"+link+"'");
+                }
+            }
+        });
+        item.observe('mouseout', function() {
+            item.removeClassName('mouseover');
+        });
+    });
+}
+
+/* =ADDRESSBOOK =BOOK
+------------------------------------------------*/
+function initCheckAll()
+{
+    // http://www.dustindiaz.com/basement/checkAll.html
+    var frm = $('mass_mail_form');
+    if (frm) {
+        // Create Check All box
+        var chk = document.createElement('input');
+        chk.setAttribute('type', 'checkbox');
+        chk.setAttribute('name', 'allbox');
+        chk.setAttribute('value', 'Check All');
+        chk.onclick = function () { checkAll(document.mass_mail_form); }
+        //chk.appendChild(document.createTextNode("Select All"));
+        var head = document.getElementsByTagName('thead')[0];
+        // get the last <th>
+        var cell = head.childNodes[0].lastChild;
+        cell.appendChild(chk);
+        
+        // Add CheckCheckAll() to each checkbox
+        for (var i=0; i<frm.elements.length; i++) {
+            var e = frm.elements[i];
+            if ((e.name != 'allbox') && (e.type=='checkbox') && (!e.disabled)) {
+                e.onclick = function () { checkCheckAll(document.mass_mail_form); }
+            }
+        }
+    }
+    return true;
+}
+function checkAll(frmobj)
+{
+    for (var i=0; i<frmobj.elements.length; i++) {
+        var e = frmobj.elements[i];
+        if ((e.name != 'allbox') && (e.type=='checkbox') && (!e.disabled)) {
+            e.checked = frmobj.allbox.checked = true;
         }
     }
 }
+function checkCheckAll(frmobj)
+{	
+    var TotalBoxes = 0;
+    var TotalOn = 0;
+    for (var i=0;i<frmobj.elements.length;i++) {
+        var e = frmobj.elements[i];
+        if ((e.name != 'allbox') && (e.type=='checkbox')){
+            TotalBoxes++;
+            if (e.checked) {
+                TotalOn++;
+            }
+        }
+    }
+    if (TotalBoxes==TotalOn) {
+        frmobj.allbox.checked=true;
+    } else {
+        frmobj.allbox.checked=false;
+    }
+}
+
+// TODO - move these out of here 
 addLoadEvent(initTextFieldHighlight);
 addLoadEvent(initRowHighlight);
 addLoadEvent(initSubmitHighlight);
-addLoadEvent(initCalendarHighlight);
 addLoadEvent(initCheckAll);

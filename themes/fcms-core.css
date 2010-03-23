@@ -1,0 +1,86 @@
+html { font: 14px/160% Verdana, Arial, sans-serif; color: #555; text-align: center; background: #9ccef0 url(default/images/bg.png) repeat-x; padding: 50px 0; }
+form { background-color: #e9f3fb; padding: 10px; }
+label { font-weight: bold; cursor: pointer; cursor: hand; }
+.field-label label { display: block; font-weight: bold; cursor: default; }
+input { border: 1px solid #b2d1f0; color: #555; font: 26px Verdana, Arial, sans-serif; padding: 2px 3px; }
+a { color: #555; }
+a:hover { color: #000; background-color: #9ccef0; }
+.center { text-align: center; }
+.clear { clear: both; }
+:focus { outline: 0; }
+#submit, #reset { float: right; border: 1px solid #3e8ec1; color: #000; background-color: #b2d1f0; font-size: 18px; }
+.LV_valid { display: none; }
+.LV_invalid { display: block; font-size: 8pt; font-weight: bold; color : #c00; }
+.LV_invalid_field, 
+.LV_invalid_field:hover, 
+.LV_invalid_field:active { border: 1px solid #c00; }
+.field-widget { height: 70px; }
+.big { height: 125px; }
+.error { background-color: #ffefef; border: 1px solid #c00; padding: 15px; }
+
+/* =LOGIN
+------------------*/
+#login_box { width: 320px; margin: 0 auto; padding: 20px 20px 60px 20px; background: transparent url(default/images/login_bg.gif) 0 0 no-repeat; text-align: left; }
+#login_header { text-indent: -9999px; background: #fff url(default/images/logo.jpg) center center no-repeat; height: 110px; }
+#login_box label.rem { display: inline; padding-right: 15px; }
+#login_box .rem { margin-top: 10px; float: left; }
+#login_box #user, #login_box #pass, #login_box #email { width: 290px; }
+#submit { float: right; border: 1px solid #3e8ec1; color: #000; background-color: #b2d1f0; font-size: 18px; }
+.err-msg { width: 60%; margin: 0 auto 50px auto; font: bold 16px/160% Verdana, Arial, sans-serif; color: #000; }
+.err-msg h2 { color: #fff; background-color: transparent; font-size: 24pt; font-weight: bold; }
+#oops { margin: 50px 0 0 0; }
+#oops p { font: 16px/160% Verdana, Arial, sans-serif; color: #000; }
+#oops h1 { font-size: 24pt; color: #fff; font-weight: bold; margin-bottom: 40px; }
+#oops a { color: #000; text-decoration: underline; }
+#oops a:hover { color: #000; text-decoration: none; }
+
+/* =REGISTER
+------------------*/
+#column { width: 500px; margin: 0 auto; padding: 10px; text-align: left; background-color: #fff; }
+#column #username,
+#column #password,
+#column #fname,
+#column #lname,
+#column #email,
+#column #dbhost,
+#column #dbname,
+#column #dbuser,
+#column #dbpass,
+#column #sitename,
+#column #contact { width: 470px; }
+#column h1 { text-align: center; padding: 10px; }
+#msg { background-color: #fff; padding: 15px; margin: 50px auto 0 auto; width: 500px; }
+#msg p { font-size: 14pt; line-height: 24pt; }
+.cancel { float: left; }
+
+/* =INSTALL
+------------------*/
+#install { width: 700px; margin: 0 auto; padding: 30px; background-color: #fff; }
+#install p { font: 24px/160% Verdana, Arial, sans-serif; }
+h1 {  }
+h2 { color: #fff; font-weight: bold; background-color: #000; margin: 0; padding: 15px 0 11px 15px; }
+form.nofields { background-color: #fff; }
+div.dir { float: left; width: 60%; }
+div.status { float: left; width: 35%; font-weight: bold; }
+.ok { color: #3e8ec1; }
+.bad { color: #c00; }
+#sections-photo, #sections-board, #sections-book, #sections-calendar, #sections-news, #sections-prayers { border: none; }
+.field-label { margin: 10px 0 0 0; }
+.field-widget { margin: 10px 0 0 0; }
+.error { font-size: 10pt; line-height: 14pt; color: #f30; }
+.info { padding: 10px; background-color: #eee; }
+.req { font-size: 8pt; color: #c00; }
+#install div.option { float: left; width:45%; padding:10px; font-size: 8pt; }
+#install .nbtn { color: #000; padding:10px 25px; background-color: #9ccef0; border: 1px solid #000; }
+#install .ybtn { color: #000; padding:10px 20px; background-color: #fff; border: 1px solid #000; }
+.progress { border: 1px solid #000; width: 100%; margin: 2px 5px 50px 0; padding: 1px; background: #fff; }
+.progress div { background-color: #b2d1f0; height: 12px; }
+
+/* =CLEARFIX
+------------------*/
+.clearfix:after { content:"."; display:block; height:0; clear:both; visibility:hidden; }
+.clearfix { display:inline-block; }
+/* Hides from IE-mac \*/
+* html .clearfix { height:1%; }
+.clearfix { display:block; }
+/* End hide from IE-mac */

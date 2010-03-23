@@ -82,7 +82,7 @@ HTML;
         );
         if ($this->db->count_rows() > 0) { 
             while ($row = $this->db->get_row()) {
-                $displayNameArr[$row['id']] = getUserDisplayName($row['id']);
+                $displayNameArr[$row['id']] = getUserDisplayName($row['id'], 2);
             }
             asort($displayNameArr);
             foreach ($displayNameArr as $key => $value) {
@@ -424,10 +424,10 @@ HTML;
                     while ($t = $this->db->get_row()) {
                         $tagged_mem_list .= getUserDisplayName($t['id']) . ", ";
                     }
+                    $tagged_mem_list = substr($tagged_mem_list, 0, -2); // remove the extra ", "
                 } else {
                     $tagged_mem_list .= "<i>" . $LANG['none'] . "</i>";
                 }
-                $tagged_mem_list = substr($tagged_mem_list, 0, -2); // remove the extra ", "
                 $date_added = fixDST(
                     gmdate('F j, Y g:i a', strtotime($r['date'] . $this->tz_offset)), 
                     $this->cur_user_id, '. d, Y (h:i a)'
@@ -442,12 +442,13 @@ HTML;
                 if ($this->cur_user_id == $r['uid'] || checkAccess($this->cur_user_id) < 2) {
                     $edit_del_options = <<<HTML
                 <div class="edit_del_photo">
+                    <strong>{$LANG['edit_photo']}</strong> &nbsp;
                     <form action="index.php" method="post">
                         <div>
                             <input type="hidden" name="photo" id="photo" value="{$pid}"/>
                             <input type="hidden" name="url" id="url" value="uid={$uid}&amp;cid={$urlcid}&amp;pid={$pid}"/>
                             <input type="submit" name="editphoto" id="editphoto" value="{$LANG['edit']}" class="editbtn"/>&nbsp;&nbsp;
-                            <input type="submit" name="deletephoto" id="deletephoto" value="{$LANG['delete']}" class="delbtn" onclick="javascript:return confirm('{$LANG['js_del_photo']}');"/>
+                            <input type="submit" name="deletephoto" id="deletephoto" value="{$LANG['delete']}" class="delbtn"/>
                         </div>
                     </form>
                 </div>
@@ -456,16 +457,17 @@ HTML;
                 
                 // Display Photo -- caption, rating and other info
                 echo <<<HTML
-            <p class="center">
-                <a href="photos/member{$r['uid']}{$photo_path}{$r['filename']}"><img class="photo" src="photos/member{$r['uid']}/{$r['filename']}" alt="{$caption}" title="{$caption}"/></a>
-            </p>
-            <div class="caption">
-                {$caption}
+            <div id="photo">
+                <p>
+                    <a href="photos/member{$r['uid']}{$photo_path}{$r['filename']}"><img class="photo" src="photos/member{$r['uid']}/{$r['filename']}" alt="{$caption}" title="{$caption}"/></a>
+                </p>
+                <div id="caption">
+                    <b>{$LANG['caption']}:</b> {$caption}
+                </div>
             </div>
-            <div class="photo_details">
+            <div id="photo_details">
                 {$edit_del_options}
-                <p><b>{$LANG['filename']}:</b> &nbsp;{$r['filename']}</p>
-                <div style="float:left"><b>{$LANG['rating']}:</b> &nbsp;</div>
+                <div style="float:left"><strong>{$LANG['rating']}:</strong> &nbsp;</div>
                 <div style="float:left">
                     <ul class="star-rating small-star">
                         <li class="current-rating" style="width:{$width}%">Currently {$r['rating']}/5 Stars.</li>
@@ -476,11 +478,15 @@ HTML;
                         <li><a href="?uid={$r['uid']}&amp;cid={$r['cid']}&amp;pid={$pid}&amp;vote=5" title="{$LANG['title_stars5']}" class="five-stars">5</a></li>
                     </ul>
                 </div>
-                <p style="clear:left"><b>{$LANG['views']}:</b> &nbsp;{$r['views']}</p>
-                <p><b>{$LANG['photo_size']}:</b> &nbsp;{$size}</p>
-                <p><b>{$LANG['photo_dimensions']}:</b> &nbsp;{$dimensions[0]} x {$dimensions[1]}</p>
-                <p><b>{$LANG['date_photo_added']}:</b> &nbsp;{$monthName}{$date_added}</p>
-                <p><b>{$LANG['members_in_photo']}:</b> &nbsp;{$tagged_mem_list}</p>
+                <div style="clear:both"><br/></div>
+                <div id="photo_details_sub">
+                    <p><b>{$LANG['filename']}:</b><br/>{$r['filename']}</p>
+                    <p><b>{$LANG['views']}:</b><br/>{$r['views']}</p>
+                    <p><b>{$LANG['photo_size']}:</b><br/>{$size}</p>
+                    <p><b>{$LANG['photo_dimensions']}:</b><br/>{$dimensions[0]} x {$dimensions[1]}</p>
+                    <p><b>{$LANG['date_photo_added']}:</b><br/>{$monthName}{$date_added}</p>
+                    <p><b>{$LANG['members_in_photo']}:</b><br/>{$tagged_mem_list}</p>
+                </div>
             </div>
 HTML;
                 
@@ -490,23 +496,15 @@ HTML;
                     checkAccess($_SESSION['login_id']) != 7 && 
                     checkAccess($_SESSION['login_id']) != 4
                 ) {
-                    echo <<<HTML
+                    echo '
+            <div style="clear:both"></div>
             <p>&nbsp;</p>
-            <h3>{$LANG['comments']}</h3>
-            <p class="center">
-                <form action="?uid={$uid}&amp;cid={$urlcid}&amp;pid={$pid}" method="post">
-                    {$LANG['add_comment']}<br/>
-                    <input class="frm_text" type="text" name="comment" id="comment" size="50" title="{$LANG['add_comment']}"/> 
-                    <input type="submit" name="addcom" id="addcom" value="" class="gal_addcombtn"/>
-                </form>
-            </p>
-            <p>&nbsp;</p>
-HTML;
-                    $sql = "SELECT c.`id`, `comment`, `date`, `fname`, `lname`, `username`, `user` "
-                         . "FROM `fcms_gallery_comments` AS c, `fcms_users` AS u "
-                         . "WHERE `photo` = '$pid' "
-                         . "AND c.`user` = u.`id` "
-                         . "ORDER BY `date`";
+            <h3>'.$LANG['comments'].'</h3>';
+                    $sql = "SELECT c.`id`, `comment`, `date`, `fname`, `lname`, `username`, `user`, `avatar` 
+                            FROM `fcms_gallery_comments` AS c, `fcms_users` AS u 
+                            WHERE `photo` = '$pid' 
+                            AND c.`user` = u.`id` 
+                            ORDER BY `date`";
                     $this->db->query($sql) or displaySQLError(
                         'Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                     );
@@ -523,26 +521,35 @@ HTML;
                             if ($this->cur_user_id == $row['user'] || 
                                 checkAccess($this->cur_user_id) < 2) {
                                 $del_comment .= '<input type="submit" name="delcom" id="delcom" '
-                                    . 'value="" class="gal_delcombtn" title="'
-                                    . $LANG['title_del_comment'] . '" onclick="javascript:return '
-                                    . 'confirm(\'' . $LANG['js_del_comment'] . '\');"/>';
+                                    . 'value="'.$LANG['delete'].'" class="gal_delcombtn" title="'
+                                    . $LANG['title_del_comment'] . '"/>';
                             }
-                            echo <<<HTML
-            <div class="comment_block">
-                <form action="?page=photo&amp;uid={$uid}&amp;cid={$urlcid}&amp;pid={$pid}" method="post">
-                    {$del_comment}
-                    <span>{$date}</span>
-                    <b>{$displayname}</b><br/>
-                    {$comment}
-                    <input type="hidden" name="id" value="{$row['id']}">
+                            echo '
+            <div class="comment_block clearfix">
+                <form class="delcom" action="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'" method="post">
+                    '.$del_comment.'
+                    <img src="avatar/'.$row['avatar'].'">
+                    <b>'.$displayname.'</b>
+                    <span>'.$date.'</span>
+                    <p>';
+                            parse($comment);
+                            echo '</p>
+                    <input type="hidden" name="id" value="'.$row['id'].'">
+                </form>
+            </div>';
+                        }
+                    }
+
+                    echo '
+            <p>&nbsp;</p>
+            <div class="add_comment_block">
+                <form action="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'" method="post">
+                    '.$LANG['add_comment'].'<br/>
+			        <textarea class="frm_textarea" name="post" id="post" rows="3" cols="63"></textarea>
+                    <input type="submit" name="addcom" id="addcom" value="'.$LANG['add_comment'].'" title="'.$LANG['add_comment'].'" class="gal_addcombtn"/>
                 </form>
             </div>
-
-HTML;
-                        }
-                    } else {
-                        echo "<p class=\"center\">".$LANG['no_comments']."</p>";
-                    }
+            <p>&nbsp;</p>';
                 }
             
             // Specific Photo couldn't be found
@@ -778,7 +785,7 @@ HTML;
                         echo "\t\t\t<h3>" . $LANG['photos_of'] . " ";
                         echo getUserDisplayName($row['user']) . "</h3>\n";
                     }
-                    $url = "?uid=0&amp;cid=" . $row['user'] . "&amp;pid=" . $row['pid'];
+                    $url = "?uid=0&amp;cid=tagged" . $row['user'] . "&amp;pid=" . $row['pid'];
                     $alt = ' alt="' . htmlentities($row['caption'], ENT_COMPAT, 'UTF-8') . '"';
                     $title = ' title="' . htmlentities($row['caption'], ENT_COMPAT, 'UTF-8') . '"';
                 } elseif ($row['type'] == 'PHOTOS') {
@@ -927,7 +934,7 @@ HTML;
                         'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                     );
                     while ($r = $this->db2->get_row()) {
-                        $displayNameArr[$r['id']] = getUserDisplayName($r['id']);
+                        $displayNameArr[$r['id']] = getUserDisplayName($r['id'], 2);
                     }
                     asort($displayNameArr);
                     $tag_checkboxes = '';
@@ -1064,7 +1071,7 @@ HTML;
                 'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
             while ($r = $this->db2->get_row()) {
-                $displayNameArr[$r['id']] = getUserDisplayName($r['id']);
+                $displayNameArr[$r['id']] = getUserDisplayName($r['id'], 2);
             }
             asort($displayNameArr);
             $tag_checkboxes = '';
@@ -1429,7 +1436,7 @@ HTML;
                         echo "/tb_$filename\" alt=\"" . $photos_caption[$i] . "\"/>&nbsp;&nbsp;";
                     } else {
                         echo "<p class=\"ok-alert\"><b>" . $LANG['ok_photos_success'] . "</b>";
-                        echo "<br/><img src=\"photos/member" . $this->cur_user_id;
+                        echo "<br/><br/> &nbsp;&nbsp;&nbsp;<img src=\"photos/member" . $this->cur_user_id;
                         echo "/tb_$filename\" alt=\"" . $photos_caption[$i] . "\"/></p>";
                     }
                 }
@@ -1496,16 +1503,15 @@ HTML;
         if ($this->db->count_rows() > 0) {
             while ($row = $this->db->get_row()) {
                 $name = htmlentities($row['name'], ENT_COMPAT, 'UTF-8');
-                $cat_list .= <<<HTML
+                $cat_list .= '
                 <li>
                     <form class="frm_line" action="index.php?action=category" method="post">
-                        <input class="frm_text" type="text" name="cat_name" id="cat_name" size="60" value="{$name}"/>
-                        <input type="hidden" name="cid" id="cid" value="{$row['id']}"/> &nbsp;
-                        <input type="submit" name="editcat" class="editbtn" value=""/> &nbsp;
-                        <input type="submit" name="delcat" class="delbtn" value="" onclick="javascript:return confirm('{$LANG['js_del_cat']}');"/>
+                        <input class="frm_text" type="text" name="cat_name" id="cat_name" size="60" value="'.$name.'"/>
+                        <input type="hidden" name="cid" id="cid" value="'.$row['id'].'"/> &nbsp;
+                        <input type="submit" name="editcat" class="editbtn" value="'.$LANG['edit_cat'].'" title="'.$LANG['edit_cat'].'"/> &nbsp;
+                        <input type="submit" name="delcat" class="delbtn" value="'.$LANG['delete'].'" title="'.$LANG['delete'].'"/>
                     </form>
-                </li>
-HTML;
+                </li>';
             }
         } else {
             $cat_list .= "<li><i>" . $LANG['no_cats'] . "</i></li>";

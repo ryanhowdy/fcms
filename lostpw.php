@@ -8,7 +8,7 @@ include_once('inc/language.php');
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head>
 <title><?php echo getSiteName() . " - " . $LANG['poweredby'] . " " . getCurrentVersion(); ?></title>
-<link rel="stylesheet" type="text/css" href="themes/login.css" />
+<link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
 </head>
 <body onload="document.resetform.email.focus()">
 	<?php
@@ -56,13 +56,21 @@ include_once('inc/language.php');
 function displayForm() { 
 	global $LANG; ?>
 <div id="login_box">
-		<h1 id="reset_header"><?php echo $LANG['reset_pw']; ?></h1>
-		<form name="resetform" method="post" action="lostpw.php">
-			<p><label for="email"><?php echo $LANG['email']; ?></label> <input type="text" name="email" id="email" title="<?php echo $LANG['title_email']; ?>" size="25"/></p>
-			<p><input type="submit" name="reset" id="reset" value="<?php echo $LANG['reset_pw']; ?>"/></p>
-			<br/>
-		</form>
-		<p class="center"><a href="index.php"><?php echo $LANG['login']; ?></a></p>
+        <p>&nbsp;</p>
+        <h1 id="reset_header"><?php echo $LANG['reset_pw']; ?></h1>
+        <p>&nbsp;</p>
+        <form name="resetform" method="post" action="lostpw.php">
+            <p><label for="email"><?php echo $LANG['email']; ?></label> <input type="text" name="email" id="email" title="<?php echo $LANG['title_email']; ?>" size="25"/></p>
+            <p>
+                <a class="cancel" href="index.php"><?php echo $LANG['cancel']; ?></a> 
+                <input id="reset" name="reset" type="submit" value="<?php echo $LANG['reset_pw']; ?>"/>
+            </p>
+            <div class="clear"></div>
+            <br/>
+        </form>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
 	</div>
 	<?php
 } ?>

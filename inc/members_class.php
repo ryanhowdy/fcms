@@ -419,7 +419,7 @@ HTML;
                 <p style="text-align:right">
                     <input type="submit" name="activateAll" id="activateAll" value="{$LANG['activate_selected']}"/>&nbsp; 
                     <input type="submit" name="inactivateAll" id="inactivateAll" value="{$LANG['inactivate_selected']}"/>&nbsp; 
-                    <input type="submit" name="deleteAll" id="deleteAll" value="{$LANG['del_selected']}" onclick="javascript:return confirm('{$LANG['js_sure_del_members']}');"/>
+                    <input type="submit" name="deleteAll" id="deleteAll" value="{$LANG['del_selected']}"/>
                 </p>
             </form>
 HTML;

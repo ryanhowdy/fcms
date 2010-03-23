@@ -9,24 +9,10 @@ if (get_magic_quotes_gpc()) {
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
 include_once('inc/language.php');
-if (isset($_SESSION['login_id'])) {
-	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage();
-		exit();
-	}
-} elseif (isset($_COOKIE['fcms_login_id'])) {
-	if (isLoggedIn($_COOKIE['fcms_login_id'], $_COOKIE['fcms_login_uname'], $_COOKIE['fcms_login_pw'])) {
-		$_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-	} else {
-		displayLoginPage();
-		exit();
-	}
-} else {
-	displayLoginPage();
-	exit();
-}
+
+// Check that the user is logged in
+isLoggedIn();
+
 header("Cache-control: private");
 include_once('inc/calendar_class.php');
 $calendar = new Calendar($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
@@ -45,22 +31,32 @@ if (isset($_GET['export'])) {
 $TMPL['pagetitle'] = $LANG['link_calendar'];
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
-$TMPL['javascript'] = <<<HTML
+$TMPL['javascript'] = '
 <script type="text/javascript" src="inc/livevalidation.js"></script>
 <link rel="stylesheet" type="text/css" href="themes/datechooser.css"/>
 <script type="text/javascript" src="inc/datechooser.js"></script>
 <script type="text/javascript">
 //<![CDATA[
-events.add(window, 'load', initDateChooser);
-function initDateChooser() {
+Event.observe(window, \'load\', function() {
+    initCalendarHighlight();
+    // Datpicker
     var objDatePicker = new DateChooser();
-    objDatePicker.setUpdateField({'sday':'j', 'smonth':'n', 'syear':'Y'});
-    objDatePicker.setIcon('{$TMPL['path']}themes/default/images/datepicker.jpg', 'year');
+    objDatePicker.setUpdateField({\'sday\':\'j\', \'smonth\':\'n\', \'syear\':\'Y\'});
+    objDatePicker.setIcon(\''.$TMPL['path'].'themes/default/images/datepicker.jpg\', \'year\');
+    // Delete Confirmation
+    if ($(\'delcal\')) {
+        var item = $(\'delcal\');
+        item.onclick = function() { return confirm(\''.$LANG['js_delete_cal'].'\'); };
+        var hid = document.createElement(\'input\');
+        hid.setAttribute(\'type\', \'hidden\');
+        hid.setAttribute(\'name\', \'confirmed\');
+        hid.setAttribute(\'value\', \'true\');
+        item.insert({\'after\':hid});
+    }
     return true;
-}
+});
 //]]>
-</script>
-HTML;
+</script>';
 
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
@@ -140,9 +136,25 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 				echo "<script type=\"text/javascript\">"
                     . "window.onload=function(){ var t=setTimeout(\"$('msg').toggle()\",3000); }"
                     . "</script>";
-                
+
+            // Confirm Delete Calendar Entry                
+            } else if (isset($_POST['delete']) && !isset($_POST['confirmed'])) {
+                $showcal = false;
+                echo '
+            <div class="info-alert clearfix">
+                <form action="calendar.php" method="post">
+                    <h2>'.$LANG['js_delete_cal'].'</h2>
+                    <p><b><i>'.$LANG['cannot_be_undone'].'</i></b></p>
+                    <div>
+                        <input type="hidden" name="id" value="'.$_POST['id'].'"/>
+                        <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.$LANG['yes'].'"/>
+                        <a style="float:right;" href="calendar.php">'.$LANG['cancel'].'</a>
+                    </div>
+                </form>
+            </div>';
+
             // Delete Calendar Entry
-			} else if (isset($_POST['delete'])) {
+			} else if (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
 				$sql = "DELETE FROM `fcms_calendar` WHERE id = " . $_POST["id"];
 				mysql_query($sql) or displaySQLError(
                     'Delete Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()

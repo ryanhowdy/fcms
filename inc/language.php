@@ -1,7 +1,7 @@
 <?php
 /*
- * Family Connections 2.0 -- English (United States)
- * Updated: June 26, 2009
+ * Family Connections 2.1 -- English (United States)
+ * Updated: August 18, 2009
  * Translator: Ryan Haudenschilt
  *
  * To create a new language file, copy this file and replace the 
@@ -137,15 +137,12 @@ $LANG = array(
     'already_install5' =>    'YES',
     'already_install6' =>    'I want to run the installation anyway. (not recommended)',
     'install_next' =>        'Next >>',
-    'login_success' =>        'Login Successfull.',
-    'logout_success' =>        'Logout Successfull.',
     'continue' =>            'Continue',
     'err_active1' =>        'Not So Fast!',
     'err_active2' =>        'Your account isn\'t active yet.  Your website administrator must activate your account before you can login and begin using the website.',
     'err_invalid1' =>        'Oops!',
     'err_invalid2' =>        'That login information wasn\'t quite right.',
     'err_invalid3' =>        'Be sure and check that you typed your username/password correctly.',
-    'already_login' =>        'Already Logged In.',
     'login_to' =>            'Login to',
     'forgot_pass' =>        'Forgot Password?',
     'remember_me' =>        'Remember me',
@@ -213,6 +210,7 @@ $LANG = array(
     'opt_out_updates' =>        'If you would like stop receiving these updates, you can do so by visiting the following url and changing your Email Update setting to No:',
     'dear' =>                   'Dear',
     'js_del_confirm' =>         'Are you sure you want to DELETE this?',
+    'cannot_be_undone' =>       'This can NOT be undone.',
 
     // Home
 
@@ -222,8 +220,7 @@ $LANG = array(
     'now' =>                'Now',
     'last_24hrs' =>            'Last 24hrs',
     'access_denied1' =>        'Access Denied',
-    'access_denied2' =>        'You must be logged in to view this page.',
-    'access_denied3' =>        'Please Login.',
+    'access_denied2' =>        'You must be logged in to view that page.',
     'today' =>                'Today',
     'yesterday' =>            'Yesterday',
     'started_thread' =>        'started the new thread',
@@ -273,8 +270,8 @@ $LANG = array(
     'photos_lc' =>              'photos',
     'of' =>                     'of',
     'member_gal' =>             'Member Gallery',
-    'js_del_photo' =>           'Are you sure you want to DELETE this photo? &#92;nComments will also be deleted.',
-    'js_del_cat' =>             'Are you sure you want to DELETE this category? &#92;nAll Images will also be deleted.',
+    'js_del_photo' =>           'Are you sure you want to DELETE this photo?',
+    'js_del_cat' =>             'Are you sure you want to DELETE this category?',
     'err_photo_not_found' =>    'The Photo you are trying to view can not be found!',
     'upload_photos' =>          'Upload Photos',
     'select_cat' =>             'Select Category',
@@ -285,6 +282,7 @@ $LANG = array(
     'who_in_photo' =>           'Who is in this photo?',
     'caption' =>                'Caption',
     'edit_photo' =>             'Edit Photo',
+    'photo_details' =>          'More Details',
     'change_cat' =>             'Change Category',
     'submit_changes' =>         'Submit Changes',
     'err_edit_photo' =>         'Could not edit photo.  Photo ID does not exist.',
@@ -362,6 +360,7 @@ $LANG = array(
     'posts' =>            'Posts',
     'posts_lc' =>        'posts',
     'quoting' =>        'Quoting',
+    'quote' =>                  'Quote',
     'title_quote' =>            'Quote this post',
     'title_edit_post' =>        'Edit this post',
     'title_del_post' =>            'Delete this post',
@@ -380,25 +379,31 @@ $LANG = array(
     'err_massemail_1' =>    'You must choose at least one member to email.',
     'err_massemail_2' =>    'Click here',
     'err_massemail_3' =>    'for more help.',
-    'err_permission' =>        'You do not have permission to delete this address.',
-    'info_massemail' =>        'Filling out the form below will send an email to <b>all</b> the selected members in your addressbook.  Sending an email to a large number of people <b>can take a long time</b>.  Please be patient.',
-    'info_add_address' =>    'Please only add addresses for Non-members.  Anyone who is a member of this website must add/update their own address.',
-    'your_email' =>        'Your E-Mail',
-    'your_name' =>        'Your Name',
+    'err_permission' =>     'You do not have permission to delete this address.',
+    'info_massemail' =>     'Filling out the form below will send an email to <b>all</b> the selected members in your addressbook.  Sending an email to a large number of people <b>can take a long time</b>.  Please be patient.',
+    'info_add_address' =>   'Please only add addresses for Non-members.  Anyone who is a member of this website must add/update their own address.',
+    'your_email' =>         'Your E-Mail',
+    'your_name' =>          'Your Name',
     'send_mass_email' =>    'Send Mass Email',
-    'msg_sent' =>        'The following message has been sent...',
-    'phone_num' =>        'Phone Number',
-    'add_address' =>    'Add Address',
-    'edit_address' =>    'Edit Address',
-    'show_all' =>        'Show All:',
-    'js_sure_del' =>    'Are you sure you want to DELETE this address?',
-    'address' =>        'Address:',
-    'address_email' =>        'Email:',
-    'address_home' =>        'Home:',
-    'address_work' =>        'Work:',
-    'address_mobile' =>        'Mobile:',
-    'export' =>                'Export',
-    'js_sure_export' =>        'Are you sure you want to export all address information to a .csv file?',
+    'msg_sent' =>           'The following message has been sent...',
+    'phone_num' =>          'Phone Number',
+    'add_address' =>        'Add Address',
+    'my_address' =>         'My Address',
+    'edit_address' =>       'Edit Address',
+    'show_all' =>           'Show All:',
+    'js_sure_del' =>        'Are you sure you want to DELETE this address?',
+    'address' =>            'Address:',
+    'address_email' =>      'Email:',
+    'address_home' =>       'Home:',
+    'address_work' =>       'Work:',
+    'address_mobile' =>     'Mobile:',
+    'export' =>             'Export',
+    'js_sure_export' =>     'Are you sure you want to export all address information to a .csv file?',
+    'no_add_address1' =>    'It looks like you haven\'t added your address information.',
+    'no_add_address2' =>    'The other website members would appreciate it if you would add your address information.',
+    'no_add_address3a' =>   'To add your address:',
+    'no_add_address3b' =>   'simply click on the',
+    'no_add_address3c' =>   'link.',
 
     // Family News
 
@@ -423,22 +428,24 @@ $LANG = array(
 
     // Prayer Concerns
 
-    'asks_pray' =>                'asks that you please pray for',
+    'asks_pray' =>              'asks that you please pray for',
     'because' =>                'Because',
-    'title_edit_prayer' =>        'Edit this Prayer concern.',
-    'title_pray_for' =>            'Person(s) to Pray for',
+    'title_edit_prayer' =>      'Edit this Prayer concern.',
+    'title_del_prayer' =>       'Delete this Prayer concern.',
+    'js_del_prayer' =>          'Are you sure you want to DELETE this Prayer Concern?',
+    'title_pray_for' =>         'Person(s) to Pray for',
     'title_desc_pray' =>        'Description of Prayer Concern',
     'edit_prayer' =>            'Edit Prayer Concern',
-    'add_prayer' =>                'Add a Prayer Concern',
-    'pray_for' =>                'Pray For',
+    'add_prayer' =>             'Add a Prayer Concern',
+    'pray_for' =>               'Pray For',
     'ok_pray_add' =>            'Prayer Concern Added Successfully.',
-    'ok_pray_edit' =>            'Prayer Concern Updated Successfully.',
+    'ok_pray_edit' =>           'Prayer Concern Updated Successfully.',
     'ok_pray_del' =>            'Prayer Concern Deleted Successfully.',
-    'info_prayers1' =>            'Welcome to the Prayer Concerns section!',
-    'info_prayers2' =>            'Currently no one has added any prayer concerns.',
-    'info_prayers3' =>            'How do I add a Prayer Concern?',
-    'info_prayers4' =>            'If you would like to add a new prayer concern, simply click the',
-    'info_prayers5' =>            'link in the top right hand corner of this page.',
+    'info_prayers1' =>          'Welcome to the Prayer Concerns section!',
+    'info_prayers2' =>          'Currently no one has added any prayer concerns.',
+    'info_prayers3' =>          'How do I add a Prayer Concern?',
+    'info_prayers4' =>          'If you would like to add a new prayer concern, simply click the',
+    'info_prayers5' =>          'link in the top right hand corner of this page.',
 
     // Recipes
 
@@ -477,23 +484,25 @@ $LANG = array(
 
     // Documents
 
-    'add_document' =>            'Upload A New Document',
-    'title_doc' =>                'Choose a Document to upload.',
-    'title_desc_doc' =>            'Description of the Document you are uploading.',
-    'title_del_doc' =>            'Delete this Document.',
-    'docs_name' =>                'Document',
-    'docs_desc' =>                'Description',
-    'docs_user' =>                'Uploaded by',
-    'docs_date' =>                'Date Added',
-    'info_docs1' =>                'Welcome to the Documents Section.',
-    'info_docs2' =>                'Currently no one is sharing any documents.',
-    'info_docs3' =>                'Would you like to',
-    'info_docs4' =>                'upload a document to share?',
-    'ok_doc_add' =>                'Document Uploaded Successfully.',
-    'ok_doc_del' =>                'Document Deleted Successfully.',
-    'err_not_doc1' =>            'Error: Document',
-    'err_not_doc2' =>            'is not allowed.',
-    'err_not_doc3' =>            'Documents must be of type (.DOC, .TXT, .XSL, .ZIP, .RTF, .PPT, .PDF).',
+    'add_document' =>           'Upload A New Document',
+    'title_doc' =>              'Choose a Document to upload.',
+    'title_desc_doc' =>         'Description of the Document you are uploading.',
+    'title_del_doc' =>          'Delete this Document.',
+    'docs_name' =>              'Document',
+    'docs_desc' =>              'Description',
+    'docs_user' =>              'Uploaded by',
+    'docs_date' =>              'Date Added',
+    'info_docs1' =>             'Welcome to the Documents Section.',
+    'info_docs2' =>             'Currently no one is sharing any documents.',
+    'info_docs3' =>             'Would you like to',
+    'info_docs4' =>             'upload a document to share?',
+    'ok_doc_add' =>             'Document Uploaded Successfully.',
+    'ok_doc_del' =>             'Document Deleted Successfully.',
+    'err_not_doc1' =>           'Error: Document',
+    'err_not_doc2' =>           'is not allowed.',
+    'err_not_doc3' =>           'Documents must be of type (.DOC, .TXT, .XSL, .ZIP, .RTF, .PPT, .PDF).',
+    'err_doc_big1' =>           'Error: Document',
+    'err_doc_big2' =>           ' exceeds the maximum file size allowed by your PHP settings.',
 
     // Calendar 
 
@@ -569,13 +578,17 @@ $LANG = array(
 
     // Poll
 
-    'already_voted' =>        'You have already voted!',
-    'total_votes' =>        'Total Votes',
-    'past_polls' =>            'Past Polls',
-    'view_results' =>        'View Results',
-    'prev_polls' =>            'Previous Polls',
-    'vote' =>                'Vote',
-    'no_prev_polls' =>        'No previous polls',
+    'already_voted' =>          'You have already voted!',
+    'total_votes' =>            'Total Votes',
+    'past_polls' =>             'Past Polls',
+    'who_voted' =>              'Who Voted for What?',
+    'view_results' =>           'View Results',
+    'prev_polls' =>             'Previous Polls',
+    'vote' =>                   'Vote',
+    'no_prev_polls' =>          'No previous polls',
+    'poll_welcome_msg1' =>      'Welcome to the Poll Section',
+    'poll_welcome_msg2' =>      'Here you can add new Poll questions or edit existing polls.',
+    'poll_welcome_msg3' =>      'If you do not want to use Polls on your site, simply delete all existing polls and they will no longer show up on the frontpage.',
 
     // Profile
 
@@ -629,7 +642,7 @@ $LANG = array(
     'new_pm' =>                'New PM!',
     'selected_msgs' =>        'selected messages',
     'no_pm_access' =>        'The PM you are trying to view either doesn\'t exist, or you don\'t have permission to view it.',
-    'js_pm_delete' =>        'Are you sure you want to DELETE these private messages? &#92;nThis cannot be undone.',
+    'js_pm_delete' =>        'Are you sure you want to DELETE these private messages?',
 
     // Settings
 

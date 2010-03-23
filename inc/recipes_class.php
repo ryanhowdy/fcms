@@ -28,62 +28,93 @@ class Recipes
     {
         global $LANG;
         if (checkAccess($_SESSION['login_id']) <= 5) {
-            echo "<div id=\"sections_menu\" class=\"clearfix\"><ul>";
-            echo "<li><a class=\"add\" href=\"?addrecipe=yes\">" . $LANG['add_recipe'] . "</a></li>";
-            echo "</ul></div>\n";
+            echo '
+            <div id="sections_menu" class="clearfix">
+                <ul><li><a class="add" href="?addrecipe=yes">'.$LANG['add_recipe'].'</a></li></ul>
+            </div>';
         }
-        echo "\t\t\t<h2>" . $LANG['recipe_cats'] . "</h2>\n\t\t\t";
-        echo "<div class=\"cat_row clearfix\"><div class=\"cat\">";
-        echo "<a href=\"?category=1\">" . $LANG['appetizer'] . "</a><br/>";
-        echo "<small>" . $this->getRecipeCountInCategory($LANG['appetizer']) . "</small></div>";
-        echo "<div class=\"cat\"><a href=\"?category=2\">" . $LANG['breakfast'] . "</a><br/>";
-        echo "<small>" . $this->getRecipeCountInCategory($LANG['breakfast']) . "</small></div>";
-        echo "<div class=\"cat\"><a href=\"?category=3\">" . $LANG['dessert'] . "</a><br/>";
-        echo "<small>" . $this->getRecipeCountInCategory($LANG['dessert']) . "</small></div>";
-        echo "</div>\n\t\t\t";
-        echo "<div class=\"cat_row clearfix\"><div class=\"cat\">";
-        echo "<a href=\"?category=4\">" . $LANG['entree_meat'] . "</a><br/>";
-        echo "<small>" . $this->getRecipeCountInCategory($LANG['entree_meat']) . "</small></div>";
-        echo "<div class=\"cat\"><a href=\"?category=5\">" . $LANG['entree_seafood'] . "</a><br/>";
-        echo "<small>" . $this->getRecipeCountInCategory($LANG['entree_seafood']) . "</small></div>";
-        echo "<div class=\"cat\"><a href=\"?category=6\">" . $LANG['entree_veg'] . "</a><br/>";
-        echo "<small>" . $this->getRecipeCountInCategory($LANG['entree_veg']) . "</small></div>";
-        echo "</div>\n\t\t\t";
-        echo "<div class=\"cat_row clearfix\"><div class=\"cat\">";
-        echo "<a href=\"?category=7\">" . $LANG['salad'] . "</a><br/>";
-        echo "<small>" . $this->getRecipeCountInCategory($LANG['salad']) . "</small></div>";
-        echo "<div class=\"cat\"><a href=\"?category=8\">" . $LANG['side_dish'] . "</a><br/>";
-        echo "<small>" . $this->getRecipeCountInCategory($LANG['side_dish']) . "</small></div>";
-        echo "<div class=\"cat\"><a href=\"?category=9\">" . $LANG['soup'] . "</a><br/>";
-        echo "<small>" . $this->getRecipeCountInCategory($LANG['soup']) . "</small></div>";
-        echo "</div>\n\t\t\t";
+
+        // Get Counts
+        $appetizer = $this->getRecipeCountInCategory($LANG['appetizer']);
+        $breakfast = $this->getRecipeCountInCategory($LANG['breakfast']);
+        $dessert = $this->getRecipeCountInCategory($LANG['dessert']);
+        $meat = $this->getRecipeCountInCategory($LANG['entree_meat']);
+        $seafood = $this->getRecipeCountInCategory($LANG['entree_seafood']);
+        $vegetable = $this->getRecipeCountInCategory($LANG['entree_veg']);
+        $salad = $this->getRecipeCountInCategory($LANG['salad']);
+        $side = $this->getRecipeCountInCategory($LANG['side_dish']);
+        $soup = $this->getRecipeCountInCategory($LANG['soup']);
+        
+        echo '
+            <h2>'.$LANG['recipe_cats'].'</h2>
+            <div class="cat_row clearfix">
+                <div class="cat">
+                    <ul><li><a href="?category=1">'.$LANG['appetizer'].'<span>'.$appetizer.'</span></a></li></ul>
+                </div>
+                <div class="cat">
+                    <ul><li><a href="?category=2">'.$LANG['breakfast'].'<span>'.$breakfast.'</span></a><li></ul>
+                </div>
+                <div class="cat">
+                    <ul><li><a href="?category=3">'.$LANG['dessert'].'<span>'.$dessert.'</span></a><li></ul>
+                </div>
+            </div>
+            <div class="cat_row clearfix">
+                <div class="cat">
+                    <ul><li><a href="?category=4">'.$LANG['entree_meat'].'<span>'.$meat.'</span></a></li></ul>
+                </div>
+                <div class="cat">
+                    <ul><li><a href="?category=5">'.$LANG['entree_seafood'].'<span>'.$seafood.'</span></a><li></ul>
+                </div>
+                <div class="cat">
+                    <ul><li><a href="?category=6">'.$LANG['entree_veg'].'<span>'.$vegetable.'</span></a><li></ul>
+                </div>
+            </div>
+            <div class="cat_row clearfix">
+                <div class="cat">
+                    <ul><li><a href="?category=7">'.$LANG['salad'].'<span>'.$salad.'</span></a></li></ul>
+                </div>
+                <div class="cat">
+                    <ul><li><a href="?category=8">'.$LANG['side_dish'].'<span>'.$side.'</span></a><li></ul>
+                </div>
+                <div class="cat">
+                    <ul><li><a href="?category=9">'.$LANG['soup'].'<span>'.$soup.'</span></a><li></ul>
+                </div>
+            </div>';
         $sql = "SELECT * FROM `fcms_recipes` ORDER BY `date` DESC LIMIT 1";
         $this->db->query($sql) or displaySQLError(
             'Get Last Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
         if ($this->db->count_rows() > 0) {
-            echo "<p>&nbsp;</p><h2>" . $LANG['latest_recipe'] . "</h2><br/>";
-            while($r = $this->db->get_row()) {
-                $displayname = getUserDisplayName($r['user']);
-                $date = fixDST(
-                    gmdate('n/j/Y g:i a', strtotime($r['date'] . $this->tz_offset)), 
-                    $_SESSION['login_id'], 
-                    'F j, Y, g:i a'
-                    );
-                echo "\t\t\t<h4>" . $r['name'] . "</h4>";
-                // TODO
-                // Text needs put in language file
-                echo "<small><i>Submitted by <a href=\"profile.php?member="
-                    . $r['user'] . "\">$displayname</a> on $date</i></small><p>";
-                parse($r['recipe']);
-                echo "</p><p>&nbsp;</p>\n\t\t\t";
-            }
+            $r = $this->db->get_row();
+            $displayname = getUserDisplayName($r['user']);
+            $date = fixDST(
+                gmdate('n/j/Y g:i a', strtotime($r['date'] . $this->tz_offset)), 
+                $_SESSION['login_id'], 'F j, Y, g:i a'
+            );
+            // TODO
+            // Text needs put in language file
+            echo '
+            <p>&nbsp;</p>
+            <h2>'.$LANG['latest_recipe'].'</h2>
+            <h4>'.$r['name'].'</h4>
+            <span class="date">
+                Submitted by <a href="profile.php?member="'.$r['user'].'">'.$displayname.'</a> on '.$date.'
+            </span>
+            <p>';
+            parse($r['recipe']);
+            echo '
+            </p>
+            <p>&nbsp;</p>';
         } else {
-            echo "<div class=\"info-alert\"><h2>" . $LANG['info_recipes1'] . "</h2>";
-            echo "<p><i>" . $LANG['info_recipes2'] . "</i></p>";
-            echo "<p><b>" . $LANG['info_recipes3'] . "</b><br/>";
-            echo $LANG['info_recipes4'] . " <a href=\"?addrecipe=yes\">" . $LANG['add_recipe'];
-            echo "</a> " . $LANG['info_recipes5'] . "</p></div>\n";
+            echo '
+            <div class="info-alert">
+                <h2>'.$LANG['info_recipes1'].'</h2>
+                <p><i>'.$LANG['info_recipes2'].'</i></p>
+                <p>
+                    <b>'.$LANG['info_recipes3'].'</b><br/>
+                    '.$LANG['info_recipes4'].' <a href="?addrecipe=yes">'.$LANG['add_recipe'].'</a> '.$LANG['info_recipes5'].'
+                </p>
+            </div>';
         }
     }
 
@@ -91,17 +122,23 @@ class Recipes
     {
         global $LANG;
         $from = (($page * 5) - 5);
-        echo "<div id=\"sections_menu\" class=\"clearfix\"><ul>";
-        echo "<li><a class=\"home\" href=\"recipes.php\">" . $LANG['recipe_cats'] . "</a></li>";
+        echo '
+            <div id="sections_menu" class="clearfix">
+                <ul>
+                    <li><a class="home" href="recipes.php">'.$LANG['recipe_cats'].'</a></li>';
         if (checkAccess($_SESSION['login_id']) <= 5) {
-            echo "<li><a class=\"add\" href=\"?addrecipe=yes&amp;cat=$cat\">";
-            echo $LANG['add_recipe'] . "</a></li>";
+            echo '
+                    <li><a class="add" href="?addrecipe=yes&amp;cat='.$cat.'">'.$LANG['add_recipe'].'</a></li>';
         }
-        echo "</ul></div>\n";
+        echo '
+                </ul>
+            </div>';
         if ($id > 0) {
-            echo "<h2><a href=\"recipes.php?category=$cat\">";
+            echo '
+                <h2><a href="recipes.php?category='.$cat.'">';
         } else {
-            echo "<h2>";
+            echo '
+                <h2>';
         }
         switch ($cat) {
             case 1:
@@ -165,38 +202,42 @@ class Recipes
                     gmdate('n/j/Y g:i a', strtotime($r['date'] . $this->tz_offset)), 
                     $_SESSION['login_id'], 
                     'F j, Y, g:i a'
-                    );
-                echo "\t\t\t<h4>";
+                );
                 if ($id > 0) {
-                    echo $r['name'];
+                    $name = $r['name'];
                 } else {
-                    echo "<a href=\"recipes.php?category=$cat&amp;id=" . $r['id'] . "\">";
-                    echo $r['name'] . "</a>";
-                }
-                if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {
-                    echo " &nbsp;<form method=\"post\" action=\"recipes.php\">";
-                    echo "<div><input type=\"hidden\" name=\"id\" value=\"" . $r['id'] . "\"/>";
-                    echo "<input type=\"hidden\" name=\"name\" value=\"";
-                    echo htmlentities($r['name'], ENT_COMPAT, 'UTF-8');
-                    echo "\"/><input type=\"hidden\" name=\"category\" value=\"";
-                    echo htmlentities($r['category'], ENT_COMPAT, 'UTF-8');
-                    echo "\"/><input type=\"hidden\" name=\"post\" value=\"";
-                    echo htmlentities($r['recipe'], ENT_COMPAT, 'UTF-8');
-                    echo "\"/><input type=\"submit\" name=\"editrecipe\" value=\" \" ";
-                    echo "class=\"editbtn\" title=\"".$LANG['edit_recipe']."\"/></div></form>";
-                }
-                if (checkAccess($_SESSION['login_id']) < 2) {
-                    echo " &nbsp;<form method=\"post\" action=\"recipes.php\">";
-                    echo "<div><input type=\"hidden\" name=\"id\" value=\"";
-                    echo $r['id'] . "\"/><input type=\"submit\" name=\"delrecipe\" value=\" \" ";
-                    echo "class=\"delbtn\" title=\"" . $LANG['del_recipe'] . "\" ";
-                    echo "onclick=\"javascript:return confirm('";
-                    echo $LANG['js_del_recipe'] . "');\"/></div></form>";
+                    $name = '<a href="recipes.php?category='.$cat.'&amp;id='.$r['id'].'">'.$r['name'].'</a>';
                 }
                 // TODO
                 // Text needs put in language file
-                echo "</h4><small><i>Submitted by <a href=\"profile.php?member=";
-                echo $r['user'] . "\">$displayname</a> on $date</i></small><p>";
+                echo '
+            <h4>'.$name.'</h4>
+            <span class="date">
+                Submitted by <a href="profile.php?member='.$r['user'].'">'.$displayname.'</a> on '.$date;
+                if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {
+                    echo ' &nbsp;
+                <form method="post" action="recipes.php">
+                    <div>
+                        <input type="hidden" name="id" value="'.$r['id'].'"/>
+                        <input type="hidden" name="name" value="'.htmlentities($r['name'], ENT_COMPAT, 'UTF-8').'"/>
+                        <input type="hidden" name="category" value="'.htmlentities($r['category'], ENT_COMPAT, 'UTF-8').'"/>
+                        <input type="hidden" name="post" value="'.htmlentities($r['recipe'], ENT_COMPAT, 'UTF-8').'"/>
+                        <input type="submit" name="editrecipe" value="'.$LANG['edit'].'" class="editbtn" title="'.$LANG['edit_recipe'].'"/>
+                    </div>
+                </form>';
+                }
+                if (checkAccess($_SESSION['login_id']) < 2) {
+                    echo ' &nbsp;
+                <form class="delrec" method="post" action="recipes.php">
+                    <div>
+                        <input type="hidden" name="id" value="'.$r['id'].'"/>
+                        <input type="submit" name="delrecipe" value="'.$LANG['delete'].'" class="delbtn" title="'.$LANG['del_recipe'].'"/>
+                    </div>
+                </form>';
+                }
+                echo '
+            </span>
+            <p>';
                 parse($r['recipe']);
                 echo "</p><p>&nbsp;</p>\n\t\t\t";
             }
@@ -364,7 +405,8 @@ class Recipes
             echo " selected=\"selected\"";
         }
         echo ">" . $LANG['soup'] . "</option></select>";
-        echo " &nbsp;<a href=\"#\" onclick=\"window.open('inc/upimages.php','name','width=700,";
+        echo " &nbsp;<a id=\"upimages\" class=\"hideme\" ";
+        echo "href=\"#\" onclick=\"window.open('inc/upimages.php','name','width=700,";
         echo "height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no'); ";
         echo "return false;\">(" . $LANG['upload_image'] . ")</a></div><br/>\n\t\t\t\t";
         echo "<script type=\"text/javascript\">var bb = new BBCode();</script>\n";

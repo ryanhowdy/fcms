@@ -31,114 +31,301 @@ class MessageBoard
 			if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
 				$this->displayMessageBoardMenu();
 			}
-			echo "<table id=\"threadlist\" cellpadding=\"0\" cellspacing=\"0\">\n\t\t\t\t<thead><tr><th class=\"images\">&nbsp;</th><th class=\"subject\">".$LANG['subject']."</th><th class=\"info\">&nbsp;</th><th class=\"replies\">".$LANG['replies']."</th><th class=\"views\">".$LANG['views']."</th><th class=\"updated\">".$LANG['last_updated']."</th></tr></thead>\n\t\t\t\t<tbody>\n";
-			$this->db->query("SELECT fcms_board_threads.id, subject, started_by, updated, updated_by, views, user FROM fcms_board_threads, fcms_board_posts WHERE fcms_board_threads.id = fcms_board_posts.thread AND subject LIKE '#ANOUNCE#%' GROUP BY fcms_board_threads.id ORDER BY updated DESC") or die('<h1>Announcements Error (messageboard.class.php 27)</h1>' . mysql_error());
+			echo <<<HTML
+            <table id="threadlist" cellpadding="0" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th class="images">&nbsp;</th>
+                        <th class="subject">{$LANG['subject']}</th>
+                        <th class="info">&nbsp;</th>
+                        <th class="replies">{$LANG['replies']}</th>
+                        <th class="views">{$LANG['views']}</th>
+                        <th class="updated">{$LANG['last_updated']}</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+HTML;
+            $sql = "SELECT t.`id`, `subject`, `started_by`, 
+                        `updated`, `updated_by`, `views`, `user` 
+                    FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
+                    WHERE t.`id` = p.`thread` 
+                    AND `subject` LIKE '#ANOUNCE#%' 
+                    GROUP BY p.`id` 
+                    ORDER BY `updated` DESC";
+            $this->db->query($sql) or displaySQLError(
+                'Announcements Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
 		} else {
-			$this->db->query("SELECT fcms_board_threads.id, subject, started_by, updated, updated_by, views, user FROM fcms_board_threads, fcms_board_posts WHERE fcms_board_threads.id = fcms_board_posts.thread AND subject NOT LIKE '#ANOUNCE#%' GROUP BY fcms_board_threads.id ORDER BY updated DESC LIMIT " . $from . ", 29") or die('<h1>Threads Error (messageboard.class.php 35)</h1>' . mysql_error());
+            $sql = "SELECT t.`id`, `subject`, `started_by`, `updated`, 
+                        `updated_by`, `views`, `user` 
+                    FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
+                    WHERE t.`id` = p.`thread` 
+                    AND `subject` NOT LIKE '#ANOUNCE#%' 
+                    GROUP BY t.`id` 
+                    ORDER BY `updated` DESC 
+                    LIMIT $from, 30";
+            $this->db->query($sql) or displaySQLError(
+                'Threads Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
 		}
 		$alt = 0;
-		while($row = $this->db->get_row()) {
+		while ($row = $this->db->get_row()) {
+
+            // Setup some vars
 			$started_by = getUserDisplayName($row['started_by']);
 			$updated_by = getUserDisplayName($row['updated_by']);
 			$subject = $row['subject'];
+            $subject_info = '';
+            $tr_class = '';
 			if ($type == 'announcement') {
+                //remove #ANNOUNCE# from the subject
 				$subject = substr($subject, 9, strlen($subject)-9);
-				echo "\t\t\t\t\t<tr class=\"announcement\">";
+                $subject_info = "<small><b>" . $LANG['announcement'] . ": </b></small>";
+                $tr_class = 'announcement';
 			} else {
-				echo "\t\t\t\t\t<tr"; if ($alt % 2 == 0) { echo ">"; } else { echo " class=\"alt\">"; }
+                if ($alt % 2 !== 0) { $tr_class = 'alt'; }
 			}
-			if (gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == gmdate('n/d/Y', strtotime(date('Y-m-d H:i:s') . $this->tz_offset))) {
-				echo '<td class="images"><div class="'; if ($type == 'announcement') { echo 'announcement_'; }  echo 'today">&nbsp;</div>&nbsp;</td>';
-				$last_updated = "".$LANG['today_at']." " . fixDST(gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset)), $this->cur_user_id, 'h:ia') . "<br/>".$LANG['by']." <a class=\"u\" href=\"profile.php?member=" . $row['updated_by'] . "\">$updated_by</a>";
-			} elseif (gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == gmdate('n/d/Y', strtotime(date('n/d/Y', strtotime(date('Y-m-d H:i:s') . $this->tz_offset)) . "-24 hours"))) {
-				echo '<td class="images"><div class="'; if ($type == 'announcement') { echo 'announcement_'; }  echo 'yesterday">&nbsp;</div>&nbsp;</td>';
-				$last_updated = "".$LANG['yesterday_at']." " . fixDST(gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset)), $this->cur_user_id, 'h:ia') . "<br/>".$LANG['by']." <a class=\"u\" href=\"profile.php?member=" . $row['updated_by'] . "\">$updated_by</a>";
+            // thread was updated today
+			if (
+                gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == 
+                gmdate('n/d/Y', strtotime(date('Y-m-d H:i:s') . $this->tz_offset))
+            ) {
+                $img_class = 'today';
+                if ($type == 'announcement') {
+                    $img_class = 'announcement_' . $img_class;
+                }
+				$last_updated = $LANG['today_at'] . " "
+                    . fixDST(gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset)), $this->cur_user_id, 'h:ia')
+                    . "<br/>" . $LANG['by'] . " <a class=\"u\" href=\"profile.php?member="
+                    . $row['updated_by'] . "\">$updated_by</a>";
+            // thread was updated yesterday
+			} elseif (
+                gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == 
+                gmdate('n/d/Y', strtotime(date('n/d/Y', strtotime(date('Y-m-d H:i:s') . $this->tz_offset)) . "-24 hours"))
+            ) {
+                $img_class = 'yesterday';
+                if ($type == 'announcement') {
+                    $img_class = 'announcement_' . $img_class;
+                }
+				$last_updated = $LANG['yesterday_at'] . " "
+                    . fixDST(gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset)), $this->cur_user_id, 'h:ia')
+                    . "<br/>" . $LANG['by'] . " <a class=\"u\" href=\"profile.php?member="
+                    . $row['updated_by'] . "\">$updated_by</a>";
 			} else {
-				echo '<td class="images">'; if ($type == 'announcement') { echo '<div class="announcement">&nbsp;</div>'; }  echo '&nbsp;</td>';
-				$last_updated = fixDST(gmdate('m/d/Y h:ia', strtotime($row['updated'] . $this->tz_offset)), $this->cur_user_id, 'm/d/Y h:ia') . "<br/>".$LANG['by']." <a class=\"u\" href=\"profile.php?member=" . $row['updated_by'] . "\">$updated_by</a>";
-			}
-			echo '<td class="subject">'; if ($type == 'announcement') { echo "<small><b>".$LANG['announcement'].": </b></small>"; } echo '<a href="messageboard.php?thread=' . $row['id'] . '">'.$subject.'</a><br/>';
-			if($this->getNumberOfPosts($row['id']) > 15) { 
+                $img_class = '';
+                if ($type == 'announcement') {
+                    $img_class = 'announcement';
+                }
+				$last_updated = fixDST(
+                    gmdate('m/d/Y h:ia', strtotime($row['updated'] . $this->tz_offset)), 
+                    $this->cur_user_id, 'm/d/Y h:ia'
+                );
+                $last_updated .= "<br/>" . $LANG['by'] . " <a class=\"u\" href=\"profile.php?member="
+                    . $row['updated_by'] . "\">$updated_by</a>";
+            }
+            // thread has multiple pages?
+            $thread_pages = '';
+			if ($this->getNumberOfPosts($row['id']) > 15) { 
 				$num_posts = $this->getNumberOfPosts($row['id']);
-				echo "<span>".$LANG['page']." ";
+				$thread_pages = "<span>" . $LANG['page'] . " ";
 				$times2loop = ceil($num_posts/15);
-				for($i=1;$i<=$times2loop;$i++) { echo "<a href=\"messageboard.php?thread=" . $row['id'] . "&amp;page=$i\">$i</a> "; }
-				echo "</span><br/>";
-			}
-			echo '<span><a class="u" href="profile.php?member=' . $row['started_by'] . '">' . $started_by . '</a></span></td>';
-            echo '<td class="info">';
-            if ($this->getNumberOfPosts($row['id']) > 20) { echo '<div class="hot">&nbsp;</div>'; } else { echo "&nbsp;"; }
-            echo '</td><td class="replies">';
-			echo $this->getNumberOfPosts($row['id']) - 1;
-			echo '</td><td class="views">' . $row['views'] . '</td><td class="updated">' . $last_updated . "</td></tr>\n";
+				for ($i=1;$i<=$times2loop;$i++) {
+                    $thread_pages .= "<a href=\"messageboard.php?thread=" . $row['id'] . "&amp;page=$i\">$i</a> ";
+                }
+				$thread_pages .= "</span><br/>";
+            }
+            if ($this->getNumberOfPosts($row['id']) > 20) {
+                $info = '<div class="hot">&nbsp;</div>';
+            } else {
+                $info = "&nbsp;";
+            }
+            $num_replies = $this->getNumberOfPosts($row['id']) - 1;
+
+            // Display the message board posts rows
+            echo <<<HTML
+                    <tr class="{$tr_class}">
+                        <td class="images"><div class="{$img_class}">&nbsp;</div></td>
+                        <td class="subject">
+                            {$subject_info}<a href="messageboard.php?thread={$row['id']}">{$subject}</a><br/>
+                            {$thread_pages}
+                            <span><a class="u" href="profile.php?member={$row['started_by']}">{$started_by}</a></span>
+                        </td>
+                        <td class="info">{$info}</td>
+                        <td class="replies">$num_replies</td>
+                        <td class="views">{$row['views']}</td>
+                        <td class="updated">
+                            {$last_updated}
+                        </td>
+                    </tr>
+
+HTML;
 			$alt++;
 		}
 		if ($type == 'thread') {
-			echo "\t\t\t\t</tbody>\n\t\t\t</table>\n\t\t\t<div class=\"top clearfix\"><a href=\"#top\">".$LANG['back_top']."</a></div>\n";
+			echo <<<HTML
+                </tbody>
+            </table>
+            <div class="top clearfix"><a href="#top">{$LANG['back_top']}</a></div>
+
+HTML;
 			$this->displayPages($page);
 		}
 	}
 
-	function showPosts ($thread_id, $page = '1') {
+	function showPosts ($thread_id, $page = '1')
+    {
 		global $LANG;
-		$from = (($page * 15) - 15); 
-		$this->db->query("UPDATE fcms_board_threads  SET views=(views + 1) WHERE id=$thread_id") or die('<h1>+View Error (messageboard.class.php 83)</h1>' . mysql_error());
+		$from = (($page * 15) - 15);
+        $sql = "UPDATE fcms_board_threads SET views=(views + 1) WHERE id=$thread_id";
+		$this->db->query($sql) or displaySQLError(
+            '+ View Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 		$this->displayMessageBoardMenu($thread_id);
 		$this->displayPages($page, $thread_id);
 		$sort = $this->getSortOrder($this->cur_user_id);
 		$showavatar = $this->getShowAvatar($this->cur_user_id);
-		$this->db->query("SELECT fcms_board_posts.id, thread, post, subject, fcms_board_posts.`date`, user, avatar FROM fcms_board_posts, fcms_board_threads, fcms_users WHERE thread = $thread_id AND fcms_board_threads.id = thread AND user = fcms_users.id ORDER BY fcms_board_posts.id $sort LIMIT " . $from . ", 15") or die('<h1>Posts Error (messageboard.class.php 88)</h1>' . mysql_error());
+        $sql = "SELECT p.`id`, `thread`, `post`, `subject`, p.`date`, `user`, `avatar` 
+                FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, 
+                    `fcms_users` AS u 
+                WHERE `thread` = $thread_id 
+                AND t.`id` = `thread` 
+                AND `user` = u.`id` 
+                ORDER BY p.`id` $sort 
+                LIMIT $from, 15";
+		$this->db->query($sql) or displaySQLError(
+            'Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 		$alt = 0;
 		$first = true;
-		while($row=$this->db->get_row()) {
+        $total = $this->getNumberOfPosts($thread_id);
+		while ($row = $this->db->get_row()) {
+            // display the table header
 			if ($first) {
-				echo "\t\t\t<table id=\"postlist\" cellpadding=\"0\" cellspacing=\"0\">\n\t\t\t\t<tbody>\n";
+				echo '            <table id="postlist" cellpadding="0" cellspacing="0">' . "\n";
+                echo '                <tbody>' . "\n";
 				$first = false;
 			}
+
+            // Setup some vars
 			$subject = $row['subject'];
-			if(strlen($subject) > 40) { $subject = substr($subject, 0, 37) . "..."; }
+			if (strlen($subject) > 40) {
+                $subject = substr($subject, 0, 37) . "...";
+            }
+            // Remove #ANOUNCE#
 			$pos = strpos($subject, '#ANOUNCE#');
-			if($pos !== false) { $subject = substr($subject, 9, strlen($subject)-9); }
-			if ($alt > 0) { $subject = "RE: " . $subject; }
+			if ($pos !== false) {
+                $subject = substr($subject, 9, strlen($subject)-9);
+            }
+            if ($sort == 'ASC') {
+                if ($alt > 0) { $subject = "RE: " . $subject; }
+            } else {
+                if ($alt !== $total - 1) { $subject = "RE: " . $subject; }
+            }
 			$displayname = getUserDisplayName($row['user']);
-			$post = $row['post'];
 			$date = $row['date'];
 			$date = fixDST(gmdate('n/d/Y h:ia', strtotime($date . $this->tz_offset)), $this->cur_user_id, 'n/d/Y g:ia');
-			echo "\t\t\t\t\t<tr"; if ($alt % 2 == 0) { echo ">"; } else { echo " class=\"alt\">"; } echo "\n\t\t\t\t\t\t<td class=\"side\">\n";
-			echo "\t\t\t\t\t\t\t<b><a href=\"profile.php?member=" . $row['user'] . "\">$displayname</a></b>";
+            if ($alt % 2 == 0) {
+                $tr_class = '';
+            } else {
+                $tr_class = 'alt';
+            }
+            // rank
 			$points = getUserRankById($row['user']);
-			if($points > 50) { echo "<div title=\"".$LANG['elder']." ($points)\" class=\"rank7\"></div>"; }
-			elseif($points > 30) { echo "<div title=\"".$LANG['adult']." ($points)\" class=\"rank6\"></div>"; }
-			elseif($points > 20) { echo "<div title=\"".$LANG['mature_adult']." ($points)\" class=\"rank5\"></div>"; }
-			elseif($points > 10) { echo "<div title=\"".$LANG['young_adult']." ($points)\" class=\"rank4\"></div>"; }
-			elseif($points > 5) { echo "<div title=\"".$LANG['teenager']." ($points)\" class=\"rank3\"></div>"; }
-			elseif($points > 3) { echo "<div title=\"".$LANG['kid']." ($points)\" class=\"rank2\"></div>"; }
-			elseif($points > 1) { echo "<div title=\"".$LANG['toddler']." ($points)\" class=\"rank1\"></div>"; }
-			else { echo "<div title=\"".$LANG['baby']." ($points)\" class=\"rank0\"></div>"; }
-			if ($showavatar > 0) { echo "<img src=\"gallery/avatar/" . $row['avatar'] . "\" alt=\"$displayname\"/><br/><br/>"; }
-			if ($this->hasAwards($row['user'])) { $this->showAwards($row['user']); }
-			echo "<b>".$LANG['posts']."</b>" . $this->getUserPostCountById($row['user']) . "\n\t\t\t\t\t\t</td>\n\t\t\t\t\t\t<td class=\"post\">\n";
-            echo "\t\t\t\t\t\t\t<div class=\"header clearfix\">\n";
-			echo "\t\t\t\t\t\t\t\t<div class=\"subject\"><b>$subject</b> - $date</div>\n";
-            echo "\t\t\t\t\t\t\t\t<div class=\"actions\">";
+            $rank = '';
+			if ($points > 50) {
+                $rank = "<div title=\"".$LANG['elder']." ($points)\" class=\"rank7\"></div>";
+            } elseif ($points > 30) {
+                $rank = "<div title=\"".$LANG['adult']." ($points)\" class=\"rank6\"></div>";
+            } elseif ($points > 20) {
+                $rank = "<div title=\"".$LANG['mature_adult']." ($points)\" class=\"rank5\"></div>";
+            } elseif ($points > 10) {
+                $rank = "<div title=\"".$LANG['young_adult']." ($points)\" class=\"rank4\"></div>";
+            } elseif ($points > 5) {
+                $rank = "<div title=\"".$LANG['teenager']." ($points)\" class=\"rank3\"></div>";
+            } elseif ($points > 3) {
+                $rank = "<div title=\"".$LANG['kid']." ($points)\" class=\"rank2\"></div>";
+            } elseif ($points > 1) {
+                $rank = "<div title=\"".$LANG['toddler']." ($points)\" class=\"rank1\"></div>";
+            } else {
+                $rank = "<div title=\"".$LANG['baby']." ($points)\" class=\"rank0\"></div>";
+            }
+            $avatar = '';
+            if ($showavatar > 0) {
+                $avatar = "<img src=\"gallery/avatar/" . $row['avatar'] . "\" alt=\"$displayname\"/><br/><br/>";
+            }
+            $awards = '';
+            if ($this->hasAwards($row['user'])) {
+                $awards = $this->getAwards($row['user']);
+            }
+            $posts_count = $this->getUserPostCountById($row['user']);
+            $actions = '';
+            // quote
 			if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
-				echo "<form method=\"post\" action=\"messageboard.php?reply=$thread_id\"><div><input type=\"hidden\" name=\"quote\" value=\"[SPAN=q]".$LANG['quoting'].": " . $displayname . "[/SPAN][QUOTE]" . htmlentities($post, ENT_COMPAT, 'UTF-8') . "[/QUOTE]\"/><input type=\"submit\" class=\"quotebtn\" value=\" \" name=\"quotepost\" title=\"".$LANG['title_quote']."\"/></div></form> &nbsp;";
+				$actions .= '<form method="post" action="messageboard.php?reply='.$thread_id.'">
+                                        <div>
+                                            <input type="hidden" name="id" value="'.$row['id'].'"/>
+                                            <input type="submit" class="quotebtn" value="'.$LANG['quote'].'" name="quotepost" title="'.$LANG['title_quote'].'"/>
+                                        </div>
+                                    </form>';
 			}
+            // edit
 			if ($this->cur_user_id == $row['user'] || checkAccess($this->cur_user_id) < 3) {
-				echo "<form method=\"post\" action=\"messageboard.php\"><div><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"submit\" name=\"editpost\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_post']."\"/></div></form> &nbsp;";
+				$actions .= ' &nbsp;
+                                    <form method="post" action="messageboard.php">
+                                        <div>
+                                            <input type="hidden" name="id" value="'.$row['id'].'"/>
+                                            <input type="submit" name="editpost" value="'.$LANG['edit'].'" class="editbtn" title="'.$LANG['title_edit_post'].'"/>
+                                        </div>
+                                    </form>';
 			}
+            // delete
 			if (checkAccess($this->cur_user_id) < 2) {
-				echo "<form method=\"post\" action=\"messageboard.php\"><div><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/><input type=\"hidden\" name=\"thread\" value=\"$thread_id\"/><input type=\"submit\" name=\"delpost\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_del_post']."\" onclick=\"javascript:return confirm('".$LANG['js_del_post']."');\" /></div></form>";
+				$actions .= ' &nbsp;
+                                    <form class="delpost" method="post" action="messageboard.php">
+                                        <div>
+                                            <input type="hidden" name="id" value="'.$row['id'].'"/>
+                                            <input type="hidden" name="thread" value="'.$thread_id.'"/>
+                                            <input type="submit" name="delpost" value="'.$LANG['delete'].'" class="delbtn" title="'.$LANG['title_del_post'].'"/>
+                                        </div>
+                                    </form>';
 			}
-			echo "</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"msg\">";
-			parse($post, 1);
-			echo "</div>\n\t\t\t\t\t\t</td>\n\t\t\t\t\t</tr>\n";
+
+            // Display the posts rows
+            echo <<<HTML
+                    <tr class="{$tr_class}">
+                        <td class="side">
+                            <b><a href="profile.php?member={$row['user']}">$displayname</a></b>
+                            {$rank}
+                            {$avatar}
+                            {$awards}
+                            <b>{$LANG['posts']}</b> {$posts_count}
+                        </td>
+                        <td class="posts">
+                            <div class="header clearfix">
+                                <div class="subject"><b>{$subject}</b> - $date</div>
+                                <div class="actions">
+                                    {$actions}
+                                </div>
+                            </div>
+                            <div class="msg">
+
+HTML;
+			parse($row['post']);
+			echo '
+                            </div>
+                        </td>
+                    </tr>';
 			$alt++;
 		}
-		if (!$first) { echo "\t\t\t\t</tbody>\n\t\t\t</table>\n"; }
+		if (!$first) {
+            echo '
+                </tbody>
+            </table>';
+        }
         $this->displayMessageBoardMenu($thread_id);
 		$this->displayPages($page, $thread_id);
-		echo "\t\t\t<div class=\"top\"><a href=\"#top\">".$LANG['back_top']."</a></div>\n";
+		echo "            <div class=\"top\"><a href=\"#top\">".$LANG['back_top']."</a></div>\n";
 	}
 
 	function getNumberOfPosts ($thread_id) {
@@ -222,61 +409,156 @@ class MessageBoard
 		}
 	}
 
-	// new reply edit
+    /*
+     *  displayForm
+     *
+     *  Displays the form for posting: new, reply and edit
+     *  
+     *  @param      $type       new, reply or edit
+     *  @param      $thread_id  used for reply and edit
+     *  @param      $post_id    used for reply and edit
+     *  @param      $post       used for edit
+     *  @return     none
+     */
 	function displayForm ($type, $thread_id = '0', $post_id = '0', $post = 'error') {
 		global $LANG;
-		echo "<script type=\"text/javascript\" src=\"inc/livevalidation.js\"></script>\n";
-		echo "\t\t\t<script type=\"text/javascript\" src=\"inc/fcms.js\"></script>\n\t\t\t";
-        echo "<form id=\"postform\" method=\"post\" action=\"messageboard.php\">\n\t\t\t\t";
-		if ($type == 'new') { 
-			echo "<h2>".$LANG['new_msg']."</h2>\n";
-		} elseif($type == 'reply') {
-			$this->db->query("SELECT `post` FROM `fcms_board_posts` WHERE `thread` = " . $thread_id . " ORDER BY `date` DESC LIMIT 1") or die('<h1>Post Error (messageboard.class.php 211)</h1>' . mysql_error());
+
+        // New
+        if ($type == 'new') {
+            $reply = '';
+            $header = $LANG['new_msg'];
+            $subject = '
+                <div>
+                    <label for="subject">'.$LANG['subject'].'</label>: 
+                    <input type="text" name="subject" id="subject" title="'.$LANG['title_msg_subject'].'" size="50"/>
+                </div>
+                <script type="text/javascript">
+                    var fsub = new LiveValidation(\'subject\', {onlyOnSubmit: true});
+                    fsub.add(Validate.Presence, {failureMessage: ""});
+                </script>';
+            $sticky = '';
+			if (checkAccess($this->cur_user_id) <= 2) {
+                $sticky = '
+                <p>
+                    <label for="sticky">'.$LANG['admin_tools'].'</label>: 
+                    <input type="checkbox" name="sticky" id="sticky" value="sticky"/>'.$LANG['make_announcement'].'
+                </p>';
+            }
+            $post = '';
+            $post_js = '
+                <script type="text/javascript">
+                    var fpost = new LiveValidation(\'post\', {onlyOnSubmit: true});
+                    fpost.add(Validate.Presence, {failureMessage: ""});
+                </script>';
+            $hidden_submit = '
+                <div><input type="hidden" name="name" id="name" value="'.$this->cur_user_id.'"/></div>
+                <p><input type="submit" name="post_submit" id="post_submit" value="'.$LANG['submit'].'"/></p>';
+
+        // Reply
+        } elseif ($type == 'reply') {
+            $header = $LANG['reply'];
+            $subject = '';
+            $sticky = '';
+            $post_js = '';
+            
+            // Get last post in the thread to display above reply
+            $sql = "SELECT `post` 
+                    FROM `fcms_board_posts` 
+                    WHERE `thread` = " . $thread_id . " 
+                    ORDER BY `date` DESC 
+                    LIMIT 1";
+			$this->db->query($sql) or displaySQLError(
+                'Get Reply Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
 			$row = $this->db->get_row();
-			$search = array('/\[ins\](.*?)\[\/ins\]/is', '/\[del\](.*?)\[\/del\]/is', '/\[h1\](.*?)\[\/h1\]/is', '/\[h2\](.*?)\[\/h2\]/is', '/\[h3\](.*?)\[\/h3\]/is', '/\[h4\](.*?)\[\/h4\]/is', '/\[h5\](.*?)\[\/h5\]/is', '/\[h6\](.*?)\[\/h6\]/is', 
-				'/\[b\](.*?)\[\/b\]/is', '/\[i\](.*?)\[\/i\]/is', '/\[u\](.*?)\[\/u\]/is', '/\[url\=(.*?)\](.*?)\[\/url\]/is', '/\[url\](.*?)\[\/url\]/is', '/\[align\=(left|center|right)\](.*?)\[\/align\]/is','/\[img\=(.*?)\]/is', '/\[img\](.*?)\[\/img\]/is', 
-				'/\[mail\=(.*?)\](.*?)\[\/mail\]/is', '/\[mail\](.*?)\[\/mail\]/is', '/\[font\=(.*?)\](.*?)\[\/font\]/is', '/\[size\=(.*?)\](.*?)\[\/size\]/is', '/\[color\=(.*?)\](.*?)\[\/color\]/is', '/\[span\](.*?)\[\/span\]/is', '/\[span\=(.*?)\](.*?)\[\/span\]/is');
-			$replace = array('$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$2', '$1', '$2', '$1', '1', '$2', '$1', '$2', '$2','$2', '$1', '$2');
-			$repost = preg_replace($search, $replace, $row['post']);
-			echo "<p>$repost</p>";
-			echo "<h2>".$LANG['reply']."</h2>\n";
-		} elseif($type == 'edit') {
-			echo "<h2>".$LANG['edit']."</h2>\n";
-		}
-		if ($type == 'new') {
-			echo "\t\t\t\t<div><label for=\"subject\">".$LANG['subject']."</label>: <input type=\"text\" name=\"subject\" id=\"subject\" class=\"required\" title=\"".$LANG['title_msg_subject']."\" size=\"50\"/></div>\n";
-			echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar fsub = new LiveValidation('subject', { validMessage: \"\", wait: 500});\n\t\t\t\t\tfsub.add(Validate.Presence, {failureMessage: \"\"});\n\t\t\t\t</script>\n\t\t\t\t";
-		}
-		echo "\t\t\t\t<div><label for=\"showname\">".$LANG['name']."</label>: <input type=\"text\" disabled=\"disabled\" name=\"showname\" id=\"showname\" title=\"".$LANG['your_name']."\" value=\"" . getUserDisplayName($this->cur_user_id) . "\" size=\"50\" /> &nbsp;<a href=\"#\" onclick=\"window.open('inc/upimages.php','name','width=700,height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no'); return false;\">(".$LANG['upload_image'].")</a></div>\n";
-		if ($type == 'new') {
-			if(checkAccess($this->cur_user_id) <= 2) { echo "\t\t\t\t<p><label for=\"sticky\">".$LANG['admin_tools']."</label>: <input type=\"checkbox\" name=\"sticky\" id=\"sticky\" value=\"sticky\" />".$LANG['make_announcement']."</p>\n"; }
-		}
-		echo "\t\t\t\t<script type=\"text/javascript\">var bb = new BBCode();</script>\n";
-		displayMBToolbar();
-		if ($type == 'edit') {
-			$pos = strpos($post, "[size=small][i]".$LANG['edited']);
-			if ($pos !== false) { $post = substr($post, 0, $pos); }
-			echo "\t\t\t\t<div><textarea name=\"post\" id=\"post\" class=\"required\" rows=\"10\" cols=\"63\">$post</textarea></div>\n";
-		} elseif($type == 'reply' && $post !== 'error') {
-			echo "\t\t\t\t<div><textarea name=\"post\" id=\"post\" class=\"required\" rows=\"10\" cols=\"63\">$post</textarea></div>\n";
-		} else {
-			echo "\t\t\t\t<div><textarea name=\"post\" id=\"post\" class=\"required\" rows=\"10\" cols=\"63\"></textarea></div>\n";
-			echo "\t\t\t\t<script type=\"text/javascript\">\n\t\t\t\t\tvar fpost = new LiveValidation('post', { validMessage: \"\", wait: 500});\n\t\t\t\t\tfpost.add(Validate.Presence, {failureMessage: \"\"});\n\t\t\t\t</script>\n\t\t\t\t";
-		}
-		echo "\t\t\t\t<script type=\"text/javascript\">bb.init('post');</script>\n\t\t\t\t<p id=\"smileys\">";
-		displaySmileys();
-		echo "</p>\n"; //end of smileys p
-		if($type == 'new') {
-			echo "\t\t\t\t<div><input type=\"hidden\" name=\"name\" id=\"name\" value=\"$this->cur_user_id\"/></div>\n";
-			echo "\t\t\t\t<p><input type=\"submit\" name=\"post_submit\" id=\"post_submit\" value=\"".$LANG['submit']."\"/></p>\n";
-		} elseif($type == 'reply') {
-			echo "\t\t\t\t<div><input type=\"hidden\" name=\"name\" id=\"name\" value=\"$this->cur_user_id\"/></div>\n\t\t\t\t<div><input type=\"hidden\" name=\"thread_id\" value=\"$thread_id\"/></div>\n";
-			echo "\t\t\t\t<p><input type=\"submit\" name=\"reply_submit\" id=\"reply_submit\" value=\"".$LANG['reply']."\"/></p>\n";
-		} elseif($type == 'edit') {
-			echo "\t\t\t\t<div><input type=\"hidden\" name=\"id\" id=\"id\" value=\"$post_id\"/></div>\n\t\t\t\t<div><input type=\"hidden\" name=\"thread_id\" id=\"thread_id\" value=\"$thread_id\"/></div>\n";
-			echo "\t\t\t\t<p><input type=\"submit\" name=\"edit_submit\" id=\"edit_submit\" value=\"".$LANG['edit']."\"/></p>\n";
-		}
-		echo "\t\t\t</form>\n";
+			$search = array('/\[ins\](.*?)\[\/ins\]/is', '/\[del\](.*?)\[\/del\]/is', 
+                '/\[h1\](.*?)\[\/h1\]/is', '/\[h2\](.*?)\[\/h2\]/is', '/\[h3\](.*?)\[\/h3\]/is', 
+                '/\[h4\](.*?)\[\/h4\]/is', '/\[h5\](.*?)\[\/h5\]/is', '/\[h6\](.*?)\[\/h6\]/is', 
+				'/\[b\](.*?)\[\/b\]/is', '/\[i\](.*?)\[\/i\]/is', '/\[u\](.*?)\[\/u\]/is', 
+                '/\[url\=(.*?)\](.*?)\[\/url\]/is', '/\[url\](.*?)\[\/url\]/is', 
+                '/\[align\=(left|center|right)\](.*?)\[\/align\]/is','/\[img\=(.*?)\]/is', 
+                '/\[img\](.*?)\[\/img\]/is', '/\[mail\=(.*?)\](.*?)\[\/mail\]/is', 
+                '/\[mail\](.*?)\[\/mail\]/is', '/\[font\=(.*?)\](.*?)\[\/font\]/is', 
+                '/\[size\=(.*?)\](.*?)\[\/size\]/is', '/\[color\=(.*?)\](.*?)\[\/color\]/is', 
+                '/\[span\](.*?)\[\/span\]/is', '/\[span\=(.*?)\](.*?)\[\/span\]/is'
+            );
+			$replace = array('$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', '$1', 
+                '$2', '$1', '$2', '$1', '1', '$2', '$1', '$2', '$2','$2', '$1', '$2'
+            );
+			$reply = "<p>".preg_replace($search, $replace, $row['post'])."</p>";
+
+            // Get the text of ther post that the user is quoting
+            // We know we are quoting someone if type is reply and we have a post_id
+            if ($post_id > 0) {
+                $sql = "SELECT `post`, `user` 
+                        FROM `fcms_board_posts` 
+                        WHERE `id` = " . $post_id . " 
+                        LIMIT 1";
+                $this->db->query($sql) or displaySQLError(
+                    'Get Quote Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+                $qrow = $this->db->get_row();
+                $post = '[SPAN=q]'.$LANG['quoting'].': '.getUserDisplayName($qrow['user']).'[/SPAN][QUOTE]'
+                        .htmlentities($qrow['post'], ENT_COMPAT, 'UTF-8').'[/QUOTE]';
+            } else {
+                $post = '';
+            }
+			
+            $hidden_submit = '
+                <div><input type="hidden" name="name" id="name" value="'.$this->cur_user_id.'"/></div>
+                <div><input type="hidden" name="thread_id" value="'.$thread_id.'"/></div>
+                <p><input type="submit" name="reply_submit" id="reply_submit" value="'.$LANG['reply'].'"/></p>';
+
+        // Edit
+        } elseif ($type == 'edit') {
+            $reply = '';
+            $header = $LANG['edit'];
+            $subject = '';
+            $sticky = '';
+            $post_js = '';
+
+            // Remove the previous edited by string so we can add a new one
+            $pos = strpos($post, "[size=small][i]".$LANG['edited']);
+            if ($pos !== false) {
+                $post = substr($post, 0, $pos);
+            }
+			
+            $hidden_submit = '
+                <div><input type="hidden" name="id" id="id" value="'.$post_id.'"/></div>
+                <div><input type="hidden" name="thread_id" id="thread_id" value="'.$thread_id.'"/></div>
+                <p><input type="submit" name="edit_submit" id="edit_submit" value="'.$LANG['edit'].'"/></p>';
+        }
+
+        // Display the form
+		echo '
+            <script type="text/javascript" src="inc/livevalidation.js"></script>
+            <script type="text/javascript" src="inc/fcms.js"></script>
+            <form id="postform" method="post" action="messageboard.php">
+                '.$reply.'
+                <h2>'.$header.'</h2>
+                '.$subject.'
+		        <div>
+                    <label for="showname">'.$LANG['name'].'</label>: 
+                    <input type="text" disabled="disabled" name="showname" id="showname" title="'.$LANG['your_name'].'" value="'.getUserDisplayName($this->cur_user_id).'" size="50"/> &nbsp;
+                    <a id="upimages" class="hideme" href="#" onclick="window.open(\'inc/upimages.php\',\'name\',\'width=700,height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no\'); return false;">('.$LANG['upload_image'].')</a>
+                </div>
+                '.$sticky.'
+                <script type="text/javascript">var bb = new BBCode();</script>';
+        echo "\n";
+        displayMBToolbar();
+        echo '
+                <div>
+                    <textarea name="post" id="post" rows="10" cols="63">'.$post.'</textarea>
+                </div>
+                '.$post_js.'
+                <script type="text/javascript">bb.init(\'post\');</script>
+                <p id="smileys" class="hideme">';
+        echo "\n";
+        displaySmileys();
+		echo '
+                </p>
+                '.$hidden_submit.'
+            </form>';
 	}
 
 	function hasAwards ($user_id) {
@@ -285,24 +567,38 @@ class MessageBoard
 		if ($rows > 0) { return true; } else { return false; }
 	}
 
-	function showAwards ($user_id) {
-		global $LANG;
-		echo "<b>".$LANG['link_admin_awards']."</b>";
-		$this->db2->query("SELECT * FROM fcms_user_awards WHERE user = $user_id AND `count` > 0") or die('<h1>Awards Error (messageboard.class.php 266)</h1>' . mysql_error());
-		while($row=$this->db2->get_row()) {
-			if ($row['type'] == 'top5poster') {
-				echo "<div class=\"award boardtop5"; if ($row['value'] <= 1) { echo "gold"; } echo "\" title=\"#" . $row['value'] . " ".$LANG['poster_last_month']." (" . $row['count'] . " ".$LANG['posts_lc'].")\"></div>";
-			} elseif ($row['type'] == 'top5photo') {
-				echo "<div class=\"award phototop5"; if ($row['value'] <= 1) { echo "gold"; } echo "\" title=\"#" . $row['value'] . " ".$LANG['most_photos']." (" . $row['count'] . " ".$LANG['photos_lc'].")\"></div>";
-			} else if ($row['type'] == 'mostsmileys') {
-				echo "<div class=\"award smileys\" title=\"".$LANG['most_smileys']."\"></div>";
-			} else if ($row['type'] == 'topviewedphoto') {
-				echo "<div class=\"award topviewedphoto\" title=\"".$LANG['viewed_photo_last_month']." (" . $row['count'] . " ".$LANG['views_lc'].")\"></div>";
-			} else {
-				echo "<div class=\"award threadstarter\" title=\"".$LANG['thread_starter']." (" . $row['count'] . " ".$LANG['posts_lc'].")\"></div>";
-			}
-		}
-	}
+    function getAwards ($user_id)
+    {
+        global $LANG;
+        $str = "<b>".$LANG['link_admin_awards']."</b>";
+        $sql = "SELECT * FROM fcms_user_awards WHERE user = $user_id AND `count` > 0";
+        $this->db2->query($sql) or displaySQLError(
+            'Awards Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        while($row=$this->db2->get_row()) {
+            if ($row['type'] == 'top5poster') {
+                $str .= "<div class=\"award boardtop5";
+                if ($row['value'] <= 1) { $str .= "gold"; }
+                $str .= "\" title=\"#" . $row['value'] . " " . $LANG['poster_last_month'];
+                $str .= " (" . $row['count'] . " ".$LANG['posts_lc'].")\"></div>";
+            } elseif ($row['type'] == 'top5photo') {
+                $str .= "<div class=\"award phototop5";
+                if ($row['value'] <= 1) { $str .= "gold"; }
+                $str .= "\" title=\"#" . $row['value'] . " " . $LANG['most_photos'];
+                $str .= " (" . $row['count'] . " ".$LANG['photos_lc'].")\"></div>";
+            } else if ($row['type'] == 'mostsmileys') {
+                $str .= "<div class=\"award smileys\" title=\"" . $LANG['most_smileys'] . "\"></div>";
+            } else if ($row['type'] == 'topviewedphoto') {
+                $str .= "<div class=\"award topviewedphoto\" title=\"";
+                $str .= $LANG['viewed_photo_last_month'] . " (" . $row['count'] . " ";
+                $str .= $LANG['views_lc'] . ")\"></div>";
+            } else {
+                $str .= "<div class=\"award threadstarter\" title=\"".$LANG['thread_starter'];
+                $str .= " (" . $row['count'] . " " . $LANG['posts_lc'] . ")\"></div>";
+            }
+        }
+        return $str;
+    }
 
     function displayMessageBoardMenu ($thread_id = '') {
         global $LANG;

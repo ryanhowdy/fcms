@@ -26,51 +26,118 @@ class Admin {
         $this->tz_offset = $row['timezone'];
     }
 
-    function showThreads ($type, $page = '0') {
+    function showThreads ($type, $page = '0')
+    {
         global $LANG;
         $from = (($page * 25) - 25);
         if ($type == 'announcement') {
-            echo "<table id=\"threadlist\" cellpadding=\"0\" cellspacing=\"0\">\n\t\t\t\t<thead><tr><th class=\"images\">&nbsp;</th><th class=\"subject\">".$LANG['subject']."</th><th class=\"replies\">".$LANG['replies']."</th><th class=\"views\">".$LANG['views']."</th><th class=\"updated\">".$LANG['last_updated']."</th></tr></thead>\n\t\t\t\t<tbody>\n";
-            $sql = "SELECT fcms_board_threads.id, subject, started_by, updated, updated_by, views, user FROM fcms_board_threads, fcms_board_posts WHERE fcms_board_threads.id = fcms_board_posts.thread AND subject LIKE '#ANOUNCE#%' GROUP BY fcms_board_threads.id ORDER BY updated DESC";
-            $this->db->query($sql) or displaySQLError('Announcements Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            echo '
+            <table id="threadlist" cellpadding="0" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th class="images">&nbsp;</th>
+                        <th class="subject">'.$LANG['subject'].'</th>
+                        <th class="replies">'.$LANG['replies'].'</th>
+                        <th class="views">'.$LANG['views'].'</th>
+                        <th class="updated">'.$LANG['last_updated'].'</th>
+                    </tr>
+                </thead>
+                <tbody>';
+            $sql = "SELECT fcms_board_threads.id, subject, started_by, updated, updated_by, views, user 
+                    FROM fcms_board_threads, fcms_board_posts 
+                    WHERE fcms_board_threads.id = fcms_board_posts.thread 
+                    AND subject LIKE '#ANOUNCE#%' 
+                    GROUP BY fcms_board_threads.id 
+                    ORDER BY updated DESC";
+            $this->db->query($sql) or displaySQLError(
+                'Announcements Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
         } else {
             $sql = "SELECT fcms_board_threads.id, subject, started_by, updated, updated_by, views, user FROM fcms_board_threads, fcms_board_posts WHERE fcms_board_threads.id = fcms_board_posts.thread AND subject NOT LIKE '#ANOUNCE#%' GROUP BY fcms_board_threads.id ORDER BY updated DESC LIMIT " . $from . ", 25";
             $this->db->query($sql) or displaySQLError('Threads Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
         }
         $alt = 0;
-        while($row=$this->db->get_row()) {
+        while ($row=$this->db->get_row()) {
             $started_by = getUserDisplayName($row['started_by']);
             $updated_by = getUserDisplayName($row['updated_by']);
             $subject = $row['subject'];
             if ($type == 'announcement') {
                 $subject = substr($subject, 9, strlen($subject)-9);
-                echo "\t\t\t\t\t<tr class=\"announcement\">";
+                $subject = '<small><b>'.$LANG['announcement'].': </b></small>'.$subject;
+                $tr_class = 'announcement';
             } else {
-                echo "\t\t\t\t\t<tr"; if ($alt % 2 == 0) { echo ">"; } else { echo " class=\"alt\">"; }
+                if ($alt % 2 == 0) {
+                    $tr_class = '';
+                } else {
+                    $tr_class = 'alt';
+                }
             }
-            if (gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == gmdate('n/d/Y', strtotime(date('n/d/Y') . $this->tz_offset))) {
-                echo '<td class="images"><div class="'; if ($type == 'announcement') { echo 'announcement_'; }  echo 'today">&nbsp;</div></td>';
-                $last_updated = $LANG['today_at']." " . gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset)) . "<br/>".$LANG['by']." $updated_by";
-            } elseif (gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == gmdate('n/d/Y', strtotime(date('n/d/Y', strtotime(date('Y-m-d H:i:s') . $this->tz_offset)) . "-24 hours"))) {
-                echo '<td class="images"><div class="'; if ($type == 'announcement') { echo 'announcement_'; }  echo 'yesterday">&nbsp;</div></td>';
-                $last_updated = $LANG['yesterday_at']." " . gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset)) . "<br/>".$LANG['by']." $updated_by";
+
+            // Updated Today
+            if (
+                gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == 
+                gmdate('n/d/Y', strtotime(date('n/d/Y') . $this->tz_offset))
+            ) {
+                if ($type == 'announcement') {
+                    $up_class = 'announcement_today';
+                } else {
+                    $up_class = 'today';
+                }
+                $last_updated = $LANG['today_at'] . " "
+                    . gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset))
+                    . "<br/>" . $LANG['by'] . " $updated_by";
+
+            // Updated Yesterday
+            } elseif (
+                gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == 
+                gmdate('n/d/Y', strtotime(date('n/d/Y', strtotime(date('Y-m-d H:i:s') . $this->tz_offset)) . "-24 hours"))
+            ) {
+                if ($type == 'announcement') {
+                    $up_class = 'announcement_yesterday';
+                } else {
+                    $up_class = 'yesterday';
+                }
+                $last_updated = $LANG['yesterday_at'] . " "
+                    . gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset))
+                    . "<br/>" . $LANG['by'] . " $updated_by";
+
+            // Updated older than yesterday
             } else {
-                echo '<td class="images">'; if ($type == 'announcement') { echo '<div class="announcement">&nbsp;</div>'; }  echo '</td>';
-                $last_updated = gmdate('m/d/Y h:ia', strtotime($row['updated'] . $this->tz_offset)) . "<br/>".$LANG['by']." $updated_by";
+                if ($type == 'announcement') {
+                    $up_class = 'announcement';
+                } else {
+                    $up_class = '';
+                }
+                $last_updated = gmdate('m/d/Y h:ia', strtotime($row['updated'] . $this->tz_offset))
+                    . "<br/>" . $LANG['by'] . " $updated_by";
             }
-            echo '<td class="subject">'; if ($type == 'announcement') { echo "<small><b>".$LANG['announcement'].": </b></small>"; } 
-            if($this->getNumberOfPosts($row['id']) >= 20) {
-                echo "<span class=\"hot\">$subject</span>";
-            } else {
-                echo $subject;
-            }
-            echo ' <small><a class="edit_thread" href="board.php?edit=' . $row['id'] . '">edit</a> <a class="del_thread" href="board.php?del=' . $row['id'] . '" onclick="javascript:return confirm(\'Are you sure you want to DELETE this thread?\');" >delete</a></small><br/>' . $started_by . '</td><td class="replies">';
-            echo $this->getNumberOfPosts($row['id']) - 1;
-            echo '</td><td class="views">' . $row['views'] . '</td><td class="updated">' . $last_updated . "</td></tr>\n";
+            $replies = $this->getNumberOfPosts($row['id']) - 1;
+            
+            // Display Row
+            echo '
+                    <tr class="'.$tr_class.'">
+                        <td class="images"><div class="'.$up_class.'"&nbsp;</div></td>
+                        <td class="subject">
+                            '.$subject.' 
+                            <small>
+                                <a class="edit_thread" href="board.php?edit='.$row['id'].'">'.$LANG['edit'].'</a> 
+                                <a class="del_thread" href="board.php?del='.$row['id'].'">'.$LANG['delete'].'</a>
+                            </small><br/>
+                            '.$started_by.'
+                        </td>
+                        <td class="replies">'.$replies.'</td>
+                        <td class="views">'.$row['views'].'</td>
+                        <td class="updated">
+                            '.$last_updated.'
+                        </td>
+                    </tr>';
             $alt++;
         }
         if ($type == 'thread') {
-            echo "\t\t\t\t</tbody>\n\t\t\t</table>\n\t\t\t<div class=\"top clearfix\"><a href=\"#top\">".$LANG['back_top']."</a></div>\n";
+            echo '
+                </tbody>
+            </table>
+            <div class="top clearfix"><a href="#top">'.$LANG['back_top'].'</a></div>';
             $this->displayPages($page);
         }
     }
@@ -171,44 +238,91 @@ class Admin {
         }
     }
 
-    function displayEditPollForm ($pollid = '0') {
+    function displayEditPollForm ($pollid = '0')
+    {
         global $LANG;
         $poll_exists = true;
         if ($pollid > 0) {
-            $sql = "SELECT `question`, o.`id`, `option` FROM `fcms_polls` AS p, `fcms_poll_options` AS o WHERE p.`id` = o.`poll_id` AND p.`id` = $pollid";
-            $this->db->query($sql) or displaySQLError('Poll Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
-            if ($this->db->count_rows() <= 0) { $poll_exists = false; }
+            $sql = "SELECT `question`, o.`id`, `option` 
+                    FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
+                    WHERE p.`id` = o.`poll_id` 
+                    AND p.`id` = $pollid";
+            $this->db->query($sql) or displaySQLError(
+                'Poll Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
+            if ($this->db->count_rows() <= 0) {
+                $poll_exists = false;
+            }
         } else {
+
+            // Get last poll info
             $sql = "SELECT MAX(`id`) AS c FROM `fcms_polls`";
-            $this->db->query($sql) or displaySQLError('Max Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            $this->db->query($sql) or displaySQLError(
+                'Max Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $row = $this->db->get_row();
             $latest_poll_id = $row['c'];
             if (is_null($row['c'])) {
                 $poll_exists = false;
                 $this->displayAddPollForm();
             } else {
-                $sql = "SELECT `question`, o.`id`, `option` FROM `fcms_polls` AS p, `fcms_poll_options` AS o WHERE p.`id` = o.`poll_id` AND p.`id` = $latest_poll_id";
-                $this->db->query($sql) or displaySQLError('Poll Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                $sql = "SELECT `question`, o.`id`, `option` 
+                        FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
+                        WHERE p.`id` = o.`poll_id` 
+                        AND p.`id` = $latest_poll_id";
+                $this->db->query($sql) or displaySQLError(
+                    'Poll Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
             }
         }
+
+        // Display the current poll
         if ($poll_exists) {
             echo "<br/><h3>".$LANG['edit_polls']."</h3>";
-            echo "<form id=\"editform\" name=\"editform\" action=\"?page=admin_polls\" method=\"post\"><fieldset><legend>".$LANG['edit_cur_poll']."</legend>";
+            echo '
+            <form id="editform" name="editform" action="?page=admin_polls" method="post">
+                <fieldset>
+                    <legend>'.$LANG['edit_cur_poll'].'</legend>';
             $i = 1;
             while ($row = $this->db->get_row()) {
-                if ($i < 2) { echo "<h3>" . $row['question'] . "</h3>"; }
-                echo "<div class=\"field-row\"><div class=\"field-label\"><label for=\"show$i\">".$LANG['option']." $i:</label></div> <div class=\"field-widget\"><input type=\"text\" name=\"show$i\" id=\"show$i\" ";
-                if ($i < 3) { echo "class=\"required\""; } else { echo "class=\"\""; }
-                echo " size=\"50\" value=\"" . htmlentities($row['option'], ENT_COMPAT, 'UTF-8') . "\"/><input type=\"hidden\" name=\"option$i\" class=\"\" value=\"" . $row['id'] . "\"/>";
-                if ($i >= 3) { echo "<input type=\"button\" name=\"deleteoption\" class=\"delbtn\" onclick=\"document.editform.show$i.value=''; \" />"; }
-                echo "</div></div>";
+                if ($i < 2) {
+                    echo '
+                    <h3>'.$row['question'].'</h3>';
+                }
+                echo '
+                    <div class="field-row">
+                        <div class="field-label"><label for="show'.$i.'"><b>'.$LANG['option'].' '.$i.':</b></label></div>
+                        <div class="field-widget">
+                            <input type="text" name="show'.$i.'" id="show'.$i.'" ';
+                if ($i < 3) {
+                    echo "class=\"required\"";
+                }
+                echo ' size="50" value="'.htmlentities($row['option'], ENT_COMPAT, 'UTF-8').'"/>
+                            <input type="hidden" name="option'.$i.'" value="'.$row['id'].'"/>';
+                if ($i >= 3) {
+                    echo '
+                            <input type="button" name="deleteoption" class="delbtn" value="'.$LANG['delete'].'" title="'.$LANG['delete'].'" onclick="document.editform.show'.$i.'.value=\'\';"/>';
+                }
+                echo '
+                        </div>
+                    </div>';
                 $i++;
             }
             while ($i < 11) {
-                echo "<div class=\"field-row\"><div class=\"field-label\"><label for=\"show$i\">".$LANG['option']." $i:</label></div> <div class=\"field-widget\"><input type=\"text\" id=\"show$i\" name=\"show$i\" class=\"\" size=\"50\" value=\"\"/><input type=\"hidden\" name=\"option$i\" class=\"\" value=\"new\"/></div></div>";
+                echo '
+                    <div class="field-row">
+                        <div class="field-label"><label for="show'.$i.'"><b>'.$LANG['option'].' '.$i.':</b></label></div>
+                        <div class="field-widget">
+                            <input type="text" id="show'.$i.'" name="show'.$i.'" size="50" value=""/>
+                            <input type="hidden" name="option'.$i.'" value="new"/>
+                        </div>
+                    </div>';
                 $i++;
             }
-            echo "</fieldset><p><input type=\"submit\" name=\"editsubmit\" value=\"".$LANG['edit']."\"/></p></form>";
+            echo '
+                </fieldset>
+                <p><input type="submit" name="editsubmit" id="editsubmit" value="'.$LANG['edit'].'"/></p>
+            </form>';
         }
     }
 
@@ -342,7 +456,7 @@ class Admin {
     function displayAdminConfig ()
     {
         global $LANG, $cfg_mysql_db;
-        
+
         // General Config
         $sql = "SELECT * FROM `fcms_config`";
         $this->db->query($sql) or displaySQLError(
@@ -350,18 +464,28 @@ class Admin {
             );
         $row = $this->db->get_row();
         
+        // Activate Options
         $activate_list = array(
             "0" => $LANG['admin_activation'],
             "1" => $LANG['auto_activation']
         );
         $activate_options = buildHtmlSelectOptions($activate_list, $row['auto_activate']);
+        // Site Off Options
+        $site_off_options = '<input type="radio" name="site_off" id="site_off_yes" '
+            . 'value="yes"';
+        if ($row['site_off'] == 1) { $site_off_options .= ' checked="checked"'; }
+        $site_off_options .= '><label class="radio_label" for="site_off_yes"> '
+            . $LANG['yes'] . '</label><br><input type="radio" name="site_off" '
+            . 'id="site_off_no" value="no"';
+        if ($row['site_off'] == 0) { $site_off_options .= ' checked="checked"'; }
+        $site_off_options .= '><label class="radio_label" for="site_off_no"> '
+            . $LANG['no'] . '</label>';
         
         echo <<<HTML
         <form action="config.php" method="post">
         <fieldset class="general_cfg">
             <legend>{$LANG['site_info']}</legend>
-            <div style="text-align:right"><a href="#" onclick="$('site_info').toggle(); return false">{$LANG['show_hide']}</a></div>
-            <div id="site_info" style="display:none">
+            <div id="site_info">
                 <div class="field-row clearfix">
                     <div class="field-label"><label for="sitename"><b>{$LANG['site_name']}</b></label></div>
                     <div class="field-widget">
@@ -385,6 +509,12 @@ class Admin {
                         <select name="activation">
                             {$activate_options}
                         </select>
+                    </div>
+                </div>
+                <div class="field-row clearfix">
+                    <div class="field-label"><label for="site_off"><b>Turn Off Site?</b></label></div>
+                    <div class="field-widget">
+                        {$site_off_options}
                     </div>
                 </div>
                 <p><input type="submit" id="submit-sitename" name="submit-sitename" value="{$LANG['save']}"/></p>
@@ -522,8 +652,7 @@ HTML;
         <form enctype="multipart/form-data" action="config.php" method="post">
         <fieldset class="default_cfg">
             <legend>{$LANG['defaults']}</legend>
-            <div style="text-align:right"><a href="#" onclick="$('defaults').toggle(); return false">{$LANG['show_hide']}</a></div>
-            <div id="defaults" style="display:none">
+            <div id="defaults">
                 <div class="field-row clearfix">
                     <div class="field-label"><label for="theme"><b>{$LANG['theme']}</b></label></div>
                     <div class="field-widget">
@@ -630,8 +759,7 @@ HTML;
         <form action="config.php" method="post">
         <fieldset class="sections_cfg">
             <legend>{$LANG['sections']}</legend>
-            <div style="text-align:right"><a href="#" onclick="$('sections').toggle(); return false">{$LANG['show_hide']}</a></div>
-            <div id="sections" style="display:none">
+            <div id="sections">
                 <div style="width: 90%; text-align: right;">
                     <a class="help" href="../help.php#adm-sections-add">{$LANG['link_help']}</a>
                 </div>
@@ -678,8 +806,7 @@ HTML;
         <form action="config.php" method="post">
         <fieldset class="gallery_cfg">
             <legend>{$LANG['link_gallery']}</legend>
-            <div style="text-align:right"><a href="#" onclick="$('gallery').toggle(); return false">{$LANG['show_hide']}</a></div>
-            <div id="gallery" style="display:none">
+            <div id="gallery">
                 <p class="info-alert">{$LANG['full_size_photo_info']}</p>
                 <div class="field-row clearfix">
                     <div class="field-label"><label for="full_size_photos"><b>{$LANG['full_size_photos']}</b></label></div>

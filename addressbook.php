@@ -12,26 +12,15 @@ if (get_magic_quotes_gpc()) {
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
 include_once('inc/language.php');
-if (isset($_SESSION['login_id'])) {
-	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage();
-		exit();
-	}
-} elseif (isset($_COOKIE['fcms_login_id'])) {
-	if (isLoggedIn($_COOKIE['fcms_login_id'], $_COOKIE['fcms_login_uname'], $_COOKIE['fcms_login_pw'])) {
-		$_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-	} else {
-		displayLoginPage();
-		exit();
-	}
-} else {
-	displayLoginPage();
-	exit();
-}
+include_once('inc/alerts_class.php');
+
+// Check that the user is logged in
+isLoggedIn();
+
 include_once('inc/addressbook_class.php');
 $book = new AddressBook($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$alert = new Alerts($database);
 header("Cache-control: private");
 if (isset($_GET['csv'])) {
 	$show = false;
@@ -47,10 +36,29 @@ if (isset($_GET['csv'])) {
 		exit();
 	}
 }
+
 // Setup the Template variables;
 $TMPL['pagetitle'] = $LANG['link_address'];
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
+$TMPL['javascript'] = '
+<script type="text/javascript" src="inc/tablesort.js"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, \'load\', function() {
+    if ($(\'del\')) {
+        var item = $(\'del\');
+        item.onclick = function() { return confirm(\''.$LANG['js_sure_del'].'\'); };
+        var hid = document.createElement(\'input\');
+        hid.setAttribute(\'type\', \'hidden\');
+        hid.setAttribute(\'name\', \'confirmed\');
+        hid.setAttribute(\'value\', \'true\');
+        item.insert({\'after\':hid});
+    }
+    return true;
+});
+//]]>
+</script>';
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
     <div id="leftcolumn">
@@ -62,9 +70,18 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
         ?>
     </div>
 	<div id="content">
-		<div id="profile" class="centercontent">
+		<div id="addressbook" class="centercontent">
 			<?php 
 			$show = true;
+            if (isset($_GET['csv'])) {
+                if ($_GET['csv'] == 'import' && !isset($_POST['import'])) {
+                    $show = false;
+                    $book->displayImportForm();
+                } elseif ($_GET['csv'] == 'import' && isset($_POST['import'])) {
+                    $book->importAddressCsv($_FILES['csv']);
+                }
+            }
+
 			if (isset($_POST['emailsubmit'])) {
 				if (checkAccess($_SESSION['login_id']) > 3) {
 					echo "<p class=\"error-alert\">".$LANG['err_access_3plus']."</p>";
@@ -132,9 +149,27 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                     'New Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
 			}
-			if (isset($_GET['del'])) {
-				if ($_SESSION['login_id'] == $_GET['u'] || checkAccess($_SESSION['login_id']) < 2) {
-					$aid = $_GET['del'];
+
+            // Delete address confirmation
+            if (isset($_POST['del']) && !isset($_POST['confirmed'])) {
+                $show = false;
+                echo '
+                <div class="info-alert clearfix">
+                    <form action="addressbook.php" method="post">
+                        <h2>'.$LANG['js_del_confirm'].'</h2>
+                        <p><b><i>'.$LANG['cannot_be_undone'].'</i></b></p>
+                        <div>
+                            <input type="hidden" name="id" value="'.$_POST['id'].'"/>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.$LANG['yes'].'"/>
+                            <a style="float:right;" href="addressbook.php?address='.$_POST['id'].'">'.$LANG['cancel'].'</a>
+                        </div>
+                    </form>
+                </div>';
+
+            // Delete Addresss
+            } elseif (isset($_POST['delconfirm']) || (isset($_POST['confirmed']) && isset($_POST['del']))) {
+				if (checkAccess($_SESSION['login_id']) < 2) {
+					$aid = $_POST['id'];
 					$sql = "DELETE FROM fcms_users WHERE id = $aid";
 					mysql_query($sql) or displaySQLError('Non-member Deletion Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error());
 					$sql = "DELETE FROM fcms_address WHERE id = $aid";
@@ -143,9 +178,11 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 					echo "<p class=\"error-alert\">".$LANG['err_permission']."</p>";
 				}
 			}
-			if (isset($_GET['edit'])) {
-				if ($_SESSION['login_id'] == $_GET['u'] || checkAccess($_SESSION['login_id']) < 2) {
-					$book->displayForm('edit', $_GET['edit']);
+
+            // Edit Address
+			if (isset($_POST['edit'])) {
+				if (checkAccess($_SESSION['login_id']) < 2 || $_SESSION['login_id'] == $_POST['id']) {
+					$book->displayForm('edit', $_POST['id']);
 				} else {
 					echo "<p class=\"error-alert\">".$LANG['err_permission']."</p>";
 				}
@@ -161,34 +198,38 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 				// Santizing user input - address - only allow digits 0-9
 				if (preg_match('/^\d+$/', $_GET['address'])) {
 					$book->displayToolbar();
-					$book->displayAddress($_GET['address']);
+                    $page = isset($_GET['page']) ? $_GET['page'] : 1;
+					$book->displayAddress($_GET['address'], $page);
 					$show = false;
 				}
 			}
 			if ($show) {
+                $page = isset($_GET['page']) ? $_GET['page'] : 1;
+                // Remove an alert
+                if (isset($_GET['alert'])) {
+                    $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
+                            VALUES (
+                                '".escape_string($_GET['alert'])."', 
+                                ".$_SESSION['login_id']."
+                            )";
+                    mysql_query($sql) or displaySQLError(
+                        'Remove Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    );
+                }
+                if (!$book->userHasAddress($_SESSION['login_id'])) {
+                    // Show Alerts
+                    $alert->displayAddress($_SESSION['login_id'], $page);
+                }
 				$book->displayToolbar();
 				if (isset($_GET['letter'])) {
-					$sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` FROM `fcms_users` AS u, `fcms_address` as a WHERE u.`id` = a.`user` AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' AND `lname` LIKE '" . escape_string($_GET['letter']) . "%' ORDER BY `lname`";
+                    $book->displayAddressList($_GET['letter'], $page);
 				} else {
-					$sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` FROM `fcms_users` AS u, `fcms_address` as a WHERE u.`id` = a.`user` AND `username` != 'SITENEWS' AND `password` != 'SITENEWS' ORDER BY `lname`";
+                    $book->displayAddressList('', $page);
 				}
-                // TODO: 
-                // This needs moved to a function inside address_class.php
-				echo "\n\t\t\t<script src=\"inc/prototype.js\" type=\"text/javascript\"></script>\n\t\t\t<script type=\"text/javascript\" src=\"inc/tablesort.js\"></script>\n\t\t\t";
-				echo "<form action=\"addressbook.php\" id=\"mass_mail_form\" name=\"mass_mail_form\" method=\"post\">\n\t\t\t";
-				echo "<table class=\"sortable\">\n\t\t\t\t<thead><tr><th class=\"sortfirstasc\">".$LANG['name']."</th><th>".$LANG['phone_num']."</th><th>".$LANG['email']."</th><th class=\"nosort\"><a class=\"helpimg\" href=\"help.php#address-massemail\"></a></th></tr></thead>\n\t\t\t\t<tbody>\n";
-				$result = mysql_query($sql) or displaySQLError('Get Addresses Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error());
-				while($r = mysql_fetch_array($result)) {
-					echo "\t\t\t\t\t<tr><td><a href=\"?address=".$r['id']."\">".$r['lname'].", ".$r['fname']."</a></td><td>".$r['home']."</td><td><a href=\"mailto:".htmlentities($r['email'], ENT_COMPAT, 'UTF-8')."\">".$r['email']."</a></td><td>";
-					if (!empty($r['email'])) { echo "<input type=\"checkbox\" name=\"massemail[]\" value=\"".htmlentities($r['email'], ENT_COMPAT, 'UTF-8')."\"/>"; }
-					echo "</td></tr>\n";
-				}
-				echo "\n\t\t\t\t</tbody>\n\t\t\t</table>\t\t\t\t\t<div class=\"alignright\"><input ";
-				if (checkAccess($_SESSION['login_id']) > 3) { echo "disabled=\"disabled\" "; }
-				echo "type=\"submit\" name=\"emailsubmit\" value=\"".$LANG['email']."\"/></div><p>&nbsp;</p>\n\t\t\t</form>\n";
-			} echo "\n"; ?>
-		</div><!-- #centercontent -->
-	</div><!-- #content -->
-	<?php displayFooter(); ?>
+			} ?>
+
+        </div><!-- #centercontent -->
+    </div><!-- #content -->
+    <?php displayFooter(); ?>
 </body>
 </html>

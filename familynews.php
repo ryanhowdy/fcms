@@ -9,58 +9,63 @@ if (get_magic_quotes_gpc()) {
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
 include_once('inc/language.php');
-if (isset($_SESSION['login_id'])) {
-	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage();
-		exit();
-	}
-} elseif (isset($_COOKIE['fcms_login_id'])) {
-	if (isLoggedIn($_COOKIE['fcms_login_id'], $_COOKIE['fcms_login_uname'], $_COOKIE['fcms_login_pw'])) {
-		$_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-	} else {
-		displayLoginPage();
-		exit();
-	}
-} else {
-	displayLoginPage();
-	exit();
-}
+
+// Check that the user is logged in
+isLoggedIn();
+
 header("Cache-control: private");
 include_once('inc/familynews_class.php');
 $fnews = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
 // Setup the Template variables;
 $TMPL['pagetitle'] = $LANG['link_familynews'];
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
+$TMPL['javascript'] = '
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, \'load\', function() {
+    if (!$$(\'.delnews input[type="submit"]\')) { return; }
+    $$(\'.delnews input[type="submit"]\').each(function(item) {
+        item.onclick = function() { return confirm(\''.$LANG['js_delete_news'].'\'); };
+        var hid = document.createElement(\'input\');
+        hid.setAttribute(\'type\', \'hidden\');
+        hid.setAttribute(\'name\', \'confirmed\');
+        hid.setAttribute(\'value\', \'true\');
+        item.insert({\'after\':hid});
+    });
+    if (!$$(\'.delcom input[type="submit"]\')) { return; }
+    $$(\'.delcom input[type="submit"]\').each(function(item) {
+        item.onclick = function() { return confirm(\''.$LANG['js_del_comment'].'\'); };
+        var hid = document.createElement(\'input\');
+        hid.setAttribute(\'type\', \'hidden\');
+        hid.setAttribute(\'name\', \'comconfirmed\');
+        hid.setAttribute(\'value\', \'true\');
+        item.insert({\'after\':hid});
+    });
+    if ($(\'toolbar\')) {
+        $(\'toolbar\').removeClassName("hideme");
+    }
+    if ($(\'smileys\')) {
+        $(\'smileys\').removeClassName("hideme");
+    }
+    if ($(\'upimages\')) {
+        $(\'upimages\').removeClassName("hideme");
+    }
+    return true;
+});
+//]]>
+</script>';
+
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">
-		<h2><?php echo $LANG['navigation']; ?></h2>
-		<div class="firstmenu menu">
-			<ul><?php
-				$sql = "SELECT u.`id`, `fname`, `lname`, `displayname`, `username`, MAX(`date`) AS d "
-                     . "FROM `fcms_news` AS n, `fcms_users` AS u, `fcms_user_settings` AS s "
-                     . "WHERE u.`id` = n.`user` "
-                     . "AND u.`id` = s.`user` GROUP BY id ORDER BY d DESC";
-				$result = mysql_query($sql) or displaySQLError(
-                    'Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                );
-				while($r=mysql_fetch_array($result)) {
-					$date = fixDST(gmdate('M. j', strtotime($r['d'] . $fnews->tz_offset)), $_SESSION['login_id'], 'M. j');
-					$displayname = getUserDisplayName($r['id']);
-					echo "\n\t\t\t\t<li><a href=\"familynews.php?getnews=".$r['id']."\">$displayname  <small>[$date]</small></a></li>";
-				}
-				mysql_free_result($result); 
-				if (checkAccess($_SESSION['login_id']) < 6 || checkAccess($_SESSION['login_id']) == 9) {
-					echo "\n\t\t\t\t<li><a href=\"familynews.php?addnews=yes\">".$LANG['add_family_news']."</a></li>\n";
-				} else {
-					echo "\n\t\t\t\t<li><a href=\"familynews.php\">".$LANG['link_news']."</a></li>\n";
-				} ?>
-			</ul>
-		</div>
-        <p>&nbsp;</p>
+        <?php
+        include_once(getTheme($_SESSION['login_id']) . 'sidenav.php');
+        if (checkAccess($_SESSION['login_id']) < 3) {
+            include_once(getTheme($_SESSION['login_id']) . 'adminnav.php');
+        }
+        ?>
 	</div>
 	<div id="content">
 		<div id="familynews" class="centercontent">
@@ -72,7 +77,12 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                 }
 				echo "<li><a class=\"add\" href=\"?addnews=yes\">".$LANG['add_news']."</a></li></ul></div>\n";
 			}
+            echo '
+            <br/>';
+            $fnews->displayNewsList();
 			$show_last5 = true;
+
+            // Add news
 			if (isset($_POST['submitadd'])) {
 				$title = addslashes($_POST['title']);
 				$news = addslashes($_POST['post']);
@@ -108,6 +118,8 @@ $name " . $LANG['new_news1'] . " $title " . $LANG['new_news2'] . "
                         mail($email, $subject, $msg, $email_headers);
                     }
                 }
+
+            // Edit news
 			} elseif (isset($_POST['submitedit'])) {
 				$show_last5 = false;
 				$title = addslashes($_POST['title']);
@@ -117,6 +129,44 @@ $name " . $LANG['new_news1'] . " $title " . $LANG['new_news2'] . "
 				echo "<p class=\"ok-alert\">".$LANG['ok_news_edit']."<br/><a href=\"familynews.php?getnews=".$_POST['user']."\">".$LANG['refresh_page']."</a>.</p>";
 				echo "<meta http-equiv='refresh' content='0;URL=familynews.php?getnews=".$_POST['user']."'>";
 			}
+
+            // Add news form
+			if (isset($_GET['addnews']) && (checkAccess($_SESSION['login_id']) < 6 || checkAccess($_SESSION['login_id']) == 9)) { 
+				$show_last5 = false;
+				$fnews->displayForm('add', $_SESSION['login_id']);
+
+            // Edit news form
+			} else if (isset($_POST['editnews'])) {
+				$show_last5 = false;
+				$fnews->displayForm('edit', $_POST['user'], $_POST['id'], $_POST['title'], $_POST['news']);
+
+            // Delete news confirmation
+            } else if (isset($_POST['delnews']) && !isset($_POST['confirmed'])) {
+                $show_last5 = false;
+                echo '
+                <div class="info-alert clearfix">
+                    <form action="familynews.php?getnews='.$_POST['user'].'" method="post">
+                        <h2>'.$LANG['js_delete_news'].'</h2>
+                        <p><b><i>'.$LANG['cannot_be_undone'].'</i></b></p>
+                        <div>
+                            <input type="hidden" name="user" value="'.$_POST['user'].'"/>
+                            <input type="hidden" name="id" value="'.$_POST['id'].'"/>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.$LANG['yes'].'"/>
+                            <a style="float:right;" href="familynews.php?getnews='.$_POST['user'].'">'.$LANG['cancel'].'</a>
+                        </div>
+                    </form>
+                </div>';
+
+            // Delete news
+            } elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
+				$show_last5 = false;
+				$sql = "DELETE FROM `fcms_news` WHERE id = ".$_POST['id'];
+				mysql_query($sql) or displaySQLError('Delete News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
+				echo "<p class=\"ok-alert\" id=\"del\">".$LANG['ok_news_delete']."</p>";
+				echo "<script type=\"text/javascript\">window.onload=function(){ var t=setTimeout(\"$('del').toggle()\",3000); }</script>";
+			}
+
+            // Show news
 			if (isset($_GET['getnews'])) {
 				$show_last5 = false;
 				$page = 1; $nid = 0;
@@ -135,7 +185,25 @@ $name " . $LANG['new_news1'] . " $title " . $LANG['new_news2'] . "
 						mysql_query($sql) or displaySQLError('New Comment Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
 					}
 				}
-				if (isset($_POST['delcom'])) {
+
+                // Delete comment confirmation
+                if (isset($_POST['delcom']) && !isset($_POST['comconfirmed'])) {
+                    $show_last5 = false;
+                    echo '
+                <div class="info-alert clearfix">
+                    <form action="familynews.php?getnews='.$_GET['getnews'].'" method="post">
+                        <h2>'.$LANG['js_del_comment'].'</h2>
+                        <p><b><i>'.$LANG['cannot_be_undone'].'</i></b></p>
+                        <div>
+                            <input type="hidden" name="id" value="'.$_POST['id'].'"/>
+                            <input style="float:left;" type="submit" id="delcomconfirm" name="delcomconfirm" value="'.$LANG['yes'].'"/>
+                            <a style="float:right;" href="familynews.php?getnews='.$_GET['getnews'].'">'.$LANG['cancel'].'</a>
+                        </div>
+                    </form>
+                </div>';
+
+                // Delete news
+                } elseif (isset($_POST['delcomconfirm']) || isset($_POST['comconfirmed'])) {
 					$sql = "DELETE FROM fcms_news_comments WHERE id = " . $_POST['id'];
 					mysql_query($sql) or displaySQLError('Delete Comment Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
 				}
@@ -144,19 +212,8 @@ $name " . $LANG['new_news1'] . " $title " . $LANG['new_news2'] . "
 					$fnews->showFamilyNews($_GET['getnews'], $nid, $page);
 				}
 			}
-			if (isset($_GET['addnews']) && (checkAccess($_SESSION['login_id']) < 6 || checkAccess($_SESSION['login_id']) == 9)) { 
-				$show_last5 = false;
-				$fnews->displayForm('add', $_SESSION['login_id']);
-			} elseif (isset($_POST['editnews'])) {
-				$show_last5 = false;
-				$fnews->displayForm('edit', $_POST['user'], $_POST['id'], $_POST['title'], $_POST['news']);
-			} elseif (isset($_POST['delnews'])) {
-				$show_last5 = false;
-				$sql = "DELETE FROM `fcms_news` WHERE id = ".$_POST['id'];
-				mysql_query($sql) or displaySQLError('Delete News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
-				echo "<p class=\"ok-alert\">".$LANG['ok_news_delete']."<br/><a href=\"familynews.php?getnews=" . $_POST['user'] . "\">".$LANG['refresh_page']."</a>.</p>";
-				echo "<meta http-equiv='refresh' content='0;URL=familynews.php?getnews=" . $_POST['user'] . "'>";
-			}
+
+            // Show last 5 news
 			if ($show_last5) {
 				$fnews->displayLast5News();
 			}

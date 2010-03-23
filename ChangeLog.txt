@@ -1,3 +1,28 @@
+ 2.1
+    #5 - Import/Export Address Book in CSV
+    #18 - Add info note on Poll Admin page
+    #19 - Add welcome note to frontpage after install
+    #35 - Standardize side navigation in Family News
+    #39 - New users should show only show up after activation
+    #49 - Face Lift
+    #50 - Fix blank value submit buttons
+    #62 - Simple Registration / Install
+    #67 - Unobtrusive delete confirmation
+    #73 - Allow site to be Turned Off/Closed.
+    #81 - Easier Private Messages
+    #83 - Expand comments input field
+    #88 - "RE:" on message board doesn't follow sort order
+    #93 - Poll Addons
+    #95 - Tag User box needs to display first and last name
+    #96 - Create alert system
+    #100 - Latest Version check not working
+    #102 - Change the way Quoting works on MB
+    #105 - Prevent empty comments on Photo Gallery
+    #107 - Cross browser JavaScript issues
+    #109 - Better Documents Error Messages
+    #110 - Prevent blank title on Private Messages
+    #111 - View Photos of User Broken
+
  2.0.3
     #98 - Upgrade errors out upgrading chat
     #97 - Alpha / Beta Themes Issues
@@ -298,3 +323,5 @@
 
   - fixed "After installation, passwords won't work" bug id 1765251.
   - fixed "Fatal error: Cannot redeclare gettheme()" bug id 1765301.
+
+ 	  	 

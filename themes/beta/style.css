@@ -3,7 +3,7 @@ Theme Name:         Beta
 Description:        Fixed 900px wide layout.  Default theme is required for this theme to work as it uses some default images.
 Screen Size:        1024x768
 FCMS Compatible:    2.0
-Updated:            August 27, 2009
+Updated:            September 17, 2009
 Author:             Ryan Haudenschilt
 ------------------------------------------------*/
 
@@ -248,7 +248,9 @@ h5 { font-size: 10pt; }
     padding: 5px 5px 5px 12px;
     margin: 0;
 }
+#leftcolumn h2.pollmenu, #leftcolumn h2.membermenu { margin: 15px 0 0 0; }
 #leftcolumn h3 { 
+    font-size: 11pt;
     font-weight: bold;
     padding: 5px;
     margin: 0;
@@ -316,9 +318,10 @@ fieldset { padding: 5px; }
     padding: 2px 0 2px 18px;
     background:  transparent url(../default/images/user.gif) no-repeat center left;
 }
-.add, .add_address, .home, .export, .add_thread, .add_post, .viewed, .rated, .news, .gal_menu .member { padding: 0 0 0 18px; }
+.add, .add_address, #sections_menu li a.edit_address, .home, .export, .add_thread, .add_post, .viewed, .rated, .news, .gal_menu .member { padding: 0 0 0 18px; }
 .add { background: transparent url(../default/images/add.gif) 0 50% no-repeat; }
 .add_address { background: transparent url(../default/images/book_add.gif) 0 50% no-repeat; }
+#sections_menu li a.edit_address { background: transparent url(../default/images/book_edit.gif) 0 50% no-repeat; }
 .add_thread { background: transparent url(../default/images/new_thread.gif) 0 50% no-repeat; }
 .add_post { background: transparent url(../default/images/board_quote.gif) 0 50% no-repeat; }
 .home { background: transparent url(../default/images/home.gif) 0 50% no-repeat; }
@@ -349,6 +352,22 @@ hr {
     padding: 0 0 0 18px;
     background: transparent url(../default/images/rss.gif) no-repeat 0 0;
 }
+div.close-alert {
+    font-size: 10px;
+    line-height: 16px;
+    text-align: right;
+}
+div.close-alert a {
+    background: transparent url(images/delete.gif) center left no-repeat;
+    color: #3e8abd;
+    padding: 0 0 0 18px;
+}
+div.close-alert a:hover { color: #000; }
+span.date {
+    color: #999;
+    font-size: 13px;
+}
+span.date form, span.date form div { display: inline }
 
 
 /* =HOME
@@ -433,6 +452,8 @@ p.poll {
     font-size: 8pt;
     font-style: italic;
 }
+ul.whovoted { margin: 0 0 20px 0; }
+ul.whovoted li { margin: 0 0 0 20px; }
 .newthread, .newpost, .newaddress, .newnews, .newprayer, .newphoto, .newcom, .newmember, .newrecipe, .newcal, .newpoll, .newdocument { padding: 2px 0 2px 24px; }
 .newthread { background: transparent url(../default/images/new_thread.gif) no-repeat 0px 4px; }
 .newpost, .newcom { background: transparent url(../default/images/board_quote.gif) no-repeat 0px 4px; }
@@ -595,14 +616,43 @@ blockquote {
     border: 1px solid #c1c1c1;
     padding: 5px;
 }
-#gallery .edit_del_photo {
-    border-left: 1px solid #c1c1c1;
-    border-bottom: 1px solid #c1c1c1;
+#photo_nav { padding: 0 20px; }
+#photo_nav .info { float: left; }
+#photo_nav .prev_next {
+    border: 1px solid #3e8ec1;
     float: right;
-    padding: 0 3px 3px 3px;
+    width: 200px;
+}
+#photo_nav .prev_next a.previous, #photo_nav .prev_next span.previous, 
+#photo_nav .prev_next a.next, #photo_nav .prev_next span.next {
+    background-color: #e9f3fb;
+    color: #3e8ec1;
+    display: block;
+    font: 14px/28px Verdana, Arial, sans-serif;
+    float: left;
+    padding: 10px 0;
+    text-align: center;
+    width: 100px;
+    vertical-align: middle;
+}
+#photo_nav .prev_next a.previous:hover, #photo_nav .prev_next a.next:hover {
+    background-color: #fff;
+    color: #333;
+}
+#photo {
+    padding: 20px 0 0 0;
+    float: left;
+    width: 520px;
+}
+#photo_details {
+    padding: 30px 0 0 0;
+    float: left;
+    width: 140px;
+    font-size: 10px;
 }
 #gallery .edit_del_photo form, #gallery .edit_del_photo form div { display: inline; }
-.gal_menu, .comment_block, .caption, .photo_details {
+#caption { width: 520px; }
+.gal_menu {
     margin: 0 auto 15px auto;
     padding: 3px;
     width: 450px;
@@ -611,20 +661,36 @@ blockquote {
 }
 .gal_menu { width: 600px; }
 #sections_menu .gal_menu li { margin: 0 15px; }
+.add_comment_block {
+    margin: 0 auto;
+    width: 85%;
+}
+.comment_block {
+    padding: 5px 0 10px 0;
+    border-top: 1px solid #ccc;
+}
 .comment_block form { margin: 0; }
-.comment_block input, .comment_block span {
+.comment_block input {
     float: right;
     padding-right: 5px;
 }
 .comment_block img {
-    display: block;
-    float: left;
-    margin-right: 5px;
+    width: 50px;
+    height: 50px;
+    padding: 0 15px 15px 0;
 }
+.comment_block b {
+    display: block;
+    margin: -65px 0 0 0;
+    padding: 0 0 0 65px;
+}
+.comment_block span {
+    color: #999;
+    font-size: 13px;
+    padding: 0 0 0 65px;
+}
+.comment_block p { padding: 0 0 0 65px; }
 .gal_sidemenu { padding: 12px; }
-.caption { text-align: center; }
-.photo_details { font-size: small; }
-.photo_details p { margin: 2px 0 5px 0; }
 .multi-checkbox {
     height: 100px;
     width: 200px;
@@ -667,12 +733,17 @@ blockquote {
     border: 1px solid #ebf2fa;
     text-decoration: none;
 }
-.address img {
+div#address {
+    border: 1px solid #b2d1f0;
+    margin: 20px 50px 50px 50px;
+    padding: 15px;
+}
+#address img {
     vertical-align: middle;
     padding-right: 10px;
 }
-.address { margin: 0 50px; }
-.address b.label {
+#address .edit_del_menu { float: right; }
+#address b.label {
     display: block;
     float: left;
     color: gray;
@@ -680,12 +751,12 @@ blockquote {
     width: 70px;
     text-align: right;
 }
-.address span.data {
+#address span.data {
     display: block;
     float: left;
     padding-left: 15px;
 }
-.address span.data i { color: silver; }
+#address span.data i { color: silver; }
 a.email {
     padding: 0 8px;
     background: transparent url(../default/images/email.gif) no-repeat center center;
@@ -693,6 +764,81 @@ a.email {
 .del_address, .edit_address { padding: 2px 18px 2px 0; }
 .del_address { background: transparent url(../default/images/book_delete.gif) no-repeat center right; }
 .edit_address { background: transparent url(../default/images/book_edit.gif) no-repeat center right; }
+
+
+/* =FAMILY =NEWS
+------------------------------------------------*/
+#familynews h3 { clear: both; }
+#familynews h2, #familynews #addform h3, #familynews #editform h3 { clear: none; }
+#news-list {
+    border: 1px solid #b2d1f0;
+    font-size: 12px;
+    float: right;
+    width: 150px;
+}
+#news-list h2 {
+    background-color: #b2d1f0;
+    font: bold 11px/11px Verdana, sans-serif;
+    padding: 10px;
+}
+#news-list ul { list-style: none; }
+#news-list li { padding: 5px; }
+.news-post {
+    float: left;
+    width: 500px;
+}
+.news-comments {
+    text-align: right;
+    font-size: 13px;
+}
+
+
+/* =RECIPES
+------------------------------------------------*/
+#recipe .cat_row {
+    clear: both;
+    padding: 0 0 30px 0;
+}
+#recipe .cat {
+    float: left;
+    margin: 0 5px;
+    text-align: center;
+    width: 200px;
+}
+#recipe .cat li { list-style-type: none; }
+#recipe .cat li a {
+    display: block;
+    background-color: #d8e9f8;
+    color: #333;
+    font-weight: bold;
+    overflow: hidden;
+    padding: 15px 0;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+}
+#recipe .cat li a:hover {
+    background-color: #b2d1f0;
+    text-decoration: none;
+}
+#recipe .cat li a span {
+    display: block;
+    font-weight: normal;
+    font-size: 13px;
+}
+#recipe h4, #recipe h4 a {
+    color: #315c88;
+    font: bold 24px/36px Verdana, Arial, sans-serif;
+}
+
+
+/* =DOCUMENTS
+------------------------------------------------*/
+#docs td form, #docs td form div { display: inline; }
+
+
+/* =PRAYERS
+------------------------------------------------*/
+#prayers h4 form, #prayers h4 form div { display: inline; }
 
 
 /* =CALENDAR
@@ -737,6 +883,7 @@ a.email {
     font-family: verdana;
     font-size: 8pt;
 }
+#small_calendar h3 { padding: 0 0 10px 0; }
 #small_calendar th { height: 25px; }
 #small_calendar td { height: 16px; }
 #small_calendar .monthToday { background-color: #b2d1f0; }
@@ -748,18 +895,6 @@ a.email {
 dfn {
     font-style: normal;
     cursor: help;
-}
-.bday {
-    padding: 2px 21px 2px 0;
-    background:  transparent url(../default/images/bday.gif) no-repeat center right;
-}
-.anniversary {
-    padding: 2px 16px 2px 0;
-    background:  transparent url(../default/images/ann.gif) no-repeat center right;
-}
-.holiday {
-    color: #315c88;
-    font-weight: bold;
 }
 #small_calendar .prev, #big_calendar .prev, #small_calendar .next, #big_calendar .next {
     display: block;
@@ -802,17 +937,33 @@ dfn {
 
 }
 .day_view_info .entry { height: auto; }
-.entry a {
-    display: block;
-    font-weight: normal;
+#big_calendar .entries { padding: 20px 0 30px 0; }
+#big_calendar .entries ul { list-style-type: none; }
+#big_calendar .entries li { margin: 5px; 0; }
+#big_calendar .entries li a {
     color: #333;
-    width: 100%;
+    display: block;
+    font-size: 10px;
     height: 16px;
     overflow: hidden;
+    padding: 0 0 2px 2px;
+    text-decoration: none;
 }
-.entry a:hover {
+#big_calendar .entries li a:hover { background-color: transparent; }
+#big_calendar .entries li a span {
     color: #333;
-    background-color: transparent;
+    display: block;
+}
+#big_calendar .day_view_info .entries li { margin: 10px 0; }
+#big_calendar .day_view_info .entries li a {
+    font-size: 16px;
+    height: auto;
+    padding: 5px;
+}
+#big_calendar .day_view_info .entries li span {
+    font-size: 14px;
+    font-weight: normal;
+    padding: 8px 0;
 }
 .Anniversary, .Anniversary a { background-color: #a6f09d; }
 .Birthday, .Birthday a { background-color: #e89b68; }
@@ -907,37 +1058,6 @@ a.new_pm {
     padding: 5px;
     background-color: #fff;
 }
-
-
-/* =FAMILY =NEWS
-------------------------------------------------*/
-#familynews h2 form, #familynews h2 form div { display: inline; }
-
-
-/* =RECIPES
-------------------------------------------------*/
-#recipe h4 form, #recipe h4 form div { display: inline; }
-#recipe .cat_row {
-    clear: both;
-    padding: 0 0 30px 0;
-    
-}
-#recipe .cat {
-    float: left;
-    width: 32%;
-    text-align: center;
-    margin: 10px 0 25px 0;
-}
-
-
-/* =DOCUMENTS
-------------------------------------------------*/
-#docs td form, #docs td form div { display: inline; }
-
-
-/* =PRAYERS
-------------------------------------------------*/
-#prayers h4 form, #prayers h4 form div { display: inline; }
 
 
 /* =SETTINGS
@@ -1103,26 +1223,6 @@ sortable .nosort { cursor: default; }
 }
 
 
-/* =ICONS
-------------------------------------------------*/
-.icon {
-    display: -moz-inline-box;
-    display: inline-block;
-    background: transparent none 0 0 no-repeat;
-    text-indent: -9999px;
-    font: 0/0 Arial;
-    overflow: hidden;
-    color: rgba(255,255,255,0);
-    vertical-align: bottom;
-}
-a.next, a.previous {
-    width: 16px;
-    height: 16px;
-}
-a.next { background: transparent url(images/next.gif) 0 0 no-repeat; }
-a.previous { background: transparent url(images/previous.gif) 0 0 no-repeat; }
-
-
 /* =BUTTONS =TOOLBARS
 ------------------------------------------------*/
 .delbtn, .editbtn, .quotebtn, .viewbtn, .book_delbtn, .book_editbtn, .gal_delcombtn, .gal_addcombtn, .gal_editbtn, .gal_delbtn {
@@ -1132,6 +1232,10 @@ a.previous { background: transparent url(images/previous.gif) 0 0 no-repeat; }
     font-size: 0px;
     height: 16px;
     line-height: 0px;
+    * overflow: hiddent;
+    * padding: 40px 0 0 0;
+    text-indent: -9999px;
+    vertical-align: middle;
     width: 16px;
 }
 .delbtn { background: transparent url(../default/images/delete.gif) top left no-repeat; }
@@ -1254,6 +1358,10 @@ a.previous { background: transparent url(images/previous.gif) 0 0 no-repeat; }
     border-top: 2px solid #74a8f5;
     border-bottom: 2px solid #74a8f5;
 }
+.info-alert h3 {
+    padding-top: 15px;
+    font-size: 13pt;
+}
 .ok-alert {
     background: #f2fae7 url(../default/images/ok.gif) center no-repeat;
     background-position: 15px 50%;
@@ -1345,4 +1453,6 @@ a.previous { background: transparent url(images/previous.gif) 0 0 no-repeat; }
 .rank5 { background: transparent url(../default/images/rank5.gif) no-repeat center center; }
 .rank6 { background: transparent url(../default/images/rank6.gif) no-repeat center center; }
 .rank7 { background: transparent url(../default/images/rank7.gif) no-repeat center center; }
+ 	  	 
+
  	  	 

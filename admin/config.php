@@ -9,24 +9,10 @@ if (get_magic_quotes_gpc()) {
 include_once('../inc/config_inc.php');
 include_once('../inc/util_inc.php');
 include_once('../inc/language.php');
-if (isset($_SESSION['login_id'])) {
-	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage();
-		exit();
-	}
-} elseif (isset($_COOKIE['fcms_login_id'])) {
-	if (isLoggedIn($_COOKIE['fcms_login_id'], $_COOKIE['fcms_login_uname'], $_COOKIE['fcms_login_pw'])) {
-		$_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-	} else {
-		displayLoginPage();
-		exit();
-	}
-} else {
-	displayLoginPage();
-	exit();
-}
+
+// Check that the user is logged in
+isLoggedIn('admin/');
+
 header("Cache-control: private");
 include_once('../inc/admin_class.php');
 $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
@@ -34,7 +20,37 @@ $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_d
 $TMPL['pagetitle'] = $LANG['admin_config'];
 $TMPL['path'] = "../";
 $TMPL['admin_path'] = "";
-$TMPL['javascript'] = '<script src="../inc/livevalidation.js" type="text/javascript"></script>';
+$TMPL['javascript'] = '
+<script src="../inc/livevalidation.js" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, \'load\', function() {
+    hideConfig($(\'site_info\'));
+    hideConfig($(\'defaults\'));
+    hideConfig($(\'sections\'));
+    hideConfig($(\'gallery\'));
+});
+function hideConfig(item) {
+    if (item) {
+        var hide = document.createElement(\'div\');
+        if (hide.style.setAttribute) {
+            hide.style.setAttribute("cssText", "text-align:right");
+            item.style.setAttribute("cssText", "display:none");
+        } else {
+            hide.setAttribute("style", "text-align:right");
+            item.setAttribute("style", "display:none");
+        }
+        var link = document.createElement(\'a\');
+        link.href = "#";
+        link.appendChild(document.createTextNode("'.$LANG['show_hide'].'"));
+        link.onclick = function() { item.toggle(); return false; }
+        hide.appendChild(link);
+        item.insert({before:hide});
+    }
+    return;
+}
+//]]>
+</script>';
 
 include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
 ?>
@@ -74,6 +90,17 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
 						$sql = "UPDATE `fcms_config` SET `auto_activate` = " . $_POST['activation'];
 						mysql_query($sql) or displaySQLError(
                             'Activation Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                            );
+					}
+					if (isset($_POST['site_off'])) {
+						$sql = "UPDATE `fcms_config` ";
+                        if ($_POST['site_off'] == 'yes') {
+                            $sql .= "SET `site_off` = '1'";
+                        } else {
+                            $sql .= "SET `site_off` = '0'";
+                        }
+						mysql_query($sql) or displaySQLError(
+                            'Site Off Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                             );
 					}
 					echo "<p class=\"ok-alert\" id=\"update\">" . $LANG['config_success'] . "</p>";

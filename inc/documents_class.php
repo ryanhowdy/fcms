@@ -25,20 +25,48 @@ class Documents {
 		$sql = "SELECT `id`, `name`, `description`, `user`, `date` FROM `fcms_documents` AS d ORDER BY `date` DESC LIMIT " . $from . ", 25";
 		$this->db->query($sql) or displaySQLError('Get Documents Error', 'inc/documents_class.php [' . __LINE__ . ']', $sql, mysql_error());
 		if ($this->db->count_rows() > 0) {
-			echo "<script type=\"text/javascript\" src=\"inc/tablesort.js\"></script>\n";
-			echo "\t\t\t<table id=\"docs\" class=\"sortable\">\n\t\t\t\t<thead>\n\t\t\t\t\t<tr><th class=\"sortfirstasc\">" . $LANG['docs_name'] . "</th><th>" . $LANG['docs_desc'] . "</th><th>" . $LANG['docs_user'] . "</th><th>" . $LANG['docs_date'] . "</th></tr>\n\t\t\t\t</thead>\n";
-			echo "\t\t\t\t<tbody>\n";
+			echo '
+            <script type="text/javascript" src="inc/tablesort.js"></script>
+            <table id="docs" class="sortable">
+                <thead>
+                    <tr>
+                        <th class="sortfirstasc">'.$LANG['docs_name'].'</th>
+                        <th>'.$LANG['docs_desc'].'</th>
+                        <th>'.$LANG['docs_user'].'</th>
+                        <th>'.$LANG['docs_date'].'</th>
+                    </tr>
+                </thead>
+                <tbody>';
 			while($r = $this->db->get_row()) {
 				$date = fixDST(gmdate('m/d/Y h:ia', strtotime($r['date'] . $this->tz_offset)), $this->cur_user_id, 'm/d/Y h:ia');
-				echo "\t\t\t\t\t<tr><td><a href=\"?download=" . $r['name'] . "\">" . $r['name'] . "</a>";
+				echo '
+                    <tr>
+                        <td>
+                            <a href="?download='.$r['name'].'">'.$r['name'].'</a>';
 				if (checkAccess($_SESSION['login_id']) < 3 || $_SESSION['login_id'] == $r['user']) {
-					echo "&nbsp;<form method=\"post\" action=\"documents.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"hidden\" name=\"name\" value=\"".$r['name']."\"/><input type=\"submit\" name=\"deldoc\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_del_doc']."\"/></div></form>";
+					echo '&nbsp;
+                            <form method="post" action="documents.php">
+                                <div>
+                                    <input type="hidden" name="id" value="'.$r['id'].'"/>
+                                    <input type="hidden" name="name" value="'.$r['name'].'"/>
+                                    <input type="submit" name="deldoc" value="'.$LANG['delete'].'" class="delbtn" title="'.$LANG['title_del_doc'].'"/>
+                                </div>
+                            </form>';
 				}
-				echo "</td><td>" . $r['description'] . "</td><td>" . getUserDisplayName($r['user']) . "</td><td>$date</td></tr>\n";
+				echo '
+                        </td>
+                        <td>'.$r['description'].'</td>
+                        <td>'.getUserDisplayName($r['user']).'</td>
+                        <td>'.$date.'</td>
+                    </tr>';
 			}
-			echo "\t\t\t\t</tbody>\n\t\t\t</table>\n";
+			echo '
+                </tbody>
+            </table>';
 			$sql = "SELECT count(`id`) AS c FROM `fcms_documents`";
-			$this->db2->query($sql) or displaySQLError('Count Documents Error', 'inc/documents_class.php [' . __LINE__ . ']', $sql, mysql_error());
+			$this->db2->query($sql) or displaySQLError(
+                'Count Documents Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
 			while ($r = $this->db2->get_row()) { $docscount = $r['c']; }
 			$total_pages = ceil($docscount / 25); 
 			if ($total_pages > 1) {
@@ -84,13 +112,16 @@ class Documents {
 		echo "</form>\n\t\t\t<p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>";
 	}
 
-	function uploadDocument ($filetype, $filename, $filetmpname) {
+	function uploadDocument ($filetype, $filename, $filetmpname, $error = 0) {
 		global $LANG;
 		$known_photo_types = array('application/msword' => 'doc', 'text/plain' => 'txt', 'application/excel' => 'xsl', 'application/vnd.ms-excel' => 'xsl', 'application/x-msexcel' => 'xsl', 
 			'application/x-compressed' => 'zip', 'application/x-zip-compressed' => 'zip', 'application/zip' => 'zip', 'multipart/x-zip' => 'zip', 'application/rtf' => 'rtf', 
 			'application/x-rtf' => 'rtf', 'text/richtext' => 'rtf', 'application/mspowerpoint' => 'ppt', 'application/powerpoint' => 'ppt', 'application/vnd.ms-powerpoint' => 'ppt', 
 			'application/x-mspowerpoint' => 'ppt', 'application/x-excel' => 'xsl', 'application/pdf' => 'pdf');
-		if (!array_key_exists($filetype, $known_photo_types)) {
+        if ($error == 1) {
+			echo "<p class=\"error-alert\">".$LANG['err_doc_big1']." $filename ".$LANG['err_doc_big2']."</p>";
+			return false;
+        } else if (!array_key_exists($filetype, $known_photo_types)) {
 			echo "<p class=\"error-alert\">".$LANG['err_not_doc1']." $filetype ".$LANG['err_not_doc2']."<br/>".$LANG['err_not_doc3']."</p>";
 			return false;
 		} else {

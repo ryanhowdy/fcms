@@ -1,7 +1,7 @@
 <!--
-Family Connections - a family oriented CMS - http://www.haudenschilt.com/fcms/
+Family Connections - a family oriented CMS - http://www.familycms.com/
 
-Copyright (C) 2007 Ryan Haudenschilt
+Copyright (C) 2007-09 Ryan Haudenschilt
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,62 +29,50 @@ if (get_magic_quotes_gpc()) {
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
 <head>
 <title>Installation -> Family Connections</title>
-<link rel="stylesheet" type="text/css" href="themes/datechooser.css" />
-<script src="inc/prototype.js" type="text/javascript"></script>
-<script type="text/javascript" src="inc/datechooser.js"></script>
-<script type="text/javascript">
-<!-- //
-	window.onload = WindowLoad;
-	function WindowLoad()
-	{
-		var objDatePicker = new DateChooser();
-		objDatePicker.setUpdateField({'day':'j', 'month':'n', 'year':'Y'});
-		objDatePicker.setIcon('themes/default/images/datepicker.jpg', 'year');
-		return true;
-	}
-// -->
-</script>
-<style type="text/css">
-html { font-size: 100%; background: #9ccef0 url(themes/default/images/bg.png) repeat-x; }
-body { font-size: 12pt; line-height: 24pt; text-align: center; font-family: Verdana, Sans-Serif; }
-a { color: #02876c; font-weight: bold; text-decoration: none; }
-a:hover { color: #000; background-color: #9ccef0; }
-p { font-size: 10pt; line-height: 14pt; }
-#column { width: 600px; margin: 0 auto 50px auto; padding: 10px; text-align: left; background-color: #fff }
-h1 { color: #fff; margin-top: 150px; }
-h2 { color: #fff; font-weight: bold; background-color: #000; margin: 0; padding: 15px 0 11px 15px; }
-#sections-photo, #sections-board, #sections-book, #sections-calendar, #sections-news, #sections-prayers { border: none; }
-.field-label { margin: 10px 0 0 0; }
-.field-widget { margin: 10px 0 0 0; }
-.error { font-size: 10pt; line-height: 14pt; color: #f30; }
-.info { padding: 10px; background-color: #eee; }
-.req { font-size: 8pt; color: #c00; }
-.LV_valid { font-size: 9pt; padding-left: 10px; font-weight: bold; color: #0c0; }
-.LV_valid_field, input.LV_valid_field:hover, input.LV_valid_field:active, textarea.LV_valid_field:hover, textarea.LV_valid_field:active { border: 1px solid #0c0; }
-.LV_invalid { display: block; font-size: 8pt; font-weight: bold; color : #c00; }
-.LV_invalid_field, input.LV_invalid_field:hover, input.LV_invalid_field:active, textarea.LV_invalid_field:hover, textarea.LV_invalid_field:active { border: 1px solid #c00; }
-#submit { font-size: 14pt; line-height: 24pt; font-family: Verdana, Sans-Serif; border: none; }
-#install { margin: 50px auto 0 auto; width: 60%; }
-#install p { font-size: 14pt; line-height: 24pt; }
-#install div { float: left; width:48%; padding:10px; font-size: 8pt; }
-#install .nbtn { color: #000; padding:10px 25px; background-color: #fff; border: 1px solid #000; }
-#install .ybtn { color: #000; padding:10px 20px; background-color: #9ccef0; border: 1px solid #000; }
-.progress { border: 1px solid #000; width: 575px; margin: 2px 5px 50px 0; padding: 1px; background: #fff; }
-.progress div { background-color: #ace97c; height: 12px; }
-</style>
+<link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
+<script type="text/javascript" src="inc/prototype.js"></script>
+<script type="text/javascript" src="inc/livevalidation.js"></script>
 </head>
 <body>
 <?php
 if (!isset($_POST['submit1']) && !isset($_POST['submit2']) && !isset($_POST['submit3']) && !isset($_POST['submit4']) && !isset($_POST['submit5']) && file_exists('inc/config_inc.php')) {
-	echo "<div id=\"install\"><h1>".$LANG['already_install1']."</h1><p>".$LANG['already_install2']."</p><div>";
-	echo "<a class=\"nbtn\" href=\"index.php\">".$LANG['already_install3']."</a><br/>".$LANG['already_install4']."</div><div>";
-	echo "<a class=\"ybtn\" href=\"#\" onclick=\"$('show-install').toggle(); $('install').toggle(); document.setupform.dbhost.focus(); return false\">".$LANG['already_install5']."</a><br/>".$LANG['already_install6']."</div></div>";
-	echo "<div id=\"show-install\" style=\"display:none;\">";
+	echo <<<HTML
+    <div id="install">
+        <h1>{$LANG['already_install1']}</h1>
+        <form>
+            <p>{$LANG['already_install2']}</p>
+            <div class="clearfix">
+                <div class="option">
+                    <a class="nbtn" href="index.php">{$LANG['already_install3']}</a><br/><br/>
+                    {$LANG['already_install4']}
+                </div>
+                <div class="option">
+                    <a class="ybtn" href="#" onclick="$('show-install').toggle(); $('install').toggle(); document.setupform.dbhost.focus(); return false">{$LANG['already_install5']}</a><br/><br/>
+                    {$LANG['already_install6']}
+                </div>
+            </div>
+            <p>&nbsp;</p>
+        </form>
+        <br/>
+    </div>
+    <div id="show-install" style="display:none;">
+
+HTML;
 }
+// Step Two
 if (isset($_POST['submit1'])) {
 	displayStepTwo();
+// Step Three
 } else if (isset($_POST['submit2'])) {
-	if (!isset($_POST['dbhost']) || !isset($_POST['dbname']) || !isset($_POST['dbuser']) || !isset($_POST['dbpass'])) {
+	if (empty($_POST['dbhost']) || empty($_POST['dbname']) || empty($_POST['dbuser']) || empty($_POST['dbpass'])) {
+        echo <<<HTML
+        <script type="text/javascript">
+        Event.observe(window, 'load', function() {
+            $('dbhost').focus();
+        });
+        </script>
+
+HTML;
 		displayStepTwo("<p class=\"error\">".$LANG['err_required']."</p>");
 	} else {
 		$file = fopen('inc/config_inc.php', 'w') or die("<h1>Error Creating Config File</h1>");
@@ -93,10 +81,20 @@ if (isset($_POST['submit1'])) {
 		fclose($file);
 		displayStepThree();
 	}
+// Step Four
 } else if (isset($_POST['submit3'])) {
+        echo <<<HTML
+        <script type="text/javascript">
+        Event.observe(window, 'load', function() {
+            $('sitename').focus();
+        });
+        </script>
+
+HTML;
 	displayStepFour();
+// Step Five
 } else if (isset($_POST['submit4'])) {
-	if (!isset($_POST['sitename']) || !isset($_POST['contact'])) {
+	if (empty($_POST['sitename']) || empty($_POST['contact'])) {
 		displayStepFour("<p class=\"error\">".$LANG['err_required']."</p>");
 	} else {
 		include_once('inc/config_inc.php');
@@ -153,16 +151,16 @@ if (isset($_POST['submit1'])) {
         } elseif (!$none) {
             $sql .= "'none', ";
         }
-		$sql .= "'Family Connections 2.0.3')";
+		$sql .= "'Family Connections 2.1')";
 		mysql_query($sql) or die($sql . "<br/><br/>" . mysql_error());
 		displayStepFive();
 	}
+// Finish
 } else if (isset($_POST['submit5'])) {
-	if (!isset($_POST['username']) || !isset($_POST['password']) || !isset($_POST['fname']) || !isset($_POST['lname']) || !isset($_POST['email'])) {
+	if (empty($_POST['username']) || empty($_POST['password']) || empty($_POST['fname']) || empty($_POST['lname']) || empty($_POST['email'])) {
 		displayStepFive("<p class=\"error\">".$LANG['err_required']."</p>");
 	} else {
-		$birthday = $_POST['year'] . "-" . str_pad($_POST['month'], 2, "0", STR_PAD_LEFT) . "-" . str_pad($_POST['day'], 2, "0", STR_PAD_LEFT);
-		setupDatabase($_POST['fname'], $_POST['lname'], $_POST['email'], $birthday, $_POST['username'], $_POST['password'], $_POST['address'], $_POST['city'], $_POST['state'], $_POST['zip'], $_POST['home'], $_POST['work'], $_POST['cell']);
+		setupDatabase($_POST['fname'], $_POST['lname'], $_POST['email'], $_POST['username'], $_POST['password']);
 	}
 } else {
 	displayStepOne();
@@ -192,238 +190,245 @@ function is__writable($path) {
 }
 function displayStepOne () {
 	global $LANG; $inc = false; $avatar = false; $photos = false; $up = false; ?>
-	<h1><?php echo $LANG['install']; ?> Family Connections</h1>
-	<script type="text/javascript" src="inc/prototype.js"></script>
-	<script type="text/javascript" src="inc/livevalidation.js"></script>
-	<form action="install.php" method="post">
 	<div id="column">
+	    <h1><?php echo $LANG['install']; ?> Family Connections</h1>
 		<h2>Pre-Installation Check</h2>
+	    <form class="nofields" action="install.php" method="post">
 		<div style="text-align:center">Step 1 of 5</div><div class="progress"><div style="width:20%"></div></div>
 		<div><b>Checking Folder Permissions</b></div>
-		<div><div style="width:250px;float:left;">inc/</div> <div style="width:250px;float:left;"><?php if (is__writable('inc/')) { echo "<span style=\"color:#0c0\">OK</span>"; $inc = true; } else { echo "<span style=\"color:#c00\">BAD</span>"; } ?></div></div>
+		<div><div class="dir">inc/</div> <div class="status"><?php if (is__writable('inc/')) { echo "<span class=\"ok\">OK</span>"; $inc = true; } else { echo "<span class=\"bad\">BAD</span>"; } ?></div></div>
 		<div style="clear:both;"></div>
-		<div><div style="width:250px;float:left;">gallery/avatar/</div> <div style="width:250px;float:left;"><?php if (is__writable('gallery/avatar/')) { echo "<span style=\"color:#0c0\">OK</span>"; $avatar = true; } else { echo "<span style=\"color:#c00\">BAD</span>"; } ?></div></div>
+		<div><div class="dir">gallery/avatar/</div> <div class="status"><?php if (is__writable('gallery/avatar/')) { echo "<span class=\"ok\">OK</span>"; $avatar = true; } else { echo "<span class=\"bad\">BAD</span>"; } ?></div></div>
 		<div style="clear:both;"></div>
-		<div><div style="width:250px;float:left;">gallery/documents/</div> <div style="width:250px;float:left;"><?php if (is__writable('gallery/documents/')) { echo "<span style=\"color:#0c0\">OK</span>"; $avatar = true; } else { echo "<span style=\"color:#c00\">BAD</span>"; } ?></div></div>
+		<div><div class="dir">gallery/documents/</div> <div class="status"><?php if (is__writable('gallery/documents/')) { echo "<span class=\"ok\">OK</span>"; $avatar = true; } else { echo "<span class=\"bad\">BAD</span>"; } ?></div></div>
 		<div style="clear:both;"></div>
-		<div><div style="width:250px;float:left;">gallery/photos/</div> <div style="width:250px;float:left;"><?php if (is__writable('gallery/photos/')) { echo "<span style=\"color:#0c0\">OK</span>"; $photos = true; } else { echo "<span style=\"color:#c00\">BAD</span>"; } ?></div></div>
+		<div><div class="dir">gallery/photos/</div> <div class="status"><?php if (is__writable('gallery/photos/')) { echo "<span class=\"ok\">OK</span>"; $photos = true; } else { echo "<span class=\"bad\">BAD</span>"; } ?></div></div>
 		<div style="clear:both;"></div>
-		<div><div style="width:250px;float:left;">gallery/upimages/</div> <div style="width:250px;float:left;"><?php if (is__writable('gallery/upimages/')) { echo "<span style=\"color:#0c0\">OK</span>"; $up = true; } else { echo "<span style=\"color:#c00\">BAD</span>"; } ?></div></div>
+		<div><div class="dir">gallery/upimages/</div> <div class="status"><?php if (is__writable('gallery/upimages/')) { echo "<span class=\"ok\">OK</span>"; $up = true; } else { echo "<span class=\"bad\">BAD</span>"; } ?></div></div>
 		<div style="clear:both;"></div><?php 
 		if ($inc && $avatar && $photos && $up) { ?>
 		<div>Your site is ready to be installed.  Please proceed to the next step.</div>
 		<p style="text-align:right;"><input id="submit" name="submit1" type="submit"  value="<?php echo $LANG['next']; ?> >>"/></p>
+        <div class="clear"></div>
 		<?php } else { ?>
 		<div>Unfortunatly your site is not ready to be installed.  Please make sure that the folders above exist and have the <a href="http://www.familycms.com/wiki/FAQCHMOD">proper permissions set</a>.</div>
 		<?php } ?>
+        </form>
 	</div>
-	</form><?php
+<?php
 }
 function displayStepTwo ($error = '0') {
 	global $LANG; ?>
-	<h1><?php echo $LANG['install']; ?> Family Connections</h1>
-	<script type="text/javascript" src="inc/prototype.js"></script>
-	<script type="text/javascript" src="inc/livevalidation.js"></script>
-	<form action="install.php" method="post">
 	<div id="column">
-		<?php if ($error !== '0') { echo $error; } ?>
+        <h1><?php echo $LANG['install']; ?> Family Connections</h1>
 		<h2><?php echo $LANG['db_info']; ?></h2>
 		<div style="text-align:center">Step 2 of 5</div><div class="progress"><div style="width:40%"></div></div>
-		<div><div class="field-label"><label for="dbhost"><b><?php echo $LANG['db_host']; ?></b></label>: (<span class="req">*</span>)</div> <div class="field-widget"><input type="text" name="dbhost" size="50" id="dbhost" class="required" value="" title="<?php echo $LANG['title_db_host']; ?>"/></div></div>
+		<?php if ($error !== '0') { echo $error; } ?>
+        <form action="install.php" method="post">
+		<div>
+            <div class="field-label"><label for="dbhost"><b><?php echo $LANG['db_host']; ?></b> <span class="req">*</span></label></div>
+            <div class="field-widget">
+                <input type="text" name="dbhost" id="dbhost" title="<?php echo $LANG['title_db_host']; ?>"/>
+		        <div><?php echo $LANG['db_host_desc1']." <i>".$LANG['db_host_desc2']."</i> ".$LANG['db_host_desc3']?></div>
+            </div>
+        </div>
 		<script type="text/javascript">
-			var fdbhost = new LiveValidation('dbhost', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
+			var fdbhost = new LiveValidation('dbhost', { onlyOnSubmit: true });
 			fdbhost.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_ins_sorry_req']; ?>"});
-		</script> 	
-		<p><?php echo $LANG['db_host_desc1']." <i>".$LANG['db_host_desc2']."</i> ".$LANG['db_host_desc3']?></p>
-		<div><div class="field-label"><label for="dbname"><b><?php echo $LANG['db_name']; ?></b></label>: (<span class="req">*</span>)</div> <div class="field-widget"><input type="text" name="dbname" size="50" id="dbname" class="required" value="" title="<?php echo $LANG['title_db_name']; ?>"/></div></div>
+		</script>
+		<div>
+            <div class="field-label"><label for="dbname"><b><?php echo $LANG['db_name']; ?></b> <span class="req">*</span></label></div>
+            <div class="field-widget">
+                <input type="text" name="dbname" id="dbname" title="<?php echo $LANG['title_db_name']; ?>"/>
+		        <div><?php echo $LANG['db_name_desc']; ?> Family Connections.</div>
+            </div>
+        </div>
 		<script type="text/javascript">
-			var fdbname = new LiveValidation('dbname', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
+			var fdbname = new LiveValidation('dbname', { onlyOnSubmit: true });
 			fdbname.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_ins_sorry_req']; ?>"});
-		</script> 	
-		<p><?php echo $LANG['db_name_desc']; ?> Family Connections.</p>
-		<div><div class="field-label"><label for="dbuser"><b><?php echo $LANG['db_uname']; ?></b></label>: (<span class="req">*</span>)</div> <div class="field-widget"><input type="text" name="dbuser" size="50" id="dbuser" class="required" value="" title="<?php echo $LANG['title_db_uname']; ?>"/></div></div>
+		</script>
+		<div>
+            <div class="field-label"><label for="dbuser"><b><?php echo $LANG['db_uname']; ?></b> <span class="req">*</span></label></div>
+            <div class="field-widget">
+                <input type="text" name="dbuser" id="dbuser" title="<?php echo $LANG['title_db_uname']; ?>"/>
+		        <div><?php echo $LANG['db_uname_desc']; ?></div>
+            </div>
+        </div>
 		<script type="text/javascript">
-			var fdbuser = new LiveValidation('dbuser', { validMessage: "<?php echo $LANG['lv_good_dbuser']; ?>", wait: 500});
+			var fdbuser = new LiveValidation('dbuser', { onlyOnSubmit: true });
 			fdbuser.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_bad_dbuser']; ?>"});
 		</script> 	
-		<p><?php echo $LANG['db_uname_desc']; ?></p>
-		<div><div class="field-label"><label for="dbpass"><b><?php echo $LANG['db_pass']; ?></b></label>: (<span class="req">*</span>)</div>	<div class="field-widget"><input type="password" name="dbpass" size="50" id="dbpass" class="required" value="" title="<?php echo $LANG['title_db_pass']; ?>"/></div></div>
+		<div>
+            <div class="field-label"><label for="dbpass"><b><?php echo $LANG['db_pass']; ?></b> <span class="req">*</span></label></div>
+            <div class="field-widget">
+                <input type="password" name="dbpass" id="dbpass" title="<?php echo $LANG['title_db_pass']; ?>"/>
+                <div><?php echo $LANG['db_pass_desc']; ?></div>
+            </div>
+        </div>
 		<script type="text/javascript">
-			var fdbpass = new LiveValidation('dbpass', { validMessage: "<?php echo $LANG['lv_good_pass']; ?>", wait: 500});
+			var fdbpass = new LiveValidation('dbpass', { onlyOnSubmit: true });
 			fdbpass.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_bad_pass']; ?>"});
 		</script>
-		<p><?php echo $LANG['db_pass_desc']; ?></p>
 		<p style="text-align:right;"><input id="submit" name="submit2" type="submit"  value="<?php echo $LANG['next']; ?> >>"/></p>
+        <div class="clear"></div>
+        </form>
 	</div>
-	</form><?php
+<?php
 }
 function displayStepThree () {
 	include_once('inc/config_inc.php');
 	global $LANG; ?>
-	<h1><?php echo $LANG['install']; ?> Family Connections</h1>
-	<script type="text/javascript" src="inc/prototype.js"></script>
-	<script type="text/javascript" src="inc/livevalidation.js"></script>
-	<form action="install.php" method="post">
 	<div id="column">
+        <h1><?php echo $LANG['install']; ?> Family Connections</h1>
+        <form class="nofields" action="install.php" method="post">
 		<h2>Checking Database Connection</h2>
 		<div style="text-align:center">Step 3 of 5</div><div class="progress"><div style="width:60%"></div></div>
 		<div>Attempting to connect to database <i><?php echo $cfg_mysql_db; ?></i> on <i><?php echo $cfg_mysql_host; ?></i> using user <i><?php echo $cfg_mysql_user; ?></i>...</div>
 		<?php
 		$connection = @mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 		if (!$connection) {
-			die("<h3 style=\"color:#c00\">Uh-Oh!</h3><div>A connection to the database could not be made.  Please shut down your browser and then re-run the installation.</div>");
+			die("<h3 class=\"bad\">Uh-Oh!</h3><div>A connection to the database could not be made.  Please shut down your browser and then re-run the installation.</div>");
 		} else {
 			mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Connection made, but database could not be found!</b></p>" . mysql_error());
-			echo "<h3 style=\"color:#0c0\">Awesome!</h3><div>A connection was successfully made to the database.  Please proceed to the next step.</div>";
+			echo "<h3>Awesome!</h3><div>A connection was successfully made to the database.  Please proceed to the next step.</div>";
 			mysql_query("DROP TABLE IF EXISTS `fcms_config`") or die("<h1>Error</h1><p><b>Could not drop `fcms_config` table.</b></p>" . mysql_error());
-			mysql_query("CREATE TABLE `fcms_config` (`sitename` varchar(50) NOT NULL DEFAULT 'My Site', `contact` varchar(50) NOT NULL DEFAULT 'nobody@yoursite.com', `section1` VARCHAR(20) NOT NULL default 'familynews', `section2` VARCHAR(20) NOT NULL default 'recipes', `section3` VARCHAR(20) NOT NULL default 'documents', `section4` VARCHAR(20) NOT NULL default 'prayers', `current_version` varchar(50) NOT NULL DEFAULT 'Family Connections', `auto_activate` tinyint(1) NOT NULL DEFAULT 0, `full_size_photos` tinyint(1) NOT NULL DEFAULT 0) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
+            $sql = "CREATE TABLE `fcms_config` (
+                        `sitename` VARCHAR(50) NOT NULL DEFAULT 'My Site', 
+                        `contact` VARCHAR(50) NOT NULL DEFAULT 'nobody@yoursite.com', 
+                        `section1` VARCHAR(20) NOT NULL DEFAULT 'familynews', 
+                        `section2` VARCHAR(20) NOT NULL DEFAULT 'recipes', 
+                        `section3` VARCHAR(20) NOT NULL DEFAULT 'documents', 
+                        `section4` VARCHAR(20) NOT NULL DEFAULT 'prayers', 
+                        `current_version` VARCHAR(50) NOT NULL DEFAULT 'Family Connections', 
+                        `auto_activate` TINYINT(1) NOT NULL DEFAULT 0, 
+                        `full_size_photos` TINYINT(1) NOT NULL DEFAULT 0,
+                        `site_off` TINYINT(1) NOT NULL DEFAULT '0'
+                    ) 
+                    ENGINE=InnoDB DEFAULT CHARSET=utf8";
+			mysql_query($sql) or die(mysql_error());
 		} ?>
 		<p style="text-align:right;"><input id="submit" name="submit3" type="submit"  value="<?php echo $LANG['next']; ?> >>"/></p>
+        <div class="clear"></div>
+        </form>
 	</div>
-	</form><?php
+<?php
 }
 function displayStepFour ($error = '0') {
 	global $LANG; ?>
-	<h1><?php echo $LANG['install']; ?> Family Connections</h1>
-	<script type="text/javascript" src="inc/prototype.js"></script>
-	<script type="text/javascript" src="inc/livevalidation.js"></script>
-	<form action="install.php" method="post">
 	<div id="column">
+	    <h1><?php echo $LANG['install']; ?> Family Connections</h1>
 		<h2><?php echo $LANG['site_info']; ?></h2>
 		<div style="text-align:center">Step 4 of 5</div><div class="progress"><div style="width:80%"></div></div>
-		<div><div class="field-label"><label for="sitename"><b><?php echo $LANG['site_name'];?></b></label>: (<span class="req">*</span>)</div>	<div class="field-widget"><input type="text" name="sitename" size="50" id="sitename" class="required" value="" title="<?php echo $LANG['title_site_name']; ?>"/></div></div>
+	    <form action="install.php" method="post">
+		<div>
+            <div class="field-label"><label for="sitename"><b><?php echo $LANG['site_name'];?></b> <span class="req">*</span></label>
+            <div class="field-widget big">
+                <input type="text" name="sitename" id="sitename" title="<?php echo $LANG['title_site_name']; ?>"/>
+		        <div><?php echo $LANG['site_name_desc']; ?></div>
+            </div>
+        </div>
 		<script type="text/javascript">
-			var fsitename = new LiveValidation('sitename', { validMessage: "<?php echo $LANG['lv_good_sitename']; ?>", wait: 500});
+			var fsitename = new LiveValidation('sitename', { onlyOnSubmit: true });
 			fsitename.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_bad_sitename']; ?>"});
 		</script>
-		<p><?php echo $LANG['site_name_desc']; ?></p>
-		<div><div class="field-label"><label for="contact"><b><?php echo $LANG['contact']; ?></b></label>: (<span class="req">*</span>)</div> <div class="field-widget"><input type="text" name="contact" size="50" id="contact" class="required validate-email" value="" title="<?php echo $LANG['title_contact']; ?>"/></div></div>
+		<div>
+            <div class="field-label"><label for="contact"><b><?php echo $LANG['contact']; ?></b> <span class="req">*</span></label></div>
+            <div class="field-widget big">
+                <input type="text" name="contact" id="contact" title="<?php echo $LANG['title_contact']; ?>"/>
+		        <div><?php echo $LANG['contact_desc']; ?></div>
+            </div>
+        </div>
 		<script type="text/javascript">
-			var fcontact = new LiveValidation('contact', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500 });
+			var fcontact = new LiveValidation('contact', { onlyOnSubmit: true });
 			fcontact.add( Validate.Presence, { failureMessage: "<?php echo $LANG['lv_ins_sorry_req']; ?>" } );
 			fcontact.add( Validate.Email, { failureMessage: "<?php echo $LANG['lv_bad_email']; ?>" } );
 			fcontact.add( Validate.Length, { minimum: 10 } );
 		</script>
-		<p><?php echo $LANG['contact_desc']; ?></p>
-		<div><div class="field-label"><label for="sections-photo"><b><?php echo $LANG['sections']; ?></b></label>:</div> <div class="field-widget">
-			<input type="checkbox" checked="checked" disabled="disabled" name="sections-photo" id="sections-photo" value="" /><?php echo $LANG['link_gallery']; ?> <span class="error"><span class="error">(<?php echo $LANG['required']; ?>)</span></span><br />
-			<input type="checkbox" checked="checked" disabled="disabled" name="sections-board" id="sections-board" value="" /><?php echo $LANG['link_board']; ?> <span class="error">(<?php echo $LANG['required']; ?>)</span><br />
-			<input type="checkbox" checked="checked" disabled="disabled" name="sections-book" id="sections-book" value="" /><?php echo $LANG['link_address']; ?> <span class="error">(<?php echo $LANG['required']; ?>)</span><br />
-			<input type="checkbox" checked="checked" disabled="disabled" name="sections-calendar" id="sections-calendar" value="" /><?php echo $LANG['link_calendar']; ?> <span class="error">(<?php echo $LANG['required']; ?>)</span><br />
-			<input type="checkbox" name="sections-news" id="sections-news" value="familynews" /><?php echo $LANG['link_familynews']; ?><br/>
-			<input type="checkbox" name="sections-recipes" id="sections-recipes" value="recipes" /><?php echo $LANG['link_recipes']; ?><br/>
-			<input type="checkbox" name="sections-documents" id="sections-documents" value="documents" /><?php echo $LANG['link_documents']; ?><br/>
-			<input type="checkbox" name="sections-prayers" id="sections-prayers" value="prayerconcerns" /><?php echo $LANG['link_prayers']; ?>
-		</div></div>
+		<div>
+            <div class="field-label"><label><b><?php echo $LANG['sections']; ?></b></label></div>
+            <div>
+			    <input type="checkbox" name="sections-news" id="sections-news" value="familynews"/>
+                <label for="sections-news"><?php echo $LANG['link_familynews']; ?></label><br/>
+			    <input type="checkbox" name="sections-recipes" id="sections-recipes" value="recipes"/>
+                <label for="sections-recipes"><?php echo $LANG['link_recipes']; ?></label><br/>
+			    <input type="checkbox" name="sections-documents" id="sections-documents" value="documents"/>
+                <label for="sections-documents"><?php echo $LANG['link_documents']; ?></label><br/>
+			    <input type="checkbox" name="sections-prayers" id="sections-prayers" value="prayerconcerns"/>
+                <label for="sections-prayers"><?php echo $LANG['link_prayers']; ?></label>
+		    </div>
+        </div>
 		<p><?php echo $LANG['sections_desc']; ?></p>
 		<p style="text-align:right;"><input id="submit" name="submit4" type="submit"  value="<?php echo $LANG['next']; ?> >>"/></p>
+        <div class="clear"></div>
+        </form>
 	</div>
-	</form><?php
+<?php
 }
 function displayStepFive ($error = '0') {
 	global $LANG; ?>
-	<h1><?php echo $LANG['install']; ?> Family Connections</h1>
-	<script type="text/javascript" src="inc/prototype.js"></script>
-	<script type="text/javascript" src="inc/livevalidation.js"></script>
-	<form action="install.php" method="post">
 	<div id="column">
+        <h1><?php echo $LANG['install']; ?> Family Connections</h1>
 		<h2><?php echo $LANG['admin_account']; ?></h2>
 		<div style="text-align:center">Step 5 of 5</div><div class="progress"><div style="width:100%"></div></div>
+        <form action="install.php" method="post">
 		<p><?php echo $LANG['admin_desc1']; ?></p>
 		<p><?php echo $LANG['admin_desc2']; ?></p>
-		<div><div class="field-label"><label for="username"><b><?php echo $LANG['username']; ?></b></label>: (<span class="req">*</span>)</div> <div class="field-widget"><input type="text" name="username" id="username" class="required" title="<?php echo $LANG['title_uname']; ?>" size="25" value=""/></div></div>
+		<div>
+            <div class="field-label"><label for="username"><b><?php echo $LANG['username']; ?></b> <span class="req">*</span></label></div>
+            <div class="field-widget"><input type="text" name="username" id="username" title="<?php echo $LANG['title_uname']; ?>"/></div>
+        </div>
 		<script type="text/javascript">
-			var funame = new LiveValidation('username', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
+			var funame = new LiveValidation('username', { onlyOnSubmit: true });
 			funame.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_ins_sorry_req']; ?>"});
 		</script>
-		<div><div class="field-label"><label for="password"><b><?php echo $LANG['password']; ?></b></label>: (<span class="req">*</span>)</div> <div class="field-widget"><input type="password" name="password" id="password" class="required" title="<?php echo $LANG['title_pass']; ?>" size="25" value=""/></div></div>
+		<div>
+            <div class="field-label"><label for="password"><b><?php echo $LANG['password']; ?></b> <span class="req">*</span></label></div>
+            <div class="field-widget"><input type="password" name="password" id="password" title="<?php echo $LANG['title_pass']; ?>"/></div>
+        </div>
 		<script type="text/javascript">
-			var fpass = new LiveValidation('password', { validMessage: "<?php echo $LANG['lv_good_pass']; ?>", wait: 500});
+			var fpass = new LiveValidation('password', { onlyOnSubmit: true });
 			fpass.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_bad_pass']; ?>"});
 		</script>
-		<div><div class="field-label"><label for="fname"><b><?php echo $LANG['first_name']; ?></b></label>: (<span class="req">*</span>)</div> <div class="field-widget"><input type="text" name="fname" size="50" id="fname" class="required" value="" title="<?php echo $LANG['title_fname']; ?>"/></div></div>
+		<div>
+            <div class="field-label"><label for="fname"><b><?php echo $LANG['first_name']; ?></b> <span class="req">*</span></label></div>
+            <div class="field-widget"><input type="text" name="fname" id="fname" title="<?php echo $LANG['title_fname']; ?>"/></div>
+        </div>
 		<script type="text/javascript">
-			var ffname = new LiveValidation('fname', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
+			var ffname = new LiveValidation('fname', { onlyOnSubmit: true });
 			ffname.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_ins_sorry_req']; ?>"});
 		</script>
-		<div><div class="field-label"><label for="lname"><b><?php echo $LANG['last_name']; ?></b></label>: (<span class="req">*</span>)</div> <div class="field-widget"><input type="text" name="lname" size="50" id="lname" class="required" value="" title="<?php echo $LANG['title_lname']; ?>"/></div></div>
+		<div>
+            <div class="field-label"><label for="lname"><b><?php echo $LANG['last_name']; ?></b> <span class="req">*</span></label></div>
+            <div class="field-widget"><input type="text" name="lname" id="lname" title="<?php echo $LANG['title_lname']; ?>"/></div>
+        </div>
 		<script type="text/javascript">
-			var flname = new LiveValidation('lname', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
+			var flname = new LiveValidation('lname', { onlyOnSubmit: true });
 			flname.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_ins_sorry_req']; ?>"});
 		</script>
-		<div><div class="field-label"><label for="email"><b><?php echo $LANG['email_address']; ?></b></label>: (<span class="req">*</span>)</div> <div class="field-widget"><input type="text" name="email" size="50" id="email" class="required validate-email" value="" title="<?php echo $LANG['title_email']; ?>"/></div></div>
+		<div>
+            <div class="field-label"><label for="email"><b><?php echo $LANG['email_address']; ?></b> <span class="req">*</span></label></div>
+            <div class="field-widget"><input type="text" name="email" id="email" title="<?php echo $LANG['title_email']; ?>"/></div>
+        </div>
 		<script type="text/javascript">
-			var femail = new LiveValidation('email', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500 });
+			var femail = new LiveValidation('email', { onlyOnSubmit: true });
 			femail.add( Validate.Presence, { failureMessage: "<?php echo $LANG['lv_ins_sorry_req']; ?>" } );
 			femail.add( Validate.Email, { failureMessage: "<?php echo $LANG['lv_bad_email']; ?>" } );
 			femail.add( Validate.Length, { minimum: 10 } );
 		</script>
-		<div><div class="field-label"><label for="day"><b><?php echo $LANG['birthday']; ?></b></label>: (<span class="req">*</span>)</div> <div class="field-widget"><select id="day" name="day">
-			<?php
-			$d = 1;
-			while ($d <= 31) {
-				if ($day == $d) { echo "<option value=\"$d\" selected=\"selected\">$d</option>"; }
-				else { echo "<option value=\"$d\">$d</option>"; }
-				$d++;
-			}
-			echo '</select><select id="month" name="month">';
-			$m = 1;
-			while ($m <= 12) {
-				$lang_month = "".date('M', mktime(0, 0, 0, $m, 1, 2006));
-				if ($month == $m) { echo "<option value=\"$m\" selected=\"selected\">" . $LANG[$lang_month] . "</option>"; }
-				else { echo "<option value=\"$m\">" . $LANG[$lang_month] . "</option>"; }
-				$m++;
-			}
-			echo '</select><select id="year" name="year">';
-			$y = 1900;
-			while ($y - 5 <= date('Y')) {
-				if ($year == $y) { echo "<option value=\"$y\" selected=\"selected\">$y</option>"; }
-				else { echo "<option value=\"$y\">$y</option>"; }
-				$y++;
-			} ?></select></div></div>
-		<div><div class="field-label"><label for="address"><b><?php echo $LANG['street']; ?></b></label>:</div> <div class="field-widget"><input type="text" name="address" size="50" id="address" class="" value="" title="<?php echo $LANG['title_street']; ?>"/></div></div>
-		<script type="text/javascript">
-			var faddress = new LiveValidation('address', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
-		</script>
-		<div><div class="field-label"><label for="city"><b><?php echo $LANG['city_town']; ?></b></label>:</div> <div class="field-widget"><input type="text" name="city" size="50" id="city" class="" value="" title="<?php echo $LANG['title_city_town']; ?>"/></div></div>
-		<script type="text/javascript">
-			var fcity = new LiveValidation('city', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
-		</script>
-		<div><div class="field-label"><label for="state"><b><?php echo $LANG['state_prov']; ?></b></label>:</div> <div class="field-widget"><input type="text" name="state" id="state" class="" title="<?php echo $LANG['title_state_prov']; ?>" size="50" value=""/></div></div>
-		<script type="text/javascript">
-			var fstate = new LiveValidation('state', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
-		</script>
-		<div><div class="field-label"><label for="zip"><b><?php echo $LANG['zip_pos']; ?></b></label>:</div> <div class="field-widget"><input type="text" name="zip" id="zip" class="" title="<?php echo $LANG['title_zip_pos']; ?>" size="10" value=""/></div></div>
-		<script type="text/javascript">
-			var fzip = new LiveValidation('zip', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
-		</script>
-		<div><div class="field-label"><label for="home"><b><?php echo $LANG['home_phone']; ?></b></label>:</div> <div class="field-widget"><input type="text" name="home" id="home" class="validate-phone" title="<?php echo $LANG['title_phone']; ?>" size="20" value=""/></div></div>
-		<script type="text/javascript">
-			var fhome = new LiveValidation('home', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
-			fhome.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
-		</script>
-		<div><div class="field-label"><label for="work"><b><?php echo $LANG['work_phone']; ?></b></label>:</div> <div class="field-widget"><input type="text" name="work" id="work" class="validate-phone" title="<?php echo $LANG['title_phone']; ?>" size="20" value=""/></div></div>
-		<script type="text/javascript">
-			var fwork = new LiveValidation('work', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
-			fwork.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
-		</script>
-		<div><div class="field-label"><label for="cell"><b><?php echo $LANG['mobile_phone']; ?></b></label>:</div> <div class="field-widget"><input type="text" name="cell" id="cell" class="validate-phone" title="<?php echo $LANG['title_phone']; ?>" size="20" value=""/></div></div>
-		<script type="text/javascript">
-			var fcell = new LiveValidation('cell', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
-			fcell.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
-		</script>
 		<p style="text-align:right;"><input id="submit" name="submit5" type="submit"  value="<?php echo $LANG['next']; ?> >>"/></p>
+        <div class="clear"></div>
+        </form>
 	</div>
-	</form><?php
+<?php
 }
-function setupDatabase ($fname, $lname, $email, $birthday, $username, $password, $address='false', $city='false', $state='false', $zip='false', $home='false', $work='false', $cell='false') {
+function setupDatabase ($fname, $lname, $email, $username, $password) {
 	include_once('inc/config_inc.php');
 	include_once('inc/util_inc.php');
 	global $LANG;
 	$password = md5($password);
 	$connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 	if (!$connection) {
-		die("<h1>Connection Error (install.php 194)</h1>" . mysql_error());
+		die("<h1>Connection Error [" . __FILE__ . __LINE__ . "]</h1>" . mysql_error());
 	} else {
 		mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Database could not be found!</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_chat_users`") or die("<h1>Error</h1><p><b>Could not drop 'fcms_chat' table.</b></p>" . mysql_error());
@@ -438,7 +443,7 @@ function setupDatabase ($fname, $lname, $email, $birthday, $username, $password,
 		mysql_query("DROP TABLE IF EXISTS `fcms_gallery_category`") or die("<h1>Error</h1><p><b>Could not drop `fcms_gallery_category` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_news_comments`") or die("<h1>Error</h1><p><b>Could not drop `fcms_news_comments` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_news`") or die("<h1>Error</h1><p><b>Could not drop `fcms_news` table.</b></p>" . mysql_error());
-		mysql_query("DROP TABLE IF EXISTS `fcms_poll_users`") or die("<h1>Error</h1><p><b>Could not drop `fcms_poll_users` table.</b></p>" . mysql_error());
+		mysql_query("DROP TABLE IF EXISTS `fcms_poll_votes`") or die("<h1>Error</h1><p><b>Could not drop `fcms_poll_users` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_poll_options`") or die("<h1>Error</h1><p><b>Could not drop `fcms_poll_options` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_polls`") or die("<h1>Error</h1><p><b>Could not drop `fcms_polls` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_prayers`") or die("<h1>Error</h1><p><b>Could not drop `fcms_prayers` table.</b></p>" . mysql_error());
@@ -449,76 +454,552 @@ function setupDatabase ($fname, $lname, $email, $birthday, $username, $password,
 		mysql_query("DROP TABLE IF EXISTS `fcms_user_settings`") or die("<h1>Error</h1><p><b>Could not drop `fcms_user_settings` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_users`") or die("<h1>Error</h1><p><b>Could not drop `fcms_users` table.</b></p>" . mysql_error());
 		mysql_query("SET NAMES utf8") or die("<h1>Error</h1><p><b>Could not set encoding</b></p>" . mysql_error());
-		mysql_query("CREATE TABLE `fcms_users` (`id` int(25) NOT NULL auto_increment, `access` tinyint(1) NOT NULL default '3', `activity` datetime NOT NULL default '0000-00-00 00:00:00', `joindate` timestamp NOT NULL default CURRENT_TIMESTAMP, `fname` varchar(25) NOT NULL default 'fname', `lname` varchar(25) NOT NULL default 'lname', `email` varchar(50) NOT NULL default 'me@mail.com', `birthday` date NOT NULL default '0000-00-00', `username` varchar(25) NOT NULL default '0', `password` varchar(255) NOT NULL default '0', `avatar` varchar(25) NOT NULL default 'no_avatar.jpg', `activate_code` char(13) NULL, `activated` tinyint(1) NOT NULL default '0', `login_attempts` TINYINT(1) NOT NULL DEFAULT '0', `locked` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', PRIMARY KEY  (`id`), UNIQUE KEY `username` (`username`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_users` (`id`, `access`, `joindate`, `fname`, `lname`, `email`, `birthday`, `username`, `password`, `activated`) VALUES (1, 1, NOW(), '".addslashes($fname)."', '".addslashes($lname)."', '".addslashes($email)."', '$birthday', '".addslashes($username)."', '$password', 1)") or die(mysql_error());
-        mysql_query("CREATE TABLE `fcms_user_settings` (`id` INT(11) NOT NULL AUTO_INCREMENT, `user` INT(11) NOT NULL, `theme` varchar(25) NOT NULL default 'default', `boardsort` SET('ASC', 'DESC') NOT NULL DEFAULT 'ASC', `showavatar` TINYINT(1) NOT NULL DEFAULT '1', `displayname` SET('1','2','3') NOT NULL DEFAULT '1', `frontpage` set('1','2') NOT NULL default '1', `timezone` set('-12 hours', '-11 hours', '-10 hours', '-9 hours', '-8 hours', '-7 hours', '-6 hours', '-5 hours', '-4 hours', '-3 hours -30 minutes', '-3 hours', '-2 hours', '-1 hours', '-0 hours', '+1 hours', '+2 hours', '+3 hours', '+3 hours +30 minutes', '+4 hours', '+4 hours +30 minutes', '+5 hours', '+5 hours +30 minutes', '+6 hours', '+7 hours', '+8 hours', '+9 hours', '+9 hours +30 minutes', '+10 hours', '+11 hours', '+12 hours') NOT NULL DEFAULT '-5 hours', `dst` TINYINT(1) NOT NULL DEFAULT '0', `email_updates` TINYINT(1) NOT NULL DEFAULT '0', PRIMARY KEY (`id`), KEY `user_ind` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_user_settings` ADD CONSTRAINT `fcms_user_stgs_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_settings` (`id`, `user`) VALUES (NULL, 1)") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_address` (`id` int(11) NOT NULL auto_increment, `user` int(11) NOT NULL default '0', `entered_by` INT(11) NOT NULL DEFAULT '0', `updated` timestamp NOT NULL default CURRENT_TIMESTAMP, `address` varchar(50) default NULL, `city` varchar(50) default NULL, `state` varchar(50) default NULL, `zip` varchar(10) default NULL, `home` varchar(20) default NULL, `work` varchar(20) default NULL, `cell` varchar(20) default NULL, PRIMARY KEY  (`id`), KEY `user_ind` (`user`), KEY `ent_ind` (`entered_by`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_address` ADD CONSTRAINT `fcms_address_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_address` (`id`, `user`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`) VALUES (NULL, 1, '".addslashes($address)."', '".addslashes($city)."', '".addslashes($state)."', '".addslashes($zip)."', '".addslashes($home)."', '".addslashes($work)."', '".addslashes($cell)."')") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_calendar` (`id` int(11) NOT NULL auto_increment, `date` date NOT NULL default '0000-00-00', `date_added` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', `title` varchar(50) NOT NULL default 'MyDate', `desc` text, `created_by` int(11) NOT NULL default '0', `type` set('Birthday','Anniversary','Holiday','Other') NOT NULL default 'Other', `private` TINYINT(1) NOT NULL DEFAULT '0', PRIMARY KEY  (`id`), KEY `by_ind` (`created_by`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_calendar` ADD CONSTRAINT `fcms_calendar_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_calendar` (`id`, `date`, `title`, `desc`, `created_by`, `type`) VALUES (NULL, '$birthday', '".addslashes($fname)." ".addslashes($lname)."', NULL, 1, 'Birthday'), (NULL, '2007-12-25', 'Christmas', NULL, 1, 'Holiday'), (NULL, '2007-02-14', 'Valentine''s Day', NULL, 1, 'Holiday'), (NULL, '2007-01-01', 'New Year''s Day', NULL, 1, 'Holiday'), (NULL, '2007-07-04', 'Independence Day', NULL, 1, 'Holiday'), (NULL, '2007-02-02', 'Groundhog Day', NULL, 1, 'Holiday'), (NULL, '2007-03-17', 'St. Patrick''s Day', NULL, 1, 'Holiday'), (NULL, '2007-04-01', 'April Fools Day', NULL, 1, 'Holiday'), (NULL, '2007-10-31', 'Halloween', NULL, 1, 'Holiday')") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_gallery_category` (`id` int(11) NOT NULL auto_increment, `name` varchar(50) NOT NULL default 'category', `user` int(11) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `user_ind` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_gallery_category` ADD CONSTRAINT `fcms_gallery_category_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_gallery_photos` (`id` int(11) NOT NULL auto_increment, `date` timestamp NOT NULL default '0000-00-00 00:00:00', `filename` varchar(25) NOT NULL default 'noimage.gif', `caption` text, `category` int(11) NOT NULL default '0', `user` int(11) NOT NULL default '0', `views` smallint(6) NOT NULL default '0', `votes` smallint(6) NOT NULL default '0', `rating` float NOT NULL default '0', PRIMARY KEY  (`id`), KEY `cat_ind` (`category`), KEY `user_ind` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_gallery_photos` ADD CONSTRAINT `fcms_gallery_photos_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE, ADD CONSTRAINT `fcms_gallery_photos_ibfk_2` FOREIGN KEY (`category`) REFERENCES `fcms_gallery_category` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_gallery_comments` (`id` int(11) NOT NULL auto_increment, `photo` int(11) NOT NULL default '0', `comment` text NOT NULL, `date` timestamp NOT NULL default '0000-00-00 00:00:00', `user` int(11) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `photo_ind` (`photo`), KEY `user_ind` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_gallery_comments` ADD CONSTRAINT `fcms_gallery_comments_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE, ADD CONSTRAINT `fcms_gallery_comments_ibfk_2` FOREIGN KEY (`photo`) REFERENCES `fcms_gallery_photos` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_gallery_photos_tags` (`id` int(11) NOT NULL auto_increment, `user` int(11) NOT NULL default '0', `photo` int(11) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `tag_photo_ind` (`photo`), KEY `tag_user_ind` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_gallery_photos_tags` ADD CONSTRAINT `fcms_gallery_photos_tags_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE, ADD CONSTRAINT `fcms_gallery_photos_tags_ibfk_2` FOREIGN KEY (`photo`) REFERENCES `fcms_gallery_photos` (`id`) ON DELETE CASCADE") or die(mysql_error());
+        // create users
+        $sql = "CREATE TABLE `fcms_users` (
+                    `id` INT(25) NOT NULL AUTO_INCREMENT, 
+                    `access` TINYINT(1) NOT NULL DEFAULT '3', 
+                    `activity` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    `joindate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+                    `fname` VARCHAR(25) NOT NULL DEFAULT 'fname', 
+                    `lname` VARCHAR(25) NOT NULL DEFAULT 'lname', 
+                    `email` VARCHAR(50) NOT NULL DEFAULT 'me@mail.com', 
+                    `birthday` DATE NOT NULL DEFAULT '0000-00-00', 
+                    `username` VARCHAR(25) NOT NULL DEFAULT '0', 
+                    `password` VARCHAR(255) NOT NULL DEFAULT '0', 
+                    `avatar` VARCHAR(25) NOT NULL DEFAULT 'no_avatar.jpg', 
+                    `activate_code` CHAR(13) NULL, 
+                    `activated` TINYINT(1) NOT NULL DEFAULT '0', 
+                    `login_attempts` TINYINT(1) NOT NULL DEFAULT '0', 
+                    `locked` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    PRIMARY KEY (`id`), 
+                    UNIQUE KEY `username` (`username`)
+                )
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+		mysql_query($sql) or die(mysql_error());
+        // insert users
+		$sql = "INSERT INTO `fcms_users` 
+                    (`id`, `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`, `activated`) 
+                VALUES 
+                    (1, 1, NOW(), '".addslashes($fname)."', '".addslashes($lname)."', '".addslashes($email)."', '".addslashes($username)."', '$password', 1)";
+        mysql_query($sql) or die(mysql_error());
+        // create user_settings
+        $sql = "CREATE TABLE `fcms_user_settings` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `user` INT(11) NOT NULL, 
+                    `theme` VARCHAR(25) NOT NULL DEFAULT 'default', 
+                    `boardsort` SET('ASC', 'DESC') NOT NULL DEFAULT 'ASC', 
+                    `showavatar` TINYINT(1) NOT NULL DEFAULT '1', 
+                    `displayname` SET('1','2','3') NOT NULL DEFAULT '1', 
+                    `frontpage` SET('1','2') NOT NULL DEFAULT '1', 
+                    `timezone` set('-12 hours', '-11 hours', '-10 hours', '-9 hours', '-8 hours', '-7 hours', '-6 hours', '-5 hours', '-4 hours', '-3 hours -30 minutes', '-3 hours', '-2 hours', '-1 hours', '-0 hours', '+1 hours', '+2 hours', '+3 hours', '+3 hours +30 minutes', '+4 hours', '+4 hours +30 minutes', '+5 hours', '+5 hours +30 minutes', '+6 hours', '+7 hours', '+8 hours', '+9 hours', '+9 hours +30 minutes', '+10 hours', '+11 hours', '+12 hours') NOT NULL DEFAULT '-5 hours', 
+                    `dst` TINYINT(1) NOT NULL DEFAULT '0', 
+                    `email_updates` TINYINT(1) NOT NULL DEFAULT '0', 
+                    PRIMARY KEY (`id`), 
+                    KEY `user_ind` (`user`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter user_settings
+		$sql = "ALTER TABLE `fcms_user_settings` 
+                ADD CONSTRAINT `fcms_user_stgs_ibfk_1` 
+                FOREIGN KEY (`user`) 
+                REFERENCES `fcms_users` (`id`) ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
+        // insert user_settings
+		$sql = "INSERT INTO `fcms_user_settings` (`id`, `user`) 
+                VALUES (NULL, 1)";
+        mysql_query($sql) or die(mysql_error());
+        // create address
+		$sql = "CREATE TABLE `fcms_address` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `user` INT(11) NOT NULL DEFAULT '0', 
+                    `entered_by` INT(11) NOT NULL DEFAULT '0', 
+                    `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+                    `address` VARCHAR(50) DEFAULT NULL, 
+                    `city` VARCHAR(50) DEFAULT NULL, 
+                    `state` VARCHAR(50) DEFAULT NULL, 
+                    `zip` VARCHAR(10) DEFAULT NULL, 
+                    `home` VARCHAR(20) DEFAULT NULL, 
+                    `work` VARCHAR(20) DEFAULT NULL, 
+                    `cell` VARCHAR(20) DEFAULT NULL, 
+                    PRIMARY KEY (`id`), 
+                    KEY `user_ind` (`user`), 
+                    KEY `ent_ind` (`entered_by`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter address
+		$sql = "ALTER TABLE `fcms_address` 
+                ADD CONSTRAINT `fcms_address_ibfk_1` 
+                FOREIGN KEY (`user`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
+        // insert address
+		$sql = "INSERT INTO `fcms_address` 
+                    (`id`, `user`, `entered_by`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`) 
+                VALUES 
+                    (NULL, 1, 1, '".addslashes($address)."', '".addslashes($city)."', '".addslashes($state)."', '".addslashes($zip)."', '".addslashes($home)."', '".addslashes($work)."', '".addslashes($cell)."')";
+        mysql_query($sql) or die(mysql_error());
+        // create calendar
+		$sql = "CREATE TABLE `fcms_calendar` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `date` DATE NOT NULL DEFAULT '0000-00-00', 
+                    `date_added` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    `title` VARCHAR(50) NOT NULL DEFAULT 'MyDate', 
+                    `desc` TEXT, 
+                    `created_by` INT(11) NOT NULL DEFAULT '0', 
+                    `type` SET('Birthday','Anniversary','Holiday','Other') NOT NULL DEFAULT 'Other', 
+                    `private` TINYINT(1) NOT NULL DEFAULT '0', 
+                    PRIMARY KEY  (`id`), 
+                    KEY `by_ind` (`created_by`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+		// alter calendar
+        $sql = "ALTER TABLE `fcms_calendar` 
+                ADD CONSTRAINT `fcms_calendar_ibfk_1` 
+                FOREIGN KEY (`created_by`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
+        // insert calendar
+		$sql = "INSERT INTO `fcms_calendar` 
+                    (`id`, `date`, `title`, `desc`, `created_by`, `type`) 
+                VALUES 
+                    (NULL, '$birthday', '".addslashes($fname)." ".addslashes($lname)."', NULL, 1, 'Birthday'), 
+                    (NULL, '2007-12-25', 'Christmas', NULL, 1, 'Holiday'), 
+                    (NULL, '2007-02-14', 'Valentine''s Day', NULL, 1, 'Holiday'), 
+                    (NULL, '2007-01-01', 'New Year''s Day', NULL, 1, 'Holiday'), 
+                    (NULL, '2007-07-04', 'Independence Day', NULL, 1, 'Holiday'), 
+                    (NULL, '2007-02-02', 'Groundhog Day', NULL, 1, 'Holiday'), 
+                    (NULL, '2007-03-17', 'St. Patrick''s Day', NULL, 1, 'Holiday'), 
+                    (NULL, '2007-04-01', 'April Fools Day', NULL, 1, 'Holiday'), 
+                    (NULL, '2007-10-31', 'Halloween', NULL, 1, 'Holiday')";
+        mysql_query($sql) or die(mysql_error());
+        // create gallery_category
+		$sql = "CREATE TABLE `fcms_gallery_category` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `name` VARCHAR(50) NOT NULL DEFAULT 'category', 
+                    `user` INT(11) NOT NULL DEFAULT '0', 
+                    PRIMARY KEY (`id`), 
+                    KEY `user_ind` (`user`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter gallery_category
+		$sql = "ALTER TABLE `fcms_gallery_category` 
+                ADD CONSTRAINT `fcms_gallery_category_ibfk_1` 
+                FOREIGN KEY (`user`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
+        // create gallery_photos
+		$sql = "CREATE TABLE `fcms_gallery_photos` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    `filename` VARCHAR(25) NOT NULL DEFAULT 'noimage.gif', 
+                    `caption` TEXT, 
+                    `category` INT(11) NOT NULL DEFAULT '0', 
+                    `user` INT(11) NOT NULL DEFAULT '0', 
+                    `views` SMALLINT(6) NOT NULL DEFAULT '0', 
+                    `votes` SMALLINT(6) NOT NULL DEFAULT '0', 
+                    `rating` FLOAT NOT NULL DEFAULT '0', 
+                    PRIMARY KEY (`id`), 
+                    KEY `cat_ind` (`category`), 
+                    KEY `user_ind` (`user`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter gallery_photos
+		$sql = "ALTER TABLE `fcms_gallery_photos` 
+                ADD CONSTRAINT `fcms_gallery_photos_ibfk_1` 
+                FOREIGN KEY (`user`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE, 
+                ADD CONSTRAINT `fcms_gallery_photos_ibfk_2` 
+                FOREIGN KEY (`category`) 
+                REFERENCES `fcms_gallery_category` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
+        // create gallery_comments
+		$sql = "CREATE TABLE `fcms_gallery_comments` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `photo` INT(11) NOT NULL DEFAULT '0', 
+                    `comment` TEXT NOT NULL, 
+                    `date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    `user` INT(11) NOT NULL DEFAULT '0', 
+                    PRIMARY KEY (`id`), 
+                    KEY `photo_ind` (`photo`), 
+                    KEY `user_ind` (`user`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter gallery_comments
+		$sql = "ALTER TABLE `fcms_gallery_comments` 
+                ADD CONSTRAINT `fcms_gallery_comments_ibfk_1` 
+                FOREIGN KEY (`user`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE, 
+                ADD CONSTRAINT `fcms_gallery_comments_ibfk_2` 
+                FOREIGN KEY (`photo`) 
+                REFERENCES `fcms_gallery_photos` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
+        // create gallery_photos_tags
+		$sql = "CREATE TABLE `fcms_gallery_photos_tags` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `user` INT(11) NOT NULL DEFAULT '0', 
+                    `photo` INT(11) NOT NULL DEFAULT '0', 
+                    PRIMARY KEY (`id`), 
+                    KEY `tag_photo_ind` (`photo`), 
+                    KEY `tag_user_ind` (`user`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter gallery_photos_tags
+		$sql = "ALTER TABLE `fcms_gallery_photos_tags` 
+                ADD CONSTRAINT `fcms_gallery_photos_tags_ibfk_1` 
+                FOREIGN KEY (`user`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE, 
+                ADD CONSTRAINT `fcms_gallery_photos_tags_ibfk_2` 
+                FOREIGN KEY (`photo`) 
+                REFERENCES `fcms_gallery_photos` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
 		if (usingFamilyNews()) {
-			mysql_query("CREATE TABLE `fcms_news` (`id` int(11) NOT NULL auto_increment, `title` varchar(50) NOT NULL default '', `news` text NOT NULL, `user` int(11) NOT NULL default '0', `date` datetime NOT NULL default '0000-00-00 00:00:00', PRIMARY KEY  (`id`), KEY `userindx` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-			mysql_query("ALTER TABLE `fcms_news` ADD CONSTRAINT `fcms_news_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
-			mysql_query("CREATE TABLE `fcms_news_comments` (`id` int(11) NOT NULL auto_increment, `news` int(11) NOT NULL default '0', `comment` text NOT NULL, `date` timestamp NOT NULL default '0000-00-00 00:00:00', `user` int(11) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `photo_ind` (`news`), KEY `user_ind` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-			mysql_query("ALTER TABLE `fcms_news_comments` ADD CONSTRAINT `fcms_news_comments_ibfk_2` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE, ADD CONSTRAINT `fcms_news_comments_ibfk_1` FOREIGN KEY (`news`) REFERENCES `fcms_news` (`id`) ON DELETE CASCADE") or die(mysql_error());
+            // create news
+			$sql = "CREATE TABLE `fcms_news` (
+                        `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                        `title` VARCHAR(50) NOT NULL DEFAULT '', 
+                        `news` TEXT NOT NULL, 
+                        `user` INT(11) NOT NULL DEFAULT '0', 
+                        `date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                        PRIMARY KEY (`id`), 
+                        KEY `userindx` (`user`)
+                    ) 
+                    ENGINE=InnoDB DEFAULT CHARSET=utf8";
+            mysql_query($sql) or die(mysql_error());
+            // alter news
+			$sql = "ALTER TABLE `fcms_news` 
+                    ADD CONSTRAINT `fcms_news_ibfk_1` 
+                    FOREIGN KEY (`user`) 
+                    REFERENCES `fcms_users` (`id`) 
+                    ON DELETE CASCADE";
+            mysql_query($sql) or die(mysql_error());
+            // create news_comments
+			$sql = "CREATE TABLE `fcms_news_comments` (
+                        `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                        `news` INT(11) NOT NULL DEFAULT '0', 
+                        `comment` TEXT NOT NULL, 
+                        `date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                        `user` INT(11) NOT NULL DEFAULT '0', 
+                        PRIMARY KEY (`id`), 
+                        KEY `photo_ind` (`news`), 
+                        KEY `user_ind` (`user`)
+                    ) 
+                    ENGINE=InnoDB DEFAULT CHARSET=utf8";
+            mysql_query($sql) or die(mysql_error());
+            // alter news_comments
+			$sql = "ALTER TABLE `fcms_news_comments` 
+                    ADD CONSTRAINT `fcms_news_comments_ibfk_2` 
+                    FOREIGN KEY (`user`) 
+                    REFERENCES `fcms_users` (`id`) 
+                    ON DELETE CASCADE, 
+                    ADD CONSTRAINT `fcms_news_comments_ibfk_1` 
+                    FOREIGN KEY (`news`) 
+                    REFERENCES `fcms_news` (`id`) 
+                    ON DELETE CASCADE";
+            mysql_query($sql) or die(mysql_error());
 		}
-		mysql_query("CREATE TABLE `fcms_polls` (`id` int(11) NOT NULL auto_increment, `question` text NOT NULL, `started` datetime NOT NULL default '0000-00-00 00:00:00', PRIMARY KEY  (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_polls` (`id`, `question`, `started`) VALUES (NULL, 'Family Connections software is...', NOW())") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_poll_options` (`id` int(11) NOT NULL auto_increment, `poll_id` int(11) NOT NULL default '0', `option` text NOT NULL, `votes` int(11) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `pollid_ind` (`poll_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_poll_options` ADD CONSTRAINT `fcms_poll_options_ibfk_1` FOREIGN KEY (`poll_id`) REFERENCES `fcms_polls` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_poll_options` (`id`, `poll_id`, `option`, `votes`) VALUES (NULL, 1, 'Easy to use!', 0), (NULL, 1, 'Visually appealing!', 0), (NULL, 1, 'Just what our family needed!', 0)") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_poll_users` (`id` int(11) NOT NULL auto_increment, `user` int(11) NOT NULL default '0', `option` int(11) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `user_ind` (`user`), KEY `option_ind` (`option`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_poll_users` ADD CONSTRAINT `fcms_poll_users_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE, ADD CONSTRAINT `fcms_poll_users_ibfk_2` FOREIGN KEY (`option`) REFERENCES `fcms_poll_options` (`id`) ON DELETE CASCADE") or die(mysql_error());
+        // create polls
+		$sql = "CREATE TABLE `fcms_polls` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `question` TEXT NOT NULL, 
+                    `started` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    PRIMARY KEY  (`id`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // insert poll
+		$sql = "INSERT INTO `fcms_polls` (`id`, `question`, `started`) 
+                VALUES (NULL, 'Family Connections software is...', NOW())";
+        mysql_query($sql) or die(mysql_error());
+        // create poll_options
+		$sql = "CREATE TABLE `fcms_poll_options` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `poll_id` INT(11) NOT NULL DEFAULT '0', 
+                    `option` TEXT NOT NULL, 
+                    `votes` INT(11) NOT NULL DEFAULT '0', 
+                    PRIMARY KEY (`id`), 
+                    KEY `pollid_ind` (`poll_id`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter poll_options
+		$sql = "ALTER TABLE `fcms_poll_options` 
+                ADD CONSTRAINT `fcms_poll_options_ibfk_1` 
+                FOREIGN KEY (`poll_id`) 
+                REFERENCES `fcms_polls` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
+        // insert poll_options
+		$sql = "INSERT INTO `fcms_poll_options` (`id`, `poll_id`, `option`, `votes`) 
+                VALUES 
+                    (NULL, 1, 'Easy to use!', 0), 
+                    (NULL, 1, 'Visually appealing!', 0), 
+                    (NULL, 1, 'Just what our family needed!', 0)";
+        mysql_query($sql) or die(mysql_error());
+        // create poll_votes
+		$sql = "CREATE TABLE `fcms_poll_votes` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `user` INT(11) NOT NULL DEFAULT '0', 
+                    `option` INT(11) NOT NULL DEFAULT '0', 
+                    `poll_id` INT(11) NOT NULL DEFAULT '0', 
+                    PRIMARY KEY (`id`), 
+                    KEY `user_ind` (`user`), 
+                    KEY `option_ind` (`option`)
+                    KEY `poll_id_ind` (`poll_id`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter poll_votes
+		$sql = "ALTER TABLE `fcms_poll_votes` 
+                ADD CONSTRAINT `fcms_poll_votes_ibfk_1` 
+                FOREIGN KEY (`user`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE, 
+                ADD CONSTRAINT `fcms_poll_votes_ibfk_2` 
+                FOREIGN KEY (`option`) 
+                REFERENCES `fcms_poll_options` (`id`) 
+                ON DELETE CASCADE 
+                ADD CONSTRAINT `fcms_poll_votes_ibfk_3` 
+                FOREIGN KEY (`poll_id`) 
+                REFERENCES `fcms_polls` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
 		if (usingPrayers()) {
-			mysql_query("CREATE TABLE `fcms_prayers` (`id` int(11) NOT NULL auto_increment, `for` varchar(50) NOT NULL default '', `desc` text NOT NULL, `user` int(11) NOT NULL default '0', `date` datetime NOT NULL default '0000-00-00 00:00:00', PRIMARY KEY  (`id`), KEY `userindx` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-			mysql_query("ALTER TABLE `fcms_prayers` ADD CONSTRAINT `fcms_prayers_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
+            // create prayers
+			$sql = "CREATE TABLE `fcms_prayers` (
+                        `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                        `for` VARCHAR(50) NOT NULL DEFAULT '', 
+                        `desc` TEXT NOT NULL, 
+                        `user` INT(11) NOT NULL DEFAULT '0', 
+                        `date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                        PRIMARY KEY (`id`), 
+                        KEY `userindx` (`user`)
+                    ) 
+                    ENGINE=InnoDB DEFAULT CHARSET=utf8";
+            mysql_query($sql) or die(mysql_error());
+            // alter prayers
+			$sql = "ALTER TABLE `fcms_prayers` 
+                    ADD CONSTRAINT `fcms_prayers_ibfk_1` 
+                    FOREIGN KEY (`user`) 
+                    REFERENCES `fcms_users` (`id`) 
+                    ON DELETE CASCADE";
+            mysql_query($sql) or die(mysql_error());
 		}
-		mysql_query("CREATE TABLE `fcms_board_threads` (`id` int(11) NOT NULL auto_increment, `subject` varchar(50) NOT NULL default 'Subject', `started_by` int(11) NOT NULL default '0', `updated` timestamp NOT NULL default '0000-00-00 00:00:00', `updated_by` int(11) NOT NULL default '0', `views` smallint(6) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `start_ind` (`started_by`), KEY `up_ind` (`updated_by`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_board_threads` ADD CONSTRAINT `fcms_threads_ibfk_1` FOREIGN KEY (`started_by`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE, ADD CONSTRAINT `fcms_threads_ibfk_2` FOREIGN KEY (`updated_by`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_board_threads` (`id`, `subject`, `started_by`, `updated`, `updated_by`, `views`) VALUES (1, '".$LANG['welcome']."', 1, NOW(), 1, 0)") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_board_posts` (`id` int(11) NOT NULL auto_increment, `date` timestamp NOT NULL default '0000-00-00 00:00:00', `thread` int(11) NOT NULL default '0', `user` int(11) NOT NULL default '0', `post` text NOT NULL, PRIMARY KEY  (`id`), KEY `thread_ind` (`thread`), KEY `user_ind` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_board_posts` ADD CONSTRAINT `fcms_posts_ibfk_1` FOREIGN KEY (`thread`) REFERENCES `fcms_board_threads` (`id`) ON DELETE CASCADE, ADD CONSTRAINT `fcms_posts_ibfk_2` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_board_posts` (`id`, `date`, `thread`, `user`, `post`) VALUES (NULL, NOW(), 1, 1, '".$LANG['welcome_post']."')") or die(mysql_error());
+        // create board_threads
+		$sql = "CREATE TABLE `fcms_board_threads` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `subject` VARCHAR(50) NOT NULL DEFAULT 'Subject', 
+                    `started_by` INT(11) NOT NULL DEFAULT '0', 
+                    `updated` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    `updated_by` INT(11) NOT NULL DEFAULT '0', 
+                    `views` SMALLINT(6) NOT NULL DEFAULT '0', 
+                    PRIMARY KEY (`id`), 
+                    KEY `start_ind` (`started_by`), 
+                    KEY `up_ind` (`updated_by`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter board_threads
+		$sql = "ALTER TABLE `fcms_board_threads` 
+                ADD CONSTRAINT `fcms_threads_ibfk_1` 
+                FOREIGN KEY (`started_by`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE, 
+                ADD CONSTRAINT `fcms_threads_ibfk_2` 
+                FOREIGN KEY (`updated_by`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
+        // insert board_threads
+		$sql = "INSERT INTO `fcms_board_threads` (`id`, `subject`, `started_by`, `updated`, `updated_by`, `views`) 
+                VALUES (1, '".$LANG['welcome']."', 1, NOW(), 1, 0)";
+        mysql_query($sql) or die(mysql_error());
+        // create board_posts
+		$sql = "CREATE TABLE `fcms_board_posts` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    `thread` INT(11) NOT NULL DEFAULT '0', 
+                    `user` INT(11) NOT NULL DEFAULT '0', 
+                    `post` TEXT NOT NULL, 
+                    PRIMARY KEY (`id`), 
+                    KEY `thread_ind` (`thread`), 
+                    KEY `user_ind` (`user`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // altert board_posts
+	    $sql = "ALTER TABLE `fcms_board_posts` 
+                ADD CONSTRAINT `fcms_posts_ibfk_1` 
+                FOREIGN KEY (`thread`) 
+                REFERENCES `fcms_board_threads` (`id`) 
+                ON DELETE CASCADE, 
+                ADD CONSTRAINT `fcms_posts_ibfk_2` 
+                FOREIGN KEY (`user`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
+        // insert board_posts
+		$sql = "INSERT INTO `fcms_board_posts` (`id`, `date`, `thread`, `user`, `post`) 
+                VALUES (NULL, NOW(), 1, 1, '".$LANG['welcome_post']."')";
+        mysql_query($sql) or die(mysql_error());
 		if (usingRecipes()) {
-			mysql_query("CREATE TABLE `fcms_recipes` (`id` INT(11) NOT NULL AUTO_INCREMENT, `category` VARCHAR(50) NOT NULL, `name` VARCHAR(50) NOT NULL DEFAULT 'My Recipe', `recipe` TEXT NOT NULL, `user` INT(11) NOT NULL, `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-			mysql_query("ALTER TABLE `fcms_recipes` ADD CONSTRAINT `fcms_recipes_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
+            // create recipes
+			$sql = "CREATE TABLE `fcms_recipes` (
+                        `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                        `category` VARCHAR(50) NOT NULL, 
+                        `name` VARCHAR(50) NOT NULL DEFAULT 'My Recipe', 
+                        `recipe` TEXT NOT NULL, 
+                        `user` INT(11) NOT NULL, 
+                        `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+                        PRIMARY KEY (`id`)
+                    ) 
+                    ENGINE=InnoDB DEFAULT CHARSET=utf8";
+            mysql_query($sql) or die(mysql_error());
+            // alter recipes
+			$sql = "ALTER TABLE `fcms_recipes` 
+                    ADD CONSTRAINT `fcms_recipes_ibfk_1` 
+                    FOREIGN KEY (`user`) 
+                    REFERENCES `fcms_users` (`id`) 
+                    ON DELETE CASCADE";
+            mysql_query($sql) or die(mysql_error());
 		}
-		mysql_query("CREATE TABLE `fcms_privatemsg` (`id` INT(11) NOT NULL AUTO_INCREMENT, `to` INT(11) NOT NULL, `from` INT(11) NOT NULL, `date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', `title` VARCHAR(50) NOT NULL DEFAULT 'PM Title', `msg` TEXT, `read` TINYINT(1) NOT NULL DEFAULT '0', PRIMARY KEY (`id`), KEY `to_ind` (`to`), KEY `from_ind` (`from`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_privatemsg` ADD CONSTRAINT `fcms_privatemsg_ibfk_1` FOREIGN KEY (`to`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_privatemsg` ADD CONSTRAINT `fcms_privatemsg_ibfk_2` FOREIGN KEY (`from`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
+        // create privatemsg
+		$sql = "CREATE TABLE `fcms_privatemsg` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `to` INT(11) NOT NULL, 
+                    `from` INT(11) NOT NULL, 
+                    `date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    `title` VARCHAR(50) NOT NULL DEFAULT 'PM Title', 
+                    `msg` TEXT, 
+                    `read` TINYINT(1) NOT NULL DEFAULT '0', 
+                    PRIMARY KEY (`id`), 
+                    KEY `to_ind` (`to`), 
+                    KEY `from_ind` (`from`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter privatemsg
+		$sql = "ALTER TABLE `fcms_privatemsg` 
+                ADD CONSTRAINT `fcms_privatemsg_ibfk_1` 
+                FOREIGN KEY (`to`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE, 
+                ADD CONSTRAINT `fcms_privatemsg_ibfk_2` 
+                FOREIGN KEY (`from`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
 		if (usingDocuments()) {
-			mysql_query("CREATE TABLE `fcms_documents` (`id` INT(11) NOT NULL AUTO_INCREMENT, `name` VARCHAR(50) NOT NULL, `description` TEXT NOT NULL, `user` INT(11) NOT NULL, `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-			mysql_query("ALTER TABLE `fcms_documents` ADD CONSTRAINT `fcms_documents_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
+            // create documents
+			$sql = "CREATE TABLE `fcms_documents` (
+                        `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                        `name` VARCHAR(50) NOT NULL, 
+                        `description` TEXT NOT NULL, 
+                        `user` INT(11) NOT NULL, 
+                        `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+                        PRIMARY KEY (`id`)
+                    ) 
+                    ENGINE=InnoDB DEFAULT CHARSET=utf8";
+            mysql_query($sql) or die(mysql_error());
+            // alter documents
+			$sql = "ALTER TABLE `fcms_documents` 
+                    ADD CONSTRAINT `fcms_documents_ibfk_1` 
+                    FOREIGN KEY (`user`) 
+                    REFERENCES `fcms_users` (`id`) 
+                    ON DELETE CASCADE";
+            mysql_query($sql) or die(mysql_error());
 		}
-		mysql_query("CREATE TABLE `fcms_chat_users` (`user_name` VARCHAR(64) DEFAULT NULL) ENGINE=INNODB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("CREATE TABLE `fcms_chat_messages` (`message_id` INT(11) NOT NULL AUTO_INCREMENT, `chat_id` INT(11) NOT NULL DEFAULT '0', `user_id` INT(11) NOT NULL DEFAULT '0', `user_name` VARCHAR(64) DEFAULT NULL, `message` TEXT, `post_time` DATETIME DEFAULT NULL, PRIMARY KEY  (`message_id`)) ENGINE=INNODB DEFAULT CHARSET=utf8");
-		mysql_query("CREATE TABLE `fcms_user_awards` (`id` int(11) NOT NULL auto_increment, `user` int(11) NOT NULL default '0', `type` varchar(20) NOT NULL default '0', `value` smallint(4) NOT NULL default '0', `count` smallint(4) NOT NULL default '0', PRIMARY KEY  (`id`), KEY `user` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
-		mysql_query("ALTER TABLE `fcms_user_awards` ADD CONSTRAINT `fcms_user_awards_ibfk_1` FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`) ON DELETE CASCADE") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (1, 1, 'top5poster', 1, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (2, 1, 'top5poster', 2, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (3, 1, 'top5poster', 3, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (4, 1, 'top5poster', 4, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (5, 1, 'top5poster', 5, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (6, 1, 'topthreadstarter', 0, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (7, 1, 'mostsmileys', 0, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (8, 1, 'top5photo', 1, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (9, 1, 'top5photo', 2, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (10, 1, 'top5photo', 3, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (11, 1, 'top5photo', 4, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (12, 1, 'top5photo', 5, 0)") or die(mysql_error());
-		mysql_query("INSERT INTO `fcms_user_awards` (`id`, `user`, `type`, `value`, `count`) VALUES (13, 1, 'topviewedphoto', 0, 0)") or die(mysql_error());
+        // create chat_users
+		$sql = "CREATE TABLE `fcms_chat_users` (
+                    `user_name` VARCHAR(64) DEFAULT NULL,
+                    `time` DATETIME NOT NULL
+                ) 
+                ENGINE=INNODB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // create chat_messages
+		$sql = "CREATE TABLE `fcms_chat_messages` (
+                    `message_id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `chat_id` INT(11) NOT NULL DEFAULT '0', 
+                    `user_id` INT(11) NOT NULL DEFAULT '0', 
+                    `user_name` VARCHAR(64) DEFAULT NULL, 
+                    `message` TEXT, 
+                    `post_time` DATETIME DEFAULT NULL, 
+                    PRIMARY KEY (`message_id`)
+                ) 
+                ENGINE=INNODB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // create user_awards
+		$sql = "CREATE TABLE `fcms_user_awards` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `user` INT(11) NOT NULL DEFAULT '0', 
+                    `type` VARCHAR(20) NOT NULL DEFAULT '0', 
+                    `value` SMALLINT(4) NOT NULL DEFAULT '0', 
+                    `count` SMALLINT(4) NOT NULL default '0', 
+                    PRIMARY KEY (`id`), 
+                    KEY `user` (`user`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        // alter user_awards
+		$sql = "ALTER TABLE `fcms_user_awards` 
+                ADD CONSTRAINT `fcms_user_awards_ibfk_1` 
+                FOREIGN KEY (`user`) 
+                REFERENCES `fcms_users` (`id`) 
+                ON DELETE CASCADE";
+        mysql_query($sql) or die(mysql_error());
+        // insert user_awards
+		$sql = "INSERT INTO `fcms_user_awards` 
+                    (`id`, `user`, `type`, `value`, `count`) 
+                VALUES 
+                    (1, 1, 'top5poster', 1, 0), 
+                    (2, 1, 'top5poster', 2, 0), 
+                    (3, 1, 'top5poster', 3, 0), 
+                    (4, 1, 'top5poster', 4, 0), 
+                    (5, 1, 'top5poster', 5, 0), 
+                    (6, 1, 'topthreadstarter', 0, 0), 
+                    (7, 1, 'mostsmileys', 0, 0), 
+                    (8, 1, 'top5photo', 1, 0), 
+                    (9, 1, 'top5photo', 2, 0), 
+                    (10, 1, 'top5photo', 3, 0), 
+                    (11, 1, 'top5photo', 4, 0), 
+                    (12, 1, 'top5photo', 5, 0), 
+                    (13, 1, 'topviewedphoto', 0, 0)";
+        mysql_query($sql) or die(mysql_error());
+        // create fcms_alerts
+        $sql = "CREATE TABLE `fcms_alerts` (
+                    `id` INT(25) NOT NULL AUTO_INCREMENT, 
+                    `msg` TEXT NOT NULL, PRIMARY KEY (`id`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
+        $sql = "CREATE TABLE `fcms_alerts_users` (
+                    `id` INT(25) NOT NULL AUTO_INCREMENT, 
+                    `alert` VARCHAR(50) NOT NULL DEFAULT '0', 
+                    `user` INT(25) NOT NULL DEFAULT '0', 
+                    `show` TINYINT(1) NOT NULL DEFAULT '1', 
+                    PRIMARY KEY (`id`), 
+                    KEY `alert_ind` (`alert`), 
+                    KEY `user_ind` (`user`) 
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        mysql_query($sql) or die(mysql_error());
 		echo "<div id=\"install\"><h1>".$LANG['install_success']."</h1><p>Family Connections ".$LANG['install_done1']."</p><p>".$LANG['install_done2']." <a href=\"index.php\">".$LANG['install_done3']."</a> ".$LANG['install_done4']." Family Connections.<p></div>";
 	}
 } ?>
+
+ 	  	 

@@ -9,31 +9,45 @@ if (get_magic_quotes_gpc()) {
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
 include_once('inc/language.php');
-if (isset($_SESSION['login_id'])) {
-	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage();
-		exit();
-	}
-} elseif (isset($_COOKIE['fcms_login_id'])) {
-	if (isLoggedIn($_COOKIE['fcms_login_id'], $_COOKIE['fcms_login_uname'], $_COOKIE['fcms_login_pw'])) {
-		$_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-	} else {
-		displayLoginPage();
-		exit();
-	}
-} else {
-	displayLoginPage();
-	exit();
-}
+
+// Check that the user is logged in
+isLoggedIn();
+
 header("Cache-control: private");
 include_once('inc/messageboard_class.php');
 $mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
 // Setup the Template variables;
 $TMPL['pagetitle'] = $LANG['link_board'];
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
+$TMPL['javascript'] = '
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, \'load\', function() {
+    if (!$$(\'.delpost input[type="submit"]\')) { return; }
+    $$(\'.delpost input[type="submit"]\').each(function(item) {
+        item.onclick = function() { return confirm(\''.$LANG['js_del_post'].'\'); };
+        var hid = document.createElement(\'input\');
+        hid.setAttribute(\'type\', \'hidden\');
+        hid.setAttribute(\'name\', \'confirmed\');
+        hid.setAttribute(\'value\', \'true\');
+        item.insert({\'after\':hid});
+    });
+    if ($(\'toolbar\')) {
+        $(\'toolbar\').removeClassName("hideme");
+    }
+    if ($(\'smileys\')) {
+        $(\'smileys\').removeClassName("hideme");
+    }
+    if ($(\'upimages\')) {
+        $(\'upimages\').removeClassName("hideme");
+    }
+    return true;
+});
+//]]>
+</script>';
+
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 ?>
 	<div id="leftcolumn">
@@ -48,6 +62,8 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
 		<div id="messageboard" class="centercontent">
 			<?php
 			$show_threads = true;
+
+            // Add thread
 			if (isset($_POST['post_submit'])) {
 				$show_threads = false;
 				$subject = addslashes($_POST['subject']);
@@ -102,6 +118,8 @@ $name " . $LANG['started_thread'] . " $thread_subject
                     }
                 }
 			}
+
+            // Add post
 			if (isset($_POST['reply_submit'])) {
 				$show_threads = false;
 				$post = addslashes($_POST['post']);
@@ -156,6 +174,8 @@ $name " . $LANG['replied_to'] . " $thread_subject
                     }
                 }
 			}
+
+            // Edit post
 			if (isset($_POST['edit_submit'])) {
 				$show_threads = false;
 				$id = $_POST['id'];
@@ -172,7 +192,27 @@ $name " . $LANG['replied_to'] . " $thread_subject
 				mysql_query($sql) or displaySQLError('Edit Post Error', 'messageboard.php [' . __LINE__ . ']', $sql, mysql_error());
 				echo "<meta http-equiv='refresh' content='0;URL=messageboard.php?thread=" . $thread_id . "'>";
 			}
-			if (isset($_POST['delpost'])) {
+
+            // Delete post confirmation
+            if (isset($_POST['delpost']) && !isset($_POST['confirmed'])) {
+                $show_threads = false;
+				$thread = $_POST['thread'];
+                echo '
+                <div class="info-alert clearfix">
+                    <form action="messageboard.php?thread='.$thread.'" method="post">
+                        <h2>'.$LANG['js_del_post'].'</h2>
+                        <p><b><i>'.$LANG['cannot_be_undone'].'</i></b></p>
+                        <div>
+                            <input type="hidden" name="id" value="'.$_POST['id'].'"/>
+                            <input type="hidden" name="thread" value="'.$thread.'"/>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.$LANG['yes'].'"/>
+                            <a style="float:right;" href="messageboard.php?thread='.$thread.'">'.$LANG['cancel'].'</a>
+                        </div>
+                    </form>
+                </div>';
+
+            // Delete post
+            } elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
 				$show_threads = false;
 				$id = $_POST['id'];
 				$thread = $_POST['thread'];
@@ -233,7 +273,11 @@ $name " . $LANG['replied_to'] . " $thread_subject
 					if ($_GET['reply'] == 'new') {
 						$mboard->displayForm('new');
 					} elseif ($_GET['reply'] > 0) {
-						if (isset($_POST['quote'])) { $mboard->displayForm('reply', $_GET['reply'], 0, $_POST['quote']); } else { $mboard->displayForm('reply', $_GET['reply']); }
+						if (isset($_POST['quotepost'])) {
+                            $mboard->displayForm('reply', $_GET['reply'], $_POST['id']);
+                        } else {
+                            $mboard->displayForm('reply', $_GET['reply']);
+                        }
 					}
 				}
 			}

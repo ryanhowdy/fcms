@@ -3,24 +3,11 @@ session_start();
 include_once('config_inc.php');
 include_once('util_inc.php');
 include_once('language.php');
-if (isset($_SESSION['login_id'])) {
-	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage();
-		exit();
-	}
-} elseif (isset($_COOKIE['fcms_login_id'])) {
-	if (isLoggedIn($_COOKIE['fcms_login_id'], $_COOKIE['fcms_login_uname'], $_COOKIE['fcms_login_pw'])) {
-		$_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-	} else {
-		displayLoginPage();
-		exit();
-	}
-} else {
-	displayLoginPage();
-	exit();
-} ?>
+
+// Check that the user is logged in
+isLoggedIn();
+
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
 <head>
@@ -38,7 +25,7 @@ td.file { text-align: left; width: 150px; }
 tr.alt { background-color: #f4f4f4; }
 </style>
 <script type="text/javascript">
-<!--
+//<![CDATA[
 function insertUpImage(str) {
 	var textarea = window.opener.document.getElementById('post');
 	if (textarea) {
@@ -48,7 +35,7 @@ function insertUpImage(str) {
 	javascript:window.close();
 	return true;
 }
--->
+//]]>
 </script>
 </head>
 <body>
@@ -98,7 +85,13 @@ foreach ($images_in_dir as $file) {
 		echo "<td class=\"v\"><button class=\"viewbtn\" onclick=\"window.open('../gallery/upimages/$file','file','width=$win_w,height=$win_h,resizable=no,location=no,menubar=no,status=no'); return false;\"/></td><td class=\"file\">";
 		echo "<a href=\"#\" onclick=\"insertUpImage('[IMG=gallery/upimages/$file]')\" title=\"".$LANG['title_ins_img']."\">$file</a></td><td>";
 		if (checkAccess($_SESSION['login_id']) < 2) {
-			echo "<form method=\"post\" action=\"upimages.php\"><div><input type=\"hidden\" name=\"img\" value=\"$file\"/><input type=\"submit\" name=\"delimg\" value=\" \" class=\"delbtn\" title=\"".$LANG['title_del_img']."\" onclick=\"javascript:return confirm('".$LANG['js_del_img']."');\" /></div></form>";
+			echo '
+            <form method="post" action="upimages.php">
+                <div>
+                    <input type="hidden" name="img" value="'.$file.'"/>
+                    <input type="submit" name="delimg" value="'.$LANG['delete'].'" class="delbtn" title="'.$LANG['title_del_img'].'" onclick="javascript:return confirm(\''.$LANG['js_del_img'].'\');"/>
+                </div>
+            </form>';
 		}
 		echo "</td><td class=\"n\">$img_info[0]x$img_info[1]</td><td class=\"n\">" . formatSize($this_size) . "</td></tr>\n";
 	}

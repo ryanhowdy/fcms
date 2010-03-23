@@ -3,31 +3,36 @@ session_start();
 include_once('../inc/config_inc.php');
 include_once('../inc/util_inc.php');
 include_once('../inc/language.php');
-if (isset($_SESSION['login_id'])) {
-	if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-		displayLoginPage("fix");
-		exit();
-	}
-} elseif (isset($_COOKIE['fcms_login_id'])) {
-	if (isLoggedIn($_COOKIE['fcms_login_id'], $_COOKIE['fcms_login_uname'], $_COOKIE['fcms_login_pw'])) {
-		$_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-		$_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-		$_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-	} else {
-		displayLoginPage("fix");
-		exit();
-	}
-} else {
-	displayLoginPage("fix");
-	exit();
-}
+
+// Check that the user is logged in
+isLoggedIn('admin/');
+
 header("Cache-control: private");
 include_once('../inc/admin_class.php');
 $admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
 // Setup the Template variables;
 $TMPL['pagetitle'] = $LANG['admin_upgrade'];
 $TMPL['path'] = "../";
 $TMPL['admin_path'] = "";
+$TMPL['javascript'] = '
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, \'load\', function() {
+    if (!$$(\'form.frm_line input[type="submit"]\')) { return; }
+    $$(\'form.frm_line input[type="submit"]\').each(function(item) {
+        item.onclick = function() { return confirm(\''.$LANG['js_del_confirm'].'\'); };
+        var hid = document.createElement(\'input\');
+        hid.setAttribute(\'type\', \'hidden\');
+        hid.setAttribute(\'name\', \'confirmed\');
+        hid.setAttribute(\'value\', \'true\');
+        item.insert({\'after\':hid});
+    });
+    return true;
+});
+//]]>
+</script>';
+
 include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
 ?>
 	<div id="leftcolumn">
@@ -44,16 +49,32 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
 			if (isset($_POST['upgrade'])) {
 				upgrade($_POST['version']);
 		} else {
-				echo "<h2>".$LANG['upgrade_check']."</h2><p><b>".$LANG['cur_version'].":</b> &nbsp;".getCurrentVersion()."</p><p><b>".$LANG['latest_version'].":</b> &nbsp;&nbsp;&nbsp;";
+				echo "<h2>".$LANG['upgrade_check']."</h2>";
+                echo "<p><b>".$LANG['cur_version'].":</b> &nbsp;".getCurrentVersion()."</p>";
+                echo "<p><b>".$LANG['latest_version'].":</b> &nbsp;&nbsp;&nbsp;";
 				$ver = file("http://www.haudenschilt.com/fcms/latest_version.php");
 				$uptodate = false; 
-				if (str_pad(str_replace(".", "", substr($ver[0], 18)), 4, "0") <= str_pad(str_replace(".", "",substr(getCurrentVersion(), 18)), 4, "0")) {
+				if (
+                        trim(str_pad(str_replace(".", "", substr($ver[0], 18)), 4, "0")) <= 
+                        trim(str_pad(str_replace(".", "", substr(getCurrentVersion(), 18)), 4, "0"))
+                ) {
 					$uptodate = true;
-					echo $ver[0] . " <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:green\">Awesome, your installation is up to date.</span>";
+                    // TODO
+                    // Remove inline CSS
+                    // Add to language file
+					echo $ver[0] . " <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:green\">";
+                    echo "Awesome, your installation is up to date.</span>";
 				} else {
-					echo $ver[0]." <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:red\">Bummer!, your installation is out of date.  <a href=\"http://www.familycms.com/download.php\">Download latest version.</a></span>";
+                    // TODO
+                    // Remove inline CSS
+                    // Add to language file
+					echo $ver[0]." <span style=\"padding-left:5px;font-size:small;font-weight:bold;color:red\">";
+                    echo "Bummer!, your installation is out of date.  ";
+                    echo "<a href=\"http://www.familycms.com/\">Download latest version.</a></span>";
 				}
-				echo "</p>\n\t\t\t<form method=\"post\" action=\"upgrade.php\"><div><input type=\"hidden\" name=\"version\" value=\"$ver[0]\"/><input type=\"submit\" name=\"upgrade\" value=\"".$LANG['link_admin_upgrade']."\"";
+				echo "</p>\n\t\t\t<form method=\"post\" action=\"upgrade.php\">";
+                echo "<div><input type=\"hidden\" name=\"version\" value=\"$ver[0]\"/>";
+                echo "<input type=\"submit\" name=\"upgrade\" value=\"".$LANG['link_admin_upgrade']."\"";
 				if ($uptodate) { echo " onclick=\"javascript:return confirm('".$LANG['js_upgrade']."');\""; }
 				echo "/></div></form>\n";
 			} ?>
@@ -548,10 +569,100 @@ function upgrade ($version) {
 	} else {
 		mysql_query("CREATE TABLE `fcms_chat_users` (`user_name` VARCHAR(64) NOT NULL) ENGINE=INNODB DEFAULT CHARSET=utf8") or die(mysql_error());
 		mysql_query("CREATE TABLE `fcms_chat_messages` ( `message_id` INT(11) NOT NULL AUTO_INCREMENT, `chat_id` INT(11) NOT NULL DEFAULT '0', `user_id` INT(11) NOT NULL DEFAULT '0', `user_name` VARCHAR(64) DEFAULT NULL, `message` TEXT, `post_time` DATETIME DEFAULT NULL, PRIMARY KEY  (`message_id`)) ENGINE=INNODB DEFAULT CHARSET=utf8");
+	    echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
     }
-	echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+	/*
+	 * FCMS 2.1
+	 * Site Off
+	 */
+	echo "<p><b>(2.1)</b> Adding Site Off...";
+	$sql = "SHOW COLUMNS FROM `fcms_config`";
+	$result = mysql_query($sql) or die("</p><p style=\"color:red\">".$LANG['not_search_fields']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$siteoff_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r['Field'] == 'site_off') { $siteoff_fixed = true; }
+		}
+	}
+	if ($siteoff_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+		mysql_query("ALTER TABLE `fcms_config` ADD `site_off` TINYINT(1) NOT NULL DEFAULT '0'") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+	    echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+    }
+	/*
+	 * FCMS 2.1
+	 * Alerts
+	 */
+	echo "<p><b>(2.1)</b> Adding Alerts...";
+	$sql = "SHOW TABLES FROM `$cfg_mysql_db`";
+	$result = mysql_query($sql) or die("</p><p style=\"color:red\">".$LANG['not_search_tables']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$alert_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r[0] == 'fcms_alerts') { $alert_fixed = true; }
+		}
+	}
+	if ($alert_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+        mysql_query("CREATE TABLE `fcms_alerts` (
+                        `id` INT(25) NOT NULL AUTO_INCREMENT, 
+                        `alert` VARCHAR(50) NOT NULL DEFAULT '0', 
+                        `user` INT(25) NOT NULL DEFAULT '0', 
+                        `hide` TINYINT(1) NOT NULL DEFAULT '1',
+                        PRIMARY KEY (`id`),
+                        KEY `alert_ind` (`alert`),
+                        KEY `user_ind` (`user`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die(mysql_error());
+	    echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+    }
+	/*
+	 * FCMS 2.1
+	 * Polls
+	 */
+	echo "<p><b>(2.1)</b> Upgrading Polls...";
+	$sql = "SHOW TABLES FROM `$cfg_mysql_db`";
+	$result = mysql_query($sql) or die("</p><p style=\"color:red\">".$LANG['not_search_tables']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$poll_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r[0] == 'fcms_poll_votes') { $poll_fixed = true; }
+		}
+	}
+	if ($poll_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+        mysql_query("RENAME TABLE `fcms_poll_users` TO `fcms_poll_votes`") or die(mysql_error());
+        mysql_query("ALTER TABLE `fcms_poll_votes`
+                     ADD COLUMN (`poll_id` INT(11) NOT NULL DEFAULT '0')") or die(mysql_error());
+	    echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+    }
+	/*
+	 * FCMS 2.1
+	 * Update Chat Room
+	 */
+	echo "<p><b>(2.1)</b> Upgrading Chat Room...";
+	$sql = "SHOW COLUMNS FROM `fcms_chat_users`";
+	$result = mysql_query($sql) or die("</p><p style=\"color:red\">".$LANG['not_search_fields']."</p><p style=\"color:red\">".mysql_error()."</p>");
+	$chat_fixed = false;
+	if (mysql_num_rows($result) > 0) {
+		while($r = mysql_fetch_array($result)) {
+			if ($r['Field'] == 'time') { $chat_fixed = true; }
+		}
+	}
+	if ($chat_fixed) {
+		echo "<span style=\"color:green\">".$LANG['no_changes']."</span></p>";
+	} else {
+		mysql_query("ALTER TABLE `fcms_chat_users` ADD `time` DATETIME NOT NULL") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
+	    echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
+    }
 
-	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.0.3'");
+
+    // Set the current Version
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.1'");
 	echo "<p style=\"color:green\"><b>Upgrade is finished.</b></p>";
 }
 ?>
+
+ 	  	 

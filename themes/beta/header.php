@@ -6,7 +6,8 @@
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>themes/favicon.ico"/>
 <link rel="stylesheet" type="text/css" href="<?php echo getTheme($_SESSION['login_id'], $TMPL['path']); ?>style.css"/>
-<script src="<?php echo $TMPL['path']; ?>inc/prototype.js" type="text/javascript"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/prototype.js"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/fcms.js"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?> 
 </head>
 <body class="yui-skin-sam">

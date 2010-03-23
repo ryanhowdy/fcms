@@ -14,24 +14,10 @@ if (get_magic_quotes_gpc()) {
 include_once('../inc/config_inc.php');
 include_once('../inc/util_inc.php');
 include_once('../inc/language.php');
-if (isset($_SESSION['login_id'])) {
-    if (!isLoggedIn($_SESSION['login_id'], $_SESSION['login_uname'], $_SESSION['login_pw'])) {
-        displayLoginPage("fix");
-        exit();
-    }
-} elseif (isset($_COOKIE['fcms_login_id'])) {
-    if (isLoggedIn($_COOKIE['fcms_login_id'], $_COOKIE['fcms_login_uname'], $_COOKIE['fcms_login_pw'])) {
-        $_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-        $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-        $_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-    } else {
-        displayLoginPage("fix");
-        exit();
-    }
-} else {
-    displayLoginPage("fix");
-    exit();
-}
+
+// Check that the user is logged in
+isLoggedIn('gallery/');
+
 header("Cache-control: private");
 include_once('../inc/gallery_class.php');
 include_once('../inc/database_class.php');
@@ -42,48 +28,19 @@ $gallery = new PhotoGallery($_SESSION['login_id'], $database);
 $TMPL['pagetitle'] = $LANG['link_gallery'];
 $TMPL['path'] = "../";
 $TMPL['admin_path'] = "../admin/";
-$TMPL['javascript'] = <<<HTML
+$TMPL['javascript'] = '
 <script type="text/javascript">
-//<![CDATA[ 
-addLoadEvent(initGalleryOptions);
-function initGalleryOptions() {
-    if (!$('rotate-options')) { return; }
-    var rDiv = $('rotate-options');
-    rDiv.setAttribute('style', 'display:none');
-    var rPara = document.createElement('p');
-    rPara.setAttribute('style', 'text-align:center');
-    var rLink = document.createElement('a');
-    rLink.href = '#';
-    rLink.addClassName('u');
-    rLink.appendChild(document.createTextNode('
-HTML;
-$TMPL['javascript'] .= $LANG['rotate_options'];
-$TMPL['javascript'] .= <<<HTML
-'));
-    rLink.setAttribute('onclick', "$('rotate-options').toggle(); return false;");
-    rPara.appendChild(rLink);
-    rDiv.insert({'before':rPara});
-    if (!$('tag-options')) { return; }
-    var tDiv = $('tag-options');
-    tDiv.setAttribute('style', 'display:none');
-    var tPara = document.createElement('p');
-    tPara.setAttribute('style', 'text-align:center');
-    var tLink = document.createElement('a');
-    tLink.href = '#';
-    tLink.addClassName('u');
-    tLink.appendChild(document.createTextNode('
-HTML;
-$TMPL['javascript'] .= $LANG['tag_options'];
-$TMPL['javascript'] .= <<<HTML
-'));
-    tLink.setAttribute('onclick', "$('tag-options').toggle(); return false;");
-    tPara.appendChild(tLink);
-    tDiv.insert({'before':tPara});
-    return true;
-}
+//<![CDATA[
+Event.observe(window, \'load\', function() {
+    hideUploadOptions(\''.$LANG['rotate_options'].'\', \''.$LANG['tag_options'].'\');
+    hidePhotoDetails(\''.$LANG['photo_details'].'\');
+    initConfirmPhotoDelete(\''.$LANG['js_del_photo'].'\');
+    initConfirmCommentDelete(\''.$LANG['js_del_comment'].'\');
+    initConfirmCategoryDelete(\''.$LANG['js_del_cat'].'\');
+});
 //]]>
-</script>
-HTML;
+</script>';
+
 include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
 ?>
     <div id="leftcolumn">
@@ -180,9 +137,29 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
                 $show_latest = false;
                 $gallery->displayEditPhotoForm($_POST['photo'], $_POST['url']);
             }
-            
+
+            // Delete photo confirmation
+            if (isset($_POST['deletephoto']) && !isset($_POST['confirmed'])) {
+                $show_latest = false;
+                echo '
+                <div class="info-alert clearfix">
+                    <form action="index.php" method="post">
+                        <h2>'.$LANG['js_del_photo'].'</h2>
+                        <p><b><i>'.$LANG['cannot_be_undone'].'</i></b></p>
+                        <div>
+                            <input type="hidden" name="photo" value="'.$_POST['photo'].'"/>
+                            <input type="hidden" name="url" value="'.$_POST['url'].'"/>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.$LANG['yes'].'"/>
+                            <a style="float:right;" href="index.php?'.$_POST['url'].'">'.$LANG['cancel'].'</a>
+                        </div>
+                    </form>
+                </div>';
+
             // Delete Photo
-            if (isset($_POST['deletephoto'])) {
+            } elseif (
+                isset($_POST['delconfirm']) || 
+                (isset($_POST['confirmed']) && !isset($_POST['editphoto']))
+            ) {
                 $show_latest = false;
                 $sql = "SELECT `user`, `category`, `filename` "
                      . "FROM `fcms_gallery_photos` WHERE `id` = " . $_POST['photo'];
@@ -228,7 +205,10 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
                     checkAccess($_SESSION['login_id']) == 5
                 )
             ) {
-                $gallery->displayGalleryMenu('none');
+                // We don't want to show the gallery menu on delete confirmation screen
+                if (!isset($_POST['delcat']) || isset($_POST['confirmedcat'])) {
+                    $gallery->displayGalleryMenu('none');
+                }
                 
                 // Upload a photo or photos
                 if ($_GET['action'] == "upload") {
@@ -303,8 +283,9 @@ $name " . $LANG['added_photos1'] . " " . $LANG['added_photos2_email'] . "
                     }
                 } elseif ($_GET['action'] == "category") {
                     $show_latest = false;
+                    $show_cat = true;
+
                     if (isset($_POST['newcat'])) {
-                        $show_latest = false;
                         if(empty($_POST['cat_name'])) {
                             echo "<p class=\"error-alert\">".$LANG['err_cat_name1']." <a href=\"?page=photo&amp;category=edit\">".$LANG['err_cat_name2']."</a> ".$LANG['err_cat_name3']."</p>";
                         } else {
@@ -320,16 +301,34 @@ $name " . $LANG['added_photos1'] . " " . $LANG['added_photos2_email'] . "
                             $sql = "UPDATE fcms_gallery_category SET name = '" . addslashes($_POST['cat_name']) . "' WHERE id = " . $_POST['cid'];
                             mysql_query($sql) or displaySQLError('Update Category Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
                             echo "<p class=\"ok-alert\">".$LANG['ok_cat_edit1']." " . stripslashes($_POST['cat_name']) . " ".$LANG['ok_cat_edit2']."</p>";
-                            $show_latest = false;
                         }
                     }
-                    if (isset($_POST['delcat'])) {
+
+                    // Delete category confirmation
+                    if (isset($_POST['delcat']) && !isset($_POST['confirmedcat'])) {
+                        $show_cat = false;
+                        echo '
+                <div class="info-alert clearfix">
+                    <form action="index.php?action=category" method="post">
+                        <h2>'.$LANG['js_del_cat'].'</h2>
+                        <p><b><i>'.$LANG['cannot_be_undone'].'</i></b></p>
+                        <div>
+                            <input type="hidden" name="cid" value="'.$_POST['cid'].'"/>
+                            <input style="float:left;" type="submit" id="delconfirmcat" name="delconfirmcat" value="'.$LANG['yes'].'"/>
+                            <a style="float:right;" href="index.php?action=category">'.$LANG['cancel'].'</a>
+                        </div>
+                    </form>
+                </div>';
+
+                    // Delete category
+                    } elseif (isset($_POST['delconfirmcat']) || isset($_POST['confirmedcat'])) {
                         $sql = "DELETE FROM fcms_gallery_category WHERE id = " . $_POST['cid'];
                         mysql_query($sql) or displaySQLError('Delete Category Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
                         echo "<p class=\"ok-alert\">".$LANG['ok_cat_del']."</p>";
-                        $show_latest = false;
                     }
-                    $gallery->displayAddCatForm();
+                    if ($show_cat) {
+                        $gallery->displayAddCatForm();
+                    }
                 }
             }
             if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid'])) {
@@ -344,19 +343,47 @@ $name " . $LANG['added_photos1'] . " " . $LANG['added_photos2_email'] . "
                 $gallery->showCategories($page, $_GET['uid'], $_GET['cid']);
             } elseif (isset($_GET['pid'])) {
                 $show_latest = false;
+                $show_photo = true;
+
+                // Add Comment
                 if (isset($_POST['addcom'])) {
-                    $sql = "INSERT INTO `fcms_gallery_comments`(`photo`, `comment`, `date`, `user`) VALUES(" . $_GET['pid'] . ", '" . addslashes($_POST['comment']) . "', NOW(), " . $_SESSION['login_id'] . ")";
-                    mysql_query($sql) or displaySQLError('Add Comment Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
+                    $com = ltrim($_POST['post']);
+                    if (!empty($com)) {
+                        $sql = "INSERT INTO `fcms_gallery_comments`(`photo`, `comment`, `date`, `user`) VALUES(" . $_GET['pid'] . ", '" . addslashes($_POST['post']) . "', NOW(), " . $_SESSION['login_id'] . ")";
+                        mysql_query($sql) or displaySQLError('Add Comment Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
+                    }
                 }
-                if (isset($_POST['delcom'])) {
+
+                // Delete Comment confirmation
+                if (isset($_POST['delcom']) && !isset($_POST['confirmedcom'])) {
+                    $show_photo = false;
+                    echo '
+                <div class="info-alert clearfix">
+                    <form action="index.php?uid='.$_GET['uid'].'&amp;cid='.$_GET['cid'].'&amp;pid='.$_GET['pid'].'" method="post">
+                        <h2>'.$LANG['js_del_comment'].'</h2>
+                        <p><b><i>'.$LANG['cannot_be_undone'].'</i></b></p>
+                        <div>
+                            <input type="hidden" name="id" value="'.$_POST['id'].'"/>
+                            <input style="float:left;" type="submit" id="delconfirmcom" name="delconfirmcom" value="'.$LANG['yes'].'"/>
+                            <a style="float:right;" href="index.php?uid='.$_GET['uid'].'&amp;cid='.$_GET['cid'].'&amp;pid='.$_GET['pid'].'">'.$LANG['cancel'].'</a>
+                        </div>
+                    </form>
+                </div>';
+
+                // Delete Comment
+                } elseif (isset($_POST['delconfirmcom']) || isset($_POST['confirmedcom'])) {
                     $sql = "DELETE FROM `fcms_gallery_comments` WHERE id=" . $_POST['id'];
                     mysql_query($sql) or displaySQLError('Delete Comment Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
                 }
+
+                // Vote
                 if (isset($_GET['vote'])) {
                     $sql = "UPDATE `fcms_gallery_photos` SET `votes` = `votes`+1, `rating` = `rating`+" . $_GET['vote'] . " WHERE `id` = " . $_GET['pid'];
                     mysql_query($sql) or displaySQLError('Vote Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
                 }
-                $gallery->showPhoto($_GET['uid'], $_GET['cid'], $_GET['pid']);        
+                if ($show_photo) {
+                    $gallery->showPhoto($_GET['uid'], $_GET['cid'], $_GET['pid']);
+                }
             }
             if ($show_latest) {
                 $gallery->displayGalleryMenu();

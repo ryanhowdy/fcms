@@ -22,22 +22,56 @@ class Prayers {
 	function showPrayers ($page = '1') {
 		global $LANG;
 		$from = (($page * 5) - 5); 
-		$this->db->query("SELECT p.`id`, `for`, `desc`, `user`, `date` FROM `fcms_prayers` AS p, `fcms_users` AS u WHERE u.`id` = p.`user` ORDER BY `date` DESC LIMIT " . $from . ", 5") or die("<h1>Get Prayers Error (prayers_class.php 21)</h1>" . mysql_error());
+        $sql = "SELECT p.`id`, `for`, `desc`, `user`, `date` 
+                FROM `fcms_prayers` AS p, `fcms_users` AS u 
+                WHERE u.`id` = p.`user` 
+                ORDER BY `date` DESC 
+                LIMIT " . $from . ", 5";
+		$this->db->query($sql) or displaySQLError(
+                'Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
 		if ($this->db->count_rows() > 0) {
 			while($r = $this->db->get_row()) {
 				$monthName = gmdate('F', strtotime($r['date'] . $this->tz_offset));
 				$date = fixDST(gmdate('F j, Y g:i a', strtotime($r['date'] . $this->tz_offset)), $this->cur_user_id, 'j, Y g:i a');
 				$displayname = getUserDisplayName($r['user']);
-				echo "\t\t\t<hr/><div><h4>" . getLangMonthName($monthName) . " $date";
+				echo '
+            <hr/>
+            <div>
+                <h4>
+                '.getLangMonthName($monthName).' '.$date;
 					if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {
-						echo " &nbsp;<form method=\"post\" action=\"prayers.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"hidden\" name=\"for\" value=\"".htmlentities($r['for'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"hidden\" name=\"desc\" value=\"".htmlentities($r['desc'], ENT_COMPAT, 'UTF-8')."\"/><input type=\"submit\" name=\"editprayer\" value=\" \" class=\"editbtn\" title=\"".$LANG['title_edit_prayer']."\"/></div></form>";
+						echo ' &nbsp;
+                    <form method="post" action="prayers.php">
+                        <div>
+                            <input type="hidden" name="id" value="'.$r['id'].'"/>
+                            <input type="hidden" name="for" value="'.htmlentities($r['for'], ENT_COMPAT, 'UTF-8').'"/>
+                            <input type="hidden" name="desc" value="'.htmlentities($r['desc'], ENT_COMPAT, 'UTF-8').'"/>
+                            <input type="submit" name="editprayer" value="'.$LANG['edit'].'" class="editbtn" title="'.$LANG['title_edit_prayer'].'"/>
+                        </div>
+                    </form>';
 					}
 					if (checkAccess($_SESSION['login_id']) < 2) {
-						echo " &nbsp;<form method=\"post\" action=\"prayers.php\"><div><input type=\"hidden\" name=\"id\" value=\"".$r['id']."\"/><input type=\"submit\" name=\"delprayer\" value=\" \" class=\"delbtn\" title=\"Delete this Prayer Concern.\" onclick=\"javascript:return confirm('Are you sure you want to DELETE this Prayer Concern?');\"/></div></form>";
+						echo ' &nbsp;
+                    <form class="delform" method="post" action="prayers.php">
+                        <div>
+                            <input type="hidden" name="id" value="'.$r['id'].'"/>
+                            <input type="submit" name="delprayer" value="'.$LANG['delete'].'" class="delbtn" title="'.$LANG['title_del_prayer'].'"/>
+                        </div>
+                    </form>';
 					}
-				echo "</h4><b><a href=\"profile.php?member=" . $r['user'] . "\">$displayname</a> ".$LANG['asks_pray']."...</b><br/>&nbsp;&nbsp;&nbsp;&nbsp;".$r['for']."<br/><br/><b>".$LANG['because']."...</b><br/>&nbsp;&nbsp;&nbsp;&nbsp;";
+				echo '
+                </h4>
+                <b><a href="profile.php?member='.$r['user'].'">'.$displayname.'</a> '.$LANG['asks_pray'].'...</b><br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;'.$r['for'].'<br/><br/>
+                <b>'.$LANG['because'].'...</b><br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;';
 				parse($r['desc']);
-				echo "</div><p>&nbsp;</p>\n\t\t\t<div class=\"top\"><a href=\"#top\">".$LANG['back_top']."</a></div><p>&nbsp;</p>\n";
+				echo '
+            </div>
+            <p>&nbsp;</p>
+            <div class="top"><a href="#top">'.$LANG['back_top'].'</a></div>
+            <p>&nbsp;</p>';
 			}
 			$this->db2->query("SELECT count(`id`) AS c FROM `fcms_prayers`")  or die('<h1>Count Error (prayers_class.php 41)</h1>' . mysql_error());
 			while ($r = $this->db2->get_row()) { $prayercount = $r['c']; }
