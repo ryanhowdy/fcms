@@ -1,3 +1,12 @@
+ 2.0.2
+    #91 - undefined function: stripos()
+    #86 - Undefined var: edit_del_options
+    #87 - Names are messed up with the "Email Members on Updates"
+    #85 - Can't change default timezone to GMT
+    #89 - Undefined variable: photo_arr on Photo Edit
+    #90 - Dupe email address gives no error on Admin Create
+    #92 - Large Tall photos not displaying properly
+
  2.0.1
     - fixed "Upgrading to 2.0 can cause some members themes not to work" Ticket #76
     - fixed "Upgrading to 2.0 can prevent users from editing settings" Ticket #78
@@ -31,8 +40,7 @@
     - added "Easier Photo Gallery Options" Ticket #64
 
  1.9
-    - fixed "Can't turn off multiple sections once they've been turned on" bug
-      id 2644006
+    - fixed "Can't turn off multiple sections once they've been turned on" bug id 2644006
     - fixed "Error upgrading auto activation (1.7.1)" bug id 2723720
     - fixed "Missing wording from language file" bug id 2635448
     - fixed "Latest Calendar entries not displaying properly" bug id 2627814

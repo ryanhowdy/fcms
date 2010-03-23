@@ -153,7 +153,7 @@ if (isset($_POST['submit1'])) {
         } elseif (!$none) {
             $sql .= "'none', ";
         }
-		$sql .= "'Family Connections 2.0.1')";
+		$sql .= "'Family Connections 2.0.2')";
 		mysql_query($sql) or die($sql . "<br/><br/>" . mysql_error());
 		displayStepFive();
 	}

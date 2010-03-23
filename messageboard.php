@@ -81,12 +81,13 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                 if (mysql_num_rows($result) > 0) {
                     while ($r = mysql_fetch_array($result)) {
                         $name = getUserDisplayName($_SESSION['login_id']);
+                        $to = getUserDisplayName($r['user']);
                         $thread_subject = $subject;
                         $subject = "$name " . $LANG['started_thread'] . " $thread_subject";
                         $email = $r['email'];
-                        $name = getUserDisplayName($r['user']);
                         $url = getDomainAndDir();
-                        $msg = $LANG['dear'] . " $name,
+                        $msg = $LANG['dear'] . " $to,
+
 $name " . $LANG['started_thread'] . " $thread_subject
 
 {$url}messageboard.php?thread=$new_thread_id

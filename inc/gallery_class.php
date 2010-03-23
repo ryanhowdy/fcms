@@ -230,31 +230,34 @@ HTML;
         while ($row = $this->db2->get_row()) {
             $photo_arr[] = $row['filename'];
         }
-        
-        // Select Current Photo to view
-        $sql = "SELECT p.`user` AS uid, `filename`, `caption`, `category` AS cid, p.`date`, "
-                . "`name` AS category_name, `views`, `votes`, `rating` "
-             . "FROM `fcms_gallery_photos` AS p, `fcms_gallery_category` AS c "
-             . "WHERE p.`id` = $pid "
-             . "AND p.`category` = c.`id`";
-        $this->db->query($sql) or displaySQLError(
-            'Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        
-        // Display the photo and other info
-        if ($this->db->count_rows() > 0) {
-            $r = $this->db->get_row();
-            $displayname = getUserDisplayName($r['uid']);
-            
-            // Update View count
-            $sql = "UPDATE `fcms_gallery_photos` SET `views` = `views`+1 WHERE `id` = $pid";
+
+        // Check that we have atleast one photo in the current view        
+        if (isset($photo_arr)) {
+
+            // Select Current Photo to view
+            $sql = "SELECT p.`user` AS uid, `filename`, `caption`, `category` AS cid, p.`date`, "
+                    . "`name` AS category_name, `views`, `votes`, `rating` "
+                 . "FROM `fcms_gallery_photos` AS p, `fcms_gallery_category` AS c "
+                 . "WHERE p.`id` = $pid "
+                 . "AND p.`category` = c.`id`";
             $this->db->query($sql) or displaySQLError(
-                'Update View Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                'Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
             
-            // What type of breadcrumbs
-            if (isset($special_breadcrumbs)) {
-                echo <<<HTML
+            // Display the photo and other info
+            if ($this->db->count_rows() > 0) {
+                $r = $this->db->get_row();
+                $displayname = getUserDisplayName($r['uid']);
+                
+                // Update View count
+                $sql = "UPDATE `fcms_gallery_photos` SET `views` = `views`+1 WHERE `id` = $pid";
+                $this->db->query($sql) or displaySQLError(
+                    'Update View Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+                
+                // What type of breadcrumbs
+                if (isset($special_breadcrumbs)) {
+                    echo <<<HTML
                 <p class="breadcrumbs">{$special_breadcrumbs}</p>
                 <small>
                     {$LANG['from_the_cat']}: <a href="?uid={$r['uid']}&amp;cid={$r['cid']}">{$r['category_name']}</a> 
@@ -262,39 +265,39 @@ HTML;
                     <a class="u" href="../profile.php?member={$r['uid']}">{$displayname}</a>
                 </small>
 HTML;
-            } else {
-                echo <<<HTML
+                } else {
+                    echo <<<HTML
                 <p class="breadcrumbs">
                     <a href="?uid=0">{$LANG['member_gal']}</a> &gt; 
                     <a href="?uid={$uid}">{$displayname}</a> &gt; 
                     <a href="?uid={$uid}&amp;cid={$cid}">{$r['category_name']}</a>
                 </p>
 HTML;
-            }
-            
-            // Display Next / Previous links
-            $total_photos = count($photo_arr);
-            $cur = array_search($r['filename'], $photo_arr);
-            // strip the extension off the filename to get the pid #s (ex: 453.gif)
-            if (isset($photo_arr[$cur-1])) {
-                $prev_pid = substr($photo_arr[$cur-1], 0, strpos($photo_arr[$cur-1], '.'));
-            }
-            if (isset($photo_arr[$cur+1])) {
-                $next_pid = substr($photo_arr[$cur+1], 0, strpos($photo_arr[$cur+1], '.'));
-            }
-            // Showing only 1 of 1 photos
-            if (!isset($prev_pid) && !isset($next_pid)) {
-                $c = $cur + 1;
-                echo <<<HTML
+                }
+                
+                // Display Next / Previous links
+                $total_photos = count($photo_arr);
+                $cur = array_search($r['filename'], $photo_arr);
+                // strip the extension off the filename to get the pid #s (ex: 453.gif)
+                if (isset($photo_arr[$cur-1])) {
+                    $prev_pid = substr($photo_arr[$cur-1], 0, strpos($photo_arr[$cur-1], '.'));
+                }
+                if (isset($photo_arr[$cur+1])) {
+                    $next_pid = substr($photo_arr[$cur+1], 0, strpos($photo_arr[$cur+1], '.'));
+                }
+                // Showing only 1 of 1 photos
+                if (!isset($prev_pid) && !isset($next_pid)) {
+                    $c = $cur + 1;
+                    echo <<<HTML
                 <div id="photo_nav clearfix">
                     <div class="info">{$LANG['photo']} {$c} {$LANG['of']} {$total_photos}</div>
                 </div>
 
 HTML;
-            // Showing the first of multiple photos
-            } elseif (!isset($prev_pid)) {
-                $c = $cur + 1;
-                echo <<<HTML
+                // Showing the first of multiple photos
+                } elseif (!isset($prev_pid)) {
+                    $c = $cur + 1;
+                    echo <<<HTML
                 <div id="photo_nav" class="clearfix">
                     <div class="info">{$LANG['photo']} {$c} {$LANG['of']} {$total_photos}</div>
                     <div class="prev_next clearfix">
@@ -316,10 +319,10 @@ HTML;
                 </script>
 
 HTML;
-            // Showing the last of multiple photos
-            } elseif (!isset($next_pid)) {
-                $c = $cur + 1;
-                echo <<<HTML
+                // Showing the last of multiple photos
+                } elseif (!isset($next_pid)) {
+                    $c = $cur + 1;
+                    echo <<<HTML
                 <div id="photo_nav" class="clearfix">
                     <div class="info">{$LANG['photo']} {$c} {$LANG['of']} {$total_photos}</div>
                     <div class="prev_next clearfix">
@@ -341,10 +344,10 @@ HTML;
                 </script>
 
 HTML;
-            // Showing photo with prev and next
-            } else {
-                $c = $cur + 1;
-                echo <<<HTML
+                // Showing photo with prev and next
+                } else {
+                    $c = $cur + 1;
+                    echo <<<HTML
                 <div id="photo_nav" class="clearfix">
                     <div class="info">{$LANG['photo']} {$c} {$LANG['of']} {$total_photos}</div>
                     <div class="prev_next clearfix">
@@ -370,73 +373,74 @@ HTML;
                 </script>
 
 HTML;
-            }
-            
-            // Setup photo path
-            $photo_path = '';
-            $caption = htmlentities($r['caption'], ENT_COMPAT, 'UTF-8');
-            // Link to the full sized photo if using full sized
-            $sql = "SELECT `full_size_photos` FROM `fcms_config`";
-            $this->db->query($sql) or displaySQLError(
-                'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            $row = $this->db->get_row();
-            if ($row['full_size_photos'] == 1) {
-                // If you are using full sized but a photo was uploaded prior to that change, 
-                // no full sized photo will be available, so don't link to it
-                if (file_exists("photos/member" . $r['uid'] . "/full_" . $r['filename'])) {
-                    $photo_path .= "/full_";
-                    $dimensions = GetImageSize("photos/member".$r['uid']."/full_".$r['filename']);
-                    $size = filesize("photos/member" . $r['uid'] . "/full_" . $r['filename']);
+                }
+                
+                // Setup photo path
+                $photo_path = '';
+                $caption = htmlentities($r['caption'], ENT_COMPAT, 'UTF-8');
+                // Link to the full sized photo if using full sized
+                $sql = "SELECT `full_size_photos` FROM `fcms_config`";
+                $this->db->query($sql) or displaySQLError(
+                    'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+                $row = $this->db->get_row();
+                if ($row['full_size_photos'] == 1) {
+                    // If you are using full sized but a photo was uploaded prior to that change, 
+                    // no full sized photo will be available, so don't link to it
+                    if (file_exists("photos/member" . $r['uid'] . "/full_" . $r['filename'])) {
+                        $photo_path .= "/full_";
+                        $dimensions = GetImageSize("photos/member".$r['uid']."/full_".$r['filename']);
+                        $size = filesize("photos/member" . $r['uid'] . "/full_" . $r['filename']);
+                    } else {
+                        $photo_path .= "/";
+                        $dimensions = GetImageSize("photos/member" . $r['uid'] . "/" . $r['filename']);
+                        $size = filesize("photos/member" . $r['uid'] . "/" . $r['filename']);
+                    }
                 } else {
                     $photo_path .= "/";
                     $dimensions = GetImageSize("photos/member" . $r['uid'] . "/" . $r['filename']);
                     $size = filesize("photos/member" . $r['uid'] . "/" . $r['filename']);
+                }            
+                // Calculate rating
+                if ($r['votes'] <= 0) {
+                    $rating = 0;
+                    $width = 0;
+                } else {
+                    $rating = ($r['rating'] / $r['votes']) * 100;
+                    $rating = round($rating, 0);
+                    $width = $rating / 5;
                 }
-            } else {
-                $photo_path .= "/";
-                $dimensions = GetImageSize("photos/member" . $r['uid'] . "/" . $r['filename']);
-                $size = filesize("photos/member" . $r['uid'] . "/" . $r['filename']);
-            }            
-            // Calculate rating
-            if ($r['votes'] <= 0) {
-                $rating = 0;
-                $width = 0;
-            } else {
-                $rating = ($r['rating'] / $r['votes']) * 100;
-                $rating = round($rating, 0);
-                $width = $rating / 5;
-            }
-            // Get Tagged Members
-            $tagged_mem_list = '';
-            $sql = "SELECT u.`id`, u.`lname` "
-                 . "FROM `fcms_users` AS u, `fcms_gallery_photos_tags` AS t "
-                 . "WHERE t.`photo` = $pid "
-                 . "AND t.`user` = u.`id`"
-                 . "ORDER BY u.`lname`";
-            $this->db->query($sql) or displaySQLError(
-                'Tagged Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            if ($this->db->count_rows() > 0) {
-                while ($t = $this->db->get_row()) {
-                    $tagged_mem_list .= getUserDisplayName($t['id']) . ", ";
+                // Get Tagged Members
+                $tagged_mem_list = '';
+                $sql = "SELECT u.`id`, u.`lname` "
+                     . "FROM `fcms_users` AS u, `fcms_gallery_photos_tags` AS t "
+                     . "WHERE t.`photo` = $pid "
+                     . "AND t.`user` = u.`id`"
+                     . "ORDER BY u.`lname`";
+                $this->db->query($sql) or displaySQLError(
+                    'Tagged Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+                if ($this->db->count_rows() > 0) {
+                    while ($t = $this->db->get_row()) {
+                        $tagged_mem_list .= getUserDisplayName($t['id']) . ", ";
+                    }
+                } else {
+                    $tagged_mem_list .= "<i>" . $LANG['none'] . "</i>";
                 }
-            } else {
-                $tagged_mem_list .= "<i>" . $LANG['none'] . "</i>";
-            }
-            $tagged_mem_list = substr($tagged_mem_list, 0, -2); // remove the extra ", "
-            $date_added = fixDST(
-                gmdate('F j, Y g:i a', strtotime($r['date'] . $this->tz_offset)), 
-                $this->cur_user_id, '. d, Y (h:i a)'
-            );
-            $monthName = fixDST(
-                gmdate('F j, Y g:i a', strtotime($r['date'] . $this->tz_offset)), 
-                $this->cur_user_id, 'M'
-            );
-            $size = formatSize($size);
-            // Edit / Delete Photo options
-            if($this->cur_user_id == $r['uid'] || checkAccess($this->cur_user_id) < 2) {
-                $edit_del_options = <<<HTML
+                $tagged_mem_list = substr($tagged_mem_list, 0, -2); // remove the extra ", "
+                $date_added = fixDST(
+                    gmdate('F j, Y g:i a', strtotime($r['date'] . $this->tz_offset)), 
+                    $this->cur_user_id, '. d, Y (h:i a)'
+                );
+                $monthName = fixDST(
+                    gmdate('F j, Y g:i a', strtotime($r['date'] . $this->tz_offset)), 
+                    $this->cur_user_id, 'M'
+                );
+                $size = formatSize($size);
+                // Edit / Delete Photo options
+                $edit_del_options = '';
+                if ($this->cur_user_id == $r['uid'] || checkAccess($this->cur_user_id) < 2) {
+                    $edit_del_options = <<<HTML
                 <div class="edit_del_photo">
                     <form action="index.php" method="post">
                         <div>
@@ -448,10 +452,10 @@ HTML;
                     </form>
                 </div>
 HTML;
-            }
-            
-            // Display Photo -- caption, rating and other info
-            echo <<<HTML
+                }
+                
+                // Display Photo -- caption, rating and other info
+                echo <<<HTML
             <p class="center">
                 <a href="photos/member{$r['uid']}{$photo_path}{$r['filename']}"><img class="photo" src="photos/member{$r['uid']}/{$r['filename']}" alt="{$caption}" title="{$caption}"/></a>
             </p>
@@ -479,12 +483,14 @@ HTML;
                 <p><b>{$LANG['members_in_photo']}:</b> &nbsp;{$tagged_mem_list}</p>
             </div>
 HTML;
-            
-            // Display Comments
-            if (checkAccess($_SESSION['login_id']) <= 8 && 
-                checkAccess($_SESSION['login_id']) != 7 && 
-                checkAccess($_SESSION['login_id']) != 4) {
-                echo <<<HTML
+                
+                // Display Comments
+                if (
+                    checkAccess($_SESSION['login_id']) <= 8 && 
+                    checkAccess($_SESSION['login_id']) != 7 && 
+                    checkAccess($_SESSION['login_id']) != 4
+                ) {
+                    echo <<<HTML
             <p>&nbsp;</p>
             <h3>{$LANG['comments']}</h3>
             <p class="center">
@@ -496,32 +502,32 @@ HTML;
             </p>
             <p>&nbsp;</p>
 HTML;
-                $sql = "SELECT c.`id`, `comment`, `date`, `fname`, `lname`, `username`, `user` "
-                     . "FROM `fcms_gallery_comments` AS c, `fcms_users` AS u "
-                     . "WHERE `photo` = '$pid' "
-                     . "AND c.`user` = u.`id` "
-                     . "ORDER BY `date`";
-                $this->db->query($sql) or displaySQLError(
-                    'Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                );
-                if ($this->db->count_rows() > 0) { 
-                    while ($row = $this->db->get_row()) {
-                        // Setup some vars for each comment block
-                        $del_comment = '';
-                        $date = fixDST(
-                            gmdate('Y-m-d h:i:s', strtotime($row['date'] . $this->tz_offset)), 
-                            $this->cur_user_id, 'M. d, Y (h:i a)'
-                        );
-                        $displayname = getUserDisplayName($row['user']);
-                        $comment = htmlentities($row['comment'], ENT_COMPAT, 'UTF-8');
-                        if ($this->cur_user_id == $row['user'] || 
-                            checkAccess($this->cur_user_id) < 2) {
-                            $del_comment .= '<input type="submit" name="delcom" id="delcom" '
-                                . 'value="" class="gal_delcombtn" title="'
-                                . $LANG['title_del_comment'] . '" onclick="javascript:return '
-                                . 'confirm(\'' . $LANG['js_del_comment'] . '\');"/>';
-                        }
-                        echo <<<HTML
+                    $sql = "SELECT c.`id`, `comment`, `date`, `fname`, `lname`, `username`, `user` "
+                         . "FROM `fcms_gallery_comments` AS c, `fcms_users` AS u "
+                         . "WHERE `photo` = '$pid' "
+                         . "AND c.`user` = u.`id` "
+                         . "ORDER BY `date`";
+                    $this->db->query($sql) or displaySQLError(
+                        'Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    );
+                    if ($this->db->count_rows() > 0) { 
+                        while ($row = $this->db->get_row()) {
+                            // Setup some vars for each comment block
+                            $del_comment = '';
+                            $date = fixDST(
+                                gmdate('Y-m-d h:i:s', strtotime($row['date'] . $this->tz_offset)), 
+                                $this->cur_user_id, 'M. d, Y (h:i a)'
+                            );
+                            $displayname = getUserDisplayName($row['user']);
+                            $comment = htmlentities($row['comment'], ENT_COMPAT, 'UTF-8');
+                            if ($this->cur_user_id == $row['user'] || 
+                                checkAccess($this->cur_user_id) < 2) {
+                                $del_comment .= '<input type="submit" name="delcom" id="delcom" '
+                                    . 'value="" class="gal_delcombtn" title="'
+                                    . $LANG['title_del_comment'] . '" onclick="javascript:return '
+                                    . 'confirm(\'' . $LANG['js_del_comment'] . '\');"/>';
+                            }
+                            echo <<<HTML
             <div class="comment_block">
                 <form action="?page=photo&amp;uid={$uid}&amp;cid={$urlcid}&amp;pid={$pid}" method="post">
                     {$del_comment}
@@ -533,15 +539,23 @@ HTML;
             </div>
 
 HTML;
+                        }
+                    } else {
+                        echo "<p class=\"center\">".$LANG['no_comments']."</p>";
                     }
-                } else {
-                    echo "<p class=\"center\">".$LANG['no_comments']."</p>";
                 }
-            }
             
-        // SQL returned no results - notify user that photo couldn't be found
+            // Specific Photo couldn't be found
+            } else {
+                echo "<p class=\"error-alert\">" . $LANG['err_photo_not_found'] . "</p>";
+            }
+        // No photos exist for the current view/category
+        // Even though we are in photo view, bump them back to the category view
+        // and let the user know that this category is now empty
         } else {
-            echo "<p class=\"error-alert\">" . $LANG['err_photo_not_found'] . "</p>";
+            $this->displayGalleryMenu($uid, $cid);
+            echo "<div class=\"info-alert\"><h2>" . $LANG['info_cat_empty1'] . "</h2>";
+            echo "<p>" . $LANG['info_cat_empty2'] . "</p></div>\n";
         }
     }
 
@@ -1457,6 +1471,10 @@ HTML;
             if ($orig_height > $max_height) {
                 $width = (int)($max_height * $orig_width / $orig_height);
                 return array($width, $max_height);
+            // Check width
+            } elseif ($orig_width > $max_width) {
+                $height = (int)($max_width * $orig_height / $orig_width);
+                return array($max_width, $height);
             // No need to resize if it's smaller than max
             } else {
                 return array($orig_width, $orig_height);

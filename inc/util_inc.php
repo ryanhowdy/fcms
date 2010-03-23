@@ -219,6 +219,14 @@ function parse_bbcodes ($data, $allowVideo)
     return $data; 
 }
 
+// Used for PHP 4 and less
+if (!function_exists('stripos')) {
+    function stripos($haystack, $needle, $offset = 0) {
+        return strpos(strtolower($haystack), strtolower($needle), $offset);
+    }
+}
+
+
 function parse_smilies ($data)
 {
     global $smiley_array, $smiley_file_array, $smileydir;

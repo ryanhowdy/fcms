@@ -484,7 +484,7 @@ HTML;
             "-3 hours" => $LANG['tz_3'],
             "-2 hours" => $LANG['tz_2'],
             "-1 hours" => $LANG['tz_1'],
-            "+0 hours" => $LANG['tz0'],
+            "-0 hours" => $LANG['tz0'],
             "+1 hours" => $LANG['tz1'],
             "+2 hours" => $LANG['tz2'],
             "+3 hours" => $LANG['tz3'],

@@ -24,7 +24,7 @@ class Members
     
     function displayCreateMemberForm ($error = '')
     {
-        $this->displayForm('create', $error);
+        $this->displayForm('create', 0, $error);
     }
     function displayEditMemberForm ($id, $error = '')
     {
@@ -85,7 +85,7 @@ class Members
         
         // Display applicable errors
         if ($error != '') {
-            echo "<p class=\"error\">$error</p>\n";
+            echo "<p class=\"error-alert\">$error</p>\n";
         }
         
         // Display the form

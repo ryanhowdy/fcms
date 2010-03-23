@@ -1,16 +1,17 @@
-FAMILY CONNECTIONS 2.0.1
-
-  Keep your family "Connected" with this content management system (CMS) designed 
-  specifically with family's in mind. Key features are: a message board, a photo 
-  gallery, a blog-like "Family News" section, and an address book.
-
-
++-----------------------------------------------------------------------------+
+| Family Connections 2.0.2                                                    |
++-----------------------------------------------------------------------------+
+| Keep your family "Connected" with this content management system (CMS)      |
+| designed specifically with family's in mind. Key features are: a message    |
+| board, a photo gallery, a blog-like "Family News" section, and an address   |
+| book.                                                                       |
++-----------------------------------------------------------------------------+
 
 
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.0.1.zip to your web host.
+  1. Upload the entire contents of FCMS_2.0.2.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -29,7 +30,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.0 to 2.0.1
+II. Upgrading from 2.0.1 to 2.0.2
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -46,15 +47,19 @@ II. Upgrading from 2.0 to 2.0.1
   2. Upload the following list of files to your web host
      (overwriting any previous files).
 
+        admin/members.php
         admin/upgrade.php
-        inc/fcms.js
+        gallery/index.php
+        inc/admin_class.php
         inc/gallery_class.php
-        inc/getChat.php
         inc/members_class.php
         inc/util_inc.php
-        chat.php
+        documents.php
+        familynews.php
         install.php
-        settings.php
+        messageboard.php
+        prayers.php
+        recipes.php
    
   3. Login as the administrator and visit the upgrade section and run the
      upgrade script.
@@ -66,19 +71,17 @@ II. Upgrading from 2.0 to 2.0.1
 
 III. Change Log
 ----------------
- 2.0.1
+ 2.0.2
 
-    - fixed "Upgrading to 2.0 can cause some members themes not to work" Ticket #76
-    - fixed "Upgrading to 2.0 can prevent users from editing settings" Ticket #78
-    - fixed "Admin members doesn't show all members" Ticket #74
-    - fixed "Chat Room doesn't ouput username" Ticket #75
-    - fixed "Upgrading to 2.0 doesn't include Chat" Ticket #77
-    - fixed "Uploading photos tall photos causes errors" Ticket #79
-    - fixed "Alpha and Beta themes don't include Chat" Ticket #84
-    - fixed Download link on upgrade screen
+    Fixed the following bugs:
 
-    - added "Show users online in Chat" Ticket #80
-
+    #91 - undefined function: stripos()
+    #86 - Undefined var: edit_del_options
+    #87 - Names are messed up with the "Email Members on Updates"
+    #85 - Can't change default timezone to GMT
+    #89 - Undefined variable: photo_arr on Photo Edit
+    #90 - Dupe email address gives no error on Admin Create
+    #92 - Large Tall photos not displaying properly
 
   For the full change log please refer to the included "ChangeLog.txt" file.
 

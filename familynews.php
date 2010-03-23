@@ -89,11 +89,12 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                 if (mysql_num_rows($result) > 0) {
                     while ($r = mysql_fetch_array($result)) {
                         $name = getUserDisplayName($_SESSION['login_id']);
+                        $to = getUserDisplayName($r['user']);
                         $subject = "$name " . $LANG['new_news1'] . " $title " . $LANG['new_news2'];
                         $email = $r['email'];
-                        $name = getUserDisplayName($r['user']);
                         $url = getDomainAndDir();
-                        $msg = $LANG['dear'] . " $name,
+                        $msg = $LANG['dear'] . " $to,
+
 $name " . $LANG['new_news1'] . " $title " . $LANG['new_news2'] . "
 
 {$url}familynews.php?getnews=" . $_SESSION['login_id'] . "

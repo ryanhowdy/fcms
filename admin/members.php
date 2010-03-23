@@ -99,15 +99,13 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
                         !isset($_POST['lname']) || 
                         !isset($_POST['email'])) {
                         $show = false;
-                        $member->displayCreateMemberForm(
-                            "<p class=\"error\">" . $LANG['err_required'] . "</p>"
-                            );
+                        $member->displayCreateMemberForm($LANG['err_required']);
                     } elseif ($email_check > 0) {
                         $show = false;
                         $member->displayCreateMemberForm(
-                            '<p class="error">' . $LANG['err_email_use1'] . ' '
-                            . '<a href="lostpw.php">' . $LANG['err_email_use2'] . '</a> '
-                            . $LANG['err_email_use3'] . '</p>'
+                            $LANG['err_email_use1'] . ' '
+                            . '<a href="../lostpw.php">' . $LANG['err_email_use2'] . '</a> '
+                            . $LANG['err_email_use3']
                             );
                     } else {
                         $fname = escape_string($_POST['fname']);

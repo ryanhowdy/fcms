@@ -110,12 +110,13 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                     while ($r = mysql_fetch_array($result)) {
                         $recipe_name = $name;
                         $name = getUserDisplayName($_SESSION['login_id']);
+                        $to = getUserDisplayName($r['user']);
                         $subject = "$name " . $LANG['added_recipe1'] . " $recipe_name "
                             . $LANG['added_recipe2'];
                         $email = $r['email'];
-                        $name = getUserDisplayName($r['user']);
                         $url = getDomainAndDir();
-                        $msg = $LANG['dear'] . " $name,
+                        $msg = $LANG['dear'] . " $to,
+
 $name " . $LANG['added_recipe1'] . " $recipe_name " . $LANG['added_recipe2'] . "
 
 {$url}recipes.php?category=$cat
