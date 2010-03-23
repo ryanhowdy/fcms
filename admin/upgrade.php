@@ -540,7 +540,7 @@ function upgrade ($version) {
 	$chat_fixed = false;
 	if (mysql_num_rows($result) > 0) {
 		while($r = mysql_fetch_array($result)) {
-			if ($r[0] == 'fcms_chat') { $chat_fixed = true; }
+			if ($r[0] == 'fcms_chat_users') { $chat_fixed = true; }
 		}
 	}
 	if ($chat_fixed) {
@@ -551,7 +551,7 @@ function upgrade ($version) {
     }
 	echo "<span style=\"color:green\"><b>".$LANG['complete']."</b></span></p>";
 
-	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.0.2'");
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.0.3'");
 	echo "<p style=\"color:green\"><b>Upgrade is finished.</b></p>";
 }
 ?>

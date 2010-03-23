@@ -1,5 +1,5 @@
 +-----------------------------------------------------------------------------+
-| Family Connections 2.0.2                                                    |
+| Family Connections 2.0.3                                                    |
 +-----------------------------------------------------------------------------+
 | Keep your family "Connected" with this content management system (CMS)      |
 | designed specifically with family's in mind. Key features are: a message    |
@@ -11,7 +11,7 @@
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.0.2.zip to your web host.
+  1. Upload the entire contents of FCMS_2.0.3.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -30,7 +30,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.0.1 to 2.0.2
+II. Upgrading from 2.0.2 to 2.0.3
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -47,19 +47,11 @@ II. Upgrading from 2.0.1 to 2.0.2
   2. Upload the following list of files to your web host
      (overwriting any previous files).
 
-        admin/members.php
         admin/upgrade.php
-        gallery/index.php
-        inc/admin_class.php
-        inc/gallery_class.php
-        inc/members_class.php
-        inc/util_inc.php
-        documents.php
-        familynews.php
+        themes/alpha/style.css
+        themes/beta/style.css
         install.php
-        messageboard.php
-        prayers.php
-        recipes.php
+
    
   3. Login as the administrator and visit the upgrade section and run the
      upgrade script.
@@ -71,17 +63,12 @@ II. Upgrading from 2.0.1 to 2.0.2
 
 III. Change Log
 ----------------
- 2.0.2
+ 2.0.3
 
     Fixed the following bugs:
 
-    #91 - undefined function: stripos()
-    #86 - Undefined var: edit_del_options
-    #87 - Names are messed up with the "Email Members on Updates"
-    #85 - Can't change default timezone to GMT
-    #89 - Undefined variable: photo_arr on Photo Edit
-    #90 - Dupe email address gives no error on Admin Create
-    #92 - Large Tall photos not displaying properly
+    #98 - Upgrade errors out upgrading chat
+    #97 - Alpha / Beta Themes Issues
 
   For the full change log please refer to the included "ChangeLog.txt" file.
 

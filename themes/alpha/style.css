@@ -3,7 +3,7 @@ Theme Name:         Alpha
 Description:        Fixed layout.  Default theme is required for this theme to work as it uses some default images.
 Screen Size:        800x600
 FCMS Compatible:    2.0
-Updated:            July 31, 2009
+Updated:            August 27, 2009
 Author:             Ryan Haudenschilt
 ------------------------------------------------*/
 
@@ -547,7 +547,6 @@ p.poll {
     width: 28%;
 }
 #postlist .actions form, #postlist .actions form div { display: inline; }
-
 #postlist .msg { padding: 15px 15px 30px 15px; }
 #messageboard .msg h1, #messageboard .msg h2, #messageboard .msg h3, #messageboard .msg h4, #messageboard .msg h5, #messageboard .msg h6 {
     color: #000;
@@ -749,21 +748,6 @@ a.email {
 .del_address, .edit_address { padding: 2px 18px 2px 0; }
 .del_address { background: transparent url(../default/images/book_delete.gif) no-repeat center right; }
 .edit_address { background: transparent url(../default/images/book_edit.gif) no-repeat center right; }
-
-
-/* =RECIPES
-------------------------------------------------*/
-#recipe .cat_row {
-    clear: both;
-    padding: 0 0 30px 0;
-    
-}
-#recipe .cat {
-    float: left;
-    width: 32%;
-    text-align: center;
-    margin: 10px 0 25px 0;
-}
 
 
 /* =CALENDAR
@@ -994,6 +978,37 @@ a.new_pm {
     padding: 5px;
     background-color: #fff;
 }
+
+
+/* =FAMILY =NEWS
+------------------------------------------------*/
+#familynews h2 form, #familynews h2 form div { display: inline; }
+
+
+/* =RECIPES
+------------------------------------------------*/
+#recipe h4 form, #recipe h4 form div { display: inline; }
+#recipe .cat_row {
+    clear: both;
+    padding: 0 0 30px 0;
+    
+}
+#recipe .cat {
+    float: left;
+    width: 32%;
+    text-align: center;
+    margin: 10px 0 25px 0;
+}
+
+
+/* =DOCUMENTS
+------------------------------------------------*/
+#docs td form, #docs td form div { display: inline; }
+
+
+/* =PRAYERS
+------------------------------------------------*/
+#prayers h4 form, #prayers h4 form div { display: inline; }
 
 
 /* =SETTINGS
