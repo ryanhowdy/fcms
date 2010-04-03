@@ -151,7 +151,7 @@ HTML;
         } elseif (!$none) {
             $sql .= "'none', ";
         }
-		$sql .= "'Family Connections 2.1.1')";
+		$sql .= "'Family Connections 2.1.2')";
 		mysql_query($sql) or die($sql . "<br/><br/>" . mysql_error());
 		displayStepFive();
 	}

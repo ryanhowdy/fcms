@@ -321,7 +321,7 @@ $name " . $LANG['added_photos1'] . " " . $LANG['added_photos2_email'] . "
                 </div>';
 
                     // Delete category
-                    } elseif (isset($_POST['delconfirmcat']) || isset($_POST['confirmedcat'])) {
+                    } elseif (isset($_POST['delconfirmcat']) || (isset($_POST['confirmedcat']) && !isset($_POST['editcat']))) {
                         $sql = "DELETE FROM fcms_gallery_category WHERE id = " . $_POST['cid'];
                         mysql_query($sql) or displaySQLError('Delete Category Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
                         echo "<p class=\"ok-alert\">".$LANG['ok_cat_del']."</p>";

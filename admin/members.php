@@ -209,9 +209,11 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
                         echo "<script type=\"text/javascript\">window.onload=function(){ ";
                         echo "var t=setTimeout(\"$('update').toggle()\",3000); }</script>";
                     }
-                
+
+                //----------------------------------------
                 // Activate Selected Members
-                } elseif (isset($_POST['activateAll'])) {
+                //----------------------------------------
+                } elseif (isset($_POST['activateAll']) && isset($_POST['massupdate'])) {
                     // Get list of new members
                     // Members with no activity and not activated
                     $sql = "SELECT `id`, `activity` 
@@ -231,20 +233,24 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
                             'Mass Activate Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                         );
                         // If they are a new member, then reset the joindate
-                        if (array_key_exists($id, $new_members)) {
-                            $sql = "UPDATE `fcms_users` SET `joindate` = NOW() WHERE `id` = $id";
-                            mysql_query($sql) or displaySQLError(
-                                'Mass Activate New Member Error',
-                                 __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                            );
+                        if (isset($new_members)) {
+                            if (array_key_exists($id, $new_members)) {
+                                $sql = "UPDATE `fcms_users` SET `joindate` = NOW() WHERE `id` = $id";
+                                mysql_query($sql) or displaySQLError(
+                                    'Mass Activate New Member Error',
+                                     __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                                );
+                            }
                         }
                     }
                     echo "<p class=\"ok-alert\" id=\"update\">".$LANG['update_success']."</p>";
                     echo "<script type=\"text/javascript\">window.onload=function(){ ";
                     echo "var t=setTimeout(\"$('update').toggle()\",3000); }</script>";
                 
+                //----------------------------------------
                 // Inactivate Selected Members
-                } elseif (isset($_POST['inactivateAll'])) {
+                //----------------------------------------
+                } elseif (isset($_POST['inactivateAll']) && isset($_POST['massupdate'])) {
                     foreach ($_POST['massupdate'] AS $id) {
                         $sql = "UPDATE `fcms_users` SET `activated` = 0 WHERE `id` = $id";
                         mysql_query($sql) or displaySQLError(
@@ -255,8 +261,10 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
                     echo "<script type=\"text/javascript\">window.onload=function(){ ";
                     echo "var t=setTimeout(\"$('update').toggle()\",3000); }</script>";
 
+                //----------------------------------------
                 // Delete confirmation for selected members
-				} else if (isset($_POST['deleteAll']) && !isset($_POST['confirmedall'])) {
+                //----------------------------------------
+				} else if (isset($_POST['deleteAll']) && !isset($_POST['confirmedall']) && isset($_POST['massupdate'])) {
 					$show = false;
                     echo '
                 <div class="info-alert clearfix">
@@ -275,8 +283,10 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
                     </form>
                 </div>';
 
+                //----------------------------------------
                 // Delete Selected Members
-                } elseif (isset($_POST['delconfirmall']) || isset($_POST['confirmedall'])) {
+                //----------------------------------------
+                } elseif ((isset($_POST['delconfirmall']) || isset($_POST['confirmedall'])) && isset($_POST['massupdate'])) {
                     foreach ($_POST['massupdate'] AS $id) {
                         $sql = "DELETE FROM `fcms_users` WHERE `id` = $id";
                         mysql_query($sql) or displaySQLError(

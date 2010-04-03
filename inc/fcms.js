@@ -244,8 +244,8 @@ function initConfirmCommentDelete(txt) {
     });
 }
 function initConfirmCategoryDelete(txt) {
-    if (!$$('.frm_line input[type="submit"]')) { return; }
-    $$('.frm_line input[type="submit"]').each(function(item) {
+    if (!$$('.frm_line .delbtn')) { return; }
+    $$('.frm_line .delbtn').each(function(item) {
         item.onclick = function() { return confirm(txt); };
         var hid = document.createElement('input');
         hid.setAttribute('type', 'hidden');
