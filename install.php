@@ -151,7 +151,7 @@ HTML;
         } elseif (!$none) {
             $sql .= "'none', ";
         }
-		$sql .= "'Family Connections 2.1')";
+		$sql .= "'Family Connections 2.1.1')";
 		mysql_query($sql) or die($sql . "<br/><br/>" . mysql_error());
 		displayStepFive();
 	}
@@ -160,7 +160,8 @@ HTML;
 	if (empty($_POST['username']) || empty($_POST['password']) || empty($_POST['fname']) || empty($_POST['lname']) || empty($_POST['email'])) {
 		displayStepFive("<p class=\"error\">".$LANG['err_required']."</p>");
 	} else {
-		setupDatabase($_POST['fname'], $_POST['lname'], $_POST['email'], $_POST['username'], $_POST['password']);
+        $birthday = $_POST['year'] . "-" . str_pad($_POST['month'], 2, "0", STR_PAD_LEFT) . "-" . str_pad($_POST['day'], 2, "0", STR_PAD_LEFT);
+		setupDatabase($_POST['fname'], $_POST['lname'], $_POST['email'], $_POST['username'], $_POST['password'], $birthday);
 	}
 } else {
 	displayStepOne();
@@ -415,13 +416,42 @@ function displayStepFive ($error = '0') {
 			femail.add( Validate.Email, { failureMessage: "<?php echo $LANG['lv_bad_email']; ?>" } );
 			femail.add( Validate.Length, { minimum: 10 } );
 		</script>
+        <div>
+            <div class="field-label"><label for="day"><b><?php echo $LANG['birthday']; ?></b><span class="req">*</span></label></div>
+            <div class="field-widget">
+                <select id="day" name="day">
+                    <?php
+                    $d = 1;
+                    while ($d <= 31) {
+                        if ($day == $d) { echo "<option value=\"$d\" selected=\"selected\">$d</option>"; }
+                        else { echo "<option value=\"$d\">$d</option>"; }
+                        $d++;
+                    }
+                    echo '</select><select id="month" name="month">';
+                    $m = 1;
+                    while ($m <= 12) {
+                        $lang_month = "".date('M', mktime(0, 0, 0, $m, 1, 2006));
+                        if ($month == $m) { echo "<option value=\"$m\" selected=\"selected\">" . $LANG[$lang_month] . "</option>"; }
+                        else { echo "<option value=\"$m\">" . $LANG[$lang_month] . "</option>"; }
+                        $m++;
+                    }
+                    echo '</select><select id="year" name="year">';
+                    $y = 1900;
+                    while ($y - 5 <= date('Y')) {
+                        if ($year == $y) { echo "<option value=\"$y\" selected=\"selected\">$y</option>"; }
+                        else { echo "<option value=\"$y\">$y</option>"; }
+                        $y++;
+                    } ?>
+                </select>
+            </div>
+        </div>
 		<p style="text-align:right;"><input id="submit" name="submit5" type="submit"  value="<?php echo $LANG['next']; ?> >>"/></p>
         <div class="clear"></div>
         </form>
 	</div>
 <?php
 }
-function setupDatabase ($fname, $lname, $email, $username, $password) {
+function setupDatabase ($fname, $lname, $email, $username, $password, $birthday) {
 	include_once('inc/config_inc.php');
 	include_once('inc/util_inc.php');
 	global $LANG;
@@ -434,6 +464,7 @@ function setupDatabase ($fname, $lname, $email, $username, $password) {
 		mysql_query("DROP TABLE IF EXISTS `fcms_chat_users`") or die("<h1>Error</h1><p><b>Could not drop 'fcms_chat' table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_chat_messages`") or die("<h1>Error</h1><p><b>Could not drop 'fcms_chat_messages' table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_address`") or die("<h1>Error</h1><p><b>Could not drop `fcms_address` table.</b></p>" . mysql_error());
+		mysql_query("DROP TABLE IF EXISTS `fcms_alerts`") or die("<h1>Error</h1><p><b>Could not drop `fcms_alerts` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_privatemsg`") or die("<h1>Error</h1><p><b>Could not drop `fcms_privatemsg` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_documents`") or die("<h1>Error</h1><p><b>Could not drop `fcms_documents` table.</b></p>" . mysql_error());
 		mysql_query("DROP TABLE IF EXISTS `fcms_calendar`") or die("<h1>Error</h1><p><b>Could not drop `fcms_calendar` table.</b></p>" . mysql_error());
@@ -478,9 +509,9 @@ function setupDatabase ($fname, $lname, $email, $username, $password) {
 		mysql_query($sql) or die(mysql_error());
         // insert users
 		$sql = "INSERT INTO `fcms_users` 
-                    (`id`, `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`, `activated`) 
+                    (`id`, `access`, `joindate`, `fname`, `lname`, `email`, `birthday`, `username`, `password`, `activated`) 
                 VALUES 
-                    (1, 1, NOW(), '".addslashes($fname)."', '".addslashes($lname)."', '".addslashes($email)."', '".addslashes($username)."', '$password', 1)";
+                    (1, 1, NOW(), '".addslashes($fname)."', '".addslashes($lname)."', '".addslashes($email)."', '$birthday', '".addslashes($username)."', '$password', 1)";
         mysql_query($sql) or die(mysql_error());
         // create user_settings
         $sql = "CREATE TABLE `fcms_user_settings` (
@@ -536,10 +567,8 @@ function setupDatabase ($fname, $lname, $email, $username, $password) {
                 ON DELETE CASCADE";
         mysql_query($sql) or die(mysql_error());
         // insert address
-		$sql = "INSERT INTO `fcms_address` 
-                    (`id`, `user`, `entered_by`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`) 
-                VALUES 
-                    (NULL, 1, 1, '".addslashes($address)."', '".addslashes($city)."', '".addslashes($state)."', '".addslashes($zip)."', '".addslashes($home)."', '".addslashes($work)."', '".addslashes($cell)."')";
+		$sql = "INSERT INTO `fcms_address` (`id`, `user`, `entered_by`) 
+                VALUES (NULL, 1, 1)";
         mysql_query($sql) or die(mysql_error());
         // create calendar
 		$sql = "CREATE TABLE `fcms_calendar` (
@@ -759,7 +788,7 @@ function setupDatabase ($fname, $lname, $email, $username, $password) {
                     `poll_id` INT(11) NOT NULL DEFAULT '0', 
                     PRIMARY KEY (`id`), 
                     KEY `user_ind` (`user`), 
-                    KEY `option_ind` (`option`)
+                    KEY `option_ind` (`option`), 
                     KEY `poll_id_ind` (`poll_id`)
                 ) 
                 ENGINE=InnoDB DEFAULT CHARSET=utf8";
@@ -773,7 +802,7 @@ function setupDatabase ($fname, $lname, $email, $username, $password) {
                 ADD CONSTRAINT `fcms_poll_votes_ibfk_2` 
                 FOREIGN KEY (`option`) 
                 REFERENCES `fcms_poll_options` (`id`) 
-                ON DELETE CASCADE 
+                ON DELETE CASCADE,  
                 ADD CONSTRAINT `fcms_poll_votes_ibfk_3` 
                 FOREIGN KEY (`poll_id`) 
                 REFERENCES `fcms_polls` (`id`) 
@@ -983,20 +1012,13 @@ function setupDatabase ($fname, $lname, $email, $username, $password) {
         // create fcms_alerts
         $sql = "CREATE TABLE `fcms_alerts` (
                     `id` INT(25) NOT NULL AUTO_INCREMENT, 
-                    `msg` TEXT NOT NULL, PRIMARY KEY (`id`)
-                ) 
-                ENGINE=InnoDB DEFAULT CHARSET=utf8";
-        mysql_query($sql) or die(mysql_error());
-        $sql = "CREATE TABLE `fcms_alerts_users` (
-                    `id` INT(25) NOT NULL AUTO_INCREMENT, 
                     `alert` VARCHAR(50) NOT NULL DEFAULT '0', 
                     `user` INT(25) NOT NULL DEFAULT '0', 
-                    `show` TINYINT(1) NOT NULL DEFAULT '1', 
-                    PRIMARY KEY (`id`), 
-                    KEY `alert_ind` (`alert`), 
-                    KEY `user_ind` (`user`) 
-                ) 
-                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+                    `hide` TINYINT(1) NOT NULL DEFAULT '1',
+                    PRIMARY KEY (`id`),
+                    KEY `alert_ind` (`alert`),
+                    KEY `user_ind` (`user`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         mysql_query($sql) or die(mysql_error());
 		echo "<div id=\"install\"><h1>".$LANG['install_success']."</h1><p>Family Connections ".$LANG['install_done1']."</p><p>".$LANG['install_done2']." <a href=\"index.php\">".$LANG['install_done3']."</a> ".$LANG['install_done4']." Family Connections.<p></div>";
 	}

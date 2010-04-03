@@ -1,3 +1,6 @@
+ 2.1.1
+
+    #119 - FCMS 2.1 installation issues
  2.1
     #5 - Import/Export Address Book in CSV
     #18 - Add info note on Poll Admin page
