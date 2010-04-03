@@ -7,13 +7,13 @@ class PhotoGallery {
     var $db;
     var $db2;
     var $tz_offset;
-    var $cur_user_id;
+    var $current_user_id;
     var $categories_per_row;
 
     function PhotoGallery ($current_user_id, $database)
     {
         $this->categories_per_row = 4;
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = $database;
         $this->db2 = $database;
         $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
@@ -41,7 +41,7 @@ class PhotoGallery {
         } elseif ($cid == 'mostviewed') {
             $viewed = ' selected';
         }
-        if ($uid == $this->cur_user_id && $cid == '') {
+        if ($uid == $this->current_user_id && $cid == '') {
             $my = ' selected';
         }
         echo '
@@ -51,7 +51,7 @@ class PhotoGallery {
                     <li><a class="'.$member.'" href="?uid=0">'._('Member Gallery').'</a></li>
                     <li><a class="'.$rated.'" href="?uid='.$uid.'&amp;cid=toprated">'._('Top Rated').'</a></li>
                     <li><a class="'.$viewed.'" href="?uid='.$uid.'&amp;cid=mostviewed">'._('Most Viewed').'</a></li>
-                    <li><a class="'.$my.'" href="?uid='.$this->cur_user_id.'">'._('My Photos').'</a></li>
+                    <li><a class="'.$my.'" href="?uid='.$this->current_user_id.'">'._('My Photos').'</a></li>
                     <li><a class="'.$search.'" href="?search=form">'._('Search').'</a></li>
                 </ul>
             </div>
@@ -472,7 +472,7 @@ class PhotoGallery {
                 $size = formatSize($size);
                 // Edit / Delete Photo options
                 $edit_del_options = '';
-                if ($this->cur_user_id == $r['uid'] || checkAccess($this->cur_user_id) < 2) {
+                if ($this->current_user_id == $r['uid'] || checkAccess($this->current_user_id) < 2) {
                     $edit_del_options = '
                 <div class="edit_del_photo">
                     <strong>'._('Edit Photo').'</strong> &nbsp;
@@ -524,9 +524,9 @@ class PhotoGallery {
                 
                 // Display Comments
                 if (
-                    checkAccess($_SESSION['login_id']) <= 8 && 
-                    checkAccess($_SESSION['login_id']) != 7 && 
-                    checkAccess($_SESSION['login_id']) != 4
+                    checkAccess($this->current_user_id) <= 8 && 
+                    checkAccess($this->current_user_id) != 7 && 
+                    checkAccess($this->current_user_id) != 4
                 ) {
                     echo '
             <div style="clear:both"></div>
@@ -547,8 +547,8 @@ class PhotoGallery {
                             $date = $locale->fixDate(_('F j, Y g:i a'), $this->tz_offset, $row['date']);
                             $displayname = getUserDisplayName($row['user']);
                             $comment = $row['comment'];
-                            if ($this->cur_user_id == $row['user'] || 
-                                checkAccess($this->cur_user_id) < 2) {
+                            if ($this->current_user_id == $row['user'] || 
+                                checkAccess($this->current_user_id) < 2) {
                                 $del_comment .= '<input type="submit" name="delcom" id="delcom" '
                                     . 'value="'._('Delete').'" class="gal_delcombtn" title="'
                                     . _('Delete this Comment') . '"/>';
@@ -1064,7 +1064,7 @@ class PhotoGallery {
         // TODO -- move this to a function, this is used more than once
         // Setup the list of categories for the select box
         $sql = "SELECT `id`, `name` FROM `fcms_gallery_category` 
-                WHERE `user` = " . $this->cur_user_id . "
+                WHERE `user` = " . $this->current_user_id . "
                 ORDER BY `id` DESC";
         $this->db->query($sql) or displaySQLError(
             'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -1159,7 +1159,7 @@ class PhotoGallery {
     function displayJavaUploadForm ($last_cat)
     {
         $sql = "SELECT `id`, `name` FROM `fcms_gallery_category` 
-                WHERE `user` = " . $this->cur_user_id . "
+                WHERE `user` = " . $this->current_user_id . "
                 ORDER BY `id` DESC";
         $result = mysql_query($sql) or displaySQLError(
             'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -1394,7 +1394,7 @@ class PhotoGallery {
         $i=0;
         foreach ($_SESSION['photos'] AS $photo) {
             echo '
-                        <img style="float:right" src="photos/member'.$_SESSION['login_id'].'/tb_'.$photo['filename'].'"/>
+                        <img style="float:right" src="photos/member'.$this->current_user_id.'/tb_'.$photo['filename'].'"/>
                         <p>
                             '._('Caption').'<br/>
                             <input type="text" class="frm_text" name="caption[]" width="50"/>
@@ -1452,7 +1452,7 @@ class PhotoGallery {
     )
     {
         $known_photo_types = array(
-            'image/pjpeg'   => 'jpg', 
+            'image/pjpeg'   => 'jpeg', 
             'image/jpeg'    => 'jpg', 
             'image/gif'     => 'gif', 
             'image/bmp'     => 'bmp', 
@@ -1478,12 +1478,23 @@ class PhotoGallery {
         // Loop through the array of photos and upload each one
         $i = 0;
         while ($i < count($photos_uploaded['name'])) {
+            $ext = explode('.', $photos_uploaded['name'][$i]);
+            $ext = end($ext);
+
             if ($photos_uploaded['size'][$i] > 0) {
                 
                 // Catch non supported file types
                 if (!array_key_exists($photos_uploaded['type'][$i], $known_photo_types)) {
                     echo '
-            <p class="error-alert">'._('File is not a valid Photo, must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).').'</p><br />';
+            <p class="error-alert">
+                '.sprintf(_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $photos_uploaded['type'][$i]).'
+            </p>';
+                // Check file extension
+                } elseif (!in_array($ext, $known_photo_types)) {
+                    echo '
+            <p class="error-alert">
+                '.sprintf(_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $photos_uploaded['type'][$i]).'
+            </p>';
                 } else {
                     
                     // Do we need to strip slashes on captions?
@@ -1498,7 +1509,7 @@ class PhotoGallery {
                             . "NOW(), "
                             . "'" . addslashes($photos_caption[$i]) . "', "
                             . "'" . addslashes($category) . "', "
-                            . $this->cur_user_id
+                            . $this->current_user_id
                          . ")";
                     $this->db->query($sql) or displaySQLError(
                         'Add Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -1519,26 +1530,26 @@ class PhotoGallery {
                     );
                     
                     // Create new member directory if needed
-                    if (!file_exists("photos/member" . $this->cur_user_id)) {
-                        mkdir("photos/member" . $this->cur_user_id);
+                    if (!file_exists("photos/member" . $this->current_user_id)) {
+                        mkdir("photos/member" . $this->current_user_id);
                     }
                     
                     // Copy the tmp file to the member's photo dir
                     copy(
                         $photos_uploaded['tmp_name'][$i], 
-                        "photos/member" . $this->cur_user_id . "/" . $filename
+                        "photos/member" . $this->current_user_id . "/" . $filename
                     );
                     // If using full sized photos, make another copy of the file, because the first
                     // copy is going to be resized.
                     if ($r['full_size_photos'] == '1') {
                         copy(
                             $photos_uploaded['tmp_name'][$i], 
-                            "photos/member" . $this->cur_user_id . "/full_" . $filename
+                            "photos/member" . $this->current_user_id . "/full_" . $filename
                         );
                     }
                     
                     // Get image sizes
-                    $size = GetImageSize("photos/member" . $this->cur_user_id . "/" . $filename);
+                    $size = GetImageSize("photos/member" . $this->current_user_id . "/" . $filename);
                     
                     // Set Thumbnail Size -- make it proportional
                     $thumbnail = $this->getResizeSize(
@@ -1570,7 +1581,7 @@ class PhotoGallery {
                         $function_to_write = "Image" . $function_suffix;
                     }
                     $source_handle = $function_to_read(
-                        "photos/member" . $this->cur_user_id . "/" . $filename
+                        "photos/member" . $this->current_user_id . "/" . $filename
                     );
                     
                     if($source_handle) {
@@ -1601,16 +1612,16 @@ class PhotoGallery {
                     }
                     if ($r['full_size_photos'] == '1') {
                         $full_destination_handle = $function_to_read(
-                            "photos/member" . $this->cur_user_id . "/" . $filename
+                            "photos/member" . $this->current_user_id . "/" . $filename
                         );
                     }
                     $function_to_write(
                         $thumb_destination_handle, 
-                        "photos/member" . $this->cur_user_id . "/tb_" . $filename
+                        "photos/member" . $this->current_user_id . "/tb_" . $filename
                     );
                     $function_to_write(
                         $main_destination_handle, 
-                        "photos/member" . $this->cur_user_id . "/" . $filename
+                        "photos/member" . $this->current_user_id . "/" . $filename
                     );
                     
                     // File Rotation
@@ -1634,80 +1645,80 @@ class PhotoGallery {
                             case 'JPEG':
                                 imagejpeg(
                                     $rotate_thumb, 
-                                    "photos/member" . $this->cur_user_id . "/tb_" . $filename
+                                    "photos/member" . $this->current_user_id . "/tb_" . $filename
                                 );
                                 imagejpeg(
                                     $rotate_main, 
-                                    "photos/member" . $this->cur_user_id . "/" . $filename
+                                    "photos/member" . $this->current_user_id . "/" . $filename
                                 );
                                 if ($r['full_size_photos'] == '1') {
                                     imagejpeg(
                                         $rotate_full, 
-                                        "photos/member" . $this->cur_user_id . "/full_" . $filename
+                                        "photos/member" . $this->current_user_id . "/full_" . $filename
                                     );
                                 }
                                 break;
                             case 'GIF':
                                 imagegif(
                                     $rotate_thumb, 
-                                    "photos/member" . $this->cur_user_id . "/tb_" . $filename
+                                    "photos/member" . $this->current_user_id . "/tb_" . $filename
                                 );
                                 imagegif(
                                     $rotate_main, 
-                                    "photos/member" . $this->cur_user_id . "/" . $filename
+                                    "photos/member" . $this->current_user_id . "/" . $filename
                                 );
                                 if ($r['full_size_photos'] == '1') {
                                     imagegif(
                                         $rotate_full, 
-                                        "photos/member" . $this->cur_user_id . "/full_" . $filename
+                                        "photos/member" . $this->current_user_id . "/full_" . $filename
                                     );
                                 }
                                 break;
                             case 'WBMP':
                                 imagewbmp(
                                     $rotate_thumb, 
-                                    "photos/member" . $this->cur_user_id . "/tb_" . $filename
+                                    "photos/member" . $this->current_user_id . "/tb_" . $filename
                                 );
                                 imagewbmp(
                                     $rotate_main, 
-                                    "photos/member" . $this->cur_user_id . "/" . $filename
+                                    "photos/member" . $this->current_user_id . "/" . $filename
                                 );
                                 if ($r['full_size_photos'] == '1') {
                                     imagewbmp(
                                         $rotate_full, 
-                                        "photos/member" . $this->cur_user_id . "/full_" . $filename
+                                        "photos/member" . $this->current_user_id . "/full_" . $filename
                                     );
                                 }
                                 break;
                             case 'PNG':
                                 imagepng(
                                     $rotate_thumb, 
-                                    "photos/member" . $this->cur_user_id . "/tb_" . $filename
+                                    "photos/member" . $this->current_user_id . "/tb_" . $filename
                                 );
                                 imagepng(
                                     $rotate_main, 
-                                    "photos/member" . $this->cur_user_id . "/" . $filename
+                                    "photos/member" . $this->current_user_id . "/" . $filename
                                 );
                                 if ($r['full_size_photos'] == '1') {
                                     imagepng(
                                         $rotate_full, 
-                                        "photos/member" . $this->cur_user_id . "/full_" . $filename
+                                        "photos/member" . $this->current_user_id . "/full_" . $filename
                                     );
                                 }
                                 break;
                             default:
                                 imagejpg(
                                     $rotate_thumb, 
-                                    "photos/member" . $this->cur_user_id . "/tb_" . $filename
+                                    "photos/member" . $this->current_user_id . "/tb_" . $filename
                                 );
                                 imagejpg(
                                     $rotate_main, 
-                                    "photos/member" . $this->cur_user_id . "/" . $filename
+                                    "photos/member" . $this->current_user_id . "/" . $filename
                                 );
                                 if ($r['full_size_photos'] == '1') {
                                     imagejpg(
                                         $rotate_full, 
-                                        "photos/member" . $this->cur_user_id . "/full_" . $filename
+                                        "photos/member" . $this->current_user_id . "/full_" . $filename
                                     );
                                 }
                                 break;
@@ -1725,7 +1736,7 @@ class PhotoGallery {
                     echo '
             <p class="ok-alert">
                 <b>'._('The following photo was added successfully.').'</b><br/><br/>
-                &nbsp;&nbsp;&nbsp;<img src="photos/member'.$this->cur_user_id.'/tb_'.$filename.'" alt="'.$photos_caption[$i].'"/>
+                &nbsp;&nbsp;&nbsp;<img src="photos/member'.$this->current_user_id.'/tb_'.$filename.'" alt="'.$photos_caption[$i].'"/>
             </p>';
                 }
             }
@@ -1783,7 +1794,7 @@ class PhotoGallery {
         $cat_list = '';
         
         // Setup the list of categories for edit/delete
-        $sql = "SELECT * FROM fcms_gallery_category WHERE user=" . $this->cur_user_id;
+        $sql = "SELECT * FROM fcms_gallery_category WHERE user=" . $this->current_user_id;
         $this->db->query($sql) or displaySQLError(
             'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );

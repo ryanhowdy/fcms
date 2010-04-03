@@ -9,11 +9,11 @@ class Recipes
     var $db;
     var $db2;
     var $tz_offset;
-    var $cur_user_id;
+    var $current_user_id;
 
     function Recipes ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
         $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
@@ -27,7 +27,7 @@ class Recipes
     function showRecipes ()
     {
         $locale = new Locale();
-        if (checkAccess($_SESSION['login_id']) <= 5) {
+        if (checkAccess($this->current_user_id) <= 5) {
             echo '
             <div id="actions_menu" class="clearfix">
                 <ul><li><a class="add" href="?addrecipe=yes">'._('Add Recipe').'</a></li></ul>
@@ -111,7 +111,7 @@ class Recipes
             <div id="sections_menu" class="clearfix">
                 <ul>
                     <li><a href="recipes.php">'._('Recipe Categories').'</a></li>';
-        if (checkAccess($_SESSION['login_id']) <= 5) {
+        if (checkAccess($this->current_user_id) <= 5) {
             echo '
                 </ul>
             </div>
@@ -199,7 +199,7 @@ class Recipes
             <h4>'.$name.'</h4>
             <span class="date">
                 '.sprintf(_('Submitted by %s on %s.'), $displayname, $date);
-                if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {
+                if ($this->current_user_id == $r['user'] || checkAccess($this->current_user_id) < 2) {
                     echo ' &nbsp;
                 <form method="post" action="recipes.php">
                     <div>
@@ -211,7 +211,7 @@ class Recipes
                     </div>
                 </form>';
                 }
-                if (checkAccess($_SESSION['login_id']) < 2) {
+                if (checkAccess($this->current_user_id) < 2) {
                     echo ' &nbsp;
                 <form class="delrec" method="post" action="recipes.php">
                     <div>

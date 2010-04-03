@@ -5,10 +5,11 @@ include_once('inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 include_once('inc/profile_class.php');
-$profile = new Profile($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$profile = new Profile($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
 $TMPL['pagetitle'] = _('Profiles');
@@ -18,7 +19,7 @@ $TMPL['admin_path'] = "admin/";
 $show_all = true;
 
 // Show Header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="profile" class="centercontent">
@@ -47,4 +48,4 @@ echo '
         </div><!-- #profile .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php');
+include_once(getTheme($current_user_id) . 'footer.php');

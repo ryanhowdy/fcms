@@ -11,10 +11,11 @@ include_once('inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 include_once('inc/recipes_class.php');
-$rec = new Recipes($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$rec = new Recipes($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
 $TMPL['pagetitle'] = _('Recipes');
@@ -48,7 +49,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="recipe" class="centercontent">';
@@ -57,15 +58,13 @@ $show = true;
 
 // Add recipe
 if (isset($_POST['submitadd'])) {
-    $name = addslashes($_POST['name']);
-    $recipe = addslashes($_POST['post']);
-    $sql = "INSERT INTO `fcms_recipes` "
-         . "(`name`, `category`, `recipe`, `user`, `date`) "
-         . "VALUES('$name', "
-             . "'".$_POST['category']."', "
-             . "'$recipe', "
-             . $_SESSION['login_id'] . ", "
-             . "NOW())";
+    $name = escape_string($_POST['name']);
+    $recipe = escape_string($_POST['post']);
+    $sql = "INSERT INTO `fcms_recipes` 
+                (`name`, `category`, `recipe`, `user`, `date`) 
+            VALUES('$name', 
+                '".escape_string($_POST['category'])."', '$recipe', $current_user_id, NOW()
+            )";
     mysql_query($sql) or displaySQLError(
         'New Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -119,7 +118,7 @@ if (isset($_POST['submitadd'])) {
         }
         while ($r = mysql_fetch_array($result)) {
             $recipe_name = $name;
-            $name = getUserDisplayName($_SESSION['login_id']);
+            $name = getUserDisplayName($current_user_id);
             $to = getUserDisplayName($r['user']);
             $subject = sprintf(_('%s has added the recipe: %s'), $name, $recipe_name);
             $email = $r['email'];
@@ -143,13 +142,13 @@ if (isset($_POST['submitadd'])) {
 
 // Edit recipe
 if (isset($_POST['submitedit'])) {
-    $name = addslashes($_POST['name']);
-    $recipe = addslashes($_POST['post']);
+    $name = escape_string($_POST['name']);
+    $recipe = escape_string($_POST['post']);
     $sql = "UPDATE `fcms_recipes` "
          . "SET `name` = '$name', "
-            . "`category` = '" . $_POST['category'] . "', "
+            . "`category` = '" . escape_string($_POST['category']) . "', "
             . "`recipe` = '$recipe' "
-         . "WHERE `id` = " . $_POST['id'];
+         . "WHERE `id` = " . escape_string($_POST['id']);
     mysql_query($sql) or displaySQLError(
         'Edit Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -178,7 +177,7 @@ if (isset($_POST['delrecipe']) && !isset($_POST['confirmed'])) {
 
 // Delete recipe
 } elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
-    $sql = "DELETE FROM `fcms_recipes` WHERE `id` = " . $_POST['id'];
+    $sql = "DELETE FROM `fcms_recipes` WHERE `id` = " . escape_string($_POST['id']);
     mysql_query($sql) or displaySQLError(
         'Delete Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -190,7 +189,7 @@ if (isset($_POST['delrecipe']) && !isset($_POST['confirmed'])) {
 }
 
 // Add recipe form
-if (isset($_GET['addrecipe']) && checkAccess($_SESSION['login_id']) <= 5) {
+if (isset($_GET['addrecipe']) && checkAccess($current_user_id) <= 5) {
     $show = false;
     $cat = isset($_GET['cat']) ? $_GET['cat'] : 'error';
     $rec->displayForm('add', 0, 'error', $cat, 'error');
@@ -230,4 +229,4 @@ echo '
 
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php');
+include_once(getTheme($current_user_id) . 'footer.php');

@@ -6,9 +6,10 @@ include_once('locale.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
-$timezone_sql = mysql_query("SELECT `timezone` FROM `fcms_user_settings` WHERE `id` = " . $_SESSION['login_id']) or die('<h1>Timezone Error (familynews_comments.class.php 24)</h1>' . mysql_error());
+$timezone_sql = mysql_query("SELECT `timezone` FROM `fcms_user_settings` WHERE `id` = $current_user_id") or die('<h1>Timezone Error (familynews_comments.class.php 24)</h1>' . mysql_error());
 $ftimezone = mysql_fetch_array($timezone_sql);
 $tz_offset = $ftimezone['timezone'];
 
@@ -78,7 +79,7 @@ if (isset($_GET['newsid'])) {
             $sql = "INSERT INTO `fcms_news_comments`
                         (`news`, `comment`, `date`, `user`) 
                     VALUES 
-                        ($news_id, '" . addslashes($com) . "', NOW(), " . $_SESSION['login_id'] . ")";
+                        ($news_id, '" . addslashes($com) . "', NOW(), " . $current_user_id . ")";
             mysql_query($sql) or displaySQLError(
                 'Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
@@ -132,7 +133,7 @@ if (isset($_GET['newsid'])) {
         if (mysql_num_rows($result) > 0) { 
             while($row = mysql_fetch_array($result)) {
                 $displayname = getUserDisplayName($row['user']);
-                if ($_SESSION['login_id'] == $row['user'] || checkAccess($_SESSION['login_id']) < 2) {
+                if ($current_user_id == $row['user'] || checkAccess($current_user_id) < 2) {
                     echo '
             <div class="comment_block">
                 <form action="familynews_comments.php?newsid='.$news_id.'" method="post">

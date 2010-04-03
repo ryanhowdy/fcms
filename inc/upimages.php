@@ -6,6 +6,7 @@ include_once('locale.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -14,7 +15,7 @@ echo '
 <title>'.getSiteName().' - '._('powered by').' '.getCurrentVersion().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
-<link rel="stylesheet" type="text/css" href="'.getTheme($_SESSION['login_id'], "../").'style.css"/>
+<link rel="stylesheet" type="text/css" href="'.getTheme($current_user_id, "../").'style.css"/>
 <link rel="shortcut icon" href="../themes/favicon.ico"/>';
 // TODO
 // Move css to fcms-core
@@ -44,7 +45,7 @@ function insertUpImage(str) {
 </head>
 <body>';
 if (isset($_POST['delimg'])) {
-    if (checkAccess($_SESSION['login_id']) < 2) {
+    if (checkAccess($current_user_id) < 2) {
         unlink("../gallery/upimages/" . $_POST['img']);
         echo "<p class=\"ok-alert\">".sprintf(_('%s was Deleted Successfully'), $_POST['img'])."</p>";
     } else {
@@ -98,7 +99,7 @@ foreach ($images_in_dir as $file) {
                 \'width='.$win_w.',height='.$win_h.',resizable=no,location=no,menubar=no,status=no\'); return false;"/></td>
             <td class="file"><a href="#" onclick="insertUpImage(\'[IMG=gallery/upimages/'.$file.']\')" title="'._('Insert Image into Message').'">'.$file.'</a></td>
             <td>';
-        if (checkAccess($_SESSION['login_id']) < 2) {
+        if (checkAccess($current_user_id) < 2) {
             echo '
                 <form method="post" action="upimages.php">
                     <div>

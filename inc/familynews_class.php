@@ -8,11 +8,11 @@ class FamilyNews {
     var $db;
     var $db2;
     var $tz_offset;
-    var $cur_user_id;
+    var $current_user_id;
 
     function FamilyNews ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
         $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
@@ -81,7 +81,7 @@ class FamilyNews {
                 </h2>
                 <span class="date">
                     '.$date.'</b> - '.$displayname;
-            if ($_SESSION['login_id'] == $usersnews || checkAccess($_SESSION['login_id']) < 2) {
+            if ($this->current_user_id == $usersnews || checkAccess($this->current_user_id) < 2) {
                 echo ' &nbsp;
                     <form method="post" action="familynews.php">
                         <div>
@@ -93,7 +93,7 @@ class FamilyNews {
                         </div>
                     </form>';
             }
-            if (checkAccess($_SESSION['login_id']) < 2) {
+            if (checkAccess($this->current_user_id) < 2) {
                 echo ' &nbsp;
                     <form class="delnews" method="post" action="familynews.php?getnews='.$usersnews.'">
                         <div>
@@ -143,7 +143,7 @@ class FamilyNews {
                 if ($this->db->count_rows() > 0) { 
                     while($row = $this->db2->get_row()) {
                         $displayname = getUserDisplayName($row['user']);
-                        if ($this->cur_user_id == $row['user'] || checkAccess($this->cur_user_id) < 2) {
+                        if ($this->current_user_id == $row['user'] || checkAccess($this->current_user_id) < 2) {
                             echo '
             <div class="comment_block clearfix">
                 <form class="delcom" action="?getnews='.$usersnews.'&amp;newsid='.$id.'" method="post">

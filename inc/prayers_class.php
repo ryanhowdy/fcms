@@ -8,11 +8,11 @@ class Prayers {
     var $db;
     var $db2;
     var $tz_offset;
-    var $cur_user_id;
+    var $current_user_id;
 
     function Prayers ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
         $this->db->query("SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id") or die('<h1>Timezone Error (prayers_class.php 17)</h1>' . mysql_error());
@@ -44,7 +44,7 @@ class Prayers {
             <div>
                 <h4>
                 '.$date;
-                    if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {
+                    if ($this->current_user_id == $r['user'] || checkAccess($this->current_user_id) < 2) {
                         echo ' &nbsp;
                     <form method="post" action="prayers.php">
                         <div>
@@ -55,7 +55,7 @@ class Prayers {
                         </div>
                     </form>';
                     }
-                    if (checkAccess($_SESSION['login_id']) < 2) {
+                    if (checkAccess($this->current_user_id) < 2) {
                         echo ' &nbsp;
                     <form class="delform" method="post" action="prayers.php">
                         <div>

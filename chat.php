@@ -12,6 +12,7 @@ include_once('inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 // Setup the Template variables;
@@ -30,8 +31,8 @@ var receiveReq = getXmlHttpRequestObject();
 var receiveReq2 = getXmlHttpRequestObject();
 var lastMessage = 0;
 var mTimer;
-var username = \''.getUserDisplayName($_SESSION['login_id'],2).'\'
-var userid = \''.$_SESSION['login_id'].'\'
+var username = \''.getUserDisplayName($current_user_id,2).'\'
+var userid = \''.$current_user_id.'\'
 function startChat() {
     document.getElementById(\'txt_message\').focus();
     getStartChatText();
@@ -181,7 +182,7 @@ function handleResetChat() {
 </script>';
 
 // Show header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="chat" class="centercontent">
@@ -203,7 +204,7 @@ echo '
                 <div id="div_users"></div>
                 <div style="clear:both"></div>
                 <form id="frmmain" name="frmmain" onsubmit="return blockSubmit();">';
-if (checkAccess($_SESSION['login_id']) < 3) {
+if (checkAccess($current_user_id) < 3) {
     echo '<input type="button" name="btn_reset_chat" id="btn_reset_chat" value="'._('Reset Chat').'" onclick="javascript:resetChat();" /><br />';
 }
 echo '
@@ -215,4 +216,4 @@ echo '
         </div><!-- #chat .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php'); ?>
+include_once(getTheme($current_user_id) . 'footer.php'); ?>

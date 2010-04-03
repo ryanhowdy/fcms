@@ -13,7 +13,7 @@ include_once('inc/util_inc.php');
 <body onload="document.resetform.email.focus()">
 	<?php
 	if(isset($_POST['email'])) {
-		$email = $_POST['email'];
+		$email = escape_string($_POST['email']);
 		$link = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 		mysql_select_db($cfg_mysql_db, $link);
 		$sql = "SELECT * FROM `fcms_users` WHERE `email` = '$email'";

@@ -214,9 +214,9 @@ if (!file_exists('inc/config_inc.php')) {
             $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
             $_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
         }
-        $sql = "UPDATE `fcms_users` SET `activity` = NOW() WHERE `id` = " . $_SESSION['login_id'];
+        $sql = "UPDATE `fcms_users` SET `activity` = NOW() WHERE `id` = " . escape_string($_SESSION['login_id']);
         mysql_query($sql) or displaySQLError('Activity Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
-        $sql = "UPDATE `fcms_users` SET `login_attempts` = '0' WHERE `id` = " . $_SESSION['login_id'];
+        $sql = "UPDATE `fcms_users` SET `login_attempts` = '0' WHERE `id` = " . escape_string($_SESSION['login_id']);
         mysql_query($sql) or displaySQLError('Login Attempt Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
         // We are always going to redirect to home.php if they have a valid session/cookie
         header("Location: $redirect");

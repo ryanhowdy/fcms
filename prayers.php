@@ -11,10 +11,11 @@ include_once('inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 include_once('inc/prayers_class.php');
-$prayers = new Prayers($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$prayers = new Prayers($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
 $TMPL['pagetitle'] = _('Prayer Concerns');
@@ -39,7 +40,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="prayers" class="centercontent">';
@@ -47,10 +48,10 @@ $show = true;
 
 // Add prayer concern
 if (isset($_POST['submitadd'])) {
-    $for = addslashes($_POST['for']);
-    $desc = addslashes($_POST['desc']);
+    $for = escape_string($_POST['for']);
+    $desc = escape_string($_POST['desc']);
     $sql = "INSERT INTO `fcms_prayers`(`for`, `desc`, `user`, `date`) "
-         . "VALUES('$for', '$desc', " . $_SESSION['login_id'] . ", NOW())";
+         . "VALUES('$for', '$desc', $current_user_id, NOW())";
     mysql_query($sql) or displaySQLError(
         'New Prayer Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -70,7 +71,7 @@ if (isset($_POST['submitadd'])) {
     );
     if (mysql_num_rows($result) > 0) {
         while ($r = mysql_fetch_array($result)) {
-            $name = getUserDisplayName($_SESSION['login_id']);
+            $name = getUserDisplayName($current_user_id);
             $to = getUserDisplayName($r['user']);
             $subject = sprintf(_('%s added a new Prayer Concern for %s'), $name, $for);
             $email = $r['email'];
@@ -94,9 +95,9 @@ if (isset($_POST['submitadd'])) {
 
 // Edit prayer concern
 if (isset($_POST['submitedit'])) {
-    $for = addslashes($_POST['for']);
-    $desc = addslashes($_POST['desc']);
-    $sql = "UPDATE `fcms_prayers` SET `for` = '$for', `desc` = '$desc' WHERE `id` = " . $_POST['id'];
+    $for = escape_string($_POST['for']);
+    $desc = escape_string($_POST['desc']);
+    $sql = "UPDATE `fcms_prayers` SET `for` = '$for', `desc` = '$desc' WHERE `id` = " . escape_string($_POST['id']);
     mysql_query($sql) or displaySQLError('Edit Prayer Error', 'prayers.php [' . __LINE__ . ']', $sql, mysql_error());
     echo '
             <p class="ok-alert" id="edit">'._('Changes Updated Successfully').'</p>
@@ -123,7 +124,7 @@ if (isset($_POST['delprayer']) && !isset($_POST['confirmed'])) {
 
 // Delete prayer concern
 } elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
-    $sql = "DELETE FROM `fcms_prayers` WHERE `id` = " . $_POST['id'];
+    $sql = "DELETE FROM `fcms_prayers` WHERE `id` = " . escape_string($_POST['id']);
     mysql_query($sql) or displaySQLError('Delete Prayer Error', 'prayers.php [' . __LINE__ . ']', $sql, mysql_error());
     echo '
             <p class="ok-alert" id="del">'._('Prayer Concern Deleted Successfully').'</p>
@@ -133,7 +134,7 @@ if (isset($_POST['delprayer']) && !isset($_POST['confirmed'])) {
 }
 
 // Add Form
-if (isset($_GET['addconcern']) && checkAccess($_SESSION['login_id']) <= 5) {
+if (isset($_GET['addconcern']) && checkAccess($current_user_id) <= 5) {
     $show = false;
     $prayers->displayForm('add');
 }
@@ -146,7 +147,7 @@ if (isset($_POST['editprayer'])) {
 
 // Show Prayers
 if ($show) {
-    if (checkAccess($_SESSION['login_id']) <= 5) {
+    if (checkAccess($current_user_id) <= 5) {
         echo '
             <div id="actions_menu" class="clearfix">
                 <ul><li><a class="action" href="?addconcern=yes">'._('Add a Prayer Concern').'</a></li></ul>
@@ -161,4 +162,4 @@ echo '
         </div><!-- #prayers .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php');
+include_once(getTheme($current_user_id) . 'footer.php');

@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>themes/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="<?php echo getTheme($_SESSION['login_id'], $TMPL['path']); ?>style.css"/>
+<link rel="stylesheet" type="text/css" href="<?php echo getTheme($current_user_id, $TMPL['path']); ?>style.css"/>
 <script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/prototype.js"></script>
 <script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/fcms.js"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
@@ -19,7 +19,7 @@
             </a>
         </div>
         <p>
-            <?php echo _('Welcome'); ?> <a href="<?php echo $TMPL['path'] . "profile.php?member=" . $_SESSION['login_id']; ?>"><?php echo getUserDisplayName($_SESSION['login_id']); ?></a> <?php displayNewPM($_SESSION['login_id'], $TMPL['path']); ?> | 
+            <?php echo _('Welcome'); ?> <a href="<?php echo $TMPL['path'] . "profile.php?member=$current_user_id"; ?>"><?php echo getUserDisplayName($current_user_id); ?></a> <?php displayNewPM($current_user_id, $TMPL['path']); ?> | 
             <a href="<?php echo $TMPL['path'] . "settings.php";?>"><?php echo _('My Settings'); ?></a> | 
             <a href="<?php echo $TMPL['path'] . "logout.php"; ?>"><?php echo _('Logout'); ?></a>
         </p>

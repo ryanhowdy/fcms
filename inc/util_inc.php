@@ -56,7 +56,7 @@ function getTheme ($userid, $d = "")
 function getLanguage ()
 {
     if (isset($_SESSION['login_id'])) {
-        $sql = "SELECT `language` FROM `fcms_user_settings` WHERE `id` = " . $_SESSION['login_id'];
+        $sql = "SELECT `language` FROM `fcms_user_settings` WHERE `id` = " . escape_string($_SESSION['login_id']);
         $result = mysql_query($sql) or displaySQLError(
             'Language Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -112,7 +112,7 @@ function getPMCount ()
 {
     $sql = "SELECT * FROM `fcms_privatemsg` 
             WHERE `read` < 1 
-            AND `to` = '".$_SESSION['login_id']."'";
+            AND `to` = '".escape_string($_SESSION['login_id'])."'";
     $result = mysql_query($sql) or displaySQLError(
         'PM Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -1214,14 +1214,13 @@ function isLoggedIn ($d = '')
     if (checkLoginInfo($id, $user, $pass)) {
         $sql = "SELECT `access`, `site_off` 
                 FROM `fcms_users` AS u, `fcms_config` 
-                WHERE u.`id` = $id LIMIT 1";
+                WHERE u.`id` = ".escape_string($id)." LIMIT 1";
         $result = mysql_query($sql) or displaySQLError(
             'Site Status Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         $r = mysql_fetch_array($result);
         // Site is off and your not an admin
         if ($r['site_off'] == 1 && $r['access'] > 1) {
-            //echo "<meta http-equiv='refresh' content='0;URL=index.php?err=off'>";
             header("Location: {$up}index.php?err=off");
             exit();
         // Good login, you may proceed
@@ -1230,7 +1229,6 @@ function isLoggedIn ($d = '')
         }
     // The user's session/cookie credentials are bad
     } else {
-        //echo "<meta http-equiv='refresh' content='0;URL=index.php?err=login'>";
         header("Location: {$up}index.php?err=login");
         exit();
     }

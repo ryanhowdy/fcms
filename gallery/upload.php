@@ -16,7 +16,7 @@ $known_photo_types = array(
 
 // Create a new photo record in DB
 $sql = "INSERT INTO `fcms_gallery_photos` (`date`, `category`, `user`) "
-     . "VALUES(NOW(), ".$_POST['category'].", ".$_SESSION['login_id'].")";
+     . "VALUES(NOW(), ".$_POST['category'].", ".escape_string($_SESSION['login_id']).")";
 mysql_query($sql) or displaySQLError(
     'Add Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
 );
@@ -37,14 +37,14 @@ mysql_query($sql) or displaySQLError(
 
 foreach ($file_param_name AS $file) {
     // Create new member directory if needed
-    if (!file_exists("photos/member" . $_SESSION['login_id'])) {
-        mkdir("photos/member" . $_SESSION['login_id']);
+    if (!file_exists("photos/member" . (int)$_SESSION['login_id'])) {
+        mkdir("photos/member" . (int)$_SESSION['login_id']);
     }
 
     if ($file == 'small') {
-        $dest_path = "photos/member".$_SESSION['login_id']."/tb_".$filename;
+        $dest_path = "photos/member".(int)$_SESSION['login_id']."/tb_".$filename;
     } else {
-        $dest_path = "photos/member".$_SESSION['login_id']."/".$filename;
+        $dest_path = "photos/member".(int)$_SESSION['login_id']."/".$filename;
     }
 
     if (move_uploaded_file($_FILES[$file]['tmp_name'], $dest_path)) {

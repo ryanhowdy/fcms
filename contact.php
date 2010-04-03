@@ -11,6 +11,7 @@ include_once('inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 // Setup the Template variables;
@@ -19,7 +20,7 @@ $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 
 // Show Header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="contact" class="centercontent">';
@@ -70,4 +71,4 @@ echo '
         </div><!-- #contact .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php'); ?>
+include_once(getTheme($current_user_id) . 'footer.php'); ?>

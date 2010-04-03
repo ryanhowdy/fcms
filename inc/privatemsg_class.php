@@ -8,11 +8,11 @@ class PrivateMessage {
     var $db;
     var $db2;
     var $tz_offset;
-    var $cur_user_id;
+    var $current_user_id;
 
     function PrivateMessage ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
         $this->db->query("SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id") or die('<h1>Timezone Error (profile.class.php 16)</h1>' . mysql_error());
@@ -33,7 +33,7 @@ class PrivateMessage {
                         <th>'._('Received').'</th>
                         <th>&nbsp;</th>
                     </tr>';
-        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `to` = " . $this->cur_user_id);
+        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `to` = " . $this->current_user_id);
         while ($r = $this->db->get_row()) {
             $date = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
             $class = '';
@@ -70,7 +70,7 @@ class PrivateMessage {
                         <th>'._('Subject').'</th>
                         <th>'._('Sent').'</th>
                     </tr>';
-        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `from` = " . $this->cur_user_id);
+        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `from` = " . $this->current_user_id);
         while ($r = $this->db->get_row()) {
             $date = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
             echo '
@@ -88,7 +88,7 @@ class PrivateMessage {
     function displayPM ($id)
     {
         $locale = new Locale();
-        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `id` = $id AND `to` = " . $this->cur_user_id);
+        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `id` = $id AND `to` = " . $this->current_user_id);
         if ($this->db->count_rows() > 0) { 
             $r = $this->db->get_row();
             $this->db->query("UPDATE `fcms_privatemsg` SET `read` = '1' WHERE `id` = $id");
@@ -122,7 +122,7 @@ class PrivateMessage {
     function displaySentPM ($id)
     {
         $locale = new Locale();
-        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `id` = $id AND `from` = " . $this->cur_user_id);
+        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `id` = $id AND `from` = " . $this->current_user_id);
         if ($this->db->count_rows() > 0) { 
             $r = $this->db->get_row();
             $date = $locale->fixDate(_('n/j/Y g:i a'), $this->tz_offset, $r['date']);

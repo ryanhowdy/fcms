@@ -15,6 +15,7 @@ $locale = new Locale();
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 
@@ -23,9 +24,9 @@ include_once('inc/calendar_class.php');
 include_once('inc/poll_class.php');
 include_once('inc/database_class.php');
 include_once('inc/alerts_class.php');
-mysql_query("UPDATE `fcms_users` SET `activity`=NOW() WHERE `id`=" . $_SESSION['login_id']);
-$calendar = new Calendar($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$poll = new Poll($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+mysql_query("UPDATE `fcms_users` SET `activity`=NOW() WHERE `id` = $current_user_id");
+$calendar = new Calendar($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$poll = new Poll($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 $alert = new Alerts($database);
 
@@ -44,7 +45,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="home" class="centercontent">
@@ -87,7 +88,7 @@ if (isset($_POST['vote'])) {
     } else {
         $poll_id = $_POST['poll_id'];
     }
-    $poll->placeVote($_SESSION['login_id'], $_POST['option_id'], $poll_id);
+    $poll->placeVote($current_user_id, $_POST['option_id'], $poll_id);
     $poll->displayResults($poll_id);
 }
 if (isset($_GET['action'])) {
@@ -115,7 +116,7 @@ if ($showWhatsNew) {
         $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
                 VALUES (
                     '".escape_string($_GET['alert'])."', 
-                    ".$_SESSION['login_id']."
+                    $current_user_id
                 )";
         mysql_query($sql) or displaySQLError(
             'Remove Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -123,8 +124,8 @@ if ($showWhatsNew) {
     }
 
     // Show Alerts
-    $alert->displayNewAdminHome($_SESSION['login_id']);
-    $alert->displayNewUserHome($_SESSION['login_id']);
+    $alert->displayNewAdminHome($current_user_id);
+    $alert->displayNewUserHome($current_user_id);
 
     // Show any events happening today
     $month = isset($_GET['month']) ? str_pad($_GET['month'], 2, 0, STR_PAD_LEFT) : date('m');
@@ -134,7 +135,7 @@ if ($showWhatsNew) {
     echo '
                 <h2>'._('What\'s New').'</h2>';
     $sql = "SELECT `frontpage` FROM `fcms_user_settings` "
-         . "WHERE `user` = " . $_SESSION['login_id'];
+         . "WHERE `user` = $current_user_id";
     $result = mysql_query($sql) or displaySQLError(
         'Frontpage Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -143,7 +144,7 @@ if ($showWhatsNew) {
 
     // All by date
     if ($r['frontpage'] < 2) {
-        displayWhatsNewAll($_SESSION['login_id']);
+        displayWhatsNewAll($current_user_id);
 
     // Last 5 by category
     } else {
@@ -156,13 +157,13 @@ if ($showWhatsNew) {
         include_once('inc/documents_class.php');
         include_once('inc/database_class.php');
         $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $mboard = new MessageBoard($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $book = new AddressBook($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $news = new FamilyNews($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $gallery = new PhotoGallery($_SESSION['login_id'], $database);
-        $prayers = new Prayers($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $recs = new Recipes($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $docs = new Documents($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $mboard = new MessageBoard($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $book = new AddressBook($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $news = new FamilyNews($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $gallery = new PhotoGallery($current_user_id, $database);
+        $prayers = new Prayers($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $recs = new Recipes($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $docs = new Documents($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         echo '
                 <div class="half">';
         $today = date('Y-m-d');
@@ -261,4 +262,4 @@ echo '
         </div><!-- #centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php'); ?>
+include_once(getTheme($current_user_id) . 'footer.php'); ?>

@@ -7,14 +7,14 @@ class Settings
 {
 
     var $db;
-    var $cur_user_id;
+    var $current_user_id;
     var $cur_user_email;
 
     function Settings ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT email FROM `fcms_users` WHERE id = " . $this->cur_user_id;
+        $sql = "SELECT email FROM `fcms_users` WHERE id = " . $this->current_user_id;
         $this->db->query($sql) or displaySQLError(
             'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -30,7 +30,7 @@ class Settings
                     s.`timezone`, s.`dst`, s.`boardsort`, s.`showavatar`, s.`email_updates`, 
                     s.`advanced_upload`, s.`language` 
                 FROM `fcms_users` AS u, `fcms_user_settings` AS s 
-                WHERE u.`id` = " . $this->cur_user_id . " 
+                WHERE u.`id` = " . $this->current_user_id . " 
                 AND u.`id` = s.`user`";
         $this->db->query($sql) or displaySQLError(
             'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()

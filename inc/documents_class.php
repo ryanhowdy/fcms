@@ -8,11 +8,11 @@ class Documents {
     var $db;
     var $db2;
     var $tz_offset;
-    var $cur_user_id;
+    var $current_user_id;
 
     function Documents ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
         $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
@@ -53,7 +53,7 @@ class Documents {
                     <tr>
                         <td>
                             <a href="?download='.$r['name'].'">'.$r['name'].'</a>';
-                if (checkAccess($_SESSION['login_id']) < 3 || $_SESSION['login_id'] == $r['user']) {
+                if (checkAccess($this->current_user_id) < 3 || $this->current_user_id == $r['user']) {
                     echo '&nbsp;
                             <form method="post" action="documents.php">
                                 <div>

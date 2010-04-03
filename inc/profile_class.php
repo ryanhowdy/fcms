@@ -8,11 +8,11 @@ class Profile {
     var $db;
     var $db2;
     var $tz_offset;
-    var $cur_user_id;
+    var $current_user_id;
 
     function Profile ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
         $this->db->query("SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id") or die('<h1>Timezone Error (profile.class.php 16)</h1>' . mysql_error());
@@ -99,7 +99,7 @@ class Profile {
         $documents = '';
         $prayers = '';
         // If user is not a guest
-        if (checkAccess($_SESSION['login_id']) != 10) {
+        if (checkAccess($this->current_user_id) != 10) {
             $postsCount = getPostsById($userid, 'array');
             $photosCount = getPhotosById($userid, 'array');
             $commentsCount = getCommentsById($userid, 'array');
@@ -222,12 +222,12 @@ class Profile {
                     '.$documents.'
                     '.$prayers.'
                 </div>';
-        if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
+        if (checkAccess($this->current_user_id) < 8 && checkAccess($this->current_user_id) != 5) {
             echo '
                 <h2>'._('Last 5 Posts').'</h2>';
             $this->displayLast5Posts($userid);
         }
-        if (checkAccess($_SESSION['login_id']) <= 3 || checkAccess($_SESSION['login_id']) == 8) {
+        if (checkAccess($this->current_user_id) <= 3 || checkAccess($this->current_user_id) == 8) {
             echo '
                 <h2>'._('Last 5 Photos').'</h2>';
             $this->displayLast5Photos($userid);

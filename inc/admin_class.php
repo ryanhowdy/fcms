@@ -10,11 +10,11 @@ class Admin {
     var $tz_offset;
     var $lastmonth_beg;
     var $lastmonth_end;
-    var $cur_user_id;
+    var $current_user_id;
 
     function Admin ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->lastmonth_beg = gmdate('Y-m', mktime(0, 0, 0, gmdate('m')-1, 1, gmdate('Y'))) . "-01 00:00:00";
         $this->lastmonth_end = gmdate('Y-m', mktime(0, 0, 0, gmdate('m')-1, 1, gmdate('Y'))) . "-31 24:59:59";
         $this->db = new database($type, $host, $database, $user, $pass);

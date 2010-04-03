@@ -6,11 +6,11 @@ include_once('locale.php');
 class Calendar
 {
     var $db;
-    var $cur_user_id;
+    var $current_user_id;
 
     function Calendar ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
         $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
         $this->db->query($sql) or displaySQLError(
@@ -34,7 +34,7 @@ class Calendar
         if ($this->db->count_rows() > 0) {
             while($r = $this->db->get_row()) {
                 if ($r['private'] == 1) {
-                    if ($r['created_by'] == $this->cur_user_id) {
+                    if ($r['created_by'] == $this->current_user_id) {
                         $days[] = $r['day'];
                     }
                 } else {
@@ -182,7 +182,7 @@ class Calendar
                     }
                     if ($type == 'big') {
                         // add the add cal date link
-                        if (checkAccess($_SESSION['login_id']) <= 5) {
+                        if (checkAccess($this->current_user_id) <= 5) {
                             echo '<a class="add" href="?add='.$year.'-'.$month.'-'.$d.'">'._('Add').'</a>';
                         }
                         // display the day #
@@ -303,7 +303,7 @@ class Calendar
                 if ($row['private'] == 0) {
                     $show = true;
                 } else {
-                    if ($row['created_by'] == $this->cur_user_id) {
+                    if ($row['created_by'] == $this->current_user_id) {
                         $show = true;
                     }
                 }
@@ -350,7 +350,7 @@ class Calendar
                 if ($row['private'] == 0) {
                     $show = true;
                 } else {
-                    if ($row['created_by'] == $this->cur_user_id) {
+                    if ($row['created_by'] == $this->current_user_id) {
                         $show = true;
                     }
                 }
@@ -414,7 +414,7 @@ class Calendar
                 if ($row['private'] == 0) {
                     $show = true;
                 } else {
-                    if ($row['created_by'] == $this->cur_user_id) {
+                    if ($row['created_by'] == $this->current_user_id) {
                         $show = true;
                     }
                 }
@@ -423,8 +423,8 @@ class Calendar
                     if ($showDesc) {
                         echo '<li class="' . $row['type'] . '">';
                         if (
-                            checkAccess($this->cur_user_id) < 2 || 
-                            $this->cur_user_id == $row['created_by']
+                            checkAccess($this->current_user_id) < 2 || 
+                            $this->current_user_id == $row['created_by']
                         ) {
                             echo '<a href="?edit=' . $row['id'] . '">' . $row['title'];
                             echo '<span>'. $row['desc'] . '</span></a>';
@@ -437,8 +437,8 @@ class Calendar
                     } else {
                         echo '<li class="' . $row['type'] . '">';
                         if (
-                            checkAccess($this->cur_user_id) < 2 || 
-                            $this->cur_user_id == $row['created_by']
+                            checkAccess($this->current_user_id) < 2 || 
+                            $this->current_user_id == $row['created_by']
                         ) {
                             echo '<a title="' . htmlentities($row['desc'], ENT_COMPAT, 'UTF-8');
                             echo '" href="?edit=' . $row['id'] . '">' . $row['title'] . '</a>';
@@ -476,7 +476,7 @@ class Calendar
         if ($row['private'] == 0) {
             $show = true;
         } else {
-            if ($row['created_by'] == $this->cur_user_id) {
+            if ($row['created_by'] == $this->current_user_id) {
                 $show = true;
             }
         }
@@ -492,8 +492,8 @@ class Calendar
                 $month = substr($type, 5,2);
                 $day = substr($type, 8,2);
             }
-            if (checkAccess($this->cur_user_id) < 2 || 
-                $this->cur_user_id == $row['created_by'] || 
+            if (checkAccess($this->current_user_id) < 2 || 
+                $this->current_user_id == $row['created_by'] || 
                 $type !== 'edit'
             ) {
 
@@ -753,7 +753,7 @@ class Calendar
                 $sql .= "NULL, ";
             }
             // created_by
-            $sql .= "'" . $this->cur_user_id . "', ";
+            $sql .= "'" . $this->current_user_id . "', ";
             // type
             if (isset($event['CATEGORIES'])) {
                 if (preg_match('/(ANNIVERSARY)/i', $event['CATEGORIES'])) {

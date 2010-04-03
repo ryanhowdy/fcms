@@ -14,10 +14,11 @@ include_once('inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 include_once('inc/privatemsg_class.php');
-$pm = new PrivateMessage($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$pm = new PrivateMessage($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
 $TMPL['pagetitle'] = _('Private Messages');
@@ -42,7 +43,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="privatemsg" class="centercontent">
@@ -78,24 +79,24 @@ if (isset($_GET['compose'])) {
     }
 } elseif (isset($_POST['submit'])) {
     // Insert the PM into the DB
-    $title = addslashes($_POST['title']);
-    $msg = addslashes($_POST['post']);
+    $title = escape_string($_POST['title']);
+    $msg = escape_string($_POST['post']);
     if (strlen($title) > 0 && strlen($msg) > 0) {
         $sql = "INSERT INTO `fcms_privatemsg` 
                     (`to`, `from`, `date`, `title`, `msg`) 
                 VALUES 
-                    (" . $_POST['to'] . ", " . $_SESSION['login_id'] . ", NOW(), '$title', '$msg')";
+                    (" . escape_string($_POST['to']) . ", $current_user_id, NOW(), '$title', '$msg')";
         mysql_query($sql) or displaySQLError(
             'Send PM Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         // Email the PM to the user
-        $sql = "SELECT * FROM `fcms_users` WHERE `id` = " . $_POST['to'];
+        $sql = "SELECT * FROM `fcms_users` WHERE `id` = " . escape_string($_POST['to']);
         $result = mysql_query($sql) or displaySQLError(
             'Get User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         $r = mysql_fetch_array($result);
-        $from = getUserDisplayName($_SESSION['login_id']);
-        $reply = getUserEmail($_SESSION['login_id']);
+        $from = getUserDisplayName($current_user_id);
+        $reply = getUserEmail($current_user_id);
         $to = getUserDisplayName($_POST['to']);
         $sitename = getSiteName();
         $subject = sprintf(_('A new Private Message at %s'), $sitename);
@@ -155,7 +156,7 @@ if (isset($_GET['compose'])) {
     if (isset($_POST['del'])) {
         $i = 0;
         foreach ($_POST['del'] as $id) {
-            $sql = "DELETE FROM `fcms_privatemsg` WHERE `id` = $id";
+            $sql = "DELETE FROM `fcms_privatemsg` WHERE `id` = ".escape_string($id);
             mysql_query($sql) or displaySQLError('Delete PM Error', 'privatemsg.php [' . __LINE__ . ']', $sql, mysql_error());
             $i++;
         }
@@ -185,4 +186,4 @@ echo '
         </div><!-- #profile .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php');
+include_once(getTheme($current_user_id) . 'footer.php');

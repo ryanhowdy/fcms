@@ -11,10 +11,11 @@ include_once('inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 include 'inc/settings_class.php';
-$settings = new Settings($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$settings = new Settings($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 // Setup the Template variables;
 $TMPL['pagetitle'] = _('Settings');
 $TMPL['path'] = "";
@@ -36,7 +37,7 @@ function WindowLoad() {
 HTML;
 
 // Show Header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="settings" class="centercontent">
@@ -74,12 +75,12 @@ if (isset($_POST['submit'])) {
     }
     // Personal Info
     if (isset($_POST['personal'])) {
-        if ($_POST['fname']) { $sql .= "fname = '" .addslashes($_POST['fname']) . "', "; }
-        if ($_POST['lname']) { $sql .= "lname = '".addslashes($_POST['lname'])."', "; }
+        if ($_POST['fname']) { $sql .= "fname = '" .escape_string($_POST['fname']) . "', "; }
+        if ($_POST['lname']) { $sql .= "lname = '".escape_string($_POST['lname'])."', "; }
         if ($_POST['email']) { 
             if ($_POST['email'] != $emailstart) {
                 $sql2 = "SELECT `email` FROM `fcms_users` "
-                      . "WHERE email='" . $_POST['email'] . "'";
+                      . "WHERE email='" . escape_string($_POST['email']) . "'";
                 $result = mysql_query($sql2) or displaySQLError(
                     'Email Check Error', ___FILE___ . ' [' . __LINE__ . ']', 
                     $sql, mysql_error()
@@ -93,7 +94,7 @@ if (isset($_POST['submit'])) {
                     $settings->displayForm();
                     exit();
                 }
-            $sql .= "email = '".addslashes($_POST['email'])."', ";
+            $sql .= "email = '".escape_string($_POST['email'])."', ";
             }
         }
         $birthday = $_POST['syear']."-".str_pad($_POST['smonth'], 2, "0", STR_PAD_LEFT)."-".str_pad($_POST['sday'], 2, "0", STR_PAD_LEFT);
@@ -110,7 +111,7 @@ if (isset($_POST['submit'])) {
     // Only update user if there's somethign to update
     if (!empty($_POST['pass']) || isset($_POST['syear']) || isset($upfile)) {
         $sql = substr($sql, 0, -2); // remove the extra comma space at the end
-        $sql .= "WHERE id = " . $_SESSION['login_id'];
+        $sql .= "WHERE id = $current_user_id";
         mysql_query($sql) or displaySQLError(
             'Update User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -122,9 +123,9 @@ if (isset($_POST['submit'])) {
     $sql = "UPDATE `fcms_user_settings` SET ";
     // Settings
     if (isset($_POST['settings'])) {
-        if (preg_match("/\.css$/i", $_POST['theme'])) { $sql .= "theme = '" . $_POST['theme'] . "', "; }
-        if ($_POST['displayname']) { $sql .= "displayname = '" . $_POST['displayname'] . "', "; }
-        if ($_POST['frontpage']) { $sql .= "frontpage = '" . $_POST['frontpage'] . "', "; }
+        if (preg_match("/\.css$/i", $_POST['theme'])) { $sql .= "theme = '" . basename($_POST['theme']) . "', "; }
+        if ($_POST['displayname']) { $sql .= "displayname = '" . escape_string($_POST['displayname']) . "', "; }
+        if ($_POST['frontpage']) { $sql .= "frontpage = '" . escape_string($_POST['frontpage']) . "', "; }
         if ($_POST['email_updates']) {
             if ($_POST['email_updates'] == 'yes') {
                 $sql .= "email_updates = '1', ";
@@ -140,11 +141,11 @@ if (isset($_POST['submit'])) {
             }
         }
         if ($_POST['language']) {
-            $sql .= "language = '" . $_POST['language'] . "', ";
+            $sql .= "language = '" . escape_string($_POST['language']) . "', ";
             $_SESSION['language'] = $_POST['language'];
             T_setlocale(LC_MESSAGES, $_SESSION['language']);
         }
-        if ($_POST['timezone']) { $sql .= "timezone = '" . $_POST['timezone'] . "', "; }
+        if ($_POST['timezone']) { $sql .= "timezone = '" . escape_string($_POST['timezone']) . "', "; }
         if ($_POST['dst']) {
             if ($_POST['dst'] == 'on') {
                 $sql .= "dst = '1', ";
@@ -155,7 +156,7 @@ if (isset($_POST['submit'])) {
     }
     // Message Board
     if (isset($_POST['board'])) {
-        if ($_POST['boardsort']) { $sql .= "boardsort = '" . $_POST['boardsort'] . "', "; }
+        if ($_POST['boardsort']) { $sql .= "boardsort = '" . escape_string($_POST['boardsort']) . "', "; }
         if ($_POST['showavatar']) {
             if ($_POST['showavatar'] == 'yes') {
                 $sql .= "showavatar = '1', ";
@@ -167,7 +168,7 @@ if (isset($_POST['submit'])) {
     // Only update user if there's somethign to update
     if (isset($_POST['settings']) || isset($_POST['board'])) {
         $sql = substr($sql, 0, -2); // remove the extra comma space at the end
-        $sql .= "WHERE `user` = " . $_SESSION['login_id'];
+        $sql .= "WHERE `user` = $current_user_id";
         mysql_query($sql) or displaySQLError(
             'Update Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -194,4 +195,4 @@ echo '
         </div><!-- #settings .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php');
+include_once(getTheme($current_user_id) . 'footer.php');

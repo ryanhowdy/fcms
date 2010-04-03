@@ -16,9 +16,10 @@ include_once('inc/alerts_class.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 include_once('inc/addressbook_class.php');
-$book = new AddressBook($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$book = new AddressBook($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 $alert = new Alerts($database);
 header("Cache-control: private");
@@ -65,7 +66,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="addressbook" class="centercontent clearfix">';
@@ -80,7 +81,7 @@ if (isset($_GET['csv'])) {
 }
 
 if (isset($_POST['emailsubmit'])) {
-    if (checkAccess($_SESSION['login_id']) > 3) {
+    if (checkAccess($current_user_id) > 3) {
         echo '
                 <p class="error-alert">
                     '._('You do not have permission to perform this task.  You must have an access level of 3 (Member) or higher.').'
@@ -134,21 +135,21 @@ if (isset($_POST['editsubmit'])) {
     // Address
     $sql = "UPDATE `fcms_address` 
             SET `updated`=NOW(), 
-                `address`='".addslashes($_POST['address'])."', 
-                `city`='".addslashes($_POST['city'])."', 
-                `state`='".addslashes($_POST['state'])."', 
-                `zip`='".addslashes($_POST['zip'])."', 
-                `home`='".addslashes($_POST['home'])."', 
-                `work`='".addslashes($_POST['work'])."', 
-                `cell`='".addslashes($_POST['cell'])."' 
+                `address`='".escape_string($_POST['address'])."', 
+                `city`='".escape_string($_POST['city'])."', 
+                `state`='".escape_string($_POST['state'])."', 
+                `zip`='".escape_string($_POST['zip'])."', 
+                `home`='".escape_string($_POST['home'])."', 
+                `work`='".escape_string($_POST['work'])."', 
+                `cell`='".escape_string($_POST['cell'])."' 
             WHERE `id`=".$_POST['aid'];
     mysql_query($sql) or displaySQLError(
         'Edit Address Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error()
     );
     // User's email
     $sql = "UPDATE `fcms_users` 
-            SET `email`='".addslashes($_POST['email'])."' 
-            WHERE id=".$_POST['uid'];
+            SET `email`='".escape_string($_POST['email'])."' 
+            WHERE `id` = ".escape_string($_POST['uid']);
     mysql_query($sql) or displaySQLError(
         'Edit Email Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -168,9 +169,9 @@ if (isset($_POST['addsubmit'])) {
          . ") VALUES ("
             . "10, "
             . "NOW(), "
-            . "'" . addslashes($_POST['fname']) . "', "
-            . "'" . addslashes($_POST['lname']) . "', "
-            . "'" . addslashes($_POST['email']) . "', "
+            . "'" . escape_string($_POST['fname']) . "', "
+            . "'" . escape_string($_POST['lname']) . "', "
+            . "'" . escape_string($_POST['email']) . "', "
             . "'NONMEMBER-$uniq', "
             . "'$pw')";
     mysql_query($sql) or displaySQLError(
@@ -182,15 +183,15 @@ if (isset($_POST['addsubmit'])) {
             . "`zip`, `home`, `work`, `cell`"
          . ") VALUES ("
             . "$id, "
-            . $_SESSION['login_id'] . ", "
+            . $current_user_id . ", "
             . "NOW(), "
-            . "'" . addslashes($_POST['address']) . "', "
-            . "'" . addslashes($_POST['city']) . "', "
-            . "'" . addslashes($_POST['state']) . "', "
-            . "'" . addslashes($_POST['zip']) . "', "
-            . "'" . addslashes($_POST['home']) . "', "
-            . "'" . addslashes($_POST['work']) . "', "
-            . "'" . addslashes($_POST['cell']) . "')";
+            . "'" . escape_string($_POST['address']) . "', "
+            . "'" . escape_string($_POST['city']) . "', "
+            . "'" . escape_string($_POST['state']) . "', "
+            . "'" . escape_string($_POST['zip']) . "', "
+            . "'" . escape_string($_POST['home']) . "', "
+            . "'" . escape_string($_POST['work']) . "', "
+            . "'" . escape_string($_POST['cell']) . "')";
     mysql_query($sql) or displaySQLError(
         'New Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -218,8 +219,8 @@ if (isset($_POST['del']) && !isset($_POST['confirmed'])) {
 // Delete Address
 //-----------------------------------------------
 } elseif (isset($_POST['delconfirm']) || (isset($_POST['confirmed']) && isset($_POST['del']))) {
-    if (checkAccess($_SESSION['login_id']) < 2) {
-        $aid = $_POST['id'];
+    if (checkAccess($current_user_id) < 2) {
+        $aid = escape_string($_POST['id']);
         $sql = "DELETE FROM fcms_users WHERE id = $aid";
         mysql_query($sql) or displaySQLError('Non-member Deletion Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error());
         $sql = "DELETE FROM fcms_address WHERE id = $aid";
@@ -234,7 +235,7 @@ if (isset($_POST['del']) && !isset($_POST['confirmed'])) {
 // Show form for editing an address
 //-----------------------------------------------
 if (isset($_POST['edit'])) {
-    if (checkAccess($_SESSION['login_id']) < 2 || $_SESSION['login_id'] == $_POST['id']) {
+    if (checkAccess($current_user_id) < 2 || $current_user_id == $_POST['id']) {
         $book->displayForm('edit', $_POST['id']);
     } else {
         echo '
@@ -247,7 +248,7 @@ if (isset($_POST['edit'])) {
 // Show form for adding an address
 //-----------------------------------------------
 if (isset($_GET['add'])) {
-    if (checkAccess($_SESSION['login_id']) <= 5) {
+    if (checkAccess($current_user_id) <= 5) {
         $book->displayForm('add');
         $show = false;
     }
@@ -271,15 +272,15 @@ if ($show) {
         $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
                 VALUES (
                     '".escape_string($_GET['alert'])."', 
-                    ".$_SESSION['login_id']."
+                    ".$current_user_id."
                 )";
         mysql_query($sql) or displaySQLError(
             'Remove Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
     }
-    if (!$book->userHasAddress($_SESSION['login_id'])) {
+    if (!$book->userHasAddress($current_user_id)) {
         // Show Alerts
-        $alert->displayAddress($_SESSION['login_id']);
+        $alert->displayAddress($current_user_id);
     }
     $cat = isset($_GET['cat']) ? $_GET['cat'] : '';
     $book->displayAddressList($cat);
@@ -289,4 +290,4 @@ echo '
         </div><!-- #centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php'); ?>
+include_once(getTheme($current_user_id) . 'footer.php'); ?>

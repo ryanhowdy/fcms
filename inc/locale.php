@@ -125,7 +125,7 @@ class Locale
         $fixedDate = gmdate($dateFormat, strtotime($date.$tzOffset));
 
         // Fix DST
-        $sql = "SELECT `dst` FROM `fcms_user_settings` WHERE `user` = ".$_SESSION['login_id'];
+        $sql = "SELECT `dst` FROM `fcms_user_settings` WHERE `user` = ".escape_string($_SESSION['login_id']);
         $result = mysql_query($sql) or displaySQLError(
             'DST Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );

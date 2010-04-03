@@ -11,10 +11,11 @@ include_once('inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 include_once('inc/calendar_class.php');
-$calendar = new Calendar($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$calendar = new Calendar($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 if (isset($_GET['export'])) {
     $show = false;
     if ($_GET['export'] == 'true') {
@@ -59,17 +60,17 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="calendar" class="centercontent clearfix">';
 $showcal = true;
 if (isset($_GET['edit'])) {
-    if (checkAccess($_SESSION['login_id']) <= 5) {
+    if (checkAccess($current_user_id) <= 5) {
         $showcal = $calendar->displayForm('edit', $_GET['edit']);
     }
 } elseif (isset($_GET['add'])) {
-    if (checkAccess($_SESSION['login_id']) <= 5) {
+    if (checkAccess($current_user_id) <= 5) {
         $showcal = $calendar->displayForm($_GET['add']);
     }
 } elseif (isset($_GET['entry'])) {
@@ -90,9 +91,9 @@ if (isset($_POST['edit'])) {
     }
     $sql = "UPDATE `fcms_calendar` "
          . "SET `date` = '$date', "
-            . "`title`='".addslashes($_POST['title'])."', "
-            . "`desc`='".addslashes($_POST['desc'])."', "
-            . "`type`='".addslashes($_POST['type'])."', "
+            . "`title`='".escape_string($_POST['title'])."', "
+            . "`desc`='".escape_string($_POST['desc'])."', "
+            . "`type`='".escape_string($_POST['type'])."', "
             . "`private`=$private "
          . "WHERE id = " . $_POST["id"];
     mysql_query($sql) or displaySQLError(
@@ -115,9 +116,9 @@ if (isset($_POST['edit'])) {
     }
     $sql = "INSERT INTO `fcms_calendar` "
          . "(`date`, `title`, `desc`, `created_by`, `type`, `private`, `date_added`) "
-         . "VALUES ('$date', '" . addslashes($_POST['title']) . "', "
-            . "'" . addslashes($_POST['desc']) . "', " . $_SESSION['login_id'] . ", "
-            . "'".addslashes($_POST['type'])."', $private, NOW())";
+         . "VALUES ('$date', '" . escape_string($_POST['title']) . "', "
+            . "'" . escape_string($_POST['desc']) . "', $current_user_id, "
+            . "'".escape_string($_POST['type'])."', $private, NOW())";
     mysql_query($sql) or displaySQLError(
         'Add Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -145,7 +146,7 @@ if (isset($_POST['edit'])) {
 
 // Delete Calendar Entry
 } else if (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
-    $sql = "DELETE FROM `fcms_calendar` WHERE id = " . $_POST["id"];
+    $sql = "DELETE FROM `fcms_calendar` WHERE id = " . escape_string($_POST["id"]);
     mysql_query($sql) or displaySQLError(
         'Delete Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -171,4 +172,4 @@ echo '
         </div><!-- #calendar .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php'); ?>
+include_once(getTheme($current_user_id) . 'footer.php'); ?>

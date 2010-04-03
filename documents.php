@@ -11,9 +11,10 @@ include_once('inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn();
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 include_once('inc/documents_class.php');
-$docs = new Documents($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$docs = new Documents($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 header("Cache-control: private");
 if (isset($_GET['download'])) {
     $show = false;
@@ -35,7 +36,7 @@ $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 
 // Show Header
-include_once(getTheme($_SESSION['login_id']) . 'header.php');
+include_once(getTheme($current_user_id) . 'header.php');
 
 echo '
         <div id="documents" class="centercontent">';
@@ -43,9 +44,14 @@ $show = true;
 if (isset($_POST['submitadd'])) {
     $doc = $_FILES['doc']['name'];
     $doc = str_replace (" ", "_", $doc);
-    $desc = addslashes($_POST['desc']);
+    $doc = escape_string($doc);
+    $desc = escape_string($_POST['desc']);
     if ($docs->uploadDocument($_FILES['doc'], $doc)) {
-        $sql = "INSERT INTO `fcms_documents`(`name`, `description`, `user`, `date`) VALUES('$doc', '$desc', " . $_SESSION['login_id'] . ", NOW())";
+        $sql = "INSERT INTO `fcms_documents` (
+                    `name`, `description`, `user`, `date`
+                ) VALUES(
+                    '$doc', '$desc', $current_user_id, NOW()
+                )";
         mysql_query($sql) or displaySQLError('New Document Error', 'documents.php [' . __LINE__ . ']', $sql, mysql_error());
         echo '
             <p class="ok-alert" id="add">'._('Document Added Successfully').'</p>
@@ -60,7 +66,7 @@ if (isset($_POST['submitadd'])) {
         $result = mysql_query($sql) or displaySQLError('Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
         if (mysql_num_rows($result) > 0) {
             while ($r = mysql_fetch_array($result)) {
-                $name = getUserDisplayName($_SESSION['login_id']);
+                $name = getUserDisplayName($current_user_id);
                 $to = getUserDisplayName($r['user']);
                 $subject = sprintf(_('%s has added a new document (%s).'), $name, $doc);
                 $email = $r['email'];
@@ -84,7 +90,7 @@ if (isset($_POST['submitadd'])) {
     }
 } 
 if (isset($_POST['deldoc'])) {
-    $sql = "DELETE FROM `fcms_documents` WHERE `id` = " . $_POST['id'];
+    $sql = "DELETE FROM `fcms_documents` WHERE `id` = " . escape_string($_POST['id']);
     mysql_query($sql) or displaySQLError('Delete Document Error', 'documents.php [' . __LINE__ . ']', $sql, mysql_error());
     unlink("gallery/documents/" . $_POST['name']);
     echo '
@@ -93,12 +99,12 @@ if (isset($_POST['deldoc'])) {
                 window.onload=function(){ var t=setTimeout("$(\'del\').toggle()",2000); }
             </script>';
 }
-if (isset($_GET['adddoc']) && checkAccess($_SESSION['login_id']) <= 5) {
+if (isset($_GET['adddoc']) && checkAccess($current_user_id) <= 5) {
     $show = false;
     $docs->displayForm();
 }
 if ($show) {
-    if (checkAccess($_SESSION['login_id']) <= 5) {
+    if (checkAccess($current_user_id) <= 5) {
         echo '
             <div id="actions_menu" class="clearfix">
                 <ul><li><a href="?adddoc=yes">'._('Add Document').'</a></li></ul>
@@ -112,4 +118,4 @@ echo '
         </div><!-- #documents .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id']) . 'footer.php');
+include_once(getTheme($current_user_id) . 'footer.php');

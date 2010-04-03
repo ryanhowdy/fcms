@@ -117,7 +117,7 @@ class Alerts
             <div id="alert_address" class="info-alert">
                 <h3>'._('It looks like you haven\'t added your address information yet.').'</h3>
                 <p>'._('The other website members would appreciate it if you would add your address information.  This will help them stay in touch.').'</p>
-                <p><a href="?address='.$_SESSION['login_id'].'">'._('Add Address').'</a></p>
+                <p><a href="?address='.$this->current_user_id.'">'._('Add Address').'</a></p>
                 <div class="close-alert"><a id="new_address" href="?alert=alert_address">'._('Delete This Alert').'</a></div>
             </div>';
         }

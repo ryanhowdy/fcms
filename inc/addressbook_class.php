@@ -6,12 +6,12 @@ class AddressBook
 {
 
     var $db;
-    var $cur_user_id;
+    var $current_user_id;
     var $tz_offset;
 
     function AddressBook ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
         $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
         $this->db->query($sql) or displaySQLError('Timezone Error', 'inc/addressbook_class.php [' . __LINE__ . ']', $sql, mysql_error());
@@ -51,7 +51,7 @@ class AddressBook
             // Set up vars
             // Edit / Delete links
             $edit_del = '';
-            if ($this->cur_user_id == $r['user'] || checkAccess($this->cur_user_id) < 2) {
+            if ($this->current_user_id == $r['user'] || checkAccess($this->current_user_id) < 2) {
                 $edit_del = '<div class="edit_del_menu">
                     <form action="addressbook.php" method="post">
                         <div>
@@ -151,7 +151,7 @@ class AddressBook
                     </div>
                 </div>';
         $dis = '';
-        if (checkAccess($_SESSION['login_id']) > 3) {
+        if (checkAccess($this->current_user_id) > 3) {
             $dis = 'disabled="disabled"';
         }
         echo '
@@ -165,7 +165,7 @@ class AddressBook
                     <div id="address-toolbar" class="clearfix">
                         <ul id="add">
                             <li><a class="add" href="?add=yes">'._('Add Contact').'</a></li>
-                            <li><a href="?address='.$this->cur_user_id.'">'._('View My Address').'</a></li>
+                            <li><a href="?address='.$this->current_user_id.'">'._('View My Address').'</a></li>
                         </ul>
                         <ul id="import-export">
                             <li><a href="?csv=import">'._('Import').'</a></li>
@@ -245,7 +245,7 @@ class AddressBook
             $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` 
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
-                    AND a.`entered_by` = ".$this->cur_user_id." 
+                    AND a.`entered_by` = ".$this->current_user_id." 
                     AND `password` = 'PRIVATE' 
                     ORDER BY `lname`";
         }
@@ -848,7 +848,7 @@ class AddressBook
                         . "`zip`, `home`, `work`, `cell`"
                      . ") VALUES ("
                         . "$id, "
-                        . $_SESSION['login_id'] . ", "
+                        . $this->current_user_id . ", "
                         . "NOW(), "
                         . "'" . addslashes($street) . "', "
                         . "'" . addslashes($city) . "', "

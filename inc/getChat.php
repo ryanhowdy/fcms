@@ -17,24 +17,24 @@ $locale = new Locale();
 
 // New user entered chat
 if (isset($_POST['enter'])) {
-    $sql = "DELETE FROM fcms_chat_users WHERE user_name = '" . $_POST['name'] .  "'";
+    $sql = "DELETE FROM fcms_chat_users WHERE user_name = '" . escape_string($_POST['name']) .  "'";
     mysql_query($sql) or die($sql.'<br/>'.mysql_error());
-    $sql = "INSERT INTO fcms_chat_users(user_name,time) VALUES ('" . $_POST['name'] .  "', NOW())";
+    $sql = "INSERT INTO fcms_chat_users(user_name,time) VALUES ('" . escape_string($_POST['name']) .  "', NOW())";
     mysql_query($sql) or die($sql.'<br/>'.mysql_error());
 }
 // User left the chat
 if (isset($_POST['exit'])) {
-    $sql = "DELETE FROM fcms_chat_users WHERE user_name = '" . $_POST['name'] .  "'";
+    $sql = "DELETE FROM fcms_chat_users WHERE user_name = '" . escape_string($_POST['name']) .  "'";
     mysql_query($sql) or die(mysql_error());
 }
 // New Chat text
 if (isset($_POST['message']) && $_POST['message'] != '') {
     $sql = "INSERT INTO fcms_chat_messages(chat_id, user_id, user_name, message, post_time) 
-            VALUES (1, " . $_POST['user_id'] . ", '" . $_POST['name'] .  "', '" . $_POST['message'] . "', NOW())";
+            VALUES (1, " . escape_string($_POST['user_id']) . ", '" . escape_string($_POST['name']) .  "', '" . escape_string($_POST['message']) . "', NOW())";
     mysql_query($sql) or die(mysql_error());
-    $sql = "DELETE FROM fcms_chat_users WHERE user_name = '" . $_POST['name'] .  "'";
+    $sql = "DELETE FROM fcms_chat_users WHERE user_name = '" . escape_string($_POST['name']) .  "'";
     mysql_query($sql) or die($sql.'<br/>'.mysql_error());
-    $sql = "INSERT INTO fcms_chat_users(user_name,time) VALUES ('" . $_POST['name'] .  "', NOW())";
+    $sql = "INSERT INTO fcms_chat_users(user_name,time) VALUES ('" . escape_string($_POST['name']) .  "', NOW())";
     mysql_query($sql) or die($sql.'<br/>'.mysql_error());
 }
 // Reset the chat
@@ -48,7 +48,7 @@ $xml = '<?xml version="1.0" ?><root>';
 // Get Users Online
 if (isset($_GET['users'])) { 
     // Timezone stuff
-    $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = ".$_GET['user_id'];
+    $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = ".escape_string($_GET['user_id']);
     $t_result = mysql_query($sql) or die($sql.'<br/>'.mysql_error());
     $t = mysql_fetch_array($t_result);
     $tz_offset = $t['timezone'];
@@ -74,7 +74,7 @@ if (isset($_GET['users'])) {
 // Get Chat Text
 if (isset($_GET['chat'])) {
     // Update the status of the current user
-    $name = isset($_GET['name']) ? $_GET['name'] : $_POST['name'];
+    $name = isset($_GET['name']) ? escape_string($_GET['name']) : escape_string($_POST['name']);
     $sql = "UPDATE fcms_chat_users SET time = NOW() WHERE user_name = '$name'";
     mysql_query($sql) or die(mysql_error());
 
@@ -84,7 +84,7 @@ if (isset($_GET['chat'])) {
         $sql = "SELECT * FROM (
                     SELECT message_id, user_id, user_name, message, date_format(post_time, '%h:%i') as post_time 
                     FROM fcms_chat_messages WHERE chat_id = 1 
-                    AND message_id > " . $last . "
+                    AND message_id > " . escape_string($last) . "
                     ORDER BY message_id DESC
                     LIMIT 2
                 ) AS sub 
@@ -92,7 +92,7 @@ if (isset($_GET['chat'])) {
     } else {
         $sql = "SELECT message_id, user_id, user_name, message, date_format(post_time, '%h:%i') as post_time 
                 FROM fcms_chat_messages WHERE chat_id = 1 
-                AND message_id > " . $last;
+                AND message_id > " . escape_string($last);
     }
     $message_query = mysql_query($sql);
 

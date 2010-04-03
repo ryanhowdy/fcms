@@ -1,9 +1,9 @@
     <div id="topmenu">
         <ul id="navigation">
             <li class="main"><a class="main" href="<?php echo $TMPL['path'].'index.php';?>"><?php echo _('Home');?></a></li>
-            <li class="main dropdown"><a class="main" href="<?php echo $TMPL['path'].'profile.php?member='.$_SESSION['login_id'];?>"><?php echo _('My Stuff');?><![if gt IE 6]></a><![endif]><!--[if lte IE 6]><table><tr><td><![endif]-->
+            <li class="main dropdown"><a class="main" href="<?php echo $TMPL['path'].'profile.php?member='.$current_user_id;?>"><?php echo _('My Stuff');?><![if gt IE 6]></a><![endif]><!--[if lte IE 6]><table><tr><td><![endif]-->
             <ul class="sub">
-                <li class="sub"><a class="sub" href="<?php echo $TMPL['path'].'profile.php?member='.$_SESSION['login_id'];?>"><?php echo _('Profile');?></a></li>
+                <li class="sub"><a class="sub" href="<?php echo $TMPL['path'].'profile.php?member='.$current_user_id;?>"><?php echo _('Profile');?></a></li>
                 <li class="sub"><a class="sub" href="<?php echo $TMPL['path'].'settings.php';?>"><?php echo _('Settings');?></a></li>
                 <li class="sub"><a class="sub" href="<?php echo $TMPL['path'].'privatemsg.php';?>"><?php echo _('Private Messages').getPMCount();?></a></li>
             </ul>
@@ -32,12 +32,12 @@
             </ul>
             <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 
-            <?php if (checkAccess($_SESSION['login_id']) <= 2): ?>
+            <?php if (checkAccess($current_user_id) <= 2): ?>
 
             <li class="main dropdown"><a class="main" href="<?php echo $TMPL['path'].'admin/config.php';?>"><?php echo _('Administration');?><![if gt IE 6]></a><![endif]><!--[if lte IE 6]><table><tr><td><![endif]-->
             <ul class="sub">
 
-                <?php if (checkAccess($_SESSION['login_id']) < 2): ?>
+                <?php if (checkAccess($current_user_id) < 2): ?>
 
                 <li class="sub"><a class="sub" href="<?php echo $TMPL['path'].'admin/upgrade.php';?>"><?php echo _('Upgrade');?></a></li>
                 <li class="sub"><a class="sub" href="<?php echo $TMPL['path'].'admin/config.php';?>"><?php echo _('Configuration');?></a></li>

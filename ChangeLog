@@ -1,3 +1,10 @@
+2.2.1
+    #158 - Register SQL Injections
+    #159 - upimages.php Arbitrary Code Execution
+    #160 - Theme Settings Vulnerability
+    #161 - Secunia Advisory SA35039
+    #157 - FCMS 2.2: bad link on calendar...
+
 2.2
     #29 - Date and time format change
     #70 - Better Section Order

@@ -9,11 +9,11 @@ class Poll
     var $db;
     var $db2;
     var $tz_offset;
-    var $cur_user_id;
+    var $current_user_id;
 
     function Poll ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
         $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
@@ -183,7 +183,7 @@ class Poll
             $sql = "SELECT * 
                     FROM `fcms_poll_votes` 
                     WHERE `poll_id` = $pollid 
-                    AND `user` = ".$this->cur_user_id;
+                    AND `user` = ".$this->current_user_id;
             $this->db2->query($sql) or displaySQLError(
                 'Voted Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
