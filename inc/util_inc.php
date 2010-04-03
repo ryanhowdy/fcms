@@ -1,8 +1,26 @@
 <?php
 set_error_handler("fcmsErrorHandler");
-include_once('language.php');
+include_once('gettext.inc');
+include_once('locale.php');
+
+// Setup MySQL
 $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 mysql_select_db($cfg_mysql_db);
+
+// Setup php-gettext
+if (isset($_SESSION['language'])) {
+    T_setlocale(LC_MESSAGES, $_SESSION['language']);
+} else {
+    $lang = getLanguage();
+    T_setlocale(LC_MESSAGES, $lang);
+}
+bindtextdomain('messages', './language');
+if (function_exists('bind_textdomain_codeset')) {
+  bind_textdomain_codeset('messages', 'UTF-8');
+}
+textdomain('messages');
+
+// Email Headers and Smileys
 $email_headers = 'From: ' . getSiteName() . ' <' . getContactEmail() . '>' . "\r\n" . 
     'Reply-To: ' . getContactEmail() . "\r\n" . 
     'Content-Type: text/plain; charset=UTF-8;' . "\r\n" . 
@@ -33,6 +51,21 @@ function getTheme ($userid, $d = "")
             return $d . "themes/" . substr($r['theme'], 0, $pos) . "/";
         }
     }
+}
+
+function getLanguage ()
+{
+    if (isset($_SESSION['login_id'])) {
+        $sql = "SELECT `language` FROM `fcms_user_settings` WHERE `id` = " . $_SESSION['login_id'];
+        $result = mysql_query($sql) or displaySQLError(
+            'Language Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $row = mysql_fetch_array($result);
+        if (mysql_num_rows($result) > 0) {
+            return $row['language'];
+        }
+    }
+    return 'en_US';
 }
 
 /*
@@ -71,6 +104,25 @@ function getUserDisplayName ($userid, $display = 0, $isMember = true)
 }
 
 /*
+ *  getPMCount
+ *  
+ *  @return  a string consisting of the user's new pm count in ()'s
+ */
+function getPMCount ()
+{
+    $sql = "SELECT * FROM `fcms_privatemsg` 
+            WHERE `read` < 1 
+            AND `to` = '".$_SESSION['login_id']."'";
+    $result = mysql_query($sql) or displaySQLError(
+        'PM Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    if (mysql_num_rows($result) > 0) {
+        return ' ('.mysql_num_rows($result).')';
+    }
+    return '';
+}
+
+/*
  *  getUserEmail
  *  
  *  @param  $userid - the id of the desired user
@@ -89,92 +141,127 @@ function getUserEmail ($userid)
 }
 
 /*
- *  displayOptSection
+ *  getDefaultNavUrl
  *  
- *  @param  $start      starting section
- *  @param  $length     how many sections to display
- *  @param  $type       URL or LINK
- *  @return  nothing, echo's sections
+ *  Gets the url for the 'Share' default link
+ *
+ *  @return  string of the url
  */
-function displayOptSection ($start, $length, $type = '')
+function getDefaultNavUrl ()
 {
-    global $LANG;
-    $sql = "SELECT * FROM `fcms_config`";
-    $result = mysql_query($sql) or displaySQLError('Get Config Error', 'util_inc.php [' . __LINE__ . ']', $sql, mysql_error());
+    $sql = "SELECT `link` FROM `fcms_navigation` WHERE `col` = 4 AND `order` = 1";
+    $result = mysql_query($sql) or displaySQLError(
+        'Nav Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $r = mysql_fetch_array($result);
-    if (!empty($type)) {
-        while ($length > 0) {
-            switch ($start) {
-                case '1': $pos = strpos($r['section1'], "none"); if ($pos === false) { echo $r['section1'] . '.php'; } break;
-                case '2': $pos = strpos($r['section2'], "none"); if ($pos === false) { echo $r['section2'] . '.php'; } break;
-                case '3': $pos = strpos($r['section3'], "none"); if ($pos === false) { echo $r['section3'] . '.php'; } break;
-                case '4': $pos = strpos($r['section4'], "none"); if ($pos === false) { echo $r['section4'] . '.php'; } break;
-                default: return false; break;
-            }
-            $length--;
-            $start++;
-        }
-    } else {
-        while ($length > 0) {
-            switch ($start) {
-                case '1': $pos = strpos($r['section1'], "none"); if ($pos === false) { echo $LANG['link_' . $r['section1']]; } break;
-                case '2': $pos = strpos($r['section2'], "none"); if ($pos === false) { echo $LANG['link_' . $r['section2']]; } break;
-                case '3': $pos = strpos($r['section3'], "none"); if ($pos === false) { echo $LANG['link_' . $r['section3']]; } break;
-                case '4': $pos = strpos($r['section4'], "none"); if ($pos === false) { echo $LANG['link_' . $r['section4']]; } break;
-                default: return false; break;
-            }
-            $length--;
-            $start++;
-        }
-    }
-    return true;
+    return getSectionUrl($r['link']);
 }
 
-function countOptSections ()
+/*
+ *  getNavLinks
+ *  
+ *  Gets the links and order for the 'Share' sub menu
+ *
+ *  @return  an array of the info
+ */
+function getNavLinks ()
 {
-    global $LANG;
-    $sql = "SELECT `section1`, `section2`, `section3`, `section4` FROM `fcms_config`";
-    $result = mysql_query($sql) or displaySQLError('Count Sections Error', 'util_inc.php [' . __LINE__ . ']', $sql, mysql_error());
-    if (mysql_num_rows($result) > 0) {
-        $count = 0;
-        $r = mysql_fetch_array($result);
-        for ($i=0; $i<4; $i++) {
-            $pos = strpos($r[$i], "none");
-            if (ctype_alpha($r[$i]) && $pos === false) {
-                $count++;
-            }
-        }
-        return $count;
-    } else {
-        return -1;
+    $sql = "SELECT * FROM `fcms_navigation` WHERE `col` = 4 AND `order` != 0 ORDER BY `order`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Nav Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $ret = array();
+    while ($r = mysql_fetch_array($result)) {
+        $ret[] = array(
+            'url' => getSectionUrl($r['link']),
+            'text' => getSectionName($r['link']),
+        ); 
     }
-    
+    return $ret;
 }
 
-function displayFooter ($d = "")
-{ 
-    global $LANG; 
-    if (!empty($d)) { $d = "../"; }
-    $ver = getCurrentVersion();
-    $date = date('Y');
-    echo '
-    <div id="footer">
-        <p>
-            <a href="'.$d.'index.php" class="ft">'.$LANG['link_home'].'</a> | 
-            <a href="http://www.familycms.com/forum/index.php" class="ft">'.$LANG['link_support'].'</a> | 
-            <a href="'.$d.'help.php" class="ft">'.$LANG['link_help'].'</a><br />
-            <a href="http://www.familycms.com">'.$ver.'</a> - Copyright &copy; 2006-'.$date.' Ryan Haudenschilt.
-        </p>
-    </div>';
+/*
+ *  getSectionName
+ *  
+ *  Given the name of the section from the db, returns the translated text
+ *
+ *  @param      the name of the section from the navigation tbl
+ *  @return     a string with the translated name
+ */
+function getSectionName ($section)
+{
+    switch ($section) {
+        case 'photogallery':
+            return _('Photo Gallery');
+            break;
+        case 'addressbook':
+            return _('Address Book');
+            break;
+        case 'calendar':
+            return _('Calendar');
+            break;
+        case 'familynews':
+            return _('Family News');
+            break;
+        case 'recipes':
+            return _('Recipes');
+            break;
+        case 'documents':
+            return _('Documents');
+            break;
+        case 'prayers':
+            return _('Prayers');
+            break;
+        default:
+            return 'error';
+            break;
+    }
+}
+
+/*
+ *  getSectionUrl
+ *  
+ *  Given the name of the section from the db, returns the url for that section
+ *
+ *  @param      the name of the section from the navigation tbl
+ *  @return     a string with the url
+ */
+function getSectionUrl ($section)
+{
+    switch ($section) {
+        case 'photogallery':
+            return 'gallery/index.php';
+            break;
+        case 'addressbook':
+            return 'addressbook.php';
+            break;
+        case 'calendar':
+            return 'calendar.php';
+            break;
+        case 'familynews':
+            return 'familynews.php';
+            break;
+        case 'recipes':
+            return 'recipes.php';
+            break;
+        case 'documents':
+            return 'documents.php';
+            break;
+        case 'prayers':
+            return 'prayers.php';
+            break;
+        default:
+            return 'home.php';
+            break;
+    }
 }
 
 function displayNewPM ($userid, $d = "")
 {
-    global $LANG; 
     $sql = "SELECT `id` FROM `fcms_privatemsg` WHERE `to` = $userid AND `read` < 1";
     $result = mysql_query($sql) or displaySQLError('Get New PM', 'util_inc.php [' . __LINE__ . ']', $sql, mysql_error());
     if (mysql_num_rows($result) > 0) {
-        echo "<a href=\"" . $d . "privatemsg.php\" class=\"new_pm\">" . $LANG['new_pm'] . "</a> ";
+        echo "<a href=\"" . $d . "privatemsg.php\" class=\"new_pm\">" . _('New PM') . "</a> ";
     } else {
         echo " ";
     }
@@ -187,14 +274,54 @@ function checkAccess ($userid)
     return $r['access'];
 }
 
-function parse ($data)
+function getAccessLevel ($userid)
+{
+    $result = mysql_query("SELECT access FROM fcms_users WHERE id = $userid") or die('<h1>Access Error (util.inc.php 47)</h1>' . mysql_error());
+    $r = mysql_fetch_array($result);
+    $access = _('Member');
+    switch ($r['access']) {
+        case 1:
+            $access = _('Admin');
+            break;
+        case 2:
+            $access = _('Helper');
+            break;
+        case 3:
+            $access = _('Member');
+            break;
+        case 4:
+            $access = _('Non-Poster');
+            break;
+        case 5:
+            $access = _('Non-Photographer');
+            break;
+        case 6:
+            $access = _('Commenter');
+            break;
+        case 7:
+            $access = _('Poster');
+            break;
+        case 8:
+            $access = _('Photographer');
+            break;
+        case 9:
+            $access = _('Blogger');
+            break;
+        case 10:
+            $access = _('Guest');
+            break;
+    }
+    return $access;
+}
+
+function parse ($data, $d = '')
 {
     $data = htmlentities($data, ENT_COMPAT, 'UTF-8');
-    $data = parse_smilies($data);
+    $data = parse_smilies($data, $d);
     $data = parse_bbcodes($data);
     $data = bbcode_quote($data);
     $data = nl2br_nospaces($data);
-    echo $data;
+    return $data;
 }
 
 function parse_bbcodes ($data)
@@ -262,13 +389,23 @@ if (!function_exists('stripos')) {
     }
 }
 
+// If php is compiled without mbstring support
+if (!function_exists('mb_detect_encoding')) {
+    function mb_detect_encoding($text) {
+        return 'UTF-8';
+    }
+    function mb_convert_encoding($text,$target_encoding,$source_encoding) {
+        return $text;
+    }
+}
 
-function parse_smilies ($data)
+
+function parse_smilies ($data, $d = '')
 {
     global $smiley_array, $smiley_file_array, $smileydir;
     $i = 0;
     while($i < count($smiley_array)) {
-        $data = str_replace($smiley_array[$i], '<img src="' . $smileydir . $smiley_file_array[$i] . '" alt="'. $smiley_array[$i] . '" />', $data);
+        $data = str_replace($smiley_array[$i], '<img src="' . $d . $smileydir . $smiley_file_array[$i] . '" alt="'. $smiley_array[$i] . '" />', $data);
         $i ++;
     }
     return $data;
@@ -299,15 +436,12 @@ function nl2br_nospaces ($string)
 
 function displaySmileys ()
 {
-    global $smiley_array, $smiley_file_array, $smileydir, $LANG;
+    global $smiley_array, $smiley_file_array;
     $i=0;
     $previous_smiley_file = '';
     foreach ($smiley_array as $smiley) {
-        if ($i == 30) {
-            echo "<a href=\"#\" onclick=\"$('more').toggle(); return false\">(".$LANG['more'].")</a></p><p id=\"more\" style=\"display:none;\">";
-        }
         if ($smiley_file_array[$i] != $previous_smiley_file) {
-            echo '<img src="' . $smileydir . $smiley_file_array[$i] . '" alt="' . $smiley . '" onclick="return addSmiley(\''.str_replace("'", "\'", $smiley).'\')" /> ';
+            echo '<div class="smiley"><img src="../themes/smileys/' . $smiley_file_array[$i] . '" alt="' . $smiley . '" onclick="return addSmiley(\''.str_replace("'", "\'", $smiley).'\')" /></div>';
             $previous_smiley_file = $smiley_file_array[$i];
         }
         $i++;
@@ -335,58 +469,404 @@ function unhtmlentities($string)
     return strtr($string, $trans_tbl);
 }
 
-function getPostsById($user_id)
+/**
+ * getPostsById
+ * 
+ * Gets the post count and percentage of total posts for the givin user
+ * @param   user_id     the id of the desired user
+ * @param   option      how you want the data returned
+ *                          count - returns just the count
+ *                          percent - returns just the percent
+ *                          array - returns both, but in an array
+ *                          both - returns both in "X (X%)" format
+ * @return  a string or array of strings
+ */
+function getPostsById ($user_id, $option = 'both')
 {
-    $result = mysql_query("SELECT * FROM fcms_board_posts") or die('<h1>Posts Error (util.inc.php 116)</h1>' . mysql_error());
-    $total = mysql_num_rows($result);
-    mysql_free_result($result);
-    $result = mysql_query("SELECT count(user) AS c FROM fcms_board_posts WHERE user = $user_id") or die('<h1>Count Error (util.inc.php 119)</h1>' . mysql_error());
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_board_posts`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Total Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $total = $found['c'];
+    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_board_posts` WHERE `user` = $user_id";
+    $result = mysql_query($sql) or displaySQLError(
+        'Count Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $found = mysql_fetch_array($result);
     $count = $found['c'];
-    if($total < 1) { return "0 (0%)"; } else { return $count . " (" . round((($count/$total)*100), 1) . "%)"; }
-}
-
-function getPhotosById ($user_id)
-{
-    $result = mysql_query("SELECT * FROM fcms_gallery_photos") or die('<h1>Photos Error (util.inc.php 125)</h1>' . mysql_error());
-    $total = mysql_num_rows($result);
-    mysql_free_result($result);
-    $results = mysql_query("SELECT count(user) AS c FROM fcms_gallery_photos WHERE user = $user_id") or die('<h1>Count Error (util.inc.php 128)</h1>' . mysql_error());
-    $found = mysql_fetch_array($results);
-    $count = $found['c'];
-    if ($total < 1) { return "0 (0%)"; } else { return $count . " (" . round((($count/$total)*100), 1) . "%)"; }
-}
-
-function getFamilyNewsById ($user_id)
-{
-    $result = mysql_query("SELECT * FROM `fcms_news`");
-    $total = mysql_num_rows($result);
-    mysql_free_result($result);
-    $result = mysql_query("SELECT COUNT(`id`) AS count FROM `fcms_news` WHERE `user` = $user_id GROUP BY `user`") or die(mysql_error());
-    $r = mysql_fetch_array($result);
-    $count = $r['count'];
-    if ($count < 1) { return "0 (0%)"; } else { return $count . " (" . round((($count/$total)*100), 1) . "%)"; }
-}
-
-function getCommentsById ($user_id)
-{
-    $result = mysql_query("SELECT * FROM `fcms_gallery_comments`");
-    $total = mysql_num_rows($result);
-    mysql_free_result($result);
-    $count = 0;
-    if (usingFamilyNews()) {
-        $result = mysql_query("SELECT * FROM `fcms_news_comments`");
-        $total = $total + mysql_num_rows($result);
-        mysql_free_result($result);
-        $result = mysql_query("SELECT COUNT(*) AS count FROM `fcms_news_comments` WHERE `user` = $user_id") or die(mysql_error());
-        $r = mysql_fetch_array($result);
-        $count = $r['count'];
-        mysql_free_result($result);
+    if ($total < 1 || $count < 1) {
+        $count = '0';
+        $percent = '0%';
+    } else {
+        $percent = round((($count/$total)*100), 1) . '%';
     }
-    $result = mysql_query("SELECT COUNT(*) AS count FROM `fcms_gallery_comments` WHERE `user` = $user_id") or die(mysql_error());
-    $r = mysql_fetch_array($result);
-    $count = $count + $r['count'];
-    if ($count < 1) { return "0 (0%)"; } else { return $count . " (" . round((($count/$total)*100), 1) . "%)"; }
+    switch($option) {
+        case 'count':
+            return $count;
+            break;
+        case 'percent':
+            return $percent;
+            break;
+        case 'array':
+            return array('count' => $count, 'percent' => $percent);
+        case 'both':
+        default:
+            return "$count ($percent)";
+            break;
+    }
+}
+
+/**
+ * getPhotosById
+ * 
+ * Gets the photo count and percentage of total posts for the givin user
+ * @param   user_id     the id of the desired user
+ * @param   option      how you want the data returned
+ *                          count - returns just the count
+ *                          percent - returns just the percent
+ *                          array - returns both, but in an array
+ *                          both - returns both in "X (X%)" format
+ * @return  a string or array of strings
+ */
+function getPhotosById ($user_id, $option = 'both')
+{
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_gallery_photos`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Total Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $total = $found['c'];
+    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_photos` WHERE `user` = $user_id";
+    $result = mysql_query($sql) or displaySQLError(
+        'Count Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $count = $found['c'];
+    if ($total < 1 || $count < 1) {
+        $count = '0';
+        $percent = '0%';
+    } else {
+        $percent = round((($count/$total)*100), 1) . '%';
+    }
+    switch($option) {
+        case 'count':
+            return $count;
+            break;
+        case 'percent':
+            return $percent;
+            break;
+        case 'array':
+            return array('count' => $count, 'percent' => $percent);
+        case 'both':
+        default:
+            return "$count ($percent)";
+            break;
+    }
+}
+
+/**
+ * getCommentsById
+ * 
+ * Gets the news/gallery comment count and percentage of total news/gallery for the givin user
+ * @param   user_id     the id of the desired user
+ * @param   option      how you want the data returned
+ *                          count - returns just the count
+ *                          percent - returns just the percent
+ *                          array - returns both, but in an array
+ *                          both - returns both in "X (X%)" format
+ * @return  a string or array of strings
+ */
+function getCommentsById ($user_id, $option = 'both')
+{
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_gallery_comments`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Total Gallery Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $total = $found['c'];
+    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_comments` WHERE `user` = $user_id";
+    $result = mysql_query($sql) or displaySQLError(
+        'Count Gallery Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $count = $found['c'];
+
+    // Check Family News if applicable
+    if (usingFamilyNews()) {
+        $sql = "SELECT COUNT(`id`) AS c FROM `fcms_news_comments`";
+        $result = mysql_query($sql) or displaySQLError(
+            'Total News Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $found = mysql_fetch_array($result);
+        $total = $total + $found['c'];
+        $sql = "SELECT COUNT(`user`) AS c FROM `fcms_news_comments` WHERE `user` = $user_id";
+        $result = mysql_query($sql) or displaySQLError(
+            'Count News Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $found = mysql_fetch_array($result);
+        $count = $count + $found['c'];
+    }
+    if ($total < 1 || $count < 1) {
+        $count = '0';
+        $percent = '0%';
+    } else {
+        $percent = round((($count/$total)*100), 1) . '%';
+    }
+    switch($option) {
+        case 'count':
+            return $count;
+            break;
+        case 'percent':
+            return $percent;
+            break;
+        case 'array':
+            return array('count' => $count, 'percent' => $percent);
+        case 'both':
+        default:
+            return "$count ($percent)";
+            break;
+    }
+}
+
+/**
+ * getCalendarEntriesById
+ * 
+ * Gets the calendar entries count and percentage of total for the givin user
+ * @param   user_id     the id of the desired user
+ * @param   option      how you want the data returned
+ *                          count - returns just the count
+ *                          percent - returns just the percent
+ *                          array - returns both, but in an array
+ *                          both - returns both in "X (X%)" format
+ * @return  a string or array of strings
+ */
+function getCalendarEntriesById ($user_id, $option = 'both')
+{
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_calendar`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Total Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $total = $found['c'];
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_calendar` WHERE `created_by` = $user_id";
+    $result = mysql_query($sql) or displaySQLError(
+        'Count Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $count = $found['c'];
+    if ($total < 1 || $count < 1) {
+        $count = '0';
+        $percent = '0%';
+    } else {
+        $percent = round((($count/$total)*100), 1) . '%';
+    }
+    switch($option) {
+        case 'count':
+            return $count;
+            break;
+        case 'percent':
+            return $percent;
+            break;
+        case 'array':
+            return array('count' => $count, 'percent' => $percent);
+        case 'both':
+        default:
+            return "$count ($percent)";
+            break;
+    }
+}
+
+/**
+ * getFamilyNewsById
+ * 
+ * Gets the news count and percentage of total news for the givin user
+ * @param   user_id     the id of the desired user
+ * @param   option      how you want the data returned
+ *                          count - returns just the count
+ *                          percent - returns just the percent
+ *                          array - returns both, but in an array
+ *                          both - returns both in "X (X%)" format
+ * @return  a string or array of strings
+ */
+function getFamilyNewsById ($user_id, $option = 'both')
+{
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_news`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Total News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $total = $found['c'];
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_news` WHERE `user` = $user_id GROUP BY `user`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Count News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $count = $found['c'];
+    if ($total < 1 || $count < 1) {
+        $count = '0';
+        $percent = '0%';
+    } else {
+        $percent = round((($count/$total)*100), 1) . '%';
+    }
+    switch($option) {
+        case 'count':
+            return $count;
+            break;
+        case 'percent':
+            return $percent;
+            break;
+        case 'array':
+            return array('count' => $count, 'percent' => $percent);
+        case 'both':
+        default:
+            return "$count ($percent)";
+            break;
+    }
+}
+
+/**
+ * getRecipesById
+ * 
+ * Gets the recipes count and percentage of total for the givin user
+ * @param   user_id     the id of the desired user
+ * @param   option      how you want the data returned
+ *                          count - returns just the count
+ *                          percent - returns just the percent
+ *                          array - returns both, but in an array
+ *                          both - returns both in "X (X%)" format
+ * @return  a string or array of strings
+ */
+function getRecipesById ($user_id, $option = 'both')
+{
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_recipes`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Total Recipes Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $total = $found['c'];
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_recipes` WHERE `user` = $user_id GROUP BY `user`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Count Recipes Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $count = $found['c'];
+    if ($total < 1 || $count < 1) {
+        $count = '0';
+        $percent = '0%';
+    } else {
+        $percent = round((($count/$total)*100), 1) . '%';
+    }
+    switch($option) {
+        case 'count':
+            return $count;
+            break;
+        case 'percent':
+            return $percent;
+            break;
+        case 'array':
+            return array('count' => $count, 'percent' => $percent);
+        case 'both':
+        default:
+            return "$count ($percent)";
+            break;
+    }
+}
+
+/**
+ * getDocumentsById
+. * 
+ * Gets the documents count and percentage of total for the givin user
+ * @param   user_id     the id of the desired user
+ * @param   option      how you want the data returned
+ *                          count - returns just the count
+ *                          percent - returns just the percent
+ *                          array - returns both, but in an array
+ *                          both - returns both in "X (X%)" format
+ * @return  a string or array of strings
+ */
+function getDocumentsById ($user_id, $option = 'both')
+{
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_documents`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Total Documents Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $total = $found['c'];
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_documents` WHERE `user` = $user_id GROUP BY `user`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Count Documents Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $count = $found['c'];
+    if ($total < 1 || $count < 1) {
+        $count = '0';
+        $percent = '0%';
+    } else {
+        $percent = round((($count/$total)*100), 1) . '%';
+    }
+    switch($option) {
+        case 'count':
+            return $count;
+            break;
+        case 'percent':
+            return $percent;
+            break;
+        case 'array':
+            return array('count' => $count, 'percent' => $percent);
+        case 'both':
+        default:
+            return "$count ($percent)";
+            break;
+    }
+}
+
+/**
+ * getPrayersById
+ * 
+ * Gets the prayers count and percentage of total for the givin user
+ * @param   user_id     the id of the desired user
+ * @param   option      how you want the data returned
+ *                          count - returns just the count
+ *                          percent - returns just the percent
+ *                          array - returns both, but in an array
+ *                          both - returns both in "X (X%)" format
+ * @return  a string or array of strings
+ */
+function getPrayersById ($user_id, $option = 'both')
+{
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_prayers`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Total Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $total = $found['c'];
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_prayers` WHERE `user` = $user_id GROUP BY `user`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Count Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $found = mysql_fetch_array($result);
+    $count = $found['c'];
+    if ($total < 1 || $count < 1) {
+        $count = '0';
+        $percent = '0%';
+    } else {
+        $percent = round((($count/$total)*100), 1) . '%';
+    }
+    switch($option) {
+        case 'count':
+            return $count;
+            break;
+        case 'percent':
+            return $percent;
+            break;
+        case 'array':
+            return array('count' => $count, 'percent' => $percent);
+        case 'both':
+        default:
+            return "$count ($percent)";
+            break;
+    }
 }
 
 function getNewsComments ($news_id)
@@ -470,48 +950,48 @@ function getCurrentVersion()
 
 function displayMBToolbar ()
 {
-    global $LANG;
     echo '
             <div id="toolbar" class="toolbar hideme">
-                <input type="button" class="bold button" onclick="bb.insertCode(\'B\', \'bold\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['b_txt'].'" />
-                <input type="button" class="italic button" onclick="bb.insertCode(\'I\', \'italic\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['i_txt'].'"/>
-                <input type="button" class="underline button" onclick="bb.insertCode(\'U\', \'underline\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['u_txt'].'"/>
-                <input type="button" class="left_align button" onclick="bb.insertCode(\'ALIGN=LEFT\', \'left right\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['left_txt'].'"/>
-                <input type="button" class="center_align button" onclick="bb.insertCode(\'ALIGN=CENTER\', \'center\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['center_txt'].'"/>
-                <input type="button" class="right_align button" onclick="bb.insertCode(\'ALIGN=RIGHT\', \'align right\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['right_txt'].'"/>
-                <input type="button" class="h1 button" onclick="bb.insertCode(\'H1\', \'heading 1\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['h1_txt'].'"/>
-                <input type="button" class="h2 button" onclick="bb.insertCode(\'H2\', \'heading 2\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['h2_txt'].'"/>
-                <input type="button" class="h3 button" onclick="bb.insertCode(\'H3\', \'heading 3\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['h3_txt'].'"/>
-                <input type="button" class="board_quote button" onclick="bb.insertCode(\'QUOTE\', \'quote\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['blockquote'].'"/>
-                <input type="button" class="board_images button" onclick="bb.insertImage();" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['ins_image'].'"/>
-                <input type="button" class="links button" onclick="bb.insertLink();" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.$LANG['ins_link'].'"/>
-                &nbsp;&nbsp;|&nbsp;&nbsp;
-                <input type="button" class="black color" onclick="bb.insertCode(\'COLOR=BLACK\', \'black colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['black_txt'].'"/>
-                <input type="button" class="white color" onclick="bb.insertCode(\'COLOR=WHITE\', \'white colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['white_txt'].'"/>
-                <input type="button" class="gray color" onclick="bb.insertCode(\'COLOR=GRAY\', \'gray colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['gray_txt'].'"/>
-                <input type="button" class="silver color" onclick="bb.insertCode(\'COLOR=SILVER\', \'silver colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['silver_txt'].'"/>
-                <input type="button" class="maroon color" onclick="bb.insertCode(\'COLOR=MAROON\', \'maroon colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['maroon_txt'].'"/>
-                <input type="button" class="red color" onclick="bb.insertCode(\'COLOR=RED\', \'red colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['red_txt'].'"/>
-                <input type="button" class="olive color" onclick="bb.insertCode(\'COLOR=OLIVE\', \'olive colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['olive_txt'].'"/>
-                <input type="button" class="yellow color" onclick="bb.insertCode(\'COLOR=YELLOW\', \'yellow colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['yellow_txt'].'"/>
-                <input type="button" class="green color" onclick="bb.insertCode(\'COLOR=GREEN\', \'green colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['green_txt'].'"/>
-                <input type="button" class="lime color" onclick="bb.insertCode(\'COLOR=LIME\', \'lime colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['lime_txt'].'"/>
-                <input type="button" class="teal color" onclick="bb.insertCode(\'COLOR=TEAL\', \'teal colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['teal_txt'].'"/>
-                <input type="button" class="aqua color" onclick="bb.insertCode(\'COLOR=AQUA\', \'aqua colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['aqua_txt'].'"/>
-                <input type="button" class="navy color" onclick="bb.insertCode(\'COLOR=NAVY\', \'navy colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['navy_txt'].'"/>
-                <input type="button" class="blue color" onclick="bb.insertCode(\'COLOR=BLUE\', \'blue colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['blue_txt'].'"/>
-                <input type="button" class="purple color" onclick="bb.insertCode(\'COLOR=PURPLE\', \'purple colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['purple_txt'].'"/>
-                <input type="button" class="fuchsia color" onclick="bb.insertCode(\'COLOR=FUCHSIA\', \'pink colored text\', \'COLOR\');" onmouseout="style.border=\'1px solid #000\';" onmouseover="style.border=\'1px solid #fff\';" title="'.$LANG['pink_txt'].'"/>
+                <input type="button" class="bold button" onclick="bb.insertCode(\'B\', \'bold\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Bold').'" />
+                <input type="button" class="italic button" onclick="bb.insertCode(\'I\', \'italic\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Italic').'"/>
+                <input type="button" class="underline button" onclick="bb.insertCode(\'U\', \'underline\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Underline').'"/>
+                <input type="button" class="left_align button" onclick="bb.insertCode(\'ALIGN=LEFT\', \'left right\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Left Align').'"/>
+                <input type="button" class="center_align button" onclick="bb.insertCode(\'ALIGN=CENTER\', \'center\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Center').'"/>
+                <input type="button" class="right_align button" onclick="bb.insertCode(\'ALIGN=RIGHT\', \'align right\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Right Align').'"/>
+                <input type="button" class="h1 button" onclick="bb.insertCode(\'H1\', \'heading 1\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Heading 1').'"/>
+                <input type="button" class="h2 button" onclick="bb.insertCode(\'H2\', \'heading 2\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Heading 2').'"/>
+                <input type="button" class="h3 button" onclick="bb.insertCode(\'H3\', \'heading 3\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Heading 3').'"/>
+                <input type="button" class="board_quote button" onclick="bb.insertCode(\'QUOTE\', \'quote\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Quote').'"/>
+                <input type="button" class="board_images button" onclick="window.open(\'inc/upimages.php\',\'name\',\'width=700,height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Insert Image').'"/>
+                <input type="button" class="links button" onclick="bb.insertLink();" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Insert URL').'"/>
+                <input type="button" class="smileys button" onclick="window.open(\'inc/smileys.php\',\'name\',\'width=500,height=200,scrollbars=no,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Insert Smiley').'"/>
+                <input type="button" class="help button" onclick="window.open(\'inc/bbcode.php\',\'name\',\'width=400,height=300,scrollbars=yes,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('BBCode Help').'"/>
             </div>';
 }
 
 function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h, $max_w, $unique = 'no')
 {
-    global $LANG;
-    $known_photo_types = array('image/pjpeg' => 'jpg', 'image/jpeg' => 'jpg', 'image/gif' => 'gif', 'image/bmp' => 'bmp', 'image/x-png' => 'png', 'image/png' => 'png');
-    $gd_function_suffix = array('image/pjpeg' => 'JPEG', 'image/jpeg' => 'JPEG', 'image/gif' => 'GIF', 'image/bmp' => 'WBMP', 'image/x-png' => 'PNG', 'image/png' => 'PNG');
+    $known_photo_types = array(
+        'image/pjpeg' => 'jpg', 
+        'image/jpeg' => 'jpg', 
+        'image/gif' => 'gif', 
+        'image/bmp' => 'bmp', 
+        'image/x-png' => 'png', 
+        'image/png' => 'png'
+    );
+    $gd_function_suffix = array(
+        'image/pjpeg' => 'JPEG', 
+        'image/jpeg' => 'JPEG', 
+        'image/gif' => 'GIF', 
+        'image/bmp' => 'WBMP', 
+        'image/x-png' => 'PNG', 
+        'image/png' => 'PNG'
+    );
     if (!array_key_exists($filetype, $known_photo_types)) {
-        echo "<p class=\"error-alert\">".$LANG['err_not_file1']." $filetype ".$LANG['err_not_file2']."</p>";
+        echo '
+            <p class="error-alert">
+                '.sprintf(_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $filetype).'
+            </p>';
     } else {
         if ($unique !== 'no') {
             $new_id = uniqid("");
@@ -542,11 +1022,29 @@ function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h,
     return $filename;
 }
 
-// include page in url (index.php?uid=0)
+
+/**
+ * displayPages
+ * 
+ * Function renamed in 2.0, needs to stay until old calls are updated.
+ */
 function displayPages ($url, $cur_page, $total_pages)
 {
-    global $LANG;
+    displayPagination($url, $cur_page, $total_pages);
+}
 
+/**
+ * displayPagination
+ * 
+ * Displays the pagination links.
+ *
+ * @param   url             the url of the page (index.php?uid=0)
+ * @param   cur_page        the current page #
+ * @param   total_pages     The total # of pages needed
+ * @return  nothing
+ */
+function displayPagination ($url, $cur_page, $total_pages)
+{
     // Check if we have a index.php url or a index.php?uid=0 url
     $end = substr($url, strlen($url) - 4);
     if ($end == '.php') {
@@ -555,17 +1053,24 @@ function displayPages ($url, $cur_page, $total_pages)
         $divider = '&amp;';
     }
 
-    global $LANG;
     if ($total_pages > 1) {
         echo '
             <div class="pages clearfix">
                 <ul>';
+
+        // First / Previous
         if ($cur_page > 1) {
             $prev = ($cur_page - 1);
             echo '
-                    <li><a title="'.$LANG['title_first_page'].'" class="first" href="'.$url.$divider.'page=1"></a></li>
-                    <li><a title="'.$LANG['title_prev_page'].'" class="previous" href="'.$url.$divider.'page='.$prev.'"></a></li>';
-        } 
+                    <li><a title="'._('First Page').'" class="first" href="'.$url.$divider.'page=1">'._('First').'</a></li>
+                    <li><a title="'._('Previous Page').'" class="previous" href="'.$url.$divider.'page='.$prev.'">'._('Previous').'</a></li>';
+        } else {
+            echo '
+                    <li><a title="'._('First Page').'" class="first" href="'.$url.$divider.'page=1">'._('First').'</a></li>
+                    <li><a title="'._('Previous Page').'" class="previous" href="'.$url.$divider.'page=1">'._('Previous').'</a></li>';
+        }
+
+        // Numbers
         if ($total_pages > 8) {
             if ($cur_page > 2) {
                 for ($i = ($cur_page-2); $i <= ($cur_page+5); $i++) {
@@ -589,11 +1094,17 @@ function displayPages ($url, $cur_page, $total_pages)
                     <li><a href="'.$url.$divider.'page='.$i.'"'.$class.'>'.$i.'</a></li>';
             } 
         }
+
+        // Next / Last
         if ($cur_page < $total_pages) { 
             $next = ($cur_page + 1);
             echo '
-                    <li><a title="'.$LANG['title_next_page'].'" class="next" href="'.$url.$divider.'page='.$next.'"></a></li>
-                    <li><a title="'.$LANG['title_last_page'].'" class="last" href="'.$url.$divider.'page='.$total_pages.'"></a></li>';
+                    <li><a title="'._('Next Page').'" class="next" href="'.$url.$divider.'page='.$next.'">'._('Next').'</a></li>
+                    <li><a title="'._('Last page').'" class="last" href="'.$url.$divider.'page='.$total_pages.'">'._('Last').'</a></li>';
+        } else {
+            echo '
+                    <li><a title="'._('Next Page').'" class="next" href="'.$url.$divider.'page='.$total_pages.'">'._('Next').'</a></li>
+                    <li><a title="'._('Last page').'" class="last" href="'.$url.$divider.'page='.$total_pages.'">'._('Last').'</a></li>';
         } 
         echo '
                 </ul>
@@ -617,24 +1128,35 @@ function formatSize($file_size)
 
 function displayMembersOnline ()
 {
-    global $LANG;
     $last15min = time() - (60 * 15);
     $lastday = time() - (60 * 60 * 24);
     $sql_last15min = mysql_query("SELECT * FROM fcms_users WHERE UNIX_TIMESTAMP(activity) >= $last15min ORDER BY `activity` DESC") or die('<h1>Online Error (util.inc.php 246)</h1>' . mysql_error());
     $sql_lastday = mysql_query("SELECT * FROM fcms_users WHERE UNIX_TIMESTAMP(activity) >= $lastday ORDER BY `activity` DESC") or die('<h1>Online Error (util.inc.php 247)</h1>' . mysql_error());
-    echo "<h3>".$LANG['now'].":</h3><p>";
+    echo '
+            <h3>'._('Now').':</h3>
+            <p>';
     $i = 1;
     $onlinenow_array = array();
     while ($e = mysql_fetch_array($sql_last15min)) {
         $displayname = getUserDisplayName($e['id']);
-        $onlinenow_array[$i] = $e['id']; $i++; echo "<a class=\"member\" href=\"profile.php?member=".$e['id']."\">$displayname</a><br/>";
+        $onlinenow_array[$i] = $e['id'];
+        $i++;
+        echo '
+                <a class="member" href="profile.php?member='.$e['id'].'">'.$displayname.'</a><br/>';
     }
-    echo "</p><h3>".$LANG['last_24hrs'].":</h3><p>";
+    echo '
+            </p>
+            <h3>'._('Last 24 Hours').':</h3>
+            <p>';
     while ($d = mysql_fetch_array($sql_lastday)) {
         $displayname = getUserDisplayName($d['id']);
-        if(!array_search((string)$d['id'], $onlinenow_array)) { echo "<a class=\"member\" href=\"profile.php?member=".$d['id']."\">$displayname</a><br/>"; }
+        if (!array_search((string)$d['id'], $onlinenow_array)) {
+            echo '
+                <a class="member" href="profile.php?member='.$d['id'].'">'.$displayname.'</a><br/>';
+        }
     }
-    echo "</p><br/><br/>\n";
+    echo '
+            </p><br/><br/>';
 }
 
 /**
@@ -668,7 +1190,13 @@ function isLoggedIn ($d = '')
     // User has nothing
     } else {
         $url = basename($_SERVER["REQUEST_URI"]);
-		//echo "<meta http-equiv='refresh' content='0;URL=index.php?err=login&amp;url=$url'>";
+        header("Location: {$up}index.php?err=login&url=$d$url");
+        exit();
+    }
+
+    // Make sure id is a digit
+    if (!ctype_digit($id)) {
+        $url = basename($_SERVER["REQUEST_URI"]);
         header("Location: {$up}index.php?err=login&url=$d$url");
         exit();
     }
@@ -684,7 +1212,7 @@ function isLoggedIn ($d = '')
         $r = mysql_fetch_array($result);
         // Site is off and your not an admin
         if ($r['site_off'] == 1 && $r['access'] > 1) {
-		    //echo "<meta http-equiv='refresh' content='0;URL=index.php?err=off'>";
+            //echo "<meta http-equiv='refresh' content='0;URL=index.php?err=off'>";
             header("Location: {$up}index.php?err=off");
             exit();
         // Good login, you may proceed
@@ -693,7 +1221,7 @@ function isLoggedIn ($d = '')
         }
     // The user's session/cookie credentials are bad
     } else {
-		//echo "<meta http-equiv='refresh' content='0;URL=index.php?err=login'>";
+        //echo "<meta http-equiv='refresh' content='0;URL=index.php?err=login'>";
         header("Location: {$up}index.php?err=login");
         exit();
     }
@@ -758,43 +1286,8 @@ function buildHtmlSelectOptions ($options, $selected_options)
     return $return;
 }
 
-/**
- * getLangMonthName
- * 
- * Displays the month name from the language.php file.
- * This function is needed because the Full and Short value for May is the same.
- * 
- * @param   $month  short month name date('M')
- * returns  the month name from the language file
- * 
- */
-function getLangMonthName ($month)
-{
-    global $LANG;
-    if ($month == 'May') {
-        return $LANG['May_short'];
-    } else {
-        return $LANG[$month];
-    }
-}
-
-function fixDST ($date, $userid, $format = 'F j, Y, g:i a')
-{
-    $sql = "SELECT `dst` FROM `fcms_user_settings` WHERE `user` = $userid";
-    $result = mysql_query($sql) or displaySQLError(
-        'DST Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $r = mysql_fetch_array($result);
-    if ($r['dst'] > 0) {
-        return date($format, strtotime($date . " +1 hours"));
-    } else {
-        return date($format, strtotime($date));
-    }
-}
-
 /*
  *  To find out which optional sections are being used:
- *  1 = familynews, 2 = prayer concerns, 3 = calendar, 4 = recipes, 5 = documents
  */
 function usingFamilyNews()
 {
@@ -814,19 +1307,17 @@ function usingDocuments()
 }
 function usingSection ($i)
 {
-    $result = mysql_query("SELECT `section1`, `section2`, `section3`, `section4` FROM `fcms_config`");
-    $r = mysql_fetch_array($result);
-    if ($r['section1'] == $i) {
-        return true;
-    } else if ($r['section2'] == $i) {
-        return true;
-    } else if ($r['section3'] == $i) {
-        return true;
-    } else if ($r['section4'] == $i) {
-        return true;
-    } else {
-        return false;
+    $sql = "SELECT * FROM `fcms_navigation` WHERE `link` = '$i' LIMIT 1";
+    $result = mysql_query($sql) or displaySQLError(
+        'Section Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    if (mysql_num_rows($result) > 0) {
+        $r = mysql_fetch_array($result);
+        if ($r['order'] > 0) {
+            return true;
+        }
     }
+    return false;
 }
 
 function tableExists ($tbl)
@@ -893,7 +1384,8 @@ function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
 
 function displayWhatsNewAll ($userid)
 {
-    global $cfg_mysql_host, $cfg_use_news, $cfg_use_prayers, $LANG;
+    global $cfg_mysql_host, $cfg_use_news, $cfg_use_prayers;
+    $locale = new Locale();
     $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $userid";
     $t_result = mysql_query($sql) or displaySQLError(
         'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -986,108 +1478,155 @@ function displayWhatsNewAll ($userid)
         $day = date('Y-m-d', strtotime($r['date']));
         if ($day != $lastday) {
             if ($day == $today) {
-                echo "\t\t\t<p><b>".$LANG['today']."</b></p>\n";
+                echo '
+                <p><b>'._('Today').'</b></p>';
             } elseif ($day == $yesterday) {
-                echo "\t\t\t<p><b>".$LANG['yesterday']."</b></p>\n";
+                echo '
+                <p><b>'._('Yesterday').'</b></p>';
             } else {
-                $monthName = date('F', strtotime($r['date']));
-                $date_suffix = date('S', strtotime($r['date']));
-                echo "\t\t\t<p><b>".$LANG[$monthName].date(' j', strtotime($r['date'])).$LANG[$date_suffix].date(', Y', strtotime($r['date']))."</b></p>\n";
+                $date = $locale->fixDate('F j, Y', $tz_offset, $r['date']);
+                echo '
+                <p><b>'.$date.'</b></p>';
             }
         }
-        $rdate = fixDST(gmdate('g:i a', strtotime($r['date'] . $tz_offset)), $_SESSION['login_id'], 'g:i a');
+        $rdate = $locale->fixDate('g:i a', $tz_offset, $r['date']);
         if ($r['type'] == 'BOARD') {
             $check = mysql_query("SELECT min(`id`) AS id FROM `fcms_board_posts` WHERE `thread` = " . $r['id2']) or die("<h1>Thread or Post Error (util.inc.php 360)</h1>" . mysql_error());
             $minpost = mysql_fetch_array($check);
-            if ($r['id'] == $minpost['id']) {
-                echo "\t\t\t<p class=\"newthread\">";
-            } else {
-                echo "\t\t\t<p class=\"newpost\">";
-            }
-            echo "<a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
-            echo getUserDisplayName($r['userid']);
-            echo "</a> ";
-            if ($r['id'] == $minpost['id']) {
-                echo $LANG['started_thread']." ";
-            } else {
-                echo $LANG['replied_to']." ";
-            }
+            $userName = getUserDisplayName($r['userid']);
+            $userName = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$userName.'</a>';
             $subject = $r['title'];
             $pos = strpos($subject, '#ANOUNCE#');
-            if ($pos !== false) { $subject = substr($subject, 9, strlen($subject)-9); }
-            echo "<a href=\"messageboard.php?thread=" . $r['id2'] . "\" title=\"" . htmlentities($subject, ENT_COMPAT, 'UTF-8') . "\">$subject</a>. <small><i>$rdate</i></small></p>\n";
+            if ($pos !== false) {
+                $subject = substr($subject, 9, strlen($subject)-9);
+            }
+            $title = htmlentities($subject, ENT_COMPAT, 'UTF-8');
+            $subject = '<a href="messageboard.php?thread='.$r['id2'].'" title="'.$title.'">'.$subject.'</a>';
+            if ($r['id'] == $minpost['id']) {
+                $class = 'newthread';
+                $text = sprintf(_('%s started the new thread %s.'), $userName, $subject);
+            } else {
+                $class = 'newpost';
+                $text = sprintf(_('%s replied to %s.'), $userName, $subject);
+            }
+            echo '
+                <p class="'.$class.'">
+                    '.$text.'. <small><i>'.$rdate.'</i></small>
+                </p>';
         } elseif ($r['type'] == 'JOINED') {
             // A new user joined the site
-            echo "\t\t\t<p class=\"newmember\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
-            echo getUserDisplayName($r['userid']);
-            echo "</a> ".$LANG['joined_site']." <small><i>$rdate</i></small></p>\n";
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            echo '
+                <p class="newmember">'.sprintf(_('%s has joined the website.'), $displayname).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'ADDRESSEDIT') {
             // User updated his/her address
-            echo "\t\t\t<p class=\"newaddress\"><a class=\"u\" href=\"profile.php?member=" . $r['id2'] . "\">";
-            echo getUserDisplayName($r['id2']);
-            echo "</a> ".$LANG['upd_address1']." <a href=\"addressbook.php?address=" . $r['id'] . "\">".$LANG['upd_address2']."</a>. <small><i>$rdate</i></small></p>\n";
+            $displayname = getUserDisplayName($r['id2']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
+            $address = '<a href="addressbook.php?address='.$r['id'].'">'._('address').'</a>';
+            echo '
+                <p class="newaddress">'.sprintf(_('%s has updated his/her %s.'), $displayname, $address).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'ADDRESSADD') {
             // A user has added an address for a non-member
-            echo "\t\t\t<p class=\"newaddress\"><a class=\"u\" href=\"profile.php?member=" . $r['id2'] . "\">";
-            echo getUserDisplayName($r['id2']);
-            echo "</a> ".$LANG['added_address']." <a href=\"addressbook.php?address=" . $r['id'] . "\">";
-            echo getUserDisplayName($r['userid'], 2, false);
-            echo "</a>. <small><i>$rdate</i></small></p>\n";
+            $displayname = getUserDisplayName($r['id2']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
+            $for = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
+            echo '
+                <p class="newaddress">'.sprintf(_('%s has added address information for %s.'), $displayname, $for).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'NEWS') {
-            echo "\t\t\t<p class=\"newnews\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
-            echo getUserDisplayName($r['userid']);
-            echo "</a> ".$LANG['new_news1']." <a href=\"familynews.php?getnews=".$r['userid']."&amp;newsid=".$r['id']."\">".$r['title']."</a> ".$LANG['new_news2']." <small><i>$rdate</i></small></p>\n";
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$r['title'].'</a>'; 
+            echo '
+                <p class="newnews">'.sprintf(_('%s has added %s to his/her Family News.'), $displayname, $news).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'PRAYERS') {
-            echo "\t\t\t<p class=\"newprayer\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
-            echo getUserDisplayName($r['userid']);
-            echo "</a> ".$LANG['added_concern']." <a href=\"prayers.php\">".$r['title']."</a>. <small><i>$rdate</i></small></p>\n";
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            $for = '<a href="prayers.php">'.$r['title'].'</a>';
+            echo '
+                <p class="newprayer">'.sprintf(_('%s has added a Prayer Concern for %s.'), $displayname, $for).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'RECIPES') {
             switch ($r['id2']) {
-                case $LANG['appetizer']: $url = "recipes.php?category=1&amp;id=".$r['id']; break;
-                case $LANG['breakfast']: $url = "recipes.php?category=2&amp;id=".$r['id']; break;
-                case $LANG['dessert']: $url = "recipes.php?category=3&amp;id=".$r['id']; break;
-                case $LANG['entree_meat']: $url = "recipes.php?category=4&amp;id=".$r['id']; break;
-                case $LANG['entree_seafood']: $url = "recipes.php?category=5&amp;id=".$r['id']; break;
-                case $LANG['entree_veg']: $url = "recipes.php?category=6&amp;id=".$r['id']; break;
-                case $LANG['salad']: $url = "recipes.php?category=7&amp;id=".$r['id']; break;
-                case $LANG['side_dish']: $url = "recipes.php?category=8&amp;id=".$r['id']; break;
-                case $LANG['soup']: $url = "recipes.php?category=9&amp;id=".$r['id']; break;
+                case _('Appetizer'): $url = "recipes.php?category=1&amp;id=".$r['id']; break;
+                case _('Breakfast'): $url = "recipes.php?category=2&amp;id=".$r['id']; break;
+                case _('Dessert'): $url = "recipes.php?category=3&amp;id=".$r['id']; break;
+                case _('Entree (Meat)'): $url = "recipes.php?category=4&amp;id=".$r['id']; break;
+                case _('Entree (Seafood)'): $url = "recipes.php?category=5&amp;id=".$r['id']; break;
+                case _('Entree (Vegetarian)'): $url = "recipes.php?category=6&amp;id=".$r['id']; break;
+                case _('Salad'): $url = "recipes.php?category=7&amp;id=".$r['id']; break;
+                case _('Side Dish'): $url = "recipes.php?category=8&amp;id=".$r['id']; break;
+                case _('Soup'): $url = "recipes.php?category=9&amp;id=".$r['id']; break;
                 default: $url = "recipes.php"; break;
             }
-            echo "\t\t\t<p class=\"newrecipe\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
-            echo getUserDisplayName($r['userid']);
-            echo "</a> ".$LANG['added_recipe1']." <a href=\"$url\">".$r['title']."</a> ".$LANG['added_recipe2']." <small><i>$rdate</i></small></p>\n";
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            $rec = '<a href="'.$url.'">'.$r['title'].'</a>';
+            echo '
+                <p class="newrecipe">'.sprintf(_('%s has added the %s recipe.'), $displayname, $rec).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'DOCS') {
-            echo "\t\t\t<p class=\"newdocument\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
-            echo getUserDisplayName($r['userid']);
-            echo "</a> " . $LANG['added_docs'] . " (<a href=\"documents.php\">".$r['title']."</a>). <small><i>$rdate</i></small></p>\n";
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            $doc = '<a href="documents.php">'.$r['title'].'</a>';
+            echo '
+                <p class="newdocument">'.sprintf(_('%s has added a new Document (%s).'), $displayname, $doc).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'GALLERY') {
-            echo "\t\t\t<p class=\"newphoto\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
-            echo getUserDisplayName($r['userid']);
-            echo "</a> ".$LANG['added_photos1']." " . $r['id2'] . " ".$LANG['added_photos2']." <a href=\"gallery/index.php?uid=" . $r['userid'] . "&amp;cid=" . $r['id'] . "\">".$r['title']."</a> ".$LANG['added_photos3']." <small><i>$rdate</i></small><br/>";
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            $cat = '<a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'">'.$r['title'].'</a>';
+            echo '
+                    <p class="newphoto">
+                        '.sprintf(_('%s has added %d new photos to the %s category.'), $displayname, $r['id2'], $cat).' <small><i>'.$rdate.'</i></small><br/>';
             $limit = 4;
-            if ($r['id2'] < $limit) { $limit = $r['id2']; }
-            $photos = mysql_query("SELECT * FROM `fcms_gallery_photos` WHERE `category` = " . $r['id'] . " AND DAYOFYEAR(`date`) = " . $r['id3'] . " ORDER BY `date` DESC LIMIT $limit") or die("<h1>Photo Info Error (util.inc.php 405)</h1>" . mysql_error());
-            while ($p=mysql_fetch_array($photos)) {
-                echo "<a href=\"gallery/index.php?uid=" . $r['userid'] . "&amp;cid=" . $r['id'] . "\"><img src=\"gallery/photos/member" . $r['userid'] . "/tb_" . $p['filename'] . "\" alt=\"".htmlentities($p['caption'], ENT_COMPAT, 'UTF-8')."\"/></a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+            if ($r['id2'] < $limit) {
+                $limit = $r['id2'];
             }
-            echo "</p>\n";
+            $sql = "SELECT * 
+                    FROM `fcms_gallery_photos` 
+                    WHERE `category` = ".$r['id']." 
+                    AND DAYOFYEAR(`date`) = ".$r['id3']." 
+                    ORDER BY `date` 
+                    DESC LIMIT $limit";
+            $photos = mysql_query($sql) or displaySQLError(
+                'Photos Info Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
+            while ($p=mysql_fetch_array($photos)) {
+                echo '
+                        <a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'&amp;pid='.$p['id'].'">
+                            <img src="gallery/photos/member'.$r['userid'].'/tb_'.$p['filename'].'" alt="'.htmlentities($p['caption'], ENT_COMPAT, 'UTF-8').'"/>
+                        </a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            }
+            echo '
+                    </p>';
         } elseif ($r['type'] == 'NEWSCOM') {
-            echo "\t\t\t<p class=\"newcom\"><a class=\"u\" href=\"profile.php?member=".$r['userid']."\">";
-            echo getUserDisplayName($r['userid']);
-            echo "</a> ".$LANG['com_news']." <a href=\"familynews.php?getnews=".$r['userid']."&amp;newsid=".$r['id']."\">".$r['title']."</a>. <small><i>$rdate</i></small></p>\n";
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$r['title'].'</a>';
+            echo '
+                    <p class="newcom">'.sprintf(_('%s commented on Family News %s.'), $displayname, $news).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'GALCOM') {
-            echo "\t\t\t<p class=\"newcom\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
-            echo getUserDisplayName($r['userid']);
-            echo "</a> ".$LANG['com_gallery']." <small><i>$rdate</i></small><br/><a href=\"gallery/index.php?uid=0&amp;cid=comments&amp;pid=" . $r['id'] . "\"><img src=\"gallery/photos/member" . $r['id2'] . "/tb_" . $r['id3'] . "\"/></a></p>\n";
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            echo '
+                    <p class="newcom">
+                        '.sprintf(_('%s commented on the following photo:'), $displayname).' <small><i>'.$rdate.'</i></small><br/>
+                        <a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'">
+                            <img src="gallery/photos/member'.$r['id2'].'/tb_'.$r['id3'].'"/>
+                        </a>
+                    </p>';
         } elseif ($r['type'] == 'CALENDAR') {
-            $date_date = fixDST(gmdate('F j, Y', strtotime($r['id2'] . $tz_offset)), $_SESSION['login_id'], 'm-d-y');
-            $date_date2 = fixDST(gmdate('F j, Y', strtotime($r['id2'] . $tz_offset)), $_SESSION['login_id'], 'F j, Y');
-            echo "\t\t\t<p class=\"newcal\"><a class=\"u\" href=\"profile.php?member=" . $r['userid'] . "\">";
-            echo getUserDisplayName($r['userid']);
-            echo "</a> " . $LANG['added_cal1'] . " $date_date " . $LANG['added_cal2'] . " <a href=\"calendar.php?year=" . date('Y', strtotime($date_date2)) . "&amp;month=" . date('m', strtotime($date_date2)) . "&amp;day=" . date('d', strtotime($date_date2)) . "\">" . $r['title'] . "</a>. <small><i>$rdate</i></small></p>\n";
+            $date_date = $locale->fixDate('m-d-y', $tz_offset, $r['id2']);
+            $date_date2 = $locale->fixDate('F j, Y', $tz_offset, $r['id2']);
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            $for = '<a href="calendar.php?year='.date('Y', strtotime($date_date2))
+                .'&amp;month='.date('m', strtotime($date_date2))
+                .'&amp;day='.date('d', strtotime($date_date2)).'">'.$r['title'].'</a>';
+            echo '
+                    <p class="newcal">'.sprintf(_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $for).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'POLL') {
-            echo "\t\t\t<p class=\"newpoll\">" . $LANG['added_poll1'] . " (<a href=\"home.php?poll_id=" . $r['id'] . "\">" . $r['title'] . "</a>) " . $LANG['added_poll2'] . ". <small><i>$rdate</i></small></p>\n";
+            $poll = '<a href="home.php?poll_id='.$r['id'].'">'.$r['title'].'</a>';
+            echo '
+                <p class="newpoll">'.sprintf(_('A new Poll (%s) has been added.'), $poll).' <small><i>'.$rdate.'</i></small></p>';
         }
         $lastday = $day;
     }
@@ -1170,5 +1709,106 @@ function ImageCreateFromBMP ($filename)
     fclose($f1);
     
     return $res;
+}
+
+/*
+ *  usingAdvancedUploader
+ *  
+ *  @param  $userid      the id of the desired user
+ *  @return  bolean
+ */
+function usingAdvancedUploader ($userid)
+{
+    $sql = "SELECT `advanced_upload` FROM `fcms_user_settings` WHERE `user` = $userid ";
+    $result = mysql_query($sql) or displaySQLError(
+        'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $r = mysql_fetch_array($result);
+    if ($r['advanced_upload'] == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * multi_array_key_exists
+ *
+ * @param   $needle     The key you want to check for
+ * @param   $haystack   The array you want to search
+ * @return  boolean
+ */
+function multi_array_key_exists ($needle, $haystack)
+{
+    foreach ($haystack as $key => $value) {
+        if ($needle == $key) {
+            return true;
+        }
+        if (is_array($value)) {
+            if (multi_array_key_exists($needle, $value) == true) {
+                return true;
+            } else {
+                continue;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * getLangName
+ *
+ * Given a gettext language code, it returns the translated
+ * language full name
+ *
+ * @param   $code       the code for the language name
+ * @return  string      the translated language name
+ */
+function getLangName ($code)
+{
+    switch($code) {
+        case 'cs_CZ':
+            return _('Czech (Czech Republic)');
+            break;
+        case 'da_DK':
+            return _('Danish (Denmark)');
+            break;
+        case 'de_DE':
+            return _('German (Germany)');
+            break;
+        case 'en_US':
+            return _('English (United States)');
+            break;
+        case 'es_ES':
+            return _('Spanish (Spain)');
+            break;
+        case 'et':
+            return _('Estonian');
+            break;
+        case 'fr_FR':
+            return _('French (France)');
+            break;
+        case 'lv':
+            return _('Latvian');
+            break;
+        case 'nl':
+            return _('Dutch');
+            break;
+        case 'pt_BR':
+            return _('Portuguese (Brazil)');
+            break;
+        case 'sk_SK':
+            return _('Slovak');
+            break;
+        case 'zh_CN':
+            return _('Chinese (China)');
+            break;
+        case 'x-wrap':
+            return _('X Wrapped');
+            break;
+        default:
+            return $code;
+            break;
+    }
 }
 ?>

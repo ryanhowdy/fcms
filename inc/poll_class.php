@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
 include_once('util_inc.php');
-include_once('language.php');
+include_once('locale.php');
 
 class Poll
 {
@@ -26,7 +26,6 @@ class Poll
 
     function placeVote ($userid, $optionid, $pollid)
     {
-        global $LANG;
         $sql = "SELECT `user` 
                 FROM `fcms_poll_votes` 
                 WHERE `user` = $userid
@@ -35,7 +34,7 @@ class Poll
             'User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         if ($this->db->count_rows() > 0) {
-            echo "<p class=\"center\">".$LANG['already_voted']."</p>\n\t\t";
+            echo "<p class=\"center\">"._('You have already voted.')."</p>\n\t\t";
         } else {
             $sql = "UPDATE `fcms_poll_options` 
                     SET `votes` = `votes`+1 
@@ -53,7 +52,6 @@ class Poll
 
     function displayResults ($pollid)
     {
-        global $LANG;
         $sql = "SELECT result.`total`, `question`, o.`id`, `option`, `votes` 
                 FROM `fcms_polls` AS p, `fcms_poll_options` AS o, (
                     SELECT SUM(`votes`) AS total, fcms_polls.id 
@@ -96,8 +94,8 @@ class Poll
         }
         echo '
             </ul>
-            <p class="poll">'.$LANG['total_votes'].': '.$total.'</p>
-            <p><b>'.$LANG['who_voted'].'</b></p>';
+            <p class="poll">'._('Total Votes').': '.$total.'</p>
+            <p><b>'._('Who Voted for What?').'</b></p>';
         $sql = "SELECT v.`user`, u.`avatar`, o.`option`
                 FROM `fcms_poll_votes` AS v, `fcms_poll_options` AS o, `fcms_users` AS u
                 WHERE v.`poll_id` = $pollid 
@@ -135,35 +133,36 @@ class Poll
             }
             echo '
             </ul>
-            <p><a href="?action=pastpolls">'.$LANG['past_polls'].'</a></p>';
+            <p><a href="?action=pastpolls">'._('Past Polls').'</a></p>';
         } else {
             if ($total > 0 ) {
-                echo '<p class="info-alert">No user data could be found.</p>';
+                echo '
+            <p class="info-alert">'._('No user data could be found.').'</p>';
             } else {
                 echo '
-            <p class="info-alert">No one has voted on this poll yet.</p>';
+            <p class="info-alert">'._('No one has voted on this poll yet.').'</p>';
             }
         }
     }
 
-	function displayPoll ($pollid = '0', $showResults = true) {
-		global $LANG;
-		$poll_exists = true;
+    function displayPoll ($pollid = '0', $showResults = true)
+    {
+        $poll_exists = true;
 
         // Get Latest Poll ID
-		if ($pollid == '0') {
+        if ($pollid == '0') {
             $sql = "SELECT MAX(`id`) AS max FROM `fcms_polls`";
-			$this->db->query($sql) or displaySQLError(
+            $this->db->query($sql) or displaySQLError(
                 'Max Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
-			$r = $this->db->get_row();
-			$pollid = $r['max'];
-			if (!is_null($r['max'])) { 
-			    $pollid = $r['max'];
-			} else {
-				$poll_exists = false;
-			}
-		}
+            $r = $this->db->get_row();
+            $pollid = $r['max'];
+            if (!is_null($r['max'])) { 
+                $pollid = $r['max'];
+            } else {
+                $poll_exists = false;
+            }
+        }
 
         // Get Poll Data
         if ($poll_exists) {
@@ -180,7 +179,7 @@ class Poll
         }
 
         // We are using Polls
-		if ($poll_exists) {
+        if ($poll_exists) {
             $sql = "SELECT * 
                     FROM `fcms_poll_votes` 
                     WHERE `poll_id` = $pollid 
@@ -195,29 +194,41 @@ class Poll
 
             // User hasn't voted yet
             } else {
-                echo "<h2 class=\"pollmenu\">".$LANG['link_admin_polls']."</h2>";
-                echo "<form method=\"post\" action=\"home.php\">";
+                echo '
+            <h2 class="pollmenu">'._('Polls').'</h2>
+            <form method="post" action="home.php">';
                 $i = 0;
                 $id = '';
                 while ($row = $this->db->get_row()) {
                     $id = $row['id'];
                     if ($i < 1) {
-                        echo "<h3>" . $row['question'] . "</h3>";
+                        echo '
+                <h3>'.$row['question'].'</h3>';
                     }
-                    echo "<p><input type=\"radio\" name=\"option_id\" value=\"" . $row['option_id'] . "\"/><span>" . $row['option'] . "</span></p>";
+                    echo '
+                <p><input type="radio" name="option_id" value="'.$row['option_id'].'"/><span>'.$row['option'].'</span></p>';
                     $i++;
                 }
-                echo "<p><a href=\"?action=results&amp;poll_id=$id\">".$LANG['view_results']."</a> | <a href=\"?action=pastpolls\">".$LANG['past_polls']."</a></p><p><input type=\"hidden\" name=\"poll_id\" value=\"$id\"/><input type=\"submit\" value=\"".$LANG['vote']."\" name=\"vote\"/></p></form>\n\t\t";
+                echo '
+                <p>
+                    <input type="hidden" name="poll_id" value="'.$id.'"/>
+                    <input type="submit" value="'._('Vote').'" name="vote"/> &nbsp;
+                </p>
+                <p>
+                    <a href="?action=results&amp;poll_id='.$id.'">'._('View Results').'</a><br/>
+                    <a href="?action=pastpolls">'._('Past Polls').'</a>
+                </p>
+            </form>';
             }
-		}	
-	}
+        }    
+    }
 
     function displayPastPolls ($page)
     {
-        global $LANG;
+        $locale = new Locale();
         $from = (($page * 15) - 15);
         echo '
-            <h2>'.$LANG['prev_polls'].'</h3>';
+            <h2>'._('Past Polls').'</h3>';
         $sql = "SELECT * FROM fcms_polls ORDER BY started DESC LIMIT $from, 15";
         $this->db->query($sql) or displaySQLError(
             'Polls Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -227,22 +238,18 @@ class Poll
             <table class="sortable">
                 <thead>
                     <tr>
-                        <th>'.$LANG['poll_question'].'</th>
-                        <th>'.$LANG['date'].'</th>
-                        <th>'.$LANG['total_votes'].'</th>
+                        <th>'._('Question').'</th>
+                        <th>'._('Date').'</th>
+                        <th>'._('Total Votes').'</th>
                     </tr>
                 </thead>
                 <tbody>';
             while ($row = $this->db->get_row()) {
-                $monthName = gmdate('M', strtotime($row['started'] . $this->tz_offset));
-                $date = fixDST(
-                    gmdate('n/j/Y g:i a', strtotime($row['started'] . $this->tz_offset)), 
-                    $this->cur_user_id, '. j, Y, g:i a'
-                );
+                $date = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $row['started']);
                 echo '
                     <tr>
                         <td><a href="?poll_id='.$row['id'].'">'.$row['question'].'</a></td>
-                        <td>'.$monthName.$date.'</td></td>
+                        <td>'.$date.'</td></td>
                         <td>'.$this->getTotalVotes($row['id']).'</td>
                     </tr>';
             }
@@ -260,45 +267,8 @@ class Poll
             $total_pages = ceil($count / 15); 
             displayPages("home.php?action=pastpolls", $page, $total_pages);
         } else {
-            echo "<i>" . $LANG['no_prev_polls'] . "</i>";
+            echo "<i>"._('No previous polls')."</i>";
         }
-    }
-
-    function displayWhoVoted ($pollid)
-    {
-        global $LANG;
-        echo '
-            <p><b>'.$LANG['who_voted'].'</b></p>';
-        $sql = "SELECT `user`, o.`option`
-                FROM `fcms_poll_votes` AS v, `fcms_poll_options` AS o
-                WHERE v.`poll_id` = $pollid 
-                AND o.`id` = v.`option`
-                ORDER BY o.`option`";
-        $this->db->query($sql) or displaySQLError(
-            'Who Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            $option = 'this would never be an answer would it?';
-            while ($r = $this->db->get_row()) {
-                if ($r['option'] !== $option) {
-                    echo '
-            <p>
-                <b>'.$r['option'].'</b><br/>
-                '.getUserDisplayName($r['user']). '<br/>';
-                } else {
-                    echo '
-                '.getUserDisplayName($r['user']). '<br/>';
-                }
-                $option = $r['option'];
-            }
-            echo '
-            </p>';
-        } else {
-            echo '
-            <p class="info-alert">No one has voted on this poll yet.</p>';
-        }
-            echo '
-            <p><a href="?action=pastpolls">'.$LANG['past_polls'].'</a></p>';
     }
 
     function getTotalVotes ($pollid)

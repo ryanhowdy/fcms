@@ -2,7 +2,6 @@
 session_start();
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
-include_once('inc/language.php');
 
 // Check that the user is logged in
 isLoggedIn();
@@ -10,33 +9,34 @@ isLoggedIn();
 header("Cache-control: private");
 include_once('inc/profile_class.php');
 $profile = new Profile($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
 // Setup the Template variables;
-$TMPL['pagetitle'] = $LANG['link_profiles'];
+$TMPL['pagetitle'] = _('Profiles');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
+
+// Show Header
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
-?>
-	<div id="leftcolumn">
-        <?php
-        include_once(getTheme($_SESSION['login_id']) . 'sidenav.php');
-        if (checkAccess($_SESSION['login_id']) < 3) {
-            include_once(getTheme($_SESSION['login_id']) . 'adminnav.php');
-        }
-        ?>
-	</div>
-	<div id="content">
-		<div id="profile" class="centercontent">
-			<p><a href="profile.php"><?php echo $LANG['profiles']; ?></a> | <a href="privatemsg.php"><?php echo $LANG['privatemsgs']; ?></a> | <a href="profile.php?awards=yes"><?php echo $LANG['link_admin_awards']; ?></a></p>
-			<?php
-			if (isset($_GET['member'])) {
-				$profile->displayProfile($_GET['member']);
-			} elseif (isset($_GET['awards'])) {
-				$profile->displayAwards();
-			} else {
-				$profile->displayAll();
-			} ?>
-		</div><!-- #profile .centercontent -->
-	</div><!-- #content -->
-	<?php displayFooter(); ?>
-</body>
-</html>
+
+echo '
+        <div id="profile" class="centercontent">
+            <div id="sections_menu" class="clearfix">
+                <ul>
+                    <li><a href="profile.php">'._('Profiles').'</a></li>
+                    <li><a href="privatemsg.php">'._('Private Messages').'</a></li>
+                    <li><a href="profile.php?awards=yes">'._('Awards').'</a></li>
+                </ul>
+            </div>';
+if (isset($_GET['member'])) {
+    $profile->displayProfile($_GET['member']);
+} elseif (isset($_GET['awards'])) {
+    $profile->displayAwards();
+} else {
+    $profile->displayAll();
+}
+
+echo '
+        </div><!-- #profile .centercontent -->';
+
+// Show Footer
+include_once(getTheme($_SESSION['login_id']) . 'footer.php');

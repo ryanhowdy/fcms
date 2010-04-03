@@ -1,16 +1,17 @@
 <?php
 include_once('util_inc.php');
-include_once('language.php');
+include_once('locale.php');
 
 class Members
 {
 
-	var $db;
+    var $db;
 
-	function Members ($database)
+    function Members ($database)
     {
-		$this->db = $database;
-	}
+        $this->db = $database;
+        bindtextdomain('messages', '.././language');
+    }
     
     function getUsersEmail ($id)
     {
@@ -43,8 +44,8 @@ class Members
      */
     function displayForm ($type, $member = 0, $error = '')
     {
-        global $LANG;
-        
+        $locale = new Locale();
+
         // Only get info from db if a valid id is used
         if ($member > 0) {
             $sql = "SELECT `id`, `username`, `fname`, `lname`, `email`, `birthday`, `access` "
@@ -58,7 +59,7 @@ class Members
         
         // Setup create member variables
         if ($type == 'create') {
-            $title      =   $LANG['create_member'];
+            $title      =   _('Create New Member');
             $disabled   =   '';
             $username   =   isset($_POST['username'])   ?   $_POST['username']  :   '';
             $fname      =   isset($_POST['fname'])      ?   $_POST['fname']     :   '';
@@ -70,7 +71,7 @@ class Members
         
         // Setup edit member variables
         } elseif ($type == 'edit') {
-            $title    = $LANG['edit_member'];
+            $title    = _('Edit Member');
             $disabled = 'disabled="disabled"';
             $id       = isset($r['id'])       ?  $r['id']                     :  $_POST['id'];
             $username = isset($r['username']) ?  $r['username']               :  $_POST['username'];
@@ -85,146 +86,145 @@ class Members
         
         // Display applicable errors
         if ($error != '') {
-            echo "<p class=\"error-alert\">$error</p>\n";
+            echo '
+            <p class="error-alert">'.$error.'</p>';
         }
         
         // Display the form
-        echo <<<HTML
+        echo '
             <fieldset>
-                <legend>{$title}</legend>
+                <legend><span>'.$title.'</span></legend>
                 <form method="post" action="members.php">
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="username"><b>{$LANG['username']}</b></label></div> 
+                        <div class="field-label"><label for="username"><b>'._('Username').'</b></label></div> 
                         <div class="field-widget">
-                            <input type="text" name="username" id="username" {$disabled} class="required" title="{$LANG['title_uname']}" value="{$username}" size="25"/>
+                            <input type="text" name="username" id="username" '.$disabled.' value="'.$username.'" size="25"/>
                         </div>
                     </div>
                     <script type="text/javascript">
-                        var funame = new LiveValidation('username', { validMessage: "", wait: 500});
-                        funame.add(Validate.Presence, {failureMessage: "{$LANG['lv_sorry_req']}"});
+                        var funame = new LiveValidation(\'username\', { onlyOnSubmit: true });
+                        funame.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="password"><b>{$LANG['password']}</b></label></div>
+                        <div class="field-label"><label for="password"><b>'._('Password').'</b></label></div>
                         <div class="field-widget">
-                            <input type="password" name="password" id="password" class="required" title="{$LANG['title_pass']}" size="25"/>
+                            <input type="password" name="password" id="password" size="25"/>
                         </div>
-                    </div>
-HTML;
+                    </div>';
+
         // Password field is only required when creating not editing
         if ($type == 'create') {
-            echo <<<HTML
+            echo '
                     <script type="text/javascript">
-                        var fpass = new LiveValidation('password', { validMessage: "", wait: 500});
-                        fpass.add(Validate.Presence, {failureMessage: "{$LANG['lv_sorry_req']}"});
-                    </script>
-HTML;
+                        var fpass = new LiveValidation(\'password\', { onlyOnSubmit: true });
+                        fpass.add(Validate.Presence, {failureMessage: ""});
+                    </script>';
         }
-            echo <<<HTML
+        echo '
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="fname"><b>{$LANG['first_name']}</b></label></div> 
+                        <div class="field-label"><label for="fname"><b>'._('First Name').'</b></label></div> 
                         <div class="field-widget">
-                            <input type="text" name="fname" id="fname" class="required" title="{$LANG['title_fname']}" value="{$fname}" size="50"/>
+                            <input type="text" name="fname" id="fname" value="'.$fname.'" size="50"/>
                         </div>
                     </div>
                     <script type="text/javascript">
-                        var ffname = new LiveValidation('fname', { validMessage: "", wait: 500});
-                        ffname.add(Validate.Presence, {failureMessage: "{$LANG['lv_sorry_req']}"});
+                        var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
+                        ffname.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="lname"><b>{$LANG['last_name']}</b></label></div> 
+                        <div class="field-label"><label for="lname"><b>'._('Last Name').'</b></label></div> 
                         <div class="field-widget">
-                            <input type="text" name="lname" id="lname" class="required" title="{$LANG['title_lname']}" value="{$lname}" size="50"/>
+                            <input type="text" name="lname" id="lname" value="'.$lname.'" size="50"/>
                         </div>
                     </div>
                     <script type="text/javascript">
-                        var flname = new LiveValidation('lname', { validMessage: "", wait: 500});
-                        flname.add(Validate.Presence, {failureMessage: "{$LANG['lv_sorry_req']}"});
+                        var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
+                        flname.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="email"><b>{$LANG['email_address']}</b></label></div> 
+                        <div class="field-label"><label for="email"><b>'._('Email').'</b></label></div> 
                         <div class="field-widget">
-                            <input type="text" name="email" id="email" class="required validate-email" title="{$LANG['title_email']}" value="{$email}" size="50"/>
+                            <input type="text" name="email" id="email" value="'.$email.'" size="50"/>
                         </div>
                     </div>
                     <script type="text/javascript">
-                        var femail = new LiveValidation('email', { validMessage: "", wait: 500 });
-                        femail.add( Validate.Presence, { failureMessage: "{$LANG['lv_sorry_req']}" } );
-                        femail.add( Validate.Email, { failureMessage: "{$LANG['lv_bad_email']}" } );
+                        var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
+                        femail.add( Validate.Presence, { failureMessage: "'._('Sorry, but this information is Required.').'" } );
+                        femail.add( Validate.Email, { failureMessage: "'._('That\'s not a valid email address is it?').'" } );
                         femail.add( Validate.Length, { minimum: 10 } );
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="day"><b>{$LANG['birthday']}</b></label></div> 
+                        <div class="field-label"><label for="day"><b>'._('Birthday').'</b></label></div> 
                         <div class="field-widget">
-                            <select id="day" name="day">
-HTML;
-                    $d = 1;
-                    while ($d <= 31) {
-                        echo "<option value=\"$d\"";
-                        if ($day == $d) {
-                            echo ' selected="selected"';
-                        }
-                        echo ">$d</option>";
-                        $d++;
-                    }
-                    echo "</select>\n                        <select id=\"month\" name=\"month\">";
-                    $m = 1;
-                    while ($m <= 12) {
-                        echo "<option value=\"$m\"";
-                        if ($month == $m) {
-                            echo ' selected="selected"';
-                        }
-                        echo ">" . $LANG[date('M', mktime(0, 0, 0, $m, 1, 2006))] . "</option>";
-                        $m++;
-                    }
-                    echo "</select>\n                        <select id=\"year\" name=\"year\">";
-                    $y = 1900;
-                    while ($y - 5 <= date('Y')) {
-                        echo "<option value=\"$y\"";
-                        if ($year == $y) {
-                            echo ' selected="selected"';
-                        }
-                        echo ">$y</option>";
-                        $y++;
-                    }
-                    echo "</select>\n";
-                    echo <<<HTML
+                            <select id="day" name="day">';
+        $d = 1;
+        while ($d <= 31) {
+            echo "<option value=\"$d\"";
+            if ($day == $d) {
+                echo ' selected="selected"';
+            }
+            echo ">$d</option>";
+            $d++;
+        }
+        echo '
+                            </select>
+                            <select id="month" name="month">';
+        $m = 1;
+        while ($m <= 12) {
+            echo "<option value=\"$m\"";
+            if ($month == $m) {
+                echo ' selected="selected"';
+            }
+            echo ">" . $locale->getMonthAbbr($m) . "</option>";
+            $m++;
+        }
+        echo '
+                            </select>
+                            <select id="year" name="year">';
+        $y = 1900;
+        while ($y - 5 <= date('Y')) {
+            echo "<option value=\"$y\"";
+            if ($year == $y) {
+                echo ' selected="selected"';
+            }
+            echo ">$y</option>";
+            $y++;
+        }
+        echo '
+                            </select>
                         </div>
-                    </div>
-HTML;
+                    </div>';
         
         // Display submit buttons
-        echo "\n";
         if ($type == 'create') {
-            echo <<<HTML
+            echo '
                     <p>
-                        <input class="primary" type="submit" id="create" name="create" value="{$LANG['submit']}"/> or 
-                        <a href="members.php">{$LANG['cancel']}</a>
+                        <input class="sub1" type="submit" id="create" name="create" value="'._('Create').'"/> '._('or').' &nbsp;
+                        <a href="members.php">'._('Cancel').'</a>
                     </p>
                 </form>
-            </fieldset>
-HTML;
+            </fieldset>';
         } elseif ($type == 'edit') {
-            echo <<<HTML
+            echo '
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="access"><b>{$LANG['access_level']}</b></label></div> 
+                        <div class="field-label"><label for="access"><b>'._('Access Level').'</b></label></div> 
                         <div class="field-widget">
                             <select id="access" name="access">
-HTML;
-            echo "<option value=\"1\"";
+                                <option value="1"';
             if ($access == 1) {
                 echo " selected=\"selected\"";
             }
-            echo ">1. " . $LANG['access_admin'] . "</option><option value=\"2\"";
+            echo ">1. " . _('Admin') . "</option><option value=\"2\"";
             if ($access == 2) {
                 echo " selected=\"selected\"";
             }
-            echo ">2. " . $LANG['access_helper'] . "</option><option value=\"3\"";
+            echo ">2. " . _('Helper') . "</option><option value=\"3\"";
             if ($access == 3) {
                 echo " selected=\"selected\"";
             }
-            echo ">3. " . $LANG['access_member'] . "</option>";
+            echo ">3. " . _('Member') . "</option>";
             echo "<option value=\"" . $access . "\"></option>";
-            echo "<option value=\"" . $access . "\">" . $LANG['advanced_options']
+            echo "<option value=\"" . $access . "\">" . _('Advanced Options')
                 . "</option>";
             echo "<option value=\"" . $access . "\">"
                 . "-------------------------------------</option>";
@@ -232,44 +232,42 @@ HTML;
             if ($access == 4) {
                 echo " selected=\"selected\"";
             }
-            echo ">4. " . $LANG['access_non_photo'] . "</option><option value=\"5\"";
+            echo ">4. " . _('Non-Photographer') . "</option><option value=\"5\"";
             if ($access == 5) {
                 echo " selected=\"selected\"";
             }
-            echo ">5. " . $LANG['access_non_poster'] . "</option><option value=\"6\"";
+            echo ">5. " . _('Non-Poster') . "</option><option value=\"6\"";
             if ($access == 6) {
                 echo " selected=\"selected\"";
             }
-            echo ">6. " . $LANG['access_commenter'] . "</option><option value=\"7\"";
+            echo ">6. " . _('Commenter') . "</option><option value=\"7\"";
             if ($access == 7) {
                 echo " selected=\"selected\"";
             }
-            echo ">7. " . $LANG['access_poster'] . "</option><option value=\"8\"";
+            echo ">7. " . _('Poster') . "</option><option value=\"8\"";
             if ($access == 8) {
                 echo " selected=\"selected\"";
             }
-            echo ">8. " . $LANG['access_photo'] . "</option><option value=\"9\"";
+            echo ">8. " . _('Photographer') . "</option><option value=\"9\"";
             if ($access == 9) {
                 echo " selected=\"selected\"";
             }
-            echo ">9. " . $LANG['access_blogger'] . "</option><option value=\"10\"";
+            echo ">9. " . _('Blogger') . "</option><option value=\"10\"";
             if ($access == 10) {
                 echo " selected=\"selected\"";
             }
-            echo ">10. " . $LANG['access_guest'] . "</option></select>";
-            echo "\n";
-            echo <<<HTML
+            echo '>10. '._('Guest').'</option>
+                            </select>
                         </div>
                     </div>
                     <p>
-                        <input type="hidden" id="id" name="id" value="{$id}"/>
-                        <input class="primary" type="submit" id="edit" name="edit" value="{$LANG['edit']}"/>&nbsp;&nbsp;
-                        <input class="secondary" type="submit" id="delete" name="delete" value="{$LANG['delete']}"/> or 
-                        <a class="u" href="members.php">{$LANG['cancel']}</a>
+                        <input type="hidden" id="id" name="id" value="'.$id.'"/>
+                        <input class="sub1" type="submit" id="edit" name="edit" value="'._('Edit').'"/>&nbsp;&nbsp;
+                        <input class="sub2" type="submit" id="delete" name="delete" value="'._('Delete').'"/> '._('or').' &nbsp;
+                        <a class="u" href="members.php">'._('Cancel').'</a>
                     </p>
                 </form>
-            </fieldset>
-HTML;
+            </fieldset>';
         }
     }
     
@@ -286,26 +284,25 @@ HTML;
      */
     function displayMemberList ($page, $fname = '', $lname = '', $uname = '')
     {
-        global $LANG;
         $valid_search = 0;
         $from = (($page * 15) - 15);
         
         // Display the add link, search box and table header
-        echo <<<HTML
-            <div id="sections_menu" class="clearfix">
-                <ul><li><a class="add" href="?create=member">{$LANG['create_member']}</a></li></ul>
+        echo '
+            <div id="actions_menu" class="clearfix">
+                <ul><li><a class="add" href="?create=member">'._('Create Member').'</a></li></ul>
             </div>
             <hr/>
             <form method="post" action="members.php" name="search_frm" id="search_frm">
                 <div>
-                    <b>{$LANG['search']}</b>&nbsp;&nbsp; 
-                    <label for="fname">{$LANG['first_name']}</label> 
-                    <input type="text" name="fname" id="fname" value="{$fname}"/>&nbsp;&nbsp; 
-                    <label for="lname">{$LANG['last_name']}</label> 
-                    <input type="text" name="lname" id="lname" value="{$lname}"/>&nbsp;&nbsp; 
-                    <label for="uname">{$LANG['username']}</label> 
-                    <input type="text" name="uname" id="uname" value="{$uname}"/>&nbsp;&nbsp; 
-                    <input type="submit" id="search" name="search" value="{$LANG['search']}"/>
+                    <b>'._('Search').'</b>&nbsp;&nbsp; 
+                    <label for="fname">'._('First Name').'</label> 
+                    <input type="text" name="fname" id="fname" value="'.$fname.'"/>&nbsp;&nbsp; 
+                    <label for="lname">'._('Last Name').'</label> 
+                    <input type="text" name="lname" id="lname" value="'.$lname.'"/>&nbsp;&nbsp; 
+                    <label for="uname">'._('Username').'</label> 
+                    <input type="text" name="uname" id="uname" value="'.$uname.'"/>&nbsp;&nbsp; 
+                    <input type="submit" id="search" name="search" value="'._('Search').'"/>
                 </div>
                 <hr/>
             </form>
@@ -314,17 +311,16 @@ HTML;
                 <table class="sortable">
                     <thead>
                         <tr>
-                            <th>{$LANG['id']}</th>
-                            <th>{$LANG['username']}</th>
-                            <th>{$LANG['lname']}</th>
-                            <th>{$LANG['fname']}</th>
-                            <th class="nosort"><a class="help u" title="{$LANG['title_access_help']}" href="../help.php#adm-access">{$LANG['access_level']}</a></th>
-                            <th class="nosort">{$LANG['activated']}</th>
+                            <th>'._('ID').'</th>
+                            <th>'._('Username').'</th>
+                            <th>'._('Last Name').'</th>
+                            <th>'._('First Name').'</th>
+                            <th class="nosort"><a class="help u" title="'._('Get Help using Access Levels').'" href="../help.php#adm-access">'._('Access Level').'</a></th>
+                            <th class="nosort">'._('Active?').'</th>
                             <th class="nosort">&nbsp;</th>
                         </tr>
                     </thead>
-                    <tbody>
-HTML;
+                    <tbody>';
         
         // prevent sql injections - only allow letters, numbers, a space and the % sign
         if (strlen($fname) > 0) {
@@ -345,8 +341,9 @@ HTML;
         
         // Search - one or valid search parameters
         if ($valid_search < 1) {
-            $sql = "SELECT * FROM fcms_users "
-                 . "WHERE password != 'NONMEMBER' ";
+            $sql = "SELECT * FROM `fcms_users` 
+                    WHERE `password` != 'NONMEMBER' 
+                    AND `password` != 'PRIVATE' ";
             if (strlen($fname) > 0) {
                 $sql .= "AND `fname` LIKE '$fname' ";
             }
@@ -375,54 +372,46 @@ HTML;
         // Display the member list
         while($r = mysql_fetch_array($result)) {
             if ($r['id'] > 1) {
-                echo "\n";
-                echo <<<HTML
+                echo '
                         <tr>
-                            <td><b>{$r['id']}</b>:</td>
-                            <td><a href="?edit={$r['id']}">{$r['username']}</a></td>
-                            <td>{$r['lname']}</td>
-                            <td>{$r['fname']}</td>
-HTML;
-                echo "<td>";
+                            <td><b>'.$r['id'].'</b>:</td>
+                            <td><a href="?edit='.$r['id'].'">'.$r['username'].'</a></td>
+                            <td>'.$r['lname'].'</td>
+                            <td>'.$r['fname'].'</td>
+                            <td>';
                 echo $this->displayAccessType($r['access']);
-                echo "</td>\n                            ";
-                echo "<td style=\"text-align:center\">";
+                echo '</td>
+                            <td style="text-align:center">';
                 if ($r['activated'] > 0) {
-                    echo $LANG['yes'];
+                    echo _('Yes');
                 } else {
-                    echo $LANG['no'];
+                    echo _('No');
                 }
-                echo "</td>\n                            ";
-                echo '<td style="text-align:center"><input type="checkbox" ';
-                echo 'name="massupdate[]" value="' . $r['id'] . '"/></td>';
-                echo "\n                        ";
-                echo "</tr>";
+                echo '</td>
+                            <td style="text-align:center"><input type="checkbox" name="massupdate[]" value="'.$r['id'].'"/></td>
+                        </tr>';
             } else {
-                echo "\n";
-                echo <<<HTML
+                echo '
                         <tr>
-                            <td><b>{$r['id']}</b>:</td>
-                            <td><b>{$r['username']}</b></td>
-                            <td>{$r['lname']}</td>
-                            <td>{$r['fname']}</td>
-                            <td>1. {$LANG['access_admin']}</td>
-                            <td style="text-align:center">{$LANG['yes']}</td>
+                            <td><b>'.$r['id'].'</b>:</td>
+                            <td><b>'.$r['username'].'</b></td>
+                            <td>'.$r['lname'].'</td>
+                            <td>'.$r['fname'].'</td>
+                            <td>1. '._('Admin').'</td>
+                            <td style="text-align:center">'._('Yes').'</td>
                             <td>&nbsp;</td>
-                        </tr>
-HTML;
+                        </tr>';
             }
         }
-        echo "\n";
-        echo <<<HTML
+        echo '
                     </tbody>
                 </table>
                 <p style="text-align:right">
-                    <input type="submit" name="activateAll" id="activateAll" value="{$LANG['activate_selected']}"/>&nbsp; 
-                    <input type="submit" name="inactivateAll" id="inactivateAll" value="{$LANG['inactivate_selected']}"/>&nbsp; 
-                    <input type="submit" name="deleteAll" id="deleteAll" value="{$LANG['del_selected']}"/>
+                    <input type="submit" name="activateAll" id="activateAll" value="'._('Activate Selected').'"/>&nbsp; 
+                    <input type="submit" name="inactivateAll" id="inactivateAll" value="'._('Inactivate Selected').'"/>&nbsp; 
+                    <input type="submit" name="deleteAll" id="deleteAll" value="'._('Delete Selected').'"/>
                 </p>
-            </form>
-HTML;
+            </form>';
 
         // Remove the LIMIT from the $sql statement 
         // used above, so we can get the total count
@@ -444,37 +433,36 @@ HTML;
      *
      */
     function displayAccessType ($access_level) {
-        global $LANG;
         switch ($access_level) {
             case 1:
-                echo "1. " . $LANG['access_admin'];
+                echo "1. "._('Admin');
                 break;
             case 2:
-                echo "2. " . $LANG['access_helper'];
+                echo "2. "._('Helper');
                 break;
             case 3:
-                echo "3. " . $LANG['access_member'];
+                echo "3. "._('Member');
                 break;
             case 4:
-                echo "4. " . $LANG['access_non_photo'];
+                echo "4. "._('Non-Photographer');
                 break;
             case 5:
-                echo "5. " . $LANG['access_non_poster'];
+                echo "5. "._('Non-Poster');
                 break;
             case 6:
-                echo "6. " . $LANG['access_commenter'];
+                echo "6. "._('Commenter');
                 break;
             case 7:
-                echo "7. " . $LANG['access_poster'];
+                echo "7. "._('Poster');
                 break;
             case 8:
-                echo "8. " . $LANG['access_photo'];
+                echo "8. "._('Photographer');
                 break;
             case 9:
-                echo "9. " . $LANG['access_blogger'];
+                echo "9. "._('Blogger');
                 break;
             case 10:
-                echo "10. " . $LANG['access_guest'];
+                echo "10. "._('Guest');
                 break;
         }
     }

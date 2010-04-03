@@ -7,12 +7,11 @@ if (get_magic_quotes_gpc()) {
 }
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
-include_once('inc/language.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo _('lang'); ?>" lang="<?php echo _('lang'); ?>">
 <head>
-<title><?php echo $LANG['reg_for']." ".getSiteName(); ?></title>
+<title><?php _('Register for').' '.getSiteName(); ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
@@ -70,15 +69,16 @@ if (isset($_POST['submit'])) {
         strlen($_POST['lname']) < 1 ||
         strlen($_POST['email']) < 1
     ) {
-		displayForm('<p class="error">' . $LANG['err_required'] . '</p>');
+		displayForm('<p class="error">'._('You forgot to fill out a required field.').'</p>');
 	} elseif ($email_check > 0) {
 		displayForm(
-            '<p class="error">' . $LANG['err_email_use1'] . ' <a href="lostpw.php">'
-            . $LANG['err_email_use2'] . '</a> ' . $LANG['err_email_use3'] . '</p>'
+            '<p class="error">
+                '._('The email you have choosen is already in use.  Please choose a different email.').' 
+                <a href="lostpw.php">'._('If you have forgotten your password please reset it').'</a></p>'
         );
 	} elseif ($username_check > 0) {
 		displayForm(
-            '<p class="error">Sorry, but that username is already taken.  Please choose another username.</p>'
+            '<p class="error">'._('Sorry, but that username is already taken.  Please choose another username.').'</p>'
         );
 	} else {
 		$fname = escape_string($_POST['fname']);
@@ -95,15 +95,16 @@ if (isset($_POST['submit'])) {
 		mysql_query($sql) or displaySQLError('User Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
 		$sql = "INSERT INTO `fcms_address`(`user`, `updated`) VALUES ($lastid, NOW())";
 		mysql_query($sql) or displaySQLError('New Address Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
-		$subject = getSiteName()." ".$LANG['mail_reg1'];
+        $sitename = getSiteName();
+		$subject = $sitename.' '._('Membership');
 		$now = date('F j, Y, g:i a');
-		$subject2 = $LANG['mail_reg_adm1']." ".getSiteName();
-		$message2 = $LANG['mail_reg_adm2']." ".getSiteName().":
-	
-".$LANG['mail_reg_adm3'].": $now
+		$subject2 = sprintf(_('New User Registration at %s'), $sitename);
+		$message2 = sprintf(_('A new user has registered at %s'), $sitename).':
 
-".$LANG['username'].": ".stripslashes($username)."
-".$LANG['name'].": ".stripslashes($fname)." ".stripslashes($lname);
+'._('Time of Registration').': '.$now.'
+
+'._('Username').': '.stripslashes($username).'
+'._('Name').': '.stripslashes($fname).' '.stripslashes($lname);
 		$sql = "SELECT `auto_activate` FROM `fcms_config`";
 		$result = mysql_query($sql) or displaySQLError('Activation Check Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
 		$row = mysql_fetch_assoc($result);
@@ -112,29 +113,45 @@ if (isset($_POST['submit'])) {
 			$code = uniqid('');
 			$sql = "UPDATE `fcms_users` SET `activate_code` = '$code' WHERE `id` = $lastid";
 			mysql_query($sql) or displaySQLError('Activation Code Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
-			$message = $LANG['link_to_activate'] . ":
+			$message = _('Please click the following link to activate your account').':
 
-" . getDomainAndDir() . "activate.php?uid=$lastid&code=$code";
-			echo '<div id="msg"><h1>'.$LANG['reg_success'].'</h1><p>'.$LANG['reg_msg1'].' ' . getSiteName() . '. '.$LANG['reg_msg2'].' ' . $email . '. <br/><b>'.$LANG['reg_msg3'].'</b></p>'
-				. '<p>'.$LANG['reg_msg4_2'].' <a href="index.php">'.$LANG['reg_msg5'].'</a>.</div>';
+'.getDomainAndDir().'activate.php?uid='.$lastid.'&code='.$code;
+			echo '
+            <div id="msg">
+                <h1>'._('Congratulations and Welcome').'</h1>
+                <p>
+                    '.sprintf(_('You have been successfully registered at %s.'), $sitename).' 
+                    '.sprintf(_('Your account information has been emailed to %s.'), $email).'<br/>
+                    <b>'._('Please remember your username and password for this site.').'</b>
+                </p>
+                <p>'._('Unfortunately you must activate your account before you can <a href="index.php">login</a> and begin using the site').'</p>
+            </div>';
 			mail($email, $subject, $message, $email_headers);
 		} elseif ($row['auto_activate'] == 0) {
-			$message = $LANG['mail_reg2']." ".stripslashes($fname)." ".stripslashes($lname).", 
+			$message = _('Dear').' '.stripslashes($fname).' '.stripslashes($lname).', 
 
-".$LANG['mail_reg3']." ".getSiteName()."
+'.sprintf(_('Thank you for registering at %s'), $sitename).'
 
-".$LANG['mail_reg4']." ".getSiteName().", ".$LANG['mail_reg5']."
+'._('In order to login and beging using the site, your administrator must activate your account.  You will get an email when this has been done.').'
 
-".$LANG['mail_reg6']."
-".$LANG['username'].": ".stripslashes($username)." 
-".$LANG['password'].": $password
+'._('After your account is activated you can login using the following information').':
+'._('Username').': '.stripslashes($username).' 
+'._('Password').': '.$password.' 
 
-".$LANG['mail_reg7']." 
-".$LANG['mail_reg8']." ".getSiteName()." ".$LANG['mail_reg9']."
+'._('Thanks').',  
+'.sprintf(_('The %s Webmaster'), $sitename).'
 
-".$LANG['mail_reg10'];
-			echo '<div id="msg"><h1>'.$LANG['reg_success'].'</h1><p>'.$LANG['reg_msg1'].' ' . getSiteName() . '. '.$LANG['reg_msg2'].' ' . $email . '. <br/><b>'.$LANG['reg_msg3'].'</b></p>'
-				. '<p>'.$LANG['reg_msg4'].' <a href="index.php">'.$LANG['reg_msg5'].'</a>.</div>';
+'._('This is an automated response, please do not reply.');
+			echo '
+            <div id="msg">
+                <h1>'._('Congratulations and Welcome').'</h1>
+                <p>
+                    '.sprintf(_('You have been successfully registered at %s.'), $sitename).' 
+                    '.sprintf(_('Your account information has been emailed to %s.'), $email).'<br/>
+                    <b>'._('Please remember your username and password for this site.').'</b>
+                </p>
+                <p>'._('Unfortunately your account must be activated before you can  <a href="index.php">login</a> and begin using the site.').'</p>
+            </div>';
 			mail($email, $subject, $message, $email_headers);
 		}
 		mail(getContactEmail(), $subject2, $message2, $email_headers);
@@ -145,70 +162,75 @@ if (isset($_POST['submit'])) {
 
 <?php
 function displayForm ($error = '0') {
-	global $LANG;
     $user = isset($_POST['username']) ? $_POST['username'] : '';
     $first = isset($_POST['fname']) ? $_POST['fname'] : '';
     $last = isset($_POST['lname']) ? $_POST['lname'] : '';
     $email = isset($_POST['email']) ? $_POST['email'] : '';
-    ?>
+    echo '
 	<div id="column">
-	<h1><?php echo $LANG['reg']; ?></h1>
-	<?php if ($error !== '0') { echo $error; } ?>
-	<form id="registerform" name="registerform" action="register.php" method="post">
-		<div class="field-row">
-            <div class="field-label"><label for="username"><b><?php echo $LANG['username']; ?></b> <span class="req">*</span></label></div>
-            <div class="field-widget clearfix">
-                <input type="text" name="username" id="username" title="<?php echo $LANG['title_uname']; ?>" value="<?php echo $user; ?>"/>
+        <h1>'._('Register').'</h1>';
+	if ($error !== '0') {
+        echo $error;
+    }
+    echo '
+        <form id="registerform" name="registerform" action="register.php" method="post">
+            <div class="field-row">
+                <div class="field-label"><label for="username"><b>'._('Username').'</b> <span class="req">*</span></label></div>
+                <div class="field-widget clearfix">
+                    <input type="text" name="username" id="username" title="'._('Used for logging into the site.').'" value="'.$user.'"/>
+                </div>
             </div>
-        </div>
-		<script type="text/javascript">
-			var funame = new LiveValidation('username', { onlyOnSubmit: true });
-			funame.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_sorry_req']; ?>"});
-		</script>
-		<div class="field-row">
-            <div class="field-label"><label for="password"><b><?php echo $LANG['password']; ?></b> <span class="req">*</span></label></div>
-            <div class="field-widget clearfix">
-                <input type="password" name="password" id="password" title="<?php echo $LANG['title_pass']; ?>"/>
+            <script type="text/javascript">
+                var funame = new LiveValidation(\'username\', { onlyOnSubmit: true });
+                funame.add(Validate.Presence, {failureMessage: "'._('Required: Can\' login without one.').'"});
+            </script>
+            <div class="field-row">
+                <div class="field-label"><label for="password"><b>'._('Password').'</b> <span class="req">*</span></label></div>
+                <div class="field-widget clearfix">
+                    <input type="password" name="password" id="password" title="'._('Used for loggin into the site.').'"/>
+                </div>
             </div>
-        </div>
-		<script type="text/javascript">
-			var fpass = new LiveValidation('password', { onlyOnSubmit: true });
-			fpass.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_bad_pass']; ?>"});
-		</script>
-		<div class="field-row">
-            <div class="field-label"><label for="fname"><b><?php echo $LANG['first_name']; ?></b> <span class="req">*</span></label></div>
-            <div class="field-widget clearfix">
-                <input type="text" name="fname" id="fname" title="<?php echo $LANG['title_fname']; ?>" value="<?php echo $first; ?>"/>
+            <script type="text/javascript">
+                var fpass = new LiveValidation(\'password\', { onlyOnSubmit: true });
+                fpass.add(Validate.Presence, {failureMessage: "'._('Required: Can\'t login without one.').'"});
+            </script>
+            <div class="field-row">
+                <div class="field-label"><label for="fname"><b>'._('First Name').'</b> <span class="req">*</span></label></div>
+                <div class="field-widget clearfix">
+                    <input type="text" name="fname" id="fname" title="'._('The name your mother gave you.').'" value="'.$first.'"/>
+                </div>
             </div>
-        </div>
-		<script type="text/javascript">
-			var ffname = new LiveValidation('fname', { onlyOnSubmit: true });
-			ffname.add(Validate.Presence, { failureMessage: "<?php echo $LANG['lv_sorry_req']; ?>" });
-		</script>
-		<div class="field-row">
-            <div class="field-label"><label for="lname"><b><?php echo $LANG['last_name']; ?></b> <span class="req">*</span></label></div>
-            <div class="field-widget clearfix">
-                <input type="text" name="lname" id="lname" title="<?php echo $LANG['title_lname']; ?>" value="<?php echo $last; ?>"/>
+            <script type="text/javascript">
+                var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
+                ffname.add(Validate.Presence, { failureMessage: "'._('Required').'" });
+            </script>
+            <div class="field-row">
+                <div class="field-label"><label for="lname"><b>'._('Last Name').'</b> <span class="req">*</span></label></div>
+                <div class="field-widget clearfix">
+                    <input type="text" name="lname" id="lname" title="'._('Your family name.').'" value="'.$last.'"/>
+                </div>
             </div>
-        </div>
-		<script type="text/javascript">
-			var flname = new LiveValidation('lname', { onlyOnSubmit: true });
-			flname.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_sorry_req']; ?>"});
-		</script>
-		<div class="field-row">
-            <div class="field-label"><label for="email"><b><?php echo $LANG['email_address']; ?></b> <span class="req">*</span></label></div>
-            <div class="field-widget clearfix">
-                <input type="text" name="email" id="email" title="<?php echo $LANG['title_email']; ?>" value="<?php echo $email; ?>"/>
+            <script type="text/javascript">
+                var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
+                flname.add(Validate.Presence, {failureMessage: "'._('Required').'"});
+            </script>
+            <div class="field-row">
+                <div class="field-label"><label for="email"><b>'._('Email Addrss').'</b> <span class="req">*</span></label></div>
+                <div class="field-widget clearfix">
+                    <input type="text" name="email" id="email" title="'._('Where can we send validation and updates?').'" value="'.$email.'"/>
+                </div>
             </div>
-        </div>
-		<script type="text/javascript">
-			var femail = new LiveValidation('email', { onlyOnSubmit: true });
-			femail.add( Validate.Presence, { failureMessage: "<?php echo $LANG['lv_sorry_req']; ?>" } );
-			femail.add( Validate.Email, { failureMessage: "<?php echo $LANG['lv_bad_email']; ?>" } );
-			femail.add( Validate.Length, { minimum: 10 } );
-		</script>
-		<p><a class="cancel" href="index.php">Cancel</a> <input id="submit" name="submit" type="submit"  value="<?php echo $LANG['submit']; ?>"/></p>
-        <div class="clear"></div>
-    </form>
-	</div><?php
+            <script type="text/javascript">
+                var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
+                femail.add( Validate.Presence, { failureMessage: "'._('Required').'" } );
+                femail.add( Validate.Email, { failureMessage: "'._('Invalid Email').'" } );
+                femail.add( Validate.Length, { minimum: 10 } );
+            </script>
+            <p>
+                <a class="cancel" href="index.php">'._('Cancel').'</a> 
+                <input id="submit" name="submit" type="submit"  value="'._('Submit').'"/>
+            </p>
+            <div class="clear"></div>
+        </form>
+	</div>';
 } ?>

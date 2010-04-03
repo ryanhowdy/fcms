@@ -1,6 +1,5 @@
 <?php 
 session_start();
-include_once('inc/language.php');
 unset($_SESSION['login_id']);
 unset($_SESSION['login_uname']);
 unset($_SESSION['login_pw']);

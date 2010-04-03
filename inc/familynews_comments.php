@@ -2,7 +2,7 @@
 session_start();
 include_once('config_inc.php');
 include_once('util_inc.php');
-include_once('language.php');
+include_once('locale.php');
 
 // Check that the user is logged in
 isLoggedIn();
@@ -11,33 +11,33 @@ header("Cache-control: private");
 $timezone_sql = mysql_query("SELECT `timezone` FROM `fcms_user_settings` WHERE `id` = " . $_SESSION['login_id']) or die('<h1>Timezone Error (familynews_comments.class.php 24)</h1>' . mysql_error());
 $ftimezone = mysql_fetch_array($timezone_sql);
 $tz_offset = $ftimezone['timezone'];
-?>
+
+echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $LANG['lang']; ?>" lang="<?php echo $LANG['lang']; ?>">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'._('lang').'" lang="'._('lang').'">
 <head>
-<title><?php echo getSiteName() . " - " . $LANG['poweredby'] . " " . getCurrentVersion(); ?></title>
+<title>'.getSiteName().' - '._('powered by').' '.getCurrentVersion().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <script type="text/javascript" src="prototype.js"></script>
 <script type="text/javascript">
 //<![CDATA[
-Event.observe(window, 'load', function() {
-    if (!$$('div.comment_block input[type="submit"]')) { return; }
-    $$('div.comment_block input[type="submit"]').each(function(item) {
-        item.onclick = function() { return confirm('<?php echo $LANG['js_del_comment']; ?>'); };
-        var hid = document.createElement('input');
-        hid.setAttribute('type', 'hidden');
-        hid.setAttribute('name', 'confirmed');
-        hid.setAttribute('value', 'true');
-        item.insert({'after':hid});
+Event.observe(window, \'load\', function() {
+    if (!$$(\'div.comment_block input[type="submit"]\')) { return; }
+    $$(\'div.comment_block input[type="submit"]\').each(function(item) {
+        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        var hid = document.createElement(\'input\');
+        hid.setAttribute(\'type\', \'hidden\');
+        hid.setAttribute(\'name\', \'confirmed\');
+        hid.setAttribute(\'value\', \'true\');
+        item.insert({\'after\':hid});
     });
     return true;
 });
 //]]>
-</script>
-<?php
+</script>';
 // TODO
 // Remove all this css and move into style.css or fcms-core.css
-?>
+echo '
 <style type="text/css">
 .right { text-align: right; }
 .center { text-align: center; }
@@ -65,17 +65,16 @@ Event.observe(window, 'load', function() {
 /* End hide from IE-mac */
 </style>
 </head>
-<body>
-<?php
+<body>';
 if (isset($_GET['newsid'])) {
 
     $show = true;
-	$news_id = $_GET['newsid'];
+    $news_id = $_GET['newsid'];
 
     // Add Comment
-	if (isset($_POST['addcom'])) {
-		$com = ltrim($_POST['comment']);
-		if (!empty($com)) {
+    if (isset($_POST['addcom'])) {
+        $com = ltrim($_POST['comment']);
+        if (!empty($com)) {
             $sql = "INSERT INTO `fcms_news_comments`
                         (`news`, `comment`, `date`, `user`) 
                     VALUES 
@@ -83,8 +82,8 @@ if (isset($_GET['newsid'])) {
             mysql_query($sql) or displaySQLError(
                 'Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
-		}
-	}
+        }
+    }
 
     // Delete Confirmation
     if (isset($_POST['delcom']) && !isset($_POST['confirmed'])) {
@@ -92,12 +91,12 @@ if (isset($_GET['newsid'])) {
         echo '
     <div class="info-alert clearfix">
         <form action="familynews_comments.php?newsid='.$news_id.'" method="post">
-            <h2>'.$LANG['js_del_comment'].'</h2>
-            <p><b><i>'.$LANG['cannot_be_undone'].'</i></b></p>
+            <h2>'._('Are you sure you want to DELETE this comment?').'</h2>
+            <p><b><i>'._('This can NOT be undone.').'</i></b></p>
             <div>
                 <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.$LANG['yes'].'"/>
-                <a style="float:right;" href="familynews_comments.php?newsid='.$news_id.'">'.$LANG['cancel'].'</a>
+                <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
+                <a style="float:right;" href="familynews_comments.php?newsid='.$news_id.'">'._('Cancel').'</a>
             </div>
         </form>
     </div>';
@@ -108,17 +107,17 @@ if (isset($_GET['newsid'])) {
         mysql_query($sql) or displaySQLError(
             'Delete Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-	}
+    }
 
     // Show Comments
     if ($show) {
-	    echo '
-            <h3>'.$LANG['comments'].'</h3>
+        echo '
+            <h3>'._('Comments').'</h3>
             <p class="center">
                 <form action="familynews_comments.php?newsid='.$news_id.'" method="post">
-                    '.$LANG['add_comment'].'<br/>
-                    <input type="text" name="comment" id="comment" size="50" title="'.$LANG['add_comment'].'"/>
-                    <input type="submit" name="addcom" id="addcom" value="'.$LANG['add_comment'].'" class="gal_addcombtn"/>
+                    '._('Add Comment').'<br/>
+                    <input type="text" name="comment" id="comment" size="50" title="'._('Add a new comment').'"/>
+                    <input type="submit" name="addcom" id="addcom" value="'._('Add').'" class="gal_addcombtn"/>
                 </form>
             </p>
             <p class="center">&nbsp;</p>';
@@ -137,24 +136,25 @@ if (isset($_GET['newsid'])) {
                     echo '
             <div class="comment_block">
                 <form action="familynews_comments.php?newsid='.$news_id.'" method="post">
-                    <input type="submit" name="delcom" id="delcom" value="'.$LANG['delete'].'" class="gal_delcombtn" title="'.$LANG['title_del_comment'].'"/>
+                    <input type="submit" name="delcom" id="delcom" value="'._('Delete').'" class="gal_delcombtn" title="'._('Delete this comment').'"/>
                     <span>'.$row['date'].'</span><b>'.$displayname.'</b><br/>
                     '.htmlentities(stripslashes($row['comment']), ENT_COMPAT, 'UTF-8').'
                     <input type="hidden" name="id" value="'.$row['id'].'">
                 </form>
             </div>';
-			    } else {
-				    echo '
+                } else {
+                    echo '
             <div class="comment_block">
                 <span>'.$row['date'].'</span><b>'.$displayname.'</b><br/>
                 '.htmlentities(stripslashes($row['comment']), ENT_COMPAT, 'UTF-8').'
             </div>';
-			    }
-		    }
-	    } else { echo "<p class=\"center\">".$LANG['no_comments']."</p>"; }
+                }
+            }
+        } else { echo "<p class=\"center\">"._('no comments')."</p>"; }
     }
 } else {
-	echo "<h3>".$LANG['invalid_newsid']."</h3>";
-} ?>
+    echo "<h3>"._('Invalid Family News ID.')."</h3>";
+}
+echo '
 </body>
-</html>
+</html>';

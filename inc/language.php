@@ -745,6 +745,7 @@ $LANG = array(
     'ok_settings1' =>            'Personal Settings Updated Successfully.',
     'ok_settings2' =>            'Continue',
     'email_updates' =>          'Receive Email Updates',
+    'advanced_upload' =>        'Advanced Upload',
 
     // Administration
 

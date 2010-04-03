@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
 include_once('util_inc.php');
-include_once('language.php');
+include_once('locale.php');
 
 class Calendar
 {
@@ -57,21 +57,26 @@ class Calendar
      */
     function displayCalendar ($month, $year, $day = -1, $type = 'small', $view = 'month')
     {
-        global $LANG;
-        
-        $viewToolbar = '<th class="view_toolbar" colspan="2"><a class="day" '
-            . "href=\"?year=$year&amp;month=$month&amp;day=$day&amp;view=day\">" . $LANG['day']
-            . "</a> | <a class=\"month\" href=\"?year=$year&amp;month=$month&amp;day=$day\">"
-            . $LANG['month'] . '</a></th>';
-		$actionsToolbar = "<tr class=\"actions_toolbar\"><td colspan=\"7\">" . $LANG['actions']
-            . ": <a class=\"print\" href=\"#\" "
-            . "onclick=\"window.open('inc/calendar_print.php?year=$year&amp;month=$month"
-            . "&amp;day=$day','name','width=700,height=400,scrollbars=yes,resizable=yes,"
-            . "location=no,menubar=no,status=no'); return false;\">" . $LANG['print'] . "</a> | "
-            . "<a href=\"?import=true\">" . $LANG['import'] . "</a> | "
-            . "<a href=\"?export=true\">" . $LANG['export'] . "</a></td></tr>\n\t\t\t";
-        
-        echo "\n\t\t<table id=\"" . $type . "_calendar\">\n\t\t\t";
+        $locale = new Locale();
+        $viewToolbar = '
+                    <th class="view_toolbar" colspan="2">
+                        <a class="day" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;view=day">'._('Day').'</a> | 
+                        <a class="month" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'._('Month').'</a>
+                    </th>';
+        $actionsToolbar = '
+                <tr class="actions_toolbar">
+                    <td colspan="7">
+                        '._('Actions').': 
+                        <a class="print" href="#" 
+                            onclick="window.open(\'inc/calendar_print.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'\',
+                            \'name\',\'width=700,height=400,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no\'); 
+                            return false;">'._('Print').'</a> | 
+                        <a href="?import=true">'._('Import').'</a> | 
+                        <a href="?export=true">'._('Export').'</a>
+                    </td>
+                </tr>';
+        echo '
+            <table id="'.$type.'_calendar">';
         
         // Month View
         if ($view == 'month') {
@@ -80,15 +85,9 @@ class Calendar
             $daysInMonth = date('t', $first);
             $monthName = date('F', $first);
             if ($type == 'big') {
-                $weekDays = array($LANG['cal_sun_big'], $LANG['cal_mon_big'], $LANG['cal_tue_big'], 
-                                  $LANG['cal_wed_big'], $LANG['cal_thr_big'], $LANG['cal_fri_big'], 
-                                  $LANG['cal_sat_big']
-                            );
+                $weekDays = $locale->getDayNames();
             } else {
-                $weekDays = array($LANG['cal_sun'], $LANG['cal_mon'], $LANG['cal_tue'], 
-                                  $LANG['cal_wed'], $LANG['cal_thr'], $LANG['cal_fri'], 
-                                  $LANG['cal_sat']
-                            );
+                $weekDays = $locale->getDayInitials();
             }
             
             // All the events for this month
@@ -105,90 +104,89 @@ class Calendar
             $nDay = ($day > date('t', $nextTS)) ? date('t', $nextTS) : $day;
             
             // Start the header row
-            echo "<tr>";
+            echo '
+                <tr>';
             
-            // Display prev/today/next links
-            echo '<th';
             // Don't display the today link or views toolbar for the small calendar
-            if ($type == 'big') {
-                echo ' colspan="2">';
-            } else {
-                echo ' colspan="7">';
+            $colspan = ' colspan="2"';
+            if ($type == 'small') {
+                $colspan = ' colspan="7"';
             }
             
+            // Display prev/today/next links
+            echo '
+                    <th'.$colspan.'>';
+
             // Previous
             list($y, $m) = explode('-', date('Y-m', $prevTS));
             // if previous month is 12 then we need to subtract a year
             if ($m == 12) {
                 echo "<a class=\"prev\" href=\"?year=";
                 echo $year-1;
-                echo "&amp;month=$m&amp;day=$pDay\">".$LANG['prev']."</a>";
+                echo "&amp;month=$m&amp;day=$pDay\">"._('Previous')."</a> ";
             } else {
-                echo "<a class=\"prev\" href=\"?year=$year&amp;month=$m&amp;day=$pDay\">"
-                    . $LANG['prev'] . "</a> ";
+                echo "<a class=\"prev\" href=\"?year=$year&amp;month=$m&amp;day=$pDay\">"._('Previous')."</a> ";
             }
             
             // Today
             if ($type == 'big') {
-                echo '<a class="today" href="?year=';
-                echo date('Y');
-                echo "&amp;month=";
-                echo date('m');
-                echo "&amp;day=";
-                echo date('d');
-                echo '">';
-                echo $LANG['today'] . '</a> ';
+                echo '<a class="today" href="?year='.date('Y')."&amp;month=".date('m')."&amp;day=".date('d').'">'._('Today').'</a> ';
             }
             
             // Next
             list($y, $m) = explode('-', date('Y-m', $nextTS));
-            echo "<a class=\"next\" href=\"?year=$y&amp;month=$m&amp;day=$nDay\">"
-                . $LANG['next'] . "</a>";
+            echo "<a class=\"next\" href=\"?year=$y&amp;month=$m&amp;day=$nDay\">"._('Next')."</a>";
                 
             // Display Month Name
             if ($type == 'big') {
-                echo "</th><th colspan=\"3\"><h3>" . $LANG[$monthName] . " $year</h3></th>";
+                echo '</th>
+                    <th colspan="3"><h3>'.$locale->fixDate('F', '', date('F',$first)).' '.$year.'</h3></th>';
                 
                 // Display the view toolbar
                 echo $viewToolbar;
             } else {
-                echo "<h3>" . $LANG[$monthName] . " $year</h3></th>";
+                echo '<h3>'.$locale->fixDate('F', '', date('F',$first)).' '.$year.'</h3></th>';
             }
             
             // Close the header row
-            echo "</tr>\n\t\t\t";
+            echo '
+                </tr>';
             
             // Display the weekday names
-            echo "<tr>";
+            echo '
+                <tr>';
             foreach ($weekDays as $wd) {
-                echo "<td class=\"weekDays\">$wd</td>";
+                echo '
+                    <td class="weekDays">'.$wd.'</td>';
             }
-            echo "</tr>\n\t\t\t";
+            echo '
+                </tr>';
             
             // Display the days in the month, fill with events
             $i = 0;
             for ($d = (1 - $offset); $d <= $daysInMonth; $d++) {
                 if ($i % 7 == 0) {
-                    echo "<tr>";
+                    echo '
+                <tr>';
                 }
                 if ($d < 1) {
-                    echo "<td class=\"nonMonthDay\"> </td>";
+                    echo '
+                    <td class="nonMonthDay">&nbsp;</td>';
                 } else {
                     if ($d == $day) {
-                        echo "<td class=\"monthToday\">";
+                        echo '
+                    <td class="monthToday">';
                     } else {
-                        echo "<td class=\"monthDay\">";
+                        echo '
+                    <td class="monthDay">';
                     }
                     if ($type == 'big') {
                         // add the add cal date link
                         if (checkAccess($_SESSION['login_id']) <= 5) {
-                            echo "<a class=\"add\" href=\"?add=$year-$month-$d\">"
-                            . $LANG['add']
-                            . "</a>";
+                            echo '<a class="add" href="?add='.$year.'-'.$month.'-'.$d.'">'._('Add').'</a>';
                         }
                         // display the day #
-                        echo "<a href=\"?year=$year&amp;month=$month&amp;day=$d&amp;view=day\">";
-                        echo "$d</a>";
+                        echo '<a href="?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'&amp;view=day">'.$d.'</a>';
                     }
                     // display the events for each day
                     if (in_array($d, $eventDays)) {
@@ -198,7 +196,7 @@ class Calendar
                             
                         // for small cal we just display a link to that day (day view)
                         } else {
-                            echo "<a href=\"?year=$year&amp;month=$month&amp;day=$d\">$d</a>";
+                            echo '<a href="?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'">'.$d.'</a>';
                         }
                     } else {
                         // small cal just display the day #
@@ -211,15 +209,18 @@ class Calendar
                 $i++;
                 // if we have 7 <td> for the current week close the <tr>
                 if ($i % 7 == 0) {
-                    echo "</tr>\n\t\t\t";
+                    echo '
+                </tr>';
                 }
             }
             // close any opening <tr> and insert any additional empty <td>
             if ($i % 7 != 0) {
                 for ($j = 0; $j < (7 - ($i % 7)); $j++) {
-                    echo "<td class=\"nonMonthDay\"> </td>";
+                    echo '
+                    <td class="nonMonthDay">&nbsp;</td>';
                 }
-                echo "</tr>\n";
+                echo '
+                </tr>';
             }
             if ($type == 'big') {
                 echo $actionsToolbar;
@@ -234,10 +235,12 @@ class Calendar
             $nextTS = strtotime("$year-$month-$day +1 day");
             
             // Start the header row
-            echo "<tr>";
+            echo '
+                <tr>';
             
             // Display prev/today/next links
-            echo '<th colspan="2">';
+            echo '
+                    <th colspan="2">';
             
             // Previous
             list($y, $m, $d) = explode('-', date('Y-m-d', $prevTS));
@@ -245,56 +248,47 @@ class Calendar
             if ($m == 12) {
                 echo "<a class=\"prev\" href=\"?year=";
                 echo $year-1;
-                echo "&amp;month=$m&amp;day=$d&amp;view=day\">".$LANG['prev']."</a>";
+                echo "&amp;month=$m&amp;day=$d&amp;view=day\">"._('Previous')."</a>";
             } else {
-                echo "<a class=\"prev\" href=\"?year=$year&amp;month=$m&amp;day=$d&amp;view=day\">"
-                    . $LANG['prev'] . "</a>";
+                echo "<a class=\"prev\" href=\"?year=$year&amp;month=$m&amp;day=$d&amp;view=day\">"._('Previous')."</a>";
             }
             
             // Today
-            echo '<a class="today" href="?year=';
-            echo date('Y');
-            echo "&amp;month=";
-            echo date('m');
-            echo "&amp;day=";
-            echo date('d');
-            echo '">';
-            echo $LANG['today'] . '</a> ';
+            echo '<a class="today" href="?year='.date('Y').'&amp;month='.date('m').'&amp;day='.date('d').'">'._('Today').'</a> ';
             
             // Next
             list($y, $m, $d) = explode('-', date('Y-m-d', $nextTS));
-            echo "<a class=\"next\" href=\"?year=$y&amp;month=$m&amp;day=$d&amp;view=day\">"
-                . $LANG['next'] . "</a></th>";
+            echo "<a class=\"next\" href=\"?year=$y&amp;month=$m&amp;day=$d&amp;view=day\">"._('Next')."</a></th>";
                 
             // Display Month Name
-            echo "<th colspan=\"3\"><h3>" . date('l, ', strtotime("$year-$month-$day"));
-            $monthName = date('F', strtotime("$year-$month-$day"));
-            echo getLangMonthName($monthName);
-            echo date(' j, Y', strtotime("$year-$month-$day"));
-            echo "</h3></th>";
+            echo '
+                    <th colspan="3"><h3>'.$locale->fixDate(_('l, F j, Y'), '', "$year-$month-$day").'</h3></th>';
             
             // Display the view toolbar
             echo $viewToolbar;
             
             // Close the header row
-            echo "</tr>\n\t\t\t";
+            echo '
+                </tr>';
             
             // Display Calendar Events for this day
-            echo '<tr><td class="day_view_info" colspan="7">';
+            echo '
+                <tr><td class="day_view_info" colspan="7">';
             $this->displayEvents($month, $day, $year, true);
-            echo "</td></tr>\n\t\t\t";
+            echo '</td></tr>';
             echo $actionsToolbar;
         }
         
         // close the table, the calendar is finished
-        echo "\t\t</table>\n\t\t";
+        echo '
+            </table>';
     }
 
     function displayMonthEvents ($month, $year)
     {
-        global $LANG;
-        $monthName = date("F", mktime(0,0,0,$month,1,2006));
-        echo "<h3>".$LANG[$monthName].":</h3>";
+        $locale = new Locale();
+        echo '
+                <h3>'.$locale->fixDate('F', '', date("F", mktime(0,0,0,$month,1,2006))).':</h3>';
         $sql = "SELECT *, "
              . "SUBSTRING(`date`, 9, 2) AS o FROM fcms_calendar "
              . "WHERE (`date` LIKE '$year-$month-%%' AND `type` = 'Other') "
@@ -302,7 +296,7 @@ class Calendar
              . "ORDER BY o";
         $this->db->query($sql) or displaySQLError(
             'Events Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+        );
         if ($this->db->count_rows() > 0) {
             while ($row = $this->db->get_row()) {
                 $show = false;
@@ -314,12 +308,10 @@ class Calendar
                     }
                 }
                 if ($show) {
-                    echo "<div class=\"events\">";
-                    echo date('d', strtotime($row['date']));
+                    echo '
+                <div class="events">'.date('d', strtotime($row['date']));
                     if (!empty($row['desc'])) {
-                        $desc = "<dfn title=\""
-                        . htmlentities($row['desc'], ENT_COMPAT, 'UTF-8')
-                        . "\">".$row['title']."</dfn>";
+                        $desc = "<dfn title=\"".htmlentities($row['desc'], ENT_COMPAT, 'UTF-8')."\">".$row['title']."</dfn>";
                     } else {
                         $desc = $row['title'];
                     }
@@ -336,15 +328,14 @@ class Calendar
                     }
                 }
             }
-            echo "\n\t\t";
         } else {
-            echo "<div class=\"events\"><i>" . $LANG['no_events'] . "</i></div>\n\t\t";
+            echo '
+                <div class="events"><i>'._('No events for this month.').'</i></div>';
         }
     }
 
     function displayTodaysEvents ($month, $day, $year)
     {
-        global $LANG;
         $sql = "SELECT * "
              . "FROM fcms_calendar "
              . "WHERE (`date` LIKE '$year-$month-$day' AND `type` = 'Other') "
@@ -365,35 +356,33 @@ class Calendar
                 }
                 // Print the rounded box beginning part
                 if ($first & $show) {
-                    echo "\n\t\t\t<div id=\"todaysevents\">"
-                    . '<b class="rounded-box"><b class="rounded-box1"><b></b></b>'
-                    . '<b class="rounded-box2"><b></b></b><b class="rounded-box3"></b>'
-                    . '<b class="rounded-box4"></b><b class="rounded-box5"></b></b>'
-                    . "\n\t\t\t" . '<div class="rounded-boxfg">'
-                    . "\n\t\t\t<h2>".$LANG['todays_events'].":</h2>";
+                    echo '
+                <div id="todaysevents">
+                    <h2>'._('Today\'s Events').':</h2>'.
                     $first = false;
                 }
                 if ($show) {
-                    echo "<div class=\"events\">";
+                    echo '
+                    <div class="events">';
                     switch($row['type']) {
                         case 'Birthday':
-                            echo " - <span class=\"bday\">".$row['title']."</span> ";
+                            echo "<span class=\"bday\">".$row['title']."</span> ";
                             if (!empty($row['desc'])) {
-                                echo "<br/>".$row['desc'];
+                                echo "<br/> - ".$row['desc'];
                             }
                             echo "</div>";
                             break;
                         case 'Anniversary':
-                            echo " - <span class=\"anniversary\">".$row['title']."</span> ";
+                            echo "<span class=\"anniversary\">".$row['title']."</span> ";
                             if (!empty($row['desc'])) {
-                                echo "<br/>".$row['desc'];
+                                echo "<br/> - ".$row['desc'];
                             }
                             echo "</div>";
                             break;
                         default:
-                            echo " - <span class=\"holiday\">".$row['title']."</span> ";
+                            echo "<span class=\"holiday\">".$row['title']."</span> ";
                             if (!empty($row['desc'])) {
-                                echo $row['desc'];
+                                echo "<br/> - ".$row['desc'];
                             }
                             echo "</div>";
                             break;
@@ -402,11 +391,8 @@ class Calendar
             }
             // Print the rounded box ending part
             if (!$first) {
-                echo "</div>\n\t\t\t"
-                . '<b class="rounded-box"><b class="rounded-box5"></b>'
-                . '<b class="rounded-box4"></b><b class="rounded-box3"></b>'
-                . '<b class="rounded-box2"><b></b></b><b class="rounded-box1">'
-                . '<b></b></b></b></div>';
+                echo '
+                </div>';
             }
         }
     }
@@ -480,7 +466,7 @@ class Calendar
      */
     function displayForm ($type, $id = '0')
     {
-        global $LANG;
+        $locale = new Locale();
         $sql = "SELECT * FROM fcms_calendar WHERE id = $id";
         $this->db->query($sql) or displaySQLError(
             'Date Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -510,155 +496,153 @@ class Calendar
                 $this->cur_user_id == $row['created_by'] || 
                 $type !== 'edit'
             ) {
-                echo "<fieldset><legend>";
+
+                //-------------------------------------
+                // Setup vars
+                //-------------------------------------
+                $formStart = '<form id="frm" method="post" action="calendar.php">';
+                $date = '<select id="sday" name="sday">';
+                $d = 1;
+                while ($d <= 31) {
+                    if ($day == $d) {
+                        $date .= "<option value=\"$d\" selected=\"selected\">$d</option>";
+                    } else {
+                        $date .= "<option value=\"$d\">$d</option>";
+                    }
+                    $d++;
+                }
+                $date .= '</select>
+                            <select name="smonth">';
+                $m = 1;
+                while ($m <= 12) {
+                    if ($month == $m) {
+                        $date .= "<option value=\"$m\" selected=\"selected\">".$locale->getMonthAbbr($m)."</option>";
+                    } else {
+                        $date .= "<option value=\"$m\">".$locale->getMonthAbbr($m)."</option>";
+                    }
+                    $m++;
+                }
+                $date .= '</select>
+                            <select name="syear">';
+                $y = 1900;
+                while ($y - 5 <= date('Y')) {
+                    if ($year == $y) {
+                        $date .= "<option value=\"$y\" selected=\"selected\">$y</option>";
+                    } else {
+                        $date .= "<option value=\"$y\">$y</option>";
+                    }
+                    $y++;
+                } 
+                $date .= "</select>";
+                $anniversary = ($row['type'] == 'Anniversary') ? 'selected="selected"' : '';
+                $birthday = ($row['type'] == 'Birthday') ? 'selected="selected"' : '';
+                $holiday = ($row['type'] == 'Holiday') ? 'selected="selected"' : '';
+                $other = ($row['type'] == 'Other') ? 'selected="selected"' : '';
+                $type_options = '<select id="type" name="type">
+                                <option value="Anniversary" '.$anniversary.'>'._('Anniversary (repeats)').'</option>
+                                <option value="Birthday" '.$birthday.'>'._('Birthday (repeats)').'</option>
+                                <option value="Holiday" '.$holiday.'>'._('Holiday (repeats)').'</option>
+                                <option value="Other" '.$other.'>'._('Other').'</option>
+                            </select>';
+                $private = '<input type="checkbox" name="private" id="private"';
+                if ($row['private'] == 1) {
+                    $private .= ' checked="checked"';
+                }
+                $private .= '/>';
+                $edit_delete = '<p><input type="hidden" name="id" value="'.$row['id'].'"/>
+                            <input class="sub1" type="submit" ';
                 if ($type == 'edit') {
-                    echo $LANG['edit'];
+                    $edit_delete .= 'name="edit" value="'._('Edit').'"/> ';
                 } else {
-                    echo $LANG['add'];
+                    $edit_delete .= 'name="add" value="'._('Add').'"/> ';
                 }
-                echo " ".$LANG['cal_entry']."</legend>\n\t\t\t";
-                if ($type != 'show') {
-                    echo "<form id=\"frm\" method=\"post\" action=\"calendar.php\">\n\t\t\t\t";
+                if ($type == 'edit') {
+                    $edit_delete .= '<input class="sub2" type="submit" id="delcal" name="delete" value="'._('Delete').'"/>';
                 }
-                echo "<div class=\"field-row clearfix\"><div class=\"field-label\">";
-                echo "<label for=\"title\"><b>" . $LANG['title'] . "</b></label></div>";
-                echo "<div class=\"field-widget\">";
-                if ($type == 'show') {
-                    echo $row['title'] . "</div></div>\n\t\t\t\t";
-                } else {
-                    echo "<span><input type=\"text\" ";
-                    echo "class=\"required\" id=\"title\" name=\"title\" size=\"40\"";
-                    if ($type == 'edit') {
-                        echo " value=\"" . htmlentities($row['title'], ENT_COMPAT, 'UTF-8')  . "\"";
-                    }
-                    echo "/></span></div></div>\n\t\t\t\t";
-                    echo "<script type=\"text/javascript\">\n\t\t\t\t\t";
-                    echo "var ftitle = new LiveValidation('title', { validMessage: \"";
-                    echo $LANG['lv_thanks'] . "\", wait: 500});\n\t\t\t\t\t";
-                    echo "ftitle.add(Validate.Presence, {failureMessage: \"";
-                    echo $LANG['lv_sorry_req'] . "\"});\n\t\t\t\t</script>\n\t\t\t\t";
-                }
-                echo "<div class=\"field-row clearfix\"><div class=\"field-label\">";
-                echo "<label for=\"desc\"><b>".$LANG['desc']."</b></label></div>";
-                echo "<div class=\"field-widget\">";
-                if ($type == 'show') {
-                    echo $row['desc'] . "</div></div>\n\t\t\t\t";
-                } else {
-                    echo "<span><input type=\"text\" id=\"desc\" ";
-                    echo "name=\"desc\" size=\"50\"";
-                    if ($type == 'edit') {
-                        echo " value=\"" . htmlentities($row['desc'], ENT_COMPAT, 'UTF-8') . "\"";
-                    }
-                    echo "/></span></div></div>\n\t\t\t\t";
-                }
-                echo "<div class=\"field-row clearfix\"><div class=\"field-label\">";
-                echo "<label for=\"sday\"><b>" . $LANG['sdate'] . "</b></label></div>";
-                echo "<div class=\"field-widget\">";
-                if ($type == 'show') {
-                    echo "$year / $month / $day</div></div>\n\t\t\t\t";
-                } else {
-                    echo "<select id=\"sday\" name=\"sday\">";
-                    $d = 1;
-                    while ($d <= 31) {
-                        if ($day == $d) {
-                            echo "<option value=\"$d\" selected=\"selected\">$d</option>";
-                        } else {
-                            echo "<option value=\"$d\">$d</option>";
-                        }
-                        $d++;
-                    }
-                    echo '</select><select name="smonth">';
-                    $m = 1;
-                    while ($m <= 12) {
-                        if ($month == $m) {
-                            echo "<option value=\"$m\" selected=\"selected\">"
-                                . date('M', mktime(0, 0, 0, $m, 1, 2006))
-                                . "</option>";
-                        } else {
-                            echo "<option value=\"$m\">"
-                                . date('M', mktime(0, 0, 0, $m, 1, 2006))
-                                . "</option>";
-                        }
-                        $m++;
-                    }
-                    echo '</select><select name="syear">';
-                    $y = 1900;
-                    while ($y - 5 <= date('Y')) {
-                        if ($year == $y) {
-                            echo "<option value=\"$y\" selected=\"selected\">$y</option>";
-                        } else {
-                            echo "<option value=\"$y\">$y</option>";
-                        }
-                        $y++;
-                    } 
-                    echo "</select></div></div>\n\t\t\t\t";
-                }
-                echo "<div class=\"field-row clearfix\"><div class=\"field-label\">";
-                echo "<label for=\"type\"><b>" . $LANG['type'] . "</b></label></div>";
-                echo "<div class=\"field-widget\">";
-                if ($type == 'show') {
-                    echo $row['type'] . "</div></div>\n\t\t\t\t";
-                } else {
-                    echo "<select id=\"type\" name=\"type\"><option value=\"Anniversary\"";
-                    if ($row['type'] == 'Anniversary') {
-                        echo " selected=\"selected\"";
-                    }
-                    echo ">" . $LANG['anniversary_rpt'] . "</option><option value=\"Birthday\"";
-                    if ($row['type'] == 'Birthday') {
-                        echo " selected=\"selected\"";
-                    }
-                    echo ">" . $LANG['birthday_rpt'] . "</option><option value=\"Holiday\"";
-                    if ($row['type'] == 'Holiday') {
-                        echo " selected=\"selected\"";
-                    }
-                    echo ">" . $LANG['holiday_rpt'] . "</option><option value=\"Other\"";
-                    if ($row['type'] == 'Other') {
-                        echo " selected=\"selected\"";
-                    }
-                    echo ">" . $LANG['other_one'] . "</option></select></div></div>\n\t\t\t\t";
-                }
-                echo "<div class=\"field-row clearfix\"><div class=\"field-label\">";
-                echo "<label for=\"private\"><b>" . $LANG['private'] . "</b></label></div>";
-                echo "<div class=\"field-widget\">";
-                if ($type == 'show') {
+                $cancel = _('or').' &nbsp;<a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'._('Cancel').'</a></p>';
+
+                // Edit
+                if ($type == 'edit') {
+                    $legend = _('Edit Calendar Entry');
+                    $title = '<input type="text" id="title" name="title" size="40" value="'.htmlentities($row['title'], ENT_COMPAT, 'UTF-8').'">
+                            <script type="text/javascript">
+                                var ftitle = new LiveValidation(\'title\', { onlyOnSubmit: true});
+                                ftitle.add(Validate.Presence, {failureMessage: ""});
+                            </script>';
+                    $desc = '<input type="text" id="desc" name="desc" size="50" value="'.htmlentities($row['desc'], ENT_COMPAT, 'UTF-8').'">';
+                // Show
+                } elseif ($type == 'show') {
+                    $legend = _('Calendar Entry');
+                    $formStart = $formEnd = '';
+                    $title = $row['title'];
+                    $desc = $row['desc'];
+                    $date = "$year / $month / $day";
+                    $type_options = $row['type'];
+                    $private = _('No');
                     if ($row['private'] == 1) {
-                        echo $LANG['yes'] . "</div></div>\n\t\t\t\t";
-                    } else {
-                        echo $LANG['no'] . "</div></div>\n\t\t\t\t";
+                        $private = _('Yes');
                     }
+                    $edit_delete = '';
+                    $cancel = '<p><a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'._('Cancel').'</a></p>';
+                // Add
                 } else {
-                    echo "<input type=\"checkbox\" name=\"private\" id=\"private\"";
-                    if ($row['private'] == 1) {
-                        echo " checked=\"checked\"";
-                    }
-                    echo "/></div></div>\n\t\t\t\t";
+                    $legend = _('Add Calendar Entry');
+                    $title = '<input type="text" id="title" name="title" size="40">
+                            <script type="text/javascript">
+                                var ftitle = new LiveValidation(\'title\', { onlyOnSubmit: true});
+                                ftitle.add(Validate.Presence, {failureMessage: ""});
+                            </script>';
+                    $desc = '<input type="text" id="desc" name="desc" size="50">';
                 }
-                if ($type == 'show') {
-                    echo "<p><a href=\"calendar.php?year=$year&amp;month=$month&amp;day=$day\">";
-                    echo $LANG['cancel'] . "</a></p>";
-                } else {
-                    echo "<p><input type=\"hidden\" name=\"id\" value=\"" . $row['id'] . "\"/>";
-                    echo "<input type=\"submit\" ";
-                    if ($type == 'edit') {
-                        echo "name=\"edit\" value=\"" . $LANG['edit'] . "\" "
-                            . "title=\"" . $LANG['edit_cal'] . "\"/> ";
-                    } else {
-                        echo "name=\"add\" value=\"" . $LANG['add'] . "\" "
-                            . "title=\"".$LANG['add_cal']."\"/> ";
-                    }
-                    if ($type == 'edit') {
-                        echo '<input type="submit" id="delcal" name="delete" value="'
-                            . $LANG['delete'].'" title="'.$LANG['delete_cal'].'"/>';
-                    }
-                    echo "</p>\n\t\t\t</form>\n\t\t\t</fieldset>\n";
-                }
+
+                //-------------------------------------
+                // Show info
+                //-------------------------------------
+                echo '
+            <fieldset>
+                <legend><span>'.$legend.'</span></legend>
+                '.$formStart.'
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="title"><b>'._('Title').'</b></label></div>
+                        <div class="field-widget">
+                            '.$title.'
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="desc"><b>'._('Description').'</b></label></div>
+                        <div class="field-widget">
+                            '.$desc.'
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="sday"><b>'._('Date').'</b></label></div>
+                        <div class="field-widget">
+                            '.$date.'
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="type"><b>'._('Type').'</b></label></div>
+                        <div class="field-widget">
+                            '.$type_options.'
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="private"><b>'._('Private?').'</b></label></div>
+                        <div class="field-widget">
+                            '.$private.'
+                        </div>
+                    </div>
+                    '.$edit_delete.'
+                    '.$cancel.'
+                </form>
+            </fieldset>';
                 return false;
             } else {
-                echo "<p class=\"error-alert\">" . $LANG['err_no_edit_cal'] . "</p>";
+                echo '<p class="error-alert">'._('You do not have permission to edit this Calendar Entry.').'</p>';
                 return true;
             }
         } else {
-            echo "<p class=\"error-alert\">" . $LANG['err_private_cal'] . "</p>";
+            echo '<p class="error-alert">'._('You can not edit this event because it is private.').'</p>';
             return true;
         }
     }
@@ -808,12 +792,18 @@ class Calendar
      */
     function displayImportForm ()
     {
-        global $LANG;
-        echo "<h2>" . $LANG['import'] . "</h2>\n\t\t\t<br/>\n\t\t\t";
-        echo "<form enctype=\"multipart/form-data\" method=\"post\" ";
-        echo "action=\"calendar.php\">\n\t\t\t\t";
-        echo "<p><input type=\"file\" id=\"file\" name=\"file\"/></p>\n\t\t\t\t";
-        echo "<p><input type=\"submit\" name=\"import\" value=\"" . $LANG['import'] . "\"/></p>";
+        echo '
+            <form enctype="multipart/form-data" method="post" action="calendar.php">
+                <fieldset class="add-edit big">
+                    <legend>'._('Import').'</legend>
+                    <p><input class="frm_file" type="file" id="file" name="file"/></p>
+                    <p>
+                        <input type="submit" name="import" value="'._('Import').'"/> 
+                        '._('or').' &nbsp;
+                        <a href="calendar.php">'._('Cancel').'</a>
+                    </p>
+                </fieldset>
+            </form>';
     }
 
     /**
@@ -823,49 +813,48 @@ class Calendar
      */
     function displayWhatsNewCalendar ()
     {
-        global $LANG;
+        $locale = new Locale();
         $today = date('Y-m-d');
         $tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
-        $sql = "SELECT * "
-             . "FROM `fcms_calendar` "
-             . "WHERE `date_added` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) "
-             . "AND `private` < 1 "
-             . "ORDER BY `date_added` DESC LIMIT 0, 5";
+        $sql = "SELECT * 
+                FROM `fcms_calendar` 
+                WHERE `date_added` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
+                AND `private` < 1 
+                ORDER BY `date_added` DESC LIMIT 0, 5";
         $this->db->query($sql) or displaySQLError(
             'What\'s New Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+        );
         if ($this->db->count_rows() > 0) {
-            echo "\n\t\t\t\t<h3>" . $LANG['link_calendar'] . "</h3>\n\t\t\t\t";
-            echo "<ul>\n";
+            echo '
+            <h3>'._('Calendar').'</h3>
+            <ul>';
             while ($r = $this->db->get_row()) {
                 $title = $r['title'];
-				$displayname = getUserDisplayName($r['created_by']);
-                $monthName = gmdate('M', strtotime($r['date_added'] . $this->tz_offset));
-                $date_added = fixDST(
-                    gmdate('n/j/Y g:i a', strtotime($r['date_added'] . $this->tz_offset)), 
-                    $this->cur_user_id, '. j, Y, g:i a'
-                );
+                $displayname = getUserDisplayName($r['created_by']);
+                $date_added = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $r['date_added']);
                 if (
                     strtotime($r['date_added']) >= strtotime($today) && 
                     strtotime($r['date_added']) > $tomorrow
                 ) {
-                    $full_date = $LANG['today'];
+                    $full_date = _('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = getLangMonthName($monthName) . $date_added;
+                    $full_date = $date_added;
                     $d = '';
                 }
-                echo "\t\t\t\t\t<li><div$d>$full_date</div>";
-                echo "<a href=\"calendar.php?year=" . date('Y', strtotime($r['date']))
-                . "&amp;month=" . date('m', strtotime($r['date'])) . "&amp;day="
-                . date('d', strtotime($r['date'])) . "\">$title (" 
-                . date('n/j/Y', strtotime($r['date']))
-                . ")</a> - <a class=\"u\" href=\"profile.php?member="
-                . $r['created_by'] . "\">$displayname</a></li>\n";
+                $year = date('Y', strtotime($r['date']));
+                $month = date('m', strtotime($r['date']));
+                $day = date('d', strtotime($r['date']));
+                echo '
+                <li>
+                    <div'.$d.'>'.$full_date.'</div>
+                    <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.$title.' ('.date('n/j/Y', strtotime($r['date'])).')</a> - 
+                    <a class="u" href="profile.php?member='.$r['created_by'].'">'.$displayname.'</a>
+                </li>';
             }
-            echo "\t\t\t\t</ul>\n";
+            echo '
+            </ul>';
         }
     }
 
-}
-?>
+}?>

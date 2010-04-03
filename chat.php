@@ -1,21 +1,21 @@
 <?php
 session_start();
+
 if (get_magic_quotes_gpc()) {
-	$_REQUEST = array_map('stripslashes', $_REQUEST);
-	$_GET = array_map('stripslashes', $_GET);
-	$_POST = array_map('stripslashes', $_POST);
-	$_COOKIE = array_map('stripslashes', $_COOKIE);
+    $_REQUEST = array_map('stripslashes', $_REQUEST);
+    $_GET = array_map('stripslashes', $_GET);
+    $_POST = array_map('stripslashes', $_POST);
+    $_COOKIE = array_map('stripslashes', $_COOKIE);
 }
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
-include_once('inc/language.php');
 
 // Check that the user is logged in
 isLoggedIn();
 
 header("Cache-control: private");
 // Setup the Template variables;
-$TMPL['pagetitle'] = $LANG['link_chat'];
+$TMPL['pagetitle'] = _('Chat Room');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = '
@@ -34,9 +34,9 @@ var username = \''.getUserDisplayName($_SESSION['login_id'],2).'\'
 var userid = \''.$_SESSION['login_id'].'\'
 function startChat() {
     document.getElementById(\'txt_message\').focus();
+    getStartChatText();
     sendEnterChatText();
-    getChatText();
-}		
+}        
 function getXmlHttpRequestObject() {
     if (window.XMLHttpRequest) {
         return new XMLHttpRequest();
@@ -45,6 +45,14 @@ function getXmlHttpRequestObject() {
     } else {
         document.getElementById(\'p_status\').innerHTML = \'Status: Cound not create XmlHttpRequest Object.  Consider upgrading your browser.\';
     }
+}
+function getStartChatText() {
+    if (receiveReq.readyState == 4 || receiveReq.readyState == 0) {
+        receiveReq.open("GET", \'inc/getChat.php?chat=text&first=true&last=\' + lastMessage + \'&name=\' + username, true);
+        receiveReq.onreadystatechange = handleReceiveChat; 
+        receiveReq.send(null);
+    }
+    getUsers();
 }
 function getChatText() {
     if (receiveReq.readyState == 4 || receiveReq.readyState == 0) {
@@ -59,7 +67,7 @@ function getUsers() {
         receiveReq2.open("GET", \'inc/getChat.php?users=online&user_id=\' + userid, true);
         receiveReq2.onreadystatechange = handleReceiveUsers; 
         receiveReq2.send(null);
-    }			
+    }            
 }
 function sendEnterChatText() {
     if (sendReq.readyState == 4 || sendReq.readyState == 0) {
@@ -71,7 +79,7 @@ function sendEnterChatText() {
         param += \'&user_id=0\';
         param += \'&enter=chat\';
         sendReq.send(param);
-    }							
+    }                            
 }
 function sendChatText() {
     if(document.getElementById(\'txt_message\').value == \'\') {
@@ -88,7 +96,7 @@ function sendChatText() {
         param += \'&chat=text\';
         sendReq.send(param);
         document.getElementById(\'txt_message\').value = \'\';
-    }							
+    }                            
 }
 function endChat() {
     if (sendReq.readyState == 4 || sendReq.readyState == 0) {
@@ -100,7 +108,7 @@ function endChat() {
         param += \'&user_id=0\';
         param += \'&exit=chat\';
         sendReq.send(param);
-    }							
+    }                            
 }
 function handleSendChat() {
     clearInterval(mTimer);
@@ -163,26 +171,20 @@ function resetChat() {
         var param = \'action=reset\';
         sendReq.send(param);
         document.getElementById(\'txt_message\').value = \'\';
-    }							
+    }                            
 }
 function handleResetChat() {
     document.getElementById(\'div_chat\').innerHTML = \'\';
     getChatText();
-}	
+}    
 //]]>
 </script>';
+
+// Show header
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
-?>
-	<div id="leftcolumn">
-        <?php
-        include_once(getTheme($_SESSION['login_id']) . 'sidenav.php');
-        if (checkAccess($_SESSION['login_id']) < 3) {
-            include_once(getTheme($_SESSION['login_id']) . 'adminnav.php');
-        }
-        ?>
-	</div>
-	<div id="content">
-		<div id="chat" class="centercontent">
+
+echo '
+        <div id="chat" class="centercontent">
             <noscript>
                 <style type="text/css">
                 #div_chat, input, #pagetitle {display: none;}
@@ -191,9 +193,8 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                 </style>
                 <div id="noscript">
                 <p>
-                    JavaScript must be enabled in order for you to use the Chat Room. However, it seems JavaScript is either 
-                    disabled or not supported by your browser. Please enable JavaScript by changing your browser options, 
-                    then <a href="chat.php">try again</a>.
+                    '._('JavaScript must be enabled in order for you to use the Chat Room. However, it seems JavaScript is either 
+                    disabled or not supported by your browser. Please enable JavaScript by changing your browser options.').'
                 </p>
                 </div>
             </noscript>
@@ -201,18 +202,17 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                 <div id="div_chat"></div>
                 <div id="div_users"></div>
                 <div style="clear:both"></div>
-                <form id="frmmain" name="frmmain" onsubmit="return blockSubmit();">
-                    <?php
-                    if (checkAccess($_SESSION['login_id']) < 3) {
-                        echo '<input type="button" name="btn_reset_chat" id="btn_reset_chat" value="Reset Chat" onclick="javascript:resetChat();" /><br />';
-                    } ?>
+                <form id="frmmain" name="frmmain" onsubmit="return blockSubmit();">';
+if (checkAccess($_SESSION['login_id']) < 3) {
+    echo '<input type="button" name="btn_reset_chat" id="btn_reset_chat" value="'._('Reset Chat').'" onclick="javascript:resetChat();" /><br />';
+}
+echo '
                     <input type="text" id="txt_message" name="txt_message" style="width: 447px;" />
-                    <input type="button" name="btn_send_chat" id="btn_send_chat" value="Send" onclick="javascript:sendChatText();" />
+                    <input type="button" name="btn_send_chat" id="btn_send_chat" value="'._('Send').'" onclick="javascript:sendChatText();" />
                 </form>
             </div>
 
-		</div><!-- #chat .centercontent -->
-	</div><!-- #content -->
-	<?php displayFooter(); ?>
-</body>
-</html>
+        </div><!-- #chat .centercontent -->';
+
+// Show Footer
+include_once(getTheme($_SESSION['login_id']) . 'footer.php'); ?>

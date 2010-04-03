@@ -1,7 +1,6 @@
 <?php
 include_once('database_class.php');
 include_once('util_inc.php');
-include_once('language.php');
 
 class Admin {
 
@@ -13,7 +12,8 @@ class Admin {
     var $lastmonth_end;
     var $cur_user_id;
 
-    function Admin ($current_user_id, $type, $host, $database, $user, $pass) {
+    function Admin ($current_user_id, $type, $host, $database, $user, $pass)
+    {
         $this->cur_user_id = $current_user_id;
         $this->lastmonth_beg = gmdate('Y-m', mktime(0, 0, 0, gmdate('m')-1, 1, gmdate('Y'))) . "-01 00:00:00";
         $this->lastmonth_end = gmdate('Y-m', mktime(0, 0, 0, gmdate('m')-1, 1, gmdate('Y'))) . "-31 24:59:59";
@@ -24,11 +24,11 @@ class Admin {
         $this->db->query($sql) or displaySQLError('Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
         $row = $this->db->get_row();
         $this->tz_offset = $row['timezone'];
+        bindtextdomain('messages', '.././language');
     }
 
     function showThreads ($type, $page = '0')
     {
-        global $LANG;
         $from = (($page * 25) - 25);
         if ($type == 'announcement') {
             echo '
@@ -36,25 +36,32 @@ class Admin {
                 <thead>
                     <tr>
                         <th class="images">&nbsp;</th>
-                        <th class="subject">'.$LANG['subject'].'</th>
-                        <th class="replies">'.$LANG['replies'].'</th>
-                        <th class="views">'.$LANG['views'].'</th>
-                        <th class="updated">'.$LANG['last_updated'].'</th>
+                        <th class="subject">'._('Subject').'</th>
+                        <th class="replies">'._('Replies').'</th>
+                        <th class="views">'._('Views').'</th>
+                        <th class="updated">'._('Last Updated').'</th>
                     </tr>
                 </thead>
                 <tbody>';
-            $sql = "SELECT fcms_board_threads.id, subject, started_by, updated, updated_by, views, user 
-                    FROM fcms_board_threads, fcms_board_posts 
-                    WHERE fcms_board_threads.id = fcms_board_posts.thread 
-                    AND subject LIKE '#ANOUNCE#%' 
-                    GROUP BY fcms_board_threads.id 
-                    ORDER BY updated DESC";
+            $sql = "SELECT t.`id`, `subject`, `started_by`, `updated`, `updated_by`, `views`, `user` 
+                    FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
+                    WHERE t.`id` = p.`thread` 
+                    AND `subject` LIKE '#ANOUNCE#%' 
+                    GROUP BY t.`id` 
+                    ORDER BY `updated` DESC";
             $this->db->query($sql) or displaySQLError(
                 'Announcements Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
         } else {
-            $sql = "SELECT fcms_board_threads.id, subject, started_by, updated, updated_by, views, user FROM fcms_board_threads, fcms_board_posts WHERE fcms_board_threads.id = fcms_board_posts.thread AND subject NOT LIKE '#ANOUNCE#%' GROUP BY fcms_board_threads.id ORDER BY updated DESC LIMIT " . $from . ", 25";
-            $this->db->query($sql) or displaySQLError('Threads Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            $sql = "SELECT t.`id`, `subject`, `started_by`, `updated`, `updated_by`, `views`, `user` 
+                    FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
+                    WHERE t.`id` = p.`thread` 
+                    AND `subject` NOT LIKE '#ANOUNCE#%' 
+                    GROUP BY t.`id` 
+                    ORDER BY `updated` DESC LIMIT " . $from . ", 25";
+            $this->db->query($sql) or displaySQLError(
+                'Threads Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
         }
         $alt = 0;
         while ($row=$this->db->get_row()) {
@@ -63,7 +70,7 @@ class Admin {
             $subject = $row['subject'];
             if ($type == 'announcement') {
                 $subject = substr($subject, 9, strlen($subject)-9);
-                $subject = '<small><b>'.$LANG['announcement'].': </b></small>'.$subject;
+                $subject = '<small><b>'._('Announcement').': </b></small>'.$subject;
                 $tr_class = 'announcement';
             } else {
                 if ($alt % 2 == 0) {
@@ -83,9 +90,8 @@ class Admin {
                 } else {
                     $up_class = 'today';
                 }
-                $last_updated = $LANG['today_at'] . " "
-                    . gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset))
-                    . "<br/>" . $LANG['by'] . " $updated_by";
+                $last_updated = sprintf(_('Today at %s'), gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset)))
+                    . "<br/>" . sprintf(_('by %s'), $updated_by);
 
             // Updated Yesterday
             } elseif (
@@ -97,9 +103,8 @@ class Admin {
                 } else {
                     $up_class = 'yesterday';
                 }
-                $last_updated = $LANG['yesterday_at'] . " "
-                    . gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset))
-                    . "<br/>" . $LANG['by'] . " $updated_by";
+                $last_updated = sprintf(_('Yesterday at %s'), gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset)))
+                    . "<br/>" . sprintf(_('by %s'), $updated_by);
 
             // Updated older than yesterday
             } else {
@@ -109,7 +114,7 @@ class Admin {
                     $up_class = '';
                 }
                 $last_updated = gmdate('m/d/Y h:ia', strtotime($row['updated'] . $this->tz_offset))
-                    . "<br/>" . $LANG['by'] . " $updated_by";
+                    . "<br/>" . sprintf(_('by %s'), $updated_by);
             }
             $replies = $this->getNumberOfPosts($row['id']) - 1;
             
@@ -120,8 +125,8 @@ class Admin {
                         <td class="subject">
                             '.$subject.' 
                             <small>
-                                <a class="edit_thread" href="board.php?edit='.$row['id'].'">'.$LANG['edit'].'</a> 
-                                <a class="del_thread" href="board.php?del='.$row['id'].'">'.$LANG['delete'].'</a>
+                                <a class="edit_thread" href="board.php?edit='.$row['id'].'">'._('Edit').'</a> 
+                                <a class="del_thread" href="board.php?del='.$row['id'].'">'._('Delete').'</a>
                             </small><br/>
                             '.$started_by.'
                         </td>
@@ -137,51 +142,82 @@ class Admin {
             echo '
                 </tbody>
             </table>
-            <div class="top clearfix"><a href="#top">'.$LANG['back_top'].'</a></div>';
+            <div class="top clearfix"><a href="#top">'._('Back to Top').'</a></div>';
             $this->displayPages($page);
         }
     }
 
-    function displayEditThread ($thread_id) {
-        global $LANG;
+    function displayEditThread ($thread_id)
+    {
         $sql = "SELECT t.`id`, p.`user`, `subject`, `started_by`, `post` FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p WHERE t.`id` = $thread_id LIMIT 1";
         $this->db->query($sql) or displaySQLError('Edit Thread Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
-        $row = $this->db->get_row(); ?>
-        <form method="post" action="board.php">
-            <h2><?php echo $LANG['edit_thread']; ?></h2>
-            <p><label for="subject"><?php echo $LANG['subject']; ?></label>: <input type="text" name="subject" id="subject" title="Message Subject" size="50" value="<?php $pos = strpos($row['subject'], '#ANOUNCE#'); if ($pos !== false) { $subject = substr($row['subject'], 9, strlen($row['subject'])-9); echo $subject; } else { echo $row['subject']; } ?>"/></p>
-            <p><label for="showname"><?php echo $LANG['name']; ?></label>: <input type="text" disabled="disabled" name="showname" id="showname" title="Your Name" value="<?php echo getUserDisplayName($row['started_by']); ?>" size="50"/></p>
-            <div><input type="hidden" name="name" id="name" value="<?php echo $row['user']; ?>"/></div>
-            <p><label for="sticky"><?php echo $LANG['admin_tools']; ?></label>: <input type="checkbox" <?php $pos = strpos($row['subject'], '#ANOUNCE#'); if ($pos !== false) { echo "checked=\"checked\" "; } ?>name="sticky" id="sticky" value="sticky"/><?php echo $LANG['make_announcement']; ?></p>
-            <p><textarea disabled="disabled" name="post" id="post" rows="10" cols="63"><?php echo $row['post']; ?></textarea></p>
-            <div><input type="hidden" name="threadid" id="threadid" value="<?php echo $thread_id; ?>"/></div>
-            <p><input type="submit" name="edit_submit" id="edit_submit" value="<?php echo $LANG['edit_thread']; ?>"/></p>
-        </form>
-        <?php
+        $row = $this->db->get_row();
+        $pos = strpos($row['subject'], '#ANOUNCE#');
+        $subject = $row['subject'];
+        if ($pos !== false) {
+            $subject = substr($row['subject'], 9, strlen($row['subject'])-9);
+        }
+        $displayname = getUserDisplayName($row['started_by']);
+        $pos = strpos($row['subject'], '#ANOUNCE#');
+        $chk = '';
+        if ($pos !== false) {
+            $chk = 'checked="checked"';
+        }
+        echo '
+            <form method="post" action="board.php">
+                <fieldset>
+                    <legend><span>'._('Edit Thread').'</span></legend>
+                    <p>
+                        <label for="subject">'._('Subject').':</label>
+                        <input class="frm_text" type="text" name="subject" id="subject" size="50" value="'.$subject.'"/>
+                    </p>
+                    <p>
+                        <label for="showname">'._('Name').':</label>
+                        <input type="text" disabled="disabled" name="showname" id="showname" size="50" value="'.$displayname.'"/>
+                    </p>
+                    <div><input type="hidden" name="name" id="name" value="'.$row['user'].'"/></div>
+                    <p>
+                        '._('Admin Tools').':&nbsp;&nbsp;
+                        <input type="checkbox" '.$chk.'  name="sticky" id="sticky" value="sticky"/>
+                        <label for="sticky">'._('Make Announcement').'</label>
+                    </p>
+                    <p><textarea disabled="disabled" name="post" id="post" rows="10" cols="63">'.$row['post'].'</textarea></p>
+                    <div><input type="hidden" name="threadid" id="threadid" value="'.$thread_id.'"/></div>
+                    <p>
+                        <input class="sub1" type="submit" name="edit_submit" id="edit_submit" value="'._('Edit').'"/> 
+                        '._('or').' 
+                        <a href="board.php">'._('Cancel').'</a>
+                    </p>
+                </fieldset>
+            </form>';
     }
 
-    function getNumberOfPosts ($thread_id) {
+    function getNumberOfPosts ($thread_id)
+    {
         $sql = "SELECT COUNT(*) AS c FROM `fcms_board_posts` WHERE `thread` = $thread_id";
         $this->db2->query($sql) or displaySQLError('# of Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
         $row=$this->db2->get_row();
         return $row['c'];
     }
 
-    function getSortOrder ($user_id) {
+    function getSortOrder ($user_id)
+    {
         $sql = "SELECT `boardsort` FROM `fcms_users` WHERE `id` = $user_id";
         $this->db2->query($sql) or displaySQLError('Sort Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
         $row=$this->db2->get_row();
         return $row['boardsort'];
     }
 
-    function getShowAvatar ($user_id) {
+    function getShowAvatar ($user_id)
+    {
         $sql = "SELECT `showavatar` FROM `fcms_users` WHERE `id` = $user_id";
         $this->db2->query($sql) or displaySQLError('Avatar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
         $row=$this->db2->get_row();
         return $row['showavatar'];
     }
 
-    function getUserPostCountById ($user_id) {
+    function getUserPostCountById ($user_id)
+    {
         $sql = "SELECT * FROM `fcms_board_posts`";
         $this->db2->query($sql) or displaySQLError('Post Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
         $total=$this->db2->count_rows();
@@ -196,9 +232,9 @@ class Admin {
         }
     }
 
-    function displayPages ($page = '1', $thread_id = '0') {
-        global $LANG;
-        if($thread_id < 1) {
+    function displayPages ($page = '1', $thread_id = '0')
+    {
+        if ($thread_id < 1) {
             $sql = "SELECT COUNT(id) AS c FROM `fcms_board_threads`";
             $this->db2->query($sql) or displaySQLError('Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
             $row=$this->db2->get_row();
@@ -209,38 +245,57 @@ class Admin {
             $row=$this->db2->get_row();
             $total_pages = ceil($row['c'] / 15); 
         }
-        if($total_pages > 1) {
-            echo "\t\t\t<div class=\"pages clearfix\"><ul>"; 
-            if($page > 1) { 
+        if ($total_pages > 1) {
+            echo '
+            <div class="pages clearfix">
+                <ul>';
+            $url = '';
+            if ($thread_id != 0) {
+                $url = 'thread='.$thread_id.'&amp;';
+            }
+            if ($page > 1) { 
                 $prev = ($page - 1); 
-                echo "<li><a title=\"".$LANG['title_first_page']."\" class=\"first\" href=\"board.php?"; if($thread_id != 0) { echo "thread=$thread_id&amp;"; } echo "page=1\"></a></li>"; 
-                echo "<li><a title=\"".$LANG['title_prev_page']."\" class=\"previous\" href=\"board.php?"; if($thread_id != 0) { echo "thread=$thread_id&amp;"; } echo "page=$prev\"></a></li>"; 
+                echo '
+                    <li><a title="'._('First Page').'" class="first" href="board.php?'.$url.'page=1"></a></li>
+                    <li><a title="'._('Previous Page').'" class="previous" href="board.php?'.$url.'page='.$prev.'"></a></li>'; 
             } 
-            if($total_pages > 8) {
-                if($page > 2) {
-                    for($i = ($page-2); $i <= ($page+5); $i++) {
-                        if($i <= $total_pages) { echo "<li><a href=\"board.php?"; if($thread_id != 0) { echo "thread=$thread_id&amp;"; } echo "page=$i\"";  if($page == $i) { echo " class=\"current\""; } echo ">$i</a></li>"; }
+            if ($total_pages > 8) {
+                if ($page > 2) {
+                    for ($i = ($page-2); $i <= ($page+5); $i++) {
+                        $class = ($page == $i) ? 'class="current"' : '';
+                        if ($i <= $total_pages) {
+                            echo '
+                    <li><a href="board.php?'.$url.'page='.$i.'" '.$class.'>'.$i.'</a></li>';
+                        }
                     } 
                 } else {
-                    for($i = 1; $i <= 8; $i++) { echo "<li><a href=\"board.php?"; if($thread_id != 0) { echo "thread=$thread_id&amp;"; } echo "page=$i\"";  if($page == $i) { echo " class=\"current\""; } echo ">$i</a></li>"; } 
+                    for ($i = 1; $i <= 8; $i++) {
+                        $class = ($page == $i) ? 'class="current"' : '';
+                        echo '
+                    <li><a href="board.php?'.$url.'page='.$i.'" '.$class.'>'.$i.'</a></li>';
+                    } 
                 }
             } else {
-                for($i = 1; $i <= $total_pages; $i++) {
-                    echo "<li><a href=\"board.php?"; if($thread_id != 0) { echo "thread=$thread_id&amp;"; } echo "page=$i\"";  if($page == $i) { echo " class=\"current\""; } echo ">$i</a></li>";
+                for ($i = 1; $i <= $total_pages; $i++) {
+                    $class = ($page == $i) ? 'class="current"' : '';
+                    echo '
+                    <li><a href="board.php?'.$url.'page='.$i.'" '.$class.'>'.$i.'</a></li>';
                 } 
             }
-            if($page < $total_pages) { 
+            if ($page < $total_pages) { 
                 $next = ($page + 1); 
-                echo "<li><a title=\"".$LANG['title_next_page']."\" class=\"next\" href=\"board.php?"; if($thread_id != 0) { echo "thread=$thread_id&amp;"; } echo "page=$next\"></a></li>"; 
-                echo "<li><a title=\"".$LANG['title_last_page']."\" class=\"last\" href=\"board.php?"; if($thread_id != 0) { echo "thread=$thread_id&amp;"; } echo "page=$total_pages\"></a></li>"; 
+                echo '
+                    <li><a title="'._('Next Page').'" class="next" href="board.php?'.$url.'page='.$next.'"></a></li>
+                    <li><a title="'._('Last Page').'" class="last" href="board.php?'.$url.'page='.$total_pages.'"></a></li>';
             } 
-            echo "</ul></div>\n"; // end of pages div
+            echo '
+                </ul>
+            </div>';
         }
     }
 
     function displayEditPollForm ($pollid = '0')
     {
-        global $LANG;
         $poll_exists = true;
         if ($pollid > 0) {
             $sql = "SELECT `question`, o.`id`, `option` 
@@ -278,11 +333,10 @@ class Admin {
 
         // Display the current poll
         if ($poll_exists) {
-            echo "<br/><h3>".$LANG['edit_polls']."</h3>";
             echo '
             <form id="editform" name="editform" action="?page=admin_polls" method="post">
                 <fieldset>
-                    <legend>'.$LANG['edit_cur_poll'].'</legend>';
+                    <legend><span>'._('Edit Poll').'</span></legend>';
             $i = 1;
             while ($row = $this->db->get_row()) {
                 if ($i < 2) {
@@ -291,7 +345,7 @@ class Admin {
                 }
                 echo '
                     <div class="field-row">
-                        <div class="field-label"><label for="show'.$i.'"><b>'.$LANG['option'].' '.$i.':</b></label></div>
+                        <div class="field-label"><label for="show'.$i.'"><b>'.sprintf(_('Option %s'), $i).':</b></label></div>
                         <div class="field-widget">
                             <input type="text" name="show'.$i.'" id="show'.$i.'" ';
                 if ($i < 3) {
@@ -301,7 +355,7 @@ class Admin {
                             <input type="hidden" name="option'.$i.'" value="'.$row['id'].'"/>';
                 if ($i >= 3) {
                     echo '
-                            <input type="button" name="deleteoption" class="delbtn" value="'.$LANG['delete'].'" title="'.$LANG['delete'].'" onclick="document.editform.show'.$i.'.value=\'\';"/>';
+                            <input type="button" name="deleteoption" class="delbtn" value="'._('Delete').'" title="'._('Delete').'" onclick="document.editform.show'.$i.'.value=\'\';"/>';
                 }
                 echo '
                         </div>
@@ -311,7 +365,7 @@ class Admin {
             while ($i < 11) {
                 echo '
                     <div class="field-row">
-                        <div class="field-label"><label for="show'.$i.'"><b>'.$LANG['option'].' '.$i.':</b></label></div>
+                        <div class="field-label"><label for="show'.$i.'"><b>'.sprintf(_('Option %s'), $i).':</b></label></div>
                         <div class="field-widget">
                             <input type="text" id="show'.$i.'" name="show'.$i.'" size="50" value=""/>
                             <input type="hidden" name="option'.$i.'" value="new"/>
@@ -320,52 +374,108 @@ class Admin {
                 $i++;
             }
             echo '
+                    <p>
+                        <input class="sub1" type="submit" name="editsubmit" id="editsubmit" value="'._('Edit').'"/> &nbsp;
+                        <a href="polls.php">'._('Cancel').'</a>
+                    </p>
                 </fieldset>
-                <p><input type="submit" name="editsubmit" id="editsubmit" value="'.$LANG['edit'].'"/></p>
             </form>';
         }
     }
 
-    function displayAddPollForm() { 
-        global $show, $LANG;
-        $show = false; ?>
-        <script type="text/javascript" src="../inc/livevalidation.js"></script>
-        <form id="addform" action="polls.php" method="post">
-        <fieldset><legend><?php echo $LANG['add_new_poll']; ?></legend>
-        <div class="field-row"><div class="field-label"><label for="question"><?php echo $LANG['poll_question']; ?></label>:</div> <div class="field-widget"><input type="text" name="question" id="question" class="required" title="<?php echo $LANG['title_poll_question']; ?>" size="50"/></div></div>
-        <script type="text/javascript">
-            var fq = new LiveValidation('question', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
-            fq.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_sorry_req']; ?>"});
-        </script>
-        <div class="field-row"><div class="field-label"><label for="option1"><?php echo $LANG['option']; ?> 1</label>:</div> <div class="field-widget"><input type="text" name="option1" id="option1" class="required" title="<?php echo $LANG['title_two_options']; ?>" size="40"/></div></div>
-        <script type="text/javascript">
-            var foption1 = new LiveValidation('option1', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
-            foption1.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_2_options']; ?>"});
-        </script>
-        <div class="field-row"><div class="field-label"><label for="option2"><?php echo $LANG['option']; ?> 2</label>:</div> <div class="field-widget"><input type="text" name="option2" id="option2" class="required" title="<?php echo $LANG['title_two_options']; ?>" size="40"/></div></div>
-        <script type="text/javascript">
-            var foption2 = new LiveValidation('option2', { validMessage: "<?php echo $LANG['lv_thanks']; ?>", wait: 500});
-            foption2.add(Validate.Presence, {failureMessage: "<?php echo $LANG['lv_2_options']; ?>"});
-        </script>
-        <div class="field-row"><div class="field-label"><label for="option3"><?php echo $LANG['option']; ?> 3</label>:</div> <div class="field-widget"><input type="text" name="option3" id="option3" class="" title="<?php echo $LANG['title_options']; ?>" size="40"/></div></div>
-        <div class="field-row"><div class="field-label"><label for="option4"><?php echo $LANG['option']; ?> 4</label>:</div> <div class="field-widget"><input type="text" name="option4" id="option4" class="" title="<?php echo $LANG['title_options']; ?>" size="40"/></div></div>
-        <div class="field-row"><div class="field-label"><label for="option5"><?php echo $LANG['option']; ?> 5</label>:</div> <div class="field-widget"><input type="text" name="option5" id="option5" class="" title="<?php echo $LANG['title_options']; ?>" size="40"/></div></div>
-        <div class="field-row"><div class="field-label"><label for="option6"><?php echo $LANG['option']; ?> 6</label>:</div> <div class="field-widget"><input type="text" name="option6" id="option6" class="" title="<?php echo $LANG['title_options']; ?>" size="40"/></div></div>
-        <div class="field-row"><div class="field-label"><label for="option7"><?php echo $LANG['option']; ?> 7</label>:</div> <div class="field-widget"><input type="text" name="option7" id="option7" class="" title="<?php echo $LANG['title_options']; ?>" size="40"/></div></div>
-        <div class="field-row"><div class="field-label"><label for="option8"><?php echo $LANG['option']; ?> 8</label>:</div> <div class="field-widget"><input type="text" name="option8" id="option8" class="" title="<?php echo $LANG['title_options']; ?>" size="40"/></div></div>
-        <div class="field-row"><div class="field-label"><label for="option9"><?php echo $LANG['option']; ?> 9</label>:</div> <div class="field-widget"><input type="text" name="option9" id="option9" class="" title="<?php echo $LANG['title_options']; ?>" size="40"/></div></div>
-        <div class="field-row"><div class="field-label"><label for="option10"><?php echo $LANG['option']; ?> 10</label>:</div> <div class="field-widget"><input type="text" name="option10" id="option10" class="" title="<?php echo $LANG['title_options']; ?>" size="40"/></div></div>
-        </fieldset>
-        <input type="submit" name="addsubmit" value="<?php echo $LANG['add']; ?>"/></form>
-        <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><?php 
+    function displayAddPollForm()
+    {
+        global $show;
+        $show = false;
+        echo '
+            <script type="text/javascript" src="../inc/livevalidation.js"></script>
+            <form id="addform" action="polls.php" method="post">
+                <fieldset>
+                    <legend><span>'._('Add New Poll').'</span></legend>
+                    <div class="field-row">
+                        <div class="field-label"><label for="question"><b>'._('Poll Question').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="question" id="question" class="required" size="50"/></div>
+                    </div>
+                    <script type="text/javascript">
+                        var fq = new LiveValidation(\'question\', { onlyOnSubmit: true });
+                        fq.add(Validate.Presence, { failureMessage: "'._('Required').'" });
+                    </script>
+                    <div class="field-row">
+                        <div class="field-label"><label for="option1"><b>'.sprintf(_('Option %s'), '1').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="option1" id="option1" class="required" size="40"/></div>
+                    </div>
+                    <script type="text/javascript">
+                        var foption1 = new LiveValidation(\'option1\', { onlyOnSubmit: true });
+                        foption1.add(Validate.Presence, {failureMessage: "'._('Without at least 2 options, it\'s not much of a poll is it?').'"});
+                    </script>
+                    <div class="field-row">
+                        <div class="field-label"><label for="option2"><b>'.sprintf(_('Option %s'), '2').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="option2" id="option2" class="required" size="40"/></div>
+                    </div>
+                    <script type="text/javascript">
+                        var foption2 = new LiveValidation(\'option2\', { onlyOnSubmit: true });
+                        foption2.add(Validate.Presence, {failureMessage: "'._('Without at least 2 options, it\'s not much of a poll is it?').'"});
+                    </script>
+                    <div class="field-row">
+                        <div class="field-label"><label for="option3"><b>'.sprintf(_('Option %s'), '3').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="option3" id="option3" size="40"/></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label"><label for="option4"><b>'.sprintf(_('Option %s'), '4').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="option4" id="option4" size="40"/></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label"><label for="option5"><b>'.sprintf(_('Option %s'), '5').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="option5" id="option5" size="40"/></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label"><label for="option6"><b>'.sprintf(_('Option %s'), '6').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="option6" id="option6" size="40"/></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label"><label for="option7"><b>'.sprintf(_('Option %s'), '7').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="option7" id="option7" size="40"/></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label"><label for="option8"><b>'.sprintf(_('Option %s'), '8').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="option8" id="option8" size="40"/></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label"><label for="option9"><b>'.sprintf(_('Option %s'), '9').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="option9" id="option9" size="40"/></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field-label"><label for="option10"><b>'.sprintf(_('Option %s'), '10').'</b></label></div> 
+                        <div class="field-widget"><input type="text" name="option10" id="option10" size="40"/></div>
+                    </div>
+                    <p>
+                        <input class="sub1" type="submit" name="addsubmit" value="'._('Add').'"/> &nbsp;
+                        <a href="polls.php">'._('Cancel').'</a>
+                    </p>
+                </fieldset>
+            </form>';
     }
 
-    function getTopThreadStarter () {
-        $sql = "SELECT *, count(`thread`) AS 'thread_count' FROM `fcms_board_posts` WHERE `date` >= '" . $this->lastmonth_beg . "' AND `date` <= '" . $this->lastmonth_end . "' GROUP BY `thread` ORDER BY 'thread_count' DESC LIMIT 1";
-        $this->db->query($sql) or displaySQLError('Thread Starter Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
-        while($row=$this->db->get_row()) {
-            $sql = "UPDATE `fcms_user_awards` SET `user` = '" . $row['user'] . "', `value` = '" . $row['thread'] . "', `count` = '" . $row['thread_count'] . "' WHERE `type` = 'topthreadstarter'";
-            $this->db2->query($sql) or displaySQLError('Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+    function getTopThreadStarter ()
+    {
+        $sql = "SELECT *, count(`thread`) AS 'thread_count' 
+                FROM `fcms_board_posts` 
+                WHERE `date` >= '" . $this->lastmonth_beg . "' 
+                AND `date` <= '" . $this->lastmonth_end . "' 
+                GROUP BY `thread` 
+                ORDER BY 'thread_count' DESC LIMIT 1";
+        $this->db->query($sql) or displaySQLError(
+            'Thread Starter Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        while ($row=$this->db->get_row()) {
+            $sql = "UPDATE `fcms_user_awards` 
+                    SET `user` = '" . $row['user'] . "', 
+                        `value` = '" . $row['thread'] . "', 
+                        `count` = '" . $row['thread_count'] . "' 
+                    WHERE `type` = 'topthreadstarter'";
+            $this->db2->query($sql) or displaySQLError(
+                'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
         }
         if ($this->db->count_rows() > 0) {
             return true;
@@ -374,42 +484,95 @@ class Admin {
         }
     }
 
-    function getMostViewedPhoto () {
-        $sql = "SELECT `id`, `user`, `views` FROM `fcms_gallery_photos` WHERE date >= '" . $this->lastmonth_beg . "' AND date <= '" . $this->lastmonth_end . "' ORDER BY `views` DESC LIMIT 1";
-        $this->db->query($sql) or displaySQLError('Viewed Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
-        while($row=$this->db->get_row()) {
-            $sql = "UPDATE `fcms_user_awards` SET `user` = '" . $row['user'] . "', `value` = '" . $row['id'] . "', `count` = '" . $row['views'] . "' WHERE `type` = 'topviewedphoto'";
-            $this->db2->query($sql) or displaySQLError('Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+    function getMostViewedPhoto ()
+    {
+        $sql = "SELECT `id`, `user`, `views` 
+                FROM `fcms_gallery_photos` 
+                WHERE date >= '" . $this->lastmonth_beg . "' 
+                    AND date <= '" . $this->lastmonth_end . "' 
+                ORDER BY `views` DESC LIMIT 1";
+        $this->db->query($sql) or displaySQLError(
+            'Viewed Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        while ($row=$this->db->get_row()) {
+            $sql = "UPDATE `fcms_user_awards` 
+                    SET `user` = '" . $row['user'] . "', 
+                        `value` = '" . $row['id'] . "', 
+                        `count` = '" . $row['views'] . "' 
+                    WHERE `type` = 'topviewedphoto'";
+            $this->db2->query($sql) or displaySQLError(
+                'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
         }
     }
 
-    function getTopPosters () {
-        $sql = "SELECT `user`, count(`user`) AS 'post_count' FROM `fcms_board_posts` AS p WHERE `date` >= '" . $this->lastmonth_beg . "' AND `date` <= '" . $this->lastmonth_end . "' GROUP BY `user` ORDER BY 'post_count' DESC LIMIT 5";
-        $this->db->query($sql) or displaySQLError('Top Posters Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+    function getTopPosters ()
+    {
+        $sql = "SELECT `user`, count(`user`) AS 'post_count' 
+                FROM `fcms_board_posts` AS p 
+                WHERE `date` >= '" . $this->lastmonth_beg . "' 
+                    AND `date` <= '" . $this->lastmonth_end . "' 
+                GROUP BY `user` 
+                ORDER BY 'post_count' DESC 
+                LIMIT 5";
+        $this->db->query($sql) or displaySQLError(
+            'Top Posters Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $i = 1;
-        while($row=$this->db->get_row()) {
-            $sql = "UPDATE `fcms_user_awards` SET `user` = '" . $row['user'] . "', `value` = '$i', `count` = '" . $row['post_count'] . "' WHERE `type` = 'top5poster' AND `value` = '$i'";
-            $this->db2->query($sql) or displaySQLError('Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        while ($row=$this->db->get_row()) {
+            $sql = "UPDATE `fcms_user_awards` 
+                    SET `user` = '" . $row['user'] . "', 
+                        `value` = '$i', 
+                        `count` = '" . $row['post_count'] . "' 
+                    WHERE `type` = 'top5poster' 
+                        AND `value` = '$i'";
+            $this->db2->query($sql) or displaySQLError(
+                'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $i++;
         }
     }
 
-    function getTopPhotoSubmitters () {
-        $sql = "SELECT `user`, count(*) AS c FROM `fcms_gallery_photos` WHERE `date` >= '" . $this->lastmonth_beg . "' AND `date` <= '" . $this->lastmonth_end . "' GROUP BY `user` ORDER BY c DESC LIMIT 5";
-        $this->db->query($sql) or displaySQLError('Submitters Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+    function getTopPhotoSubmitters ()
+    {
+        $sql = "SELECT `user`, count(*) AS c 
+                FROM `fcms_gallery_photos` 
+                WHERE `date` >= '" . $this->lastmonth_beg . "' 
+                    AND `date` <= '" . $this->lastmonth_end . "' 
+                GROUP BY `user` 
+                ORDER BY c DESC 
+                LIMIT 5";
+        $this->db->query($sql) or displaySQLError(
+            'Submitters Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $i = 1;
-        while($row=$this->db->get_row()) {
-            $sql = "UPDATE `fcms_user_awards` SET `user` = '" . $row['user'] . "', `value` = '$i', `count` = '" . $row['c'] . "' WHERE `type` = 'top5photo' AND `value` = '$i'";
-            $this->db2->query($sql) or displaySQLError('Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        while ($row=$this->db->get_row()) {
+            $sql = "UPDATE `fcms_user_awards` 
+                    SET `user` = '" . $row['user'] . "', 
+                        `value` = '$i', 
+                        `count` = '" . $row['c'] . "' 
+                    WHERE `type` = 'top5photo' 
+                        AND `value` = '$i'";
+            $this->db2->query($sql) or displaySQLError(
+                'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $i++;
         }
     }
 
-    function getMostSmileys () {
+    function getMostSmileys ()
+    {
         $most_smileys = '0';
         $most_smileys_user = '0';
-        $sql = "SELECT `id` FROM `fcms_users` WHERE `username` != 'SITENEWS' AND `username` != 'test' AND `username` != 'reunion' ORDER BY `id`";
-        $this->db->query($sql) or displaySQLError('Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        $sql = "SELECT `id` 
+                FROM `fcms_users` 
+                WHERE `username` != 'SITENEWS' 
+                    AND `username` != 'test' 
+                    AND `username` != 'reunion' 
+                ORDER BY `id`";
+        $this->db->query($sql) or displaySQLError(
+            'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $users;
         $i = 1;
         while ($row = $this->db->get_row()) {
@@ -417,32 +580,82 @@ class Admin {
             $i++;
         }
         foreach ($users as $user) {
-            $sql = "SELECT count(`user`) AS 'post_count' FROM `fcms_board_posts` AS p WHERE `date` >= '" . $this->lastmonth_beg . "' AND `date` <= '" . $this->lastmonth_end . "' AND `user` = $user GROUP BY `user` ORDER BY post_count DESC";
-            $this->db->query($sql) or displaySQLError('Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            $sql = "SELECT count(`user`) AS 'post_count' 
+                    FROM `fcms_board_posts` AS p 
+                    WHERE `date` >= '" . $this->lastmonth_beg . "' 
+                        AND `date` <= '" . $this->lastmonth_end . "' 
+                        AND `user` = $user 
+                    GROUP BY `user` 
+                    ORDER BY post_count DESC";
+            $this->db->query($sql) or displaySQLError(
+                'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $row = $this->db->get_row();
             $this_user_post_count = $row['post_count'];
-            $sql = "SELECT count(`id`) AS 'smileys' FROM `fcms_board_posts` WHERE `date` >= '" . $this->lastmonth_beg . "' AND `date` <= '" . $this->lastmonth_end . "' AND `user` = $user AND (`post` LIKE '%:smile:%' OR `post` LIKE '%:biggrin:%' OR  `post` LIKE '%:clap:%' OR `post` LIKE '%:hrmm:%' OR `post` LIKE '%:tongue:%' OR `post` LIKE '%:wink:%' OR `post` LIKE '%:doh:%')";
-            $this->db->query($sql) or displaySQLError('Smileys Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            $sql = "SELECT count(`id`) AS 'smileys' 
+                    FROM `fcms_board_posts` 
+                    WHERE `date` >= '" . $this->lastmonth_beg . "' 
+                        AND `date` <= '" . $this->lastmonth_end . "' 
+                        AND `user` = $user 
+                        AND (
+                            `post` LIKE '%:smile:%' 
+                            OR `post` LIKE '%:biggrin:%' 
+                            OR  `post` LIKE '%:clap:%' 
+                            OR `post` LIKE '%:hrmm:%' 
+                            OR `post` LIKE '%:tongue:%' 
+                            OR `post` LIKE '%:wink:%' 
+                            OR `post` LIKE '%:doh:%'
+                        )";
+            $this->db->query($sql) or displaySQLError(
+                'Smileys Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $row = $this->db->get_row();
             if ($this_user_post_count > 0) {
-                if ((($row['smileys'] / $this_user_post_count) * 100)  > $most_smileys && $this_user_post_count >= 5) {
+                if ((($row['smileys'] / $this_user_post_count) * 100) > $most_smileys && $this_user_post_count >= 5) {
                     $most_smileys_user = $user;
                     $most_smileys = ($row['smileys'] / $this_user_post_count) * 100;
                 }
             }
         }
         if ($most_smileys_user < 1) { $most_smileys_user = 1; }
-        $sql = "UPDATE `fcms_user_awards` SET `user` = '$most_smileys_user', `value` = '" . date('n') . "', `count` = '$most_smileys' WHERE `type` = 'mostsmileys'";
-        $this->db->query($sql) or displaySQLError('Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        $sql = "UPDATE `fcms_user_awards` 
+                SET `user` = '$most_smileys_user', 
+                    `value` = '" . date('n') . "', 
+                    `count` = '$most_smileys' 
+                WHERE `type` = 'mostsmileys'";
+        $this->db->query($sql) or displaySQLError(
+            'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
     }
 
-    function getStartedMostThreads () {
-        $sql = "SELECT `started_by` , count(*) AS c FROM (SELECT DISTINCT t.`id` , `subject` , `started_by` FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p WHERE t.`id` = p.`thread` AND t.`started_by` = p.`user` AND p.`date` >= '2007-06-01 00:00:00' AND p.`date` <= '2007-06-31 24:59:59') AS z GROUP BY `started_by` ORDER BY c DESC LIMIT 5";
-        $this->db->query($sql) or displaySQLError('Most Threads Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+    function getStartedMostThreads ()
+    {
+        $sql = "SELECT `started_by` , count(*) AS c 
+                FROM (
+                    SELECT DISTINCT t.`id` , `subject` , `started_by` 
+                    FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
+                    WHERE t.`id` = p.`thread` 
+                        AND t.`started_by` = p.`user` 
+                        AND p.`date` >= '2007-06-01 00:00:00' 
+                        AND p.`date` <= '2007-06-31 24:59:59'
+                ) AS z 
+                GROUP BY `started_by` 
+                ORDER BY c DESC 
+                LIMIT 5";
+        $this->db->query($sql) or displaySQLError(
+            'Most Threads Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $i = 1;
-        while($row=$this->db->get_row()) {
-            $sql = "UPDATE `fcms_user_awards` SET `user` = '" . $row['started_by'] . "', `value` = '$i', `count` = '" . $row['c'] . "' WHERE `type` = 'startedmostthreads' AND `value` = '$i'";
-            $this->db2->query($sql) or displaySQLError('Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        while ($row=$this->db->get_row()) {
+            $sql = "UPDATE `fcms_user_awards` 
+                    SET `user` = '" . $row['started_by'] . "', 
+                        `value` = '$i', 
+                        `count` = '" . $row['c'] . "' 
+                    WHERE `type` = 'startedmostthreads' 
+                        AND `value` = '$i'";
+            $this->db2->query($sql) or displaySQLError(
+                'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $i++;
         }
     }
@@ -452,11 +665,30 @@ class Admin {
      *
      * Displays the forms for changing/configuring the sitename,
      * email, auto activation, user defaults and sections.
+     * 
+     * @param   $view   which admin config section to view/edit
+     * @return  n/a
      */
-    function displayAdminConfig ()
+    function displayAdminConfig ($view)
     {
-        global $LANG, $cfg_mysql_db;
+        switch($view) {
+            case 'info':
+                $this->displayAdminConfigInfo();
+                break;
+            case 'defaults':
+                $this->displayAdminConfigDefaults();
+                break;
+            case 'sections':
+                $this->displayAdminConfigSections();
+                break;
+            case 'gallery':
+                $this->displayAdminConfigGallery();
+                break;
+        }
+    }
 
+    function displayAdminConfigInfo ()
+    {
         // General Config
         $sql = "SELECT * FROM `fcms_config`";
         $this->db->query($sql) or displaySQLError(
@@ -465,9 +697,9 @@ class Admin {
         $row = $this->db->get_row();
         
         // Activate Options
-        $activate_list = array(
-            "0" => $LANG['admin_activation'],
-            "1" => $LANG['auto_activation']
+        $activate_list = array (
+            "0" => _('Admin Activation'),
+            "1" => _('Auto Activation')
         );
         $activate_options = buildHtmlSelectOptions($activate_list, $row['auto_activate']);
         // Site Off Options
@@ -475,54 +707,57 @@ class Admin {
             . 'value="yes"';
         if ($row['site_off'] == 1) { $site_off_options .= ' checked="checked"'; }
         $site_off_options .= '><label class="radio_label" for="site_off_yes"> '
-            . $LANG['yes'] . '</label><br><input type="radio" name="site_off" '
+            . _('Yes') . '</label><br><input type="radio" name="site_off" '
             . 'id="site_off_no" value="no"';
         if ($row['site_off'] == 0) { $site_off_options .= ' checked="checked"'; }
         $site_off_options .= '><label class="radio_label" for="site_off_no"> '
-            . $LANG['no'] . '</label>';
+            . _('No') . '</label>';
         
-        echo <<<HTML
+        echo '
         <form action="config.php" method="post">
         <fieldset class="general_cfg">
-            <legend>{$LANG['site_info']}</legend>
+            <legend><span>'._('Website Information').'</span></legend>
             <div id="site_info">
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="sitename"><b>{$LANG['site_name']}</b></label></div>
+                    <div class="field-label"><label for="sitename"><b>'._('Site Name').'</b></label></div>
                     <div class="field-widget">
-                        <input type="text" name="sitename" size="50" value="{$row['sitename']}"/>
+                        <input type="text" name="sitename" size="50" value="'.$row['sitename'].'"/>
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="contact"><b>{$LANG['contact']}</b></label></div>
+                    <div class="field-label"><label for="contact"><b>'._('Contact Email').'</b></label></div>
                     <div class="field-widget">
-                        <input type="text" id="contact" name="contact" size="50" value="{$row['contact']}"/>
+                        <input type="text" id="contact" name="contact" size="50" value="'.$row['contact'].'"/>
                     </div>
                 </div>
                 <script type="text/javascript">
-                    var email = new LiveValidation('contact', {validMessage: "", wait: 500});
-                    email.add(Validate.Email, {failureMessage: "{$LANG['lv_bad_email']}"});
+                    var email = new LiveValidation(\'contact\', {onlyOnSubmit: true});
+                    email.add(Validate.Email, {failureMessage: "'._('That\'s not a valid email address is it?').'"});
                     email.add(Validate.Length, {minimum: 10});
                 </script>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="activation"><b>{$LANG['account_activation']}</b></label></div>
+                    <div class="field-label"><label for="activation"><b>'._('Account Activation').'</b></label></div>
                     <div class="field-widget">
                         <select name="activation">
-                            {$activate_options}
+                            '.$activate_options.'
                         </select>
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="site_off"><b>Turn Off Site?</b></label></div>
+                    <div class="field-label"><label for="site_off"><b>'._('Turn Off Site?').'</b></label></div>
                     <div class="field-widget">
-                        {$site_off_options}
+                        '.$site_off_options.'
                     </div>
                 </div>
-                <p><input type="submit" id="submit-sitename" name="submit-sitename" value="{$LANG['save']}"/></p>
+                <p><input type="submit" id="submit-sitename" name="submit-sitename" value="'._('Save').'"/></p>
             </div>
         </fieldset>
-        </form>
-HTML;
-        
+        </form>';
+    }
+
+    function displayAdminConfigDefaults ()
+    {
+ 
         // Defaults Config
         $sql = "DESCRIBE `fcms_user_settings`";
         $this->db3->query($sql) or displaySQLError(
@@ -581,295 +816,300 @@ HTML;
             . 'value="yes"';
         if ($default_showavatar == 1) { $avatars_options .= ' checked="checked"'; }
         $avatars_options .= '><label class="radio_label" for="showavatar_yes"> '
-            . $LANG['yes'] . '</label><br><input type="radio" name="showavatar" '
+            . _('Yes') . '</label><br><input type="radio" name="showavatar" '
             . 'id="showavatar_no" value="no"';
         if ($default_showavatar == 0) { $avatars_options .= ' checked="checked"'; }
         $avatars_options .= '><label class="radio_label" for="showavatar_no"> '
-            . $LANG['no'] . '</label>';
+            . _('No') . '</label>';
         // Display Name
         $displayname_list = array(
-            "1" => $LANG['first_name'],
-            "2" => $LANG['first_last_name'],
-            "3" => $LANG['username']
+            "1" => _('First Name'),
+            "2" => _('First & Last Name'),
+            "3" => _('Username')
         );
         $displayname_options = buildHtmlSelectOptions($displayname_list, $default_displayname);
         // Frontpage
         $frontpage_list = array(
-            "1" => $LANG['all_by_date'],
-            "2" => $LANG['last_5_sections']
+            "1" => _('All (by date)'),
+            "2" => _('Last 5 (by section)')
         );
         $frontpage_options = buildHtmlSelectOptions($frontpage_list, $default_frontpage);
         // Timezone
         $tz_list = array(
-            "-12 hours" => $LANG['tz_12'],
-            "-11 hours" => $LANG['tz_11'],
-            "-10 hours" => $LANG['tz_10'],
-            "-9 hours" => $LANG['tz_9'],
-            "-8 hours" => $LANG['tz_8'],
-            "-7 hours" => $LANG['tz_7'],
-            "-6 hours" => $LANG['tz_6'],
-            "-5 hours" => $LANG['tz_5'],
-            "-4 hours" => $LANG['tz_4'],
-            "-3 hours -30 minutes" => $LANG['tz_33'],
-            "-3 hours" => $LANG['tz_3'],
-            "-2 hours" => $LANG['tz_2'],
-            "-1 hours" => $LANG['tz_1'],
-            "-0 hours" => $LANG['tz0'],
-            "+1 hours" => $LANG['tz1'],
-            "+2 hours" => $LANG['tz2'],
-            "+3 hours" => $LANG['tz3'],
-            "+3 hours 30 minutes" => $LANG['tz33'],
-            "+4 hours" => $LANG['tz4'],
-            "+4 hours 30 minutes" => $LANG['tz43'],
-            "+5 hours" => $LANG['tz5'],
-            "+5 hours 30 minutes" => $LANG['tz53'],
-            "+6 hours" => $LANG['tz6'],
-            "+7 hours" => $LANG['tz7'],
-            "+8 hours" => $LANG['tz8'],
-            "+9 hours" => $LANG['tz9'],
-            "+9 hours 30 minutes" => $LANG['tz93'],
-            "+10 hours" => $LANG['tz10'],
-            "+11 hours" => $LANG['tz11'],
-            "+12 hours" => $LANG['tz12']
+            "-12 hours" => _('(GMT -12:00) Eniwetok, Kwajalein'),
+            "-11 hours" => _('(GMT -11:00) Midway Island, Samoa'),
+            "-10 hours" => _('(GMT -10:00) Hawaii'),
+            "-9 hours" => _('(GMT -9:00) Alaska'),
+            "-8 hours" => _('(GMT -8:00) Pacific Time (US & Canada)'),
+            "-7 hours" => _('(GMT -7:00) Mountain Time (US & Canada)'),
+            "-6 hours" => _('(GMT -6:00) Central Time (US & Canada), Mexico City'),
+            "-5 hours" => _('(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima'),
+            "-4 hours" => _('(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz'),
+            "-3 hours -30 minutes" => _('(GMT -3:30) Newfoundland'),
+            "-3 hours" => _('(GMT -3:00) Brazil, Buenos Aires, Georgetown'),
+            "-2 hours" => _('(GMT -2:00) Mid-Atlantic'),
+            "-1 hours" => _('(GMT -1:00) Azores, Cape Verde Islands'),
+            "-0 hours" => _('(GMT) Western Europe Time, London, Lisbon, Casablanca'),
+            "+1 hours" => _('(GMT +1:00) Brussels, Copenhagen, Madrid, Paris'),
+            "+2 hours" => _('(GMT +2:00) Kaliningrad, South Africa'),
+            "+3 hours" => _('(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh'),
+            "+3 hours 30 minutes" => _('(GMT +3:30) Tehran'),
+            "+4 hours" => _('(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi'),
+            "+4 hours 30 minutes" => _('(GMT +4:30) Kabul'),
+            "+5 hours" => _('(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent'),
+            "+5 hours 30 minutes" => _('(GMT +5:30) Bombay, Calcutta, Madras, New Delhi'),
+            "+6 hours" => _('(GMT +6:00) Almaty, Dhaka, Colombo'),
+            "+7 hours" => _('(GMT +7:00) Bangkok, Hanoi, Jakarta'),
+            "+8 hours" => _('(GMT +8:00) Beijing, Perth, Singapore, Hong Kong'),
+            "+9 hours" => _('(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk'),
+            "+9 hours 30 minutes" => _('(GMT +9:30) Adeliaide, Darwin'),
+            "+10 hours" => _('(GMT +10:00) Eastern Australia, Guam, Vladivostok'),
+            "+11 hours" => _('(GMT +11:00) Magadan, Solomon Islands, New Caledonia'),
+            "+12 hours" => _('(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka')
         );
         $tz_options = buildHtmlSelectOptions($tz_list, $default_tz);
         // DST
         $dst_options = '<input type="radio" name="dst" id="dst_on" '
             . 'value="on"';
         if ($default_dst == 1) { $dst_options .= ' checked="checked"'; }
-        $dst_options .= '><label class="radio_label" for="dst_on"> ' . $LANG['on'] . '</label><br>'
+        $dst_options .= '><label class="radio_label" for="dst_on"> ' . _('On') . '</label><br>'
             . '<input type="radio" name="dst" id="dst_off" value="off"';
         if ($default_dst == 0) { $dst_options .= ' checked="checked"'; }
-        $dst_options .= '><label class="radio_label" for="dst_off"> ' . $LANG['off'] . '</label>';
+        $dst_options .= '><label class="radio_label" for="dst_off"> ' . _('Off') . '</label>';
         // Board Sort
         $boardsort_list = array(
-            "ASC" => $LANG['msgs_bottom'],
-            "DESC" => $LANG['msgs_top']
+            "ASC" => _('New Messages at Bottom'),
+            "DESC" => _('New Messages at Top')
         );
         $boardsort_options = buildHtmlSelectOptions($boardsort_list, $default_boardsort);
         
-        echo <<<HTML
+        echo '
         <form enctype="multipart/form-data" action="config.php" method="post">
         <fieldset class="default_cfg">
-            <legend>{$LANG['defaults']}</legend>
+            <legend><span>'._('Defaults').'</span></legend>
             <div id="defaults">
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="theme"><b>{$LANG['theme']}</b></label></div>
+                    <div class="field-label"><label for="theme"><b>'._('Theme').'</b></label></div>
                     <div class="field-widget">
                         <select name="theme" id="theme">
-                            {$theme_options}
+                            '.$theme_options.'
                         </select>
                     </select>
                 </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="showavatar"><b>{$LANG['show_avatars']}</b></label></div>
+                    <div class="field-label"><label for="showavatar"><b>'._('Show Avatars').'</b></label></div>
                     <div class="field-widget">
-                        {$avatars_options}
+                        '.$avatars_options.'
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="displayname"><b>{$LANG['display_name']}</b></label></div>
+                    <div class="field-label"><label for="displayname"><b>'._('Display Name').'</b></label></div>
                     <div class="field-widget">
-                        <select name="displayname" id="displayname" title="{$LANG['title_display']}">
-                            {$displayname_options}
+                        <select name="displayname" id="displayname" title="'._('How do you want your name to display?').'">
+                            '.$displayname_options.'
                         </select>
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="frontpage"><b>{$LANG['frontpage']}</b></label></div>
+                    <div class="field-label"><label for="frontpage"><b>'._('Front Page').'</b></label></div>
                     <div class="field-widget">
-                        <select name="frontpage" id="frontpage" title="{$LANG['title_frontpage']}">
-                            {$frontpage_options}
+                        <select name="frontpage" id="frontpage" title="'._('How do you want the latest information to display on the homepage?').'">
+                            '.$frontpage_options.'
                         </select>
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="timezone"><b>{$LANG['timezone']}</b></label></div>
+                    <div class="field-label"><label for="timezone"><b>'._('Time Zone').'</b></label></div>
                     <div class="field-widget">
-                        <select name="timezone" id="timezone" title="{$LANG['title_timezone']}">
-                            {$tz_options}
+                        <select name="timezone" id="timezone" title="'._('What time zone do you live in?').'">
+                            '.$tz_options.'
                         </select>
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="dst"><b>{$LANG['daylight']}</b></label></div>
+                    <div class="field-label"><label for="dst"><b>'._('Daylight Savings Time').'</b></label></div>
                     <div class="field-widget">
-                        {$dst_options}
+                        '.$dst_options.'
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="boardsort"><b>{$LANG['sort_msgs']}</b></label></div>
+                    <div class="field-label"><label for="boardsort"><b>'._('Sort Messages').'</b></label></div>
                     <div class="field-widget">
-                        <select name="boardsort" id="boardsort" title="{$LANG['title_sort_msgs']}">
-                            {$boardsort_options}
+                        <select name="boardsort" id="boardsort" title="'._('How do you want messages to display on the Message Board?').'">
+                            '.$boardsort_options.'
                         </select>
                     </div>
                 </div>
                 <p>
-                    <input type="submit" id="submit-defaults" name="submit-defaults" value="{$LANG['save']}"/> &nbsp;
+                    <input type="submit" id="submit-defaults" name="submit-defaults" value="'._('Save').'"/> &nbsp;
                     <input type="checkbox" name="changeAll" id="changeAll"/> 
-                    <label for="changeAll">{$LANG['update_cur_users']}</label>
+                    <label for="changeAll">'._('Update existing users?').'</label>
                 </p>
             </div>
         </fieldset>
-        </form>
-HTML;
-        
-        // Sections Config
-        $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
+        </form>';
+    }
+
+    function getOrderSelectBox ($c, $total, $selected, $start = 1)
+    {
+        $order_options = '<select id="order'.$c.'" name="order'.$c.'">';
+        for ($i = $start; $i <= $total; $i++) {
+            $order_options .= '
+                                    <option value="'.$i.'"';
+            if ($i == $selected) {
+                $order_options .= ' selected="selected"';
+            }
+            $order_options .= '>'.$i.'</option>';
+        }
+        $order_options .= '
+                                </select>';
+        return $order_options;
+    }
+
+    function displayAdminConfigSections ()
+    {
+        // Get Navigation Data
+        $nav = array();
+        $unused = array();
+        $sql = "SELECT * FROM `fcms_navigation` WHERE `col` = 4 ORDER BY `order`";
         $this->db2->query($sql) or displaySQLError(
-            'Show Tables Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Navigation Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        $recipes_exists = false;
-        $news_exists = false;
-        $prayers_exists = false;
-        $documents_exists = false;
-        if ($this->db2->count_rows() > 0) {
-            while($r = $this->db2->get_row()) {
-                if ($r[0] == 'fcms_recipes') { $recipes_exists = true; }
-                if ($r[0] == 'fcms_news') { $news_exists = true; }
-                if ($r[0] == 'fcms_prayers') { $prayers_exists = true; }
-                if ($r[0] == 'fcms_documents') { $documents_exists = true; }
+        while ($r = $this->db2->get_row()) {
+            array_push($nav, $r);
+            if ($r['order'] == 0) {
+                array_push($unused, $r);
             }
         }
+
+        echo '
+        <form action="config.php?view=sections" method="post">
+            <fieldset>
+                <legend><span>'._('Navigation').'</span></legend>';
+        if (count($unused) > 0) {
+            echo '
+                <p><b>'._('Add Optional Sections').'</b></p>
+                <p>';
+            foreach ($unused AS $r) {
+                echo getSectionName($r['link']).' &nbsp;<a class="add" href="?view=sections&amp;add='.$r['id'].'">'._('Add').'</a><br/>';
+            }
+            echo '
+                </p>';
+        }
+        echo '
+                <table class="order-nav">
+                    <thead>
+                        <tr><th>'._('Section').'</th><th>'._('Order').'</th><th class="remove">'._('Remove').'</th></tr>
+                    </thead>
+                    <tbody>';
+
+        foreach ($nav AS $r) {
+            // order = 0 means it's unused
+            if ($r['order'] > 0) {
+                $del = '<i>'._('required').'</i>';
+                if ($r['req'] < 1 && usingSection($r['link'])) {
+                    $del = '&nbsp;<input class="delbtn" type="submit" name="remove" value="'.$r['id'].'"/>';
+                }
+                echo '
+                        <tr>
+                            <td>'.getSectionName($r['link']).'</td>
+                            <td>
+                                '.$this->getOrderSelectBox($r['id'], 7, $r['order']).'
+                            </td>
+                            <td class="remove">'.$del.'</td>
+                        </tr>';
+            }
+        }
+        echo '
+                    </tbody>
+                </table>
+                <p><input type="submit" id="submit-sections" name="submit-sections" value="' . _('Save') . '"/></p>
+            </fieldset>
+        </form>';
+    }
+
+    function displayAdminConfigGallery ()
+    {
+        $sql = "SELECT * FROM `fcms_config`";
+        $this->db->query($sql) or displaySQLError(
+            'Site Info Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
+        $row = $this->db->get_row();
         
-        if (!$news_exists) {
-            $news = "<a class=\"add\" href=\"?addsection=news\">" . $LANG['add'] . "</a>";
-        } else {
-            $news = "<small>" . $LANG['already_added'] . "</small>";
-        }
-        if (!$prayers_exists) {
-            $prayers = "<a class=\"add\" href=\"?addsection=prayers\">" . $LANG['add'] . "</a>";
-        } else {
-            $prayers = "<small>" . $LANG['already_added'] . "</small>";
-        }
-        if (!$recipes_exists) {
-            $recipes = "<a class=\"add\" href=\"?addsection=recipes\">" . $LANG['add'] . "</a>";
-        } else {
-            $recipes = "<small>" . $LANG['already_added'] . "</small>";
-        }
-        if (!$documents_exists) {
-            $documents = "<a class=\"add\" href=\"?addsection=documents\">" . $LANG['add'] . "</a>";
-        } else {
-            $documents = "<small>" . $LANG['already_added'] . "</small>";
-        }
-        
-        echo <<<HTML
-        <form action="config.php" method="post">
-        <fieldset class="sections_cfg">
-            <legend>{$LANG['sections']}</legend>
-            <div id="sections">
-                <div style="width: 90%; text-align: right;">
-                    <a class="help" href="../help.php#adm-sections-add">{$LANG['link_help']}</a>
-                </div>
-                <h3>{$LANG['opt_sections']}</h3>
-                <div class="cfg-sections clearfix">
-                    <span class="newnews">{$LANG['link_familynews']}</span>
-                    {$news}
-                </div>
-                <div class="cfg-sections clearfix">
-                    <span class="newprayer">{$LANG['link_prayers']}</span>
-                    {$prayers}
-                </div>
-                <div class="cfg-sections clearfix">
-                    <span class="newrecipe">{$LANG['link_recipes']}</span>
-                    {$recipes}
-                </div>
-                <div class="cfg-sections clearfix">
-                    <span class="newdocument">{$LANG['link_documents']}</span>
-                    {$documents}
-                </div>
-                <p>&nbsp;</p>
-                <div style="width: 90%; text-align:right;">
-                    <a class="help" href="../help.php#adm-sections-nav">{$LANG['link_help']}</a>
-                </div>
-                <h3>{$LANG['navigation']}</h3>
-HTML;
-        $i = 0;
-        $this->displaySectionDropdown('section1', $row['section1']);
-        $this->displaySectionDropdown('section2', $row['section2']);
-        $this->displaySectionDropdown('section3', $row['section3']);
-        $this->displaySectionDropdown('section4', $row['section4']);
-        echo '<p><input type="submit" id="submit-sections" name="submit-sections" value="' . $LANG['save'] . '"/></p>';
-        echo '</div></fieldset></form>';
-        
-        // Photo Gallery Config
-        // TODO: move to it's own admin section
         $full_size_list = array(
-            "0" => $LANG['full_size_off'],
-            "1" => $LANG['full_size_on']
+            "0" => _('Off (2 photos)'),
+            "1" => _('On (3 photos)')
         );
         $full_size_options = buildHtmlSelectOptions($full_size_list, $row['full_size_photos']);
         
-        echo <<<HTML
+        echo '
         <form action="config.php" method="post">
         <fieldset class="gallery_cfg">
-            <legend>{$LANG['link_gallery']}</legend>
+            <legend><span>'._('Photo Gallery').'</span></legend>
             <div id="gallery">
-                <p class="info-alert">{$LANG['full_size_photo_info']}</p>
+                <p class="info-alert">
+                    '._('By default, Full Sized Photos is turned off to save on storage space and bandwidth.  Turning this feature on can eat up significant space and bandwith.').'
+                </p>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="full_size_photos"><b>{$LANG['full_size_photos']}</b></label></div>
+                    <div class="field-label"><label for="full_size_photos"><b>'._('Fulle Size Photos').'</b></label></div>
                     <div class="field-widget">
                         <select name="full_size_photos">
-                            {$full_size_options}
+                            '.$full_size_options.'
                         </select>
                     </div>
                 </div>
-                <p><input type="submit" id="submit-gallery" name="submit-gallery" value="{$LANG['save']}"/></p>
+                <p><input type="submit" id="submit-gallery" name="submit-gallery" value="'._('Save').'"/></p>
             </div>
         </fieldset>
-        </form>
-HTML;
+        </form>';
     }
 
-    function displaySectionDropdown ($which_nav, $which_selected) { 
-        global $LANG; ?>
+    function displaySectionDropdown ($which_nav, $which_selected, $num)
+    { 
+        echo '
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="<?php echo $which_nav; ?>"><b><?php echo $LANG[$which_nav]; ?></b></label></div>
+                    <div class="field-label"><label for="'.$which_nav.'"><b>'._('Section').' '.$num.'</b></label></div>
                     <div class="field-widget">
-                        <select name="<?php echo $which_nav; ?>">
-                            <?php 
-                            if (tableExists('fcms_news')) {
-                                echo '<option value="familynews"';
-                                if ($which_selected == 'familynews') {
-                                    echo ' selected="selected"';
-                                }
-                                echo '>' . $LANG['link_familynews'] . '</option>';
-                            }
-                            if (tableExists('fcms_recipes')) {
-                                echo '<option value="recipes"';
-                                if ($which_selected == 'recipes') {
-                                    echo ' selected="selected"';
-                                }
-                                echo '>' . $LANG['link_recipes'] . '</option>';
-                            }
-                            if (tableExists('fcms_documents')) {
-                                echo '<option value="documents"';
-                                if ($which_selected == 'documents') {
-                                    echo ' selected="selected"';
-                                }
-                                echo '>' . $LANG['link_documents'] . '</option>';
-                            }
-                            if (tableExists('fcms_prayers')) {
-                                echo '<option value="prayers"';
-                                if ($which_selected == 'prayers') {
-                                    echo ' selected="selected"';
-                                }
-                                echo '>' . $LANG['link_prayers'] . '</option>';
-                            }
-                            $i = substr($which_nav, 7);
-                            echo '<option value="none'.$i.'"';
-                            $pos = strpos($which_selected, "none");
-                            if ($pos !== false) {
-                                echo ' selected="selected"';
-                            }
-                            echo '>' . $LANG['none'] . '</option>';
-                            ?>
+                        <select name="'.$which_nav.'">';
+        if (tableExists('fcms_news')) {
+            echo '<option value="familynews"';
+            if ($which_selected == 'familynews') {
+                echo ' selected="selected"';
+            }
+            echo '>' . _('Family News') . '</option>';
+        }
+        if (tableExists('fcms_recipes')) {
+            echo '<option value="recipes"';
+            if ($which_selected == 'recipes') {
+                echo ' selected="selected"';
+            }
+            echo '>' . _('Recipes') . '</option>';
+        }
+        if (tableExists('fcms_documents')) {
+            echo '<option value="documents"';
+            if ($which_selected == 'documents') {
+                echo ' selected="selected"';
+            }
+            echo '>' . _('Documents') . '</option>';
+        }
+        if (tableExists('fcms_prayers')) {
+            echo '<option value="prayers"';
+            if ($which_selected == 'prayers') {
+                echo ' selected="selected"';
+            }
+            echo '>' . _('Prayer Concerns') . '</option>';
+        }
+        $i = substr($which_nav, 7);
+        echo '<option value="none'.$i.'"';
+        $pos = strpos($which_selected, "none");
+        if ($pos !== false) {
+            echo ' selected="selected"';
+        }
+        echo '>' . _('none') . '</option>
                         </select>
                     </div>
-                </div>
-    <?php
+                </div>';
     }
 
 } ?>
