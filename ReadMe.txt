@@ -1,5 +1,5 @@
 +-----------------------------------------------------------------------------+
-| Family Connections 2.1.2                                                    |
+| Family Connections 2.1.3                                                    |
 +-----------------------------------------------------------------------------+
 | Keep your family "Connected" with this content management system (CMS)      |
 | designed specifically with family's in mind. Key features are: a message    |
@@ -12,7 +12,7 @@
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.1.2.zip to your web host.
+  1. Upload the entire contents of FCMS_2.1.3.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -31,7 +31,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.1.1 to 2.1.2
+II. Upgrading from 2.1.2 to 2.1.3
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -45,14 +45,17 @@ II. Upgrading from 2.1.1 to 2.1.2
   1. It is recommended that you backup your entire site, including your
      MySQL database before upgrading.
 
-  2. Upload the following list of files from the FCMS_2.1.2.zip file to your web host
+  2. Upload the following list of files from the FCMS_2.1.3.zip file to your web host
      (Overwriting any previous files other than the above mentioned files/directories).
 
-        admin/members.php
+        admin/config.php
         admin/upgrade.php
-        gallery/index.php
-        inc/fcms.js
+        inc/messageboard_class.php
+        themes/alpha/style.css
+        themes/beta/style.css
         install.php
+        messageboard.php
+
   
   3. Login as the administrator and visit the upgrade section and run the
      upgrade script.
@@ -64,10 +67,12 @@ II. Upgrading from 2.1.1 to 2.1.2
 
 III. Change Log
 ----------------
- 2.1.2
+ 2.1.3
 
-    #123 - Edit Category deletes the category
-    #124 - Admin Members - selected buttons cause errors when no member selected
+    #122 - Incorrect integer value: 'yes' for column 'showavatar'
+    #125 - Duplicate Announcements
+    #129 - Email Updates - Message Board bugs
+    #130 - Various alpha/beta style issues
 
   For the full change log please refer to the included "ChangeLog.txt" file.
 

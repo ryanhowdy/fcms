@@ -153,26 +153,31 @@ include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
                          . "ALTER `boardsort` SET DEFAULT '".$_POST['boardsort']."'";
 					mysql_query($sql) or displaySQLError(
                         'Board Sort Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                        );
+                    );
                     if (isset($_POST['changeAll'])) {
                         $avatar = isset($upfile) ? $upfile : '0x0.gif';
                         $sql = "UPDATE `fcms_user_settings` "
                              . "SET `theme` = '" . $_POST['theme'] . "', ";
                         if (isset($_POST['showavatar'])) {
-                            $sql .= "`showavatar` = '" . $_POST['showavatar'] . "', ";
+                            if ($_POST['showavatar'] == 'yes') {
+                                $sql .= "`showavatar` = '1', ";
+                            } else {
+                                $sql .= "`showavatar` = '0', ";
+                            }
                         }
                         $sql .= "`displayname` = '" . $_POST['displayname'] . "', "
                               . "`frontpage` = '" . $_POST['frontpage'] . "', "
                               . "`timezone` = '" . $_POST['timezone'] . "', ";
                         if (isset($_POST['dst'])) {
-                            $sql .= "`dst` = '" . $_POST['dst'] . "', ";
+                            if ($_POST['dst'] == 'on') {
+                                $sql .= "`dst` = '1', ";
+                            } else {
+                                $sql .= "`dst` = '0', ";
+                            }
                         }
                         $sql .= "`boardsort` = '" . $_POST['boardsort'] . "'";
                         mysql_query($sql) or displaySQLError(
-                            'Update All Users Error', 
-                            __FILE__ . ' [' . __LINE__ . ']', 
-                            $sql, 
-                            mysql_error()
+                            'Update All Users Error',  __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                         );
                     }
 					echo "<p class=\"ok-alert\" id=\"update\">" . $LANG['config_success'] . "</p>";

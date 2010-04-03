@@ -706,6 +706,8 @@ blockquote {
     cursor: pointer;
     cursor: hand;
 }
+ul.gallery_cat { list-style-type: none; }
+ul.gallery_cat li { padding: 2px 0 0 0; }
 
 
 /* =ADDRESSBOOK
@@ -770,6 +772,7 @@ a.email {
 ------------------------------------------------*/
 #familynews h3 { clear: both; }
 #familynews h2, #familynews #addform h3, #familynews #editform h3 { clear: none; }
+#familynews .toolbar, #familynews textarea, #familynews #smileys { width: 500px; }
 #news-list {
     border: 1px solid #b2d1f0;
     font-size: 12px;
@@ -1305,6 +1308,56 @@ sortable .nosort { cursor: default; }
 .yellow { background-color: #ffff00; }
 
 
+/* =CHAT =ROOM
+------------------------------------------------*/
+#chat_box {
+    background-color: #d8e9f8;
+    padding: 20px;
+}
+#div_chat {
+    background-color: #fff;
+    float: left;
+    font: normal 13px/16px Tahoma, Arial, Helvetica, sans-serif;
+    height: 300px;
+    overflow: auto;
+    padding: 5px;
+    width: 390px;
+}
+#div_users {
+    background-color: #fff;
+    float: left;
+    font: normal 13px/16px Tahoma, Arial, Helvetica, sans-serif;
+    height: 300px;
+    margin: 0 0 0 10px;
+    overflow: auto;
+    padding: 5px;
+    width: 200px;
+}
+.chat_msg {
+    border-bottom: 1px solid #eee;
+    clear: both;
+    margin: 0 0 20px 0;
+    padding: 10px 0;
+}
+.chat_info { float: left; }
+.chat_user {
+    background-color: #3e8ec1;
+    color: #fff;
+    margin: 0 5px 0 0;
+    padding: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+}
+.sys { background-color: #999; }
+.me { background-color: #333; }
+.chat_time {
+    color: #999;
+    margin: 0 5px 0 0;
+}
+.chat_text { float: left; }
+#btn_reset_chat, #txt_message { margin: 10px 0 0 0; }
+
+
 /* =VALIDATION
 ------------------------------------------------*/
 .LV_valid {
@@ -1368,6 +1421,18 @@ sortable .nosort { cursor: default; }
     border-top: 2px solid #85c329;
     border-bottom: 2px solid #85c329;
 }
+.info-alert ul { padding: 0 0 20px 20px; }
+div.close-alert {
+    font-size: 10px;
+    line-height: 16px;
+    text-align: right;
+}
+div.close-alert a {
+    background: transparent url(../default/images/delete.gif) center left no-repeat;
+    color: #3e8abd;
+    padding: 0 0 0 18px;
+}
+div.close-alert a:hover { color: #000; }
 
 
 /* =STAR =RATING

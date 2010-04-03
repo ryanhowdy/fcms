@@ -51,7 +51,7 @@ HTML;
                     FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
                     WHERE t.`id` = p.`thread` 
                     AND `subject` LIKE '#ANOUNCE#%' 
-                    GROUP BY p.`id` 
+                    GROUP BY t.`id` 
                     ORDER BY `updated` DESC";
             $this->db->query($sql) or displaySQLError(
                 'Announcements Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()

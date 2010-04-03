@@ -803,6 +803,7 @@ a.email {
 ------------------------------------------------*/
 #familynews h3 { clear: both; }
 #familynews h2, #familynews #addform h3, #familynews #editform h3 { clear: none; }
+#familynews .toolbar, #familynews textarea, #familynews #smileys { width: 390px; }
 #news-list {
     border: 1px solid #b2d1f0;
     font-size: 12px;
@@ -1473,6 +1474,18 @@ fieldset .field-label b, fieldset .field-label img {
     border-top: 2px solid #85c329;
     border-bottom: 2px solid #85c329;
 }
+.info-alert ul { padding: 0 0 20px 20px; }
+div.close-alert {
+    font-size: 10px;
+    line-height: 16px;
+    text-align: right;
+}
+div.close-alert a {
+    background: transparent url(../default/images/delete.gif) center left no-repeat;
+    color: #3e8abd;
+    padding: 0 0 0 18px;
+}
+div.close-alert a:hover { color: #000; }
 
 
 /* =STAR =RATING

@@ -98,6 +98,10 @@ include_once(getTheme($_SESSION['login_id']) . 'header.php');
                     while ($r = mysql_fetch_array($result)) {
                         $name = getUserDisplayName($_SESSION['login_id']);
                         $to = getUserDisplayName($r['user']);
+                        $pos = strpos($subject, '#ANOUNCE#');
+                        if ($pos !== false) {
+                            $subject = substr($subject, 9, strlen($subject)-9);
+                        }
                         $thread_subject = $subject;
                         $subject = "$name " . $LANG['started_thread'] . " $thread_subject";
                         $email = $r['email'];
@@ -155,11 +159,15 @@ $name " . $LANG['started_thread'] . " $thread_subject
                         );
                         $row = mysql_fetch_array($subject);
                         $thread_subject = $row['subject'];
+                        $pos = strpos($thread_subject, '#ANOUNCE#');
+                        if ($pos !== false) {
+                            $thread_subject = substr($thread_subject, 9, strlen($thread_subject)-9);
+                        }
                         $subject = "$name " . $LANG['replied_to'] . " $thread_subject";
                         $email = $r['email'];
-                        $name = getUserDisplayName($r['user']);
+                        $to = getUserDisplayName($r['user']);
                         $url = getDomainAndDir();
-                        $msg = $LANG['dear'] . " $name,
+                        $msg = $LANG['dear'] . " $to,
 $name " . $LANG['replied_to'] . " $thread_subject
 
 {$url}messageboard.php?thread=$thread_id

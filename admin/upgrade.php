@@ -660,7 +660,7 @@ function upgrade ($version) {
 
 
     // Set the current Version
-	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.1.2'");
+	mysql_query("UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.1.3'");
 	echo "<p style=\"color:green\"><b>Upgrade is finished.</b></p>";
 }
 ?>
