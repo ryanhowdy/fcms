@@ -122,7 +122,7 @@ if (isset($_POST['submit'])) {
     $sql = "UPDATE `fcms_user_settings` SET ";
     // Settings
     if (isset($_POST['settings'])) {
-        $sql .= "theme = '" . $_POST['theme'] . "', ";
+        if (preg_match("/\.css$/i", $_POST['theme'])) { $sql .= "theme = '" . $_POST['theme'] . "', "; }
         if ($_POST['displayname']) { $sql .= "displayname = '" . $_POST['displayname'] . "', "; }
         if ($_POST['frontpage']) { $sql .= "frontpage = '" . $_POST['frontpage'] . "', "; }
         if ($_POST['email_updates']) {

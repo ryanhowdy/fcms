@@ -1,6 +1,6 @@
 +-----------------------------------------------------------------------------+
 |                                                                             |
-|                           Family Connections 2.2                            |
+|                           Family Connections 2.2.1                            |
 |                                                                             |
 |                      Copyright (C) 2007 Ryan Haudenschilt                   |
 |                                                                             |
@@ -16,7 +16,7 @@
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.2.zip to your web host.
+  1. Upload the entire contents of FCMS_2.2.1.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -35,7 +35,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.1.x to 2.2
+II. Upgrading from 2.2 to 2.2.1
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -49,8 +49,19 @@ II. Upgrading from 2.1.x to 2.2
   1. It is recommended that you backup your entire site, including your
      MySQL database before upgrading.
 
-  2. Upload the entire contents of FCMS_2.2.zip to your web host
+  2. Upload the following list of files to your web host
      (Overwriting any previous files other than the above mentioned files/directories).
+
+      admin/upgrade.php
+      gallery/index.php
+      inc/calendar_class.php
+      inc/checkAvailability.php
+      inc/util_inc.php
+      install.php
+      messageboard.php
+      profile.php
+      register.php
+      settings.php
   
   3. Login as the administrator and visit the upgrade section and run the
      upgrade script.
@@ -62,26 +73,14 @@ II. Upgrading from 2.1.x to 2.2
 
 III. Change Log
 ----------------
- 2.2
+ 2.2.1
 
-    #29 - Date and time format change
-    #70 - Better Section Order
-    #94 - Private Address Book Entries
-    #103 - Multiple File Upload
-    #106 - Add standard sections nav to Profile/PM/Awards
-    #114 - Update the Address Book
-    #116 - Homepage Last 5 missing info
-    #120 - Top Drop Down Navigation
-    #132 - Most Viewed Photo for Members incorrect order
-    #133 - Use gettext for translations
-    #134 - Incorrect links in RSS Feed
-    #136 - Show new PM count on nav menu
-    #137 - Family Connections <= 2.1.3 Multiple Remote Vulnerabilities
-    #139 - Update Toolbar (RTE)
-    #140 - Search Photo Gallery (pt 1)
-    #144 - Sent folder for PM
-    #152 - 2.2(RC)6 gettext.php: Eval syntax error
-    #153 - 2.2(RC)6 gettext.php: eregi depercated
+    #158 - Register SQL Injections
+    #159 - upimages.php Arbitrary Code Execution
+    #160 - Theme Settings Vulnerability
+    #161 - Secunia Advisory SA35039
+    #157 - FCMS 2.2: bad link on calendar...
+
 
   For the full change log please refer to the included "ChangeLog.txt" file.
 

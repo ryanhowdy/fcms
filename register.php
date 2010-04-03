@@ -58,9 +58,11 @@ function process(transport) {
 mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 mysql_select_db($cfg_mysql_db);
 if (isset($_POST['submit'])) {
-	$result = mysql_query("SELECT email FROM fcms_users WHERE email='" . $_POST['email'] . "'"); 
+    $email = escape_string($_POST['email']);
+    $username = escape_string($_POST['username']);
+	$result = mysql_query("SELECT `email` FROM `fcms_users` WHERE `email` = '$email'"); 
 	$email_check = mysql_num_rows($result);
-	$result = mysql_query("SELECT username FROM fcms_users WHERE username='" . $_POST['username'] . "'"); 
+	$result = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '$username'"); 
 	$username_check = mysql_num_rows($result);
 	if (
         strlen($_POST['username']) < 1 ||
@@ -83,8 +85,6 @@ if (isset($_POST['submit'])) {
 	} else {
 		$fname = escape_string($_POST['fname']);
 		$lname = escape_string($_POST['lname']);
-		$email = escape_string($_POST['email']);
-		$username = escape_string($_POST['username']);
 		$password = escape_string($_POST['password']);
 		$md5pass = md5($password);
 		$sql = "INSERT INTO `fcms_users`(`access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`) "
@@ -106,13 +106,13 @@ if (isset($_POST['submit'])) {
 '._('Username').': '.stripslashes($username).'
 '._('Name').': '.stripslashes($fname).' '.stripslashes($lname);
 		$sql = "SELECT `auto_activate` FROM `fcms_config`";
-		$result = mysql_query($sql) or displaySQLError('Activation Check Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
+		$result = mysql_query($sql) or displaySQLError('Activation Check Error', __FILE__.' [' . __LINE__ . ']', $sql, mysql_error());
 		$row = mysql_fetch_assoc($result);
 		if ($row['auto_activate'] == 1) {
 			//bug in some versions of php, needs some value here
 			$code = uniqid('');
 			$sql = "UPDATE `fcms_users` SET `activate_code` = '$code' WHERE `id` = $lastid";
-			mysql_query($sql) or displaySQLError('Activation Code Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
+			mysql_query($sql) or displaySQLError('Activation Code Error', __FILE__.' [' . __LINE__ . ']', $sql, mysql_error());
 			$message = _('Please click the following link to activate your account').':
 
 '.getDomainAndDir().'activate.php?uid='.$lastid.'&code='.$code;

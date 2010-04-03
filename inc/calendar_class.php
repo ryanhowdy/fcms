@@ -429,7 +429,7 @@ class Calendar
                             echo '<a href="?edit=' . $row['id'] . '">' . $row['title'];
                             echo '<span>'. $row['desc'] . '</span></a>';
                         } else {
-                            echo '<a href="entry=' . $row['id'] . '">' . $row['title'];
+                            echo '<a href="?entry=' . $row['id'] . '">' . $row['title'];
                             echo '<span>' . $row['desc'] . '</span></a>';
                         }
                         echo '</li>';

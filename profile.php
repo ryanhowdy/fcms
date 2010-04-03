@@ -15,6 +15,8 @@ $TMPL['pagetitle'] = _('Profiles');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 
+$show_all = true;
+
 // Show Header
 include_once(getTheme($_SESSION['login_id']) . 'header.php');
 
@@ -28,10 +30,16 @@ echo '
                 </ul>
             </div>';
 if (isset($_GET['member'])) {
-    $profile->displayProfile($_GET['member']);
-} elseif (isset($_GET['awards'])) {
+    if (ctype_digit($_GET['member'])) {
+        $show_all = false;
+        $profile->displayProfile($_GET['member']);
+    }
+}
+if (isset($_GET['awards'])) {
+    $show_all = false;
     $profile->displayAwards();
-} else {
+}
+if ($show_all) {
     $profile->displayAll();
 }
 

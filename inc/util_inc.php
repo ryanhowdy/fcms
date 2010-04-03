@@ -972,7 +972,7 @@ function displayMBToolbar ()
 function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h, $max_w, $unique = 'no')
 {
     $known_photo_types = array(
-        'image/pjpeg' => 'jpg', 
+        'image/pjpeg' => 'jpeg', 
         'image/jpeg' => 'jpg', 
         'image/gif' => 'gif', 
         'image/bmp' => 'bmp', 
@@ -987,7 +987,16 @@ function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h,
         'image/x-png' => 'PNG', 
         'image/png' => 'PNG'
     );
+    $ext = explode('.', $filename);
+    $ext = end($ext);
+    // Check mime type
     if (!array_key_exists($filetype, $known_photo_types)) {
+        echo '
+            <p class="error-alert">
+                '.sprintf(_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $filetype).'
+            </p>';
+    // Check file extension
+    } elseif (!in_array($ext, $known_photo_types)) {
         echo '
             <p class="error-alert">
                 '.sprintf(_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $filetype).'
