@@ -5,10 +5,11 @@ include_once('../inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn('admin/');
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 include_once('../inc/admin_class.php');
-$admin = new Admin($_SESSION['login_id'], 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$admin = new Admin($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
 $TMPL['pagetitle'] = _('Administration: Upgrade');
@@ -16,12 +17,12 @@ $TMPL['path'] = "../";
 $TMPL['admin_path'] = "";
 
 // Show Header
-include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
+include_once(getTheme($current_user_id, $TMPL['path']) . 'header.php');
 
 echo '
         <div class="centercontent">';
 
-if (checkAccess($_SESSION['login_id']) > 1) {
+if (checkAccess($current_user_id) > 1) {
     echo '
             <p class="error-alert">
                 <b>'._('You do not have access to view this page.').'</b><br/>
@@ -73,7 +74,7 @@ echo '
         </div><!-- .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'footer.php');
+include_once(getTheme($current_user_id, $TMPL['path']) . 'footer.php');
 
 
 function upgrade ($version) {
@@ -985,7 +986,7 @@ function upgrade ($version) {
 
 
     // Set the current Version
-    $sql = "UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.2.1'";
+    $sql = "UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.2.2'";
     mysql_query($sql) or displaySQLError(
         'Version Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
