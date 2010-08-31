@@ -9,11 +9,11 @@ class MessageBoard
     var $db;
     var $db2;
     var $tz_offset;
-    var $cur_user_id;
+    var $current_user_id;
 
     function MessageBoard ($current_user_id, $type, $host, $database, $user, $pass)
     {
-        $this->cur_user_id = $current_user_id;
+        $this->current_user_id = $current_user_id;
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
         $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
@@ -29,7 +29,7 @@ class MessageBoard
         $locale = new Locale();
         $from = (($page * 25) - 25);
         if ($type == 'announcement') {
-            if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
+            if (checkAccess($this->current_user_id) < 8 && checkAccess($this->current_user_id) != 5) {
                 $this->displayMessageBoardMenu();
             }
             echo '
@@ -178,8 +178,8 @@ class MessageBoard
         );
         $this->displayMessageBoardMenu($thread_id);
         $this->displayPages($page, $thread_id);
-        $sort = $this->getSortOrder($this->cur_user_id);
-        $showavatar = $this->getShowAvatar($this->cur_user_id);
+        $sort = $this->getSortOrder($this->current_user_id);
+        $showavatar = $this->getShowAvatar($this->current_user_id);
         $sql = "SELECT p.`id`, `thread`, `post`, `subject`, p.`date`, `user`, `avatar` 
                 FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, 
                     `fcms_users` AS u 
@@ -255,7 +255,7 @@ class MessageBoard
             $posts_count = $this->getUserPostCountById($row['user']);
             $actions = '';
             // quote
-            if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
+            if (checkAccess($this->current_user_id) < 8 && checkAccess($this->current_user_id) != 5) {
                 $actions .= '<form method="post" action="messageboard.php?reply='.$thread_id.'">
                                         <div>
                                             <input type="hidden" name="id" value="'.$row['id'].'"/>
@@ -264,7 +264,7 @@ class MessageBoard
                                     </form>';
             }
             // edit
-            if ($this->cur_user_id == $row['user'] || checkAccess($this->cur_user_id) < 3) {
+            if ($this->current_user_id == $row['user'] || checkAccess($this->current_user_id) < 3) {
                 $actions .= ' &nbsp;
                                     <form method="post" action="messageboard.php">
                                         <div>
@@ -274,7 +274,7 @@ class MessageBoard
                                     </form>';
             }
             // delete
-            if (checkAccess($this->cur_user_id) < 2) {
+            if (checkAccess($this->current_user_id) < 2) {
                 $actions .= ' &nbsp;
                                     <form class="delpost" method="post" action="messageboard.php">
                                         <div>
@@ -411,7 +411,7 @@ class MessageBoard
                     fsub.add(Validate.Presence, {failureMessage: ""});
                 </script>';
             $sticky = '';
-            if (checkAccess($this->cur_user_id) <= 2) {
+            if (checkAccess($this->current_user_id) <= 2) {
                 $sticky = '
                 <p>
                     <label for="sticky">'._('Admin Tools').'</label>: 
@@ -425,7 +425,7 @@ class MessageBoard
                     fpost.add(Validate.Presence, {failureMessage: ""});
                 </script>';
             $hidden_submit = '
-                <div><input type="hidden" name="name" id="name" value="'.$this->cur_user_id.'"/></div>
+                <div><input type="hidden" name="name" id="name" value="'.$this->current_user_id.'"/></div>
                 <p>
                     <input class="sub1" type="submit" name="post_submit" id="post_submit" value="'._('Submit').'"/>
                     &nbsp; <a href="messageboard.php">'._('Cancel').'</a>
@@ -472,7 +472,7 @@ class MessageBoard
             }
             
             $hidden_submit = '
-                <div><input type="hidden" name="name" id="name" value="'.$this->cur_user_id.'"/></div>
+                <div><input type="hidden" name="name" id="name" value="'.$this->current_user_id.'"/></div>
                 <div><input type="hidden" name="thread_id" value="'.$thread_id.'"/></div>
                 <p>
                     <input class="sub1" type="submit" name="reply_submit" id="reply_submit" value="'._('Reply').'"/>
@@ -512,7 +512,7 @@ class MessageBoard
                     '.$subject.'
                     <div>
                         <label for="showname">'._('Name').'</label>: 
-                        <input type="text" disabled="disabled" name="showname" id="showname" value="'.getUserDisplayName($this->cur_user_id).'" size="50"/>
+                        <input type="text" disabled="disabled" name="showname" id="showname" value="'.getUserDisplayName($this->current_user_id).'" size="50"/>
                     </div>
                     '.$sticky.'
                     <script type="text/javascript">var bb = new BBCode();</script>';
@@ -586,7 +586,7 @@ class MessageBoard
                 </ul>
             </div>';
 
-            if (checkAccess($_SESSION['login_id']) < 8 && checkAccess($_SESSION['login_id']) != 5) {
+            if (checkAccess($this->current_user_id) < 8 && checkAccess($this->current_user_id) != 5) {
                 echo '
             <div id="actions_menu" class="clearfix">
                 <ul>
