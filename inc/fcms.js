@@ -33,17 +33,6 @@ function initRowHighlight() {
         });
     });
 }
-function initSubmitHighlight() {
-    if (!$$('input.primary, input.secondary')) { return; }
-    $$('input.primary, input.secondary').each(function(item) {
-        item.observe('mouseover', function() {
-            item.addClassName('mouseover');
-        });
-        item.observe('mouseout', function() {
-            item.removeClassName('mouseover');
-        });
-    });
-}
 function addSmiley(smileystring) {
     if (!document.getElementById('post')) { return; }
     var textarea=document.getElementById("post");
@@ -265,13 +254,18 @@ function initCalendarHighlight() {
             if (link) {
                 if (link.getAttribute('href')) {
                     item.addClassName('mouseover');
-                    item.setAttribute('onclick', "document.location.href='"+link+"'");
                 }
             }
         });
         item.observe('mouseout', function() {
             item.removeClassName('mouseover');
         });
+    });
+}
+function initHideAdd() {
+    if (!$$('#big_calendar td')) { return; }
+    $$('#big_calendar td').each(function(item) {
+        item.addClassName('hideadd');
     });
 }
 
@@ -285,14 +279,15 @@ function initCheckAll()
         // Create Check All box
         var chk = document.createElement('input');
         chk.setAttribute('type', 'checkbox');
+        chk.setAttribute('id', 'allbox');
         chk.setAttribute('name', 'allbox');
         chk.setAttribute('value', 'Check All');
         chk.onclick = function () { checkAll(document.mass_mail_form); }
-        //chk.appendChild(document.createTextNode("Select All"));
-        var head = document.getElementsByTagName('thead')[0];
-        // get the last <th>
-        var cell = head.childNodes[0].lastChild;
-        cell.appendChild(chk);
+        var lbl = document.createElement('label');
+        lbl.setAttribute('for', 'allbox');
+        lbl.appendChild(document.createTextNode("Select All"));
+        $('check-all').appendChild(chk);
+        $('check-all').appendChild(lbl);
         
         // Add CheckCheckAll() to each checkbox
         for (var i=0; i<frm.elements.length; i++) {
@@ -314,7 +309,7 @@ function checkAll(frmobj)
     }
 }
 function checkCheckAll(frmobj)
-{	
+{    
     var TotalBoxes = 0;
     var TotalOn = 0;
     for (var i=0;i<frmobj.elements.length;i++) {
@@ -336,5 +331,4 @@ function checkCheckAll(frmobj)
 // TODO - move these out of here 
 addLoadEvent(initTextFieldHighlight);
 addLoadEvent(initRowHighlight);
-addLoadEvent(initSubmitHighlight);
 addLoadEvent(initCheckAll);
