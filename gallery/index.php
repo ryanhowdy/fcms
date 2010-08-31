@@ -16,12 +16,13 @@ include_once('../inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn('gallery/');
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 include_once('../inc/gallery_class.php');
 include_once('../inc/database_class.php');
 $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$gallery = new PhotoGallery($_SESSION['login_id'], $database);
+$gallery = new PhotoGallery($current_user_id, $database);
 
 // Setup the Template variables;
 $TMPL['pagetitle'] = _('Photo Gallery');
@@ -41,7 +42,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
+include_once(getTheme($current_user_id, $TMPL['path']) . 'header.php');
 
 echo '
         <div id="gallery" class="centercontent">';
@@ -201,9 +202,9 @@ if (isset($_POST['deletephoto']) && !isset($_POST['confirmed'])) {
 // Do you have access to perform actions?
 if (isset($_GET['action']) && 
     (
-        checkAccess($_SESSION['login_id']) <= 3 || 
-        checkAccess($_SESSION['login_id']) == 8 || 
-        checkAccess($_SESSION['login_id']) == 5
+        checkAccess($current_user_id) <= 3 || 
+        checkAccess($current_user_id) == 8 || 
+        checkAccess($current_user_id) == 5
     )
 ) {
     // We don't want to show the gallery menu on delete confirmation screen
@@ -258,7 +259,7 @@ if (isset($_GET['action']) &&
             );
             if (mysql_num_rows($result) > 0) {
                 while ($r = mysql_fetch_array($result)) {
-                    $name = getUserDisplayName($_SESSION['login_id']);
+                    $name = getUserDisplayName($current_user_id);
                     $to = getUserDisplayName($r['user']);
                     $subject = sprintf(_('%s has added a new photo.'), $name);
                     $email = $r['email'];
@@ -267,7 +268,7 @@ if (isset($_GET['action']) &&
 
 '.$subject.'
 
-'.$url.'index.php?uid='.$_SESSION['login_id'].'&cid='.$last_cat.'
+'.$url.'index.php?uid='.$current_user_id.'&cid='.$last_cat.'
 
 ----
 '._('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
@@ -281,7 +282,7 @@ if (isset($_GET['action']) &&
         }
 
         // Show the upload form
-        if (usingAdvancedUploader($_SESSION['login_id'])) {
+        if (usingAdvancedUploader($current_user_id)) {
             $gallery->displayJavaUploadForm($last_cat);
         } else {
             $gallery->displayUploadForm($last_cat);
@@ -343,7 +344,11 @@ if (isset($_GET['action']) &&
                 echo '
             <p class="error-alert">'._('You must specify a category name.').'</p>';
             } else {
-                $sql = "INSERT INTO `fcms_gallery_category`(`name`, `user`) VALUES('" . addslashes($_POST['cat_name']) . "', " . $_SESSION['login_id'] . ")";
+                $sql = "INSERT INTO `fcms_gallery_category` (
+                            `name`, `user`
+                        ) VALUES (
+                            '" . addslashes($_POST['cat_name']) . "', $current_user_id
+                        )";
                 mysql_query($sql) or displaySQLError('New Category Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
                 echo '
             <div class="ok-alert">
@@ -410,7 +415,11 @@ if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid'])) {
     if (isset($_POST['addcom'])) {
         $com = ltrim($_POST['post']);
         if (!empty($com)) {
-            $sql = "INSERT INTO `fcms_gallery_comments`(`photo`, `comment`, `date`, `user`) VALUES(" . $_GET['pid'] . ", '" . addslashes($_POST['post']) . "', NOW(), " . $_SESSION['login_id'] . ")";
+            $sql = "INSERT INTO `fcms_gallery_comments` (
+                        `photo`, `comment`, `date`, `user`
+                    ) VALUES (
+                        " . escape_string($_GET['pid']) . ", '" . addslashes($_POST['post']) . "', NOW(), $current_user_id)
+                    )";
             mysql_query($sql) or displaySQLError('Add Comment Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
         }
     }
@@ -466,4 +475,4 @@ echo '
         </div><!-- #gallery .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'footer.php');
+include_once(getTheme($current_user_id, $TMPL['path']) . 'footer.php');
