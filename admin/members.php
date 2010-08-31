@@ -5,6 +5,7 @@ include_once('../inc/util_inc.php');
 
 // Check that the user is logged in
 isLoggedIn('admin/');
+$current_user_id = (int)escape_string($_SESSION['login_id']);
 
 include_once('../inc/members_class.php');
 include_once('../inc/database_class.php');
@@ -54,12 +55,12 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'header.php');
+include_once(getTheme($current_user_id, $TMPL['path']) . 'header.php');
 
 echo '
         <div class="centercontent">';
 
-if (checkAccess($_SESSION['login_id']) < 2) {
+if (checkAccess($current_user_id) < 2) {
     $show = true;
     
     // Display create new member form
@@ -129,7 +130,7 @@ if (checkAccess($_SESSION['login_id']) < 2) {
                 'New User Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
             $sql = "INSERT INTO `fcms_calendar`(`date`, `title`, `created_by`, `type`) "
-                 . "VALUES ('$birthday', '$fname $lname', {$_SESSION['login_id']}, 'Birthday')";
+                 . "VALUES ('$birthday', '$fname $lname', $current_user_id, 'Birthday')";
             mysql_query($sql) or displaySQLError(
                 'New Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
@@ -369,4 +370,4 @@ echo '
         </div><!-- .centercontent -->';
 
 // Show Footer
-include_once(getTheme($_SESSION['login_id'], $TMPL['path']) . 'footer.php');
+include_once(getTheme($current_user_id, $TMPL['path']) . 'footer.php');
