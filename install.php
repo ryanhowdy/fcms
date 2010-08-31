@@ -114,7 +114,7 @@ HTML;
         $sql = "INSERT INTO `fcms_config` (
                     `sitename`, `contact`, `current_version`
                 ) VALUES (
-                    '".addslashes($_POST['sitename'])."', '".addslashes($_POST['contact'])."', 'Family Connections 2.2'
+                    '".escape_string($_POST['sitename'])."', '".escape_string($_POST['contact'])."', 'Family Connections 2.2.2'
                 )";
         mysql_query($sql) or die($sql . "<br/><br/>" . mysql_error());
 
@@ -572,10 +572,20 @@ function setupDatabase ($fname, $lname, $email, $username, $password, $birthday)
                 ENGINE=InnoDB DEFAULT CHARSET=utf8";
         mysql_query($sql) or die(mysql_error());
         // insert users
-        $sql = "INSERT INTO `fcms_users` 
-                    (`id`, `access`, `joindate`, `fname`, `lname`, `email`, `birthday`, `username`, `password`, `activated`) 
-                VALUES 
-                    (1, 1, NOW(), '".addslashes($fname)."', '".addslashes($lname)."', '".addslashes($email)."', '$birthday', '".addslashes($username)."', '$password', 1)";
+        $sql = "INSERT INTO `fcms_users` (
+                    `id`, `access`, `joindate`, `fname`, `lname`, `email`, `birthday`, `username`, `password`, `activated`
+                ) VALUES (
+                    1, 
+                    1, 
+                    NOW(), 
+                    '".escape_string($fname)."', 
+                    '".escape_string($lname)."', 
+                    '".escape_string($email)."', 
+                    '".escape_string($birthday)."', 
+                    '".escape_string($username)."', 
+                    '$password', 
+                    1
+                )";
         mysql_query($sql) or die(mysql_error());
         // create user_settings
         $sql = "CREATE TABLE `fcms_user_settings` (
@@ -658,11 +668,13 @@ function setupDatabase ($fname, $lname, $email, $username, $password, $birthday)
                 REFERENCES `fcms_users` (`id`) 
                 ON DELETE CASCADE";
         mysql_query($sql) or die(mysql_error());
+        // TODO
+        // These need gettext
         // insert calendar
         $sql = "INSERT INTO `fcms_calendar` 
                     (`id`, `date`, `title`, `desc`, `created_by`, `type`) 
                 VALUES 
-                    (NULL, '$birthday', '".addslashes($fname)." ".addslashes($lname)."', NULL, 1, 'Birthday'), 
+                    (NULL, '".escape_string($birthday)."', '".escape_string($fname)." ".escape_string($lname)."', NULL, 1, 'Birthday'), 
                     (NULL, '2007-12-25', 'Christmas', NULL, 1, 'Holiday'), 
                     (NULL, '2007-02-14', 'Valentine''s Day', NULL, 1, 'Holiday'), 
                     (NULL, '2007-01-01', 'New Year''s Day', NULL, 1, 'Holiday'), 
