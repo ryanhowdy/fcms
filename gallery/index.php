@@ -51,10 +51,11 @@ $show_latest = true;
 // Edit Photo
 if (isset($_POST['add_editphoto'])) {
     $photo_caption = stripslashes($_POST['photo_caption']);
-    $sql = "UPDATE `fcms_gallery_photos` "
-         . "SET category='" . addslashes($_POST['category']) . "', "
-            . "caption='" . addslashes($photo_caption) . "' "
-         . "WHERE id=" . $_POST['photo_id'];
+    $pid = escape_string($_POST['photo_id']);
+    $sql = "UPDATE `fcms_gallery_photos` 
+            SET `category` = '" . addslashes($_POST['category']) . "', 
+                `caption` = '" . addslashes($photo_caption) . "' 
+            WHERE `id` = $pid";
     mysql_query($sql) or displaySQLError(
         'Edit Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -71,7 +72,7 @@ if (isset($_POST['add_editphoto'])) {
                 $key = array_search($user, $_POST['tagged']);
                 if ($key === false) {
                     $sql = "DELETE FROM `fcms_gallery_photos_tags` "
-                         . "WHERE `photo` = " . $_POST['photo_id'] . " "
+                         . "WHERE `photo` = $pid "
                          . "AND `user` = $user";
                     mysql_query($sql) or displaySQLError('
                         Delete Tagged Member Error', __FILE__ . ' [' . __LINE__ . ']', 
@@ -86,7 +87,7 @@ if (isset($_POST['add_editphoto'])) {
                 $key = array_search($user, $prev_users);
                 if ($key === false) {
                     $sql = "INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`) "
-                         . "VALUES ($user, " . $_POST['photo_id'] . ")";
+                         . "VALUES ($user, $pid)";
                     mysql_query($sql) or displaySQLError(
                         'Tag Members Error', __FILE__ . ' [' . __LINE__ . ']', 
                         $sql, mysql_error()
@@ -100,7 +101,7 @@ if (isset($_POST['add_editphoto'])) {
             // Add all tagged members, since no one was previously tagged
             foreach ($_POST['tagged'] as $user) {
                 $sql = "INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`) "
-                     . "VALUES ($user, " . $_POST['photo_id'] . ")";
+                     . "VALUES ($user, $pid)";
                 mysql_query($sql) or displaySQLError('
                     Tag Members Error', __FILE__ . ' [' . __LINE__ . ']', 
                     $sql, mysql_error()
@@ -112,7 +113,7 @@ if (isset($_POST['add_editphoto'])) {
     // then we are removing all members
     } elseif (isset($_POST['prev_tagged_users'])) {
         $sql = "DELETE FROM `fcms_gallery_photos_tags` "
-             . "WHERE `photo` = " . $_POST['photo_id'];
+             . "WHERE `photo` = $pid";
         mysql_query($sql) or displaySQLError(
             'Delete All Tagged Error', __FILE__ . ' [' . __LINE__ . ']', 
             $sql, mysql_error()
@@ -128,14 +129,17 @@ if (isset($_POST['add_editphoto'])) {
 
 // Display Edit Form
 if (isset($_POST['editphoto'])) {
-    $show_latest = false;
-    $gallery->displayEditPhotoForm($_POST['photo'], $_POST['url']);
+    if (ctype_digit($_POST['photo'])) {
+        $show_latest = false;
+        $gallery->displayEditPhotoForm($_POST['photo'], $_POST['url']);
+    }
 }
 
 // Delete photo confirmation
 if (isset($_POST['deletephoto']) && !isset($_POST['confirmed'])) {
-    $show_latest = false;
-    echo '
+    if (ctype_digit($_POST['photo'])) {
+        $show_latest = false;
+        echo '
                 <div class="info-alert clearfix">
                     <form action="index.php" method="post">
                         <h2>'._('Are you sure you want to DELETE this Photo?').'</h2>
@@ -148,47 +152,50 @@ if (isset($_POST['deletephoto']) && !isset($_POST['confirmed'])) {
                         </div>
                     </form>
                 </div>';
+    }
 
 // Delete Photo
 } elseif (
     isset($_POST['delconfirm']) || 
     (isset($_POST['confirmed']) && !isset($_POST['editphoto']))
 ) {
-    $show_latest = false;
-    $sql = "SELECT `user`, `category`, `filename` "
-         . "FROM `fcms_gallery_photos` WHERE `id` = " . $_POST['photo'];
-    $result = mysql_query($sql) or displaySQLError(
-        'Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $filerow = mysql_fetch_array($result);
-    $file_photo = $filerow['filename'];
-    $photo_user_id = $filerow['user'];
-    $photo_cat_id = $filerow['category'];
-    
-    // Remove the photo from the DB
-    $sql = "DELETE FROM `fcms_gallery_photos` WHERE `id` = " . $_POST['photo'];
-    mysql_query($sql) or displaySQLError(
-        'Delete Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $sql = "DELETE FROM `fcms_gallery_comments` WHERE `photo` = " . $_POST['photo'];
-    mysql_query($sql) or displaySQLError(
-        'Delete Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    
-    // Remove the Photo from the server
-    unlink("photos/member$photo_user_id/" . $file_photo);
-    unlink("photos/member$photo_user_id/tb_" . $file_photo);
-    mysql_free_result($result);
-    $sql = "SELECT `full_size_photos` FROM `fcms_config`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $r = mysql_fetch_array($result);
-    if ($r['full_size_photos'] == 1) {
-        unlink("photos/member$photo_user_id/full_" . $file_photo);
+    if (ctype_digit($_POST['photo'])) {
+        $show_latest = false;
+        $sql = "SELECT `user`, `category`, `filename` "
+             . "FROM `fcms_gallery_photos` WHERE `id` = " . $_POST['photo'];
+        $result = mysql_query($sql) or displaySQLError(
+            'Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $filerow = mysql_fetch_array($result);
+        $file_photo = $filerow['filename'];
+        $photo_user_id = $filerow['user'];
+        $photo_cat_id = $filerow['category'];
+        
+        // Remove the photo from the DB
+        $sql = "DELETE FROM `fcms_gallery_photos` WHERE `id` = " . $_POST['photo'];
+        mysql_query($sql) or displaySQLError(
+            'Delete Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $sql = "DELETE FROM `fcms_gallery_comments` WHERE `photo` = " . $_POST['photo'];
+        mysql_query($sql) or displaySQLError(
+            'Delete Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        
+        // Remove the Photo from the server
+        unlink("photos/member$photo_user_id/" . $file_photo);
+        unlink("photos/member$photo_user_id/tb_" . $file_photo);
+        mysql_free_result($result);
+        $sql = "SELECT `full_size_photos` FROM `fcms_config`";
+        $result = mysql_query($sql) or displaySQLError(
+            'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $r = mysql_fetch_array($result);
+        if ($r['full_size_photos'] == 1) {
+            unlink("photos/member$photo_user_id/full_" . $file_photo);
+        }
+        $gallery->displayGalleryMenu($photo_user_id);
+        $gallery->showCategories(1, $photo_user_id, $photo_cat_id);
     }
-    $gallery->displayGalleryMenu($photo_user_id);
-    $gallery->showCategories(1, $photo_user_id, $photo_cat_id);
 }
 
 // Do you have access to perform actions?
