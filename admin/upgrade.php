@@ -985,7 +985,7 @@ function upgrade ($version) {
 
 
     // Set the current Version
-    $sql = "UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.2'";
+    $sql = "UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.2.1'";
     mysql_query($sql) or displaySQLError(
         'Version Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
