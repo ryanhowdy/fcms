@@ -13,6 +13,8 @@ if (get_magic_quotes_gpc()) {
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
 include_once('inc/alerts_class.php');
+include_once('inc/locale.php');
+$locale = new Locale();
 
 // Check that the user is logged in
 isLoggedIn();
@@ -21,7 +23,7 @@ $current_user_id = (int)escape_string($_SESSION['login_id']);
 include_once('inc/addressbook_class.php');
 $book = new AddressBook($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$alert = new Alerts($database);
+$alert = new Alerts($current_user_id, $database);
 header("Cache-control: private");
 if (isset($_GET['csv'])) {
     $show = false;
@@ -35,15 +37,16 @@ if (isset($_GET['csv'])) {
         while ($row = mysql_fetch_assoc($result)) {
             $csv .= '"'.join('","', str_replace('"', '""', $row))."\"\015\012";
         }
+        $date = $locale->fixDate('Y-m-d', $book->tz_offset);
         header("Content-type: text/plain");
-        header("Content-disposition: csv; filename=FCMS_Addresses_".date("Y-m-d").".csv; size=".strlen($csv));
+        header("Content-disposition: csv; filename=FCMS_Addresses_$date.csv; size=".strlen($csv));
         echo $csv;
         exit();
     }
 }
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Address Book');
+$TMPL['pagetitle'] = T_('Address Book');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = '
@@ -53,7 +56,7 @@ $TMPL['javascript'] = '
 Event.observe(window, \'load\', function() {
     if ($(\'del\')) {
         var item = $(\'del\');
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this address?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this address?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmed\');
@@ -84,14 +87,14 @@ if (isset($_POST['emailsubmit'])) {
     if (checkAccess($current_user_id) > 3) {
         echo '
                 <p class="error-alert">
-                    '._('You do not have permission to perform this task.  You must have an access level of 3 (Member) or higher.').'
+                    '.T_('You do not have permission to perform this task.  You must have an access level of 3 (Member) or higher.').'
                 </p>';
     } else {
         if (empty($_POST['massemail'])) {
             echo '
                 <p class="error-alert">
-                    '._('You must choose at least one member to email.').' 
-                    <a href="help.php#address-massemail">'._('Get more help on sending mass emails.').'</a>
+                    '.T_('You must choose at least one member to email.').' 
+                    <a href="help.php#address-massemail">'.T_('Get more help on sending mass emails.').'</a>
                 </p>';
         } else {
             $book->displayMassEmailForm($_POST['massemail']);
@@ -113,7 +116,7 @@ if (isset($_POST['sendemailsubmit']) && !empty($_POST['subject']) && !empty($_PO
     }
     echo '
             <p class="ok-alert" id="msg">
-                '._('The following message has been sent:').'<br/>
+                '.T_('The following message has been sent:').'<br/>
                 '.$msg.'
             </p>
             <script type="text/javascript">window.onload=function(){ var t=setTimeout("$(\'msg\').toggle()",4000); }</script>';
@@ -205,12 +208,12 @@ if (isset($_POST['del']) && !isset($_POST['confirmed'])) {
     echo '
                 <div class="info-alert clearfix">
                     <form action="addressbook.php" method="post">
-                        <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
                             <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                            <a style="float:right;" href="addressbook.php?address='.$_POST['id'].'">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="addressbook.php?address='.$_POST['id'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -227,7 +230,7 @@ if (isset($_POST['del']) && !isset($_POST['confirmed'])) {
         mysql_query($sql) or displaySQLError('Delete Address Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error());
     } else {
         echo '
-            <p class="error-alert">'._('You do not have permission to perform this action.').'</p>';
+            <p class="error-alert">'.T_('You do not have permission to perform this action.').'</p>';
     }
 }
 
@@ -239,7 +242,7 @@ if (isset($_POST['edit'])) {
         $book->displayForm('edit', $_POST['id']);
     } else {
         echo '
-            <p class="error-alert">'._('You do not have permission to perform this action.').'</p>';
+            <p class="error-alert">'.T_('You do not have permission to perform this action.').'</p>';
     }
     $show = false;
 }
