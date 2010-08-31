@@ -8,6 +8,8 @@ if (get_magic_quotes_gpc()) {
 }
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
+include_once('inc/locale.php');
+$locale = new Locale();
 
 // Check that the user is logged in
 isLoggedIn();
@@ -20,15 +22,16 @@ if (isset($_GET['export'])) {
     $show = false;
     if ($_GET['export'] == 'true') {
         $cal = $calendar->exportCalendar();
+        $date = $locale->fixDate('Y-m-d', $calendar-tz_offset);
         header("Content-type: text/plain");
-        header("Content-disposition: ics; filename=FCMS_Calendar_".date("Y-m-d").".ics; size=".strlen($cal));
+        header("Content-disposition: ics; filename=FCMS_Calendar_$date.ics; size=".strlen($cal));
         echo $cal;
         exit();
     }
 }
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Calendar');
+$TMPL['pagetitle'] = T_('Calendar');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = '
@@ -47,7 +50,7 @@ Event.observe(window, \'load\', function() {
     // Delete Confirmation
     if ($(\'delcal\')) {
         var item = $(\'delcal\');
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmed\');
@@ -100,7 +103,7 @@ if (isset($_POST['edit'])) {
         'Edit Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
     echo '
-            <p class="ok-alert" id="msg">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="msg">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'msg\').toggle()",3000); }
             </script>';
@@ -123,7 +126,7 @@ if (isset($_POST['edit'])) {
         'Add Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
     echo '
-            <p class="ok-alert" id="msg">'._('New Calendar Entry Added Successfully').'</p>
+            <p class="ok-alert" id="msg">'.T_('New Calendar Entry Added Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'msg\').toggle()",3000); }
             </script>';
@@ -134,12 +137,12 @@ if (isset($_POST['edit'])) {
     echo '
             <div class="info-alert clearfix">
                 <form action="calendar.php" method="post">
-                    <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                    <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                    <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                    <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                     <div>
                         <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                        <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                        <a style="float:right;" href="calendar.php">'._('Cancel').'</a>
+                        <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                        <a style="float:right;" href="calendar.php">'.T_('Cancel').'</a>
                     </div>
                 </form>
             </div>';
@@ -151,7 +154,7 @@ if (isset($_POST['edit'])) {
         'Delete Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     echo '
-        <p class="ok-alert" id="msg">'._('Calendar Entry Deleted Successfully').'</p>
+        <p class="ok-alert" id="msg">'.T_('Calendar Entry Deleted Successfully').'</p>
         <script type="text/javascript">
             window.onload=function(){ var t=setTimeout("$(\'msg\').toggle()",3000); }
         </script>';
@@ -161,9 +164,19 @@ if (isset($_POST['edit'])) {
     $calendar->importCalendar($_FILES["file"]["tmp_name"]);
 }
 if ($showcal) {
-    $year  = isset($_GET['year']) ? $_GET['year'] : date('Y');
-    $month = isset($_GET['month']) ? str_pad($_GET['month'], 2, 0, STR_PAD_LEFT) : date('m');
-    $day = isset($_GET['day']) ? str_pad($_GET['day'], 2, 0, STR_PAD_LEFT) : date('d');
+    // Use the supplied date, if available
+    if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day'])) {
+        $year  = (int)$_GET['year'];
+        $month = (int)$_GET['month'];
+        $month = str_pad($month, 2, 0, STR_PAD_LEFT);
+        $day = (int)$_GET['day'];
+        $day = str_pad($day, 2, 0, STR_PAD_LEFT);
+    // get today's date
+    } else {
+        $year = $locale->fixDate('Y', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+        $month = $locale->fixDate('m', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+        $day = $locale->fixDate('d', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+    }
     $view = isset($_GET['view']) ? $_GET['view'] : 'month';
     $calendar->displayCalendar($month, $year, $day, 'big', $view);
 }
