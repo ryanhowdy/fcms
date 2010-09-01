@@ -27,7 +27,7 @@ class Profile {
         // Check for valid user id
         if (!ctype_digit($userid)) {
             echo '
-            <p class="error-alert">'._('Invalid User').'</p>';
+            <p class="error-alert">'.T_('Invalid User').'</p>';
             return;
         }
 
@@ -45,49 +45,49 @@ class Profile {
         $points = round(getUserRankById($userid), 2);
         $pts = 0;
         if ($points > 50) { 
-            $rank_img = "<div title=\""._('Elder')." ($points)\" class=\"rank7\"></div>";
-            $rank = _('Elder');
+            $rank_img = "<div title=\"".T_('Elder')." ($points)\" class=\"rank7\"></div>";
+            $rank = T_('Elder');
             $next_rank = "<i>none</i>";
         } elseif ($points > 30) {
-            $rank_img = "<div title=\""._('Adult')." ($points)\" class=\"rank6\"></div>";
-            $rank = _('Adult');
-            $next_rank = _('Elder');
+            $rank_img = "<div title=\"".T_('Adult')." ($points)\" class=\"rank6\"></div>";
+            $rank = T_('Adult');
+            $next_rank = T_('Elder');
             $pts = 50;
         } elseif ($points > 20) {
-            $rank_img = "<div title=\""._('Mature Adult')." ($points)\" class=\"rank5\"></div>";
-            $rank = _('Mature Adult');
-            $next_rank = _('Adult');
+            $rank_img = "<div title=\"".T_('Mature Adult')." ($points)\" class=\"rank5\"></div>";
+            $rank = T_('Mature Adult');
+            $next_rank = T_('Adult');
             $pts = 30;
         } elseif ($points > 10) {
-            $rank_img = "<div title=\""._('Young Adult')." ($points)\" class=\"rank4\"></div>";
-            $rank = _('Young Adult');
-            $next_rank = _('Mature Adult');
+            $rank_img = "<div title=\"".T_('Young Adult')." ($points)\" class=\"rank4\"></div>";
+            $rank = T_('Young Adult');
+            $next_rank = T_('Mature Adult');
             $pts = 20;
         } elseif ($points > 5) {
-            $rank_img = "<div title=\""._('Teenager')." ($points)\" class=\"rank3\"></div>";
-            $rank = _('Teenager');
-            $next_rank = _('Young Adult');
+            $rank_img = "<div title=\"".T_('Teenager')." ($points)\" class=\"rank3\"></div>";
+            $rank = T_('Teenager');
+            $next_rank = T_('Young Adult');
             $pts = 10;
         } elseif ($points > 3) {
-            $rank_img = "<div title=\""._('Kid')." ($points)\" class=\"rank2\"></div>";
-            $rank = _('Kid');
-            $next_rank = _('Teenager');
+            $rank_img = "<div title=\"".T_('Kid')." ($points)\" class=\"rank2\"></div>";
+            $rank = T_('Kid');
+            $next_rank = T_('Teenager');
             $pts = 5;
         } elseif ($points > 1) {
-            $rank_img = "<div title=\""._('Toddler')." ($points)\" class=\"rank1\"></div>";
-            $rank = _('Toddler');
-            $next_rank = _('Kid');
+            $rank_img = "<div title=\"".T_('Toddler')." ($points)\" class=\"rank1\"></div>";
+            $rank = T_('Toddler');
+            $next_rank = T_('Kid');
             $pts = 3;
         } else {
-            $rank_img = "<div title=\""._('Baby')." ($points)\" class=\"rank0\"></div>";
-            $rank = _('Baby');
-            $next_rank = _('Toddler');
+            $rank_img = "<div title=\"".T_('Baby')." ($points)\" class=\"rank0\"></div>";
+            $rank = T_('Baby');
+            $next_rank = T_('Toddler');
             $pts = 1;
         }
 
         // Dates Info
-        $joinDate = $locale->fixDate(_('F j, Y'), $this->tz_offset, $row['joindate']);
-        $activityDate = $locale->fixDate(_('F j, Y g:i a'), $this->tz_offset, $row['activity']);
+        $joinDate = $locale->fixDate(T_('F j, Y'), $this->tz_offset, $row['joindate']);
+        $activityDate = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $row['activity']);
 
         // Stats Info
         $posts = '';
@@ -106,26 +106,26 @@ class Profile {
             $calendarsCount = getCalendarEntriesById($userid, 'array');
             $posts = '<div class="stat c1">
                         <span title="'.$postsCount['percent'].' of total">'.$postsCount['count'].'</span>
-                        <b>'._('Posts').'</b>
+                        <b>'.T_('Posts').'</b>
                     </div>';
             $photos = '<div class="stat c2">
                         <span title="'.$photosCount['percent'].' of total">'.$photosCount['count'].'</span>
-                        <b>'._('Photos').'</b>
+                        <b>'.T_('Photos').'</b>
                     </div>';
             $comments = '<div class="stat c3">
                         <span title="'.$commentsCount['percent'].' of total">'.$commentsCount['count'].'</span>
-                        <b>'._('Comments').'</b>
+                        <b>'.T_('Comments').'</b>
                     </div>';
             $calendars = '<div class="stat c4">
                         <span title="'.$calendarsCount['percent'].' of total">'.$calendarsCount['count'].'</span>
-                        <b>'._('Dates').'</b>
+                        <b>'.T_('Dates').'</b>
                     </div>';
             $i = 5;
             if (usingFamilyNews()) {
                 $newsCount = getFamilyNewsById($userid, 'array');
                 $news = '<div class="stat c'.$i.'">
                         <span title="'.$newsCount['percent'].' of total">'.$newsCount['count'].'</span>
-                        <b>'._('Family News').'</b>
+                        <b>'.T_('Family News').'</b>
                     </div>';
                 $i++;
             }
@@ -133,7 +133,7 @@ class Profile {
                 $recipesCount = getRecipesById($userid, 'array');
                 $recipes = '<div class="stat c'.$i.'">
                         <span title="'.$recipesCount['percent'].' of total">'.$recipesCount['count'].'</span>
-                        <b>'._('Recipes').'</b>
+                        <b>'.T_('Recipes').'</b>
                     </div>';
                 $i++;
             }
@@ -141,7 +141,7 @@ class Profile {
                 $documentsCount = getDocumentsById($userid, 'array');
                 $documents = '<div class="stat c'.$i.'">
                         <span title="'.$documentsCount['percent'].' of total">'.$documentsCount['count'].'</span>
-                        <b>'._('Documents').'</b>
+                        <b>'.T_('Documents').'</b>
                     </div>';
                 $i++;
             }
@@ -149,7 +149,7 @@ class Profile {
                 $prayersCount = getPrayersById($userid, 'array');
                 $prayers = '<div class="stat c'.$i.'">
                         <span title="'.$prayersCount['percent'].' of total">'.$prayersCount['count'].'</span>
-                        <b>'._('Prayer Concerns').'</b>
+                        <b>'.T_('Prayer Concerns').'</b>
                     </div>';
                 $i++;
             }
@@ -164,7 +164,7 @@ class Profile {
         // Address
         $address = '';
         if (empty($row['address']) && empty($row['state'])) {
-            $address = "<i>("._('none').")</i>";
+            $address = "<i>(".T_('none').")</i>";
         } else {
             if (!empty($row['address'])) {
                 $address .= $row['address'] . "<br/>";
@@ -175,9 +175,9 @@ class Profile {
             $address .= $row['state'] . " " . $row['zip'];
         }
         // Phone Numbers
-        $home = empty($row['home']) ? "<i>(" . _('none') . ")</i>" : $row['home'];
-        $work = empty($row['work']) ? "<i>(" . _('none') . ")</i>" : $row['work'];
-        $cell = empty($row['cell']) ? "<i>(" . _('none') . ")</i>" : $row['cell'];
+        $home = empty($row['home']) ? "<i>(" . T_('none') . ")</i>" : $row['home'];
+        $work = empty($row['work']) ? "<i>(" . T_('none') . ")</i>" : $row['work'];
+        $cell = empty($row['cell']) ? "<i>(" . T_('none') . ")</i>" : $row['cell'];
 
         // Print the profile info
         echo '
@@ -189,27 +189,27 @@ class Profile {
                     '.$rank_img.'
                 </div>
                 <p>
-                    <a class="action" href="privatemsg.php?compose=new&amp;id='.$userid.'">'._('Send PM').'</a>
+                    <a class="action" href="privatemsg.php?compose=new&amp;id='.$userid.'">'.T_('Send PM').'</a>
                 </p>
                 <p>
-                    <b>'._('Address').'</b><br/>
+                    <b>'.T_('Address').'</b><br/>
                     '.$address.'
                 </p>
                 <p>
-                    <b>'._('Home Phone').'</b>: '.$home.'<br/>
-                    <b>'._('Work Phone').'</b>: '.$work.'<br/>
-                    <b>'._('Cell Phone').'</b>: '.$cell.'<br/>
+                    <b>'.T_('Home Phone').'</b>: '.$home.'<br/>
+                    <b>'.T_('Work Phone').'</b>: '.$work.'<br/>
+                    <b>'.T_('Cell Phone').'</b>: '.$cell.'<br/>
                 </p>
                 <hr/>
-                <h4>'._('Rank').'</h4>
+                <h4>'.T_('Rank').'</h4>
                 <p>
-                    <b>'._('Points').':</b> '.$points.'<br/>
-                    <b>'._('Rank').':</b> '.$rank.'<br/>
-                    <b>'._('Next Rank').':</b> '.$next_rank.' '.$ptsToGo.'
+                    <b>'.T_('Points').':</b> '.$points.'<br/>
+                    <b>'.T_('Rank').':</b> '.$rank.'<br/>
+                    <b>'.T_('Next Rank').':</b> '.$next_rank.' '.$ptsToGo.'
                 </p>
                 <hr/>
-                <p><b>'._('Join Date').':</b><br/>'.$joinDate.'</p>
-                <p><b>'._('Last Visit').':</b><br/>'.$activityDate.'</p>
+                <p><b>'.T_('Join Date').':</b><br/>'.$joinDate.'</p>
+                <p><b>'.T_('Last Visit').':</b><br/>'.$activityDate.'</p>
             </div>
             <div id="main-info">
                 <div id="stats" class="clearfix">
@@ -224,12 +224,12 @@ class Profile {
                 </div>';
         if (checkAccess($this->current_user_id) < 8 && checkAccess($this->current_user_id) != 5) {
             echo '
-                <h2>'._('Last 5 Posts').'</h2>';
+                <h2>'.T_('Last 5 Posts').'</h2>';
             $this->displayLast5Posts($userid);
         }
         if (checkAccess($this->current_user_id) <= 3 || checkAccess($this->current_user_id) == 8) {
             echo '
-                <h2>'._('Last 5 Photos').'</h2>';
+                <h2>'.T_('Last 5 Photos').'</h2>';
             $this->displayLast5Photos($userid);
         }
         echo '
@@ -244,13 +244,13 @@ class Profile {
             <table class="sortable">
                 <thead>
                     <tr>
-                        <th>'._('Username').'</th>
-                        <th>'._('First Name').'</th>
-                        <th>'._('Last Name').'</th>
-                        <th>'._('Posts').'</th>
-                        <th>'._('Photos').'</th>
-                        <th class="sortfirstdesc">'._('Rank').'</th>
-                        <th>'._('Age').'</th>
+                        <th>'.T_('Username').'</th>
+                        <th>'.T_('First Name').'</th>
+                        <th>'.T_('Last Name').'</th>
+                        <th>'.T_('Posts').'</th>
+                        <th>'.T_('Photos').'</th>
+                        <th class="sortfirstdesc">'.T_('Rank').'</th>
+                        <th>'.T_('Age').'</th>
                     </tr>
                 </thead>
                 <tbody>';
@@ -267,9 +267,9 @@ class Profile {
             // Calculate Age
             $birthday = $row['birthday'];
             list($year,$month,$day) = explode("-",$birthday);
-            $year_diff  = date("Y") - $year;
-            $month_diff = date("m") - $month;
-            $day_diff   = date("d") - $day;
+            $year_diff  = gmdate("Y") - $year;
+            $month_diff = gmdate("m") - $month;
+            $day_diff   = gmdate("d") - $day;
             if ($month_diff < 0) {
                 $year_diff--;
             } elseif (($month_diff==0) && ($day_diff < 0)) {
@@ -281,21 +281,21 @@ class Profile {
             $points = getUserRankById($row['id']);
             $points = round($points, 2);
             if ($points > 50) {
-                $uname_display = "<div title=\""._('Elder')." ($points)\" class=\"rank7\"></div>";
+                $uname_display = "<div title=\"".T_('Elder')." ($points)\" class=\"rank7\"></div>";
             } elseif ($points > 30) {
-                $uname_display = "<div title=\""._('Adult')." ($points)\" class=\"rank6\"></div>";
+                $uname_display = "<div title=\"".T_('Adult')." ($points)\" class=\"rank6\"></div>";
             } elseif ($points > 20) {
-                $uname_display = "<div title=\""._('Mature Adult')." ($points)\" class=\"rank5\"></div>";
+                $uname_display = "<div title=\"".T_('Mature Adult')." ($points)\" class=\"rank5\"></div>";
             } elseif ($points > 10) {
-                $uname_display = "<div title=\""._('Young Adult')." ($points)\" class=\"rank4\"></div>";
+                $uname_display = "<div title=\"".T_('Young Adult')." ($points)\" class=\"rank4\"></div>";
             } elseif ($points > 5) {
-                $uname_display = "<div title=\""._('Teenager')." ($points)\" class=\"rank3\"></div>";
+                $uname_display = "<div title=\"".T_('Teenager')." ($points)\" class=\"rank3\"></div>";
             } elseif($points > 3) {
-                $uname_display = "<div title=\""._('Kid')." ($points)\" class=\"rank2\"></div>";
+                $uname_display = "<div title=\"".T_('Kid')." ($points)\" class=\"rank2\"></div>";
             } elseif ($points > 1) {
-                $uname_display = "<div title=\""._('Toddler')." ($points)\" class=\"rank1\"></div>";
+                $uname_display = "<div title=\"".T_('Toddler')." ($points)\" class=\"rank1\"></div>";
             } else {
-                $uname_display = "<div title=\""._('Baby')." ($points)\" class=\"rank0\"></div>";
+                $uname_display = "<div title=\"".T_('Baby')." ($points)\" class=\"rank0\"></div>";
             }
 
             // Display user info row
@@ -346,7 +346,7 @@ class Profile {
         );
         if ($this->db2->count_rows() > 0) {
             while ($row = $this->db2->get_row()) {
-                $date = $locale->fixDate(_('F j, Y, g:i a'), $this->tz_offset, $row['date']);
+                $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tz_offset, $row['date']);
                 $search = array('/\[ins\](.*?)\[\/ins\]/is', '/\[del\](.*?)\[\/del\]/is', '/\[h1\](.*?)\[\/h1\]/is', '/\[h2\](.*?)\[\/h2\]/is', '/\[h3\](.*?)\[\/h3\]/is', '/\[h4\](.*?)\[\/h4\]/is', '/\[h5\](.*?)\[\/h5\]/is', '/\[h6\](.*?)\[\/h6\]/is', 
                     '/\[b\](.*?)\[\/b\]/is', '/\[i\](.*?)\[\/i\]/is', '/\[u\](.*?)\[\/u\]/is', '/\[url\=(.*?)\](.*?)\[\/url\]/is', '/\[url\](.*?)\[\/url\]/is', '/\[align\=(left|center|right)\](.*?)\[\/align\]/is','/\[img\=(.*?)\]/is', '/\[img\](.*?)\[\/img\]/is', 
                     '/\[mail\=(.*?)\](.*?)\[\/mail\]/is', '/\[mail\](.*?)\[\/mail\]/is', '/\[font\=(.*?)\](.*?)\[\/font\]/is', '/\[size\=(.*?)\](.*?)\[\/size\]/is', '/\[color\=(.*?)\](.*?)\[\/color\]/is', '/\[span\](.*?)\[\/span\]/is', '/\[span\=(.*?)\](.*?)\[\/span\]/is');
@@ -367,7 +367,7 @@ class Profile {
             }
         } else {
             echo '
-                <p>'._('none').'</p>';
+                <p>'.T_('none').'</p>';
         }
     }
 
@@ -395,7 +395,7 @@ class Profile {
             echo '
             </ul>';
         } else {
-            echo "<p>"._('none')."</p>";
+            echo "<p>".T_('none')."</p>";
         }
     }
 
@@ -406,13 +406,13 @@ class Profile {
         if ($check['count'] > 0) {
             $this->db->query("SELECT * FROM `fcms_user_awards` WHERE `type` = 'top5poster'") or die('<h1>Awards Error (profile.class.php 133)</h1>' . mysql_error());
             echo '
-            <h2>'._('Message Board').'</h2>
-            <h3><dfn title="'._('for having the most posts').'"></dfn>'._('Most Talkative Award').'</h3>
+            <h2>'.T_('Message Board').'</h2>
+            <h3><dfn title="'.T_('for having the most posts').'"></dfn>'.T_('Most Talkative Award').'</h3>
             <ol>';
             while ($row = $this->db->get_row()) {
                 if ($row['count'] > 0) {
                     echo '
-                <li><a class="u" href="profile.php?member='.$row['user'].'">'.getUserDisplayName($row['user']).'</a> - '.$row['count'].' '._('posts').'</li>';
+                <li><a class="u" href="profile.php?member='.$row['user'].'">'.getUserDisplayName($row['user']).'</a> - '.$row['count'].' '.T_('posts').'</li>';
                 }
             }
             echo '
@@ -425,39 +425,39 @@ class Profile {
             if ($pos !== false) { $subject = substr($row2['subject'], 9, strlen($row2['subject'])-9); } else { $subject = $row2['subject']; }
             echo '
             <p>&nbsp;</p>
-            <h3><dfn title="'._('for starting the most active thread').'">'._('Conversation Starter Award').'</dfn></h3>
+            <h3><dfn title="'.T_('for starting the most active thread').'">'.T_('Conversation Starter Award').'</dfn></h3>
             <p>
                 <a class="u" href="profile.php?member='.$row['user'].'">'.getUserDisplayName($row['user']).'</a> - 
-                <a href="messageboard.php?thread='.$row['value'].'">'.$subject.'</a>, '.$row['count'].' '._('replies').'
+                <a href="messageboard.php?thread='.$row['value'].'">'.$subject.'</a>, '.$row['count'].' '.T_('replies').'
             </p>';
             $this->db->query("SELECT * FROM `fcms_user_awards` WHERE `type` = 'mostsmileys'") or die('<h1>Awards Error (profile.class.php 147)</h1>' . mysql_error());
             $row = $this->db->get_row();
             echo '
             <p>&nbsp;</p>
-            <h3><dfn title="'._('for using the most smileys').'">'._('Smiley Award').'</dfn></h3>
+            <h3><dfn title="'.T_('for using the most smileys').'">'.T_('Smiley Award').'</dfn></h3>
             <p><a class="u" href="profile.php?member='.$row['user'].'">'.getUserDisplayName($row['user']).'</a></p>';
         } else {
             echo '
-            <p class="info-alert">'._('No Message Board Awards have been awarded yet.').'</p>';
+            <p class="info-alert">'.T_('No Message Board Awards have been awarded yet.').'</p>';
         }
         $this->db->query("SELECT `count` FROM `fcms_user_awards` WHERE `id` = 8") or die('<h1>Awards Error (profile.class.php 153)</h1>' . mysql_error());
         $check = $this->db->get_row();
         if ($check['count'] > 0) {
             $this->db->query("SELECT * FROM `fcms_user_awards` WHERE `type` = 'top5photo'") or die('<h1>Awards Error (profile.class.php 156)</h1>' . mysql_error());
             echo '
-            <h2>'._('Photo Gallery').'</h2>
-            <h3><dfn title="'._('for submitting the most photos').'">'._('Photographer Award').'</dfn></h3>
+            <h2>'.T_('Photo Gallery').'</h2>
+            <h3><dfn title="'.T_('for submitting the most photos').'">'.T_('Photographer Award').'</dfn></h3>
             <ol>';
             while ($row = $this->db->get_row()) {
                 if ($row['count'] > 0) {
                     echo '
-                <li><a class="u" href="profile.php?member='.$row['user'].'">'.getUserDisplayName($row['user']).'</a> - '.$row['count'].' '._('photos').'</li>';
+                <li><a class="u" href="profile.php?member='.$row['user'].'">'.getUserDisplayName($row['user']).'</a> - '.$row['count'].' '.T_('photos').'</li>';
                 }
             }
             echo '
             </ol>
             <p>&nbsp;</p>
-            <h3><dfn title="'._('for uploading the most viewed photo').'">'._('Most Photogenic Award').'</dfn></h3>';
+            <h3><dfn title="'.T_('for uploading the most viewed photo').'">'.T_('Most Photogenic Award').'</dfn></h3>';
             $this->db->query("SELECT * FROM `fcms_user_awards` WHERE `type` = 'topviewedphoto'") or die('<h1>Awards Error (profile.class.php 162)</h1>' . mysql_error());
             $row = $this->db->get_row();
             $this->db2->query("SELECT `user`, `filename`, `category` FROM `fcms_gallery_photos` WHERE `id` = " . $row['value']) or die('<h1>Filename Error (profile.class.php 164)</h1>' . mysql_error());
@@ -472,7 +472,7 @@ class Profile {
             <p>&nbsp;</p>';
         } else {
             echo '
-            <p class="info-alert">'._('No Photo Gallery Awards have been awarded yet.').'</p>';
+            <p class="info-alert">'.T_('No Photo Gallery Awards have been awarded yet.').'</p>';
         }
     }
 

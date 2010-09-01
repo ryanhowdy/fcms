@@ -31,7 +31,7 @@ if (isset($_GET['download'])) {
     exit(0);
 }
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Documents');
+$TMPL['pagetitle'] = T_('Documents');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 
@@ -54,7 +54,7 @@ if (isset($_POST['submitadd'])) {
                 )";
         mysql_query($sql) or displaySQLError('New Document Error', 'documents.php [' . __LINE__ . ']', $sql, mysql_error());
         echo '
-            <p class="ok-alert" id="add">'._('Document Added Successfully').'</p>
+            <p class="ok-alert" id="add">'.T_('Document Added Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'add\').toggle()",3000); }
             </script>';
@@ -68,10 +68,10 @@ if (isset($_POST['submitadd'])) {
             while ($r = mysql_fetch_array($result)) {
                 $name = getUserDisplayName($current_user_id);
                 $to = getUserDisplayName($r['user']);
-                $subject = sprintf(_('%s has added a new document (%s).'), $name, $doc);
+                $subject = sprintf(T_('%s has added a new document (%s).'), $name, $doc);
                 $email = $r['email'];
                 $url = getDomainAndDir();
-                $msg = _('Dear').' '.$to.',
+                $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
@@ -79,7 +79,7 @@ if (isset($_POST['submitadd'])) {
 
 
 ----
-'._('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
+'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
 
 '.$url.'settings.php
 
@@ -94,7 +94,7 @@ if (isset($_POST['deldoc'])) {
     mysql_query($sql) or displaySQLError('Delete Document Error', 'documents.php [' . __LINE__ . ']', $sql, mysql_error());
     unlink("gallery/documents/" . $_POST['name']);
     echo '
-            <p class="ok-alert" id="del">'._('Document Deleted Successfully').'</p>
+            <p class="ok-alert" id="del">'.T_('Document Deleted Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'del\').toggle()",2000); }
             </script>';
@@ -107,7 +107,7 @@ if ($show) {
     if (checkAccess($current_user_id) <= 5) {
         echo '
             <div id="actions_menu" class="clearfix">
-                <ul><li><a href="?adddoc=yes">'._('Add Document').'</a></li></ul>
+                <ul><li><a href="?adddoc=yes">'.T_('Add Document').'</a></li></ul>
             </div>';
     }
     $page = 1;

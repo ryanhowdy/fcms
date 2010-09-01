@@ -40,15 +40,15 @@ class Documents {
             <table id="docs" class="sortable">
                 <thead>
                     <tr>
-                        <th class="sortfirstasc">'._('Document').'</th>
-                        <th>'._('Description').'</th>
-                        <th>'._('Uploaded By').'</th>
-                        <th>'._('Date Added').'</th>
+                        <th class="sortfirstasc">'.T_('Document').'</th>
+                        <th>'.T_('Description').'</th>
+                        <th>'.T_('Uploaded By').'</th>
+                        <th>'.T_('Date Added').'</th>
                     </tr>
                 </thead>
                 <tbody>';
             while($r = $this->db->get_row()) {
-                $date = $locale->fixDate(_('m/d/Y h:ia'), $this->tz_offset, $r['date']);
+                $date = $locale->fixDate(T_('m/d/Y h:ia'), $this->tz_offset, $r['date']);
                 echo '
                     <tr>
                         <td>
@@ -59,7 +59,7 @@ class Documents {
                                 <div>
                                     <input type="hidden" name="id" value="'.$r['id'].'"/>
                                     <input type="hidden" name="name" value="'.$r['name'].'"/>
-                                    <input type="submit" name="deldoc" value="'._('Delete').'" class="delbtn" title="'._('Delete this Document').'"/>
+                                    <input type="submit" name="deldoc" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Document').'"/>
                                 </div>
                             </form>';
                 }
@@ -85,9 +85,9 @@ class Documents {
         } else {
             echo '
             <div class="info-alert">
-                <h2>'._('Welcome to the Documents Section.').'</h2>
-                <p><i>'._('Currently no one is sharing any documents.').'</i></p>
-                <p><a href="?adddoc=yes">'._('Upload a document').'</a></p>
+                <h2>'.T_('Welcome to the Documents Section.').'</h2>
+                <p><i>'.T_('Currently no one is sharing any documents.').'</i></p>
+                <p><a href="?adddoc=yes">'.T_('Upload a document').'</a></p>
             </div>';
         }
     }
@@ -98,22 +98,22 @@ class Documents {
             <script type="text/javascript" src="inc/livevalidation.js"></script>
             <form method="post" enctype="multipart/form-data" name="addform" action="documents.php">
                 <fieldset>
-                    <legend><span>'._('Upload Document').'</span></legend>
+                    <legend><span>'.T_('Upload Document').'</span></legend>
                     <p>
-                        <label for="doc">'._('Document').'</label>: 
+                        <label for="doc">'.T_('Document').'</label>: 
                         <input type="file" name="doc" id="doc" size="30"/>
                     </p>
                     <p>
-                        <label for="desc">'._('Description').'</label>: 
+                        <label for="desc">'.T_('Description').'</label>: 
                         <input type="text" name="desc" id="desc" size="60"/>
                     </p>
                     <script type="text/javascript">
                         var fdesc = new LiveValidation(\'desc\', { onlyOnSubmit: true});
-                        fdesc.add(Validate.Presence, {failureMessage: "'._('Required').'"});
+                        fdesc.add(Validate.Presence, {failureMessage: "'.T_('Required').'"});
                     </script>
                     <p>
-                        <input class="sub1" type="submit" name="submitadd" value="'._('Add').'"/> &nbsp;
-                        <a href="documents.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'"/> &nbsp;
+                        <a href="documents.php">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>';
@@ -148,7 +148,7 @@ class Documents {
         $ext = end($ext);
         if ($error == 1) {
             echo '
-            <p class="error-alert">'.sprintf(_('Document %s exceeds the maximum file size allowed by your PHP settings.'), $filename).'</p>';
+            <p class="error-alert">'.sprintf(T_('Document %s exceeds the maximum file size allowed by your PHP settings.'), $filename).'</p>';
             return false;
         } else if (
             !array_key_exists($filetype, $valid_docs) ||
@@ -156,8 +156,8 @@ class Documents {
         ) {
             echo '
             <p class="error-alert">
-                '.sprintf(_('Document %s is not allowed.'), $filename).'<br/>
-                '._('Documents must be of type (.DOC, .TXT, .XSL, .ZIP, .RTF, .PPT, .PDF).').'
+                '.sprintf(T_('Document %s is not allowed.'), $filename).'<br/>
+                '.T_('Documents must be of type (.DOC, .TXT, .XSL, .ZIP, .RTF, .PPT, .PDF).').'
             </p>';
             return false;
         } else {
@@ -169,8 +169,9 @@ class Documents {
     function displayWhatsNewDocuments ()
     {
         $locale = new Locale();
-        $today = date('Y-m-d');
-        $tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
+        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+
         $sql = "SELECT * 
                 FROM `fcms_documents` 
                 WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) 
@@ -181,19 +182,17 @@ class Documents {
         );
         if ($this->db->count_rows() > 0) {
             echo '
-            <h3>'._('Documents').'</h3>
+            <h3>'.T_('Documents').'</h3>
             <ul>';
             while ($r = $this->db->get_row()) {
                 $name = $r['name'];
                 $displayname = getUserDisplayName($r['user']);
-                $date = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
-                if (
-                    strtotime($r['date']) >= strtotime($today) && 
-                    strtotime($r['date']) > $tomorrow
-                ) {
-                    $date = _('Today');
+                $date = $locale->fixDate('YmdHis', $this->tz_offset, $r['date']);
+                if ($date >= $today_start && $date <= $today_end) {
+                    $date = T_('Today');
                     $d = ' class="today"';
                 } else {
+                    $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
                     $d = '';
                 }
                 echo '

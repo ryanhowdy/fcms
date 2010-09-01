@@ -12,7 +12,7 @@ include_once('inc/profile_class.php');
 $profile = new Profile($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Profiles');
+$TMPL['pagetitle'] = T_('Profiles');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 
@@ -25,9 +25,9 @@ echo '
         <div id="profile" class="centercontent">
             <div id="sections_menu" class="clearfix">
                 <ul>
-                    <li><a href="profile.php">'._('Profiles').'</a></li>
-                    <li><a href="privatemsg.php">'._('Private Messages').'</a></li>
-                    <li><a href="profile.php?awards=yes">'._('Awards').'</a></li>
+                    <li><a href="profile.php">'.T_('Profiles').'</a></li>
+                    <li><a href="privatemsg.php">'.T_('Private Messages').'</a></li>
+                    <li><a href="profile.php?awards=yes">'.T_('Awards').'</a></li>
                 </ul>
             </div>';
 if (isset($_GET['member'])) {

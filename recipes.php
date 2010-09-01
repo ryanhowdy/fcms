@@ -18,7 +18,7 @@ include_once('inc/recipes_class.php');
 $rec = new Recipes($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Recipes');
+$TMPL['pagetitle'] = T_('Recipes');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = '
@@ -27,7 +27,7 @@ $TMPL['javascript'] = '
 Event.observe(window, \'load\', function() {
     if (!$$(\'.delrec input[type="submit"]\')) { return; }
     $$(\'.delrec input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmed\');
@@ -70,7 +70,7 @@ if (isset($_POST['submitadd'])) {
         );
     $rec_id = mysql_insert_id();
     echo '
-            <p class="ok-alert" id="add">'._('Recipe Added Successfully').'</p>
+            <p class="ok-alert" id="add">'.T_('Recipe Added Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'add\').toggle()",3000); }
             </script>';
@@ -85,31 +85,31 @@ if (isset($_POST['submitadd'])) {
     );
     if (mysql_num_rows($result) > 0) {
         switch ($_POST['category']) {
-            case _('Appetizer'):
+            case T_('Appetizer'):
                 $cat = "1";
                 break;
-            case _('Breakfast'):
+            case T_('Breakfast'):
                 $cat = "2";
                 break;
-            case _('Dessert'):
+            case T_('Dessert'):
                 $cat = "3";
                 break;
-            case _('Entree (Meat)'):
+            case T_('Entree (Meat)'):
                 $cat = "4";
                 break;
-            case _('Entree (Seafood)'):
+            case T_('Entree (Seafood)'):
                 $cat = "5";
                 break;
-            case _('Entree (Vegetarian)'):
+            case T_('Entree (Vegetarian)'):
                 $cat = "6";
                 break;
-            case _('Salad'):
+            case T_('Salad'):
                 $cat = "7";
                 break;
-            case _('Side Dish'):
+            case T_('Side Dish'):
                 $cat = "8";
                 break;
-            case _('Soup'):
+            case T_('Soup'):
                 $cat = "9";
                 break;
             default:
@@ -120,17 +120,17 @@ if (isset($_POST['submitadd'])) {
             $recipe_name = $name;
             $name = getUserDisplayName($current_user_id);
             $to = getUserDisplayName($r['user']);
-            $subject = sprintf(_('%s has added the recipe: %s'), $name, $recipe_name);
+            $subject = sprintf(T_('%s has added the recipe: %s'), $name, $recipe_name);
             $email = $r['email'];
             $url = getDomainAndDir();
-            $msg = _('Dear').' '.$to.',
+            $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
 '.$url.'recipes.php?category='.$cat.'
 
 ----
-'._('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
+'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
 
 '.$url.'settings.php
 
@@ -153,7 +153,7 @@ if (isset($_POST['submitedit'])) {
         'Edit Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
     echo '
-            <p class="ok-alert" id="edit">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="edit">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'edit\').toggle()",3000); }
             </script>';
@@ -165,12 +165,12 @@ if (isset($_POST['delrecipe']) && !isset($_POST['confirmed'])) {
     echo '
                 <div class="info-alert clearfix">
                     <form action="recipes.php" method="post">
-                        <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
                             <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                            <a style="float:right;" href="recipes.php">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="recipes.php">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -182,7 +182,7 @@ if (isset($_POST['delrecipe']) && !isset($_POST['confirmed'])) {
         'Delete Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
     echo '
-            <p class="ok-alert" id="del">'._('Recipe Deleted Successfully').'</p>
+            <p class="ok-alert" id="del">'.T_('Recipe Deleted Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'del\').toggle()",2000); }
             </script>';

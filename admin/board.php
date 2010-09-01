@@ -18,7 +18,7 @@ include_once('../inc/admin_class.php');
 $admin = new Admin($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Administration: Message Board');
+$TMPL['pagetitle'] = T_('Administration: Message Board');
 $TMPL['path'] = "../";
 $TMPL['admin_path'] = "";
 
@@ -31,9 +31,9 @@ echo '
 if (checkAccess($current_user_id) > 2) {
     echo '
             <p class="error-alert">
-                <b>'._('You do not have access to view this page.').'</b><br/>
-                '._('This page requires an access level 2 (Helper) or better.').' 
-                <a href="../contact.php">'._('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
+                <b>'.T_('You do not have access to view this page.').'</b><br/>
+                '.T_('This page requires an access level 2 (Helper) or better.').' 
+                <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
             </p>';
 } else {
     if (isset($_GET['del'])) {

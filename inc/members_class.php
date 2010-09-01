@@ -59,7 +59,7 @@ class Members
         
         // Setup create member variables
         if ($type == 'create') {
-            $title      =   _('Create New Member');
+            $title      =   T_('Create New Member');
             $disabled   =   '';
             $username   =   isset($_POST['username'])   ?   $_POST['username']  :   '';
             $fname      =   isset($_POST['fname'])      ?   $_POST['fname']     :   '';
@@ -71,7 +71,7 @@ class Members
         
         // Setup edit member variables
         } elseif ($type == 'edit') {
-            $title    = _('Edit Member');
+            $title    = T_('Edit Member');
             $disabled = 'disabled="disabled"';
             $id       = isset($r['id'])       ?  $r['id']                     :  $_POST['id'];
             $username = isset($r['username']) ?  $r['username']               :  $_POST['username'];
@@ -96,7 +96,7 @@ class Members
                 <legend><span>'.$title.'</span></legend>
                 <form method="post" action="members.php">
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="username"><b>'._('Username').'</b></label></div> 
+                        <div class="field-label"><label for="username"><b>'.T_('Username').'</b></label></div> 
                         <div class="field-widget">
                             <input type="text" name="username" id="username" '.$disabled.' value="'.$username.'" size="25"/>
                         </div>
@@ -106,7 +106,7 @@ class Members
                         funame.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="password"><b>'._('Password').'</b></label></div>
+                        <div class="field-label"><label for="password"><b>'.T_('Password').'</b></label></div>
                         <div class="field-widget">
                             <input type="password" name="password" id="password" size="25"/>
                         </div>
@@ -122,7 +122,7 @@ class Members
         }
         echo '
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="fname"><b>'._('First Name').'</b></label></div> 
+                        <div class="field-label"><label for="fname"><b>'.T_('First Name').'</b></label></div> 
                         <div class="field-widget">
                             <input type="text" name="fname" id="fname" value="'.$fname.'" size="50"/>
                         </div>
@@ -132,7 +132,7 @@ class Members
                         ffname.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="lname"><b>'._('Last Name').'</b></label></div> 
+                        <div class="field-label"><label for="lname"><b>'.T_('Last Name').'</b></label></div> 
                         <div class="field-widget">
                             <input type="text" name="lname" id="lname" value="'.$lname.'" size="50"/>
                         </div>
@@ -142,19 +142,19 @@ class Members
                         flname.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="email"><b>'._('Email').'</b></label></div> 
+                        <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div> 
                         <div class="field-widget">
                             <input type="text" name="email" id="email" value="'.$email.'" size="50"/>
                         </div>
                     </div>
                     <script type="text/javascript">
                         var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
-                        femail.add( Validate.Presence, { failureMessage: "'._('Sorry, but this information is Required.').'" } );
-                        femail.add( Validate.Email, { failureMessage: "'._('That\'s not a valid email address is it?').'" } );
+                        femail.add( Validate.Presence, { failureMessage: "'.T_('Sorry, but this information is Required.').'" } );
+                        femail.add( Validate.Email, { failureMessage: "'.T_('That\'s not a valid email address is it?').'" } );
                         femail.add( Validate.Length, { minimum: 10 } );
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="day"><b>'._('Birthday').'</b></label></div> 
+                        <div class="field-label"><label for="day"><b>'.T_('Birthday').'</b></label></div> 
                         <div class="field-widget">
                             <select id="day" name="day">';
         $d = 1;
@@ -199,32 +199,32 @@ class Members
         if ($type == 'create') {
             echo '
                     <p>
-                        <input class="sub1" type="submit" id="create" name="create" value="'._('Create').'"/> '._('or').' &nbsp;
-                        <a href="members.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" id="create" name="create" value="'.T_('Create').'"/> '.T_('or').' &nbsp;
+                        <a href="members.php">'.T_('Cancel').'</a>
                     </p>
                 </form>
             </fieldset>';
         } elseif ($type == 'edit') {
             echo '
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="access"><b>'._('Access Level').'</b></label></div> 
+                        <div class="field-label"><label for="access"><b>'.T_('Access Level').'</b></label></div> 
                         <div class="field-widget">
                             <select id="access" name="access">
                                 <option value="1"';
             if ($access == 1) {
                 echo " selected=\"selected\"";
             }
-            echo ">1. " . _('Admin') . "</option><option value=\"2\"";
+            echo ">1. " . T_('Admin') . "</option><option value=\"2\"";
             if ($access == 2) {
                 echo " selected=\"selected\"";
             }
-            echo ">2. " . _('Helper') . "</option><option value=\"3\"";
+            echo ">2. " . T_('Helper') . "</option><option value=\"3\"";
             if ($access == 3) {
                 echo " selected=\"selected\"";
             }
-            echo ">3. " . _('Member') . "</option>";
+            echo ">3. " . T_('Member') . "</option>";
             echo "<option value=\"" . $access . "\"></option>";
-            echo "<option value=\"" . $access . "\">" . _('Advanced Options')
+            echo "<option value=\"" . $access . "\">" . T_('Advanced Options')
                 . "</option>";
             echo "<option value=\"" . $access . "\">"
                 . "-------------------------------------</option>";
@@ -232,39 +232,39 @@ class Members
             if ($access == 4) {
                 echo " selected=\"selected\"";
             }
-            echo ">4. " . _('Non-Photographer') . "</option><option value=\"5\"";
+            echo ">4. " . T_('Non-Photographer') . "</option><option value=\"5\"";
             if ($access == 5) {
                 echo " selected=\"selected\"";
             }
-            echo ">5. " . _('Non-Poster') . "</option><option value=\"6\"";
+            echo ">5. " . T_('Non-Poster') . "</option><option value=\"6\"";
             if ($access == 6) {
                 echo " selected=\"selected\"";
             }
-            echo ">6. " . _('Commenter') . "</option><option value=\"7\"";
+            echo ">6. " . T_('Commenter') . "</option><option value=\"7\"";
             if ($access == 7) {
                 echo " selected=\"selected\"";
             }
-            echo ">7. " . _('Poster') . "</option><option value=\"8\"";
+            echo ">7. " . T_('Poster') . "</option><option value=\"8\"";
             if ($access == 8) {
                 echo " selected=\"selected\"";
             }
-            echo ">8. " . _('Photographer') . "</option><option value=\"9\"";
+            echo ">8. " . T_('Photographer') . "</option><option value=\"9\"";
             if ($access == 9) {
                 echo " selected=\"selected\"";
             }
-            echo ">9. " . _('Blogger') . "</option><option value=\"10\"";
+            echo ">9. " . T_('Blogger') . "</option><option value=\"10\"";
             if ($access == 10) {
                 echo " selected=\"selected\"";
             }
-            echo '>10. '._('Guest').'</option>
+            echo '>10. '.T_('Guest').'</option>
                             </select>
                         </div>
                     </div>
                     <p>
                         <input type="hidden" id="id" name="id" value="'.$id.'"/>
-                        <input class="sub1" type="submit" id="edit" name="edit" value="'._('Edit').'"/>&nbsp;&nbsp;
-                        <input class="sub2" type="submit" id="delete" name="delete" value="'._('Delete').'"/> '._('or').' &nbsp;
-                        <a class="u" href="members.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" id="edit" name="edit" value="'.T_('Edit').'"/>&nbsp;&nbsp;
+                        <input class="sub2" type="submit" id="delete" name="delete" value="'.T_('Delete').'"/> '.T_('or').' &nbsp;
+                        <a class="u" href="members.php">'.T_('Cancel').'</a>
                     </p>
                 </form>
             </fieldset>';
@@ -290,19 +290,19 @@ class Members
         // Display the add link, search box and table header
         echo '
             <div id="actions_menu" class="clearfix">
-                <ul><li><a class="add" href="?create=member">'._('Create Member').'</a></li></ul>
+                <ul><li><a class="add" href="?create=member">'.T_('Create Member').'</a></li></ul>
             </div>
             <hr/>
             <form method="post" action="members.php" name="search_frm" id="search_frm">
                 <div>
-                    <b>'._('Search').'</b>&nbsp;&nbsp; 
-                    <label for="fname">'._('First Name').'</label> 
+                    <b>'.T_('Search').'</b>&nbsp;&nbsp; 
+                    <label for="fname">'.T_('First Name').'</label> 
                     <input type="text" name="fname" id="fname" value="'.$fname.'"/>&nbsp;&nbsp; 
-                    <label for="lname">'._('Last Name').'</label> 
+                    <label for="lname">'.T_('Last Name').'</label> 
                     <input type="text" name="lname" id="lname" value="'.$lname.'"/>&nbsp;&nbsp; 
-                    <label for="uname">'._('Username').'</label> 
+                    <label for="uname">'.T_('Username').'</label> 
                     <input type="text" name="uname" id="uname" value="'.$uname.'"/>&nbsp;&nbsp; 
-                    <input type="submit" id="search" name="search" value="'._('Search').'"/>
+                    <input type="submit" id="search" name="search" value="'.T_('Search').'"/>
                 </div>
                 <hr/>
             </form>
@@ -311,12 +311,12 @@ class Members
                 <table class="sortable">
                     <thead>
                         <tr>
-                            <th>'._('ID').'</th>
-                            <th>'._('Username').'</th>
-                            <th>'._('Last Name').'</th>
-                            <th>'._('First Name').'</th>
-                            <th class="nosort"><a class="help u" title="'._('Get Help using Access Levels').'" href="../help.php#adm-access">'._('Access Level').'</a></th>
-                            <th class="nosort">'._('Active?').'</th>
+                            <th>'.T_('ID').'</th>
+                            <th>'.T_('Username').'</th>
+                            <th>'.T_('Last Name').'</th>
+                            <th>'.T_('First Name').'</th>
+                            <th class="nosort"><a class="help u" title="'.T_('Get Help using Access Levels').'" href="../help.php#adm-access">'.T_('Access Level').'</a></th>
+                            <th class="nosort">'.T_('Active?').'</th>
                             <th class="nosort">&nbsp;</th>
                         </tr>
                     </thead>
@@ -383,9 +383,9 @@ class Members
                 echo '</td>
                             <td style="text-align:center">';
                 if ($r['activated'] > 0) {
-                    echo _('Yes');
+                    echo T_('Yes');
                 } else {
-                    echo _('No');
+                    echo T_('No');
                 }
                 echo '</td>
                             <td style="text-align:center"><input type="checkbox" name="massupdate[]" value="'.$r['id'].'"/></td>
@@ -397,8 +397,8 @@ class Members
                             <td><b>'.$r['username'].'</b></td>
                             <td>'.$r['lname'].'</td>
                             <td>'.$r['fname'].'</td>
-                            <td>1. '._('Admin').'</td>
-                            <td style="text-align:center">'._('Yes').'</td>
+                            <td>1. '.T_('Admin').'</td>
+                            <td style="text-align:center">'.T_('Yes').'</td>
                             <td>&nbsp;</td>
                         </tr>';
             }
@@ -407,9 +407,9 @@ class Members
                     </tbody>
                 </table>
                 <p style="text-align:right">
-                    <input type="submit" name="activateAll" id="activateAll" value="'._('Activate Selected').'"/>&nbsp; 
-                    <input type="submit" name="inactivateAll" id="inactivateAll" value="'._('Inactivate Selected').'"/>&nbsp; 
-                    <input type="submit" name="deleteAll" id="deleteAll" value="'._('Delete Selected').'"/>
+                    <input type="submit" name="activateAll" id="activateAll" value="'.T_('Activate Selected').'"/>&nbsp; 
+                    <input type="submit" name="inactivateAll" id="inactivateAll" value="'.T_('Inactivate Selected').'"/>&nbsp; 
+                    <input type="submit" name="deleteAll" id="deleteAll" value="'.T_('Delete Selected').'"/>
                 </p>
             </form>';
 
@@ -435,34 +435,34 @@ class Members
     function displayAccessType ($access_level) {
         switch ($access_level) {
             case 1:
-                echo "1. "._('Admin');
+                echo "1. ".T_('Admin');
                 break;
             case 2:
-                echo "2. "._('Helper');
+                echo "2. ".T_('Helper');
                 break;
             case 3:
-                echo "3. "._('Member');
+                echo "3. ".T_('Member');
                 break;
             case 4:
-                echo "4. "._('Non-Photographer');
+                echo "4. ".T_('Non-Photographer');
                 break;
             case 5:
-                echo "5. "._('Non-Poster');
+                echo "5. ".T_('Non-Poster');
                 break;
             case 6:
-                echo "6. "._('Commenter');
+                echo "6. ".T_('Commenter');
                 break;
             case 7:
-                echo "7. "._('Poster');
+                echo "7. ".T_('Poster');
                 break;
             case 8:
-                echo "8. "._('Photographer');
+                echo "8. ".T_('Photographer');
                 break;
             case 9:
-                echo "9. "._('Blogger');
+                echo "9. ".T_('Blogger');
                 break;
             case 10:
-                echo "10. "._('Guest');
+                echo "10. ".T_('Guest');
                 break;
         }
     }

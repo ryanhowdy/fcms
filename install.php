@@ -21,11 +21,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 include_once('inc/gettext.inc');
 // Setup php-gettext
 T_setlocale(LC_MESSAGES, 'en_US');
-bindtextdomain('messages', './language');
-if (function_exists('bind_textdomain_codeset')) {
-  bind_textdomain_codeset('messages', 'UTF-8');
-}
-textdomain('messages');
+T_bindtextdomain('messages', './language');
+T_bind_textdomain_codeset('messages', 'UTF-8');
+T_textdomain('messages');
 if (get_magic_quotes_gpc()) {
     $_REQUEST = array_map('stripslashes', $_REQUEST);
     $_GET = array_map('stripslashes', $_GET);
@@ -34,9 +32,9 @@ if (get_magic_quotes_gpc()) {
 }
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'._('lang').'" lang="'._('lang').'">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
-<title>Family Connections '._('Installation').'</title>
+<title>Family Connections '.T_('Installation').'</title>
 <link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
 <script type="text/javascript" src="inc/prototype.js"></script>
 <script type="text/javascript" src="inc/livevalidation.js"></script>
@@ -53,17 +51,17 @@ if (
 ) {
     echo '
     <div id="install">
-        <h1>'._('Wait a Minute.').'</h1>
-        <p>'._('The installation for this site is already finished. Running the installation again will cause you to Lose All Your Previous Information.  Are you sure you want to continue?').'</p>
+        <h1>'.T_('Wait a Minute.').'</h1>
+        <p>'.T_('The installation for this site is already finished. Running the installation again will cause you to Lose All Your Previous Information.  Are you sure you want to continue?').'</p>
         <div class="clearfix">
             <div class="option">
-                <a class="nbtn" href="index.php">'._('No').'</a><br/><br/>
-                '._('I just want to view my site.').'
+                <a class="nbtn" href="index.php">'.T_('No').'</a><br/><br/>
+                '.T_('I just want to view my site.').'
             </div>
             <div class="option">
                 <a class="ybtn" href="#" onclick="$(\'show-install\').toggle(); 
-                    $(\'install\').toggle(); document.setupform.dbhost.focus(); return false">'._('Yes').'</a><br/><br/>
-                '._('I want to run the installation anyway. (Not Recommended)').'
+                    $(\'install\').toggle(); document.setupform.dbhost.focus(); return false">'.T_('Yes').'</a><br/><br/>
+                '.T_('I want to run the installation anyway. (Not Recommended)').'
             </div>
         </div>
         <p>&nbsp;</p>
@@ -81,7 +79,7 @@ if (isset($_POST['submit1'])) {
         <script type="text/javascript">
         Event.observe(window, \'load\', function() { $(\'dbhost\').focus(); });
         </script>';
-        displayStepTwo("<p class=\"error\">"._('You forgot a required field.  Please fill out all required fields.')."</p>");
+        displayStepTwo("<p class=\"error\">".T_('You forgot a required field.  Please fill out all required fields.')."</p>");
     } else {
         $file = fopen('inc/config_inc.php', 'w') or die("<h1>Error Creating Config File</h1>");
         $str = "<?php \$cfg_mysql_host = '".$_POST['dbhost']."'; \$cfg_mysql_db = '".$_POST['dbname']."'; \$cfg_mysql_user = '".$_POST['dbuser']."'; \$cfg_mysql_pass = '".$_POST['dbpass']."'; ?".">";
@@ -103,18 +101,26 @@ HTML;
 // Step Five
 } else if (isset($_POST['submit4'])) {
     if (empty($_POST['sitename']) || empty($_POST['contact'])) {
-        displayStepFour("<p class=\"error\">"._('You forgot a required field.  Please fill out all required fields.')."</p>");
+        displayStepFour("<p class=\"error\">".T_('You forgot a required field.  Please fill out all required fields.')."</p>");
     } else {
         include_once('inc/config_inc.php');
         mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
         mysql_select_db($cfg_mysql_db);
+
+        if (version_compare(phpversion(), "4.3.0") == "-1") {
+            $_POST['sitename'] = mysql_escape_string($_POST['sitename']);
+            $_POST['contact'] = mysql_escape_string($_POST['contact']);
+        } else {
+            $_POST['sitename'] = mysql_real_escape_string($_POST['sitename']);
+            $_POST['contact'] = mysql_real_escape_string($_POST['contact']);
+        }
 
         // Setup Config
         mysql_query("TRUNCATE TABLE `fcms_config`") or die(mysql_error());
         $sql = "INSERT INTO `fcms_config` (
                     `sitename`, `contact`, `current_version`
                 ) VALUES (
-                    '".escape_string($_POST['sitename'])."', '".escape_string($_POST['contact'])."', 'Family Connections 2.2.2'
+                    '".$_POST['sitename']."', '".$_POST['contact']."', 'Family Connections 2.2.3'
                 )";
         mysql_query($sql) or die($sql . "<br/><br/>" . mysql_error());
 
@@ -156,7 +162,7 @@ HTML;
 // Finish
 } else if (isset($_POST['submit5'])) {
     if (empty($_POST['username']) || empty($_POST['password']) || empty($_POST['fname']) || empty($_POST['lname']) || empty($_POST['email'])) {
-        displayStepFive("<p class=\"error\">"._('You forgot a required field.  Please fill out all required fields.')."</p>");
+        displayStepFive("<p class=\"error\">".T_('You forgot a required field.  Please fill out all required fields.')."</p>");
     } else {
         $birthday = $_POST['year'] . "-" . str_pad($_POST['month'], 2, "0", STR_PAD_LEFT) . "-" . str_pad($_POST['day'], 2, "0", STR_PAD_LEFT);
         setupDatabase($_POST['fname'], $_POST['lname'], $_POST['email'], $_POST['username'], $_POST['password'], $birthday);
@@ -191,50 +197,50 @@ function displayStepOne () {
     // Check inc
     $check_inc = false;
     if (is__writable('inc/')) {
-        $inc = "<span class=\"ok\">"._('OK')."</span>";
+        $inc = "<span class=\"ok\">".T_('OK')."</span>";
         $check_inc = true;
     } else {
-        $inc = "<span class=\"bad\">"._('BAD')."</span>";
+        $inc = "<span class=\"bad\">".T_('BAD')."</span>";
     }
     // Check avatar
     $check_avatar = false;
     if (is__writable('gallery/avatar/')) {
-        $avatar = "<span class=\"ok\">"._('OK')."</span>";
+        $avatar = "<span class=\"ok\">".T_('OK')."</span>";
         $check_avatar = true;
     } else {
-        $avatar = "<span class=\"bad\">"._('BAD')."</span>";
+        $avatar = "<span class=\"bad\">".T_('BAD')."</span>";
     }
     // Check documents
     $check_docs = false;
     if (is__writable('inc/')) {
-        $docs = "<span class=\"ok\">"._('OK')."</span>";
+        $docs = "<span class=\"ok\">".T_('OK')."</span>";
         $check_docs = true;
     } else {
-        $docs = "<span class=\"bad\">"._('BAD')."</span>";
+        $docs = "<span class=\"bad\">".T_('BAD')."</span>";
     }
     // Check photos
     $check_photos = false;
     if (is__writable('inc/')) {
-        $photos = "<span class=\"ok\">"._('OK')."</span>";
+        $photos = "<span class=\"ok\">".T_('OK')."</span>";
         $check_photos = true;
     } else {
-        $photos = "<span class=\"bad\">"._('BAD')."</span>";
+        $photos = "<span class=\"bad\">".T_('BAD')."</span>";
     }
     // Check upimages
     $check_up = false;
     if (is__writable('inc/')) {
-        $up = "<span class=\"ok\">"._('OK')."</span>";
+        $up = "<span class=\"ok\">".T_('OK')."</span>";
         $check_up = true;
     } else {
-        $up = "<span class=\"bad\">"._('BAD')."</span>";
+        $up = "<span class=\"bad\">".T_('BAD')."</span>";
     }
     echo '
     <div id="column">
-        <h1>'._('Install').' Family Connections</h1>
-        <h2>'._('Pre-Installation Check').'</h2>
+        <h1>'.T_('Install').' Family Connections</h1>
+        <h2>'.T_('Pre-Installation Check').'</h2>
         <form class="nofields" action="install.php" method="post">
-            <div style="text-align:center">'._('Step 1 of 5').'</div><div class="progress"><div style="width:20%"></div></div>
-            <div><b>'._('Checking Folder Permissions').'</b></div>
+            <div style="text-align:center">'.T_('Step 1 of 5').'</div><div class="progress"><div style="width:20%"></div></div>
+            <div><b>'.T_('Checking Folder Permissions').'</b></div>
             <div><div class="dir">inc/</div> <div class="status">'.$inc.'</div></div>
             <div style="clear:both;"></div>
             <div><div class="dir">gallery/avatar/</div> <div class="status">'.$avatar.'</div></div>
@@ -247,12 +253,12 @@ function displayStepOne () {
             <div style="clear:both;"></div>';
         if ($check_inc && $check_avatar && $check_docs && $check_photos && $check_up) {
             echo '
-            <div>'._('Your site is ready to be installed.  Please proceed to the next step.').'</div>
-            <p style="text-align:right;"><input id="submit" name="submit1" type="submit"  value="'._('Next').' >>"/></p>
+            <div>'.T_('Your site is ready to be installed.  Please proceed to the next step.').'</div>
+            <p style="text-align:right;"><input id="submit" name="submit1" type="submit"  value="'.T_('Next').' >>"/></p>
             <div class="clear"></div>';
         } else {
             echo '
-            <div>'._('Unfortunatly your site is not ready to be installed.  Please make sure that the folders above exist and have the proper permissions set.').'</div>';
+            <div>'.T_('Unfortunatly your site is not ready to be installed.  Please make sure that the folders above exist and have the proper permissions set.').'</div>';
         }
         echo '
         </form>
@@ -260,56 +266,56 @@ function displayStepOne () {
 }
 function displayStepTwo ($error = '0') { ?>
     <div id="column">
-        <h1><?php echo _('Install'); ?> Family Connections</h1>
-        <h2><?php echo _('Database Information'); ?></h2>
-        <div style="text-align:center"><?php echo _('Step 2 of 5'); ?></div><div class="progress"><div style="width:40%"></div></div>
+        <h1><?php echo T_('Install'); ?> Family Connections</h1>
+        <h2><?php echo T_('Database Information'); ?></h2>
+        <div style="text-align:center"><?php echo T_('Step 2 of 5'); ?></div><div class="progress"><div style="width:40%"></div></div>
         <?php if ($error !== '0') { echo $error; } ?>
         <form action="install.php" method="post">
         <div>
-            <div class="field-label"><label for="dbhost"><b><?php echo _('Database Host'); ?></b> <span class="req">*</span></label></div>
+            <div class="field-label"><label for="dbhost"><b><?php echo T_('Database Host'); ?></b> <span class="req">*</span></label></div>
             <div class="field-widget">
                 <input type="text" name="dbhost" id="dbhost"/>
-                <div><?php echo _('This is usually localhost or your database ip address.'); ?></div>
+                <div><?php echo T_('This is usually localhost or your database ip address.'); ?></div>
             </div>
         </div>
         <script type="text/javascript">
             var fdbhost = new LiveValidation('dbhost', { onlyOnSubmit: true });
-            fdbhost.add(Validate.Presence, {failureMessage: "<?php echo _('Sorry, but I can\'t install without this information.'); ?>"});
+            fdbhost.add(Validate.Presence, {failureMessage: "<?php echo T_('Sorry, but I can\'t install without this information.'); ?>"});
         </script>
         <div>
-            <div class="field-label"><label for="dbname"><b><?php echo _('Database Name'); ?></b> <span class="req">*</span></label></div>
+            <div class="field-label"><label for="dbname"><b><?php echo T_('Database Name'); ?></b> <span class="req">*</span></label></div>
             <div class="field-widget">
                 <input type="text" name="dbname" id="dbname"/>
-                <div><?php echo sprintf(_('The database name where you want to install %s.'), 'Family Connections'); ?></div>
+                <div><?php echo sprintf(T_('The database name where you want to install %s.'), 'Family Connections'); ?></div>
             </div>
         </div>
         <script type="text/javascript">
             var fdbname = new LiveValidation('dbname', { onlyOnSubmit: true });
-            fdbname.add(Validate.Presence, {failureMessage: "<?php echo _('Sorry, but I can\'t install without this information.'); ?>"});
+            fdbname.add(Validate.Presence, {failureMessage: "<?php echo T_('Sorry, but I can\'t install without this information.'); ?>"});
         </script>
         <div>
-            <div class="field-label"><label for="dbuser"><b><?php echo _('Database Username'); ?></b> <span class="req">*</span></label></div>
+            <div class="field-label"><label for="dbuser"><b><?php echo T_('Database Username'); ?></b> <span class="req">*</span></label></div>
             <div class="field-widget">
                 <input type="text" name="dbuser" id="dbuser"/>
-                <div><?php echo _('The username for the database specified above.'); ?></div>
+                <div><?php echo T_('The username for the database specified above.'); ?></div>
             </div>
         </div>
         <script type="text/javascript">
             var fdbuser = new LiveValidation('dbuser', { onlyOnSubmit: true });
-            fdbuser.add(Validate.Presence, {failureMessage: "<?php echo _('There has to be a user for this database.'); ?>"});
+            fdbuser.add(Validate.Presence, {failureMessage: "<?php echo T_('There has to be a user for this database.'); ?>"});
         </script>     
         <div>
-            <div class="field-label"><label for="dbpass"><b><?php echo _('Database Password'); ?></b> <span class="req">*</span></label></div>
+            <div class="field-label"><label for="dbpass"><b><?php echo T_('Database Password'); ?></b> <span class="req">*</span></label></div>
             <div class="field-widget">
                 <input type="password" name="dbpass" id="dbpass"/>
-                <div><?php echo _('The password for the database specified above.'); ?></div>
+                <div><?php echo T_('The password for the database specified above.'); ?></div>
             </div>
         </div>
         <script type="text/javascript">
             var fdbpass = new LiveValidation('dbpass', { onlyOnSubmit: true });
-            fdbpass.add(Validate.Presence, {failureMessage: "<?php echo _('Passwords are hard to remember, but unfortunately necessary.'); ?>"});
+            fdbpass.add(Validate.Presence, {failureMessage: "<?php echo T_('Passwords are hard to remember, but unfortunately necessary.'); ?>"});
         </script>
-        <p style="text-align:right;"><input id="submit" name="submit2" type="submit"  value="<?php echo _('Next'); ?> >>"/></p>
+        <p style="text-align:right;"><input id="submit" name="submit2" type="submit"  value="<?php echo T_('Next'); ?> >>"/></p>
         <div class="clear"></div>
         </form>
     </div>
@@ -319,21 +325,21 @@ function displayStepThree () {
     include_once('inc/config_inc.php');
     echo '
     <div id="column">
-        <h1>'._('Install').'Family Connections</h1>
+        <h1>'.T_('Install').'Family Connections</h1>
         <form class="nofields" action="install.php" method="post">
-        <h2>'._('Checking Database Connection').'</h2>
-        <div style="text-align:center">'._('Step 3 of 5').'</div><div class="progress"><div style="width:60%"></div></div>
+        <h2>'.T_('Checking Database Connection').'</h2>
+        <div style="text-align:center">'.T_('Step 3 of 5').'</div><div class="progress"><div style="width:60%"></div></div>
         <div>
-            '.sprintf(_('Attempting to connect to database %s on %s using user %s.'), "<i>$cfg_mysql_db</i>", "<i>$cfg_mysql_host</i>", "<i>$cfg_mysql_user</i>").'
+            '.sprintf(T_('Attempting to connect to database %s on %s using user %s.'), "<i>$cfg_mysql_db</i>", "<i>$cfg_mysql_host</i>", "<i>$cfg_mysql_user</i>").'
         </div>';
     $connection = @mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
     if (!$connection) {
-        die('<h3 class="bad">'._('Uh-Oh!').'</h3><div>'._('A connection to the database could not be made.  Please shut down your browser and then re-run the installation.').'</div>');
+        die('<h3 class="bad">'.T_('Uh-Oh!').'</h3><div>'.T_('A connection to the database could not be made.  Please shut down your browser and then re-run the installation.').'</div>');
     } else {
         mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Connection made, but database could not be found!</b></p>" . mysql_error());
         echo '
-        <h3>'._('Awesome!').'</h3>
-        <div>'._('A connection was successfully made to the database.  Please proceed to the next step.').'</div>';
+        <h3>'.T_('Awesome!').'</h3>
+        <div>'.T_('A connection was successfully made to the database.  Please proceed to the next step.').'</div>';
         mysql_query("DROP TABLE IF EXISTS `fcms_config`") or die("<h1>Error</h1><p><b>Could not drop `fcms_config` table.</b></p>" . mysql_error());
         mysql_query("DROP TABLE IF EXISTS `fcms_navigation`") or die("<h1>Error</h1><p><b>Could not drop `fcms_navigation` table.</b></p>" . mysql_error());
         // Create fcms_config
@@ -370,56 +376,56 @@ function displayStepThree () {
         mysql_query($sql) or displaySQLError(mysql_error());
     }
     echo '
-        <p style="text-align:right;"><input id="submit" name="submit3" type="submit"  value="'._('Next').' >>"/></p>
+        <p style="text-align:right;"><input id="submit" name="submit3" type="submit"  value="'.T_('Next').' >>"/></p>
         <div class="clear"></div>
         </form>
     </div>';
 }
 function displayStepFour ($error = '0') { ?>
     <div id="column">
-        <h1><?php echo _('Install'); ?> Family Connections</h1>
-        <h2><?php echo _('Website Information'); ?></h2>
-        <div style="text-align:center"><?php echo _('Step 4 of 5'); ?></div><div class="progress"><div style="width:80%"></div></div>
+        <h1><?php echo T_('Install'); ?> Family Connections</h1>
+        <h2><?php echo T_('Website Information'); ?></h2>
+        <div style="text-align:center"><?php echo T_('Step 4 of 5'); ?></div><div class="progress"><div style="width:80%"></div></div>
         <form action="install.php" method="post">
         <div>
-            <div class="field-label"><label for="sitename"><b><?php echo _('Website Name');?></b> <span class="req">*</span></label>
+            <div class="field-label"><label for="sitename"><b><?php echo T_('Website Name');?></b> <span class="req">*</span></label>
             <div class="field-widget big">
-                <input type="text" name="sitename" id="sitename" title="<?php echo _('What do you want your website to be called?'); ?>"/>
-                <div><?php echo _('(Examples: "The Smith\'s" or "The Johnson Family Website")'); ?></div>
+                <input type="text" name="sitename" id="sitename" title="<?php echo T_('What do you want your website to be called?'); ?>"/>
+                <div><?php echo T_('(Examples: "The Smith\'s" or "The Johnson Family Website")'); ?></div>
             </div>
         </div>
         <script type="text/javascript">
             var fsitename = new LiveValidation('sitename', { onlyOnSubmit: true });
-            fsitename.add(Validate.Presence, {failureMessage: "<?php echo _('Without a name, how will you tell people about your website?'); ?>"});
+            fsitename.add(Validate.Presence, {failureMessage: "<?php echo T_('Without a name, how will you tell people about your website?'); ?>"});
         </script>
         <div>
-            <div class="field-label"><label for="contact"><b><?php echo _('Contact Email'); ?></b> <span class="req">*</span></label></div>
+            <div class="field-label"><label for="contact"><b><?php echo T_('Contact Email'); ?></b> <span class="req">*</span></label></div>
             <div class="field-widget big">
                 <input type="text" name="contact" id="contact"/>
-                <div><?php echo _('The email address you want all questions, comments and concerns about the site to go.'); ?></div>
+                <div><?php echo T_('The email address you want all questions, comments and concerns about the site to go.'); ?></div>
             </div>
         </div>
         <script type="text/javascript">
             var fcontact = new LiveValidation('contact', { onlyOnSubmit: true });
-            fcontact.add( Validate.Presence, { failureMessage: "<?php echo _('Sorry, but this information is required.'); ?>" } );
-            fcontact.add( Validate.Email, { failureMessage: "<?php echo _('That\'s not a valid emaill address is it?'); ?>" } );
+            fcontact.add( Validate.Presence, { failureMessage: "<?php echo T_('Sorry, but this information is required.'); ?>" } );
+            fcontact.add( Validate.Email, { failureMessage: "<?php echo T_('That\'s not a valid emaill address is it?'); ?>" } );
             fcontact.add( Validate.Length, { minimum: 10 } );
         </script>
         <div>
-            <div class="field-label"><label><b><?php echo _('Optional Sections'); ?></b></label></div>
+            <div class="field-label"><label><b><?php echo T_('Optional Sections'); ?></b></label></div>
             <div>
                 <input type="checkbox" name="sections-news" id="sections-news" value="familynews"/>
-                <label for="sections-news"><?php echo _('Family News'); ?></label><br/>
+                <label for="sections-news"><?php echo T_('Family News'); ?></label><br/>
                 <input type="checkbox" name="sections-recipes" id="sections-recipes" value="recipes"/>
-                <label for="sections-recipes"><?php echo _('Recipes'); ?></label><br/>
+                <label for="sections-recipes"><?php echo T_('Recipes'); ?></label><br/>
                 <input type="checkbox" name="sections-documents" id="sections-documents" value="documents"/>
-                <label for="sections-documents"><?php echo _('Documents'); ?></label><br/>
+                <label for="sections-documents"><?php echo T_('Documents'); ?></label><br/>
                 <input type="checkbox" name="sections-prayers" id="sections-prayers" value="prayerconcerns"/>
-                <label for="sections-prayers"><?php echo _('Prayer Concerns'); ?></label>
+                <label for="sections-prayers"><?php echo T_('Prayer Concerns'); ?></label>
             </div>
         </div>
-        <p><?php echo _('Which sections would you like to use on your site?'); ?></p>
-        <p style="text-align:right;"><input id="submit" name="submit4" type="submit"  value="<?php echo _('Next'); ?> >>"/></p>
+        <p><?php echo T_('Which sections would you like to use on your site?'); ?></p>
+        <p style="text-align:right;"><input id="submit" name="submit4" type="submit"  value="<?php echo T_('Next'); ?> >>"/></p>
         <div class="clear"></div>
         </form>
     </div>
@@ -431,56 +437,56 @@ function displayStepFive ($error = '0') {
     include_once('inc/locale.php');
     $locale = new Locale(); ?>
     <div id="column">
-        <h1><?php echo _('Install'); ?> Family Connections</h1>
-        <h2><?php echo _('Administrative Account'); ?></h2>
-        <div style="text-align:center"><?php echo _('Step 5 of 5'); ?></div><div class="progress"><div style="width:100%"></div></div>
+        <h1><?php echo T_('Install'); ?> Family Connections</h1>
+        <h2><?php echo T_('Administrative Account'); ?></h2>
+        <div style="text-align:center"><?php echo T_('Step 5 of 5'); ?></div><div class="progress"><div style="width:100%"></div></div>
         <form action="install.php" method="post">
-        <p><?php echo _('Everyone will be required to have an account and be logged in at all times to use this website.  This will help protect your site.'); ?></p>
-        <p><?php echo _('You must have at least one administrative account.  Please fill out the information below for the person who will be the administrator of this site.'); ?></p>
+        <p><?php echo T_('Everyone will be required to have an account and be logged in at all times to use this website.  This will help protect your site.'); ?></p>
+        <p><?php echo T_('You must have at least one administrative account.  Please fill out the information below for the person who will be the administrator of this site.'); ?></p>
         <div>
-            <div class="field-label"><label for="username"><b><?php echo _('Username'); ?></b> <span class="req">*</span></label></div>
+            <div class="field-label"><label for="username"><b><?php echo T_('Username'); ?></b> <span class="req">*</span></label></div>
             <div class="field-widget"><input type="text" name="username" id="username"/></div>
         </div>
         <script type="text/javascript">
             var funame = new LiveValidation('username', { onlyOnSubmit: true });
-            funame.add(Validate.Presence, {failureMessage: "<?php echo _('Sorry, but I can\'t install without this information.'); ?>"});
+            funame.add(Validate.Presence, {failureMessage: "<?php echo T_('Sorry, but I can\'t install without this information.'); ?>"});
         </script>
         <div>
-            <div class="field-label"><label for="password"><b><?php echo _('Password'); ?></b> <span class="req">*</span></label></div>
+            <div class="field-label"><label for="password"><b><?php echo T_('Password'); ?></b> <span class="req">*</span></label></div>
             <div class="field-widget"><input type="password" name="password" id="password"/></div>
         </div>
         <script type="text/javascript">
             var fpass = new LiveValidation('password', { onlyOnSubmit: true });
-            fpass.add(Validate.Presence, {failureMessage: "<?php echo _('Passwords are hard to remember, but unfortunately necessary.'); ?>"});
+            fpass.add(Validate.Presence, {failureMessage: "<?php echo T_('Passwords are hard to remember, but unfortunately necessary.'); ?>"});
         </script>
         <div>
-            <div class="field-label"><label for="fname"><b><?php echo _('First Name'); ?></b> <span class="req">*</span></label></div>
+            <div class="field-label"><label for="fname"><b><?php echo T_('First Name'); ?></b> <span class="req">*</span></label></div>
             <div class="field-widget"><input type="text" name="fname" id="fname"/></div>
         </div>
         <script type="text/javascript">
             var ffname = new LiveValidation('fname', { onlyOnSubmit: true });
-            ffname.add(Validate.Presence, {failureMessage: "<?php echo _('Sorry, but I can\'t install without this information.'); ?>"});
+            ffname.add(Validate.Presence, {failureMessage: "<?php echo T_('Sorry, but I can\'t install without this information.'); ?>"});
         </script>
         <div>
-            <div class="field-label"><label for="lname"><b><?php echo _('Last Name'); ?></b> <span class="req">*</span></label></div>
+            <div class="field-label"><label for="lname"><b><?php echo T_('Last Name'); ?></b> <span class="req">*</span></label></div>
             <div class="field-widget"><input type="text" name="lname" id="lname"/></div>
         </div>
         <script type="text/javascript">
             var flname = new LiveValidation('lname', { onlyOnSubmit: true });
-            flname.add(Validate.Presence, {failureMessage: "<?php echo _('Sorry, but I can\'t install without this information.'); ?>"});
+            flname.add(Validate.Presence, {failureMessage: "<?php echo T_('Sorry, but I can\'t install without this information.'); ?>"});
         </script>
         <div>
-            <div class="field-label"><label for="email"><b><?php echo _('Email Address'); ?></b> <span class="req">*</span></label></div>
+            <div class="field-label"><label for="email"><b><?php echo T_('Email Address'); ?></b> <span class="req">*</span></label></div>
             <div class="field-widget"><input type="text" name="email" id="email"/></div>
         </div>
         <script type="text/javascript">
             var femail = new LiveValidation('email', { onlyOnSubmit: true });
-            femail.add( Validate.Presence, { failureMessage: "<?php echo _('Sorry, but this information is required.'); ?>" } );
-            femail.add( Validate.Email, { failureMessage: "<?php echo _('That\'s not a valid email address is it?'); ?>" } );
+            femail.add( Validate.Presence, { failureMessage: "<?php echo T_('Sorry, but this information is required.'); ?>" } );
+            femail.add( Validate.Email, { failureMessage: "<?php echo T_('That\'s not a valid email address is it?'); ?>" } );
             femail.add( Validate.Length, { minimum: 10 } );
         </script>
         <div>
-            <div class="field-label"><label for="day"><b><?php echo _('Birthday'); ?></b><span class="req">*</span></label></div>
+            <div class="field-label"><label for="day"><b><?php echo T_('Birthday'); ?></b><span class="req">*</span></label></div>
             <div class="field-widget">
                 <select id="day" name="day">
                     <?php
@@ -502,7 +508,7 @@ function displayStepFive ($error = '0') {
                     }
                     echo '</select><select id="year" name="year">';
                     $y = 1900;
-                    while ($y - 5 <= date('Y')) {
+                    while ($y - 5 <= gmdate('Y')) {
                         if ($year == $y) { echo "<option value=\"$y\" selected=\"selected\">$y</option>"; }
                         else { echo "<option value=\"$y\">$y</option>"; }
                         $y++;
@@ -510,7 +516,7 @@ function displayStepFive ($error = '0') {
                 </select>
             </div>
         </div>
-        <p style="text-align:right;"><input id="submit" name="submit5" type="submit"  value="<?php echo _('Next'); ?> >>"/></p>
+        <p style="text-align:right;"><input id="submit" name="submit5" type="submit"  value="<?php echo T_('Next'); ?> >>"/></p>
         <div class="clear"></div>
         </form>
     </div>
@@ -930,7 +936,7 @@ function setupDatabase ($fname, $lname, $email, $username, $password, $birthday)
         mysql_query($sql) or die(mysql_error());
         // insert board_threads
         $sql = "INSERT INTO `fcms_board_threads` (`id`, `subject`, `started_by`, `updated`, `updated_by`, `views`) 
-                VALUES (1, '"._('Welcome')."', 1, NOW(), 1, 0)";
+                VALUES (1, '".T_('Welcome')."', 1, NOW(), 1, 0)";
         mysql_query($sql) or die(mysql_error());
         // create board_posts
         $sql = "CREATE TABLE `fcms_board_posts` (
@@ -958,7 +964,7 @@ function setupDatabase ($fname, $lname, $email, $username, $password, $birthday)
         mysql_query($sql) or die(mysql_error());
         // insert board_posts
         $sql = "INSERT INTO `fcms_board_posts` (`id`, `date`, `thread`, `user`, `post`) 
-                VALUES (NULL, NOW(), 1, 1, '".sprintf(_('Welcome to the %s Message Board.'), 'Family Connections')."')";
+                VALUES (NULL, NOW(), 1, 1, '".sprintf(T_('Welcome to the %s Message Board.'), 'Family Connections')."')";
         mysql_query($sql) or die(mysql_error());
         // create recipes
         $sql = "CREATE TABLE `fcms_recipes` (
@@ -1092,9 +1098,9 @@ function setupDatabase ($fname, $lname, $email, $username, $password, $birthday)
         mysql_query($sql) or die(mysql_error());
         echo '
         <div id="install">
-            <h1>'._('Hooray!  Yippie!').'</h1>
-            <p>'.sprintf(_('%s has been installed successfully.'), 'Family Connections').'</p>
-            <p><a href="index.php">'.sprintf(_('Please continue to the homepage to login and begin using %s.'), 'Family Connections').'</a><p>
+            <h1>'.T_('Hooray!  Yippie!').'</h1>
+            <p>'.sprintf(T_('%s has been installed successfully.'), 'Family Connections').'</p>
+            <p><a href="index.php">'.sprintf(T_('Please continue to the homepage to login and begin using %s.'), 'Family Connections').'</a><p>
         </div>';
     }
 } ?>

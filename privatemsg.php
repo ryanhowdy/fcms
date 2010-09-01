@@ -21,7 +21,7 @@ include_once('inc/privatemsg_class.php');
 $pm = new PrivateMessage($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Private Messages');
+$TMPL['pagetitle'] = T_('Private Messages');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = '
@@ -30,7 +30,7 @@ $TMPL['javascript'] = '
 Event.observe(window, \'load\', function() {
     if (!$$(\'.pm_footer input[type="submit"]\')) { return; }
     $$(\'.pm_footer input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmed\');
@@ -50,19 +50,19 @@ echo '
 
             <div id="sections_menu" class="clearfix">
                 <ul>
-                    <li><a href="profile.php">'._('Profiles').'</a></li>
-                    <li><a href="privatemsg.php">'._('Private Messages').'</a></li>
-                    <li><a href="profile.php?awards=yes">'._('Awards').'</a></li>
+                    <li><a href="profile.php">'.T_('Profiles').'</a></li>
+                    <li><a href="privatemsg.php">'.T_('Private Messages').'</a></li>
+                    <li><a href="profile.php?awards=yes">'.T_('Awards').'</a></li>
                 </ul>
             </div>
             <div id="actions_menu" class="clearfix">
-                <ul><li><a href="?compose=new">'._('New Message').'</a></li></ul>
+                <ul><li><a href="?compose=new">'.T_('New Message').'</a></li></ul>
             </div>
 
             <div id="leftcolumn">
                 <ul class="menu">
-                    <li><a href="privatemsg.php">'._('Inbox').'</a></li>
-                    <li><a href="privatemsg.php?folder=sent">'._('Sent').'</a></li>
+                    <li><a href="privatemsg.php">'.T_('Inbox').'</a></li>
+                    <li><a href="privatemsg.php?folder=sent">'.T_('Sent').'</a></li>
                 </ul>
             </div>
 
@@ -99,21 +99,21 @@ if (isset($_GET['compose'])) {
         $reply = getUserEmail($current_user_id);
         $to = getUserDisplayName($_POST['to']);
         $sitename = getSiteName();
-        $subject = sprintf(_('A new Private Message at %s'), $sitename);
+        $subject = sprintf(T_('A new Private Message at %s'), $sitename);
         $email = $r['email'];
         $url = getDomainAndDir();
-        $email_msg = _('Dear').' '.$to.',
+        $email_msg = T_('Dear').' '.$to.',
 
-'.sprintf(_('%s has sent you a new Private Message at %s'), $from, $sitename).'
+'.sprintf(T_('%s has sent you a new Private Message at %s'), $from, $sitename).'
 
-'._('The message has been attached below.').'
+'.T_('The message has been attached below.').'
 
-'.sprintf(_('To respond to this message either visit %s or respond to this email.'), $url.'privatemsg.php').'
+'.sprintf(T_('To respond to this message either visit %s or respond to this email.'), $url.'privatemsg.php').'
 
 ----
 
-'._('From').': '.$from.'
-'._('Message Title').': '.$title.'
+'.T_('From').': '.$from.'
+'.T_('Message Title').': '.$title.'
 
 '.$msg.'
 
@@ -125,7 +125,7 @@ if (isset($_GET['compose'])) {
             'X-Mailer: PHP/' . phpversion();
         mail($email, $subject, $email_msg, $email_headers);
         echo '
-            <p class="ok-alert" id="sent">'.sprintf(_('A Private Message has been sent to %s'), $to).'</p>
+            <p class="ok-alert" id="sent">'.sprintf(T_('A Private Message has been sent to %s'), $to).'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'sent\').toggle()",3000); }
             </script>';
@@ -137,16 +137,16 @@ if (isset($_GET['compose'])) {
     echo '
                 <div class="info-alert clearfix">
                     <form action="privatemsg.php" method="post">
-                        <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>';
     foreach ($_POST['del'] as $id) {
         echo '
                             <input type="hidden" name="del[]" value="'.$id.'"/>';
     }
     echo '
-                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                            <a style="float:right;" href="privatemsg.php">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="privatemsg.php">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';

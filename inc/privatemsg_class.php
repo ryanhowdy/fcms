@@ -26,16 +26,16 @@ class PrivateMessage {
         echo '
             <form method="post" action="privatemsg.php">
                 <table id="pm" cellpadding="0" cellspacing="0">
-                    <tr><th colspan="5" class="pm_header">'._('Private Messages (PM)').' - '._('Inbox').'</th></tr>
+                    <tr><th colspan="5" class="pm_header">'.T_('Private Messages (PM)').' - '.T_('Inbox').'</th></tr>
                     <tr>
-                        <th colspan="2">'._('Subject').'</th>
-                        <th>'._('From').'</th>
-                        <th>'._('Received').'</th>
+                        <th colspan="2">'.T_('Subject').'</th>
+                        <th>'.T_('From').'</th>
+                        <th>'.T_('Received').'</th>
                         <th>&nbsp;</th>
                     </tr>';
         $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `to` = " . $this->current_user_id);
         while ($r = $this->db->get_row()) {
-            $date = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
+            $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
             $class = '';
             if ($r['read'] < 1) {
                 $class = " class=\"new\"";
@@ -52,7 +52,7 @@ class PrivateMessage {
         echo '
                     <tr>
                         <th colspan="5" class="pm_footer">
-                            <input type="submit" name="delete" value="'._('Delete Selected').'"/>
+                            <input type="submit" name="delete" value="'.T_('Delete Selected').'"/>
                         </th>
                     </tr>
                 </table>
@@ -64,15 +64,15 @@ class PrivateMessage {
         $locale = new Locale();
         echo '
                 <table id="pm" cellpadding="0" cellspacing="0">
-                    <tr><th colspan="5" class="pm_header">'._('Private Messages (PM)').' - '._('Sent').'</th></tr>
+                    <tr><th colspan="5" class="pm_header">'.T_('Private Messages (PM)').' - '.T_('Sent').'</th></tr>
                     <tr>
-                        <th>'._('To').'</th>
-                        <th>'._('Subject').'</th>
-                        <th>'._('Sent').'</th>
+                        <th>'.T_('To').'</th>
+                        <th>'.T_('Subject').'</th>
+                        <th>'.T_('Sent').'</th>
                     </tr>';
         $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `from` = " . $this->current_user_id);
         while ($r = $this->db->get_row()) {
-            $date = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
+            $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
             echo '
                     <tr>
                         <td>'.getUserDisplayName($r['to']).'</td>
@@ -92,21 +92,21 @@ class PrivateMessage {
         if ($this->db->count_rows() > 0) { 
             $r = $this->db->get_row();
             $this->db->query("UPDATE `fcms_privatemsg` SET `read` = '1' WHERE `id` = $id");
-            $date = $locale->fixDate(_('n/j/Y g:i a'), $this->tz_offset, $r['date']);
+            $date = $locale->fixDate(T_('n/j/Y g:i a'), $this->tz_offset, $r['date']);
             echo '
             <div id="pm_msg">
-                <b>'._('Received').':</b> '.$date.'<br/>
-                <b>'._('From').':</b> '.getUserDisplayName($r['from']).'<br/>
-                <b>'._('Subject').':</b> '.$r['title'].'<br/>
+                <b>'.T_('Received').':</b> '.$date.'<br/>
+                <b>'.T_('From').':</b> '.getUserDisplayName($r['from']).'<br/>
+                <b>'.T_('Subject').':</b> '.$r['title'].'<br/>
                 <p>
                     '.parse($r['msg']).'
                 </p>
-                <a href="?compose=new&amp;id='.$r['from'].'&amp;title='.htmlentities($r['title'], ENT_COMPAT, 'UTF-8').'">'._('Reply').'
+                <a href="?compose=new&amp;id='.$r['from'].'&amp;title='.htmlentities($r['title'], ENT_COMPAT, 'UTF-8').'">'.T_('Reply').'
             </div>';
         } else {
             echo '
             <p class="error">
-                '._('The PM you are trying to view either doesn\'t exist or you don\'t have permission to view it.').'
+                '.T_('The PM you are trying to view either doesn\'t exist or you don\'t have permission to view it.').'
             </p>';
         }
     }
@@ -125,12 +125,12 @@ class PrivateMessage {
         $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `id` = $id AND `from` = " . $this->current_user_id);
         if ($this->db->count_rows() > 0) { 
             $r = $this->db->get_row();
-            $date = $locale->fixDate(_('n/j/Y g:i a'), $this->tz_offset, $r['date']);
+            $date = $locale->fixDate(T_('n/j/Y g:i a'), $this->tz_offset, $r['date']);
             echo '
             <div id="pm_msg">
-                <b>'._('Sent').':</b> '.$date.'<br/>
-                <b>'._('To').':</b> '.getUserDisplayName($r['to']).'<br/>
-                <b>'._('Subject').':</b> '.$r['title'].'<br/>
+                <b>'.T_('Sent').':</b> '.$date.'<br/>
+                <b>'.T_('To').':</b> '.getUserDisplayName($r['to']).'<br/>
+                <b>'.T_('Subject').':</b> '.$r['title'].'<br/>
                 <p>
                     '.parse($r['msg']).'
                 </p>
@@ -138,7 +138,7 @@ class PrivateMessage {
         } else {
             echo '
             <p class="error">
-                '._('The PM you are trying to view either doesn\'t exist or you don\'t have permission to view it.').'
+                '.T_('The PM you are trying to view either doesn\'t exist or you don\'t have permission to view it.').'
             </p>';
         }
     }
@@ -157,9 +157,9 @@ class PrivateMessage {
             <script type="text/javascript" src="inc/messageboard.inc.js"></script>
             <form method="post" id="newpmform" action="privatemsg.php">
                 <fieldset>
-                    <legend><span>'._('New PM').'</span></legend>
+                    <legend><span>'.T_('New PM').'</span></legend>
                     <div>
-                        <label for="title">'._('Subject').'</label>: 
+                        <label for="title">'.T_('Subject').'</label>: 
                         <input type="text" id="title" name="title" size="50" value="'.$titleVal.'"/>
                     </div><br/>
                     <script type="text/javascript">
@@ -167,7 +167,7 @@ class PrivateMessage {
                         ftitle.add(Validate.Presence, { failureMessage: "" });
                     </script>
                     <div>
-                        <label for="to">'._('To').'</label>: 
+                        <label for="to">'.T_('To').'</label>: 
                         <select name="to">
                             '.$user_options.'
                         </select>
@@ -182,8 +182,8 @@ class PrivateMessage {
                         fpost.add(Validate.Presence, { failureMessage: "" });
                     </script>
                     <p>
-                        <input class="sub1" type="submit" name="submit" value="'._('Send').'"/> &nbsp;
-                        <a href="privatemsg.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" name="submit" value="'.T_('Send').'"/> &nbsp;
+                        <a href="privatemsg.php">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>

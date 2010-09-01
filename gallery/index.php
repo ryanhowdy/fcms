@@ -25,18 +25,18 @@ $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_use
 $gallery = new PhotoGallery($current_user_id, $database);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Photo Gallery');
+$TMPL['pagetitle'] = T_('Photo Gallery');
 $TMPL['path'] = "../";
 $TMPL['admin_path'] = "../admin/";
 $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    hideUploadOptions(\''._('Rotate Photo').'\', \''._('Tag Members in this Photo').'\');
-    hidePhotoDetails(\''._('More Details').'\');
-    initConfirmPhotoDelete(\''._('Are you sure you want to DELETE this Photo?').'\');
-    initConfirmCommentDelete(\''._('Are you sure you want to DELETE this Comment?').'\');
-    initConfirmCategoryDelete(\''._('Are you sure you want to DELETE this Category?').'\');
+    hideUploadOptions(\''.T_('Rotate Photo').'\', \''.T_('Tag Members in this Photo').'\');
+    hidePhotoDetails(\''.T_('More Details').'\');
+    initConfirmPhotoDelete(\''.T_('Are you sure you want to DELETE this Photo?').'\');
+    initConfirmCommentDelete(\''.T_('Are you sure you want to DELETE this Comment?').'\');
+    initConfirmCategoryDelete(\''.T_('Are you sure you want to DELETE this Category?').'\');
 });
 //]]>
 </script>';
@@ -122,7 +122,7 @@ if (isset($_POST['add_editphoto'])) {
     }
     
     echo '
-            <p class="ok-alert" id="msg">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="msg">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'msg\').toggle()",4000); }
             </script>';
@@ -143,13 +143,13 @@ if (isset($_POST['deletephoto']) && !isset($_POST['confirmed'])) {
         echo '
                 <div class="info-alert clearfix">
                     <form action="index.php" method="post">
-                        <h2>'._('Are you sure you want to DELETE this Photo?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this Photo?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
                             <input type="hidden" name="photo" value="'.$_POST['photo'].'"/>
                             <input type="hidden" name="url" value="'.$_POST['url'].'"/>
-                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                            <a style="float:right;" href="index.php?'.$_POST['url'].'">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="index.php?'.$_POST['url'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -221,7 +221,7 @@ if (isset($_GET['action']) &&
         if (isset($_POST['addphoto'])) {
             if (empty($_POST['category'])) { 
                 echo '
-            <p class="error-alert">'._('You must create a category first.').'</p>';
+            <p class="error-alert">'.T_('You must create a category first.').'</p>';
             } else { 
                 $last_cat = $_POST['category'];
                 if (isset($_POST['rotate'])) {
@@ -261,17 +261,17 @@ if (isset($_GET['action']) &&
                 while ($r = mysql_fetch_array($result)) {
                     $name = getUserDisplayName($current_user_id);
                     $to = getUserDisplayName($r['user']);
-                    $subject = sprintf(_('%s has added a new photo.'), $name);
+                    $subject = sprintf(T_('%s has added a new photo.'), $name);
                     $email = $r['email'];
                     $url = getDomainAndDir();
-                    $msg = _('Dear').' '.$to.',
+                    $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
 '.$url.'index.php?uid='.$current_user_id.'&cid='.$last_cat.'
 
 ----
-'._('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
+'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
 
 '.$url.'settings.php
 
@@ -342,7 +342,7 @@ if (isset($_GET['action']) &&
         if (isset($_POST['newcat'])) {
             if(empty($_POST['cat_name'])) {
                 echo '
-            <p class="error-alert">'._('You must specify a category name.').'</p>';
+            <p class="error-alert">'.T_('You must specify a category name.').'</p>';
             } else {
                 $sql = "INSERT INTO `fcms_gallery_category` (
                             `name`, `user`
@@ -352,20 +352,20 @@ if (isset($_GET['action']) &&
                 mysql_query($sql) or displaySQLError('New Category Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
                 echo '
             <div class="ok-alert">
-                <p>'.sprintf(_('The Category %s was Created Successfully.'), "<b>" . stripslashes($_POST['cat_name']) . "</b>").'
-                <p><small><a href="?action=upload">'._('Upload Photos').'</a></small></p>
+                <p>'.sprintf(T_('The Category %s was Created Successfully.'), "<b>" . stripslashes($_POST['cat_name']) . "</b>").'
+                <p><small><a href="?action=upload">'.T_('Upload Photos').'</a></small></p>
             </div>';
             }
         }
         if (isset($_POST['editcat'])) {
             if(empty($_POST['cat_name'])) {
                 echo '
-            <p class="error-alert">'._('Category name cannot be blank.').'</p>';
+            <p class="error-alert">'.T_('Category name cannot be blank.').'</p>';
             } else {
                 $sql = "UPDATE fcms_gallery_category SET name = '" . addslashes($_POST['cat_name']) . "' WHERE id = " . $_POST['cid'];
                 mysql_query($sql) or displaySQLError('Update Category Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
                 echo '
-            <p class="ok-alert">'.sprintf(_('The Category <b>%s</b> was Updated Successfully'), stripslashes($_POST['cat_name'])).'</p>';
+            <p class="ok-alert">'.sprintf(T_('The Category <b>%s</b> was Updated Successfully'), stripslashes($_POST['cat_name'])).'</p>';
             }
         }
 
@@ -375,12 +375,12 @@ if (isset($_GET['action']) &&
             echo '
                 <div class="info-alert clearfix">
                     <form action="index.php?action=category" method="post">
-                        <h2>'._('Are you sure you want to DELETE this category?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this category?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
                             <input type="hidden" name="cid" value="'.$_POST['cid'].'"/>
-                            <input style="float:left;" type="submit" id="delconfirmcat" name="delconfirmcat" value="'._('Yes').'"/>
-                            <a style="float:right;" href="index.php?action=category">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirmcat" name="delconfirmcat" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="index.php?action=category">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -390,7 +390,7 @@ if (isset($_GET['action']) &&
             $sql = "DELETE FROM fcms_gallery_category WHERE id = " . $_POST['cid'];
             mysql_query($sql) or displaySQLError('Delete Category Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
             echo '
-            <p class="ok-alert">'._('Category Deleted Successfully').'</p>';
+            <p class="ok-alert">'.T_('Category Deleted Successfully').'</p>';
         }
         if ($show_cat) {
             $gallery->displayAddCatForm();
@@ -418,7 +418,7 @@ if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid'])) {
             $sql = "INSERT INTO `fcms_gallery_comments` (
                         `photo`, `comment`, `date`, `user`
                     ) VALUES (
-                        " . escape_string($_GET['pid']) . ", '" . addslashes($_POST['post']) . "', NOW(), $current_user_id)
+                        " . escape_string($_GET['pid']) . ", '" . addslashes($_POST['post']) . "', NOW(), $current_user_id
                     )";
             mysql_query($sql) or displaySQLError('Add Comment Error', 'gallery/index.php [' . __LINE__ . ']', $sql, mysql_error());
         }
@@ -430,12 +430,12 @@ if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid'])) {
         echo '
                 <div class="info-alert clearfix">
                     <form action="index.php?uid='.$_GET['uid'].'&amp;cid='.$_GET['cid'].'&amp;pid='.$_GET['pid'].'" method="post">
-                        <h2>'._('Are you sure you want to DELETE this Comment?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this Comment?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
                             <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                            <input style="float:left;" type="submit" id="delconfirmcom" name="delconfirmcom" value="'._('Yes').'"/>
-                            <a style="float:right;" href="index.php?uid='.$_GET['uid'].'&amp;cid='.$_GET['cid'].'&amp;pid='.$_GET['pid'].'">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirmcom" name="delconfirmcom" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="index.php?uid='.$_GET['uid'].'&amp;cid='.$_GET['cid'].'&amp;pid='.$_GET['pid'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -468,7 +468,7 @@ if ($show_latest) {
     $gallery->displayLatestCategories();
     $gallery->showCategories(-1, 0, 'comments');
     echo '
-            <p class="alignright"><a class="rss" href="../rss.php?feed=gallery">'._('RSS Feed').'</a></p>';
+            <p class="alignright"><a class="rss" href="../rss.php?feed=gallery">'.T_('RSS Feed').'</a></p>';
 }
 
 echo '

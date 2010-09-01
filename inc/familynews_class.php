@@ -36,11 +36,11 @@ class FamilyNews {
         if ($this->db->count_rows() > 0) {
             echo '
             <div id="news-list">
-                <h2>'._('Family News').'</h2>
+                <h2>'.T_('Family News').'</h2>
                 <ul>';
 
             while ($r = $this->db->get_row()) {
-                $date = $locale->fixDate(_('M. j'), $this->tz_offset, $r['d']);
+                $date = $locale->fixDate(T_('M. j'), $this->tz_offset, $r['d']);
                 $displayname = getUserDisplayName($r['id']);
                 echo '
                     <li><a href="familynews.php?getnews='.$r['id'].'">'.$displayname.'</a> &nbsp;<small>'.$date.'</small></li>';
@@ -72,7 +72,7 @@ class FamilyNews {
             'News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         while ($row = $this->db->get_row()) {
-            $date = $locale->fixDate(_('F j, Y g:i a'), $this->tz_offset, $row['date']);
+            $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $row['date']);
             $displayname = getUserDisplayName($usersnews);
             echo '
             <div class="news-post">
@@ -89,7 +89,7 @@ class FamilyNews {
                             <input type="hidden" name="id" value="'.$row['id'].'"/>
                             <input type="hidden" name="title" value="'.htmlentities($row['title'], ENT_COMPAT, 'UTF-8').'"/>
                             <input type="hidden" name="news" value="'.htmlentities($row['news'], ENT_COMPAT, 'UTF-8').'"/>
-                            <input type="submit" name="editnews" value="'._('Edit').'" class="editbtn" title="'._('Edit this Family News').'"/>
+                            <input type="submit" name="editnews" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Family News').'"/>
                         </div>
                     </form>';
             }
@@ -99,7 +99,7 @@ class FamilyNews {
                         <div>
                             <input type="hidden" name="user" value="'.$usersnews.'"/>
                             <input type="hidden" name="id" value="'.$row['id'].'"/>
-                            <input type="submit" name="delnews" value="'._('Delete').'" class="delbtn" title="'._('Delete this Family News').'"/>
+                            <input type="submit" name="delnews" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Family News').'"/>
                         </div>
                     </form>';
             }
@@ -110,25 +110,25 @@ class FamilyNews {
                 echo parse(rtrim(substr($row['news'], 0, 300)));
                 if (strlen($row['news']) > 300) {
                     echo '...<br/><br/>
-                <a href="?getnews='.$usersnews.'&amp;newsid='.$row['id'].'">'._('Read More').'</a>';
+                <a href="?getnews='.$usersnews.'&amp;newsid='.$row['id'].'">'.T_('Read More').'</a>';
                 }
                 echo '
                 </p>
                 <p class="news-comments">
                     <a href="#" onclick="window.open(\'inc/familynews_comments.php?newsid='.$row['id'].'\', 
-                        \'_Comments\', \'height=400,width=550,resizable=yes,scrollbars=yes\');return false;">'._('Comments').'</a> - 
+                        \'_Comments\', \'height=400,width=550,resizable=yes,scrollbars=yes\');return false;">'.T_('Comments').'</a> - 
                     '.getNewsComments($row['id']).'
                 </p>
             </div>';
             } else {
                 echo parse($row['news']).'
             </div>
-            <h3>'._('Comments').'</h3>
+            <h3>'.T_('Comments').'</h3>
             <p class="center">
                 <form action="?getnews='.$usersnews.'&amp;newsid='.$id.'" method="post">
-                    '._('Add Comment').'<br/>
-                    <input type="text" name="comment" id="comment" size="50" title="'._('Add a comment').'"/> 
-                    <input type="submit" name="addcom" id="addcom" value="'._('Add').'" class="gal_addcombtn"/>
+                    '.T_('Add Comment').'<br/>
+                    <input type="text" name="comment" id="comment" size="50" title="'.T_('Add a comment').'"/> 
+                    <input type="submit" name="addcom" id="addcom" value="'.T_('Add').'" class="gal_addcombtn"/>
                 </form>
             </p>
             <p class="center">&nbsp;</p>';
@@ -147,8 +147,8 @@ class FamilyNews {
                             echo '
             <div class="comment_block clearfix">
                 <form class="delcom" action="?getnews='.$usersnews.'&amp;newsid='.$id.'" method="post">
-                    <input type="submit" name="delcom" id="delcom" value="'._('Delete').'" class="gal_delcombtn" title="'._('Delete this comment').'"/>
-                    <img src="gallery/avatar/'.$row['avatar'].'">
+                    <input type="submit" name="delcom" id="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this comment').'"/>
+                    <img class="avatar" src="gallery/avatar/'.$row['avatar'].'">
                     <b>'.$displayname.'</b>
                     <span>'.$date.'</span>
                     <p>';
@@ -172,7 +172,7 @@ class FamilyNews {
                     }
                 } else {
                     echo '
-            <p class="center">'._('no comments').'</p>';
+            <p class="center">'.T_('no comments').'</p>';
                 }
             }
         }
@@ -200,17 +200,17 @@ class FamilyNews {
             echo '
             <form method="post" id="editform" action="familynews.php">
                 <fieldset>
-                    <legend><span>'._('Edit News').'</span></legend>';
+                    <legend><span>'.T_('Edit News').'</span></legend>';
         } else {
             echo '
             <form method="post" id="addform" action="familynews.php">
                 <fieldset>
-                    <legend><span>'._('Add News').'</span></legend>';
+                    <legend><span>'.T_('Add News').'</span></legend>';
         }
         echo '
                     <p>
-                        <label for="title">'._('Title').'</label>:
-                        <input type="text" name="title" id="title" title="'._('Title of your Family News').'"';
+                        <label for="title">'.T_('Title').'</label>:
+                        <input type="text" name="title" id="title" title="'.T_('Title of your Family News').'"';
         if ($type == 'edit') {
             echo ' value="'.$title.'"';
         }
@@ -234,16 +234,16 @@ class FamilyNews {
                     <p>';
         if ($type == 'add') {
             echo '
-                        <input class="sub1" type="submit" name="submitadd" value="'._('Add').'"/>';
+                        <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'"/>';
         } else {
             echo '
                         <input type="hidden" name="id" value="'.$newsid.'"/>
                         <input type="hidden" name="user" value="'.$user.'"/>
-                        <input class="sub1" type="submit" name="submitedit" value="'._('Edit').'"/>';
+                        <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'"/>';
         }
         echo '
-                         &nbsp;'._('or').' &nbsp;
-                        <a href="familynews.php">'._('Cancel').'</a>
+                         &nbsp;'.T_('or').' &nbsp;
+                        <a href="familynews.php">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>';
@@ -258,7 +258,7 @@ class FamilyNews {
         );
         if ($this->db->count_rows() > 0) {
             while ($row = $this->db->get_row()) {
-                $date = $locale->fixDate(_('F j, Y g:i a'), $this->tz_offset, $row['date']);
+                $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $row['date']);
                 $displayname = getUserDisplayName($row['user']);
                 echo '
                     <div class="news-post">
@@ -270,14 +270,14 @@ class FamilyNews {
                             '.parse(rtrim(substr($row['news'], 0, 300)));
                 if (strlen($row['news']) > 300) {
                     echo '...<br/><br/>
-                            <a href="?getnews='.$row['user'].'&amp;newsid='.$row['id'].'">'._('Read More').'</a>';
+                            <a href="?getnews='.$row['user'].'&amp;newsid='.$row['id'].'">'.T_('Read More').'</a>';
                 }
                 echo '
                         </p>
                         <p class="news-comments">
                             <a href="#" onclick="window.open(\'inc/familynews_comments.php?newsid='.$row['id'].'\', 
                                 \'_Comments\', \'height=400,width=550,resizable=yes,scrollbars=yes\'); return false;">
-                                '._('Comments').'
+                                '.T_('Comments').'
                             </a> - '.getNewsComments($row['id']).'
                         </p>
                     </div>';
@@ -285,9 +285,9 @@ class FamilyNews {
         } else {
             echo '
             <div class="info-alert">
-                <h2>'._('Welcome to the Family News Section.').'</h2>
-                <p><i>'._('Currently no one has added any news.').'</i></p>
-                <p><a href="?addnews=yes">'._('Add Family News').'</a></p>
+                <h2>'.T_('Welcome to the Family News Section.').'</h2>
+                <p><i>'.T_('Currently no one has added any news.').'</i></p>
+                <p><a href="?addnews=yes">'.T_('Add Family News').'</a></p>
             </div>';
         }
     }
@@ -308,8 +308,9 @@ class FamilyNews {
     function displayWhatsNewFamilyNews ()
     {
         $locale = new Locale();
-        $today = date('Y-m-d');
-        $tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
+        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+
         $sql = "SELECT n.`id`, n.`title`, u.`id` AS userid, n.`date` 
                 FROM `fcms_users` AS u, `fcms_news` AS n 
                 WHERE u.`id` = n.`user` 
@@ -321,19 +322,16 @@ class FamilyNews {
         );
         if ($this->db->count_rows() > 0) {
             echo '
-            <h3>'._('Family News').'</h3>
+            <h3>'.T_('Family News').'</h3>
             <ul>';
             while ($row = $this->db->get_row()) {
                 $displayname = getUserDisplayName($row['userid']);
-                $date = $locale->fixDate(_('M. j, Y g:i a'), $this->tz_offset, $row['date']);
-                if (
-                    strtotime($row['date']) >= strtotime($today) && 
-                    strtotime($row['date']) > $tomorrow
-                ) {
-                    $full_date = _('Today');
+                $date = $locale->fixDate('YmdHis', $this->tz_offset, $row['date']);
+                if ($date >= $today_start && $date <= $today_end) {
+                    $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $date;
+                    $full_date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tz_offset, $row['date']);
                     $d = '';
                 }
                 echo '

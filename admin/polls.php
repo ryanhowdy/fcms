@@ -19,10 +19,10 @@ include_once('../inc/database_class.php');
 include_once('../inc/alerts_class.php');
 $admin = new Admin($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$alert = new Alerts($database);
+$alert = new Alerts($current_user_id, $database);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Administration: Polls');
+$TMPL['pagetitle'] = T_('Administration: Polls');
 $TMPL['path'] = "../";
 $TMPL['admin_path'] = "";
 $TMPL['javascript'] = '
@@ -31,7 +31,7 @@ $TMPL['javascript'] = '
 Event.observe(window, \'load\', function() {
     if (!$$(\'form.frm_line input[type="submit"]\')) { return; }
     $$(\'form.frm_line input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmed\');
@@ -49,7 +49,7 @@ include_once(getTheme($current_user_id, $TMPL['path']) . 'header.php');
 echo '
         <div id="polls" class="centercontent">
             <div id="actions_menu" class="clearfix">
-                <ul><li><a href="?addpoll=yes">'._('Add New Poll').'</a></li></ul>
+                <ul><li><a href="?addpoll=yes">'.T_('Add New Poll').'</a></li></ul>
             </div>';
 
 // Remove an alert
@@ -71,9 +71,9 @@ $alert->displayPoll($current_user_id);
 if (checkAccess($current_user_id) > 2) {
     echo '
             <p class="error-alert">
-                <b>'._('You do not have access to view this page.').'</b><br/>
-                '._('This page requires an access level 2 (Helper) or better.').' 
-                <a href="../contact.php">'._('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
+                <b>'.T_('You do not have access to view this page.').'</b><br/>
+                '.T_('This page requires an access level 2 (Helper) or better.').' 
+                <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
             </p>';
 } else {
     $show = true;
@@ -141,12 +141,12 @@ if (checkAccess($current_user_id) > 2) {
         echo '
                 <div class="info-alert clearfix">
                     <form action="polls.php" method="post">
-                        <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
                             <input type="hidden" name="pollid" value="'.$_POST['pollid'].'"/>
-                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                            <a style="float:right;" href="polls.php">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="polls.php">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -180,7 +180,7 @@ if (checkAccess($current_user_id) > 2) {
 
         echo '
             <br/>
-            <h3>'._('Past Polls').'</h3>';
+            <h3>'.T_('Past Polls').'</h3>';
 
         $sql = "SELECT * FROM fcms_polls ORDER BY `started` DESC LIMIT $from, 10";
         $result = mysql_query($sql) or displaySQLError('Poll Error', 'admin/polls.php [' . __LINE__ . ']', $sql, mysql_error());
@@ -191,7 +191,7 @@ if (checkAccess($current_user_id) > 2) {
                 <a href="?editpoll='.$r['id'].'">'.$r['question'].'</a> - '.$r['started'].' 
                 <form class="frm_line" action="polls.php" method="post">
                     <div>
-                        <input type="submit" name="delsubmit" class="delbtn" value="'._('Delete').'" title="'._('Delete').'"/>
+                        <input type="submit" name="delsubmit" class="delbtn" value="'.T_('Delete').'" title="'.T_('Delete').'"/>
                         <input type="hidden" name="pollid" value="'.$r['id'].'"/>
                     </div>
                 </form>
@@ -208,7 +208,7 @@ if (checkAccess($current_user_id) > 2) {
             $total_pages = ceil($count / 10); 
             displayPages("polls.php", $page, $total_pages);
         } else {
-            echo '<i>'._('No Previous Polls').'</i>';
+            echo '<i>'.T_('No Previous Polls').'</i>';
         }
     }
 }

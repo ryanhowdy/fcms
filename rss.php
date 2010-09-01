@@ -9,7 +9,7 @@ if (isset($_GET['feed'])) {
         header("Content-Type: application/rss+xml");
         displayFeedPhotoGallery();
     } else {
-        echo "<p>"._('The RSS feed you requested doesn\'t exist')."</p>";
+        echo "<p>".T_('The RSS feed you requested doesn\'t exist')."</p>";
     }
 } else {
     header("Content-Type: application/rss+xml");
@@ -119,10 +119,10 @@ function displayFeedAll () {
     $output = "<?xml version=\"1.0\"?" . "> 
     <rss version=\"2.0\"> 
     <channel> 
-    <title>" . getSiteName() . " - " . _('What\'s New') . "</title> 
+    <title>" . getSiteName() . " - " . T_('What\'s New') . "</title> 
     <link>" . $url . "</link> 
-    <description>" . getSiteName() . " - " . _('What\'s New') . " " . _('RSS Feed') . "</description> 
-    <language>" . _('lang') . "</language> 
+    <description>" . getSiteName() . " - " . T_('What\'s New') . " " . T_('RSS Feed') . "</description> 
+    <language>" . T_('lang') . "</language> 
     <managingEditor>" . getContactEmail() . "</managingEditor> 
     "; 
     
@@ -143,103 +143,105 @@ function displayFeedAll () {
             }
             $link = "messageboard.php?thread=".$line['id2'];
             if ($line['id'] == $minpost['id']) {
-                $title = sprintf(_('%s started the new thread %s.'), $userName, $subject);
+                $title = sprintf(T_('%s started the new thread %s.'), $userName, $subject);
             } else {
-                $title = sprintf(_('%s replied to %s.'), $userName, $subject);
+                $title = sprintf(T_('%s replied to %s.'), $userName, $subject);
             }
 
         // New Members
         } elseif ($line['type'] == 'JOINED') { 
             $displayname = getUserDisplayName($line['userid']);
             $link = "profile.php?member=" . $line['userid']; 
-            $title = sprintf(_('%s has joined the website.'), $displayname);
+            $title = sprintf(T_('%s has joined the website.'), $displayname);
 
         // Edit Address
         } elseif ($line['type'] == 'ADDRESSEDIT') {
             $displayname = getUserDisplayName($line['id2']);
             $link = 'addressbook.php?address='.$line['id'];
-            $title = sprintf(_('%s has updated his/her address.'), $displayname);
+            $title = sprintf(T_('%s has updated his/her address.'), $displayname);
 
         // Add Address
         } elseif ($line['type'] == 'ADDRESSADD') {
             $displayname = getUserDisplayName($line['id2']);
             $for = getUserDisplayName($line['userid'], 2, false);
             $link = 'addressbook.php?address='.$line['id'];
-            $title = sprintf(_('%s has added address information for %s.'), $displayname, $for);
+            $title = sprintf(T_('%s has added address information for %s.'), $displayname, $for);
 
         // Family News
         } elseif ($line['type'] == 'NEWS') { 
             $displayname = getUserDisplayName($line['userid']);
             $link = 'familynews.php?getnews='.$line['userid'].'&amp;newsid='.$line['id']; 
-            $title = sprintf(_('%s has added %s to his/her Family News.'), $displayname, $line['title']);
+            $title = sprintf(T_('%s has added %s to his/her Family News.'), $displayname, $line['title']);
 
         // Prayer Concerns
         } elseif ($line['type'] == 'PRAYERS') { 
             $displayname = getUserDisplayName($line['userid']);
             $link = 'prayers.php';
-            $title = sprintf(_('%s has added a Prayer Concern for %s.'), $displayname, $line['title']);
+            $title = sprintf(T_('%s has added a Prayer Concern for %s.'), $displayname, $line['title']);
 
         // Recipes
         } elseif ($line['type'] == 'RECIPES') { 
             $displayname = getUserDisplayName($line['userid']);
             switch ($line['id2']) { 
-                case _('Appetizer'): $link = "recipes.php?category=1&amp;id=" . $line['id']; break; 
-                case _('Breakfast'): $link = "recipes.php?category=2&amp;id=" . $line['id']; break; 
-                case _('Dessert'): $link = "recipes.php?category=3&amp;id=" . $line['id']; break; 
-                case _('Entree (Meat)'): $link = "recipes.php?category=4&amp;id=" . $line['id']; break; 
-                case _('Entree (Seafood)'): $link = "recipes.php?category=5&amp;id=" . $line['id']; break; 
-                case _('Entree (Vegetarian)'): $link = "recipes.php?category=6&amp;id=" . $line['id']; break; 
-                case _('Salad'): $link = "recipes.php?category=7&amp;id=" . $line['id']; break; 
-                case _('Side Dish'): $link = "recipes.php?category=8&amp;id=" . $line['id']; break; 
-                case _('Soup'): $link = "recipes.php?category=9&amp;id=" . $line['id']; break; 
+                case T_('Appetizer'): $link = "recipes.php?category=1&amp;id=" . $line['id']; break; 
+                case T_('Breakfast'): $link = "recipes.php?category=2&amp;id=" . $line['id']; break; 
+                case T_('Dessert'): $link = "recipes.php?category=3&amp;id=" . $line['id']; break; 
+                case T_('Entree (Meat)'): $link = "recipes.php?category=4&amp;id=" . $line['id']; break; 
+                case T_('Entree (Seafood)'): $link = "recipes.php?category=5&amp;id=" . $line['id']; break; 
+                case T_('Entree (Vegetarian)'): $link = "recipes.php?category=6&amp;id=" . $line['id']; break; 
+                case T_('Salad'): $link = "recipes.php?category=7&amp;id=" . $line['id']; break; 
+                case T_('Side Dish'): $link = "recipes.php?category=8&amp;id=" . $line['id']; break; 
+                case T_('Soup'): $link = "recipes.php?category=9&amp;id=" . $line['id']; break; 
                 default: $link = "recipes.php"; break; 
             } 
-            $title = sprintf(_('%s has added the %s recipe.'), $displayname, $line['title']);
+            $title = sprintf(T_('%s has added the %s recipe.'), $displayname, $line['title']);
 
         // Documents
         } elseif ($line['type'] == 'DOCS') {
             $displayname = getUserDisplayName($line['userid']);
             $link = 'documents.php';
-            $title = sprintf(_('%s has added a new Document (%s).'), $displayname, $line['title']);
+            $title = sprintf(T_('%s has added a new Document (%s).'), $displayname, $line['title']);
 
         // Photo Gallery
         } elseif ($line['type'] == 'GALLERY') { 
             $displayname = getUserDisplayName($line['userid']);
             $link = 'gallery/index.php?uid='.$line['userid'].'&amp;cid='.$line['id'];
-            $title = sprintf(_('%s has added %d new photos to the %s category.'), $displayname, $line['id2'], $line['title']);
+            $title = sprintf(T_('%s has added %d new photos to the %s category.'), $displayname, $line['id2'], $line['title']);
 
         // Comment - Family News
         } elseif ($line['type'] == 'NEWSCOM') { 
             $displayname = getUserDisplayName($line['userid']);
             $link = 'familynews.php?getnews='.$line['userid'].'&amp;newsid='.$line['id'];
-            $title = sprintf(_('%s commented on Family News %s.'), $displayname, $line['title']);
+            $title = sprintf(T_('%s commented on Family News %s.'), $displayname, $line['title']);
 
         // Comment - Photo Gallery
         } elseif ($line['type'] == 'GALCOM') { 
             $displayname = getUserDisplayName($line['userid']);
             $link = 'gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$line['id'];
-            $title = sprintf(_('%s commented on the following photo:'), $displayname);
+            $title = sprintf(T_('%s commented on the following photo:'), $displayname);
 
         // Calendar
         } elseif ($line['type'] == 'CALENDAR') {
-            $date_date = gmdate(_('m-d-y'), strtotime($line['id2']));
-            $date_date2 = gmdate(_('F j, Y'), strtotime($line['id2']));
+            // TODO
+            // copy from calendar_class
+            $date_date = gmdate(T_('m-d-y'), strtotime($line['id2']));
+            $date_date2 = gmdate(T_('F j, Y'), strtotime($line['id2']));
             $displayname = getUserDisplayName($line['userid']);
-            $link = 'calendar.php?year='.date('Y', strtotime($date_date2))
-                .'&amp;month='.date('m', strtotime($date_date2))
-                .'&amp;day='.date('d', strtotime($date_date2));
-            $title = sprintf(_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $line['title']);
+            $link = 'calendar.php?year='.gmdate('Y', strtotime($date_date2))
+                .'&amp;month='.gmdate('m', strtotime($date_date2))
+                .'&amp;day='.gmdate('d', strtotime($date_date2));
+            $title = sprintf(T_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $line['title']);
 
         // Poll
         } elseif ($line['type'] == 'POLL') {
             $link = 'home.php?poll_id='.$line['id'];
-            $title = sprintf(_('A new Poll (%s) has been added.'), $line['title']);
+            $title = sprintf(T_('A new Poll (%s) has been added.'), $line['title']);
         }
         
         $output .= "<item><title><![CDATA[$title]]></title> 
-        <pubDate>" . gmdate(_('D, d M Y H:i:s'), strtotime($line['date'])) . " GMT</pubDate> 
+        <pubDate>" . gmdate(T_('D, d M Y H:i:s'), strtotime($line['date'])) . " GMT</pubDate> 
         <link>$urlRoot/$link</link> 
-        <guid isPermaLink=\"false\"><![CDATA[$urlRoot $title " . gmdate(_('D, d M Y H:i:s'), strtotime($line['date'])) . "]]></guid> 
+        <guid isPermaLink=\"false\"><![CDATA[$urlRoot $title " . gmdate(T_('D, d M Y H:i:s'), strtotime($line['date'])) . "]]></guid> 
         </item> 
         "; 
     } 
@@ -268,10 +270,10 @@ function displayFeedPhotoGallery () {
     $output = "<?xml version=\"1.0\"?" . "> 
     <rss version=\"2.0\"> 
     <channel> 
-    <title>" . getSiteName() . " - " . _('Photo Gallery') . "</title> 
+    <title>" . getSiteName() . " - " . T_('Photo Gallery') . "</title> 
     <link>" . $url . "</link> 
-    <description>" . getSiteName() . " - " . _('Photo Gallery') . " " . _('RSS Feed') . "</description> 
-    <language>" . _('lang') . "</language> 
+    <description>" . getSiteName() . " - " . T_('Photo Gallery') . " " . T_('RSS Feed') . "</description> 
+    <language>" . T_('lang') . "</language> 
     <managingEditor>" . getContactEmail() . "</managingEditor> 
     "; 
     

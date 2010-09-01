@@ -1,3 +1,9 @@
+2.2.2
+    #165 - Login ID SQL Injections
+    #166 - File Upload Vulnerability
+    #167 - Directory Traversal Vulnerability
+    #168 - Audit sql queries for SQL Injections
+
 2.2.1
     #158 - Register SQL Injections
     #159 - upimages.php Arbitrary Code Execution

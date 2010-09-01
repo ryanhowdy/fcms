@@ -26,19 +26,17 @@ if (!file_exists('inc/config_inc.php')) {
     // Setup php-gettext
     include_once('inc/gettext.inc');
     T_setlocale(LC_MESSAGES, 'en_US');
-    bindtextdomain('messages', './language');
-    if (function_exists('bind_textdomain_codeset')) {
-      bind_textdomain_codeset('messages', 'UTF-8');
-    }
-    textdomain('messages');
+    T_bindtextdomain('messages', './language');
+    T_bind_textdomain_codeset('messages', 'UTF-8');
+    T_textdomain('messages');
 
     displayHeader(false);
     echo '
     <div id="oops">
-        <h1>'._('Oops!').'</h1>
+        <h1>'.T_('Oops!').'</h1>
         <p>
-            '._('This site hasn\'t been installed yet.').' 
-            <a href="install.php">'._('You must finish the installation before using the site.').'</a>
+            '.T_('This site hasn\'t been installed yet.').' 
+            <a href="install.php">'.T_('You must finish the installation before using the site.').'</a>
         </p>
     </div>
 </body>
@@ -68,8 +66,8 @@ if (!file_exists('inc/config_inc.php')) {
             displayHeader();
             echo '
     <div class="err-msg">
-        <h2>'._('Access Denied').'</h2>
-        <p>'._('You must be logged in to view that page.').'</p>
+        <h2>'.T_('Access Denied').'</h2>
+        <p>'.T_('You must be logged in to view that page.').'</p>
     </div>';
             displayLogin();
             exit();
@@ -77,9 +75,9 @@ if (!file_exists('inc/config_inc.php')) {
             displayHeader();
             echo '
     <div class="err-msg">
-        <h2>'._('Hold On a Second!').'</h2>
-        <p>'._('The site has been closed by an administrator.').'</p>
-        <p>'._('Please come back later.').'</p>
+        <h2>'.T_('Hold On a Second!').'</h2>
+        <p>'.T_('The site has been closed by an administrator.').'</p>
+        <p>'.T_('Please come back later.').'</p>
     </div>';
             displayLogin();
             exit();
@@ -152,9 +150,9 @@ if (!file_exists('inc/config_inc.php')) {
                     displayHeader();
                     echo '
     <div class="err-msg">
-        <h2>'._('Hold On a Second!').'</h2>
-        <p>'._('You have exceeded the number of allowed login attempts.').'</p>
-        <p>'._('Your account has been locked for 1 hour.').'</p>
+        <h2>'.T_('Hold On a Second!').'</h2>
+        <p>'.T_('You have exceeded the number of allowed login attempts.').'</p>
+        <p>'.T_('Your account has been locked for 1 hour.').'</p>
     </div>';
                     displayLogin();
                 }
@@ -164,8 +162,8 @@ if (!file_exists('inc/config_inc.php')) {
                 displayHeader();
                 echo '
     <div class="err-msg">
-        <h2>'._('Not So Fast').'</h2>
-        <p>'._('Your account isn\'t active yet.  Your website administrator must activate your account before you can login and begin using the website.').'</p>
+        <h2>'.T_('Not So Fast').'</h2>
+        <p>'.T_('Your account isn\'t active yet.  Your website administrator must activate your account before you can login and begin using the website.').'</p>
     </div>';
                 displayLogin();
             }
@@ -187,9 +185,9 @@ if (!file_exists('inc/config_inc.php')) {
                     displayHeader();
                     echo '
     <div class="err-msg">
-        <h2>'._('Hold On a Second!').'</h2>
-        <p>'._('You have exceeded the number of allowed login attempts.').'</p>
-        <p>'._('Your account has been locked for 1 hour.').'</p>
+        <h2>'.T_('Hold On a Second!').'</h2>
+        <p>'.T_('You have exceeded the number of allowed login attempts.').'</p>
+        <p>'.T_('Your account has been locked for 1 hour.').'</p>
     </div>';
                     displayLogin();
                     exit(0);
@@ -200,9 +198,9 @@ if (!file_exists('inc/config_inc.php')) {
             displayHeader();
             echo '
     <div class="err-msg">
-        <h2>'._('Oops!').'</h2/>
-        <p>'._('That login information wasn\'t quite right.').'</p>
-        <p>'._('Be sure and check that you typed your username/password correctly.').'</p>
+        <h2>'.T_('Oops!').'</h2/>
+        <p>'.T_('That login information wasn\'t quite right.').'</p>
+        <p>'.T_('Be sure and check that you typed your username/password correctly.').'</p>
     </div>';
             displayLogin();
         }
@@ -225,7 +223,7 @@ if (!file_exists('inc/config_inc.php')) {
 
 function displayHeader($login = true) {
     if ($login) {
-        $sitename = getSiteName().' - '._('powered by').' '.getCurrentVersion();
+        $sitename = getSiteName().' - '.T_('powered by').' '.getCurrentVersion();
         $js = ' onload="document.getElementById(\'user\').focus()"';
     } else {
         // Don't translate
@@ -234,7 +232,7 @@ function displayHeader($login = true) {
     }
     echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'._('lang').'" lang="'._('lang').'">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
 <title>'.$sitename.'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
@@ -283,7 +281,7 @@ function displayLogin() {
 
     echo '
     <div id="login_box">
-        <h1 id="login_header">'._('Login to').' '.$sitename.'</h1>
+        <h1 id="login_header">'.T_('Login to').' '.$sitename.'</h1>
         <form action="index.php" method="post">
             <div style="float:right">
                 <select style="background-color:#e9f3fb; border:none;" onchange="window.location.href=\'?lang=\'+this.options[this.selectedIndex].value;">
@@ -291,18 +289,18 @@ function displayLogin() {
                     '.$lang_options.'
                 </select>
             </div>
-            <p><label for="user">'._('Username').':</label><input type="text" name="user" id="user"/></p>
-            <p><label for="pass">'._('Password').':</label><input type="password" name="pass" id="pass"/></p>
+            <p><label for="user">'.T_('Username').':</label><input type="text" name="user" id="user"/></p>
+            <p><label for="pass">'.T_('Password').':</label><input type="password" name="pass" id="pass"/></p>
             <p>
-                <label class="rem" for="rem">'._('Remember Me').'</label>
+                <label class="rem" for="rem">'.T_('Remember Me').'</label>
                 <input class="rem" name="rem" id="rem" type="checkbox" value="1"/>
                 '.$hidden.'
-                <input type="submit" name="submit" id="submit" value="'._('Login').'"/>
+                <input type="submit" name="submit" id="submit" value="'.T_('Login').'"/>
             </p>
             <div class="clear"></div>
         </form>
         <p class="center">
-            <a href="lostpw.php">'._('Forgot Password?').'</a> | <a href="register.php">'._('Register').'</a>
+            <a href="lostpw.php">'.T_('Forgot Password?').'</a> | <a href="register.php">'.T_('Register').'</a>
         </p>
     </div>
 </body>

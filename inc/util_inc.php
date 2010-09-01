@@ -14,11 +14,9 @@ if (isset($_SESSION['language'])) {
     $lang = getLanguage();
     T_setlocale(LC_MESSAGES, $lang);
 }
-bindtextdomain('messages', './language');
-if (function_exists('bind_textdomain_codeset')) {
-  bind_textdomain_codeset('messages', 'UTF-8');
-}
-textdomain('messages');
+T_bindtextdomain('messages', './language');
+T_bind_textdomain_codeset('messages', 'UTF-8');
+T_textdomain('messages');
 
 // Email Headers and Smileys
 $email_headers = 'From: ' . getSiteName() . ' <' . getContactEmail() . '>' . "\r\n" . 
@@ -192,25 +190,25 @@ function getSectionName ($section)
 {
     switch ($section) {
         case 'photogallery':
-            return _('Photo Gallery');
+            return T_('Photo Gallery');
             break;
         case 'addressbook':
-            return _('Address Book');
+            return T_('Address Book');
             break;
         case 'calendar':
-            return _('Calendar');
+            return T_('Calendar');
             break;
         case 'familynews':
-            return _('Family News');
+            return T_('Family News');
             break;
         case 'recipes':
-            return _('Recipes');
+            return T_('Recipes');
             break;
         case 'documents':
-            return _('Documents');
+            return T_('Documents');
             break;
         case 'prayers':
-            return _('Prayers');
+            return T_('Prayers');
             break;
         default:
             return 'error';
@@ -261,7 +259,7 @@ function displayNewPM ($userid, $d = "")
     $sql = "SELECT `id` FROM `fcms_privatemsg` WHERE `to` = $userid AND `read` < 1";
     $result = mysql_query($sql) or displaySQLError('Get New PM', 'util_inc.php [' . __LINE__ . ']', $sql, mysql_error());
     if (mysql_num_rows($result) > 0) {
-        echo "<a href=\"" . $d . "privatemsg.php\" class=\"new_pm\">" . _('New PM') . "</a> ";
+        echo "<a href=\"" . $d . "privatemsg.php\" class=\"new_pm\">" . T_('New PM') . "</a> ";
     } else {
         echo " ";
     }
@@ -278,37 +276,37 @@ function getAccessLevel ($userid)
 {
     $result = mysql_query("SELECT access FROM fcms_users WHERE id = $userid") or die('<h1>Access Error (util.inc.php 47)</h1>' . mysql_error());
     $r = mysql_fetch_array($result);
-    $access = _('Member');
+    $access = T_('Member');
     switch ($r['access']) {
         case 1:
-            $access = _('Admin');
+            $access = T_('Admin');
             break;
         case 2:
-            $access = _('Helper');
+            $access = T_('Helper');
             break;
         case 3:
-            $access = _('Member');
+            $access = T_('Member');
             break;
         case 4:
-            $access = _('Non-Poster');
+            $access = T_('Non-Poster');
             break;
         case 5:
-            $access = _('Non-Photographer');
+            $access = T_('Non-Photographer');
             break;
         case 6:
-            $access = _('Commenter');
+            $access = T_('Commenter');
             break;
         case 7:
-            $access = _('Poster');
+            $access = T_('Poster');
             break;
         case 8:
-            $access = _('Photographer');
+            $access = T_('Photographer');
             break;
         case 9:
-            $access = _('Blogger');
+            $access = T_('Blogger');
             break;
         case 10:
-            $access = _('Guest');
+            $access = T_('Guest');
             break;
     }
     return $access;
@@ -952,20 +950,20 @@ function displayMBToolbar ()
 {
     echo '
             <div id="toolbar" class="toolbar hideme">
-                <input type="button" class="bold button" onclick="bb.insertCode(\'B\', \'bold\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Bold').'" />
-                <input type="button" class="italic button" onclick="bb.insertCode(\'I\', \'italic\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Italic').'"/>
-                <input type="button" class="underline button" onclick="bb.insertCode(\'U\', \'underline\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Underline').'"/>
-                <input type="button" class="left_align button" onclick="bb.insertCode(\'ALIGN=LEFT\', \'left right\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Left Align').'"/>
-                <input type="button" class="center_align button" onclick="bb.insertCode(\'ALIGN=CENTER\', \'center\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Center').'"/>
-                <input type="button" class="right_align button" onclick="bb.insertCode(\'ALIGN=RIGHT\', \'align right\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Right Align').'"/>
-                <input type="button" class="h1 button" onclick="bb.insertCode(\'H1\', \'heading 1\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Heading 1').'"/>
-                <input type="button" class="h2 button" onclick="bb.insertCode(\'H2\', \'heading 2\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Heading 2').'"/>
-                <input type="button" class="h3 button" onclick="bb.insertCode(\'H3\', \'heading 3\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Heading 3').'"/>
-                <input type="button" class="board_quote button" onclick="bb.insertCode(\'QUOTE\', \'quote\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Quote').'"/>
-                <input type="button" class="board_images button" onclick="window.open(\'inc/upimages.php\',\'name\',\'width=700,height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Insert Image').'"/>
-                <input type="button" class="links button" onclick="bb.insertLink();" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Insert URL').'"/>
-                <input type="button" class="smileys button" onclick="window.open(\'inc/smileys.php\',\'name\',\'width=500,height=200,scrollbars=no,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('Insert Smiley').'"/>
-                <input type="button" class="help button" onclick="window.open(\'inc/bbcode.php\',\'name\',\'width=400,height=300,scrollbars=yes,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'._('BBCode Help').'"/>
+                <input type="button" class="bold button" onclick="bb.insertCode(\'B\', \'bold\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Bold').'" />
+                <input type="button" class="italic button" onclick="bb.insertCode(\'I\', \'italic\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Italic').'"/>
+                <input type="button" class="underline button" onclick="bb.insertCode(\'U\', \'underline\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Underline').'"/>
+                <input type="button" class="left_align button" onclick="bb.insertCode(\'ALIGN=LEFT\', \'left right\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Left Align').'"/>
+                <input type="button" class="center_align button" onclick="bb.insertCode(\'ALIGN=CENTER\', \'center\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Center').'"/>
+                <input type="button" class="right_align button" onclick="bb.insertCode(\'ALIGN=RIGHT\', \'align right\', \'ALIGN\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Right Align').'"/>
+                <input type="button" class="h1 button" onclick="bb.insertCode(\'H1\', \'heading 1\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Heading 1').'"/>
+                <input type="button" class="h2 button" onclick="bb.insertCode(\'H2\', \'heading 2\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Heading 2').'"/>
+                <input type="button" class="h3 button" onclick="bb.insertCode(\'H3\', \'heading 3\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Heading 3').'"/>
+                <input type="button" class="board_quote button" onclick="bb.insertCode(\'QUOTE\', \'quote\');" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Quote').'"/>
+                <input type="button" class="board_images button" onclick="window.open(\'inc/upimages.php\',\'name\',\'width=700,height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Insert Image').'"/>
+                <input type="button" class="links button" onclick="bb.insertLink();" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Insert URL').'"/>
+                <input type="button" class="smileys button" onclick="window.open(\'inc/smileys.php\',\'name\',\'width=500,height=200,scrollbars=no,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Insert Smiley').'"/>
+                <input type="button" class="help button" onclick="window.open(\'inc/bbcode.php\',\'name\',\'width=400,height=300,scrollbars=yes,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('BBCode Help').'"/>
             </div>';
 }
 
@@ -993,13 +991,13 @@ function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h,
     if (!array_key_exists($filetype, $known_photo_types)) {
         echo '
             <p class="error-alert">
-                '.sprintf(_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $filetype).'
+                '.sprintf(T_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $filetype).'
             </p>';
     // Check file extension
     } elseif (!in_array($ext, $known_photo_types)) {
         echo '
             <p class="error-alert">
-                '.sprintf(_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $filetype).'
+                '.sprintf(T_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $filetype).'
             </p>';
     } else {
         if ($unique !== 'no') {
@@ -1071,12 +1069,12 @@ function displayPagination ($url, $cur_page, $total_pages)
         if ($cur_page > 1) {
             $prev = ($cur_page - 1);
             echo '
-                    <li><a title="'._('First Page').'" class="first" href="'.$url.$divider.'page=1">'._('First').'</a></li>
-                    <li><a title="'._('Previous Page').'" class="previous" href="'.$url.$divider.'page='.$prev.'">'._('Previous').'</a></li>';
+                    <li><a title="'.T_('First Page').'" class="first" href="'.$url.$divider.'page=1">'.T_('First').'</a></li>
+                    <li><a title="'.T_('Previous Page').'" class="previous" href="'.$url.$divider.'page='.$prev.'">'.T_('Previous').'</a></li>';
         } else {
             echo '
-                    <li><a title="'._('First Page').'" class="first" href="'.$url.$divider.'page=1">'._('First').'</a></li>
-                    <li><a title="'._('Previous Page').'" class="previous" href="'.$url.$divider.'page=1">'._('Previous').'</a></li>';
+                    <li><a title="'.T_('First Page').'" class="first" href="'.$url.$divider.'page=1">'.T_('First').'</a></li>
+                    <li><a title="'.T_('Previous Page').'" class="previous" href="'.$url.$divider.'page=1">'.T_('Previous').'</a></li>';
         }
 
         // Numbers
@@ -1108,12 +1106,12 @@ function displayPagination ($url, $cur_page, $total_pages)
         if ($cur_page < $total_pages) { 
             $next = ($cur_page + 1);
             echo '
-                    <li><a title="'._('Next Page').'" class="next" href="'.$url.$divider.'page='.$next.'">'._('Next').'</a></li>
-                    <li><a title="'._('Last page').'" class="last" href="'.$url.$divider.'page='.$total_pages.'">'._('Last').'</a></li>';
+                    <li><a title="'.T_('Next Page').'" class="next" href="'.$url.$divider.'page='.$next.'">'.T_('Next').'</a></li>
+                    <li><a title="'.T_('Last page').'" class="last" href="'.$url.$divider.'page='.$total_pages.'">'.T_('Last').'</a></li>';
         } else {
             echo '
-                    <li><a title="'._('Next Page').'" class="next" href="'.$url.$divider.'page='.$total_pages.'">'._('Next').'</a></li>
-                    <li><a title="'._('Last page').'" class="last" href="'.$url.$divider.'page='.$total_pages.'">'._('Last').'</a></li>';
+                    <li><a title="'.T_('Next Page').'" class="next" href="'.$url.$divider.'page='.$total_pages.'">'.T_('Next').'</a></li>
+                    <li><a title="'.T_('Last page').'" class="last" href="'.$url.$divider.'page='.$total_pages.'">'.T_('Last').'</a></li>';
         } 
         echo '
                 </ul>
@@ -1142,7 +1140,7 @@ function displayMembersOnline ()
     $sql_last15min = mysql_query("SELECT * FROM fcms_users WHERE UNIX_TIMESTAMP(activity) >= $last15min ORDER BY `activity` DESC") or die('<h1>Online Error (util.inc.php 246)</h1>' . mysql_error());
     $sql_lastday = mysql_query("SELECT * FROM fcms_users WHERE UNIX_TIMESTAMP(activity) >= $lastday ORDER BY `activity` DESC") or die('<h1>Online Error (util.inc.php 247)</h1>' . mysql_error());
     echo '
-            <h3>'._('Now').':</h3>
+            <h3>'.T_('Now').':</h3>
             <p>';
     $i = 1;
     $onlinenow_array = array();
@@ -1155,7 +1153,7 @@ function displayMembersOnline ()
     }
     echo '
             </p>
-            <h3>'._('Last 24 Hours').':</h3>
+            <h3>'.T_('Last 24 Hours').':</h3>
             <p>';
     while ($d = mysql_fetch_array($sql_lastday)) {
         $displayname = getUserDisplayName($d['id']);
@@ -1229,6 +1227,14 @@ function isLoggedIn ($d = '')
         }
     // The user's session/cookie credentials are bad
     } else {
+        unset($_SESSION['login_id']);
+        unset($_SESSION['login_uname']);
+        unset($_SESSION['login_pw']);
+        if (isset($_COOKIE['fcms_login_id'])) {
+            setcookie('fcms_login_id', '', time() - 3600, '/');
+            setcookie('fcms_login_uname', '', time() - 3600, '/');
+            setcookie('fcms_login_pw', '', time() - 3600, '/');
+        }
         header("Location: {$up}index.php?err=login");
         exit();
     }
@@ -1399,8 +1405,7 @@ function displayWhatsNewAll ($userid)
     );
     $t = mysql_fetch_array($t_result);
     $tz_offset = $t['timezone'];
-    $today = date('Y-m-d');
-    $yesterday  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")-1, date("Y")));
+
     $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type 
             FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
             WHERE p.`thread` = t.`id` 
@@ -1481,15 +1486,25 @@ function displayWhatsNewAll ($userid)
         'Latest Info Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $lastday = '0-0';
+
+    $today_start = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+    $today_end = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+
+    $time = gmmktime(0, 0, 0, gmdate('m')  , gmdate('d')-1, gmdate('Y'));
+    $yesterday_start = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s', $time)) . '000000';
+    $yesterday_end = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s', $time)) . '235959';
+
     while ($r=mysql_fetch_array($result)) {
-        $day = date('Y-m-d', strtotime($r['date']));
-        if ($day != $lastday) {
-            if ($day == $today) {
+
+        $updated = $locale->fixDate('YmdHis', $tz_offset, strtotime($r['date']));
+
+        if ($updated != $lastday) {
+            if ($updated >= $today_start && $updated <= $today_end) {
                 echo '
-                <p><b>'._('Today').'</b></p>';
-            } elseif ($day == $yesterday) {
+                <p><b>'.T_('Today').'</b></p>';
+            } elseif ($updated >= $yesterday_start && $updated <= $yesterday_end) {
                 echo '
-                <p><b>'._('Yesterday').'</b></p>';
+                <p><b>'.T_('Yesterday').'</b></p>';
             } else {
                 $date = $locale->fixDate('F j, Y', $tz_offset, $r['date']);
                 echo '
@@ -1511,10 +1526,10 @@ function displayWhatsNewAll ($userid)
             $subject = '<a href="messageboard.php?thread='.$r['id2'].'" title="'.$title.'">'.$subject.'</a>';
             if ($r['id'] == $minpost['id']) {
                 $class = 'newthread';
-                $text = sprintf(_('%s started the new thread %s.'), $userName, $subject);
+                $text = sprintf(T_('%s started the new thread %s.'), $userName, $subject);
             } else {
                 $class = 'newpost';
-                $text = sprintf(_('%s replied to %s.'), $userName, $subject);
+                $text = sprintf(T_('%s replied to %s.'), $userName, $subject);
             }
             echo '
                 <p class="'.$class.'">
@@ -1525,64 +1540,64 @@ function displayWhatsNewAll ($userid)
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             echo '
-                <p class="newmember">'.sprintf(_('%s has joined the website.'), $displayname).' <small><i>'.$rdate.'</i></small></p>';
+                <p class="newmember">'.sprintf(T_('%s has joined the website.'), $displayname).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'ADDRESSEDIT') {
             // User updated his/her address
             $displayname = getUserDisplayName($r['id2']);
             $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
-            $address = '<a href="addressbook.php?address='.$r['id'].'">'._('address').'</a>';
+            $address = '<a href="addressbook.php?address='.$r['id'].'">'.T_('address').'</a>';
             echo '
-                <p class="newaddress">'.sprintf(_('%s has updated his/her %s.'), $displayname, $address).' <small><i>'.$rdate.'</i></small></p>';
+                <p class="newaddress">'.sprintf(T_('%s has updated his/her %s.'), $displayname, $address).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'ADDRESSADD') {
             // A user has added an address for a non-member
             $displayname = getUserDisplayName($r['id2']);
             $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
             $for = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
             echo '
-                <p class="newaddress">'.sprintf(_('%s has added address information for %s.'), $displayname, $for).' <small><i>'.$rdate.'</i></small></p>';
+                <p class="newaddress">'.sprintf(T_('%s has added address information for %s.'), $displayname, $for).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'NEWS') {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$r['title'].'</a>'; 
             echo '
-                <p class="newnews">'.sprintf(_('%s has added %s to his/her Family News.'), $displayname, $news).' <small><i>'.$rdate.'</i></small></p>';
+                <p class="newnews">'.sprintf(T_('%s has added %s to his/her Family News.'), $displayname, $news).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'PRAYERS') {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $for = '<a href="prayers.php">'.$r['title'].'</a>';
             echo '
-                <p class="newprayer">'.sprintf(_('%s has added a Prayer Concern for %s.'), $displayname, $for).' <small><i>'.$rdate.'</i></small></p>';
+                <p class="newprayer">'.sprintf(T_('%s has added a Prayer Concern for %s.'), $displayname, $for).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'RECIPES') {
             switch ($r['id2']) {
-                case _('Appetizer'): $url = "recipes.php?category=1&amp;id=".$r['id']; break;
-                case _('Breakfast'): $url = "recipes.php?category=2&amp;id=".$r['id']; break;
-                case _('Dessert'): $url = "recipes.php?category=3&amp;id=".$r['id']; break;
-                case _('Entree (Meat)'): $url = "recipes.php?category=4&amp;id=".$r['id']; break;
-                case _('Entree (Seafood)'): $url = "recipes.php?category=5&amp;id=".$r['id']; break;
-                case _('Entree (Vegetarian)'): $url = "recipes.php?category=6&amp;id=".$r['id']; break;
-                case _('Salad'): $url = "recipes.php?category=7&amp;id=".$r['id']; break;
-                case _('Side Dish'): $url = "recipes.php?category=8&amp;id=".$r['id']; break;
-                case _('Soup'): $url = "recipes.php?category=9&amp;id=".$r['id']; break;
+                case T_('Appetizer'): $url = "recipes.php?category=1&amp;id=".$r['id']; break;
+                case T_('Breakfast'): $url = "recipes.php?category=2&amp;id=".$r['id']; break;
+                case T_('Dessert'): $url = "recipes.php?category=3&amp;id=".$r['id']; break;
+                case T_('Entree (Meat)'): $url = "recipes.php?category=4&amp;id=".$r['id']; break;
+                case T_('Entree (Seafood)'): $url = "recipes.php?category=5&amp;id=".$r['id']; break;
+                case T_('Entree (Vegetarian)'): $url = "recipes.php?category=6&amp;id=".$r['id']; break;
+                case T_('Salad'): $url = "recipes.php?category=7&amp;id=".$r['id']; break;
+                case T_('Side Dish'): $url = "recipes.php?category=8&amp;id=".$r['id']; break;
+                case T_('Soup'): $url = "recipes.php?category=9&amp;id=".$r['id']; break;
                 default: $url = "recipes.php"; break;
             }
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $rec = '<a href="'.$url.'">'.$r['title'].'</a>';
             echo '
-                <p class="newrecipe">'.sprintf(_('%s has added the %s recipe.'), $displayname, $rec).' <small><i>'.$rdate.'</i></small></p>';
+                <p class="newrecipe">'.sprintf(T_('%s has added the %s recipe.'), $displayname, $rec).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'DOCS') {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $doc = '<a href="documents.php">'.$r['title'].'</a>';
             echo '
-                <p class="newdocument">'.sprintf(_('%s has added a new Document (%s).'), $displayname, $doc).' <small><i>'.$rdate.'</i></small></p>';
+                <p class="newdocument">'.sprintf(T_('%s has added a new Document (%s).'), $displayname, $doc).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'GALLERY') {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $cat = '<a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'">'.$r['title'].'</a>';
             echo '
                     <p class="newphoto">
-                        '.sprintf(_('%s has added %d new photos to the %s category.'), $displayname, $r['id2'], $cat).' <small><i>'.$rdate.'</i></small><br/>';
+                        '.sprintf(T_('%s has added %d new photos to the %s category.'), $displayname, $r['id2'], $cat).' <small><i>'.$rdate.'</i></small><br/>';
             $limit = 4;
             if ($r['id2'] < $limit) {
                 $limit = $r['id2'];
@@ -1609,13 +1624,13 @@ function displayWhatsNewAll ($userid)
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$r['title'].'</a>';
             echo '
-                    <p class="newcom">'.sprintf(_('%s commented on Family News %s.'), $displayname, $news).' <small><i>'.$rdate.'</i></small></p>';
+                    <p class="newcom">'.sprintf(T_('%s commented on Family News %s.'), $displayname, $news).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'GALCOM') {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             echo '
                     <p class="newcom">
-                        '.sprintf(_('%s commented on the following photo:'), $displayname).' <small><i>'.$rdate.'</i></small><br/>
+                        '.sprintf(T_('%s commented on the following photo:'), $displayname).' <small><i>'.$rdate.'</i></small><br/>
                         <a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'">
                             <img src="gallery/photos/member'.$r['id2'].'/tb_'.$r['id3'].'"/>
                         </a>
@@ -1629,13 +1644,13 @@ function displayWhatsNewAll ($userid)
                 .'&amp;month='.date('m', strtotime($date_date2))
                 .'&amp;day='.date('d', strtotime($date_date2)).'">'.$r['title'].'</a>';
             echo '
-                    <p class="newcal">'.sprintf(_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $for).' <small><i>'.$rdate.'</i></small></p>';
+                    <p class="newcal">'.sprintf(T_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $for).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'POLL') {
             $poll = '<a href="home.php?poll_id='.$r['id'].'">'.$r['title'].'</a>';
             echo '
-                <p class="newpoll">'.sprintf(_('A new Poll (%s) has been added.'), $poll).' <small><i>'.$rdate.'</i></small></p>';
+                <p class="newpoll">'.sprintf(T_('A new Poll (%s) has been added.'), $poll).' <small><i>'.$rdate.'</i></small></p>';
         }
-        $lastday = $day;
+        $lastday = $updated;
     }
 }
 
@@ -1775,43 +1790,43 @@ function getLangName ($code)
 {
     switch($code) {
         case 'cs_CZ':
-            return _('Czech (Czech Republic)');
+            return T_('Czech (Czech Republic)');
             break;
         case 'da_DK':
-            return _('Danish (Denmark)');
+            return T_('Danish (Denmark)');
             break;
         case 'de_DE':
-            return _('German (Germany)');
+            return T_('German (Germany)');
             break;
         case 'en_US':
-            return _('English (United States)');
+            return T_('English (United States)');
             break;
         case 'es_ES':
-            return _('Spanish (Spain)');
+            return T_('Spanish (Spain)');
             break;
         case 'et':
-            return _('Estonian');
+            return T_('Estonian');
             break;
         case 'fr_FR':
-            return _('French (France)');
+            return T_('French (France)');
             break;
         case 'lv':
-            return _('Latvian');
+            return T_('Latvian');
             break;
         case 'nl':
-            return _('Dutch');
+            return T_('Dutch');
             break;
         case 'pt_BR':
-            return _('Portuguese (Brazil)');
+            return T_('Portuguese (Brazil)');
             break;
         case 'sk_SK':
-            return _('Slovak');
+            return T_('Slovak');
             break;
         case 'zh_CN':
-            return _('Chinese (China)');
+            return T_('Chinese (China)');
             break;
         case 'x-wrap':
-            return _('X Wrapped');
+            return T_('X Wrapped');
             break;
         default:
             return $code;

@@ -34,7 +34,7 @@ class Poll
             'User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         if ($this->db->count_rows() > 0) {
-            echo "<p class=\"center\">"._('You have already voted.')."</p>\n\t\t";
+            echo "<p class=\"center\">".T_('You have already voted.')."</p>\n\t\t";
         } else {
             $sql = "UPDATE `fcms_poll_options` 
                     SET `votes` = `votes`+1 
@@ -94,8 +94,8 @@ class Poll
         }
         echo '
             </ul>
-            <p class="poll">'._('Total Votes').': '.$total.'</p>
-            <p><b>'._('Who Voted for What?').'</b></p>';
+            <p class="poll">'.T_('Total Votes').': '.$total.'</p>
+            <p><b>'.T_('Who Voted for What?').'</b></p>';
         $sql = "SELECT v.`user`, u.`avatar`, o.`option`
                 FROM `fcms_poll_votes` AS v, `fcms_poll_options` AS o, `fcms_users` AS u
                 WHERE v.`poll_id` = $pollid 
@@ -133,14 +133,14 @@ class Poll
             }
             echo '
             </ul>
-            <p><a href="?action=pastpolls">'._('Past Polls').'</a></p>';
+            <p><a href="?action=pastpolls">'.T_('Past Polls').'</a></p>';
         } else {
             if ($total > 0 ) {
                 echo '
-            <p class="info-alert">'._('No user data could be found.').'</p>';
+            <p class="info-alert">'.T_('No user data could be found.').'</p>';
             } else {
                 echo '
-            <p class="info-alert">'._('No one has voted on this poll yet.').'</p>';
+            <p class="info-alert">'.T_('No one has voted on this poll yet.').'</p>';
             }
         }
     }
@@ -195,7 +195,7 @@ class Poll
             // User hasn't voted yet
             } else {
                 echo '
-            <h2 class="pollmenu">'._('Polls').'</h2>
+            <h2 class="pollmenu">'.T_('Polls').'</h2>
             <form method="post" action="home.php">';
                 $i = 0;
                 $id = '';
@@ -212,11 +212,11 @@ class Poll
                 echo '
                 <p>
                     <input type="hidden" name="poll_id" value="'.$id.'"/>
-                    <input type="submit" value="'._('Vote').'" name="vote"/> &nbsp;
+                    <input type="submit" value="'.T_('Vote').'" name="vote"/> &nbsp;
                 </p>
                 <p>
-                    <a href="?action=results&amp;poll_id='.$id.'">'._('View Results').'</a><br/>
-                    <a href="?action=pastpolls">'._('Past Polls').'</a>
+                    <a href="?action=results&amp;poll_id='.$id.'">'.T_('View Results').'</a><br/>
+                    <a href="?action=pastpolls">'.T_('Past Polls').'</a>
                 </p>
             </form>';
             }
@@ -228,7 +228,7 @@ class Poll
         $locale = new Locale();
         $from = (($page * 15) - 15);
         echo '
-            <h2>'._('Past Polls').'</h3>';
+            <h2>'.T_('Past Polls').'</h3>';
         $sql = "SELECT * FROM fcms_polls ORDER BY started DESC LIMIT $from, 15";
         $this->db->query($sql) or displaySQLError(
             'Polls Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -238,14 +238,14 @@ class Poll
             <table class="sortable">
                 <thead>
                     <tr>
-                        <th>'._('Question').'</th>
-                        <th>'._('Date').'</th>
-                        <th>'._('Total Votes').'</th>
+                        <th>'.T_('Question').'</th>
+                        <th>'.T_('Date').'</th>
+                        <th>'.T_('Total Votes').'</th>
                     </tr>
                 </thead>
                 <tbody>';
             while ($row = $this->db->get_row()) {
-                $date = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $row['started']);
+                $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $row['started']);
                 echo '
                     <tr>
                         <td><a href="?poll_id='.$row['id'].'">'.$row['question'].'</a></td>
@@ -267,7 +267,7 @@ class Poll
             $total_pages = ceil($count / 15); 
             displayPages("home.php?action=pastpolls", $page, $total_pages);
         } else {
-            echo "<i>"._('No previous polls')."</i>";
+            echo "<i>".T_('No previous polls')."</i>";
         }
     }
 

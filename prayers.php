@@ -18,7 +18,7 @@ include_once('inc/prayers_class.php');
 $prayers = new Prayers($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Prayer Concerns');
+$TMPL['pagetitle'] = T_('Prayer Concerns');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = '
@@ -27,7 +27,7 @@ $TMPL['javascript'] = '
 Event.observe(window, \'load\', function() {
     if (!$$(\'.delform input[type="submit"]\')) { return; }
     $$(\'.delform input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmed\');
@@ -56,7 +56,7 @@ if (isset($_POST['submitadd'])) {
         'New Prayer Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     echo '
-            <p class="ok-alert" id="add">'._('Prayer Concern Added Successfully').'</p>
+            <p class="ok-alert" id="add">'.T_('Prayer Concern Added Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'add\').toggle()",3000); }
             </script>';
@@ -73,17 +73,17 @@ if (isset($_POST['submitadd'])) {
         while ($r = mysql_fetch_array($result)) {
             $name = getUserDisplayName($current_user_id);
             $to = getUserDisplayName($r['user']);
-            $subject = sprintf(_('%s added a new Prayer Concern for %s'), $name, $for);
+            $subject = sprintf(T_('%s added a new Prayer Concern for %s'), $name, $for);
             $email = $r['email'];
             $url = getDomainAndDir();
-            $msg = _('Dear').' '.$to.',
+            $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
 '.$url.'prayers.php
 
 ----
-'._('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
+'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
 
 '.$url.'settings.php
 
@@ -100,7 +100,7 @@ if (isset($_POST['submitedit'])) {
     $sql = "UPDATE `fcms_prayers` SET `for` = '$for', `desc` = '$desc' WHERE `id` = " . escape_string($_POST['id']);
     mysql_query($sql) or displaySQLError('Edit Prayer Error', 'prayers.php [' . __LINE__ . ']', $sql, mysql_error());
     echo '
-            <p class="ok-alert" id="edit">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="edit">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'edit\').toggle()",3000); }
             </script>';
@@ -112,12 +112,12 @@ if (isset($_POST['delprayer']) && !isset($_POST['confirmed'])) {
     echo '
             <div class="info-alert clearfix">
                 <form action="prayers.php" method="post">
-                    <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                    <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                    <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                    <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                     <div>
                         <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                        <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                        <a style="float:right;" href="prayers.php">'._('Cancel').'</a>
+                        <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                        <a style="float:right;" href="prayers.php">'.T_('Cancel').'</a>
                     </div>
                 </form>
             </div>';
@@ -127,7 +127,7 @@ if (isset($_POST['delprayer']) && !isset($_POST['confirmed'])) {
     $sql = "DELETE FROM `fcms_prayers` WHERE `id` = " . escape_string($_POST['id']);
     mysql_query($sql) or displaySQLError('Delete Prayer Error', 'prayers.php [' . __LINE__ . ']', $sql, mysql_error());
     echo '
-            <p class="ok-alert" id="del">'._('Prayer Concern Deleted Successfully').'</p>
+            <p class="ok-alert" id="del">'.T_('Prayer Concern Deleted Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'del\').toggle()",2000); }
             </script>';
@@ -150,7 +150,7 @@ if ($show) {
     if (checkAccess($current_user_id) <= 5) {
         echo '
             <div id="actions_menu" class="clearfix">
-                <ul><li><a class="action" href="?addconcern=yes">'._('Add a Prayer Concern').'</a></li></ul>
+                <ul><li><a class="action" href="?addconcern=yes">'.T_('Add a Prayer Concern').'</a></li></ul>
             </div>';
     }
     $page = 1;

@@ -15,7 +15,7 @@ class Calendar
         $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
         $this->db->query($sql) or displaySQLError(
             'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+        );
         $row = $this->db->get_row();
         $this->tz_offset = $row['timezone'];
     }
@@ -50,29 +50,42 @@ class Calendar
      * 
      * Displays a calendar based on the month, day and year.
      * Can display big (with event details) or small, month and day views.
+     *
+     * Dates are assumed already fixed for timezone and dst.
      * 
      * @param $month, $year, $day - calendar info
      * @param $type - small, big
      * @param $view - month, day
      */
-    function displayCalendar ($month, $year, $day = -1, $type = 'small', $view = 'month')
+    function displayCalendar ($month, $year, $day, $type = 'small', $view = 'month')
     {
+        // Only used to figure out today link
         $locale = new Locale();
+        $t_year = $locale->fixDate('Y', $this->tz_offset, gmdate('Y-m-d H:i:s'));
+        $t_month = $locale->fixDate('m', $this->tz_offset, gmdate('Y-m-d H:i:s'));
+        $t_day = $locale->fixDate('d', $this->tz_offset, gmdate('Y-m-d H:i:s'));
+
+        if ($type == 'big') {
+            $weekDays = $locale->getDayNames();
+        } else {
+            $weekDays = $locale->getDayInitials();
+        }
+
         $viewToolbar = '
                     <th class="view_toolbar" colspan="2">
-                        <a class="day" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;view=day">'._('Day').'</a> | 
-                        <a class="month" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'._('Month').'</a>
+                        <a class="day" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;view=day">'.T_('Day').'</a> | 
+                        <a class="month" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Month').'</a>
                     </th>';
         $actionsToolbar = '
                 <tr class="actions_toolbar">
                     <td colspan="7">
-                        '._('Actions').': 
+                        '.T_('Actions').': 
                         <a class="print" href="#" 
                             onclick="window.open(\'inc/calendar_print.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'\',
                             \'name\',\'width=700,height=400,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no\'); 
-                            return false;">'._('Print').'</a> | 
-                        <a href="?import=true">'._('Import').'</a> | 
-                        <a href="?export=true">'._('Export').'</a>
+                            return false;">'.T_('Print').'</a> | 
+                        <a href="?import=true">'.T_('Import').'</a> | 
+                        <a href="?export=true">'.T_('Export').'</a>
                     </td>
                 </tr>';
         echo '
@@ -83,12 +96,6 @@ class Calendar
             $first = mktime(0,0,0,$month,1,$year);
             $offset = date('w', $first);
             $daysInMonth = date('t', $first);
-            $monthName = date('F', $first);
-            if ($type == 'big') {
-                $weekDays = $locale->getDayNames();
-            } else {
-                $weekDays = $locale->getDayInitials();
-            }
             
             // All the events for this month
             $eventDays = $this->getEventDays($month, $year);
@@ -123,29 +130,29 @@ class Calendar
             if ($m == 12) {
                 echo "<a class=\"prev\" href=\"?year=";
                 echo $year-1;
-                echo "&amp;month=$m&amp;day=$pDay\">"._('Previous')."</a> ";
+                echo "&amp;month=$m&amp;day=$pDay\">".T_('Previous')."</a> ";
             } else {
-                echo "<a class=\"prev\" href=\"?year=$year&amp;month=$m&amp;day=$pDay\">"._('Previous')."</a> ";
+                echo "<a class=\"prev\" href=\"?year=$year&amp;month=$m&amp;day=$pDay\">".T_('Previous')."</a> ";
             }
             
             // Today
             if ($type == 'big') {
-                echo '<a class="today" href="?year='.date('Y')."&amp;month=".date('m')."&amp;day=".date('d').'">'._('Today').'</a> ';
+                echo '<a class="today" href="?year='.$t_year."&amp;month=".$t_month."&amp;day=".$t_day.'">'.T_('Today').'</a> ';
             }
             
             // Next
             list($y, $m) = explode('-', date('Y-m', $nextTS));
-            echo "<a class=\"next\" href=\"?year=$y&amp;month=$m&amp;day=$nDay\">"._('Next')."</a>";
+            echo "<a class=\"next\" href=\"?year=$y&amp;month=$m&amp;day=$nDay\">".T_('Next')."</a>";
                 
             // Display Month Name
             if ($type == 'big') {
                 echo '</th>
-                    <th colspan="3"><h3>'.$locale->fixDate('F', '', date('F',$first)).' '.$year.'</h3></th>';
+                    <th colspan="3"><h3>'.date('F Y', $first).'</h3></th>';
                 
                 // Display the view toolbar
                 echo $viewToolbar;
             } else {
-                echo '<h3>'.$locale->fixDate('F', '', date('F',$first)).' '.$year.'</h3></th>';
+                echo '<h3>'.date('F Y', $first).'</h3></th>';
             }
             
             // Close the header row
@@ -183,7 +190,7 @@ class Calendar
                     if ($type == 'big') {
                         // add the add cal date link
                         if (checkAccess($this->current_user_id) <= 5) {
-                            echo '<a class="add" href="?add='.$year.'-'.$month.'-'.$d.'">'._('Add').'</a>';
+                            echo '<a class="add" href="?add='.$year.'-'.$month.'-'.$d.'">'.T_('Add').'</a>';
                         }
                         // display the day #
                         echo '<a href="?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'&amp;view=day">'.$d.'</a>';
@@ -248,21 +255,21 @@ class Calendar
             if ($m == 12) {
                 echo "<a class=\"prev\" href=\"?year=";
                 echo $year-1;
-                echo "&amp;month=$m&amp;day=$d&amp;view=day\">"._('Previous')."</a>";
+                echo "&amp;month=$m&amp;day=$d&amp;view=day\">".T_('Previous')."</a>";
             } else {
-                echo "<a class=\"prev\" href=\"?year=$year&amp;month=$m&amp;day=$d&amp;view=day\">"._('Previous')."</a>";
+                echo "<a class=\"prev\" href=\"?year=$year&amp;month=$m&amp;day=$d&amp;view=day\">".T_('Previous')."</a>";
             }
             
             // Today
-            echo '<a class="today" href="?year='.date('Y').'&amp;month='.date('m').'&amp;day='.date('d').'">'._('Today').'</a> ';
+            echo '<a class="today" href="?year='.$t_year.'&amp;month='.$t_month.'&amp;day='.$t_day.'">'.T_('Today').'</a> ';
             
             // Next
             list($y, $m, $d) = explode('-', date('Y-m-d', $nextTS));
-            echo "<a class=\"next\" href=\"?year=$y&amp;month=$m&amp;day=$d&amp;view=day\">"._('Next')."</a></th>";
+            echo "<a class=\"next\" href=\"?year=$y&amp;month=$m&amp;day=$d&amp;view=day\">".T_('Next')."</a></th>";
                 
             // Display Month Name
             echo '
-                    <th colspan="3"><h3>'.$locale->fixDate(_('l, F j, Y'), '', "$year-$month-$day").'</h3></th>';
+                    <th colspan="3"><h3>'.date(T_('l, F j, Y'), strtotime("$year-$month-$day")).'</h3></th>';
             
             // Display the view toolbar
             echo $viewToolbar;
@@ -286,9 +293,8 @@ class Calendar
 
     function displayMonthEvents ($month, $year)
     {
-        $locale = new Locale();
         echo '
-                <h3>'.$locale->fixDate('F', '', date("F", mktime(0,0,0,$month,1,2006))).':</h3>';
+                <h3>'.date('F', mktime(0,0,0,$month,1,$year)).':</h3>';
         $sql = "SELECT *, "
              . "SUBSTRING(`date`, 9, 2) AS o FROM fcms_calendar "
              . "WHERE (`date` LIKE '$year-$month-%%' AND `type` = 'Other') "
@@ -330,7 +336,7 @@ class Calendar
             }
         } else {
             echo '
-                <div class="events"><i>'._('No events for this month.').'</i></div>';
+                <div class="events"><i>'.T_('No events for this month.').'</i></div>';
         }
     }
 
@@ -358,7 +364,7 @@ class Calendar
                 if ($first & $show) {
                     echo '
                 <div id="todaysevents">
-                    <h2>'._('Today\'s Events').':</h2>'.
+                    <h2>'.T_('Today\'s Events').':</h2>'.
                     $first = false;
                 }
                 if ($show) {
@@ -539,10 +545,10 @@ class Calendar
                 $holiday = ($row['type'] == 'Holiday') ? 'selected="selected"' : '';
                 $other = ($row['type'] == 'Other') ? 'selected="selected"' : '';
                 $type_options = '<select id="type" name="type">
-                                <option value="Anniversary" '.$anniversary.'>'._('Anniversary (repeats)').'</option>
-                                <option value="Birthday" '.$birthday.'>'._('Birthday (repeats)').'</option>
-                                <option value="Holiday" '.$holiday.'>'._('Holiday (repeats)').'</option>
-                                <option value="Other" '.$other.'>'._('Other').'</option>
+                                <option value="Anniversary" '.$anniversary.'>'.T_('Anniversary (repeats)').'</option>
+                                <option value="Birthday" '.$birthday.'>'.T_('Birthday (repeats)').'</option>
+                                <option value="Holiday" '.$holiday.'>'.T_('Holiday (repeats)').'</option>
+                                <option value="Other" '.$other.'>'.T_('Other').'</option>
                             </select>';
                 $private = '<input type="checkbox" name="private" id="private"';
                 if ($row['private'] == 1) {
@@ -552,18 +558,18 @@ class Calendar
                 $edit_delete = '<p><input type="hidden" name="id" value="'.$row['id'].'"/>
                             <input class="sub1" type="submit" ';
                 if ($type == 'edit') {
-                    $edit_delete .= 'name="edit" value="'._('Edit').'"/> ';
+                    $edit_delete .= 'name="edit" value="'.T_('Edit').'"/> ';
                 } else {
-                    $edit_delete .= 'name="add" value="'._('Add').'"/> ';
+                    $edit_delete .= 'name="add" value="'.T_('Add').'"/> ';
                 }
                 if ($type == 'edit') {
-                    $edit_delete .= '<input class="sub2" type="submit" id="delcal" name="delete" value="'._('Delete').'"/>';
+                    $edit_delete .= '<input class="sub2" type="submit" id="delcal" name="delete" value="'.T_('Delete').'"/>';
                 }
-                $cancel = _('or').' &nbsp;<a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'._('Cancel').'</a></p>';
+                $cancel = T_('or').' &nbsp;<a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Cancel').'</a></p>';
 
                 // Edit
                 if ($type == 'edit') {
-                    $legend = _('Edit Calendar Entry');
+                    $legend = T_('Edit Calendar Entry');
                     $title = '<input type="text" id="title" name="title" size="40" value="'.htmlentities($row['title'], ENT_COMPAT, 'UTF-8').'">
                             <script type="text/javascript">
                                 var ftitle = new LiveValidation(\'title\', { onlyOnSubmit: true});
@@ -572,21 +578,21 @@ class Calendar
                     $desc = '<input type="text" id="desc" name="desc" size="50" value="'.htmlentities($row['desc'], ENT_COMPAT, 'UTF-8').'">';
                 // Show
                 } elseif ($type == 'show') {
-                    $legend = _('Calendar Entry');
+                    $legend = T_('Calendar Entry');
                     $formStart = $formEnd = '';
                     $title = $row['title'];
                     $desc = $row['desc'];
                     $date = "$year / $month / $day";
                     $type_options = $row['type'];
-                    $private = _('No');
+                    $private = T_('No');
                     if ($row['private'] == 1) {
-                        $private = _('Yes');
+                        $private = T_('Yes');
                     }
                     $edit_delete = '';
-                    $cancel = '<p><a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'._('Cancel').'</a></p>';
+                    $cancel = '<p><a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Cancel').'</a></p>';
                 // Add
                 } else {
-                    $legend = _('Add Calendar Entry');
+                    $legend = T_('Add Calendar Entry');
                     $title = '<input type="text" id="title" name="title" size="40">
                             <script type="text/javascript">
                                 var ftitle = new LiveValidation(\'title\', { onlyOnSubmit: true});
@@ -603,31 +609,31 @@ class Calendar
                 <legend><span>'.$legend.'</span></legend>
                 '.$formStart.'
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="title"><b>'._('Title').'</b></label></div>
+                        <div class="field-label"><label for="title"><b>'.T_('Title').'</b></label></div>
                         <div class="field-widget">
                             '.$title.'
                         </div>
                     </div>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="desc"><b>'._('Description').'</b></label></div>
+                        <div class="field-label"><label for="desc"><b>'.T_('Description').'</b></label></div>
                         <div class="field-widget">
                             '.$desc.'
                         </div>
                     </div>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="sday"><b>'._('Date').'</b></label></div>
+                        <div class="field-label"><label for="sday"><b>'.T_('Date').'</b></label></div>
                         <div class="field-widget">
                             '.$date.'
                         </div>
                     </div>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="type"><b>'._('Type').'</b></label></div>
+                        <div class="field-label"><label for="type"><b>'.T_('Type').'</b></label></div>
                         <div class="field-widget">
                             '.$type_options.'
                         </div>
                     </div>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="private"><b>'._('Private?').'</b></label></div>
+                        <div class="field-label"><label for="private"><b>'.T_('Private?').'</b></label></div>
                         <div class="field-widget">
                             '.$private.'
                         </div>
@@ -638,11 +644,11 @@ class Calendar
             </fieldset>';
                 return false;
             } else {
-                echo '<p class="error-alert">'._('You do not have permission to edit this Calendar Entry.').'</p>';
+                echo '<p class="error-alert">'.T_('You do not have permission to edit this Calendar Entry.').'</p>';
                 return true;
             }
         } else {
-            echo '<p class="error-alert">'._('You can not edit this event because it is private.').'</p>';
+            echo '<p class="error-alert">'.T_('You can not edit this event because it is private.').'</p>';
             return true;
         }
     }
@@ -795,12 +801,12 @@ class Calendar
         echo '
             <form enctype="multipart/form-data" method="post" action="calendar.php">
                 <fieldset class="add-edit big">
-                    <legend>'._('Import').'</legend>
+                    <legend>'.T_('Import').'</legend>
                     <p><input class="frm_file" type="file" id="file" name="file"/></p>
                     <p>
-                        <input type="submit" name="import" value="'._('Import').'"/> 
-                        '._('or').' &nbsp;
-                        <a href="calendar.php">'._('Cancel').'</a>
+                        <input type="submit" name="import" value="'.T_('Import').'"/> 
+                        '.T_('or').' &nbsp;
+                        <a href="calendar.php">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>';
@@ -814,8 +820,8 @@ class Calendar
     function displayWhatsNewCalendar ()
     {
         $locale = new Locale();
-        $today = date('Y-m-d');
-        $tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
+        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
         $sql = "SELECT * 
                 FROM `fcms_calendar` 
                 WHERE `date_added` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
@@ -826,25 +832,20 @@ class Calendar
         );
         if ($this->db->count_rows() > 0) {
             echo '
-            <h3>'._('Calendar').'</h3>
+            <h3>'.T_('Calendar').'</h3>
             <ul>';
             while ($r = $this->db->get_row()) {
                 $title = $r['title'];
                 $displayname = getUserDisplayName($r['created_by']);
-                $date_added = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $r['date_added']);
-                if (
-                    strtotime($r['date_added']) >= strtotime($today) && 
-                    strtotime($r['date_added']) > $tomorrow
-                ) {
-                    $full_date = _('Today');
+                $date = $locale->fixDate('YmdHis', $this->tz_offset, $r['date_added']);
+                if ($date >= $today_start && $date <= $today_end) {
+                    $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $date_added;
+                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date_added']);
                     $d = '';
                 }
-                $year = date('Y', strtotime($r['date']));
-                $month = date('m', strtotime($r['date']));
-                $day = date('d', strtotime($r['date']));
+                list($year, $month, $day) = explode('-', date('Y-m-d', strtotime($r['date'])));
                 echo '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>

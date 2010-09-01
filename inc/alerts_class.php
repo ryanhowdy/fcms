@@ -5,10 +5,12 @@ class Alerts
 {
 
     var $db;
+    var $current_user_id;
 
-    function Alerts ($database)
+    function Alerts ($id, $database)
     {
         $this->db = $database;
+        $this->current_user_id = $id;
     }
     
     function displayNewAdminHome ($userid)
@@ -26,24 +28,24 @@ class Alerts
                 $sitename = getSiteName();
                 echo '
             <div id="alert_new_admin_home" class="info-alert">
-                <h2>'.sprintf(_('Welcome to %s'), $sitename).'</h2>
-                <p>'._('It looks like you have an Admin Access Level, which allow you to:').'</p>
+                <h2>'.sprintf(T_('Welcome to %s'), $sitename).'</h2>
+                <p>'.T_('It looks like you have an Admin Access Level, which allow you to:').'</p>
                 <ul>
-                    <li>'._('Edit or delete just about anything').'</li>
-                    <li>'._('Add/edit/delete members').'</li>
-                    <li>'._('Create/edit polls').'</li>
-                    <li>'._('Change site settings').'</li>
-                    <li>'._('Upgrade the site').'</li>
-                    <li><a href="help.php#adm-access">'._('Find out more.').'</a></li>
+                    <li>'.T_('Edit or delete just about anything').'</li>
+                    <li>'.T_('Add/edit/delete members').'</li>
+                    <li>'.T_('Create/edit polls').'</li>
+                    <li>'.T_('Change site settings').'</li>
+                    <li>'.T_('Upgrade the site').'</li>
+                    <li><a href="help.php#adm-access">'.T_('Find out more.').'</a></li>
                 </ul>
-                <p><b>'._('Getting Started...').'</b></p>
+                <p><b>'.T_('Getting Started...').'</b></p>
                 <ul>
-                    <li><a href="settings.php">'._('Personalize the site').'</a></li>
-                    <li><a href="addressbook.php">'._('Share your Address/Contact information').'</a></li>
-                    <li><a href="gallery/index.php">'._('Share Photos').'</a></li>
-                    <li><a href="messageboard.php">'._('Start a discussion').'</a></li>
+                    <li><a href="settings.php">'.T_('Personalize the site').'</a></li>
+                    <li><a href="addressbook.php">'.T_('Share your Address/Contact information').'</a></li>
+                    <li><a href="gallery/index.php">'.T_('Share Photos').'</a></li>
+                    <li><a href="messageboard.php">'.T_('Start a discussion').'</a></li>
                 </ul>
-                <div class="close-alert"><a id="new_admin" href="?alert=alert_new_admin_home">'._('Delete This Alert').'</a></div>
+                <div class="close-alert"><a id="new_admin" href="?alert=alert_new_admin_home">'.T_('Delete This Alert').'</a></div>
             </div>';
             }
         }
@@ -66,16 +68,16 @@ class Alerts
                 $access = getAccessLevel($userid);
                 echo '
             <div id="alert_new_user_home" class="info-alert">
-                <h2>'.sprintf(_('Hey, %s. Thanks for joining.'), $user).'</h2>
-                <p>'.sprintf(_('It looks like you have an Access Level of %s.'), $access).'  <a href="help.php#adm-access">'._('Find out more.').'</a></p>
-                <p><b>'._('Getting Started...').'</b></p>
+                <h2>'.sprintf(T_('Hey, %s. Thanks for joining.'), $user).'</h2>
+                <p>'.sprintf(T_('It looks like you have an Access Level of %s.'), $access).'  <a href="help.php#adm-access">'.T_('Find out more.').'</a></p>
+                <p><b>'.T_('Getting Started...').'</b></p>
                 <ul>
-                    <li><a href="settings.php">'._('Personalize the site').'</a></li>
-                    <li><a href="addressbook.php">'._('Share your Address/Contact information').'</a></li>
-                    <li><a href="gallery/index.php">'._('Share Photos').'</a></li>
-                    <li><a href="messageboard.php">'._('Start a discussion').'</a></li>
+                    <li><a href="settings.php">'.T_('Personalize the site').'</a></li>
+                    <li><a href="addressbook.php">'.T_('Share your Address/Contact information').'</a></li>
+                    <li><a href="gallery/index.php">'.T_('Share Photos').'</a></li>
+                    <li><a href="messageboard.php">'.T_('Start a discussion').'</a></li>
                 </ul>
-                <div class="close-alert"><a id="new_user" href="?alert=alert_new_user_home">'._('Delete This Alert.').'</a></div>
+                <div class="close-alert"><a id="new_user" href="?alert=alert_new_user_home">'.T_('Delete This Alert.').'</a></div>
             </div>';
             }
         }
@@ -94,10 +96,10 @@ class Alerts
         if ($this->db->count_rows() < 1) { 
             echo '
             <div id="alert_poll" class="info-alert">
-                <h2>'._('Welcome to the Poll Section').'</h2>
-                <p>'._('Here you can add new Poll questions or edit existing polls.').'</p>
-                <p>'._('If you do not want to use Polls on your site, simply delete all existing polls and they will no longer show up on the frontpage.').'</p>
-                <div class="close-alert"><a id="new_poll" href="?alert=alert_poll">'._('Delete This Alert').'</a></div>
+                <h2>'.T_('Welcome to the Poll Section').'</h2>
+                <p>'.T_('Here you can add new Poll questions or edit existing polls.').'</p>
+                <p>'.T_('If you do not want to use Polls on your site, simply delete all existing polls and they will no longer show up on the frontpage.').'</p>
+                <div class="close-alert"><a id="new_poll" href="?alert=alert_poll">'.T_('Delete This Alert').'</a></div>
             </div>';
         }
     }
@@ -115,10 +117,10 @@ class Alerts
         if ($this->db->count_rows() < 1) { 
             echo '
             <div id="alert_address" class="info-alert">
-                <h3>'._('It looks like you haven\'t added your address information yet.').'</h3>
-                <p>'._('The other website members would appreciate it if you would add your address information.  This will help them stay in touch.').'</p>
-                <p><a href="?address='.$this->current_user_id.'">'._('Add Address').'</a></p>
-                <div class="close-alert"><a id="new_address" href="?alert=alert_address">'._('Delete This Alert').'</a></div>
+                <h3>'.T_('It looks like you haven\'t added your address information yet.').'</h3>
+                <p>'.T_('The other website members would appreciate it if you would add your address information.  This will help them stay in touch.').'</p>
+                <p><a href="?address='.$this->current_user_id.'">'.T_('Add Address').'</a></p>
+                <div class="close-alert"><a id="new_address" href="?alert=alert_address">'.T_('Delete This Alert').'</a></div>
             </div>';
         }
     }

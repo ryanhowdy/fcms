@@ -16,7 +16,7 @@ $current_user_id = (int)escape_string($_SESSION['login_id']);
 
 header("Cache-control: private");
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Chat Room');
+$TMPL['pagetitle'] = T_('Chat Room');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = '
@@ -194,7 +194,7 @@ echo '
                 </style>
                 <div id="noscript">
                 <p>
-                    '._('JavaScript must be enabled in order for you to use the Chat Room. However, it seems JavaScript is either 
+                    '.T_('JavaScript must be enabled in order for you to use the Chat Room. However, it seems JavaScript is either 
                     disabled or not supported by your browser. Please enable JavaScript by changing your browser options.').'
                 </p>
                 </div>
@@ -205,11 +205,11 @@ echo '
                 <div style="clear:both"></div>
                 <form id="frmmain" name="frmmain" onsubmit="return blockSubmit();">';
 if (checkAccess($current_user_id) < 3) {
-    echo '<input type="button" name="btn_reset_chat" id="btn_reset_chat" value="'._('Reset Chat').'" onclick="javascript:resetChat();" /><br />';
+    echo '<input type="button" name="btn_reset_chat" id="btn_reset_chat" value="'.T_('Reset Chat').'" onclick="javascript:resetChat();" /><br />';
 }
 echo '
                     <input type="text" id="txt_message" name="txt_message" style="width: 447px;" />
-                    <input type="button" name="btn_send_chat" id="btn_send_chat" value="'._('Send').'" onclick="javascript:sendChatText();" />
+                    <input type="button" name="btn_send_chat" id="btn_send_chat" value="'.T_('Send').'" onclick="javascript:sendChatText();" />
                 </form>
             </div>
 

@@ -18,7 +18,7 @@ include_once('../inc/admin_class.php');
 $admin = new Admin($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Administration: Configuration');
+$TMPL['pagetitle'] = T_('Administration: Configuration');
 $TMPL['path'] = "../";
 $TMPL['admin_path'] = "";
 $TMPL['javascript'] = '
@@ -33,18 +33,18 @@ echo '
 if (checkAccess($current_user_id) > 1) {
     echo '
             <p class="error-alert">
-                <b>'._('You do not have access to view this page.').'</b><br/>
-                '._('This page requires an access level 1 (Admin).').' 
-                <a href="../contact.php">'._('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
+                <b>'.T_('You do not have access to view this page.').'</b><br/>
+                '.T_('This page requires an access level 1 (Admin).').' 
+                <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
             </p>';
 } else {
     echo '
             <div id="leftcolumn">
                 <ul class="menu">
-                    <li><a href="?view=info">'._('Website Information').'</a></li>
-                    <li><a href="?view=defaults">'._('Defaults').'</a></li>
-                    <li><a href="?view=sections">'._('Optional Sections').'</a></li>
-                    <li><a href="?view=gallery">'._('Photo Gallery').'</a></li>
+                    <li><a href="?view=info">'.T_('Website Information').'</a></li>
+                    <li><a href="?view=defaults">'.T_('Defaults').'</a></li>
+                    <li><a href="?view=sections">'.T_('Optional Sections').'</a></li>
+                    <li><a href="?view=gallery">'.T_('Photo Gallery').'</a></li>
                 </ul>
             </div>
 
@@ -88,7 +88,7 @@ if (checkAccess($current_user_id) > 1) {
                 );
         }
         echo '
-            <p class="ok-alert" id="update">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';
@@ -172,7 +172,7 @@ if (checkAccess($current_user_id) > 1) {
             );
         }
         echo '
-            <p class="ok-alert" id="update">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';
@@ -251,13 +251,13 @@ if (checkAccess($current_user_id) > 1) {
                 }
             }
             echo '
-            <p class="ok-alert" id="update">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';
         } else {
             echo '
-            <p class="error-alert" id="update">'._('You cannot have two sections with the same order.').'</p>
+            <p class="error-alert" id="update">'.T_('You cannot have two sections with the same order.').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';
@@ -271,7 +271,7 @@ if (checkAccess($current_user_id) > 1) {
         $sql = "UPDATE `fcms_config` SET `full_size_photos` = " . escape_string($_POST['full_size_photos']);
         mysql_query($sql) or displaySQLError('Full Size Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
         echo '
-            <p class="ok-alert" id="update">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';

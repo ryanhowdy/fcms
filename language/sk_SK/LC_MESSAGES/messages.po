@@ -1,0 +1,4513 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-01-18 14:01-0600\n"
+"PO-Revision-Date: 2010-04-19 01:39+0000\n"
+"Last-Translator: Michal Chvala <Unknown>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
+"X-Launchpad-Export-Date: 2010-08-24 20:24+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: admin/awards.php:14
+msgid "Administration: Awards"
+msgstr "Administrácia: Ocenenie"
+
+#: admin/awards.php:27 admin/board.php:33 admin/config.php:35
+#: admin/members.php:362 admin/polls.php:73 admin/upgrade.php:27
+msgid "You do not have access to view this page."
+msgstr "Nemáte prístup k prehliadaniu tejto stránky."
+
+#: admin/awards.php:28 admin/board.php:34 admin/polls.php:74
+msgid "This page requires an access level 2 (Helper) or better."
+msgstr "Táto stránka vyžaduje prístup na úrovni 2 (Pomocník ) alebo vyššej."
+
+#: admin/awards.php:29 admin/board.php:35 admin/config.php:37
+#: admin/members.php:364 admin/polls.php:75 admin/upgrade.php:29
+msgid ""
+"Please contact your website's administrator if you feel you should have "
+"access to this page."
+msgstr ""
+"Obráťte sa na administrátora webovej stránky, ak si myslíte, že by ste mali "
+"mať k nej prístup."
+
+#: admin/awards.php:40
+msgid "The Latest Awards have been calculated successfully."
+msgstr "Posledné ocenenia byli úspešne spočítané."
+
+#: admin/awards.php:49
+msgid "Get Latest Awards"
+msgstr "Získať posledné ocenenie"
+
+#: admin/board.php:20
+msgid "Administration: Message Board"
+msgstr "Administrácia: Odkazovač"
+
+#: admin/config.php:20
+msgid "Administration: Configuration"
+msgstr "Administrácia: Nastavenie"
+
+#: admin/config.php:36 admin/members.php:363 admin/upgrade.php:28
+msgid "This page requires an access level 1 (Admin)."
+msgstr "Táto stránka vyžaduje prístup na úrovni 1 (Administrátor)."
+
+#: admin/config.php:43 inc/admin_class.php:718 install.php:371
+msgid "Website Information"
+msgstr "Info o stránkach"
+
+#: admin/config.php:44 inc/admin_class.php:888
+msgid "Defaults"
+msgstr "Predvolené"
+
+#: admin/config.php:45 install.php:399
+msgid "Optional Sections"
+msgstr "Voliteľné sekcie"
+
+#: admin/config.php:46 gallery/index.php:27 inc/admin_class.php:1048
+#: inc/gallery_class.php:1835 inc/profile_class.php:448 inc/util_inc.php:192
+#: help.php:21 help.php:198 rss.php:271 rss.php:273
+msgid "Photo Gallery"
+msgstr "Fotogaléria"
+
+#: admin/config.php:90 admin/config.php:174 admin/config.php:249
+#: admin/config.php:269 admin/members.php:137 admin/members.php:204
+#: admin/members.php:244 admin/members.php:260 admin/members.php:298
+#: admin/members.php:334 gallery/index.php:123 calendar.php:102
+#: familynews.php:142 prayers.php:102 recipes.php:157 settings.php:186
+msgid "Changes Updated Successfully"
+msgstr "Zmeny úspešne aktualizované"
+
+#: admin/config.php:255
+msgid "You cannot have two sections with the same order."
+msgstr "Nemôžete mať dve oddelenia v rovnakom poradí."
+
+#: admin/members.php:16
+msgid "Administration: Members"
+msgstr "Administrácia: Členovia"
+
+#: admin/members.php:34 admin/members.php:44 admin/members.php:273
+#: admin/members.php:311 admin/polls.php:33 admin/polls.php:143
+#: inc/familynews_comments.php:27 addressbook.php:207 calendar.php:49
+#: calendar.php:136 familynews.php:29 familynews.php:38 familynews.php:164
+#: familynews.php:213 messageboard.php:31 messageboard.php:206 prayers.php:29
+#: prayers.php:114 privatemsg.php:32 privatemsg.php:139 recipes.php:29
+#: recipes.php:169
+msgid "Are you sure you want to DELETE this?"
+msgstr "Ste si istí, že toto chcete zmazať?"
+
+#: admin/members.php:78
+msgid "Invalid Member ID."
+msgstr "Neplatné členské ID."
+
+#: admin/members.php:96 admin/members.php:151
+msgid "Missing Required Field"
+msgstr "Chýbajú povinné polia"
+
+#: admin/members.php:100 admin/members.php:177 settings.php:91
+#, php-format
+msgid ""
+"The email address %s is already in use.  Please choose a different email."
+msgstr "E-mailová adresa %s sa už používa. Vyberte si prosím iný email."
+
+#: admin/members.php:188
+msgid "Password Change"
+msgstr "Zmena hesla"
+
+#: admin/members.php:191
+#, php-format
+msgid "Your password at %s has been changed by the administrator."
+msgstr "Vaše heslo %s zmenil administrátor."
+
+#: admin/members.php:193
+#, php-format
+msgid "Your new password is %s"
+msgstr "Vaše nové heslo je %s"
+
+#: admin/members.php:274 admin/members.php:312 admin/polls.php:144
+#: gallery/index.php:142 gallery/index.php:367 gallery/index.php:418
+#: inc/familynews_comments.php:95 addressbook.php:208 calendar.php:137
+#: familynews.php:165 messageboard.php:207 prayers.php:115 privatemsg.php:140
+#: recipes.php:170
+msgid "This can NOT be undone."
+msgstr "To sa nedá vrátiť späť."
+
+#: admin/members.php:281 admin/members.php:315 admin/polls.php:147
+#: gallery/index.php:146 gallery/index.php:370 gallery/index.php:421
+#: inc/admin_class.php:709 inc/admin_class.php:818 inc/calendar_class.php:583
+#: inc/familynews_comments.php:98 inc/members_class.php:385
+#: inc/members_class.php:400 inc/settings_class.php:89
+#: inc/settings_class.php:99 inc/settings_class.php:182 addressbook.php:211
+#: calendar.php:140 familynews.php:169 familynews.php:217 help.php:208
+#: help.php:209 help.php:210 help.php:211 help.php:212 help.php:213
+#: help.php:217 help.php:218 help.php:219 help.php:220 help.php:221
+#: help.php:222 help.php:227 help.php:228 help.php:229 help.php:230
+#: help.php:231 help.php:237 help.php:238 help.php:239 help.php:240
+#: help.php:245 help.php:247 help.php:248 help.php:249 help.php:264
+#: help.php:272 help.php:284 install.php:64 messageboard.php:211
+#: prayers.php:118 privatemsg.php:147 recipes.php:173
+msgid "Yes"
+msgstr "Áno"
+
+#: admin/members.php:282 admin/members.php:316 admin/polls.php:148
+#: gallery/index.php:147 gallery/index.php:371 gallery/index.php:422
+#: inc/addressbook_class.php:399 inc/addressbook_class.php:412
+#: inc/addressbook_class.php:477 inc/addressbook_class.php:579
+#: inc/admin_class.php:188 inc/admin_class.php:378 inc/admin_class.php:452
+#: inc/calendar_class.php:562 inc/calendar_class.php:586
+#: inc/calendar_class.php:803 inc/documents_class.php:116
+#: inc/familynews_class.php:246 inc/familynews_comments.php:99
+#: inc/gallery_class.php:1358 inc/gallery_class.php:1423
+#: inc/members_class.php:202 inc/members_class.php:266
+#: inc/messageboard_class.php:431 inc/messageboard_class.php:479
+#: inc/messageboard_class.php:501 inc/prayers_class.php:139
+#: inc/prayers_class.php:146 inc/privatemsg_class.php:186
+#: inc/recipes_class.php:372 inc/recipes_class.php:379 addressbook.php:212
+#: calendar.php:141 familynews.php:170 familynews.php:218 lostpw.php:77
+#: messageboard.php:212 prayers.php:119 privatemsg.php:148 recipes.php:174
+#: register.php:230
+msgid "Cancel"
+msgstr "Zrušiť"
+
+#: admin/polls.php:24
+msgid "Administration: Polls"
+msgstr "Administrácia: Ankety"
+
+#: admin/polls.php:51 inc/admin_class.php:393
+msgid "Add New Poll"
+msgstr "Pridať novú anketu"
+
+#: admin/polls.php:182 inc/poll_class.php:136 inc/poll_class.php:219
+#: inc/poll_class.php:231
+msgid "Past Polls"
+msgstr "Posledné ankety"
+
+#: admin/polls.php:193 inc/addressbook_class.php:62 inc/admin_class.php:128
+#: inc/admin_class.php:357 inc/calendar_class.php:560
+#: inc/documents_class.php:62 inc/familynews_class.php:102
+#: inc/familynews_class.php:150 inc/familynews_comments.php:139
+#: inc/gallery_class.php:483 inc/gallery_class.php:552
+#: inc/gallery_class.php:1797 inc/members_class.php:265
+#: inc/messageboard_class.php:283 inc/prayers_class.php:63
+#: inc/recipes_class.php:219 inc/upimages.php:106
+msgid "Delete"
+msgstr "Zmazať"
+
+#: admin/polls.php:210
+msgid "No Previous Polls"
+msgstr "Žiadne predchádzajúce ankety"
+
+#: admin/upgrade.php:14
+msgid "Administration: Upgrade"
+msgstr "Administrácia: Aktualizácia"
+
+#: admin/upgrade.php:36
+msgid "Upgrade Check"
+msgstr "Kontrola aktualizácie"
+
+#: admin/upgrade.php:37
+msgid "Current Version"
+msgstr "Aktuálna verzia"
+
+#: admin/upgrade.php:38
+msgid "Latest Version"
+msgstr "Posledná verzia"
+
+#: admin/upgrade.php:50
+msgid "Awesome, your installation is up to date."
+msgstr "Vaša inštalácia je aktuálna."
+
+#: admin/upgrade.php:55
+msgid "Bummer!, your installation is out of date."
+msgstr "Vaša inštalácia je zastaralá."
+
+#: admin/upgrade.php:56
+msgid "Download latest version."
+msgstr "Stiahnite si najnovšiu verziu."
+
+#: admin/upgrade.php:62 themes/default/navigation.php:42
+msgid "Upgrade"
+msgstr "Aktualizácia"
+
+#: admin/upgrade.php:64
+msgid "Your installation is already up to date!"
+msgstr "Vaša inštalácia je už aktuálna!"
+
+#: admin/upgrade.php:64
+msgid "Are you sure you want to proceed?"
+msgstr "Ste si istý, že chcete pokračovať?"
+
+#: admin/upgrade.php:82
+#, php-format
+msgid "Upgrading to %s."
+msgstr "Aktualizovať na %s."
+
+#: admin/upgrade.php:83
+msgid "Upgrade is in process..."
+msgstr "Aktualizácia sa vykonáva..."
+
+#: admin/upgrade.php:88
+msgid "Adding Daylight Savings..."
+msgstr "Pridanie letného času ..."
+
+#: admin/upgrade.php:100 admin/upgrade.php:125 admin/upgrade.php:150
+#: admin/upgrade.php:175 admin/upgrade.php:203 admin/upgrade.php:227
+#: admin/upgrade.php:268 admin/upgrade.php:328 admin/upgrade.php:382
+#: admin/upgrade.php:385 admin/upgrade.php:410 admin/upgrade.php:451
+#: admin/upgrade.php:479 admin/upgrade.php:503 admin/upgrade.php:527
+#: admin/upgrade.php:574 admin/upgrade.php:577 admin/upgrade.php:618
+#: admin/upgrade.php:646 admin/upgrade.php:683 admin/upgrade.php:760
+#: admin/upgrade.php:798 admin/upgrade.php:822 admin/upgrade.php:854
+#: admin/upgrade.php:882 admin/upgrade.php:906 admin/upgrade.php:930
+#: admin/upgrade.php:977
+msgid "No changes needed"
+msgstr "Žiadne zmeny potrebné"
+
+#: admin/upgrade.php:106 admin/upgrade.php:131 admin/upgrade.php:156
+#: admin/upgrade.php:185 admin/upgrade.php:209 admin/upgrade.php:249
+#: admin/upgrade.php:310 admin/upgrade.php:350 admin/upgrade.php:391
+#: admin/upgrade.php:433 admin/upgrade.php:461 admin/upgrade.php:485
+#: admin/upgrade.php:509 admin/upgrade.php:556 admin/upgrade.php:599
+#: admin/upgrade.php:628 admin/upgrade.php:665 admin/upgrade.php:732
+#: admin/upgrade.php:743 admin/upgrade.php:780 admin/upgrade.php:804
+#: admin/upgrade.php:836 admin/upgrade.php:864 admin/upgrade.php:888
+#: admin/upgrade.php:912 admin/upgrade.php:959 admin/upgrade.php:983
+msgid "Complete"
+msgstr "Dokončené"
+
+#: admin/upgrade.php:113
+msgid "Adding Frontpage Settings..."
+msgstr "Pridanie nastavenia uvodnej stranky ..."
+
+#: admin/upgrade.php:138
+msgid "Adding Private Calendar Entries..."
+msgstr "Pridanie súkromných záznamov do kalendára .."
+
+#: admin/upgrade.php:163
+msgid "Upgrading Message Board..."
+msgstr "Aktualizácia fóra ..."
+
+#: admin/upgrade.php:191
+msgid "Upgrading Address Book..."
+msgstr "Aktualizácia adresára .."
+
+#: admin/upgrade.php:215
+msgid "Adding Address Book Entered By..."
+msgstr "Pridanie adresára zadaneho po..."
+
+#: admin/upgrade.php:255
+msgid "Upgrading FCMS DB charset..."
+msgstr "Aktualizácia FCMS DB kódovania..."
+
+#: admin/upgrade.php:316
+msgid "Adding Configuration..."
+msgstr "Pridanie konfigurácie .."
+
+#: admin/upgrade.php:356
+msgid "Upgrading Config..."
+msgstr "Aktualizácia Configurácie ..."
+
+#: admin/upgrade.php:398
+msgid "Adding Photo Gallery Taggin..."
+msgstr "Pridanie fotogalérie Taggin..."
+
+#: admin/upgrade.php:439
+msgid "Adding Auto Activation and Full Sized Photos..."
+msgstr "Pridanie auto aktivácie a plnej veľkosti fotografie .."
+
+#: admin/upgrade.php:467
+msgid "Adding Activation Code..."
+msgstr "Pridanie aktivačneho kódu ..."
+
+#: admin/upgrade.php:491
+msgid "Adding date added to Calendar..."
+msgstr "Pridanie dátumu vloženia do kalendára ..."
+
+#: admin/upgrade.php:515
+msgid "Adding Private Messages..."
+msgstr "Pridanie Súkromnej správy ..."
+
+#: admin/upgrade.php:562
+msgid "Changing Optional Sections Order..."
+msgstr "Zmena poradia voliteľných oddelení .."
+
+#: admin/upgrade.php:606
+msgid "Adding Login Lockout..."
+msgstr "Pridanie prihlásenia..."
+
+#: admin/upgrade.php:634
+msgid "Upgrading Optional Section Config..."
+msgstr "Aktualizácia nastavenia voliteľného oddielu..."
+
+#: admin/upgrade.php:671
+msgid "Adding User Settings..."
+msgstr "Pridanie nastavenia užívateľa..."
+
+#: admin/upgrade.php:738
+msgid "Upgrading Avatar..."
+msgstr "Aktualizácia avatara ..."
+
+#: admin/upgrade.php:748
+msgid "Adding Chat..."
+msgstr "Pridanie chatu ..."
+
+#: admin/upgrade.php:786
+msgid "Adding Ability to Turn Site Off..."
+msgstr "Pridanie schopnosti vypnutia webu..."
+
+#: admin/upgrade.php:810
+msgid "Adding Alerts..."
+msgstr "Pridanie upozornení ..."
+
+#: admin/upgrade.php:842
+msgid "Adding Historical Poll Data..."
+msgstr "Pridanie dát historických ankiet ..."
+
+#: admin/upgrade.php:870
+msgid "Adding Chat Time..."
+msgstr "Pridanie casu do chatu ..."
+
+#: admin/upgrade.php:894
+msgid "Adding Advanced Uploader..."
+msgstr "Pridanie pokročilého uploadera ..."
+
+#: admin/upgrade.php:918
+msgid "Adding Navigation..."
+msgstr "Pridanie navigácie ..."
+
+#: admin/upgrade.php:965
+msgid "Adding User Language..."
+msgstr "Pridanie jazyka užívateľa .."
+
+#: gallery/index.php:34
+msgid "Rotate Photo"
+msgstr "Otočiť fotku"
+
+#: gallery/index.php:34
+msgid "Tag Members in this Photo"
+msgstr "Značky členov na tejto fotografii"
+
+#: gallery/index.php:35
+msgid "More Details"
+msgstr "Viac detailov"
+
+#: gallery/index.php:36 gallery/index.php:141
+msgid "Are you sure you want to DELETE this Photo?"
+msgstr "Ste si istí, že chcete zmazať túto fotografiu?"
+
+#: gallery/index.php:37 gallery/index.php:417
+msgid "Are you sure you want to DELETE this Comment?"
+msgstr "Ste si istí, že chcete zmazať tento komentár?"
+
+#: gallery/index.php:38
+msgid "Are you sure you want to DELETE this Category?"
+msgstr "Are you sure you want to DELETE this Category?"
+
+#: gallery/index.php:216
+msgid "You must create a category first."
+msgstr "Musíte najprv vytvoriť kategóriu."
+
+#: gallery/index.php:256
+#, php-format
+msgid "%s has added a new photo."
+msgstr "%s pridal novú fotku."
+
+#: gallery/index.php:259 documents.php:68 familynews.php:113
+#: messageboard.php:102 messageboard.php:162 prayers.php:78 privatemsg.php:104
+#: recipes.php:127 register.php:131
+msgid "Dear"
+msgstr "Drahý"
+
+#: gallery/index.php:266 documents.php:76 familynews.php:120
+#: messageboard.php:109 messageboard.php:168 prayers.php:85 recipes.php:134
+msgid ""
+"To stop receiving these notifications, visit the following url and change "
+"your 'Email Update' setting to No:"
+msgstr ""
+"Ak chcete ukončiť príjem týchto oznámení, navštívte nasledujúcu adresu URL a "
+"zmente svoje 'nastavenia e-mail' na číslo:"
+
+#: gallery/index.php:337
+msgid "You must specify a category name."
+msgstr "Musíte zadať názov kategórie."
+
+#: gallery/index.php:343
+#, php-format
+msgid "The Category %s was Created Successfully."
+msgstr "Kategória %s bola úspešne vytvorená."
+
+#: gallery/index.php:344 inc/gallery_class.php:59 inc/gallery_class.php:168
+#: inc/gallery_class.php:1099
+msgid "Upload Photos"
+msgstr "Nahrať fotky"
+
+#: gallery/index.php:351
+msgid "Category name cannot be blank."
+msgstr "Názov kategórie nemôže byť prázdny."
+
+#: gallery/index.php:356
+#, php-format
+msgid "The Category <b>%s</b> was Updated Successfully"
+msgstr "Kategória <b>%s</b> bola úspešne aktualizovaná."
+
+#: gallery/index.php:366
+msgid "Are you sure you want to DELETE this category?"
+msgstr "Ste si istí, že chcete zmazať túto kategóriu?"
+
+#: gallery/index.php:381
+msgid "Category Deleted Successfully"
+msgstr "Kategória úspešne zmazaná"
+
+#: gallery/index.php:455 home.php:253 rss.php:124 rss.php:273
+msgid "RSS Feed"
+msgstr "RSS kanál"
+
+#: inc/addressbook_class.php:36
+msgid "Invalid Address"
+msgstr "Neplatná adresa"
+
+#: inc/addressbook_class.php:59 inc/addressbook_class.php:397
+#: inc/admin_class.php:127 inc/admin_class.php:186 inc/admin_class.php:377
+#: inc/calendar_class.php:555 inc/familynews_class.php:92
+#: inc/familynews_class.php:242 inc/gallery_class.php:482
+#: inc/gallery_class.php:1357 inc/gallery_class.php:1796
+#: inc/members_class.php:264 inc/messageboard_class.php:272
+#: inc/messageboard_class.php:485 inc/messageboard_class.php:500
+#: inc/prayers_class.php:54 inc/prayers_class.php:145
+#: inc/recipes_class.php:210 inc/recipes_class.php:378
+msgid "Edit"
+msgstr "Upraviť"
+
+#: inc/addressbook_class.php:72 inc/addressbook_class.php:84
+#: inc/addressbook_class.php:89 inc/addressbook_class.php:90
+#: inc/addressbook_class.php:91 inc/admin_class.php:1108
+#: inc/gallery_class.php:468 inc/profile_class.php:167
+#: inc/profile_class.php:178 inc/profile_class.php:179
+#: inc/profile_class.php:180 inc/profile_class.php:370
+#: inc/profile_class.php:398
+msgid "none"
+msgstr "nič"
+
+#: inc/addressbook_class.php:86
+msgid "Email This Member"
+msgstr "Email tohoto člena"
+
+#: inc/addressbook_class.php:109 inc/profile_class.php:195
+msgid "Address"
+msgstr "Adresa"
+
+#: inc/addressbook_class.php:110 inc/addressbook_class.php:343
+#: inc/members_class.php:144 inc/settings_class.php:343 lostpw.php:73
+msgid "Email"
+msgstr "Email"
+
+#: inc/addressbook_class.php:111 themes/default/navigation.php:3
+#: themes/default/footer.php:9 home.php:33
+msgid "Home"
+msgstr "Úvod"
+
+#: inc/addressbook_class.php:112
+msgid "Work"
+msgstr "Práca"
+
+#: inc/addressbook_class.php:113
+msgid "Mobile"
+msgstr "Mobil"
+
+#: inc/addressbook_class.php:118
+#, php-format
+msgid "Could not find address (%s)"
+msgstr "Nepodarilo sa nájsť adresu (%s)"
+
+#: inc/addressbook_class.php:150
+msgid "Choose an Address from the list."
+msgstr "Vyberte adresu zo zoznamu."
+
+#: inc/addressbook_class.php:158
+msgid "Email Selected"
+msgstr "Email vybraný"
+
+#: inc/addressbook_class.php:167
+msgid "Add Contact"
+msgstr "Pridať kontakt"
+
+#: inc/addressbook_class.php:168
+msgid "View My Address"
+msgstr "Zobraziť moju adresu"
+
+#: inc/addressbook_class.php:171 inc/addressbook_class.php:569
+#: inc/addressbook_class.php:577 inc/calendar_class.php:74
+#: inc/calendar_class.php:798 inc/calendar_class.php:801
+msgid "Import"
+msgstr "Import"
+
+#: inc/addressbook_class.php:172 inc/calendar_class.php:75
+msgid "Export"
+msgstr "Exportovať"
+
+#: inc/addressbook_class.php:202
+msgid "All Addresses"
+msgstr "Všetky adresy"
+
+#: inc/addressbook_class.php:203
+msgid "Only show My personal Addresses"
+msgstr "Ukáž len moje osobné adresy"
+
+#: inc/addressbook_class.php:203
+msgid "My Addresses"
+msgstr "Moje adresy"
+
+#: inc/addressbook_class.php:204
+msgid "Only show Addresses for members of the site"
+msgstr "Ukáž len adresy pre členov webu"
+
+#: inc/addressbook_class.php:204 themes/default/navigation.php:44
+msgid "Members"
+msgstr "Členovia"
+
+#: inc/addressbook_class.php:205
+msgid "Only show Addresses for non-members"
+msgstr "Ukáž len adresy pre nečlenov webu"
+
+#: inc/addressbook_class.php:205
+msgid "Non-Members"
+msgstr "nečlenovia"
+
+#: inc/addressbook_class.php:297
+msgid "Edit Address"
+msgstr "Upraviť adresu"
+
+#: inc/addressbook_class.php:312
+msgid ""
+"Please only add addresses for Non-members. Anyone who is a member of this "
+"website must add/update their own address."
+msgstr ""
+"Prosím, len pridať adresy pre nečleno. Každý, kto je členom tohto webu, musí "
+"pridať / aktualizovať svoje vlastné adresy."
+
+#: inc/addressbook_class.php:314 inc/alerts_class.php:120
+msgid "Add Address"
+msgstr "Pridať adresu"
+
+#: inc/addressbook_class.php:316 inc/admin_class.php:825
+#: inc/members_class.php:124 inc/members_class.php:298
+#: inc/members_class.php:316 inc/profile_class.php:248
+#: inc/settings_class.php:73 inc/settings_class.php:323 install.php:444
+#: register.php:198
+msgid "First Name"
+msgstr "Meno"
+
+#: inc/addressbook_class.php:324 inc/members_class.php:134
+#: inc/members_class.php:300 inc/members_class.php:315
+#: inc/profile_class.php:249 inc/settings_class.php:333 install.php:452
+#: register.php:208
+msgid "Last Name"
+msgstr "Priezvisko"
+
+#: inc/addressbook_class.php:348
+msgid "That's not a valid email, is it?"
+msgstr "To nie je platný email, že?"
+
+#: inc/addressbook_class.php:351
+msgid "Street Address"
+msgstr "Adresa - ulice"
+
+#: inc/addressbook_class.php:355
+msgid "City"
+msgstr "Mesto"
+
+#: inc/addressbook_class.php:359
+msgid "State"
+msgstr "Štát"
+
+#: inc/addressbook_class.php:363
+msgid "Zip Code"
+msgstr "PSČ"
+
+#: inc/addressbook_class.php:367 inc/profile_class.php:199
+msgid "Home Phone"
+msgstr "Tel domov"
+
+#: inc/addressbook_class.php:375 inc/profile_class.php:200
+msgid "Work Phone"
+msgstr "Tel do práce"
+
+#: inc/addressbook_class.php:383 inc/profile_class.php:201
+msgid "Cell Phone"
+msgstr "Mobilný telefón"
+
+#: inc/addressbook_class.php:398 inc/addressbook_class.php:411
+#: inc/addressbook_class.php:476 inc/addressbook_class.php:578
+#: inc/admin_class.php:187 inc/calendar_class.php:562
+#: inc/calendar_class.php:802 inc/familynews_class.php:245
+#: inc/gallery_class.php:1188 inc/gallery_class.php:1358
+#: inc/gallery_class.php:1422 inc/members_class.php:201
+#: inc/members_class.php:265
+msgid "or"
+msgstr "alebo"
+
+#: inc/addressbook_class.php:406 inc/addressbook_class.php:573
+msgid "Private"
+msgstr "Súkromný"
+
+#: inc/addressbook_class.php:410 inc/admin_class.php:451
+#: inc/admin_class.php:994 inc/calendar_class.php:186
+#: inc/calendar_class.php:557 inc/documents_class.php:115
+#: inc/familynews_class.php:131 inc/familynews_class.php:237
+#: inc/familynews_comments.php:120 inc/gallery_class.php:1817
+#: inc/prayers_class.php:138 inc/recipes_class.php:371
+msgid "Add"
+msgstr "Pridať"
+
+#: inc/addressbook_class.php:423 inc/addressbook_class.php:424
+#: inc/addressbook_class.php:425 inc/addressbook_class.php:426
+#: inc/admin_class.php:400 inc/documents_class.php:112 register.php:205
+#: register.php:215 register.php:225
+msgid "Required"
+msgstr "Požadované"
+
+#: inc/addressbook_class.php:430
+msgid ""
+"Filling out the form below will send an email to all the selected members in "
+"your addressbook. Sending an email to a large number of people can take a "
+"long time. Please be patient."
+msgstr ""
+"Vyplnením nižšie uvedeného formulára zašlete e-mail všetkým vybraným členom "
+"vo vašom adresáre. Odoslanie e-mailu, veľkým počtom ľudí môže trvať dlhú "
+"dobu. Prosím, buďte trpezliví."
+
+#: inc/addressbook_class.php:436 contact.php:50
+msgid "Your Email"
+msgstr "Tvoj Email"
+
+#: inc/addressbook_class.php:444 contact.php:54
+msgid "Your Name"
+msgstr "Vaše meno"
+
+#: inc/addressbook_class.php:452 inc/admin_class.php:38
+#: inc/admin_class.php:170 inc/messageboard_class.php:40
+#: inc/messageboard_class.php:406 inc/privatemsg_class.php:31
+#: inc/privatemsg_class.php:70 inc/privatemsg_class.php:100
+#: inc/privatemsg_class.php:133 inc/privatemsg_class.php:162 contact.php:58
+msgid "Subject"
+msgstr "Predmet"
+
+#: inc/addressbook_class.php:460 contact.php:62
+msgid "Message"
+msgstr "Správa"
+
+#: inc/addressbook_class.php:475
+msgid "Send Email"
+msgstr "Odoslať e-mail"
+
+#: inc/addressbook_class.php:522 inc/util_inc.php:195 addressbook.php:45
+#: help.php:35 help.php:200
+msgid "Address Book"
+msgstr "Adresár"
+
+#: inc/addressbook_class.php:536 inc/calendar_class.php:834
+#: inc/documents_class.php:189 inc/poll_class.php:248
+#: inc/prayers_class.php:167 inc/privatemsg_class.php:38
+#: inc/privatemsg_class.php:75 inc/recipes_class.php:407
+msgid "M. j, Y, g:i a"
+msgstr "M. j, Y, g:i a"
+
+#: inc/addressbook_class.php:541 inc/calendar_class.php:133
+#: inc/calendar_class.php:257 inc/calendar_class.php:839
+#: inc/documents_class.php:194 inc/familynews_class.php:333
+#: inc/gallery_class.php:1872 inc/messageboard_class.php:635
+#: inc/prayers_class.php:172 inc/recipes_class.php:444 inc/util_inc.php:1471
+#: home.php:219
+msgid "Today"
+msgstr "Dnes"
+
+#: inc/addressbook_class.php:597
+#, php-format
+msgid "%s (%s) is not a CSV file."
+msgstr "%s (%s) nie je súbor CSV."
+
+#: inc/addressbook_class.php:867
+#, php-format
+msgid "%d Address Added Successfully"
+msgid_plural "%d Addresses Added Successfully"
+msgstr[0] "%d adresa úspešne pridaná"
+msgstr[1] "%d adresy úspešne pridané"
+msgstr[2] "%d adresy úspešne pridané"
+
+#: inc/admin_class.php:39 inc/messageboard_class.php:42
+msgid "Replies"
+msgstr "Odpovede"
+
+#: inc/admin_class.php:40 inc/gallery_class.php:516 inc/gallery_class.php:916
+#: inc/messageboard_class.php:43
+msgid "Views"
+msgstr "Zobrazenia"
+
+#: inc/admin_class.php:41 inc/messageboard_class.php:44
+msgid "Last Updated"
+msgstr "Posledná úprava"
+
+#: inc/admin_class.php:72 inc/messageboard_class.php:84
+msgid "Announcement"
+msgstr "Oznámenie"
+
+#: inc/admin_class.php:92 inc/messageboard_class.php:99
+#, php-format
+msgid "Today at %s"
+msgstr "Dnes na %s"
+
+#: inc/admin_class.php:93 inc/admin_class.php:106 inc/admin_class.php:116
+#: inc/messageboard_class.php:100 inc/messageboard_class.php:112
+#: inc/messageboard_class.php:119
+#, php-format
+msgid "by %s"
+msgstr "od %s"
+
+#: inc/admin_class.php:105 inc/messageboard_class.php:111
+#, php-format
+msgid "Yesterday at %s"
+msgstr "Včera v %s"
+
+#: inc/admin_class.php:144 inc/messageboard_class.php:161
+#: inc/messageboard_class.php:320 inc/prayers_class.php:76 help.php:48
+#: help.php:65 help.php:78 help.php:92 help.php:104 help.php:116 help.php:127
+#: help.php:140 help.php:152 help.php:163 help.php:174 help.php:300
+#: help.php:314 help.php:321
+msgid "Back to Top"
+msgstr "Hore"
+
+#: inc/admin_class.php:168
+msgid "Edit Thread"
+msgstr "Upraviť konverzáciu"
+
+#: inc/admin_class.php:174 inc/messageboard_class.php:514 register.php:107
+msgid "Name"
+msgstr "Meno"
+
+#: inc/admin_class.php:179 inc/messageboard_class.php:417
+msgid "Admin Tools"
+msgstr "Admin nástroje"
+
+#: inc/admin_class.php:181 inc/messageboard_class.php:418
+msgid "Make Announcement"
+msgstr "Vytvor oznam"
+
+#: inc/admin_class.php:258 inc/util_inc.php:1052 inc/util_inc.php:1056
+msgid "First Page"
+msgstr "Prvá stránka"
+
+#: inc/admin_class.php:259 inc/util_inc.php:1053 inc/util_inc.php:1057
+msgid "Previous Page"
+msgstr "Predchádzajúca stránka"
+
+#: inc/admin_class.php:287 inc/util_inc.php:1089 inc/util_inc.php:1093
+msgid "Next Page"
+msgstr "Ďalšia stránka"
+
+#: inc/admin_class.php:288
+msgid "Last Page"
+msgstr "Posledná stránka"
+
+#: inc/admin_class.php:338
+msgid "Edit Poll"
+msgstr "Upraviť Anketu"
+
+#: inc/admin_class.php:347 inc/admin_class.php:367 inc/admin_class.php:403
+#: inc/admin_class.php:411 inc/admin_class.php:419 inc/admin_class.php:423
+#: inc/admin_class.php:427 inc/admin_class.php:431 inc/admin_class.php:435
+#: inc/admin_class.php:439 inc/admin_class.php:443 inc/admin_class.php:447
+#, php-format
+msgid "Option %s"
+msgstr "Voľba %s"
+
+#: inc/admin_class.php:395
+msgid "Poll Question"
+msgstr "Anketná otázka"
+
+#: inc/admin_class.php:408 inc/admin_class.php:416
+msgid "Without at least 2 options, it's not much of a poll is it?"
+msgstr "Bez najmenej dvoch možností, to predsa nie je anketa?"
+
+#: inc/admin_class.php:700
+msgid "Admin Activation"
+msgstr "Admin aktivácia"
+
+#: inc/admin_class.php:701
+msgid "Auto Activation"
+msgstr "Auto aktivácia"
+
+#: inc/admin_class.php:713 inc/admin_class.php:822 inc/calendar_class.php:581
+#: inc/members_class.php:387 inc/settings_class.php:93
+#: inc/settings_class.php:103 inc/settings_class.php:186 help.php:226
+#: help.php:235 help.php:236 help.php:244 help.php:246 help.php:253
+#: help.php:256 help.php:258 help.php:262 help.php:263 help.php:265
+#: help.php:266 help.php:267 help.php:271 help.php:273 help.php:274
+#: help.php:275 help.php:276 help.php:280 help.php:281 help.php:282
+#: help.php:283 help.php:285 help.php:289 help.php:290 help.php:291
+#: help.php:292 help.php:293 help.php:294 install.php:59
+msgid "No"
+msgstr "Nie"
+
+#: inc/admin_class.php:721
+msgid "Site Name"
+msgstr "Názov webu"
+
+#: inc/admin_class.php:727 install.php:386
+msgid "Contact Email"
+msgstr "Kontaktný email"
+
+#: inc/admin_class.php:734 inc/members_class.php:152
+#: inc/settings_class.php:351 install.php:466
+msgid "That's not a valid email address is it?"
+msgstr "To nie je správna email adresa?"
+
+#: inc/admin_class.php:738 activate.php:21
+msgid "Account Activation"
+msgstr "Aktivácia účtu"
+
+#: inc/admin_class.php:746
+msgid "Turn Off Site?"
+msgstr "Vypnúť web?"
+
+#: inc/admin_class.php:751 inc/admin_class.php:944 inc/admin_class.php:1026
+#: inc/admin_class.php:1061 inc/gallery_class.php:1421
+msgid "Save"
+msgstr "Uložiť"
+
+#: inc/admin_class.php:826
+msgid "First & Last Name"
+msgstr "Meno a priezvisko"
+
+#: inc/admin_class.php:827 inc/members_class.php:98 inc/members_class.php:302
+#: inc/members_class.php:314 inc/profile_class.php:247
+#: inc/settings_class.php:75 inc/settings_class.php:377 index.php:283
+#: install.php:428 register.php:106 register.php:138 register.php:178
+msgid "Username"
+msgstr "Prihlás. meno"
+
+#: inc/admin_class.php:832 inc/settings_class.php:80
+msgid "All (by date)"
+msgstr "Všetko (podľa dátumu)"
+
+#: inc/admin_class.php:833 inc/settings_class.php:81
+msgid "Last 5 (by section)"
+msgstr "Posledných 5 (podľa sekcie)"
+
+#: inc/admin_class.php:838 inc/settings_class.php:131
+msgid "(GMT -12:00) Eniwetok, Kwajalein"
+msgstr "(GMT -12:00) Eniwetok, Kwajalein"
+
+#: inc/admin_class.php:839 inc/settings_class.php:132
+msgid "(GMT -11:00) Midway Island, Samoa"
+msgstr "(GMT -11:00) Midway Island, Samoa"
+
+#: inc/admin_class.php:840 inc/settings_class.php:133
+msgid "(GMT -10:00) Hawaii"
+msgstr "(GMT -10:00) Hawaii"
+
+#: inc/admin_class.php:841 inc/settings_class.php:134
+msgid "(GMT -9:00) Alaska"
+msgstr "(GMT -9:00) Alijaška"
+
+#: inc/admin_class.php:842 inc/settings_class.php:135
+msgid "(GMT -8:00) Pacific Time (US & Canada)"
+msgstr "(GMT -8:00) Pacific Time (US & Canada)"
+
+#: inc/admin_class.php:843 inc/settings_class.php:136
+msgid "(GMT -7:00) Mountain Time (US & Canada)"
+msgstr "(GMT -7:00) Mountain Time (US & Canada)"
+
+#: inc/admin_class.php:844 inc/settings_class.php:137
+msgid "(GMT -6:00) Central Time (US & Canada), Mexico City"
+msgstr "(GMT -6:00) Central Time (US & Canada), Mexico City"
+
+#: inc/admin_class.php:845 inc/settings_class.php:138
+msgid "(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima"
+msgstr "(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima"
+
+#: inc/admin_class.php:846 inc/settings_class.php:139
+msgid "(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz"
+msgstr "(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz"
+
+#: inc/admin_class.php:847 inc/settings_class.php:140
+msgid "(GMT -3:30) Newfoundland"
+msgstr "(GMT -3:30) Newfoundland"
+
+#: inc/admin_class.php:848 inc/settings_class.php:141
+msgid "(GMT -3:00) Brazil, Buenos Aires, Georgetown"
+msgstr "(GMT -3:00) Brazil, Buenos Aires, Georgetown"
+
+#: inc/admin_class.php:849 inc/settings_class.php:142
+msgid "(GMT -2:00) Mid-Atlantic"
+msgstr "(GMT -2:00) Mid-Atlantic"
+
+#: inc/admin_class.php:850 inc/settings_class.php:143
+msgid "(GMT -1:00) Azores, Cape Verde Islands"
+msgstr "(GMT -1:00) Azores, Cape Verde Islands"
+
+#: inc/admin_class.php:851 inc/settings_class.php:144
+msgid "(GMT) Western Europe Time, London, Lisbon, Casablanca"
+msgstr "(GMT) Western Europe Time, London, Lisbon, Casablanca"
+
+#: inc/admin_class.php:852 inc/settings_class.php:145
+msgid "(GMT +1:00) Brussels, Copenhagen, Madrid, Paris"
+msgstr "(GMT +1:00) Prague, Brussels, Copenhagen, Madrid, Paris"
+
+#: inc/admin_class.php:853 inc/settings_class.php:146
+msgid "(GMT +2:00) Kaliningrad, South Africa"
+msgstr "(GMT +2:00) Kaliningrad, South Africa"
+
+#: inc/admin_class.php:854 inc/settings_class.php:147
+msgid "(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh"
+msgstr "(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh"
+
+#: inc/admin_class.php:855 inc/settings_class.php:148
+msgid "(GMT +3:30) Tehran"
+msgstr "(GMT +3:30) Tehran"
+
+#: inc/admin_class.php:856 inc/settings_class.php:149
+msgid "(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi"
+msgstr "(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi"
+
+#: inc/admin_class.php:857 inc/settings_class.php:150
+msgid "(GMT +4:30) Kabul"
+msgstr "(GMT +4:30) Kabul"
+
+#: inc/admin_class.php:858 inc/settings_class.php:151
+msgid "(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent"
+msgstr "(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent"
+
+#: inc/admin_class.php:859 inc/settings_class.php:152
+msgid "(GMT +5:30) Bombay, Calcutta, Madras, New Delhi"
+msgstr "(GMT +5:30) Bombay, Calcutta, Madras, New Delhi"
+
+#: inc/admin_class.php:860 inc/settings_class.php:153
+msgid "(GMT +6:00) Almaty, Dhaka, Colombo"
+msgstr "(GMT +6:00) Almaty, Dhaka, Colombo"
+
+#: inc/admin_class.php:861 inc/settings_class.php:154
+msgid "(GMT +7:00) Bangkok, Hanoi, Jakarta"
+msgstr "(GMT +7:00) Bangkok, Hanoi, Jakarta"
+
+#: inc/admin_class.php:862 inc/settings_class.php:155
+msgid "(GMT +8:00) Beijing, Perth, Singapore, Hong Kong"
+msgstr "(GMT +8:00) Beijing, Perth, Singapore, Hong Kong"
+
+#: inc/admin_class.php:863 inc/settings_class.php:156
+msgid "(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk"
+msgstr "(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk"
+
+#: inc/admin_class.php:864 inc/settings_class.php:157
+msgid "(GMT +9:30) Adeliaide, Darwin"
+msgstr "(GMT +9:30) Adeliaide, Darwin"
+
+#: inc/admin_class.php:865 inc/settings_class.php:158
+msgid "(GMT +10:00) Eastern Australia, Guam, Vladivostok"
+msgstr "(GMT +10:00) Eastern Australia, Guam, Vladivostok"
+
+#: inc/admin_class.php:866 inc/settings_class.php:159
+msgid "(GMT +11:00) Magadan, Solomon Islands, New Caledonia"
+msgstr "(GMT +11:00) Magadan, Solomon Islands, New Caledonia"
+
+#: inc/admin_class.php:867 inc/settings_class.php:160
+msgid "(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka"
+msgstr "(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka"
+
+#: inc/admin_class.php:874 inc/settings_class.php:167
+msgid "On"
+msgstr "Zapnutý"
+
+#: inc/admin_class.php:877 inc/settings_class.php:170
+msgid "Off"
+msgstr "Vypnutý"
+
+#: inc/admin_class.php:880 inc/settings_class.php:173
+msgid "New Messages at Bottom"
+msgstr "Nové správy dole"
+
+#: inc/admin_class.php:881 inc/settings_class.php:174
+msgid "New Messages at Top"
+msgstr "Nové správy hore"
+
+#: inc/admin_class.php:891 inc/settings_class.php:224
+msgid "Theme"
+msgstr "Vzhľad"
+
+#: inc/admin_class.php:900 inc/settings_class.php:309
+msgid "Show Avatars"
+msgstr "Zobraziť Avatary"
+
+#: inc/admin_class.php:906 inc/settings_class.php:242
+msgid "Display Name"
+msgstr "Zobraziť meno"
+
+#: inc/admin_class.php:908 inc/settings_class.php:244
+msgid "How do you want your name to display?"
+msgstr "Ako chcete zobraziť vaše meno?"
+
+#: inc/admin_class.php:914
+msgid "Front Page"
+msgstr "Predná strana"
+
+#: inc/admin_class.php:916
+msgid "How do you want the latest information to display on the homepage?"
+msgstr "Chcete aby sa najnovšie informácie zobrazili na úvodnej stránke?"
+
+#: inc/admin_class.php:922
+msgid "Time Zone"
+msgstr "Časové pásmo"
+
+#: inc/admin_class.php:924
+msgid "What time zone do you live in?"
+msgstr "V akom časovom pásme žijete?"
+
+#: inc/admin_class.php:930 inc/settings_class.php:286
+msgid "Daylight Savings Time"
+msgstr "Letny čas"
+
+#: inc/admin_class.php:936 inc/settings_class.php:301
+msgid "Sort Messages"
+msgstr "Usporiadať správy"
+
+#: inc/admin_class.php:938
+msgid "How do you want messages to display on the Message Board?"
+msgstr "Ako chcete správy zobraziť na fórume?"
+
+#: inc/admin_class.php:946
+msgid "Update existing users?"
+msgstr "Aktualizovať existujúcich užívateľov?"
+
+#: inc/admin_class.php:988
+msgid "Navigation"
+msgstr "Navigácia"
+
+#: inc/admin_class.php:991
+msgid "Add Optional Sections"
+msgstr "Pridať voliteľné oddelenia"
+
+#: inc/admin_class.php:1002 inc/admin_class.php:1071
+msgid "Section"
+msgstr "Sekcia"
+
+#: inc/admin_class.php:1002
+msgid "Order"
+msgstr "Poradie"
+
+#: inc/admin_class.php:1002
+msgid "Remove"
+msgstr "Odstrániť"
+
+#: inc/admin_class.php:1009
+msgid "required"
+msgstr "vyžadované"
+
+#: inc/admin_class.php:1040
+msgid "Off (2 photos)"
+msgstr "Vypnuté (2 fotografie)"
+
+#: inc/admin_class.php:1041
+msgid "On (3 photos)"
+msgstr "Zapnuté (3 fotky)"
+
+#: inc/admin_class.php:1051
+msgid ""
+"By default, Full Sized Photos is turned off to save on storage space and "
+"bandwidth.  Turning this feature on can eat up significant space and "
+"bandwith."
+msgstr ""
+"V predvolenom nastavení plnej veľkosti fotografie je vypnuté kvôli úspore na "
+"úložný priestor a šírku pásma. Zapnutím tejto voľby môžete zabrať významný "
+"priestor a šírku pásma."
+
+#: inc/admin_class.php:1054
+msgid "Fulle Size Photos"
+msgstr "Fotografie v skutočnej veľkosti"
+
+#: inc/admin_class.php:1079 inc/familynews_class.php:39
+#: inc/familynews_class.php:324 inc/profile_class.php:128 inc/util_inc.php:201
+#: familynews.php:20 help.php:201 install.php:402
+msgid "Family News"
+msgstr "Rodinné novinky"
+
+#: inc/admin_class.php:1086 inc/profile_class.php:136
+#: inc/recipes_class.php:272 inc/recipes_class.php:402 inc/util_inc.php:204
+#: install.php:404 recipes.php:20
+msgid "Recipes"
+msgstr "Recepty"
+
+#: inc/admin_class.php:1093 inc/documents_class.php:184
+#: inc/profile_class.php:144 inc/util_inc.php:207 documents.php:33
+#: install.php:406
+msgid "Documents"
+msgstr "Dokumenty"
+
+#: inc/admin_class.php:1100 inc/prayers_class.php:162
+#: inc/profile_class.php:152 help.php:202 install.php:408 prayers.php:20
+msgid "Prayer Concerns"
+msgstr "Obavy modlitieb"
+
+#: inc/alerts_class.php:29
+#, php-format
+msgid "Welcome to %s"
+msgstr "Vytajte v %s"
+
+#: inc/alerts_class.php:30
+msgid "It looks like you have an Admin Access Level, which allow you to:"
+msgstr ""
+"Vyzerá to, že máte administrátorský prístup úrovne, ktorá Vám umožní:"
+
+#: inc/alerts_class.php:32
+msgid "Edit or delete just about anything"
+msgstr "Upraviť alebo zmazať čokoľvek"
+
+#: inc/alerts_class.php:33
+msgid "Add/edit/delete members"
+msgstr "Pridať / editovať / zmazať členov"
+
+#: inc/alerts_class.php:34
+msgid "Create/edit polls"
+msgstr "Vytvoriť / upraviť ankety"
+
+#: inc/alerts_class.php:35
+msgid "Change site settings"
+msgstr "Zmeniť nastavenie webu"
+
+#: inc/alerts_class.php:36
+msgid "Upgrade the site"
+msgstr "Aktualizovať web"
+
+#: inc/alerts_class.php:37 inc/alerts_class.php:70
+msgid "Find out more."
+msgstr "Zistite viac."
+
+#: inc/alerts_class.php:39 inc/alerts_class.php:71
+msgid "Getting Started..."
+msgstr "Začíname ..."
+
+#: inc/alerts_class.php:41 inc/alerts_class.php:73
+msgid "Personalize the site"
+msgstr "Prispôsobiť stránku"
+
+#: inc/alerts_class.php:42 inc/alerts_class.php:74
+msgid "Share your Address/Contact information"
+msgstr "Podeľte sa o svoje Adresy / kontaktné informácie"
+
+#: inc/alerts_class.php:43 inc/alerts_class.php:75
+msgid "Share Photos"
+msgstr "Zdieľanie fotografií"
+
+#: inc/alerts_class.php:44 inc/alerts_class.php:76
+msgid "Start a discussion"
+msgstr "Začať diskusiu"
+
+#: inc/alerts_class.php:46 inc/alerts_class.php:100 inc/alerts_class.php:121
+msgid "Delete This Alert"
+msgstr "Zmaž toto upozornenie"
+
+#: inc/alerts_class.php:69
+#, php-format
+msgid "Hey, %s. Thanks for joining."
+msgstr "Hej, %s. Vďaka za spojenie."
+
+#: inc/alerts_class.php:70
+#, php-format
+msgid "It looks like you have an Access Level of %s."
+msgstr "Vyzerá to, že máte úroveň prístupu %s."
+
+#: inc/alerts_class.php:78
+msgid "Delete This Alert."
+msgstr "Zmaž toto upozornenie."
+
+#: inc/alerts_class.php:97
+msgid "Welcome to the Poll Section"
+msgstr "Vitajte v sekcii anketa"
+
+#: inc/alerts_class.php:98
+msgid "Here you can add new Poll questions or edit existing polls."
+msgstr ""
+"Tu môžete pridať novú anketu, otázky alebo upraviť existujúce ankety."
+
+#: inc/alerts_class.php:99
+msgid ""
+"If you do not want to use Polls on your site, simply delete all existing "
+"polls and they will no longer show up on the frontpage."
+msgstr ""
+"Ak nechcete používať ankety na vašich stránkach, stačí iba vymazať všetky "
+"existujúce ankety a nebudú sa už objavovať na titulnej stránke."
+
+#: inc/alerts_class.php:118
+msgid "It looks like you haven't added your address information yet."
+msgstr "Vyzerá to, že ste ešte nepridali svoju adresu."
+
+#: inc/alerts_class.php:119
+msgid ""
+"The other website members would appreciate it if you would add your address "
+"information.  This will help them stay in touch."
+msgstr ""
+"Iné stránky členov by ocenil, keby ste pridali svoju adresu. To im pomôže "
+"zostať v kontakte."
+
+#: inc/bbcode.php:12 inc/calendar_print.php:30 inc/familynews_comments.php:17
+#: inc/smileys.php:12 inc/upimages.php:12 themes/default/header.php:2
+#: activate.php:8 index.php:227 install.php:36 register.php:12 rss.php:125
+#: rss.php:274
+msgid "lang"
+msgstr "sk"
+
+#: inc/bbcode.php:14 inc/calendar_print.php:32 inc/familynews_comments.php:19
+#: inc/smileys.php:14 inc/upimages.php:14 themes/default/header.php:4
+#: activate.php:10 index.php:218 lostpw.php:9
+msgid "powered by"
+msgstr "powered by"
+
+#: inc/bbcode.php:31 inc/util_inc.php:955
+msgid "BBCode Help"
+msgstr "BBCode pomocník"
+
+#: inc/bbcode.php:32
+msgid ""
+"BBCode is a easy way to format text. Check out the examples below, the first "
+"line shows the bbcode and the second line show the output."
+msgstr ""
+"BBCode je jednoduchý spôsob, ako formátovať text. Pozrite sa na nižšie "
+"uvedené príklady, na prvom riadku zobrazuje BBCode a druhý riadok zobrazuje "
+"výstup."
+
+#: inc/bbcode.php:33
+msgid "Available BBCodes"
+msgstr "Dostupné BBCodes"
+
+#: inc/bbcode.php:35
+msgid "Text Formatting"
+msgstr "Formátovanie textu"
+
+#: inc/bbcode.php:36
+msgid "Bold Text"
+msgstr "Tučný text"
+
+#: inc/bbcode.php:37
+msgid "Italic Text"
+msgstr "Italic text"
+
+#: inc/bbcode.php:38 inc/bbcode.php:44
+msgid "Underline Text"
+msgstr "Podtrhnuný text"
+
+#: inc/bbcode.php:41
+msgid "Text Alignment"
+msgstr "Zarovnanie textu"
+
+#: inc/bbcode.php:42
+msgid "Left Aligned Text"
+msgstr "Zarovnanie textu vľavo"
+
+#: inc/bbcode.php:43
+msgid "Centered Text"
+msgstr "Centrovaný text"
+
+#: inc/bbcode.php:44
+msgid "Right Aligned Text"
+msgstr "Zarovnanie textu vpravo"
+
+#: inc/bbcode.php:46
+msgid "Headers"
+msgstr "Hlavičky"
+
+#: inc/bbcode.php:47
+msgid "Really Big Header"
+msgstr "Naozaj veľké hlavičky"
+
+#: inc/bbcode.php:48
+msgid "Big Header"
+msgstr "Veľké hlavičky"
+
+#: inc/bbcode.php:49
+msgid "You can use any header number 1-6."
+msgstr "Môžete použiť akékoľvek hlavičky čísla 1-6."
+
+#: inc/bbcode.php:51 inc/messageboard_class.php:262 inc/util_inc.php:951
+msgid "Quote"
+msgstr "Citovať"
+
+#: inc/bbcode.php:52
+msgid "You can Quote me on it."
+msgstr "Môžete ma citovať."
+
+#: inc/bbcode.php:53
+msgid "Add Images From a URL"
+msgstr "Pridať obrázky z URL"
+
+#: inc/bbcode.php:55
+msgid "Change Text Color"
+msgstr "Zmeniť farbu textu"
+
+#: inc/bbcode.php:56
+msgid "Red Text"
+msgstr "Červený text"
+
+#: inc/bbcode.php:57
+msgid "Blue Text"
+msgstr "Modrý text"
+
+#: inc/bbcode.php:58
+msgid "Links"
+msgstr "Odkazy"
+
+#: inc/bbcode.php:59
+msgid "Click Here For Google"
+msgstr "Kliknite sem pre Google"
+
+#: inc/bbcode.php:61
+msgid "Mail Some Guy"
+msgstr "Mail Some Guy"
+
+#: inc/bbcode.php:63
+msgid "Youtube Video"
+msgstr "YouTube video"
+
+#: inc/calendar_class.php:63
+msgid "Day"
+msgstr "Deň"
+
+#: inc/calendar_class.php:64
+msgid "Month"
+msgstr "Mesiac"
+
+#: inc/calendar_class.php:69
+msgid "Actions"
+msgstr "Akcia"
+
+#: inc/calendar_class.php:73
+msgid "Print"
+msgstr "Tlač"
+
+#: inc/calendar_class.php:126 inc/calendar_class.php:128
+#: inc/calendar_class.php:251 inc/calendar_class.php:253
+#: inc/gallery_class.php:371 inc/gallery_class.php:395 inc/util_inc.php:1053
+#: inc/util_inc.php:1057
+msgid "Previous"
+msgstr "Predchádzajúce"
+
+#: inc/calendar_class.php:138 inc/calendar_class.php:261
+#: inc/gallery_class.php:348 inc/gallery_class.php:396 inc/util_inc.php:1089
+#: inc/util_inc.php:1093 install.php:260 install.php:321 install.php:363
+#: install.php:412 install.php:500
+msgid "Next"
+msgstr "Ďalšie"
+
+#: inc/calendar_class.php:265
+msgid "l, F j, Y"
+msgstr "l, F j, Y"
+
+#: inc/calendar_class.php:333
+msgid "No events for this month."
+msgstr "Žiadne udalosti pre tento mesiac."
+
+#: inc/calendar_class.php:361
+msgid "Today's Events"
+msgstr "Dnešné události"
+
+#: inc/calendar_class.php:542
+msgid "Anniversary (repeats)"
+msgstr "Výročie (opakovaný)"
+
+#: inc/calendar_class.php:543
+msgid "Birthday (repeats)"
+msgstr "Dátum narodenia (opakovaný)"
+
+#: inc/calendar_class.php:544
+msgid "Holiday (repeats)"
+msgstr "Sviatok (opakovaný)"
+
+#: inc/calendar_class.php:545
+msgid "Other"
+msgstr "Iné"
+
+#: inc/calendar_class.php:566
+msgid "Edit Calendar Entry"
+msgstr "Upraviť položku kalendára"
+
+#: inc/calendar_class.php:575
+msgid "Calendar Entry"
+msgstr "Položka kalendára"
+
+#: inc/calendar_class.php:589
+msgid "Add Calendar Entry"
+msgstr "Pridať položku kalendára"
+
+#: inc/calendar_class.php:606 inc/familynews_class.php:212
+msgid "Title"
+msgstr "Názov"
+
+#: inc/calendar_class.php:612 inc/documents_class.php:44
+#: inc/documents_class.php:107
+msgid "Description"
+msgstr "Popis"
+
+#: inc/calendar_class.php:618 inc/poll_class.php:242
+msgid "Date"
+msgstr "Dátum"
+
+#: inc/calendar_class.php:624
+msgid "Type"
+msgstr "Druh"
+
+#: inc/calendar_class.php:630
+msgid "Private?"
+msgstr "Osobné?"
+
+#: inc/calendar_class.php:641
+msgid "You do not have permission to edit this Calendar Entry."
+msgstr "Nemáte oprávnenie k úpravám tohto záznamu v kalendári."
+
+#: inc/calendar_class.php:645
+msgid "You can not edit this event because it is private."
+msgstr "Nemôžete upravovať túto udalosť, pretože je súkromná."
+
+#: inc/calendar_class.php:829 inc/util_inc.php:198 calendar.php:30 home.php:53
+msgid "Calendar"
+msgstr "Kalendár"
+
+#: inc/documents_class.php:43 inc/documents_class.php:103
+msgid "Document"
+msgstr "Dokument"
+
+#: inc/documents_class.php:45
+msgid "Uploaded By"
+msgstr "Nahral"
+
+#: inc/documents_class.php:46 inc/gallery_class.php:519
+msgid "Date Added"
+msgstr "Dátum pridania"
+
+#: inc/documents_class.php:51 inc/messageboard_class.php:118
+msgid "m/d/Y h:ia"
+msgstr "m/d/Y h:ia"
+
+#: inc/documents_class.php:62
+msgid "Delete this Document"
+msgstr "Zmazať tento dokument"
+
+#: inc/documents_class.php:88
+msgid "Welcome to the Documents Section."
+msgstr "Vitajte v sekcii dokumenty."
+
+#: inc/documents_class.php:89
+msgid "Currently no one is sharing any documents."
+msgstr "V súčasnej dobe nikto nezdieľa dokumenty."
+
+#: inc/documents_class.php:90
+msgid "Upload a document"
+msgstr "Nahraj dokument"
+
+#: inc/documents_class.php:101
+msgid "Upload Document"
+msgstr "Nahrať dokument"
+
+#: inc/documents_class.php:151
+#, php-format
+msgid ""
+"Document %s exceeds the maximum file size allowed by your PHP settings."
+msgstr ""
+"Dokument %s presahuje maximálnu veľkosť súboru povoleného v nastavení PHP."
+
+#: inc/documents_class.php:159
+#, php-format
+msgid "Document %s is not allowed."
+msgstr "Dokument %s nie je povolený."
+
+#: inc/documents_class.php:160
+msgid "Documents must be of type (.DOC, .TXT, .XSL, .ZIP, .RTF, .PPT, .PDF)."
+msgstr "Dokumenty musia byť typu (.DOC, .TXT, .XSL, .ZIP, .RTF, .PPT, .PDF)."
+
+#: inc/familynews_class.php:43
+msgid "M. j"
+msgstr "Pán"
+
+#: inc/familynews_class.php:75 inc/familynews_class.php:261
+#: inc/gallery_class.php:470 inc/gallery_class.php:546
+#: inc/profile_class.php:90
+msgid "F j, Y g:i a"
+msgstr "j. F Y, G:i"
+
+#: inc/familynews_class.php:92
+msgid "Edit this Family News"
+msgstr "Upraviť novinky rodiny"
+
+#: inc/familynews_class.php:102
+msgid "Delete this Family News"
+msgstr "Odstrániť novinky rodiny"
+
+#: inc/familynews_class.php:113 inc/familynews_class.php:273
+msgid "Read More"
+msgstr "Čitať viacej"
+
+#: inc/familynews_class.php:119 inc/familynews_class.php:126
+#: inc/familynews_class.php:280 inc/familynews_comments.php:115
+#: inc/gallery_class.php:533 inc/profile_class.php:117 home.php:186
+msgid "Comments"
+msgstr "Komentáre"
+
+#: inc/familynews_class.php:129 inc/familynews_comments.php:118
+#: inc/gallery_class.php:575 inc/gallery_class.php:577
+msgid "Add Comment"
+msgstr "Pridať komentár"
+
+#: inc/familynews_class.php:130
+msgid "Add a comment"
+msgstr "Pridať komentár"
+
+#: inc/familynews_class.php:150 inc/familynews_comments.php:139
+msgid "Delete this comment"
+msgstr "Zmazať tento komentár"
+
+#: inc/familynews_class.php:175 inc/familynews_comments.php:153
+msgid "no comments"
+msgstr "bez komentárov"
+
+#: inc/familynews_class.php:203
+msgid "Edit News"
+msgstr "Upraviť novinku"
+
+#: inc/familynews_class.php:208 familynews.php:78
+msgid "Add News"
+msgstr "Pridať novinku"
+
+#: inc/familynews_class.php:213
+msgid "Title of your Family News"
+msgstr "Názov novinky rodiny"
+
+#: inc/familynews_class.php:288
+msgid "Welcome to the Family News Section."
+msgstr "Vitajte v sekcii novinky rodiny."
+
+#: inc/familynews_class.php:289
+msgid "Currently no one has added any news."
+msgstr "Zatiaľ nikto nič nenapísal."
+
+#: inc/familynews_class.php:290
+msgid "Add Family News"
+msgstr "Pridať rodinnú novinku"
+
+#: inc/familynews_class.php:328 inc/gallery_class.php:861
+#: inc/gallery_class.php:1867 inc/messageboard_class.php:630
+msgid "M. j, Y g:i a"
+msgstr "M. j, Y g:i a"
+
+#: inc/familynews_comments.php:94
+msgid "Are you sure you want to DELETE this comment?"
+msgstr "Skutočne chcete ZMAZAŤ tento komentár?"
+
+#: inc/familynews_comments.php:119
+msgid "Add a new comment"
+msgstr "Pridať nový komentár"
+
+#: inc/familynews_comments.php:156
+msgid "Invalid Family News ID."
+msgstr "Neplatné ID novinky rodiny."
+
+#: inc/gallery_class.php:49
+msgid "Photo Gallery Home"
+msgstr "Fotogaléria - úvod"
+
+#: inc/gallery_class.php:50 inc/gallery_class.php:315
+#: inc/gallery_class.php:836 inc/gallery_class.php:953
+#: inc/gallery_class.php:970
+msgid "Member Gallery"
+msgstr "Užívateľská fotogaléria"
+
+#: inc/gallery_class.php:51 inc/gallery_class.php:215
+#: inc/gallery_class.php:876
+msgid "Top Rated"
+msgstr "Najvyššie hodnotené"
+
+#: inc/gallery_class.php:52 inc/gallery_class.php:225
+#: inc/gallery_class.php:906
+msgid "Most Viewed"
+msgstr "Najviacej zobrazené"
+
+#: inc/gallery_class.php:53
+msgid "My Photos"
+msgstr "Moje fotky"
+
+#: inc/gallery_class.php:54 inc/gallery_class.php:85 inc/gallery_class.php:113
+#: inc/members_class.php:297 inc/members_class.php:304
+msgid "Search"
+msgstr "Hľadaj"
+
+#: inc/gallery_class.php:60
+msgid "Manage Categories"
+msgstr "Správa Kategórií"
+
+#: inc/gallery_class.php:88
+msgid "Photo Uploaded By"
+msgstr "Fotku nahral"
+
+#: inc/gallery_class.php:101
+msgid "Members In Photo"
+msgstr "Členovia vo fotografii"
+
+#: inc/gallery_class.php:139
+msgid "M. j, Y"
+msgstr "M. j, Y"
+
+#: inc/gallery_class.php:151
+msgid "Latest Categories"
+msgstr "Posledná kategória"
+
+#: inc/gallery_class.php:163
+msgid "Welcome to the Photo Gallery"
+msgstr "Vitajte vo fotogalérii"
+
+#: inc/gallery_class.php:164
+msgid "Currently no one has added any photos"
+msgstr "V súčasnosti nikto nepridal žiadne fotografie"
+
+#: inc/gallery_class.php:165
+msgid "How do I add photos?"
+msgstr "Ako pridať fotku?"
+
+#: inc/gallery_class.php:167
+msgid "Create a Category"
+msgstr "Vytvoriť kategóriu"
+
+#: inc/gallery_class.php:201 inc/gallery_class.php:854
+#: inc/gallery_class.php:857
+msgid "Latest Comments"
+msgstr "Posledné komentáre"
+
+#: inc/gallery_class.php:241 inc/gallery_class.php:925
+#, php-format
+msgid "Photos of %s"
+msgstr "Fotky %s"
+
+#: inc/gallery_class.php:254 inc/gallery_class.php:939
+#, php-format
+msgid "Photos uploaded by %s"
+msgstr "Fotografie nahral %s"
+
+#: inc/gallery_class.php:307
+msgid "From the Category:"
+msgstr "Z kategórie:"
+
+#: inc/gallery_class.php:308
+msgid "by"
+msgstr "od"
+
+#: inc/gallery_class.php:337 inc/gallery_class.php:345
+#: inc/gallery_class.php:369 inc/gallery_class.php:393
+#, php-format
+msgid "Photo %d of %d"
+msgstr "Fotografie %d z %d"
+
+#: inc/gallery_class.php:477 inc/gallery_class.php:1329
+msgid "Edit Photo"
+msgstr "Upraviť foto"
+
+#: inc/gallery_class.php:497 inc/gallery_class.php:1119
+#: inc/gallery_class.php:1341 inc/gallery_class.php:1398
+msgid "Caption"
+msgstr "Hlavička"
+
+#: inc/gallery_class.php:502
+msgid "Rating"
+msgstr "Hodnotenie"
+
+#: inc/gallery_class.php:505
+#, php-format
+msgid "Currently %s/5 Starts"
+msgstr "V súčasnosti %s/5 hviezdičiek"
+
+#: inc/gallery_class.php:506 inc/gallery_class.php:891
+msgid "1 out of 5 Stars"
+msgstr "1 z 5 Hviezdičiek"
+
+#: inc/gallery_class.php:507 inc/gallery_class.php:892
+msgid "2 out of 5 Stars"
+msgstr "2 z 5 Hviezdičiek"
+
+#: inc/gallery_class.php:508 inc/gallery_class.php:894
+msgid "3 out of 5 Stars"
+msgstr "3 z 5 Hviezdičiek"
+
+#: inc/gallery_class.php:509 inc/gallery_class.php:895
+msgid "4 out of 5 Stars"
+msgstr "4 z 5 Hviezdičiek"
+
+#: inc/gallery_class.php:510 inc/gallery_class.php:897
+msgid "5 out of 5 Stars"
+msgstr "5 z 5 Hviezdičiek"
+
+#: inc/gallery_class.php:515
+msgid "Filename"
+msgstr "Názov súboru"
+
+#: inc/gallery_class.php:517
+msgid "Photo Size"
+msgstr "Veľkosť fotografie"
+
+#: inc/gallery_class.php:518
+msgid "Dimensions"
+msgstr "Rozmery"
+
+#: inc/gallery_class.php:520
+msgid "Members in Photo"
+msgstr "Členovia vo fotke"
+
+#: inc/gallery_class.php:553
+msgid "Delete this Comment"
+msgstr "Zmazať tento komentár"
+
+#: inc/gallery_class.php:586
+msgid "The Photo you are trying to view can not be found."
+msgstr "Fotografiu, ktorú sa pokúšate zobraziť nebola nájdená."
+
+#: inc/gallery_class.php:596 inc/gallery_class.php:1047 index.php:28
+#: index.php:193
+msgid "Oops!"
+msgstr "Uuups!"
+
+#: inc/gallery_class.php:597 inc/gallery_class.php:1048
+msgid "The Category you are trying to view is Empty."
+msgstr "Kategória, ktorú sa pokúšate zobraziť je prázdna."
+
+#: inc/gallery_class.php:811
+msgid "Uh Oh!"
+msgstr "Uh Oh!"
+
+#: inc/gallery_class.php:812
+msgid "The category you are trying to view doesn't exist."
+msgstr "Pokúšate sa zobraziť neexistujúcu kategóriu."
+
+#: inc/gallery_class.php:843 inc/gallery_class.php:844
+#, php-format
+msgid "View Categories for %s"
+msgstr "Zobraziť Kategória pre %s"
+
+#: inc/gallery_class.php:845 inc/gallery_class.php:979
+#: inc/profile_class.php:251
+msgid "Photos"
+msgstr "Fotky"
+
+#: inc/gallery_class.php:858
+msgid "View All"
+msgstr "Zobraziť všetky"
+
+#: inc/gallery_class.php:889
+#, php-format
+msgid "Currently %d/5 Stars."
+msgstr "V súčasnosti %d/5 hviezdičiek."
+
+#: inc/gallery_class.php:977 inc/gallery_class.php:978
+#, php-format
+msgid "View Photos in %s"
+msgstr "Ukáž fotky v %s"
+
+#: inc/gallery_class.php:1101 themes/default/navigation.php:28
+#: themes/default/navigation.php:31 themes/default/footer.php:11 help.php:11
+msgid "Help"
+msgstr "Pomoc"
+
+#: inc/gallery_class.php:1105 inc/gallery_class.php:1196
+#: inc/recipes_class.php:306
+msgid "Category"
+msgstr "Kategória"
+
+#: inc/gallery_class.php:1113
+msgid "Photo"
+msgstr "Fotka"
+
+#: inc/gallery_class.php:1126
+msgid "Rotate Left"
+msgstr "Otočiť doľava"
+
+#: inc/gallery_class.php:1127
+msgid "Rotate Right"
+msgstr "Otočiť doprava"
+
+#: inc/gallery_class.php:1132
+msgid "Members in this Photo"
+msgstr "Členovia na tejto fotografii"
+
+#: inc/gallery_class.php:1138 inc/messageboard_class.php:430
+#: inc/settings_class.php:292 inc/settings_class.php:314
+#: inc/settings_class.php:368 inc/settings_class.php:388 contact.php:65
+#: register.php:231
+msgid "Submit"
+msgstr "Potvrdiť"
+
+#: inc/gallery_class.php:1144
+msgid "You must create a Category first."
+msgstr "Musíte najprv vytvoriť kategóriu."
+
+#: inc/gallery_class.php:1185
+msgid ""
+"JavaScript must be enabled in order for you to use the Chat Room. However, "
+"it seems JavaScript is either disabled or not supported by your browser."
+msgstr ""
+"JavaScript musí byť povolený, aby bolo možné používať chatovacej miestnosti. "
+"Zdá sa však, že JavaScript nie je aktívny alebo ho váš prehliadač "
+"nepodporuje."
+
+#: inc/gallery_class.php:1187
+msgid "Either enable JavaScript by changing your browser options."
+msgstr "Povoľte JavaScript zmenou nastavenia vášho prehliadača."
+
+#: inc/gallery_class.php:1189
+msgid "Enable the Basic Upload option by changing Your Settings."
+msgstr "Povoľte základné upload možnosti  zmenou nastavenia."
+
+#: inc/gallery_class.php:1333
+msgid "Change Category"
+msgstr "Zmeniť kategóriu"
+
+#: inc/gallery_class.php:1347 inc/gallery_class.php:1404
+msgid "Who is in this Photo?"
+msgstr "Kto je na tejto fotografii?"
+
+#: inc/gallery_class.php:1364
+msgid "Could not edit Photo.  Photo ID does not exist."
+msgstr "Nepodarilo sa upraviť fotku. Foto ID neexistuje."
+
+#: inc/gallery_class.php:1390
+msgid "Edit Photos"
+msgstr "Upraviť fotografie"
+
+#: inc/gallery_class.php:1485
+msgid ""
+"File is not a valid Photo, must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG)."
+msgstr ""
+"Súbor nie je platný, fotky musia byť typu (.JPG, .JPEG, .GIF, .BMP or .PNG)."
+
+#: inc/gallery_class.php:1726
+msgid "The following photo was added successfully."
+msgstr "Následujúca fotka bola úspešne pridana."
+
+#: inc/gallery_class.php:1796 inc/gallery_class.php:1822
+msgid "Edit Category"
+msgstr "Upraviť kategóriu"
+
+#: inc/gallery_class.php:1797
+msgid "Delete Category"
+msgstr "Odstrániť kategóriu"
+
+#: inc/gallery_class.php:1802
+msgid "No Categories created yet."
+msgstr "Žiadne kategórie zatiaľ nevytvorené."
+
+#: inc/gallery_class.php:1808
+msgid "Create Category"
+msgstr "Vytvoriť kategóriu"
+
+#: inc/gallery_class.php:1811
+msgid "Category Name"
+msgstr "Názov kategórie"
+
+#: inc/gallery_class.php:1882
+#, php-format
+msgid "%d new photos"
+msgstr "%d nové fotky"
+
+#: inc/gallery_class.php:1890 inc/messageboard_class.php:662 home.php:240
+msgid "nothing new last 30 days"
+msgstr "nič nového posledných 30 dní"
+
+#: inc/locale.php:15
+msgid "Sunday"
+msgstr "Nedeľa"
+
+#: inc/locale.php:16
+msgid "Monday"
+msgstr "Pondelok"
+
+#: inc/locale.php:17
+msgid "Tuesday"
+msgstr "Utorok"
+
+#: inc/locale.php:18
+msgid "Wednesday"
+msgstr "Streda"
+
+#: inc/locale.php:19
+msgid "Thursday"
+msgstr "Štvrtok"
+
+#: inc/locale.php:20
+msgid "Friday"
+msgstr "Piatok"
+
+#: inc/locale.php:21
+msgid "Saturday"
+msgstr "Sobota"
+
+#: inc/locale.php:23
+msgid "sunday_initial"
+msgstr "Ne"
+
+#: inc/locale.php:24
+msgid "monday_initial"
+msgstr "Po"
+
+#: inc/locale.php:25
+msgid "tuesday_initial"
+msgstr "Ut"
+
+#: inc/locale.php:26
+msgid "wednesday_initial"
+msgstr "St"
+
+#: inc/locale.php:27
+msgid "thursday_initial"
+msgstr "Št"
+
+#: inc/locale.php:28
+msgid "friday_initial"
+msgstr "Pi"
+
+#: inc/locale.php:29
+msgid "saturday_initial"
+msgstr "So"
+
+#: inc/locale.php:31
+msgid "Sun"
+msgstr "Ned"
+
+#: inc/locale.php:32
+msgid "Mon"
+msgstr "Pon"
+
+#: inc/locale.php:33
+msgid "Tue"
+msgstr "Uto"
+
+#: inc/locale.php:34
+msgid "Wed"
+msgstr "Str"
+
+#: inc/locale.php:35
+msgid "Thr"
+msgstr "Štv"
+
+#: inc/locale.php:36
+msgid "Fri"
+msgstr "Pia"
+
+#: inc/locale.php:37
+msgid "Sat"
+msgstr "Sob"
+
+#: inc/locale.php:39
+msgid "January"
+msgstr "Január"
+
+#: inc/locale.php:40
+msgid "February"
+msgstr "Február"
+
+#: inc/locale.php:41
+msgid "March"
+msgstr "Marec"
+
+#: inc/locale.php:42
+msgid "April"
+msgstr "Apríl"
+
+#: inc/locale.php:43
+msgid "May"
+msgstr "Máj"
+
+#: inc/locale.php:44
+msgid "June"
+msgstr "Jún"
+
+#: inc/locale.php:45
+msgid "July"
+msgstr "Júl"
+
+#: inc/locale.php:46
+msgid "August"
+msgstr "August"
+
+#: inc/locale.php:47
+msgid "September"
+msgstr "September"
+
+#: inc/locale.php:48
+msgid "October"
+msgstr "Október"
+
+#: inc/locale.php:49
+msgid "November"
+msgstr "November"
+
+#: inc/locale.php:50
+msgid "December"
+msgstr "December"
+
+#: inc/locale.php:52
+msgid "january_abbreviation"
+msgstr "Jan"
+
+#: inc/locale.php:53
+msgid "february_abbreviation"
+msgstr "Feb"
+
+#: inc/locale.php:54
+msgid "march_abbreviation"
+msgstr "Mar"
+
+#: inc/locale.php:55
+msgid "aprial_abbreviation"
+msgstr "Apr"
+
+#: inc/locale.php:56
+msgid "may_abbreviation"
+msgstr "Máj"
+
+#: inc/locale.php:57
+msgid "jun_abbreviation"
+msgstr "Jún"
+
+#: inc/locale.php:58
+msgid "july_abbreviation"
+msgstr "Júl"
+
+#: inc/locale.php:59
+msgid "august_abbreviation"
+msgstr "Aug"
+
+#: inc/locale.php:60
+msgid "september_abbreviation"
+msgstr "Sep"
+
+#: inc/locale.php:61
+msgid "october_abbreviation"
+msgstr "Okt"
+
+#: inc/locale.php:62
+msgid "november_abbreviation"
+msgstr "Nov"
+
+#: inc/locale.php:63
+msgid "december_abbreviation"
+msgstr "Dec"
+
+#: inc/locale.php:65
+msgid "am"
+msgstr "dop."
+
+#: inc/locale.php:66
+msgid "pm"
+msgstr "odp."
+
+#: inc/locale.php:67
+msgid "AM"
+msgstr "Dopoludia"
+
+#: inc/locale.php:68
+msgid "PM"
+msgstr "Odpoludia"
+
+#: inc/members_class.php:61
+msgid "Create New Member"
+msgstr "Vytvoriť nového člena"
+
+#: inc/members_class.php:73
+msgid "Edit Member"
+msgstr "Upraviť člena"
+
+#: inc/members_class.php:108 inc/settings_class.php:374
+#: inc/settings_class.php:383 index.php:284 install.php:436 register.php:139
+#: register.php:188 settings.php:49
+msgid "Password"
+msgstr "Heslo"
+
+#: inc/members_class.php:151
+msgid "Sorry, but this information is Required."
+msgstr "Ospravedlňujeme sa, ale tieto informácie sú požadované."
+
+#: inc/members_class.php:156 inc/settings_class.php:355 install.php:470
+msgid "Birthday"
+msgstr "Dátum narodenia"
+
+#: inc/members_class.php:201
+msgid "Create"
+msgstr "Vytvoriť"
+
+#: inc/members_class.php:209 inc/members_class.php:317
+#: inc/settings_class.php:220 help.php:195
+msgid "Access Level"
+msgstr "Prístupová úroveň"
+
+#: inc/members_class.php:216 inc/members_class.php:399
+#: inc/members_class.php:437 inc/util_inc.php:281 help.php:181
+msgid "Admin"
+msgstr "Admin"
+
+#: inc/members_class.php:220 inc/members_class.php:440 inc/util_inc.php:284
+#: help.php:182
+msgid "Helper"
+msgstr "Pomocník"
+
+#: inc/members_class.php:224 inc/members_class.php:443 inc/util_inc.php:278
+#: inc/util_inc.php:287
+msgid "Member"
+msgstr "Člen"
+
+#: inc/members_class.php:226
+msgid "Advanced Options"
+msgstr "Rozšírené nastavenia"
+
+#: inc/members_class.php:234 inc/members_class.php:446 inc/util_inc.php:293
+#: help.php:184
+msgid "Non-Photographer"
+msgstr "Nie-fotograf"
+
+#: inc/members_class.php:238 inc/members_class.php:449 inc/util_inc.php:290
+#: help.php:185
+msgid "Non-Poster"
+msgstr "Nie-prispievateľ"
+
+#: inc/members_class.php:242 inc/members_class.php:452 inc/util_inc.php:296
+#: help.php:186
+msgid "Commenter"
+msgstr "Komentátor"
+
+#: inc/members_class.php:246 inc/members_class.php:455 inc/util_inc.php:299
+#: help.php:187
+msgid "Poster"
+msgstr "Prispievateľ"
+
+#: inc/members_class.php:250 inc/members_class.php:458 inc/util_inc.php:302
+#: help.php:188
+msgid "Photographer"
+msgstr "Fotograf"
+
+#: inc/members_class.php:254 inc/members_class.php:461 inc/util_inc.php:305
+#: help.php:189
+msgid "Blogger"
+msgstr "Novinkár"
+
+#: inc/members_class.php:258 inc/members_class.php:464 inc/util_inc.php:308
+#: help.php:190
+msgid "Guest"
+msgstr "Návštevník"
+
+#: inc/members_class.php:292
+msgid "Create Member"
+msgstr "Vytvoriť člena"
+
+#: inc/members_class.php:313
+msgid "ID"
+msgstr "ID"
+
+#: inc/members_class.php:317
+msgid "Get Help using Access Levels"
+msgstr "Dostať pomoc k použitiu prístupových úrovní"
+
+#: inc/members_class.php:318
+msgid "Active?"
+msgstr "Aktívny?"
+
+#: inc/members_class.php:409
+msgid "Activate Selected"
+msgstr "Aktivovať vybrané"
+
+#: inc/members_class.php:410
+msgid "Inactivate Selected"
+msgstr "Deaktivovať vybrané"
+
+#: inc/members_class.php:411 inc/privatemsg_class.php:55
+msgid "Delete Selected"
+msgstr "Odstrániť vybrané"
+
+#: inc/messageboard_class.php:98 inc/messageboard_class.php:110
+msgid "h:ia"
+msgstr "h:ia"
+
+#: inc/messageboard_class.php:125 inc/messageboard_class.php:649
+#: inc/messageboard_class.php:652
+msgid "Page"
+msgstr "Stránka"
+
+#: inc/messageboard_class.php:172
+msgid "Invalid Thread"
+msgstr "Neplatná téma"
+
+#: inc/messageboard_class.php:221
+msgid "n/d/y g:ia"
+msgstr "n/d/y g:ia"
+
+#: inc/messageboard_class.php:231 inc/profile_class.php:48
+#: inc/profile_class.php:49 inc/profile_class.php:54 inc/profile_class.php:284
+msgid "Elder"
+msgstr "Postarší"
+
+#: inc/messageboard_class.php:233 inc/profile_class.php:52
+#: inc/profile_class.php:53 inc/profile_class.php:59 inc/profile_class.php:286
+msgid "Adult"
+msgstr "Dospelý"
+
+#: inc/messageboard_class.php:235
+msgid "Matuer Adult"
+msgstr "Matuer dospelý"
+
+#: inc/messageboard_class.php:237 inc/profile_class.php:62
+#: inc/profile_class.php:63 inc/profile_class.php:69 inc/profile_class.php:290
+msgid "Young Adult"
+msgstr "Dospievajúcí"
+
+#: inc/messageboard_class.php:239 inc/profile_class.php:67
+#: inc/profile_class.php:68 inc/profile_class.php:74 inc/profile_class.php:292
+msgid "Teenager"
+msgstr "Puberťák"
+
+#: inc/messageboard_class.php:241 inc/profile_class.php:72
+#: inc/profile_class.php:73 inc/profile_class.php:79 inc/profile_class.php:294
+msgid "Kid"
+msgstr "Decko"
+
+#: inc/messageboard_class.php:243 inc/profile_class.php:77
+#: inc/profile_class.php:78 inc/profile_class.php:84 inc/profile_class.php:296
+msgid "Toddler"
+msgstr "Batoľa"
+
+#: inc/messageboard_class.php:245 inc/profile_class.php:82
+#: inc/profile_class.php:83 inc/profile_class.php:298
+msgid "Baby"
+msgstr "Nemluvňa"
+
+#: inc/messageboard_class.php:262
+msgid "Quote this message"
+msgstr "Citovať príspevok"
+
+#: inc/messageboard_class.php:272
+msgid "Edit this message"
+msgstr "Upraviť túto správu"
+
+#: inc/messageboard_class.php:283
+msgid "Delete this message"
+msgstr "Zmazať túto správu"
+
+#: inc/messageboard_class.php:296 inc/profile_class.php:109
+#: inc/profile_class.php:113 inc/profile_class.php:250
+msgid "Posts"
+msgstr "Príspevky"
+
+#: inc/messageboard_class.php:403 inc/messageboard_class.php:578
+#: privatemsg.php:58
+msgid "New Message"
+msgstr "Nová správa"
+
+#: inc/messageboard_class.php:436 inc/messageboard_class.php:478
+#: inc/messageboard_class.php:593 inc/privatemsg_class.php:104
+msgid "Reply"
+msgstr "Odpovedať"
+
+#: inc/messageboard_class.php:454
+#, php-format
+msgid "Last post written by %s"
+msgstr "Posledný príspevok napísal %s"
+
+#: inc/messageboard_class.php:468
+msgid "Quoting"
+msgstr "Citovanie"
+
+#: inc/messageboard_class.php:491 messageboard.php:187 messageboard.php:189
+#: messageboard.php:192
+msgid "Edited"
+msgstr "Upravené"
+
+#: inc/messageboard_class.php:542 themes/default/navigation.php:50
+#: privatemsg.php:54 profile.php:27
+msgid "Awards"
+msgstr "Ocenenie"
+
+#: inc/messageboard_class.php:551
+#, php-format
+msgid "#%s Poster last month"
+msgstr "#%s plagát za posledný mesiac"
+
+#: inc/messageboard_class.php:552 inc/messageboard_class.php:557
+#: inc/messageboard_class.php:566 inc/profile_class.php:415
+msgid "posts"
+msgstr "príspevky"
+
+#: inc/messageboard_class.php:556
+#, php-format
+msgid "#%s Photographer last month"
+msgstr "#%s fotograf posledný mesiac"
+
+#: inc/messageboard_class.php:559
+msgid "Used Most Smileys last month"
+msgstr "Používa najviac smajlíkov posledný mesiac"
+
+#: inc/messageboard_class.php:562
+msgid "Uploaded Most Viewed Photo last month"
+msgstr "Poslané najsledovanejšie foto minulý mesiac"
+
+#: inc/messageboard_class.php:563
+msgid "views"
+msgstr "zobrazenia"
+
+#: inc/messageboard_class.php:565
+msgid "Top Thread Starter last month"
+msgstr "Najvačší zakladateľ tém posledný mesiac"
+
+#: inc/messageboard_class.php:585
+msgid "Message Board Home"
+msgstr "Odkazovač - úvod"
+
+#: inc/messageboard_class.php:607 inc/profile_class.php:409
+#: inc/settings_class.php:298 themes/default/navigation.php:13
+#: themes/default/navigation.php:48 help.php:199 messageboard.php:22
+#: settings.php:47
+msgid "Message Board"
+msgstr "Odkazovač"
+
+#: inc/poll_class.php:37
+msgid "You have already voted."
+msgstr "Už ste hlasoval / hlasovala."
+
+#: inc/poll_class.php:97 inc/poll_class.php:243
+msgid "Total Votes"
+msgstr "Celkom hlasov"
+
+#: inc/poll_class.php:98
+msgid "Who Voted for What?"
+msgstr "Kto hlasoval za čo?"
+
+#: inc/poll_class.php:140
+msgid "No user data could be found."
+msgstr "Ziadny uzívateľ dát sa nenašiel."
+
+#: inc/poll_class.php:143
+msgid "No one has voted on this poll yet."
+msgstr "Nikto zatiaľ nehlasoval  v tomto prieskume."
+
+#: inc/poll_class.php:198 themes/default/navigation.php:49
+msgid "Polls"
+msgstr "Ankety"
+
+#: inc/poll_class.php:215
+msgid "Vote"
+msgstr "Hlasovať"
+
+#: inc/poll_class.php:218
+msgid "View Results"
+msgstr "Výsledky"
+
+#: inc/poll_class.php:241
+msgid "Question"
+msgstr "Otázka"
+
+#: inc/poll_class.php:270
+msgid "No previous polls"
+msgstr "Žiadne predchádzajúce ankety"
+
+#: inc/prayers_class.php:37 inc/profile_class.php:349 inc/recipes_class.php:91
+#: inc/recipes_class.php:192
+msgid "F j, Y, g:i a"
+msgstr "F j, Y, g:i a"
+
+#: inc/prayers_class.php:54
+msgid "Edit this Prayer Concern"
+msgstr "Uprav túto modlitbu"
+
+#: inc/prayers_class.php:63
+msgid "Delete this Prayer Concern"
+msgstr "Vymazať túto modlitbu"
+
+#: inc/prayers_class.php:69
+#, php-format
+msgid "%s asks that you please pray for..."
+msgstr "%s Vás žiada, modlite sa za ..."
+
+#: inc/prayers_class.php:71
+msgid "Because..."
+msgstr "Vzhľadom k tomu, ..."
+
+#: inc/prayers_class.php:93
+msgid "Welcome to the Prayer Concerns section."
+msgstr "Vitajte v sekcii modlitby."
+
+#: inc/prayers_class.php:94
+msgid "Currently no one has added any Prayer Concerns."
+msgstr "V súčasnej dobe nikto nemá pridanú žiadnú modlitbu."
+
+#: inc/prayers_class.php:95
+msgid "Add a new Prayer Concern"
+msgstr "Pridať novú modlitbu."
+
+#: inc/prayers_class.php:108
+msgid "Edit Prayer Concern"
+msgstr "Úpraviť želanie"
+
+#: inc/prayers_class.php:113
+msgid "Add Prayer Concern"
+msgstr "Pridať modlitbu"
+
+#: inc/prayers_class.php:117
+msgid "Pray For"
+msgstr "želanie pre"
+
+#: inc/privatemsg_class.php:29 inc/privatemsg_class.php:67
+msgid "Private Messages (PM)"
+msgstr "Súkromné správy (PM)"
+
+#: inc/privatemsg_class.php:29 privatemsg.php:63
+msgid "Inbox"
+msgstr "Doručená pošta"
+
+#: inc/privatemsg_class.php:32 inc/privatemsg_class.php:99 privatemsg.php:114
+msgid "From"
+msgstr "Od"
+
+#: inc/privatemsg_class.php:33 inc/privatemsg_class.php:98
+msgid "Received"
+msgstr "Prijaté"
+
+#: inc/privatemsg_class.php:67 inc/privatemsg_class.php:71
+#: inc/privatemsg_class.php:131 privatemsg.php:64
+msgid "Sent"
+msgstr "Odoslané"
+
+#: inc/privatemsg_class.php:69 inc/privatemsg_class.php:132
+#: inc/privatemsg_class.php:170
+msgid "To"
+msgstr "Komu"
+
+#: inc/privatemsg_class.php:95 inc/privatemsg_class.php:128
+msgid "n/j/Y g:i a"
+msgstr "n/j/Y g:i a"
+
+#: inc/privatemsg_class.php:109 inc/privatemsg_class.php:141
+msgid ""
+"The PM you are trying to view either doesn't exist or you don't have "
+"permission to view it."
+msgstr ""
+"PM ktorú sa pokúšate zobraziť buď neexistuje, alebo nemáte oprávnenie pre "
+"zobrazenie."
+
+#: inc/privatemsg_class.php:160 inc/util_inc.php:261
+msgid "New PM"
+msgstr "Nová PM"
+
+#: inc/privatemsg_class.php:185 chat.php:211
+msgid "Send"
+msgstr "Odoslať"
+
+#: inc/profile_class.php:30
+msgid "Invalid User"
+msgstr "Neplatný užívateľ"
+
+#: inc/profile_class.php:57 inc/profile_class.php:58 inc/profile_class.php:64
+#: inc/profile_class.php:288
+msgid "Mature Adult"
+msgstr "Vyzretý"
+
+#: inc/profile_class.php:89 rss.php:226
+msgid "F j, Y"
+msgstr "j. F Y"
+
+#: inc/profile_class.php:121
+msgid "Dates"
+msgstr "Termíny"
+
+#: inc/profile_class.php:159
+#, php-format
+msgid "%s point to go"
+msgid_plural "%s points to go"
+msgstr[0] "%s bod do idenia"
+msgstr[1] "%s bodov do idenia"
+msgstr[2] "%s bodov do idenia"
+
+#: inc/profile_class.php:192
+msgid "Send PM"
+msgstr "Poslať PM"
+
+#: inc/profile_class.php:204 inc/profile_class.php:207
+#: inc/profile_class.php:252
+msgid "Rank"
+msgstr "Hodnosť"
+
+#: inc/profile_class.php:206
+msgid "Points"
+msgstr "Body"
+
+#: inc/profile_class.php:208
+msgid "Next Rank"
+msgstr "Ďalšia hodnosť"
+
+#: inc/profile_class.php:211
+msgid "Join Date"
+msgstr "Dátum pripojenia sa"
+
+#: inc/profile_class.php:212
+msgid "Last Visit"
+msgstr "Posledná návšteva"
+
+#: inc/profile_class.php:227
+msgid "Last 5 Posts"
+msgstr "Posledných 5 príspevkov"
+
+#: inc/profile_class.php:232
+msgid "Last 5 Photos"
+msgstr "Posledných 5 fotiek"
+
+#: inc/profile_class.php:253
+msgid "Age"
+msgstr "Vek"
+
+#: inc/profile_class.php:410
+msgid "for having the most posts"
+msgstr "za to, že väčšina príspevkov"
+
+#: inc/profile_class.php:410
+msgid "Most Talkative Award"
+msgstr "Ocenenie pre najkomunikatívnejšieho"
+
+#: inc/profile_class.php:428
+msgid "for starting the most active thread"
+msgstr "za začatie najaktívnejších konverzácii"
+
+#: inc/profile_class.php:428
+msgid "Conversation Starter Award"
+msgstr "Ocenenie štartéra konverzácii"
+
+#: inc/profile_class.php:431
+msgid "replies"
+msgstr "odpovede"
+
+#: inc/profile_class.php:437
+msgid "for using the most smileys"
+msgstr "za používanie Najviacej smajlikov"
+
+#: inc/profile_class.php:437
+msgid "Smiley Award"
+msgstr "Smiley ocenenia"
+
+#: inc/profile_class.php:441
+msgid "No Message Board Awards have been awarded yet."
+msgstr "Neboli žiadne ocenenia doteraz udelené."
+
+#: inc/profile_class.php:449
+msgid "for submitting the most photos"
+msgstr "za vloženie najviacej fotográfii"
+
+#: inc/profile_class.php:449
+msgid "Photographer Award"
+msgstr "Cena fotografa"
+
+#: inc/profile_class.php:454
+msgid "photos"
+msgstr "fotky"
+
+#: inc/profile_class.php:460
+msgid "for uploading the most viewed photo"
+msgstr "za nahranie najzobrazovanejšej fotky"
+
+#: inc/profile_class.php:460
+msgid "Most Photogenic Award"
+msgstr "Ocenenie fotogenické osobnosti"
+
+#: inc/profile_class.php:475
+msgid "No Photo Gallery Awards have been awarded yet."
+msgstr "Žiadne ocenenia fotografa neboli zatial udelené."
+
+#: inc/recipes_class.php:33 inc/recipes_class.php:120
+#: inc/recipes_class.php:290
+msgid "Add Recipe"
+msgstr "Pridať recept"
+
+#: inc/recipes_class.php:38 inc/recipes_class.php:52 inc/recipes_class.php:134
+#: inc/recipes_class.php:135 inc/recipes_class.php:308
+#: inc/recipes_class.php:309 inc/recipes_class.php:312
+#: inc/recipes_class.php:409 inc/util_inc.php:1539 recipes.php:89 rss.php:186
+msgid "Appetizer"
+msgstr "Predkrm"
+
+#: inc/recipes_class.php:39 inc/recipes_class.php:55 inc/recipes_class.php:138
+#: inc/recipes_class.php:139 inc/recipes_class.php:313
+#: inc/recipes_class.php:314 inc/recipes_class.php:317
+#: inc/recipes_class.php:412 inc/util_inc.php:1540 recipes.php:92 rss.php:187
+msgid "Breakfast"
+msgstr "Raňajky"
+
+#: inc/recipes_class.php:40 inc/recipes_class.php:58 inc/recipes_class.php:142
+#: inc/recipes_class.php:143 inc/recipes_class.php:318
+#: inc/recipes_class.php:319 inc/recipes_class.php:322
+#: inc/recipes_class.php:415 inc/util_inc.php:1541 recipes.php:95 rss.php:188
+msgid "Dessert"
+msgstr "Mučník"
+
+#: inc/recipes_class.php:41 inc/recipes_class.php:63 inc/recipes_class.php:146
+#: inc/recipes_class.php:147 inc/recipes_class.php:323
+#: inc/recipes_class.php:324 inc/recipes_class.php:327
+#: inc/recipes_class.php:418 inc/util_inc.php:1542 recipes.php:98 rss.php:189
+msgid "Entree (Meat)"
+msgstr "Hlavný chod (Mäso)"
+
+#: inc/recipes_class.php:42 inc/recipes_class.php:66 inc/recipes_class.php:150
+#: inc/recipes_class.php:151 inc/recipes_class.php:328
+#: inc/recipes_class.php:329 inc/recipes_class.php:332
+#: inc/recipes_class.php:421 inc/util_inc.php:1543 recipes.php:101 rss.php:190
+msgid "Entree (Seafood)"
+msgstr "Hlavný chod (Plody mora)"
+
+#: inc/recipes_class.php:43 inc/recipes_class.php:69 inc/recipes_class.php:154
+#: inc/recipes_class.php:155 inc/recipes_class.php:333
+#: inc/recipes_class.php:334 inc/recipes_class.php:337
+#: inc/recipes_class.php:424 inc/util_inc.php:1544 recipes.php:104 rss.php:191
+msgid "Entree (Vegetarian)"
+msgstr "Hlavný chod (Vegetarianske)"
+
+#: inc/recipes_class.php:44 inc/recipes_class.php:74 inc/recipes_class.php:158
+#: inc/recipes_class.php:159 inc/recipes_class.php:338
+#: inc/recipes_class.php:339 inc/recipes_class.php:342
+#: inc/recipes_class.php:427 inc/util_inc.php:1545 recipes.php:107 rss.php:192
+msgid "Salad"
+msgstr "Šalát"
+
+#: inc/recipes_class.php:45 inc/recipes_class.php:77 inc/recipes_class.php:162
+#: inc/recipes_class.php:163 inc/recipes_class.php:343
+#: inc/recipes_class.php:344 inc/recipes_class.php:347
+#: inc/recipes_class.php:430 inc/util_inc.php:1546 recipes.php:110 rss.php:193
+msgid "Side Dish"
+msgstr "Príloha"
+
+#: inc/recipes_class.php:46 inc/recipes_class.php:80 inc/recipes_class.php:166
+#: inc/recipes_class.php:167 inc/recipes_class.php:348
+#: inc/recipes_class.php:349 inc/recipes_class.php:352
+#: inc/recipes_class.php:433 inc/util_inc.php:1547 recipes.php:113 rss.php:194
+msgid "Soup"
+msgstr "Polievka"
+
+#: inc/recipes_class.php:49 inc/recipes_class.php:113
+msgid "Recipe Categories"
+msgstr "Kategórie receptov"
+
+#: inc/recipes_class.php:94
+msgid "Latest Recipe"
+msgstr "Posledný recept"
+
+#: inc/recipes_class.php:97 inc/recipes_class.php:201
+#, php-format
+msgid "Submitted by %s on %s."
+msgstr "Odoslané podľa %s na %s."
+
+#: inc/recipes_class.php:170
+msgid "The Category you are trying to view doesn't exist."
+msgstr "Kategóriu, ktorú sa pokúšate zobraziť, neexistuje."
+
+#: inc/recipes_class.php:210
+msgid "Edit this Recipe"
+msgstr "Upraviť tento recept"
+
+#: inc/recipes_class.php:219
+msgid "Delete this Recipe"
+msgstr "Zmazať tento recept"
+
+#: inc/recipes_class.php:248
+msgid "Welcome to the Recipe section."
+msgstr "Vitajte v sekcii recepty."
+
+#: inc/recipes_class.php:249
+msgid "Currently no one has added any recipes."
+msgstr "V súčasnosti nikto nepridal žiadne recepty."
+
+#: inc/recipes_class.php:250
+msgid "Add a Recipe"
+msgstr "Pridať recept"
+
+#: inc/recipes_class.php:270
+#, php-format
+msgid "%s Recipe"
+msgid_plural "%s Recipes"
+msgstr[0] "%s recept"
+msgstr[1] "%s receptov"
+msgstr[2] "%s receptov"
+
+#: inc/recipes_class.php:285
+msgid "Edit Recipe"
+msgstr "Upraviť recept"
+
+#: inc/recipes_class.php:294
+msgid "Name of Recipe"
+msgstr "Názov receptu"
+
+#: inc/settings_class.php:74
+msgid "First and Last Name"
+msgstr "meno a priezvisko"
+
+#: inc/settings_class.php:217 themes/default/navigation.php:7 settings.php:19
+#: settings.php:46
+msgid "Settings"
+msgstr "Nastavenie"
+
+#: inc/settings_class.php:233
+msgid "Avatar"
+msgstr "Avatar"
+
+#: inc/settings_class.php:237
+msgid "Upload your personal image (Avatar)"
+msgstr "Nahrajte Váš osobny obrázok (Avatar)"
+
+#: inc/settings_class.php:250
+msgid "Frontpage"
+msgstr "Úvodná stránka"
+
+#: inc/settings_class.php:252
+msgid "How do you want the latest information to display on the frontpage?"
+msgstr "ako chcete zobrazovať posledné informácie na úvodnej stránke?"
+
+#: inc/settings_class.php:258
+msgid "Email Updates"
+msgstr "Aktualizácie e-mailov"
+
+#: inc/settings_class.php:264
+msgid "Advanced Uploader"
+msgstr "Rozšíreny uploader"
+
+#: inc/settings_class.php:270
+msgid "Language"
+msgstr "Jazyk"
+
+#: inc/settings_class.php:272
+msgid "What language do you speak?"
+msgstr "Aký jazyk ovládate?"
+
+#: inc/settings_class.php:278
+msgid "Timezone"
+msgstr "Časové pásmo"
+
+#: inc/settings_class.php:280
+msgid "What timezone do you live in?"
+msgstr "V akom časovom pásme žijete?"
+
+#: inc/settings_class.php:289
+msgid ""
+"You will need to manually change this off and on if your City/Town makes use "
+"of DST."
+msgstr ""
+"Budete to musieť zmeniť ručne vypnite a zapnite ak vaše mesto využíva DST."
+
+#: inc/settings_class.php:303
+msgid "What order do you want new messages to display?"
+msgstr "Akom poradí chcete nové správy na displeji?"
+
+#: inc/settings_class.php:320 settings.php:48
+msgid "Personal Info"
+msgstr "Osobné info"
+
+#: inc/settings_class.php:330 inc/settings_class.php:340
+#: inc/settings_class.php:350 install.php:394 install.php:465
+msgid "Sorry, but this information is required."
+msgstr "Prepáčte, ale táto informácia je požadovaná."
+
+#: inc/settings_class.php:399
+msgid "Level 1 (Admin)"
+msgstr "Úroveň 1 (Admin)"
+
+#: inc/settings_class.php:399
+msgid "You have administrative rights."
+msgstr "Máte administrátorské práva."
+
+#: inc/settings_class.php:400
+msgid "You have full access to add/change/delete all information."
+msgstr "Máte plný prístup k pridaniu/zmene/zmazaniu všetkých informácii."
+
+#: inc/settings_class.php:403
+msgid "Level 2 (Helper)"
+msgstr "Úroveň 2 (Pomocník)"
+
+#: inc/settings_class.php:403
+msgid "You have moderation rights."
+msgstr "Máte moderátorské práva."
+
+#: inc/settings_class.php:404
+msgid ""
+"You have some access to add/change/delete information including your own.  "
+"This level is mostly used for message board moderation (i.e. cleanup of "
+"old/unused posts and other such information)."
+msgstr ""
+"Máte prístup k funkciám pridať / zmeniť / zmazať informácie vrátane svojej "
+"vlastnej. Táto úroveň je väčšinou používaná pre moderovanie diskusných fór "
+"(tj vyčistenie starých / nevyužitých správ a ďalších takýchto informácií)."
+
+#: inc/settings_class.php:407 inc/settings_class.php:439
+msgid "Level 3 (Member)"
+msgstr "Úroveň 3 (Člen)"
+
+#: inc/settings_class.php:407 inc/settings_class.php:439
+msgid "You have basic rights."
+msgstr "Máte základné práva."
+
+#: inc/settings_class.php:408 inc/settings_class.php:440
+msgid "You can add/change/delete only your own information."
+msgstr "Máte len prístup k pridaniu/zmene/zmazaniu vašich informácii."
+
+#: inc/settings_class.php:411 inc/settings_class.php:415
+#: inc/settings_class.php:419 inc/settings_class.php:423
+#: inc/settings_class.php:427 inc/settings_class.php:431
+msgid "You have limited rights."
+msgstr "Máte obmedzené práva."
+
+#: inc/settings_class.php:412
+msgid ""
+"You have the same rights as a Member, except you cannot use the Photo "
+"Gallery."
+msgstr ""
+"Máte rovnaké práva ako člen, s výnimkou nemôžete používať aplikáciu foto "
+"galéria."
+
+#: inc/settings_class.php:416
+msgid ""
+"You have the same rights as a Member, except you cannot use the Message "
+"Board."
+msgstr ""
+"Máte rovnaké práva ako člen, s výnimkou nemôžete používať aplikáciu fórum."
+
+#: inc/settings_class.php:419
+msgid "Level 6 (Commenter)"
+msgstr "Úroveň 6 (Komentátor)"
+
+#: inc/settings_class.php:420
+msgid "You can only add comments to the site."
+msgstr "Môžete len pridávať komentáre na tejto stránke."
+
+#: inc/settings_class.php:423
+msgid "Level 7 (Poster)"
+msgstr "Úroveň 7 (Prispievateľ)"
+
+#: inc/settings_class.php:424
+msgid "You can only post messages to the Message Board."
+msgstr "Môžete písať len správy do odkazovača."
+
+#: inc/settings_class.php:427
+msgid "Level 8 (Photographer)"
+msgstr "Úroveň 8 (Fotograf)"
+
+#: inc/settings_class.php:428
+msgid "You can only add photos to the Photo Gallery."
+msgstr "Môžete len pridávať fotky do fotogalérie."
+
+#: inc/settings_class.php:431
+msgid "Level 9 (Blogger)"
+msgstr "Úroveň 9 (Novinkár)"
+
+#: inc/settings_class.php:432
+msgid "You can only add news to the Family News section."
+msgstr "Môžete len pridávať novinky do rodinných noviniek."
+
+#: inc/settings_class.php:435
+msgid "Level 10 (Guest)"
+msgstr "Úroveň 10 (Návštevník)"
+
+#: inc/settings_class.php:435
+msgid "You have view only rights."
+msgstr "Máte práva len k prehliadaniu."
+
+#: inc/settings_class.php:436
+msgid "You cannot add/change/delete any information."
+msgstr "Nemáte práva k pridaniu/zmene/zmazaniu akýchkoľvek informácii."
+
+#: inc/upimages.php:49
+#, php-format
+msgid "%s was Deleted Successfully"
+msgstr "%s bol úspešne zmazaný"
+
+#: inc/upimages.php:51
+msgid "You do not have access to delete this image."
+msgstr "Nemáte prístup k odstráneniu tohoto obrázka."
+
+#: inc/upimages.php:58 inc/upimages.php:61
+msgid "Upload Image"
+msgstr "Nahrať obrázok"
+
+#: inc/upimages.php:60
+msgid "Choose the image you want to upload."
+msgstr "Zvolte obrázok ktorý chcete nahrať."
+
+#: inc/upimages.php:67
+msgid "Uploaded Images"
+msgstr "Nahrané obrázky"
+
+#: inc/upimages.php:99
+msgid "Insert Image into Message"
+msgstr "Vložiť obrázok do správy"
+
+#: inc/upimages.php:106
+msgid "Delete this Image"
+msgstr "Zmazať tento obrázok"
+
+#: inc/upimages.php:107
+msgid "Are you sure you want to DELETE this image?"
+msgstr "Určite chcete ZMAZAŤ tento obrázok?"
+
+#: inc/upimages.php:119
+msgid "Total Size"
+msgstr "Celková veľkosť"
+
+#: inc/util_inc.php:210
+msgid "Prayers"
+msgstr "Modlitby"
+
+#: inc/util_inc.php:942
+msgid "Bold"
+msgstr "Tučné"
+
+#: inc/util_inc.php:943
+msgid "Italic"
+msgstr "Kurzíva"
+
+#: inc/util_inc.php:944
+msgid "Underline"
+msgstr "Podčiarknuté"
+
+#: inc/util_inc.php:945
+msgid "Left Align"
+msgstr "Zarovnať doľava"
+
+#: inc/util_inc.php:946
+msgid "Center"
+msgstr "Na stred"
+
+#: inc/util_inc.php:947
+msgid "Right Align"
+msgstr "Zarovnať doprava"
+
+#: inc/util_inc.php:948
+msgid "Heading 1"
+msgstr "Nadpis 1"
+
+#: inc/util_inc.php:949
+msgid "Heading 2"
+msgstr "Nadpis 2"
+
+#: inc/util_inc.php:950
+msgid "Heading 3"
+msgstr "Nadpis 3"
+
+#: inc/util_inc.php:952
+msgid "Insert Image"
+msgstr "Vložiť obrázok"
+
+#: inc/util_inc.php:953
+msgid "Insert URL"
+msgstr "Vložiť URL"
+
+#: inc/util_inc.php:954
+msgid "Insert Smiley"
+msgstr "Vložiť smajlíka"
+
+#: inc/util_inc.php:980
+#, php-format
+msgid ""
+"Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, "
+".BMP or .PNG)."
+msgstr ""
+"Chyba: Súbor %s nie je fotka. Fotografie musia byť typu (.JPG, .JPEG, .GIF, "
+".BMP or .PNG)."
+
+#: inc/util_inc.php:1052 inc/util_inc.php:1056
+msgid "First"
+msgstr "Prvý(á)"
+
+#: inc/util_inc.php:1090 inc/util_inc.php:1094
+msgid "Last page"
+msgstr "Posledná strana"
+
+#: inc/util_inc.php:1090 inc/util_inc.php:1094
+msgid "Last"
+msgstr "Posledný"
+
+#: inc/util_inc.php:1123
+msgid "Now"
+msgstr "Teraz"
+
+#: inc/util_inc.php:1136
+msgid "Last 24 Hours"
+msgstr "Posledných 24 hodín"
+
+#: inc/util_inc.php:1474
+msgid "Yesterday"
+msgstr "Včera"
+
+#: inc/util_inc.php:1496 rss.php:146
+#, php-format
+msgid "%s started the new thread %s."
+msgstr "%s začal nové vlákno %s."
+
+#: inc/util_inc.php:1499 rss.php:148
+#, php-format
+msgid "%s replied to %s."
+msgstr "%s odpovedala na %s."
+
+#: inc/util_inc.php:1510 rss.php:155
+#, php-format
+msgid "%s has joined the website."
+msgstr "%s sa pripojil na webstránku."
+
+#: inc/util_inc.php:1515
+msgid "address"
+msgstr "adresu"
+
+#: inc/util_inc.php:1517
+#, php-format
+msgid "%s has updated his/her %s."
+msgstr "%s aktualizoval / vala svoje %s."
+
+#: inc/util_inc.php:1524 rss.php:168
+#, php-format
+msgid "%s has added address information for %s."
+msgstr "%s pridal informácie o adrese pre %s."
+
+#: inc/util_inc.php:1530 rss.php:174
+#, php-format
+msgid "%s has added %s to his/her Family News."
+msgstr "%s pridal %s jeho / jej novinky rodiny."
+
+#: inc/util_inc.php:1536 rss.php:180
+#, php-format
+msgid "%s has added a Prayer Concern for %s."
+msgstr "%s pridal modlitby pre %s."
+
+#: inc/util_inc.php:1554 rss.php:197
+#, php-format
+msgid "%s has added the %s recipe."
+msgstr "%s pridal %s recept."
+
+#: inc/util_inc.php:1560 rss.php:203
+#, php-format
+msgid "%s has added a new Document (%s)."
+msgstr "%s pridal nový dokument (%s)."
+
+#: inc/util_inc.php:1567 rss.php:209
+#, php-format
+msgid "%s has added %d new photos to the %s category."
+msgstr "%s pridal %d nové fotky do %s kategórie."
+
+#: inc/util_inc.php:1594 rss.php:215
+#, php-format
+msgid "%s commented on Family News %s."
+msgstr "%s komentoval novinky rodiny %s."
+
+#: inc/util_inc.php:1600 rss.php:221
+#, php-format
+msgid "%s commented on the following photo:"
+msgstr "%s komentoval nasledujúce fotografie:"
+
+#: inc/util_inc.php:1614 rss.php:231
+#, php-format
+msgid "%s has added a new Calendar entry on %s for %s."
+msgstr "%s pridal nový záznam do kalendára %s pre %s."
+
+#: inc/util_inc.php:1618 rss.php:236
+#, php-format
+msgid "A new Poll (%s) has been added."
+msgstr "Nová anketa (%s) bola pridaná."
+
+#: inc/util_inc.php:1760
+msgid "Czech (Czech Republic)"
+msgstr "Čeština (Česká republika)"
+
+#: inc/util_inc.php:1763
+msgid "Danish (Denmark)"
+msgstr "Dánčina (Dánsko)"
+
+#: inc/util_inc.php:1766
+msgid "German (Germany)"
+msgstr "Nemčina (Nemecko)"
+
+#: inc/util_inc.php:1769
+msgid "English (United States)"
+msgstr "Angličtina (Spojené štáty americké)"
+
+#: inc/util_inc.php:1772
+msgid "Spanish (Spain)"
+msgstr "Španielsky (Spain)"
+
+#: inc/util_inc.php:1775
+msgid "Estonian"
+msgstr "Estónsky"
+
+#: inc/util_inc.php:1778
+msgid "French (France)"
+msgstr "Francúzsky (Francúzsko)"
+
+#: inc/util_inc.php:1781
+msgid "Latvian"
+msgstr "Lotyšský"
+
+#: inc/util_inc.php:1784
+msgid "Dutch"
+msgstr "Holandský"
+
+#: inc/util_inc.php:1787
+msgid "Portuguese (Brazil)"
+msgstr "Portugalsky (Brazília)"
+
+#: inc/util_inc.php:1790
+msgid "Slovak"
+msgstr "Slovensky"
+
+#: inc/util_inc.php:1793
+msgid "Chinese (China)"
+msgstr "Čínsky (Čína)"
+
+#: inc/util_inc.php:1796
+msgid "X Wrapped"
+msgstr "X Zabalené"
+
+#: themes/default/header.php:22 install.php:911
+msgid "Welcome"
+msgstr "Vítaj"
+
+#: themes/default/header.php:23
+msgid "My Settings"
+msgstr "Moje nastavenie"
+
+#: themes/default/header.php:24
+msgid "Logout"
+msgstr "Odhlásiť"
+
+#: themes/default/navigation.php:4
+msgid "My Stuff"
+msgstr "Moje veci"
+
+#: themes/default/navigation.php:6
+msgid "Profile"
+msgstr "Profil"
+
+#: themes/default/navigation.php:8 privatemsg.php:23 privatemsg.php:53
+#: profile.php:26
+msgid "Private Messages"
+msgstr "Súkromné správy"
+
+#: themes/default/navigation.php:11
+msgid "Communicate"
+msgstr "Komunikovať"
+
+#: themes/default/navigation.php:14 chat.php:18
+msgid "Chat Room"
+msgstr "Diskusná miestnosť"
+
+#: themes/default/navigation.php:17
+msgid "Share"
+msgstr "Zdieľať"
+
+#: themes/default/navigation.php:30
+msgid "Contact Webmaster"
+msgstr "Kontaktovať webmajstra"
+
+#: themes/default/navigation.php:37 help.php:38
+msgid "Administration"
+msgstr "Administrácia"
+
+#: themes/default/navigation.php:43
+msgid "Configuration"
+msgstr "Nastavenie"
+
+#: themes/default/footer.php:10
+msgid "Support Forum"
+msgstr "Fórum podpory"
+
+#: activate.php:36
+msgid "Alright!"
+msgstr "V poriadku!"
+
+#: activate.php:37
+msgid "Your account is now active."
+msgstr "Váš účet je teraz aktívny."
+
+#: activate.php:38
+msgid "You can now login and begin using the site."
+msgstr "Teraz sa môžete prihlásiť a začať používať stránku."
+
+#: activate.php:44 activate.php:51
+msgid "Invalid Activation Code!"
+msgstr "Neplatný aktivačný kód!"
+
+#: activate.php:45 activate.php:52
+msgid "Your account could NOT be activated"
+msgstr "Váš účet nemožno aktivovať"
+
+#: activate.php:60 activate.php:63 index.php:61
+msgid "Access Denied"
+msgstr "Prístup odopretý"
+
+#: addressbook.php:55
+msgid "Are you sure you want to DELETE this address?"
+msgstr "Naozaj chcete ZMAZAŤ túto adresu?"
+
+#: addressbook.php:86
+msgid ""
+"You do not have permission to perform this task.  You must have an access "
+"level of 3 (Member) or higher."
+msgstr ""
+"Nemáte oprávnenie na plnenie tejto úlohy. Musíte mať prístup úrovne 3 (člen) "
+"alebo vyššiu."
+
+#: addressbook.php:92
+msgid "You must choose at least one member to email."
+msgstr "Musíte vybrať aspoň jedného užívateľa k odoslaniu emailu."
+
+#: addressbook.php:93
+msgid "Get more help on sending mass emails."
+msgstr "Získajte ďalšie informácie o posielaní hromadných e-mailov."
+
+#: addressbook.php:115
+msgid "The following message has been sent:"
+msgstr "Nasledujúca správa bola odoslaná:"
+
+#: addressbook.php:229 addressbook.php:241
+msgid "You do not have permission to perform this action."
+msgstr "Nemáte oprávnenie na uskutočnenie tejto akcie."
+
+#: calendar.php:125
+msgid "New Calendar Entry Added Successfully"
+msgstr "Nový záznam do kalendára úspešne pridaný"
+
+#: calendar.php:153
+msgid "Calendar Entry Deleted Successfully"
+msgstr "Záznamu v kalendári úspešne zmazaný"
+
+#: chat.php:196
+msgid ""
+"JavaScript must be enabled in order for you to use the Chat Room. However, "
+"it seems JavaScript is either \n"
+"                    disabled or not supported by your browser. Please enable "
+"JavaScript by changing your browser options."
+msgstr ""
+"JavaScript musí byť povolený, aby bolo možné používať chatovaciu miestnosť. "
+"Zdá sa však,že JavaScript je buď \n"
+"                    deaktivovaný alebo ho váš prehliadač nepodporuje. "
+"Prosím, aktivujte JavaScript zmenou nastavenia vášho prehliadača."
+
+#: chat.php:207
+msgid "Reset Chat"
+msgstr "Resetuj chat"
+
+#: contact.php:17
+msgid "Contact"
+msgstr "Kontakt"
+
+#: contact.php:38
+msgid "The following message has been sent to the Administrator:"
+msgstr "Nasledujúca správa bola odoslaná na adresu administrátora:"
+
+#: documents.php:51
+msgid "Document Added Successfully"
+msgstr "Dokument úspešne pridaný"
+
+#: documents.php:65
+#, php-format
+msgid "%s has added a new document (%s)."
+msgstr "%s pridal nový dokument (%s)."
+
+#: documents.php:91
+msgid "Document Deleted Successfully"
+msgstr "Dokument úspešne zmazaný"
+
+#: documents.php:104
+msgid "Add Document"
+msgstr "Pridať dokument"
+
+#: familynews.php:68
+msgid "Latest News"
+msgstr "Najnovšie správy"
+
+#: familynews.php:71
+msgid "My News"
+msgstr "Moje novinky"
+
+#: familynews.php:96
+msgid "Family News Added Successfully"
+msgstr "Novinky rodiny úspešne pridané"
+
+#: familynews.php:110
+#, php-format
+msgid "%s has added %s to his/her Family News"
+msgstr "%s pridal %s jeho / jej novinky rodiny"
+
+#: familynews.php:143
+msgid "View Changes"
+msgstr "Zobraziť zmeny"
+
+#: familynews.php:181
+msgid "Family News Deleted Successfully"
+msgstr "Novinka rodiny úspešne zmazaná"
+
+#: familynews.php:214
+msgid "This can NOT be undone"
+msgstr "To nemožno vrátiť späť"
+
+#: help.php:22 help.php:45
+msgid "How does the Photo Gallery work?"
+msgstr "Ako funguje fotogaléria ?"
+
+#: help.php:23 help.php:52
+msgid "How do I add a photo?"
+msgstr "Ako môžem pridať fotku?"
+
+#: help.php:24 help.php:69
+msgid "How do I edit/change a photo?"
+msgstr "Ako môžem upraviť / zmeniť fotku?"
+
+#: help.php:25 help.php:82
+msgid "How do I delete a photo?"
+msgstr "Ako môžem zmazať fotku?"
+
+#: help.php:26 help.php:96
+msgid "How do I add a category?"
+msgstr "Ako môžem pridať kategóriu?"
+
+#: help.php:27 help.php:108
+msgid "How do I rename a category?"
+msgstr "Ako môžem premenovať kategóriu?"
+
+#: help.php:28 help.php:120
+msgid "How do I delete a category?"
+msgstr "Ako môžem zmazať kategóriu?"
+
+#: help.php:30
+msgid "Personal Settings"
+msgstr "Osobné nastavenia"
+
+#: help.php:31 help.php:131
+msgid "How do I add/change my avatar?"
+msgstr "Ako môžem pridať / zmeniť svoj avatar?"
+
+#: help.php:32 help.php:144
+msgid "How do I change my theme?"
+msgstr "Ako môžem zmeniť tému?"
+
+#: help.php:33 help.php:156
+msgid "How do I change my password?"
+msgstr "Ako môžem zmeniť svoje heslo?"
+
+#: help.php:36 help.php:167
+msgid "How do I email multiple people (Mass Email)?"
+msgstr "Ako môžem poslať viac e-mailov (hromadný e-mail)?"
+
+#: help.php:39 help.php:178
+msgid "Member Access Levels"
+msgstr "Členské úrovne prístupu"
+
+#: help.php:40 help.php:304
+msgid "How do I add an optional section?"
+msgstr "Ako môžem pridať voliteľné oddelenie?"
+
+#: help.php:41 help.php:318
+msgid "How do I change the site navigation?"
+msgstr "Ako môžem zmeniť navigáciu webu?"
+
+#: help.php:46
+msgid ""
+"Each member of the website has his/her own Category on the Photo Gallery.  "
+"This category will not show up until that member creates a new sub-category "
+"and uploads at least one photo.  You can not upload photos until you have "
+"created a category.  It is best to create a new category each time you "
+"upload a new group of photos.  This helps create a more organized Photo "
+"Gallery."
+msgstr ""
+"Každý člen webovej stránky má svoju vlastnú kategóriu Fotogaléria. Táto "
+"kategória sa nezobrazí, kým tento člen nevytvorí novú sub-kategóriu a "
+"nevloží do nej aspoň jednu fotku. Nemôžete nahrať fotografie, kým "
+"nevytvorite kategóriu. Je najlepšie vytvoriť novú kategóriu zakaždým, keď "
+"vkladať nové skupiny fotografií. To pomáha vytvoriť viac organizovaných "
+"fotogalérií."
+
+#: help.php:54
+msgid ""
+"Choose <a href=\"gallery/index.php?action=upload\">Upload Photos</a> from "
+"the <a href=\"gallery/index.php\">Photo Gallery</a> menu."
+msgstr ""
+"Vyberte <a href=\"gallery/index.php?action=upload\">Nahraj fotky</a> z menu "
+"<a href=\"gallery/index.php\">Fotogaléria"
+
+#: help.php:55
+msgid "Choose a category from the drop down menu."
+msgstr "Vyberte si kategóriu z rozbaľovacieho menu."
+
+#: help.php:56
+msgid ""
+"Note: You must have at least one category to upload photos. If you do not "
+"have a existing category you must add a category first."
+msgstr ""
+"Poznámka: Musíte mať aspoň jednu kategóriu pre nahratie fotografie. Ak "
+"nemáte existujúcu kategóriu, musíte pridať najprv kategóriu."
+
+#: help.php:58
+msgid ""
+"Click the browse button to browse your computer for the desired photo to "
+"upload."
+msgstr ""
+"Kliknite na tlačidlo prehľadávať vyhľadajte v počítači požadovanú "
+"fotografiu, ktorú chcete nahrať."
+
+#: help.php:58
+msgid ""
+"If the photo you are uploading needs rotated click 'Upload Options' and two "
+"radio buttons will drop in above the photo caption."
+msgstr ""
+"Ak fotografiu nahrávate a chcete ju otočiť kliknite pred nahratím na "
+"tlačítko Otočiť fotku a vyberte si z dvoch možností."
+
+#: help.php:59
+msgid "Note: You must have JavaScript enabled to use the rotation feature."
+msgstr ""
+"Poznámka: Musíte mať povolený JavaScript ak chcete používať rotačné funkcie."
+
+#: help.php:61
+msgid "Fill in the caption (description of the photo)."
+msgstr "Vyplňte titulok (popis fotografie)."
+
+#: help.php:62
+msgid "Click the <b>Add Photos</b> button."
+msgstr "Kliknite na tlačidlo <b>Pridať fotografie</b>."
+
+#: help.php:70
+msgid "You can only edit/change the photo's caption and category."
+msgstr "Môžete upravovať titulku a kategóriu fotky."
+
+#: help.php:72 help.php:84
+msgid "Navigate to the photo you would like to edit."
+msgstr "Prejdite na fotografiu, ktorú chcete upraviť."
+
+#: help.php:73
+msgid ""
+"Click the edit button <img src=\"themes/default/images/edit.gif\"/> located "
+"above the photo and to the right."
+msgstr ""
+"Kliknite na tlačidlo upraviť <img src=\"themes/default/images/edit.gif\"/> "
+"umiestnené nad fotografiu a na pravej strane."
+
+#: help.php:74
+msgid ""
+"To change the category: choose the new category from the dropdown menu above "
+"the photo."
+msgstr ""
+"Ak chcete zmeniť kategóriu: vyberte novú kategóriu z rozbaľovacej ponuky nad "
+"fotografiou."
+
+#: help.php:74
+msgid ""
+"To edit/change the caption: make your changes in the text field area below "
+"the photo."
+msgstr ""
+"Ak chcete upraviť / zmeniť titulok: vykonajte zmeny v oblasti textového poľa "
+"pod fotografiou."
+
+#: help.php:75
+msgid "Click the submit changes button to finish your changes."
+msgstr "Kliknite na tlačidlo Odoslať pre vykonanie Vaších zmien."
+
+#: help.php:85
+msgid ""
+"Click the delete button <img src=\"themes/default/images/delete.gif\"/> "
+"located above the photo and to the right."
+msgstr ""
+"Kliknite na tlačidlo Odstrániť <img "
+"src=\"themes/default/images/delete.gif\"/> umiestnené nad fotografiu a na "
+"pravej strane."
+
+#: help.php:86
+msgid ""
+"You will be prompted with a message asking if you are sure you want to "
+"delete that photo, click Ok."
+msgstr ""
+"Budete vyzvaní otázkou, ak ste si istí, že chcete zmazať fotografie, "
+"kliknite na tlačidlo OK."
+
+#: help.php:89
+msgid ""
+"Note: you can only delete your own photos.  Once you delete a photo it is "
+"gone forever, you cannot undo a delete."
+msgstr ""
+"Poznámka: Môžete zmazať iba svoje vlastné fotografie. Akonáhle zmažete "
+"fotografiu je navždy preč, nedá sa vrátiť späť."
+
+#: help.php:98 help.php:110 help.php:122
+msgid ""
+"Choose <a href=\"gallery/index.php?action=category\">Create/Edit "
+"Category</a> from the <a href=\"gallery/index.php\">Photo Gallery</a> menu."
+msgstr ""
+"Vyberte <a href=\"gallery/index.php?action=category\">Vytvoriť / Upraviť "
+"kategóriu</a> z menu <a href=\"gallery/index.php\"> Fotogaléria."
+
+#: help.php:99
+msgid "Fill out the category name."
+msgstr "Vyplňte názov kategórie."
+
+#: help.php:100
+msgid "Click the <b>Add Category</b> button."
+msgstr "Kliknite na tlačidlo <b>Pridať kategóriu</b>."
+
+#: help.php:102
+msgid "A list of previously created categories will be listed below."
+msgstr "Zoznamy predtým vytvorených kategórií budú uvedené nižšie."
+
+#: help.php:111
+msgid ""
+"Scroll down to the list of categories and find the one you want to change."
+msgstr ""
+"Prejdite nadol na zoznam kategórií a nájdite tú, ktorú chcete zmeniť."
+
+#: help.php:112
+msgid "Make the desired change."
+msgstr "Vykonajte požadované zmeny."
+
+#: help.php:113
+msgid ""
+"Click the edit button <img src=\"themes/default/images/edit.gif\"/> located "
+"to the right of the category name."
+msgstr ""
+"Kliknite na tlačidlo upraviť <img src=\"themes/default/images/edit.gif\"/> "
+"nachádza sa na pravej strane názvu kategórie."
+
+#: help.php:123
+msgid ""
+"Scroll down to the list of categories and find the one you want to delete."
+msgstr ""
+"Prejdite nadol na zoznam kategórií a nájdite tú, ktorú chcete odstrániť."
+
+#: help.php:124
+msgid ""
+"Click the delete button <img src=\"themes/default/images/delete.gif\"/> "
+"located to the right of the category name."
+msgstr ""
+"Kliknite na tlačidlo Odstrániť <img "
+"src=\"themes/default/images/delete.gif\"/> nachádza sa na pravej strane "
+"názvu kategórie."
+
+#: help.php:132
+msgid ""
+"An avatar is just a graphical representation of a person.  You can upload a "
+"picture of yourself or any picture that you feel represents you."
+msgstr ""
+"Avatar je len grafické znázornenie osoby. Môžete nahrať obrázok Vás, alebo "
+"ľubovoľný obrázok, ktorý si myslíte že Vás reprezentuje."
+
+#: help.php:134 help.php:146 help.php:158
+msgid ""
+"Click on the <a href=\"settings.php\">My Settings</a> link in the top right "
+"hand corner of the site."
+msgstr ""
+"Kliknite na <a href=\"settings.php\">My Settings</a> odkaz v pravom hornom "
+"rohu stránky."
+
+#: help.php:135
+msgid ""
+"Click the browse button, which will pop open a menu allowing you to search "
+"your computer for an avatar.  (Avatar's must be one of the following file "
+"types .jpg, .jpeg .gif or .bmp or .png)"
+msgstr ""
+"Kliknite na tlačidlo Prehľadávať, ktoré otvorí menu a umožňuje vyhľadávať v "
+"počítači avatar. (Avatar musí byť jeden z nasledujúcich typov súborov .jpg, "
+".jpeg .gif or .bmp or .png)"
+
+#: help.php:136
+msgid ""
+"Once you have choosen your avatar, scroll down to the bottom of the Settings "
+"page and click the Submit button."
+msgstr ""
+"Akonáhle si vyberiete svoj avatar, prejdite nadol do spodnej časti stránky "
+"nastavenia a kliknite na tlačidlo Odoslať."
+
+#: help.php:138
+msgid ""
+"Note: You can upload animated avatar's as long as the are smaller than 80 "
+"pixels x 80 pixels.  Uploading an avatar larger than this will result in the "
+"loss of animation."
+msgstr ""
+"Poznámka: Môžete nahrať animovaný avatar maximálnej veľkosti 80 bodov x 80 "
+"bodov. Nahratie avatara väčšieho ako udavana veľkosť bude mať za následok "
+"stratu animácie."
+
+#: help.php:147
+msgid "Choose your theme from the drop down menu."
+msgstr "Vyberte si tému z rozbaľovacieho menu."
+
+#: help.php:148
+msgid ""
+"Scroll down to the bottom of the Settings page and click the Submit button."
+msgstr ""
+"Prejdite nadol do spodnej časti stránky nastavenia a kliknite na tlačidlo "
+"Odoslať."
+
+#: help.php:149
+msgid ""
+"Click continue and your theme will automatically be applied to the site."
+msgstr ""
+"Kliknutím na tlačidlo Pokračovať sa vaša téma automaticky uloží na stránky."
+
+#: help.php:159
+msgid "Type in your new password."
+msgstr "Vlož svoje nové heslo."
+
+#: help.php:160
+msgid "Click the Submit button."
+msgstr "Kliknite na tlačidlo Odoslať."
+
+#: help.php:169
+msgid ""
+"Check the checkboxes to the right of the email addresses of the members you "
+"want to email."
+msgstr ""
+"Zvolte zaškrtávacie políčka členov vpravo od e-mailových adries, ktorým "
+"chcete poslať e-mail."
+
+#: help.php:170
+msgid ""
+"Click the <b>Email</b> button at the bottom right hand corner of the address "
+"book."
+msgstr "Kliknite na tlačidlo <b>Email</b> v pravom dolnom rohu adresára."
+
+#: help.php:171
+msgid ""
+"Fill out the email form (similar to the contact form) and click <b>Send Mass "
+"Email</b>."
+msgstr ""
+"Vyplňte e-mailový formulár (podobne ako kontaktný formulár) a kliknite na "
+"tlačidlo <b>Poslať hromadný Email</b>."
+
+#: help.php:179
+msgid ""
+"Family Connections has ten different member access levels.  These levels are "
+"meant to limit the amount of access each family member has to the website."
+msgstr ""
+"Family Connections má desať rôznych úrovní členských prístupov. Tieto úrovne "
+"sú určené na obmedzenie množstva prístup každého člena rodiny na webovej "
+"stránke."
+
+#: help.php:181
+msgid ""
+"this is the access level given to the account that was setup during the "
+"installation of FCMS. This is the only level that has the ability to change "
+"other members access levels. This level can add, update and delete all "
+"information on the site."
+msgstr ""
+"tato úroveň prístupu vzhľadom na to, že bolo nastavenie počas inštalácie "
+"FCMS. To je jediná úroveň, ktorá má schopnosť meniť ostatným členom úroveň "
+"prístupu. Táto úroveň môže pridávať, aktualizovať a odstrániť všetky "
+"informácie na webe."
+
+#: help.php:182
+msgid ""
+"this access level has all the same priveleges of the Member level, but can "
+"also run the latest awards, can add, update and delete poll questions, and "
+"add, update and delete message board posts."
+msgstr ""
+"táto úroveň prístupu má všetky rovnaké výsady úrovni jednotlivých členských, "
+"ale môže pridavať aj najnovšie ocenenia, môžete pridávať, aktualizovať a "
+"vymazávať ankete otázky, a pridávať, aktualizovať a mazať príspevky na "
+"nástenke."
+
+#: help.php:183
+msgid "Member (default)"
+msgstr "Člen (predvolený)"
+
+#: help.php:183
+msgid ""
+"this access level can add, update and delete all information they have "
+"contributed to the site. They have view only access to other member's "
+"information."
+msgstr ""
+"tento prístup môže pridávať, aktualizovať a odstrániť všetky informácie, "
+"ktoré prispeli k webu. A majú iba prístup zobraziť  informácie ostatných "
+"členov."
+
+#: help.php:184
+msgid ""
+"this access level has all the same priveleges of the Member level, but "
+"cannot add, update or delete photos from the Photo Gallery."
+msgstr ""
+"táto úroveň prístupu je rovnaká úrovni jednotlivých členov, ale nemožno "
+"pridávať, aktualizovať alebo mazať fotografie z fotogalérie."
+
+#: help.php:185
+msgid ""
+"this access level has all the same priveleges of the Member level, but "
+"cannot add, update or delete posts from the Message Board."
+msgstr ""
+"táto úroveň prístupu je rovnaká úrovni jednotlivých členov, ale nemožno "
+"pridávať, aktualizovať alebo mazať príspevky z nástenky."
+
+#: help.php:186
+msgid ""
+"this access level can only add comments to Photos, Family News and can reply "
+"to posts on the Message Board.  Has view access to all other sections."
+msgstr ""
+"tento prístup úrovni môžu pridávať len komentáre k fotografie, novinky "
+"rodinny a môžu odpovedať na príspevky na Fórume. Má umožnený náhľad do "
+"všetkých ostatných častí."
+
+#: help.php:187
+msgid ""
+"this access level can add, update and delete their own Message Board posts "
+"only.  Has view access to all other sections."
+msgstr ""
+"tento prístup úrovni môže pridávať, aktualizovať a mazať svoje vlastné Fórum "
+"príspevky. Má náhľad do všetkých ostatných častí."
+
+#: help.php:188
+msgid ""
+"this access level can add, update and delete their own Photos only.  Has "
+"view access to all other sections."
+msgstr ""
+"tento prístup úrovni môže pridávať, aktualizovať a mazať svoje vlastné "
+"fotografie. Má náhľad do všetkých ostatných častí."
+
+#: help.php:189
+msgid ""
+"this access level can add, update and delete their own Family News entries "
+"only.  Has view access to all other sections."
+msgstr ""
+"tento prístup úrovni môže pridávať, aktualizovať a vymazávať ich vlastné "
+"položky Novinky rodiny.  Má náhľad do všetkých ostatných častí."
+
+#: help.php:190
+msgid "this access level has view only access to the site."
+msgstr "táto úroveň prístupu má zobraziť iba prístup k webu."
+
+#: help.php:195
+msgid "Access Rights"
+msgstr "Prístupové práva"
+
+#: help.php:197
+msgid "Admininstration"
+msgstr "Administrácia"
+
+#: help.php:207
+msgid "1. Admin"
+msgstr "1. Administrátor"
+
+#: help.php:216
+msgid "2. Helper"
+msgstr "2. Pomocník"
+
+#: help.php:225
+msgid "3. Member"
+msgstr "3. Člen"
+
+#: help.php:234
+msgid "4. Non-Photographer"
+msgstr "4. Nefotograf"
+
+#: help.php:243
+msgid "5. Non-Poster"
+msgstr "5. Neplagát"
+
+#: help.php:252
+msgid "6. Commenter"
+msgstr "6. Komentár"
+
+#: help.php:254 help.php:255 help.php:257
+msgid "Comment Only"
+msgstr "Len komentár"
+
+#: help.php:261
+msgid "7. Poster"
+msgstr "7. Plagát"
+
+#: help.php:270
+msgid "8. Photographer"
+msgstr "8. Fotograf"
+
+#: help.php:279
+msgid "9. Blogger"
+msgstr "9. Bloger"
+
+#: help.php:288
+msgid "10. Guest"
+msgstr "10. Hosť"
+
+#: help.php:298
+msgid "Can add/edit/delete all members information"
+msgstr "Môžete pridať / editovať / mazať informácie  všetkých členov"
+
+#: help.php:298
+msgid "Has limited access to Administration"
+msgstr "Obmedzený prístup k administrácii"
+
+#: help.php:305
+msgid ""
+"Family Connections has three optional sections: Family News, Prayer Concerns "
+"and Recipes.  In order to use these sections you must first add them to the "
+"site (some sections may have been previously added during installation).  "
+"Adding an optional section, allows that section to be used in the <a "
+"href=\"#adm-sections-nav\">site navigation</a>."
+msgstr ""
+"Family Connections má tri voliteľné časti: Novinky rodiny, Modlitby a "
+"Recepty. Aby bolo možné používať tieto oddiely, musíte sa najprv pridať na "
+"web (niektoré časti môžu byť skôr pridane počas inštalácie). Pridanie "
+"voliteľného oddielu umožňuje, aby bol použitý v <a href=\"#adm-sections-"
+"nav\">navigácii na webe</a>."
+
+#: help.php:306
+msgid "To add an optional section:"
+msgstr "Ak chcete pridať voliteľný oddiel:"
+
+#: help.php:308
+msgid ""
+"Click the <a href=\"admin/config.php\">Configuration</a> link on the "
+"Administration sub menu"
+msgstr ""
+"Kliknite na <a href=\"admin/config.php\">Konfigurácia</a> odkaz v "
+"administracnom sub menu."
+
+#: help.php:309
+msgid "Expand the <u>Sections</u> by clicking the <b>Show/Hide</b> link."
+msgstr "Rozbaľte <u>Sekciu</u> kliknutím na <b>Zobraziť / skryť</b> odkaz."
+
+#: help.php:310
+msgid "Click the <b>Add</b> link beside the section you want to add."
+msgstr "Kliknite na <b>Pridať</b> odkaz vedľa oddielu, ktorý chcete pridať."
+
+#: help.php:312
+msgid ""
+"Note: If a section has been previously added it will say \"Already Added\" "
+"beside the section."
+msgstr ""
+"Poznámka: Pokiaľ je sekcia už skôr dodaná,  zobrazí \"Už pridané\" vedľa "
+"sekcie."
+
+#: help.php:319
+msgid ""
+"You can only change the navigation position of a few of the sections.  They "
+"are:  Family News, Prayer Concerns, Recipes and Calendar.  The navigation is "
+"broken down into two parts, (1) the Top Navigation and the (2) the Side "
+"Navigation.  The Top Navigation can hold links for up to 6 sections."
+msgstr ""
+"Môžete zmeniť iba navigačné polohy niekoľkých sekcií. Sú to: Novinky rodiny, "
+"Modlitby, Recepty a Kalendár."
+
+#: home.php:65
+msgid "Members Online"
+msgstr "Online členovia"
+
+#: home.php:135 rss.php:122 rss.php:124
+msgid "What's New"
+msgstr "Čo je nové"
+
+#: index.php:30
+msgid "This site hasn't been installed yet."
+msgstr "Táto stránka nebola nainštalovaná."
+
+#: index.php:31
+msgid "You must finish the installation before using the site."
+msgstr "Musíte dokončiť inštaláciu pred použitím stránky."
+
+#: index.php:62
+msgid "You must be logged in to view that page."
+msgstr "Musíte byť prihlásený pre zobrazenie tejto stránky."
+
+#: index.php:70 index.php:145 index.php:180
+msgid "Hold On a Second!"
+msgstr "Vydržte sekundu!"
+
+#: index.php:71
+msgid "The site has been closed by an administrator."
+msgstr "Táto stránka bola uzavretá administrátorom."
+
+#: index.php:72
+msgid "Please come back later."
+msgstr "Prosím, vráťte sa neskôr."
+
+#: index.php:146 index.php:181
+msgid "You have exceeded the number of allowed login attempts."
+msgstr "Prekročili ste povolený počet pokusov o prihlásenie."
+
+#: index.php:147 index.php:182
+msgid "Your account has been locked for 1 hour."
+msgstr "Váš účet bol zablokovaný na 1 hodinu."
+
+#: index.php:157
+msgid "Not So Fast"
+msgstr "Nie tak rýchlo"
+
+#: index.php:158
+msgid ""
+"Your account isn't active yet.  Your website administrator must activate "
+"your account before you can login and begin using the website."
+msgstr ""
+"Váš účet nie je doteraz aktívny. Váš účet musí aktivovať administrátor, než "
+"sa budete môcť prihlásiť a začať používať webové stránky."
+
+#: index.php:194
+msgid "That login information wasn't quite right."
+msgstr "Tieto prihlásovacie údaje sú nesprávne."
+
+#: index.php:195
+msgid "Be sure and check that you typed your username/password correctly."
+msgstr "Uistite sa, že ste vaše meno a heslo zadali správne."
+
+#: index.php:275
+msgid "Login to"
+msgstr "Prihlásiť sa"
+
+#: index.php:286
+msgid "Remember Me"
+msgstr "Zapamätať si"
+
+#: index.php:289
+msgid "Login"
+msgstr "Prihlásiť"
+
+#: index.php:294
+msgid "Forgot Password?"
+msgstr "Zabudnuté heslo?"
+
+#: index.php:294 register.php:171
+msgid "Register"
+msgstr "Registrácia"
+
+#: install.php:38
+msgid "Installation"
+msgstr "Inštalácia"
+
+#: install.php:55
+msgid "Wait a Minute."
+msgstr "Počkajte chvíľu."
+
+#: install.php:56
+msgid ""
+"The installation for this site is already finished. Running the installation "
+"again will cause you to Lose All Your Previous Information.  Are you sure "
+"you want to continue?"
+msgstr ""
+"Inštalácia pre túto stránku je už dokončená. Znova spustenie inštalácie "
+"spôsobí že môžete prísť o všetky svoje predchádzajúce informácie. Ste si "
+"istí, že chcete pokračovať?"
+
+#: install.php:60
+msgid "I just want to view my site."
+msgstr "Chcem len zobraziť mojej stránky."
+
+#: install.php:65
+msgid "I want to run the installation anyway. (Not Recommended)"
+msgstr "Chcem spustiť inštaláciu tak ako tak. (Nie je odporúčané)"
+
+#: install.php:83 install.php:105 install.php:168
+msgid "You forgot a required field.  Please fill out all required fields."
+msgstr ""
+"Zabudli ste na vyžadované pole.  Prosím vyplňte všetky vyžiadané polia."
+
+#: install.php:203 install.php:211 install.php:219 install.php:227
+#: install.php:235
+msgid "OK"
+msgstr "OK"
+
+#: install.php:206 install.php:214 install.php:222 install.php:230
+#: install.php:238
+msgid "BAD"
+msgstr "ZLE"
+
+#: install.php:242 install.php:272 install.php:331 install.php:370
+#: install.php:421
+msgid "Install"
+msgstr "Inštalácia"
+
+#: install.php:243
+msgid "Pre-Installation Check"
+msgstr "Kontrola predinštalácie"
+
+#: install.php:245
+msgid "Step 1 of 5"
+msgstr "Krok 1 z 5"
+
+#: install.php:246
+msgid "Checking Folder Permissions"
+msgstr "Kontrola oprávnenia zložiek"
+
+#: install.php:259
+msgid "Your site is ready to be installed.  Please proceed to the next step."
+msgstr ""
+"Vaše stránky sú pripravené na inštaláciu. Prosím, pokračujte k ďalšiemu "
+"kroku."
+
+#: install.php:264
+msgid ""
+"Unfortunatly your site is not ready to be installed.  Please make sure that "
+"the folders above exist and have the proper permissions set."
+msgstr ""
+"Bohužiaľ vaše stránky nie je pripravený na inštaláciu. Prosím, uistite sa, "
+"že vyššie uvedené zložky existujú a majú riadne nastavené oprávnenia."
+
+#: install.php:273
+msgid "Database Information"
+msgstr "Informácie o databáze"
+
+#: install.php:274
+msgid "Step 2 of 5"
+msgstr "Krok 2 z 5"
+
+#: install.php:278
+msgid "Database Host"
+msgstr "Hostiteľ databázi"
+
+#: install.php:281
+msgid "This is usually localhost or your database ip address."
+msgstr "Toto je zvyčajne localhost alebo IP adresa databázy."
+
+#: install.php:286 install.php:297 install.php:433 install.php:449
+#: install.php:457
+msgid "Sorry, but I can't install without this information."
+msgstr "Prepáčte, ale bez tejto informácie nemôžem inštalovať."
+
+#: install.php:289
+msgid "Database Name"
+msgstr "meno databázi"
+
+#: install.php:292
+#, php-format
+msgid "The database name where you want to install %s."
+msgstr "Názov databázy, do ktorej chcete nainštalovať %s."
+
+#: install.php:300
+msgid "Database Username"
+msgstr "Užívateľské meno databáze"
+
+#: install.php:303
+msgid "The username for the database specified above."
+msgstr "Užívateľské meno k databázi špecifikované vyššie."
+
+#: install.php:308
+msgid "There has to be a user for this database."
+msgstr "Musí tu byť užívateľ databáze."
+
+#: install.php:311
+msgid "Database Password"
+msgstr "Heslo databáze"
+
+#: install.php:314
+msgid "The password for the database specified above."
+msgstr "Heslo k databázi špecifikované vyššie."
+
+#: install.php:319 install.php:441
+msgid "Passwords are hard to remember, but unfortunately necessary."
+msgstr "Heslá sú ťažko zapamätateľné, ale nanešťastie nutné."
+
+#: install.php:333
+msgid "Checking Database Connection"
+msgstr "Kontrola pripojenia k databáze"
+
+#: install.php:334
+msgid "Step 3 of 5"
+msgstr "Krok 3 z 5"
+
+#: install.php:336
+#, php-format
+msgid "Attempting to connect to database %s on %s using user %s."
+msgstr "Pokus o pripojenie k databáze %s na %s pomocou užívateľa %s."
+
+#: install.php:340
+msgid "Uh-Oh!"
+msgstr "Ach - joj!"
+
+#: install.php:340
+msgid ""
+"A connection to the database could not be made.  Please shut down your "
+"browser and then re-run the installation."
+msgstr ""
+"Pripojenie k databáze nemožno vykonať. Prosím, vypnite prehliadač a potom "
+"znova spustite inštaláciu."
+
+#: install.php:344
+msgid "Awesome!"
+msgstr "Desivé!"
+
+#: install.php:345
+msgid ""
+"A connection was successfully made to the database.  Please proceed to the "
+"next step."
+msgstr ""
+"Spojenie do databázy bolo úspešne nadviazané. Prosím, pokračujte k ďalšiemu "
+"kroku."
+
+#: install.php:372
+msgid "Step 4 of 5"
+msgstr "Krok 4 z 5"
+
+#: install.php:375
+msgid "Website Name"
+msgstr "Názov stránok"
+
+#: install.php:377
+msgid "What do you want your website to be called?"
+msgstr "Ako chcete aby sa vaša webová stránka volala?"
+
+#: install.php:378
+msgid "(Examples: \"The Smith's\" or \"The Johnson Family Website\")"
+msgstr "(Príklady: \"Novákovci\" alebo \"Stránka rodiny Horvátovej\")"
+
+#: install.php:383
+msgid "Without a name, how will you tell people about your website?"
+msgstr "Bez mena, ako oznámite ľuďom o vašej stránke?"
+
+#: install.php:389
+msgid ""
+"The email address you want all questions, comments and concerns about the "
+"site to go."
+msgstr ""
+"E-mailová adresa, na ktorú chcete posielať všetky otázky, pripomienky a "
+"problémy."
+
+#: install.php:395
+msgid "That's not a valid emaill address is it?"
+msgstr "To nie je platná emailová adresa ze?"
+
+#: install.php:411
+msgid "Which sections would you like to use on your site?"
+msgstr "Ktoré sekcie by ste chceli používať na svojich stránkach?"
+
+#: install.php:422
+msgid "Administrative Account"
+msgstr "Administratívny účet"
+
+#: install.php:423
+msgid "Step 5 of 5"
+msgstr "Krok 5 z 5"
+
+#: install.php:425
+msgid ""
+"Everyone will be required to have an account and be logged in at all times "
+"to use this website.  This will help protect your site."
+msgstr ""
+"Všetci budú musieť mať účet a byť prihlásený ak chcú používať túto webovú "
+"stránku. To pomôže ochrániť vaše stránky."
+
+#: install.php:426
+msgid ""
+"You must have at least one administrative account.  Please fill out the "
+"information below for the person who will be the administrator of this site."
+msgstr ""
+"Musíte mať aspoň jeden administrátorský účet. Vyplňte prosím nižšie uvedené "
+"informácie pre osobu, ktorá bude administrátorom týchto stránok."
+
+#: install.php:460
+msgid "Email Address"
+msgstr "Emailová adresa"
+
+#: install.php:939
+#, php-format
+msgid "Welcome to the %s Message Board."
+msgstr "Vitajte %s na nástenke."
+
+#: install.php:1077
+msgid "Hooray!  Yippie!"
+msgstr "Hurááá!  Jupíííí!"
+
+#: install.php:1078
+#, php-format
+msgid "%s has been installed successfully."
+msgstr "%s bol úspešne nainštalovaný."
+
+#: install.php:1079
+#, php-format
+msgid "Please continue to the homepage to login and begin using %s."
+msgstr ""
+"Pokračujte prosím na domovskú stránku prihláste sa a začnite ju používať %s."
+
+#: lostpw.php:24
+msgid ""
+"Your email address could not be found.  Please make sure you have entered it "
+"correctly."
+msgstr ""
+"Vaša e-mailová adresa nebola nájdená. Prosím uistite sa, že ste ju zadali "
+"správne."
+
+#: lostpw.php:41
+msgid "Password Reset"
+msgstr "Reset hesla"
+
+#: lostpw.php:43
+#, php-format
+msgid "Your password at %s has been reset."
+msgstr "Vaše heslo na %s bolo zresetované."
+
+#: lostpw.php:45
+msgid "New Password"
+msgstr "Nové heslo"
+
+#: lostpw.php:47 register.php:141
+msgid "Thanks"
+msgstr "Ďakujeme"
+
+#: lostpw.php:48 register.php:142
+#, php-format
+msgid "The %s Webmaster"
+msgstr "%s webmaster"
+
+#: lostpw.php:50
+msgid "This is an automated message, please do not reply."
+msgstr "Toto je automatická správa, prosím, neodpovedajte."
+
+#: lostpw.php:55
+msgid "Your password has been reset, please check your email."
+msgstr "Vaše heslo bolo zresetované, skontrolujte si prosím e-mail."
+
+#: lostpw.php:56 settings.php:187
+msgid "Continue"
+msgstr "Pokračovať."
+
+#: lostpw.php:69 lostpw.php:78
+msgid "Reset Password"
+msgstr "Reset hesla"
+
+#: lostpw.php:74
+msgid "The email address associated with your account."
+msgstr "E-mailová adresa bola spojená s vašim účtom."
+
+#: messageboard.php:99
+#, php-format
+msgid "%s started the new thread: %s"
+msgstr "%s začal nový príspevok: %s"
+
+#: messageboard.php:158
+#, php-format
+msgid "%s has replied to the thread: %s"
+msgstr "%s odpovedal na príspevok: %s"
+
+#: prayers.php:58
+msgid "Prayer Concern Added Successfully"
+msgstr "Modlitba úspešne pridaná"
+
+#: prayers.php:75
+#, php-format
+msgid "%s added a new Prayer Concern for %s"
+msgstr "%s pridal novú modlitbu pre %s"
+
+#: prayers.php:129
+msgid "Prayer Concern Deleted Successfully"
+msgstr "Modlitba úspešne zmazaná"
+
+#: prayers.php:152
+msgid "Add a Prayer Concern"
+msgstr "Pridať želanie"
+
+#: privatemsg.php:52 profile.php:14 profile.php:25
+msgid "Profiles"
+msgstr "Profily"
+
+#: privatemsg.php:101
+#, php-format
+msgid "A new Private Message at %s"
+msgstr "Nová súkromná správa na %s"
+
+#: privatemsg.php:106
+#, php-format
+msgid "%s has sent you a new Private Message at %s"
+msgstr "%s vám poslal novú súkromnú správu na %s"
+
+#: privatemsg.php:108
+msgid "The message has been attached below."
+msgstr "Správa bola pripojená nižšie"
+
+#: privatemsg.php:110
+#, php-format
+msgid "To respond to this message either visit %s or respond to this email."
+msgstr ""
+"Pre reakciu na túto správu buď navštívte %s alebo reagujte na tento e-mail."
+
+#: privatemsg.php:115
+msgid "Message Title"
+msgstr "Názov správy"
+
+#: privatemsg.php:127
+#, php-format
+msgid "A Private Message has been sent to %s"
+msgstr "Súkromná správa bola odoslaná do %s"
+
+#: privatemsg.php:163
+#, php-format
+msgid "%d Private Message Deleted Successfully"
+msgid_plural "%d Private Messages Deleted Successfully"
+msgstr[0] "%d Súkromná správa úspešne zmazaná"
+msgstr[1] "%d Súkromné správy úspešne zmazané"
+msgstr[2] "%d Súkromné správy úspešne zmazané"
+
+#: recipes.php:74
+msgid "Recipe Added Successfully"
+msgstr "Recept úspešne pridaný"
+
+#: recipes.php:124
+#, php-format
+msgid "%s has added the recipe: %s"
+msgstr "%s pridal recept: %s"
+
+#: recipes.php:186
+msgid "Recipe Deleted Successfully"
+msgstr "Recept úspešne zmazaný"
+
+#: register.php:14
+msgid "Register for"
+msgstr "Registrácia pre"
+
+#: register.php:72
+msgid "You forgot to fill out a required field."
+msgstr "Zabudol si vyplniť povinné pole."
+
+#: register.php:76
+msgid ""
+"The email you have choosen is already in use.  Please choose a different "
+"email."
+msgstr ""
+"Email, ktorý ste zvolili, sa už používa. Vyberte si prosím iný email."
+
+#: register.php:77
+msgid "If you have forgotten your password please reset it"
+msgstr "Ak ste zabudli svoje heslo, prosím resetujte si ho."
+
+#: register.php:81
+msgid ""
+"Sorry, but that username is already taken.  Please choose another username."
+msgstr ""
+"Je nám ľúto, ale užívateľské meno už existuje. Prosím, vyberte iné meno."
+
+#: register.php:99
+msgid "Membership"
+msgstr "Členstvo"
+
+#: register.php:101
+#, php-format
+msgid "New User Registration at %s"
+msgstr "Registrácia nového užívateľa na %s"
+
+#: register.php:102
+#, php-format
+msgid "A new user has registered at %s"
+msgstr "Nový užívateľ sa zaregistroval na %s"
+
+#: register.php:104
+msgid "Time of Registration"
+msgstr "Čas registrácie"
+
+#: register.php:116
+msgid "Please click the following link to activate your account"
+msgstr "Prosím kliknite na nasledujúci odkaz pre aktiváciu vášho účtu"
+
+#: register.php:121 register.php:147
+msgid "Congratulations and Welcome"
+msgstr "Gratulujeme a Vitajte"
+
+#: register.php:123 register.php:149
+#, php-format
+msgid "You have been successfully registered at %s."
+msgstr "Bol ste úspešne zaregistrovaný na %s."
+
+#: register.php:124 register.php:150
+#, php-format
+msgid "Your account information has been emailed to %s."
+msgstr "Informácie o Vašom účte boli zaslané na %s."
+
+#: register.php:125 register.php:151
+msgid "Please remember your username and password for this site."
+msgstr ""
+"Prosím zapamätajte si vaše užívateľské meno a heslo pre túto stránku."
+
+#: register.php:127
+msgid ""
+"Unfortunately you must activate your account before you can <a "
+"href=\"index.php\">login</a> and begin using the site"
+msgstr ""
+"Bohužiaľ musíte aktivovať svoj účet, predtým než sa budete môcť <a "
+"href=\"index.php\">prihlásiť</a> a začať používať stránky."
+
+#: register.php:133
+#, php-format
+msgid "Thank you for registering at %s"
+msgstr "Ďakujeme za registráciu na %s"
+
+#: register.php:135
+msgid ""
+"In order to login and beging using the site, your administrator must "
+"activate your account.  You will get an email when this has been done."
+msgstr ""
+"Pre prihlásenie a začatie používania webu, musí váš správca aktivovať Váš "
+"účet. Na e-mail Vám príde informácia, keď sa tak stane."
+
+#: register.php:137
+msgid ""
+"After your account is activated you can login using the following information"
+msgstr ""
+"Potom, čo bude váš účet aktivovaný, môžete sa prihlásiť pomocou "
+"nasledujúcich informácií"
+
+#: register.php:144
+msgid "This is an automated response, please do not reply."
+msgstr "Toto je automatická odpoveď, prosím, neodpovedajte."
+
+#: register.php:153
+msgid ""
+"Unfortunately your account must be activated before you can  <a "
+"href=\"index.php\">login</a> and begin using the site."
+msgstr ""
+"Bohužiaľ Váš účet musí byť aktivovaný, než sa budete môcť <a "
+"href=\"index.php\">Prihlásiť</a> a začať používať stránku."
+
+#: register.php:180
+msgid "Used for logging into the site."
+msgstr "Používané pri prihlasovaní do webu."
+
+#: register.php:185
+msgid "Required: Can' login without one."
+msgstr "Vyžaduje: Nemožno bez neho prihlásiť ."
+
+#: register.php:190
+msgid "Used for loggin into the site."
+msgstr "Používa sa pre prihlásenie na stránku."
+
+#: register.php:195
+msgid "Required: Can't login without one."
+msgstr "Vyžaduje: Nemožno bez neho prihlásiť ."
+
+#: register.php:200
+msgid "The name your mother gave you."
+msgstr "Meno vašej matky vám dal."
+
+#: register.php:210
+msgid "Your family name."
+msgstr "Vaše priezvisko."
+
+#: register.php:218
+msgid "Email Addrss"
+msgstr "E-mailová adresa"
+
+#: register.php:220
+msgid "Where can we send validation and updates?"
+msgstr "Kde môžeme zaslať potvrdenie a aktualizácie?"
+
+#: register.php:226
+msgid "Invalid Email"
+msgstr "Neplatný e-mail"
+
+#: rss.php:12
+msgid "The RSS feed you requested doesn't exist"
+msgstr "RSS kanál čo ste požadovali, neexistuje"
+
+#: rss.php:161
+#, php-format
+msgid "%s has updated his/her address."
+msgstr "%s aktualizoval vašu adresu."
+
+#: rss.php:225
+msgid "m-d-y"
+msgstr "m-d-r"
+
+#: rss.php:240 rss.php:242
+msgid "D, d M Y H:i:s"
+msgstr "D, d M Y H:i:s"
+
+#: settings.php:179
+msgid "Your Settings were Updated Successfully."
+msgstr "Vaše nastavenia boli úspešne aktualizované."
+
+#: settings.php:180
+msgid "You must now logout and login again to complete your changes."
+msgstr "Musíte sa odhlásiť a znovu prihlásiť na dokončenie zmeny."

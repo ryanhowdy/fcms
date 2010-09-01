@@ -17,7 +17,7 @@ header("Cache-control: private");
 include 'inc/settings_class.php';
 $settings = new Settings($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Settings');
+$TMPL['pagetitle'] = T_('Settings');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = <<<HTML
@@ -44,10 +44,10 @@ echo '
 
             <div id="leftcolumn">
                 <ul class="menu">
-                    <li><a href="?view=settings">'._('Settings').'</a></li>
-                    <li><a href="?view=board">'._('Message Board').'</a></li>
-                    <li><a href="?view=personal">'._('Personal Info').'</a></li>
-                    <li><a href="?view=password">'._('Password').'</a></li>
+                    <li><a href="?view=settings">'.T_('Settings').'</a></li>
+                    <li><a href="?view=board">'.T_('Message Board').'</a></li>
+                    <li><a href="?view=personal">'.T_('Personal Info').'</a></li>
+                    <li><a href="?view=password">'.T_('Password').'</a></li>
                 </ul>
             </div>
 
@@ -89,7 +89,7 @@ if (isset($_POST['submit'])) {
                 if ($email_check > 0) { 
                     echo '
             <p class="error-alert">
-                '.sprintf(_('The email address %s is already in use.  Please choose a different email.'), $_POST['email']).'
+                '.sprintf(T_('The email address %s is already in use.  Please choose a different email.'), $_POST['email']).'
             </p>';
                     $settings->displayForm();
                     exit();
@@ -176,14 +176,14 @@ if (isset($_POST['submit'])) {
     if (isset($orig_pass)) {
         echo '
             <div class="ok-alert">
-                <p>'._('Your Settings were Updated Successfully.').'</p>
-                <p><a href="logout.php">'._('You must now logout and login again to complete your changes.').'</a></p>
+                <p>'.T_('Your Settings were Updated Successfully.').'</p>
+                <p><a href="logout.php">'.T_('You must now logout and login again to complete your changes.').'</a></p>
             </div>
             <meta http-equiv=\'refresh\' content=\'5;URL=logout.php\'>';
     } else {
         echo '
-            <p class="ok-alert">'._('Changes Updated Successfully').'</p>
-            <p><a href="settings.php">'._('Continue').'</a></p>';
+            <p class="ok-alert">'.T_('Changes Updated Successfully').'</p>
+            <p><a href="settings.php">'.T_('Continue').'</a></p>';
     }
 } else {
     $option = isset($_GET['view']) ? $_GET['view'] : 'settings';

@@ -12,12 +12,13 @@ header("Cache-control: private");
 $timezone_sql = mysql_query("SELECT `timezone` FROM `fcms_user_settings` WHERE `id` = $current_user_id") or die('<h1>Timezone Error (familynews_comments.class.php 24)</h1>' . mysql_error());
 $ftimezone = mysql_fetch_array($timezone_sql);
 $tz_offset = $ftimezone['timezone'];
+$locale = new Locale();
 
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'._('lang').'" lang="'._('lang').'">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
-<title>'.getSiteName().' - '._('powered by').' '.getCurrentVersion().'</title>
+<title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <script type="text/javascript" src="prototype.js"></script>
 <script type="text/javascript">
@@ -25,7 +26,7 @@ echo '
 Event.observe(window, \'load\', function() {
     if (!$$(\'div.comment_block input[type="submit"]\')) { return; }
     $$(\'div.comment_block input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmed\');
@@ -92,12 +93,12 @@ if (isset($_GET['newsid'])) {
         echo '
     <div class="info-alert clearfix">
         <form action="familynews_comments.php?newsid='.$news_id.'" method="post">
-            <h2>'._('Are you sure you want to DELETE this comment?').'</h2>
-            <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+            <h2>'.T_('Are you sure you want to DELETE this comment?').'</h2>
+            <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
             <div>
                 <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                <a style="float:right;" href="familynews_comments.php?newsid='.$news_id.'">'._('Cancel').'</a>
+                <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                <a style="float:right;" href="familynews_comments.php?newsid='.$news_id.'">'.T_('Cancel').'</a>
             </div>
         </form>
     </div>';
@@ -113,12 +114,12 @@ if (isset($_GET['newsid'])) {
     // Show Comments
     if ($show) {
         echo '
-            <h3>'._('Comments').'</h3>
+            <h3>'.T_('Comments').'</h3>
             <p class="center">
                 <form action="familynews_comments.php?newsid='.$news_id.'" method="post">
-                    '._('Add Comment').'<br/>
-                    <input type="text" name="comment" id="comment" size="50" title="'._('Add a new comment').'"/>
-                    <input type="submit" name="addcom" id="addcom" value="'._('Add').'" class="gal_addcombtn"/>
+                    '.T_('Add Comment').'<br/>
+                    <input type="text" name="comment" id="comment" size="50" title="'.T_('Add a new comment').'"/>
+                    <input type="submit" name="addcom" id="addcom" value="'.T_('Add').'" class="gal_addcombtn"/>
                 </form>
             </p>
             <p class="center">&nbsp;</p>';
@@ -133,12 +134,13 @@ if (isset($_GET['newsid'])) {
         if (mysql_num_rows($result) > 0) { 
             while($row = mysql_fetch_array($result)) {
                 $displayname = getUserDisplayName($row['user']);
+                $date = $locale->fixDate(T_('F j, Y g:i a'), $tz_offset, $row['date']);
                 if ($current_user_id == $row['user'] || checkAccess($current_user_id) < 2) {
                     echo '
             <div class="comment_block">
                 <form action="familynews_comments.php?newsid='.$news_id.'" method="post">
-                    <input type="submit" name="delcom" id="delcom" value="'._('Delete').'" class="gal_delcombtn" title="'._('Delete this comment').'"/>
-                    <span>'.$row['date'].'</span><b>'.$displayname.'</b><br/>
+                    <input type="submit" name="delcom" id="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this comment').'"/>
+                    <span>'.$date.'</span><b>'.$displayname.'</b><br/>
                     '.htmlentities(stripslashes($row['comment']), ENT_COMPAT, 'UTF-8').'
                     <input type="hidden" name="id" value="'.$row['id'].'">
                 </form>
@@ -146,15 +148,15 @@ if (isset($_GET['newsid'])) {
                 } else {
                     echo '
             <div class="comment_block">
-                <span>'.$row['date'].'</span><b>'.$displayname.'</b><br/>
+                <span>'.$date.'</span><b>'.$displayname.'</b><br/>
                 '.htmlentities(stripslashes($row['comment']), ENT_COMPAT, 'UTF-8').'
             </div>';
                 }
             }
-        } else { echo "<p class=\"center\">"._('no comments')."</p>"; }
+        } else { echo "<p class=\"center\">".T_('no comments')."</p>"; }
     }
 } else {
-    echo "<h3>"._('Invalid Family News ID.')."</h3>";
+    echo "<h3>".T_('Invalid Family News ID.')."</h3>";
 }
 echo '
 </body>

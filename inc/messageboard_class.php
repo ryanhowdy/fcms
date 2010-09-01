@@ -37,11 +37,11 @@ class MessageBoard
                 <thead>
                     <tr>
                         <th class="images">&nbsp;</th>
-                        <th class="subject">'._('Subject').'</th>
+                        <th class="subject">'.T_('Subject').'</th>
                         <th class="info">&nbsp;</th>
-                        <th class="replies">'._('Replies').'</th>
-                        <th class="views">'._('Views').'</th>
-                        <th class="updated">'._('Last Updated').'</th>
+                        <th class="replies">'.T_('Replies').'</th>
+                        <th class="views">'.T_('Views').'</th>
+                        <th class="updated">'.T_('Last Updated').'</th>
                     </tr>
                 </thead>
                 <tbody>';
@@ -81,48 +81,53 @@ class MessageBoard
             if ($type == 'announcement') {
                 //remove #ANNOUNCE# from the subject
                 $subject = substr($subject, 9, strlen($subject)-9);
-                $subject_info = "<small><b>" . _('Announcement') . ": </b></small>";
+                $subject_info = "<small><b>" . T_('Announcement') . ": </b></small>";
                 $tr_class = 'announcement';
             } else {
                 if ($alt % 2 !== 0) { $tr_class = 'alt'; }
             }
-            // thread was updated today
-            if (
-                gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == 
-                gmdate('n/d/Y', strtotime(date('Y-m-d H:i:s') . $this->tz_offset))
-            ) {
+
+            $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+            $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+
+            $time = gmmktime(0, 0, 0, gmdate('m')  , gmdate('d')-1, gmdate('Y'));
+            $yesterday_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s', $time)) . '000000';
+            $yesterday_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s', $time)) . '235959';
+
+            $updated = $locale->fixDate('YmdHis', $this->tz_offset, strtotime($row['updated']));
+
+            // Updated Today
+            if ($updated >= $today_start && $updated <= $today_end) {
                 $img_class = 'today';
                 if ($type == 'announcement') {
                     $img_class = 'announcement_' . $img_class;
                 }
-                $date = $locale->fixDate(_('h:ia'), $this->tz_offset, $row['updated']);
-                $last_updated = sprintf(_('Today at %s'), $date).'<br/>'
-                    .sprintf(_('by %s'), ' <a class="u" href="profile.php?member='.$row['updated_by'].'">'.$updated_by.'</a>');
-            // thread was updated yesterday
-            } elseif (
-                gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == 
-                gmdate('n/d/Y', strtotime(date('n/d/Y', strtotime(date('Y-m-d H:i:s') . $this->tz_offset)) . "-24 hours"))
-            ) {
+                $date = $locale->fixDate(T_('h:ia'), $this->tz_offset, $row['updated']);
+                $last_updated = sprintf(T_('Today at %s'), $date).'<br/>'
+                    .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.$row['updated_by'].'">'.$updated_by.'</a>');
+
+            // Updated Yesterday
+            } elseif ($updated >= $yesterday_start && $updated <= $yesterday_end) {
                 $img_class = 'yesterday';
                 if ($type == 'announcement') {
                     $img_class = 'announcement_' . $img_class;
                 }
-                $date = $locale->fixDate(_('h:ia'), $this->tz_offset, $row['updated']);
-                $last_updated = sprintf(_('Yesterday at %s'), $date).'<br/>'
-                    .sprintf(_('by %s'), ' <a class="u" href="profile.php?member='.$row['updated_by'].'">'.$updated_by.'</a>');
+                $date = $locale->fixDate(T_('h:ia'), $this->tz_offset, $row['updated']);
+                $last_updated = sprintf(T_('Yesterday at %s'), $date).'<br/>'
+                    .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.$row['updated_by'].'">'.$updated_by.'</a>');
             } else {
                 $img_class = '';
                 if ($type == 'announcement') {
                     $img_class = 'announcement';
                 }
-                $last_updated = $locale->fixDate(_('m/d/Y h:ia'), $this->tz_offset, $row['updated'])
-                    .sprintf(_('by %s'), ' <a class="u" href="profile.php?member='.$row['updated_by'].'">'.$updated_by.'</a>');
+                $last_updated = $locale->fixDate(T_('m/d/Y h:ia'), $this->tz_offset, $row['updated'])
+                    .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.$row['updated_by'].'">'.$updated_by.'</a>');
             }
             // thread has multiple pages?
             $thread_pages = '';
             if ($this->getNumberOfPosts($row['id']) > 15) { 
                 $num_posts = $this->getNumberOfPosts($row['id']);
-                $thread_pages = "<span>" . _('Page') . " ";
+                $thread_pages = "<span>" . T_('Page') . " ";
                 $times2loop = ceil($num_posts/15);
                 for ($i=1;$i<=$times2loop;$i++) {
                     $thread_pages .= "<a href=\"messageboard.php?thread=" . $row['id'] . "&amp;page=$i\">$i</a> ";
@@ -158,7 +163,7 @@ class MessageBoard
             echo '
                 </tbody>
             </table>
-            <div class="top clearfix"><a href="#top">'._('Back to Top').'</a></div>';
+            <div class="top clearfix"><a href="#top">'.T_('Back to Top').'</a></div>';
             $this->displayPages($page);
         }
     }
@@ -169,7 +174,7 @@ class MessageBoard
         $from = (($page * 15) - 15);
         if (!ctype_digit($thread_id)) {
             echo '
-            <p class="error-alert">'._('Invalid Thread').'</p>';
+            <p class="error-alert">'.T_('Invalid Thread').'</p>';
             return;
         }
         $sql = "UPDATE fcms_board_threads SET views=(views + 1) WHERE id=$thread_id";
@@ -218,7 +223,7 @@ class MessageBoard
                 if ($alt !== $total - 1) { $subject = "RE: " . $subject; }
             }
             $displayname = getUserDisplayName($row['user']);
-            $date = $locale->fixDate(_('n/d/y g:ia'), $this->tz_offset, $row['date']);
+            $date = $locale->fixDate(T_('n/d/y g:ia'), $this->tz_offset, $row['date']);
             if ($alt % 2 == 0) {
                 $tr_class = '';
             } else {
@@ -228,21 +233,21 @@ class MessageBoard
             $points = getUserRankById($row['user']);
             $rank = '';
             if ($points > 50) {
-                $rank = "<div title=\""._('Elder')." ($points)\" class=\"rank7\"></div>";
+                $rank = "<div title=\"".T_('Elder')." ($points)\" class=\"rank7\"></div>";
             } elseif ($points > 30) {
-                $rank = "<div title=\""._('Adult')." ($points)\" class=\"rank6\"></div>";
+                $rank = "<div title=\"".T_('Adult')." ($points)\" class=\"rank6\"></div>";
             } elseif ($points > 20) {
-                $rank = "<div title=\""._('Matuer Adult')." ($points)\" class=\"rank5\"></div>";
+                $rank = "<div title=\"".T_('Matuer Adult')." ($points)\" class=\"rank5\"></div>";
             } elseif ($points > 10) {
-                $rank = "<div title=\""._('Young Adult')." ($points)\" class=\"rank4\"></div>";
+                $rank = "<div title=\"".T_('Young Adult')." ($points)\" class=\"rank4\"></div>";
             } elseif ($points > 5) {
-                $rank = "<div title=\""._('Teenager')." ($points)\" class=\"rank3\"></div>";
+                $rank = "<div title=\"".T_('Teenager')." ($points)\" class=\"rank3\"></div>";
             } elseif ($points > 3) {
-                $rank = "<div title=\""._('Kid')." ($points)\" class=\"rank2\"></div>";
+                $rank = "<div title=\"".T_('Kid')." ($points)\" class=\"rank2\"></div>";
             } elseif ($points > 1) {
-                $rank = "<div title=\""._('Toddler')." ($points)\" class=\"rank1\"></div>";
+                $rank = "<div title=\"".T_('Toddler')." ($points)\" class=\"rank1\"></div>";
             } else {
-                $rank = "<div title=\""._('Baby')." ($points)\" class=\"rank0\"></div>";
+                $rank = "<div title=\"".T_('Baby')." ($points)\" class=\"rank0\"></div>";
             }
             $avatar = '';
             if ($showavatar > 0) {
@@ -259,7 +264,7 @@ class MessageBoard
                 $actions .= '<form method="post" action="messageboard.php?reply='.$thread_id.'">
                                         <div>
                                             <input type="hidden" name="id" value="'.$row['id'].'"/>
-                                            <input type="submit" class="quotebtn" value="'._('Quote').'" name="quotepost" title="'._('Quote this message').'"/>
+                                            <input type="submit" class="quotebtn" value="'.T_('Quote').'" name="quotepost" title="'.T_('Quote this message').'"/>
                                         </div>
                                     </form>';
             }
@@ -269,7 +274,7 @@ class MessageBoard
                                     <form method="post" action="messageboard.php">
                                         <div>
                                             <input type="hidden" name="id" value="'.$row['id'].'"/>
-                                            <input type="submit" name="editpost" value="'._('Edit').'" class="editbtn" title="'._('Edit this message').'"/>
+                                            <input type="submit" name="editpost" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this message').'"/>
                                         </div>
                                     </form>';
             }
@@ -280,7 +285,7 @@ class MessageBoard
                                         <div>
                                             <input type="hidden" name="id" value="'.$row['id'].'"/>
                                             <input type="hidden" name="thread" value="'.$thread_id.'"/>
-                                            <input type="submit" name="delpost" value="'._('Delete').'" class="delbtn" title="'._('Delete this message').'"/>
+                                            <input type="submit" name="delpost" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this message').'"/>
                                         </div>
                                     </form>';
             }
@@ -293,7 +298,7 @@ class MessageBoard
                             '.$rank.'
                             '.$avatar.'
                             '.$awards.'
-                            <b>'._('Posts').'</b> '.$posts_count.'
+                            <b>'.T_('Posts').'</b> '.$posts_count.'
                         </td>
                         <td class="posts">
                             <div class="header clearfix">
@@ -317,7 +322,7 @@ class MessageBoard
         $this->displayMessageBoardMenu($thread_id);
         $this->displayPages($page, $thread_id);
         echo '
-            <div class="top"><a href="#top">'._('Back to Top').'</a></div>';
+            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
     }
 
     function getNumberOfPosts ($thread_id)
@@ -400,10 +405,10 @@ class MessageBoard
         // New
         if ($type == 'new') {
             $reply = '';
-            $header = _('New Message');
+            $header = T_('New Message');
             $subject = '
                 <div>
-                    <label for="subject">'._('Subject').'</label>: 
+                    <label for="subject">'.T_('Subject').'</label>: 
                     <input type="text" name="subject" id="subject" size="50"/>
                 </div>
                 <script type="text/javascript">
@@ -414,8 +419,8 @@ class MessageBoard
             if (checkAccess($this->current_user_id) <= 2) {
                 $sticky = '
                 <p>
-                    <label for="sticky">'._('Admin Tools').'</label>: 
-                    <input type="checkbox" name="sticky" id="sticky" value="sticky"/>'._('Make Announcement').'
+                    <label for="sticky">'.T_('Admin Tools').'</label>: 
+                    <input type="checkbox" name="sticky" id="sticky" value="sticky"/>'.T_('Make Announcement').'
                 </p>';
             }
             $post = '';
@@ -427,13 +432,13 @@ class MessageBoard
             $hidden_submit = '
                 <div><input type="hidden" name="name" id="name" value="'.$this->current_user_id.'"/></div>
                 <p>
-                    <input class="sub1" type="submit" name="post_submit" id="post_submit" value="'._('Submit').'"/>
-                    &nbsp; <a href="messageboard.php">'._('Cancel').'</a>
+                    <input class="sub1" type="submit" name="post_submit" id="post_submit" value="'.T_('Submit').'"/>
+                    &nbsp; <a href="messageboard.php">'.T_('Cancel').'</a>
                 </p>';
 
         // Reply
         } elseif ($type == 'reply') {
-            $header = _('Reply');
+            $header = T_('Reply');
             $subject = '';
             $sticky = '';
             $post_js = '';
@@ -451,7 +456,7 @@ class MessageBoard
             $displayname = getUserDisplayName($row['user']);
             $reply = '
             <div class="lastpost">
-                <b>'.sprintf(_('Last post written by %s'), $displayname).'</b><br />
+                <b>'.sprintf(T_('Last post written by %s'), $displayname).'</b><br />
                 <p>'.parse($row['post']).'</p>
             </div>';
             // Get the text of ther post that the user is quoting
@@ -465,7 +470,7 @@ class MessageBoard
                     'Get Quote Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
                 $qrow = $this->db->get_row();
-                $post = '[SPAN=q]'._('Quoting').': '.getUserDisplayName($qrow['user']).'[/SPAN][QUOTE]'
+                $post = '[SPAN=q]'.T_('Quoting').': '.getUserDisplayName($qrow['user']).'[/SPAN][QUOTE]'
                         .htmlentities($qrow['post'], ENT_COMPAT, 'UTF-8').'[/QUOTE]';
             } else {
                 $post = '';
@@ -475,20 +480,20 @@ class MessageBoard
                 <div><input type="hidden" name="name" id="name" value="'.$this->current_user_id.'"/></div>
                 <div><input type="hidden" name="thread_id" value="'.$thread_id.'"/></div>
                 <p>
-                    <input class="sub1" type="submit" name="reply_submit" id="reply_submit" value="'._('Reply').'"/>
-                    &nbsp; <a href="?thread='.$thread_id.'">'._('Cancel').'</a>
+                    <input class="sub1" type="submit" name="reply_submit" id="reply_submit" value="'.T_('Reply').'"/>
+                    &nbsp; <a href="?thread='.$thread_id.'">'.T_('Cancel').'</a>
                 </p>';
 
         // Edit
         } elseif ($type == 'edit') {
             $reply = '';
-            $header = _('Edit');
+            $header = T_('Edit');
             $subject = '';
             $sticky = '';
             $post_js = '';
 
             // Remove the previous edited by string so we can add a new one
-            $pos = strpos($post, "[size=small][i]"._('Edited'));
+            $pos = strpos($post, "[size=small][i]".T_('Edited'));
             if ($pos !== false) {
                 $post = substr($post, 0, $pos);
             }
@@ -497,8 +502,8 @@ class MessageBoard
                 <div><input type="hidden" name="id" id="id" value="'.$post_id.'"/></div>
                 <div><input type="hidden" name="thread_id" id="thread_id" value="'.$thread_id.'"/></div>
                 <p>
-                    <input class="sub1" type="submit" name="edit_submit" id="edit_submit" value="'._('Edit').'"/>
-                    &nbsp; <a href="?thread='.$thread_id.'">'._('Cancel').'</a>
+                    <input class="sub1" type="submit" name="edit_submit" id="edit_submit" value="'.T_('Edit').'"/>
+                    &nbsp; <a href="?thread='.$thread_id.'">'.T_('Cancel').'</a>
                 </p>';
         }
 
@@ -511,7 +516,7 @@ class MessageBoard
                     <legend><span>'.$header.'</span></legend>
                     '.$subject.'
                     <div>
-                        <label for="showname">'._('Name').'</label>: 
+                        <label for="showname">'.T_('Name').'</label>: 
                         <input type="text" disabled="disabled" name="showname" id="showname" value="'.getUserDisplayName($this->current_user_id).'" size="50"/>
                     </div>
                     '.$sticky.'
@@ -539,7 +544,7 @@ class MessageBoard
 
     function getAwards ($user_id)
     {
-        $str = "<b>"._('Awards')."</b>";
+        $str = "<b>".T_('Awards')."</b>";
         $sql = "SELECT * FROM fcms_user_awards WHERE user = $user_id AND `count` > 0";
         $this->db2->query($sql) or displaySQLError(
             'Awards Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -548,22 +553,22 @@ class MessageBoard
             if ($row['type'] == 'top5poster') {
                 $str .= "<div class=\"award boardtop5";
                 if ($row['value'] <= 1) { $str .= "gold"; }
-                $str .= "\" title=\"".sprintf(_('#%s Poster last month'), $row['value']);
-                $str .= " (" . $row['count'] . " "._('posts').")\"></div>";
+                $str .= "\" title=\"".sprintf(T_('#%s Poster last month'), $row['value']);
+                $str .= " (" . $row['count'] . " ".T_('posts').")\"></div>";
             } elseif ($row['type'] == 'top5photo') {
                 $str .= "<div class=\"award phototop5";
                 if ($row['value'] <= 1) { $str .= "gold"; }
-                $str .= "\" title=\"".sprintf(_('#%s Photographer last month'), $row['value']);
-                $str .= " (" . $row['count'] . " "._('posts').")\"></div>";
+                $str .= "\" title=\"".sprintf(T_('#%s Photographer last month'), $row['value']);
+                $str .= " (" . $row['count'] . " ".T_('posts').")\"></div>";
             } else if ($row['type'] == 'mostsmileys') {
-                $str .= "<div class=\"award smileys\" title=\"" . _('Used Most Smileys last month') . "\"></div>";
+                $str .= "<div class=\"award smileys\" title=\"" . T_('Used Most Smileys last month') . "\"></div>";
             } else if ($row['type'] == 'topviewedphoto') {
                 $str .= "<div class=\"award topviewedphoto\" title=\"";
-                $str .= _('Uploaded Most Viewed Photo last month') . " (" . $row['count'] . " ";
-                $str .= _('views') . ")\"></div>";
+                $str .= T_('Uploaded Most Viewed Photo last month') . " (" . $row['count'] . " ";
+                $str .= T_('views') . ")\"></div>";
             } else {
-                $str .= "<div class=\"award threadstarter\" title=\""._('Top Thread Starter last month');
-                $str .= " (" . $row['count'] . " " . _('posts') . ")\"></div>";
+                $str .= "<div class=\"award threadstarter\" title=\"".T_('Top Thread Starter last month');
+                $str .= " (" . $row['count'] . " " . T_('posts') . ")\"></div>";
             }
         }
         return $str;
@@ -575,14 +580,14 @@ class MessageBoard
             echo '
             <div id="actions_menu" class="clearfix">
                 <ul>
-                    <li><a href="messageboard.php?reply=new">'._('New Message').'</a></li>
+                    <li><a href="messageboard.php?reply=new">'.T_('New Message').'</a></li>
                 </ul>
             </div>';
         } else {
             echo '
             <div id="sections_menu" class="clearfix">
                 <ul>
-                    <li><a href="messageboard.php">'._('Message Board Home').'</a></li>
+                    <li><a href="messageboard.php">'.T_('Message Board Home').'</a></li>
                 </ul>
             </div>';
 
@@ -590,7 +595,7 @@ class MessageBoard
                 echo '
             <div id="actions_menu" class="clearfix">
                 <ul>
-                    <li><a class="action" href="messageboard.php?reply=' . $thread_id . '">'._('Reply').'</a></li>
+                    <li><a class="action" href="messageboard.php?reply=' . $thread_id . '">'.T_('Reply').'</a></li>
                 </ul>
             </div>';
             }
@@ -601,10 +606,11 @@ class MessageBoard
     function displayWhatsNewMessageBoard ()
     {
         $locale = new Locale();
-        $today = date('Y-m-d');
-        $tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
+        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+
         echo '
-            <h3>'._('Message Board').'</h3>
+            <h3>'.T_('Message Board').'</h3>
             <ul>';
         $sql = "SELECT * 
                 FROM (
@@ -619,23 +625,30 @@ class MessageBoard
                 ORDER BY `date` DESC 
                 LIMIT 0, 5";
         $this->db->query($sql) or die('<h1>Posts Error (messageboard.class.php 287)</h1>' . mysql_error());
+
         if ($this->db->count_rows() > 0) {
             while ($row = $this->db->get_row()) {
                 $displayname = getUserDisplayName($row['userid']);
                 $subject = $row['subject'];
                 $subject_full = htmlentities($row['subject'], ENT_COMPAT, 'UTF-8');
+
+                // Remove announcment
                 $pos = strpos($subject, '#ANOUNCE#');
-                if ($pos !== false) { $subject = substr($subject, 9, strlen($subject)-9); }
-                if (strlen($subject) > 23) { $subject = substr($subject, 0, 20) . "..."; }
-                $date = $locale->fixDate(_('M. j, Y g:i a'), $this->tz_offset, $row['date']);
-                if (
-                    strtotime($row['date']) >= strtotime($today) && 
-                    strtotime($row['date']) > $tomorrow
-                ) { 
-                    $full_date = _('Today');
+                if ($pos !== false) {
+                    $subject = substr($subject, 9, strlen($subject)-9);
+                }
+
+                // Chop Long subjects
+                if (strlen($subject) > 23) {
+                    $subject = substr($subject, 0, 20) . "...";
+                }
+
+                $date = $locale->fixDate('YmdHis', $this->tz_offset, $row['date']);
+                if ($date >= $today_start && $date <= $today_end) {
+                    $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $date;
+                    $full_date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tz_offset, $row['date']);
                     $d = '';
                 }
                 echo '
@@ -646,10 +659,10 @@ class MessageBoard
                 if ($this->getNumberOfPosts($row['thread']) > 15) {
                     $num_posts = $this->getNumberOfPosts($row['thread']);
                     echo '
-                    ('._('Page').' ';
+                    ('.T_('Page').' ';
                     $times2loop = ceil($num_posts/15);
                     for ($i=1; $i<=$times2loop; $i++) {
-                        echo '<a href="messageboard.php?thread='.$row['thread'].'&amp;page='.$i.'" title="'._('Page').' '.$i.'">'.$i.'</a> ';
+                        echo '<a href="messageboard.php?thread='.$row['thread'].'&amp;page='.$i.'" title="'.T_('Page').' '.$i.'">'.$i.'</a> ';
                     }
                     echo ")";
                 }
@@ -659,7 +672,7 @@ class MessageBoard
             }
         } else {
             echo '
-                <li><i>'._('nothing new last 30 days').'</i></li>';
+                <li><i>'.T_('nothing new last 30 days').'</i></li>';
         }
         echo '
             </ul>';

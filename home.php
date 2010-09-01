@@ -28,10 +28,10 @@ mysql_query("UPDATE `fcms_users` SET `activity`=NOW() WHERE `id` = $current_user
 $calendar = new Calendar($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 $poll = new Poll($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$alert = new Alerts($database);
+$alert = new Alerts($current_user_id, $database);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Home');
+$TMPL['pagetitle'] = T_('Home');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = '
@@ -51,19 +51,32 @@ echo '
         <div id="home" class="centercontent">
 
             <div id="leftcolumn">
-                <h2 class="calmenu">'._('Calendar').'</h2>';
-$year  = isset($_GET['year']) ? $_GET['year'] : date('Y');
-$month = isset($_GET['month']) ? str_pad($_GET['month'], 2, 0, STR_PAD_LEFT) : date('m');
-$day = isset($_GET['day']) ? str_pad($_GET['day'], 2, 0, STR_PAD_LEFT) : date('d');
+                <h2 class="calmenu">'.T_('Calendar').'</h2>';
+
+// Use the supplied date, if available
+if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day'])) {
+    $year  = (int)$_GET['year'];
+    $month = (int)$_GET['month'];
+    $month = str_pad($month, 2, 0, STR_PAD_LEFT);
+    $day = (int)$_GET['day'];
+    $day = str_pad($day, 2, 0, STR_PAD_LEFT);
+// get today's date
+} else {
+    $year = $locale->fixDate('Y', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+    $month = $locale->fixDate('m', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+    $day = $locale->fixDate('d', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+}
 $calendar->displayCalendar($month, $year, $day);
 $calendar->displayMonthEvents($month, $year);
-$month = date("m", mktime(0,0,0,$month+1,1,2006));
-$calendar->displayMonthEvents($month, $year);
+// Next Month
+$currentMonth = gmdate('Y-m-d H:i:s', gmmktime(gmdate('h'),gmdate('i'),gmdate('s'),$month+1,1,$year));
+$nextMonth = $locale->fixDate('m', $calendar->tz_offset, $currentMonth);
+$calendar->displayMonthEvents($nextMonth, $year);
 if (!isset($_POST['vote']) && !isset($_GET['poll_id']) && !isset($_GET['action'])) {
     $poll->displayPoll('0', false);
 }
 echo '
-                <h2 class="membermenu">'._('Members Online').'</h2>
+                <h2 class="membermenu">'.T_('Members Online').'</h2>
                 <div class="membermenu">';
 displayMembersOnline();
 echo '
@@ -128,12 +141,11 @@ if ($showWhatsNew) {
     $alert->displayNewUserHome($current_user_id);
 
     // Show any events happening today
-    $month = isset($_GET['month']) ? str_pad($_GET['month'], 2, 0, STR_PAD_LEFT) : date('m');
     $calendar->displayTodaysEvents($month, $day, $year);
 
     // Show what's new based on user's settings
     echo '
-                <h2>'._('What\'s New').'</h2>';
+                <h2>'.T_('What\'s New').'</h2>';
     $sql = "SELECT `frontpage` FROM `fcms_user_settings` "
          . "WHERE `user` = $current_user_id";
     $result = mysql_query($sql) or displaySQLError(
@@ -166,8 +178,6 @@ if ($showWhatsNew) {
         $docs = new Documents($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         echo '
                 <div class="half">';
-        $today = date('Y-m-d');
-        $tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
         $mboard->displayWhatsNewMessageBoard();
         if (usingFamilyNews()) {
             $news->displayWhatsNewFamilyNews();
@@ -184,7 +194,7 @@ if ($showWhatsNew) {
                 <div class="half">';
         $gallery->displayWhatsNewGallery();
         echo '
-                    <h3>'._('Comments').'</h3>
+                    <h3>'.T_('Comments').'</h3>
                     <ul>';
         $sql_comments = '';
         if (usingFamilyNews()) {
@@ -207,20 +217,19 @@ if ($showWhatsNew) {
                        . "ORDER BY `date` DESC LIMIT 5";
         $result = mysql_query($sql_comments);
         if (mysql_num_rows($result) > 0) {
+            $today_start = $locale->fixDate('Ymd', $mboard->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+            $today_end = $locale->fixDate('Ymd', $mboard->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
             while ($com = mysql_fetch_array($result)) {
-                $date = $locale->fixDate('M. j, Y, g:i a', $mboard->tz_offset, $com['date']);
+                $date = $locale->fixDate('YmdHis', $mboard->tz_offset, $com['date']);
                 $comment = $com['comment'];
                 if (strlen($comment) > 30) {
                     $comment = substr($comment, 0, 27) . "...";
                 }
-                if (
-                    strtotime($com['date']) >= strtotime($today) && 
-                    strtotime($com['date']) < strtotime($tomorrow)
-                ) {
-                    $full_date = _('Today');
+                if ($date >= $today_start && $date <= $today_end) {
+                    $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $date;
+                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $mboard->tz_offset, $com['date']);
                     $d = '';
                 }
                 if ($com['check'] !== 'NEWS') {
@@ -238,7 +247,7 @@ if ($showWhatsNew) {
             }
         } else {
             echo '
-                        <li><i>'._('nothing new last 30 days').'</i></li>';
+                        <li><i>'.T_('nothing new last 30 days').'</i></li>';
         }
         echo '
                     </ul>';
@@ -251,7 +260,7 @@ if ($showWhatsNew) {
     }
     echo '
                 <p class="alignright">
-                    <a class="rss" href="rss.php?feed=all">'._('RSS Feed').'</a>
+                    <a class="rss" href="rss.php?feed=all">'.T_('RSS Feed').'</a>
                 </p>';
 }
 

@@ -33,7 +33,7 @@ class AddressBook
         // Check for valid address id
         if (!ctype_digit($aid)) {
             echo '
-            <p class="error-alert">'._('Invalid Address').'</p>';
+            <p class="error-alert">'.T_('Invalid Address').'</p>';
             return;
         }
 
@@ -56,10 +56,10 @@ class AddressBook
                     <form action="addressbook.php" method="post">
                         <div>
                             <input type="hidden" name="id" value="'.$r['id'].'"/>
-                            <input type="submit" id="edit" name="edit" class="editbtn" value="'._('Edit').'"/>';
+                            <input type="submit" id="edit" name="edit" class="editbtn" value="'.T_('Edit').'"/>';
                 if ($r['password'] == 'NONMEMBER' || $r['password'] == 'PRIVATE') {
                     $edit_del .='
-                            <input type="submit" id="del" name="del" class="delbtn" value="'._('Delete').'"/>';
+                            <input type="submit" id="del" name="del" class="delbtn" value="'.T_('Delete').'"/>';
                 }
                 $edit_del .= '
                         </div>
@@ -69,7 +69,7 @@ class AddressBook
             // Address
             $address = '';
             if (empty($r['address']) && empty($r['state'])) {
-                $address = "<i>("._('none').")</i>";
+                $address = "<i>(".T_('none').")</i>";
             } else {
                 if (!empty($r['address'])) {
                     $address .= $r['address'] . "<br/>";
@@ -81,14 +81,14 @@ class AddressBook
             }
             // Email
             if (empty($r['email'])) {
-                $email = "<i>("._('none').")</i>";
+                $email = "<i>(".T_('none').")</i>";
             } else {
-                $email = $r['email'] . ' <a class="email" href="mailto:' . $r['email'] . '" title="'._('Email This Member').'">&nbsp;</a>';
+                $email = $r['email'] . ' <a class="email" href="mailto:' . $r['email'] . '" title="'.T_('Email This Member').'">&nbsp;</a>';
             }
             // Phone Numbers
-            $home = empty($r['home']) ? "<i>(" . _('none') . ")</i>" : $r['home'];
-            $work = empty($r['work']) ? "<i>(" . _('none') . ")</i>" : $r['work'];
-            $cell = empty($r['cell']) ? "<i>(" . _('none') . ")</i>" : $r['cell'];
+            $home = empty($r['home']) ? "<i>(" . T_('none') . ")</i>" : $r['home'];
+            $work = empty($r['work']) ? "<i>(" . T_('none') . ")</i>" : $r['work'];
+            $cell = empty($r['cell']) ? "<i>(" . T_('none') . ")</i>" : $r['cell'];
             
             // Display address
             echo '
@@ -106,16 +106,16 @@ class AddressBook
                     <div id="address-details">
                         '.$edit_del.'
                         <p><img src="gallery/avatar/'.$r['avatar'].'"/><b>'.$r['lname'].', '.$r['fname'].'</b></p>
-                        <p class="clearfix"><b class="label">'._('Address').':</b><span class="data">'.$address.'</span></p>
-                        <p class="clearfix"><b class="label">'._('Email').':</b><span class="data">'.$email.'</span></p>
-                        <p class="clearfix"><b class="label">'._('Home').':</b><span class="data">'.$home.'</span></p>
-                        <p class="clearfix"><b class="label">'._('Work').':</b><span class="data">'.$work.'</span></p>
-                        <p class="clearfix"><b class="label">'._('Mobile').':</b><span class="data">'.$cell.'</span></p>
+                        <p class="clearfix"><b class="label">'.T_('Address').':</b><span class="data">'.$address.'</span></p>
+                        <p class="clearfix"><b class="label">'.T_('Email').':</b><span class="data">'.$email.'</span></p>
+                        <p class="clearfix"><b class="label">'.T_('Home').':</b><span class="data">'.$home.'</span></p>
+                        <p class="clearfix"><b class="label">'.T_('Work').':</b><span class="data">'.$work.'</span></p>
+                        <p class="clearfix"><b class="label">'.T_('Mobile').':</b><span class="data">'.$cell.'</span></p>
                     </div>
                 </div>';
         } else {
             echo '
-            <p class="error-alert">'.sprintf(_('Could not find address (%s)'), $aid).'</p>';
+            <p class="error-alert">'.sprintf(T_('Could not find address (%s)'), $aid).'</p>';
         }
     }
 
@@ -147,7 +147,7 @@ class AddressBook
         echo '
                     </div>
                     <div id="address-details">
-                        <p>'._('Choose an Address from the list.').'</p>
+                        <p>'.T_('Choose an Address from the list.').'</p>
                     </div>
                 </div>';
         $dis = '';
@@ -155,7 +155,7 @@ class AddressBook
             $dis = 'disabled="disabled"';
         }
         echo '
-                <div class="alignright"><input '.$dis.' type="submit" name="emailsubmit" value="'._('Email Selected').'"/></div>
+                <div class="alignright"><input '.$dis.' type="submit" name="emailsubmit" value="'.T_('Email Selected').'"/></div>
             </form>';
     }
 
@@ -164,12 +164,12 @@ class AddressBook
         echo '
                     <div id="address-toolbar" class="clearfix">
                         <ul id="add">
-                            <li><a class="add" href="?add=yes">'._('Add Contact').'</a></li>
-                            <li><a href="?address='.$this->current_user_id.'">'._('View My Address').'</a></li>
+                            <li><a class="add" href="?add=yes">'.T_('Add Contact').'</a></li>
+                            <li><a href="?address='.$this->current_user_id.'">'.T_('View My Address').'</a></li>
                         </ul>
                         <ul id="import-export">
-                            <li><a href="?csv=import">'._('Import').'</a></li>
-                            <li><a href="?csv=export">'._('Export').'</a></li>
+                            <li><a href="?csv=import">'.T_('Import').'</a></li>
+                            <li><a href="?csv=export">'.T_('Export').'</a></li>
                         </ul>
                     </div>';
     }
@@ -199,10 +199,10 @@ class AddressBook
         }
         echo '
                         <ul>
-                            <li '.$all.'><a href="addressbook.php">'._('All Addresses').'</a></li>
-                            <li '.$my.'><a href="?cat=my" title="'._('Only show My personal Addresses').'">'._('My Addresses').'</a></li>
-                            <li '.$mem.'><a href="?cat=members" title="'._('Only show Addresses for members of the site').'">'._('Members').'</a></li>
-                            <li '.$non.'><a href="?cat=non" title="'._('Only show Addresses for non-members').'">'._('Non-Members').'</a></li>
+                            <li '.$all.'><a href="addressbook.php">'.T_('All Addresses').'</a></li>
+                            <li '.$my.'><a href="?cat=my" title="'.T_('Only show My personal Addresses').'">'.T_('My Addresses').'</a></li>
+                            <li '.$mem.'><a href="?cat=members" title="'.T_('Only show Addresses for members of the site').'">'.T_('Members').'</a></li>
+                            <li '.$non.'><a href="?cat=non" title="'.T_('Only show Addresses for non-members').'">'.T_('Non-Members').'</a></li>
                         </ul>';
     }
 
@@ -294,7 +294,7 @@ class AddressBook
         // Setup vars for output
         if ($type == 'edit') {
             $note = '';
-            $legend = _('Edit Address') . " (" . stripslashes($row['fname']) . " " . stripslashes($row['lname']) . ")";
+            $legend = T_('Edit Address') . " (" . stripslashes($row['fname']) . " " . stripslashes($row['lname']) . ")";
             $add = '';
             $email = htmlentities($row['email'], ENT_COMPAT, 'UTF-8');
             $address = htmlentities($row['address'], ENT_COMPAT, 'UTF-8');
@@ -309,11 +309,11 @@ class AddressBook
             // Make this a removable alert message (part of Alerts table)
             $note = '
             <p class="info-alert">
-                '._('Please only add addresses for Non-members. Anyone who is a member of this website must add/update their own address.').'
+                '.T_('Please only add addresses for Non-members. Anyone who is a member of this website must add/update their own address.').'
             </p>';
-            $legend = _('Add Address');
+            $legend = T_('Add Address');
             $add = '<div class="field-row clearfix">
-                        <div class="field-label"><label for="fname"><b>'._('First Name').'</b></label></div>
+                        <div class="field-label"><label for="fname"><b>'.T_('First Name').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="fname" id="fname" size="25"/></div>
                     </div>
                     <script type="text/javascript">
@@ -321,7 +321,7 @@ class AddressBook
                         ffname.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="lname"><b>'._('Last Name').'</b></label></div>
+                        <div class="field-label"><label for="lname"><b>'.T_('Last Name').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="lname" id="lname" size="25"/></div>
                     </div>
                     <script type="text/javascript">
@@ -340,31 +340,31 @@ class AddressBook
                     <legend><span>'.$legend.'</span></legend>
                     '.$add.'
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="email"><b>'._('Email').'</b></label></div>
+                        <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="email" id="email" size="50" value="'.$email.'"/></div>
                     </div>
                     <script type="text/javascript">
                         var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
-                        femail.add( Validate.Email, { failureMessage: "'._('That\'s not a valid email, is it?').'"});
+                        femail.add( Validate.Email, { failureMessage: "'.T_('That\'s not a valid email, is it?').'"});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="address"><b>'._('Street Address').'</b></label></div>
+                        <div class="field-label"><label for="address"><b>'.T_('Street Address').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="address" id="address" size="25" value="'.$address.'"/></div>
                     </div>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="city"><b>'._('City').'</b></label></div>
+                        <div class="field-label"><label for="city"><b>'.T_('City').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="city" id="city" size="50" value="'.$city.'"/></div>
                     </div>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="state"><b>'._('State').'</b></label></div>
+                        <div class="field-label"><label for="state"><b>'.T_('State').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="state" id="state" size="50" value="'.$state.'"/></div>
                     </div>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="zip"><b>'._('Zip Code').'</b></label></div>
+                        <div class="field-label"><label for="zip"><b>'.T_('Zip Code').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="zip" id="zip" size="10" value="'.$zip.'"/></div>
                     </div>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="home"><b>'._('Home Phone').'</b></label></div>
+                        <div class="field-label"><label for="home"><b>'.T_('Home Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="home" id="home" size="20" value="'.$home.'"/></div>
                     </div>
                     <script type="text/javascript">
@@ -372,7 +372,7 @@ class AddressBook
                         fhome.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="work"><b>'._('Work Phone').'</b></label></div>
+                        <div class="field-label"><label for="work"><b>'.T_('Work Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="work" id="work" size="20" value="'.$work.'"/></div>
                     </div>
                     <script type="text/javascript">
@@ -380,7 +380,7 @@ class AddressBook
                         fwork.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="cell"><b>'._('Cell Phone').'</b></label></div>
+                        <div class="field-label"><label for="cell"><b>'.T_('Cell Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="cell" id="cell" size="20" value="'.$cell.'"/></div>
                     </div>
                     <script type="text/javascript">
@@ -394,22 +394,22 @@ class AddressBook
                         <input type="hidden" name="uid" value="'.$row['uid'].'"/>
                     </div>
                     <p>
-                        <input class="sub1" type="submit" name="editsubmit" value="'._('Edit').'"/> 
-                        '._('or').' 
-                        <a href="addressbook.php?address='.$addressid.'">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" name="editsubmit" value="'.T_('Edit').'"/> 
+                        '.T_('or').' 
+                        <a href="addressbook.php?address='.$addressid.'">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>';
         } else {
             echo '
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="private"><b>'._('Private').'</b></label></div>
+                        <div class="field-label"><label for="private"><b>'.T_('Private').'</b></label></div>
                         <div class="field-widget"><input type="checkbox" name="private" id="private"/></div>
                     </div>
                     <p>
-                        <input class="sub1" type="submit" name="addsubmit" value="'._('Add').'"/> 
-                        '._('or').' 
-                        <a href="addressbook.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" name="addsubmit" value="'.T_('Add').'"/> 
+                        '.T_('or').' 
+                        <a href="addressbook.php">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>';
@@ -420,20 +420,20 @@ class AddressBook
     {
         $err_email = $err_name = $err_subject = $err_msg = '';
         if (!empty($show)) {
-            if (empty($email)) { $err_email = '<br/><span class="error">'._('Required').'</span>'; }
-            if (empty($name)) { $err_name = '<br/><span class="error">'._('Required').'</span>'; }
-            if (empty($subject)) { $err_subject = '<br/><span class="error">'._('Required').'</span>'; }
-            if (empty($msg)) { $err_msg = '<br/><span class="error">'._('Required').'</span>'; }
+            if (empty($email)) { $err_email = '<br/><span class="error">'.T_('Required').'</span>'; }
+            if (empty($name)) { $err_name = '<br/><span class="error">'.T_('Required').'</span>'; }
+            if (empty($subject)) { $err_subject = '<br/><span class="error">'.T_('Required').'</span>'; }
+            if (empty($msg)) { $err_msg = '<br/><span class="error">'.T_('Required').'</span>'; }
         }
         echo '
             <p class="info-alert">
-                '._('Filling out the form below will send an email to all the selected members in your addressbook. Sending an email to a large number of people can take a long time. Please be patient.').'
+                '.T_('Filling out the form below will send an email to all the selected members in your addressbook. Sending an email to a large number of people can take a long time. Please be patient.').'
             </p>
             <script type="text/javascript" src="inc/livevalidation.js"></script>
             <form method="post" class="contactform" action="addressbook.php">
                 <fieldset>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="email"><b>'._('Your Email').'</b></label></div>
+                        <div class="field-label"><label for="email"><b>'.T_('Your Email').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="email" id="email" size="30"/>'.$err_email.'</div>
                     </div>
                     <script type="text/javascript">
@@ -441,7 +441,7 @@ class AddressBook
                         femail.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="name"><b>'._('Your Name').'</b></label></div>
+                        <div class="field-label"><label for="name"><b>'.T_('Your Name').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="name" id="name" size="30"/>'.$err_name.'</div>
                     </div>
                     <script type="text/javascript">
@@ -449,7 +449,7 @@ class AddressBook
                         fname.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="subject"><b>'._('Subject').'</b></label></div>
+                        <div class="field-label"><label for="subject"><b>'.T_('Subject').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="subject" id="subject" size="30"/>'.$err_subject.'</div>
                     </div>
                     <script type="text/javascript">
@@ -457,7 +457,7 @@ class AddressBook
                         fsub.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="msg"><b>'._('Message').'</b></label></div>
+                        <div class="field-label"><label for="msg"><b>'.T_('Message').'</b></label></div>
                         <div class="field-widget"><textarea name="msg" id="msg" rows="10" cols="40"/></textarea>'.$err_msg.'</div>
                     </div>
                     <script type="text/javascript">
@@ -472,9 +472,9 @@ class AddressBook
         echo '
                     </div>
                     <p>
-                        <input class="sub1" type="submit" name="sendemailsubmit" value="'._('Send Email').'"/> 
-                        '._('or').'&nbsp; 
-                        <a href="addressbook.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" name="sendemailsubmit" value="'.T_('Send Email').'"/> 
+                        '.T_('or').'&nbsp; 
+                        <a href="addressbook.php">'.T_('Cancel').'</a>
                     </p>
                 </field>
             </form>';
@@ -516,10 +516,11 @@ class AddressBook
     function displayWhatsNewAddressBook ()
     {
         $locale = new Locale();
-        $today = date('Y-m-d');
-        $tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
+        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+
         echo '
-            <h3>'._('Address Book').'</h3>
+            <h3>'.T_('Address Book').'</h3>
             <ul>';
         $sql = "SELECT a.id, u.id AS user, lname, fname, username, updated "
              . "FROM fcms_users AS u, fcms_address AS a "
@@ -533,15 +534,12 @@ class AddressBook
         if ($this->db->count_rows() > 0) {
             while($row = $this->db->get_row()) {
                 $displayname = getUserDisplayName($row['user'], 2, false);
-                $date = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $row['updated']);
-                if (
-                    strtotime($row['updated']) >= strtotime($today) && 
-                    strtotime($row['updated']) > $tomorrow
-                ) {
-                    $full_date = _('Today');
+                $date = $locale->fixDate('YmdHis', $this->tz_offset, $row['updated']);
+                if ($date >= $today_start && $date <= $today_end) {
+                    $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $date;
+                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $row['updated']);
                     $d = '';
                 }
                 echo '
@@ -552,7 +550,7 @@ class AddressBook
             }
         } else {
             echo '
-                <li><i>'._('Nothing new Last 30 Days').'</i></li>';
+                <li><i>'.T_('Nothing new Last 30 Days').'</i></li>';
         }
         echo '
             </ul>';
@@ -566,17 +564,17 @@ class AddressBook
     function displayImportForm ()
     {
         echo '
-            <h2>'._('Import').'</h2><br/>
+            <h2>'.T_('Import').'</h2><br/>
             <form method="post" name="csv-form" action="addressbook.php?csv=import" enctype="multipart/form-data" >
                 <div><input type="file" name="csv" id="csv" /></div>
                 <p>
-                    <label for="private">'._('Private').'</label> &nbsp;
+                    <label for="private">'.T_('Private').'</label> &nbsp;
                     <input type="checkbox" name="private" id="private"/>
                 </p>
                 <p>
-                    <input type="submit" id="import" name="import" value="'._('Import').'"/> 
-                    '._('or').' 
-                    <a href="addressbook.php">'._('Cancel').'</a>
+                    <input type="submit" id="import" name="import" value="'.T_('Import').'"/> 
+                    '.T_('or').' 
+                    <a href="addressbook.php">'.T_('Cancel').'</a>
                 </p>
             </form>';
     }
@@ -594,7 +592,7 @@ class AddressBook
         if (!in_array($file['type'], array('text/plain', 'text/x-csv', 'text/csv'))) {
             echo '
             <p class="error-alert">'.
-                sprintf(_('%s (%s) is not a CSV file.'), $file['name'], $file['type']).'
+                sprintf(T_('%s (%s) is not a CSV file.'), $file['name'], $file['type']).'
             </p>';
         } else {
 

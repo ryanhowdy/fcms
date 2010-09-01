@@ -10,9 +10,9 @@ $current_user_id = (int)escape_string($_SESSION['login_id']);
 
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'._('lang').'" lang="'._('lang').'">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
-<title>'.getSiteName().' - '._('powered by').' '.getCurrentVersion().'</title>
+<title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="'.getTheme($current_user_id, "../").'style.css"/>
@@ -47,25 +47,25 @@ function insertUpImage(str) {
 if (isset($_POST['delimg'])) {
     if (checkAccess($current_user_id) < 2) {
         unlink("../gallery/upimages/" . $_POST['img']);
-        echo "<p class=\"ok-alert\">".sprintf(_('%s was Deleted Successfully'), $_POST['img'])."</p>";
+        echo "<p class=\"ok-alert\">".sprintf(T_('%s was Deleted Successfully'), $_POST['img'])."</p>";
     } else {
-        echo "<p class=\"error-alert\">"._('You do not have access to delete this image.')."</p>";
+        echo "<p class=\"error-alert\">".T_('You do not have access to delete this image.')."</p>";
     }
 }
 if (isset($_POST['upload'])) {
     if ($_FILES['upfile']['name']) { uploadImages($_FILES['upfile']['type'], $_FILES['upfile']['name'], $_FILES['upfile']['tmp_name'], "../gallery/upimages/", 600, 400); }
 } else {
     echo '
-    <h2>'._('Upload Image').'</h2>
+    <h2>'.T_('Upload Image').'</h2>
     <form enctype="multipart/form-data" action="upimages.php" method="post">
-        <p><input type="file" name="upfile" id="upfile" size="30" title="'._('Choose the image you want to upload.').'"/></p>
-        <div><input type="submit" name="upload" id="upload" value="'._('Upload Image').'"/></div>
+        <p><input type="file" name="upfile" id="upfile" size="30" title="'.T_('Choose the image you want to upload.').'"/></p>
+        <div><input type="submit" name="upload" id="upload" value="'.T_('Upload Image').'"/></div>
     </form>';
 }
 
 echo '
     <p>&nbsp;</p>
-    <h2>'._('Uploaded Images').'</h2>
+    <h2>'.T_('Uploaded Images').'</h2>
     <table>';
 
 $img_dir = opendir("../gallery/upimages");
@@ -97,15 +97,15 @@ foreach ($images_in_dir as $file) {
         echo '
             <td class="v"><button class="viewbtn" onclick="window.open(\'../gallery/upimages/'.$file.'\',\'file\',
                 \'width='.$win_w.',height='.$win_h.',resizable=no,location=no,menubar=no,status=no\'); return false;"/></td>
-            <td class="file"><a href="#" onclick="insertUpImage(\'[IMG=gallery/upimages/'.$file.']\')" title="'._('Insert Image into Message').'">'.$file.'</a></td>
+            <td class="file"><a href="#" onclick="insertUpImage(\'[IMG=gallery/upimages/'.$file.']\')" title="'.T_('Insert Image into Message').'">'.$file.'</a></td>
             <td>';
         if (checkAccess($current_user_id) < 2) {
             echo '
                 <form method="post" action="upimages.php">
                     <div>
                         <input type="hidden" name="img" value="'.$file.'"/>
-                        <input type="submit" name="delimg" value="'._('Delete').'" class="delbtn" title="'._('Delete this Image').'" 
-                            onclick="javascript:return confirm(\''._('Are you sure you want to DELETE this image?').'\');"/>
+                        <input type="submit" name="delimg" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Image').'" 
+                            onclick="javascript:return confirm(\''.T_('Are you sure you want to DELETE this image?').'\');"/>
                     </div>
                 </form>';
         }
@@ -117,7 +117,7 @@ foreach ($images_in_dir as $file) {
     }
 }
 echo '
-        <tr><td></td><td></td><td></td><td class="n">'._('Total Size').'</td><td class="n">'.formatSize($total_size).'</td></tr>
+        <tr><td></td><td></td><td></td><td class="n">'.T_('Total Size').'</td><td class="n">'.formatSize($total_size).'</td></tr>
     </table>
 </body>
 </html>';

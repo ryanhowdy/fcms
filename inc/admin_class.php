@@ -1,6 +1,7 @@
 <?php
 include_once('database_class.php');
 include_once('util_inc.php');
+include_once('locale.php');
 
 class Admin {
 
@@ -15,8 +16,6 @@ class Admin {
     function Admin ($current_user_id, $type, $host, $database, $user, $pass)
     {
         $this->current_user_id = $current_user_id;
-        $this->lastmonth_beg = gmdate('Y-m', mktime(0, 0, 0, gmdate('m')-1, 1, gmdate('Y'))) . "-01 00:00:00";
-        $this->lastmonth_end = gmdate('Y-m', mktime(0, 0, 0, gmdate('m')-1, 1, gmdate('Y'))) . "-31 24:59:59";
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
         $this->db3 = new database($type, $host, $database, $user, $pass);
@@ -24,11 +23,15 @@ class Admin {
         $this->db->query($sql) or displaySQLError('Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
         $row = $this->db->get_row();
         $this->tz_offset = $row['timezone'];
-        bindtextdomain('messages', '.././language');
+        $this->lastmonth_beg = date('Y-m', mktime(0, 0, 0, date('m')-1, 1, date('Y'))) . "-01 00:00:00";
+        $this->lastmonth_end = date('Y-m', mktime(0, 0, 0, date('m')-1, 1, date('Y'))) . "-31 23:59:59";
+        T_bindtextdomain('messages', '.././language');
     }
 
     function showThreads ($type, $page = '0')
     {
+        $locale = new Locale();
+
         $from = (($page * 25) - 25);
         if ($type == 'announcement') {
             echo '
@@ -36,10 +39,10 @@ class Admin {
                 <thead>
                     <tr>
                         <th class="images">&nbsp;</th>
-                        <th class="subject">'._('Subject').'</th>
-                        <th class="replies">'._('Replies').'</th>
-                        <th class="views">'._('Views').'</th>
-                        <th class="updated">'._('Last Updated').'</th>
+                        <th class="subject">'.T_('Subject').'</th>
+                        <th class="replies">'.T_('Replies').'</th>
+                        <th class="views">'.T_('Views').'</th>
+                        <th class="updated">'.T_('Last Updated').'</th>
                     </tr>
                 </thead>
                 <tbody>';
@@ -70,7 +73,7 @@ class Admin {
             $subject = $row['subject'];
             if ($type == 'announcement') {
                 $subject = substr($subject, 9, strlen($subject)-9);
-                $subject = '<small><b>'._('Announcement').': </b></small>'.$subject;
+                $subject = '<small><b>'.T_('Announcement').': </b></small>'.$subject;
                 $tr_class = 'announcement';
             } else {
                 if ($alt % 2 == 0) {
@@ -80,31 +83,36 @@ class Admin {
                 }
             }
 
+            $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+            $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+
+            $time = gmmktime(0, 0, 0, gmdate('m')  , gmdate('d')-1, gmdate('Y'));
+            $yesterday_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s', $time)) . '000000';
+            $yesterday_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s', $time)) . '235959';
+
+            $updated = $locale->fixDate('YmdHis', $this->tz_offset, strtotime($row['updated']));
+
             // Updated Today
-            if (
-                gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == 
-                gmdate('n/d/Y', strtotime(date('n/d/Y') . $this->tz_offset))
-            ) {
+            if ($updated >= $today_start && $updated <= $today_end) {
                 if ($type == 'announcement') {
                     $up_class = 'announcement_today';
                 } else {
                     $up_class = 'today';
                 }
-                $last_updated = sprintf(_('Today at %s'), gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset)))
-                    . "<br/>" . sprintf(_('by %s'), $updated_by);
+                $date = $locale->fixDate('h:ia', $this->tz_offset, strtotime($row['updated']));
+                $last_updated = sprintf(T_('Today at %s'), $date)
+                    . "<br/>" . sprintf(T_('by %s'), $updated_by);
 
             // Updated Yesterday
-            } elseif (
-                gmdate('n/d/Y', strtotime($row['updated'] . $this->tz_offset)) == 
-                gmdate('n/d/Y', strtotime(date('n/d/Y', strtotime(date('Y-m-d H:i:s') . $this->tz_offset)) . "-24 hours"))
-            ) {
+            } elseif ($updated >= $yesterday_start && $updated <= $yesterday_end) {
                 if ($type == 'announcement') {
                     $up_class = 'announcement_yesterday';
                 } else {
                     $up_class = 'yesterday';
                 }
-                $last_updated = sprintf(_('Yesterday at %s'), gmdate('h:ia', strtotime($row['updated'] . $this->tz_offset)))
-                    . "<br/>" . sprintf(_('by %s'), $updated_by);
+                $date = $locale->fixDate('h:ia', $this->tz_offset, strtotime($row['updated']));
+                $last_updated = sprintf(T_('Yesterday at %s'), $date)
+                    . "<br/>" . sprintf(T_('by %s'), $updated_by);
 
             // Updated older than yesterday
             } else {
@@ -113,8 +121,8 @@ class Admin {
                 } else {
                     $up_class = '';
                 }
-                $last_updated = gmdate('m/d/Y h:ia', strtotime($row['updated'] . $this->tz_offset))
-                    . "<br/>" . sprintf(_('by %s'), $updated_by);
+                $date = $locale->fixDate(T_('m/d/Y h:ia'), $this->tz_offset, strtotime($row['updated']));
+                $last_updated = $date . "<br/>" . sprintf(T_('by %s'), $updated_by);
             }
             $replies = $this->getNumberOfPosts($row['id']) - 1;
             
@@ -125,8 +133,8 @@ class Admin {
                         <td class="subject">
                             '.$subject.' 
                             <small>
-                                <a class="edit_thread" href="board.php?edit='.$row['id'].'">'._('Edit').'</a> 
-                                <a class="del_thread" href="board.php?del='.$row['id'].'">'._('Delete').'</a>
+                                <a class="edit_thread" href="board.php?edit='.$row['id'].'">'.T_('Edit').'</a> 
+                                <a class="del_thread" href="board.php?del='.$row['id'].'">'.T_('Delete').'</a>
                             </small><br/>
                             '.$started_by.'
                         </td>
@@ -142,7 +150,7 @@ class Admin {
             echo '
                 </tbody>
             </table>
-            <div class="top clearfix"><a href="#top">'._('Back to Top').'</a></div>';
+            <div class="top clearfix"><a href="#top">'.T_('Back to Top').'</a></div>';
             $this->displayPages($page);
         }
     }
@@ -166,27 +174,27 @@ class Admin {
         echo '
             <form method="post" action="board.php">
                 <fieldset>
-                    <legend><span>'._('Edit Thread').'</span></legend>
+                    <legend><span>'.T_('Edit Thread').'</span></legend>
                     <p>
-                        <label for="subject">'._('Subject').':</label>
+                        <label for="subject">'.T_('Subject').':</label>
                         <input class="frm_text" type="text" name="subject" id="subject" size="50" value="'.$subject.'"/>
                     </p>
                     <p>
-                        <label for="showname">'._('Name').':</label>
+                        <label for="showname">'.T_('Name').':</label>
                         <input type="text" disabled="disabled" name="showname" id="showname" size="50" value="'.$displayname.'"/>
                     </p>
                     <div><input type="hidden" name="name" id="name" value="'.$row['user'].'"/></div>
                     <p>
-                        '._('Admin Tools').':&nbsp;&nbsp;
+                        '.T_('Admin Tools').':&nbsp;&nbsp;
                         <input type="checkbox" '.$chk.'  name="sticky" id="sticky" value="sticky"/>
-                        <label for="sticky">'._('Make Announcement').'</label>
+                        <label for="sticky">'.T_('Make Announcement').'</label>
                     </p>
                     <p><textarea disabled="disabled" name="post" id="post" rows="10" cols="63">'.$row['post'].'</textarea></p>
                     <div><input type="hidden" name="threadid" id="threadid" value="'.$thread_id.'"/></div>
                     <p>
-                        <input class="sub1" type="submit" name="edit_submit" id="edit_submit" value="'._('Edit').'"/> 
-                        '._('or').' 
-                        <a href="board.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" name="edit_submit" id="edit_submit" value="'.T_('Edit').'"/> 
+                        '.T_('or').' 
+                        <a href="board.php">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>';
@@ -256,8 +264,8 @@ class Admin {
             if ($page > 1) { 
                 $prev = ($page - 1); 
                 echo '
-                    <li><a title="'._('First Page').'" class="first" href="board.php?'.$url.'page=1"></a></li>
-                    <li><a title="'._('Previous Page').'" class="previous" href="board.php?'.$url.'page='.$prev.'"></a></li>'; 
+                    <li><a title="'.T_('First Page').'" class="first" href="board.php?'.$url.'page=1"></a></li>
+                    <li><a title="'.T_('Previous Page').'" class="previous" href="board.php?'.$url.'page='.$prev.'"></a></li>'; 
             } 
             if ($total_pages > 8) {
                 if ($page > 2) {
@@ -285,8 +293,8 @@ class Admin {
             if ($page < $total_pages) { 
                 $next = ($page + 1); 
                 echo '
-                    <li><a title="'._('Next Page').'" class="next" href="board.php?'.$url.'page='.$next.'"></a></li>
-                    <li><a title="'._('Last Page').'" class="last" href="board.php?'.$url.'page='.$total_pages.'"></a></li>';
+                    <li><a title="'.T_('Next Page').'" class="next" href="board.php?'.$url.'page='.$next.'"></a></li>
+                    <li><a title="'.T_('Last Page').'" class="last" href="board.php?'.$url.'page='.$total_pages.'"></a></li>';
             } 
             echo '
                 </ul>
@@ -336,7 +344,7 @@ class Admin {
             echo '
             <form id="editform" name="editform" action="?page=admin_polls" method="post">
                 <fieldset>
-                    <legend><span>'._('Edit Poll').'</span></legend>';
+                    <legend><span>'.T_('Edit Poll').'</span></legend>';
             $i = 1;
             while ($row = $this->db->get_row()) {
                 if ($i < 2) {
@@ -345,7 +353,7 @@ class Admin {
                 }
                 echo '
                     <div class="field-row">
-                        <div class="field-label"><label for="show'.$i.'"><b>'.sprintf(_('Option %s'), $i).':</b></label></div>
+                        <div class="field-label"><label for="show'.$i.'"><b>'.sprintf(T_('Option %s'), $i).':</b></label></div>
                         <div class="field-widget">
                             <input type="text" name="show'.$i.'" id="show'.$i.'" ';
                 if ($i < 3) {
@@ -355,7 +363,7 @@ class Admin {
                             <input type="hidden" name="option'.$i.'" value="'.$row['id'].'"/>';
                 if ($i >= 3) {
                     echo '
-                            <input type="button" name="deleteoption" class="delbtn" value="'._('Delete').'" title="'._('Delete').'" onclick="document.editform.show'.$i.'.value=\'\';"/>';
+                            <input type="button" name="deleteoption" class="delbtn" value="'.T_('Delete').'" title="'.T_('Delete').'" onclick="document.editform.show'.$i.'.value=\'\';"/>';
                 }
                 echo '
                         </div>
@@ -365,7 +373,7 @@ class Admin {
             while ($i < 11) {
                 echo '
                     <div class="field-row">
-                        <div class="field-label"><label for="show'.$i.'"><b>'.sprintf(_('Option %s'), $i).':</b></label></div>
+                        <div class="field-label"><label for="show'.$i.'"><b>'.sprintf(T_('Option %s'), $i).':</b></label></div>
                         <div class="field-widget">
                             <input type="text" id="show'.$i.'" name="show'.$i.'" size="50" value=""/>
                             <input type="hidden" name="option'.$i.'" value="new"/>
@@ -375,8 +383,8 @@ class Admin {
             }
             echo '
                     <p>
-                        <input class="sub1" type="submit" name="editsubmit" id="editsubmit" value="'._('Edit').'"/> &nbsp;
-                        <a href="polls.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" name="editsubmit" id="editsubmit" value="'.T_('Edit').'"/> &nbsp;
+                        <a href="polls.php">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>';
@@ -391,66 +399,66 @@ class Admin {
             <script type="text/javascript" src="../inc/livevalidation.js"></script>
             <form id="addform" action="polls.php" method="post">
                 <fieldset>
-                    <legend><span>'._('Add New Poll').'</span></legend>
+                    <legend><span>'.T_('Add New Poll').'</span></legend>
                     <div class="field-row">
-                        <div class="field-label"><label for="question"><b>'._('Poll Question').'</b></label></div> 
+                        <div class="field-label"><label for="question"><b>'.T_('Poll Question').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="question" id="question" class="required" size="50"/></div>
                     </div>
                     <script type="text/javascript">
                         var fq = new LiveValidation(\'question\', { onlyOnSubmit: true });
-                        fq.add(Validate.Presence, { failureMessage: "'._('Required').'" });
+                        fq.add(Validate.Presence, { failureMessage: "'.T_('Required').'" });
                     </script>
                     <div class="field-row">
-                        <div class="field-label"><label for="option1"><b>'.sprintf(_('Option %s'), '1').'</b></label></div> 
+                        <div class="field-label"><label for="option1"><b>'.sprintf(T_('Option %s'), '1').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="option1" id="option1" class="required" size="40"/></div>
                     </div>
                     <script type="text/javascript">
                         var foption1 = new LiveValidation(\'option1\', { onlyOnSubmit: true });
-                        foption1.add(Validate.Presence, {failureMessage: "'._('Without at least 2 options, it\'s not much of a poll is it?').'"});
+                        foption1.add(Validate.Presence, {failureMessage: "'.T_('Without at least 2 options, it\'s not much of a poll is it?').'"});
                     </script>
                     <div class="field-row">
-                        <div class="field-label"><label for="option2"><b>'.sprintf(_('Option %s'), '2').'</b></label></div> 
+                        <div class="field-label"><label for="option2"><b>'.sprintf(T_('Option %s'), '2').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="option2" id="option2" class="required" size="40"/></div>
                     </div>
                     <script type="text/javascript">
                         var foption2 = new LiveValidation(\'option2\', { onlyOnSubmit: true });
-                        foption2.add(Validate.Presence, {failureMessage: "'._('Without at least 2 options, it\'s not much of a poll is it?').'"});
+                        foption2.add(Validate.Presence, {failureMessage: "'.T_('Without at least 2 options, it\'s not much of a poll is it?').'"});
                     </script>
                     <div class="field-row">
-                        <div class="field-label"><label for="option3"><b>'.sprintf(_('Option %s'), '3').'</b></label></div> 
+                        <div class="field-label"><label for="option3"><b>'.sprintf(T_('Option %s'), '3').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="option3" id="option3" size="40"/></div>
                     </div>
                     <div class="field-row">
-                        <div class="field-label"><label for="option4"><b>'.sprintf(_('Option %s'), '4').'</b></label></div> 
+                        <div class="field-label"><label for="option4"><b>'.sprintf(T_('Option %s'), '4').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="option4" id="option4" size="40"/></div>
                     </div>
                     <div class="field-row">
-                        <div class="field-label"><label for="option5"><b>'.sprintf(_('Option %s'), '5').'</b></label></div> 
+                        <div class="field-label"><label for="option5"><b>'.sprintf(T_('Option %s'), '5').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="option5" id="option5" size="40"/></div>
                     </div>
                     <div class="field-row">
-                        <div class="field-label"><label for="option6"><b>'.sprintf(_('Option %s'), '6').'</b></label></div> 
+                        <div class="field-label"><label for="option6"><b>'.sprintf(T_('Option %s'), '6').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="option6" id="option6" size="40"/></div>
                     </div>
                     <div class="field-row">
-                        <div class="field-label"><label for="option7"><b>'.sprintf(_('Option %s'), '7').'</b></label></div> 
+                        <div class="field-label"><label for="option7"><b>'.sprintf(T_('Option %s'), '7').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="option7" id="option7" size="40"/></div>
                     </div>
                     <div class="field-row">
-                        <div class="field-label"><label for="option8"><b>'.sprintf(_('Option %s'), '8').'</b></label></div> 
+                        <div class="field-label"><label for="option8"><b>'.sprintf(T_('Option %s'), '8').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="option8" id="option8" size="40"/></div>
                     </div>
                     <div class="field-row">
-                        <div class="field-label"><label for="option9"><b>'.sprintf(_('Option %s'), '9').'</b></label></div> 
+                        <div class="field-label"><label for="option9"><b>'.sprintf(T_('Option %s'), '9').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="option9" id="option9" size="40"/></div>
                     </div>
                     <div class="field-row">
-                        <div class="field-label"><label for="option10"><b>'.sprintf(_('Option %s'), '10').'</b></label></div> 
+                        <div class="field-label"><label for="option10"><b>'.sprintf(T_('Option %s'), '10').'</b></label></div> 
                         <div class="field-widget"><input type="text" name="option10" id="option10" size="40"/></div>
                     </div>
                     <p>
-                        <input class="sub1" type="submit" name="addsubmit" value="'._('Add').'"/> &nbsp;
-                        <a href="polls.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" name="addsubmit" value="'.T_('Add').'"/> &nbsp;
+                        <a href="polls.php">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>';
@@ -600,7 +608,7 @@ class Admin {
                         AND (
                             `post` LIKE '%:smile:%' 
                             OR `post` LIKE '%:biggrin:%' 
-                            OR  `post` LIKE '%:clap:%' 
+                            OR `post` LIKE '%:clap:%' 
                             OR `post` LIKE '%:hrmm:%' 
                             OR `post` LIKE '%:tongue:%' 
                             OR `post` LIKE '%:wink:%' 
@@ -618,9 +626,10 @@ class Admin {
             }
         }
         if ($most_smileys_user < 1) { $most_smileys_user = 1; }
+        $val = $locale->fixDate('n', $this->tz_offset);
         $sql = "UPDATE `fcms_user_awards` 
                 SET `user` = '$most_smileys_user', 
-                    `value` = '" . date('n') . "', 
+                    `value` = '$val', 
                     `count` = '$most_smileys' 
                 WHERE `type` = 'mostsmileys'";
         $this->db->query($sql) or displaySQLError(
@@ -636,8 +645,8 @@ class Admin {
                     FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
                     WHERE t.`id` = p.`thread` 
                         AND t.`started_by` = p.`user` 
-                        AND p.`date` >= '2007-06-01 00:00:00' 
-                        AND p.`date` <= '2007-06-31 24:59:59'
+                        AND p.`date` >= '" . $this->lastmonth_beg . "' 
+                        AND p.`date` <= '" . $this->lastmonth_end . "' 
                 ) AS z 
                 GROUP BY `started_by` 
                 ORDER BY c DESC 
@@ -698,8 +707,8 @@ class Admin {
         
         // Activate Options
         $activate_list = array (
-            "0" => _('Admin Activation'),
-            "1" => _('Auto Activation')
+            "0" => T_('Admin Activation'),
+            "1" => T_('Auto Activation')
         );
         $activate_options = buildHtmlSelectOptions($activate_list, $row['auto_activate']);
         // Site Off Options
@@ -707,36 +716,36 @@ class Admin {
             . 'value="yes"';
         if ($row['site_off'] == 1) { $site_off_options .= ' checked="checked"'; }
         $site_off_options .= '><label class="radio_label" for="site_off_yes"> '
-            . _('Yes') . '</label><br><input type="radio" name="site_off" '
+            . T_('Yes') . '</label><br><input type="radio" name="site_off" '
             . 'id="site_off_no" value="no"';
         if ($row['site_off'] == 0) { $site_off_options .= ' checked="checked"'; }
         $site_off_options .= '><label class="radio_label" for="site_off_no"> '
-            . _('No') . '</label>';
+            . T_('No') . '</label>';
         
         echo '
         <form action="config.php" method="post">
         <fieldset class="general_cfg">
-            <legend><span>'._('Website Information').'</span></legend>
+            <legend><span>'.T_('Website Information').'</span></legend>
             <div id="site_info">
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="sitename"><b>'._('Site Name').'</b></label></div>
+                    <div class="field-label"><label for="sitename"><b>'.T_('Site Name').'</b></label></div>
                     <div class="field-widget">
                         <input type="text" name="sitename" size="50" value="'.$row['sitename'].'"/>
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="contact"><b>'._('Contact Email').'</b></label></div>
+                    <div class="field-label"><label for="contact"><b>'.T_('Contact Email').'</b></label></div>
                     <div class="field-widget">
                         <input type="text" id="contact" name="contact" size="50" value="'.$row['contact'].'"/>
                     </div>
                 </div>
                 <script type="text/javascript">
                     var email = new LiveValidation(\'contact\', {onlyOnSubmit: true});
-                    email.add(Validate.Email, {failureMessage: "'._('That\'s not a valid email address is it?').'"});
+                    email.add(Validate.Email, {failureMessage: "'.T_('That\'s not a valid email address is it?').'"});
                     email.add(Validate.Length, {minimum: 10});
                 </script>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="activation"><b>'._('Account Activation').'</b></label></div>
+                    <div class="field-label"><label for="activation"><b>'.T_('Account Activation').'</b></label></div>
                     <div class="field-widget">
                         <select name="activation">
                             '.$activate_options.'
@@ -744,12 +753,12 @@ class Admin {
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="site_off"><b>'._('Turn Off Site?').'</b></label></div>
+                    <div class="field-label"><label for="site_off"><b>'.T_('Turn Off Site?').'</b></label></div>
                     <div class="field-widget">
                         '.$site_off_options.'
                     </div>
                 </div>
-                <p><input type="submit" id="submit-sitename" name="submit-sitename" value="'._('Save').'"/></p>
+                <p><input type="submit" id="submit-sitename" name="submit-sitename" value="'.T_('Save').'"/></p>
             </div>
         </fieldset>
         </form>';
@@ -816,80 +825,80 @@ class Admin {
             . 'value="yes"';
         if ($default_showavatar == 1) { $avatars_options .= ' checked="checked"'; }
         $avatars_options .= '><label class="radio_label" for="showavatar_yes"> '
-            . _('Yes') . '</label><br><input type="radio" name="showavatar" '
+            . T_('Yes') . '</label><br><input type="radio" name="showavatar" '
             . 'id="showavatar_no" value="no"';
         if ($default_showavatar == 0) { $avatars_options .= ' checked="checked"'; }
         $avatars_options .= '><label class="radio_label" for="showavatar_no"> '
-            . _('No') . '</label>';
+            . T_('No') . '</label>';
         // Display Name
         $displayname_list = array(
-            "1" => _('First Name'),
-            "2" => _('First & Last Name'),
-            "3" => _('Username')
+            "1" => T_('First Name'),
+            "2" => T_('First & Last Name'),
+            "3" => T_('Username')
         );
         $displayname_options = buildHtmlSelectOptions($displayname_list, $default_displayname);
         // Frontpage
         $frontpage_list = array(
-            "1" => _('All (by date)'),
-            "2" => _('Last 5 (by section)')
+            "1" => T_('All (by date)'),
+            "2" => T_('Last 5 (by section)')
         );
         $frontpage_options = buildHtmlSelectOptions($frontpage_list, $default_frontpage);
         // Timezone
         $tz_list = array(
-            "-12 hours" => _('(GMT -12:00) Eniwetok, Kwajalein'),
-            "-11 hours" => _('(GMT -11:00) Midway Island, Samoa'),
-            "-10 hours" => _('(GMT -10:00) Hawaii'),
-            "-9 hours" => _('(GMT -9:00) Alaska'),
-            "-8 hours" => _('(GMT -8:00) Pacific Time (US & Canada)'),
-            "-7 hours" => _('(GMT -7:00) Mountain Time (US & Canada)'),
-            "-6 hours" => _('(GMT -6:00) Central Time (US & Canada), Mexico City'),
-            "-5 hours" => _('(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima'),
-            "-4 hours" => _('(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz'),
-            "-3 hours -30 minutes" => _('(GMT -3:30) Newfoundland'),
-            "-3 hours" => _('(GMT -3:00) Brazil, Buenos Aires, Georgetown'),
-            "-2 hours" => _('(GMT -2:00) Mid-Atlantic'),
-            "-1 hours" => _('(GMT -1:00) Azores, Cape Verde Islands'),
-            "-0 hours" => _('(GMT) Western Europe Time, London, Lisbon, Casablanca'),
-            "+1 hours" => _('(GMT +1:00) Brussels, Copenhagen, Madrid, Paris'),
-            "+2 hours" => _('(GMT +2:00) Kaliningrad, South Africa'),
-            "+3 hours" => _('(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh'),
-            "+3 hours 30 minutes" => _('(GMT +3:30) Tehran'),
-            "+4 hours" => _('(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi'),
-            "+4 hours 30 minutes" => _('(GMT +4:30) Kabul'),
-            "+5 hours" => _('(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent'),
-            "+5 hours 30 minutes" => _('(GMT +5:30) Bombay, Calcutta, Madras, New Delhi'),
-            "+6 hours" => _('(GMT +6:00) Almaty, Dhaka, Colombo'),
-            "+7 hours" => _('(GMT +7:00) Bangkok, Hanoi, Jakarta'),
-            "+8 hours" => _('(GMT +8:00) Beijing, Perth, Singapore, Hong Kong'),
-            "+9 hours" => _('(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk'),
-            "+9 hours 30 minutes" => _('(GMT +9:30) Adeliaide, Darwin'),
-            "+10 hours" => _('(GMT +10:00) Eastern Australia, Guam, Vladivostok'),
-            "+11 hours" => _('(GMT +11:00) Magadan, Solomon Islands, New Caledonia'),
-            "+12 hours" => _('(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka')
+            "-12 hours" => T_('(GMT -12:00) Eniwetok, Kwajalein'),
+            "-11 hours" => T_('(GMT -11:00) Midway Island, Samoa'),
+            "-10 hours" => T_('(GMT -10:00) Hawaii'),
+            "-9 hours" => T_('(GMT -9:00) Alaska'),
+            "-8 hours" => T_('(GMT -8:00) Pacific Time (US & Canada)'),
+            "-7 hours" => T_('(GMT -7:00) Mountain Time (US & Canada)'),
+            "-6 hours" => T_('(GMT -6:00) Central Time (US & Canada), Mexico City'),
+            "-5 hours" => T_('(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima'),
+            "-4 hours" => T_('(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz'),
+            "-3 hours -30 minutes" => T_('(GMT -3:30) Newfoundland'),
+            "-3 hours" => T_('(GMT -3:00) Brazil, Buenos Aires, Georgetown'),
+            "-2 hours" => T_('(GMT -2:00) Mid-Atlantic'),
+            "-1 hours" => T_('(GMT -1:00) Azores, Cape Verde Islands'),
+            "-0 hours" => T_('(GMT) Western Europe Time, London, Lisbon, Casablanca'),
+            "+1 hours" => T_('(GMT +1:00) Brussels, Copenhagen, Madrid, Paris'),
+            "+2 hours" => T_('(GMT +2:00) Kaliningrad, South Africa'),
+            "+3 hours" => T_('(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh'),
+            "+3 hours 30 minutes" => T_('(GMT +3:30) Tehran'),
+            "+4 hours" => T_('(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi'),
+            "+4 hours 30 minutes" => T_('(GMT +4:30) Kabul'),
+            "+5 hours" => T_('(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent'),
+            "+5 hours 30 minutes" => T_('(GMT +5:30) Bombay, Calcutta, Madras, New Delhi'),
+            "+6 hours" => T_('(GMT +6:00) Almaty, Dhaka, Colombo'),
+            "+7 hours" => T_('(GMT +7:00) Bangkok, Hanoi, Jakarta'),
+            "+8 hours" => T_('(GMT +8:00) Beijing, Perth, Singapore, Hong Kong'),
+            "+9 hours" => T_('(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk'),
+            "+9 hours 30 minutes" => T_('(GMT +9:30) Adeliaide, Darwin'),
+            "+10 hours" => T_('(GMT +10:00) Eastern Australia, Guam, Vladivostok'),
+            "+11 hours" => T_('(GMT +11:00) Magadan, Solomon Islands, New Caledonia'),
+            "+12 hours" => T_('(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka')
         );
         $tz_options = buildHtmlSelectOptions($tz_list, $default_tz);
         // DST
         $dst_options = '<input type="radio" name="dst" id="dst_on" '
             . 'value="on"';
         if ($default_dst == 1) { $dst_options .= ' checked="checked"'; }
-        $dst_options .= '><label class="radio_label" for="dst_on"> ' . _('On') . '</label><br>'
+        $dst_options .= '><label class="radio_label" for="dst_on"> ' . T_('On') . '</label><br>'
             . '<input type="radio" name="dst" id="dst_off" value="off"';
         if ($default_dst == 0) { $dst_options .= ' checked="checked"'; }
-        $dst_options .= '><label class="radio_label" for="dst_off"> ' . _('Off') . '</label>';
+        $dst_options .= '><label class="radio_label" for="dst_off"> ' . T_('Off') . '</label>';
         // Board Sort
         $boardsort_list = array(
-            "ASC" => _('New Messages at Bottom'),
-            "DESC" => _('New Messages at Top')
+            "ASC" => T_('New Messages at Bottom'),
+            "DESC" => T_('New Messages at Top')
         );
         $boardsort_options = buildHtmlSelectOptions($boardsort_list, $default_boardsort);
         
         echo '
         <form enctype="multipart/form-data" action="config.php" method="post">
         <fieldset class="default_cfg">
-            <legend><span>'._('Defaults').'</span></legend>
+            <legend><span>'.T_('Defaults').'</span></legend>
             <div id="defaults">
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="theme"><b>'._('Theme').'</b></label></div>
+                    <div class="field-label"><label for="theme"><b>'.T_('Theme').'</b></label></div>
                     <div class="field-widget">
                         <select name="theme" id="theme">
                             '.$theme_options.'
@@ -898,53 +907,53 @@ class Admin {
                 </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="showavatar"><b>'._('Show Avatars').'</b></label></div>
+                    <div class="field-label"><label for="showavatar"><b>'.T_('Show Avatars').'</b></label></div>
                     <div class="field-widget">
                         '.$avatars_options.'
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="displayname"><b>'._('Display Name').'</b></label></div>
+                    <div class="field-label"><label for="displayname"><b>'.T_('Display Name').'</b></label></div>
                     <div class="field-widget">
-                        <select name="displayname" id="displayname" title="'._('How do you want your name to display?').'">
+                        <select name="displayname" id="displayname" title="'.T_('How do you want your name to display?').'">
                             '.$displayname_options.'
                         </select>
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="frontpage"><b>'._('Front Page').'</b></label></div>
+                    <div class="field-label"><label for="frontpage"><b>'.T_('Front Page').'</b></label></div>
                     <div class="field-widget">
-                        <select name="frontpage" id="frontpage" title="'._('How do you want the latest information to display on the homepage?').'">
+                        <select name="frontpage" id="frontpage" title="'.T_('How do you want the latest information to display on the homepage?').'">
                             '.$frontpage_options.'
                         </select>
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="timezone"><b>'._('Time Zone').'</b></label></div>
+                    <div class="field-label"><label for="timezone"><b>'.T_('Time Zone').'</b></label></div>
                     <div class="field-widget">
-                        <select name="timezone" id="timezone" title="'._('What time zone do you live in?').'">
+                        <select name="timezone" id="timezone" title="'.T_('What time zone do you live in?').'">
                             '.$tz_options.'
                         </select>
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="dst"><b>'._('Daylight Savings Time').'</b></label></div>
+                    <div class="field-label"><label for="dst"><b>'.T_('Daylight Savings Time').'</b></label></div>
                     <div class="field-widget">
                         '.$dst_options.'
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="boardsort"><b>'._('Sort Messages').'</b></label></div>
+                    <div class="field-label"><label for="boardsort"><b>'.T_('Sort Messages').'</b></label></div>
                     <div class="field-widget">
-                        <select name="boardsort" id="boardsort" title="'._('How do you want messages to display on the Message Board?').'">
+                        <select name="boardsort" id="boardsort" title="'.T_('How do you want messages to display on the Message Board?').'">
                             '.$boardsort_options.'
                         </select>
                     </div>
                 </div>
                 <p>
-                    <input type="submit" id="submit-defaults" name="submit-defaults" value="'._('Save').'"/> &nbsp;
+                    <input type="submit" id="submit-defaults" name="submit-defaults" value="'.T_('Save').'"/> &nbsp;
                     <input type="checkbox" name="changeAll" id="changeAll"/> 
-                    <label for="changeAll">'._('Update existing users?').'</label>
+                    <label for="changeAll">'.T_('Update existing users?').'</label>
                 </p>
             </div>
         </fieldset>
@@ -986,13 +995,13 @@ class Admin {
         echo '
         <form action="config.php?view=sections" method="post">
             <fieldset>
-                <legend><span>'._('Navigation').'</span></legend>';
+                <legend><span>'.T_('Navigation').'</span></legend>';
         if (count($unused) > 0) {
             echo '
-                <p><b>'._('Add Optional Sections').'</b></p>
+                <p><b>'.T_('Add Optional Sections').'</b></p>
                 <p>';
             foreach ($unused AS $r) {
-                echo getSectionName($r['link']).' &nbsp;<a class="add" href="?view=sections&amp;add='.$r['id'].'">'._('Add').'</a><br/>';
+                echo getSectionName($r['link']).' &nbsp;<a class="add" href="?view=sections&amp;add='.$r['id'].'">'.T_('Add').'</a><br/>';
             }
             echo '
                 </p>';
@@ -1000,14 +1009,14 @@ class Admin {
         echo '
                 <table class="order-nav">
                     <thead>
-                        <tr><th>'._('Section').'</th><th>'._('Order').'</th><th class="remove">'._('Remove').'</th></tr>
+                        <tr><th>'.T_('Section').'</th><th>'.T_('Order').'</th><th class="remove">'.T_('Remove').'</th></tr>
                     </thead>
                     <tbody>';
 
         foreach ($nav AS $r) {
             // order = 0 means it's unused
             if ($r['order'] > 0) {
-                $del = '<i>'._('required').'</i>';
+                $del = '<i>'.T_('required').'</i>';
                 if ($r['req'] < 1 && usingSection($r['link'])) {
                     $del = '&nbsp;<input class="delbtn" type="submit" name="remove" value="'.$r['id'].'"/>';
                 }
@@ -1024,7 +1033,7 @@ class Admin {
         echo '
                     </tbody>
                 </table>
-                <p><input type="submit" id="submit-sections" name="submit-sections" value="' . _('Save') . '"/></p>
+                <p><input type="submit" id="submit-sections" name="submit-sections" value="' . T_('Save') . '"/></p>
             </fieldset>
         </form>';
     }
@@ -1038,28 +1047,28 @@ class Admin {
         $row = $this->db->get_row();
         
         $full_size_list = array(
-            "0" => _('Off (2 photos)'),
-            "1" => _('On (3 photos)')
+            "0" => T_('Off (2 photos)'),
+            "1" => T_('On (3 photos)')
         );
         $full_size_options = buildHtmlSelectOptions($full_size_list, $row['full_size_photos']);
         
         echo '
         <form action="config.php" method="post">
         <fieldset class="gallery_cfg">
-            <legend><span>'._('Photo Gallery').'</span></legend>
+            <legend><span>'.T_('Photo Gallery').'</span></legend>
             <div id="gallery">
                 <p class="info-alert">
-                    '._('By default, Full Sized Photos is turned off to save on storage space and bandwidth.  Turning this feature on can eat up significant space and bandwith.').'
+                    '.T_('By default, Full Sized Photos is turned off to save on storage space and bandwidth.  Turning this feature on can eat up significant space and bandwith.').'
                 </p>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="full_size_photos"><b>'._('Fulle Size Photos').'</b></label></div>
+                    <div class="field-label"><label for="full_size_photos"><b>'.T_('Fulle Size Photos').'</b></label></div>
                     <div class="field-widget">
                         <select name="full_size_photos">
                             '.$full_size_options.'
                         </select>
                     </div>
                 </div>
-                <p><input type="submit" id="submit-gallery" name="submit-gallery" value="'._('Save').'"/></p>
+                <p><input type="submit" id="submit-gallery" name="submit-gallery" value="'.T_('Save').'"/></p>
             </div>
         </fieldset>
         </form>';
@@ -1069,7 +1078,7 @@ class Admin {
     { 
         echo '
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="'.$which_nav.'"><b>'._('Section').' '.$num.'</b></label></div>
+                    <div class="field-label"><label for="'.$which_nav.'"><b>'.T_('Section').' '.$num.'</b></label></div>
                     <div class="field-widget">
                         <select name="'.$which_nav.'">';
         if (tableExists('fcms_news')) {
@@ -1077,28 +1086,28 @@ class Admin {
             if ($which_selected == 'familynews') {
                 echo ' selected="selected"';
             }
-            echo '>' . _('Family News') . '</option>';
+            echo '>' . T_('Family News') . '</option>';
         }
         if (tableExists('fcms_recipes')) {
             echo '<option value="recipes"';
             if ($which_selected == 'recipes') {
                 echo ' selected="selected"';
             }
-            echo '>' . _('Recipes') . '</option>';
+            echo '>' . T_('Recipes') . '</option>';
         }
         if (tableExists('fcms_documents')) {
             echo '<option value="documents"';
             if ($which_selected == 'documents') {
                 echo ' selected="selected"';
             }
-            echo '>' . _('Documents') . '</option>';
+            echo '>' . T_('Documents') . '</option>';
         }
         if (tableExists('fcms_prayers')) {
             echo '<option value="prayers"';
             if ($which_selected == 'prayers') {
                 echo ' selected="selected"';
             }
-            echo '>' . _('Prayer Concerns') . '</option>';
+            echo '>' . T_('Prayer Concerns') . '</option>';
         }
         $i = substr($which_nav, 7);
         echo '<option value="none'.$i.'"';
@@ -1106,7 +1115,7 @@ class Admin {
         if ($pos !== false) {
             echo ' selected="selected"';
         }
-        echo '>' . _('none') . '</option>
+        echo '>' . T_('none') . '</option>
                         </select>
                     </div>
                 </div>';

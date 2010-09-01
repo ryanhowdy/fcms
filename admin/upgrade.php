@@ -12,7 +12,7 @@ include_once('../inc/admin_class.php');
 $admin = new Admin($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Administration: Upgrade');
+$TMPL['pagetitle'] = T_('Administration: Upgrade');
 $TMPL['path'] = "../";
 $TMPL['admin_path'] = "";
 
@@ -25,18 +25,18 @@ echo '
 if (checkAccess($current_user_id) > 1) {
     echo '
             <p class="error-alert">
-                <b>'._('You do not have access to view this page.').'</b><br/>
-                '._('This page requires an access level 1 (Admin).').' 
-                <a href="../contact.php">'._('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
+                <b>'.T_('You do not have access to view this page.').'</b><br/>
+                '.T_('This page requires an access level 1 (Admin).').' 
+                <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
             </p>';
 } else {
     if (isset($_POST['upgrade'])) {
         upgrade($_POST['version']);
     } else {
         echo '
-            <h2>'._('Upgrade Check').'</h2>
-            <p><b>'._('Current Version').':</b> &nbsp;'.getCurrentVersion().'</p>
-            <p><b>'._('Latest Version').':</b> &nbsp;&nbsp;&nbsp;';
+            <h2>'.T_('Upgrade Check').'</h2>
+            <p><b>'.T_('Current Version').':</b> &nbsp;'.getCurrentVersion().'</p>
+            <p><b>'.T_('Latest Version').':</b> &nbsp;&nbsp;&nbsp;';
         $ver = file("http://www.haudenschilt.com/fcms/latest_version.php");
         $uptodate = false; 
 
@@ -48,21 +48,21 @@ if (checkAccess($current_user_id) > 1) {
             // TODO
             // Remove inline CSS
             echo $ver[0].' <span style="padding-left:5px;font-size:small;font-weight:bold;color:green">';
-            echo _('Awesome, your installation is up to date.').'</span>';
+            echo T_('Awesome, your installation is up to date.').'</span>';
         } else {
             // TODO
             // Remove inline CSS
             echo $ver[0].' <span style="padding-left:5px;font-size:small;font-weight:bold;color:red">';
-            echo _('Bummer!, your installation is out of date.').'  <a href="http://www.familycms.com/">'
-                ._('Download latest version.').'</a></span>';
+            echo T_('Bummer!, your installation is out of date.').'  <a href="http://www.familycms.com/">'
+                .T_('Download latest version.').'</a></span>';
         }
         echo '</p>
             <form method="post" action="upgrade.php">
                 <div>
                     <input type="hidden" name="version" value="'.$ver[0].'"/>
-                    <input type="submit" name="upgrade" value="'._('Upgrade').'"';
+                    <input type="submit" name="upgrade" value="'.T_('Upgrade').'"';
         if ($uptodate) {
-            echo ' onclick="javascript:return confirm(\''._('Your installation is already up to date!').'\n'._('Are you sure you want to proceed?').'\');"';
+            echo ' onclick="javascript:return confirm(\''.T_('Your installation is already up to date!').'\n'.T_('Are you sure you want to proceed?').'\');"';
         }
         echo '/>
                 </div>
@@ -80,13 +80,13 @@ include_once(getTheme($current_user_id, $TMPL['path']) . 'footer.php');
 function upgrade ($version) {
     global $cfg_mysql_db, $cfg_sitename, $cfg_contact_email, $cfg_use_news, $cfg_use_prayers;
     echo '
-            <h2>'.sprintf(_('Upgrading to %s.'), $version).'</h2>
-            <p>'._('Upgrade is in process...').'</p>';
+            <h2>'.sprintf(T_('Upgrading to %s.'), $version).'</h2>
+            <p>'.T_('Upgrade is in process...').'</p>';
     /*
      * FCMS 0.9.5
      * Add the dst field to fcms_users table
      */
-    echo '<p><b>(0.9.5)</b> '._('Adding Daylight Savings...');
+    echo '<p><b>(0.9.5)</b> '.T_('Adding Daylight Savings...');
     $sql = "SHOW COLUMNS FROM `fcms_users`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -98,20 +98,20 @@ function upgrade ($version) {
         }
     }
     if ($user_dst_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_users` ADD `dst` tinyint(1) NOT NULL default '0'";
         mysql_query($sql) or displaySQLError(
             'Upgrade DST Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     mysql_free_result($result);
     /*
      * FCMS 0.9.9
      * Add the frontpage field to fcms_users table
      */
-    echo "<p><b>(0.9.9)</b> "._('Adding Frontpage Settings...');
+    echo "<p><b>(0.9.9)</b> ".T_('Adding Frontpage Settings...');
     $sql = "SHOW COLUMNS FROM `fcms_users`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -123,20 +123,20 @@ function upgrade ($version) {
         }
     }
     if ($user_frontpage_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_users` ADD COLUMN `frontpage` set('1','2') NOT NULL default '1'";
         mysql_query($sql) or displaySQLError(
             'Upgrade Frontpage Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     mysql_free_result($result);
     /*
      * FCMS 1.0
      * Add the private field to fcms_calendar table
      */
-    echo "<p><b>(1.0)</b> "._('Adding Private Calendar Entries...');
+    echo "<p><b>(1.0)</b> ".T_('Adding Private Calendar Entries...');
     $sql = "SHOW COLUMNS FROM `fcms_calendar`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -148,20 +148,20 @@ function upgrade ($version) {
         }
     }
     if ($cal_private_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_calendar` ADD `private` TINYINT(1) NOT NULL DEFAULT '0'";
         mysql_query($sql) or displaySQLError(
             'Upgrade Private Field Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     mysql_free_result($result);
     /*
      * FCMS 1.0
      * Rename the message board tables
      */
-    echo "<p><b>(1.0)</b> "._('Upgrading Message Board...');
+    echo "<p><b>(1.0)</b> ".T_('Upgrading Message Board...');
     $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
     $result = mysql_query($sql) or displaySQLError(
         'Table Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -173,7 +173,7 @@ function upgrade ($version) {
         }
     }
     if ($threads_posts_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_threads` RENAME TO `fcms_board_threads`";
         mysql_query($sql) or displaySQLError(
@@ -183,13 +183,13 @@ function upgrade ($version) {
         mysql_query($sql) or displaySQLError(
             'Rename Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.2
      * Rename the userid field in the fcms_address table
      */
-    echo "<p><b>(1.2)</b> "._('Upgrading Address Book...');
+    echo "<p><b>(1.2)</b> ".T_('Upgrading Address Book...');
     $sql = "SHOW COLUMNS FROM `fcms_address`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -201,19 +201,19 @@ function upgrade ($version) {
         }
     }
     if ($address_user_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_address` CHANGE `userid` `user` INT(11) NOT NULL DEFAULT '0'";
         mysql_query($sql) or displaySQLError(
             'Rename userid Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.3
      * Add the entered_by field to the fcms_address table.
      */
-    echo "<p><b>(1.3)</b> "._('Adding Address Book Entered By...');
+    echo "<p><b>(1.3)</b> ".T_('Adding Address Book Entered By...');
     $sql = "SHOW COLUMNS FROM `fcms_address`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -225,7 +225,7 @@ function upgrade ($version) {
         }
     }
     if ($address_user_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_address` ADD `entered_by` INT(11) NOT NULL DEFAULT '0'";
         mysql_query($sql) or displaySQLError(
@@ -247,13 +247,13 @@ function upgrade ($version) {
                 );
             }
         }
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.5
      * Change charset to utf8.
      */
-    echo "<p><b>(1.5)</b> "._('Upgrading FCMS DB charset...');
+    echo "<p><b>(1.5)</b> ".T_('Upgrading FCMS DB charset...');
     $sql = "SHOW TABLE STATUS FROM `$cfg_mysql_db` LIKE 'fcms_address'";
     $result = mysql_query($sql) or displaySQLError(
         'Table Status Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -266,7 +266,7 @@ function upgrade ($version) {
         }
     }
     if ($utf8_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         mysql_query("SET NAMES utf8") or die("<h1>Error</h1><p><b>Could not set encoding</b></p>" . mysql_error());
         mysql_query("ALTER TABLE `fcms_address` CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change table charset</p><p style=\"color:red\">".mysql_error()."</p>");
@@ -308,13 +308,13 @@ function upgrade ($version) {
         mysql_query("ALTER TABLE `fcms_users` MODIFY `lname` VARCHAR(25) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
         mysql_query("ALTER TABLE `fcms_users` MODIFY `username` VARCHAR(25) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
         mysql_query("ALTER TABLE `fcms_users` MODIFY `password` VARCHAR(255) CHARACTER SET utf8;") or die("</p><p style=\"color:red\">Could not change column charset</p><p style=\"color:red\">".mysql_error()."</p>");
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.5
      * Add Config to DB.
      */
-    echo "<p><b>(1.5)</b> "._('Adding Configuration...');
+    echo "<p><b>(1.5)</b> ".T_('Adding Configuration...');
     $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
     $result = mysql_query($sql) or displaySQLError(
         'Table Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -326,7 +326,7 @@ function upgrade ($version) {
         }
     }
     if ($config_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "CREATE TABLE `fcms_config` (
                     `sitename` varchar(50) NOT NULL DEFAULT 'My Site', 
@@ -348,13 +348,13 @@ function upgrade ($version) {
         mysql_query($sql) or displaySQLError(
             'Upgrade Config Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.6
      * Update Config.
      */
-    echo "<p><b>(1.6)</b> "._('Upgrading Config...');
+    echo "<p><b>(1.6)</b> ".T_('Upgrading Config...');
     $sql = "SHOW COLUMNS FROM `fcms_config`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -380,23 +380,23 @@ function upgrade ($version) {
         }
     }
     if ($config_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         if ($fcms19_fixed) {
-            echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+            echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
         } else {
             mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top1` `nav_top1` TINYINT(1) NOT NULL DEFAULT '1' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
             mysql_query("ALTER TABLE `fcms_config` CHANGE `nav_top2` `nav_top2` TINYINT(1) NOT NULL DEFAULT '2' ") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
             mysql_query("ALTER TABLE `fcms_config` ADD `nav_side1` TINYINT(1) NOT NULL DEFAULT '3' AFTER `nav_top2`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
             mysql_query("ALTER TABLE `fcms_config` ADD `nav_side2` TINYINT(1) NOT NULL DEFAULT '0' AFTER `nav_side1`") or die("</p><p style=\"color:red\">".mysql_error()."</p>");
-            echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+            echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
         }
     }
     /*
      * FCMS 1.7
      * Add Photo Gallery Tag.
      */
-    echo "<p><b>(1.7)</b> "._('Adding Photo Gallery Taggin...');
+    echo "<p><b>(1.7)</b> ".T_('Adding Photo Gallery Taggin...');
     $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
     $result = mysql_query($sql) or displaySQLError(
         'Tables Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -408,7 +408,7 @@ function upgrade ($version) {
         }
     }
     if ($tag_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "CREATE TABLE `fcms_gallery_photos_tags` (
                     `id` int(11) NOT NULL auto_increment, 
@@ -431,13 +431,13 @@ function upgrade ($version) {
         mysql_query($sql) or displaySQLError(
             'Upgrade Tag Constraint Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.7
      * Add auto_activate and full_size_photo configs.
      */
-    echo "<p><b>(1.7)</b> "._('Adding Auto Activation and Full Sized Photos...');
+    echo "<p><b>(1.7)</b> ".T_('Adding Auto Activation and Full Sized Photos...');
     $sql = "SHOW COLUMNS FROM `fcms_config`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -449,7 +449,7 @@ function upgrade ($version) {
         }
     }
     if ($config_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_config` ADD `auto_activate` TINYINT( 1 ) NOT NULL DEFAULT '0'";
         mysql_query($sql) or displaySQLError(
@@ -459,13 +459,13 @@ function upgrade ($version) {
         mysql_query($sql) or displaySQLError(
             'Upgrade Config Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.7.1
      * Add activattion code.
      */
-    echo "<p><b>(1.7.1)</b> "._('Adding Activation Code...');
+    echo "<p><b>(1.7.1)</b> ".T_('Adding Activation Code...');
     $sql = "SHOW COLUMNS FROM `fcms_users`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -477,19 +477,19 @@ function upgrade ($version) {
         }
     }
     if ($config_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_users` ADD `activate_code` CHAR( 13 ) NULL";
         mysql_query($sql) or displaySQLError(
             'Upgrade Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.8
      * Add date added to Calendar.
      */
-    echo "<p><b>(1.8)</b> "._('Adding date added to Calendar...');
+    echo "<p><b>(1.8)</b> ".T_('Adding date added to Calendar...');
     $sql = "SHOW COLUMNS FROM `fcms_calendar`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -501,19 +501,19 @@ function upgrade ($version) {
         }
     }
     if ($cal_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_calendar` ADD `date_added` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00'";
         mysql_query($sql) or displaySQLError(
             'Upgrade Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.8
      * Private Messages.
      */
-    echo "<p><b>(1.8)</b> "._('Adding Private Messages...');
+    echo "<p><b>(1.8)</b> ".T_('Adding Private Messages...');
     $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
     $result = mysql_query($sql) or displaySQLError(
         'Table Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -525,7 +525,7 @@ function upgrade ($version) {
         }
     }
     if ($pm_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "CREATE TABLE `fcms_privatemsg` (
                     `id` INT(11) NOT NULL AUTO_INCREMENT, 
@@ -554,13 +554,13 @@ function upgrade ($version) {
         mysql_query($sql) or displaySQLError(
             'Constraint Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.8
      * Change sections order, add new section.
      */
-    echo "<p><b>(1.8)</b> "._('Changing Optional Sections Order...');
+    echo "<p><b>(1.8)</b> ".T_('Changing Optional Sections Order...');
     $sql = "SHOW COLUMNS FROM `fcms_config`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -572,10 +572,10 @@ function upgrade ($version) {
         }
     }
     if ($config_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         if ($fcms19_fixed) {
-            echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+            echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
         } else {
             $sql = "ALTER TABLE `fcms_config` CHANGE `nav_top1` `nav_top1` TINYINT(1) NOT NULL DEFAULT '3'";
             mysql_query($sql) or displaySQLError(
@@ -597,14 +597,14 @@ function upgrade ($version) {
             mysql_query($sql) or displaySQLError(
                 'Add Column Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
-            echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+            echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
         }
     }
     /*
      * FCMS 1.8
      * Add login_attempts.
      */
-    echo "<p><b>(1.8)</b> "._('Adding Login Lockout...');
+    echo "<p><b>(1.8)</b> ".T_('Adding Login Lockout...');
     $sql = "SHOW COLUMNS FROM `fcms_users`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -616,7 +616,7 @@ function upgrade ($version) {
         }
     }
     if ($users_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_users` ADD `login_attempts` TINYINT(1) NOT NULL DEFAULT '0'";
         mysql_query($sql) or displaySQLError(
@@ -626,13 +626,13 @@ function upgrade ($version) {
         mysql_query($sql) or displaySQLError(
             'Add Column Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 1.9
      * Update Config.
      */
-    echo "<p><b>(1.9)</b> "._('Upgrading Optional Section Config...');
+    echo "<p><b>(1.9)</b> ".T_('Upgrading Optional Section Config...');
     $sql = "SHOW COLUMNS FROM `fcms_config`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -644,7 +644,7 @@ function upgrade ($version) {
         }
     }
     if ($config_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_config` CHANGE `nav_top1` `section1` VARCHAR(20) NOT NULL DEFAULT 'familynews'";
         mysql_query($sql) or displaySQLError(
@@ -663,13 +663,13 @@ function upgrade ($version) {
             'Alter Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         @mysql_query("ALTER TABLE `fcms_config` DROP `nav_side3`");  //Surpressing errors here because dropping the old field doesn't stop any functionality
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 2.0
      * User Settings.
      */
-    echo "<p><b>(2.0)</b> "._('Adding User Settings...');
+    echo "<p><b>(2.0)</b> ".T_('Adding User Settings...');
     $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
     $result = mysql_query($sql) or displaySQLError(
         'Table Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -681,7 +681,7 @@ function upgrade ($version) {
         }
     }
     if ($user_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "CREATE TABLE `fcms_user_settings` (
                     `id` INT(11) NOT NULL AUTO_INCREMENT, 
@@ -730,23 +730,23 @@ function upgrade ($version) {
         @mysql_query("ALTER TABLE `fcms_users` DROP `displayname`");
         @mysql_query("ALTER TABLE `fcms_users` DROP `timezone`");
         @mysql_query("ALTER TABLE `fcms_users` DROP `dst`");
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 2.0
      * Update Avatar.
      */
-    echo "<p><b>(2.0)</b> "._('Upgrading Avatar...');
+    echo "<p><b>(2.0)</b> ".T_('Upgrading Avatar...');
     $sql = "ALTER TABLE `fcms_users` ALTER `avatar` SET DEFAULT 'no_avatar.jpg'";
     mysql_query($sql) or displaySQLError(
         'Alter Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
-    echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+    echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     /*
      * FCMS 2.0.1
      * Chat Room.
      */
-    echo "<p><b>(2.0.1)</b> "._('Adding Chat...');
+    echo "<p><b>(2.0.1)</b> ".T_('Adding Chat...');
     $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
     $result = mysql_query($sql) or displaySQLError(
         'Table Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -758,7 +758,7 @@ function upgrade ($version) {
         }
     }
     if ($chat_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "CREATE TABLE `fcms_chat_users` (
                     `user_name` VARCHAR(64) NOT NULL
@@ -778,13 +778,13 @@ function upgrade ($version) {
         mysql_query($sql) or displaySQLError(
             'Create Table Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 2.1
      * Site Off
      */
-    echo "<p><b>(2.1)</b> "._('Adding Ability to Turn Site Off...');
+    echo "<p><b>(2.1)</b> ".T_('Adding Ability to Turn Site Off...');
     $sql = "SHOW COLUMNS FROM `fcms_config`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -796,19 +796,19 @@ function upgrade ($version) {
         }
     }
     if ($siteoff_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_config` ADD `site_off` TINYINT(1) NOT NULL DEFAULT '0'";
         mysql_query($sql) or displaySQLError(
             'Alter Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 2.1
      * Alerts
      */
-    echo "<p><b>(2.1)</b> "._('Adding Alerts...');
+    echo "<p><b>(2.1)</b> ".T_('Adding Alerts...');
     $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
     $result = mysql_query($sql) or displaySQLError(
         'Table Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -820,7 +820,7 @@ function upgrade ($version) {
         }
     }
     if ($alert_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "CREATE TABLE `fcms_alerts` (
                     `id` INT(25) NOT NULL AUTO_INCREMENT, 
@@ -834,13 +834,13 @@ function upgrade ($version) {
         mysql_query($sql) or displaySQLError(
             'Create Table Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 2.1
      * Polls
      */
-    echo "<p><b>(2.1)</b> "._('Adding Historical Poll Data...');
+    echo "<p><b>(2.1)</b> ".T_('Adding Historical Poll Data...');
     $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
     $result = mysql_query($sql) or displaySQLError(
         'Tables Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -852,7 +852,7 @@ function upgrade ($version) {
         }
     }
     if ($poll_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "RENAME TABLE `fcms_poll_users` TO `fcms_poll_votes`";
         mysql_query($sql) or displaySQLError(
@@ -862,13 +862,13 @@ function upgrade ($version) {
         mysql_query($sql) or displaySQLError(
             'Add Column Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 2.1
      * Update Chat Room
      */
-    echo "<p><b>(2.1)</b> "._('Adding Chat Time...');
+    echo "<p><b>(2.1)</b> ".T_('Adding Chat Time...');
     $sql = "SHOW COLUMNS FROM `fcms_chat_users`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -880,19 +880,19 @@ function upgrade ($version) {
         }
     }
     if ($chat_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_chat_users` ADD `time` DATETIME NOT NULL";
         mysql_query($sql) or displaySQLError(
             'Add Column Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 2.2
      * Advanced Uploader
      */
-    echo "<p><b>(2.2)</b> "._('Adding Advanced Uploader...');
+    echo "<p><b>(2.2)</b> ".T_('Adding Advanced Uploader...');
     $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -904,19 +904,19 @@ function upgrade ($version) {
         }
     }
     if ($upload_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_user_settings` ADD `advanced_upload` TINYINT(1) NOT NULL DEFAULT '0'";
         mysql_query($sql) or displaySQLError(
             'Add Column Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 2.2
      * Navigation
      */
-    echo "<p><b>(2.2)</b> "._('Adding Navigation...');
+    echo "<p><b>(2.2)</b> ".T_('Adding Navigation...');
     $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
     $result = mysql_query($sql) or displaySQLError(
         'Table Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -928,7 +928,7 @@ function upgrade ($version) {
         }
     }
     if ($nav_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "CREATE TABLE `fcms_navigation` (
                     `id` INT(25) NOT NULL AUTO_INCREMENT, 
@@ -957,13 +957,13 @@ function upgrade ($version) {
         mysql_query($sql) or displaySQLError(
             'INSERT Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
     /*
      * FCMS 2.2
      * User Language
      */
-    echo "<p><b>(2.2)</b> "._('Adding User Language...');
+    echo "<p><b>(2.2)</b> ".T_('Adding User Language...');
     $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
     $result = mysql_query($sql) or displaySQLError(
         'Column Search Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -975,18 +975,18 @@ function upgrade ($version) {
         }
     }
     if ($lang_fixed) {
-        echo "<span style=\"color:green\">"._('No changes needed')."</span></p>";
+        echo "<span style=\"color:green\">".T_('No changes needed')."</span></p>";
     } else {
         $sql = "ALTER TABLE `fcms_user_settings` ADD `language` VARCHAR(6) NOT NULL DEFAULT 'en_US'";
         mysql_query($sql) or displaySQLError(
             'Add Column Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        echo "<span style=\"color:green\"><b>"._('Complete')."</b></span></p>";
+        echo "<span style=\"color:green\"><b>".T_('Complete')."</b></span></p>";
     }
 
 
     // Set the current Version
-    $sql = "UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.2.2'";
+    $sql = "UPDATE `fcms_config` SET `current_version` = 'Family Connections 2.2.3'";
     mysql_query($sql) or displaySQLError(
         'Version Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );

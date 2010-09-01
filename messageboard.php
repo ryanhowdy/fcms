@@ -20,7 +20,7 @@ include_once('inc/messageboard_class.php');
 $mboard = new MessageBoard($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Message Board');
+$TMPL['pagetitle'] = T_('Message Board');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = '
@@ -29,7 +29,7 @@ $TMPL['javascript'] = '
 Event.observe(window, \'load\', function() {
     if (!$$(\'.delpost input[type="submit"]\')) { return; }
     $$(\'.delpost input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmed\');
@@ -97,17 +97,17 @@ if (isset($_POST['post_submit'])) {
                 $subject = substr($subject, 9, strlen($subject)-9);
             } 
             $thread_subject = $subject;
-            $subject = sprintf(_('%s started the new thread: %s'), $name, $thread_subject);
+            $subject = sprintf(T_('%s started the new thread: %s'), $name, $thread_subject);
             $email = $r['email'];
             $url = getDomainAndDir();
-            $msg = _('Dear').' '.$to.',
+            $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
 '.$url.'messageboard.php?thread='.$new_thread_id.'
 
 ----
-'._('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
+'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
 
 '.$url.'settings.php
 
@@ -157,17 +157,17 @@ if (isset($_POST['reply_submit'])) {
                 if ($pos !== false) { 
                     $thread_subject = substr($thread_subject, 9, strlen($thread_subject)-9);
                 } 
-                $subject = sprintf(_('%s has replied to the thread: %s'), $name, $thread_subject);
+                $subject = sprintf(T_('%s has replied to the thread: %s'), $name, $thread_subject);
                 $email = $r['email'];
                 $to = getUserDisplayName($r['user']);
                 $url = getDomainAndDir();
-                $msg = _('Dear').' '.$to.',
+                $msg = T_('Dear').' '.$to.',
 '.$subject.'
 
 '.$url.'messageboard.php?thread='.$thread_id.'
 
 ----
-'._('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
+'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
 
 '.$url.'settings.php
 
@@ -188,12 +188,12 @@ if (isset($_POST['edit_submit'])) {
     if (ctype_digit($id) && ctype_digit($thread_id)) {
         $show_threads = false;
         $post = escape_string($_POST['post']);
-        $pos = strpos($post, "[size=small][i]"._('Edited'));
+        $pos = strpos($post, "[size=small][i]".T_('Edited'));
         if($pos === false) {
-            $post = $post . "\n\n[size=small][i]"._('Edited')." " . $locale->fixDate('n/d/Y g:ia', $mboard->tz_offset) . "[/i][/size]";
+            $post = $post . "\n\n[size=small][i]".T_('Edited')." " . $locale->fixDate('n/d/Y g:ia', $mboard->tz_offset) . "[/i][/size]";
         } else {
             $post = substr($post, 0, $pos);
-            $post = $post . "[size=small][i]"._('Edited')." " . $locale->fixDate('n/d/Y g:ia', $mboard->tz_offset) . "[/i][/size]";
+            $post = $post . "[size=small][i]".T_('Edited')." " . $locale->fixDate('n/d/Y g:ia', $mboard->tz_offset) . "[/i][/size]";
         }
         $sql = "UPDATE `fcms_board_posts` SET `post` = '$post' WHERE `id` = $id";
         mysql_query($sql) or displaySQLError('Edit Post Error', 'messageboard.php [' . __LINE__ . ']', $sql, mysql_error());
@@ -209,13 +209,13 @@ if (isset($_POST['delpost']) && !isset($_POST['confirmed'])) {
         echo '
                 <div class="info-alert clearfix">
                     <form action="messageboard.php?thread='.$thread.'" method="post">
-                        <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
                             <input type="hidden" name="id" value="'.$_POST['id'].'"/>
                             <input type="hidden" name="thread" value="'.$thread.'"/>
-                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                            <a style="float:right;" href="messageboard.php?thread='.$thread.'">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="messageboard.php?thread='.$thread.'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';

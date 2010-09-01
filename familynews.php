@@ -18,7 +18,7 @@ include_once('inc/familynews_class.php');
 $fnews = new FamilyNews($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Family News');
+$TMPL['pagetitle'] = T_('Family News');
 $TMPL['path'] = "";
 $TMPL['admin_path'] = "admin/";
 $TMPL['javascript'] = '
@@ -27,7 +27,7 @@ $TMPL['javascript'] = '
 Event.observe(window, \'load\', function() {
     if (!$$(\'.delnews input[type="submit"]\')) { return; }
     $$(\'.delnews input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmed\');
@@ -36,7 +36,7 @@ Event.observe(window, \'load\', function() {
     });
     if (!$$(\'.delcom input[type="submit"]\')) { return; }
     $$(\'.delcom input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'comconfirmed\');
@@ -66,17 +66,17 @@ if (checkAccess($current_user_id) < 6 || checkAccess($current_user_id) == 9) {
     echo '
             <div id="sections_menu" class="clearfix">
                 <ul>
-                    <li><a href="familynews.php">'._('Latest News').'</a></li>';
+                    <li><a href="familynews.php">'.T_('Latest News').'</a></li>';
     if ($fnews->hasNews($current_user_id)) {
         echo '
-                    <li><a href="?getnews='.$current_user_id.'">'._('My News').'</a></li>';
+                    <li><a href="?getnews='.$current_user_id.'">'.T_('My News').'</a></li>';
     }
     echo '
                 </ul>
             </div>
             <div id="actions_menu" class="clearfix">
                 <ul>
-                    <li><a href="?addnews=yes">'._('Add News').'</a></li>
+                    <li><a href="?addnews=yes">'.T_('Add News').'</a></li>
                 </ul>
             </div>';
 }
@@ -98,7 +98,7 @@ if (isset($_POST['submitadd'])) {
             )";
     mysql_query($sql) or displaySQLError('Add News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
     echo '
-            <p class="ok-alert" id="add">'._('Family News Added Successfully').'</p>
+            <p class="ok-alert" id="add">'.T_('Family News Added Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'add\').toggle()",3000); }
             </script>';
@@ -112,17 +112,17 @@ if (isset($_POST['submitadd'])) {
         while ($r = mysql_fetch_array($result)) {
             $name = getUserDisplayName($current_user_id);
             $to = getUserDisplayName($r['user']);
-            $subject = sprintf(_('%s has added %s to his/her Family News'),$name, $title);
+            $subject = sprintf(T_('%s has added %s to his/her Family News'),$name, $title);
             $email = $r['email'];
             $url = getDomainAndDir();
-            $msg = _('Dear').' '.$to.',
+            $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
 '.$url.'familynews.php?getnews='.$current_user_id.'
 
 ----
-'._('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
+'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
 
 '.$url.'settings.php
 
@@ -144,8 +144,8 @@ if (isset($_POST['submitadd'])) {
     // so they can be sent to back to that page on completion
     echo '
             <p class="ok-alert">
-                '._('Changes Updated Successfully').'<br/>
-                <a href="familynews.php?getnews='.$_POST['user'].'">'._('View Changes').'</a>
+                '.T_('Changes Updated Successfully').'<br/>
+                <a href="familynews.php?getnews='.$_POST['user'].'">'.T_('View Changes').'</a>
             </p>
             <meta http-equiv=\'refresh\' content=\'0;URL=familynews.php?getnews='.$_POST['user'].'\'>';
 }
@@ -166,13 +166,13 @@ if (isset($_GET['addnews']) && (checkAccess($current_user_id) < 6 || checkAccess
     echo '
                 <div class="info-alert clearfix">
                     <form action="familynews.php?getnews='.$_POST['user'].'" method="post">
-                        <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
                             <input type="hidden" name="user" value="'.$_POST['user'].'"/>
                             <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                            <a style="float:right;" href="familynews.php?getnews='.$_POST['user'].'">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="familynews.php?getnews='.$_POST['user'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -183,7 +183,7 @@ if (isset($_GET['addnews']) && (checkAccess($current_user_id) < 6 || checkAccess
     $sql = "DELETE FROM `fcms_news` WHERE id = ".escape_string($_POST['id']);
     mysql_query($sql) or displaySQLError('Delete News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
     echo '
-            <p class="ok-alert" id="del">'._('Family News Deleted Successfully').'</p>
+            <p class="ok-alert" id="del">'.T_('Family News Deleted Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'del\').toggle()",3000); }
             </script>';
@@ -212,12 +212,12 @@ if (isset($_GET['getnews'])) {
         echo '
                 <div class="info-alert clearfix">
                     <form action="familynews.php?getnews='.$_GET['getnews'].'" method="post">
-                        <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                        <p><b><i>'._('This can NOT be undone').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone').'</i></b></p>
                         <div>
                             <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                            <input style="float:left;" type="submit" id="delcomconfirm" name="delcomconfirm" value="'._('Yes').'"/>
-                            <a style="float:right;" href="familynews.php?getnews='.$_GET['getnews'].'">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delcomconfirm" name="delcomconfirm" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="familynews.php?getnews='.$_GET['getnews'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';

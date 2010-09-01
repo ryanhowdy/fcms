@@ -22,7 +22,7 @@ class PhotoGallery {
         );
         $row = $this->db->get_row();
         $this->tz_offset = $row['timezone'];
-        bindtextdomain('messages', '.././language');
+        T_bindtextdomain('messages', '.././language');
     }
 
     function displayGalleryMenu ($uid = '', $cid = '')
@@ -47,18 +47,18 @@ class PhotoGallery {
         echo '
             <div id="sections_menu" class="clearfix">
                 <ul>
-                    <li><a class="'.$home.'" href="index.php">'._('Photo Gallery Home').'</a></li>
-                    <li><a class="'.$member.'" href="?uid=0">'._('Member Gallery').'</a></li>
-                    <li><a class="'.$rated.'" href="?uid='.$uid.'&amp;cid=toprated">'._('Top Rated').'</a></li>
-                    <li><a class="'.$viewed.'" href="?uid='.$uid.'&amp;cid=mostviewed">'._('Most Viewed').'</a></li>
-                    <li><a class="'.$my.'" href="?uid='.$this->current_user_id.'">'._('My Photos').'</a></li>
-                    <li><a class="'.$search.'" href="?search=form">'._('Search').'</a></li>
+                    <li><a class="'.$home.'" href="index.php">'.T_('Photo Gallery Home').'</a></li>
+                    <li><a class="'.$member.'" href="?uid=0">'.T_('Member Gallery').'</a></li>
+                    <li><a class="'.$rated.'" href="?uid='.$uid.'&amp;cid=toprated">'.T_('Top Rated').'</a></li>
+                    <li><a class="'.$viewed.'" href="?uid='.$uid.'&amp;cid=mostviewed">'.T_('Most Viewed').'</a></li>
+                    <li><a class="'.$my.'" href="?uid='.$this->current_user_id.'">'.T_('My Photos').'</a></li>
+                    <li><a class="'.$search.'" href="?search=form">'.T_('Search').'</a></li>
                 </ul>
             </div>
             <div id="actions_menu" class="clearfix">
                 <ul>
-                    <li><a class="upload" href="?action=upload">'._('Upload Photos').'</a></li>
-                    <li><a class="manage_categories" href="?action=category">'._('Manage Categories').'</a></li>
+                    <li><a class="upload" href="?action=upload">'.T_('Upload Photos').'</a></li>
+                    <li><a class="manage_categories" href="?action=category">'.T_('Manage Categories').'</a></li>
                 </ul>
             </div>';
     }
@@ -83,10 +83,10 @@ class PhotoGallery {
         }
         echo '
                 <fieldset>
-                    <legend><span>'._('Search').'</span></legend>
+                    <legend><span>'.T_('Search').'</span></legend>
                     <form action="index.php" method="get">
                         <div class="field-row clearfix">
-                            <div class="field-label"><b>'._('Photo Uploaded By').'</b></div>
+                            <div class="field-label"><b>'.T_('Photo Uploaded By').'</b></div>
                             <div class="field-widget">
                                 <select name="uid">
                                     <option value="0"></option>';
@@ -99,7 +99,7 @@ class PhotoGallery {
                             </div>
                         </div>
                         <div class="field-row clearfix">
-                            <div class="field-label"><b>'._('Members In Photo').'</b></div>
+                            <div class="field-label"><b>'.T_('Members In Photo').'</b></div>
                             <div class="field-widget">
                                 <select name="cid">
                                     <option value="all"></option>';
@@ -111,7 +111,7 @@ class PhotoGallery {
                                 </select>
                             </div>
                         </div>
-                        <p><input class="sub1" type="submit" value="'._('Search').'"/></p>
+                        <p><input class="sub1" type="submit" value="'.T_('Search').'"/></p>
                     </form>
                 </fieldset>';
     }
@@ -137,7 +137,7 @@ class PhotoGallery {
             'Latest Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         while ($row = $this->db->get_row()) {
-            $date = $locale->fixDate(_('M. j, Y'), $this->tz_offset, $row['date']);
+            $date = $locale->fixDate(T_('M. j, Y'), $this->tz_offset, $row['date']);
             $cat_array[] = '
                         <a class="category-link" href="?uid='.$row['user'].'&amp;cid='.$row['category'].'&amp;pid='.$row['id'].'">
                             <img class="photo" src="photos/member'.$row['user'].'/tb_'.$row['filename'].'" alt=""/>
@@ -149,7 +149,7 @@ class PhotoGallery {
         }
         if (!empty($cat_array)) {
             echo '
-                <h3>'._('Latest Categories').'</h3>
+                <h3>'.T_('Latest Categories').'</h3>
                 <ul class="categories clearfix">';
             foreach ($cat_array as $cat_link) {
                 echo '
@@ -161,12 +161,12 @@ class PhotoGallery {
         } else {
             echo '
                 <div class="info-alert">
-                    <h2>'._('Welcome to the Photo Gallery').'</h2>
-                    <p><i>'._('Currently no one has added any photos').'</i></p>
-                    <p><b>'._('How do I add photos?').'</b></p>
+                    <h2>'.T_('Welcome to the Photo Gallery').'</h2>
+                    <p><i>'.T_('Currently no one has added any photos').'</i></p>
+                    <p><b>'.T_('How do I add photos?').'</b></p>
                     <ol>
-                        <li><a href="?action=category">'._('Create a Category').'</a></li>
-                        <li><a href="?action=upload">'._('Upload Photos').'</a></li>
+                        <li><a href="?action=category">'.T_('Create a Category').'</a></li>
+                        <li><a href="?action=upload">'.T_('Upload Photos').'</a></li>
                     </ol>
                 </div>';
         }
@@ -199,7 +199,7 @@ class PhotoGallery {
         // Latest Comments View
         //--------------------------------------------------------------------
         if (strpos($cid, 'comments') !== false) {
-            $special_breadcrumbs = '<a href="?uid=0&amp;cid=comments">'._('Latest Comments').'</a>';
+            $special_breadcrumbs = '<a href="?uid=0&amp;cid=comments">'.T_('Latest Comments').'</a>';
             $urlcid = $cid;
             $cid = substr($cid, 8);
             $sql = "SELECT DISTINCT `filename` "
@@ -213,7 +213,7 @@ class PhotoGallery {
         // Top Rated View
         //--------------------------------------------------------------------
         } elseif (strpos($cid, 'toprated') !== false) {
-            $special_breadcrumbs = '<a href="?uid=0&amp;cid=toprated">'._('Top Rated').'</a>';
+            $special_breadcrumbs = '<a href="?uid=0&amp;cid=toprated">'.T_('Top Rated').'</a>';
             $urlcid = $cid;
             $cid = substr($cid, 8);
             $sql = "SELECT `filename` FROM `fcms_gallery_photos` "
@@ -223,7 +223,7 @@ class PhotoGallery {
         // Most Viewed View
         //--------------------------------------------------------------------
         } elseif (strpos($cid, 'mostviewed') !== false) {
-            $special_breadcrumbs = "<a href=\"?uid=$uid&amp;cid=$cid\">"._('Most Viewed')."</a>";
+            $special_breadcrumbs = "<a href=\"?uid=$uid&amp;cid=$cid\">".T_('Most Viewed')."</a>";
             $urlcid = $cid;
             $cid = substr($cid, 10);
             $sql = "SELECT `filename` FROM `fcms_gallery_photos` WHERE `views` > 0";
@@ -239,7 +239,7 @@ class PhotoGallery {
             $urlcid = $cid;
             $cid = substr($cid, 6);
             $userName = getUserDisplayName($cid);
-            $special_breadcrumbs = "<a href=\"?uid=0&amp;cid=$cid\">".sprintf(_('Photos of %s'), $userName)."</a>";
+            $special_breadcrumbs = "<a href=\"?uid=0&amp;cid=$cid\">".sprintf(T_('Photos of %s'), $userName)."</a>";
             $sql = "SELECT `filename` "
                  . "FROM `fcms_gallery_photos` AS p, `fcms_gallery_photos_tags` AS t "
                  . "WHERE t.`user` = $cid "
@@ -252,7 +252,7 @@ class PhotoGallery {
         } elseif ($cid == 'all') {
             $urlcid = $cid;
             $userName = getUserDisplayName($uid);
-            $special_breadcrumbs = '<a href="?uid='.$uid.'&amp;cid=all">'.sprintf(_('Photos uploaded by %s'), $userName).'</a>';
+            $special_breadcrumbs = '<a href="?uid='.$uid.'&amp;cid=all">'.sprintf(T_('Photos uploaded by %s'), $userName).'</a>';
             $sql = "SELECT `filename` 
                     FROM `fcms_gallery_photos`
                     WHERE `user` = $uid
@@ -305,15 +305,15 @@ class PhotoGallery {
                     echo '
                 <p class="breadcrumbs">'.$special_breadcrumbs.'</p>
                 <small>
-                    '._('From the Category:').' <a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'">'.$r['category_name'].'</a> 
-                    '._('by').' 
+                    '.T_('From the Category:').' <a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'">'.$r['category_name'].'</a> 
+                    '.T_('by').' 
                     <a class="u" href="../profile.php?member='.$r['uid'].'">'.$displayname.'</a>
                 </small>';
 
                 } else {
                     echo '
                 <p class="breadcrumbs">
-                    <a href="?uid=0">'._('Member Gallery').'</a> &gt; 
+                    <a href="?uid=0">'.T_('Member Gallery').'</a> &gt; 
                     <a href="?uid='.$uid.'">'.$displayname.'</a> &gt; 
                     <a href="?uid='.$uid.'&amp;cid='.$cid.'">'.$r['category_name'].'</a>
                 </p>';
@@ -335,7 +335,7 @@ class PhotoGallery {
                     $c = $cur + 1;
                     echo '
                 <div id="photo_nav clearfix">
-                    <div class="info">'.sprintf(_('Photo %d of %d'), $c, $total_photos).'</div>
+                    <div class="info">'.sprintf(T_('Photo %d of %d'), $c, $total_photos).'</div>
                 </div>';
 
                 // Showing the first of multiple photos
@@ -343,10 +343,10 @@ class PhotoGallery {
                     $c = $cur + 1;
                     echo '
                 <div id="photo_nav" class="clearfix">
-                    <div class="info">'.sprintf(_('Photo %d of %d'), $c, $total_photos).'</div>
+                    <div class="info">'.sprintf(T_('Photo %d of %d'), $c, $total_photos).'</div>
                     <div class="prev_next clearfix">
                         <span class="previous">&nbsp;</span>
-                        <a class="next" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$next_pid.'">'._('Next').' &gt;&gt;</a>
+                        <a class="next" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$next_pid.'">'.T_('Next').' &gt;&gt;</a>
                     </div>
                 </div>
                 <script type="text/javascript">
@@ -367,9 +367,9 @@ class PhotoGallery {
                     $c = $cur + 1;
                     echo '
                 <div id="photo_nav" class="clearfix">
-                    <div class="info">'.sprintf(_('Photo %d of %d'), $c, $total_photos).'</div>
+                    <div class="info">'.sprintf(T_('Photo %d of %d'), $c, $total_photos).'</div>
                     <div class="prev_next clearfix">
-                        <a class="previous" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$prev_pid.'">&lt;&lt; '._('Previous').'</a>
+                        <a class="previous" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$prev_pid.'">&lt;&lt; '.T_('Previous').'</a>
                         <span class="next">&nbsp;</span>
                     </div>
                 </div>
@@ -391,10 +391,10 @@ class PhotoGallery {
                     $c = $cur + 1;
                     echo '
                 <div id="photo_nav" class="clearfix">
-                    <div class="info">'.sprintf(_('Photo %d of %d'), $c, $total_photos).'</div>
+                    <div class="info">'.sprintf(T_('Photo %d of %d'), $c, $total_photos).'</div>
                     <div class="prev_next clearfix">
-                        <a class="previous" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$prev_pid.'">&lt;&lt; '._('Previous').'</a>
-                        <a class="next" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$next_pid.'">'._('Next').' &gt;&gt;</a>
+                        <a class="previous" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$prev_pid.'">&lt;&lt; '.T_('Previous').'</a>
+                        <a class="next" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$next_pid.'">'.T_('Next').' &gt;&gt;</a>
                     </div>
                 </div>
                 <script type="text/javascript">
@@ -466,22 +466,22 @@ class PhotoGallery {
                     }
                     $tagged_mem_list = substr($tagged_mem_list, 0, -2); // remove the extra ", "
                 } else {
-                    $tagged_mem_list .= "<i>"._('none')."</i>";
+                    $tagged_mem_list .= "<i>".T_('none')."</i>";
                 }
-                $date_added = $locale->fixDate(_('F j, Y g:i a'), $this->tz_offset, $r['date']);
+                $date_added = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $r['date']);
                 $size = formatSize($size);
                 // Edit / Delete Photo options
                 $edit_del_options = '';
                 if ($this->current_user_id == $r['uid'] || checkAccess($this->current_user_id) < 2) {
                     $edit_del_options = '
                 <div class="edit_del_photo">
-                    <strong>'._('Edit Photo').'</strong> &nbsp;
+                    <strong>'.T_('Edit Photo').'</strong> &nbsp;
                     <form action="index.php" method="post">
                         <div>
                             <input type="hidden" name="photo" id="photo" value="'.$pid.'"/>
                             <input type="hidden" name="url" id="url" value="uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'"/>
-                            <input type="submit" name="editphoto" id="editphoto" value="'._('Edit').'" class="editbtn"/>&nbsp;&nbsp;
-                            <input type="submit" name="deletephoto" id="deletephoto" value="'._('Delete').'" class="delbtn"/>
+                            <input type="submit" name="editphoto" id="editphoto" value="'.T_('Edit').'" class="editbtn"/>&nbsp;&nbsp;
+                            <input type="submit" name="deletephoto" id="deletephoto" value="'.T_('Delete').'" class="delbtn"/>
                         </div>
                     </form>
                 </div>';
@@ -495,30 +495,30 @@ class PhotoGallery {
                         src="photos/member'.$r['uid'].'/'.$r['filename'].'" alt="'.$caption.'" title="'.$caption.'"/></a>
                 </p>
                 <div id="caption">
-                    <b>'._('Caption').':</b> '.$caption.'
+                    <b>'.T_('Caption').':</b> '.$caption.'
                 </div>
             </div>
             <div id="photo_details">
                 '.$edit_del_options.'
-                <div style="float:left"><strong>'._('Rating').':</strong> &nbsp;</div>
+                <div style="float:left"><strong>'.T_('Rating').':</strong> &nbsp;</div>
                 <div style="float:left">
                     <ul class="star-rating small-star">
-                        <li class="current-rating" style="width:'.$width.'%">'.sprintf(_('Currently %s/5 Starts'), $r['rating']).'</li>
-                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=1" title="'._('1 out of 5 Stars').'" class="one-star">1</a></li>
-                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=2" title="'._('2 out of 5 Stars').'" class="two-stars">2</a></li>
-                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=3" title="'._('3 out of 5 Stars').'" class="three-stars">3</a></li>
-                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=4" title="'._('4 out of 5 Stars').'" class="four-stars">4</a></li>
-                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=5" title="'._('5 out of 5 Stars').'" class="five-stars">5</a></li>
+                        <li class="current-rating" style="width:'.$width.'%">'.sprintf(T_('Currently %s/5 Starts'), $r['rating']).'</li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=1" title="'.T_('1 out of 5 Stars').'" class="one-star">1</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=2" title="'.T_('2 out of 5 Stars').'" class="two-stars">2</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=3" title="'.T_('3 out of 5 Stars').'" class="three-stars">3</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=4" title="'.T_('4 out of 5 Stars').'" class="four-stars">4</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=5" title="'.T_('5 out of 5 Stars').'" class="five-stars">5</a></li>
                     </ul>
                 </div>
                 <div style="clear:both"><br/></div>
                 <div id="photo_details_sub">
-                    <p><b>'._('Filename').':</b><br/>'.$r['filename'].'</p>
-                    <p><b>'._('Views').':</b><br/>'.$r['views'].'</p>
-                    <p><b>'._('Photo Size').':</b><br/>'.$size.'</p>
-                    <p><b>'._('Dimensions').':</b><br/>'.$dimensions[0].' x '.$dimensions[1].'</p>
-                    <p><b>'._('Date Added').':</b><br/>'.$date_added.'</p>
-                    <p><b>'._('Members in Photo').':</b><br/>'.$tagged_mem_list.'</p>
+                    <p><b>'.T_('Filename').':</b><br/>'.$r['filename'].'</p>
+                    <p><b>'.T_('Views').':</b><br/>'.$r['views'].'</p>
+                    <p><b>'.T_('Photo Size').':</b><br/>'.$size.'</p>
+                    <p><b>'.T_('Dimensions').':</b><br/>'.$dimensions[0].' x '.$dimensions[1].'</p>
+                    <p><b>'.T_('Date Added').':</b><br/>'.$date_added.'</p>
+                    <p><b>'.T_('Members in Photo').':</b><br/>'.$tagged_mem_list.'</p>
                 </div>
             </div>';
                 
@@ -531,7 +531,7 @@ class PhotoGallery {
                     echo '
             <div style="clear:both"></div>
             <p>&nbsp;</p>
-            <h3>'._('Comments').'</h3>';
+            <h3>'.T_('Comments').'</h3>';
                     $sql = "SELECT c.`id`, `comment`, `date`, `fname`, `lname`, `username`, `user`, `avatar` 
                             FROM `fcms_gallery_comments` AS c, `fcms_users` AS u 
                             WHERE `photo` = '$pid' 
@@ -544,14 +544,14 @@ class PhotoGallery {
                         while ($row = $this->db->get_row()) {
                             // Setup some vars for each comment block
                             $del_comment = '';
-                            $date = $locale->fixDate(_('F j, Y g:i a'), $this->tz_offset, $row['date']);
+                            $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $row['date']);
                             $displayname = getUserDisplayName($row['user']);
                             $comment = $row['comment'];
                             if ($this->current_user_id == $row['user'] || 
                                 checkAccess($this->current_user_id) < 2) {
                                 $del_comment .= '<input type="submit" name="delcom" id="delcom" '
-                                    . 'value="'._('Delete').'" class="gal_delcombtn" title="'
-                                    . _('Delete this Comment') . '"/>';
+                                    . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
+                                    . T_('Delete this Comment') . '"/>';
                             }
                             echo '
             <div class="comment_block clearfix">
@@ -573,9 +573,9 @@ class PhotoGallery {
             <p>&nbsp;</p>
             <div class="add_comment_block">
                 <form action="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'" method="post">
-                    '._('Add Comment').'<br/>
+                    '.T_('Add Comment').'<br/>
                     <textarea class="frm_textarea" name="post" id="post" rows="3" cols="63"></textarea>
-                    <input type="submit" name="addcom" id="addcom" value="'._('Add Comment').'" title="'._('Add Comment').'" class="gal_addcombtn"/>
+                    <input type="submit" name="addcom" id="addcom" value="'.T_('Add Comment').'" title="'.T_('Add Comment').'" class="gal_addcombtn"/>
                 </form>
             </div>
             <p>&nbsp;</p>';
@@ -584,7 +584,7 @@ class PhotoGallery {
             // Specific Photo couldn't be found
             } else {
                 echo '
-            <p class="error-alert">'._('The Photo you are trying to view can not be found.').'</p>';
+            <p class="error-alert">'.T_('The Photo you are trying to view can not be found.').'</p>';
             }
 
         // No photos exist for the current view/category
@@ -594,8 +594,8 @@ class PhotoGallery {
             $this->displayGalleryMenu($uid, $cid);
             echo '
             <div class="info-alert">
-                <h2>'._('Oops!').'</h2>
-                <p>'._('The Category you are trying to view is Empty.').'</p>
+                <h2>'.T_('Oops!').'</h2>
+                <p>'.T_('The Category you are trying to view is Empty.').'</p>
             </div>';
         }
     }
@@ -809,8 +809,8 @@ class PhotoGallery {
         } else {
             echo '
             <div class="info-alert">
-                <h2>'._('Uh Oh!').'</h2>
-                <p>'._('The category you are trying to view doesn\'t exist.').'</p>
+                <h2>'.T_('Uh Oh!').'</h2>
+                <p>'.T_('The category you are trying to view doesn\'t exist.').'</p>
             </div>';
         }
         
@@ -834,16 +834,16 @@ class PhotoGallery {
                 if ($row['type'] == 'MEMBER') {
                     if ($first) {
                         echo '
-            <p class="breadcrumbs">'._('Member Gallery').'</p>';
+            <p class="breadcrumbs">'.T_('Member Gallery').'</p>';
                     }
                     $displayname = getUserDisplayName($row['uid']);
                     $htmlDisplayname = htmlentities($displayname, ENT_COMPAT, 'UTF-8');
                     $cat_name = "<strong>$displayname</strong>";
                     $url = "?uid=" . $row['uid'];
                     $urlPage = "?uid=0";
-                    $alt = ' alt="'.sprintf(_('View Categories for %s'), $htmlDisplayname).'"';
-                    $title = ' title="'.sprintf(_('View Categories for %s'), $htmlDisplayname).'"';
-                    $cat_info = "<i>" . _('Photos') . " (" . $row['c'] . ")</i>";
+                    $alt = ' alt="'.sprintf(T_('View Categories for %s'), $htmlDisplayname).'"';
+                    $title = ' title="'.sprintf(T_('View Categories for %s'), $htmlDisplayname).'"';
+                    $cat_info = "<i>" . T_('Photos') . " (" . $row['c'] . ")</i>";
 
                 //-------------------------------------------------------------
                 // Comments
@@ -852,14 +852,14 @@ class PhotoGallery {
                     if ($first) {
                         if ($page >= 0) {
                             echo '
-            <p class="breadcrumbs">'._('Latest Comments').'</p>';
+            <p class="breadcrumbs">'.T_('Latest Comments').'</p>';
                         } else {
                             echo '
-            <h3>'._('Latest Comments').'</h3>
-            <a href="?uid=0&amp;cid=comments">('._('View All').')</a><br/>';
+            <h3>'.T_('Latest Comments').'</h3>
+            <a href="?uid=0&amp;cid=comments">('.T_('View All').')</a><br/>';
                         }
                     }
-                    $date = $locale->fixDate(_('M. j, Y g:i a'), $this->tz_offset, $row['heading']);
+                    $date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tz_offset, $row['heading']);
                     $cat_name = "<strong>$date</strong>";
                     $url = "?uid=0&amp;cid=comments&amp;pid=" . $row['pid'];
                     $urlPage = "?uid=0&amp;cid=comments";
@@ -874,7 +874,7 @@ class PhotoGallery {
                 } elseif ($row['type'] == 'RATED') {
                     if ($first) {
                         echo '
-            <p class="breadcrumbs">'._('Top Rated');
+            <p class="breadcrumbs">'.T_('Top Rated');
                         if ($uid > 0) {
                             echo " (" . getUserDisplayName($uid) . ")";
                         }
@@ -887,15 +887,15 @@ class PhotoGallery {
                     $title = ' title="' . htmlentities($row['caption'], ENT_COMPAT, 'UTF-8') . '"';
                     $cat_info = "<i><ul class=\"star-rating small-star\">"
                         . "<li class=\"current-rating\" style=\"width:$width%\">"
-                        . sprintf(_('Currently %d/5 Stars.'), $row['r'])
+                        . sprintf(T_('Currently %d/5 Stars.'), $row['r'])
                         . "</li><li><a href=\"$url&amp;vote=1\" title=\"" 
-                        . _('1 out of 5 Stars') . "\" class=\"one-star\">1</a></li><li>"
-                        . "<a href=\"$url&amp;vote=2\" title=\"" . _('2 out of 5 Stars')
+                        . T_('1 out of 5 Stars') . "\" class=\"one-star\">1</a></li><li>"
+                        . "<a href=\"$url&amp;vote=2\" title=\"" . T_('2 out of 5 Stars')
                         . "\" class=\"two-stars\">2</a></li><li><a href=\"$url&amp;vote=3\" "
-                        . "title=\"" . _('3 out of 5 Stars') . "\" class=\"three-stars\">3</a>"
-                        . "</li><li><a href=\"$url&amp;vote=4\" title=\"" . _('4 out of 5 Stars')
+                        . "title=\"" . T_('3 out of 5 Stars') . "\" class=\"three-stars\">3</a>"
+                        . "</li><li><a href=\"$url&amp;vote=4\" title=\"" . T_('4 out of 5 Stars')
                         . "\" class=\"four-stars\">4</a></li><li><a href=\"$url&amp;vote=5\" "
-                        . "title=\"" . _('5 out of 5 Stars') . "\" class=\"five-stars\">5</a>"
+                        . "title=\"" . T_('5 out of 5 Stars') . "\" class=\"five-stars\">5</a>"
                         . "</li></ul></i>";
 
                 //-------------------------------------------------------------
@@ -904,7 +904,7 @@ class PhotoGallery {
                 } elseif ($row['type'] == 'VIEWED') {
                     if ($first) {
                         echo '
-            <p class="breadcrumbs">'._('Most Viewed');
+            <p class="breadcrumbs">'.T_('Most Viewed');
                         if ($uid > 0) {
                             echo " (" . getUserDisplayName($uid) . ")";
                         }
@@ -914,7 +914,7 @@ class PhotoGallery {
                     $urlPage = "?uid=$uid&amp;cid=mostviewed";
                     $alt = ' alt="' . htmlentities($row['caption'], ENT_COMPAT, 'UTF-8') . '"';
                     $title = ' title="' . htmlentities($row['caption'], ENT_COMPAT, 'UTF-8') . '"';
-                    $cat_info = "<i><b>"._('Views').": </b>" . $row['views'] . "</i>";
+                    $cat_info = "<i><b>".T_('Views').": </b>" . $row['views'] . "</i>";
 
                 //-------------------------------------------------------------
                 // Tagged
@@ -923,7 +923,7 @@ class PhotoGallery {
                     if ($first) {
                         $userName = getUserDisplayName($row['user']);
                         echo '
-            <p class="breadcrumbs">'.sprintf(_('Photos of %s'), $userName).'</p>';
+            <p class="breadcrumbs">'.sprintf(T_('Photos of %s'), $userName).'</p>';
                     }
                     $url = "?uid=0&amp;cid=tagged" . $row['user'] . "&amp;pid=" . $row['pid'];
                     $urlPage = "?uid=0&amp;cid=tagged" . $row['user'];
@@ -937,7 +937,7 @@ class PhotoGallery {
                     if ($first) {
                         $userName = getUserDisplayName($row['uid']);
                         echo '
-            <p class="breadcrumbs">'.sprintf(_('Photos uploaded by %s'), $userName).'</p>';
+            <p class="breadcrumbs">'.sprintf(T_('Photos uploaded by %s'), $userName).'</p>';
                     }
                     $url = "?uid=" . $row['uid'] . "&amp;cid=all&amp;pid=" . $row['pid'];
                     $urlPage = "?uid=" . $row['uid'] . "&amp;cid=all";
@@ -951,7 +951,7 @@ class PhotoGallery {
                     if ($first) {
                         echo '
             <p class="breadcrumbs">
-                <a href="?uid=0">'._('Member Gallery').'</a> &gt; 
+                <a href="?uid=0">'.T_('Member Gallery').'</a> &gt; 
                 <a href="?uid='.$uid.'">'.getUserDisplayName($row['uid']).'</a> &gt; 
                 '.$row['category'].'
             </p>';
@@ -968,16 +968,16 @@ class PhotoGallery {
                     if ($first) {
                         echo '
             <p class="breadcrumbs">
-                <a href="?uid=0">'._('Member Gallery').'</a> &gt; '.getUserDisplayName($row['uid']).'
+                <a href="?uid=0">'.T_('Member Gallery').'</a> &gt; '.getUserDisplayName($row['uid']).'
             </p>';
                     }
                     $htmlCat = htmlentities($row['category'], ENT_COMPAT, 'UTF-8');
                     $cat_name = "<strong>" . $row['category'] . "</strong>";
                     $url = "?uid=" . $row['uid'] . "&amp;cid=" . $row['cid'];
                     $urlPage = "?uid=" . $row['uid'];
-                    $alt = ' alt="'.sprintf(_('View Photos in %s'), $htmlCat).'"';
-                    $title = ' title="'.sprintf(_('View Photos in %s'), $htmlCat).'"';
-                    $cat_info = "<i>" . _('Photos') . " (" . $row['c'] . ")</i>";
+                    $alt = ' alt="'.sprintf(T_('View Photos in %s'), $htmlCat).'"';
+                    $title = ' title="'.sprintf(T_('View Photos in %s'), $htmlCat).'"';
+                    $cat_info = "<i>" . T_('Photos') . " (" . $row['c'] . ")</i>";
                 }
 
                 if ($type == 'PHOTOS' || $type == 'TAGGED' || $type == 'ALL') {
@@ -1045,8 +1045,8 @@ class PhotoGallery {
         } elseif ($uid !== 0 && $cid !== 'comments') {
             echo '
             <div class="info-alert">
-                <h2>'._('Oops!').'</h2>
-                <p>'._('The Category you are trying to view is Empty.').'</p>
+                <h2>'.T_('Oops!').'</h2>
+                <p>'.T_('The Category you are trying to view is Empty.').'</p>
             </div>';
         }
     }
@@ -1097,13 +1097,13 @@ class PhotoGallery {
             // Display the form
             echo '
             <fieldset>
-                <legend><span>'._('Upload Photos').'</span></legend>
+                <legend><span>'.T_('Upload Photos').'</span></legend>
                 <p class="alignright">
-                    <a class="help" href="../help.php#gallery-howworks">'._('Help').'</a>
+                    <a class="help" href="../help.php#gallery-howworks">'.T_('Help').'</a>
                 </p>
                 <form enctype="multipart/form-data" action="?action=upload" method="post">
                     <div class="field-row clearfix">
-                        <div class="field-label"><label><b>'._('Category').'</b></label></div>
+                        <div class="field-label"><label><b>'.T_('Category').'</b></label></div>
                         <div class="field-widget">
                             <select name="category">
                                 '.$cat_options.'
@@ -1111,38 +1111,38 @@ class PhotoGallery {
                         </div>
                     </div>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label><b>'._('Photo').'</b></label></div>
+                        <div class="field-label"><label><b>'.T_('Photo').'</b></label></div>
                         <div class="field-widget">
                             <input name="photo_filename[]" type="file" size="50"/>
                         </div>
                     </div>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label><b>'._('Caption').'</b></label></div>
+                        <div class="field-label"><label><b>'.T_('Caption').'</b></label></div>
                         <div class="field-widget">
                             <input class="frm_text" type="text" name="photo_caption[]" size="50"/>
                         </div>
                     </div>
                     <div id="rotate-options">
                         <p class="center">
-                            '._('Rotate Left').': <input type="radio" name="rotate[]" value="left"/>&nbsp;&nbsp; 
-                            '._('Rotate Right').': <input type="radio" name="rotate[]" value="right"/>
+                            '.T_('Rotate Left').': <input type="radio" name="rotate[]" value="left"/>&nbsp;&nbsp; 
+                            '.T_('Rotate Right').': <input type="radio" name="rotate[]" value="right"/>
                         </p>
                     </div>
                     <div id="tag-options">
                         <p class="center">
-                            '._('Members in this Photo').':
+                            '.T_('Members in this Photo').':
                             <div class="multi-checkbox" style="margin: 0 auto;">
                                 '.$tag_checkboxes.'
                             </div>
                         </p>
                     </div>
-                    <input class="sub1" type="submit" id="addphoto" name="addphoto" value="'._('Submit').'"/>
+                    <input class="sub1" type="submit" id="addphoto" name="addphoto" value="'.T_('Submit').'"/>
                 </form>';
 
         // User doesn't have a category to upload photos into
         } else {
             echo '
-            <p class="info-alert">'._('You must create a Category first.').'</p>';
+            <p class="info-alert">'.T_('You must create a Category first.').'</p>';
             $this->displayAddCatForm();
         }
     }
@@ -1183,18 +1183,18 @@ class PhotoGallery {
                     </style>
                     <div id="noscript">
                     <p>
-                        '._('JavaScript must be enabled in order for you to use the Chat Room. However, it seems JavaScript is either disabled or not supported by your browser.').'<br/>
+                        '.T_('JavaScript must be enabled in order for you to use the Chat Room. However, it seems JavaScript is either disabled or not supported by your browser.').'<br/>
                         <span>
-                            '._('Either enable JavaScript by changing your browser options.').'<br/>
-                            '._('or').'<br/>
-                            '._('Enable the Basic Upload option by changing Your Settings.').'
+                            '.T_('Either enable JavaScript by changing your browser options.').'<br/>
+                            '.T_('or').'<br/>
+                            '.T_('Enable the Basic Upload option by changing Your Settings.').'
                         </span>
                     </p>
                     </div>
                 </noscript>
                 <form method="post" name="uploadForm">
                     <div class="field-row clearfix">
-                        <div class="field-label"><label><b>'._('Category').'</b></label></div>
+                        <div class="field-label"><label><b>'.T_('Category').'</b></label></div>
                         <div class="field-widget">
                             <select id="category" name="category" onchange="sendCategory(this.form.category)">
                                 '.$cat_options.'
@@ -1327,11 +1327,11 @@ class PhotoGallery {
             // Display the form
             echo '
                 <fieldset>
-                    <legend><span>'._('Edit Photo').'</span></legend>
+                    <legend><span>'.T_('Edit Photo').'</span></legend>
                     <img class="thumbnail" src="photos/member'.$photo_user.'/tb_'.$filename.'"/>
                     <form enctype="multipart/form-data" action="index.php?'.$url.'" method="post">
                         <div class="field-row clearfix">
-                            <div class="field-label"><label><b>'._('Change Category').'</b></label></div>
+                            <div class="field-label"><label><b>'.T_('Change Category').'</b></label></div>
                             <div class="field-widget">
                                 <select class="frm_sel" name="category">
                                     '.$cat_options.'
@@ -1339,13 +1339,13 @@ class PhotoGallery {
                             </div>
                         </div>
                         <div class="field-row clearfix">
-                            <div class="field-label"><label><b>'._('Caption').'</b></label></div>
+                            <div class="field-label"><label><b>'.T_('Caption').'</b></label></div>
                             <div class="field-widget">
                                 <input class="frm_text" type="text" name="photo_caption" size="50" value="'.$caption_html.'"/>
                             </div>
                         </div>
                         <div class="field-row clearfix">
-                            <div class="field-label"><label><b>'._('Who is in this Photo?').'</b></label></div>
+                            <div class="field-label"><label><b>'.T_('Who is in this Photo?').'</b></label></div>
                             <div class="field-widget">
                                 <div class="multi-checkbox">
                                     '.$tag_checkboxes.'
@@ -1355,14 +1355,14 @@ class PhotoGallery {
                         '.$prev_tagged.'
                         <p>
                             <input type="hidden" name="photo_id" id="photo_id" value="'.$photo.'"/>
-                            <input type="submit" name="add_editphoto" value="'._('Edit').'"/> 
-                            '._('or').' <a href="index.php?'.$url.'">'._('Cancel').'</a>
+                            <input type="submit" name="add_editphoto" value="'.T_('Edit').'"/> 
+                            '.T_('or').' <a href="index.php?'.$url.'">'.T_('Cancel').'</a>
                         </p>
                     </form>
                 </fieldset>';
         } else {
             echo '
-            <p class="error-alert">'._('Could not edit Photo.  Photo ID does not exist.').'</p>';
+            <p class="error-alert">'.T_('Could not edit Photo.  Photo ID does not exist.').'</p>';
         }
     }
 
@@ -1388,7 +1388,7 @@ class PhotoGallery {
         // Display the form
         echo '
                 <fieldset>
-                    <legend>'._('Edit Photos').'</legend>
+                    <legend>'.T_('Edit Photos').'</legend>
                     <form action="index.php?action=advanced" method="post">';
 
         $i=0;
@@ -1396,13 +1396,13 @@ class PhotoGallery {
             echo '
                         <img style="float:right" src="photos/member'.$this->current_user_id.'/tb_'.$photo['filename'].'"/>
                         <p>
-                            '._('Caption').'<br/>
+                            '.T_('Caption').'<br/>
                             <input type="text" class="frm_text" name="caption[]" width="50"/>
                             <input type="hidden" name="id[]" value="'.$photo['id'].'"/>
                             <input type="hidden" name="category[]" value="'.$photo['category'].'"/>
                         </p>
                         <p>
-                            '._('Who is in this Photo?').' 
+                            '.T_('Who is in this Photo?').' 
                             <div class="multi-checkbox">';
 
             $tag_checkboxes = '';
@@ -1419,9 +1419,9 @@ class PhotoGallery {
         echo '
                         <br/>
                         <p>
-                            <input class="sub1" type="submit" name="submit_advanced_edit" id="submit_advanced_edit" value="'._('Save').'"/> 
-                            '._('or').' 
-                            <a href="index.php?action=upload">'._('Cancel').'</a>
+                            <input class="sub1" type="submit" name="submit_advanced_edit" id="submit_advanced_edit" value="'.T_('Save').'"/> 
+                            '.T_('or').' 
+                            <a href="index.php?action=upload">'.T_('Cancel').'</a>
                         </p>
                     </form>
                 </fieldset>';
@@ -1487,13 +1487,13 @@ class PhotoGallery {
                 if (!array_key_exists($photos_uploaded['type'][$i], $known_photo_types)) {
                     echo '
             <p class="error-alert">
-                '.sprintf(_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $photos_uploaded['type'][$i]).'
+                '.sprintf(T_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $photos_uploaded['type'][$i]).'
             </p>';
                 // Check file extension
                 } elseif (!in_array($ext, $known_photo_types)) {
                     echo '
             <p class="error-alert">
-                '.sprintf(_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $photos_uploaded['type'][$i]).'
+                '.sprintf(T_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $photos_uploaded['type'][$i]).'
             </p>';
                 } else {
                     
@@ -1735,7 +1735,7 @@ class PhotoGallery {
                     // Output a success message
                     echo '
             <p class="ok-alert">
-                <b>'._('The following photo was added successfully.').'</b><br/><br/>
+                <b>'.T_('The following photo was added successfully.').'</b><br/><br/>
                 &nbsp;&nbsp;&nbsp;<img src="photos/member'.$this->current_user_id.'/tb_'.$filename.'" alt="'.$photos_caption[$i].'"/>
             </p>';
                 }
@@ -1805,33 +1805,33 @@ class PhotoGallery {
                     <form class="frm_line" action="index.php?action=category" method="post">
                         <input class="frm_text" type="text" name="cat_name" id="cat_name" size="60" value="'.$name.'"/>
                         <input type="hidden" name="cid" id="cid" value="'.$row['id'].'"/> &nbsp;
-                        <input type="submit" name="editcat" class="editbtn" value="'._('Edit').'" title="'._('Edit Category').'"/> &nbsp;
-                        <input type="submit" name="delcat" class="delbtn" value="'._('Delete').'" title="'._('Delete Category').'"/>
+                        <input type="submit" name="editcat" class="editbtn" value="'.T_('Edit').'" title="'.T_('Edit Category').'"/> &nbsp;
+                        <input type="submit" name="delcat" class="delbtn" value="'.T_('Delete').'" title="'.T_('Delete Category').'"/>
                     </form>
                 </li>';
             }
         } else {
-            $cat_list .= "<li><i>"._('No Categories created yet.')."</i></li>";
+            $cat_list .= "<li><i>".T_('No Categories created yet.')."</i></li>";
         }
         
         // Display the form
         echo '
             <fieldset>
-                <legend><span>'._('Create Category').'</span></legend>
+                <legend><span>'.T_('Create Category').'</span></legend>
                 <form action="index.php?action=category" method="post">
                     <div class="field-row clearfix">
-                        <div class="field-label"><label><b>'._('Category Name').'</b></label></div>
+                        <div class="field-label"><label><b>'.T_('Category Name').'</b></label></div>
                         <div class="field-widget">
                             <input class="frm_text" type="text" size="60" name="cat_name" id="cat_name"/>
                         </div>
                     </div>
                     <p>
-                        <input class="sub1" type="submit" name="newcat" id="newcat" value="'._('Add').'"/>
+                        <input class="sub1" type="submit" name="newcat" id="newcat" value="'.T_('Add').'"/>
                     </p>
                 </form>
             </fieldset>
             <fieldset>
-                <legend><span>'._('Edit Category').'</span></legend>
+                <legend><span>'.T_('Edit Category').'</span></legend>
                 <ul class="gallery_cat">
                     '.$cat_list.'
                 </ul>
@@ -1841,10 +1841,11 @@ class PhotoGallery {
     function displayWhatsNewGallery ()
     {
         $locale = new Locale();
-        $today = date('Y-m-d');
-        $tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
+        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+
         echo '
-            <h3>'._('Photo Gallery').'</h3>';
+            <h3>'.T_('Photo Gallery').'</h3>';
         $sql = "SELECT DISTINCT p.user, name AS category, p.category AS cid, 
                     DAYOFYEAR(`date`) AS d, COUNT(*) AS c 
                 FROM fcms_gallery_photos AS p, fcms_users AS u, fcms_gallery_category AS c 
@@ -1876,22 +1877,21 @@ class PhotoGallery {
                     'Date Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
                 $found = mysql_fetch_array($result);
-                $date = $locale->fixDate(_('M. j, Y g:i a'), $this->tz_offset, $found['date']);
-                if (
-                    strtotime($found['date']) >= strtotime($today) && 
-                    strtotime($found['date']) < strtotime($tomorrow)
-                ) {
-                    $full_date = _('Today');
+                $date = $locale->fixDate('YmdHis', $this->tz_offset, $found['date']);
+
+                // Today
+                if ($date >= $today_start && $date <= $today_end) {
+                    $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $date;
+                    $full_date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tz_offset, $found['date']);
                     $d = '';
                 }
                 echo '
                     <li>
                         <div'.$d.'>'.$full_date.'</div>
                         <a href="gallery/index.php?uid='.$row['user'].'&amp;cid='.$row['cid'].'" title="'.$full_category.'">'.$category.'</a>
-                        ('.sprintf(_('%d new photos'), $row['c']).') - 
+                        ('.sprintf(T_('%d new photos'), $row['c']).') - 
                         <a class="u" href="profile.php?member='.$row['user'].'">'.$displayname.'</a>
                     </li>';
             }
@@ -1899,7 +1899,7 @@ class PhotoGallery {
                 </ul>';
         } else {
             echo '
-                <ul><li><i>'._('nothing new last 30 days').'</i></li></ul>';
+                <ul><li><i>'.T_('nothing new last 30 days').'</i></li></ul>';
         }
     }
 

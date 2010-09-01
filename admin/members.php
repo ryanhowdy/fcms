@@ -14,7 +14,7 @@ $member = new Members($database);
 header("Cache-control: private");
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = _('Administration: Members');
+$TMPL['pagetitle'] = T_('Administration: Members');
 $TMPL['path'] = "../";
 $TMPL['admin_path'] = "";
 $TMPL['javascript'] = '
@@ -32,7 +32,7 @@ Event.observe(window, \'load\', function() {
     // Delete Confirmation All
     if ($(\'deleteAll\')) {
         var item = $(\'deleteAll\'); 
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmedall\');
@@ -42,7 +42,7 @@ Event.observe(window, \'load\', function() {
     // Delete Confirmation
     if ($(\'delete\')) {
         var item = $(\'delete\'); 
-        item.onclick = function() { return confirm(\''._('Are you sure you want to DELETE this?').'\'); };
+        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
         var hid = document.createElement(\'input\');
         hid.setAttribute(\'type\', \'hidden\');
         hid.setAttribute(\'name\', \'confirmed\');
@@ -76,7 +76,7 @@ if (checkAccess($current_user_id) < 2) {
             $member->displayEditMemberForm($_GET['edit']);
         } else {
             echo '
-            <p class="error">'._('Invalid Member ID.').'</p>';
+            <p class="error">'.T_('Invalid Member ID.').'</p>';
         }
     }
     
@@ -94,11 +94,11 @@ if (checkAccess($current_user_id) < 2) {
             !isset($_POST['lname']) || 
             !isset($_POST['email'])) {
             $show = false;
-            $member->displayCreateMemberForm(_('Missing Required Field'));
+            $member->displayCreateMemberForm(T_('Missing Required Field'));
         } elseif ($email_check > 0) {
             $show = false;
             $member->displayCreateMemberForm(
-                sprintf(_('The email address %s is already in use.  Please choose a different email.'), $_POST['email'])
+                sprintf(T_('The email address %s is already in use.  Please choose a different email.'), $_POST['email'])
             );
         } else {
             $fname = escape_string($_POST['fname']);
@@ -135,7 +135,7 @@ if (checkAccess($current_user_id) < 2) {
                 'New Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
             echo '
-            <p class="ok-alert" id="update">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';
@@ -149,7 +149,7 @@ if (checkAccess($current_user_id) < 2) {
             $show = false;
             $member->displayEditMemberForm(
                 $_POST['id'],
-                '<p class="error">'._('Missing Required Field').'</p>'
+                '<p class="error">'.T_('Missing Required Field').'</p>'
                 );
         } else {
             // Update user info
@@ -175,7 +175,7 @@ if (checkAccess($current_user_id) < 2) {
                         $member->displayEditMemberForm(
                             $_POST['id'],
                             '<p class="error-alert">'
-                                .sprintf(_('The email address %s is already in use.  Please choose a different email.'), $_POST['email']).
+                                .sprintf(T_('The email address %s is already in use.  Please choose a different email.'), $_POST['email']).
                             '</p>'
                         );
                         exit();
@@ -186,12 +186,12 @@ if (checkAccess($current_user_id) < 2) {
             if ($_POST['password']) {
                 $sql .= "`password` = '".md5($_POST['password'])."', ";
                 $sitename = getSiteName();
-                $subject = getSiteName().': '._('Password Change');
+                $subject = getSiteName().': '.T_('Password Change');
                 $message = $_POST['fname'].' '.$_POST['lname'].', 
 
-'.sprintf(_('Your password at %s has been changed by the administrator.'), $sitname).'
+'.sprintf(T_('Your password at %s has been changed by the administrator.'), $sitname).'
 
-'.sprintf(_('Your new password is %s'), $_POST['password']);
+'.sprintf(T_('Your new password is %s'), $_POST['password']);
                 mail($_POST['email'], $subject, $message, $email_headers);
             }
             $sql .= "`birthday` = '$birthday', "
@@ -202,7 +202,7 @@ if (checkAccess($current_user_id) < 2) {
                 'Edit Member Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
             echo '
-            <p class="ok-alert" id="update">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';
@@ -242,7 +242,7 @@ if (checkAccess($current_user_id) < 2) {
             }
         }
         echo '
-            <p class="ok-alert" id="update">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';
@@ -258,7 +258,7 @@ if (checkAccess($current_user_id) < 2) {
                 );
         }
         echo '
-            <p class="ok-alert" id="update">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';
@@ -271,16 +271,16 @@ if (checkAccess($current_user_id) < 2) {
         echo '
                 <div class="info-alert clearfix">
                     <form action="members.php" method="post">
-                        <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>';
         foreach ($_POST['massupdate'] AS $id) {
             echo '
                             <input type="hidden" name="massupdate[]" value="'.$id.'"/>';
         }
         echo '
-                            <input style="float:left;" type="submit" id="delconfirmall" name="delconfirmall" value="'._('Yes').'"/>
-                            <a style="float:right;" href="members.php">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirmall" name="delconfirmall" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="members.php">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -296,7 +296,7 @@ if (checkAccess($current_user_id) < 2) {
                 );
         }
         echo '
-            <p class="ok-alert" id="update">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';
@@ -309,12 +309,12 @@ if (checkAccess($current_user_id) < 2) {
         echo '
                 <div class="info-alert clearfix">
                     <form action="members.php" method="post">
-                        <h2>'._('Are you sure you want to DELETE this?').'</h2>
-                        <p><b><i>'._('This can NOT be undone.').'</i></b></p>
+                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
                             <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'._('Yes').'"/>
-                            <a style="float:right;" href="members.php?edit='.$_POST['id'].'">'._('Cancel').'</a>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="members.php?edit='.$_POST['id'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -332,7 +332,7 @@ if (checkAccess($current_user_id) < 2) {
             mysql_error()
         );
         echo '
-            <p class="ok-alert" id="update">'._('Changes Updated Successfully').'</p>
+            <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'update\').toggle()",3000); }
             </script>';
@@ -360,9 +360,9 @@ if (checkAccess($current_user_id) < 2) {
 } else {
     echo '
             <p class="error-alert">
-                <b>'._('You do not have access to view this page.').'</b><br/>
-                '._('This page requires an access level 1 (Admin).').' 
-                <a href="../contact.php">'._('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
+                <b>'.T_('You do not have access to view this page.').'</b><br/>
+                '.T_('This page requires an access level 1 (Admin).').' 
+                <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
             </p>';
 }
 

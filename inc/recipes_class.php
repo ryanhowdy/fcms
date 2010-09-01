@@ -30,54 +30,54 @@ class Recipes
         if (checkAccess($this->current_user_id) <= 5) {
             echo '
             <div id="actions_menu" class="clearfix">
-                <ul><li><a class="add" href="?addrecipe=yes">'._('Add Recipe').'</a></li></ul>
+                <ul><li><a class="add" href="?addrecipe=yes">'.T_('Add Recipe').'</a></li></ul>
             </div>';
         }
 
         // Get Counts
-        $appetizer = $this->getRecipeCountInCategory(_('Appetizer'));
-        $breakfast = $this->getRecipeCountInCategory(_('Breakfast'));
-        $dessert = $this->getRecipeCountInCategory(_('Dessert'));
-        $meat = $this->getRecipeCountInCategory(_('Entree (Meat)'));
-        $seafood = $this->getRecipeCountInCategory(_('Entree (Seafood)'));
-        $vegetable = $this->getRecipeCountInCategory(_('Entree (Vegetarian)'));
-        $salad = $this->getRecipeCountInCategory(_('Salad'));
-        $side = $this->getRecipeCountInCategory(_('Side Dish'));
-        $soup = $this->getRecipeCountInCategory(_('Soup'));
+        $appetizer = $this->getRecipeCountInCategory(T_('Appetizer'));
+        $breakfast = $this->getRecipeCountInCategory(T_('Breakfast'));
+        $dessert = $this->getRecipeCountInCategory(T_('Dessert'));
+        $meat = $this->getRecipeCountInCategory(T_('Entree (Meat)'));
+        $seafood = $this->getRecipeCountInCategory(T_('Entree (Seafood)'));
+        $vegetable = $this->getRecipeCountInCategory(T_('Entree (Vegetarian)'));
+        $salad = $this->getRecipeCountInCategory(T_('Salad'));
+        $side = $this->getRecipeCountInCategory(T_('Side Dish'));
+        $soup = $this->getRecipeCountInCategory(T_('Soup'));
         
         echo '
-            <h2>'._('Recipe Categories').'</h2>
+            <h2>'.T_('Recipe Categories').'</h2>
             <div class="cat_row clearfix">
                 <div class="cat">
-                    <ul><li><a href="?category=1">'._('Appetizer').'<span>'.$appetizer.'</span></a></li></ul>
+                    <ul><li><a href="?category=1">'.T_('Appetizer').'<span>'.$appetizer.'</span></a></li></ul>
                 </div>
                 <div class="cat">
-                    <ul><li><a href="?category=2">'._('Breakfast').'<span>'.$breakfast.'</span></a></li></ul>
+                    <ul><li><a href="?category=2">'.T_('Breakfast').'<span>'.$breakfast.'</span></a></li></ul>
                 </div>
                 <div class="cat">
-                    <ul><li><a href="?category=3">'._('Dessert').'<span>'.$dessert.'</span></a></li></ul>
+                    <ul><li><a href="?category=3">'.T_('Dessert').'<span>'.$dessert.'</span></a></li></ul>
                 </div>
             </div>
             <div class="cat_row clearfix">
                 <div class="cat">
-                    <ul><li><a href="?category=4">'._('Entree (Meat)').'<span>'.$meat.'</span></a></li></ul>
+                    <ul><li><a href="?category=4">'.T_('Entree (Meat)').'<span>'.$meat.'</span></a></li></ul>
                 </div>
                 <div class="cat">
-                    <ul><li><a href="?category=5">'._('Entree (Seafood)').'<span>'.$seafood.'</span></a></li></ul>
+                    <ul><li><a href="?category=5">'.T_('Entree (Seafood)').'<span>'.$seafood.'</span></a></li></ul>
                 </div>
                 <div class="cat">
-                    <ul><li><a href="?category=6">'._('Entree (Vegetarian)').'<span>'.$vegetable.'</span></a></li></ul>
+                    <ul><li><a href="?category=6">'.T_('Entree (Vegetarian)').'<span>'.$vegetable.'</span></a></li></ul>
                 </div>
             </div>
             <div class="cat_row clearfix">
                 <div class="cat">
-                    <ul><li><a href="?category=7">'._('Salad').'<span>'.$salad.'</span></a></li></ul>
+                    <ul><li><a href="?category=7">'.T_('Salad').'<span>'.$salad.'</span></a></li></ul>
                 </div>
                 <div class="cat">
-                    <ul><li><a href="?category=8">'._('Side Dish').'<span>'.$side.'</span></a></li></ul>
+                    <ul><li><a href="?category=8">'.T_('Side Dish').'<span>'.$side.'</span></a></li></ul>
                 </div>
                 <div class="cat">
-                    <ul><li><a href="?category=9">'._('Soup').'<span>'.$soup.'</span></a></li></ul>
+                    <ul><li><a href="?category=9">'.T_('Soup').'<span>'.$soup.'</span></a></li></ul>
                 </div>
             </div>';
         $sql = "SELECT * FROM `fcms_recipes` ORDER BY `date` DESC LIMIT 1";
@@ -88,13 +88,13 @@ class Recipes
             $r = $this->db->get_row();
             $displayname = getUserDisplayName($r['user']);
             $displayname = '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>';
-            $date = $locale->fixDate(_('F j, Y, g:i a'), $this->tz_offset, $r['date']);
+            $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tz_offset, $r['date']);
             echo '
             <p>&nbsp;</p>
-            <h2>'._('Latest Recipe').'</h2>
+            <h2>'.T_('Latest Recipe').'</h2>
             <h4>'.$r['name'].'</h4>
             <span class="date">
-                '.sprintf(_('Submitted by %s on %s.'), $displayname, $date).'
+                '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date).'
             </span>
             <p>
                 '.parse($r['recipe']).'
@@ -110,14 +110,14 @@ class Recipes
         echo '
             <div id="sections_menu" class="clearfix">
                 <ul>
-                    <li><a href="recipes.php">'._('Recipe Categories').'</a></li>';
+                    <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>';
         if (checkAccess($this->current_user_id) <= 5) {
             echo '
                 </ul>
             </div>
             <div id="actions_menu" class="clearfix">
                 <ul>
-                    <li><a href="?addrecipe=yes&amp;cat='.$cat.'">'._('Add Recipe').'</a></li>';
+                    <li><a href="?addrecipe=yes&amp;cat='.$cat.'">'.T_('Add Recipe').'</a></li>';
         }
         echo '
                 </ul>
@@ -131,43 +131,43 @@ class Recipes
         }
         switch ($cat) {
             case 1:
-                echo _('Appetizer');
-                $cat_name = _('Appetizer');
+                echo T_('Appetizer');
+                $cat_name = T_('Appetizer');
                 break;
             case 2:
-                echo _('Breakfast');
-                $cat_name = _('Breakfast');
+                echo T_('Breakfast');
+                $cat_name = T_('Breakfast');
                 break;
             case 3:
-                echo _('Dessert');
-                $cat_name = _('Dessert');
+                echo T_('Dessert');
+                $cat_name = T_('Dessert');
                 break;
             case 4:
-                echo _('Entree (Meat)');
-                $cat_name = _('Entree (Meat)');
+                echo T_('Entree (Meat)');
+                $cat_name = T_('Entree (Meat)');
                 break;
             case 5:
-                echo _('Entree (Seafood)');
-                $cat_name = _('Entree (Seafood)');
+                echo T_('Entree (Seafood)');
+                $cat_name = T_('Entree (Seafood)');
                 break;
             case 6:
-                echo _('Entree (Vegetarian)');
-                $cat_name = _('Entree (Vegetarian)');
+                echo T_('Entree (Vegetarian)');
+                $cat_name = T_('Entree (Vegetarian)');
                 break;
             case 7:
-                echo _('Salad');
-                $cat_name = _('Salad');
+                echo T_('Salad');
+                $cat_name = T_('Salad');
                 break;
             case 8:
-                echo _('Side Dish');
-                $cat_name = _('Side Dish');
+                echo T_('Side Dish');
+                $cat_name = T_('Side Dish');
                 break;
             case 9:
-                echo _('Soup');
-                $cat_name = _('Soup');
+                echo T_('Soup');
+                $cat_name = T_('Soup');
                 break;
             default:
-                echo "<p class=\"error-alert\">" . _('The Category you are trying to view doesn\'t exist.') . "</p>";
+                echo "<p class=\"error-alert\">" . T_('The Category you are trying to view doesn\'t exist.') . "</p>";
                 $cat_name = '';
                 break;
         }
@@ -189,7 +189,7 @@ class Recipes
             while($r = $this->db->get_row()) {
                 $displayname = getUserDisplayName($r['user']);
                 $displayname = '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>';
-                $date = $locale->fixDate(_('F j, Y, g:i a'), $this->tz_offset, $r['date']);
+                $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tz_offset, $r['date']);
                 if ($id > 0) {
                     $name = $r['name'];
                 } else {
@@ -198,7 +198,7 @@ class Recipes
                 echo '
             <h4>'.$name.'</h4>
             <span class="date">
-                '.sprintf(_('Submitted by %s on %s.'), $displayname, $date);
+                '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date);
                 if ($this->current_user_id == $r['user'] || checkAccess($this->current_user_id) < 2) {
                     echo ' &nbsp;
                 <form method="post" action="recipes.php">
@@ -207,7 +207,7 @@ class Recipes
                         <input type="hidden" name="name" value="'.htmlentities($r['name'], ENT_COMPAT, 'UTF-8').'"/>
                         <input type="hidden" name="category" value="'.htmlentities($r['category'], ENT_COMPAT, 'UTF-8').'"/>
                         <input type="hidden" name="post" value="'.htmlentities($r['recipe'], ENT_COMPAT, 'UTF-8').'"/>
-                        <input type="submit" name="editrecipe" value="'._('Edit').'" class="editbtn" title="'._('Edit this Recipe').'"/>
+                        <input type="submit" name="editrecipe" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Recipe').'"/>
                     </div>
                 </form>';
                 }
@@ -216,7 +216,7 @@ class Recipes
                 <form class="delrec" method="post" action="recipes.php">
                     <div>
                         <input type="hidden" name="id" value="'.$r['id'].'"/>
-                        <input type="submit" name="delrecipe" value="'._('Delete').'" class="delbtn" title="'._('Delete this Recipe').'"/>
+                        <input type="submit" name="delrecipe" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Recipe').'"/>
                     </div>
                 </form>';
                 }
@@ -245,9 +245,9 @@ class Recipes
         } else {
             echo '
             <div class="info-alert">
-                <h2>'._('Welcome to the Recipe section.').'</h2>
-                <p><i>'._('Currently no one has added any recipes.').'</i></p>
-                <p><a href="?addrecipe=yes&amp;cat='.$cat.'">'._('Add a Recipe').'</a></p>
+                <h2>'.T_('Welcome to the Recipe section.').'</h2>
+                <p><i>'.T_('Currently no one has added any recipes.').'</i></p>
+                <p><a href="?addrecipe=yes&amp;cat='.$cat.'">'.T_('Add a Recipe').'</a></p>
             </div>';
         }
     }
@@ -269,7 +269,7 @@ class Recipes
             $r = $this->db->get_row();
             return sprintf(_ngettext('%s Recipe', '%s Recipes', $r[0]), $r[0]);
         } else {
-            return "0 " . _('Recipes');
+            return "0 " . T_('Recipes');
         }
     }
 
@@ -282,16 +282,16 @@ class Recipes
             echo '
             <form method="post" name="editform" action="recipes.php">
                 <fieldset>
-                    <legend><span>'._('Edit Recipe').'</span></legend>';
+                    <legend><span>'.T_('Edit Recipe').'</span></legend>';
         } else {
             echo '
             <form method="post" name="addform" action="recipes.php">
                 <fieldset>
-                    <legend><span>'._('Add Recipe').'</span></legend>';
+                    <legend><span>'.T_('Add Recipe').'</span></legend>';
         }
         echo '
                     <div>
-                        <label for="name">'._('Name of Recipe').'</label>: 
+                        <label for="name">'.T_('Name of Recipe').'</label>: 
                         <input type="text" name="name" id="name"';
         if ($type == 'edit') {
             echo " value=\"".htmlentities($name, ENT_COMPAT, 'UTF-8')."\"";
@@ -303,53 +303,53 @@ class Recipes
                         fname.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div>
-                        <label for="category">'._('Category').'</label>: 
+                        <label for="category">'.T_('Category').'</label>: 
                         <select name="category">';
-        echo "<option value=\""._('Appetizer') . "\"";
-        if ($category == _('Appetizer') || $category == 1) {
+        echo "<option value=\"".T_('Appetizer') . "\"";
+        if ($category == T_('Appetizer') || $category == 1) {
             echo " selected=\"selected\"";
         }
-        echo ">" . _('Appetizer') . "</option>";
-        echo "<option value=\"" . _('Breakfast') . "\"\"";
-        if ($category == _('Breakfast') || $category == 2) {
+        echo ">" . T_('Appetizer') . "</option>";
+        echo "<option value=\"" . T_('Breakfast') . "\"\"";
+        if ($category == T_('Breakfast') || $category == 2) {
             echo " selected=\"selected\"";
         }
-        echo ">" . _('Breakfast') . "</option>";
-        echo "<option value=\"" . _('Dessert') . "\"";
-        if ($category == _('Dessert') || $category == 3) {
+        echo ">" . T_('Breakfast') . "</option>";
+        echo "<option value=\"" . T_('Dessert') . "\"";
+        if ($category == T_('Dessert') || $category == 3) {
             echo " selected=\"selected\"";
         }
-        echo ">" ._('Dessert') ."</option>";
-        echo "<option value=\"" . _('Entree (Meat)') . "\"";
-        if ($category == _('Entree (Meat)') || $category == 4) {
+        echo ">" .T_('Dessert') ."</option>";
+        echo "<option value=\"" . T_('Entree (Meat)') . "\"";
+        if ($category == T_('Entree (Meat)') || $category == 4) {
             echo " selected=\"selected\"";
         }
-        echo ">" . _('Entree (Meat)') . "</option>";
-        echo "<option value=\"" . _('Entree (Seafood)') . "\"";
-        if ($category == _('Entree (Seafood)') || $category == 5) {
+        echo ">" . T_('Entree (Meat)') . "</option>";
+        echo "<option value=\"" . T_('Entree (Seafood)') . "\"";
+        if ($category == T_('Entree (Seafood)') || $category == 5) {
             echo " selected=\"selected\"";
         }
-        echo ">" . _('Entree (Seafood)') . "</option>";
-        echo "<option value=\"" . _('Entree (Vegetarian)') . "\"";
-        if ($category == _('Entree (Vegetarian)') || $category == 6) {
+        echo ">" . T_('Entree (Seafood)') . "</option>";
+        echo "<option value=\"" . T_('Entree (Vegetarian)') . "\"";
+        if ($category == T_('Entree (Vegetarian)') || $category == 6) {
             echo " selected=\"selected\"";
         }
-        echo ">"._('Entree (Vegetarian)')."</option>";
-        echo "<option value=\"" . _('Salad') . "\"";
-        if ($category == _('Salad') || $category == 7) {
+        echo ">".T_('Entree (Vegetarian)')."</option>";
+        echo "<option value=\"" . T_('Salad') . "\"";
+        if ($category == T_('Salad') || $category == 7) {
             echo " selected=\"selected\"";
         }
-        echo ">" . _('Salad') . "</option>";
-        echo "<option value=\"" . _('Side Dish') . "\"";
-        if ($category == _('Side Dish') || $category == 8) {
+        echo ">" . T_('Salad') . "</option>";
+        echo "<option value=\"" . T_('Side Dish') . "\"";
+        if ($category == T_('Side Dish') || $category == 8) {
             echo " selected=\"selected\"";
         }
-        echo ">" . _('Side Dish') . "</option>";
-        echo "<option value=\"" . _('Soup') . "\"";
-        if ($category == _('Soup') || $category == 9) {
+        echo ">" . T_('Side Dish') . "</option>";
+        echo "<option value=\"" . T_('Soup') . "\"";
+        if ($category == T_('Soup') || $category == 9) {
             echo " selected=\"selected\"";
         }
-        echo '>'._('Soup').'</option>
+        echo '>'.T_('Soup').'</option>
                         </select>
                     </div><br/>
                     <script type="text/javascript">var bb = new BBCode();</script>';
@@ -368,15 +368,15 @@ class Recipes
         if ($type == 'add') {
             echo '
                     <p>
-                        <input class="sub1" type="submit" name="submitadd" value="'._('Add').'"/> &nbsp;
-                        <a href="recipes.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'"/> &nbsp;
+                        <a href="recipes.php">'.T_('Cancel').'</a>
                     </p>';
         } else {
             echo '
                     <p>
                         <input type="hidden" name="id" value="'.$id.'"/>
-                        <input class="sub1" type="submit" name="submitedit" value="'._('Edit').'"/> &nbsp;
-                        <a href="recipes.php">'._('Cancel').'</a>
+                        <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'"/> &nbsp;
+                        <a href="recipes.php">'.T_('Cancel').'</a>
                     </p>';
         }
         echo '
@@ -387,8 +387,9 @@ class Recipes
     function displayWhatsNewRecipes ()
     {
         $locale = new Locale();
-        $today = date('Y-m-d');
-        $tomorrow  = date('Y-m-d', mktime(0, 0, 0, date("m")  , date("d")+1, date("Y")));
+        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+
         $sql = "SELECT * "
              . "FROM `fcms_recipes` "
              . "WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) "
@@ -399,52 +400,49 @@ class Recipes
             );
         if ($this->db->count_rows() > 0) {
             echo '
-            <h3>'._('Recipes').'</h3>
+            <h3>'.T_('Recipes').'</h3>
             <ul>';
             while ($r = $this->db->get_row()) {
                 $name = $r['name'];
                 $displayname = getUserDisplayName($r['user']);
-                $date = $locale->fixDate(_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
                 switch ($r['category']) {
-                    case _('Appetizer'):
+                    case T_('Appetizer'):
                         $url = "recipes.php?category=1&amp;id=" . $r['id'];
                         break;
-                    case _('Breakfast'):
+                    case T_('Breakfast'):
                         $url = "recipes.php?category=2&amp;id=" . $r['id'];
                         break;
-                    case _('Dessert'):
+                    case T_('Dessert'):
                         $url = "recipes.php?category=3&amp;id=" . $r['id'];
                         break;
-                    case _('Entree (Meat)'):
+                    case T_('Entree (Meat)'):
                         $url = "recipes.php?category=4&amp;id=" . $r['id'];
                         break;
-                    case _('Entree (Seafood)'):
+                    case T_('Entree (Seafood)'):
                         $url = "recipes.php?category=5&amp;id=" . $r['id'];
                         break;
-                    case _('Entree (Vegetarian)'):
+                    case T_('Entree (Vegetarian)'):
                         $url = "recipes.php?category=6&amp;id=" . $r['id'];
                         break;
-                    case _('Salad'):
+                    case T_('Salad'):
                         $url = "recipes.php?category=7&amp;id=" . $r['id'];
                         break;
-                    case _('Side Dish'):
+                    case T_('Side Dish'):
                         $url = "recipes.php?category=8&amp;id=" . $r['id'];
                         break;
-                    case _('Soup'):
+                    case T_('Soup'):
                         $url = "recipes.php?category=9&amp;id=" . $r['id'];
                         break;
                     default:
                         $url = "recipes.php";
                         break;
                 }
-                if (
-                    strtotime($r['date']) >= strtotime($today) && 
-                    strtotime($r['date']) > $tomorrow
-                ) {
-                    $full_date = _('Today');
+                $date = $locale->fixDate('YmdHis', $this->tz_offset, $r['date']);
+                if ($date >= $today_start && $date <= $today_end) {
+                    $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $date;
+                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
                     $d = '';
                 }
                 echo '

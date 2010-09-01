@@ -1,6 +1,6 @@
 +-----------------------------------------------------------------------------+
 |                                                                             |
-|                           Family Connections 2.2.2                          |
+|                           Family Connections 2.2.3                          |
 |                                                                             |
 |                      Copyright (C) 2007 Ryan Haudenschilt                   |
 |                                                                             |
@@ -16,7 +16,7 @@
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.2.2.zip to your web host.
+  1. Upload the entire contents of FCMS_2.2.3.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -35,8 +35,8 @@ I. Installation
 
 
 
-II. Upgrading from 2.2.1 to 2.2.2
---------------------------------
+II. Upgrading from 2.2.2 to 2.2.3
+---------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
 
@@ -49,7 +49,7 @@ II. Upgrading from 2.2.1 to 2.2.2
   1. It is recommended that you backup your entire site, including your
      MySQL database before upgrading.
 
-  2. Upload the entire contents of FCMS_2.2.2.zip to your web host
+  2. Upload the entire contents of FCMS_2.2.3.zip to your web host
      (Overwriting any previous files other than the above mentioned files/directories).
   
   3. Login as the administrator and visit the upgrade section and run the
@@ -62,13 +62,14 @@ II. Upgrading from 2.2.1 to 2.2.2
 
 III. Change Log
 ----------------
-2.2.2
+2.2.3
 
-    #165 - Login ID SQL Injections
-    #166 - File Upload Vulnerability
-    #167 - Directory Traversal Vulnerability
-    #168 - Audit sql queries for SQL Injections
-
+    #171 - Invalid password in session/cookie prevents login
+    #172 - undefined escape_string during Installation
+    #173 - Add Comment Error File: gallery/index.php [423]
+    #174 - Calendar dates don't obey timezones
+    #175 - Avatar too big on Family News comments
+    #181 - php-gettext as failback solution
 
   For the full change log please refer to the included "ChangeLog.txt" file.
 
