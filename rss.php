@@ -1,6 +1,9 @@
 <?php
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
+
+fixMagicQuotes();
+
 if (isset($_GET['feed'])) {
     if ($_GET['feed'] == 'all') {
         header("Content-Type: application/rss+xml");
@@ -16,14 +19,17 @@ if (isset($_GET['feed'])) {
     displayFeedAll();
 }
 
-/*
- * Function: displayFeedAll
- * Written by: choc
- * Updated by: Ryan Haudenschilt <r_haudenschilt@hotmail.com>
+/**
+ * displayFeedAll 
  *
  * Displays RSS 2.0 feed for all updates to the site
+ * 
+ * @author: choc
+ * @author: Ryan Haudenschilt <r.haudenschilt@gmail.com>
+ * @return  void
  */
-function displayFeedAll () {
+function displayFeedAll ()
+{
     $url = "http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']; 
     $urlRoot = $url; 
     $pos = strrpos($url, "/"); 
@@ -82,7 +88,7 @@ function displayFeedAll () {
                  AND d.`user` = u.`id` ";
     }
     $sql .= "UNION SELECT DISTINCT p.`category` AS id, `date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(`date`) AS id3, 'GALLERY' AS type 
-             FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_gallery_category` AS c 
+             FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_category` AS c 
              WHERE p.`user` = u.`id` 
              AND p.`category` = c.`id` 
              AND 'date' >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
@@ -250,7 +256,13 @@ function displayFeedAll () {
     echo $output;
 }
 
-function displayFeedPhotoGallery () {
+/**
+ * displayFeedPhotoGallery 
+ * 
+ * @return void
+ */
+function displayFeedPhotoGallery () 
+{
     $url = "http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']; 
     $urlroot = $url; 
     $pos = strrpos($url, "/"); 
@@ -295,7 +307,14 @@ function displayFeedPhotoGallery () {
     echo $output; 
 }
 
-function returnMIMEType($filename) { 
+/**
+ * returnMIMEType 
+ * 
+ * @param string $filename 
+ * @return void
+ */
+function returnMIMEType ($filename) 
+{ 
     preg_match("|\.([a-z0-9]{2,4})$|i", $filename, $fileSuffix); 
     switch(strtolower($fileSuffix[1])) { 
         case "jpg":

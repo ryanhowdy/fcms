@@ -1,26 +1,39 @@
 <?php
+/**
+ * Family News
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
-if (get_magic_quotes_gpc()) {
-    $_REQUEST = array_map('stripslashes', $_REQUEST);
-    $_GET = array_map('stripslashes', $_GET);
-    $_POST = array_map('stripslashes', $_POST);
-    $_COOKIE = array_map('stripslashes', $_COOKIE);
-}
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
+
+require_once 'inc/config_inc.php';
+require_once 'inc/util_inc.php';
+require_once 'inc/familynews_class.php';
+
+fixMagicQuotes();
 
 // Check that the user is logged in
 isLoggedIn();
-$current_user_id = (int)escape_string($_SESSION['login_id']);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-header("Cache-control: private");
-include_once('inc/familynews_class.php');
-$fnews = new FamilyNews($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$fnews = new FamilyNews($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = T_('Family News');
-$TMPL['path'] = "";
-$TMPL['admin_path'] = "admin/";
+$TMPL = array(
+    'sitename'      => getSiteName(),
+    'nav-link'      => getNavLinks(),
+    'pagetitle'     => T_('Family News'),
+    'path'          => "",
+    'admin_path'    => "admin/",
+    'displayname'   => getUserDisplayName($currentUserId),
+    'version'       => getCurrentVersion(),
+    'year'          => date('Y')
+);
 $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
@@ -58,18 +71,19 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($current_user_id) . 'header.php');
+require_once getTheme($currentUserId) . 'header.php';
 
 echo '
         <div id="familynews" class="centercontent clearfix">';
-if (checkAccess($current_user_id) < 6 || checkAccess($current_user_id) == 9) {
+
+if (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9) {
     echo '
             <div id="sections_menu" class="clearfix">
                 <ul>
                     <li><a href="familynews.php">'.T_('Latest News').'</a></li>';
-    if ($fnews->hasNews($current_user_id)) {
+    if ($fnews->hasNews($currentUserId)) {
         echo '
-                    <li><a href="?getnews='.$current_user_id.'">'.T_('My News').'</a></li>';
+                    <li><a href="?getnews='.$currentUserId.'">'.T_('My News').'</a></li>';
     }
     echo '
                 </ul>
@@ -80,46 +94,62 @@ if (checkAccess($current_user_id) < 6 || checkAccess($current_user_id) == 9) {
                 </ul>
             </div>';
 }
+
 echo '
             <br/>';
+
+$show_last5 = true;
+
+//-------------------------------------
+// Side menu user's news listing
+//-------------------------------------
 if (!isset($_GET['addnews']) && !isset($_POST['editnews'])) {
     $fnews->displayNewsList();
 }
-$show_last5 = true;
 
+//-------------------------------------
 // Add news
+//-------------------------------------
 if (isset($_POST['submitadd'])) {
-    $title = escape_string($_POST['title']);
-    $news = escape_string($_POST['post']);
+    $title = cleanInput($_POST['title']);
+    $news  = cleanInput($_POST['post']);
+
     $sql = "INSERT INTO `fcms_news` (
                 `title`, `news`, `user`, `date`
             ) VALUES (
-                '$title', '$news', $current_user_id, NOW()
+                '$title', 
+                '$news', 
+                '$currentUserId', 
+                NOW()
             )";
-    mysql_query($sql) or displaySQLError('Add News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
+    mysql_query($sql) or displaySQLError(
+        'Add News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     echo '
             <p class="ok-alert" id="add">'.T_('Family News Added Successfully').'</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'add\').toggle()",3000); }
             </script>';
     // Email members
-    $sql = "SELECT u.`email`, s.`user` "
-         . "FROM `fcms_user_settings` AS s, `fcms_users` AS u "
-         . "WHERE `email_updates` = '1'"
-         . "AND u.`id` = s.`user`";
-    $result = mysql_query($sql) or displaySQLError('Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+    $sql = "SELECT u.`email`, s.`user` 
+            FROM `fcms_user_settings` AS s, `fcms_users` AS u 
+            WHERE `email_updates` = '1'
+            AND u.`id` = s.`user`";
+    $result = mysql_query($sql) or displaySQLError(
+        'Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     if (mysql_num_rows($result) > 0) {
         while ($r = mysql_fetch_array($result)) {
-            $name = getUserDisplayName($current_user_id);
+            $name = getUserDisplayName($currentUserId);
             $to = getUserDisplayName($r['user']);
-            $subject = sprintf(T_('%s has added %s to his/her Family News'),$name, $title);
+            $subject = sprintf(T_('%s has added %s to his/her Family News'), $name, $title);
             $email = $r['email'];
             $url = getDomainAndDir();
             $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
-'.$url.'familynews.php?getnews='.$current_user_id.'
+'.$url.'familynews.php?getnews='.$currentUserId.'
 
 ----
 '.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
@@ -127,17 +157,26 @@ if (isset($_POST['submitadd'])) {
 '.$url.'settings.php
 
 ';
+            $email_headers = getEmailHeaders();
             mail($email, $subject, $msg, $email_headers);
         }
     }
 
+//-------------------------------------
 // Edit news
+//-------------------------------------
 } elseif (isset($_POST['submitedit'])) {
     $show_last5 = false;
-    $title = escape_string($_POST['title']);
-    $news = escape_string($_POST['post']);
-    $sql = "UPDATE `fcms_news` SET `title` = '$title', `news` = '$news' WHERE `id` = ".escape_string($_POST['id']);
-    mysql_query($sql) or displaySQLError('Edit News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
+    $title = cleanInput($_POST['title']);
+    $news  = cleanInput($_POST['post']);
+
+    $sql = "UPDATE `fcms_news` 
+            SET `title` = '$title', 
+                `news`  = '$news' 
+            WHERE `id`  = '" . cleanInput($_POST['id'], 'int') . "'";
+    mysql_query($sql) or displaySQLError(
+        'Edit News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     // TODO
     // Remove this page refresh and make the standard js message
     // this would include sending the GET['getnews'] and GET['newsid'] variables to the edit page
@@ -145,43 +184,58 @@ if (isset($_POST['submitadd'])) {
     echo '
             <p class="ok-alert">
                 '.T_('Changes Updated Successfully').'<br/>
-                <a href="familynews.php?getnews='.$_POST['user'].'">'.T_('View Changes').'</a>
+                <a href="familynews.php?getnews='.(int)$_POST['user'].'">'.T_('View Changes').'</a>
             </p>
-            <meta http-equiv=\'refresh\' content=\'0;URL=familynews.php?getnews='.$_POST['user'].'\'>';
+            <meta http-equiv=\'refresh\' content=\'0;URL=familynews.php?getnews='.(int)$_POST['user'].'\'>';
 }
 
+//-------------------------------------
 // Add news form
-if (isset($_GET['addnews']) && (checkAccess($current_user_id) < 6 || checkAccess($current_user_id) == 9)) { 
+//-------------------------------------
+if (isset($_GET['addnews']) && (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9)) { 
     $show_last5 = false;
-    $fnews->displayForm('add', $current_user_id);
+    $fnews->displayForm('add', $currentUserId);
 
+//-------------------------------------
 // Edit news form
+//-------------------------------------
 } else if (isset($_POST['editnews'])) {
     $show_last5 = false;
-    $fnews->displayForm('edit', $_POST['user'], $_POST['id'], $_POST['title'], $_POST['news']);
+    $user   = cleanOutput($_POST['user']);
+    $id     = cleanOutput($_POST['id']);
+    $title  = cleanOutput($_POST['title']);
+    $news   = cleanOutput($_POST['news']);
+    $fnews->displayForm('edit', $user, $id, $title, $news);
 
+//-------------------------------------
 // Delete news confirmation
+//-------------------------------------
 } else if (isset($_POST['delnews']) && !isset($_POST['confirmed'])) {
     $show_last5 = false;
     echo '
                 <div class="info-alert clearfix">
-                    <form action="familynews.php?getnews='.$_POST['user'].'" method="post">
+                    <form action="familynews.php?getnews='.(int)$_POST['user'].'" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
-                            <input type="hidden" name="user" value="'.$_POST['user'].'"/>
-                            <input type="hidden" name="id" value="'.$_POST['id'].'"/>
+                            <input type="hidden" name="user" value="'.(int)$_POST['user'].'"/>
+                            <input type="hidden" name="id" value="'.(int)$_POST['id'].'"/>
                             <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
-                            <a style="float:right;" href="familynews.php?getnews='.$_POST['user'].'">'.T_('Cancel').'</a>
+                            <a style="float:right;" href="familynews.php?getnews='.(int)$_POST['user'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
 
+//-------------------------------------
 // Delete news
+//-------------------------------------
 } elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
     $show_last5 = false;
-    $sql = "DELETE FROM `fcms_news` WHERE id = ".escape_string($_POST['id']);
-    mysql_query($sql) or displaySQLError('Delete News Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
+    $sql = "DELETE FROM `fcms_news` 
+            WHERE id = '" . cleanInput($_POST['id'], 'int') . "'";
+    mysql_query($sql) or displaySQLError(
+        'Delete News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     echo '
             <p class="ok-alert" id="del">'.T_('Family News Deleted Successfully').'</p>
             <script type="text/javascript">
@@ -189,18 +243,23 @@ if (isset($_GET['addnews']) && (checkAccess($current_user_id) < 6 || checkAccess
             </script>';
 }
 
+//-------------------------------------
 // Show news
+//-------------------------------------
 if (isset($_GET['getnews'])) {
     $show_last5 = false;
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;; 
-    $nid = isset($_GET['newsid']) ? (int)$_GET['newsid'] : 0;
+
+    $page   = isset($_GET['page'])      ? cleanInput($_GET['page'], 'int')      : 1;; 
+    $nid    = isset($_GET['newsid'])    ? cleanInput($_GET['newsid'], 'int')    : 0;
+
+    // Add Comment
     if (isset($_POST['addcom'])) {
         $com = ltrim($_POST['comment']);
         if (!empty($com)) {
             $sql = "INSERT INTO `fcms_news_comments` (
                         `news`, `comment`, `date`, `user`
                     ) VALUES (
-                        $nid, '" . escape_string($com) . "', NOW(), $current_user_id
+                        '$nid', '" . escape_string($com) . "', NOW(), $currentUserId
                     )";
             mysql_query($sql) or displaySQLError('New Comment Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
         }
@@ -242,4 +301,4 @@ echo '
         </div><!-- #familynews .centercontent -->';
 
 // Show Footer
-include_once(getTheme($current_user_id) . 'footer.php');
+require_once getTheme($currentUserId) . 'footer.php';

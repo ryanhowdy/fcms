@@ -6,7 +6,7 @@ include_once('locale.php');
 
 // Check that the user is logged in
 isLoggedIn();
-$current_user_id = (int)escape_string($_SESSION['login_id']);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -15,7 +15,7 @@ echo '
 <title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
-<link rel="stylesheet" type="text/css" href="'.getTheme($current_user_id, "../").'style.css"/>
+<link rel="stylesheet" type="text/css" href="'.getTheme($currentUserId, "../").'style.css"/>
 <link rel="shortcut icon" href="../themes/favicon.ico"/>';
 // TODO
 // Move css to fcms-core

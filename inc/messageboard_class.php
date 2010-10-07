@@ -3,20 +3,41 @@ include_once('database_class.php');
 include_once('util_inc.php');
 include_once('locale.php');
 
+/**
+ * MessageBoard 
+ * 
+ * @package     Family Connections
+ * @copyright   Copyright (c) 2010 Haudenschilt LLC
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class MessageBoard
 {
 
     var $db;
     var $db2;
     var $tz_offset;
-    var $current_user_id;
+    var $currentUserId;
 
-    function MessageBoard ($current_user_id, $type, $host, $database, $user, $pass)
+    /**
+     * MessageBoard 
+     * 
+     * @param   int     $currentUserId 
+     * @param   string  $type 
+     * @param   string  $host 
+     * @param   string  $database 
+     * @param   string  $user 
+     * @param   string  $pass 
+     * @return  void
+     */
+    function MessageBoard ($currentUserId, $type, $host, $database, $user, $pass)
     {
-        $this->current_user_id = $current_user_id;
+        $this->currentUserId = cleanInput($currentUserId, 'int');
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
+        $sql = "SELECT `timezone` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '$currentUserId'";
         $this->db->query($sql) or displaySQLError(
             'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -24,12 +45,22 @@ class MessageBoard
         $this->tz_offset = $row['timezone'];
     }
 
-    function showThreads ($type, $page = '0')
+    /**
+     * showThreads 
+     * 
+     * @param  string   $type 
+     * @param  int      $page 
+     * @return void
+     */
+    function showThreads ($type, $page = 0)
     {
         $locale = new Locale();
+
+        $page = cleanInput($page, 'int');
         $from = (($page * 25) - 25);
+
         if ($type == 'announcement') {
-            if (checkAccess($this->current_user_id) < 8 && checkAccess($this->current_user_id) != 5) {
+            if (checkAccess($this->currentUserId) < 8 && checkAccess($this->currentUserId) != 5) {
                 $this->displayMessageBoardMenu();
             }
             echo '
@@ -88,13 +119,14 @@ class MessageBoard
             }
 
             $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-            $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+            $today_end   = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
 
             $time = gmmktime(0, 0, 0, gmdate('m')  , gmdate('d')-1, gmdate('Y'));
-            $yesterday_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s', $time)) . '000000';
-            $yesterday_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s', $time)) . '235959';
 
-            $updated = $locale->fixDate('YmdHis', $this->tz_offset, strtotime($row['updated']));
+            $yesterday_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s', $time)) . '000000';
+            $yesterday_end   = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s', $time)) . '235959';
+
+            $updated = $locale->fixDate('YmdHis', $this->tz_offset, $row['updated']);
 
             // Updated Today
             if ($updated >= $today_start && $updated <= $today_end) {
@@ -104,7 +136,7 @@ class MessageBoard
                 }
                 $date = $locale->fixDate(T_('h:ia'), $this->tz_offset, $row['updated']);
                 $last_updated = sprintf(T_('Today at %s'), $date).'<br/>'
-                    .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.$row['updated_by'].'">'.$updated_by.'</a>');
+                    .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.(int)$row['updated_by'].'">'.$updated_by.'</a>');
 
             // Updated Yesterday
             } elseif ($updated >= $yesterday_start && $updated <= $yesterday_end) {
@@ -114,14 +146,14 @@ class MessageBoard
                 }
                 $date = $locale->fixDate(T_('h:ia'), $this->tz_offset, $row['updated']);
                 $last_updated = sprintf(T_('Yesterday at %s'), $date).'<br/>'
-                    .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.$row['updated_by'].'">'.$updated_by.'</a>');
+                    .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.(int)$row['updated_by'].'">'.$updated_by.'</a>');
             } else {
                 $img_class = '';
                 if ($type == 'announcement') {
                     $img_class = 'announcement';
                 }
-                $last_updated = $locale->fixDate(T_('m/d/Y h:ia'), $this->tz_offset, $row['updated'])
-                    .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.$row['updated_by'].'">'.$updated_by.'</a>');
+                $last_updated = $locale->fixDate(T_('m/d/Y h:ia'), $this->tz_offset, $row['updated']) . '<br/>'
+                    .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.(int)$row['updated_by'].'">'.$updated_by.'</a>');
             }
             // thread has multiple pages?
             $thread_pages = '';
@@ -130,7 +162,7 @@ class MessageBoard
                 $thread_pages = "<span>" . T_('Page') . " ";
                 $times2loop = ceil($num_posts/15);
                 for ($i=1;$i<=$times2loop;$i++) {
-                    $thread_pages .= "<a href=\"messageboard.php?thread=" . $row['id'] . "&amp;page=$i\">$i</a> ";
+                    $thread_pages .= "<a href=\"messageboard.php?thread=" . (int)$row['id'] . "&amp;page=$i\">$i</a> ";
                 }
                 $thread_pages .= "</span><br/>";
             }
@@ -146,13 +178,13 @@ class MessageBoard
                     <tr class="'.$tr_class.'">
                         <td class="images"><div class="'.$img_class.'">&nbsp;</div></td>
                         <td class="subject">
-                            '.$subject_info.'<a href="messageboard.php?thread='.$row['id'].'">'.$subject.'</a><br/>
+                            '.$subject_info.'<a href="messageboard.php?thread='.(int)$row['id'].'">'.cleanOutput($subject).'</a><br/>
                             '.$thread_pages.'
-                            <span><a class="u" href="profile.php?member='.$row['started_by'].'">'.$started_by.'</a></span>
+                            <span><a class="u" href="profile.php?member='.(int)$row['started_by'].'">'.$started_by.'</a></span>
                         </td>
                         <td class="info">'.$info.'</td>
                         <td class="replies">'.$num_replies.'</td>
-                        <td class="views">'.$row['views'].'</td>
+                        <td class="views">'.(int)$row['views'].'</td>
                         <td class="updated">
                             '.$last_updated.'
                         </td>
@@ -168,60 +200,85 @@ class MessageBoard
         }
     }
 
-    function showPosts ($thread_id, $page = '1')
+    /**
+     * showPosts 
+     * 
+     * @param   int     $thread_id 
+     * @param   int     $page 
+     * @return  void
+     */
+    function showPosts ($thread_id, $page = 1)
     {
         $locale = new Locale();
+
+        $thread_id  = cleanInput($thread_id, 'int');
+        $page       = cleanInput($page, 'int');
+
         $from = (($page * 15) - 15);
-        if (!ctype_digit($thread_id)) {
+
+        $total = $this->getNumberOfPosts($thread_id);
+        if ($total < 1) {
             echo '
-            <p class="error-alert">'.T_('Invalid Thread').'</p>';
+            <p class="error-alert">'.T_('Thread does not exist.').'</p>';
             return;
         }
-        $sql = "UPDATE fcms_board_threads SET views=(views + 1) WHERE id=$thread_id";
+
+        $sql = "UPDATE `fcms_board_threads` 
+                SET `views` = (`views` + 1) 
+                WHERE `id` = '$thread_id'";
         $this->db->query($sql) or displaySQLError(
             '+ View Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
+
         $this->displayMessageBoardMenu($thread_id);
         $this->displayPages($page, $thread_id);
-        $sort = $this->getSortOrder($this->current_user_id);
-        $showavatar = $this->getShowAvatar($this->current_user_id);
+
+        $sort = $this->getSortOrder($this->currentUserId);
+        $showavatar = $this->getShowAvatar($this->currentUserId);
+
         $sql = "SELECT p.`id`, `thread`, `post`, `subject`, p.`date`, `user`, `avatar` 
                 FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, 
                     `fcms_users` AS u 
-                WHERE `thread` = $thread_id 
+                WHERE `thread` = '$thread_id'
                 AND t.`id` = `thread` 
                 AND `user` = u.`id` 
-                ORDER BY p.`id` $sort 
+                ORDER BY p.`id` ".cleanInput($sort)."
                 LIMIT $from, 15";
         $this->db->query($sql) or displaySQLError(
             'Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         $alt = 0;
         $first = true;
-        $total = $this->getNumberOfPosts($thread_id);
         while ($row = $this->db->get_row()) {
             // display the table header
             if ($first) {
-                echo '            <table id="postlist" cellpadding="0" cellspacing="0">' . "\n";
-                echo '                <tbody>' . "\n";
+                echo '
+            <table id="postlist" cellpadding="0" cellspacing="0">
+                <tbody>';
                 $first = false;
             }
 
-            // Setup some vars
+            // Shrink long subjects
             $subject = $row['subject'];
             if (strlen($subject) > 40) {
                 $subject = substr($subject, 0, 37) . "...";
             }
+
             // Remove #ANOUNCE#
+            $isThreadAnnouncement = false;
             $pos = strpos($subject, '#ANOUNCE#');
             if ($pos !== false) {
+                $isThreadAnnouncement = true;
                 $subject = substr($subject, 9, strlen($subject)-9);
             }
+
+            // Add RE: to replies
             if ($sort == 'ASC') {
                 if ($alt > 0) { $subject = "RE: " . $subject; }
             } else {
                 if ($alt !== $total - 1) { $subject = "RE: " . $subject; }
             }
+
             $displayname = getUserDisplayName($row['user']);
             $date = $locale->fixDate(T_('n/d/y g:ia'), $this->tz_offset, $row['date']);
             if ($alt % 2 == 0) {
@@ -229,61 +286,46 @@ class MessageBoard
             } else {
                 $tr_class = 'alt';
             }
-            // rank
-            $points = getUserRankById($row['user']);
-            $rank = '';
-            if ($points > 50) {
-                $rank = "<div title=\"".T_('Elder')." ($points)\" class=\"rank7\"></div>";
-            } elseif ($points > 30) {
-                $rank = "<div title=\"".T_('Adult')." ($points)\" class=\"rank6\"></div>";
-            } elseif ($points > 20) {
-                $rank = "<div title=\"".T_('Matuer Adult')." ($points)\" class=\"rank5\"></div>";
-            } elseif ($points > 10) {
-                $rank = "<div title=\"".T_('Young Adult')." ($points)\" class=\"rank4\"></div>";
-            } elseif ($points > 5) {
-                $rank = "<div title=\"".T_('Teenager')." ($points)\" class=\"rank3\"></div>";
-            } elseif ($points > 3) {
-                $rank = "<div title=\"".T_('Kid')." ($points)\" class=\"rank2\"></div>";
-            } elseif ($points > 1) {
-                $rank = "<div title=\"".T_('Toddler')." ($points)\" class=\"rank1\"></div>";
-            } else {
-                $rank = "<div title=\"".T_('Baby')." ($points)\" class=\"rank0\"></div>";
-            }
+
+            // Participation Level
+            $points = getUserParticipationPoints($row['user']);
+            $level = getUserParticipationLevel($points);
+
+            // Avatar
             $avatar = '';
             if ($showavatar > 0) {
-                $avatar = "<img src=\"gallery/avatar/" . $row['avatar'] . "\" alt=\"$displayname\"/><br/><br/>";
+                $avatar = "<img src=\"".getCurrentAvatar($row['user'])."\" alt=\"$displayname\"/><br/><br/>";
             }
-            $awards = '';
-            if ($this->hasAwards($row['user'])) {
-                $awards = $this->getAwards($row['user']);
-            }
+
+            // Post Count
             $posts_count = $this->getUserPostCountById($row['user']);
+
             $actions = '';
             // quote
-            if (checkAccess($this->current_user_id) < 8 && checkAccess($this->current_user_id) != 5) {
+            if (checkAccess($this->currentUserId) < 8 && checkAccess($this->currentUserId) != 5) {
                 $actions .= '<form method="post" action="messageboard.php?reply='.$thread_id.'">
                                         <div>
-                                            <input type="hidden" name="id" value="'.$row['id'].'"/>
+                                            <input type="hidden" name="id" value="'.(int)$row['id'].'"/>
                                             <input type="submit" class="quotebtn" value="'.T_('Quote').'" name="quotepost" title="'.T_('Quote this message').'"/>
                                         </div>
                                     </form>';
             }
             // edit
-            if ($this->current_user_id == $row['user'] || checkAccess($this->current_user_id) < 3) {
+            if ($this->currentUserId == $row['user'] || checkAccess($this->currentUserId) < 3) {
                 $actions .= ' &nbsp;
                                     <form method="post" action="messageboard.php">
                                         <div>
-                                            <input type="hidden" name="id" value="'.$row['id'].'"/>
+                                            <input type="hidden" name="id" value="'.(int)$row['id'].'"/>
                                             <input type="submit" name="editpost" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this message').'"/>
                                         </div>
                                     </form>';
             }
             // delete
-            if (checkAccess($this->current_user_id) < 2) {
+            if (checkAccess($this->currentUserId) < 2) {
                 $actions .= ' &nbsp;
                                     <form class="delpost" method="post" action="messageboard.php">
                                         <div>
-                                            <input type="hidden" name="id" value="'.$row['id'].'"/>
+                                            <input type="hidden" name="id" value="'.(int)$row['id'].'"/>
                                             <input type="hidden" name="thread" value="'.$thread_id.'"/>
                                             <input type="submit" name="delpost" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this message').'"/>
                                         </div>
@@ -295,9 +337,8 @@ class MessageBoard
                     <tr class="'.$tr_class.'">
                         <td class="side">
                             <b><a href="profile.php?member='.$row['user'].'">'.$displayname.'</a></b>
-                            '.$rank.'
+                            '.$level.'
                             '.$avatar.'
-                            '.$awards.'
                             <b>'.T_('Posts').'</b> '.$posts_count.'
                         </td>
                         <td class="posts">
@@ -321,55 +362,107 @@ class MessageBoard
         }
         $this->displayMessageBoardMenu($thread_id);
         $this->displayPages($page, $thread_id);
+        $this->displayAdminMenu($thread_id, $isThreadAnnouncement);
         echo '
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
     }
 
+    /**
+     * getNumberOfPosts 
+     * 
+     * @param   int $thread_id 
+     * @return  int
+     */
     function getNumberOfPosts ($thread_id)
     {
-        $this->db2->query("SELECT count(*) AS c FROM fcms_board_posts WHERE thread = $thread_id") or die('<h1># of Posts Error (messageboard.class.php 132)</h1>' . mysql_error());
-        $row=$this->db2->get_row();
-        return $row['c'];
+        $sql = "SELECT count(*) AS c 
+                FROM `fcms_board_posts` 
+                WHERE `thread` = '" . cleanInput($thread_id, 'int') . "'";
+        $this->db2->query($sql) or displaySQLError(
+            '# Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $row = $this->db2->get_row();
+        return (int)$row['c'];
     }
 
+    /**
+     * getSortOrder 
+     * 
+     * @param   int $user_id 
+     * @return  string
+     */
     function getSortOrder ($user_id)
     {
-        $sql = "SELECT `boardsort` FROM `fcms_user_settings` WHERE `user` = $user_id";
+        $sql = "SELECT `boardsort` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '" . cleanInput($user_id, 'int') . "'";
         $this->db2->query($sql) or displaySQLError(
             'Sort Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        $row=$this->db2->get_row();
+        $row = $this->db2->get_row();
         return $row['boardsort'];
     }
 
+    /**
+     * getShowAvatar 
+     * 
+     * @param   int $user_id 
+     * @return  int
+     */
     function getShowAvatar ($user_id)
     {
-        $sql = "SELECT `showavatar` FROM `fcms_user_settings` WHERE `user` = $user_id";
+        $sql = "SELECT `showavatar` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '" . cleanInput($user_id, 'int') . "'";
         $this->db2->query($sql) or displaySQLError(
             'Avatar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        $row=$this->db2->get_row();
-        return $row['showavatar'];
+        $row = $this->db2->get_row();
+        return (int)$row['showavatar'];
     }
 
+    /**
+     * getUserPostCountById 
+     * 
+     * @param   int $user_id 
+     * @return  int
+     */
     function getUserPostCountById ($user_id)
     {
-        $this->db2->query("SELECT * FROM fcms_board_posts") or die('<h1>Posts Error (messageboard.class.php 150)</h1>' . mysql_error());
-        $total=$this->db2->count_rows();
-        $this->db2->query("SELECT count(user) AS c FROM fcms_board_posts WHERE user = $user_id") or die('<h1>Count Error (messageboard.class.php 152)</h1>' . mysql_error());
-        $row=$this->db2->get_row();
-        $count=$row['c'];
-        if($total < 1) { 
+        $sql = "SELECT `id`
+                FROM `fcms_board_posts`";
+        $this->db2->query($sql) or displaySQLError(
+            'Posts Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $total = $this->db2->count_rows();
+
+        $sql = "SELECT count(`user`) AS c 
+                FROM `fcms_board_posts` 
+                WHERE `user` = '" . cleanInput($user_id, 'int') . "'";
+        $this->db2->query($sql) or displaySQLError(
+            'User Posts Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $row = $this->db2->get_row();
+        $count = (int)$row['c'];
+        if ($total < 1) { 
             return "0 (0%)";
         } else { 
             return $count . " (" . round((($count/$total)*100), 1) . "%)";
         }
     }
     
-    function displayPages ($page = '1', $thread_id = '0')
+    /**
+     * displayPages 
+     * 
+     * @param  int  $page 
+     * @param  int  $thread_id 
+     * @return void
+     */
+    function displayPages ($page = 1, $thread_id = 0)
     {
         if ($thread_id < 1) {
-            $sql = "SELECT count(id) AS c FROM fcms_board_threads";
+            $sql = "SELECT count(`id`) AS c 
+                    FROM `fcms_board_threads`";
             $this->db2->query($sql) or displaySQLError(
                 'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
@@ -377,30 +470,34 @@ class MessageBoard
             $total_pages = ceil($row['c'] / 25);
             $url = 'messageboard.php';
         } else {
-            $sql = "SELECT count(id) AS c FROM fcms_board_posts WHERE thread = $thread_id";
+            $sql = "SELECT count(`id`) AS c 
+                    FROM `fcms_board_posts` 
+                    WHERE `thread` = '" . cleanInput($thread_id, 'int') . "'";
             $this->db2->query($sql) or displaySQLError(
                 'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
             $row = $this->db2->get_row();
             $total_pages = ceil($row['c'] / 15);
-            $url = 'messageboard.php?thread='.$thread_id;
+            $url = 'messageboard.php?thread='.(int)$thread_id;
         }
         displayPagination ($url, $page, $total_pages);
     }
 
-    /*
-     *  displayForm
-     *
-     *  Displays the form for posting: new, reply and edit
+    /**
+     * displayForm 
+     * 
+     * Displays the form for posting: new, reply and edit
      *  
-     *  @param      $type       new, reply or edit
-     *  @param      $thread_id  used for reply and edit
-     *  @param      $post_id    used for reply and edit
-     *  @param      $post       used for edit
-     *  @return     none
+     * @param   string  $type       new, reply or edit
+     * @param   int     $thread_id  used for reply and edit
+     * @param   int     $post_id    used for reply and edit
+     * @param   string  $post       used for edit
+     * @return  void
      */
-    function displayForm ($type, $thread_id = '0', $post_id = '0', $post = 'error')
+    function displayForm ($type, $thread_id = 0, $post_id = 0, $post = 'error')
     {
+        $thread_id = cleanInput($thread_id, 'int');
+        $post_id   = cleanInput($post_id, 'int');
 
         // New
         if ($type == 'new') {
@@ -416,7 +513,7 @@ class MessageBoard
                     fsub.add(Validate.Presence, {failureMessage: ""});
                 </script>';
             $sticky = '';
-            if (checkAccess($this->current_user_id) <= 2) {
+            if (checkAccess($this->currentUserId) <= 2) {
                 $sticky = '
                 <p>
                     <label for="sticky">'.T_('Admin Tools').'</label>: 
@@ -430,7 +527,7 @@ class MessageBoard
                     fpost.add(Validate.Presence, {failureMessage: ""});
                 </script>';
             $hidden_submit = '
-                <div><input type="hidden" name="name" id="name" value="'.$this->current_user_id.'"/></div>
+                <div><input type="hidden" name="name" id="name" value="'.$this->currentUserId.'"/></div>
                 <p>
                     <input class="sub1" type="submit" name="post_submit" id="post_submit" value="'.T_('Submit').'"/>
                     &nbsp; <a href="messageboard.php">'.T_('Cancel').'</a>
@@ -446,7 +543,7 @@ class MessageBoard
             // Get last post in the thread to display above reply
             $sql = "SELECT `post`, `user` 
                     FROM `fcms_board_posts` 
-                    WHERE `thread` = " . $thread_id . " 
+                    WHERE `thread` = '$thread_id'
                     ORDER BY `date` DESC 
                     LIMIT 1";
             $this->db->query($sql) or displaySQLError(
@@ -464,20 +561,19 @@ class MessageBoard
             if ($post_id > 0) {
                 $sql = "SELECT `post`, `user` 
                         FROM `fcms_board_posts` 
-                        WHERE `id` = " . $post_id . " 
+                        WHERE `id` = '$post_id'
                         LIMIT 1";
                 $this->db->query($sql) or displaySQLError(
                     'Get Quote Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
                 $qrow = $this->db->get_row();
-                $post = '[SPAN=q]'.T_('Quoting').': '.getUserDisplayName($qrow['user']).'[/SPAN][QUOTE]'
-                        .htmlentities($qrow['post'], ENT_COMPAT, 'UTF-8').'[/QUOTE]';
+                $post = '[SPAN=q]'.T_('Quoting').': '.getUserDisplayName($qrow['user']).'[/SPAN][QUOTE]'.cleanOutput($qrow['post']).'[/QUOTE]';
             } else {
                 $post = '';
             }
             
             $hidden_submit = '
-                <div><input type="hidden" name="name" id="name" value="'.$this->current_user_id.'"/></div>
+                <div><input type="hidden" name="name" id="name" value="'.$this->currentUserId.'"/></div>
                 <div><input type="hidden" name="thread_id" value="'.$thread_id.'"/></div>
                 <p>
                     <input class="sub1" type="submit" name="reply_submit" id="reply_submit" value="'.T_('Reply').'"/>
@@ -517,7 +613,7 @@ class MessageBoard
                     '.$subject.'
                     <div>
                         <label for="showname">'.T_('Name').'</label>: 
-                        <input type="text" disabled="disabled" name="showname" id="showname" value="'.getUserDisplayName($this->current_user_id).'" size="50"/>
+                        <input type="text" disabled="disabled" name="showname" id="showname" value="'.getUserDisplayName($this->currentUserId).'" size="50"/>
                     </div>
                     '.$sticky.'
                     <script type="text/javascript">var bb = new BBCode();</script>';
@@ -535,45 +631,34 @@ class MessageBoard
             '.$reply;
     }
 
+    /**
+     * hasAwards 
+     * 
+     * @param   int     $user_id 
+     * @return  boolean
+     */
     function hasAwards ($user_id)
     {
-        $this->db2->query("SELECT * FROM fcms_user_awards WHERE user = $user_id AND `count` > 0") or die('<h1>Awards? Error (messageboard.class.php 258)</h1>' . mysql_error());
-        $rows=$this->db2->count_rows();
-        if ($rows > 0) { return true; } else { return false; }
-    }
-
-    function getAwards ($user_id)
-    {
-        $str = "<b>".T_('Awards')."</b>";
-        $sql = "SELECT * FROM fcms_user_awards WHERE user = $user_id AND `count` > 0";
+        $sql = "SELECT `id` 
+                FROM `fcms_user_awards` 
+                WHERE `user` = '" . cleanInput($user_id, 'int') . "' 
+                AND `count` > 0";
         $this->db2->query($sql) or displaySQLError(
             'Awards Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        while($row=$this->db2->get_row()) {
-            if ($row['type'] == 'top5poster') {
-                $str .= "<div class=\"award boardtop5";
-                if ($row['value'] <= 1) { $str .= "gold"; }
-                $str .= "\" title=\"".sprintf(T_('#%s Poster last month'), $row['value']);
-                $str .= " (" . $row['count'] . " ".T_('posts').")\"></div>";
-            } elseif ($row['type'] == 'top5photo') {
-                $str .= "<div class=\"award phototop5";
-                if ($row['value'] <= 1) { $str .= "gold"; }
-                $str .= "\" title=\"".sprintf(T_('#%s Photographer last month'), $row['value']);
-                $str .= " (" . $row['count'] . " ".T_('posts').")\"></div>";
-            } else if ($row['type'] == 'mostsmileys') {
-                $str .= "<div class=\"award smileys\" title=\"" . T_('Used Most Smileys last month') . "\"></div>";
-            } else if ($row['type'] == 'topviewedphoto') {
-                $str .= "<div class=\"award topviewedphoto\" title=\"";
-                $str .= T_('Uploaded Most Viewed Photo last month') . " (" . $row['count'] . " ";
-                $str .= T_('views') . ")\"></div>";
-            } else {
-                $str .= "<div class=\"award threadstarter\" title=\"".T_('Top Thread Starter last month');
-                $str .= " (" . $row['count'] . " " . T_('posts') . ")\"></div>";
-            }
+        $rows = $this->db2->count_rows();
+        if ($rows > 0) {
+            return true;
         }
-        return $str;
+        return false;
     }
 
+    /**
+     * displayMessageBoardMenu 
+     * 
+     * @param   mixed   $thread_id 
+     * @return  void
+     */
     function displayMessageBoardMenu ($thread_id = '')
     {
         if ($thread_id == '') {
@@ -591,11 +676,11 @@ class MessageBoard
                 </ul>
             </div>';
 
-            if (checkAccess($this->current_user_id) < 8 && checkAccess($this->current_user_id) != 5) {
+            if (checkAccess($this->currentUserId) < 8 && checkAccess($this->currentUserId) != 5) {
                 echo '
             <div id="actions_menu" class="clearfix">
                 <ul>
-                    <li><a class="action" href="messageboard.php?reply=' . $thread_id . '">'.T_('Reply').'</a></li>
+                    <li><a class="action" href="messageboard.php?reply=' . (int)$thread_id . '">'.T_('Reply').'</a></li>
                 </ul>
             </div>';
             }
@@ -603,11 +688,107 @@ class MessageBoard
 
     }
 
+    /**
+     * displayAdminMenu
+     * 
+     * @param   int     $thread
+     * @param   boolean $announcement
+     * @return  void
+     */
+    function displayAdminMenu ($thread, $announcement)
+    {
+        $thread = cleanInput($thread, 'int');
+
+        if (checkAccess($this->currentUserId) <= 2) {
+
+            $select_options = '<option value=""></option>';
+
+            if ($announcement) {
+                $select_options .= '<option value="normal">'.T_('Make Normal Thread').'</option>';
+            } else {
+                $select_options .= '<option value="announcement">'.T_('Make Thread an Announcement').'</option>';
+            }
+
+            $select_options .= '<option value="subject">'.T_('Edit Thread Subject').'</option>';
+            $select_options .= '<option value="delete">'.T_('Delete Thread').'</option>';
+
+            echo '
+            <div id="admin_menu" class="clearfix">
+                <form method="post" action="messageboard.php">
+                    <b>'.T_('Administrate Thread').':</b> 
+                    <select name="admin_option">
+                        '.$select_options.'
+                    </select>
+                    <input type="hidden" name="thread" value="'.$thread.'"/>
+                    <input type="submit" name="submit_admin" value="'.T_('Submit').'"/>
+                </ul>
+            </div>';
+        }
+
+    }
+
+    /**
+     * displayAdminEditSubjectForm
+     * 
+     * @param  int  $thread 
+     * @return void
+     */
+    function displayAdminEditSubjectForm ($thread)
+    {
+        $thread = cleanInput($thread, 'int');
+
+        $sql = "SELECT t.`id`, p.`user`, `subject`, `started_by`, `post` 
+                FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
+                WHERE t.`id` = '$thread' 
+                AND p.`thread` = t.`id`
+                LIMIT 1";
+        $this->db->query($sql) or displaySQLError(
+            'Edit Thread Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $row = $this->db->get_row();
+        $pos = strpos($row['subject'], '#ANOUNCE#');
+        $subject = $row['subject'];
+        $sticky = '';
+        if ($pos !== false) {
+            $sticky = '<input type="hidden" name="sticky" id="sticky" value="1"/>';
+            $subject = substr($row['subject'], 9, strlen($row['subject'])-9);
+        }
+        $displayname = getUserDisplayName($row['started_by']);
+
+        echo '
+            <form method="post" action="messageboard.php">
+                <fieldset>
+                    <legend><span>'.T_('Edit Thread').'</span></legend>
+                    <div>
+                        <label for="subject">'.T_('Subject').':</label>
+                        <input class="frm_text" type="text" name="subject" id="subject" size="50" value="'.cleanOutput($subject).'"/>
+                    </div>
+                    <div>
+                        <label for="showname">'.T_('Name').':</label>
+                        <input type="text" disabled="disabled" name="showname" id="showname" size="50" value="'.cleanOutput($displayname).'"/>
+                    </div>
+                    <p><textarea disabled="disabled" name="post" id="post" rows="10" cols="63">' . cleanOutput($row['post']) . '</textarea></p>
+                    <p>
+                        '.$sticky.'
+                        <input type="hidden" name="thread" id="thread" value="'.$thread.'"/>
+                        <input class="sub1" type="submit" name="edit_admin_submit" id="edit_admin_submit" value="'.T_('Edit').'"/>
+                        '.T_('or').'
+                        <a href="messageboard.php?thread='.$thread.'">'.T_('Cancel').'</a>
+                    </p>
+                </fieldset>
+            </form>';
+    }
+    /**
+     * displayWhatsNewMessageBoard 
+     * 
+     * @return void
+     */
     function displayWhatsNewMessageBoard ()
     {
         $locale = new Locale();
+
         $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+        $today_end   = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
 
         echo '
             <h3>'.T_('Message Board').'</h3>
@@ -624,13 +805,15 @@ class MessageBoard
                 GROUP BY subject 
                 ORDER BY `date` DESC 
                 LIMIT 0, 5";
-        $this->db->query($sql) or die('<h1>Posts Error (messageboard.class.php 287)</h1>' . mysql_error());
+        $this->db->query($sql) or displaySQLError(
+            'Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 
         if ($this->db->count_rows() > 0) {
             while ($row = $this->db->get_row()) {
                 $displayname = getUserDisplayName($row['userid']);
                 $subject = $row['subject'];
-                $subject_full = htmlentities($row['subject'], ENT_COMPAT, 'UTF-8');
+                $subject_full = cleanOutput($row['subject']);
 
                 // Remove announcment
                 $pos = strpos($subject, '#ANOUNCE#');
@@ -654,7 +837,7 @@ class MessageBoard
                 echo '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
-                    <a href="messageboard.php?thread='.$row['thread'].'" title="'.$subject_full.'">'.$subject.'</a> ';
+                    <a href="messageboard.php?thread='.(int)$row['thread'].'" title="'.$subject_full.'">'.$subject.'</a> ';
 
                 if ($this->getNumberOfPosts($row['thread']) > 15) {
                     $num_posts = $this->getNumberOfPosts($row['thread']);
@@ -662,12 +845,12 @@ class MessageBoard
                     ('.T_('Page').' ';
                     $times2loop = ceil($num_posts/15);
                     for ($i=1; $i<=$times2loop; $i++) {
-                        echo '<a href="messageboard.php?thread='.$row['thread'].'&amp;page='.$i.'" title="'.T_('Page').' '.$i.'">'.$i.'</a> ';
+                        echo '<a href="messageboard.php?thread='.(int)$row['thread'].'&amp;page='.$i.'" title="'.T_('Page').' '.$i.'">'.$i.'</a> ';
                     }
                     echo ")";
                 }
                 echo '
-                     - <a class="u" href="profile.php?member='.$row['userid'].'">'.$displayname.'</a>
+                     - <a class="u" href="profile.php?member='.(int)$row['userid'].'">'.$displayname.'</a>
                 </li>';
             }
         } else {
@@ -678,4 +861,26 @@ class MessageBoard
             </ul>';
     }
 
-} ?>
+    /**
+     * getThreadSubject
+     * 
+     * @param int $id 
+     * 
+     * @return  void
+     */
+    function getThreadSubject ($id)
+    {
+        $id = cleanInput($id, 'int');
+
+        $sql = "SELECT `subject`
+                FROM `fcms_board_threads`
+                WHERE `id` = '$id'";
+        if (!$this->db->query($sql)) {
+            displaySQLError('Subject Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return;
+        }
+
+        $row = $this->db->get_row();
+        return $row['subject'];
+    }
+}

@@ -1,32 +1,36 @@
 <?php
+/**
+ * AddressBook 
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
-if (get_magic_quotes_gpc()) {
-    $_REQUEST = array_map('stripslashes', $_REQUEST);
-    $_GET = array_map('stripslashes', $_GET);
-    // a bug found with an array in $_POST
-    if (!isset($_POST['emailsubmit']) && !isset($_POST['sendemailsubmit'])) {
-        $_POST = array_map('stripslashes', $_POST);
-    }
-    $_COOKIE = array_map('stripslashes', $_COOKIE);
-}
 
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
-include_once('inc/alerts_class.php');
-include_once('inc/locale.php');
-$locale = new Locale();
+require_once 'inc/config_inc.php';
+require_once 'inc/util_inc.php';
+require_once 'inc/alerts_class.php';
+require_once 'inc/database_class.php';
+require_once 'inc/locale.php';
+require_once 'inc/addressbook_class.php';
+
+fixMagicQuotes();
 
 // Check that the user is logged in
 isLoggedIn();
-$current_user_id = (int)escape_string($_SESSION['login_id']);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-include_once('inc/addressbook_class.php');
-$book = new AddressBook($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$locale = new Locale();
 $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$alert = new Alerts($current_user_id, $database);
+$book = new AddressBook($currentUserId, $database);
+$alert = new Alerts($currentUserId, $database);
+
 header("Cache-control: private");
 if (isset($_GET['csv'])) {
-    $show = false;
     if ($_GET['csv'] == 'export') {
         $csv = "lname, fname, address, city, state, zip, email, home, work, cell\015\012";
         $sql = "SELECT `lname`, `fname`, `address`, `city`, `state`, `zip`, `email`, `home`, `work`, `cell` 
@@ -37,7 +41,7 @@ if (isset($_GET['csv'])) {
         while ($row = mysql_fetch_assoc($result)) {
             $csv .= '"'.join('","', str_replace('"', '""', $row))."\"\015\012";
         }
-        $date = $locale->fixDate('Y-m-d', $book->tz_offset);
+        $date = $locale->fixDate('Y-m-d', $book->tzOffset);
         header("Content-type: text/plain");
         header("Content-disposition: csv; filename=FCMS_Addresses_$date.csv; size=".strlen($csv));
         echo $csv;
@@ -46,9 +50,16 @@ if (isset($_GET['csv'])) {
 }
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = T_('Address Book');
-$TMPL['path'] = "";
-$TMPL['admin_path'] = "admin/";
+$TMPL = array(
+    'sitename'      => getSiteName(),
+    'nav-link'      => getNavLinks(),
+    'pagetitle'     => T_('Address Book'),
+    'path'          => "",
+    'admin_path'    => "admin/",
+    'displayname'   => getUserDisplayName($currentUserId),
+    'version'       => getCurrentVersion(),
+    'year'          => date('Y')
+);
 $TMPL['javascript'] = '
 <script type="text/javascript" src="inc/tablesort.js"></script>
 <script type="text/javascript">
@@ -69,11 +80,16 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show header
-include_once(getTheme($current_user_id) . 'header.php');
+require_once getTheme($currentUserId) . 'header.php';
 
 echo '
         <div id="addressbook" class="centercontent clearfix">';
+
 $show = true;
+
+//-----------------------------------------------
+// CSV
+//-----------------------------------------------
 if (isset($_GET['csv'])) {
     if ($_GET['csv'] == 'import' && !isset($_POST['import'])) {
         $show = false;
@@ -83,8 +99,11 @@ if (isset($_GET['csv'])) {
     }
 }
 
+//-----------------------------------------------
+// Mass email Form
+//-----------------------------------------------
 if (isset($_POST['emailsubmit'])) {
-    if (checkAccess($current_user_id) > 3) {
+    if (checkAccess($currentUserId) > 3) {
         echo '
                 <p class="error-alert">
                     '.T_('You do not have permission to perform this task.  You must have an access level of 3 (Member) or higher.').'
@@ -106,18 +125,25 @@ if (isset($_POST['emailsubmit'])) {
 //-----------------------------------------------
 // Send Mass Email
 //-----------------------------------------------
-if (isset($_POST['sendemailsubmit']) && !empty($_POST['subject']) && !empty($_POST['email']) && !empty($_POST['name']) && !empty($_POST['msg'])) {
-    $subject = stripslashes($_POST['subject']);
-    $email = stripslashes($_POST['email']);
-    $name = stripslashes($_POST['name']);
-    $msg = stripslashes($_POST['msg']);
+if (   isset($_POST['sendemailsubmit'])
+    && !empty($_POST['subject'])
+    && !empty($_POST['email'])
+    && !empty($_POST['name'])
+    && !empty($_POST['msg'])
+) {
+    $subject = cleanOutput($_POST['subject']);
+    $fromEmail = cleanOutput($_POST['email']);
+    $name = cleanOutput($_POST['name']);
+    $msg = cleanOutput($_POST['msg'], 'html');
+    $emailHeaders = getEmailHeaders($name, $fromEmail);
     foreach ($_POST['emailaddress'] as $email) {
-        mail($email, $subject, "$msg\r\n-$name", $email_headers);
+        $email = cleanInput($email);
+        mail($email, $subject, "$msg\r\n-$name", $emailHeaders);
     }
     echo '
             <p class="ok-alert" id="msg">
-                '.T_('The following message has been sent:').'<br/>
-                '.$msg.'
+                ' . T_('The following message has been sent:') . '<br/>
+                ' . $msg . '
             </p>
             <script type="text/javascript">window.onload=function(){ var t=setTimeout("$(\'msg\').toggle()",4000); }</script>';
 
@@ -138,21 +164,21 @@ if (isset($_POST['editsubmit'])) {
     // Address
     $sql = "UPDATE `fcms_address` 
             SET `updated`=NOW(), 
-                `address`='".escape_string($_POST['address'])."', 
-                `city`='".escape_string($_POST['city'])."', 
-                `state`='".escape_string($_POST['state'])."', 
-                `zip`='".escape_string($_POST['zip'])."', 
-                `home`='".escape_string($_POST['home'])."', 
-                `work`='".escape_string($_POST['work'])."', 
-                `cell`='".escape_string($_POST['cell'])."' 
-            WHERE `id`=".$_POST['aid'];
+                `address`   = '" . cleanInput($_POST['address']) . "', 
+                `city`      = '" . cleanInput($_POST['city']) . "', 
+                `state`     = '" . cleanInput($_POST['state']) . "', 
+                `zip`       = '" . cleanInput($_POST['zip']) . "', 
+                `home`      = '" . cleanInput($_POST['home']) . "', 
+                `work`      = '" . cleanInput($_POST['work']) . "', 
+                `cell`      = '" . cleanInput($_POST['cell']) . "' 
+            WHERE `id` = '" . cleanInput($_POST['aid'], 'int') . "'";
     mysql_query($sql) or displaySQLError(
-        'Edit Address Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error()
+        'Edit Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     // User's email
     $sql = "UPDATE `fcms_users` 
-            SET `email`='".escape_string($_POST['email'])."' 
-            WHERE `id` = ".escape_string($_POST['uid']);
+            SET `email`='" . cleanInput($_POST['email'])."' 
+            WHERE `id` = " . cleanInput($_POST['uid'], 'int');
     mysql_query($sql) or displaySQLError(
         'Edit Email Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -167,34 +193,35 @@ if (isset($_POST['addsubmit'])) {
     if (isset($_POST['private'])) {
         $pw = 'PRIVATE';
     }
-    $sql = "INSERT INTO `fcms_users` ("
-            . "`access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`"
-         . ") VALUES ("
-            . "10, "
-            . "NOW(), "
-            . "'" . escape_string($_POST['fname']) . "', "
-            . "'" . escape_string($_POST['lname']) . "', "
-            . "'" . escape_string($_POST['email']) . "', "
-            . "'NONMEMBER-$uniq', "
-            . "'$pw')";
+    $sql = "INSERT INTO `fcms_users` (
+                `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`
+            ) VALUES (
+                10, 
+                NOW(), 
+                '" . cleanInput($_POST['fname']) . "', 
+                '" . cleanInput($_POST['lname']) . "', 
+                '" . cleanInput($_POST['email']) . "', 
+                'NONMEMBER-$uniq', 
+                '$pw')";
     mysql_query($sql) or displaySQLError(
         'Add Non-Member Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $id = mysql_insert_id();
-    $sql = "INSERT INTO `fcms_address`("
-            . "`user`, `entered_by`, `updated`, `address`, `city`, `state`, "
-            . "`zip`, `home`, `work`, `cell`"
-         . ") VALUES ("
-            . "$id, "
-            . $current_user_id . ", "
-            . "NOW(), "
-            . "'" . escape_string($_POST['address']) . "', "
-            . "'" . escape_string($_POST['city']) . "', "
-            . "'" . escape_string($_POST['state']) . "', "
-            . "'" . escape_string($_POST['zip']) . "', "
-            . "'" . escape_string($_POST['home']) . "', "
-            . "'" . escape_string($_POST['work']) . "', "
-            . "'" . escape_string($_POST['cell']) . "')";
+    $sql = "INSERT INTO `fcms_address`(
+                `user`, `entered_by`, `updated`, `address`, `city`, `state`, 
+                `zip`, `home`, `work`, `cell`
+            ) VALUES (
+                '$id', 
+                '$currentUserId', 
+                NOW(), 
+                '" . cleanInput($_POST['address']) . "', 
+                '" . cleanInput($_POST['city']) . "', 
+                '" . cleanInput($_POST['state']) . "', 
+                '" . cleanInput($_POST['zip']) . "', 
+                '" . cleanInput($_POST['home']) . "', 
+                '" . cleanInput($_POST['work']) . "', 
+                '" . cleanInput($_POST['cell']) . "'
+            )";
     mysql_query($sql) or displaySQLError(
         'New Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -208,12 +235,14 @@ if (isset($_POST['del']) && !isset($_POST['confirmed'])) {
     echo '
                 <div class="info-alert clearfix">
                     <form action="addressbook.php" method="post">
-                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
-                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
+                        <h2>' . T_('Are you sure you want to DELETE this?') . '</h2>
+                        <p><b><i>' . T_('This can NOT be undone.') . '</i></b></p>
                         <div>
-                            <input type="hidden" name="id" value="'.$_POST['id'].'"/>
-                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
-                            <a style="float:right;" href="addressbook.php?address='.$_POST['id'].'">'.T_('Cancel').'</a>
+                            <input type="hidden" name="id" value="' . (int)$_POST['id'] . '"/>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="' . T_('Yes') . '"/>
+                            <a style="float:right;" href="addressbook.php?address=' . (int)$_POST['id'] . '">'
+                                . T_('Cancel') .
+                            '</a>
                         </div>
                     </form>
                 </div>';
@@ -222,15 +251,19 @@ if (isset($_POST['del']) && !isset($_POST['confirmed'])) {
 // Delete Address
 //-----------------------------------------------
 } elseif (isset($_POST['delconfirm']) || (isset($_POST['confirmed']) && isset($_POST['del']))) {
-    if (checkAccess($current_user_id) < 2) {
-        $aid = escape_string($_POST['id']);
-        $sql = "DELETE FROM fcms_users WHERE id = $aid";
-        mysql_query($sql) or displaySQLError('Non-member Deletion Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error());
-        $sql = "DELETE FROM fcms_address WHERE id = $aid";
-        mysql_query($sql) or displaySQLError('Delete Address Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error());
+    if (checkAccess($currentUserId) < 2) {
+        $aid = cleanInput($_POST['id'], 'int');
+        $sql = "DELETE FROM fcms_users WHERE id = '$aid'";
+        mysql_query($sql) or displaySQLError(
+            'Non-member Deletion Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $sql = "DELETE FROM fcms_address WHERE id = '$aid'";
+        mysql_query($sql) or displaySQLError(
+            'Delete Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
     } else {
         echo '
-            <p class="error-alert">'.T_('You do not have permission to perform this action.').'</p>';
+            <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
     }
 }
 
@@ -238,11 +271,13 @@ if (isset($_POST['del']) && !isset($_POST['confirmed'])) {
 // Show form for editing an address
 //-----------------------------------------------
 if (isset($_POST['edit'])) {
-    if (checkAccess($current_user_id) < 2 || $current_user_id == $_POST['id']) {
-        $book->displayForm('edit', $_POST['id']);
+    $aid = cleanInput($_POST['id'], 'int');
+    $uid = cleanInput($_POST['user'], 'int');
+    if (checkAccess($currentUserId) < 2 || $currentUserId == $uid) {
+        $book->displayForm('edit', $aid);
     } else {
         echo '
-            <p class="error-alert">'.T_('You do not have permission to perform this action.').'</p>';
+            <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
     }
     $show = false;
 }
@@ -251,7 +286,7 @@ if (isset($_POST['edit'])) {
 // Show form for adding an address
 //-----------------------------------------------
 if (isset($_GET['add'])) {
-    if (checkAccess($current_user_id) <= 5) {
+    if (checkAccess($currentUserId) <= 5) {
         $book->displayForm('add');
         $show = false;
     }
@@ -261,8 +296,9 @@ if (isset($_GET['add'])) {
 // Display an Address
 //-----------------------------------------------
 if (isset($_GET['address'])) {
-    $cat = isset($_GET['cat']) ? $_GET['cat'] : '';
-    $book->displayAddress($_GET['address'], $cat);
+    $address = cleanInput($_GET['address'], 'int');
+    $cat = isset($_GET['cat']) ? cleanInput($_GET['cat']) : '';
+    $book->displayAddress($address, $cat);
     $show = false;
 }
 
@@ -274,18 +310,18 @@ if ($show) {
     if (isset($_GET['alert'])) {
         $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
                 VALUES (
-                    '".escape_string($_GET['alert'])."', 
-                    ".$current_user_id."
+                    '" . cleanInput($_GET['alert']) . "', 
+                    '" . $currentUserId . "'
                 )";
         mysql_query($sql) or displaySQLError(
             'Remove Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
     }
-    if (!$book->userHasAddress($current_user_id)) {
+    if (!$book->userHasAddress($currentUserId)) {
         // Show Alerts
-        $alert->displayAddress($current_user_id);
+        $alert->displayAddress($currentUserId);
     }
-    $cat = isset($_GET['cat']) ? $_GET['cat'] : '';
+    $cat = isset($_GET['cat']) ? cleanInput($_GET['cat']) : '';
     $book->displayAddressList($cat);
 }
 
@@ -293,4 +329,7 @@ echo '
         </div><!-- #centercontent -->';
 
 // Show Footer
-include_once(getTheme($current_user_id) . 'footer.php'); ?>
+require_once getTheme($currentUserId) . 'footer.php';
+/**
+ *  
+ */

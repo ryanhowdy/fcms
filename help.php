@@ -1,20 +1,37 @@
 <?php
+/**
+ * Help
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
+
+require_once 'inc/config_inc.php';
+require_once 'inc/util_inc.php';
 
 // Check that the user is logged in
 isLoggedIn();
-$current_user_id = (int)escape_string($_SESSION['login_id']);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-header("Cache-control: private");
 // Setup the Template variables;
-$TMPL['pagetitle'] = T_('Help');
-$TMPL['path'] = "";
-$TMPL['admin_path'] = "admin/";
+$TMPL = array(
+    'sitename'      => getSiteName(),
+    'nav-link'      => getNavLinks(),
+    'pagetitle'     => T_('Help'),
+    'path'          => "",
+    'admin_path'    => "admin/",
+    'displayname'   => getUserDisplayName($currentUserId),
+    'version'       => getCurrentVersion(),
+    'year'          => date('Y')
+);
 
 // Show Header
-include_once(getTheme($current_user_id) . 'header.php');
+require_once getTheme($currentUserId) . 'header.php';
 
 echo '
         <div id="help" class="centercontent">
@@ -324,4 +341,4 @@ echo '
         </div><!-- .centercontent -->';
 
 // Show Footer
-include_once(getTheme($current_user_id) . 'footer.php'); ?>
+require_once getTheme($currentUserId) . 'footer.php';

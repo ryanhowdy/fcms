@@ -3,6 +3,14 @@ include_once('database_class.php');
 include_once('util_inc.php');
 include_once('locale.php');
 
+/**
+ * Admin 
+ * 
+ * @package     Family Connections
+ * @copyright   Copyright (c) 2010 Haudenschilt LLC
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class Admin {
 
     var $db;
@@ -11,16 +19,31 @@ class Admin {
     var $tz_offset;
     var $lastmonth_beg;
     var $lastmonth_end;
-    var $current_user_id;
+    var $currentUserId;
 
-    function Admin ($current_user_id, $type, $host, $database, $user, $pass)
+    /**
+     * Admin 
+     * 
+     * @param   int     $currentUserId 
+     * @param   string  $type 
+     * @param   string  $host 
+     * @param   string  $database 
+     * @param   string  $user 
+     * @param   string  $pass 
+     * @return  void
+     */
+    function Admin ($currentUserId, $type, $host, $database, $user, $pass)
     {
-        $this->current_user_id = $current_user_id;
+        $this->currentUserId = $currentUserId;
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
         $this->db3 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
-        $this->db->query($sql) or displaySQLError('Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        $sql = "SELECT `timezone` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '" . cleanInput($currentUserId, 'int') . "'";
+        $this->db->query($sql) or displaySQLError(
+            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $row = $this->db->get_row();
         $this->tz_offset = $row['timezone'];
         $this->lastmonth_beg = date('Y-m', mktime(0, 0, 0, date('m')-1, 1, date('Y'))) . "-01 00:00:00";
@@ -28,7 +51,14 @@ class Admin {
         T_bindtextdomain('messages', '.././language');
     }
 
-    function showThreads ($type, $page = '0')
+    /**
+     * showThreads 
+     * 
+     * @param   string  $type 
+     * @param   int     $page 
+     * @return  void
+     */
+    function showThreads ($type, $page = 0)
     {
         $locale = new Locale();
 
@@ -61,13 +91,14 @@ class Admin {
                     WHERE t.`id` = p.`thread` 
                     AND `subject` NOT LIKE '#ANOUNCE#%' 
                     GROUP BY t.`id` 
-                    ORDER BY `updated` DESC LIMIT " . $from . ", 25";
+                    ORDER BY `updated` DESC 
+                    LIMIT " . $from . ", 25";
             $this->db->query($sql) or displaySQLError(
                 'Threads Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
         }
         $alt = 0;
-        while ($row=$this->db->get_row()) {
+        while ($row = $this->db->get_row()) {
             $started_by = getUserDisplayName($row['started_by']);
             $updated_by = getUserDisplayName($row['updated_by']);
             $subject = $row['subject'];
@@ -133,8 +164,8 @@ class Admin {
                         <td class="subject">
                             '.$subject.' 
                             <small>
-                                <a class="edit_thread" href="board.php?edit='.$row['id'].'">'.T_('Edit').'</a> 
-                                <a class="del_thread" href="board.php?del='.$row['id'].'">'.T_('Delete').'</a>
+                                <a class="edit_thread" href="board.php?edit='.(int)$row['id'].'">'.T_('Edit').'</a> 
+                                <a class="del_thread" href="board.php?del='.(int)$row['id'].'">'.T_('Delete').'</a>
                             </small><br/>
                             '.$started_by.'
                         </td>
@@ -155,84 +186,84 @@ class Admin {
         }
     }
 
-    function displayEditThread ($thread_id)
-    {
-        $sql = "SELECT t.`id`, p.`user`, `subject`, `started_by`, `post` FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p WHERE t.`id` = $thread_id LIMIT 1";
-        $this->db->query($sql) or displaySQLError('Edit Thread Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
-        $row = $this->db->get_row();
-        $pos = strpos($row['subject'], '#ANOUNCE#');
-        $subject = $row['subject'];
-        if ($pos !== false) {
-            $subject = substr($row['subject'], 9, strlen($row['subject'])-9);
-        }
-        $displayname = getUserDisplayName($row['started_by']);
-        $pos = strpos($row['subject'], '#ANOUNCE#');
-        $chk = '';
-        if ($pos !== false) {
-            $chk = 'checked="checked"';
-        }
-        echo '
-            <form method="post" action="board.php">
-                <fieldset>
-                    <legend><span>'.T_('Edit Thread').'</span></legend>
-                    <p>
-                        <label for="subject">'.T_('Subject').':</label>
-                        <input class="frm_text" type="text" name="subject" id="subject" size="50" value="'.$subject.'"/>
-                    </p>
-                    <p>
-                        <label for="showname">'.T_('Name').':</label>
-                        <input type="text" disabled="disabled" name="showname" id="showname" size="50" value="'.$displayname.'"/>
-                    </p>
-                    <div><input type="hidden" name="name" id="name" value="'.$row['user'].'"/></div>
-                    <p>
-                        '.T_('Admin Tools').':&nbsp;&nbsp;
-                        <input type="checkbox" '.$chk.'  name="sticky" id="sticky" value="sticky"/>
-                        <label for="sticky">'.T_('Make Announcement').'</label>
-                    </p>
-                    <p><textarea disabled="disabled" name="post" id="post" rows="10" cols="63">'.$row['post'].'</textarea></p>
-                    <div><input type="hidden" name="threadid" id="threadid" value="'.$thread_id.'"/></div>
-                    <p>
-                        <input class="sub1" type="submit" name="edit_submit" id="edit_submit" value="'.T_('Edit').'"/> 
-                        '.T_('or').' 
-                        <a href="board.php">'.T_('Cancel').'</a>
-                    </p>
-                </fieldset>
-            </form>';
-    }
-
+    /**
+     * getNumberOfPosts 
+     * 
+     * @param  int $thread_id 
+     * @return void
+     */
     function getNumberOfPosts ($thread_id)
     {
-        $sql = "SELECT COUNT(*) AS c FROM `fcms_board_posts` WHERE `thread` = $thread_id";
-        $this->db2->query($sql) or displaySQLError('# of Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        $sql = "SELECT COUNT(*) AS c 
+                FROM `fcms_board_posts` 
+                WHERE `thread` = '" . cleanInput($thread_id, 'int') . "'";
+        $this->db2->query($sql) or displaySQLError(
+            '# of Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $row=$this->db2->get_row();
         return $row['c'];
     }
 
+    /**
+     * getSortOrder 
+     * 
+     * @param  int $user_id 
+     * @return void
+     */
     function getSortOrder ($user_id)
     {
-        $sql = "SELECT `boardsort` FROM `fcms_users` WHERE `id` = $user_id";
-        $this->db2->query($sql) or displaySQLError('Sort Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        $sql = "SELECT `boardsort` 
+                FROM `fcms_users` 
+                WHERE `id` = '" . cleanInput($user_id, 'int') . "'";
+        $this->db2->query($sql) or displaySQLError(
+            'Sort Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $row=$this->db2->get_row();
         return $row['boardsort'];
     }
 
+    /**
+     * getShowAvatar 
+     * 
+     * @param  int $user_id 
+     * @return void
+     */
     function getShowAvatar ($user_id)
     {
-        $sql = "SELECT `showavatar` FROM `fcms_users` WHERE `id` = $user_id";
-        $this->db2->query($sql) or displaySQLError('Avatar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        $sql = "SELECT `showavatar` 
+                FROM `fcms_users` 
+                WHERE `id` = '" . cleanInput($user_id, 'int') . "'";
+        $this->db2->query($sql) or displaySQLError(
+            'Avatar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $row=$this->db2->get_row();
         return $row['showavatar'];
     }
 
+    /**
+     * getUserPostCountById 
+     * 
+     * @param  int      $user_id 
+     * @return string
+     */
     function getUserPostCountById ($user_id)
     {
-        $sql = "SELECT * FROM `fcms_board_posts`";
-        $this->db2->query($sql) or displaySQLError('Post Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        $sql = "SELECT `id`
+                FROM `fcms_board_posts`";
+        $this->db2->query($sql) or displaySQLError(
+            'Post Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $total=$this->db2->count_rows();
-        $sql = "SELECT COUNT(user) AS c FROM `fcms_board_posts` WHERE `user` = $user_id";
-        $this->db2->query($sql) or displaySQLError('Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+
+        $sql = "SELECT COUNT(`user`) AS c 
+                FROM `fcms_board_posts` 
+                WHERE `user` = '" . cleanInput($user_id, 'int') . "'";
+        $this->db2->query($sql) or displaySQLError(
+            'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $row=$this->db2->get_row();
         $count=$row['c'];
+
         if($total < 1) { 
             return "0 (0%)";
         } else { 
@@ -240,16 +271,33 @@ class Admin {
         }
     }
 
-    function displayPages ($page = '1', $thread_id = '0')
+    /**
+     * displayPages 
+     *
+     * @todo    this needs removed in favor of the global function in inc/util
+     * @param   int $page 
+     * @param   int $thread_id 
+     * @return  void
+     */
+    function displayPages ($page = 1, $thread_id = 0)
     {
+        $thread_id = cleanInput($thread_id, 'int');
+
         if ($thread_id < 1) {
-            $sql = "SELECT COUNT(id) AS c FROM `fcms_board_threads`";
-            $this->db2->query($sql) or displaySQLError('Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            $sql = "SELECT COUNT(`id`) AS c 
+                    FROM `fcms_board_threads`";
+            $this->db2->query($sql) or displaySQLError(
+                'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $row=$this->db2->get_row();
             $total_pages = ceil($row['c'] / 25); 
         } else {
-            $sql = "SELECT COUNT(id) AS c FROM `fcms_board_posts` WHERE `thread` = $thread_id";
-            $this->db2->query($sql) or displaySQLError('Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            $sql = "SELECT COUNT(`id`) AS c 
+                    FROM `fcms_board_posts` 
+                    WHERE `thread` = '$thread_id'";
+            $this->db2->query($sql) or displaySQLError(
+                'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $row=$this->db2->get_row();
             $total_pages = ceil($row['c'] / 15); 
         }
@@ -302,14 +350,21 @@ class Admin {
         }
     }
 
-    function displayEditPollForm ($pollid = '0')
+    /**
+     * displayEditPollForm 
+     * 
+     * @param  int $pollid 
+     * @return void
+     */
+    function displayEditPollForm ($pollid = 0)
     {
         $poll_exists = true;
+
         if ($pollid > 0) {
             $sql = "SELECT `question`, o.`id`, `option` 
                     FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
                     WHERE p.`id` = o.`poll_id` 
-                    AND p.`id` = $pollid";
+                    AND p.`id` = '" . cleanInput($pollid, 'int') . "'";
             $this->db->query($sql) or displaySQLError(
                 'Poll Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
@@ -349,7 +404,7 @@ class Admin {
             while ($row = $this->db->get_row()) {
                 if ($i < 2) {
                     echo '
-                    <h3>'.$row['question'].'</h3>';
+                    <h3>'.cleanOutput($row['question']).'</h3>';
                 }
                 echo '
                     <div class="field-row">
@@ -359,11 +414,12 @@ class Admin {
                 if ($i < 3) {
                     echo "class=\"required\"";
                 }
-                echo ' size="50" value="'.htmlentities($row['option'], ENT_COMPAT, 'UTF-8').'"/>
+                echo ' size="50" value="'.cleanOutput($row['option']).'"/>
                             <input type="hidden" name="option'.$i.'" value="'.$row['id'].'"/>';
                 if ($i >= 3) {
                     echo '
-                            <input type="button" name="deleteoption" class="delbtn" value="'.T_('Delete').'" title="'.T_('Delete').'" onclick="document.editform.show'.$i.'.value=\'\';"/>';
+                            <input type="button" name="deleteoption" class="delbtn" value="'.T_('Delete').'" 
+                                title="'.T_('Delete').'" onclick="document.editform.show'.$i.'.value=\'\';"/>';
                 }
                 echo '
                         </div>
@@ -391,10 +447,13 @@ class Admin {
         }
     }
 
-    function displayAddPollForm()
+    /**
+     * displayAddPollForm 
+     * 
+     * @return void
+     */
+    function displayAddPollForm ()
     {
-        global $show;
-        $show = false;
         echo '
             <script type="text/javascript" src="../inc/livevalidation.js"></script>
             <form id="addform" action="polls.php" method="post">
@@ -464,211 +523,6 @@ class Admin {
             </form>';
     }
 
-    function getTopThreadStarter ()
-    {
-        $sql = "SELECT *, count(`thread`) AS 'thread_count' 
-                FROM `fcms_board_posts` 
-                WHERE `date` >= '" . $this->lastmonth_beg . "' 
-                AND `date` <= '" . $this->lastmonth_end . "' 
-                GROUP BY `thread` 
-                ORDER BY 'thread_count' DESC LIMIT 1";
-        $this->db->query($sql) or displaySQLError(
-            'Thread Starter Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        while ($row=$this->db->get_row()) {
-            $sql = "UPDATE `fcms_user_awards` 
-                    SET `user` = '" . $row['user'] . "', 
-                        `value` = '" . $row['thread'] . "', 
-                        `count` = '" . $row['thread_count'] . "' 
-                    WHERE `type` = 'topthreadstarter'";
-            $this->db2->query($sql) or displaySQLError(
-                'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-        }
-        if ($this->db->count_rows() > 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    function getMostViewedPhoto ()
-    {
-        $sql = "SELECT `id`, `user`, `views` 
-                FROM `fcms_gallery_photos` 
-                WHERE date >= '" . $this->lastmonth_beg . "' 
-                    AND date <= '" . $this->lastmonth_end . "' 
-                ORDER BY `views` DESC LIMIT 1";
-        $this->db->query($sql) or displaySQLError(
-            'Viewed Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        while ($row=$this->db->get_row()) {
-            $sql = "UPDATE `fcms_user_awards` 
-                    SET `user` = '" . $row['user'] . "', 
-                        `value` = '" . $row['id'] . "', 
-                        `count` = '" . $row['views'] . "' 
-                    WHERE `type` = 'topviewedphoto'";
-            $this->db2->query($sql) or displaySQLError(
-                'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-        }
-    }
-
-    function getTopPosters ()
-    {
-        $sql = "SELECT `user`, count(`user`) AS 'post_count' 
-                FROM `fcms_board_posts` AS p 
-                WHERE `date` >= '" . $this->lastmonth_beg . "' 
-                    AND `date` <= '" . $this->lastmonth_end . "' 
-                GROUP BY `user` 
-                ORDER BY 'post_count' DESC 
-                LIMIT 5";
-        $this->db->query($sql) or displaySQLError(
-            'Top Posters Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $i = 1;
-        while ($row=$this->db->get_row()) {
-            $sql = "UPDATE `fcms_user_awards` 
-                    SET `user` = '" . $row['user'] . "', 
-                        `value` = '$i', 
-                        `count` = '" . $row['post_count'] . "' 
-                    WHERE `type` = 'top5poster' 
-                        AND `value` = '$i'";
-            $this->db2->query($sql) or displaySQLError(
-                'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            $i++;
-        }
-    }
-
-    function getTopPhotoSubmitters ()
-    {
-        $sql = "SELECT `user`, count(*) AS c 
-                FROM `fcms_gallery_photos` 
-                WHERE `date` >= '" . $this->lastmonth_beg . "' 
-                    AND `date` <= '" . $this->lastmonth_end . "' 
-                GROUP BY `user` 
-                ORDER BY c DESC 
-                LIMIT 5";
-        $this->db->query($sql) or displaySQLError(
-            'Submitters Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $i = 1;
-        while ($row=$this->db->get_row()) {
-            $sql = "UPDATE `fcms_user_awards` 
-                    SET `user` = '" . $row['user'] . "', 
-                        `value` = '$i', 
-                        `count` = '" . $row['c'] . "' 
-                    WHERE `type` = 'top5photo' 
-                        AND `value` = '$i'";
-            $this->db2->query($sql) or displaySQLError(
-                'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            $i++;
-        }
-    }
-
-    function getMostSmileys ()
-    {
-        $most_smileys = '0';
-        $most_smileys_user = '0';
-        $sql = "SELECT `id` 
-                FROM `fcms_users` 
-                WHERE `username` != 'SITENEWS' 
-                    AND `username` != 'test' 
-                    AND `username` != 'reunion' 
-                ORDER BY `id`";
-        $this->db->query($sql) or displaySQLError(
-            'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $users;
-        $i = 1;
-        while ($row = $this->db->get_row()) {
-            $users[$i] = $row['id'];
-            $i++;
-        }
-        foreach ($users as $user) {
-            $sql = "SELECT count(`user`) AS 'post_count' 
-                    FROM `fcms_board_posts` AS p 
-                    WHERE `date` >= '" . $this->lastmonth_beg . "' 
-                        AND `date` <= '" . $this->lastmonth_end . "' 
-                        AND `user` = $user 
-                    GROUP BY `user` 
-                    ORDER BY post_count DESC";
-            $this->db->query($sql) or displaySQLError(
-                'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            $row = $this->db->get_row();
-            $this_user_post_count = $row['post_count'];
-            $sql = "SELECT count(`id`) AS 'smileys' 
-                    FROM `fcms_board_posts` 
-                    WHERE `date` >= '" . $this->lastmonth_beg . "' 
-                        AND `date` <= '" . $this->lastmonth_end . "' 
-                        AND `user` = $user 
-                        AND (
-                            `post` LIKE '%:smile:%' 
-                            OR `post` LIKE '%:biggrin:%' 
-                            OR `post` LIKE '%:clap:%' 
-                            OR `post` LIKE '%:hrmm:%' 
-                            OR `post` LIKE '%:tongue:%' 
-                            OR `post` LIKE '%:wink:%' 
-                            OR `post` LIKE '%:doh:%'
-                        )";
-            $this->db->query($sql) or displaySQLError(
-                'Smileys Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            $row = $this->db->get_row();
-            if ($this_user_post_count > 0) {
-                if ((($row['smileys'] / $this_user_post_count) * 100) > $most_smileys && $this_user_post_count >= 5) {
-                    $most_smileys_user = $user;
-                    $most_smileys = ($row['smileys'] / $this_user_post_count) * 100;
-                }
-            }
-        }
-        if ($most_smileys_user < 1) { $most_smileys_user = 1; }
-        $val = $locale->fixDate('n', $this->tz_offset);
-        $sql = "UPDATE `fcms_user_awards` 
-                SET `user` = '$most_smileys_user', 
-                    `value` = '$val', 
-                    `count` = '$most_smileys' 
-                WHERE `type` = 'mostsmileys'";
-        $this->db->query($sql) or displaySQLError(
-            'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-    }
-
-    function getStartedMostThreads ()
-    {
-        $sql = "SELECT `started_by` , count(*) AS c 
-                FROM (
-                    SELECT DISTINCT t.`id` , `subject` , `started_by` 
-                    FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
-                    WHERE t.`id` = p.`thread` 
-                        AND t.`started_by` = p.`user` 
-                        AND p.`date` >= '" . $this->lastmonth_beg . "' 
-                        AND p.`date` <= '" . $this->lastmonth_end . "' 
-                ) AS z 
-                GROUP BY `started_by` 
-                ORDER BY c DESC 
-                LIMIT 5";
-        $this->db->query($sql) or displaySQLError(
-            'Most Threads Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $i = 1;
-        while ($row=$this->db->get_row()) {
-            $sql = "UPDATE `fcms_user_awards` 
-                    SET `user` = '" . $row['started_by'] . "', 
-                        `value` = '$i', 
-                        `count` = '" . $row['c'] . "' 
-                    WHERE `type` = 'startedmostthreads' 
-                        AND `value` = '$i'";
-            $this->db2->query($sql) or displaySQLError(
-                'Update Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            $i++;
-        }
-    }
-    
     /**
      * displayAdminConfig
      *
@@ -676,12 +530,12 @@ class Admin {
      * email, auto activation, user defaults and sections.
      * 
      * @param   $view   which admin config section to view/edit
-     * @return  n/a
+     * @return  void
      */
     function displayAdminConfig ($view)
     {
         switch($view) {
-            case 'info':
+            case 'general':
                 $this->displayAdminConfigInfo();
                 break;
             case 'defaults':
@@ -696,13 +550,18 @@ class Admin {
         }
     }
 
+    /**
+     * displayAdminConfigInfo 
+     * 
+     * @return void
+     */
     function displayAdminConfigInfo ()
     {
         // General Config
         $sql = "SELECT * FROM `fcms_config`";
         $this->db->query($sql) or displaySQLError(
             'Site Info Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+        );
         $row = $this->db->get_row();
         
         // Activate Options
@@ -711,6 +570,7 @@ class Admin {
             "1" => T_('Auto Activation')
         );
         $activate_options = buildHtmlSelectOptions($activate_list, $row['auto_activate']);
+
         // Site Off Options
         $site_off_options = '<input type="radio" name="site_off" id="site_off_yes" '
             . 'value="yes"';
@@ -721,6 +581,13 @@ class Admin {
         if ($row['site_off'] == 0) { $site_off_options .= ' checked="checked"'; }
         $site_off_options .= '><label class="radio_label" for="site_off_no"> '
             . T_('No') . '</label>';
+
+        // Errors
+        $error_list = array(
+            '1' => T_('Log Errors'),
+            '0' => T_('Display Errors')
+        );
+        $error_options = buildHtmlSelectOptions($error_list, $row['log_errors']);
         
         echo '
         <form action="config.php" method="post">
@@ -730,13 +597,13 @@ class Admin {
                 <div class="field-row clearfix">
                     <div class="field-label"><label for="sitename"><b>'.T_('Site Name').'</b></label></div>
                     <div class="field-widget">
-                        <input type="text" name="sitename" size="50" value="'.$row['sitename'].'"/>
+                        <input type="text" name="sitename" size="50" value="'.cleanOutput($row['sitename']).'"/>
                     </div>
                 </div>
                 <div class="field-row clearfix">
                     <div class="field-label"><label for="contact"><b>'.T_('Contact Email').'</b></label></div>
                     <div class="field-widget">
-                        <input type="text" id="contact" name="contact" size="50" value="'.$row['contact'].'"/>
+                        <input type="text" id="contact" name="contact" size="50" value="'.cleanOutput($row['contact']).'"/>
                     </div>
                 </div>
                 <script type="text/javascript">
@@ -758,12 +625,25 @@ class Admin {
                         '.$site_off_options.'
                     </div>
                 </div>
+                <div class="field-row clearfix">
+                    <div class="field-label"><label for="log_errors"><b>'.T_('Errors?').'</b></label></div>
+                    <div class="field-widget">
+                        <select name="log_errors">
+                            '.$error_options.'
+                        </select>
+                    </div>
+                </div>
                 <p><input type="submit" id="submit-sitename" name="submit-sitename" value="'.T_('Save').'"/></p>
             </div>
         </fieldset>
         </form>';
     }
 
+    /**
+     * displayAdminConfigDefaults 
+     * 
+     * @return void
+     */
     function displayAdminConfigDefaults ()
     {
  
@@ -960,6 +840,15 @@ class Admin {
         </form>';
     }
 
+    /**
+     * getOrderSelectBox 
+     * 
+     * @param  int  $c 
+     * @param  int  $total 
+     * @param  int  $selected 
+     * @param  int  $start 
+     * @return void
+     */
     function getOrderSelectBox ($c, $total, $selected, $start = 1)
     {
         $order_options = '<select id="order'.$c.'" name="order'.$c.'">';
@@ -976,6 +865,11 @@ class Admin {
         return $order_options;
     }
 
+    /**
+     * displayAdminConfigSections 
+     * 
+     * @return void
+     */
     function displayAdminConfigSections ()
     {
         // Get Navigation Data
@@ -1024,7 +918,7 @@ class Admin {
                         <tr>
                             <td>'.getSectionName($r['link']).'</td>
                             <td>
-                                '.$this->getOrderSelectBox($r['id'], 7, $r['order']).'
+                                '.$this->getOrderSelectBox($r['id'], 8, $r['order']).'
                             </td>
                             <td class="remove">'.$del.'</td>
                         </tr>';
@@ -1038,12 +932,17 @@ class Admin {
         </form>';
     }
 
+    /**
+     * displayAdminConfigGallery 
+     * 
+     * @return void
+     */
     function displayAdminConfigGallery ()
     {
         $sql = "SELECT * FROM `fcms_config`";
         $this->db->query($sql) or displaySQLError(
             'Site Info Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+        );
         $row = $this->db->get_row();
         
         $full_size_list = array(
@@ -1061,7 +960,7 @@ class Admin {
                     '.T_('By default, Full Sized Photos is turned off to save on storage space and bandwidth.  Turning this feature on can eat up significant space and bandwith.').'
                 </p>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="full_size_photos"><b>'.T_('Fulle Size Photos').'</b></label></div>
+                    <div class="field-label"><label for="full_size_photos"><b>'.T_('Full Size Photos').'</b></label></div>
                     <div class="field-widget">
                         <select name="full_size_photos">
                             '.$full_size_options.'
@@ -1074,6 +973,14 @@ class Admin {
         </form>';
     }
 
+    /**
+     * displaySectionDropdown 
+     * 
+     * @param string $which_nav 
+     * @param string $which_selected 
+     * @param string $num 
+     * @return void
+     */
     function displaySectionDropdown ($which_nav, $which_selected, $num)
     { 
         echo '

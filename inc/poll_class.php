@@ -3,20 +3,41 @@ include_once('database_class.php');
 include_once('util_inc.php');
 include_once('locale.php');
 
+/**
+ * Poll 
+ * 
+ * @package     Family Connections
+ * @copyright   Copyright (c) 2010 Haudenschilt LLC
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class Poll
 {
 
     var $db;
     var $db2;
     var $tz_offset;
-    var $current_user_id;
+    var $currentUserId;
 
-    function Poll ($current_user_id, $type, $host, $database, $user, $pass)
+    /**
+     * Poll 
+     * 
+     * @param   int     $currentUserId 
+     * @param   string  $type 
+     * @param   string  $host 
+     * @param   string  $database 
+     * @param   string  $user 
+     * @param   string  $pass 
+     * @return  void
+     */
+    function Poll ($currentUserId, $type, $host, $database, $user, $pass)
     {
-        $this->current_user_id = $current_user_id;
+        $this->currentUserId = cleanInput($currentUserId, 'int');
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
+        $sql = "SELECT `timezone` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '$currentUserId'";
         $this->db->query($sql) or displaySQLError(
             'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -24,34 +45,54 @@ class Poll
         $this->tz_offset = $row['timezone'];
     }
 
+    /**
+     * placeVote 
+     * 
+     * @param   int     $userid 
+     * @param   int     $optionid 
+     * @param   int     $pollid 
+     * @return  void
+     */
     function placeVote ($userid, $optionid, $pollid)
     {
+        $userid   = cleanInput($userid, 'int');
+        $optionid = cleanInput($optionid, 'int');
+        $pollid   = cleanInput($pollid, 'int');
+
         $sql = "SELECT `user` 
                 FROM `fcms_poll_votes` 
-                WHERE `user` = $userid
-                AND `poll_id` = $pollid";
+                WHERE `user` = '$userid'
+                AND `poll_id` = '$pollid'";
         $this->db->query($sql) or displaySQLError(
             'User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         if ($this->db->count_rows() > 0) {
-            echo "<p class=\"center\">".T_('You have already voted.')."</p>\n\t\t";
+            echo "<p class=\"info-alert\">".T_('You have already voted.')."</p>\n\t\t";
         } else {
             $sql = "UPDATE `fcms_poll_options` 
                     SET `votes` = `votes`+1 
-                    WHERE `id` = $optionid";
+                    WHERE `id` = '$optionid'";
             $this->db->query($sql) or displaySQLError(
                 '+Vote Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
             $sql = "INSERT INTO `fcms_poll_votes`(`user`, `option`, `poll_id`) 
-                    VALUES ($userid, $optionid, $pollid)";
+                    VALUES ('$userid', '$optionid', '$pollid')";
             $this->db->query($sql) or displaySQLError(
                 'Vote Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
         }
     }
 
+    /**
+     * displayResults 
+     * 
+     * @param   int     $pollid 
+     * @return  void
+     */
     function displayResults ($pollid)
     {
+        $pollid   = cleanInput($pollid, 'int');
+
         $sql = "SELECT result.`total`, `question`, o.`id`, `option`, `votes` 
                 FROM `fcms_polls` AS p, `fcms_poll_options` AS o, (
                     SELECT SUM(`votes`) AS total, fcms_polls.id 
@@ -60,7 +101,7 @@ class Poll
                     GROUP BY `id`
                 ) AS result 
                 WHERE p.`id` = o.`poll_id` 
-                AND p.`id` = $pollid 
+                AND p.`id` = '$pollid' 
                 AND result.`id` = p.`id`";
         $this->db->query($sql) or displaySQLError(
             'Result Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -96,9 +137,10 @@ class Poll
             </ul>
             <p class="poll">'.T_('Total Votes').': '.$total.'</p>
             <p><b>'.T_('Who Voted for What?').'</b></p>';
+
         $sql = "SELECT v.`user`, u.`avatar`, o.`option`
                 FROM `fcms_poll_votes` AS v, `fcms_poll_options` AS o, `fcms_users` AS u
-                WHERE v.`poll_id` = $pollid 
+                WHERE v.`poll_id` = '$pollid' 
                 AND o.`id` = v.`option` 
                 AND v.`user` = u.`id` 
                 ORDER BY o.`option`";
@@ -113,7 +155,7 @@ class Poll
             <h4>'.$r['option'].'</h4>
             <ul class="whovoted">
                 <li>
-                    <img src="gallery/avatar/'.$r['avatar'].'"/> '.getUserDisplayName($r['user']). '
+                    <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/> '.getUserDisplayName($r['user']). '
                 </li>';
                 } elseif ($r['option'] != $option) {
                     echo '
@@ -121,12 +163,12 @@ class Poll
             <h4>'.$r['option'].'</h4>
             <ul class="whovoted">
                 <li>
-                    <img src="gallery/avatar/'.$r['avatar'].'"/> '.getUserDisplayName($r['user']). '
+                    <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/> '.getUserDisplayName($r['user']). '
                 </li>';
                 } else {
                     echo '
                 <li>
-                    <img src="gallery/avatar/'.$r['avatar'].'"/> '.getUserDisplayName($r['user']). '
+                    <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/> '.getUserDisplayName($r['user']). '
                 </li>';
                 }
                 $option = $r['option'];
@@ -145,12 +187,19 @@ class Poll
         }
     }
 
-    function displayPoll ($pollid = '0', $showResults = true)
+    /**
+     * displayPoll 
+     * 
+     * @param   int     $pollid 
+     * @param   boolean $showResults 
+     * @return  void
+     */
+    function displayPoll ($pollid = 0, $showResults = true)
     {
         $poll_exists = true;
 
         // Get Latest Poll ID
-        if ($pollid == '0') {
+        if ($pollid == 0) {
             $sql = "SELECT MAX(`id`) AS max FROM `fcms_polls`";
             $this->db->query($sql) or displaySQLError(
                 'Max Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -168,7 +217,7 @@ class Poll
         if ($poll_exists) {
             $sql = "SELECT p.`id`, `question`, o.`id` AS option_id, `option` 
                     FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
-                    WHERE p.`id` = $pollid 
+                    WHERE p.`id` = '" . cleanInput($pollid, 'int') . "' 
                     AND p.`id` = o.`poll_id`";
             $this->db->query($sql) or displaySQLError(
                 'Poll Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -182,8 +231,8 @@ class Poll
         if ($poll_exists) {
             $sql = "SELECT * 
                     FROM `fcms_poll_votes` 
-                    WHERE `poll_id` = $pollid 
-                    AND `user` = ".$this->current_user_id;
+                    WHERE `poll_id` = '" . cleanInput($pollid, 'int') . "'
+                    AND `user` = ".$this->currentUserId;
             $this->db2->query($sql) or displaySQLError(
                 'Voted Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
@@ -206,7 +255,7 @@ class Poll
                 <h3>'.$row['question'].'</h3>';
                     }
                     echo '
-                <p><input type="radio" name="option_id" value="'.$row['option_id'].'"/><span>'.$row['option'].'</span></p>';
+                <p><input type="radio" name="option_id" value="'.(int)$row['option_id'].'"/><span>'.cleanOutput($row['option']).'</span></p>';
                     $i++;
                 }
                 echo '
@@ -223,13 +272,22 @@ class Poll
         }    
     }
 
+    /**
+     * displayPastPolls 
+     * 
+     * @param  int  $page 
+     * @return void
+     */
     function displayPastPolls ($page)
     {
         $locale = new Locale();
         $from = (($page * 15) - 15);
         echo '
             <h2>'.T_('Past Polls').'</h3>';
-        $sql = "SELECT * FROM fcms_polls ORDER BY started DESC LIMIT $from, 15";
+        $sql = "SELECT * 
+                FROM `fcms_polls` 
+                ORDER BY started DESC 
+                LIMIT $from, 15";
         $this->db->query($sql) or displaySQLError(
             'Polls Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -248,7 +306,7 @@ class Poll
                 $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $row['started']);
                 echo '
                     <tr>
-                        <td><a href="?poll_id='.$row['id'].'">'.$row['question'].'</a></td>
+                        <td><a href="?poll_id='.(int)$row['id'].'">'.cleanOutput($row['question']).'</a></td>
                         <td>'.$date.'</td></td>
                         <td>'.$this->getTotalVotes($row['id']).'</td>
                     </tr>';
@@ -271,21 +329,27 @@ class Poll
         }
     }
 
+    /**
+     * getTotalVotes 
+     * 
+     * @param  int  $pollid 
+     * @return void
+     */
     function getTotalVotes ($pollid)
     {
         $sql = "SELECT SUM(`votes`) AS total 
                 FROM `fcms_polls` AS p, `fcms_poll_options` AS o
-                WHERE p.`id` = $pollid 
+                WHERE p.`id` = '" . cleanInput($pollid, 'int') . "' 
                 AND p.`id` = o.`poll_id`";
         $this->db2->query($sql) or displaySQLError(
             'Total Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         if ($this->db2->count_rows() > 0) {
             $r = $this->db2->get_row();
-            return $r['total'];
+            return (int)$r['total'];
         } else {
             return 0;
         }
     }
 
-} ?>
+}

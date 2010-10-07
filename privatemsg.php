@@ -1,29 +1,33 @@
 <?php
 session_start();
-if (get_magic_quotes_gpc()) {
-    $_REQUEST = array_map('stripslashes', $_REQUEST);
-    $_GET = array_map('stripslashes', $_GET);
-    // a bug found with an array in $_POST
-    if (!isset($_POST['del'])) {
-        $_POST = array_map('stripslashes', $_POST);
-    }
-    $_COOKIE = array_map('stripslashes', $_COOKIE);
-}
+
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
+include_once('inc/database_class.php');
+include_once('inc/privatemsg_class.php');
+
+fixMagicQuotes();
 
 // Check that the user is logged in
 isLoggedIn();
-$current_user_id = (int)escape_string($_SESSION['login_id']);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-header("Cache-control: private");
-include_once('inc/privatemsg_class.php');
-$pm = new PrivateMessage($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$database = new Database(
+    'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass
+);
+$pm = new PrivateMessage($currentUserId, $database);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = T_('Private Messages');
-$TMPL['path'] = "";
-$TMPL['admin_path'] = "admin/";
+$TMPL = array(
+    'sitename'      => getSiteName(),
+    'nav-link'      => getNavLinks(),
+    'pagetitle'     => T_('Private Messages'),
+    'path'          => "",
+    'admin_path'    => "admin/",
+    'displayname'   => getUserDisplayName($currentUserId),
+    'version'       => getCurrentVersion(),
+    'year'          => date('Y')
+);
 $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
@@ -43,18 +47,11 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($current_user_id) . 'header.php');
+include_once(getTheme($currentUserId) . 'header.php');
 
 echo '
         <div id="privatemsg" class="centercontent">
 
-            <div id="sections_menu" class="clearfix">
-                <ul>
-                    <li><a href="profile.php">'.T_('Profiles').'</a></li>
-                    <li><a href="privatemsg.php">'.T_('Private Messages').'</a></li>
-                    <li><a href="profile.php?awards=yes">'.T_('Awards').'</a></li>
-                </ul>
-            </div>
             <div id="actions_menu" class="clearfix">
                 <ul><li><a href="?compose=new">'.T_('New Message').'</a></li></ul>
             </div>
@@ -68,35 +65,61 @@ echo '
 
             <div id="maincolumn">';
 $show = true;
+
+//------------------------------------------------------------------------------
+// Display form to create a new PM
+//------------------------------------------------------------------------------
 if (isset($_GET['compose'])) {
+
     $show = false;
+
+    // PM with no title
     if (isset($_GET['id']) && !isset($_GET['title'])) {
-        $pm->displayNewMessageForm($_GET['id']);
+        $id = cleanInput($_GET['id'], 'int');
+        $pm->displayNewMessageForm($id);
+
+    // PM with title
     } elseif (isset($_GET['id']) && isset($_GET['title'])) {
-        $pm->displayNewMessageForm($_GET['id'], $_GET['title']);
+        $id    = cleanInput($_GET['id'], 'int');
+        $title = cleanInput($_GET['title']);
+        $pm->displayNewMessageForm($id, $title);
+
     } else {
         $pm->displayNewMessageForm();
     }
+
+//------------------------------------------------------------------------------
+// Send PM
+//------------------------------------------------------------------------------
 } elseif (isset($_POST['submit'])) {
-    // Insert the PM into the DB
-    $title = escape_string($_POST['title']);
-    $msg = escape_string($_POST['post']);
+
+    $title = cleanInput($_POST['title']);
+    $msg   = cleanInput($_POST['post']);
+
     if (strlen($title) > 0 && strlen($msg) > 0) {
+        // Insert the PM into the DB
         $sql = "INSERT INTO `fcms_privatemsg` 
                     (`to`, `from`, `date`, `title`, `msg`) 
-                VALUES 
-                    (" . escape_string($_POST['to']) . ", $current_user_id, NOW(), '$title', '$msg')";
+                VALUES (
+                    '" . cleanInput($_POST['to']) . "', 
+                    '$currentUserId', 
+                    NOW(), 
+                    '$title', 
+                    '$msg'
+                )";
         mysql_query($sql) or displaySQLError(
             'Send PM Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
+
         // Email the PM to the user
-        $sql = "SELECT * FROM `fcms_users` WHERE `id` = " . escape_string($_POST['to']);
+        $sql = "SELECT * FROM `fcms_users` 
+                WHERE `id` = '" . cleanInput($_POST['to']) . "'";
         $result = mysql_query($sql) or displaySQLError(
             'Get User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         $r = mysql_fetch_array($result);
-        $from = getUserDisplayName($current_user_id);
-        $reply = getUserEmail($current_user_id);
+        $from = getUserDisplayName($currentUserId);
+        $reply = getUserEmail($currentUserId);
         $to = getUserDisplayName($_POST['to']);
         $sitename = getSiteName();
         $subject = sprintf(T_('A new Private Message at %s'), $sitename);
@@ -131,7 +154,9 @@ if (isset($_GET['compose'])) {
             </script>';
     }
 
+//------------------------------------------------------------------------------
 // Delete confirmation
+//------------------------------------------------------------------------------
 } else if (isset($_POST['delete']) && !isset($_POST['confirmed'])) {
     $show = false;
     echo '
@@ -142,7 +167,7 @@ if (isset($_GET['compose'])) {
                         <div>';
     foreach ($_POST['del'] as $id) {
         echo '
-                            <input type="hidden" name="del[]" value="'.$id.'"/>';
+                            <input type="hidden" name="del[]" value="'.(int)$id.'"/>';
     }
     echo '
                             <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
@@ -151,28 +176,43 @@ if (isset($_GET['compose'])) {
                     </form>
                 </div>';
 
+//------------------------------------------------------------------------------
 // Delete PM
+//------------------------------------------------------------------------------
 } elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
     if (isset($_POST['del'])) {
         $i = 0;
         foreach ($_POST['del'] as $id) {
             $sql = "DELETE FROM `fcms_privatemsg` WHERE `id` = ".escape_string($id);
-            mysql_query($sql) or displaySQLError('Delete PM Error', 'privatemsg.php [' . __LINE__ . ']', $sql, mysql_error());
+            mysql_query($sql) or displaySQLError(
+                'Delete PM Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $i++;
         }
         echo '
-            <p class="ok-alert" id="del">'.sprintf(_ngettext('%d Private Message Deleted Successfully', '%d Private Messages Deleted Successfully', $i), $i).'</p>
+            <p class="ok-alert" id="del">'
+                .sprintf(T_ngettext('%d Private Message Deleted Successfully', 
+                    '%d Private Messages Deleted Successfully', $i), $i).
+            '</p>
             <script type="text/javascript">
                 window.onload=function(){ var t=setTimeout("$(\'del\').toggle()",3000); }
             </script>';
     }
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 } elseif (isset($_GET['pm'])) {
     $show = false;
-    $pm->displayPM($_GET['pm']);
+    $privateMsg = cleanInput($_GET['pm']);
+    $pm->displayPM($privateMsg);
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 } elseif (isset($_GET['sent'])) {
     $show = false;
-    $pm->displaySentPM($_GET['sent']);
+    $sent = cleanInput($_GET['sent']);
+    $pm->displaySentPM($sent);
 }
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 if ($show) {
     if (isset($_GET['folder'])) {
         $pm->displaySentFolder();
@@ -186,4 +226,4 @@ echo '
         </div><!-- #profile .centercontent -->';
 
 // Show Footer
-include_once(getTheme($current_user_id) . 'footer.php');
+include_once(getTheme($currentUserId) . 'footer.php');

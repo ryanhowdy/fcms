@@ -1,6 +1,6 @@
 +-----------------------------------------------------------------------------+
 |                                                                             |
-|                           Family Connections 2.2.3                          |
+|                           Family Connections 2.3                            |
 |                                                                             |
 |                      Copyright (C) 2007 Ryan Haudenschilt                   |
 |                                                                             |
@@ -16,7 +16,7 @@
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.2.3.zip to your web host.
+  1. Upload the entire contents of FCMS_2.3.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -35,43 +35,76 @@ I. Installation
 
 
 
-II. Upgrading from 2.2.2 to 2.2.3
----------------------------------
+II. Upgrading from 2.2 to 2.3
+--------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
 
   ** DO NOT TOUCH ANY FILES IN THE FOLLOWING DIRECTORIES **
     gallery/avatar/
     gallery/documents/
-    gallery/photos/
+    gallery/photos/memberX/
     gallery/upimages/
 
   1. It is recommended that you backup your entire site, including your
      MySQL database before upgrading.
 
-  2. Upload the entire contents of FCMS_2.2.3.zip to your web host
+  2. Login as the administartor and turn off the site by visiting the 
+     configuration section.
+
+  3. Upload the entire contents of FCMS_2.3.zip to your web host
      (Overwriting any previous files other than the above mentioned files/directories).
   
-  3. Login as the administrator and visit the upgrade section and run the
+  4. Login as the administrator and visit the upgrade section and run the
      upgrade script.
 
-  4. Delete the install.php file from your web host (if it still exists).
+  5. Delete the install.php file from your web host (if it still exists).
 
+  6. Turn the site back on.
 
 
 
 III. Change Log
 ----------------
-2.2.3
+ 2.3
 
-    #171 - Invalid password in session/cookie prevents login
-    #172 - undefined escape_string during Installation
-    #173 - Add Comment Error File: gallery/index.php [423]
-    #174 - Calendar dates don't obey timezones
-    #175 - Avatar too big on Family News comments
-    #181 - php-gettext as failback solution
+    #16 - Relationships (geneology)
+    #30 - Add/edit catagories to recipies
+    #40 - Comments on the recipe section
+    #41 - Ability to add/edit calendar categories
+    #60 - Magic Quotes function
+    #65 - Encourage users to create a category when uploading new photos
+    #66 - Use Gravatar's
+    #104 - Revamp the Ranks & Awards
+    #113 - Add time for calendar entries
+    #117 - Fix/update the Profile page
+    #121 - Admin: Delete multiple Photos
+    #148 - Remove Administration: Message Board
+    #150 - Separate Category / Repeating
+    #151 - Create a generic Category table
+    #155 - RLS7 admin_class: spelling
+    #162 - Poll: voting with out an option selected causes error
+    #169 - members_class.php: Mixed up user string...
+    #177 - Small Calendar (today links)
+    #184 - Can't get Latest Awards (2.2.3)
+    #185 - April Abbreviation
+    #186 - Can't Export Calendar (undefined tz_offset)
+    #187 - 'Matuer Adult' translation issue
+    #188 - Family Connections 2.2.3 Multiple Remote Vulnerabilities
+    #189 - Merge Members
+    #193 - Memebers cannot edit Address information
+    #199 - Better user input validation
+    #201 - Can't upload Photos with uppercase file extensions
+    #202 - Document section will override existing files
+    #203 - Firefox download causes invalid document uploads
+    #204 - Remove Family News Comments popup
+    #207 - Recipe email is messed up for some users
+    #208 - Message Board email is messed up for some users
+    #210 - Allow new Family Tree members to be added without Email
+    #213 - Seperate profile page into profile and member pages
+    #216 - Slideshow for Photo Gallery
 
-  For the full change log please refer to the included "ChangeLog.txt" file.
+  For the full change log please refer to the included ChangeLog file.
 
 
 
@@ -80,4 +113,4 @@ IV. License
 ------------
 
   This software uses the The GNU General Public License (GPL), please refer to the 
-  full license description in the "license.txt" file.
+  full license description in the LICENSE file.

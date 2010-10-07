@@ -1,49 +1,61 @@
 <?php
+/**
+ * Contact
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
-if (get_magic_quotes_gpc()) {
-    $_REQUEST = array_map('stripslashes', $_REQUEST);
-    $_GET = array_map('stripslashes', $_GET);
-    $_POST = array_map('stripslashes', $_POST);
-    $_COOKIE = array_map('stripslashes', $_COOKIE);
-}
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
+
+require_once 'inc/config_inc.php';
+require_once 'inc/util_inc.php';
+
+fixMagicQuotes();
 
 // Check that the user is logged in
 isLoggedIn();
-$current_user_id = (int)escape_string($_SESSION['login_id']);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-header("Cache-control: private");
 // Setup the Template variables;
-$TMPL['pagetitle'] = T_('Contact');
-$TMPL['path'] = "";
-$TMPL['admin_path'] = "admin/";
+$TMPL = array(
+    'sitename'      => getSiteName(),
+    'nav-link'      => getNavLinks(),
+    'pagetitle'     => T_('Contact'),
+    'path'          => "",
+    'admin_path'    => "admin/",
+    'displayname'   => getUserDisplayName($currentUserId),
+    'version'       => getCurrentVersion(),
+    'year'          => date('Y')
+);
 
 // Show Header
-include_once(getTheme($current_user_id) . 'header.php');
+require_once getTheme($currentUserId) . 'header.php';
 
 echo '
         <div id="contact" class="centercontent">';
+
+// Send mail
 if (!empty($_POST['subject']) && !empty($_POST['email']) && !empty($_POST['name']) && !empty($_POST['msg'])) {
-    $subject = $_POST['subject'];
-    $email = $_POST['email'];
-    $name = $_POST['name'];
-    $msg = $_POST['msg'];
-    $email_headers = 'From: ' . $name . ' <' . $email . '>' . "\r\n" . 
-        'Reply-To: ' . getContactEmail() . "\r\n" . 
-        'Content-Type: text/plain; charset=UTF-8;' . "\r\n" . 
-        'MIME-Version: 1.0' . "\r\n" . 
-        'X-Mailer: PHP/' . phpversion();
+    $subject    = cleanOutput($_POST['subject']);
+    $email      = cleanOutput($_POST['email']);
+    $name       = cleanOutput($_POST['name']);
+    $msg        = cleanOutput($_POST['msg'], 'html');
+    $email_headers = getEmailHeaders($name, $email);
     mail(getContactEmail(), $subject, "$msg\r\n-$name", $email_headers);
     echo '
             <p>'.T_('The following message has been sent to the Administrator:').'</p>
-            <p>'.$msg.'<br/>- '.$name.'</p>';
+            <p>' . $msg . '<br/>- ' . $name . '</p>';
+
+// Show form
 } else {
-    $email = $name = $subject = $msg = '';
-    if (isset($_POST['email'])) { $email = htmlentities($_POST['email'], ENT_COMPAT, 'UTF-8'); }
-    if (isset($_POST['name'])) { $name = htmlentities($_POST['name'], ENT_COMPAT, 'UTF-8'); }
-    if (isset($_POST['subject'])) { $subject = htmlentities($_POST['subject'], ENT_COMPAT, 'UTF-8'); }
-    if (isset($_POST['msg'])) { $msg = $_POST['msg']; }
+    $email      = isset($_POST['email'])    ? cleanOutput($_POST['email'])          : '';
+    $name       = isset($_POST['name'])     ? cleanOutput($_POST['name'])           : '';
+    $subject    = isset($_POST['subject'])  ? cleanOutput($_POST['subject'])        : '';
+    $msg        = isset($_POST['msg'])      ? cleanOutput($_POST['msg'], 'html')    : '';
     echo '
             <fieldset>
                 <form method="post" class="contactform" action="contact.php">
@@ -71,4 +83,4 @@ echo '
         </div><!-- #contact .centercontent -->';
 
 // Show Footer
-include_once(getTheme($current_user_id) . 'footer.php'); ?>
+require_once getTheme($currentUserId) . 'footer.php';

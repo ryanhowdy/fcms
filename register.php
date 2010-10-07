@@ -1,12 +1,8 @@
 <?php
-if (get_magic_quotes_gpc()) {
-	$_REQUEST = array_map('stripslashes', $_REQUEST);
-	$_GET = array_map('stripslashes', $_GET);
-	$_POST = array_map('stripslashes', $_POST);
-	$_COOKIE = array_map('stripslashes', $_COOKIE);
-}
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
+
+fixMagicQuotes();
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo T_('lang'); ?>" lang="<?php echo T_('lang'); ?>">
@@ -57,13 +53,17 @@ function process(transport) {
 <?php
 mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 mysql_select_db($cfg_mysql_db);
+
 if (isset($_POST['submit'])) {
-    $email = escape_string($_POST['email']);
-    $username = escape_string($_POST['username']);
+    $email      = cleanInput($_POST['email']);
+    $username   = cleanInput($_POST['username']);
+
 	$result = mysql_query("SELECT `email` FROM `fcms_users` WHERE `email` = '$email'"); 
 	$email_check = mysql_num_rows($result);
+
 	$result = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '$username'"); 
 	$username_check = mysql_num_rows($result);
+
 	if (
         strlen($_POST['username']) < 1 ||
         strlen($_POST['password']) < 1 ||
@@ -83,18 +83,37 @@ if (isset($_POST['submit'])) {
             '<p class="error">'.T_('Sorry, but that username is already taken.  Please choose another username.').'</p>'
         );
 	} else {
-		$fname = escape_string($_POST['fname']);
-		$lname = escape_string($_POST['lname']);
-		$password = escape_string($_POST['password']);
-		$md5pass = md5($password);
-		$sql = "INSERT INTO `fcms_users`(`access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`) "
-             . "VALUES (3, NOW(), '$fname', '$lname', '$email', '$username', '$md5pass')";
-		mysql_query($sql) or displaySQLError('New User Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
+		$fname      = cleanInput($_POST['fname']);
+		$lname      = cleanInput($_POST['lname']);
+		$password   = cleanInput($_POST['password']);
+		$md5pass    = md5($password);
+
+		$sql = "INSERT INTO `fcms_users`
+                    (`access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`) 
+                VALUES (
+                    3, 
+                    NOW(), 
+                    '$fname', 
+                    '$lname', 
+                    '$email', 
+                    '$username', 
+                    '$md5pass'
+                )";
+		mysql_query($sql) or displaySQLError(
+            'New User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 		$lastid = mysql_insert_id();
+
 		$sql = "INSERT INTO `fcms_user_settings`(`user`) VALUES ($lastid)";
-		mysql_query($sql) or displaySQLError('User Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
-		$sql = "INSERT INTO `fcms_address`(`user`, `updated`) VALUES ($lastid, NOW())";
-		mysql_query($sql) or displaySQLError('New Address Error', 'register.php [' . __LINE__ . ']', $sql, mysql_error());
+		mysql_query($sql) or displaySQLError(
+            'User Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+
+		$sql = "INSERT INTO `fcms_address`(`user`, `updated`) 
+                VALUES ($lastid, NOW())";
+		mysql_query($sql) or displaySQLError(
+            'New Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $sitename = getSiteName();
 		$subject = $sitename.' '.T_('Membership');
         // TODO
@@ -106,16 +125,22 @@ if (isset($_POST['submit'])) {
 
 '.T_('Time of Registration').': '.$now.'
 
-'.T_('Username').': '.escape_string($username).'
-'.T_('Name').': '.escape_string($fname).' '.escape_string($lname);
+'.T_('Username').': '.$username.'
+'.T_('Name').': '.$fname.' '.$lname;
+
 		$sql = "SELECT `auto_activate` FROM `fcms_config`";
-		$result = mysql_query($sql) or displaySQLError('Activation Check Error', __FILE__.' [' . __LINE__ . ']', $sql, mysql_error());
+		$result = mysql_query($sql) or displaySQLError(
+            'Activation Check Error', __FILE__.' [' . __LINE__ . ']', $sql, mysql_error()
+        );
 		$row = mysql_fetch_assoc($result);
 		if ($row['auto_activate'] == 1) {
-			//bug in some versions of php, needs some value here
-			$code = uniqid('');
-			$sql = "UPDATE `fcms_users` SET `activate_code` = '$code' WHERE `id` = $lastid";
-			mysql_query($sql) or displaySQLError('Activation Code Error', __FILE__.' [' . __LINE__ . ']', $sql, mysql_error());
+			$code = uniqid(''); //bug in some versions of php, needs some value here
+			$sql = "UPDATE `fcms_users` 
+                    SET `activate_code` = '$code' 
+                    WHERE `id` = '$lastid'";
+			mysql_query($sql) or displaySQLError(
+                'Activation Code Error', __FILE__.' [' . __LINE__ . ']', $sql, mysql_error()
+            );
 			$message = T_('Please click the following link to activate your account').':
 
 '.getDomainAndDir().'activate.php?uid='.$lastid.'&code='.$code;
@@ -138,7 +163,7 @@ if (isset($_POST['submit'])) {
 '.T_('In order to login and beging using the site, your administrator must activate your account.  You will get an email when this has been done.').'
 
 '.T_('After your account is activated you can login using the following information').':
-'.T_('Username').': '.escape_string($username).' 
+'.T_('Username').': '.$username.' 
 '.T_('Password').': '.$password.' 
 
 '.T_('Thanks').',  
@@ -164,11 +189,12 @@ if (isset($_POST['submit'])) {
 </html>
 
 <?php
-function displayForm ($error = '0') {
-    $user = isset($_POST['username']) ? $_POST['username'] : '';
-    $first = isset($_POST['fname']) ? $_POST['fname'] : '';
-    $last = isset($_POST['lname']) ? $_POST['lname'] : '';
-    $email = isset($_POST['email']) ? $_POST['email'] : '';
+function displayForm ($error = '0')
+{
+    $user   = isset($_POST['username']) ? cleanOutput($_POST['username'])   : '';
+    $first  = isset($_POST['fname'])    ? cleanOutput($_POST['fname'])      : '';
+    $last   = isset($_POST['lname'])    ? cleanOutput($_POST['lname'])      : '';
+    $email  = isset($_POST['email'])    ? cleanOutput($_POST['email'])      : '';
     echo '
 	<div id="column">
         <h1>'.T_('Register').'</h1>';

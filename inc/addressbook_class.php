@@ -1,22 +1,39 @@
 <?php
-include_once('database_class.php');
 include_once('util_inc.php');
 
+/**
+ * AddressBook 
+ * 
+ * @package     Family Connections
+ * @copyright   Copyright (c) 2010 Haudenschilt LLC
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class AddressBook
 {
-
     var $db;
-    var $current_user_id;
-    var $tz_offset;
+    var $currentUserId;
+    var $tzOffset;
 
-    function AddressBook ($current_user_id, $type, $host, $database, $user, $pass)
+    /**
+     * AddressBook 
+     * 
+     * @param   int         $currentUserId 
+     * @param   database    $database 
+     * @return  void
+     */
+    function AddressBook ($currentUserId, $database)
     {
-        $this->current_user_id = $current_user_id;
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
-        $this->db->query($sql) or displaySQLError('Timezone Error', 'inc/addressbook_class.php [' . __LINE__ . ']', $sql, mysql_error());
+        $this->currentUserId = $currentUserId;
+        $this->db = $database;
+        $sql = "SELECT `timezone` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '$currentUserId'";
+        $this->db->query($sql) or displaySQLError(
+            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        $this->tzOffset = $row['timezone'];
     }
 
     /*
@@ -24,24 +41,20 @@ class AddressBook
      *
      *  Displays the selected address information, including the category it belongs to.
      *
-     *  @param      $aid    the id of the address you want to show
-     *  @param      $cat    the category that the address belongs in
-     *  @return     none
+     *  @param      int     $aid
+     *  @param      string  $cat
+     *  @return     void
      */
     function displayAddress ($aid, $cat)
     {
-        // Check for valid address id
-        if (!ctype_digit($aid)) {
-            echo '
-            <p class="error-alert">'.T_('Invalid Address').'</p>';
-            return;
-        }
+        $aid = cleanInput($aid, 'int');
+        $cat = cleanInput($cat);
 
         $sql = "SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `address`, `city`, `state`, 
                     `zip`, `home`, `work`, `cell`, `email`, `birthday`, `password` 
                 FROM `fcms_address` AS a, `fcms_users` AS u 
                 WHERE a.`user` = u.`id` 
-                AND a.`id` = $aid";
+                AND a.`id` = '$aid'";
         $this->db->query($sql) or displaySQLError(
             'Get Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -51,11 +64,12 @@ class AddressBook
             // Set up vars
             // Edit / Delete links
             $edit_del = '';
-            if ($this->current_user_id == $r['user'] || checkAccess($this->current_user_id) < 2) {
+            if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2) {
                 $edit_del = '<div class="edit_del_menu">
                     <form action="addressbook.php" method="post">
                         <div>
-                            <input type="hidden" name="id" value="'.$r['id'].'"/>
+                            <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
+                            <input type="hidden" name="user" value="'.(int)$r['user'].'"/>
                             <input type="submit" id="edit" name="edit" class="editbtn" value="'.T_('Edit').'"/>';
                 if ($r['password'] == 'NONMEMBER' || $r['password'] == 'PRIVATE') {
                     $edit_del .='
@@ -72,23 +86,24 @@ class AddressBook
                 $address = "<i>(".T_('none').")</i>";
             } else {
                 if (!empty($r['address'])) {
-                    $address .= $r['address'] . "<br/>";
+                    $address .= cleanOutput($r['address']) . "<br/>";
                 }
                 if (!empty($r['city'])) {
-                    $address .= $r['city'] . ", ";
+                    $address .= cleanOutput($r['city']) . ", ";
                 }
-                $address .= $r['state'] . " " . $r['zip'];
+                $address .= cleanOutput($r['state']) . " " . cleanOutput($r['zip']);
             }
             // Email
             if (empty($r['email'])) {
                 $email = "<i>(".T_('none').")</i>";
             } else {
-                $email = $r['email'] . ' <a class="email" href="mailto:' . $r['email'] . '" title="'.T_('Email This Member').'">&nbsp;</a>';
+                $email = cleanOutput($r['email']) . 
+                    ' <a class="email" href="mailto:' . cleanOutput($r['email']) . '" title="'.T_('Email This Member').'">&nbsp;</a>';
             }
             // Phone Numbers
-            $home = empty($r['home']) ? "<i>(" . T_('none') . ")</i>" : $r['home'];
-            $work = empty($r['work']) ? "<i>(" . T_('none') . ")</i>" : $r['work'];
-            $cell = empty($r['cell']) ? "<i>(" . T_('none') . ")</i>" : $r['cell'];
+            $home = empty($r['home']) ? "<i>(" . T_('none') . ")</i>" : cleanOutput($r['home']);
+            $work = empty($r['work']) ? "<i>(" . T_('none') . ")</i>" : cleanOutput($r['work']);
+            $cell = empty($r['cell']) ? "<i>(" . T_('none') . ")</i>" : cleanOutput($r['cell']);
             
             // Display address
             echo '
@@ -105,12 +120,30 @@ class AddressBook
                     </div>
                     <div id="address-details">
                         '.$edit_del.'
-                        <p><img src="gallery/avatar/'.$r['avatar'].'"/><b>'.$r['lname'].', '.$r['fname'].'</b></p>
-                        <p class="clearfix"><b class="label">'.T_('Address').':</b><span class="data">'.$address.'</span></p>
-                        <p class="clearfix"><b class="label">'.T_('Email').':</b><span class="data">'.$email.'</span></p>
-                        <p class="clearfix"><b class="label">'.T_('Home').':</b><span class="data">'.$home.'</span></p>
-                        <p class="clearfix"><b class="label">'.T_('Work').':</b><span class="data">'.$work.'</span></p>
-                        <p class="clearfix"><b class="label">'.T_('Mobile').':</b><span class="data">'.$cell.'</span></p>
+                        <p>
+                            <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/>
+                            <b>'.cleanOutput($r['lname']).', '.cleanOutput($r['fname']).'</b>
+                        </p>
+                        <p class="clearfix">
+                            <b class="label">'.T_('Address').':</b>
+                            <span class="data">'.$address.'</span>
+                        </p>
+                        <p class="clearfix">
+                            <b class="label">'.T_('Email').':</b>
+                            <span class="data">'.$email.'</span>
+                        </p>
+                        <p class="clearfix">
+                            <b class="label">'.T_('Home').':</b>
+                            <span class="data">'.$home.'</span>
+                        </p>
+                        <p class="clearfix">
+                            <b class="label">'.T_('Work').':</b>
+                            <span class="data">'.$work.'</span>
+                        </p>
+                        <p class="clearfix">
+                            <b class="label">'.T_('Mobile').':</b>
+                            <span class="data">'.$cell.'</span>
+                        </p>
                     </div>
                 </div>';
         } else {
@@ -119,13 +152,13 @@ class AddressBook
         }
     }
 
-    /*
-     *  displayAddressList
+    /**
+     * displayAddressList 
+     * 
+     * Displays the categories and the user's in that category.
      *
-     *  Displays the categories and the user's in that category.
-     *
-     *  @param      $cat    the category
-     *  @return     none
+     * @param   string  $cat
+     * @return  void
      */
     function displayAddressList ($cat = '')
     {
@@ -151,7 +184,7 @@ class AddressBook
                     </div>
                 </div>';
         $dis = '';
-        if (checkAccess($this->current_user_id) > 3) {
+        if (checkAccess($this->currentUserId) > 3) {
             $dis = 'disabled="disabled"';
         }
         echo '
@@ -159,13 +192,18 @@ class AddressBook
             </form>';
     }
 
+    /**
+     * displayToolbar 
+     * 
+     * @return void
+     */
     function displayToolbar ()
     {
         echo '
                     <div id="address-toolbar" class="clearfix">
                         <ul id="add">
                             <li><a class="add" href="?add=yes">'.T_('Add Contact').'</a></li>
-                            <li><a href="?address='.$this->current_user_id.'">'.T_('View My Address').'</a></li>
+                            <li><a href="?address='.$this->currentUserId.'">'.T_('View My Address').'</a></li>
                         </ul>
                         <ul id="import-export">
                             <li><a href="?csv=import">'.T_('Import').'</a></li>
@@ -174,13 +212,13 @@ class AddressBook
                     </div>';
     }
 
-    /*
-     *  displayCategories
+    /**
+     * displayCategories
      *
-     *  Displays the list of categories.
+     * Displays the list of categories.
      *
-     *  @param      $selected   the currently selected category
-     *  @return     none
+     * @param      $selected   the currently selected category
+     * @return     void
      */
     function displayCategories ($selected = '')
     {
@@ -206,14 +244,14 @@ class AddressBook
                         </ul>';
     }
 
-    /*
-     *  displayAddressInCategory
+    /**
+     * displayAddressInCategory
      *
-     *  Displays all the addresses in the given category.
+     * Displays all the addresses in the given category.
      *
-     *  @param      $category    the category, if any
-     *  @param      $selected    the addresses that is selected, if any
-     *  @return     none
+     * @param      $category    the category, if any
+     * @param      $selected    the addresses that is selected, if any
+     * @return     void
      */
     function displayAddressInCategory ($category = '', $selected = '')
     {
@@ -245,7 +283,7 @@ class AddressBook
             $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` 
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
-                    AND a.`entered_by` = ".$this->current_user_id." 
+                    AND a.`entered_by` = ".$this->currentUserId." 
                     AND `password` = 'PRIVATE' 
                     ORDER BY `lname`";
         }
@@ -262,26 +300,33 @@ class AddressBook
             }
             $email = '<input disabled="disabled" type="checkbox"/>';
             if (!empty($r['email'])) {
-                $email = '<input type="checkbox" name="massemail[]" value="'.htmlentities($r['email'], ENT_COMPAT, 'UTF-8').'"/>';
+                $email = '<input type="checkbox" name="massemail[]" value="'.cleanOutput($r['email']).'"/>';
             }
             echo '
-                            <li class="clearfix '.$sel.'"> '.$email.'<a href="?'.$cat.'address='.$r['id'].'">'.$r['lname'].', '.$r['fname'].'</a></li>';
+                            <li class="clearfix '.$sel.'"> '
+                                . $email . 
+                                '<a href="?' . $cat . 'address=' . (int)$r['id'] . '">'
+                                    . cleanOutput($r['lname']) . ', ' . cleanOutput($r['fname']) . 
+                                '</a>' . 
+                            '</li>';
         }
         echo '
                         </ul>';
     }
 
-    /*
-     *  displayForm
+    /**
+     * displayForm
      *
-     *  Displays the form for adding/editing an address.
+     * Displays the form for adding/editing an address.
      *
-     *  @param      $type       edit | add
-     *  @param      $addressid  the id of the address you want to edit
-     *  @return     none
+     * @param      $type       edit | add
+     * @param      $addressid  the id of the address you want to edit
+     * @return     none
      */
-    function displayForm ($type, $addressid = '0')
+    function displayForm ($type, $addressid = 0)
     {
+        $addressid = cleanInput($addressid, 'int');
+
         if ($type == 'edit') {
             $sql = "SELECT a.`id`, u.`id` AS uid, `fname`, `lname`, `email`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell` "
                  . "FROM `fcms_users` AS u, `fcms_address` AS a "
@@ -294,16 +339,16 @@ class AddressBook
         // Setup vars for output
         if ($type == 'edit') {
             $note = '';
-            $legend = T_('Edit Address') . " (" . stripslashes($row['fname']) . " " . stripslashes($row['lname']) . ")";
+            $legend = T_('Edit Address') . " (" . cleanOutput($row['fname']) . " " . cleanOutput($row['lname']) . ")";
             $add = '';
-            $email = htmlentities($row['email'], ENT_COMPAT, 'UTF-8');
-            $address = htmlentities($row['address'], ENT_COMPAT, 'UTF-8');
-            $city = htmlentities($row['city'], ENT_COMPAT, 'UTF-8');
-            $state = htmlentities($row['state'], ENT_COMPAT, 'UTF-8');
-            $zip = htmlentities($row['zip'], ENT_COMPAT, 'UTF-8');
-            $home = htmlentities($row['home'], ENT_COMPAT, 'UTF-8');
-            $work = htmlentities($row['work'], ENT_COMPAT, 'UTF-8');
-            $cell = htmlentities($row['cell'], ENT_COMPAT, 'UTF-8');
+            $email      = cleanOutput($row['email']);
+            $address    = cleanOutput($row['address']);
+            $city       = cleanOutput($row['city']);
+            $state      = cleanOutput($row['state']);
+            $zip        = cleanOutput($row['zip']);
+            $home       = cleanOutput($row['home']);
+            $work       = cleanOutput($row['work']);
+            $cell       = cleanOutput($row['cell']);
         } else {
             // TODO
             // Make this a removable alert message (part of Alerts table)
@@ -391,7 +436,7 @@ class AddressBook
             echo '
                     <div>
                         <input type="hidden" name="aid" value="'.$addressid.'"/>
-                        <input type="hidden" name="uid" value="'.$row['uid'].'"/>
+                        <input type="hidden" name="uid" value="'.(int)$row['uid'].'"/>
                     </div>
                     <p>
                         <input class="sub1" type="submit" name="editsubmit" value="'.T_('Edit').'"/> 
@@ -416,25 +461,64 @@ class AddressBook
         }
     }
 
+    /**
+     * displayMassEmailForm 
+     *
+     * Displays the form for sending out mass emails.
+     * 
+     * @param   array   $emails     the email address you are mass mailing to
+     * @param   string  $email 
+     * @param   string  $name 
+     * @param   string  $subject 
+     * @param   string  $message 
+     * @param   string  $show 
+     * @return  void
+     */
     function displayMassEmailForm ($emails, $email = '', $name = '', $subject = '', $message = '', $show = '')
     {
-        $err_email = $err_name = $err_subject = $err_msg = '';
+        $errors = false;
+        $err_email = '';
+        $err_name = '';
+        $err_subject = '';
+        $err_msg = '';
+
+        // Are we allowed to show errors?
         if (!empty($show)) {
-            if (empty($email)) { $err_email = '<br/><span class="error">'.T_('Required').'</span>'; }
-            if (empty($name)) { $err_name = '<br/><span class="error">'.T_('Required').'</span>'; }
-            if (empty($subject)) { $err_subject = '<br/><span class="error">'.T_('Required').'</span>'; }
-            if (empty($msg)) { $err_msg = '<br/><span class="error">'.T_('Required').'</span>'; }
+            if (empty($email)) {
+                $errors = true;
+                $err_email = '<br/><span class="error">'.T_('Required').'</span>';
+            }
+            if (empty($name)) {
+                $errors = true;
+                $err_name = '<br/><span class="error">'.T_('Required').'</span>';
+            }
+            if (empty($subject)) {
+                $errors = true;
+                $err_subject = '<br/><span class="error">'.T_('Required').'</span>';
+            }
+            if (empty($message)) {
+                $errors = true;
+                $err_msg = '<br/><span class="error">'.T_('Required').'</span>';
+            }
         }
         echo '
             <p class="info-alert">
                 '.T_('Filling out the form below will send an email to all the selected members in your addressbook. Sending an email to a large number of people can take a long time. Please be patient.').'
-            </p>
+            </p>';
+        if ($errors) {
+            echo '
+            <p class="error-alert">' . T_('Missing Required Field') . '</p>';
+        }
+        echo '
             <script type="text/javascript" src="inc/livevalidation.js"></script>
             <form method="post" class="contactform" action="addressbook.php">
                 <fieldset>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="email"><b>'.T_('Your Email').'</b></label></div>
-                        <div class="field-widget"><input class="frm_text" type="text" name="email" id="email" size="30"/>'.$err_email.'</div>
+                        <div class="field-widget">
+                            <input class="frm_text" value="' . cleanOutput($email) . '" type="text" name="email" id="email" size="30"/>
+                            '.$err_email.'
+                        </div>
                     </div>
                     <script type="text/javascript">
                         var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
@@ -442,7 +526,10 @@ class AddressBook
                     </script>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="name"><b>'.T_('Your Name').'</b></label></div>
-                        <div class="field-widget"><input class="frm_text" type="text" name="name" id="name" size="30"/>'.$err_name.'</div>
+                        <div class="field-widget">
+                            <input class="frm_text" value="' . cleanOutput($name) . '" type="text" name="name" id="name" size="30"/>
+                            '.$err_name.'
+                        </div>
                     </div>
                     <script type="text/javascript">
                         var fname = new LiveValidation(\'name\', { onlyOnSubmit: true });
@@ -450,7 +537,10 @@ class AddressBook
                     </script>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="subject"><b>'.T_('Subject').'</b></label></div>
-                        <div class="field-widget"><input class="frm_text" type="text" name="subject" id="subject" size="30"/>'.$err_subject.'</div>
+                        <div class="field-widget">
+                            <input class="frm_text" value="' . cleanOutput($subject) . '" type="text" name="subject" id="subject" size="30"/>
+                            '.$err_subject.'
+                        </div>
                     </div>
                     <script type="text/javascript">
                         var fsub = new LiveValidation(\'subject\', { onlyOnSubmit: true });
@@ -458,7 +548,10 @@ class AddressBook
                     </script>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="msg"><b>'.T_('Message').'</b></label></div>
-                        <div class="field-widget"><textarea name="msg" id="msg" rows="10" cols="40"/></textarea>'.$err_msg.'</div>
+                        <div class="field-widget">
+                            <textarea name="msg" id="msg" rows="10" cols="40"/>' . cleanOutput($message, 'html') . '</textarea>
+                            '.$err_msg.'
+                        </div>
                     </div>
                     <script type="text/javascript">
                         var fmsg = new LiveValidation(\'msg\', { onlyOnSubmit: true });
@@ -467,7 +560,7 @@ class AddressBook
                     <div>';
         foreach ($emails as $email) {
             echo '
-                        <input type="hidden" name="emailaddress[]" value="'.$email.'"/>';
+                        <input type="hidden" name="emailaddress[]" value="' . cleanOutput($email) . '"/>';
         }
         echo '
                     </div>
@@ -480,13 +573,13 @@ class AddressBook
             </form>';
     }
 
-    /*
-     *  userHasAddress
+    /**
+     * userHasAddress
      *
-     *  Checks whether or not the user has entered address info.
+     * Checks whether or not the user has entered address info.
      *
-     *  @param      $id    the user's id
-     *  @return     true/false
+     * @param      $id    the user's id
+     * @return     true/false
      */
     function userHasAddress ($id)
     {
@@ -513,11 +606,16 @@ class AddressBook
         }
     }
 
+    /**
+     * displayWhatsNewAddressBook 
+     * 
+     * @return void
+     */
     function displayWhatsNewAddressBook ()
     {
         $locale = new Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
 
         echo '
             <h3>'.T_('Address Book').'</h3>
@@ -534,18 +632,18 @@ class AddressBook
         if ($this->db->count_rows() > 0) {
             while($row = $this->db->get_row()) {
                 $displayname = getUserDisplayName($row['user'], 2, false);
-                $date = $locale->fixDate('YmdHis', $this->tz_offset, $row['updated']);
+                $date = $locale->fixDate('YmdHis', $this->tzOffset, $row['updated']);
                 if ($date >= $today_start && $date <= $today_end) {
                     $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $row['updated']);
+                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $row['updated']);
                     $d = '';
                 }
                 echo '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
-                    <a href="addressbook.php?address='.$row['id'].'">'.$displayname.'</a>
+                    <a href="addressbook.php?address='.(int)$row['id'].'">'.$displayname.'</a>
                 </li>';
             }
         } else {
@@ -556,10 +654,10 @@ class AddressBook
             </ul>';
     }
 
-    /*
-     *  displayImportForm
+    /**
+     * displayImportForm
      *
-     *  Displays the form to allow csv imports.
+     * Displays the form to allow csv imports.
      */
     function displayImportForm ()
     {
@@ -579,13 +677,13 @@ class AddressBook
             </form>';
     }
 
-    /*
-     *  importAddressCsv
+    /**
+     * importAddressCsv
      *
-     *  Imports a CSV file into the address book
+     * Imports a CSV file into the address book
      *
-     *  @param      $file   the csv file
-     *  @return     nothing
+     * @param      $file   the csv file
+     * @return     nothing
      */
     function importAddressCsv ($file)
     {
@@ -826,35 +924,37 @@ class AddressBook
                 if (isset($_POST['private'])) {
                     $pw = 'PRIVATE';
                 }
-                $sql = "INSERT INTO `fcms_users` ("
-                        . "`access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`"
-                     . ") VALUES ("
-                        . "3, "
-                        . "NOW(), "
-                        . "'" . addslashes($fname) . "', "
-                        . "'" . addslashes($lname) . "', "
-                        . "'" . addslashes($email) . "', "
-                        . "'NONMEMBER-$uniq', "
-                        . "'$pw')";
+                $sql = "INSERT INTO `fcms_users` (
+                            `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`
+                        ) VALUES (
+                            3, 
+                            NOW(), 
+                            '" . cleanInput($fname) . "', 
+                            '" . cleanInput($lname) . "', 
+                            '" . cleanInput($email) . "', 
+                            'NONMEMBER-$uniq', 
+                            '$pw'
+                        )";
                 mysql_query($sql) or displaySQLError(
                     'Add Non-Member Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
                 $id = mysql_insert_id();
                 // Create address for non-member
-                $sql = "INSERT INTO `fcms_address`("
-                        . "`user`, `entered_by`, `updated`, `address`, `city`, `state`, "
-                        . "`zip`, `home`, `work`, `cell`"
-                     . ") VALUES ("
-                        . "$id, "
-                        . $this->current_user_id . ", "
-                        . "NOW(), "
-                        . "'" . addslashes($street) . "', "
-                        . "'" . addslashes($city) . "', "
-                        . "'" . addslashes($state) . "', "
-                        . "'" . addslashes($zip) . "', "
-                        . "'" . addslashes($home) . "', "
-                        . "'" . addslashes($work) . "', "
-                        . "'" . addslashes($cell) . "')";
+                $sql = "INSERT INTO `fcms_address`(
+                            `user`, `entered_by`, `updated`, `address`, `city`, `state`, 
+                            `zip`, `home`, `work`, `cell`
+                        ) VALUES (
+                            '$id', 
+                            '" . $this->currentUserId . "', 
+                            NOW(), 
+                            '" . cleanInput($street) . "', 
+                            '" . cleanInput($city) . "', 
+                            '" . cleanInput($state) . "', 
+                            '" . cleanInput($zip) . "', 
+                            '" . cleanInput($home) . "', 
+                            '" . cleanInput($work) . "', 
+                            '" . cleanInput($cell) . "'
+                        )";
                 mysql_query($sql) or displaySQLError(
                     'New Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );

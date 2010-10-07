@@ -1,31 +1,55 @@
 <?php
 include_once('util_inc.php');
 
+/**
+ * Alerts 
+ * 
+ * @package     Family Connections
+ * @copyright   Copyright (c) 2010 Haudenschilt LLC
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class Alerts
 {
 
     var $db;
-    var $current_user_id;
+    var $currentUserId;
 
+    /**
+     * Alerts 
+     * 
+     * @param string $id 
+     * @param string $database 
+     * @return void
+     */
     function Alerts ($id, $database)
     {
         $this->db = $database;
-        $this->current_user_id = $id;
+        $this->currentUserId = cleanInput($id, 'int');
     }
     
+    /**
+     * displayNewAdminHome 
+     * 
+     * @param  int  $userid 
+     * @return void
+     */
     function displayNewAdminHome ($userid)
     {
+        $userid = cleanInput($userid, 'int');
+
         if (checkAccess($userid) < 2) {
             $sql = "SELECT * 
                     FROM `fcms_alerts` 
                     WHERE `alert` = 'alert_new_admin_home'
-                    AND `user` = $userid 
+                    AND `user` = '$userid' 
                     AND `hide` = 1";
             $this->db->query($sql) or displaySQLError(
                 'Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
             if ($this->db->count_rows() < 1) { 
                 $sitename = getSiteName();
+                $sitename = cleanOutput($sitename);
                 echo '
             <div id="alert_new_admin_home" class="info-alert">
                 <h2>'.sprintf(T_('Welcome to %s'), $sitename).'</h2>
@@ -51,13 +75,21 @@ class Alerts
         }
     }
 
+    /**
+     * displayNewUserHome 
+     * 
+     * @param  int  $userid 
+     * @return void
+     */
     function displayNewUserHome ($userid)
     {
+        $userid = cleanInput($userid, 'int');
+
         if (checkAccess($userid) > 1) {
             $sql = "SELECT * 
                     FROM `fcms_alerts` 
                     WHERE `alert` = 'alert_new_user_home'
-                    AND `user` = $userid 
+                    AND `user` = '$userid' 
                     AND `hide` = 1";
             $this->db->query($sql) or displaySQLError(
                 'Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -65,6 +97,7 @@ class Alerts
             if ($this->db->count_rows() < 1) { 
                 $user = getUserDisplayName($userid);
                 $sitename = getSiteName();
+                $sitename = cleanOutput($sitename);
                 $access = getAccessLevel($userid);
                 echo '
             <div id="alert_new_user_home" class="info-alert">
@@ -83,12 +116,20 @@ class Alerts
         }
     }
 
+    /**
+     * displayPoll 
+     * 
+     * @param  int  $userid 
+     * @return void
+     */
     function displayPoll ($userid)
     {
+        $userid = cleanInput($userid, 'int');
+
         $sql = "SELECT * 
                 FROM `fcms_alerts` 
                 WHERE `alert` = 'alert_poll'
-                AND `user` = $userid 
+                AND `user` = '$userid' 
                 AND `hide` = 1";
         $this->db->query($sql) or displaySQLError(
             'Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -104,12 +145,20 @@ class Alerts
         }
     }
  
+    /**
+     * displayAddress 
+     * 
+     * @param  int  $userid 
+     * @return void
+     */
     function displayAddress ($userid)
     {
+        $userid = cleanInput($userid, 'int');
+
         $sql = "SELECT * 
                 FROM `fcms_alerts` 
                 WHERE `alert` = 'alert_address'
-                AND `user` = $userid 
+                AND `user` = '$userid' 
                 AND `hide` = 1";
         $this->db->query($sql) or displaySQLError(
             'Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
@@ -119,7 +168,7 @@ class Alerts
             <div id="alert_address" class="info-alert">
                 <h3>'.T_('It looks like you haven\'t added your address information yet.').'</h3>
                 <p>'.T_('The other website members would appreciate it if you would add your address information.  This will help them stay in touch.').'</p>
-                <p><a href="?address='.$this->current_user_id.'">'.T_('Add Address').'</a></p>
+                <p><a href="?address='.$this->currentUserId.'">'.T_('Add Address').'</a></p>
                 <div class="close-alert"><a id="new_address" href="?alert=alert_address">'.T_('Delete This Alert').'</a></div>
             </div>';
         }

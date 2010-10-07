@@ -19,11 +19,6 @@ T_bind_textdomain_codeset('messages', 'UTF-8');
 T_textdomain('messages');
 
 // Email Headers and Smileys
-$email_headers = 'From: ' . getSiteName() . ' <' . getContactEmail() . '>' . "\r\n" . 
-    'Reply-To: ' . getContactEmail() . "\r\n" . 
-    'Content-Type: text/plain; charset=UTF-8;' . "\r\n" . 
-    'MIME-Version: 1.0' . "\r\n" . 
-    'X-Mailer: PHP/' . phpversion();
 $smileydir = "themes/smileys/";
 $smiley_array = array(':smile:', ':none:', ':)', '=)', ':wink:', ';)', ':tongue:', ':biggrin:', ':sad:', ':(', ':sick:', ':cry:', ':shocked:', ':cool:', ':sleep:', 'zzz', ':angry:', ':mad:', ':embarrassed:', ':shy:', 
     ':rolleyes:', ':nervous:', ':doh:', ':love:', ':please:', ':1please:', ':hrmm:', ':quiet:', ':clap:', ':twitch:', ':blah:', ':bored:', ':crazy:', ':excited:', ':noidea:', ':disappointed:', ':banghead:', 
@@ -35,26 +30,68 @@ $smiley_file_array = array('smile.gif', 'smile.gif', 'smile.gif', 'smile.gif', '
     'thumbdown.gif', 'twocents.gif'
 );
 
+/**
+ * getEmailHeaders 
+ * 
+ * @param   string  $name 
+ * @param   string  $email 
+ * @return  string
+ */
+function getEmailHeaders ($name = '', $email = '')
+{
+    if (empty($name)) {
+        $name = getSiteName();
+    }
+    if (empty($email)) {
+        $email = getContactEmail();
+    }
+    return "From: $name <$email>\r\n" . 
+        "Reply-To: $email\r\n" . 
+        "Content-Type: text/plain; charset=UTF-8;\r\n" . 
+        "MIME-Version: 1.0\r\n" . 
+        "X-Mailer: PHP/" . phpversion();
+}
+
+/**
+ * getTheme 
+ * 
+ * @param   int     $userid 
+ * @param   string  $d          the path
+ * @return  void
+ */
 function getTheme ($userid, $d = "")
 {
     if (empty($userid)) {
         return $d . "themes/default/";
     } else {
-        $result = mysql_query("SELECT `theme` FROM `fcms_user_settings` WHERE `user` = $userid") or die('<h1>Theme Error (util.inc.php 18)</h1>' . mysql_error());
+        $userid = cleanInput($userid, 'int');
+        $sql = "SELECT `theme` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '$userid'";
+        $result = mysql_query($sql) or displaySQLError(
+            'Theme Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $r = mysql_fetch_array($result);
         $pos = strpos($r['theme'], '.css');
         if ($pos === false) {
-            return $d . "themes/" . $r['theme'] . "/";
+            return $d . "themes/" . basename($r['theme']) . "/";
         } else {
             return $d . "themes/" . substr($r['theme'], 0, $pos) . "/";
         }
     }
 }
 
+/**
+ * getLanguage 
+ * 
+ * @return  string
+ */
 function getLanguage ()
 {
     if (isset($_SESSION['login_id'])) {
-        $sql = "SELECT `language` FROM `fcms_user_settings` WHERE `id` = " . escape_string($_SESSION['login_id']);
+        $sql = "SELECT `language` 
+                FROM `fcms_user_settings` 
+                WHERE `id` = '" . cleanInput($_SESSION['login_id'], 'int') . "'";
         $result = mysql_query($sql) or displaySQLError(
             'Language Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -67,26 +104,35 @@ function getLanguage ()
 }
 
 /*
- *  getUserDisplayName
- *  
- *  @param  $userid      the id of the desired user
- *  @param  $display     optional - how to display it, overrides user's prefs
- *  @return  a string of the users display name
+ * getUserDisplayName
+ *
+ * Gets the user's name, displayed how they set in there settings, unless display option is set
+ * which will overwrite the user's settings.
+ * 
+ * @param   int     $userid 
+ * @param   int     $display 
+ * @param   boolean $isMember 
+ * @return  string
  */
 function getUserDisplayName ($userid, $display = 0, $isMember = true)
 {
+    $userid = cleanInput($userid, 'int');
+
     if ($isMember) {
         $sql = "SELECT u.`fname`, u.`lname`, u.`username`, s.`displayname` "
              . "FROM `fcms_users` AS u, `fcms_user_settings` AS s "
-             . "WHERE u.`id` = $userid "
+             . "WHERE u.`id` = '$userid' "
              . "AND u.`id` = s.`user`";
     } else {
         $sql = "SELECT `fname`, `lname`, `username` "
              . "FROM `fcms_users` "
-             . "WHERE `id` = $userid ";
+             . "WHERE `id` = '$userid' ";
     }
-    $result = mysql_query($sql) or displaySQLError('Displayname Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+    $result = mysql_query($sql) or displaySQLError(
+        'Displayname Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $r = mysql_fetch_array($result);
+
     // Do we want user's settings or overriding it?
     if ($display < 1) {
         $displayname = $r['displayname'];
@@ -101,16 +147,18 @@ function getUserDisplayName ($userid, $display = 0, $isMember = true)
     }
 }
 
-/*
- *  getPMCount
- *  
- *  @return  a string consisting of the user's new pm count in ()'s
+/**
+ * getPMCount 
+ *
+ * Returns a string consisting of the user's new pm count in ()'s
+ * 
+ * @return  string
  */
 function getPMCount ()
 {
     $sql = "SELECT * FROM `fcms_privatemsg` 
             WHERE `read` < 1 
-            AND `to` = '".escape_string($_SESSION['login_id'])."'";
+            AND `to` = '" . cleanInput($_SESSION['login_id'], 'int') . "'";
     $result = mysql_query($sql) or displaySQLError(
         'PM Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -120,17 +168,19 @@ function getPMCount ()
     return '';
 }
 
-/*
- *  getUserEmail
- *  
- *  @param  $userid - the id of the desired user
- *  @return  a string of the users email
+/**
+ * getUserEmail 
+ * 
+ * @param   string  $userid 
+ * @return  string
  */
 function getUserEmail ($userid)
 {
+    $userid = cleanInput($userid, 'int');
+
     $sql = "SELECT `email` "
          . "FROM `fcms_users` "
-         . "WHERE `id` = $userid";
+         . "WHERE `id` = '$userid'";
     $result = mysql_query($sql) or displaySQLError(
         'Email Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -138,77 +188,110 @@ function getUserEmail ($userid)
     return $r['email'];
 }
 
-/*
- *  getDefaultNavUrl
- *  
- *  Gets the url for the 'Share' default link
+/**
+ * getDefaultNavUrl 
  *
- *  @return  string of the url
+ * Gets the url for the 'Share' default link
+ * 
+ * @return  string
  */
 function getDefaultNavUrl ()
 {
-    $sql = "SELECT `link` FROM `fcms_navigation` WHERE `col` = 4 AND `order` = 1";
+    $sql = "SELECT `link` 
+            FROM `fcms_navigation` 
+            WHERE `col` = 4 
+            AND `order` = 1";
     $result = mysql_query($sql) or displaySQLError(
-        'Nav Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Default Nav Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $r = mysql_fetch_array($result);
     return getSectionUrl($r['link']);
 }
 
-/*
- *  getNavLinks
- *  
- *  Gets the links and order for the 'Share' sub menu
+/**
+ * getNavLinks 
  *
- *  @return  an array of the info
+ * Gets the links and order for the given sub menu (column)
+ * 
+ *      1. home
+ *      2. my stuff
+ *      3. communicate
+ *      4. share
+ *      5. misc.
+ *      6. administration
+ * 
+ * @param int $column
+ * 
+ * @return  array
  */
 function getNavLinks ()
 {
-    $sql = "SELECT * FROM `fcms_navigation` WHERE `col` = 4 AND `order` != 0 ORDER BY `order`";
+    $sql = "SELECT `link`, `col`
+            FROM `fcms_navigation` 
+            WHERE `order` != 0 
+            ORDER BY `col`, `order`";
     $result = mysql_query($sql) or displaySQLError(
         'Nav Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $ret = array();
     while ($r = mysql_fetch_array($result)) {
-        $ret[] = array(
-            'url' => getSectionUrl($r['link']),
+        $ret[$r['col']][] = array(
+            'url'  => getSectionUrl($r['link']),
             'text' => getSectionName($r['link']),
         ); 
     }
     return $ret;
 }
 
-/*
- *  getSectionName
- *  
- *  Given the name of the section from the db, returns the translated text
+/**
+ * getSectionName 
  *
- *  @param      the name of the section from the navigation tbl
- *  @return     a string with the translated name
+ * Given the name of the section from the db, returns the translated text
+ * 
+ * @param   string  $section 
+ * @return  string
  */
 function getSectionName ($section)
 {
     switch ($section) {
-        case 'photogallery':
-            return T_('Photo Gallery');
-            break;
         case 'addressbook':
             return T_('Address Book');
             break;
         case 'calendar':
             return T_('Calendar');
             break;
-        case 'familynews':
-            return T_('Family News');
-            break;
-        case 'recipes':
-            return T_('Recipes');
+        case 'chat':
+            return T_('Chat');
             break;
         case 'documents':
             return T_('Documents');
             break;
+        case 'familynews':
+            return T_('Family News');
+            break;
+        case 'messageboard':
+            return T_('Message Board');
+            break;
+        case 'photogallery':
+            return T_('Photo Gallery');
+            break;
         case 'prayers':
             return T_('Prayers');
+            break;
+        case 'profile':
+            return T_('Profile');
+            break;
+        case 'pm':
+            return T_('Private Messages');
+            break;
+        case 'recipes':
+            return T_('Recipes');
+            break;
+        case 'settings':
+            return T_('Settings');
+            break;
+        case 'tree':
+            return T_('Family Tree');
             break;
         default:
             return 'error';
@@ -216,37 +299,55 @@ function getSectionName ($section)
     }
 }
 
-/*
- *  getSectionUrl
- *  
- *  Given the name of the section from the db, returns the url for that section
+/**
+ * getSectionUrl 
  *
- *  @param      the name of the section from the navigation tbl
- *  @return     a string with the url
+ * Given the name of the section from the db, returns the url for that section
+ * 
+ * @param   string  $section 
+ * @return  string
  */
 function getSectionUrl ($section)
 {
     switch ($section) {
-        case 'photogallery':
-            return 'gallery/index.php';
-            break;
         case 'addressbook':
             return 'addressbook.php';
             break;
         case 'calendar':
             return 'calendar.php';
             break;
-        case 'familynews':
-            return 'familynews.php';
-            break;
-        case 'recipes':
-            return 'recipes.php';
+        case 'chat':
+            return 'chat.php';
             break;
         case 'documents':
             return 'documents.php';
             break;
+        case 'familynews':
+            return 'familynews.php';
+            break;
+        case 'messageboard':
+            return 'messageboard.php';
+            break;
+        case 'photogallery':
+            return 'gallery/index.php';
+            break;
         case 'prayers':
             return 'prayers.php';
+            break;
+        case 'profile':
+            return 'profile.php';
+            break;
+        case 'pm':
+            return 'privatemsg.php';
+            break;
+        case 'recipes':
+            return 'recipes.php';
+            break;
+        case 'settings':
+            return 'settings.php';
+            break;
+        case 'tree':
+            return 'familytree.php';
             break;
         default:
             return 'home.php';
@@ -254,10 +355,24 @@ function getSectionUrl ($section)
     }
 }
 
+/**
+ * displayNewPM 
+ * 
+ * @param   int     $userid 
+ * @param   string  $d 
+ * @return  void
+ */
 function displayNewPM ($userid, $d = "")
 {
-    $sql = "SELECT `id` FROM `fcms_privatemsg` WHERE `to` = $userid AND `read` < 1";
-    $result = mysql_query($sql) or displaySQLError('Get New PM', 'util_inc.php [' . __LINE__ . ']', $sql, mysql_error());
+    $userid = cleanInput($userid, 'int');
+
+    $sql = "SELECT `id` 
+            FROM `fcms_privatemsg` 
+            WHERE `to` = '$userid' AND `read` < 1";
+    $result = mysql_query($sql) or displaySQLError(
+        'Get New PM', 'util_inc.php [' . __LINE__ . ']', $sql, mysql_error()
+    );
+
     if (mysql_num_rows($result) > 0) {
         echo "<a href=\"" . $d . "privatemsg.php\" class=\"new_pm\">" . T_('New PM') . "</a> ";
     } else {
@@ -265,16 +380,44 @@ function displayNewPM ($userid, $d = "")
     }
 }
 
+/**
+ * checkAccess 
+ *
+ * Returns the access level as a number for the given user.
+ * 
+ * @param   int     $userid 
+ * @return  int
+ */
 function checkAccess ($userid)
 {
-    $result = mysql_query("SELECT access FROM fcms_users WHERE id = $userid") or die('<h1>Access Error (util.inc.php 47)</h1>' . mysql_error());
+    $userid = cleanInput($userid, 'int');
+
+    $sql = "SELECT `access` 
+            FROM `fcms_users` 
+            WHERE `id` = '$userid'";
+    $result = mysql_query($sql) or displaySQLError(
+        'Access Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $r = mysql_fetch_array($result);
     return $r['access'];
 }
 
+/**
+ * getAccessLevel 
+ *
+ * Returns the access level name for the given user.
+ * 
+ * @param   int     $userid 
+ * @return  string
+ */
 function getAccessLevel ($userid)
 {
-    $result = mysql_query("SELECT access FROM fcms_users WHERE id = $userid") or die('<h1>Access Error (util.inc.php 47)</h1>' . mysql_error());
+    $sql = "SELECT `access` 
+            FROM `fcms_users` 
+            WHERE `id` = '$userid'";
+    $result = mysql_query($sql) or displaySQLError(
+        'Access Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $r = mysql_fetch_array($result);
     $access = T_('Member');
     switch ($r['access']) {
@@ -288,10 +431,10 @@ function getAccessLevel ($userid)
             $access = T_('Member');
             break;
         case 4:
-            $access = T_('Non-Poster');
+            $access = T_('Non-Photographer');
             break;
         case 5:
-            $access = T_('Non-Photographer');
+            $access = T_('Non-Poster');
             break;
         case 6:
             $access = T_('Commenter');
@@ -312,44 +455,31 @@ function getAccessLevel ($userid)
     return $access;
 }
 
+/**
+ * parse 
+ * 
+ * @param   string  $data 
+ * @param   string  $d 
+ * @return  void
+ */
 function parse ($data, $d = '')
 {
     $data = htmlentities($data, ENT_COMPAT, 'UTF-8');
     $data = parse_smilies($data, $d);
     $data = parse_bbcodes($data);
-    $data = bbcode_quote($data);
     $data = nl2br_nospaces($data);
     return $data;
 }
 
+/**
+ * parse_bbcodes 
+ * 
+ * @param   string  $data 
+ * @return  void
+ */
 function parse_bbcodes ($data)
 {
-    $search = array(
-        '/\[ins\](.*?)\[\/ins\]/is', 
-        '/\[del\](.*?)\[\/del\]/is', 
-        '/\[h1\](.*?)\[\/h1\]/is', 
-        '/\[h2\](.*?)\[\/h2\]/is', 
-        '/\[h3\](.*?)\[\/h3\]/is', 
-        '/\[h4\](.*?)\[\/h4\]/is', 
-        '/\[h5\](.*?)\[\/h5\]/is', 
-        '/\[h6\](.*?)\[\/h6\]/is', 
-        '/\[b\](.*?)\[\/b\]/is', 
-        '/\[i\](.*?)\[\/i\]/is', 
-        '/\[u\](.*?)\[\/u\]/is', 
-        '/\[url\=(.*?)\](.*?)\[\/url\]/is', 
-        '/\[url\](.*?)\[\/url\]/is', 
-        '/\[align\=(left|center|right)\](.*?)\[\/align\]/is', 
-        '/\[img\=(.*?)\]/is', 
-        '/\[img\](.*?)\[\/img\]/is', 
-        '/\[mail\=(.*?)\](.*?)\[\/mail\]/is', 
-        '/\[mail\](.*?)\[\/mail\]/is', 
-        '/\[font\=(.*?)\](.*?)\[\/font\]/is', 
-        '/\[size\=(.*?)\](.*?)\[\/size\]/is', 
-        '/\[color\=(.*?)\](.*?)\[\/color\]/is', 
-        '/\[span\](.*?)\[\/span\]/is', 
-        '/\[span\=(.*?)\](.*?)\[\/span\]/is', 
-        '/\[video\](.*?)\[\/video\]/ise'
-    );
+    $search = getBBCodeList();
     $replace = array(
         '<ins>$1</ins>', 
         '<del>$1</del>', 
@@ -374,11 +504,120 @@ function parse_bbcodes ($data)
         '<span style="color: $1;">$2</span>', 
         '<span>$1</span>', 
         '<span class="$1">$2</span>',
+        '<blockquote>$1</blockquote>',
         'unhtmlentities("\\1")'
     );
     $data = preg_replace ($search, $replace, $data);
     return $data; 
 }
+
+/**
+ * removeBBCode 
+ * 
+ * @param   string  $str 
+ * @return  string
+ */
+function removeBBCode ($str)
+{
+    $search = getBBCodeList();
+    $replace = array(
+        '$1', // ins 
+        '$1', // del
+        '$1', // h1
+        '$1', // h2
+        '$1', // h3
+        '$1', // h4
+        '$1', // h5
+        '$1', // h6
+        '$1', // b
+        '$1', // i
+        '$1', // u
+        '$2', // url
+        '$1', // url 
+        '$2', // align
+        '',   // img
+        '',   // img
+        '$2', // mail
+        '$1', // mail
+        '$2', // font
+        '$2', // size
+        '$2', // color
+        '$1', // span
+        '$2', // span
+        '$1', // quote
+        '',   // video
+    );
+    return preg_replace($search, $replace, stripslashes($str));
+}
+
+/**
+ * getBBCodeList 
+ *
+ * Returns an array of regex for the current list of BBCodes that FCMS supports.
+ *
+ * @return  array
+ */
+function getBBCodeList ()
+{
+    return array(
+        '/\[ins\](.*?)\[\/ins\]/is', 
+        '/\[del\](.*?)\[\/del\]/is', 
+        '/\[h1\](.*?)\[\/h1\]/is', 
+        '/\[h2\](.*?)\[\/h2\]/is', 
+        '/\[h3\](.*?)\[\/h3\]/is', 
+        '/\[h4\](.*?)\[\/h4\]/is', 
+        '/\[h5\](.*?)\[\/h5\]/is', 
+        '/\[h6\](.*?)\[\/h6\]/is', 
+        '/\[b\](.*?)\[\/b\]/is', 
+        '/\[i\](.*?)\[\/i\]/is', 
+        '/\[u\](.*?)\[\/u\]/is', 
+        '/\[url\=(.*?)\](.*?)\[\/url\]/is', 
+        '/\[url\](.*?)\[\/url\]/is', 
+        '/\[align\=(left|center|right)\](.*?)\[\/align\]/is', 
+        '/\[img\=(.*?)\]/is', 
+        '/\[img\](.*?)\[\/img\]/is', 
+        '/\[mail\=(.*?)\](.*?)\[\/mail\]/is', 
+        '/\[mail\](.*?)\[\/mail\]/is', 
+        '/\[font\=(.*?)\](.*?)\[\/font\]/is', 
+        '/\[size\=(.*?)\](.*?)\[\/size\]/is', 
+        '/\[color\=(.*?)\](.*?)\[\/color\]/is', 
+        '/\[span\](.*?)\[\/span\]/is', 
+        '/\[span\=(.*?)\](.*?)\[\/span\]/is', 
+        '/\[quote\](.*?)\[\/quote\]/is', 
+        '/\[video\](.*?)\[\/video\]/ise'
+    );
+}
+
+
+/**
+ * parse_smilies 
+ * 
+ * @param   string  $data 
+ * @param   string  $d 
+ * @return  void
+ */
+function parse_smilies ($data, $d = '')
+{
+    global $smiley_array, $smiley_file_array, $smileydir;
+    $i = 0;
+    while($i < count($smiley_array)) {
+        $data = str_replace($smiley_array[$i], '<img src="' . $d . $smileydir . $smiley_file_array[$i] . '" alt="'. $smiley_array[$i] . '" />', $data);
+        $i ++;
+    }
+    return $data;
+}
+
+/**
+ * nl2br_nospaces 
+ * 
+ * @param   string  $string 
+ * @return  void
+ */
+function nl2br_nospaces ($string)
+{
+    $string = str_replace(array("\r\n", "\r", "\n"), "<br/>", $string); 
+    return $string; 
+} 
 
 // Used for PHP 4 and less
 if (!function_exists('stripos')) {
@@ -397,41 +636,11 @@ if (!function_exists('mb_detect_encoding')) {
     }
 }
 
-
-function parse_smilies ($data, $d = '')
-{
-    global $smiley_array, $smiley_file_array, $smileydir;
-    $i = 0;
-    while($i < count($smiley_array)) {
-        $data = str_replace($smiley_array[$i], '<img src="' . $d . $smileydir . $smiley_file_array[$i] . '" alt="'. $smiley_array[$i] . '" />', $data);
-        $i ++;
-    }
-    return $data;
-}
-
-function bbcode_quote ($data)
-{
-    $open = '<blockquote>'; 
-    $close = '</blockquote>'; 
-    preg_match_all ('/\[quote\]/i', $data, $matches); 
-    $opentags = count($matches['0']); 
-    preg_match_all ('/\[\/quote\]/i', $data, $matches); 
-    $closetags = count($matches['0']); 
-    $unclosed = $opentags - $closetags; 
-    for ($i = 0; $i < $unclosed; $i++) { $data.= '</blockquote>'; } 
-    $data = str_replace ('[' . 'QUOTE]', $open, $data); 
-    $data = str_replace ('[' . 'quote]', $open, $data); 
-    $data = str_replace ('[/' . 'QUOTE]', $close, $data); 
-    $data = str_replace ('[/' . 'quote]', $close, $data); 
-    return $data; 
-}
-
-function nl2br_nospaces ($string)
-{
-    $string = str_replace(array("\r\n", "\r", "\n"), "<br/>", $string); 
-    return $string; 
-} 
-
+/**
+ * displaySmileys 
+ * 
+ * @return  void
+ */
 function displaySmileys ()
 {
     global $smiley_array, $smiley_file_array;
@@ -446,6 +655,12 @@ function displaySmileys ()
     }
 }
 
+/**
+ * escape_string 
+ * 
+ * @param   string  $string 
+ * @return  string
+ */
 function escape_string ($string)
 {
     if (version_compare(phpversion(), "4.3.0") == "-1") {
@@ -455,7 +670,104 @@ function escape_string ($string)
     }
 }
 
-// html_entity_decode for PHP 4.3.0 and earlier:
+/**
+ * fixMagicQuotes 
+ *
+ * Strips slashes if magic quotes is turned on
+ * 
+ * @return void
+ */
+function fixMagicQuotes ()
+{
+    if (get_magic_quotes_gpc()) {
+        $_REQUEST = stripSlashesDeep($_REQUEST);
+        $_GET = stripSlashesDeep($_GET);
+        $_POST = stripSlashesDeep($_POST);
+        $_COOKIE = stripSlashesDeep($_COOKIE);
+    }
+}
+
+/**
+ * stripSlashesDeep 
+ *
+ * recursively strips slashes on arrays.  if not array, just stripslashes
+ * 
+ * @param   mixed   $val 
+ * @return  void
+ */
+function stripSlashesDeep ($value)
+{
+    $value = is_array($value) ? 
+                array_map('stripSlashesDeep', $value) : 
+                stripslashes($value);
+    return $value;
+}
+
+/**
+ * cleanInput 
+ *
+ * Cleans input from the user, so it's safe to insert into the DB.
+ * 
+ * @param   mixed   $input 
+ * @param   string  $type 
+ * @return  mixed
+ */
+function cleanInput ($input, $type = 'string')
+{
+    if ($type == 'int') {
+        $input = (int)$input;
+    }
+    return escape_string($input);
+}
+
+/**
+ * cleanOutput 
+ *
+ * Cleans output from the db or from the user so it can be displayed.
+ * 
+ * @param   mixed   $output 
+ * @param   string  $type 
+ * @return  mixed
+ */
+function cleanOutput ($output, $type = 'string')
+{
+    // Strings that may contain HTML
+    if ($type == 'html') {
+        return htmlentities($output, ENT_COMPAT, 'UTF-8');
+    }
+
+    // Strings without HTML
+    $output = strip_tags($output);
+    return htmlentities($output, ENT_COMPAT, 'UTF-8');
+}
+
+/**
+ * cleanFilename 
+ *
+ * Removes unwanted characters from a filename.
+ * 
+ * @param string $filename 
+ * 
+ * @return  void
+ */
+function cleanFilename ($filename)
+{
+    // convert spaces to underscores
+    $filename = str_replace(" ", "_", $filename);
+
+    // remove everything else but numbers and letters _ -
+    $filename = preg_replace('/[^.A-Za-z0-9_-]/', '', $filename);
+
+    return $filename;
+}
+/**
+ * unhtmlentities 
+ *
+ * html_entity_decode for PHP 4.3.0 and earlier:
+ * 
+ * @param   string  $string 
+ * @return  string
+ */
 function unhtmlentities($string)
 {
     // replace numeric entities
@@ -481,18 +793,22 @@ function unhtmlentities($string)
  */
 function getPostsById ($user_id, $option = 'both')
 {
+    $user_id = cleanInput($user_id, 'int');
+
     $sql = "SELECT COUNT(`id`) AS c FROM `fcms_board_posts`";
     $result = mysql_query($sql) or displaySQLError(
         'Total Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $found = mysql_fetch_array($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_board_posts` WHERE `user` = $user_id";
+
+    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_board_posts` WHERE `user` = '$user_id'";
     $result = mysql_query($sql) or displaySQLError(
         'Count Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $found = mysql_fetch_array($result);
     $count = $found['c'];
+
     if ($total < 1 || $count < 1) {
         $count = '0';
         $percent = '0%';
@@ -529,13 +845,15 @@ function getPostsById ($user_id, $option = 'both')
  */
 function getPhotosById ($user_id, $option = 'both')
 {
+    $user_id = cleanInput($user_id, 'int');
+
     $sql = "SELECT COUNT(`id`) AS c FROM `fcms_gallery_photos`";
     $result = mysql_query($sql) or displaySQLError(
         'Total Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $found = mysql_fetch_array($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_photos` WHERE `user` = $user_id";
+    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_photos` WHERE `user` = '$user_id'";
     $result = mysql_query($sql) or displaySQLError(
         'Count Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -577,13 +895,15 @@ function getPhotosById ($user_id, $option = 'both')
  */
 function getCommentsById ($user_id, $option = 'both')
 {
+    $user_id = cleanInput($user_id, 'int');
+
     $sql = "SELECT COUNT(`id`) AS c FROM `fcms_gallery_comments`";
     $result = mysql_query($sql) or displaySQLError(
         'Total Gallery Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $found = mysql_fetch_array($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_comments` WHERE `user` = $user_id";
+    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_comments` WHERE `user` = '$user_id'";
     $result = mysql_query($sql) or displaySQLError(
         'Count Gallery Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -598,7 +918,7 @@ function getCommentsById ($user_id, $option = 'both')
         );
         $found = mysql_fetch_array($result);
         $total = $total + $found['c'];
-        $sql = "SELECT COUNT(`user`) AS c FROM `fcms_news_comments` WHERE `user` = $user_id";
+        $sql = "SELECT COUNT(`user`) AS c FROM `fcms_news_comments` WHERE `user` = '$user_id'";
         $result = mysql_query($sql) or displaySQLError(
             'Count News Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -641,13 +961,15 @@ function getCommentsById ($user_id, $option = 'both')
  */
 function getCalendarEntriesById ($user_id, $option = 'both')
 {
+    $user_id = cleanInput($user_id, 'int');
+
     $sql = "SELECT COUNT(`id`) AS c FROM `fcms_calendar`";
     $result = mysql_query($sql) or displaySQLError(
         'Total Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $found = mysql_fetch_array($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_calendar` WHERE `created_by` = $user_id";
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_calendar` WHERE `created_by` = '$user_id'";
     $result = mysql_query($sql) or displaySQLError(
         'Count Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -689,13 +1011,15 @@ function getCalendarEntriesById ($user_id, $option = 'both')
  */
 function getFamilyNewsById ($user_id, $option = 'both')
 {
+    $user_id = cleanInput($user_id, 'int');
+
     $sql = "SELECT COUNT(`id`) AS c FROM `fcms_news`";
     $result = mysql_query($sql) or displaySQLError(
         'Total News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $found = mysql_fetch_array($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_news` WHERE `user` = $user_id GROUP BY `user`";
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_news` WHERE `user` = '$user_id' GROUP BY `user`";
     $result = mysql_query($sql) or displaySQLError(
         'Count News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -737,13 +1061,15 @@ function getFamilyNewsById ($user_id, $option = 'both')
  */
 function getRecipesById ($user_id, $option = 'both')
 {
+    $user_id = cleanInput($user_id, 'int');
+
     $sql = "SELECT COUNT(`id`) AS c FROM `fcms_recipes`";
     $result = mysql_query($sql) or displaySQLError(
         'Total Recipes Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $found = mysql_fetch_array($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_recipes` WHERE `user` = $user_id GROUP BY `user`";
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_recipes` WHERE `user` = '$user_id' GROUP BY `user`";
     $result = mysql_query($sql) or displaySQLError(
         'Count Recipes Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -785,13 +1111,15 @@ function getRecipesById ($user_id, $option = 'both')
  */
 function getDocumentsById ($user_id, $option = 'both')
 {
+    $user_id = cleanInput($user_id, 'int');
+
     $sql = "SELECT COUNT(`id`) AS c FROM `fcms_documents`";
     $result = mysql_query($sql) or displaySQLError(
         'Total Documents Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $found = mysql_fetch_array($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_documents` WHERE `user` = $user_id GROUP BY `user`";
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_documents` WHERE `user` = '$user_id' GROUP BY `user`";
     $result = mysql_query($sql) or displaySQLError(
         'Count Documents Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -833,13 +1161,15 @@ function getDocumentsById ($user_id, $option = 'both')
  */
 function getPrayersById ($user_id, $option = 'both')
 {
+    $user_id = cleanInput($user_id, 'int');
+
     $sql = "SELECT COUNT(`id`) AS c FROM `fcms_prayers`";
     $result = mysql_query($sql) or displaySQLError(
         'Total Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $found = mysql_fetch_array($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_prayers` WHERE `user` = $user_id GROUP BY `user`";
+    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_prayers` WHERE `user` = '$user_id' GROUP BY `user`";
     $result = mysql_query($sql) or displaySQLError(
         'Count Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -867,64 +1197,255 @@ function getPrayersById ($user_id, $option = 'both')
     }
 }
 
+/**
+ * getNewsComments 
+ * 
+ * @param   int     $news_id 
+ * @return  void
+ */
 function getNewsComments ($news_id)
 {
-    $result = mysql_query("SELECT count(id) AS c FROM fcms_news_comments WHERE news = $news_id") or die('<h1>Count Error (util.inc.php 134)</h1>' . mysql_error());
+    $news_id = cleanInput($news_id, 'int');
+
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_news_comments` 
+            WHERE `news` = '$news_id'";
+    $result = mysql_query($sql) or displaySQLError(
+        'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
     $found = mysql_fetch_array($result);
     return  $found['c'] ? $found['c'] : 0;
 }
 
-function getUserRankById ($user_id)
+/**
+ * getUserParticipationPoints
+ * 
+ * Get the participation points for the given member.
+ *
+ *      Action      Points
+ *      -------------------
+ *      thread          5
+ *      photo           3
+ *      news            3
+ *      recipe          2
+ *      document        2
+ *      prayer          2
+ *      post            2
+ *      comment         2
+ *      address         1
+ *      phone #         1
+ *      date/event      1
+ *      vote            1
+ *
+ * @param   int     $id 
+ * @return  int
+ */
+function getUserParticipationPoints ($id)
 {
+    $id = cleanInput($id, 'int');
+
     $points = 0;
-    $news_count = 0;
-    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_board_posts` WHERE `user` = $user_id";
+    $commentTables = array('fcms_gallery_comments');
+
+    // Thread (5)
+    $sql = "SELECT COUNT(`id`) AS thread
+            FROM `fcms_board_threads`
+            WHERE `started_by` = '$id'";
     $result = mysql_query($sql)  or displaySQLError(
-        'Count Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Thread Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
-    $found = mysql_fetch_array($result);
-    $post_count = $found['c'];
-    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_photos` WHERE `user` = $user_id";
+    $r = mysql_fetch_array($result);
+    $points += $r['thread'] * 5;
+
+    // Photo (3)
+    $sql = "SELECT COUNT(`id`) AS photo 
+            FROM `fcms_gallery_photos` 
+            WHERE `user` = '$id'";
     $result = mysql_query($sql)  or displaySQLError(
-        'Count Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Photo Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
-    $found = mysql_fetch_array($result);
-    $photo_count = $found['c'];
-    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_comments` WHERE `user` = $user_id";
-    $result = mysql_query($sql)  or displaySQLError(
-        'Count Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
-    $comments_count = $found['c'];
-    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_poll_votes` WHERE `user` = $user_id";
-    $result = mysql_query($sql)  or displaySQLError(
-        'Count Polls Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
-    $vote_count = $found['c'];
-    $sql = "SELECT COUNT(`created_by`) AS c FROM `fcms_calendar` WHERE `created_by` = $user_id";
-    $result = mysql_query($sql)  or displaySQLError(
-        'Count Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
-    $calendar_count = $found['c'];
+    $r = mysql_fetch_array($result);
+    $points += $r['photo'] * 3;
+
+    // News (3)
     if (usingFamilyNews()) {
-        $sql = "SELECT COUNT(`user`) AS c FROM `fcms_news` WHERE `user` = $user_id";
+
+        array_push($commentTables, 'fcms_news_comments');
+
+        $sql = "SELECT COUNT(`id`) AS news 
+                FROM `fcms_news` 
+                WHERE `user` = '$id'";
         $result = mysql_query($sql)  or displaySQLError(
-            'Count News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'News Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        $found = mysql_fetch_array($result);
-        $news_count = $found['c'];
+        $r = mysql_fetch_array($result);
+        $points += $r['news'] * 3;
     }
-    $points = ($post_count / 75) + 
-              ($photo_count / 25) + 
-              ($comments_count / 20) + 
-              ($calendar_count / 5) + 
-              ($news_count / 10) + 
-              ($vote_count / 10);
+
+    // Recipe (2)
+    if (usingRecipes()) {
+
+        array_push($commentTables, 'fcms_recipe_comment');
+
+        $sql = "SELECT COUNT(`id`) AS recipe 
+                FROM `fcms_recipes` 
+                WHERE `user` = '$id'";
+        $result = mysql_query($sql)  or displaySQLError(
+            'Recipe Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $r = mysql_fetch_array($result);
+        $points += $r['recipe'] * 2;
+    }
+
+    // Document (2)
+    if (usingDocuments()) {
+        $sql = "SELECT COUNT(`id`) AS doc 
+                FROM `fcms_documents` 
+                WHERE `user` = '$id'";
+        $result = mysql_query($sql)  or displaySQLError(
+            'Doc Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $r = mysql_fetch_array($result);
+        $points += $r['doc'] * 2;
+    }
+
+    // Prayer (2)
+    if (usingPrayers()) {
+        $sql = "SELECT COUNT(`id`) AS prayer 
+                FROM `fcms_prayers` 
+                WHERE `user` = '$id'";
+        $result = mysql_query($sql)  or displaySQLError(
+            'Prayer Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $r = mysql_fetch_array($result);
+        $points += $r['prayer'] * 2;
+    }
+
+    // Post (2)
+    $sql = "SELECT COUNT(`id`) AS post 
+            FROM `fcms_board_posts` 
+            WHERE `user` = '$id'";
+    $result = mysql_query($sql)  or displaySQLError(
+        'Post Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $r = mysql_fetch_array($result);
+    $points += $r['post'] * 2;
+
+    // Comment (2)
+    $from  = implode('`, `', $commentTables);
+    $where = implode("`.`user` = '$id' AND `", $commentTables);
+
+    $sql = "SELECT COUNT(*) AS comment 
+            FROM `$from` 
+            WHERE `$where`.`user` = '$id'";
+    $result = mysql_query($sql)  or displaySQLError(
+        'Comment Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $r = mysql_fetch_array($result);
+    $points += $r['comment'] * 2;
+
+    // Address/Phone (1)
+    $sql = "SELECT `address`, `city`, `state`, `home`, `work`, `cell` 
+            FROM `fcms_address` 
+            WHERE `user` = '$id'";
+    $result = mysql_query($sql)  or displaySQLError(
+        'Addres Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $r = mysql_fetch_array($result);
+    if (!empty($r['address']) && !empty($r['city']) && !empty($r['state'])) {
+        $points++;
+    }
+    if (!empty($r['home'])) {
+        $points++;
+    }
+    if (!empty($r['work'])) {
+        $points++;
+    }
+    if (!empty($r['cell'])) {
+        $points++;
+    }
+
+    // Date/Event
+    $sql = "SELECT COUNT(`id`) AS event 
+            FROM `fcms_calendar` 
+            WHERE `created_by` = '$id'";
+    $result = mysql_query($sql)  or displaySQLError(
+        'Event Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $r = mysql_fetch_array($result);
+    $points += $r['event'];
+
+    // Vote
+    $sql = "SELECT COUNT(`id`) AS vote 
+            FROM `fcms_poll_votes` 
+            WHERE `user` = '$id'";
+    $result = mysql_query($sql)  or displaySQLError(
+        'Vote Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $r = mysql_fetch_array($result);
+    $points += $r['vote'];
+
     return $points;
 }
 
+/**
+ * getUserParticipationLevel
+ * 
+ * Get the participation level for the given points.
+ *
+ *      Level   Points
+ *      ---------------
+ *      1           25
+ *      2           50
+ *      3          100
+ *      4          200
+ *      5          400
+ *      6          800
+ *      7        1,600
+ *      8        3,200
+ *      9        6,400
+ *      10      12,800
+ *      
+ *
+ * @param   int     $points
+ * @return  string
+ */
+function getUserParticipationLevel ($points)
+{
+    $level = '';
+
+    if ($points > 12800) {
+        $level = '<div title="'.T_('Level 10').' ('.$points.')" class="level10"></div>';
+    } elseif ($points > 6400) {
+        $level = '<div title="'.T_('Level 9').' ('.$points.')" class="level9"></div>';
+    } elseif ($points > 3200) {
+        $level = '<div title="'.T_('Level 8').' ('.$points.')" class="level8"></div>';
+    } elseif ($points > 1600) {
+        $level = '<div title="'.T_('Level 7').' ('.$points.')" class="level7"></div>';
+    } elseif ($points > 800) {
+        $level = '<div title="'.T_('Level 6').' ('.$points.')" class="level6"></div>';
+    } elseif ($points > 400) {
+        $level = '<div title="'.T_('Level 5').' ('.$points.')" class="level5"></div>';
+    } elseif ($points > 200) {
+        $level = '<div title="'.T_('Level 4').' ('.$points.')" class="level4"></div>';
+    } elseif ($points > 100) {
+        $level = '<div title="'.T_('Level 3').' ('.$points.')" class="level3"></div>';
+    } elseif ($points > 50) {
+        $level = '<div title="'.T_('Level 2').' ('.$points.')" class="level2"></div>';
+    } elseif ($points > 25) {
+        $level = '<div title="'.T_('Level 1').' ('.$points.')" class="level1"></div>';
+    } else {
+        $level = '<div title="'.T_('Level 0').' ('.$points.')" class="level0"></div>';
+    }
+
+    return $level;
+}
+
+/**
+ * getContactEmail 
+ * 
+ * @return  string
+ */
 function getContactEmail ()
 {
     $result = mysql_query("SELECT `contact` FROM `fcms_config`");
@@ -932,13 +1453,23 @@ function getContactEmail ()
     return $r['contact'];
 }
 
+/**
+ * getSiteName 
+ * 
+ * @return  string
+ */
 function getSiteName()
 {
     $result = mysql_query("SELECT `sitename` FROM `fcms_config`");
     $r = mysql_fetch_array($result);
-    return $r['sitename'];
+    return cleanOutput($r['sitename']);
 }
 
+/**
+ * getCurrentVersion 
+ * 
+ * @return  void
+ */
 function getCurrentVersion()
 {
     $result = mysql_query("SELECT `current_version` FROM `fcms_config`");
@@ -946,6 +1477,11 @@ function getCurrentVersion()
     return $r['current_version'];
 }
 
+/**
+ * displayMBToolbar 
+ * 
+ * @return  void
+ */
 function displayMBToolbar ()
 {
     echo '
@@ -967,8 +1503,30 @@ function displayMBToolbar ()
             </div>';
 }
 
-function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h, $max_w, $unique = 'no')
+/**
+ * uploadImages 
+ * 
+ * @param string  $filetype 
+ * @param string  $filename 
+ * @param string  $filetmpname 
+ * @param string  $destination 
+ * @param int     $max_h 
+ * @param int     $max_w 
+ * @param boolean $unique 
+ * @param boolean $show
+ * @param boolean $square
+ * 
+ * @return  string
+ */
+function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h, $max_w, $unique = false, $show = true, $square = false)
 {
+    include_once('gallery_class.php');
+    include_once('database_class.php');
+    $currentUserId = cleanInput($_SESSION['login_id'], 'int');
+    global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
+    $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+    $gallery = new PhotoGallery($currentUserId, $database);
+
     $known_photo_types = array(
         'image/pjpeg' => 'jpeg', 
         'image/jpeg' => 'jpg', 
@@ -1000,32 +1558,60 @@ function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h,
                 '.sprintf(T_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $filetype).'
             </p>';
     } else {
-        if ($unique !== 'no') {
+
+        // Make filename unique
+        if ($unique) {
             $new_id = uniqid("");
             $extention = $known_photo_types[$filetype];
             $filename = $new_id . "." . $extention;
         }
+
         copy($filetmpname, $destination . $filename);
         $size = GetImageSize($destination . $filename);
-        if ($size[0] > $size[1]) {
-            if ($size[0] > $max_w) { $thumbnail_width = $max_w; $thumbnail_height = (int)($max_w * $size[1] / $size[0]); } else { $thumbnail_width = $size[0]; $thumbnail_height = $size[1]; }
+
+        if ($square) {
+            $thumbnail = $gallery->getResizeSizeSquare(
+                $size[0], 
+                $size[1], 
+                $max_w
+            );
+            $temp_width  = $thumbnail[0];
+            $temp_height = $thumbnail[1];
+            $width       = $thumbnail[2];
+            $height      = $thumbnail[3];
         } else {
-            if ($size[1] > $max_h) { $thumbnail_width = (int)($max_h * $size[0] / $size[1]); $thumbnail_height = $max_h; } else { $thumbnail_width = $size[0]; $thumbnail_height = $size[1]; }
+            $thumbnail = $gallery->getResizeSize(
+                $size[0], 
+                $size[1], 
+                $max_w, 
+                $max_h
+            );
+            $temp_width  = $thumbnail[0];
+            $temp_height = $thumbnail[1];
+            $width       = $thumbnail[0];
+            $height      = $thumbnail[1];
         }
+
+
         if ($size[0] > $max_w && $size[1] > $max_h) {
             $function_suffix = $gd_function_suffix[$filetype];
             $function_to_read = "ImageCreateFrom".$function_suffix;
             $function_to_write = "Image".$function_suffix;
             $source_handle = $function_to_read($destination . $filename); 
             if ($source_handle) {
-                $destination_handle = ImageCreateTrueColor($thumbnail_width, $thumbnail_height);
-                ImageCopyResampled($destination_handle, $source_handle, 0, 0, 0, 0, $thumbnail_width, $thumbnail_height, $size[0], $size[1]);
+                $destination_handle = ImageCreateTrueColor($width, $height);
+                ImageCopyResampled($destination_handle, $source_handle, 0, 0, 0, 0, $temp_width, $temp_height, $size[0], $size[1]);
             }
             $function_to_write($destination_handle, $destination . $filename);
             ImageDestroy($destination_handle );
         }
     }
-    echo "<img src=\"" . $destination . $filename . "\" alt=\"\"/>";
+
+    // Show thumbnail?
+    if ($show) {
+        echo "<img src=\"" . $destination . $filename . "\" alt=\"\"/>";
+    }
+
     return $filename;
 }
 
@@ -1034,6 +1620,8 @@ function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h,
  * displayPages
  * 
  * Function renamed in 2.0, needs to stay until old calls are updated.
+ *
+ * @deprecated deprecated since version 2.0 
  */
 function displayPages ($url, $cur_page, $total_pages)
 {
@@ -1119,6 +1707,12 @@ function displayPagination ($url, $cur_page, $total_pages)
     }    
 }
 
+/**
+ * formatSize 
+ * 
+ * @param   int     $file_size 
+ * @return  string
+ */
 function formatSize($file_size)
 {
     if ($file_size >= 1073741824) {
@@ -1133,6 +1727,11 @@ function formatSize($file_size)
     return $file_size;
 }
 
+/**
+ * displayMembersOnline 
+ * 
+ * @return  void
+ */
 function displayMembersOnline ()
 {
     $last15min = time() - (60 * 15);
@@ -1141,7 +1740,7 @@ function displayMembersOnline ()
     $sql_lastday = mysql_query("SELECT * FROM fcms_users WHERE UNIX_TIMESTAMP(activity) >= $lastday ORDER BY `activity` DESC") or die('<h1>Online Error (util.inc.php 247)</h1>' . mysql_error());
     echo '
             <h3>'.T_('Now').':</h3>
-            <p>';
+            <ul class="online-members">';
     $i = 1;
     $onlinenow_array = array();
     while ($e = mysql_fetch_array($sql_last15min)) {
@@ -1149,21 +1748,31 @@ function displayMembersOnline ()
         $onlinenow_array[$i] = $e['id'];
         $i++;
         echo '
-                <a class="member" href="profile.php?member='.$e['id'].'">'.$displayname.'</a><br/>';
+                <li>
+                    <a href="profile.php?member='.$e['id'].'">
+                        <img alt="avatar" src="'.getCurrentAvatar($e['id']).'"/> 
+                        '.$displayname.'
+                    </a>
+                </li>';
     }
     echo '
-            </p>
+            </ul>
             <h3>'.T_('Last 24 Hours').':</h3>
-            <p>';
+            <ul class="online-members">';
     while ($d = mysql_fetch_array($sql_lastday)) {
         $displayname = getUserDisplayName($d['id']);
         if (!array_search((string)$d['id'], $onlinenow_array)) {
             echo '
-                <a class="member" href="profile.php?member='.$d['id'].'">'.$displayname.'</a><br/>';
+                <li>
+                    <a href="profile.php?member='.$d['id'].'">
+                        <img alt="avatar" src="'.getCurrentAvatar($d['id']).'"/> 
+                        '.$displayname.'
+                    </a>
+                </li>';
         }
     }
     echo '
-            </p><br/><br/>';
+            </ul><br/><br/>';
 }
 
 /**
@@ -1252,7 +1861,11 @@ function isLoggedIn ($d = '')
  */
 function checkLoginInfo ($userid, $username, $password)
 {
-    $sql = "SELECT `username`, `password` FROM `fcms_users` WHERE `id` = $userid LIMIT 1";
+    $userid = cleanInput($userid, 'int');
+    $sql = "SELECT `username`, `password` 
+            FROM `fcms_users` 
+            WHERE `id` = '$userid' 
+            LIMIT 1";
     $result = mysql_query($sql) or displaySQLError(
         'Login Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -1299,28 +1912,63 @@ function buildHtmlSelectOptions ($options, $selected_options)
     return $return;
 }
 
-/*
- *  To find out which optional sections are being used:
+/**
+ * usingFamilyNews 
+ * 
+ * Wrapper function for usingSection.
+ * 
+ * @return  boolean
  */
 function usingFamilyNews()
 {
     return usingSection('familynews');
 }
+/**
+ * usingPrayers 
+ * 
+ * Wrapper function for usingSection.
+ * 
+ * @return  boolean
+ */
 function usingPrayers()
 {
     return usingSection('prayers');
 }
+/**
+ * usingRecipes 
+ * 
+ * Wrapper function for usingSection.
+ * 
+ * @return  boolean
+ */
 function usingRecipes()
 {
     return usingSection('recipes');
 }
+/**
+ * usingDocuments 
+ * 
+ * Wrapper function for usingSection.
+ * 
+ * @return  boolean
+ */
 function usingDocuments()
 {
     return usingSection('documents');
 }
-function usingSection ($i)
+/**
+ * usingSection 
+ * 
+ * Checks whether the given section is currently being used.
+ * 
+ * @param   string  $section
+ * @return  boolean
+ */
+function usingSection ($section)
 {
-    $sql = "SELECT * FROM `fcms_navigation` WHERE `link` = '$i' LIMIT 1";
+    $sql = "SELECT * 
+            FROM `fcms_navigation` 
+            WHERE `link` = '" . cleanInput($section) . "' LIMIT 1";
     $result = mysql_query($sql) or displaySQLError(
         'Section Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -1333,10 +1981,17 @@ function usingSection ($i)
     return false;
 }
 
+/**
+ * tableExists 
+ * 
+ * @param   string  $tbl 
+ * @return  boolean
+ */
 function tableExists ($tbl)
 {
     global $cfg_mysql_db;
-    $table = mysql_query("SHOW TABLES FROM `$cfg_mysql_db` LIKE '".$tbl."'");
+    $tbl = cleanInput($tbl);
+    $table = mysql_query("SHOW TABLES FROM `$cfg_mysql_db` LIKE '$tbl'");
     if (mysql_fetch_row($table) === false) {
         return false;
     } else {
@@ -1344,6 +1999,11 @@ function tableExists ($tbl)
     }
 }
 
+/**
+ * getDomainAndDir 
+ * 
+ * @return  string
+ */
 function getDomainAndDir ()
 {
     $pageURL = 'http';
@@ -1360,13 +2020,37 @@ function getDomainAndDir ()
     return substr($pageURL, 0, strripos($pageURL, '/')+1);
 }
 
+/**
+ * displaySQLError 
+ * 
+ * @param   string  $heading 
+ * @param   string  $file 
+ * @param   string  $sql 
+ * @param   string  $error 
+ * @return  void
+ */
 function displaySQLError ($heading, $file, $sql, $error)
 {
-    echo "<div class=\"error-alert\"><big><b>$heading</b></big><br/><small><b>File:</b> $file</small><br/><small><b>Statement:</b> $sql</small><br/>";
-    echo "<small><b>Error:</b> $error</small><br/><small><b>MySQL Version:</b> " . mysql_get_server_info() . "</small><br/>";
-    echo "<small><b>PHP Version:</b> " . phpversion() . "</small></div>";
+    echo '
+<div class="error-alert">
+    <big><b>' . $heading . '</b></big><br/>
+    <small><b>File:</b> ' . $file . '</small><br/>
+    <small><b>Statement:</b> ' . $sql . '</small><br/>
+    <small><b>Error:</b> ' . $error . '</small><br/>
+    <small><b>MySQL Version:</b> ' . mysql_get_server_info() . '</small><br/>
+    <small><b>PHP Version:</b> ' . phpversion() . '</small>
+</div>';
 }
 
+/**
+ * fcmsErrorHandler 
+ * 
+ * @param   string  $errno 
+ * @param   string  $errstr 
+ * @param   string  $errfile 
+ * @param   string  $errline 
+ * @return  void
+ */
 function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
 {
     $pos = strpos($errstr, "It is not safe to rely on the system's timezone settings");
@@ -1374,20 +2058,24 @@ function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
         switch ($errno) {
             case E_USER_ERROR:
                 echo "<div class=\"error-alert\"><big><b>Fatal Error</b></big><br/><small><b>$errstr</b></small><br/>";
-                echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+                echo  "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
+                echo  "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
                 exit(1);
                 break;
             case E_USER_WARNING:
                 echo "<div class=\"error-alert\"><big><b>Warning</b></big><br/><small><b>$errstr</b></small><br/>";
-                echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+                echo  "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
+                echo  "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
                 break;
             case E_USER_NOTICE:
                 echo "<div class=\"error-alert\"><big><b>Notice</b></big><br/><small><b>$errstr</b></small><br/>";
-                echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+                echo "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
+                echo  "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
                 break;
             default:
                 echo "<div class=\"error-alert\"><big><b>Error</b></big><br/><small><b>$errstr</b></small><br/>";
-                echo "<small><b>Where:</b> on line $errline in $errfile</small><br/><small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+                echo "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
+                echo "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
                 break;
         }
     }
@@ -1395,11 +2083,20 @@ function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
     return true;
 }
 
+/**
+ * displayWhatsNewAll 
+ * 
+ * @param   int     $userid 
+ * @return  void
+ */
 function displayWhatsNewAll ($userid)
 {
     global $cfg_mysql_host, $cfg_use_news, $cfg_use_prayers;
     $locale = new Locale();
-    $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $userid";
+    $userid = cleanInput($userid, 'int');
+    $sql = "SELECT `timezone` 
+            FROM `fcms_user_settings` 
+            WHERE `user` = '$userid'";
     $t_result = mysql_query($sql) or displaySQLError(
         'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -1422,6 +2119,7 @@ function displayWhatsNewAll ($userid)
             FROM fcms_address AS a, fcms_users AS u
             WHERE a.user = u.id
             AND u.`password` = 'NONMEMBER' 
+            AND u.`activated` < 1 
             AND a.updated >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
 
             UNION SELECT `id`, `joindate` AS date, 0 AS title, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
@@ -1453,8 +2151,8 @@ function displayWhatsNewAll ($userid)
                  WHERE d.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
                  AND d.`user` = u.`id` ";
     }
-    $sql .= "UNION SELECT DISTINCT p.`category` AS id, `date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(`date`) AS id3, 'GALLERY' AS type 
-             FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_gallery_category` AS c 
+    $sql .= "UNION SELECT DISTINCT p.`category` AS id, p.`date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(p.`date`) AS id3, 'GALLERY' AS type 
+             FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_category` AS c 
              WHERE p.`user` = u.`id` 
              AND p.`category` = c.`id` 
              AND 'date' >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
@@ -1472,7 +2170,7 @@ function displayWhatsNewAll ($userid)
              AND gc.`user` = u.`id` 
              AND gc.`photo` = p.`id` 
 
-             UNION SELECT c.`id`, c.`date_added` AS date, `title`, `created_by` AS userid, `date` AS id2, `type` AS id3, 'CALENDAR' AS type 
+             UNION SELECT c.`id`, c.`date_added` AS date, `title`, `created_by` AS userid, `date` AS id2, `category` AS id3, 'CALENDAR' AS type 
              FROM `fcms_calendar` AS c, `fcms_users` AS u 
              WHERE c.`date_added` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
              AND c.`created_by` = u.`id` AND `private` < 1 
@@ -1488,21 +2186,22 @@ function displayWhatsNewAll ($userid)
     $lastday = '0-0';
 
     $today_start = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-    $today_end = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+    $today_end   = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
 
     $time = gmmktime(0, 0, 0, gmdate('m')  , gmdate('d')-1, gmdate('Y'));
     $yesterday_start = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s', $time)) . '000000';
-    $yesterday_end = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s', $time)) . '235959';
+    $yesterday_end   = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s', $time)) . '235959';
 
     while ($r=mysql_fetch_array($result)) {
 
-        $updated = $locale->fixDate('YmdHis', $tz_offset, strtotime($r['date']));
+        $updated     = $locale->fixDate('Ymd', $tz_offset, $r['date']);
+        $updatedFull = $locale->fixDate('YmdHis', $tz_offset, $r['date']);
 
         if ($updated != $lastday) {
-            if ($updated >= $today_start && $updated <= $today_end) {
+            if ($updatedFull >= $today_start && $updatedFull <= $today_end) {
                 echo '
                 <p><b>'.T_('Today').'</b></p>';
-            } elseif ($updated >= $yesterday_start && $updated <= $yesterday_end) {
+            } elseif ($updatedFull >= $yesterday_start && $updatedFull <= $yesterday_end) {
                 echo '
                 <p><b>'.T_('Yesterday').'</b></p>';
             } else {
@@ -1512,6 +2211,7 @@ function displayWhatsNewAll ($userid)
             }
         }
         $rdate = $locale->fixDate('g:i a', $tz_offset, $r['date']);
+
         if ($r['type'] == 'BOARD') {
             $check = mysql_query("SELECT min(`id`) AS id FROM `fcms_board_posts` WHERE `thread` = " . $r['id2']) or die("<h1>Thread or Post Error (util.inc.php 360)</h1>" . mysql_error());
             $minpost = mysql_fetch_array($check);
@@ -1522,7 +2222,8 @@ function displayWhatsNewAll ($userid)
             if ($pos !== false) {
                 $subject = substr($subject, 9, strlen($subject)-9);
             }
-            $title = htmlentities($subject, ENT_COMPAT, 'UTF-8');
+            $title = cleanOutput($subject);
+            $subject = cleanOutput($subject);
             $subject = '<a href="messageboard.php?thread='.$r['id2'].'" title="'.$title.'">'.$subject.'</a>';
             if ($r['id'] == $minpost['id']) {
                 $class = 'newthread';
@@ -1558,13 +2259,13 @@ function displayWhatsNewAll ($userid)
         } elseif ($r['type'] == 'NEWS') {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$r['title'].'</a>'; 
+            $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.cleanOutput($r['title']).'</a>'; 
             echo '
                 <p class="newnews">'.sprintf(T_('%s has added %s to his/her Family News.'), $displayname, $news).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'PRAYERS') {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $for = '<a href="prayers.php">'.$r['title'].'</a>';
+            $for = '<a href="prayers.php">'.cleanOutput($r['title']).'</a>';
             echo '
                 <p class="newprayer">'.sprintf(T_('%s has added a Prayer Concern for %s.'), $displayname, $for).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'RECIPES') {
@@ -1582,19 +2283,19 @@ function displayWhatsNewAll ($userid)
             }
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $rec = '<a href="'.$url.'">'.$r['title'].'</a>';
+            $rec = '<a href="'.$url.'">'.cleanOutput($r['title']).'</a>';
             echo '
                 <p class="newrecipe">'.sprintf(T_('%s has added the %s recipe.'), $displayname, $rec).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'DOCS') {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $doc = '<a href="documents.php">'.$r['title'].'</a>';
+            $doc = '<a href="documents.php">'.cleanOutput($r['title']).'</a>';
             echo '
                 <p class="newdocument">'.sprintf(T_('%s has added a new Document (%s).'), $displayname, $doc).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'GALLERY') {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $cat = '<a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'">'.$r['title'].'</a>';
+            $cat = '<a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
             echo '
                     <p class="newphoto">
                         '.sprintf(T_('%s has added %d new photos to the %s category.'), $displayname, $r['id2'], $cat).' <small><i>'.$rdate.'</i></small><br/>';
@@ -1604,8 +2305,8 @@ function displayWhatsNewAll ($userid)
             }
             $sql = "SELECT * 
                     FROM `fcms_gallery_photos` 
-                    WHERE `category` = ".$r['id']." 
-                    AND DAYOFYEAR(`date`) = ".$r['id3']." 
+                    WHERE `category` = '".cleanInput($r['id'], 'int')."' 
+                    AND DAYOFYEAR(`date`) = '".cleanInput($r['id3'])."' 
                     ORDER BY `date` 
                     DESC LIMIT $limit";
             $photos = mysql_query($sql) or displaySQLError(
@@ -1614,15 +2315,15 @@ function displayWhatsNewAll ($userid)
             while ($p=mysql_fetch_array($photos)) {
                 echo '
                         <a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'&amp;pid='.$p['id'].'">
-                            <img src="gallery/photos/member'.$r['userid'].'/tb_'.$p['filename'].'" alt="'.htmlentities($p['caption'], ENT_COMPAT, 'UTF-8').'"/>
-                        </a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                            <img src="gallery/photos/member'.$r['userid'].'/tb_'.basename($p['filename']).'" alt="'.cleanOutput($p['caption']).'"/>
+                        </a> &nbsp;';
             }
             echo '
                     </p>';
         } elseif ($r['type'] == 'NEWSCOM') {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$r['title'].'</a>';
+            $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
             echo '
                     <p class="newcom">'.sprintf(T_('%s commented on Family News %s.'), $displayname, $news).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'GALCOM') {
@@ -1632,21 +2333,21 @@ function displayWhatsNewAll ($userid)
                     <p class="newcom">
                         '.sprintf(T_('%s commented on the following photo:'), $displayname).' <small><i>'.$rdate.'</i></small><br/>
                         <a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'">
-                            <img src="gallery/photos/member'.$r['id2'].'/tb_'.$r['id3'].'"/>
+                            <img src="gallery/photos/member'.$r['id2'].'/tb_'.basename($r['id3']).'"/>
                         </a>
                     </p>';
         } elseif ($r['type'] == 'CALENDAR') {
-            $date_date = $locale->fixDate('m-d-y', $tz_offset, $r['id2']);
-            $date_date2 = $locale->fixDate('F j, Y', $tz_offset, $r['id2']);
+            $date_date   = $locale->fixDate('m-d-y', $tz_offset, $r['id2']);
+            $date_date2  = $locale->fixDate('F j, Y', $tz_offset, $r['id2']);
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $for = '<a href="calendar.php?year='.date('Y', strtotime($date_date2))
                 .'&amp;month='.date('m', strtotime($date_date2))
-                .'&amp;day='.date('d', strtotime($date_date2)).'">'.$r['title'].'</a>';
+                .'&amp;day='.date('d', strtotime($date_date2)).'">'.cleanOutput($r['title']).'</a>';
             echo '
                     <p class="newcal">'.sprintf(T_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $for).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'POLL') {
-            $poll = '<a href="home.php?poll_id='.$r['id'].'">'.$r['title'].'</a>';
+            $poll = '<a href="home.php?poll_id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
             echo '
                 <p class="newpoll">'.sprintf(T_('A new Poll (%s) has been added.'), $poll).' <small><i>'.$rdate.'</i></small></p>';
         }
@@ -1654,13 +2355,17 @@ function displayWhatsNewAll ($userid)
     }
 }
 
-/*********************************************/
-/* Function: ImageCreateFromBMP              */
-/* Author:   DHKold                          */
-/* Contact:  admin@dhkold.com                */
-/* Date:     The 15th of June 2005           */
-/* Version:  2.0B                            */
-/*********************************************/
+/**
+ * ImageCreateFromBMP 
+ * 
+ * @author  DHKold
+ * @contact admin@dhkold.com
+ * @date    The 15th of June 2005
+ * @version 2.0B
+ *
+ * @param   string  $filename 
+ * @return  void
+ */
 function ImageCreateFromBMP ($filename)
 {
     if (! $f1 = fopen($filename,"rb")) return FALSE;
@@ -1733,15 +2438,16 @@ function ImageCreateFromBMP ($filename)
     return $res;
 }
 
-/*
- *  usingAdvancedUploader
- *  
- *  @param  $userid      the id of the desired user
- *  @return  bolean
+/**
+ * usingAdvancedUploader 
+ * 
+ * @param   int     $userid 
+ * @return  boolean
  */
 function usingAdvancedUploader ($userid)
 {
-    $sql = "SELECT `advanced_upload` FROM `fcms_user_settings` WHERE `user` = $userid ";
+    $userid = cleanInput($userid, 'int');
+    $sql = "SELECT `advanced_upload` FROM `fcms_user_settings` WHERE `user` = '$userid'";
     $result = mysql_query($sql) or displaySQLError(
         'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
@@ -1778,13 +2484,13 @@ function multi_array_key_exists ($needle, $haystack)
 }
 
 /**
- * getLangName
- *
+ * getLangName 
+ * 
  * Given a gettext language code, it returns the translated
  * language full name
  *
- * @param   $code       the code for the language name
- * @return  string      the translated language name
+ * @param   string  $code 
+ * @return  string
  */
 function getLangName ($code)
 {
@@ -1833,4 +2539,143 @@ function getLangName ($code)
             break;
     }
 }
+
+/**
+ * recursive_array_search 
+ * 
+ * @param   string  $needle 
+ * @param   string  $haystack 
+ * @return  void
+ */
+function recursive_array_search ($needle, $haystack)
+{
+    foreach($haystack as $key=>$value) {
+        $current_key = $key;
+        if (
+                $needle === $value OR 
+                (is_array($value) && recursive_array_search($needle,$value) !== false)
+        ) {
+            return $current_key;
+        }
+    }
+    return false;
+}
+
+/**
+ * printr 
+ *
+ * Development only, wraps pre tags around print_r output.
+ * 
+ * @param   string  $var 
+ * @return  void
+ */
+function printr ($var)
+{
+    echo '<pre>';
+    print_r($var);
+    echo '</pre>';
+}
+
+/**
+ * getBirthdayCategory
+ *
+ * returns the id of the category for bithday, if available
+ *
+ * @return int
+ */
+function getBirthdayCategory ()
+{
+    $sql = "SELECT `id` 
+            FROM `fcms_category` 
+            WHERE `type` = 'calendar' 
+                AND `name` like 'Birthday'";
+    $result = mysql_query($sql) or displaySQLError(
+        'Bday Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    if (mysql_num_rows($result) > 0) {
+        $r = mysql_fetch_array($result);
+        return $r['id'];
+    } else {
+        return 1;
+    }
+}
+
+/**
+ * getCalendarCategory 
+ * 
+ * Searches the db for a category that matches the given string
+ *
+ * @param   string  $cat 
+ * @param   boolean $caseSensitive 
+ * @return  int
+ */
+function getCalendarCategory ($cat, $caseSensitive = false)
+{
+    if ($caseSensitive) {
+        $sql = "SELECT `id` 
+                FROM `fcms_category` 
+                WHERE `type` = 'calendar' 
+                    AND `name` like '$cat'";
+    } else {
+        $sql = "SELECT `id` 
+                FROM `fcms_category` 
+                WHERE `type` = 'calendar' 
+                    AND (
+                        `name` like '".ucfirst($cat)."' OR
+                        `name` like '".strtoupper($cat)."' OR
+                        `name` like '".strtolower($cat)."' OR
+                        `name` like '$cat'
+                    )";
+    }
+    $result = mysql_query($sql) or displaySQLError(
+        'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    if (mysql_num_rows($result) > 0) {
+        $r = mysql_fetch_array($result);
+        return $r['id'];
+    } else {
+        return 1;
+    }
+}
+
+/**
+ * getCurrentAvatar 
+ * 
+ * @param   int     $id 
+ * @param   boolean $gallery 
+ * @return  string
+ */
+function getCurrentAvatar ($id, $gallery = true)
+{
+    $id = cleanInput($id, 'int');
+
+    $sql = "SELECT `avatar`, `gravatar`
+            FROM `fcms_users`
+            WHERE `id` = '$id'";
+    $result = mysql_query($sql) or displaySQLError(
+        'Avatar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+
+    // No Avatar set
+    if (mysql_num_rows($result) <= 0) {
+        return 'no_avatar.jpg';
+    }
+
+    $r = mysql_fetch_array($result);
+
+    // include gallery directory
+    $url = $gallery ? 'gallery/' : '';
+
+    switch ($r['avatar'])
+    {
+        case 'no_avatar.jpg':
+            return $url.'avatar/no_avatar.jpg';
+            break;
+        case 'gravatar':
+            return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($r['gravatar'])).'&amp;s=80'; 
+        default:
+            return $url.'avatar/'.basename($r['avatar']);
+    }
+}
+
 ?>

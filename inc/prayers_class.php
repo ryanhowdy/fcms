@@ -3,24 +3,54 @@ include_once('database_class.php');
 include_once('util_inc.php');
 include_once('locale.php');
 
+/**
+ * Prayers 
+ * 
+ * @package     Family Connections
+ * @copyright   Copyright (c) 2010 Haudenschilt LLC
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class Prayers {
 
     var $db;
     var $db2;
     var $tz_offset;
-    var $current_user_id;
+    var $currentUserId;
 
-    function Prayers ($current_user_id, $type, $host, $database, $user, $pass)
+    /**
+     * Prayers 
+     * 
+     * @param   int     $currentUserId 
+     * @param   string  $type 
+     * @param   string  $host 
+     * @param   string  $database 
+     * @param   string  $user 
+     * @param   string  $pass 
+     * @return  void
+     */
+    function Prayers ($currentUserId, $type, $host, $database, $user, $pass)
     {
-        $this->current_user_id = $current_user_id;
+        $this->currentUserId = cleanInput($currentUserId, 'int');
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
-        $this->db->query("SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id") or die('<h1>Timezone Error (prayers_class.php 17)</h1>' . mysql_error());
+        $sql = "SELECT `timezone` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '$currentUserId'";
+        $this->db->query($sql) or displaySQLError(
+            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $row = $this->db->get_row();
         $this->tz_offset = $row['timezone'];
     }
 
-    function showPrayers ($page = '1')
+    /**
+     * showPrayers 
+     * 
+     * @param   int     $page 
+     * @return  void
+     */
+    function showPrayers ($page = 1)
     {
         $locale = new Locale();
         $from = (($page * 5) - 5); 
@@ -28,10 +58,10 @@ class Prayers {
                 FROM `fcms_prayers` AS p, `fcms_users` AS u 
                 WHERE u.`id` = p.`user` 
                 ORDER BY `date` DESC 
-                LIMIT " . $from . ", 5";
+                LIMIT $from, 5";
         $this->db->query($sql) or displaySQLError(
-                'Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            'Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         if ($this->db->count_rows() > 0) {
             while($r = $this->db->get_row()) {
                 $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tz_offset, $r['date']);
@@ -44,29 +74,29 @@ class Prayers {
             <div>
                 <h4>
                 '.$date;
-                    if ($this->current_user_id == $r['user'] || checkAccess($this->current_user_id) < 2) {
+                    if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2) {
                         echo ' &nbsp;
                     <form method="post" action="prayers.php">
                         <div>
-                            <input type="hidden" name="id" value="'.$r['id'].'"/>
-                            <input type="hidden" name="for" value="'.htmlentities($r['for'], ENT_COMPAT, 'UTF-8').'"/>
-                            <input type="hidden" name="desc" value="'.htmlentities($r['desc'], ENT_COMPAT, 'UTF-8').'"/>
+                            <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
+                            <input type="hidden" name="for" value="'.cleanOutput($r['for']).'"/>
+                            <input type="hidden" name="desc" value="'.cleanOutput($r['desc']).'"/>
                             <input type="submit" name="editprayer" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Prayer Concern').'"/>
                         </div>
                     </form>';
                     }
-                    if (checkAccess($this->current_user_id) < 2) {
+                    if (checkAccess($this->currentUserId) < 2) {
                         echo ' &nbsp;
                     <form class="delform" method="post" action="prayers.php">
                         <div>
-                            <input type="hidden" name="id" value="'.$r['id'].'"/>
+                            <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
                             <input type="submit" name="delprayer" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Prayer Concern').'"/>
                         </div>
                     </form>';
                     }
                 echo '
                 </h4>
-                <b>'.sprintf(T_('%s asks that you please pray for...'), '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>').'</b><br/>
+                <b>'.sprintf(T_('%s asks that you please pray for...'), '<a href="profile.php?member='.(int)$r['user'].'">'.$displayname.'</a>').'</b><br/>
                 &nbsp;&nbsp;&nbsp;&nbsp;'.$r['for'].'<br/><br/>
                 <b>'.T_('Because...').'</b><br/>
                 &nbsp;&nbsp;&nbsp;&nbsp;
@@ -84,7 +114,7 @@ class Prayers {
                 'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
             $r = $this->db2->get_row();
-            $prayercount = $r['c'];
+            $prayercount = (int)$r['c'];
             $total_pages = ceil($prayercount / 5); 
             displayPagination ('prayers.php', $page, $total_pages);
         } else {
@@ -97,16 +127,27 @@ class Prayers {
         }
     }
 
-    function displayForm ($type, $id = '0', $for = 'error', $desc = 'error')
+    /**
+     * displayForm 
+     * 
+     * @param   string  $type 
+     * @param   int     $id 
+     * @param   string  $for 
+     * @param   string  $desc 
+     * @return  void
+     */
+    function displayForm ($type, $id = 0, $for = 'error', $desc = 'error')
     {
         echo '
             <script type="text/javascript" src="inc/livevalidation.js"></script>';
         if ($type == 'edit') {
+            $for = cleanInput($for);
             echo '
             <form method="post" name="editform" action="prayers.php">
                 <fieldset>
                     <legend><span>'.T_('Edit Prayer Concern').'</span></legend>';
         } else {
+            $for = '';
             echo '
             <form method="post" name="addform" action="prayers.php">
                 <fieldset>
@@ -115,9 +156,7 @@ class Prayers {
         echo '
                     <div>
                         <label for="for">'.T_('Pray For').'</label>: 
-                        <input type="text" name="for" id="for" size="50"';
-        if ($type == 'edit') { echo " value=\"".htmlentities($for, ENT_COMPAT, 'UTF-8')."\""; }
-        echo '/>
+                        <input type="text" name="for" id="for" size="50" value="'.$for.'"/>
                     </div><br/>
                     <script type="text/javascript">
                         var ffor = new LiveValidation(\'for\', { onlyOnSubmit: true });
@@ -141,7 +180,7 @@ class Prayers {
         } else {
             echo '
                     <div>
-                        <input type="hidden" name="id" value="'.$id.'"/>
+                        <input type="hidden" name="id" value="'.(int)$id.'"/>
                         <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'"/> &nbsp;
                         <a href="prayers.php">'.T_('Cancel').'</a>
                     </div>';
@@ -151,13 +190,25 @@ class Prayers {
             </form>';
     }
 
+    /**
+     * displayWhatsNewPrayers 
+     * 
+     * @return  void
+     */
     function displayWhatsNewPrayers ()
     {
         $locale = new Locale();
         $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+        $today_end   = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
 
-        $this->db->query("SELECT * FROM `fcms_prayers` WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) ORDER BY `date` DESC LIMIT 0 , 5");
+        $sql = "SELECT * 
+                FROM `fcms_prayers` 
+                WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
+                ORDER BY `date` DESC 
+                LIMIT 5";
+        $this->db->query($sql) or displaySQLError(
+            'Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         if ($this->db->count_rows() > 0) {
             echo '
             <h3>'.T_('Prayer Concerns').'</h3>
@@ -185,4 +236,4 @@ class Prayers {
         }
     }
 
-} ?>
+}

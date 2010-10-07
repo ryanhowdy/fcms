@@ -3,19 +3,40 @@ include_once('database_class.php');
 include_once('util_inc.php');
 include_once('locale.php');
 
+/**
+ * FamilyNews 
+ * 
+ * @package     Family Connections
+ * @copyright   Copyright (c) 2010 Haudenschilt LLC
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class FamilyNews {
 
     var $db;
     var $db2;
     var $tz_offset;
-    var $current_user_id;
+    var $currentUserId;
 
-    function FamilyNews ($current_user_id, $type, $host, $database, $user, $pass)
+    /**
+     * FamilyNews 
+     * 
+     * @param  int      $currentUserId 
+     * @param  string   $type 
+     * @param  string   $host 
+     * @param  string   $database 
+     * @param  string   $user 
+     * @param  string   $pass 
+     * @return void
+     */
+    function FamilyNews ($currentUserId, $type, $host, $database, $user, $pass)
     {
-        $this->current_user_id = $current_user_id;
+        $this->currentUserId = $currentUserId;
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
+        $sql = "SELECT `timezone` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '$currentUserId'";
         $this->db->query($sql) or displaySQLError(
             'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -23,6 +44,13 @@ class FamilyNews {
         $this->tz_offset = $row['timezone'];
     }
 
+    /**
+     * displayNewsList 
+     *
+     * Displays a navigation list of users who have news.
+     * 
+     * @return void
+     */
     function displayNewsList ()
     {
         $locale = new Locale();
@@ -43,7 +71,7 @@ class FamilyNews {
                 $date = $locale->fixDate(T_('M. j'), $this->tz_offset, $r['d']);
                 $displayname = getUserDisplayName($r['id']);
                 echo '
-                    <li><a href="familynews.php?getnews='.$r['id'].'">'.$displayname.'</a> &nbsp;<small>'.$date.'</small></li>';
+                    <li><a href="familynews.php?getnews='.(int)$r['id'].'">'.$displayname.'</a> &nbsp;<small>'.$date.'</small></li>';
             }
             echo '
                 </ul>
@@ -51,79 +79,103 @@ class FamilyNews {
         }
     }
 
-    function showFamilyNews ($usersnews, $id = '0', $page = '1')
+    /**
+     * showFamilyNews 
+     * 
+     * @param   int     $usersnews 
+     * @param   int     $id 
+     * @param   int     $page 
+     * @return  void
+     */
+    function showFamilyNews ($usersnews, $id = 0, $page = 1)
     {
+        $usersnews = cleanInput($usersnews, 'int');
+        $id        = cleanInput($id, 'int');
+
         $locale = new Locale();
         $from = (($page * 5) - 5); 
         if ($id <= 0) {
             $sql = "SELECT n.`id`, `title`, `news`, `date` 
                     FROM `fcms_news` AS n, `fcms_users` AS u 
-                    WHERE `user` = $usersnews 
+                    WHERE `user` = '$usersnews' 
                         AND `user` = u.`id` 
                     ORDER BY `date` DESC 
                     LIMIT " . $from . ", 5";
         } else {
             $sql = "SELECT n.`id`, `title`, `news`, `date` 
                     FROM `fcms_news` AS n, `fcms_users` AS u 
-                    WHERE n.`id` = $id 
+                    WHERE n.`id` = '$id' 
                         AND `user` = u.`id`";
         }
         $this->db->query($sql) or displaySQLError(
             'News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
+
         while ($row = $this->db->get_row()) {
+
             $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $row['date']);
             $displayname = getUserDisplayName($usersnews);
+
             echo '
             <div class="news-post">
                 <h2>
-                    <a href="?getnews='.$usersnews.'&amp;newsid='.$row['id'].'">'.$row['title'].'</a>
+                    <a href="?getnews='.$usersnews.'&amp;newsid='.(int)$row['id'].'">'.cleanOutput($row['title']).'</a>
                 </h2>
                 <span class="date">
                     '.$date.'</b> - '.$displayname;
-            if ($this->current_user_id == $usersnews || checkAccess($this->current_user_id) < 2) {
+
+            if ($this->currentUserId == $usersnews || checkAccess($this->currentUserId) < 2) {
                 echo ' &nbsp;
                     <form method="post" action="familynews.php">
                         <div>
                             <input type="hidden" name="user" value="'.$usersnews.'"/>
-                            <input type="hidden" name="id" value="'.$row['id'].'"/>
-                            <input type="hidden" name="title" value="'.htmlentities($row['title'], ENT_COMPAT, 'UTF-8').'"/>
-                            <input type="hidden" name="news" value="'.htmlentities($row['news'], ENT_COMPAT, 'UTF-8').'"/>
+                            <input type="hidden" name="id" value="'.(int)$row['id'].'"/>
+                            <input type="hidden" name="title" value="'.cleanOutput($row['title']).'"/>
+                            <input type="hidden" name="news" value="'.cleanOutput($row['news']).'"/>
                             <input type="submit" name="editnews" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Family News').'"/>
                         </div>
                     </form>';
             }
-            if (checkAccess($this->current_user_id) < 2) {
+            if (checkAccess($this->currentUserId) < 2) {
                 echo ' &nbsp;
                     <form class="delnews" method="post" action="familynews.php?getnews='.$usersnews.'">
                         <div>
                             <input type="hidden" name="user" value="'.$usersnews.'"/>
-                            <input type="hidden" name="id" value="'.$row['id'].'"/>
+                            <input type="hidden" name="id" value="'.(int)$row['id'].'"/>
                             <input type="submit" name="delnews" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Family News').'"/>
                         </div>
                     </form>';
             }
+
             echo '
-                </span>
-                <p>';
-            if ($id <= 0) {
-                echo parse(rtrim(substr($row['news'], 0, 300)));
+                </span>';
+
+            // Showing list of news for a user
+            if ($id <= 0)
+            {
+                $news = removeBBCode($row['news']);
+
                 if (strlen($row['news']) > 300) {
-                    echo '...<br/><br/>
-                <a href="?getnews='.$usersnews.'&amp;newsid='.$row['id'].'">'.T_('Read More').'</a>';
+                    $news = substr($news, 0, 300);
+                    $news .= '...<br/><br/>
+                <a href="?getnews='.$usersnews.'&amp;newsid='.(int)$row['id'].'">'.T_('Read More').'</a>';
                 }
+
                 echo '
+                <p>
+                    '.$news.'
                 </p>
                 <p class="news-comments">
-                    <a href="#" onclick="window.open(\'inc/familynews_comments.php?newsid='.$row['id'].'\', 
-                        \'_Comments\', \'height=400,width=550,resizable=yes,scrollbars=yes\');return false;">'.T_('Comments').'</a> - 
+                    <a href="?getnews='.$usersnews.'&amp;newsid='.(int)$row['id'].'#comments">'.T_('Comments').'</a> - 
                     '.getNewsComments($row['id']).'
                 </p>
             </div>';
+
+            // Showing single news entry for user
             } else {
                 echo parse($row['news']).'
             </div>
-            <h3>'.T_('Comments').'</h3>
+            <h3 id="comments">'.T_('Comments').'</h3>
             <p class="center">
                 <form action="?getnews='.$usersnews.'&amp;newsid='.$id.'" method="post">
                     '.T_('Add Comment').'<br/>
@@ -131,7 +183,8 @@ class FamilyNews {
                     <input type="submit" name="addcom" id="addcom" value="'.T_('Add').'" class="gal_addcombtn"/>
                 </form>
             </p>
-            <p class="center">&nbsp;</p>';
+            <p>&nbsp;</p>';
+
                 $sql = "SELECT c.id, comment, `date`, fname, lname, username, user, avatar  
                         FROM fcms_news_comments AS c, fcms_users AS u 
                         WHERE news = $id 
@@ -143,29 +196,25 @@ class FamilyNews {
                 if ($this->db->count_rows() > 0) { 
                     while($row = $this->db2->get_row()) {
                         $displayname = getUserDisplayName($row['user']);
-                        if ($this->current_user_id == $row['user'] || checkAccess($this->current_user_id) < 2) {
+                        if ($this->currentUserId == $row['user'] || checkAccess($this->currentUserId) < 2) {
                             echo '
             <div class="comment_block clearfix">
                 <form class="delcom" action="?getnews='.$usersnews.'&amp;newsid='.$id.'" method="post">
                     <input type="submit" name="delcom" id="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this comment').'"/>
-                    <img class="avatar" src="gallery/avatar/'.$row['avatar'].'">
+                    <img class="avatar" alt="avatar" src="'.getCurrentAvatar($row['user']).'"/>
                     <b>'.$displayname.'</b>
                     <span>'.$date.'</span>
-                    <p>';
-                            echo htmlentities(stripslashes($row['comment']), ENT_COMPAT, 'UTF-8');
-                            echo '</p>
-                    <input type="hidden" name="id" value="'.$row['id'].'">
+                    <p>'.cleanOutput($row['comment']).'</p>
+                    <input type="hidden" name="id" value="'.(int)$row['id'].'">
                 </form>
             </div>';
                         } else {
                             echo '
             <div class="comment_block clearfix">
-                    <img src="avatar/'.$row['avatar'].'">
+                    <img class="avatar" src="avatar/'.basename($row['avatar']).'">
                     <b>'.$displayname.'</b>
                     <span>'.$date.'</span>
-                    <p>';
-                            echo htmlentities(stripslashes($row['comment']), ENT_COMPAT, 'UTF-8');
-                            echo '</p>
+                    <p>'.cleanOutput($row['comment']).'</p>
                 </form>
             </div>';
                         }
@@ -179,7 +228,7 @@ class FamilyNews {
 
         // Display Pagination
         if ($id <= 0) {
-            $sql = "SELECT count(id) AS c FROM fcms_news WHERE user = $usersnews";
+            $sql = "SELECT count(id) AS c FROM fcms_news WHERE user = '$usersnews'";
             $this->db2->query($sql) or displaySQLError(
                 'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
@@ -191,7 +240,17 @@ class FamilyNews {
         }
     }
 
-    function displayForm ($type, $user = '0', $newsid = '0', $title='error', $news = 'error')
+    /**
+     * displayForm 
+     * 
+     * @param   string  $type 
+     * @param   int     $user 
+     * @param   int     $newsid 
+     * @param   string  $title 
+     * @param   string  $news 
+     * @return  void
+     */
+    function displayForm ($type, $user = 0, $newsid = 0, $title='error', $news = 'error')
     {
         echo '
             <script type="text/javascript" src="inc/livevalidation.js"></script>
@@ -227,7 +286,7 @@ class FamilyNews {
         if ($type == 'add') {
             echo "></textarea></div>";
         } else {
-            echo ">$news</textarea></div>";
+            echo ">".$news."</textarea></div>";
         }
         echo '
                     <script type="text/javascript">bb.init(\'post\');</script>
@@ -237,8 +296,8 @@ class FamilyNews {
                         <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'"/>';
         } else {
             echo '
-                        <input type="hidden" name="id" value="'.$newsid.'"/>
-                        <input type="hidden" name="user" value="'.$user.'"/>
+                        <input type="hidden" name="id" value="'.(int)$newsid.'"/>
+                        <input type="hidden" name="user" value="'.(int)$user.'"/>
                         <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'"/>';
         }
         echo '
@@ -249,36 +308,47 @@ class FamilyNews {
             </form>';
     }
 
+    /**
+     * displayLast5News 
+     * 
+     * @return void
+     */
     function displayLast5News ()
     {
         $locale = new Locale();
-        $sql = "SELECT * FROM `fcms_news` ORDER BY `date` DESC LIMIT 5";
+        $sql = "SELECT * 
+                FROM `fcms_news` 
+                ORDER BY `date` DESC 
+                LIMIT 5";
         $this->db->query($sql) or displaySQLError(
             'Last 5 News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        if ($this->db->count_rows() > 0) {
-            while ($row = $this->db->get_row()) {
+        if ($this->db->count_rows() > 0)
+        {
+            while ($row = $this->db->get_row())
+            {
                 $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $row['date']);
                 $displayname = getUserDisplayName($row['user']);
+
+                $news = removeBBCode($row['news']);
+                if (strlen($news) > 300) {
+                    $news = substr($news, 0, 300);
+                    $news .= '...<br/><br/>
+                            <a href="?getnews='.$row['user'].'&amp;newsid='.$row['id'].'">'.T_('Read More').'</a>';
+                }
+
                 echo '
                     <div class="news-post">
                         <h2>
-                            <a href="?getnews='.$row['user'].'&amp;newsid='.$row['id'].'">'.$row['title'].'</a>
+                            <a href="?getnews='.(int)$row['user'].'&amp;newsid='.(int)$row['id'].'">'.cleanOutput($row['title']).'</a>
                         </h2>
                         <span class="date">'.$date.' - '.$displayname.'</span>
                         <p>
-                            '.parse(rtrim(substr($row['news'], 0, 300)));
-                if (strlen($row['news']) > 300) {
-                    echo '...<br/><br/>
-                            <a href="?getnews='.$row['user'].'&amp;newsid='.$row['id'].'">'.T_('Read More').'</a>';
-                }
-                echo '
+                            '.$news.'
                         </p>
                         <p class="news-comments">
-                            <a href="#" onclick="window.open(\'inc/familynews_comments.php?newsid='.$row['id'].'\', 
-                                \'_Comments\', \'height=400,width=550,resizable=yes,scrollbars=yes\'); return false;">
-                                '.T_('Comments').'
-                            </a> - '.getNewsComments($row['id']).'
+                            <a href="?getnews='.$row['user'].'&amp;newsid='.$row['id'].'#comments">'.T_('Comments').'</a> - '
+                            . getNewsComments($row['id']) . '
                         </p>
                     </div>';
             }
@@ -292,9 +362,19 @@ class FamilyNews {
         }
     }
 
+    /**
+     * hasNews 
+     * 
+     * @param  int  $userid 
+     * @return void
+     */
     function hasNews ($userid)
     {
-        $sql = "SELECT * FROM `fcms_news` WHERE `user` = $userid LIMIT 1";
+        $userid = cleanInput($userid, 'int');
+        $sql = "SELECT `id` 
+                FROM `fcms_news` 
+                WHERE `user` = '$userid' 
+                LIMIT 1";
         $this->db->query($sql) or displaySQLError(
             'Has News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -305,6 +385,11 @@ class FamilyNews {
         }
     }
 
+    /**
+     * displayWhatsNewFamilyNews 
+     * 
+     * @return void
+     */
     function displayWhatsNewFamilyNews ()
     {
         $locale = new Locale();
@@ -337,8 +422,8 @@ class FamilyNews {
                 echo '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
-                    <a href="familynews.php?getnews='.$row['userid'].'&amp;newsid='.$row['id'].'">'.$row['title'].'</a> - 
-                    <a class="u" href="profile.php?member='.$row['userid'].'">'.$displayname.'</a>
+                    <a href="familynews.php?getnews='.(int)$row['userid'].'&amp;newsid='.(int)$row['id'].'">'.cleanOutput($row['title']).'</a> - 
+                    <a class="u" href="profile.php?member='.(int)$row['userid'].'">'.$displayname.'</a>
                 </li>';
             }
             echo '

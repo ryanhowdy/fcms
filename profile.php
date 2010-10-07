@@ -1,51 +1,56 @@
 <?php
 session_start();
+
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
+include_once('inc/profile_class.php');
+
+fixMagicQuotes();
 
 // Check that the user is logged in
 isLoggedIn();
-$current_user_id = (int)escape_string($_SESSION['login_id']);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-header("Cache-control: private");
-include_once('inc/profile_class.php');
-$profile = new Profile($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$profile  = new Profile($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$awards   = new Awards($currentUserId, $database);
 
 // Setup the Template variables;
-$TMPL['pagetitle'] = T_('Profiles');
-$TMPL['path'] = "";
-$TMPL['admin_path'] = "admin/";
+$TMPL = array(
+    'sitename'      => getSiteName(),
+    'nav-link'      => getNavLinks(),
+    'pagetitle'     => T_('Profile'),
+    'path'          => "",
+    'admin_path'    => "admin/",
+    'displayname'   => getUserDisplayName($currentUserId),
+    'version'       => getCurrentVersion(),
+    'year'          => date('Y')
+);
 
-$show_all = true;
+$show = true;
 
 // Show Header
-include_once(getTheme($current_user_id) . 'header.php');
+include_once(getTheme($currentUserId) . 'header.php');
 
 echo '
-        <div id="profile" class="centercontent">
-            <div id="sections_menu" class="clearfix">
-                <ul>
-                    <li><a href="profile.php">'.T_('Profiles').'</a></li>
-                    <li><a href="privatemsg.php">'.T_('Private Messages').'</a></li>
-                    <li><a href="profile.php?awards=yes">'.T_('Awards').'</a></li>
-                </ul>
-            </div>';
-if (isset($_GET['member'])) {
-    if (ctype_digit($_GET['member'])) {
-        $show_all = false;
-        $profile->displayProfile($_GET['member']);
-    }
+        <div id="profile" class="centercontent">';
+
+$memberid = isset($_GET['member']) ? cleanInput($_GET['member'], 'int') : $currentUserId;
+
+// Show awards
+if (isset($_GET['award'])) {
+    $show = false;
+    $id = cleanInput($_GET['award'], 'int');
+    $awards->displayAward($memberid, $id);
 }
-if (isset($_GET['awards'])) {
-    $show_all = false;
-    $profile->displayAwards();
-}
-if ($show_all) {
-    $profile->displayAll();
+
+// Show profile
+if ($show) {
+    $profile->displayProfile($memberid);
 }
 
 echo '
         </div><!-- #profile .centercontent -->';
 
 // Show Footer
-include_once(getTheme($current_user_id) . 'footer.php');
+include_once(getTheme($currentUserId) . 'footer.php');

@@ -3,115 +3,154 @@ include_once('database_class.php');
 include_once('util_inc.php');
 include_once('locale.php');
 
+/**
+ * Recipes 
+ * 
+ * @package     Family Connections
+ * @copyright   Copyright (c) 2010 Haudenschilt LLC
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class Recipes
 {
 
     var $db;
     var $db2;
     var $tz_offset;
-    var $current_user_id;
+    var $currentUserId;
 
-    function Recipes ($current_user_id, $type, $host, $database, $user, $pass)
+    /**
+     * Recipes 
+     * 
+     * @param   int     $currentUserId 
+     * @param   string  $type 
+     * @param   string  $host 
+     * @param   string  $database 
+     * @param   string  $user 
+     * @param   string  $pass 
+     * @return  void
+     */
+    function Recipes ($currentUserId, $type, $host, $database, $user, $pass)
     {
-        $this->current_user_id = $current_user_id;
+        $this->currentUserId = cleanInput($currentUserId, 'int');
         $this->db = new database($type, $host, $database, $user, $pass);
         $this->db2 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id";
+        $sql = "SELECT `timezone` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '$currentUserId'";
         $this->db->query($sql) or displaySQLError(
             'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+        );
         $row = $this->db->get_row();
         $this->tz_offset = $row['timezone'];
     }
 
-    function showRecipes ()
+    /**
+     * showRecipes 
+     * 
+     * Displays a list of the current categories with recipe counts, and 
+     * the last added recipe.
+     *
+     * @param   int     $page 
+     * @return  void
+     */
+    function showRecipes ($page = 1)
     {
         $locale = new Locale();
-        if (checkAccess($this->current_user_id) <= 5) {
+        $page = cleanInput($page, 'int');
+        $from = (($page * 5) - 5);
+
+        if (checkAccess($this->currentUserId) <= 5) {
             echo '
             <div id="actions_menu" class="clearfix">
                 <ul><li><a class="add" href="?addrecipe=yes">'.T_('Add Recipe').'</a></li></ul>
             </div>';
         }
 
-        // Get Counts
-        $appetizer = $this->getRecipeCountInCategory(T_('Appetizer'));
-        $breakfast = $this->getRecipeCountInCategory(T_('Breakfast'));
-        $dessert = $this->getRecipeCountInCategory(T_('Dessert'));
-        $meat = $this->getRecipeCountInCategory(T_('Entree (Meat)'));
-        $seafood = $this->getRecipeCountInCategory(T_('Entree (Seafood)'));
-        $vegetable = $this->getRecipeCountInCategory(T_('Entree (Vegetarian)'));
-        $salad = $this->getRecipeCountInCategory(T_('Salad'));
-        $side = $this->getRecipeCountInCategory(T_('Side Dish'));
-        $soup = $this->getRecipeCountInCategory(T_('Soup'));
-        
-        echo '
-            <h2>'.T_('Recipe Categories').'</h2>
-            <div class="cat_row clearfix">
-                <div class="cat">
-                    <ul><li><a href="?category=1">'.T_('Appetizer').'<span>'.$appetizer.'</span></a></li></ul>
-                </div>
-                <div class="cat">
-                    <ul><li><a href="?category=2">'.T_('Breakfast').'<span>'.$breakfast.'</span></a></li></ul>
-                </div>
-                <div class="cat">
-                    <ul><li><a href="?category=3">'.T_('Dessert').'<span>'.$dessert.'</span></a></li></ul>
-                </div>
-            </div>
-            <div class="cat_row clearfix">
-                <div class="cat">
-                    <ul><li><a href="?category=4">'.T_('Entree (Meat)').'<span>'.$meat.'</span></a></li></ul>
-                </div>
-                <div class="cat">
-                    <ul><li><a href="?category=5">'.T_('Entree (Seafood)').'<span>'.$seafood.'</span></a></li></ul>
-                </div>
-                <div class="cat">
-                    <ul><li><a href="?category=6">'.T_('Entree (Vegetarian)').'<span>'.$vegetable.'</span></a></li></ul>
-                </div>
-            </div>
-            <div class="cat_row clearfix">
-                <div class="cat">
-                    <ul><li><a href="?category=7">'.T_('Salad').'<span>'.$salad.'</span></a></li></ul>
-                </div>
-                <div class="cat">
-                    <ul><li><a href="?category=8">'.T_('Side Dish').'<span>'.$side.'</span></a></li></ul>
-                </div>
-                <div class="cat">
-                    <ul><li><a href="?category=9">'.T_('Soup').'<span>'.$soup.'</span></a></li></ul>
-                </div>
+        // Show Category Side Menu
+        $hasCategories = $this->showCategoryMenu();
+
+        if (!$hasCategories) {
+            echo '
+            <div class="info-alert">
+                <h2>'.T_('Welcome to the Recipes Section').'</h2>
+                <p><i>'.T_('Currently no one has added any recipes').'</i></p>
+                <ol>
+                    <li><a href="?add=category">'.T_('Create a Category').'</a></li>
+                    <li><a href="?addrecipe=yes">'.T_('Add a Recipe').'</a></li>
+                </ol>
             </div>';
-        $sql = "SELECT * FROM `fcms_recipes` ORDER BY `date` DESC LIMIT 1";
+            return;
+        }
+
+
+        echo '
+            <div id="maincolumn">';
+
+        // Display last 5 added recipes
+        $sql = "SELECT `id`, `name`, `category`
+                FROM `fcms_recipes` 
+                ORDER BY `date` DESC 
+                LIMIT $from, 5";
         $this->db->query($sql) or displaySQLError(
             'Get Last Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+        );
         if ($this->db->count_rows() > 0) {
-            $r = $this->db->get_row();
-            $displayname = getUserDisplayName($r['user']);
-            $displayname = '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>';
-            $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tz_offset, $r['date']);
+
             echo '
-            <p>&nbsp;</p>
-            <h2>'.T_('Latest Recipe').'</h2>
-            <h4>'.$r['name'].'</h4>
-            <span class="date">
-                '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date).'
-            </span>
-            <p>
-                '.parse($r['recipe']).'
-            </p>
-            <p>&nbsp;</p>';
+                <h2>'.T_('Latest Recipes').'</h2>
+                <ul id="recipe-list">';
+
+            while ($r = $this->db->get_row()) {
+                echo '
+                    <li>
+                        <a href="?category=' . (int)$r['category'] . '&amp;id=' . (int)$r['id'] . '">
+                            <span>' . T_('Click to view recipe') . '</span>
+                            <b>' . $r['name'] . '</b>
+                        </a>
+                    </li>';
+            }
         }
+
+        // Close maincolumn and recipe-list
+        echo '
+                </ul>
+            </div>';
+
+        // Display Pagination
+        $sql = "SELECT count(`id`) AS c FROM `fcms_recipes`";
+        $this->db->query($sql) or displaySQLError(
+            'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $r = $this->db->get_row();
+        $recipecount = $r['c'];
+        $total_pages = ceil($recipecount / 5);
+        displayPagination('recipes.php', $page, $total_pages);
     }
 
-    function showRecipeInCategory ($cat, $page = '1', $id = '0')
+    /**
+     * showRecipeInCategory 
+     *
+     * Displays up to 5 recipes for the given category and page.
+     * 
+     * @param   int     $cat 
+     * @param   int     $page 
+     * @return  void
+     */
+    function showRecipeInCategory ($cat, $page = 1)
     {
         $locale = new Locale();
+
+        $cat  = cleanInput($cat, 'int');
+        $page = cleanInput($page, 'int');
         $from = (($page * 5) - 5);
+
+        // Display Menu
         echo '
             <div id="sections_menu" class="clearfix">
                 <ul>
                     <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>';
-        if (checkAccess($this->current_user_id) <= 5) {
+        if (checkAccess($this->currentUserId) <= 5) {
             echo '
                 </ul>
             </div>
@@ -122,322 +161,444 @@ class Recipes
         echo '
                 </ul>
             </div>';
-        if ($id > 0) {
-            echo '
-                <h2><a href="recipes.php?category='.$cat.'">';
-        } else {
-            echo '
-                <h2>';
-        }
-        switch ($cat) {
-            case 1:
-                echo T_('Appetizer');
-                $cat_name = T_('Appetizer');
-                break;
-            case 2:
-                echo T_('Breakfast');
-                $cat_name = T_('Breakfast');
-                break;
-            case 3:
-                echo T_('Dessert');
-                $cat_name = T_('Dessert');
-                break;
-            case 4:
-                echo T_('Entree (Meat)');
-                $cat_name = T_('Entree (Meat)');
-                break;
-            case 5:
-                echo T_('Entree (Seafood)');
-                $cat_name = T_('Entree (Seafood)');
-                break;
-            case 6:
-                echo T_('Entree (Vegetarian)');
-                $cat_name = T_('Entree (Vegetarian)');
-                break;
-            case 7:
-                echo T_('Salad');
-                $cat_name = T_('Salad');
-                break;
-            case 8:
-                echo T_('Side Dish');
-                $cat_name = T_('Side Dish');
-                break;
-            case 9:
-                echo T_('Soup');
-                $cat_name = T_('Soup');
-                break;
-            default:
-                echo "<p class=\"error-alert\">" . T_('The Category you are trying to view doesn\'t exist.') . "</p>";
-                $cat_name = '';
-                break;
-        }
-        if ($id > 0) {
-            echo "</a></h2><br/>";
-        } else {
-            echo "</h2><br/>";
-        }
-        $sql = "SELECT * FROM `fcms_recipes` WHERE `category` LIKE '$cat_name' ";
-        if ($id > 0) {
-            $sql .= "AND `id` = $id";
-        } else {
-            $sql .= "ORDER BY `date` DESC LIMIT " . $from . ", 5";
-        }
+
+        // Show Category Side Menu
+        $this->showCategoryMenu();
+
+        echo '
+            <div id="maincolumn">';
+
+
+        // Get Recipes for this category
+        $sql = "SELECT r.`id`, r.`name`, r.`category`, 
+                    c.`name` AS category_name, r.`user`, r.`date`
+                FROM `fcms_recipes` AS r, `fcms_category` AS c
+                WHERE `category` = '$cat'
+                AND r.`category` = c.`id` 
+                ORDER BY `date` DESC 
+                LIMIT $from, 5";
         $this->db->query($sql) or displaySQLError(
-            'Get Category Recipes Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            'Recipes Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+
+        $categoryName = '';
+
+        // Display Recipes
         if ($this->db->count_rows() > 0) {
+
+            $displayed_category = false;
             while($r = $this->db->get_row()) {
-                $displayname = getUserDisplayName($r['user']);
-                $displayname = '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>';
-                $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tz_offset, $r['date']);
-                if ($id > 0) {
-                    $name = $r['name'];
-                } else {
-                    $name = '<a href="recipes.php?category='.$cat.'&amp;id='.$r['id'].'">'.$r['name'].'</a>';
+
+                // Category
+                if (!$displayed_category) {
+                    $displayed_category = true;
+                    $categoryName = $r['category_name'];
+                    echo '
+            <h2>' . $r['category_name'] . '</h2>
+            <ul id="recipe-list">';
                 }
+
                 echo '
-            <h4>'.$name.'</h4>
-            <span class="date">
-                '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date);
-                if ($this->current_user_id == $r['user'] || checkAccess($this->current_user_id) < 2) {
-                    echo ' &nbsp;
-                <form method="post" action="recipes.php">
-                    <div>
-                        <input type="hidden" name="id" value="'.$r['id'].'"/>
-                        <input type="hidden" name="name" value="'.htmlentities($r['name'], ENT_COMPAT, 'UTF-8').'"/>
-                        <input type="hidden" name="category" value="'.htmlentities($r['category'], ENT_COMPAT, 'UTF-8').'"/>
-                        <input type="hidden" name="post" value="'.htmlentities($r['recipe'], ENT_COMPAT, 'UTF-8').'"/>
-                        <input type="submit" name="editrecipe" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Recipe').'"/>
-                    </div>
-                </form>';
-                }
-                if (checkAccess($this->current_user_id) < 2) {
-                    echo ' &nbsp;
-                <form class="delrec" method="post" action="recipes.php">
-                    <div>
-                        <input type="hidden" name="id" value="'.$r['id'].'"/>
-                        <input type="submit" name="delrecipe" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Recipe').'"/>
-                    </div>
-                </form>';
-                }
-                echo '
-            </span>
-            <p>
-                '.parse($r['recipe']).'
-            </p>
-            <p>&nbsp;</p>';
+                <li>
+                    <a href="?category=' . $cat . '&amp;id=' . (int)$r['id'] . '">
+                        <span>' . T_('Click to view recipe') . '</span>
+                        <b>' . cleanOutput($r['name']) . '</b>
+                    </a>
+                </li>';
             }
 
-            // display pagination
-            if ($id <= 0) {
-                $sql = "SELECT count(`id`) AS c "
-                     . "FROM `fcms_recipes` "
-                     . "WHERE `category` LIKE '$cat_name'";
-                $this->db2->query($sql) or displaySQLError(
-                    'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                    );
-                while ($r = $this->db2->get_row()) {
-                    $recipecount = $r['c'];
-                }
-                $total_pages = ceil($recipecount / 5);
-                displayPagination('recipes.php?category='.$cat, $page, $total_pages);
-            }
+            echo '
+            </ul>';
+
+            // Display Pagination
+            $sql = "SELECT count(`id`) AS c 
+                    FROM `fcms_recipes` 
+                    WHERE `category` = '$cat'";
+            $this->db2->query($sql) or displaySQLError(
+                'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
+            $r = $this->db2->get_row();
+            $recipecount = $r['c'];
+            $total_pages = ceil($recipecount / 5);
+            displayPagination('recipes.php?category='.$cat, $page, $total_pages);
+
+        // No recipes for this category
         } else {
             echo '
             <div class="info-alert">
-                <h2>'.T_('Welcome to the Recipe section.').'</h2>
-                <p><i>'.T_('Currently no one has added any recipes.').'</i></p>
+                <h2>'.$categoryName.'</h2>
+                <p><i>'.T_('Currently no one has added any recipes to this category.').'</i></p>
                 <p><a href="?addrecipe=yes&amp;cat='.$cat.'">'.T_('Add a Recipe').'</a></p>
             </div>';
         }
+
+        echo '
+            </div>';
     }
 
     /**
-     * getRecipeCountInCategory
-     * 
-     * Returns the recipe count for the desired category
+     * showRecipe
      *
-     * @param   $cat - category id
+     * Display a single recipe.  Display options for editing/deleting. 
+     * 
+     * @param   int     $cat 
+     * @param   int     $id 
+     * @return  void
      */
-    function getRecipeCountInCategory ($cat)
+    function showRecipe ($cat, $id)
     {
-        $sql = "SELECT count(*) FROM `fcms_recipes` WHERE `category` = '$cat'";
-        $this->db->query($sql) or displaySQLError(
-            'Recipe Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-        if ($this->db->count_rows() > 0) {
-            $r = $this->db->get_row();
-            return sprintf(_ngettext('%s Recipe', '%s Recipes', $r[0]), $r[0]);
-        } else {
-            return "0 " . T_('Recipes');
+        $locale = new Locale();
+
+        $cat = cleanInput($cat, 'int');
+        $id  = cleanInput($id, 'int');
+
+        // Display Menu
+        echo '
+            <div id="sections_menu" class="clearfix">
+                <ul>
+                    <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>';
+        if (checkAccess($this->currentUserId) <= 5) {
+            echo '
+                </ul>
+            </div>
+            <div id="actions_menu" class="clearfix">
+                <ul>
+                    <li><a href="?addrecipe=yes&amp;cat='.$cat.'">'.T_('Add Recipe').'</a></li>';
         }
+        echo '
+                </ul>
+            </div>';
+
+        // Show Category Side Menu
+        $this->showCategoryMenu();
+
+        // Get Recipes for this category
+        $sql = "SELECT r.`id`, r.`name`, r.`category`, 
+                    r.`ingredients`, r.`directions`, r.`thumbnail`, 
+                    c.`name` AS category_name, r.`user`, r.`date`
+                FROM `fcms_recipes` AS r, `fcms_category` AS c
+                WHERE r.`id` = '$id' 
+                AND r.`category` = '$cat'
+                AND r.`category` = c.`id`
+                LIMIT 1";
+        $this->db->query($sql) or displaySQLError(
+            'Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+
+        // Invalid id/category
+        if ($this->db->count_rows() < 1) {
+            echo '
+            <div class="error-alert">' . T_('Recipe does not exist.') . '</div>';
+            return;
+        }
+
+        $r = $this->db->get_row();
+
+        $displayname = getUserDisplayName($r['user']);
+        $displayname = '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>';
+        $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tz_offset, $r['date']);
+
+        $cleanName          = cleanOutput($r['name']);
+        $cleanCategory      = cleanOutput($r['category'], 'int');
+        $cleanThumb         = basename($r['thumbnail']);
+        $cleanIngredients   = cleanOutput($r['ingredients']);
+        $cleanDirections    = cleanOutput($r['directions']);
+
+        // Display Recipe
+        echo '
+            <div id="maincolumn">
+                <div class="recipe-thumbnail"><img src="gallery/upimages/'.$cleanThumb.'"/></div>
+                <h4 class="recipe-name">' . $cleanName . '</h4>
+                <span class="date">
+                    '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date);
+        if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2) {
+            echo ' &nbsp;
+                    <form method="post" action="recipes.php">
+                        <div>
+                            <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
+                            <input type="hidden" name="name" value="'.$cleanName.'"/>
+                            <input type="hidden" name="category" value="'.$cleanCategory.'"/>
+                            <input type="hidden" name="ingredients" value="'.$cleanIngredients.'"/>
+                            <input type="hidden" name="directions" value="'.$cleanDirections.'"/>
+                            <input type="submit" name="editrecipe" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Recipe').'"/>
+                        </div>
+                    </form> &nbsp;
+                    <form class="delrec" method="post" action="recipes.php">
+                        <div>
+                            <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
+                            <input type="submit" name="delrecipe" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Recipe').'"/>
+                        </div>
+                    </form>';
+        }
+        echo '
+                </span>
+                <div class="clearfix">
+                    <div class="recipe-directions">
+                        <b>'.T_('Directions').'</b>
+                        '.nl2br_nospaces($cleanDirections).'
+                    </div>
+                    <div class="recipe-ingredients">
+                        <b>'.T_('Ingredients').'</b>
+                        '.nl2br_nospaces($cleanIngredients).'
+                    </div>
+                </div>';
+        $this->showComments($id, $cat);
+        echo '
+            </div>';
     }
 
-    function displayForm ($type, $id = '0', $name = 'error', $category = 'error', $recipe = 'error')
+    /**
+     * displayAddRecipeForm 
+     * 
+     * Displays the form for adding a recipe.
+     *
+     * @param   int     $category 
+     * @return  void
+     */
+    function displayAddRecipeForm ($category = 0)
+    {
+        $categories = $this->getCategoryList();
+
+        echo '
+            <script type="text/javascript" src="inc/livevalidation.js"></script>
+            <script type="text/javascript" src="inc/messageboard.inc.js"></script>
+            <form method="post" id="addform" name="addform" enctype="multipart/form-data" action="recipes.php">
+                <fieldset>
+                    <legend><span>'.T_('Add Recipe').'</span></legend>
+                    <div class="clearfix">
+                        <label for="name">'.T_('Name').'</label>
+                        <input type="text" name="name" id="name"/>
+                        <div id="name-info" class="info">
+                            '.T_('The name of your recipe.').'
+                        </div>
+                        <script type="text/javascript">
+                            var fname = new LiveValidation(\'name\', { onlyOnSubmit: true });
+                            fname.add(Validate.Presence, {failureMessage: ""});
+                        </script>
+                    </div>
+                    <div class="clearfix">
+                        <label for="thumbnail">'.T_('Thumbnail').'</label>
+                        <input type="file" name="thumbnail" id="thumbnail"/>
+                    </div>
+                    <div class="clearfix">
+                        <label for="category">'.T_('Category').'</label>
+                        <select name="category" id="category">
+                            <option></option>
+                            ' . buildHtmlSelectOptions($categories, $category) . '
+                        </select>&nbsp;
+                        <a href="?add=category">' . T_('New Category') . '</a>
+                        <script type="text/javascript">
+                            var fcategory = new LiveValidation(\'category\', { onlyOnSubmit: true });
+                            fcategory.add(Validate.Presence, {failureMessage: ""});
+                        </script>
+                    </div>
+                    <div class="clearfix">
+                        <label for="ingredients">'.T_('Ingredients').'</label>
+                        <textarea name="ingredients" id="ingredients"></textarea>
+                        <div id="ingredients-info" class="info">
+                            '.T_('Put each ingredient on a seperate line.').'
+                        </div>
+                        <script type="text/javascript">
+                            var fingredients = new LiveValidation(\'ingredients\', { onlyOnSubmit: true });
+                            fingredients.add(Validate.Presence, {failureMessage: ""});
+                        </script>
+                    </div>
+                    <div class="clearfix">
+                        <label for="directions">'.T_('Directions').'</label>
+                        <textarea name="directions" id="directions"></textarea>
+                        <script type="text/javascript">
+                            var fdirections = new LiveValidation(\'directions\', { onlyOnSubmit: true });
+                            fdirections.add(Validate.Presence, {failureMessage: ""});
+                        </script>
+                    </div>
+                    <p>
+                        <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'"/> &nbsp;
+                        <a href="recipes.php">'.T_('Cancel').'</a>
+                    </p>
+                </fieldset>
+            </form>';
+    }
+
+    /**
+     * displayEditRecipeForm 
+     * 
+     * Displays the form for editing a recipe.
+     *
+     * @param   int     $id 
+     * @param   string  $name 
+     * @param   string  $category 
+     * @param   string  $ingredients 
+     * @param   string  $directions
+     * @return  void
+     */
+    function displayEditRecipeForm ($id, $name, $category, $ingredients, $directions)
+    {
+        $categories = $this->getCategoryList();
+
+        echo '
+            <script type="text/javascript" src="inc/livevalidation.js"></script>
+            <script type="text/javascript" src="inc/messageboard.inc.js"></script>
+            <form method="post" id="editform" name="editform" action="recipes.php">
+                <fieldset>
+                    <legend><span>'.T_('Edit Recipe').'</span></legend>
+                    <div>
+                        <label for="name">'.T_('Name').'</label>
+                        <input type="text" name="name" id="name" value="'.$name.'" size="50"/>
+                        <script type="text/javascript">
+                            var fname = new LiveValidation(\'name\', { onlyOnSubmit: true });
+                            fname.add(Validate.Presence, {failureMessage: ""});
+                        </script>
+                    </div>
+                    <div>
+                        <label for="category">'.T_('Category').'</label>
+                        <select name="category">
+                            ' . buildHtmlSelectOptions($categories, $category) . '
+                        </select>
+                    </div>
+                    <div>
+                        <label for="ingredients">'.T_('Ingredients').'</label>
+                        <textarea name="ingredients" id="ingredients">'.$ingredients.'</textarea>
+                        <script type="text/javascript">
+                            var fingredients = new LiveValidation(\'ingredients\', { onlyOnSubmit: true });
+                            fingredients.add(Validate.Presence, {failureMessage: ""});
+                        </script>
+                    </div>
+                    <div>
+                        <label for="directions">'.T_('Directions').'</label>
+                        <textarea name="directions" id="directions">'.$directions.'</textarea>
+                        <script type="text/javascript">
+                            var fdirections = new LiveValidation(\'directions\', { onlyOnSubmit: true });
+                            fdirections.add(Validate.Presence, {failureMessage: ""});
+                        </script>
+                    </div>
+                    <p>
+                        <input type="hidden" name="id" value="'.$id.'"/>
+                        <input class="sub1" type="submit" name="submitedit" value="' . T_('Edit') . '"/> &nbsp;
+                        <a href="recipes.php">' . T_('Cancel') . '</a>
+                    </p>
+                </fieldset>
+            </form>';
+    }
+
+    /**
+     * displayAddCategoryForm 
+     * 
+     * @return void
+     */
+    function displayAddCategoryForm ()
     {
         echo '
             <script type="text/javascript" src="inc/livevalidation.js"></script>
-            <script type="text/javascript" src="inc/messageboard.inc.js"></script>';
-        if ($type == 'edit') {
-            echo '
             <form method="post" name="editform" action="recipes.php">
                 <fieldset>
-                    <legend><span>'.T_('Edit Recipe').'</span></legend>';
-        } else {
-            echo '
-            <form method="post" name="addform" action="recipes.php">
-                <fieldset>
-                    <legend><span>'.T_('Add Recipe').'</span></legend>';
-        }
-        echo '
+                    <legend><span>'.T_('New Category').'</span></legend>
                     <div>
-                        <label for="name">'.T_('Name of Recipe').'</label>: 
-                        <input type="text" name="name" id="name"';
-        if ($type == 'edit') {
-            echo " value=\"".htmlentities($name, ENT_COMPAT, 'UTF-8')."\"";
-        }
-        echo ' size="50"/>
+                        <label for="name">'.T_('Name').'</label>: 
+                        <input type="text" name="name" id="name" size="50"/>
                     </div><br/>
                     <script type="text/javascript">
                         var fname = new LiveValidation(\'name\', { onlyOnSubmit: true });
                         fname.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div>
-                        <label for="category">'.T_('Category').'</label>: 
-                        <select name="category">';
-        echo "<option value=\"".T_('Appetizer') . "\"";
-        if ($category == T_('Appetizer') || $category == 1) {
-            echo " selected=\"selected\"";
-        }
-        echo ">" . T_('Appetizer') . "</option>";
-        echo "<option value=\"" . T_('Breakfast') . "\"\"";
-        if ($category == T_('Breakfast') || $category == 2) {
-            echo " selected=\"selected\"";
-        }
-        echo ">" . T_('Breakfast') . "</option>";
-        echo "<option value=\"" . T_('Dessert') . "\"";
-        if ($category == T_('Dessert') || $category == 3) {
-            echo " selected=\"selected\"";
-        }
-        echo ">" .T_('Dessert') ."</option>";
-        echo "<option value=\"" . T_('Entree (Meat)') . "\"";
-        if ($category == T_('Entree (Meat)') || $category == 4) {
-            echo " selected=\"selected\"";
-        }
-        echo ">" . T_('Entree (Meat)') . "</option>";
-        echo "<option value=\"" . T_('Entree (Seafood)') . "\"";
-        if ($category == T_('Entree (Seafood)') || $category == 5) {
-            echo " selected=\"selected\"";
-        }
-        echo ">" . T_('Entree (Seafood)') . "</option>";
-        echo "<option value=\"" . T_('Entree (Vegetarian)') . "\"";
-        if ($category == T_('Entree (Vegetarian)') || $category == 6) {
-            echo " selected=\"selected\"";
-        }
-        echo ">".T_('Entree (Vegetarian)')."</option>";
-        echo "<option value=\"" . T_('Salad') . "\"";
-        if ($category == T_('Salad') || $category == 7) {
-            echo " selected=\"selected\"";
-        }
-        echo ">" . T_('Salad') . "</option>";
-        echo "<option value=\"" . T_('Side Dish') . "\"";
-        if ($category == T_('Side Dish') || $category == 8) {
-            echo " selected=\"selected\"";
-        }
-        echo ">" . T_('Side Dish') . "</option>";
-        echo "<option value=\"" . T_('Soup') . "\"";
-        if ($category == T_('Soup') || $category == 9) {
-            echo " selected=\"selected\"";
-        }
-        echo '>'.T_('Soup').'</option>
-                        </select>
-                    </div><br/>
-                    <script type="text/javascript">var bb = new BBCode();</script>';
-        displayMBToolbar();
-        echo '
-                    <div><textarea name="post" id="post" rows="10" cols="63">';
-        if ($type == 'edit') {
-            echo $recipe;
-        }
-        echo '</textarea></div>
-                    <script type="text/javascript">bb.init(\'post\');</script>
-                    <script type="text/javascript">
-                        var frecipe = new LiveValidation(\'post\', { onlyOnSubmit: true });
-                        frecipe.add(Validate.Presence, {failureMessage: ""});
-                    </script>';
-        if ($type == 'add') {
-            echo '
                     <p>
-                        <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'"/> &nbsp;
-                        <a href="recipes.php">'.T_('Cancel').'</a>
-                    </p>';
-        } else {
-            echo '
-                    <p>
-                        <input type="hidden" name="id" value="'.$id.'"/>
-                        <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'"/> &nbsp;
-                        <a href="recipes.php">'.T_('Cancel').'</a>
-                    </p>';
-        }
-        echo '
+                        <input class="sub1" type="submit" name="submit-category" value="' . T_('Create') . '"/> &nbsp;
+                        <a href="recipes.php?addrecipe=yes">' . T_('Cancel') . '</a>
+                    </p>
                 </fieldset>
             </form>';
     }
 
+    /**
+     * getCategoryList
+     *
+     * Returns an array of the current Recipe Categories. 
+     * 
+     * @return array
+     */
+    function getCategoryList ()
+    {
+        $categories = array();
+
+        // Get Recipes for this category
+        $sql = "SELECT `id`, `name` 
+                FROM `fcms_category` 
+                WHERE `type` = 'recipe' 
+                ORDER BY `name`"; 
+        $this->db2->query($sql) or displaySQLError(
+            'Categories Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        while ($r = $this->db2->get_row()) {
+            $categories[$r['id']] = $r['name'];
+        }
+
+        return $categories;
+    }
+
+    /**
+     * displayWhatsNewRecipes 
+     * 
+     * Displays the last 5 recipes, in the last 30 days.
+     *
+     * @return void
+     */
     function displayWhatsNewRecipes ()
     {
         $locale = new Locale();
         $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+        $today_end   = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
 
-        $sql = "SELECT * "
-             . "FROM `fcms_recipes` "
-             . "WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) "
-             . "ORDER BY `date` DESC "
-             . "LIMIT 0 , 5";
+        $sql = "SELECT *
+                FROM `fcms_recipes`
+                WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY)
+                ORDER BY `date` DESC 
+                LIMIT 0 , 5";
         $this->db->query($sql) or displaySQLError(
             "What's New Error", __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+        );
+
         if ($this->db->count_rows() > 0) {
             echo '
             <h3>'.T_('Recipes').'</h3>
             <ul>';
+
             while ($r = $this->db->get_row()) {
                 $name = $r['name'];
                 $displayname = getUserDisplayName($r['user']);
                 switch ($r['category']) {
                     case T_('Appetizer'):
-                        $url = "recipes.php?category=1&amp;id=" . $r['id'];
+                        $url = "recipes.php?category=1&amp;id=" . (int)$r['id'];
                         break;
                     case T_('Breakfast'):
-                        $url = "recipes.php?category=2&amp;id=" . $r['id'];
+                        $url = "recipes.php?category=2&amp;id=" . (int)$r['id'];
                         break;
                     case T_('Dessert'):
-                        $url = "recipes.php?category=3&amp;id=" . $r['id'];
+                        $url = "recipes.php?category=3&amp;id=" . (int)$r['id'];
                         break;
                     case T_('Entree (Meat)'):
-                        $url = "recipes.php?category=4&amp;id=" . $r['id'];
+                        $url = "recipes.php?category=4&amp;id=" . (int)$r['id'];
                         break;
                     case T_('Entree (Seafood)'):
-                        $url = "recipes.php?category=5&amp;id=" . $r['id'];
+                        $url = "recipes.php?category=5&amp;id=" . (int)$r['id'];
                         break;
                     case T_('Entree (Vegetarian)'):
-                        $url = "recipes.php?category=6&amp;id=" . $r['id'];
+                        $url = "recipes.php?category=6&amp;id=" . (int)$r['id'];
                         break;
                     case T_('Salad'):
-                        $url = "recipes.php?category=7&amp;id=" . $r['id'];
+                        $url = "recipes.php?category=7&amp;id=" . (int)$r['id'];
                         break;
                     case T_('Side Dish'):
-                        $url = "recipes.php?category=8&amp;id=" . $r['id'];
+                        $url = "recipes.php?category=8&amp;id=" . (int)$r['id'];
                         break;
                     case T_('Soup'):
-                        $url = "recipes.php?category=9&amp;id=" . $r['id'];
+                        $url = "recipes.php?category=9&amp;id=" . (int)$r['id'];
                         break;
                     default:
                         $url = "recipes.php";
                         break;
                 }
+
                 $date = $locale->fixDate('YmdHis', $this->tz_offset, $r['date']);
+
                 if ($date >= $today_start && $date <= $today_end) {
                     $full_date = T_('Today');
                     $d = ' class="today"';
@@ -448,13 +609,140 @@ class Recipes
                 echo '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
-                    <a href="'.$url.'">'.$name.'</a> - 
-                    <a class="u" href="profile.php?member='.$r['user'].'">'.$displayname.'</a>
+                    <a href="'.$url.'">'.cleanOutput($name).'</a> - 
+                    <a class="u" href="profile.php?member='.(int)$r['user'].'">'.$displayname.'</a>
                 </li>';
             }
             echo '
             </ul>';
         }
+    }
+
+    /**
+     * showCategoryMenu 
+     * 
+     * Displays the left side category menu. Returns true if categories exist.
+     *
+     * @return  boolean
+     */
+    function showCategoryMenu ()
+    {
+        $sql = "SELECT 'cat' AS type, `id`, `name`
+                FROM `fcms_category`
+                WHERE `type` = 'recipe'
+                UNION
+                SELECT 'count' AS 'type', c.`id`, count(r.`id`)
+                FROM `fcms_category` AS c 
+                LEFT JOIN `fcms_recipes` AS r ON c.`id` = r.`category`
+                WHERE c.`type` = 'recipe'
+                GROUP by c.`id`
+                ORDER BY `name`";
+        $this->db->query($sql) or displaysqlerror(
+            'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+
+        if ($this->db->count_rows() <= 0) {
+            return false;
+        }
+
+
+        $categories = array();
+        $counts     = array();
+
+        while ($r = $this->db->get_row()) {
+            if ($r['type'] == 'cat') {
+                $categories[$r['id']] = cleanOutput($r['name']);
+            } else {
+                $counts[$r['id']] = $r['name'];
+            }
+        }
+
+        echo '
+            <div id="leftcolumn">
+                <h3>' . T_('Recipe Categories') . '</h3>
+                <ul class="menu">';
+
+
+        foreach ($categories as $id => $name) {
+            echo '
+                    <li><a href="?category=' . (int)$id . '">' . $name . '<span>(' . (int)$counts[$id] . ')</span></a></li>';
+        }
+
+        echo '
+                </ul>
+            </div>';
+
+        return true;
+    }
+
+    /**
+     * showComments 
+     * 
+     * Show the comments for the given recipe.
+     * 
+     * @param   int     $id 
+     * @param   int     $category 
+     * @return  void
+     */
+    function showComments ($id, $category)
+    {
+        $locale = new Locale();
+
+        $id       = cleanInput($id, 'int');
+        $category = cleanInput($category, 'int');
+
+        $sql = "SELECT rc.`id`, rc.`recipe`, rc.`comment`, rc.`date`, rc.`user`, u.`avatar` 
+                FROM `fcms_recipe_comment` AS rc, `fcms_users` AS u 
+                WHERE `recipe` = '$id' 
+                AND rc.`user` = u.`id` 
+                ORDER BY `date`";
+        $this->db->query($sql) or displaySQLError(
+            'Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+
+        // Display current comments
+        if ($this->db->count_rows() >= 0) {
+            while ($r = $this->db->get_row()) {
+
+                $del_comment = '';
+                $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $r['date']);
+                $displayname = getUserDisplayName($r['user']);
+                $comment = $r['comment'];
+                if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2) {
+                    $del_comment .= '<input type="submit" name="delcom" id="delcom" '
+                        . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
+                        . T_('Delete this Comment') . '"/>';
+                }
+
+                echo '
+            <div class="comment_block clearfix">
+                <form class="delcom" action="?category='.$category.'&amp;id='.$id.'" method="post">
+                    '.$del_comment.'
+                    <img class="avatar" alt="avatar" src="'.getCurrentAvatar($r['user']).'"/>
+                    <b>'.$displayname.'</b>
+                    <span>'.$date.'</span>
+                    <p>
+                        '.parse($comment).'
+                    </p>
+                    <input type="hidden" name="id" value="'.$r['id'].'">
+                    <input type="hidden" name="user" value="'.$r['user'].'">
+                </form>
+            </div>';
+            }
+        }
+
+        // Display add comment form
+        echo '
+            <p>&nbsp;</p>
+            <div class="add_comment_block">
+                <form action="?category='.$category.'&amp;id='.$id.'" method="post">
+                    '.T_('Add Comment').'<br/>
+                    <textarea class="frm_textarea" name="comment" id="comment" rows="3" cols="63"></textarea>
+                    <input type="hidden" name="recipe" value="'.$id.'">
+                    <input type="submit" name="addcom" id="addcom" value="'.T_('Add Comment').'" title="'.T_('Add Comment').'" class="gal_addcombtn"/>
+                </form>
+            </div>
+            <p>&nbsp;</p>';
     }
 
 } ?>

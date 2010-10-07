@@ -1,25 +1,29 @@
 <?php
 session_start();
-if (get_magic_quotes_gpc()) {
-    $_REQUEST = array_map('stripslashes', $_REQUEST);
-    $_GET = array_map('stripslashes', $_GET);
-    $_POST = array_map('stripslashes', $_POST);
-    $_COOKIE = array_map('stripslashes', $_COOKIE);
-}
+
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
+include 'inc/settings_class.php';
+
+fixMagicQuotes();
 
 // Check that the user is logged in
 isLoggedIn();
-$current_user_id = (int)escape_string($_SESSION['login_id']);
+$currentUserId = (int)escape_string($_SESSION['login_id']);
 
-header("Cache-control: private");
-include 'inc/settings_class.php';
-$settings = new Settings($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$settings = new Settings($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
 // Setup the Template variables;
-$TMPL['pagetitle'] = T_('Settings');
-$TMPL['path'] = "";
-$TMPL['admin_path'] = "admin/";
+$TMPL = array(
+    'sitename'      => getSiteName(),
+    'nav-link'      => getNavLinks(),
+    'pagetitle'     => T_('Settings'),
+    'path'          => "",
+    'admin_path'    => "admin/",
+    'displayname'   => getUserDisplayName($currentUserId),
+    'version'       => getCurrentVersion(),
+    'year'          => date('Y')
+);
 $TMPL['javascript'] = <<<HTML
 <link rel="stylesheet" type="text/css" href="themes/datechooser.css"/>
 <script type="text/javascript" src="inc/datechooser.js"></script>
@@ -27,6 +31,7 @@ $TMPL['javascript'] = <<<HTML
 //<![CDATA[ 
 window.onload = WindowLoad;
 function WindowLoad() {
+    initGravatar();
     var objDatePicker = new DateChooser();
     objDatePicker.setUpdateField({'sday':'j', 'smonth':'n', 'syear':'Y'});
     objDatePicker.setIcon('themes/default/images/datepicker.jpg', 'syear'); 
@@ -37,7 +42,7 @@ function WindowLoad() {
 HTML;
 
 // Show Header
-include_once(getTheme($current_user_id) . 'header.php');
+include_once(getTheme($currentUserId) . 'header.php');
 
 echo '
         <div id="settings" class="centercontent">
@@ -53,7 +58,8 @@ echo '
 
             <div id="maincolumn">';
 
-$emailstart = $settings->cur_user_email;
+$emailstart = $settings->currentUserEmail;
+
 if (isset($_POST['submit'])) {
 
     //-----------------------------------------------
@@ -62,25 +68,43 @@ if (isset($_POST['submit'])) {
     $sql = "UPDATE `fcms_users` SET ";
     // Settings
     if (isset($_POST['settings'])) {
-        if ($_FILES['avatar']['error'] < 1) {
-            $upfile = uploadImages(
-                $_FILES['avatar']['type'], $_FILES['avatar']['name'], 
-                $_FILES['avatar']['tmp_name'], "gallery/avatar/", 80, 80, 'yes'
-            );
-            $sql .= "`avatar` = '$upfile', ";
-            if ($_POST['avatar_orig'] != 'no_avatar.jpg') {
-                unlink("gallery/avatar/" . $_POST['avatar_orig']);
+        // Avatar uploads
+        if ($_POST['avatar_type'] == 'fcms') {
+            if ($_FILES['avatar']['error'] < 1) {
+                $upfile = uploadImages(
+                    $_FILES['avatar']['type'], $_FILES['avatar']['name'], 
+                    $_FILES['avatar']['tmp_name'], "gallery/avatar/", 80, 80, true, false, true
+                );
+                $sql .= "`avatar` = '$upfile', ";
+                if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar') {
+                    unlink("gallery/avatar/" . basename($_POST['avatar_orig']));
+                }
+            } else {
+                $sql .= "`avatar` = `avatar`, ";
             }
+        // Avatar Gravatar
+        } else if ($_POST['avatar_type'] == 'gravatar') {
+            $sql .= "`avatar` = 'gravatar', `gravatar` = '".cleanInput($_POST['gravatar_email'])."', ";
+            if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar') {
+                unlink("gallery/avatar/" . basename($_POST['avatar_orig']));
+            }
+        // Avatar default
+        } else {
+            $sql .= "`avatar` = 'no_avatar.jpg', ";
         }
     }
     // Personal Info
     if (isset($_POST['personal'])) {
-        if ($_POST['fname']) { $sql .= "fname = '" .escape_string($_POST['fname']) . "', "; }
-        if ($_POST['lname']) { $sql .= "lname = '".escape_string($_POST['lname'])."', "; }
+        if ($_POST['fname']) {
+            $sql .= "`fname` = '" . cleanInput($_POST['fname']) . "', ";
+        }
+        if ($_POST['lname']) {
+            $sql .= "`lname` = '" . cleanInput($_POST['lname']) . "', ";
+        }
         if ($_POST['email']) { 
             if ($_POST['email'] != $emailstart) {
-                $sql2 = "SELECT `email` FROM `fcms_users` "
-                      . "WHERE email='" . escape_string($_POST['email']) . "'";
+                $sql2 = "SELECT `email` FROM `fcms_users` 
+                         WHERE email='" . cleanInput($_POST['email']) . "'";
                 $result = mysql_query($sql2) or displaySQLError(
                     'Email Check Error', ___FILE___ . ' [' . __LINE__ . ']', 
                     $sql, mysql_error()
@@ -94,10 +118,18 @@ if (isset($_POST['submit'])) {
                     $settings->displayForm();
                     exit();
                 }
-            $sql .= "email = '".escape_string($_POST['email'])."', ";
+                $sql .= "`email` = '" . cleanInput($_POST['email']) . "', ";
             }
         }
-        $birthday = $_POST['syear']."-".str_pad($_POST['smonth'], 2, "0", STR_PAD_LEFT)."-".str_pad($_POST['sday'], 2, "0", STR_PAD_LEFT);
+        if ($_POST['sex']) {
+            $sql .= "`sex` = '" . cleanInput($_POST['sex']) . "', ";
+        }
+        $year   = cleanInput($_POST['syear'], 'int');
+        $month  = cleanInput($_POST['smonth'], 'int'); 
+        $month  = str_pad($month, 2, "0", STR_PAD_LEFT);
+        $day    = cleanInput($_POST['sday'], 'int');
+        $day    = str_pad($day, 2, "0", STR_PAD_LEFT);
+        $birthday = "$year-$month-$day";
         $sql .= "birthday = '$birthday', ";
     }
     // Password
@@ -109,9 +141,9 @@ if (isset($_POST['submit'])) {
         }
     }
     // Only update user if there's somethign to update
-    if (!empty($_POST['pass']) || isset($_POST['syear']) || isset($upfile)) {
+    if (!empty($_POST['pass']) || isset($_POST['syear']) || isset($_POST['theme'])) {
         $sql = substr($sql, 0, -2); // remove the extra comma space at the end
-        $sql .= "WHERE id = $current_user_id";
+        $sql .= "WHERE id = '$currentUserId'";
         mysql_query($sql) or displaySQLError(
             'Update User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -123,52 +155,63 @@ if (isset($_POST['submit'])) {
     $sql = "UPDATE `fcms_user_settings` SET ";
     // Settings
     if (isset($_POST['settings'])) {
-        if (preg_match("/\.css$/i", $_POST['theme'])) { $sql .= "theme = '" . basename($_POST['theme']) . "', "; }
-        if ($_POST['displayname']) { $sql .= "displayname = '" . escape_string($_POST['displayname']) . "', "; }
-        if ($_POST['frontpage']) { $sql .= "frontpage = '" . escape_string($_POST['frontpage']) . "', "; }
+        if ($_POST['theme']) {
+            $sql .= "`theme` = '" . basename($_POST['theme']) . "', ";
+        }
+        if ($_POST['displayname']) {
+            $sql .= "`displayname` = '" . cleanInput($_POST['displayname']) . "', ";
+        }
+        if ($_POST['frontpage']) {
+            $sql .= "`frontpage` = '" . cleanInput($_POST['frontpage']) . "', ";
+        }
         if ($_POST['email_updates']) {
             if ($_POST['email_updates'] == 'yes') {
-                $sql .= "email_updates = '1', ";
+                $sql .= "`email_updates` = '1', ";
             } else {
-                $sql .= "email_updates = '0', ";
+                $sql .= "`email_updates` = '0', ";
             }
         }
         if ($_POST['advanced_upload']) {
             if ($_POST['advanced_upload'] == 'yes') {
-                $sql .= "advanced_upload = '1', ";
+                $sql .= "`advanced_upload` = '1', ";
             } else {
-                $sql .= "advanced_upload = '0', ";
+                $sql .= "`advanced_upload` = '0', ";
             }
         }
         if ($_POST['language']) {
-            $sql .= "language = '" . escape_string($_POST['language']) . "', ";
-            $_SESSION['language'] = $_POST['language'];
-            T_setlocale(LC_MESSAGES, $_SESSION['language']);
+            $lang = cleanInput($_POST['language']);
+            $sql .= "`language` = '" . $lang . "', ";
+            $_SESSION['language'] = $lang;
+            T_setlocale(LC_MESSAGES, $lang);
         }
-        if ($_POST['timezone']) { $sql .= "timezone = '" . escape_string($_POST['timezone']) . "', "; }
+        if ($_POST['timezone']) {
+            $sql .= "`timezone` = '" . cleanInput($_POST['timezone']) . "', ";
+        }
         if ($_POST['dst']) {
             if ($_POST['dst'] == 'on') {
-                $sql .= "dst = '1', ";
+                $sql .= "`dst` = '1', ";
             } else {
-                $sql .= "dst = '0', ";
+                $sql .= "`dst` = '0', ";
             }
         }
     }
     // Message Board
     if (isset($_POST['board'])) {
-        if ($_POST['boardsort']) { $sql .= "boardsort = '" . escape_string($_POST['boardsort']) . "', "; }
+        if ($_POST['boardsort']) {
+            $sql .= "`boardsort` = '" . cleanInput($_POST['boardsort']) . "', ";
+        }
         if ($_POST['showavatar']) {
             if ($_POST['showavatar'] == 'yes') {
-                $sql .= "showavatar = '1', ";
+                $sql .= "`showavatar` = '1', ";
             } else {
-                $sql .= "showavatar = '0', ";
+                $sql .= "`showavatar` = '0', ";
             }
         }
     }
-    // Only update user if there's somethign to update
+    // Only update user if there's something to update
     if (isset($_POST['settings']) || isset($_POST['board'])) {
         $sql = substr($sql, 0, -2); // remove the extra comma space at the end
-        $sql .= "WHERE `user` = $current_user_id";
+        $sql .= " WHERE `user` = '$currentUserId'";
         mysql_query($sql) or displaySQLError(
             'Update Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -186,7 +229,7 @@ if (isset($_POST['submit'])) {
             <p><a href="settings.php">'.T_('Continue').'</a></p>';
     }
 } else {
-    $option = isset($_GET['view']) ? $_GET['view'] : 'settings';
+    $option = isset($_GET['view']) ? cleanInput($_GET['view']) : 'settings';
     $settings->displayForm($option);
 }
 
@@ -195,4 +238,4 @@ echo '
         </div><!-- #settings .centercontent -->';
 
 // Show Footer
-include_once(getTheme($current_user_id) . 'footer.php');
+include_once(getTheme($currentUserId) . 'footer.php');

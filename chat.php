@@ -1,26 +1,40 @@
 <?php
+/**
+ * Chat
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2009 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ * @since     2.0
+ */
 session_start();
 
-if (get_magic_quotes_gpc()) {
-    $_REQUEST = array_map('stripslashes', $_REQUEST);
-    $_GET = array_map('stripslashes', $_GET);
-    $_POST = array_map('stripslashes', $_POST);
-    $_COOKIE = array_map('stripslashes', $_COOKIE);
-}
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
+require_once 'inc/config_inc.php';
+require_once 'inc/util_inc.php';
+
+fixMagicQuotes();
 
 // Check that the user is logged in
 isLoggedIn();
-$current_user_id = (int)escape_string($_SESSION['login_id']);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
 header("Cache-control: private");
+
 // Setup the Template variables;
-$TMPL['pagetitle'] = T_('Chat Room');
-$TMPL['path'] = "";
-$TMPL['admin_path'] = "admin/";
+$TMPL = array(
+    'sitename'      => getSiteName(),
+    'nav-link'      => getNavLinks(),
+    'pagetitle'     => T_('Chat Room'),
+    'path'          => "",
+    'admin_path'    => "admin/",
+    'displayname'   => getUserDisplayName($currentUserId),
+    'version'       => getCurrentVersion(),
+    'year'          => date('Y')
+);
 $TMPL['javascript'] = '
-<script type="text/javascript" src="inc/dateformat.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 window.onload = startChat;
@@ -31,8 +45,8 @@ var receiveReq = getXmlHttpRequestObject();
 var receiveReq2 = getXmlHttpRequestObject();
 var lastMessage = 0;
 var mTimer;
-var username = \''.getUserDisplayName($current_user_id,2).'\'
-var userid = \''.$current_user_id.'\'
+var username = \''.getUserDisplayName($currentUserId, 2).'\'
+var userid = \''.$currentUserId.'\'
 function startChat() {
     document.getElementById(\'txt_message\').focus();
     getStartChatText();
@@ -182,7 +196,7 @@ function handleResetChat() {
 </script>';
 
 // Show header
-include_once(getTheme($current_user_id) . 'header.php');
+require_once getTheme($currentUserId) . 'header.php';
 
 echo '
         <div id="chat" class="centercontent">
@@ -193,10 +207,14 @@ echo '
                 #noscript p {background-color:#ff9; padding:3em; font-size:130%; line-height:200%;}
                 </style>
                 <div id="noscript">
-                <p>
-                    '.T_('JavaScript must be enabled in order for you to use the Chat Room. However, it seems JavaScript is either 
-                    disabled or not supported by your browser. Please enable JavaScript by changing your browser options.').'
-                </p>
+                <p>';
+
+echo T_(
+    'JavaScript must be enabled in order for you to use the Chat Room. However, it seems 
+    JavaScript is either disabled or not supported by your browser. Please enable JavaScript by changing your browser options.'
+);
+
+echo '</p>
                 </div>
             </noscript>
             <div id="chat_box">
@@ -204,7 +222,7 @@ echo '
                 <div id="div_users"></div>
                 <div style="clear:both"></div>
                 <form id="frmmain" name="frmmain" onsubmit="return blockSubmit();">';
-if (checkAccess($current_user_id) < 3) {
+if (checkAccess($currentUserId) < 3) {
     echo '<input type="button" name="btn_reset_chat" id="btn_reset_chat" value="'.T_('Reset Chat').'" onclick="javascript:resetChat();" /><br />';
 }
 echo '
@@ -216,4 +234,4 @@ echo '
         </div><!-- #chat .centercontent -->';
 
 // Show Footer
-include_once(getTheme($current_user_id) . 'footer.php'); ?>
+require_once getTheme($currentUserId) . 'footer.php'; ?>

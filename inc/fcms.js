@@ -33,6 +33,15 @@ function initRowHighlight() {
         });
     });
 }
+function initNewWindow() {
+    if (!$$('a.new_window')) { return; }
+    $$('a.new_window').each(function(link) {
+        link.onclick = function() {
+            window.open(this.href, '', 'width=650, height=620, location=no, status=no, menubar=no, toolbar=no');
+            return false;
+        };
+    });
+}
 function addSmiley(smileystring) {
     if (!document.getElementById('post')) { return; }
     var textarea=document.getElementById("post");
@@ -135,7 +144,15 @@ BBCode.prototype.insertLink=function(html) {
     this.insertCode("URL="+prompt("Please enter the url","http://"),"as text of the link","url")
 };
 
-
+/* UTILITIES
+------------------------------------------------*/
+function setElementDisplayNone(el) {
+    if (el.style.setAttribute) {
+        el.style.setAttribute('cssText', 'display:none');
+    } else {
+        el.setAttribute('style', 'display:none');
+    }
+}
 
 /* =HOME
 ------------------------------------------------*/
@@ -153,7 +170,7 @@ function initLatestInfoHighlight() {
 
 /* =PHOTO =GALLERY
 ------------------------------------------------*/
-function hideUploadOptions(rotateText, tagText) {
+function hideUploadOptions(rotateText, tagText, catText) {
     // Hide Rotate options
     if ($('rotate-options')) {
         var rDiv = $('rotate-options');
@@ -191,6 +208,23 @@ function hideUploadOptions(rotateText, tagText) {
         tLink.onclick = function() { $('tag-options').toggle(); return false; };
         tPara.appendChild(tLink);
         tDiv.insert({'before':tPara});
+    }
+    // Hide Existing Categories
+    if ($('existing-categories')) {
+        var eDiv = $('existing-categories');
+        var ePara = Element.extend(document.createElement('span'));
+        if (eDiv.style.setAttribute) {
+            eDiv.style.setAttribute('cssText', 'display:none');
+        } else {
+            eDiv.setAttribute('style', 'display:none');
+        }
+        var eLink = Element.extend(document.createElement('a'));
+        eLink.href = '#';
+        eLink.addClassName('u');
+        eLink.appendChild(document.createTextNode(catText));
+        eLink.onclick = function() { $('existing-categories').toggle(); return false; };
+        ePara.appendChild(eLink);
+        eDiv.insert({'before':ePara});
     }
 }
 function hidePhotoDetails(txt) {
@@ -247,8 +281,8 @@ function initConfirmCategoryDelete(txt) {
 /* =CALENDAR
 ------------------------------------------------*/
 function initCalendarHighlight() {
-    if (!$$('#big_calendar td.monthDay, #big_calendar td.monthToday')) { return; }
-    $$('#big_calendar td.monthDay, #big_calendar td.monthToday').each(function(item) {
+    if (!$$('#big-calendar td.monthDay, #big-calendar td.monthToday')) { return; }
+    $$('#big-calendar td.monthDay, #big-calendar td.monthToday').each(function(item) {
         item.observe('mouseover', function() {
             var link = item.childNodes[1];
             if (link) {
@@ -263,10 +297,85 @@ function initCalendarHighlight() {
     });
 }
 function initHideAdd() {
-    if (!$$('#big_calendar td')) { return; }
-    $$('#big_calendar td').each(function(item) {
+    if (!$$('#big-calendar td')) { return; }
+    $$('#big-calendar td').each(function(item) {
         item.addClassName('hideadd');
     });
+}
+function initHideMoreDetails(txt) {
+    if ($('cal-details')) {
+        var div = $('cal-details');
+        if (div.style.setAttribute) {
+            div.style.setAttribute('cssText', 'display:none');
+        } else {
+            div.setAttribute('style', 'display:none');
+        }
+        var a = new Element('a', { href: '#' }).update(txt);
+        a.onclick = function() { $('cal-details').toggle(); return false; };
+        div.insert({'before':a});
+    }
+}
+function initDisableTimes() {
+    var start = $('timestart');
+    if (start) {
+        if ($('all-day').checked) { 
+            start.setAttribute('disabled', 'disabled'); 
+        }
+    }
+    var end = $('timeend');
+    if (end) {
+        if ($('all-day').checked) { 
+            end.setAttribute('disabled', 'disabled'); 
+        }
+    }
+}
+function toggleDisable() { 
+    for (var i = 0; i < arguments.length; i++) { 
+        var element = $(arguments[i]); 
+        if (element.hasAttribute('disabled')) { 
+            element.removeAttribute('disabled'); 
+        } else { 
+            element.setAttribute('disabled', 'disabled'); 
+        } 
+    } 
+} 
+
+/* =RECIPE
+------------------------------------------------*/
+function initHideAddFormDetails() {
+    if ($('addform')) {
+        // Name
+        setElementDisplayNone($('name-info'));
+        $('name').onfocus = function() { $('name-info').show(); };
+        $('name').onblur  = function() { $('name-info').hide(); };
+        // Ingredients
+        setElementDisplayNone($('ingredients-info'));
+        $('ingredients').onfocus = function() { $('ingredients-info').show(); };
+        $('ingredients').onblur  = function() { $('ingredients-info').hide(); };
+    }
+}
+
+/* =SETTINGS
+------------------------------------------------*/
+function initGravatar() {
+    if ($('avatar_type')) {
+        handleAvatar();
+        $('avatar_type').onchange = handleAvatar;
+    }
+}
+function handleAvatar() {
+    if ($F('avatar_type') == "fcms") {
+        $('not-gravatar').show();
+        $('gravatar').hide();
+    }
+    if ($F('avatar_type') == "gravatar") {
+        $('not-gravatar').hide();
+        $('gravatar').show();
+    }
+    if ($F('avatar_type') == "default") {
+        $('not-gravatar').hide();
+        $('gravatar').hide();
+    }
 }
 
 /* =ADDRESSBOOK =BOOK

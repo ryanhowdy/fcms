@@ -1,9 +1,21 @@
 <?php
+/**
+ * Activate
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2008 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ * @since     1.7
+ */
 header("Cache-control: private");
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
+require_once 'inc/config_inc.php';
+require_once 'inc/util_inc.php';
 $link = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-mysql_select_db($cfg_mysql_db, $link);?>
+mysql_select_db($cfg_mysql_db, $link);
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo T_('lang'); ?>" lang="<?php echo T_('lang'); ?>">
 <head>
@@ -15,23 +27,30 @@ mysql_select_db($cfg_mysql_db, $link);?>
 if (isset($_GET['uid'])) {
 
     // Check for valid user id
-    if (ctype_digit($_GET['uid'])) {
+    if (is_numeric($_GET['uid'])) {
         echo '
     <div id="login_box">
         <h1 id="reset_header">'.T_('Account Activation').'</h1>';
-        $sql = "SELECT `activate_code` FROM `fcms_users` WHERE `id` = " . $_GET['uid'];
-        $result = mysql_query($sql) or displaySQLError('Check Code Error', 'activate.php [' . __LINE__ . ']', $sql, mysql_error());
+        $sql = "SELECT `activate_code` 
+                FROM `fcms_users` 
+                WHERE `id` = '" . cleanInput($_GET['uid'], 'int') . "'";
+        $result = mysql_query($sql) or displaySQLError(
+            'Check Code Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $row = mysql_fetch_array($result);
 
         // User supplied an activation code
         if (isset($_GET['code'])) {
 
             // Code is valid
-            if ($row['activate_code'] == $_GET['code']) {
+            $code = cleanInput($_GET['code'], 'int');
+            if ($row['activate_code'] == $code) {
                 $sql = "UPDATE `fcms_users` 
                         SET `activated` = 1, `joindate` = NOW() 
-                        WHERE `id` = " . $_GET['uid'];
-                mysql_query($sql) or displaySQLError('Activation Error', 'activate.php [' . __LINE__ . ']', $sql, mysql_error());
+                        WHERE `id` = '" . cleanInput($_GET['uid'], 'int') . "'";
+                mysql_query($sql) or displaySQLError(
+                    'Activation Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
                 echo '
         <p><b>'.T_('Alright!').'</b></p>
         <p>'.T_('Your account is now active.').'</p>

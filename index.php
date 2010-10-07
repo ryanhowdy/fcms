@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 session_start();
 
+// Site has NOT been installed yet
 if (!file_exists('inc/config_inc.php')) {
 
     // Setup php-gettext
@@ -41,18 +42,27 @@ if (!file_exists('inc/config_inc.php')) {
     </div>
 </body>
 </html>';
+
+// Site is installed... proceed
 } else {
+
     include_once('inc/config_inc.php');
     include_once('inc/util_inc.php');
-    if (isset($_POST['user'])) { $user = $_POST['user']; }
-    if (isset($_POST['pass'])) { $pass = $_POST['pass']; }
-    if (isset($_POST['rem'])) { $rem = $_POST['rem']; } else { $rem = 0; }
+
+    if (isset($_POST['user'])) {
+        $user = cleanInput($_POST['user']);
+    }
+    if (isset($_POST['pass'])) {
+        $pass = cleanInput($_POST['pass']);
+    }
+    $rem = isset($_POST['rem']) ? 1 : 0;
+
     mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
     mysql_select_db($cfg_mysql_db);
 
     // Change language
     if (isset($_GET['lang'])) {
-        $_SESSION['language'] = $_GET['lang'];
+        $_SESSION['language'] = cleanInput($_GET['lang']);
         T_setlocale(LC_MESSAGES, $_SESSION['language']);
         header("Location: index.php");
     }
@@ -95,11 +105,14 @@ if (!file_exists('inc/config_inc.php')) {
         }
 
         // Form was submitted so check to see if we can login the user
-        $user = escape_string($user);
-        $pass = escape_string($pass);
         $pass = md5($pass);
-        $sql = "SELECT * FROM `fcms_users` WHERE `username` = '$user' AND `password` = '$pass'";
-        $result = mysql_query($sql) or displaySQLError('Login Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+        $sql = "SELECT `id`, `username`, `password`, `activated`, `locked` 
+                FROM `fcms_users` 
+                WHERE `username` = '$user' 
+                AND `password` = '$pass'";
+        $result = mysql_query($sql) or displaySQLError(
+            'Login Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $login_check = mysql_num_rows($result);
         $row = mysql_fetch_array($result);
 
@@ -108,6 +121,8 @@ if (!file_exists('inc/config_inc.php')) {
 
             // User is active
             if ($row['activated'] > 0) {
+
+                // Setup Cookie/Session
                 if ($rem >= 1) {
                     setcookie('fcms_login_id', $row['id'], time() + (30*(24*3600)), '/');  // 30 days
                     setcookie('fcms_login_uname', $row['username'], time() + (30*(24*3600)), '/');  // 30 days
@@ -117,10 +132,24 @@ if (!file_exists('inc/config_inc.php')) {
                     $_SESSION['login_uname'] = $row['username'];
                     $_SESSION['login_pw'] = $row['password'];
                 }
-                $sql = "UPDATE `fcms_users` SET `activity` = NOW() WHERE `id` = " . $row['id'];
-                mysql_query($sql) or displaySQLError('Activity Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
-                $sql = "UPDATE `fcms_users` SET `login_attempts` = '0' WHERE `id` = " . $row['id'];
-                mysql_query($sql) or displaySQLError('Login Attempt Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+
+                // Update activity
+                $sql = "UPDATE `fcms_users` 
+                        SET `activity` = NOW() 
+                        WHERE `id` = " . $row['id'];
+                mysql_query($sql) or displaySQLError(
+                    'Activity Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+
+                // Reset invalid login attempts
+                $sql = "UPDATE `fcms_users` 
+                        SET `login_attempts` = '0' 
+                        WHERE `id` = " . $row['id'];
+                mysql_query($sql) or displaySQLError(
+                    'Login Attempt Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+
+                // Redirect to desired page
                 header("Location: $redirect");
 
             // User has been locked out for failed attempts
@@ -128,8 +157,16 @@ if (!file_exists('inc/config_inc.php')) {
 
                 // User's lockout has ended
                 if (gmdate('YmdHis') > gmdate('YmdHis', strtotime($row['locked']))) {
-                    $sql = "UPDATE `fcms_users` SET `activated` = '1' WHERE `id` = " . $row['id'];
-                    mysql_query($sql) or displaySQLError('Activated Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+
+                    // Set user as active
+                    $sql = "UPDATE `fcms_users` 
+                            SET `activated` = '1' 
+                            WHERE `id` = " . $row['id'];
+                    mysql_query($sql) or displaySQLError(
+                        'Activated Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    );
+
+                    // Setup Cookie/Session
                     if ($rem >= 1) {
                         setcookie('fcms_login_id', $row['id'], time() + (30*(24*3600)), '/');  // 30 days
                         setcookie('fcms_login_uname', $row['username'], time() + (30*(24*3600)), '/');  // 30 days
@@ -139,10 +176,24 @@ if (!file_exists('inc/config_inc.php')) {
                         $_SESSION['login_uname'] = $row['username'];
                         $_SESSION['login_pw'] = $row['password'];
                     }
-                    $sql = "UPDATE `fcms_users` SET `activity` = NOW() WHERE `id` = " . $row['id'];
-                    mysql_query($sql) or displaySQLError('Activity Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
-                    $sql = "UPDATE `fcms_users` SET `login_attempts` = '0' WHERE `id` = " . $row['id'];
-                    mysql_query($sql) or displaySQLError('Login Attempt Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+
+                    // Update activity
+                    $sql = "UPDATE `fcms_users` 
+                            SET `activity` = NOW() 
+                            WHERE `id` = " . $row['id'];
+                    mysql_query($sql) or displaySQLError(
+                        'Activity Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    );
+
+                    // Reset invalid login attempts
+                    $sql = "UPDATE `fcms_users` 
+                            SET `login_attempts` = '0' 
+                            WHERE `id` = " . $row['id'];
+                    mysql_query($sql) or displaySQLError(
+                        'Login Attempt Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    );
+
+                    // Redirect to desired page
                     header("Location: $redirect");
 
                 // User is still locked out
@@ -170,8 +221,12 @@ if (!file_exists('inc/config_inc.php')) {
 
         // Username and password do not match the db
         } else {
-            $sql = "SELECT * FROM `fcms_users` WHERE `username` = '$user'";
-            $result = mysql_query($sql) or displaySQLError('Valid Username Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+            $sql = "SELECT `id`, `login_attempts` 
+                    FROM `fcms_users` 
+                    WHERE `username` = '$user'";
+            $result = mysql_query($sql) or displaySQLError(
+                'Valid Username Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $valid_username = mysql_num_rows($result);
 
             // User has a valid username, but they entered the wrong pw
@@ -180,8 +235,15 @@ if (!file_exists('inc/config_inc.php')) {
 
                 // User has exceeded the max login attempts, lock the account
                 if ($r['login_attempts'] > 4) {
-                    $sql = "UPDATE `fcms_users` SET `activated` = '-1', `locked` = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE `id` = " . $r['id'];
-                    mysql_query($sql) or displaySQLError('Login Limit Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+
+                    // Lock users account
+                    $sql = "UPDATE `fcms_users` 
+                            SET `activated` = '-1', `locked` = DATE_ADD(NOW(), INTERVAL 1 HOUR) 
+                            WHERE `id` = " . $r['id'];
+                    mysql_query($sql) or displaySQLError(
+                        'Login Limit Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    );
+
                     displayHeader();
                     echo '
     <div class="err-msg">
@@ -192,9 +254,16 @@ if (!file_exists('inc/config_inc.php')) {
                     displayLogin();
                     exit(0);
                 }
-                $sql = "UPDATE `fcms_users` SET `login_attempts` = `login_attempts`+1 WHERE `id` = " . $r['id'];
-                mysql_query($sql) or displaySQLError('Login Attempt Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
+
+                // Increase login attempts
+                $sql = "UPDATE `fcms_users` 
+                        SET `login_attempts` = `login_attempts`+1 
+                        WHERE `id` = " . $r['id'];
+                mysql_query($sql) or displaySQLError(
+                    'Login Attempt Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
             }
+
             displayHeader();
             echo '
     <div class="err-msg">
@@ -208,19 +277,38 @@ if (!file_exists('inc/config_inc.php')) {
     // User has a valid session/cookie
     } else {
         if (isset($_COOKIE['fcms_login_id'])) {
-            $_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-            $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-            $_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
+            $_SESSION['login_id'] = cleanInput($_COOKIE['fcms_login_id'], 'int');
+            $_SESSION['login_uname'] = cleanInput($_COOKIE['fcms_login_uname']);
+            $_SESSION['login_pw'] = cleanInput($_COOKIE['fcms_login_pw']);
         }
-        $sql = "UPDATE `fcms_users` SET `activity` = NOW() WHERE `id` = " . escape_string($_SESSION['login_id']);
-        mysql_query($sql) or displaySQLError('Activity Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
-        $sql = "UPDATE `fcms_users` SET `login_attempts` = '0' WHERE `id` = " . escape_string($_SESSION['login_id']);
-        mysql_query($sql) or displaySQLError('Login Attempt Error', 'index.php [' . __LINE__ . ']', $sql, mysql_error());
-        // We are always going to redirect to home.php if they have a valid session/cookie
+
+        // Update activity
+        $sql = "UPDATE `fcms_users` 
+                SET `activity` = NOW() 
+                WHERE `id` = '" . cleanInput($_SESSION['login_id'], 'int') . "'";
+        mysql_query($sql) or displaySQLError(
+            'Activity Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+
+        // Reset invalid login attempts
+        $sql = "UPDATE `fcms_users` 
+                SET `login_attempts` = '0' 
+                WHERE `id` = '" . cleanInput($_SESSION['login_id'], 'int') . "'";
+        mysql_query($sql) or displaySQLError(
+            'Login Attempt Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+
+        // Redirect to desired page
         header("Location: $redirect");
     }
 }
 
+/**
+ * displayHeader 
+ * 
+ * @param   boolean $login 
+ * @return  void
+ */
 function displayHeader($login = true) {
     if ($login) {
         $sitename = getSiteName().' - '.T_('powered by').' '.getCurrentVersion();
@@ -243,26 +331,39 @@ function displayHeader($login = true) {
 <body'.$js.'>';
 }
 
+/**
+ * displayLogin 
+ * 
+ * @return void
+ */
 function displayLogin() {
     $sitename = getSiteName();
     if (isset($_GET['url'])) {
-        $hidden = '<input type="hidden" name="url" id="url" value="' . $_GET['url'] . '"/>';
+        $hidden = '<input type="hidden" name="url" id="url" value="' . cleanOutput($_GET['url']) . '"/>';
     } else {
         $hidden = '';
     }
 
     // Get available languages
-    $dir = "language/";
+    $lang_dir = "language/";
     $lang_options = '';
-    if (is_dir($dir))    {
-        if ($dh = opendir($dir)) {
-            while (($file = readdir($dh)) !== false) {
-                if (filetype($dir . $file) === "dir" && 
-                    $file !== "." && 
-                    $file !== ".." 
-                ) {
-                    $arr[$file] = getLangName($file);
+    if (is_dir($lang_dir))
+    {
+        if ($dh = opendir($lang_dir))
+        {
+            while (($file = readdir($dh)) !== false)
+            {
+                // Skip directories that start with a period
+                if ($file[0] === '.') {
+                    continue;
                 }
+
+                // Skip directories that don't include a messages.mo file
+                if (!file_exists($lang_dir . $file . '/LC_MESSAGES/messages.mo')) {
+                    continue;
+                }
+
+                $arr[$file] = getLangName($file);
             }
             closedir($dh);
             asort($arr);

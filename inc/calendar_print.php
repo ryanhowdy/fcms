@@ -1,15 +1,15 @@
 <?php
 session_start();
+
 include_once('config_inc.php');
 include_once('util_inc.php');
+include_once('calendar_class.php');
 
 // Check that the user is logged in
 isLoggedIn();
-$current_user_id = (int)escape_string($_SESSION['login_id']);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-header("Cache-control: private");
-include_once('calendar_class.php');
-$calendar = new Calendar($current_user_id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$calendar = new Calendar($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -21,31 +21,33 @@ echo '
 <style type="text/css">
 /* TODO
    Move to fcms-core.css */
-#big_calendar { width: 658px; border-collapse: collapse; }
+#big-calendar { width: 658px; border-collapse: collapse; }
+a { text-decoration: none; }
 h3 { text-align: center; }
 th { height: 50px; }
 td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align: top; line-height: 10pt; overflow: hidden; }
 .weekDays { padding: 3px; background-color: #ccc; text-align: center; font-weight: bold; }
 .nonMonthDay { background-color: #eee; }
-.add, .prev, .next { display: none; }
+.add, .prev, .next, .today, .views, .actions { display: none; }
+.event { padding: 5px 0 2px 0; }
 </style>
 </head>
 <body onload="window.print();">';
 
 // Use the supplied date, if available
 if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day'])) {
-    $year  = (int)$_GET['year'];
-    $month = (int)$_GET['month'];
-    $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-    $day = (int)$_GET['day'];
-    $day = str_pad($day, 2, 0, STR_PAD_LEFT);
+    $year   = cleanInput($_GET['year'], 'int');
+    $month  = cleanInput($_GET['month'], 'int'); 
+    $month  = str_pad($month, 2, "0", STR_PAD_LEFT);
+    $day    = cleanInput($_GET['day'], 'int');
+    $day    = str_pad($day, 2, "0", STR_PAD_LEFT);
 // get today's date
 } else {
-    $year = $locale->fixDate('Y', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+    $year  = $locale->fixDate('Y', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
     $month = $locale->fixDate('m', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
-    $day = $locale->fixDate('d', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+    $day   = $locale->fixDate('d', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
 }
-$calendar->displayCalendar($month, $year, $day, 'big');
+$calendar->displayCalendarMonth($month, $year, $day);
 
 echo '
 <p>&nbsp;</p>

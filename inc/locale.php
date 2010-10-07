@@ -52,7 +52,7 @@ class Locale
         $this->month_abbr[1] = T_('january_abbreviation');
         $this->month_abbr[2] = T_('february_abbreviation');
         $this->month_abbr[3] = T_('march_abbreviation');
-        $this->month_abbr[4] = T_('aprial_abbreviation');
+        $this->month_abbr[4] = T_('april_abbreviation');
         $this->month_abbr[5] = T_('may_abbreviation');
         $this->month_abbr[6] = T_('jun_abbreviation');
         $this->month_abbr[7] = T_('july_abbreviation');
@@ -104,22 +104,19 @@ class Locale
         return $this->month_abbr[$n];
     }
 
-    /*
-     *  fixDate
+    /**
+     * fixDate
      *
-     *  Used to output all date/time info.  Fixes timezone, dst and translation.
+     * Used to output all date/time info.  Fixes timezone, dst and translation.
      *
-     *  @param      $dateFormat     a string of the format of the date/time, PHP date
-     *  @param      $tzOffset       the timezone offset from the current user
-     *  @param      $date           the date to fix
-     *  @return     a fixed date as a string
+     * @param      $dateFormat     a string of the format of the date/time, PHP date
+     * @param      $tzOffset       the timezone offset from the current user
+     * @param      $date           the date to fix
+     * @return     a fixed date as a string
      */
-    function fixDate ($dateFormat, $tzOffset = '', $date = false)
+    function fixDate ($dateFormat, $tzOffset = '', $date = '')
     {
         $fixedDate = $date;
-        if ($date === false) {
-            $fixedDate = gmdate($dateFormat);
-        }
 
         // GET DST
         $sql = "SELECT `dst` FROM `fcms_user_settings` WHERE `user` = ".escape_string($_SESSION['login_id']);
@@ -133,22 +130,58 @@ class Locale
         }
 
         // Fix Timezone / DST
-        $fixedDate = gmdate($dateFormat, strtotime($fixedDate." $tzOffset".$dst));
+        $fixedDate = gmdate("Y-m-d H:i:s", strtotime("$fixedDate $tzOffset$dst"));
 
+        // Formate date
+        $fixedDate = $this->formatDate($dateFormat, $fixedDate);
+
+        return $fixedDate;
+    }
+
+    /**
+     * formatDate 
+     * 
+     * Formats a date with translation.
+     *
+     * @param   string  $dateFormat 
+     * @return  string  $fixedDate
+     */
+    function formatDate ($dateFormat, $date)
+    {
         // Translate
-        $m = date('n', strtotime($fixedDate));
-        $d = date('w', strtotime($fixedDate));
-        $a = date('a', strtotime($fixedDate));
-        $A = date('A', strtotime($fixedDate));
+        $m = date('n', strtotime($date));
+        $d = date('w', strtotime($date));
+        $a = date('a', strtotime($date));
+        $A = date('A', strtotime($date));
         $month = $this->getMonthName($m);
         $month_abbr = $this->getMonthAbbr($m);
         $day = $this->getDayName($d);
         $day_abbr = $this->getDayAbbr($d);
-        $dateFormat = preg_replace( "/([^\\\])D/", "\\1" . $day_abbr, $dateFormat);
-        $dateFormat = preg_replace( "/([^\\\])F/", "\\1" . $month, $dateFormat);
-        $dateFormat = preg_replace( "/([^\\\])l/", "\\1" . $day, $dateFormat);
-        $dateFormat = preg_replace( "/([^\\\])M/", "\\1" . $month_abbr, $dateFormat);
+        $dateFormat = preg_replace( "/([^\\\])D/", "\\1" . $this->addBackSlashes($day_abbr), $dateFormat);
+        $dateFormat = preg_replace( "/([^\\\])F/", "\\1" . $this->addBackSlashes($month), $dateFormat);
+        $dateFormat = preg_replace( "/([^\\\])l/", "\\1" . $this->addBackSlashes($day), $dateFormat);
+        $dateFormat = preg_replace( "/([^\\\])M/", "\\1" . $this->addBackSlashes($month_abbr), $dateFormat);
+
+        // Format date with translated data
+        $fixedDate = date($dateFormat, strtotime($date));
+
         return $fixedDate;
     }
+
+    /**
+     * addBackSlashes
+     * 
+     * Adds backslashes before letters and before a number at the start of a string.
+     * 
+     * @param   string $string 
+     * @return  string $string
+     */
+    function addBackSlashes ($string)
+    {
+        $string = preg_replace('/^([0-9])/', '\\\\\\\\\1', $string);
+        $string = preg_replace('/([a-z])/i', '\\\\\1', $string);
+        return $string;
+    }
+
 
 }

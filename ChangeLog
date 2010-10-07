@@ -1,17 +1,25 @@
-2.2.2
+ 2.2.3
+    #171 - Invalid password in session/cookie prevents login
+    #172 - undefined escape_string during Installation
+    #173 - Add Comment Error File: gallery/index.php [423]
+    #174 - Calendar dates don't obey timezones
+    #175 - Avatar too big on Family News comments
+    #181 - php-gettext as failback solution
+
+ 2.2.2
     #165 - Login ID SQL Injections
     #166 - File Upload Vulnerability
     #167 - Directory Traversal Vulnerability
     #168 - Audit sql queries for SQL Injections
 
-2.2.1
+ 2.2.1
     #158 - Register SQL Injections
     #159 - upimages.php Arbitrary Code Execution
     #160 - Theme Settings Vulnerability
     #161 - Secunia Advisory SA35039
     #157 - FCMS 2.2: bad link on calendar...
 
-2.2
+ 2.2
     #29 - Date and time format change
     #70 - Better Section Order
     #94 - Private Address Book Entries
@@ -28,7 +36,7 @@
     #139 - Update Toolbar (RTE)
     #140 - Search Photo Gallery (pt 1)
     #144 - Sent folder for PM
-    #152 - 2.2(RC)6 gettext.php: Eval syntax error
+    #152 - 2.2(RC)6 gettext.php: Eval systanx errro
     #153 - 2.2(RC)6 gettext.php: eregi depercated
 
  2.1.3 

@@ -1,25 +1,49 @@
 <?php
-include_once('database_class.php');
 include_once('util_inc.php');
 include_once('locale.php');
 
+/**
+ * PrivateMessage 
+ * 
+ * @package     Family Connections
+ * @copyright   Copyright (c) 2010 Haudenschilt LLC
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class PrivateMessage {
 
     var $db;
     var $db2;
     var $tz_offset;
-    var $current_user_id;
+    var $currentUserId;
 
-    function PrivateMessage ($current_user_id, $type, $host, $database, $user, $pass)
+    /**
+     * PrivateMessage 
+     * 
+     * @param   int         $currentUserId 
+     * @param   database    $database 
+     * @return  void
+     */
+    function PrivateMessage ($currentUserId, $database)
     {
-        $this->current_user_id = $current_user_id;
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $this->db2 = new database($type, $host, $database, $user, $pass);
-        $this->db->query("SELECT `timezone` FROM `fcms_user_settings` WHERE `user` = $current_user_id") or die('<h1>Timezone Error (profile.class.php 16)</h1>' . mysql_error());
+        $this->currentUserId = $currentUserId;
+        $this->db = $database;
+        $this->db2 = $database;
+        $sql = "SELECT `timezone` 
+                FROM `fcms_user_settings` 
+                WHERE `user` = '$currentUserId'";
+        $this->db->query($sql) or displaySQLError(
+            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         $row = $this->db->get_row();
         $this->tz_offset = $row['timezone'];
     }
 
+    /**
+     * displayInbox 
+     * 
+     * @return  void
+     */
     function displayInbox ()
     {
         $locale = new Locale();
@@ -33,7 +57,12 @@ class PrivateMessage {
                         <th>'.T_('Received').'</th>
                         <th>&nbsp;</th>
                     </tr>';
-        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `to` = " . $this->current_user_id);
+        $sql = "SELECT * 
+                FROM `fcms_privatemsg` 
+                WHERE `to` = '" . $this->currentUserId . "'";
+        $this->db->query($sql) or displaySQLError(
+            'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         while ($r = $this->db->get_row()) {
             $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
             $class = '';
@@ -43,10 +72,10 @@ class PrivateMessage {
             echo '
                     <tr'.$class.'>
                         <td class="img"></td>
-                        <td><a href="?pm='.$r['id'].'">'.$r['title'].'</a></td>
+                        <td><a href="?pm='.(int)$r['id'].'">'.cleanOutput($r['title']).'</a></td>
                         <td>'.getUserDisplayName($r['from']).'</td>
                         <td>'.$date.'</td>
-                        <td><input type="checkbox" name="del[]" value="'.$r['id'].'"/></td>
+                        <td><input type="checkbox" name="del[]" value="'.(int)$r['id'].'"/></td>
                     </tr>';
         }
         echo '
@@ -59,6 +88,11 @@ class PrivateMessage {
             </form>';
     }
 
+    /**
+     * displaySentFolder 
+     * 
+     * @return  void
+     */
     function displaySentFolder ()
     {
         $locale = new Locale();
@@ -70,13 +104,18 @@ class PrivateMessage {
                         <th>'.T_('Subject').'</th>
                         <th>'.T_('Sent').'</th>
                     </tr>';
-        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `from` = " . $this->current_user_id);
+        $sql = "SELECT * 
+                FROM `fcms_privatemsg` 
+                WHERE `from` = '" . $this->currentUserId . "'";
+        $this->db->query($sql) or displaySQLError(
+            'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         while ($r = $this->db->get_row()) {
             $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
             echo '
                     <tr>
                         <td>'.getUserDisplayName($r['to']).'</td>
-                        <td><a href="?sent='.$r['id'].'">'.$r['title'].'</a></td>
+                        <td><a href="?sent='.(int)$r['id'].'">'.cleanOutput($r['title']).'</a></td>
                         <td>'.$date.'</td>
                     </tr>';
         }
@@ -85,23 +124,43 @@ class PrivateMessage {
                 </table>';
     }
 
+    /**
+     * displayPM 
+     * 
+     * @param   int     $id 
+     * @return  void
+     */
     function displayPM ($id)
     {
         $locale = new Locale();
-        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `id` = $id AND `to` = " . $this->current_user_id);
+
+        $id = cleanInput($id, 'int');
+
+        $sql = "SELECT * 
+                FROM `fcms_privatemsg` 
+                WHERE `id` = '$id' 
+                AND `to` = '" . $this->currentUserId . "'";
+        $this->db->query($sql) or displaySQLError(
+            'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         if ($this->db->count_rows() > 0) { 
             $r = $this->db->get_row();
-            $this->db->query("UPDATE `fcms_privatemsg` SET `read` = '1' WHERE `id` = $id");
+            $sql = "UPDATE `fcms_privatemsg` 
+                    SET `read` = '1' 
+                    WHERE `id` = '$id'";
+            $this->db->query($sql) or displaySQLError(
+                'PM Read Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            );
             $date = $locale->fixDate(T_('n/j/Y g:i a'), $this->tz_offset, $r['date']);
             echo '
             <div id="pm_msg">
                 <b>'.T_('Received').':</b> '.$date.'<br/>
                 <b>'.T_('From').':</b> '.getUserDisplayName($r['from']).'<br/>
-                <b>'.T_('Subject').':</b> '.$r['title'].'<br/>
+                <b>'.T_('Subject').':</b> '.cleanOutput($r['title']).'<br/>
                 <p>
                     '.parse($r['msg']).'
                 </p>
-                <a href="?compose=new&amp;id='.$r['from'].'&amp;title='.htmlentities($r['title'], ENT_COMPAT, 'UTF-8').'">'.T_('Reply').'
+                <a href="?compose=new&amp;id='.(int)$r['from'].'&amp;title='.cleanOutput($r['title']).'">'.T_('Reply').'
             </div>';
         } else {
             echo '
@@ -111,18 +170,24 @@ class PrivateMessage {
         }
     }
 
-    /*
-     *  displaySentPM
+    /**
+     * displaySentPM 
+     * 
+     * Displays all messages the current user has sent, if any
      *
-     *  Displays all messages the current user has sent, if any
-     *
-     *  @param      $id     the id of the sent message
-     *  @return     none
+     * @param   string  $id 
+     * @return  void
      */
     function displaySentPM ($id)
     {
         $locale = new Locale();
-        $this->db->query("SELECT * FROM `fcms_privatemsg` WHERE `id` = $id AND `from` = " . $this->current_user_id);
+        $sql = "SELECT * 
+                FROM `fcms_privatemsg` 
+                WHERE `id` = '$id' 
+                AND `from` = '" . $this->currentUserId . "'";
+        $this->db->query($sql) or displaySQLError(
+            'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         if ($this->db->count_rows() > 0) { 
             $r = $this->db->get_row();
             $date = $locale->fixDate(T_('n/j/Y g:i a'), $this->tz_offset, $r['date']);
@@ -130,7 +195,7 @@ class PrivateMessage {
             <div id="pm_msg">
                 <b>'.T_('Sent').':</b> '.$date.'<br/>
                 <b>'.T_('To').':</b> '.getUserDisplayName($r['to']).'<br/>
-                <b>'.T_('Subject').':</b> '.$r['title'].'<br/>
+                <b>'.T_('Subject').':</b> '.cleanOutput($r['title']).'<br/>
                 <p>
                     '.parse($r['msg']).'
                 </p>
@@ -143,10 +208,22 @@ class PrivateMessage {
         }
     }
 
+    /**
+     * displayNewMessageForm 
+     * 
+     * @param   mixed   $id 
+     * @param   mixed   $title 
+     * @return  void
+     */
     function displayNewMessageForm ($id = '', $title = '')
     {
-        $titleVal = strlen($title) > 0 ? 'RE: '.htmlentities($title, ENT_COMPAT, 'UTF-8') : '';
-        $this->db->query("SELECT * FROM `fcms_users` WHERE `activated` > 0");
+        $titleVal = strlen($title) > 0 ? 'RE: '.cleanOutput($title) : '';
+        $sql = "SELECT * 
+                FROM `fcms_users` 
+                WHERE `activated` > 0";
+        $this->db->query($sql) or displaySQLError(
+            'Active User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
         while ($r = $this->db->get_row()) {
             $displayNameList[$r['id']] = getUserDisplayName($r['id']);
         }
@@ -190,4 +267,4 @@ class PrivateMessage {
             <p>&nbsp;</p>';
     }
 
-} ?>
+}
