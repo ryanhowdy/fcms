@@ -1,22 +1,11 @@
-+-----------------------------------------------------------------------------+
-|                                                                             |
-|                           Family Connections 2.3                            |
-|                                                                             |
-|                      Copyright (C) 2007 Ryan Haudenschilt                   |
-|                                                                             |
-| Keep your family "Connected" with this content management system (CMS)      |
-| designed specifically with family's in mind. Key features are: a message    |
-| board, a photo gallery, a blog-like "Family News" section, and an address   |
-| book.                                                                       |
-|                                                                             |
-+-----------------------------------------------------------------------------+
 
+FAMILY CONNECTIONS 2.3.1
 
 
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.3.zip to your web host.
+  1. Upload the entire contents of FCMS_2.3.1.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -35,7 +24,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.2 to 2.3
+II. Upgrading from 2.3 to 2.3.1
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -52,11 +41,18 @@ II. Upgrading from 2.2 to 2.3
   2. Login as the administartor and turn off the site by visiting the 
      configuration section.
 
-  3. Upload the entire contents of FCMS_2.3.zip to your web host
+  3. Upload the following list of files from FCMS_2.3.1.zip to your web host
      (Overwriting any previous files other than the above mentioned files/directories).
+
+    activate.php
+    admin/members.php
+    install.php
+    inc/util_inc.php
+    inc/gallery_class.php
+    register.php
   
   4. Login as the administrator and visit the upgrade section and run the
-     upgrade script.
+     upgrade script (only needed to update version number).
 
   5. Delete the install.php file from your web host (if it still exists).
 
@@ -66,43 +62,14 @@ II. Upgrading from 2.2 to 2.3
 
 III. Change Log
 ----------------
- 2.3
+ 2.3.1
 
-    #16 - Relationships (geneology)
-    #30 - Add/edit catagories to recipies
-    #40 - Comments on the recipe section
-    #41 - Ability to add/edit calendar categories
-    #60 - Magic Quotes function
-    #65 - Encourage users to create a category when uploading new photos
-    #66 - Use Gravatar's
-    #104 - Revamp the Ranks & Awards
-    #113 - Add time for calendar entries
-    #117 - Fix/update the Profile page
-    #121 - Admin: Delete multiple Photos
-    #148 - Remove Administration: Message Board
-    #150 - Separate Category / Repeating
-    #151 - Create a generic Category table
-    #155 - RLS7 admin_class: spelling
-    #162 - Poll: voting with out an option selected causes error
-    #169 - members_class.php: Mixed up user string...
-    #177 - Small Calendar (today links)
-    #184 - Can't get Latest Awards (2.2.3)
-    #185 - April Abbreviation
-    #186 - Can't Export Calendar (undefined tz_offset)
-    #187 - 'Matuer Adult' translation issue
-    #188 - Family Connections 2.2.3 Multiple Remote Vulnerabilities
-    #189 - Merge Members
-    #193 - Memebers cannot edit Address information
-    #199 - Better user input validation
-    #201 - Can't upload Photos with uppercase file extensions
-    #202 - Document section will override existing files
-    #203 - Firefox download causes invalid document uploads
-    #204 - Remove Family News Comments popup
-    #207 - Recipe email is messed up for some users
-    #208 - Message Board email is messed up for some users
-    #210 - Allow new Family Tree members to be added without Email
-    #213 - Seperate profile page into profile and member pages
-    #216 - Slideshow for Photo Gallery
+    #218 - Avatar doesn't allow all cap file extensions
+    #219 - Family Tree - no female members causes errors
+    #221 - Latest Comments doesn't work
+    #225 - Install doesn't properly delete existing tables
+    #226 - Registration email_header issue
+    #227 - User Auto Account Activation not working
 
   For the full change log please refer to the included ChangeLog file.
 

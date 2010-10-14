@@ -1,3 +1,40 @@
+ 2.3
+    #16 - Relationships (geneology)
+    #30 - Add/edit catagories to recipies
+    #40 - Comments on the recipe section
+    #41 - Ability to add/edit calendar categories
+    #60 - Magic Quotes function
+    #65 - Encourage users to create a category when uploading new photos
+    #66 - Use Gravatar's
+    #104 - Revamp the Ranks & Awards
+    #113 - Add time for calendar entries
+    #117 - Fix/update the Profile page
+    #121 - Admin: Delete multiple Photos
+    #148 - Remove Administration: Message Board
+    #150 - Separate Category / Repeating
+    #151 - Create a generic Category table
+    #155 - RLS7 admin_class: spelling
+    #162 - Poll: voting with out an option selected causes error
+    #169 - members_class.php: Mixed up user string...
+    #177 - Small Calendar (today links)
+    #184 - Can't get Latest Awards (2.2.3)
+    #185 - April Abbreviation
+    #186 - Can't Export Calendar (undefined tz_offset)
+    #187 - 'Matuer Adult' translation issue
+    #188 - Family Connections 2.2.3 Multiple Remote Vulnerabilities
+    #189 - Merge Members
+    #193 - Memebers cannot edit Address information
+    #199 - Better user input validation
+    #201 - Can't upload Photos with uppercase file extensions
+    #202 - Document section will override existing files
+    #203 - Firefox download causes invalid document uploads
+    #204 - Remove Family News Comments popup
+    #207 - Recipe email is messed up for some users
+    #208 - Message Board email is messed up for some users
+    #210 - Allow new Family Tree members to be added without Email
+    #213 - Seperate profile page into profile and member pages
+    #216 - Slideshow for Photo Gallery
+
  2.2.3
     #171 - Invalid password in session/cookie prevents login
     #172 - undefined escape_string during Installation

@@ -43,7 +43,7 @@ if (isset($_GET['uid'])) {
         if (isset($_GET['code'])) {
 
             // Code is valid
-            $code = cleanInput($_GET['code'], 'int');
+            $code = cleanInput($_GET['code']);
             if ($row['activate_code'] == $code) {
                 $sql = "UPDATE `fcms_users` 
                         SET `activated` = 1, `joindate` = NOW() 

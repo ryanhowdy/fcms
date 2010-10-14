@@ -634,7 +634,6 @@ function setupDatabase ($fname, $lname, $email, $username, $password, $birthday)
         mysql_query("DROP TABLE IF EXISTS `fcms_privatemsg`") or die("<h1>Error</h1><p><b>Could not drop `fcms_privatemsg` table.</b></p>" . mysql_error());
         mysql_query("DROP TABLE IF EXISTS `fcms_documents`") or die("<h1>Error</h1><p><b>Could not drop `fcms_documents` table.</b></p>" . mysql_error());
         mysql_query("DROP TABLE IF EXISTS `fcms_calendar`") or die("<h1>Error</h1><p><b>Could not drop `fcms_calendar` table.</b></p>" . mysql_error());
-        mysql_query("DROP TABLE IF EXISTS `fcms_category`") or die("<h1>Error</h1><p><b>Could not drop `fcms_category` table.</b></p>" . mysql_error());
         mysql_query("DROP TABLE IF EXISTS `fcms_gallery_comments`") or die("<h1>Error</h1><p><b>Could not drop `fcms_gallery_comments` table.</b></p>" . mysql_error());
         mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photos_tags`") or die("<h1>Error</h1><p><b>Could not drop `fcms_gallery_photos_tags` table.</b></p>" . mysql_error());
         mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photos`") or die("<h1>Error</h1><p><b>Could not drop `fcms_gallery_photos` table.</b></p>" . mysql_error());
@@ -652,6 +651,7 @@ function setupDatabase ($fname, $lname, $email, $username, $password, $birthday)
         mysql_query("DROP TABLE IF EXISTS `fcms_user_awards`") or die("<h1>Error</h1><p><b>Could not drop `fcms_user_awards` table.</b></p>" . mysql_error());
         mysql_query("DROP TABLE IF EXISTS `fcms_user_settings`") or die("<h1>Error</h1><p><b>Could not drop `fcms_user_settings` table.</b></p>" . mysql_error());
         mysql_query("DROP TABLE IF EXISTS `fcms_relationship`") or die("<h1>Error</h1><p><b>Could not drop `fcms_relationship` table.</b></p>" . mysql_error());
+        mysql_query("DROP TABLE IF EXISTS `fcms_category`") or die("<h1>Error</h1><p><b>Could not drop `fcms_category` table.</b></p>" . mysql_error());
         mysql_query("DROP TABLE IF EXISTS `fcms_users`") or die("<h1>Error</h1><p><b>Could not drop `fcms_users` table.</b></p>" . mysql_error());
         mysql_query("SET NAMES utf8") or die("<h1>Error</h1><p><b>Could not set encoding</b></p>" . mysql_error());
 

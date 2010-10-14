@@ -154,7 +154,7 @@ if (isset($_POST['submit'])) {
                 </p>
                 <p>'.T_('Unfortunately you must activate your account before you can <a href="index.php">login</a> and begin using the site').'</p>
             </div>';
-			mail($email, $subject, $message, $email_headers);
+			mail($email, $subject, $message, getEmailHeaders());
 		} elseif ($row['auto_activate'] == 0) {
 			$message = T_('Dear').' '.escape_string($fname).' '.escape_string($lname).', 
 
@@ -180,9 +180,9 @@ if (isset($_POST['submit'])) {
                 </p>
                 <p>'.T_('Unfortunately your account must be activated before you can  <a href="index.php">login</a> and begin using the site.').'</p>
             </div>';
-			mail($email, $subject, $message, $email_headers);
+			mail($email, $subject, $message, getEmailHeaders());
 		}
-		mail(getContactEmail(), $subject2, $message2, $email_headers);
+		mail(getContactEmail(), $subject2, $message2, getEmailHeaders());
 	}
 } else { displayForm(); } ?>
 </body>

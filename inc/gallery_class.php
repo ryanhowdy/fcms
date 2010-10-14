@@ -454,7 +454,10 @@ class PhotoGallery {
                 // What type of breadcrumbs
                 if (isset($special_breadcrumbs)) {
                     echo '
-                <p class="breadcrumbs">'.$special_breadcrumbs.'</p>
+                <p class="breadcrumbs">
+                    '.$special_breadcrumbs.'
+                    '.$prev_next.'
+                </p>
                 <small>
                     '.T_('From the Category:').' <a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'">'.cleanOutput($r['category_name']).'</a> 
                     '.T_('by').' 

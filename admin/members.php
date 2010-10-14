@@ -308,7 +308,7 @@ if (checkAccess($currentUserId) < 2) {
 '.sprintf(T_('Your password at %s has been changed by the administrator.'), $sitename).'
 
 '.sprintf(T_('Your new password is %s'), $_POST['password']);
-                mail($_POST['email'], $subject, $message, $email_headers);
+                mail($_POST['email'], $subject, $message, getEmailHeaders());
             }
             $sql .= "`birthday` = '$birthday', "
                   . "`joindate` = NOW(), "

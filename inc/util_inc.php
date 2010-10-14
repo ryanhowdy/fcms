@@ -1543,8 +1543,12 @@ function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h,
         'image/x-png' => 'PNG', 
         'image/png' => 'PNG'
     );
+
+    // Get extension of photo
     $ext = explode('.', $filename);
     $ext = end($ext);
+    $ext = strtolower($ext);
+
     // Check mime type
     if (!array_key_exists($filetype, $known_photo_types)) {
         echo '
