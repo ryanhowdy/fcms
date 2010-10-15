@@ -133,7 +133,7 @@ if (isset($_POST['submit1'])) {
         $sql = "INSERT INTO `fcms_config` (
                     `sitename`, `contact`, `current_version`
                 ) VALUES (
-                    '".$_POST['sitename']."', '".$_POST['contact']."', 'Family Connections 2.3'
+                    '".$_POST['sitename']."', '".$_POST['contact']."', 'Family Connections 2.3.1'
                 )";
         mysql_query($sql) or die($sql . "<br/><br/>" . mysql_error());
 
