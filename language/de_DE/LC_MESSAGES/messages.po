@@ -1,0 +1,5141 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-09-30 08:33-0500\n"
+"PO-Revision-Date: 2010-10-18 19:58+0000\n"
+"Last-Translator: DjPD <Unknown>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Launchpad-Export-Date: 2010-10-22 01:48+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: admin/awards.php:23
+msgid "Administration: Awards"
+msgstr "Administration: Auszeichnungen"
+
+#: admin/awards.php:41 admin/config.php:39 admin/gallery.php:59
+#: admin/members.php:487 admin/polls.php:77 admin/upgrade011_190.php:34
+#: admin/upgrade.php:35
+msgid "You do not have access to view this page."
+msgstr "Sie haben nicht die nötigen Berechtigungen die Seite anzuzeigen."
+
+#: admin/awards.php:42 admin/polls.php:78
+msgid "This page requires an access level 2 (Helper) or better."
+msgstr "Diese Seite verlangt Zugriffslevel 2 (Helfer) oder besser."
+
+#: admin/awards.php:43 admin/config.php:41 admin/gallery.php:62
+#: admin/members.php:489 admin/polls.php:79 admin/upgrade011_190.php:36
+#: admin/upgrade.php:37
+msgid ""
+"Please contact your website's administrator if you feel you should have "
+"access to this page."
+msgstr ""
+"Setzen Sie sich bitte mit dem Systemverwalter Ihrer Website in Verbindung, "
+"wenn Sie finden, dass Sie Zugriff auf diese Seite haben sollten."
+
+#: admin/awards.php:57
+msgid "The Latest Awards have been calculated successfully."
+msgstr "Die aktuellen Auszeichnungen wurden vergeben."
+
+#: admin/awards.php:65
+msgid "Get Latest Awards"
+msgstr "aktuelle Auszeichnungen holen"
+
+#: admin/config.php:20
+msgid "Administration: Configuration"
+msgstr "Administration: Konfiguration"
+
+#: admin/config.php:40 admin/gallery.php:60 admin/members.php:488
+#: admin/upgrade011_190.php:35 admin/upgrade.php:36
+msgid "This page requires an access level 1 (Admin)."
+msgstr "Diese Seite verlangt Zugriffslevel 1 (Systemverwalter)."
+
+#: admin/config.php:47
+msgid "General"
+msgstr "Allgemeines"
+
+#: admin/config.php:48 inc/admin_class.php:778
+msgid "Defaults"
+msgstr "Standardeinstellungen"
+
+#: admin/config.php:49 install.php:485
+msgid "Optional Sections"
+msgstr "optionale Module"
+
+#: admin/config.php:50 gallery/index.php:22 inc/admin_class.php:957
+#: inc/awards_class.php:186 inc/gallery_class.php:2069 inc/util_inc.php:276
+#: themes/default/navigation.php:40 help.php:39 help.php:216 rss.php:285
+#: rss.php:287
+msgid "Photo Gallery"
+msgstr "Fotogalerie"
+
+#: admin/config.php:102 admin/config.php:192 admin/config.php:292
+#: admin/config.php:315 admin/members.php:242 admin/members.php:321
+#: admin/members.php:366 admin/members.php:384 admin/members.php:424
+#: admin/members.php:461 gallery/index.php:140 calendar.php:159
+#: calendar.php:296 calendar.php:309 familynews.php:186 familytree.php:139
+#: prayers.php:126 recipes.php:150 settings.php:228
+msgid "Changes Updated Successfully"
+msgstr "Die Änderungen wurde erfolgrecih aktualisiert"
+
+#: admin/config.php:298
+msgid "You cannot have two sections with the same order."
+msgstr "Es ist nich möglich, zwei Module im selben Ordner zu haben."
+
+#: admin/gallery.php:22
+msgid "Administration: Photo Gallery"
+msgstr "Foto Galerie"
+
+#: admin/gallery.php:36 admin/gallery.php:77
+msgid "Are you sure you want to DELETE all selected categories?"
+msgstr ""
+"Sind Sie sicher, dass Sie alle ausgewählten Kategorien löschen möchten?"
+
+#: admin/gallery.php:78 admin/gallery.php:127 admin/members.php:398
+#: admin/members.php:438 admin/polls.php:170 gallery/index.php:165
+#: gallery/index.php:489 gallery/index.php:566 addressbook.php:239
+#: calendar.php:215 familynews.php:219 messageboard.php:294 prayers.php:141
+#: privatemsg.php:166 recipes.php:183
+msgid "This can NOT be undone."
+msgstr "Dies kann NICHT widerrufen werden."
+
+#: admin/gallery.php:87 admin/gallery.php:88 admin/gallery.php:136
+#: admin/gallery.php:137 admin/members.php:406 admin/members.php:441
+#: admin/polls.php:173 gallery/index.php:169 gallery/index.php:492
+#: gallery/index.php:569 inc/admin_class.php:579 inc/admin_class.php:708
+#: inc/admin_members_class.php:872 inc/admin_members_class.php:887
+#: inc/settings_class.php:130 inc/settings_class.php:141
+#: inc/settings_class.php:252 addressbook.php:242 calendar.php:218
+#: familynews.php:223 familynews.php:278 help.php:226 help.php:227
+#: help.php:228 help.php:229 help.php:230 help.php:231 help.php:235
+#: help.php:236 help.php:237 help.php:238 help.php:239 help.php:240
+#: help.php:245 help.php:246 help.php:247 help.php:248 help.php:249
+#: help.php:255 help.php:256 help.php:257 help.php:258 help.php:263
+#: help.php:265 help.php:266 help.php:267 help.php:282 help.php:290
+#: help.php:302 install.php:66 messageboard.php:298 prayers.php:144
+#: privatemsg.php:173 recipes.php:186
+msgid "Yes"
+msgstr "Ja"
+
+#: admin/gallery.php:89 admin/gallery.php:138 admin/members.php:407
+#: admin/members.php:442 admin/polls.php:174 gallery/index.php:170
+#: gallery/index.php:493 gallery/index.php:570 inc/addressbook_class.php:444
+#: inc/addressbook_class.php:457 inc/addressbook_class.php:570
+#: inc/addressbook_class.php:675 inc/admin_class.php:443
+#: inc/admin_class.php:520 inc/admin_members_class.php:153
+#: inc/admin_members_class.php:333 inc/admin_members_class.php:476
+#: inc/admin_members_class.php:752 inc/calendar_class.php:903
+#: inc/calendar_class.php:1054 inc/calendar_class.php:1213
+#: inc/calendar_class.php:1220 inc/calendar_class.php:1383
+#: inc/documents_class.php:156 inc/familynews_class.php:305
+#: inc/gallery_class.php:1451 inc/gallery_class.php:1527
+#: inc/messageboard_class.php:533 inc/messageboard_class.php:580
+#: inc/messageboard_class.php:602 inc/messageboard_class.php:776
+#: inc/prayers_class.php:178 inc/prayers_class.php:185
+#: inc/privatemsg_class.php:263 inc/recipes_class.php:419
+#: inc/recipes_class.php:480 inc/recipes_class.php:508 addressbook.php:244
+#: calendar.php:219 familynews.php:224 familynews.php:279 lostpw.php:108
+#: messageboard.php:299 prayers.php:145 privatemsg.php:174 recipes.php:187
+#: register.php:259
+msgid "Cancel"
+msgstr "Abbruch"
+
+#: admin/gallery.php:115
+msgid "Categories Deleted"
+msgstr "Kategorien gelöscht"
+
+#: admin/gallery.php:126
+msgid "Are you sure you want to DELETE all selected photos?"
+msgstr "Sind Sie sicher, dass Sie alle ausgewählten Fotos löschen möchten?"
+
+#: admin/gallery.php:158
+msgid "Photos Deleted"
+msgstr "Fotos gelöscht"
+
+#: admin/members.php:22
+msgid "Administration: Members"
+msgstr "Administration: Mitglieder"
+
+#: admin/members.php:44 admin/members.php:54 admin/members.php:397
+#: admin/members.php:437 admin/polls.php:37 admin/polls.php:169
+#: addressbook.php:238 calendar.php:71 calendar.php:214 familynews.php:43
+#: familynews.php:52 familynews.php:218 familynews.php:274 messageboard.php:35
+#: messageboard.php:293 prayers.php:33 prayers.php:140 privatemsg.php:37
+#: privatemsg.php:165 recipes.php:34 recipes.php:182
+msgid "Are you sure you want to DELETE this?"
+msgstr "Sind Sie sicher, dies löschen zu wollen?"
+
+#: admin/members.php:108
+msgid "You must choose a member to merge with."
+msgstr ""
+"Sie müssen sich entscheiden ob Sie sich mit einer anderen Person verknüpfen"
+
+#: admin/members.php:137 admin/members.php:153
+#, php-format
+msgid "Update [%s] complete."
+msgstr "Update zu [%s] komplett."
+
+#: admin/members.php:165
+#, php-format
+msgid "Delete [%s] complete."
+msgstr "Löschung zu [%s] komplett."
+
+#: admin/members.php:186 admin/members.php:259 inc/addressbook_class.php:510
+#: familytree.php:94
+msgid "Missing Required Field"
+msgstr "Benötigte Felder fehlen"
+
+#: admin/members.php:190 admin/members.php:294 settings.php:116
+#, php-format
+msgid ""
+"The email address %s is already in use.  Please choose a different email."
+msgstr ""
+"Die E-Mail-Adresse %s ist bereits im Gebrauch. Wählen Sie bitte eine andere "
+"E-Mail."
+
+#: admin/members.php:305
+msgid "Password Change"
+msgstr "Passwortwechsel"
+
+#: admin/members.php:308
+#, php-format
+msgid "Your password at %s has been changed by the administrator."
+msgstr "Ihr Passwort auf %s wurde von dem Administrator geändert."
+
+#: admin/members.php:310
+#, php-format
+msgid "Your new password is %s"
+msgstr "Ihr neues Passwort ist %s"
+
+#: admin/polls.php:24
+msgid "Administration: Polls"
+msgstr "Administration: Umfragen"
+
+#: admin/polls.php:55 inc/admin_class.php:461
+msgid "Add New Poll"
+msgstr "Umfrage hinzufügen"
+
+#: admin/polls.php:227 inc/poll_class.php:178 inc/poll_class.php:268
+#: inc/poll_class.php:286
+msgid "Past Polls"
+msgstr "Frühere Umfragen"
+
+#: admin/polls.php:243 inc/addressbook_class.php:76 inc/admin_class.php:168
+#: inc/admin_class.php:421 inc/admin_class.php:422
+#: inc/admin_members_class.php:332 inc/calendar_class.php:1052
+#: inc/calendar_class.php:1211 inc/documents_class.php:91
+#: inc/familynews_class.php:145 inc/familynews_class.php:203
+#: inc/gallery_class.php:543 inc/gallery_class.php:626
+#: inc/gallery_class.php:2039 inc/gallery_class.php:2225
+#: inc/gallery_class.php:2309 inc/messageboard_class.php:330
+#: inc/prayers_class.php:93 inc/recipes_class.php:332
+#: inc/recipes_class.php:716 inc/upimages.php:112
+msgid "Delete"
+msgstr "Entfernen"
+
+#: admin/polls.php:260
+msgid "No Previous Polls"
+msgstr "Keine vorhergehenden Umfragen"
+
+#: admin/upgrade011_190.php:17 admin/upgrade.php:18
+msgid "Administration: Upgrade"
+msgstr "Aktualisierung"
+
+#: admin/upgrade011_190.php:43
+msgid "Please visit the upgrade section."
+msgstr "Bitte besuchen Sie die Upgrade-Section"
+
+#: admin/upgrade011_190.php:57 admin/upgrade.php:90
+#, php-format
+msgid "Upgrading to %s."
+msgstr "Aktualisiere auf %s."
+
+#: admin/upgrade011_190.php:58 admin/upgrade.php:91
+msgid "Upgrade is in process..."
+msgstr "Aktualisierung läuft..."
+
+#: admin/upgrade011_190.php:63
+msgid "Adding Daylight Savings..."
+msgstr "Füge Sommerzeit hinzu..."
+
+#: admin/upgrade011_190.php:75 admin/upgrade011_190.php:100
+#: admin/upgrade011_190.php:125 admin/upgrade011_190.php:150
+#: admin/upgrade011_190.php:178 admin/upgrade011_190.php:202
+#: admin/upgrade011_190.php:243 admin/upgrade011_190.php:301
+#: admin/upgrade011_190.php:355 admin/upgrade011_190.php:358
+#: admin/upgrade011_190.php:383 admin/upgrade011_190.php:424
+#: admin/upgrade011_190.php:452 admin/upgrade011_190.php:476
+#: admin/upgrade011_190.php:500 admin/upgrade011_190.php:547
+#: admin/upgrade011_190.php:550 admin/upgrade011_190.php:591
+#: admin/upgrade011_190.php:609 admin/upgrade011_190.php:626
+#: admin/upgrade.php:108 admin/upgrade.php:185 admin/upgrade.php:223
+#: admin/upgrade.php:247 admin/upgrade.php:279 admin/upgrade.php:307
+#: admin/upgrade.php:331 admin/upgrade.php:355 admin/upgrade.php:402
+#: admin/upgrade.php:424 admin/upgrade.php:480 admin/upgrade.php:538
+#: admin/upgrade.php:571 admin/upgrade.php:595 admin/upgrade.php:621
+#: admin/upgrade.php:697 admin/upgrade.php:725 admin/upgrade.php:755
+#: admin/upgrade.php:785 admin/upgrade.php:809 admin/upgrade.php:849
+msgid "No changes needed"
+msgstr "Keine Änderungen benötigt"
+
+#: admin/upgrade011_190.php:81 admin/upgrade011_190.php:106
+#: admin/upgrade011_190.php:131 admin/upgrade011_190.php:160
+#: admin/upgrade011_190.php:184 admin/upgrade011_190.php:224
+#: admin/upgrade011_190.php:283 admin/upgrade011_190.php:323
+#: admin/upgrade011_190.php:364 admin/upgrade011_190.php:406
+#: admin/upgrade011_190.php:434 admin/upgrade011_190.php:458
+#: admin/upgrade011_190.php:482 admin/upgrade011_190.php:529
+#: admin/upgrade011_190.php:572 admin/upgrade011_190.php:601
+#: admin/upgrade011_190.php:675 admin/upgrade.php:157 admin/upgrade.php:168
+#: admin/upgrade.php:205 admin/upgrade.php:229 admin/upgrade.php:261
+#: admin/upgrade.php:289 admin/upgrade.php:313 admin/upgrade.php:337
+#: admin/upgrade.php:384 admin/upgrade.php:408 admin/upgrade.php:464
+#: admin/upgrade.php:522 admin/upgrade.php:553 admin/upgrade.php:577
+#: admin/upgrade.php:601 admin/upgrade.php:679 admin/upgrade.php:707
+#: admin/upgrade.php:739 admin/upgrade.php:767 admin/upgrade.php:791
+#: admin/upgrade.php:831 admin/upgrade.php:855
+msgid "Complete"
+msgstr "Abgeschlossen"
+
+#: admin/upgrade011_190.php:88
+msgid "Adding Frontpage Settings..."
+msgstr "Füge Hauptseiten Einstellungen hinzu..."
+
+#: admin/upgrade011_190.php:113
+msgid "Adding Private Calendar Entries..."
+msgstr "Füge private Kalendareinträge hinzu..."
+
+#: admin/upgrade011_190.php:138
+msgid "Upgrading Message Board..."
+msgstr "Aktualisiere Forum..."
+
+#: admin/upgrade011_190.php:166
+msgid "Upgrading Address Book..."
+msgstr "Aktualisiere AdressBuch"
+
+#: admin/upgrade011_190.php:190
+msgid "Adding Address Book Entered By..."
+msgstr "Füge Adressbuch hinzu Eingetragen Von..."
+
+#: admin/upgrade011_190.php:230
+msgid "Upgrading FCMS DB charset..."
+msgstr "Aktualisiere FCMS  DB Zeichenkodierung..."
+
+#: admin/upgrade011_190.php:289
+msgid "Adding Configuration..."
+msgstr "Füge Konfiguration hinzu..."
+
+#: admin/upgrade011_190.php:329
+msgid "Upgrading Config..."
+msgstr "Aktualisiere Konfiguration..."
+
+#: admin/upgrade011_190.php:371
+msgid "Adding Photo Gallery Taggin..."
+msgstr "Füge Photogallerie hinzu hänge an..."
+
+#: admin/upgrade011_190.php:412
+msgid "Adding Auto Activation and Full Sized Photos..."
+msgstr "Füge  Auto-Aktivierung und Vergrößerte Fotos hinzu..."
+
+#: admin/upgrade011_190.php:440
+msgid "Adding Activation Code..."
+msgstr "Füge Aktivierungscode hinzu..."
+
+#: admin/upgrade011_190.php:464
+msgid "Adding date added to Calendar..."
+msgstr "Füge Datum hinzu hinzugefügt im Kalender..."
+
+#: admin/upgrade011_190.php:488
+msgid "Adding Private Messages..."
+msgstr "Füge private Nachrichten hinzu..."
+
+#: admin/upgrade011_190.php:535
+msgid "Changing Optional Sections Order..."
+msgstr "Ändere Reihenfolge der Optionalen Module..."
+
+#: admin/upgrade011_190.php:579
+msgid "Adding Login Lockout..."
+msgstr "Füge Login Aussperrung hinzu..."
+
+#: admin/upgrade011_190.php:607
+msgid "Upgrading Optional Section Config..."
+msgstr "Aktualisiere Modul Konfiguration..."
+
+#: admin/upgrade011_190.php:614 admin/upgrade.php:96
+msgid "Adding User Settings..."
+msgstr "Füge Benutzereinstellungen hinzu..."
+
+#: admin/upgrade011_190.php:684 lostpw.php:78 settings.php:229
+msgid "Continue"
+msgstr "Weiter."
+
+#: admin/upgrade.php:44
+msgid "Upgrade Check"
+msgstr "Update prüfen"
+
+#: admin/upgrade.php:45
+msgid "Current Version"
+msgstr "Aktuelle Version"
+
+#: admin/upgrade.php:46
+msgid "Latest Version"
+msgstr "Neueste Version"
+
+#: admin/upgrade.php:58
+msgid "Awesome, your installation is up to date."
+msgstr "Großartig, Ihre Installation ist auf dem aktuellsten Stand."
+
+#: admin/upgrade.php:63
+msgid "Bummer!, your installation is out of date."
+msgstr "Schade!, Ihre Installation ist nicht mehr Aktuell."
+
+#: admin/upgrade.php:64
+msgid "Download latest version."
+msgstr "Die aktuellste Version herunterladen."
+
+#: admin/upgrade.php:70 themes/default/navigation.php:37
+msgid "Upgrade"
+msgstr "Aktualisierung"
+
+#: admin/upgrade.php:72
+msgid "Your installation is already up to date!"
+msgstr "Ihre Installation ist bereits aktuell!"
+
+#: admin/upgrade.php:72
+msgid "Are you sure you want to proceed?"
+msgstr "Sind Sie sicher, dass Sie fortfahren möchten?"
+
+#: admin/upgrade.php:163
+msgid "Upgrading Avatar..."
+msgstr "Aktualisiere Avatar..."
+
+#: admin/upgrade.php:173
+msgid "Adding Chat..."
+msgstr "Füge Chat hinzu..."
+
+#: admin/upgrade.php:211
+msgid "Adding Ability to Turn Site Off..."
+msgstr "Füge Fähigkeit die Seite abzuschalten hinzu..."
+
+#: admin/upgrade.php:235
+msgid "Adding Alerts..."
+msgstr "Füge Info-Meldungen hinzu..."
+
+#: admin/upgrade.php:267
+msgid "Adding Historical Poll Data..."
+msgstr "Füge Historische Abstimmungs Daten hinzu..."
+
+#: admin/upgrade.php:295
+msgid "Adding Chat Time..."
+msgstr "Füge Chat-Zeit hinzu..."
+
+#: admin/upgrade.php:319
+msgid "Adding Advanced Uploader..."
+msgstr "Füge Erweiterten Uploader hinzu..."
+
+#: admin/upgrade.php:343
+msgid "Adding Navigation..."
+msgstr "Füge Verlauf hinzu..."
+
+#: admin/upgrade.php:390
+msgid "Adding User Language..."
+msgstr "Füge Benutzersprache hinzu..."
+
+#: admin/upgrade.php:414
+msgid "Adding Category Table..."
+msgstr "Kategorie - Tabelle hinzufügen"
+
+#: admin/upgrade.php:470
+msgid "Upgrading Calendar (Repeating/Categories)..."
+msgstr "Aktualisiere Kalender (Wiederholung / Kategorien) ..."
+
+#: admin/upgrade.php:494 install.php:783
+msgid "Anniversary"
+msgstr "Jahrestag"
+
+#: admin/upgrade.php:498 inc/admin_members_class.php:138
+#: inc/admin_members_class.php:262 inc/admin_members_class.php:416
+#: inc/admin_members_class.php:560 inc/admin_members_class.php:676
+#: inc/familytree_class.php:665 inc/settings_class.php:451 install.php:569
+#: install.php:784
+msgid "Birthday"
+msgstr "Geburtstag"
+
+#: admin/upgrade.php:502 install.php:785
+msgid "Holiday"
+msgstr "Ferien"
+
+#: admin/upgrade.php:559
+msgid "Adding Sex..."
+msgstr "Geschlecht hinzufügen..."
+
+#: admin/upgrade.php:583
+msgid "Adding Error Logging..."
+msgstr "Error Logging hinzufügen..."
+
+#: admin/upgrade.php:607
+msgid "Adding Recipe Categories..."
+msgstr "Rezept-Kategorie hinzufügen..."
+
+#: admin/upgrade.php:685
+msgid "Adding Calendar Time..."
+msgstr "Kalenderzeit hinzufügen..."
+
+#: admin/upgrade.php:713
+msgid "Adding Recipe Info..."
+msgstr "Rezept Info hinzufügen..."
+
+#: admin/upgrade.php:745
+msgid "Adding Recipe Comments..."
+msgstr "Rezept Kommentar hinzufügen"
+
+#: admin/upgrade.php:773
+msgid "Adding Gravatar..."
+msgstr "Gravatar hinzufügen..."
+
+#: admin/upgrade.php:797
+msgid "Updating Awards..."
+msgstr "Aktuallisiere Awards..."
+
+#: admin/upgrade.php:837
+msgid "Adding mime types..."
+msgstr "MIME-Typen hinzufügen..."
+
+#: admin/upgrade.php:861
+msgid "Upgrade is finished."
+msgstr "Aktuallisierung ist beendet."
+
+#: gallery/index.php:34
+msgid "Rotate Photo"
+msgstr "Foto drehen"
+
+#: gallery/index.php:35
+msgid "Tag Members in this Photo"
+msgstr "Markiere Mitglieder in diesem Foto"
+
+#: gallery/index.php:36
+msgid "Use Existing Category"
+msgstr "Benutze vorhandene Kategorie"
+
+#: gallery/index.php:38
+msgid "More Details"
+msgstr "Weitere Einzelheiten"
+
+#: gallery/index.php:39 gallery/index.php:164
+msgid "Are you sure you want to DELETE this Photo?"
+msgstr "Sind Sie sicher, dass Sie das Foto LÖSCHEN wollen?"
+
+#: gallery/index.php:40 gallery/index.php:565
+msgid "Are you sure you want to DELETE this Comment?"
+msgstr "Sind Sie sicher, dass Sie diesen Kommentar LÖSCHEN wollen?"
+
+#: gallery/index.php:41
+msgid "Are you sure you want to DELETE this Category?"
+msgstr "Sind Sie sicher, dass Sie diese Kategorie LÖSCHEN wollen?"
+
+#: gallery/index.php:262
+#, php-format
+msgid ""
+"Your photo exceeds the maximum size allowed by your PHP settings [%s]."
+msgstr "Ihr Foto überschreitet die maximale Größe [% s]."
+
+#: gallery/index.php:263
+msgid "Please try the 'Advanced Photo Uploader' instead."
+msgstr "Bitte benutzen Sie den anderen Foto Uploader"
+
+#: gallery/index.php:273
+msgid "You must choose a category first."
+msgstr "Sie müssen zuerst eine Kategorie wählen."
+
+#: gallery/index.php:349
+#, php-format
+msgid "%s has added a new photo."
+msgstr "%s wurde zu einem neuen Foto hinzugefügt."
+
+#: gallery/index.php:352 documents.php:99 familynews.php:148
+#: messageboard.php:124 messageboard.php:201 prayers.php:93 privatemsg.php:128
+#: recipes.php:118 register.php:159
+msgid "Dear"
+msgstr "Liebe(r)"
+
+#: gallery/index.php:359 documents.php:107 familynews.php:155
+#: messageboard.php:131 messageboard.php:207 prayers.php:100 recipes.php:125
+msgid ""
+"To stop receiving these notifications, visit the following url and change "
+"your 'Email Update' setting to No:"
+msgstr ""
+"Um diese Benachrichtigungen zu stoppen, folge der folgenden url und ändere "
+"deine 'Email Aktalisierungs' Einstellungen auf Nein:"
+
+#: gallery/index.php:445
+msgid "You must specify a category name."
+msgstr "Sie müssen eine Kategoriebezeichnung angeben."
+
+#: gallery/index.php:458
+#, php-format
+msgid "The Category %s was Created Successfully."
+msgstr "Die Kategorie %s wurde erfolgreich erstellt."
+
+#: gallery/index.php:459 inc/gallery_class.php:100 inc/gallery_class.php:220
+#: inc/gallery_class.php:1184 inc/gallery_class.php:1280
+msgid "Upload Photos"
+msgstr "Foto hochladen"
+
+#: gallery/index.php:468
+msgid "Category name cannot be blank."
+msgstr "Kategoriename darf nicht leer sein."
+
+#: gallery/index.php:478
+#, php-format
+msgid "The Category %s was Updated Successfully"
+msgstr "Die Kategorie %s ist erfolgreich aktuallisiert worden"
+
+#: gallery/index.php:488
+msgid "Are you sure you want to DELETE this category?"
+msgstr "Sind Sie sicher, dass Sie diese Kategorie LÖSCHEN wollen?"
+
+#: gallery/index.php:506
+msgid "Category Deleted Successfully"
+msgstr "Kategorie erfolgreich gelöscht"
+
+#: gallery/index.php:619 home.php:304 rss.php:130 rss.php:287
+msgid "RSS Feed"
+msgstr "RSS Feed"
+
+#: gallery/slideshow.php:20 inc/bbcode.php:13 inc/calendar_print.php:16
+#: inc/smileys.php:13 inc/upimages.php:13 themes/default/header.php:2
+#: activate.php:20 index.php:323 install.php:37 lostpw.php:11 register.php:8
+#: rss.php:131 rss.php:288
+msgid "lang"
+msgstr "de"
+
+#: gallery/slideshow.php:22
+msgid "Photo Gallery Slideshow"
+msgstr "Foto Galerie DiaShow"
+
+#: gallery/slideshow.php:58
+msgid "Invalid Category ID"
+msgstr "Ungültige Kategorie ID"
+
+#: gallery/slideshow.php:59
+msgid "You must supply a valid category id."
+msgstr "Sie müssen eine gültige Kategorie ID senden"
+
+#: gallery/slideshow.php:85
+msgid "No photos found."
+msgstr "Keine Fotos gefunden"
+
+#: inc/addressbook_class.php:73 inc/addressbook_class.php:442
+#: inc/admin_class.php:167 inc/admin_class.php:442
+#: inc/admin_members_class.php:331 inc/calendar_class.php:1051
+#: inc/calendar_class.php:1210 inc/familynews_class.php:135
+#: inc/familynews_class.php:301 inc/gallery_class.php:542
+#: inc/gallery_class.php:1450 inc/gallery_class.php:2038
+#: inc/gallery_class.php:2224 inc/gallery_class.php:2245
+#: inc/messageboard_class.php:319 inc/messageboard_class.php:586
+#: inc/messageboard_class.php:601 inc/messageboard_class.php:774
+#: inc/prayers_class.php:84 inc/prayers_class.php:184
+#: inc/profile_class.php:201 inc/recipes_class.php:323
+#: inc/recipes_class.php:479
+msgid "Edit"
+msgstr "Bearbeiten"
+
+#: inc/addressbook_class.php:86 inc/addressbook_class.php:98
+#: inc/addressbook_class.php:104 inc/addressbook_class.php:105
+#: inc/addressbook_class.php:106 inc/admin_class.php:1025
+#: inc/awards_class.php:60 inc/gallery_class.php:528 inc/profile_class.php:163
+#: inc/profile_class.php:174 inc/profile_class.php:175
+#: inc/profile_class.php:176 inc/profile_class.php:323
+#: inc/profile_class.php:359
+msgid "none"
+msgstr "nichts"
+
+#: inc/addressbook_class.php:101
+msgid "Email This Member"
+msgstr "Diesem Mitglied eine E-Mail schreiben"
+
+#: inc/addressbook_class.php:128 inc/admin_members_class.php:422
+#: inc/admin_members_class.php:569 inc/admin_members_class.php:685
+#: inc/profile_class.php:193
+msgid "Address"
+msgstr "Adresse"
+
+#: inc/addressbook_class.php:132 inc/addressbook_class.php:388
+#: inc/admin_members_class.php:126 inc/admin_members_class.php:250
+#: inc/admin_members_class.php:410 inc/admin_members_class.php:551
+#: inc/admin_members_class.php:667 inc/settings_class.php:427 lostpw.php:104
+msgid "Email"
+msgstr "E-Mail"
+
+#: inc/addressbook_class.php:136 themes/default/footer.php:7
+#: themes/default/navigation.php:3 home.php:43
+msgid "Home"
+msgstr "Startseite"
+
+#: inc/addressbook_class.php:140
+msgid "Work"
+msgstr "Dienstlich"
+
+#: inc/addressbook_class.php:144
+msgid "Mobile"
+msgstr "Handy"
+
+#: inc/addressbook_class.php:151
+#, php-format
+msgid "Could not find address (%s)"
+msgstr "Konnte Adresse (%s) nicht finden"
+
+#: inc/addressbook_class.php:183
+msgid "Choose an Address from the list."
+msgstr "Wählen Sie eine Adresse aus der Liste."
+
+#: inc/addressbook_class.php:191
+msgid "Email Selected"
+msgstr "eMail an markierte senden"
+
+#: inc/addressbook_class.php:205
+msgid "Add Contact"
+msgstr "Kontakt hinzufügen"
+
+#: inc/addressbook_class.php:206
+msgid "View My Address"
+msgstr "Meine Adresse ansehen"
+
+#: inc/addressbook_class.php:209 inc/addressbook_class.php:665
+#: inc/addressbook_class.php:673 inc/calendar_class.php:224
+#: inc/calendar_class.php:423 inc/calendar_class.php:1378
+#: inc/calendar_class.php:1381
+msgid "Import"
+msgstr "Import"
+
+#: inc/addressbook_class.php:210 inc/calendar_class.php:225
+#: inc/calendar_class.php:424
+msgid "Export"
+msgstr "Exportieren"
+
+#: inc/addressbook_class.php:240
+msgid "All Addresses"
+msgstr "Alle Adressen"
+
+#: inc/addressbook_class.php:241
+msgid "Only show My personal Addresses"
+msgstr "Nur meine persönliche Adressen anzeigen"
+
+#: inc/addressbook_class.php:241
+msgid "My Addresses"
+msgstr "Meine Adressen"
+
+#: inc/addressbook_class.php:242
+msgid "Only show Addresses for members of the site"
+msgstr "Zeige nur die Adressen für Mitglieder dieser Seite"
+
+#: inc/addressbook_class.php:242 inc/gallery_class.php:85
+#: inc/gallery_class.php:467 inc/gallery_class.php:911
+#: inc/gallery_class.php:1027 inc/gallery_class.php:1044
+#: themes/default/navigation.php:28 themes/default/navigation.php:39
+#: members.php:22
+msgid "Members"
+msgstr "Mitglieder"
+
+#: inc/addressbook_class.php:243
+msgid "Only show Addresses for non-members"
+msgstr "Zeige nur Adressen von nicht-mitglieder"
+
+#: inc/addressbook_class.php:243
+msgid "Non-Members"
+msgstr "Nicht-Mitglieder"
+
+#: inc/addressbook_class.php:342
+msgid "Edit Address"
+msgstr "Adresse editieren"
+
+#: inc/addressbook_class.php:357
+msgid ""
+"Please only add addresses for Non-members. Anyone who is a member of this "
+"website must add/update their own address."
+msgstr ""
+"Bitte gib nur Adressen von Nicht-Mitglieder an. Jeder der ein Mitglied "
+"dieser Website ist, muss seine Adresse angeben/aktualisieren."
+
+#: inc/addressbook_class.php:359 inc/alerts_class.php:171
+msgid "Add Address"
+msgstr "Adresse hinzufügen"
+
+#: inc/addressbook_class.php:361 inc/admin_class.php:715
+#: inc/admin_members_class.php:106 inc/admin_members_class.php:230
+#: inc/admin_members_class.php:533 inc/admin_members_class.php:649
+#: inc/admin_members_class.php:783 inc/admin_members_class.php:801
+#: inc/familytree_class.php:640 inc/settings_class.php:112
+#: inc/settings_class.php:407 install.php:543 register.php:227
+msgid "First Name"
+msgstr "Vorname"
+
+#: inc/addressbook_class.php:369 inc/admin_members_class.php:116
+#: inc/admin_members_class.php:240 inc/admin_members_class.php:542
+#: inc/admin_members_class.php:658 inc/admin_members_class.php:785
+#: inc/admin_members_class.php:800 inc/familytree_class.php:648
+#: inc/settings_class.php:417 install.php:551 register.php:237
+msgid "Last Name"
+msgstr "Nachname"
+
+#: inc/addressbook_class.php:393
+msgid "That's not a valid email, is it?"
+msgstr "Diese Email existiert nicht, oder?"
+
+#: inc/addressbook_class.php:396
+msgid "Street Address"
+msgstr "Straße"
+
+#: inc/addressbook_class.php:400 inc/admin_members_class.php:428
+#: inc/admin_members_class.php:578 inc/admin_members_class.php:694
+msgid "City"
+msgstr "Ort"
+
+#: inc/addressbook_class.php:404 inc/admin_members_class.php:434
+#: inc/admin_members_class.php:587 inc/admin_members_class.php:703
+msgid "State"
+msgstr "Bundesland, Land"
+
+#: inc/addressbook_class.php:408
+msgid "Zip Code"
+msgstr "Postleitzahl"
+
+#: inc/addressbook_class.php:412 inc/admin_members_class.php:446
+#: inc/admin_members_class.php:605 inc/admin_members_class.php:721
+#: inc/profile_class.php:209
+msgid "Home Phone"
+msgstr "Telefon (privat)"
+
+#: inc/addressbook_class.php:420 inc/admin_members_class.php:452
+#: inc/admin_members_class.php:614 inc/admin_members_class.php:730
+#: inc/profile_class.php:210
+msgid "Work Phone"
+msgstr "Telefon (Arbeit)"
+
+#: inc/addressbook_class.php:428 inc/admin_members_class.php:458
+#: inc/admin_members_class.php:623 inc/admin_members_class.php:739
+#: inc/profile_class.php:211
+msgid "Cell Phone"
+msgstr "Handy"
+
+#: inc/addressbook_class.php:443 inc/addressbook_class.php:456
+#: inc/addressbook_class.php:569 inc/addressbook_class.php:674
+#: inc/admin_members_class.php:152 inc/admin_members_class.php:332
+#: inc/admin_members_class.php:475 inc/admin_members_class.php:751
+#: inc/calendar_class.php:902 inc/calendar_class.php:1053
+#: inc/calendar_class.php:1212 inc/calendar_class.php:1219
+#: inc/calendar_class.php:1382 inc/familynews_class.php:304
+#: inc/gallery_class.php:1273 inc/gallery_class.php:1451
+#: inc/gallery_class.php:1526 inc/gallery_class.php:1734
+#: inc/messageboard_class.php:775
+msgid "or"
+msgstr "oder"
+
+#: inc/addressbook_class.php:451 inc/addressbook_class.php:669
+msgid "Private"
+msgstr "Privat"
+
+#: inc/addressbook_class.php:455 inc/admin_class.php:519
+#: inc/admin_class.php:898 inc/calendar_class.php:184
+#: inc/calendar_class.php:901 inc/calendar_class.php:1218
+#: inc/documents_class.php:155 inc/familynews_class.php:183
+#: inc/familynews_class.php:296 inc/familytree_class.php:503
+#: inc/familytree_class.php:563 inc/familytree_class.php:613
+#: inc/familytree_class.php:707 inc/prayers_class.php:177
+#: inc/recipes_class.php:418
+msgid "Add"
+msgstr "Hinzufügen"
+
+#: inc/addressbook_class.php:489 inc/addressbook_class.php:493
+#: inc/addressbook_class.php:497 inc/addressbook_class.php:501
+#: inc/admin_class.php:468 inc/documents_class.php:152 register.php:234
+#: register.php:244 register.php:254
+msgid "Required"
+msgstr "Erforderlich"
+
+#: inc/addressbook_class.php:506
+msgid ""
+"Filling out the form below will send an email to all the selected members in "
+"your addressbook. Sending an email to a large number of people can take a "
+"long time. Please be patient."
+msgstr ""
+"Wenn das Formular ausgefüllt wurde,wird eine email an alle Mitglieder in "
+"deinem Adressbuch gesendet. Das Senden von Emails an mehrere Mitglieder kann "
+"etwas dauern. Bitte sei geduldig."
+
+#: inc/addressbook_class.php:517 contact.php:63
+msgid "Your Email"
+msgstr "Deine Email-Adresse"
+
+#: inc/addressbook_class.php:528 contact.php:67
+msgid "Your Name"
+msgstr "Ihr Name"
+
+#: inc/addressbook_class.php:539 inc/admin_class.php:72
+#: inc/messageboard_class.php:71 inc/messageboard_class.php:508
+#: inc/messageboard_class.php:763 inc/privatemsg_class.php:55
+#: inc/privatemsg_class.php:104 inc/privatemsg_class.php:159
+#: inc/privatemsg_class.php:198 inc/privatemsg_class.php:239 contact.php:71
+msgid "Subject"
+msgstr "Betreff"
+
+#: inc/addressbook_class.php:550 contact.php:75
+msgid "Message"
+msgstr "Nachricht"
+
+#: inc/addressbook_class.php:568
+msgid "Send Email"
+msgstr "Email senden"
+
+#: inc/addressbook_class.php:621 inc/util_inc.php:258 addressbook.php:56
+#: help.php:53 help.php:218
+msgid "Address Book"
+msgstr "Adressbuch"
+
+#: inc/addressbook_class.php:637 inc/calendar_class.php:141
+#: inc/calendar_class.php:267 inc/calendar_class.php:284
+#: inc/calendar_class.php:1423 inc/documents_class.php:265
+#: inc/familynews_class.php:416 inc/gallery_class.php:2105
+#: inc/messageboard_class.php:831 inc/prayers_class.php:221
+#: inc/recipes_class.php:606 inc/util_inc.php:2173 home.php:270
+msgid "Today"
+msgstr "Heute"
+
+#: inc/addressbook_class.php:640 inc/calendar_class.php:1426
+#: inc/documents_class.php:268 inc/poll_class.php:306
+#: inc/prayers_class.php:224 inc/privatemsg_class.php:67
+#: inc/privatemsg_class.php:114 inc/recipes_class.php:609 home.php:273
+msgid "M. j, Y, g:i a"
+msgstr "M. j, Y, g:i a"
+
+#: inc/addressbook_class.php:651
+msgid "Nothing new Last 30 Days"
+msgstr "Nichts neues in den letzten 360 Tagen"
+
+#: inc/addressbook_class.php:693
+#, php-format
+msgid "%s (%s) is not a CSV file."
+msgstr "%s (%s) ist keine CSV-Datei."
+
+#: inc/admin_class.php:73 inc/messageboard_class.php:73
+msgid "Replies"
+msgstr "Antworten"
+
+#: inc/admin_class.php:74 inc/gallery_class.php:576 inc/gallery_class.php:990
+#: inc/gallery_class.php:2307 inc/messageboard_class.php:74
+msgid "Views"
+msgstr "gelesen"
+
+#: inc/admin_class.php:75 inc/messageboard_class.php:75
+msgid "Last Updated"
+msgstr "Letzte Aktualisierung"
+
+#: inc/admin_class.php:107 inc/messageboard_class.php:115
+msgid "Announcement"
+msgstr "Wichtig"
+
+#: inc/admin_class.php:134 inc/messageboard_class.php:138
+#, php-format
+msgid "Today at %s"
+msgstr "Heute um %s"
+
+#: inc/admin_class.php:135 inc/admin_class.php:146 inc/admin_class.php:156
+#: inc/messageboard_class.php:139 inc/messageboard_class.php:149
+#: inc/messageboard_class.php:156
+#, php-format
+msgid "by %s"
+msgstr "von %s"
+
+#: inc/admin_class.php:145 inc/messageboard_class.php:148
+#, php-format
+msgid "Yesterday at %s"
+msgstr "Gestern um %s"
+
+#: inc/admin_class.php:155 inc/documents_class.php:79
+#: inc/messageboard_class.php:155
+msgid "m/d/Y h:ia"
+msgstr "d.m.Y H:i"
+
+#: inc/admin_class.php:184 inc/messageboard_class.php:198
+#: inc/messageboard_class.php:367 inc/prayers_class.php:106 help.php:66
+#: help.php:83 help.php:96 help.php:110 help.php:122 help.php:134 help.php:145
+#: help.php:158 help.php:170 help.php:181 help.php:192 help.php:318
+#: help.php:332 help.php:339
+msgid "Back to Top"
+msgstr "nach oben"
+
+#: inc/admin_class.php:315 inc/util_inc.php:1631 inc/util_inc.php:1635
+msgid "First Page"
+msgstr "erste Seite"
+
+#: inc/admin_class.php:316 inc/util_inc.php:1632 inc/util_inc.php:1636
+msgid "Previous Page"
+msgstr "vorherige Seite"
+
+#: inc/admin_class.php:344 inc/util_inc.php:1668 inc/util_inc.php:1672
+msgid "Next Page"
+msgstr "nächste Seite"
+
+#: inc/admin_class.php:345
+msgid "Last Page"
+msgstr "letzte Seite"
+
+#: inc/admin_class.php:402
+msgid "Edit Poll"
+msgstr "Bearbeite Umfrage"
+
+#: inc/admin_class.php:411 inc/admin_class.php:432 inc/admin_class.php:471
+#: inc/admin_class.php:479 inc/admin_class.php:487 inc/admin_class.php:491
+#: inc/admin_class.php:495 inc/admin_class.php:499 inc/admin_class.php:503
+#: inc/admin_class.php:507 inc/admin_class.php:511 inc/admin_class.php:515
+#, php-format
+msgid "Option %s"
+msgstr "Option %s"
+
+#: inc/admin_class.php:463
+msgid "Poll Question"
+msgstr "Umfragethema"
+
+#: inc/admin_class.php:476 inc/admin_class.php:484
+msgid "Without at least 2 options, it's not much of a poll is it?"
+msgstr "Ohne mindestens 2 Antworten ist das ja keine Umfrage oder?"
+
+#: inc/admin_class.php:569
+msgid "Admin Activation"
+msgstr "Admin-Aktivierung"
+
+#: inc/admin_class.php:570
+msgid "Auto Activation"
+msgstr "Auto-Aktivierung"
+
+#: inc/admin_class.php:583 inc/admin_class.php:712
+#: inc/admin_members_class.php:874 inc/settings_class.php:134
+#: inc/settings_class.php:145 inc/settings_class.php:256 help.php:244
+#: help.php:253 help.php:254 help.php:262 help.php:264 help.php:271
+#: help.php:274 help.php:276 help.php:280 help.php:281 help.php:283
+#: help.php:284 help.php:285 help.php:289 help.php:291 help.php:292
+#: help.php:293 help.php:294 help.php:298 help.php:299 help.php:300
+#: help.php:301 help.php:303 help.php:307 help.php:308 help.php:309
+#: help.php:310 help.php:311 help.php:312 install.php:61
+msgid "No"
+msgstr "Nein"
+
+#: inc/admin_class.php:587
+msgid "Log Errors"
+msgstr "Protokolliere Fehler"
+
+#: inc/admin_class.php:588
+msgid "Display Errors"
+msgstr "Zeige Fehler an (auf Seite)"
+
+#: inc/admin_class.php:595 install.php:457
+msgid "Website Information"
+msgstr "Website-Informationen"
+
+#: inc/admin_class.php:598
+msgid "Site Name"
+msgstr "Seiten Name"
+
+#: inc/admin_class.php:604 install.php:472
+msgid "Contact Email"
+msgstr "Kontakt-Mail"
+
+#: inc/admin_class.php:611 inc/admin_members_class.php:134
+#: inc/admin_members_class.php:258 inc/settings_class.php:435 install.php:565
+msgid "That's not a valid email address is it?"
+msgstr "Diese Mailadresse ist so nicht gültig?"
+
+#: inc/admin_class.php:615 activate.php:33
+msgid "Account Activation"
+msgstr "Konto-Aktivierung"
+
+#: inc/admin_class.php:623
+msgid "Turn Off Site?"
+msgstr "Seite in den Wartungsmodus?"
+
+#: inc/admin_class.php:629
+msgid "Errors?"
+msgstr "Fehler?"
+
+#: inc/admin_class.php:636 inc/admin_class.php:834 inc/admin_class.php:930
+#: inc/admin_class.php:970 inc/gallery_class.php:1525
+msgid "Save"
+msgstr "Speichern"
+
+#: inc/admin_class.php:716
+msgid "First & Last Name"
+msgstr "Vor-und Nachname"
+
+#: inc/admin_class.php:717 inc/admin_members_class.php:86
+#: inc/admin_members_class.php:214 inc/admin_members_class.php:398
+#: inc/admin_members_class.php:524 inc/admin_members_class.php:640
+#: inc/admin_members_class.php:787 inc/admin_members_class.php:799
+#: inc/settings_class.php:114 inc/settings_class.php:473 index.php:393
+#: install.php:527 register.php:128 register.php:166 register.php:207
+msgid "Username"
+msgstr "Benutzername"
+
+#: inc/admin_class.php:722 inc/settings_class.php:120
+msgid "All (by date)"
+msgstr "Alle Informationen (zeitlich)"
+
+#: inc/admin_class.php:723 inc/settings_class.php:121
+msgid "Last 5 (by section)"
+msgstr "Immer die Letzte 5 (nach Kategorie)"
+
+#: inc/admin_class.php:728 inc/settings_class.php:184
+msgid "(GMT -12:00) Eniwetok, Kwajalein"
+msgstr "(GMT -12:00) Eniwetok, Kwajalein"
+
+#: inc/admin_class.php:729 inc/settings_class.php:185
+msgid "(GMT -11:00) Midway Island, Samoa"
+msgstr "(GMT -11:00) Midway Inseln, Samoa"
+
+#: inc/admin_class.php:730 inc/settings_class.php:186
+msgid "(GMT -10:00) Hawaii"
+msgstr "(GMT -10:00) Hawaii"
+
+#: inc/admin_class.php:731 inc/settings_class.php:187
+msgid "(GMT -9:00) Alaska"
+msgstr "(GMT -9:00) Alaska"
+
+#: inc/admin_class.php:732 inc/settings_class.php:188
+msgid "(GMT -8:00) Pacific Time (US & Canada)"
+msgstr "(GMT -8:00) Pacific Time (US & Canada)"
+
+#: inc/admin_class.php:733 inc/settings_class.php:189
+msgid "(GMT -7:00) Mountain Time (US & Canada)"
+msgstr "(GMT -7:00) Mountain Time (US & Canada)"
+
+#: inc/admin_class.php:734 inc/settings_class.php:190
+msgid "(GMT -6:00) Central Time (US & Canada), Mexico City"
+msgstr "(GMT -6:00) Central Time (US & Canada), Mexico City"
+
+#: inc/admin_class.php:735 inc/settings_class.php:191
+msgid "(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima"
+msgstr "(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima"
+
+#: inc/admin_class.php:736 inc/settings_class.php:192
+msgid "(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz"
+msgstr "(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz"
+
+#: inc/admin_class.php:737 inc/settings_class.php:193
+msgid "(GMT -3:30) Newfoundland"
+msgstr "(GMT -3:30) Neufundland"
+
+#: inc/admin_class.php:738 inc/settings_class.php:194
+msgid "(GMT -3:00) Brazil, Buenos Aires, Georgetown"
+msgstr "(GMT -3:00) Brasilien, Buenos Aires, Georgetown"
+
+#: inc/admin_class.php:739 inc/settings_class.php:195
+msgid "(GMT -2:00) Mid-Atlantic"
+msgstr "(GMT -2:00) Mittlerer Atlantik"
+
+#: inc/admin_class.php:740 inc/settings_class.php:196
+msgid "(GMT -1:00) Azores, Cape Verde Islands"
+msgstr "(GMT -1:00) Azoren, Kap Verde Inseln"
+
+#: inc/admin_class.php:741 inc/settings_class.php:197
+msgid "(GMT) Western Europe Time, London, Lisbon, Casablanca"
+msgstr "(GMT) Westeuropäische Zeit, London, Lissabon, Casablanca"
+
+#: inc/admin_class.php:742 inc/settings_class.php:198
+msgid "(GMT +1:00) Brussels, Copenhagen, Madrid, Paris"
+msgstr ""
+"(GMT +1:00) Mitteleuropäische Zeit, Brüssel, Kopenhagen, Madrid, Paris"
+
+#: inc/admin_class.php:743 inc/settings_class.php:199
+msgid "(GMT +2:00) Kaliningrad, South Africa"
+msgstr "(GMT +2:00) Osteuropäische Zeit, Kaliningrad, Südafrika"
+
+#: inc/admin_class.php:744 inc/settings_class.php:200
+msgid "(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh"
+msgstr "(GMT +3:00) Bagdad, Riad, Moskau, St. Petersburg"
+
+#: inc/admin_class.php:745 inc/settings_class.php:201
+msgid "(GMT +3:30) Tehran"
+msgstr "(GMT +3:30) Tehran"
+
+#: inc/admin_class.php:746 inc/settings_class.php:202
+msgid "(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi"
+msgstr "(GMT +4:00) Abu Dhabi, Maskat, Baku, Tiflis"
+
+#: inc/admin_class.php:747 inc/settings_class.php:203
+msgid "(GMT +4:30) Kabul"
+msgstr "(GMT +4:30) Kabul"
+
+#: inc/admin_class.php:748 inc/settings_class.php:204
+msgid "(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent"
+msgstr "(GMT +5:00) Jekaterinburg, Islamabad, Karatschi, Taschkent"
+
+#: inc/admin_class.php:749 inc/settings_class.php:205
+msgid "(GMT +5:30) Bombay, Calcutta, Madras, New Delhi"
+msgstr "(GMT +5:30) Bombay, Kalcutta, Madras, Neu Delhi"
+
+#: inc/admin_class.php:750 inc/settings_class.php:206
+msgid "(GMT +6:00) Almaty, Dhaka, Colombo"
+msgstr "(GMT +6:00) Almaty, Dhaka, Colombo"
+
+#: inc/admin_class.php:751 inc/settings_class.php:207
+msgid "(GMT +7:00) Bangkok, Hanoi, Jakarta"
+msgstr "(GMT +7:00) Bangkok, Hanoi, Jakarta"
+
+#: inc/admin_class.php:752 inc/settings_class.php:208
+msgid "(GMT +8:00) Beijing, Perth, Singapore, Hong Kong"
+msgstr "(GMT +8:00) Peking, Perth, Singapur, Hong Kong"
+
+#: inc/admin_class.php:753 inc/settings_class.php:209
+msgid "(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk"
+msgstr "(GMT +9:00) Tokyo, Seoul, Osaka, Sapporo, Jakutsk"
+
+#: inc/admin_class.php:754 inc/settings_class.php:210
+msgid "(GMT +9:30) Adeliaide, Darwin"
+msgstr "(GMT +9:30) Adelaide, Darwin"
+
+#: inc/admin_class.php:755 inc/settings_class.php:211
+msgid "(GMT +10:00) Eastern Australia, Guam, Vladivostok"
+msgstr "(GMT +10:00) Ostaustralien, Guam, Wladiwostok"
+
+#: inc/admin_class.php:756 inc/settings_class.php:212
+msgid "(GMT +11:00) Magadan, Solomon Islands, New Caledonia"
+msgstr "(GMT +11:00) Magadan, Solomon Inseln, Neu-Kaledonien"
+
+#: inc/admin_class.php:757 inc/settings_class.php:213
+msgid "(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka"
+msgstr "(GMT +12:00) Auckland, Wellington, Fiji, Kamtschatka"
+
+#: inc/admin_class.php:764 inc/settings_class.php:221
+msgid "On"
+msgstr "Ein"
+
+#: inc/admin_class.php:767 inc/settings_class.php:224
+msgid "Off"
+msgstr "Aus"
+
+#: inc/admin_class.php:770 inc/settings_class.php:228
+msgid "New Messages at Bottom"
+msgstr "Neue Nachrichten unten"
+
+#: inc/admin_class.php:771 inc/settings_class.php:229
+msgid "New Messages at Top"
+msgstr "Neue Nachrichten oben"
+
+#: inc/admin_class.php:781 inc/settings_class.php:299
+msgid "Theme"
+msgstr "Design"
+
+#: inc/admin_class.php:790 inc/settings_class.php:393
+msgid "Show Avatars"
+msgstr "Zeige Avatars"
+
+#: inc/admin_class.php:796 inc/settings_class.php:326
+msgid "Display Name"
+msgstr "Anzeigename"
+
+#: inc/admin_class.php:798 inc/settings_class.php:328
+msgid "How do you want your name to display?"
+msgstr "Wie möchten Sie Ihren Namen angezeigt bekommen?"
+
+#: inc/admin_class.php:804
+msgid "Front Page"
+msgstr "Hauptseite"
+
+#: inc/admin_class.php:806
+msgid "How do you want the latest information to display on the homepage?"
+msgstr "Wie soll die letzte Information auf der Hompage angezeigt werden?"
+
+#: inc/admin_class.php:812
+msgid "Time Zone"
+msgstr "Zeitzone"
+
+#: inc/admin_class.php:814
+msgid "What time zone do you live in?"
+msgstr "In welcher Zeitzone leben Sie?"
+
+#: inc/admin_class.php:820 inc/settings_class.php:370
+msgid "Daylight Savings Time"
+msgstr "Sommerzeit"
+
+#: inc/admin_class.php:826 inc/settings_class.php:385
+msgid "Sort Messages"
+msgstr "Forumnachrichten"
+
+#: inc/admin_class.php:828
+msgid "How do you want messages to display on the Message Board?"
+msgstr "Wie sollen die Mitteilungen im Forum angezeigt werden?"
+
+#: inc/admin_class.php:836
+msgid "Update existing users?"
+msgstr "Die neuen Einstellungen für alle Mitglieder aktualisieren"
+
+#: inc/admin_class.php:892
+msgid "Navigation"
+msgstr "Navigation"
+
+#: inc/admin_class.php:895
+msgid "Add Optional Sections"
+msgstr "Füge optionale Module hinzu"
+
+#: inc/admin_class.php:906 inc/admin_class.php:988
+msgid "Section"
+msgstr "Modul"
+
+#: inc/admin_class.php:906
+msgid "Order"
+msgstr "Anordnung"
+
+#: inc/admin_class.php:906 inc/familytree_class.php:910
+#: inc/familytree_class.php:916 inc/familytree_class.php:935
+#: inc/familytree_class.php:955 inc/familytree_class.php:971
+#: inc/familytree_class.php:991 inc/familytree_class.php:1007
+#: inc/familytree_class.php:1023 inc/familytree_class.php:1039
+msgid "Remove"
+msgstr "Entfernen"
+
+#: inc/admin_class.php:913
+msgid "required"
+msgstr "notwendig"
+
+#: inc/admin_class.php:949
+msgid "Off (2 photos)"
+msgstr "Aus (2 bilder)"
+
+#: inc/admin_class.php:950
+msgid "On (3 photos)"
+msgstr "An (3 bilder)"
+
+#: inc/admin_class.php:960
+msgid ""
+"By default, Full Sized Photos is turned off to save on storage space and "
+"bandwidth.  Turning this feature on can eat up significant space and "
+"bandwith."
+msgstr ""
+"Standardmäßig sind Vergrößerte Fotos  ausgeschaltet um Speicherplatz und "
+"Bandbreite zu sparen. Wenn diese Funktion eingeschaltet ist,wird "
+"Speicherplatz und Bandbreite verbraucht."
+
+#: inc/admin_class.php:963
+msgid "Full Size Photos"
+msgstr "Vollbild Fotos"
+
+#: inc/admin_class.php:996 inc/awards_class.php:194
+#: inc/familynews_class.php:67 inc/familynews_class.php:410
+#: inc/profile_class.php:130 inc/util_inc.php:270 familynews.php:30
+#: help.php:219 install.php:488
+msgid "Family News"
+msgstr "Nachrichten"
+
+#: inc/admin_class.php:1003 inc/awards_class.php:190 inc/profile_class.php:138
+#: inc/recipes_class.php:564 inc/util_inc.php:288 install.php:490
+#: recipes.php:20
+msgid "Recipes"
+msgstr "Rezepte"
+
+#: inc/admin_class.php:1010 inc/awards_class.php:198
+#: inc/documents_class.php:258 inc/profile_class.php:146 inc/util_inc.php:267
+#: documents.php:48 install.php:494
+msgid "Documents"
+msgstr "Dokumente"
+
+#: inc/admin_class.php:1017 inc/prayers_class.php:214
+#: inc/profile_class.php:154 help.php:220 install.php:496 prayers.php:20
+msgid "Prayer Concerns"
+msgstr "Gedenken"
+
+#: inc/admin_members_class.php:83
+msgid "Create New Member"
+msgstr "Neues Mitglied erstellen"
+
+#: inc/admin_members_class.php:96 inc/admin_members_class.php:224
+#: inc/settings_class.php:470 inc/settings_class.php:479 index.php:394
+#: install.php:535 register.php:167 register.php:217 settings.php:55
+msgid "Password"
+msgstr "Passwort"
+
+#: inc/admin_members_class.php:133 inc/admin_members_class.php:257
+msgid "Sorry, but this information is Required."
+msgstr "Entschuldige, aber diese Info wird benötigt."
+
+#: inc/admin_members_class.php:152 inc/recipes_class.php:507
+msgid "Create"
+msgstr "Erstelle"
+
+#: inc/admin_members_class.php:210
+msgid "Edit Member"
+msgstr "Mitglied ändern"
+
+#: inc/admin_members_class.php:212 inc/admin_members_class.php:475
+#: inc/admin_members_class.php:751
+msgid "Merge"
+msgstr "verbinden"
+
+#: inc/admin_members_class.php:276 inc/admin_members_class.php:803
+#: inc/settings_class.php:295 help.php:213
+msgid "Access Level"
+msgstr "Zugriffs-Level"
+
+#: inc/admin_members_class.php:283 inc/admin_members_class.php:886
+#: inc/admin_members_class.php:925 inc/util_inc.php:425 help.php:199
+msgid "Admin"
+msgstr "Admin"
+
+#: inc/admin_members_class.php:287 inc/admin_members_class.php:928
+#: inc/util_inc.php:428 help.php:200
+msgid "Helper"
+msgstr "Helfer"
+
+#: inc/admin_members_class.php:291 inc/admin_members_class.php:931
+#: inc/util_inc.php:422 inc/util_inc.php:431
+msgid "Member"
+msgstr "Mitglied"
+
+#: inc/admin_members_class.php:293
+msgid "Advanced Options"
+msgstr "Erweiterte Einstellungen"
+
+#: inc/admin_members_class.php:301 inc/admin_members_class.php:934
+#: inc/util_inc.php:434 help.php:202
+msgid "Non-Photographer"
+msgstr "Nicht-Fotograf"
+
+#: inc/admin_members_class.php:305 inc/admin_members_class.php:937
+#: inc/util_inc.php:437 help.php:203
+msgid "Non-Poster"
+msgstr "Nicht-Schreiber"
+
+#: inc/admin_members_class.php:309 inc/admin_members_class.php:940
+#: inc/util_inc.php:440 help.php:204
+msgid "Commenter"
+msgstr "Kommentator"
+
+#: inc/admin_members_class.php:313 inc/admin_members_class.php:943
+#: inc/util_inc.php:443 help.php:205
+msgid "Poster"
+msgstr "Schreiber"
+
+#: inc/admin_members_class.php:317 inc/admin_members_class.php:946
+#: inc/util_inc.php:446 help.php:206
+msgid "Photographer"
+msgstr "Fotograf"
+
+#: inc/admin_members_class.php:321 inc/admin_members_class.php:949
+#: inc/util_inc.php:449 help.php:207
+msgid "Blogger"
+msgstr "Blogger"
+
+#: inc/admin_members_class.php:325 inc/admin_members_class.php:952
+#: inc/admin_members_class.php:955 inc/util_inc.php:452 help.php:208
+msgid "Guest"
+msgstr "Gast"
+
+#: inc/admin_members_class.php:376
+msgid "Non-member"
+msgstr "Nicht-Mitglied"
+
+#: inc/admin_members_class.php:387 inc/admin_members_class.php:511
+msgid "Merge Member"
+msgstr "Verbindungsmitglied"
+
+#: inc/admin_members_class.php:392 inc/admin_members_class.php:518
+#: inc/admin_members_class.php:634 inc/admin_members_class.php:798
+#: inc/gallery_class.php:2220 inc/gallery_class.php:2305
+msgid "ID"
+msgstr "ID"
+
+#: inc/admin_members_class.php:404 inc/calendar_class.php:1184
+#: inc/familytree_class.php:908 inc/messageboard_class.php:615
+#: inc/messageboard_class.php:767 inc/recipes_class.php:372
+#: inc/recipes_class.php:448 inc/recipes_class.php:499 register.php:129
+msgid "Name"
+msgstr "Name"
+
+#: inc/admin_members_class.php:440 inc/admin_members_class.php:596
+#: inc/admin_members_class.php:712
+msgid "Zip"
+msgstr "PLZ"
+
+#: inc/admin_members_class.php:465
+msgid "Member to merge with"
+msgstr "Mitglied zu verbinden mit"
+
+#: inc/admin_members_class.php:513
+msgid ""
+"Choose which information you would like to use from the two members below."
+msgstr ""
+"Wählen Sie, welche Informationen Sie von den beiden Mitgliedern verwenden "
+"möchten"
+
+#: inc/admin_members_class.php:514
+#, php-format
+msgid ""
+"Please note that user [%s] and all information not selected will be deleted."
+msgstr ""
+"Bitte beachten Sie, dass der Benutzer [%s] und alle Informationen die nicht "
+"ausgewählt sind, gelöscht werden."
+
+#: inc/admin_members_class.php:777
+msgid "Create Member"
+msgstr "Mitglieder erstellen"
+
+#: inc/admin_members_class.php:782 inc/admin_members_class.php:789
+#: inc/gallery_class.php:89 inc/gallery_class.php:133
+#: inc/gallery_class.php:161
+msgid "Search"
+msgstr "Suche"
+
+#: inc/admin_members_class.php:803
+msgid "Get Help using Access Levels"
+msgstr "Hilfe bezüglich Zugriffs-Level"
+
+#: inc/admin_members_class.php:805
+msgid "Active?"
+msgstr "Aktiv?"
+
+#: inc/admin_members_class.php:896
+msgid "Activate Selected"
+msgstr "Markierte aktivieren"
+
+#: inc/admin_members_class.php:897
+msgid "Inactivate Selected"
+msgstr "Makierte deaktivieren"
+
+#: inc/admin_members_class.php:898 inc/privatemsg_class.php:84
+msgid "Delete Selected"
+msgstr "Markierte löschen"
+
+#: inc/admin_members_class.php:982 inc/admin_members_class.php:992
+#: inc/admin_members_class.php:1009 inc/admin_members_class.php:1019
+#: inc/admin_members_class.php:1029 inc/admin_members_class.php:1039
+#: inc/admin_members_class.php:1053 inc/admin_members_class.php:1063
+#: inc/admin_members_class.php:1073 inc/admin_members_class.php:1083
+#: inc/admin_members_class.php:1095 inc/admin_members_class.php:1105
+#: inc/admin_members_class.php:1119 inc/admin_members_class.php:1129
+#: inc/admin_members_class.php:1146 inc/admin_members_class.php:1156
+#: inc/admin_members_class.php:1166 inc/admin_members_class.php:1183
+#: inc/admin_members_class.php:1195
+#, php-format
+msgid "Merge [%s] complete."
+msgstr "Verbindung [%s] komplett."
+
+#: inc/alerts_class.php:55
+#, php-format
+msgid "Welcome to %s"
+msgstr "Willkommen bei %s"
+
+#: inc/alerts_class.php:56
+msgid "It looks like you have an Admin Access Level, which allow you to:"
+msgstr ""
+"Es scheint so, dass Sie ein Systemverwaltungs-Zugriffslevel haben, mit dem "
+"Sie:"
+
+#: inc/alerts_class.php:58
+msgid "Edit or delete just about anything"
+msgstr "Bearbeite oder lösche einfach alles"
+
+#: inc/alerts_class.php:59
+msgid "Add/edit/delete members"
+msgstr "Mitglieder Hinzufügen/Bearbeiten/Löschen"
+
+#: inc/alerts_class.php:60
+msgid "Create/edit polls"
+msgstr "Umfragen hinzufügen/bearbeiten"
+
+#: inc/alerts_class.php:61
+msgid "Change site settings"
+msgstr "Seiteneinstellungen ändern"
+
+#: inc/alerts_class.php:62
+msgid "Upgrade the site"
+msgstr "Die Seite aktualisieren"
+
+#: inc/alerts_class.php:63 inc/alerts_class.php:105
+msgid "Find out more."
+msgstr "Mehr herausfinden"
+
+#: inc/alerts_class.php:65 inc/alerts_class.php:106
+msgid "Getting Started..."
+msgstr "Erste Schritte..."
+
+#: inc/alerts_class.php:67 inc/alerts_class.php:108
+msgid "Personalize the site"
+msgstr "Die Seite personalisieren"
+
+#: inc/alerts_class.php:68 inc/alerts_class.php:109
+msgid "Share your Address/Contact information"
+msgstr "Ihre Adress/Kontakt-Information teilen"
+
+#: inc/alerts_class.php:69 inc/alerts_class.php:110
+msgid "Share Photos"
+msgstr "Fotos teilen"
+
+#: inc/alerts_class.php:70 inc/alerts_class.php:111
+msgid "Start a discussion"
+msgstr "Eine Diskussion beginnen"
+
+#: inc/alerts_class.php:72 inc/alerts_class.php:143 inc/alerts_class.php:172
+msgid "Delete This Alert"
+msgstr "Diese Info-Meldung nicht mehr anzeigen"
+
+#: inc/alerts_class.php:104
+#, php-format
+msgid "Hey, %s. Thanks for joining."
+msgstr "Hey, %s. Danke für Ihren Beitritt."
+
+#: inc/alerts_class.php:105
+#, php-format
+msgid "It looks like you have an Access Level of %s."
+msgstr "Es scheint so, als hätten Sie ein Zugriffslevel von %s."
+
+#: inc/alerts_class.php:113
+msgid "Delete This Alert."
+msgstr "Diese Info-Meldung nicht mehr anzeigen."
+
+#: inc/alerts_class.php:140
+msgid "Welcome to the Poll Section"
+msgstr "Willkommen bei den Umfragen"
+
+#: inc/alerts_class.php:141
+msgid "Here you can add new Poll questions or edit existing polls."
+msgstr ""
+"Hier kannst du eine neue Umfrage hinzufügen oder Umfragen bearbeiten."
+
+#: inc/alerts_class.php:142
+msgid ""
+"If you do not want to use Polls on your site, simply delete all existing "
+"polls and they will no longer show up on the frontpage."
+msgstr ""
+"Wenn du keine Umfragen auf deiner Seite möchtest,lösche einfach alle "
+"Umfragen und diese werden nicht mehr auf der Hauptseite erscheinen."
+
+#: inc/alerts_class.php:169
+msgid "It looks like you haven't added your address information yet."
+msgstr ""
+"Es scheint so, als hätten Sie Ihre Adress-Information noch nicht hizugefügt."
+
+#: inc/alerts_class.php:170
+msgid ""
+"The other website members would appreciate it if you would add your address "
+"information.  This will help them stay in touch."
+msgstr ""
+"Die anderen Mitglieder würden sich freuen, wenn du eine Adresse angeben "
+"würdest. Dies wird euch helfen, in Kontakt zu bleiben."
+
+#: inc/awards_class.php:125
+msgid "Invalid Member/Award."
+msgstr "Ungültiges Mitglied / Award."
+
+#: inc/awards_class.php:162
+#, php-format
+msgid "Awarded on %s."
+msgstr "Erworben am %s."
+
+#: inc/awards_class.php:182 inc/messageboard_class.php:794
+#: inc/settings_class.php:382 inc/util_inc.php:273 help.php:217
+#: messageboard.php:22 settings.php:53
+msgid "Message Board"
+msgstr "Forum"
+
+#: inc/awards_class.php:202
+msgid "Ice Breaker"
+msgstr "Eisbrecher"
+
+#: inc/awards_class.php:206
+msgid "Shutterbug"
+msgstr "Auslösungsfehler"
+
+#: inc/awards_class.php:210
+msgid "Interesting"
+msgstr "Interessante"
+
+#: inc/awards_class.php:214
+msgid "Secretive"
+msgstr "verschlossen"
+
+#: inc/awards_class.php:218
+msgid "Planner"
+msgstr "Planer"
+
+#: inc/awards_class.php:222
+msgid "Photogenic"
+msgstr "Fotogen"
+
+#: inc/bbcode.php:15 inc/calendar_print.php:18 inc/smileys.php:15
+#: inc/upimages.php:15 themes/default/header.php:4 activate.php:22
+#: index.php:314 lostpw.php:13
+msgid "powered by"
+msgstr "unterstützt von"
+
+#: inc/bbcode.php:32 inc/util_inc.php:1502
+msgid "BBCode Help"
+msgstr "BBCode Hilfe"
+
+#: inc/bbcode.php:33
+msgid ""
+"BBCode is a easy way to format text. Check out the examples below, the first "
+"line shows the bbcode and the second line show the output."
+msgstr ""
+"BBCode ist eine einfache Weise text zu formatieren. Schau dir die Beispiele "
+"hier an, die erste Stelle zeigt den bbcode, die zweite die Ausgabe."
+
+#: inc/bbcode.php:34
+msgid "Available BBCodes"
+msgstr "Verfügbare BBCodes"
+
+#: inc/bbcode.php:36
+msgid "Text Formatting"
+msgstr "Text Ausrichtung"
+
+#: inc/bbcode.php:37
+msgid "Bold Text"
+msgstr "fetter Text"
+
+#: inc/bbcode.php:38
+msgid "Italic Text"
+msgstr "Kursiver Text"
+
+#: inc/bbcode.php:39 inc/bbcode.php:45
+msgid "Underline Text"
+msgstr "unterstrichener Text"
+
+#: inc/bbcode.php:42
+msgid "Text Alignment"
+msgstr "Text Formatierung"
+
+#: inc/bbcode.php:43
+msgid "Left Aligned Text"
+msgstr "Text links ausgerichtet"
+
+#: inc/bbcode.php:44
+msgid "Centered Text"
+msgstr "Text mittig ausrichten"
+
+#: inc/bbcode.php:45
+msgid "Right Aligned Text"
+msgstr "Text Rechts Ausgerichtet"
+
+#: inc/bbcode.php:47
+msgid "Headers"
+msgstr "Vorspann"
+
+#: inc/bbcode.php:48
+msgid "Really Big Header"
+msgstr "Wirklich Große Kopfzeile"
+
+#: inc/bbcode.php:49
+msgid "Big Header"
+msgstr "Große Kopfzeile"
+
+#: inc/bbcode.php:50
+msgid "You can use any header number 1-6."
+msgstr "Du kannst jede Kopfzeile wählen,von 1-6."
+
+#: inc/bbcode.php:52 inc/messageboard_class.php:309 inc/util_inc.php:1498
+msgid "Quote"
+msgstr "Zitat"
+
+#: inc/bbcode.php:53
+msgid "You can Quote me on it."
+msgstr "Du kannst mich zitieren."
+
+#: inc/bbcode.php:54
+msgid "Add Images From a URL"
+msgstr "Füge Bilder von URL hinzu"
+
+#: inc/bbcode.php:56
+msgid "Change Text Color"
+msgstr "Textfarbe ändern"
+
+#: inc/bbcode.php:57
+msgid "Red Text"
+msgstr "Roter Text"
+
+#: inc/bbcode.php:58
+msgid "Blue Text"
+msgstr "Blauer Text"
+
+#: inc/bbcode.php:59
+msgid "Links"
+msgstr "Verknüpfungen"
+
+#: inc/bbcode.php:60
+msgid "Click Here For Google"
+msgstr "Für Google hier klicken"
+
+#: inc/bbcode.php:62
+msgid "Mail Some Guy"
+msgstr "Schreibe einem Kerl"
+
+#: inc/bbcode.php:64
+msgid "Youtube Video"
+msgstr "Youtube Video"
+
+#: inc/calendar_class.php:138 inc/calendar_class.php:281
+#: inc/calendar_class.php:485 inc/gallery_class.php:411
+#: inc/gallery_class.php:433 inc/util_inc.php:1632 inc/util_inc.php:1636
+msgid "Previous"
+msgstr "Zurück"
+
+#: inc/calendar_class.php:144 inc/calendar_class.php:287
+#: inc/calendar_class.php:488 inc/gallery_class.php:390
+#: inc/gallery_class.php:434 inc/util_inc.php:1668 inc/util_inc.php:1672
+#: install.php:303 install.php:372 install.php:441 install.php:500
+#: install.php:599
+msgid "Next"
+msgstr "Weiter"
+
+#: inc/calendar_class.php:149 inc/calendar_class.php:292
+msgid "Day"
+msgstr "Tag"
+
+#: inc/calendar_class.php:150 inc/calendar_class.php:293
+msgid "Month"
+msgstr "Monat"
+
+#: inc/calendar_class.php:213 inc/calendar_class.php:412
+#: inc/gallery_class.php:2351
+msgid "Categories"
+msgstr "Kategorien"
+
+#: inc/calendar_class.php:215 inc/calendar_class.php:414
+msgid "Add Category"
+msgstr "Kategorie hinzufügen"
+
+#: inc/calendar_class.php:219 inc/calendar_class.php:418
+msgid "Actions"
+msgstr "Aktionen"
+
+#: inc/calendar_class.php:223 inc/calendar_class.php:422
+msgid "Print"
+msgstr "Drucken"
+
+#: inc/calendar_class.php:264
+msgid "l, F j, Y"
+msgstr "l, F j, Y"
+
+#: inc/calendar_class.php:382
+msgid "12:00 am - 7:00 am"
+msgstr "00:00 Uhr - 07:00 Uhr"
+
+#: inc/calendar_class.php:600
+msgid "No events for this month."
+msgstr "Keine Ereignisse für diesen Monat."
+
+#: inc/calendar_class.php:646
+msgid "Today's Events"
+msgstr "Events heute"
+
+#: inc/calendar_class.php:783 inc/calendar_class.php:936 addressbook.php:266
+#: addressbook.php:280
+msgid "You do not have permission to perform this task."
+msgstr "Sie haben keine Berechtigung, diese Aufgabe zu erfüllen."
+
+#: inc/calendar_class.php:789
+msgid "Invalid Date"
+msgstr "Ungültiges Datum"
+
+#: inc/calendar_class.php:793
+msgid "M. d, Y"
+msgstr "M. d, Y"
+
+#: inc/calendar_class.php:841 inc/calendar_class.php:981
+#: inc/calendar_class.php:1118
+msgid "Event"
+msgstr "Event (Titel)"
+
+#: inc/calendar_class.php:851 inc/calendar_class.php:991
+#: inc/documents_class.php:71 inc/documents_class.php:147
+msgid "Description"
+msgstr "Beschreibung"
+
+#: inc/calendar_class.php:857 inc/calendar_class.php:1011
+msgid "Time"
+msgstr "Zeit"
+
+#: inc/calendar_class.php:862 inc/calendar_class.php:1017
+msgid "through"
+msgstr "durchgehend"
+
+#: inc/calendar_class.php:868 inc/calendar_class.php:1024
+msgid "All Day"
+msgstr "Ganzer Tag"
+
+#: inc/calendar_class.php:876 inc/calendar_class.php:1028
+#: inc/gallery_class.php:1190 inc/gallery_class.php:1282
+#: inc/gallery_class.php:2171 inc/gallery_class.php:2221
+#: inc/recipes_class.php:387 inc/recipes_class.php:456
+msgid "Category"
+msgstr "Kategorie"
+
+#: inc/calendar_class.php:885 inc/calendar_class.php:1037
+msgid "Repeat (Yearly)"
+msgstr "Wiederholen (Jährlich)"
+
+#: inc/calendar_class.php:891 inc/calendar_class.php:1043
+msgid "Private?"
+msgstr "Privat?"
+
+#: inc/calendar_class.php:979
+msgid "Edit Event"
+msgstr "Event bearbeiten"
+
+#: inc/calendar_class.php:997 inc/gallery_class.php:2308
+#: inc/poll_class.php:300
+msgid "Date"
+msgstr "Datum"
+
+#: inc/calendar_class.php:1088 inc/profile_class.php:88 rss.php:234
+msgid "F j, Y"
+msgstr "d.m.Y"
+
+#: inc/calendar_class.php:1090
+#, php-format
+msgid "Every year on %s"
+msgstr "Jedes Jahr am %s"
+
+#: inc/calendar_class.php:1096
+#, php-format
+msgid "beginning at %s"
+msgstr "Beginn um %s"
+
+#: inc/calendar_class.php:1098
+#, php-format
+msgid "between %s and %s"
+msgstr "zwischen %s und %s"
+
+#: inc/calendar_class.php:1120
+msgid "What"
+msgstr "Was"
+
+#: inc/calendar_class.php:1126
+msgid "When"
+msgstr "Wann"
+
+#: inc/calendar_class.php:1133
+msgid "Back to Calendar"
+msgstr "Zurück zum Kalender"
+
+#: inc/calendar_class.php:1163
+msgid "Add New Category"
+msgstr "Neue Kategorie hinzufügen"
+
+#: inc/calendar_class.php:1174 inc/calendar_class.php:1489
+#: inc/gallery_class.php:2038 inc/gallery_class.php:2050
+msgid "Edit Category"
+msgstr "Kategorie editieren"
+
+#: inc/calendar_class.php:1194
+msgid "Color"
+msgstr "Farbe"
+
+#: inc/calendar_class.php:1196 inc/gallery_class.php:2231
+#: inc/gallery_class.php:2315
+msgid "None"
+msgstr "Nichts"
+
+#: inc/calendar_class.php:1197
+msgid "Red"
+msgstr "Rot"
+
+#: inc/calendar_class.php:1198
+msgid "Orange"
+msgstr "Orange"
+
+#: inc/calendar_class.php:1199
+msgid "Yellow"
+msgstr "Gelb"
+
+#: inc/calendar_class.php:1200
+msgid "Green"
+msgstr "Grün"
+
+#: inc/calendar_class.php:1201
+msgid "Blue"
+msgstr "Blau"
+
+#: inc/calendar_class.php:1202
+msgid "Indigo"
+msgstr "Indigo"
+
+#: inc/calendar_class.php:1203
+msgid "Violet"
+msgstr "Violett"
+
+#: inc/calendar_class.php:1415 inc/util_inc.php:261 calendar.php:46
+#: home.php:68
+msgid "Calendar"
+msgstr "Kalender"
+
+#: inc/documents_class.php:70 inc/documents_class.php:143
+msgid "Document"
+msgstr "Dokument"
+
+#: inc/documents_class.php:72
+msgid "Uploaded By"
+msgstr "Hochgeladen von"
+
+#: inc/documents_class.php:73 inc/gallery_class.php:588
+msgid "Date Added"
+msgstr "Datum hinzugefügt"
+
+#: inc/documents_class.php:91
+msgid "Delete this Document"
+msgstr "Dieses Dokument löschen"
+
+#: inc/documents_class.php:121
+msgid "Welcome to the Documents Section."
+msgstr "Willkommen im Dokumentenbereich."
+
+#: inc/documents_class.php:122
+msgid "Currently no one is sharing any documents."
+msgstr "Zurzeit werden keine Dokumente zur Verfügung gestellt."
+
+#: inc/documents_class.php:123
+msgid "Upload a document"
+msgstr "Eine Datei hochladen"
+
+#: inc/documents_class.php:141
+msgid "Upload Document"
+msgstr "Dokument hochladen"
+
+#: inc/documents_class.php:202
+#, php-format
+msgid ""
+"Document %s exceeds the maximum file size allowed by your PHP settings."
+msgstr ""
+"Das Dokument %s überschreitet die maximale Dateigröße der von Ihnen "
+"erlaubten PHP-Einstellungen."
+
+#: inc/documents_class.php:214
+msgid "Invalid Document"
+msgstr "Ungültige Dokument"
+
+#: inc/documents_class.php:216
+msgid "Documents must be of type (.doc, .txt, .xsl, .zip, .rtf, .ppt, .pdf)."
+msgstr ""
+"Dokumente muss Dateiendungen wie .doc, .txt, .xsl, .zip, .rtf, .ppt oder "
+".pdf haben."
+
+#: inc/documents_class.php:227
+#, php-format
+msgid ""
+"Document %s already exists!  Please change the filename and try again."
+msgstr ""
+"Das Dokument %s existiert bereits. Bitte ändern Sie den Dateinamen und "
+"versuchen Sie es erneut."
+
+#: inc/familynews_class.php:71
+msgid "M. j"
+msgstr "d.m."
+
+#: inc/familynews_class.php:116 inc/familynews_class.php:330
+#: inc/gallery_class.php:530 inc/gallery_class.php:620
+#: inc/gallery_class.php:2320 inc/profile_class.php:89
+#: inc/recipes_class.php:711
+msgid "F j, Y g:i a"
+msgstr "d.m.Y - H:i"
+
+#: inc/familynews_class.php:135
+msgid "Edit this Family News"
+msgstr "Diese Familiennachrichten bearbeiten"
+
+#: inc/familynews_class.php:145
+msgid "Delete this Family News"
+msgstr "Diese Familiennachrichten löschen"
+
+#: inc/familynews_class.php:161 inc/familynews_class.php:337
+msgid "Read More"
+msgstr "Weiter lesen"
+
+#: inc/familynews_class.php:169 inc/familynews_class.php:178
+#: inc/familynews_class.php:350 inc/gallery_class.php:607
+#: inc/profile_class.php:119 home.php:234
+msgid "Comments"
+msgstr "Kommentare"
+
+#: inc/familynews_class.php:181 inc/gallery_class.php:649
+#: inc/gallery_class.php:651 inc/recipes_class.php:742
+#: inc/recipes_class.php:745
+msgid "Add Comment"
+msgstr "Kommentar hinzufügen"
+
+#: inc/familynews_class.php:182
+msgid "Add a comment"
+msgstr "Kommentar hinzufügen"
+
+#: inc/familynews_class.php:203
+msgid "Delete this comment"
+msgstr "Lösche diesen Kommentar"
+
+#: inc/familynews_class.php:224
+msgid "no comments"
+msgstr "keine Kommentare"
+
+#: inc/familynews_class.php:262
+msgid "Edit News"
+msgstr "News editieren"
+
+#: inc/familynews_class.php:267 familynews.php:93
+msgid "Add News"
+msgstr "News hinzufügen"
+
+#: inc/familynews_class.php:271
+msgid "Title"
+msgstr "Titel"
+
+#: inc/familynews_class.php:272
+msgid "Title of your Family News"
+msgstr "Titel Ihrer Familiennachrichten"
+
+#: inc/familynews_class.php:358
+msgid "Welcome to the Family News Section."
+msgstr "Willkommen zu den Familien News"
+
+#: inc/familynews_class.php:359
+msgid "Currently no one has added any news."
+msgstr "Es gibt momentan keine News."
+
+#: inc/familynews_class.php:360
+msgid "Add Family News"
+msgstr "News hinzufügen"
+
+#: inc/familynews_class.php:419 inc/gallery_class.php:935
+#: inc/gallery_class.php:2108 inc/messageboard_class.php:834
+msgid "M. j, Y g:i a"
+msgstr "d.m.Y - H:i"
+
+#: inc/familytree_class.php:68
+msgid "Invalid Display Type"
+msgstr "Ungültiges AnzeigeType"
+
+#: inc/familytree_class.php:80
+msgid "Could not find user."
+msgstr "Mitglied konnte nicht gefunden werden."
+
+#: inc/familytree_class.php:239
+msgid "Remove Relationship"
+msgstr "Beziehung entfernen"
+
+#: inc/familytree_class.php:280 inc/familytree_class.php:550
+msgid "Add Spouse"
+msgstr "(Ehe-)Partner hinzufügen"
+
+#: inc/familytree_class.php:297 inc/familytree_class.php:600
+msgid "Add Child"
+msgstr "Kind hinzufügen"
+
+#: inc/familytree_class.php:327
+msgid "Add Father"
+msgstr "Vater hinzufügen"
+
+#: inc/familytree_class.php:341
+msgid "Add Mother"
+msgstr "Mutter hinzufügen"
+
+#: inc/familytree_class.php:378 inc/familytree_class.php:418
+msgid "Add Grandfather"
+msgstr "Opa hinzufügen (Grossvater)"
+
+#: inc/familytree_class.php:398 inc/familytree_class.php:438
+msgid "Add Grandmother"
+msgstr "Oma hinzufügen (Grossmutter)"
+
+#: inc/familytree_class.php:463
+msgid "Invalid parent type."
+msgstr "ungültige Beziehung"
+
+#: inc/familytree_class.php:480
+msgid "Add New Parent"
+msgstr "Neue Eltern hinzufügen"
+
+#: inc/familytree_class.php:490
+msgid "Add Parent"
+msgstr "Eltern hinzufügen"
+
+#: inc/familytree_class.php:492
+msgid "Parent"
+msgstr "Eltern"
+
+#: inc/familytree_class.php:497
+msgid "Add Parent Not Listed Above"
+msgstr "Eltern hinzufügen, die nicht aufgeführt sind"
+
+#: inc/familytree_class.php:523
+msgid "Invalid spouse type."
+msgstr "ungültige Beziehung (Ehepartner)"
+
+#: inc/familytree_class.php:540
+msgid "Add New Spouse"
+msgstr "Neue Ehepartner hinzufügen"
+
+#: inc/familytree_class.php:552 inc/familytree_class.php:773
+#: inc/familytree_class.php:927
+msgid "Spouse"
+msgstr "Ehepartner"
+
+#: inc/familytree_class.php:557
+msgid "Add Spouse Not Listed Above"
+msgstr "Ehepartner hinzufügen, welches nicht aufgeführt ist"
+
+#: inc/familytree_class.php:590
+msgid "Add New Child"
+msgstr "Neues Kind hinzufügen"
+
+#: inc/familytree_class.php:602 inc/familytree_class.php:946
+msgid "Child"
+msgstr "Kind"
+
+#: inc/familytree_class.php:607
+msgid "Add Child Not Listed Above"
+msgstr "Kind hinzufügen, welches nicht aufgeführt ist"
+
+#: inc/familytree_class.php:638
+msgid "Add New Member"
+msgstr "Neues Mitglied hinzufügen"
+
+#: inc/familytree_class.php:656
+msgid "Sex"
+msgstr "Geschlecht"
+
+#: inc/familytree_class.php:659 inc/settings_class.php:259
+msgid "Male"
+msgstr "männlich"
+
+#: inc/familytree_class.php:661 inc/settings_class.php:259
+msgid "Female"
+msgstr "weiblich"
+
+#: inc/familytree_class.php:738
+msgid "View Family Tree for..."
+msgstr "Zeige Stammbaum von..."
+
+#: inc/familytree_class.php:747
+msgid "View"
+msgstr "anzeigen"
+
+#: inc/familytree_class.php:779
+msgid "Kids"
+msgstr "Kinder"
+
+#: inc/familytree_class.php:800
+msgid "Parents"
+msgstr "Eltern"
+
+#: inc/familytree_class.php:829
+msgid "Grandparents"
+msgstr "Opa & Oma (Großeltern)"
+
+#: inc/familytree_class.php:855
+msgid "You do NOT have access to perform this action."
+msgstr "Sie haben keinen Zugriff um diese Aktion auszuführen."
+
+#: inc/familytree_class.php:909
+msgid "Relationship"
+msgstr "Beziehungen"
+
+#: inc/familytree_class.php:966
+msgid "Father"
+msgstr "Vater"
+
+#: inc/familytree_class.php:982
+msgid "Mother"
+msgstr "Mutter"
+
+#: inc/familytree_class.php:1002 inc/familytree_class.php:1034
+msgid "Grandfather"
+msgstr "Opa (Grossvater)"
+
+#: inc/familytree_class.php:1018 inc/familytree_class.php:1050
+msgid "Grandmother"
+msgstr "Oma (Grossmutter)"
+
+#: inc/gallery_class.php:84
+msgid "Latest"
+msgstr "Neueste"
+
+#: inc/gallery_class.php:86 inc/gallery_class.php:268
+#: inc/gallery_class.php:950
+msgid "Top Rated"
+msgstr "Bewertung"
+
+#: inc/gallery_class.php:87 inc/gallery_class.php:281
+#: inc/gallery_class.php:980
+msgid "Most Viewed"
+msgstr "meist gesehen"
+
+#: inc/gallery_class.php:88
+msgid "My Photos"
+msgstr "Meine Fotos"
+
+#: inc/gallery_class.php:101
+msgid "Manage Categories"
+msgstr "Kategorien verwalten"
+
+#: inc/gallery_class.php:136
+msgid "Photo Uploaded By"
+msgstr "Foto hochgeladen von"
+
+#: inc/gallery_class.php:149
+msgid "Members In Photo"
+msgstr "Mitglieder auf dem Foto"
+
+#: inc/gallery_class.php:190 inc/members_class.php:129
+#: inc/members_class.php:134
+msgid "M. j, Y"
+msgstr "M. j, Y"
+
+#: inc/gallery_class.php:215
+msgid "Welcome to the Photo Gallery"
+msgstr "Willkommen auf der Foto-Galerie"
+
+#: inc/gallery_class.php:216
+msgid "Currently no one has added any photos"
+msgstr "Momentan hat Keiner Fotos hinzugefügt"
+
+#: inc/gallery_class.php:217
+msgid "How do I add photos?"
+msgstr "Wie füge ich Fotos hinzu?"
+
+#: inc/gallery_class.php:219 inc/recipes_class.php:79
+msgid "Create a Category"
+msgstr "Eine Kategorie erstellen"
+
+#: inc/gallery_class.php:253 inc/gallery_class.php:928
+#: inc/gallery_class.php:931
+msgid "Latest Comments"
+msgstr "Neuste Kommentare"
+
+#: inc/gallery_class.php:301 inc/gallery_class.php:999
+#, php-format
+msgid "Photos of %s"
+msgstr "Fotos von %s"
+
+#: inc/gallery_class.php:314 inc/gallery_class.php:1013
+#, php-format
+msgid "Photos uploaded by %s"
+msgstr "Fotos von %s hochgeladen"
+
+#: inc/gallery_class.php:380 inc/gallery_class.php:386
+#: inc/gallery_class.php:408 inc/gallery_class.php:430
+#, php-format
+msgid "%d of %d"
+msgstr "%d von %d"
+
+#: inc/gallery_class.php:459
+msgid "From the Category:"
+msgstr "Aus der Kategorie"
+
+#: inc/gallery_class.php:460
+msgid "by"
+msgstr "von"
+
+#: inc/gallery_class.php:560
+#, php-format
+msgid "Currently %s/5 Starts"
+msgstr "Momentan %s/5 Sterne"
+
+#: inc/gallery_class.php:561 inc/gallery_class.php:965
+msgid "1 out of 5 Stars"
+msgstr "1 von 5 Sternen"
+
+#: inc/gallery_class.php:562 inc/gallery_class.php:966
+msgid "2 out of 5 Stars"
+msgstr "2 von 5 Sternen"
+
+#: inc/gallery_class.php:563 inc/gallery_class.php:968
+msgid "3 out of 5 Stars"
+msgstr "3 von 5 Sternen"
+
+#: inc/gallery_class.php:564 inc/gallery_class.php:969
+msgid "4 out of 5 Stars"
+msgstr "4 von 5 Sterne"
+
+#: inc/gallery_class.php:565 inc/gallery_class.php:971
+msgid "5 out of 5 Stars"
+msgstr "5 von 5 Sternen"
+
+#: inc/gallery_class.php:572
+msgid "Filename"
+msgstr "Dateiname"
+
+#: inc/gallery_class.php:580
+msgid "Photo Size"
+msgstr "Fotogröße"
+
+#: inc/gallery_class.php:584
+msgid "Dimensions"
+msgstr "Abmessungen"
+
+#: inc/gallery_class.php:592
+msgid "Members in Photo"
+msgstr "Mitglieder auf dem Foto"
+
+#: inc/gallery_class.php:627 inc/recipes_class.php:717
+msgid "Delete this Comment"
+msgstr "Diesen Komentar löschen"
+
+#: inc/gallery_class.php:660
+msgid "The Photo you are trying to view can not be found."
+msgstr "Das Bild das du versuchst zu sehen, kann nicht gefunden werden."
+
+#: inc/gallery_class.php:670 inc/gallery_class.php:1123 index.php:37
+#: index.php:270
+msgid "Oops!"
+msgstr "Hoppla!"
+
+#: inc/gallery_class.php:671 inc/gallery_class.php:1124
+msgid "The Category you are trying to view is Empty."
+msgstr "Die anzuzeigende Kategorie ist nicht befüllt."
+
+#: inc/gallery_class.php:885
+msgid "Uh Oh!"
+msgstr "Auweia!"
+
+#: inc/gallery_class.php:886
+msgid "The category you are trying to view doesn't exist."
+msgstr "Diese Kategorie existiert nicht."
+
+#: inc/gallery_class.php:917 inc/gallery_class.php:918
+#, php-format
+msgid "View Categories for %s"
+msgstr "Zeige  Kategorien für %s"
+
+#: inc/gallery_class.php:919 inc/gallery_class.php:1052
+#: inc/gallery_class.php:2223 inc/profile_class.php:115
+msgid "Photos"
+msgstr "Fotos"
+
+#: inc/gallery_class.php:932
+msgid "View All"
+msgstr "Alles anzeigen"
+
+#: inc/gallery_class.php:963
+#, php-format
+msgid "Currently %d/5 Stars."
+msgstr "Momentan %d/5 Sterne."
+
+#: inc/gallery_class.php:1050 inc/gallery_class.php:1051
+#, php-format
+msgid "View Photos in %s"
+msgstr "Fotos in %s ansehen"
+
+#: inc/gallery_class.php:1088
+msgid "View Slideshow"
+msgstr "Schaue Diashow"
+
+#: inc/gallery_class.php:1186 themes/default/footer.php:9
+#: themes/default/navigation.php:30 help.php:25
+msgid "Help"
+msgstr "Hilfe"
+
+#: inc/gallery_class.php:1196 inc/gallery_class.php:2306
+msgid "Photo"
+msgstr "Foto"
+
+#: inc/gallery_class.php:1202 inc/gallery_class.php:1434
+#: inc/gallery_class.php:1502
+msgid "Caption"
+msgstr "Beschriftung"
+
+#: inc/gallery_class.php:1209
+msgid "Rotate Left"
+msgstr "Links drehen"
+
+#: inc/gallery_class.php:1210
+msgid "Rotate Right"
+msgstr "Rechts drehen"
+
+#: inc/gallery_class.php:1215
+msgid "Members in this Photo"
+msgstr "Mitglieder auf diesem Foto"
+
+#: inc/gallery_class.php:1222 inc/messageboard_class.php:532
+#: inc/messageboard_class.php:723 inc/settings_class.php:376
+#: inc/settings_class.php:398 inc/settings_class.php:464
+#: inc/settings_class.php:484 contact.php:78 register.php:260
+msgid "Submit"
+msgstr "absenden"
+
+#: inc/gallery_class.php:1270
+msgid ""
+"JavaScript must be enabled in order for you to use the Chat Room. However, "
+"it seems JavaScript is either disabled or not supported by your browser."
+msgstr ""
+"JavaScript muss eingeschaltet sein, um den Chat zu verwenden. Es scheint "
+"jedoch, dass JavaScript entweder deaktiviert ist oder nicht von Ideinem "
+"Webbrowser unterstützt wird."
+
+#: inc/gallery_class.php:1272
+msgid "Either enable JavaScript by changing your browser options."
+msgstr ""
+"Bitte aktiviere JavaScript indem du es in den Einstellungen aktivierst."
+
+#: inc/gallery_class.php:1274
+msgid "Enable the Basic Upload option by changing Your Settings."
+msgstr ""
+"Aktiviere die Option Basic hochladen, indem Du Deine Einstellungen änderst."
+
+#: inc/gallery_class.php:1422
+msgid "Edit Photo"
+msgstr "Foto bearbeiten"
+
+#: inc/gallery_class.php:1426
+msgid "Change Category"
+msgstr "Kategorie wechseln"
+
+#: inc/gallery_class.php:1440 inc/gallery_class.php:1508
+msgid "Who is in this Photo?"
+msgstr "Wer ist auf diesem Foto?"
+
+#: inc/gallery_class.php:1457
+msgid "Could not edit Photo.  Photo ID does not exist."
+msgstr "Konnte Bild nicht bearbeiten. Bild ID existiert nicht."
+
+#: inc/gallery_class.php:1474
+msgid "You must create a new category, or select an existing category."
+msgstr ""
+"Erstelle eine neue Kategorie oder wähle eine vorhandene Kategorie aus."
+
+#: inc/gallery_class.php:1495
+msgid "Edit Photos"
+msgstr "Fotos bearbeiten"
+
+#: inc/gallery_class.php:1594 inc/gallery_class.php:1608 inc/util_inc.php:1543
+#: inc/util_inc.php:1549
+#, php-format
+msgid ""
+"Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, "
+".BMP or .PNG)."
+msgstr ""
+"Fehler: Datei %s ist kein Foto. Fotos müssen Dateiendungen wie *.jpg, "
+"*.jpeg, *.gif, *.bmp oder *.png haben."
+
+#: inc/gallery_class.php:1697 inc/gallery_class.php:1910
+msgid "The following photo was added successfully."
+msgstr "Folgendes Foto wurde erfolgreich hinzugefügt."
+
+#: inc/gallery_class.php:1724
+msgid "Out of Memory Warning."
+msgstr "Achtung - Platz im Hauptspeicher reicht nicht aus."
+
+#: inc/gallery_class.php:1726
+msgid ""
+"The photo you are trying to upload is quite large and the server might run "
+"out of memory if you continue."
+msgstr "Das Foto was gerade hoch geladen wird ist zu groß für den Server."
+
+#: inc/gallery_class.php:1727
+msgid ""
+"It is recommended that you try to upload this photo using the \"Advanced "
+"Uploader\" instead."
+msgstr ""
+"Es wird empfohlen, dass die Fotos mit dem \"Advanced Uploader\" (modernen "
+"Uploader)  hoch geladen werden sollten."
+
+#: inc/gallery_class.php:1730
+msgid "What do you want to do?"
+msgstr "Was möchten Sie tun?"
+
+#: inc/gallery_class.php:1733
+msgid "Use the \"Advanced Uploader\""
+msgstr "Benutzen Sie den \"Advanced Uploader\""
+
+#: inc/gallery_class.php:1736
+msgid "I want to continue with this photo"
+msgstr "Ich möchte mit diesem Foto weiter gehen"
+
+#: inc/gallery_class.php:2039
+msgid "Delete Category"
+msgstr "Kategorie löschen"
+
+#: inc/gallery_class.php:2044
+msgid "No Categories created yet."
+msgstr "Keine Kategorien angelegt."
+
+#: inc/gallery_class.php:2115
+#, php-format
+msgid "%d new photos"
+msgstr "%d neue Fotos"
+
+#: inc/gallery_class.php:2123 inc/messageboard_class.php:858 home.php:291
+msgid "nothing new last 30 days"
+msgstr "die letzten 30 Tage nichts Neues"
+
+#: inc/gallery_class.php:2169
+msgid "Quick Delete"
+msgstr "Schnelles Löschen"
+
+#: inc/gallery_class.php:2173 inc/gallery_class.php:2217
+#: inc/gallery_class.php:2253 inc/gallery_class.php:2302
+#: inc/gallery_class.php:2337
+msgid "Delete All"
+msgstr "Lösche Alles"
+
+#: inc/gallery_class.php:2211
+msgid "No photos have been added yet."
+msgstr "Es wurden keine Fotos aufgenommen"
+
+#: inc/gallery_class.php:2222
+msgid "User"
+msgstr "Mitglied"
+
+#: inc/gallery_class.php:2229 inc/gallery_class.php:2313
+msgid "Select:"
+msgstr "Wählen Sie:"
+
+#: inc/gallery_class.php:2230 inc/gallery_class.php:2314
+msgid "All"
+msgstr "Alle"
+
+#: inc/gallery_class.php:2294
+msgid "This category contains no photos."
+msgstr "Diese Kategorie enthält keine Fotos."
+
+#: inc/locale.php:15
+msgid "Sunday"
+msgstr "Sonntag"
+
+#: inc/locale.php:16
+msgid "Monday"
+msgstr "Montag"
+
+#: inc/locale.php:17
+msgid "Tuesday"
+msgstr "Dienstag"
+
+#: inc/locale.php:18
+msgid "Wednesday"
+msgstr "Mittwoch"
+
+#: inc/locale.php:19
+msgid "Thursday"
+msgstr "Donnerstag"
+
+#: inc/locale.php:20
+msgid "Friday"
+msgstr "Freitag"
+
+#: inc/locale.php:21
+msgid "Saturday"
+msgstr "Samstag"
+
+#: inc/locale.php:23
+msgid "sunday_initial"
+msgstr "S"
+
+#: inc/locale.php:24
+msgid "monday_initial"
+msgstr "M"
+
+#: inc/locale.php:25
+msgid "tuesday_initial"
+msgstr "D"
+
+#: inc/locale.php:26
+msgid "wednesday_initial"
+msgstr "M"
+
+#: inc/locale.php:27
+msgid "thursday_initial"
+msgstr "D"
+
+#: inc/locale.php:28
+msgid "friday_initial"
+msgstr "F"
+
+#: inc/locale.php:29
+msgid "saturday_initial"
+msgstr "S"
+
+#: inc/locale.php:31
+msgid "Sun"
+msgstr "Son"
+
+#: inc/locale.php:32
+msgid "Mon"
+msgstr "Mon"
+
+#: inc/locale.php:33
+msgid "Tue"
+msgstr "Die"
+
+#: inc/locale.php:34
+msgid "Wed"
+msgstr "Mit"
+
+#: inc/locale.php:35
+msgid "Thr"
+msgstr "Don"
+
+#: inc/locale.php:36
+msgid "Fri"
+msgstr "Fre"
+
+#: inc/locale.php:37
+msgid "Sat"
+msgstr "Sam"
+
+#: inc/locale.php:39
+msgid "January"
+msgstr "Januar"
+
+#: inc/locale.php:40
+msgid "February"
+msgstr "Februar"
+
+#: inc/locale.php:41
+msgid "March"
+msgstr "März"
+
+#: inc/locale.php:42
+msgid "April"
+msgstr "April"
+
+#: inc/locale.php:43
+msgid "May"
+msgstr "Mai"
+
+#: inc/locale.php:44
+msgid "June"
+msgstr "Juni"
+
+#: inc/locale.php:45
+msgid "July"
+msgstr "Juli"
+
+#: inc/locale.php:46
+msgid "August"
+msgstr "August"
+
+#: inc/locale.php:47
+msgid "September"
+msgstr "September"
+
+#: inc/locale.php:48
+msgid "October"
+msgstr "Oktober"
+
+#: inc/locale.php:49
+msgid "November"
+msgstr "November"
+
+#: inc/locale.php:50
+msgid "December"
+msgstr "Dezember"
+
+#: inc/locale.php:52
+msgid "january_abbreviation"
+msgstr "Januar"
+
+#: inc/locale.php:53
+msgid "february_abbreviation"
+msgstr "Februar"
+
+#: inc/locale.php:54
+msgid "march_abbreviation"
+msgstr "März"
+
+#: inc/locale.php:55
+msgid "april_abbreviation"
+msgstr "April"
+
+#: inc/locale.php:56
+msgid "may_abbreviation"
+msgstr "Mai"
+
+#: inc/locale.php:57
+msgid "jun_abbreviation"
+msgstr "Juni"
+
+#: inc/locale.php:58
+msgid "july_abbreviation"
+msgstr "Juli"
+
+#: inc/locale.php:59
+msgid "august_abbreviation"
+msgstr "August"
+
+#: inc/locale.php:60
+msgid "september_abbreviation"
+msgstr "September"
+
+#: inc/locale.php:61
+msgid "october_abbreviation"
+msgstr "Oktober"
+
+#: inc/locale.php:62
+msgid "november_abbreviation"
+msgstr "November"
+
+#: inc/locale.php:63
+msgid "december_abbreviation"
+msgstr "Dezember"
+
+#: inc/locale.php:65
+msgid "am"
+msgstr "vormittags (am)"
+
+#: inc/locale.php:66
+msgid "pm"
+msgstr "nachmittags (pm)"
+
+#: inc/locale.php:67
+msgid "AM"
+msgstr "Vormittag (am)"
+
+#: inc/locale.php:68
+msgid "PM"
+msgstr "Nachmittag (pm)"
+
+#: inc/members_class.php:64
+msgid "Invalid Order."
+msgstr "ungültiger Ordner."
+
+#: inc/members_class.php:119
+msgid "years old"
+msgstr "Jahre alt"
+
+#: inc/messageboard_class.php:137 inc/messageboard_class.php:147
+msgid "h:ia"
+msgstr "h:ia"
+
+#: inc/messageboard_class.php:162 inc/messageboard_class.php:845
+#: inc/messageboard_class.php:848
+msgid "Page"
+msgstr "Seite"
+
+#: inc/messageboard_class.php:222
+msgid "Thread does not exist."
+msgstr "Beitrag existiert nicht"
+
+#: inc/messageboard_class.php:283
+msgid "n/d/y g:ia"
+msgstr "n/d/y d.m.Y"
+
+#: inc/messageboard_class.php:309
+msgid "Quote this message"
+msgstr "Zitiere diese Nachricht"
+
+#: inc/messageboard_class.php:319
+msgid "Edit this message"
+msgstr "Diese Nachricht bearbeiten"
+
+#: inc/messageboard_class.php:330
+msgid "Delete this message"
+msgstr "Diese Nachricht löschen"
+
+#: inc/messageboard_class.php:342 inc/profile_class.php:111
+msgid "Posts"
+msgstr "Beiträge"
+
+#: inc/messageboard_class.php:505 inc/messageboard_class.php:668
+#: privatemsg.php:56
+msgid "New Message"
+msgstr "Neue Nachricht"
+
+#: inc/messageboard_class.php:519
+msgid "Admin Tools"
+msgstr "Admin Werkzeuge"
+
+#: inc/messageboard_class.php:520
+msgid "Make Announcement"
+msgstr "Mache Meldung"
+
+#: inc/messageboard_class.php:538 inc/messageboard_class.php:579
+#: inc/messageboard_class.php:683 inc/privatemsg_class.php:163
+msgid "Reply"
+msgstr "Antwort"
+
+#: inc/messageboard_class.php:556
+#, php-format
+msgid "Last post written by %s"
+msgstr "Letzter Beitrag geschrieben von %s"
+
+#: inc/messageboard_class.php:570
+msgid "Quoting"
+msgstr "Zitat"
+
+#: inc/messageboard_class.php:592 messageboard.php:235 messageboard.php:237
+#: messageboard.php:240
+msgid "Edited"
+msgstr "Bearbeitet"
+
+#: inc/messageboard_class.php:675
+msgid "Message Board Home"
+msgstr "Forum Home"
+
+#: inc/messageboard_class.php:707
+msgid "Make Normal Thread"
+msgstr "Beitrag als normal markieren"
+
+#: inc/messageboard_class.php:709
+msgid "Make Thread an Announcement"
+msgstr "Beitrag als wichtig markieren"
+
+#: inc/messageboard_class.php:712
+msgid "Edit Thread Subject"
+msgstr "Beitragstitel bearbeiten"
+
+#: inc/messageboard_class.php:713
+msgid "Delete Thread"
+msgstr "Beitrag löschen"
+
+#: inc/messageboard_class.php:718
+msgid "Administrate Thread"
+msgstr "Beitrag verwalten"
+
+#: inc/messageboard_class.php:761
+msgid "Edit Thread"
+msgstr "Diskussion bearbeiten"
+
+#: inc/poll_class.php:70
+msgid "You have already voted."
+msgstr "Sie haben bereits abgestimmt"
+
+#: inc/poll_class.php:138 inc/poll_class.php:301
+msgid "Total Votes"
+msgstr "Anzahl Stimmen"
+
+#: inc/poll_class.php:139
+msgid "Who Voted for What?"
+msgstr "Wer hat für Was abgestimmt?"
+
+#: inc/poll_class.php:182
+msgid "No user data could be found."
+msgstr "Es konnte keine Benutzerdaten gefunden werden."
+
+#: inc/poll_class.php:185
+msgid "No one has voted on this poll yet."
+msgstr "Keiner hat an dieser Umfrage teilgenommen."
+
+#: inc/poll_class.php:247 themes/default/navigation.php:42
+msgid "Polls"
+msgstr "Umfragen"
+
+#: inc/poll_class.php:264
+msgid "Vote"
+msgstr "Abstimmen"
+
+#: inc/poll_class.php:267
+msgid "View Results"
+msgstr "Ergebnisse anzeigen"
+
+#: inc/poll_class.php:299
+msgid "Question"
+msgstr "Frage"
+
+#: inc/poll_class.php:328
+msgid "No previous polls"
+msgstr "keine vorhergehenden Umfragen"
+
+#: inc/prayers_class.php:67 inc/profile_class.php:307
+#: inc/recipes_class.php:299
+msgid "F j, Y, g:i a"
+msgstr "d.m.Y - H:i"
+
+#: inc/prayers_class.php:84
+msgid "Edit this Prayer Concern"
+msgstr "Anzeige bearbeiten"
+
+#: inc/prayers_class.php:93
+msgid "Delete this Prayer Concern"
+msgstr "Anzeige löschen"
+
+#: inc/prayers_class.php:99
+#, php-format
+msgid "%s asks that you please pray for..."
+msgstr "%s bittet Sie, dass sie beten für..."
+
+#: inc/prayers_class.php:101
+msgid "Because..."
+msgstr "Weil..."
+
+#: inc/prayers_class.php:123
+msgid "Welcome to the Prayer Concerns section."
+msgstr "In Gedenken an unsere Lieben"
+
+#: inc/prayers_class.php:124
+msgid "Currently no one has added any Prayer Concerns."
+msgstr "Derzeit gibt es noch keine Todesanzeigen."
+
+#: inc/prayers_class.php:125
+msgid "Add a new Prayer Concern"
+msgstr "Erstelle eine neue Todes-Anzeige"
+
+#: inc/prayers_class.php:148
+msgid "Edit Prayer Concern"
+msgstr "Anzeige bearbeiten"
+
+#: inc/prayers_class.php:154
+msgid "Add Prayer Concern"
+msgstr "Erstelle eine Anzeige"
+
+#: inc/prayers_class.php:158
+msgid "Pray For"
+msgstr "Bete für"
+
+#: inc/privatemsg_class.php:53 inc/privatemsg_class.php:101
+msgid "Private Messages (PM)"
+msgstr "Private Nachrichten"
+
+#: inc/privatemsg_class.php:53 privatemsg.php:61
+msgid "Inbox"
+msgstr "Eingang"
+
+#: inc/privatemsg_class.php:56 inc/privatemsg_class.php:158 privatemsg.php:138
+msgid "From"
+msgstr "Von"
+
+#: inc/privatemsg_class.php:57 inc/privatemsg_class.php:157
+msgid "Received"
+msgstr "Erhalten"
+
+#: inc/privatemsg_class.php:101 inc/privatemsg_class.php:105
+#: inc/privatemsg_class.php:196 privatemsg.php:62
+msgid "Sent"
+msgstr "Gesendet"
+
+#: inc/privatemsg_class.php:103 inc/privatemsg_class.php:197
+#: inc/privatemsg_class.php:247
+msgid "To"
+msgstr "An"
+
+#: inc/privatemsg_class.php:154 inc/privatemsg_class.php:193
+msgid "n/j/Y g:i a"
+msgstr "n/j/Y g:i a"
+
+#: inc/privatemsg_class.php:168 inc/privatemsg_class.php:206
+msgid ""
+"The PM you are trying to view either doesn't exist or you don't have "
+"permission to view it."
+msgstr ""
+"Die Nachricht existiert nicht oder Sie haben nicht die Berechtigungen sie zu "
+"lesen."
+
+#: inc/privatemsg_class.php:237 inc/util_inc.php:377
+msgid "New PM"
+msgstr "Nachricht verfassen"
+
+#: inc/privatemsg_class.php:262 chat.php:230
+msgid "Send"
+msgstr "Senden"
+
+#: inc/profile_class.php:68
+msgid "Invalid User"
+msgstr "Ungültiger Benutzer"
+
+#: inc/profile_class.php:123
+msgid "Dates"
+msgstr "Termine"
+
+#: inc/profile_class.php:191
+msgid "Send PM"
+msgstr "Sende PN"
+
+#: inc/profile_class.php:214
+msgid "Participation Points"
+msgstr "Erhaltende Punkte"
+
+#: inc/profile_class.php:216
+msgid "Points"
+msgstr "Punkte"
+
+#: inc/profile_class.php:219
+msgid "Join Date"
+msgstr "Beitrittsdatum"
+
+#: inc/profile_class.php:220
+msgid "Last Visit"
+msgstr "Letzter Besuch"
+
+#: inc/profile_class.php:222
+msgid "Relationships"
+msgstr "Beziehungen"
+
+#: inc/profile_class.php:228
+msgid "View Family Tree"
+msgstr "Familienbaum anzeigen"
+
+#: inc/profile_class.php:231
+msgid "Stats"
+msgstr "Statistiken"
+
+#: inc/profile_class.php:242 themes/default/navigation.php:43
+msgid "Awards"
+msgstr "Auszeichnungen"
+
+#: inc/profile_class.php:247
+msgid "Last 5 Posts"
+msgstr "Letzte 5 Beiträge"
+
+#: inc/profile_class.php:251
+msgid "Last 5 Photos"
+msgstr "Letzte 5 Fotos"
+
+#: inc/recipes_class.php:66 inc/recipes_class.php:159
+#: inc/recipes_class.php:266 inc/recipes_class.php:370
+msgid "Add Recipe"
+msgstr "Rezept hinzufügen"
+
+#: inc/recipes_class.php:76
+msgid "Welcome to the Recipes Section"
+msgstr "Willkommen in der Rezepte Section"
+
+#: inc/recipes_class.php:77
+msgid "Currently no one has added any recipes"
+msgstr "Derzeit sind keine Rezepte eingetragen"
+
+#: inc/recipes_class.php:80 inc/recipes_class.php:231
+msgid "Add a Recipe"
+msgstr "Ein Rezept hinzufügen"
+
+#: inc/recipes_class.php:101
+msgid "Latest Recipes"
+msgstr "Neuste Rezepte"
+
+#: inc/recipes_class.php:108 inc/recipes_class.php:204
+msgid "Click to view recipe"
+msgstr "Klicken, um das Rezept anzuzeigen"
+
+#: inc/recipes_class.php:152 inc/recipes_class.php:259
+#: inc/recipes_class.php:665
+msgid "Recipe Categories"
+msgstr "Rezept Kategorien"
+
+#: inc/recipes_class.php:230
+msgid "Currently no one has added any recipes to this category."
+msgstr "Derzeit sind keine Rezepte in dieser Kategorie angetragen."
+
+#: inc/recipes_class.php:291
+msgid "Recipe does not exist."
+msgstr "Das Rezept gibt es nicht"
+
+#: inc/recipes_class.php:313
+#, php-format
+msgid "Submitted by %s on %s."
+msgstr "Eingereicht von %s auf %s."
+
+#: inc/recipes_class.php:323
+msgid "Edit this Recipe"
+msgstr "Dieses Rezept bearbeiten"
+
+#: inc/recipes_class.php:332
+msgid "Delete this Recipe"
+msgstr "Rezept löschen"
+
+#: inc/recipes_class.php:340 inc/recipes_class.php:410
+#: inc/recipes_class.php:470
+msgid "Directions"
+msgstr "Beschreibung"
+
+#: inc/recipes_class.php:344 inc/recipes_class.php:399
+#: inc/recipes_class.php:462
+msgid "Ingredients"
+msgstr "Zutaten"
+
+#: inc/recipes_class.php:375
+msgid "The name of your recipe."
+msgstr "Der Name ihres Rezeptes"
+
+#: inc/recipes_class.php:383
+msgid "Thumbnail"
+msgstr "Vorschaubild"
+
+#: inc/recipes_class.php:392 inc/recipes_class.php:497
+msgid "New Category"
+msgstr "Neue Kategorie"
+
+#: inc/recipes_class.php:402
+msgid "Put each ingredient on a seperate line."
+msgstr "Jede Zutat bitte untereinander schreiben."
+
+#: inc/recipes_class.php:446
+msgid "Edit Recipe"
+msgstr "Rezept bearbeiten"
+
+#: inc/recipes_class.php:571 inc/util_inc.php:2243 rss.php:192
+msgid "Appetizer"
+msgstr "Häppchen"
+
+#: inc/recipes_class.php:574 inc/util_inc.php:2244 rss.php:193
+msgid "Breakfast"
+msgstr "Frühstück"
+
+#: inc/recipes_class.php:577 inc/util_inc.php:2245 rss.php:194
+msgid "Dessert"
+msgstr "Nachspeise"
+
+#: inc/recipes_class.php:580 inc/util_inc.php:2246 rss.php:195
+msgid "Entree (Meat)"
+msgstr "Vorspeise (Fleisch)"
+
+#: inc/recipes_class.php:583 inc/util_inc.php:2247 rss.php:196
+msgid "Entree (Seafood)"
+msgstr "Vorspeise (Meeresfrüchte)"
+
+#: inc/recipes_class.php:586 inc/util_inc.php:2248 rss.php:197
+msgid "Entree (Vegetarian)"
+msgstr "Vorspeise (Vegetarisch)"
+
+#: inc/recipes_class.php:589 inc/util_inc.php:2249 rss.php:198
+msgid "Salad"
+msgstr "Salat"
+
+#: inc/recipes_class.php:592 inc/util_inc.php:2250 rss.php:199
+msgid "Side Dish"
+msgstr "Beilage"
+
+#: inc/recipes_class.php:595 inc/util_inc.php:2251 rss.php:200
+msgid "Soup"
+msgstr "Suppe"
+
+#: inc/settings_class.php:113
+msgid "First and Last Name"
+msgstr "Vor- und Nachname"
+
+#: inc/settings_class.php:241
+msgid "Upload Avatar"
+msgstr "Avatar (Bildchen) hochladen"
+
+#: inc/settings_class.php:242
+msgid "Use Gravatar"
+msgstr "Benutze Gravatar (Bild mit eMail-Adresse verknüpfen)"
+
+#: inc/settings_class.php:243
+msgid "Use Default"
+msgstr "Standard verwenden"
+
+#: inc/settings_class.php:292 inc/util_inc.php:291
+#: themes/default/navigation.php:7 settings.php:20 settings.php:52
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: inc/settings_class.php:308
+msgid "Avatar"
+msgstr "Avatar"
+
+#: inc/settings_class.php:315
+msgid "Upload your personal image (Avatar)"
+msgstr "Lade dein eigenes Avatar Bild hoch"
+
+#: inc/settings_class.php:319
+msgid "Gravatar Email"
+msgstr "Gravatar Email"
+
+#: inc/settings_class.php:322
+msgid "This is your current avatar."
+msgstr "Dies ist dein aktueller Avatar."
+
+#: inc/settings_class.php:334
+msgid "Frontpage"
+msgstr "Startseite (Infoliste)"
+
+#: inc/settings_class.php:336
+msgid "How do you want the latest information to display on the frontpage?"
+msgstr ""
+"Wie möchten Sie die neusten Informationen auf der Startseite angezeigt "
+"bekommen?"
+
+#: inc/settings_class.php:342
+msgid "Email Updates"
+msgstr "eMail über alle Aktivitäten?"
+
+#: inc/settings_class.php:348
+msgid "Advanced Uploader"
+msgstr "Advanced Uploader (Moderner Massenuploader)"
+
+#: inc/settings_class.php:354
+msgid "Language"
+msgstr "Sprache"
+
+#: inc/settings_class.php:356
+msgid "What language do you speak?"
+msgstr "Welche Sprache sprechen Sie"
+
+#: inc/settings_class.php:362
+msgid "Timezone"
+msgstr "Zeitzone"
+
+#: inc/settings_class.php:364
+msgid "What timezone do you live in?"
+msgstr "In welcher Zeitzone leben Sie?"
+
+#: inc/settings_class.php:373
+msgid ""
+"You will need to manually change this off and on if your City/Town makes use "
+"of DST."
+msgstr ""
+"Du mußt diese Einstellungen manuell ändern, wenn du die Sommerzeit nutzt."
+
+#: inc/settings_class.php:387
+msgid "What order do you want new messages to display?"
+msgstr "In welcher Reihenfolge möchten Sie \"neue Nachrichten\" sehen?"
+
+#: inc/settings_class.php:404 settings.php:54
+msgid "Personal Info"
+msgstr "Persönliche Daten"
+
+#: inc/settings_class.php:414 inc/settings_class.php:424
+#: inc/settings_class.php:434 inc/settings_class.php:448 install.php:480
+#: install.php:564
+msgid "Sorry, but this information is required."
+msgstr "Diese Information wird benötigt."
+
+#: inc/settings_class.php:439
+msgid "Gender"
+msgstr "Geschlecht"
+
+#: inc/settings_class.php:503
+msgid "Level 1 (Admin)"
+msgstr "Level 1 (Admin)"
+
+#: inc/settings_class.php:503
+msgid "You have administrative rights."
+msgstr "Sie haben administrative Rechte."
+
+#: inc/settings_class.php:504
+msgid "You have full access to add/change/delete all information."
+msgstr "Sie können alle Einstellungen nach Belieben ändern."
+
+#: inc/settings_class.php:507
+msgid "Level 2 (Helper)"
+msgstr "Level 2 (Helfer)"
+
+#: inc/settings_class.php:507
+msgid "You have moderation rights."
+msgstr "Sie haben Moderator-Rechte."
+
+#: inc/settings_class.php:508
+msgid ""
+"You have some access to add/change/delete information including your own.  "
+"This level is mostly used for message board moderation (i.e. cleanup of "
+"old/unused posts and other such information)."
+msgstr ""
+"Sie können Hinzufügen / Ändern / Löschen von Informationen einschließlich "
+"Ihrer eigenen. Diese Stufe ist meistens für Foren Moderatoren gedacht. (d.h. "
+"Bereinigung alter / ungebrauchten Beiträge und andere unschöne "
+"Informationen)."
+
+#: inc/settings_class.php:511 inc/settings_class.php:543
+msgid "Level 3 (Member)"
+msgstr "Level 3 (Mitglied)"
+
+#: inc/settings_class.php:511 inc/settings_class.php:543
+msgid "You have basic rights."
+msgstr "Sie haben grundlegende Rechte."
+
+#: inc/settings_class.php:512 inc/settings_class.php:544
+msgid "You can add/change/delete only your own information."
+msgstr "Sie können nur Ihr eigenes Profil bearbeiten."
+
+#: inc/settings_class.php:515
+msgid "Level 4 (Non-Photographer)"
+msgstr "Level 4 (Nicht-Fotografen)"
+
+#: inc/settings_class.php:515 inc/settings_class.php:519
+#: inc/settings_class.php:523 inc/settings_class.php:527
+#: inc/settings_class.php:531 inc/settings_class.php:535
+msgid "You have limited rights."
+msgstr "Sie haben beschränkte Rechte."
+
+#: inc/settings_class.php:516
+msgid ""
+"You have the same rights as a Member, except you cannot use the Photo "
+"Gallery."
+msgstr ""
+"Sie haben die selben Rechte wie ein Mitglied, außer, dass Sie die Foto-"
+"Gallerie nicht verwenden können."
+
+#: inc/settings_class.php:519
+msgid "Level 5 (Non-Poster)"
+msgstr "Level 5 (Nicht-Autor)"
+
+#: inc/settings_class.php:520
+msgid ""
+"You have the same rights as a Member, except you cannot use the Message "
+"Board."
+msgstr ""
+"Sie haben die gleiche Rechte wie ein normales Mitglied, bis auf den "
+"Unterschied, dass Sie nicht das Forum nutzen dürfen."
+
+#: inc/settings_class.php:523
+msgid "Level 6 (Commenter)"
+msgstr "Level 6 (Kommentar-User)"
+
+#: inc/settings_class.php:524
+msgid "You can only add comments to the site."
+msgstr "Sie können nur Kommentare schreiben."
+
+#: inc/settings_class.php:527
+msgid "Level 7 (Poster)"
+msgstr "Level 7 (Beiträger)"
+
+#: inc/settings_class.php:528
+msgid "You can only post messages to the Message Board."
+msgstr "Sie können nur Beiträge im Forum schreiben."
+
+#: inc/settings_class.php:531
+msgid "Level 8 (Photographer)"
+msgstr "Level 8 (Fotograf)"
+
+#: inc/settings_class.php:532
+msgid "You can only add photos to the Photo Gallery."
+msgstr "Sie können nur Fotos zur Galerie hinzufügen."
+
+#: inc/settings_class.php:535
+msgid "Level 9 (Blogger)"
+msgstr "Level 9 (Blogger)"
+
+#: inc/settings_class.php:536
+msgid "You can only add news to the Family News section."
+msgstr "Sie können nur News-Beiträge schreiben."
+
+#: inc/settings_class.php:539
+msgid "Level 10 (Guest)"
+msgstr "Level 10 (Gast)"
+
+#: inc/settings_class.php:539
+msgid "You have view only rights."
+msgstr "Sie haben beschränkte Rechte."
+
+#: inc/settings_class.php:540
+msgid "You cannot add/change/delete any information."
+msgstr "Sie können keinerlei Informationen verändern."
+
+#: inc/upimages.php:50
+#, php-format
+msgid "%s was Deleted Successfully"
+msgstr "%s wurde erfolgreich gelöscht"
+
+#: inc/upimages.php:52
+msgid "You do not have access to delete this image."
+msgstr "Dieses Bild können Sie nicht löschen."
+
+#: inc/upimages.php:61 inc/upimages.php:64
+msgid "Upload Image"
+msgstr "Bild hochladen"
+
+#: inc/upimages.php:63
+msgid "Choose the image you want to upload."
+msgstr "Wählen Sie das Foto aus, das Sie hochladen wollen."
+
+#: inc/upimages.php:70
+msgid "Uploaded Images"
+msgstr "Hochgeladene Bilder"
+
+#: inc/upimages.php:104
+msgid "Insert Image into Message"
+msgstr "Bild in die Nachricht einfügen"
+
+#: inc/upimages.php:112
+msgid "Delete this Image"
+msgstr "Dieses Bild löschen"
+
+#: inc/upimages.php:113
+msgid "Are you sure you want to DELETE this image?"
+msgstr "Sind Sie sicher, dass Sie dieses Bild löschen wollen?"
+
+#: inc/upimages.php:124
+msgid "Total Size"
+msgstr "Gesamtgröße"
+
+#: inc/util_inc.php:264
+msgid "Chat"
+msgstr "Chat"
+
+#: inc/util_inc.php:279
+msgid "Prayers"
+msgstr "Gebete"
+
+#: inc/util_inc.php:282 themes/default/navigation.php:6 profile.php:22
+msgid "Profile"
+msgstr "Profil"
+
+#: inc/util_inc.php:285 themes/default/navigation.php:8 privatemsg.php:24
+msgid "Private Messages"
+msgstr "Private Nachrichten"
+
+#: inc/util_inc.php:294 familytree.php:31 install.php:492
+msgid "Family Tree"
+msgstr "Stammbaum"
+
+#: inc/util_inc.php:1418
+msgid "Level 10"
+msgstr "Level 10"
+
+#: inc/util_inc.php:1420
+msgid "Level 9"
+msgstr "Level 9"
+
+#: inc/util_inc.php:1422
+msgid "Level 8"
+msgstr "Level 8"
+
+#: inc/util_inc.php:1424
+msgid "Level 7"
+msgstr "Level 7"
+
+#: inc/util_inc.php:1426
+msgid "Level 6"
+msgstr "Level 6"
+
+#: inc/util_inc.php:1428
+msgid "Level 5"
+msgstr "Level 5"
+
+#: inc/util_inc.php:1430
+msgid "Level 4"
+msgstr "Level 4"
+
+#: inc/util_inc.php:1432
+msgid "Level 3"
+msgstr "Level 3"
+
+#: inc/util_inc.php:1434
+msgid "Level 2"
+msgstr "Level 2"
+
+#: inc/util_inc.php:1436
+msgid "Level 1"
+msgstr "Level 1"
+
+#: inc/util_inc.php:1438
+msgid "Level 0"
+msgstr "Level 0"
+
+#: inc/util_inc.php:1489
+msgid "Bold"
+msgstr "Fett"
+
+#: inc/util_inc.php:1490
+msgid "Italic"
+msgstr "Kursiv"
+
+#: inc/util_inc.php:1491
+msgid "Underline"
+msgstr "Unterstrichen"
+
+#: inc/util_inc.php:1492
+msgid "Left Align"
+msgstr "Linksbündig"
+
+#: inc/util_inc.php:1493
+msgid "Center"
+msgstr "Zentriert"
+
+#: inc/util_inc.php:1494
+msgid "Right Align"
+msgstr "Rechtsbündig"
+
+#: inc/util_inc.php:1495
+msgid "Heading 1"
+msgstr "Überschrift 1"
+
+#: inc/util_inc.php:1496
+msgid "Heading 2"
+msgstr "Überschrift 2"
+
+#: inc/util_inc.php:1497
+msgid "Heading 3"
+msgstr "Überschrift 3"
+
+#: inc/util_inc.php:1499
+msgid "Insert Image"
+msgstr "Bild einfügen"
+
+#: inc/util_inc.php:1500
+msgid "Insert URL"
+msgstr "URL einfügen"
+
+#: inc/util_inc.php:1501
+msgid "Insert Smiley"
+msgstr "Smiley einfügen"
+
+#: inc/util_inc.php:1631 inc/util_inc.php:1635
+msgid "First"
+msgstr "Anfang"
+
+#: inc/util_inc.php:1669 inc/util_inc.php:1673
+msgid "Last page"
+msgstr "Letzte Seite"
+
+#: inc/util_inc.php:1669 inc/util_inc.php:1673
+msgid "Last"
+msgstr "Ende"
+
+#: inc/util_inc.php:1713
+msgid "Now"
+msgstr "Jetzt"
+
+#: inc/util_inc.php:1731
+msgid "Last 24 Hours"
+msgstr "Letzten 24 Stunden"
+
+#: inc/util_inc.php:2176
+msgid "Yesterday"
+msgstr "Gestern"
+
+#: inc/util_inc.php:2200 rss.php:152
+#, php-format
+msgid "%s started the new thread %s."
+msgstr "%s hat einen neuen Beitrag (%s) im Forum eröffnet."
+
+#: inc/util_inc.php:2203 rss.php:154
+#, php-format
+msgid "%s replied to %s."
+msgstr "%s beantwortet den Forenbeitrag (%s)."
+
+#: inc/util_inc.php:2214 rss.php:161
+#, php-format
+msgid "%s has joined the website."
+msgstr "%s ist der Webseite beigetreten."
+
+#: inc/util_inc.php:2219
+msgid "address"
+msgstr "Adresse"
+
+#: inc/util_inc.php:2221
+#, php-format
+msgid "%s has updated his/her %s."
+msgstr "%s hat etwas in seinem Profil aktualisiert. (%s)"
+
+#: inc/util_inc.php:2228 rss.php:174
+#, php-format
+msgid "%s has added address information for %s."
+msgstr "%s hat Adress-Informationen für %s hinzugefügt."
+
+#: inc/util_inc.php:2234 rss.php:180
+#, php-format
+msgid "%s has added %s to his/her Family News."
+msgstr "%s hat neue News mit dem Titel \"%s\" unter Nachrichen hinzugefügt."
+
+#: inc/util_inc.php:2240 rss.php:186
+#, php-format
+msgid "%s has added a Prayer Concern for %s."
+msgstr "%s hat eine Todesanzeigen hinzugefügt für %s."
+
+#: inc/util_inc.php:2258 rss.php:203
+#, php-format
+msgid "%s has added the %s recipe."
+msgstr "%s hat das %s Rezept hinzugefügt."
+
+#: inc/util_inc.php:2264 rss.php:209
+#, php-format
+msgid "%s has added a new Document (%s)."
+msgstr "%s hat ein neues Dokument hinzugefügt (%s)."
+
+#: inc/util_inc.php:2271 rss.php:215
+#, php-format
+msgid "%s has added %d new photos to the %s category."
+msgstr "%s hat %d neue Fotos zur %s category hinzugefügt."
+
+#: inc/util_inc.php:2298 rss.php:221
+#, php-format
+msgid "%s commented on Family News %s."
+msgstr "%s hat in den News ein Kommentar hinterlassen %s."
+
+#: inc/util_inc.php:2304 rss.php:227
+#, php-format
+msgid "%s commented on the following photo:"
+msgstr "%s kommentierte das folgende Foto:"
+
+#: inc/util_inc.php:2318 rss.php:239
+#, php-format
+msgid "%s has added a new Calendar entry on %s for %s."
+msgstr ""
+"%s hat einen neuen Kalendereintrag am %s mit dem Titel %s hinzugefügt."
+
+#: inc/util_inc.php:2322 rss.php:244
+#, php-format
+msgid "A new Poll (%s) has been added."
+msgstr "Eine neue Umfrage (%s) wurde hinzugefügt."
+
+#: inc/util_inc.php:2469
+msgid "Czech (Czech Republic)"
+msgstr "Tschechisch (Tschechische Republik)"
+
+#: inc/util_inc.php:2472
+msgid "Danish (Denmark)"
+msgstr "Dänisch (Dänemark)"
+
+#: inc/util_inc.php:2475
+msgid "German (Germany)"
+msgstr "Deutsch (Deutschland)"
+
+#: inc/util_inc.php:2478
+msgid "English (United States)"
+msgstr "Englisch (USA)"
+
+#: inc/util_inc.php:2481
+msgid "Spanish (Spain)"
+msgstr "Spanisch (Spanien)"
+
+#: inc/util_inc.php:2484
+msgid "Estonian"
+msgstr "Estonian"
+
+#: inc/util_inc.php:2487
+msgid "French (France)"
+msgstr "Französisch (Frankreich)"
+
+#: inc/util_inc.php:2490
+msgid "Latvian"
+msgstr "Lettisch"
+
+#: inc/util_inc.php:2493
+msgid "Dutch"
+msgstr "Niederländisch"
+
+#: inc/util_inc.php:2496
+msgid "Portuguese (Brazil)"
+msgstr "Portugiesisch (Brasilien)"
+
+#: inc/util_inc.php:2499
+msgid "Slovak"
+msgstr "Slowakisch"
+
+#: inc/util_inc.php:2502
+msgid "Chinese (China)"
+msgstr "Chinesisch (China)"
+
+#: inc/util_inc.php:2505
+msgid "X Wrapped"
+msgstr "X Eingehüllt"
+
+#: themes/default/footer.php:8
+msgid "Support Forum"
+msgstr "Forum"
+
+#: themes/default/header.php:22 install.php:1078
+msgid "Welcome"
+msgstr "Willkommen"
+
+#: themes/default/header.php:23
+msgid "My Settings"
+msgstr "Einstellungen"
+
+#: themes/default/header.php:24
+msgid "Logout"
+msgstr "Abmelden"
+
+#: themes/default/navigation.php:4
+msgid "My Stuff"
+msgstr "Privater Bereich"
+
+#: themes/default/navigation.php:11
+msgid "Communicate"
+msgstr "Kommunizieren"
+
+#: themes/default/navigation.php:18
+msgid "Share"
+msgstr "Gemeinsames"
+
+#: themes/default/navigation.php:26
+msgid "Misc."
+msgstr "Sonstiges"
+
+#: themes/default/navigation.php:29
+msgid "Contact Webmaster"
+msgstr "Kontakt"
+
+#: themes/default/navigation.php:34 help.php:56
+msgid "Administration"
+msgstr "Administration"
+
+#: themes/default/navigation.php:38
+msgid "Configuration"
+msgstr "Einstellungen"
+
+#: activate.php:55
+msgid "Alright!"
+msgstr "Alles klar!"
+
+#: activate.php:56
+msgid "Your account is now active."
+msgstr "Ihr Konto ist nun aktiv."
+
+#: activate.php:57
+msgid "You can now login and begin using the site."
+msgstr "Sie können sich nun anmelden und die Seite benutzen."
+
+#: activate.php:63 activate.php:70
+msgid "Invalid Activation Code!"
+msgstr "Ungültiger Aktivierungscode!"
+
+#: activate.php:64 activate.php:71
+msgid "Your account could NOT be activated"
+msgstr "Ihr Konto konnte nicht aktiviert werden"
+
+#: activate.php:79 activate.php:82 index.php:79
+msgid "Access Denied"
+msgstr "Zugriff verweigert"
+
+#: addressbook.php:70
+msgid "Are you sure you want to DELETE this address?"
+msgstr "Wollen Sie diese Adresse wirklich löschen?"
+
+#: addressbook.php:109
+msgid ""
+"You do not have permission to perform this task.  You must have an access "
+"level of 3 (Member) or higher."
+msgstr ""
+"Sie haben keine Berechtigung, diese Aufgabe zu erfüllen. \r\n"
+"Sie müssen eine Zugriffslevel von 3 (Mitglied) oder höher haben."
+
+#: addressbook.php:115
+msgid "You must choose at least one member to email."
+msgstr "Sie müssen mindestens ein Mitglied als Empfänger auswählen."
+
+#: addressbook.php:116
+msgid "Get more help on sending mass emails."
+msgstr "Weitere Hilfe beim versenden von Massen-eMails"
+
+#: addressbook.php:145
+msgid "The following message has been sent:"
+msgstr "Die folgende Nachricht wurde gesendet:"
+
+#: calendar.php:63
+msgid "Add More Details"
+msgstr "Mehr Details anzeigen"
+
+#: calendar.php:203
+msgid "New Calendar Entry Added Successfully"
+msgstr "Ein neuer Kalendereintrag wurde erfolgreich hinzugefügt"
+
+#: calendar.php:232
+msgid "Calendar Entry Deleted Successfully"
+msgstr "Kalendereintrag erfolgreich gelöscht"
+
+#: calendar.php:268
+msgid "Category Added Successfully"
+msgstr "Kategorie wurde erfolgreich hinzugefügt"
+
+#: chat.php:30
+msgid "Chat Room"
+msgstr "Chatraum"
+
+#: chat.php:213
+msgid ""
+"JavaScript must be enabled in order for you to use the Chat Room. However, "
+"it seems \n"
+"    JavaScript is either disabled or not supported by your browser. Please "
+"enable JavaScript by changing your browser options."
+msgstr ""
+"Wenn Sie den ChatRaum benutzen möchten, müssen Sie JavaScript aktiviert "
+"haben.\n"
+"Es scheint aber, dass bei Ihnen JavaScript deaktiviert ist oder der Chatraum "
+"durch ein anderes (Schutz-)Programm blockiert wird.\n"
+"Bitte aktivieren Sie JavaScript in den Einstellungen Ihres Webbrowsers oder "
+"kontrollieren Sie ihre Schutzprogramme."
+
+#: chat.php:226
+msgid "Reset Chat"
+msgstr "Chat zurücksetzen"
+
+#: contact.php:27
+msgid "Contact"
+msgstr "Kontakt"
+
+#: contact.php:50
+msgid "The following message has been sent to the Administrator:"
+msgstr "Die folgende Nachricht wurde an den Systemverwalter gesendet:"
+
+#: documents.php:80
+msgid "Document Added Successfully"
+msgstr "Dokument erfolgreich hinzugefügt"
+
+#: documents.php:96
+#, php-format
+msgid "%s has added a new document (%s)."
+msgstr "%s wurde zu einem neuen Dokument (%s) hinzugefügt."
+
+#: documents.php:128
+msgid "Document Deleted Successfully"
+msgstr "Dokument erfolgreich gelöscht"
+
+#: documents.php:145
+msgid "Add Document"
+msgstr "Dokument hinzufügen"
+
+#: familynews.php:83
+msgid "Latest News"
+msgstr "Letzte Nachrichten"
+
+#: familynews.php:86
+msgid "My News"
+msgstr "Meine News"
+
+#: familynews.php:129
+msgid "Family News Added Successfully"
+msgstr "Familiennachrichten erfolgreich hinzugefügt"
+
+#: familynews.php:145
+#, php-format
+msgid "%s has added %s to his/her Family News"
+msgstr "%s hat %s zu seinen/ihren Familiennachrichten hinzugefügt"
+
+#: familynews.php:187
+msgid "View Changes"
+msgstr "Änderungen ansehen"
+
+#: familynews.php:240
+msgid "Family News Deleted Successfully"
+msgstr "Familiennachrichten erfolgreich gelöscht"
+
+#: familynews.php:275
+msgid "This can NOT be undone"
+msgstr "Dies kann NICHT rückgängig gemacht werden"
+
+#: familytree.php:74
+msgid "Family Tree Updated"
+msgstr "Stambaum aktualisiert"
+
+#: help.php:40 help.php:63
+msgid "How does the Photo Gallery work?"
+msgstr "Wie funktioniert die Foto-Galerie?"
+
+#: help.php:41 help.php:70
+msgid "How do I add a photo?"
+msgstr "Wie füge ich ein Foto hinzu?"
+
+#: help.php:42 help.php:87
+msgid "How do I edit/change a photo?"
+msgstr "Wie bearbeite/ändere ich ein Foto?"
+
+#: help.php:43 help.php:100
+msgid "How do I delete a photo?"
+msgstr "Wie lösche ich ein Foto?"
+
+#: help.php:44 help.php:114
+msgid "How do I add a category?"
+msgstr "Wie füge ich eine Kategorie hinzu?"
+
+#: help.php:45 help.php:126
+msgid "How do I rename a category?"
+msgstr "Wie benenne ich eine Kategorie um?"
+
+#: help.php:46 help.php:138
+msgid "How do I delete a category?"
+msgstr "Wie lösche ich eine Kategorie?"
+
+#: help.php:48
+msgid "Personal Settings"
+msgstr "Persönliche Einstellungen"
+
+#: help.php:49 help.php:149
+msgid "How do I add/change my avatar?"
+msgstr "Wie kann ich mein Avatar hinzufügen/ändern?"
+
+#: help.php:50 help.php:162
+msgid "How do I change my theme?"
+msgstr "Wie ändere ich mein Theme?"
+
+#: help.php:51 help.php:174
+msgid "How do I change my password?"
+msgstr "Wie ändere ich mein Passwort?"
+
+#: help.php:54 help.php:185
+msgid "How do I email multiple people (Mass Email)?"
+msgstr "Wie schreiben ich mehreren Leuten eine E-Mail (Massen-E-Mail)?"
+
+#: help.php:57 help.php:196
+msgid "Member Access Levels"
+msgstr "Mitglieds-Zugangslevel"
+
+#: help.php:58 help.php:322
+msgid "How do I add an optional section?"
+msgstr "Wie füge ich einen optionale Bereiche (Module) ein?"
+
+#: help.php:59 help.php:336
+msgid "How do I change the site navigation?"
+msgstr "Wie ändere ich den Seitenverlauf"
+
+#: help.php:64
+msgid ""
+"Each member of the website has his/her own Category on the Photo Gallery.  "
+"This category will not show up until that member creates a new sub-category "
+"and uploads at least one photo.  You can not upload photos until you have "
+"created a category.  It is best to create a new category each time you "
+"upload a new group of photos.  This helps create a more organized Photo "
+"Gallery."
+msgstr ""
+"Jedes Mitglied der Website hat seine eigene Kategorie in der Fotogalerie. "
+"Diese Kategorie wird nicht angezeigt, bis das Mitglied eine neue Sub-"
+"Kategorie, mit mindestens ein Foto hoch geladen hat. \r\n"
+"Sie können keine Fotos hoch laden, bis Sie eine Kategorie angelegt haben. "
+"\r\n"
+"Am besten ist es, eine neue Kategorie bei jedem Upload einer neuen Gruppe "
+"von Fotos zu erstellen. Dies hilft dabei, einen besseren Überblick auf die "
+"organisierte Fotogalerie zu haben."
+
+#: help.php:72
+msgid ""
+"Choose <a href=\"gallery/index.php?action=upload\">Upload Photos</a> from "
+"the <a href=\"gallery/index.php\">Photo Gallery</a> menu."
+msgstr ""
+"Wähle <a href=\"gallery/index.php?action=upload\">Fotos Hochladen</a> aus "
+"dem <a href=\"gallery/index.php\">Fotogalerie-</a> Menü."
+
+#: help.php:73
+msgid "Choose a category from the drop down menu."
+msgstr "Wählen Sie eine Kategorie aus dem DropDown aus."
+
+#: help.php:74
+msgid ""
+"Note: You must have at least one category to upload photos. If you do not "
+"have a existing category you must add a category first."
+msgstr ""
+"Info: Sie müssen erst eine Kategorie erstellen. Erst dann können Fotos hoch "
+"geladen werden. Wenn Sie also noch keine Kategorie erstellt haben, dann "
+"machen Sie das bitte jetzt."
+
+#: help.php:76
+msgid ""
+"Click the browse button to browse your computer for the desired photo to "
+"upload."
+msgstr ""
+"Klicken Sie auf die Schaltfläche Durchsuchen, um auf Ihren Computer das "
+"gewünschte Foto zu suchen und hoch zuladen."
+
+#: help.php:76
+msgid ""
+"If the photo you are uploading needs rotated click 'Upload Options' and two "
+"radio buttons will drop in above the photo caption."
+msgstr ""
+"Wenn Sie das gerade hoch geladene Foto drehen möchten, klicken Sie auf "
+"\"Upload Einstellungen\". Sie haben dann die Möglichkeit mit den beiden "
+"Buttons das Bild zu drehen."
+
+#: help.php:77
+msgid "Note: You must have JavaScript enabled to use the rotation feature."
+msgstr ""
+"Info. Sie müssen JavaScript aktiviert haben, damit Sie die Dreh-Funktion "
+"nutzen können."
+
+#: help.php:79
+msgid "Fill in the caption (description of the photo)."
+msgstr "Füllen Sie die Bildüberschrift ein (Beschreibung des Fotos)"
+
+#: help.php:80
+msgid "Click the <b>Add Photos</b> button."
+msgstr "Klicken Sie auf den <b>Fotos hinzufügen</b> Knopf."
+
+#: help.php:88
+msgid "You can only edit/change the photo's caption and category."
+msgstr "Sie können nur die Bildüberschrift und die Kategorie bearbeiten."
+
+#: help.php:90 help.php:102
+msgid "Navigate to the photo you would like to edit."
+msgstr "Navigieren Sie zu dem Foto, das Sie bearbeiten möchten."
+
+#: help.php:91
+msgid ""
+"Click the edit button <img src=\"themes/default/images/edit.gif\"/> located "
+"above the photo and to the right."
+msgstr ""
+"Klicken Sie auf die Schaltfläche \"bearbeiten\" <img "
+"src=\"themes/default/images/edit.gif\"/>. Diese befindet sich rechts oben, "
+"über dem Foto."
+
+#: help.php:92
+msgid ""
+"To change the category: choose the new category from the dropdown menu above "
+"the photo."
+msgstr ""
+"So ändern Sie die Kategorie: Wählen Sie die neue Kategorie im Dropdown-Menü "
+"oben auf dem Foto."
+
+#: help.php:92
+msgid ""
+"To edit/change the caption: make your changes in the text field area below "
+"the photo."
+msgstr ""
+"Zum Bearbeiten / Ändern der Bildunterschrift: Benutzen Sie das Textfeld "
+"unterhalb des Fotos."
+
+#: help.php:93
+msgid "Click the submit changes button to finish your changes."
+msgstr "Klicken Sie auf \"speichern\" um den Vorgang abzuschließen."
+
+#: help.php:103
+msgid ""
+"Click the delete button <img src=\"themes/default/images/delete.gif\"/> "
+"located above the photo and to the right."
+msgstr ""
+"Klicken Sie auf den Löschbutton <img "
+"src=\"themes/default/images/delete.gif\"/>. Dieser befindet sich über dem "
+"Foto (rechts)."
+
+#: help.php:104
+msgid ""
+"You will be prompted with a message asking if you are sure you want to "
+"delete that photo, click Ok."
+msgstr ""
+"Sie bekommen nochmals eine Meldung ob Sie das Foto löschen möchten. Bitte "
+"bestätigen Sie den Vorgang."
+
+#: help.php:107
+msgid ""
+"Note: you can only delete your own photos.  Once you delete a photo it is "
+"gone forever, you cannot undo a delete."
+msgstr ""
+"Info: Sie können nur ihre eigenen Fotos löschen. Sobald das Foto gelöscht "
+"ist, ist es auch für immer auf der Seite gelöscht. Das Foto wird nicht auf "
+"dem Server gespeichert, das Löschen kann man also nicht wieder rückgängig "
+"machen."
+
+#: help.php:116 help.php:128 help.php:140
+msgid ""
+"Choose <a href=\"gallery/index.php?action=category\">Create/Edit "
+"Category</a> from the <a href=\"gallery/index.php\">Photo Gallery</a> menu."
+msgstr ""
+"Wähle <a href=\"gallery/index.php?action=category\">Kategorie "
+"erstellen/bearbeiten</a> aus dem <a href=\"gallery/index.php\">Foto "
+"Galerie</a> Menü."
+
+#: help.php:117
+msgid "Fill out the category name."
+msgstr "Füllen Sie den Kategorienamen aus."
+
+#: help.php:118
+msgid "Click the <b>Add Category</b> button."
+msgstr "Klicken Sie auf den <b>Kategorie hinzufügen</b> Knopf."
+
+#: help.php:120
+msgid "A list of previously created categories will be listed below."
+msgstr "Eine Liste der zuvor erstellten Kategorien werden unten aufgeführt."
+
+#: help.php:129
+msgid ""
+"Scroll down to the list of categories and find the one you want to change."
+msgstr "Suchen Sie nun die Kategorie(n), die Sie bearbeiten möchten"
+
+#: help.php:130
+msgid "Make the desired change."
+msgstr "Nehmen Sie die gewünschte Änderung vor."
+
+#: help.php:131
+msgid ""
+"Click the edit button <img src=\"themes/default/images/edit.gif\"/> located "
+"to the right of the category name."
+msgstr ""
+"Klicken Sie auf die Schaltfläche \"Bearbeiten\" <img "
+"src=\"themes/default/images/edit.gif\"/>. Diese befindet sich rechts von dem "
+"Kategorienamen."
+
+#: help.php:141
+msgid ""
+"Scroll down to the list of categories and find the one you want to delete."
+msgstr "Suchen Sie nun die Kategorie(n), die Sie löschen möchten"
+
+#: help.php:142
+msgid ""
+"Click the delete button <img src=\"themes/default/images/delete.gif\"/> "
+"located to the right of the category name."
+msgstr ""
+"Klicken Sie auf die Schaltfläche \"Löschen\" <img "
+"src=\"themes/default/images/delete.gif\"/>. Diese befindet sich rechts von "
+"dem Kategorienamen."
+
+#: help.php:150
+msgid ""
+"An avatar is just a graphical representation of a person.  You can upload a "
+"picture of yourself or any picture that you feel represents you."
+msgstr ""
+"Ein Avatar ist nur eine grafische Darstellung einer Person. Du kannst ein "
+"Bild von Dir oder aber ein Bild welches nur ein Gefühl von Dir zeigt zeigen "
+"bzw. hochladen."
+
+#: help.php:152 help.php:164 help.php:176
+msgid ""
+"Click on the <a href=\"settings.php\">My Settings</a> link in the top right "
+"hand corner of the site."
+msgstr ""
+"Klicken Sie auf <a href=\"settings.php\">\"Meine Einstellungen\"</ a> in der "
+"rechten oberen Ecke der Seite."
+
+#: help.php:153
+msgid ""
+"Click the browse button, which will pop open a menu allowing you to search "
+"your computer for an avatar.  (Avatar's must be one of the following file "
+"types .jpg, .jpeg .gif or .bmp or .png)"
+msgstr ""
+"Klicken Sie auf die Schaltfläche \"Durchsuchen\" und suchen Sie auf ihren "
+"Computer ein Avatar-Bild  (Das Avatar muss eines der folgenden Dateitypen "
+"haben. *.jpg, *.jpeg, *.gif, *.bmp oder *.png)"
+
+#: help.php:154
+msgid ""
+"Once you have choosen your avatar, scroll down to the bottom of the Settings "
+"page and click the Submit button."
+msgstr ""
+"Wählen Sie ein Avatar aus und klicken Sie auf \"Speichern\" oder \"Senden\"."
+
+#: help.php:156
+msgid ""
+"Note: You can upload animated avatar's as long as the are smaller than 80 "
+"pixels x 80 pixels.  Uploading an avatar larger than this will result in the "
+"loss of animation."
+msgstr ""
+"Info: Es sind auch animierte Avatare möglich. Allerdings dürfen diese nicht "
+"größer als 80x80 Pixel sein. Sollten Sie ein größeres animiertes Avatar "
+"hochladen, so kann es passieren das das Bild nicht mehr Animiert ist."
+
+#: help.php:165
+msgid "Choose your theme from the drop down menu."
+msgstr "Wählen Sie ein \"Theme\" aus dem DropDown-Menü."
+
+#: help.php:166
+msgid ""
+"Scroll down to the bottom of the Settings page and click the Submit button."
+msgstr "Klicken Sie auf \"Senden\" bzw. \"Speichern\" (unten rechts)"
+
+#: help.php:167
+msgid ""
+"Click continue and your theme will automatically be applied to the site."
+msgstr ""
+"Klicken Sie auf \"weiter\" und ihr Theme wird automatisch umgestellt."
+
+#: help.php:177
+msgid "Type in your new password."
+msgstr "Geben Sie Ihr neues Passwort ein."
+
+#: help.php:178
+msgid "Click the Submit button."
+msgstr "Klicken Sie auf \"Speichern\" bzw. \"Senden."
+
+#: help.php:187
+msgid ""
+"Check the checkboxes to the right of the email addresses of the members you "
+"want to email."
+msgstr ""
+"Wählen Sie aus der Checkbox aus, ob die Mitglieder das Recht erhalten sollen "
+"ihre eMail-Adresse zu sehen."
+
+#: help.php:188
+msgid ""
+"Click the <b>Email</b> button at the bottom right hand corner of the address "
+"book."
+msgstr "Klicken Sie unten rechts auf <b>eMails senden</b>"
+
+#: help.php:189
+msgid ""
+"Fill out the email form (similar to the contact form) and click <b>Send Mass "
+"Email</b>."
+msgstr ""
+"Füllen Sie das E-Mail-Formular (ähnlich dem Kontaktformular) aus und klicken "
+"Sie auf <b> Email senden</ b>."
+
+#: help.php:197
+msgid ""
+"Family Connections has ten different member access levels.  These levels are "
+"meant to limit the amount of access each family member has to the website."
+msgstr ""
+"Family Connections hat zehn verschiedene Mitglied Zugriffslevel. Diese Level "
+"sollen die Höhe der Zugang jedes Familienmitglied hat auf der Website zu "
+"beschränken."
+
+#: help.php:199
+msgid ""
+"this is the access level given to the account that was setup during the "
+"installation of FCMS. This is the only level that has the ability to change "
+"other members access levels. This level can add, update and delete all "
+"information on the site."
+msgstr ""
+"dies ist das höchste Level, was man haben kann um alle Einstellungen "
+"durchzuführen."
+
+#: help.php:200
+msgid ""
+"this access level has all the same priveleges of the Member level, but can "
+"also run the latest awards, can add, update and delete poll questions, and "
+"add, update and delete message board posts."
+msgstr ""
+"Dieser Zugangslevel hat die gleichen Rechte der Mitglied-Level. Im Prinzip "
+"nur mit dem Unterschied, dass man auch Awards vergeben kann. Zudem kann man "
+"hinzufügen, aktualisieren, löschen von Umfragen. Das gleiche gilt auch für "
+"das Forum."
+
+#: help.php:201
+msgid "Member (default)"
+msgstr "Mitglied (Standard)"
+
+#: help.php:201
+msgid ""
+"this access level can add, update and delete all information they have "
+"contributed to the site. They have view only access to other member's "
+"information."
+msgstr ""
+"In diesem Zugriffslevel kann man hinzufügen, aktualisieren und löschen aller "
+"Informationen, die sie selbst auf der Website beigetragen. Informationen von "
+"anderen können Sie dagegen nur einsehen, aber nicht ändern."
+
+#: help.php:202
+msgid ""
+"this access level has all the same priveleges of the Member level, but "
+"cannot add, update or delete photos from the Photo Gallery."
+msgstr ""
+"Dieser Level ist gleich dem normalen Mitgliederlevel. Unterschied: Man hat "
+"keine Berechtigung in der Fotogalerie."
+
+#: help.php:203
+msgid ""
+"this access level has all the same priveleges of the Member level, but "
+"cannot add, update or delete posts from the Message Board."
+msgstr ""
+"Dieser Level ist gleich dem normalen Mitgliederlevel. Unterschied: Man hat "
+"keine Berechtigung im Forum."
+
+#: help.php:204
+msgid ""
+"this access level can only add comments to Photos, Family News and can reply "
+"to posts on the Message Board.  Has view access to all other sections."
+msgstr ""
+"Mit diesem Level kann man eigentlich einige Bereiche (Fotogalerie, News, "
+"Forum) nur kommentieren. Man ist aber nicht in der Lage eigene Sachen zu "
+"erstellen. Sehen kann man dagegen alles."
+
+#: help.php:205
+msgid ""
+"this access level can add, update and delete their own Message Board posts "
+"only.  Has view access to all other sections."
+msgstr ""
+"Mit diesem Level hat man ausschließlich Zugriff auf das Forum. Sehen kann "
+"man aber alles."
+
+#: help.php:206
+msgid ""
+"this access level can add, update and delete their own Photos only.  Has "
+"view access to all other sections."
+msgstr ""
+"Mit diesem Level hat man ausschließlich Zugriff auf die Bildergalerie. Sehen "
+"kann man aber alles."
+
+#: help.php:207
+msgid ""
+"this access level can add, update and delete their own Family News entries "
+"only.  Has view access to all other sections."
+msgstr ""
+"Mit diesem Level hat man ausschließlich Zugriff auf die News. Sehen kann man "
+"aber alles."
+
+#: help.php:208
+msgid "this access level has view only access to the site."
+msgstr "In diesem Level darf man nur gucken, sonst nichts!"
+
+#: help.php:213
+msgid "Access Rights"
+msgstr "Zugriffsrechte"
+
+#: help.php:215
+msgid "Admininstration"
+msgstr "Administration"
+
+#: help.php:225
+msgid "1. Admin"
+msgstr "1. Systemverwalter"
+
+#: help.php:234
+msgid "2. Helper"
+msgstr "2. Helfer"
+
+#: help.php:243
+msgid "3. Member"
+msgstr "3. Mitglied"
+
+#: help.php:252
+msgid "4. Non-Photographer"
+msgstr "4. Nicht-Fotografen"
+
+#: help.php:261
+msgid "5. Non-Poster"
+msgstr "5. Nicht-Autor"
+
+#: help.php:270
+msgid "6. Commenter"
+msgstr "6. Kommentator"
+
+#: help.php:272 help.php:273 help.php:275
+msgid "Comment Only"
+msgstr "nur kommentieren"
+
+#: help.php:279
+msgid "7. Poster"
+msgstr "7. Autor"
+
+#: help.php:288
+msgid "8. Photographer"
+msgstr "8. Fotograf"
+
+#: help.php:297
+msgid "9. Blogger"
+msgstr "9. Blogger (Blogschreiber)"
+
+#: help.php:306
+msgid "10. Guest"
+msgstr "10. Gast"
+
+#: help.php:316
+msgid "Can add/edit/delete all members information"
+msgstr ""
+"Diese Person kann alle Mitglieder Informationen sehen, hinzufügen, ändern "
+"und löschen"
+
+#: help.php:316
+msgid "Has limited access to Administration"
+msgstr "Diese Person hat nur begrenzten Zugang zu Administration"
+
+#: help.php:323
+msgid ""
+"Family Connections has three optional sections: Family News, Prayer Concerns "
+"and Recipes.  In order to use these sections you must first add them to the "
+"site (some sections may have been previously added during installation).  "
+"Adding an optional section, allows that section to be used in the <a "
+"href=\"#adm-sections-nav\">site navigation</a>."
+msgstr ""
+"Family Connections hat 3 optionale Bereiche/Module: Familien News, "
+"Todesanzeigen und Rezepte.\r\n"
+"Diese Bereiche müssen im Adminbereich aktiviert werden.\r\n"
+"siehe auch <a href=\"#adm-sections-nav\">Seiten Navigation</a>."
+
+#: help.php:324
+msgid "To add an optional section:"
+msgstr "Aktivieren eines optionalen Bereichs (Moduls)"
+
+#: help.php:326
+msgid ""
+"Click the <a href=\"admin/config.php\">Configuration</a> link on the "
+"Administration sub menu"
+msgstr ""
+"Klicken Sie im Adminbereich auf <a "
+"href=\"admin/config.php\">Konfiguration</a> (Untermenü, links)"
+
+#: help.php:327
+msgid "Expand the <u>Sections</u> by clicking the <b>Show/Hide</b> link."
+msgstr "Wählen Sie zwischen <b>anzeigen</b> oder <b>verstecken</b> aus."
+
+#: help.php:328
+msgid "Click the <b>Add</b> link beside the section you want to add."
+msgstr "Anschließend klicken Sie auf \"speichern\""
+
+#: help.php:330
+msgid ""
+"Note: If a section has been previously added it will say \"Already Added\" "
+"beside the section."
+msgstr ""
+"Info: Wenn ein Bereich bereits hinzugefügt ist, teilt das System ihnen dies "
+"auch mit."
+
+#: help.php:337
+msgid ""
+"You can only change the navigation position of a few of the sections.  They "
+"are:  Family News, Prayer Concerns, Recipes and Calendar.  The navigation is "
+"broken down into two parts, (1) the Top Navigation and the (2) the Side "
+"Navigation.  The Top Navigation can hold links for up to 6 sections."
+msgstr ""
+"Sie haben die Möglichkeit die Position der einzelnen Bereiche / Module "
+"festzulegen. \r\n"
+"Es gibt einmal die Top Navigation und die Seiten Navigation. In der "
+"Seitennavigation sind nur 6 Bereich anzeigbar."
+
+#: home.php:109
+msgid "Members Online"
+msgstr "Mitglieder online"
+
+#: home.php:183 rss.php:128 rss.php:130
+msgid "What's New"
+msgstr "Neues"
+
+#: index.php:39
+msgid "This site hasn't been installed yet."
+msgstr "Diese Seite ist noch nicht installiert worden."
+
+#: index.php:40
+msgid "You must finish the installation before using the site."
+msgstr "Sie müssen die Installation vor dem Verwenden der Seite beenden."
+
+#: index.php:80
+msgid "You must be logged in to view that page."
+msgstr "Sie müssen eingeloggt sein um die Seite sehen zu können."
+
+#: index.php:88 index.php:204 index.php:250
+msgid "Hold On a Second!"
+msgstr "Moment mal !!!"
+
+#: index.php:89
+msgid "The site has been closed by an administrator."
+msgstr "Die Seite wurde vom Systemverwalter geschlossen."
+
+#: index.php:90
+msgid "Please come back later."
+msgstr "Bitte kommen Sie später zurück."
+
+#: index.php:205 index.php:251
+msgid "You have exceeded the number of allowed login attempts."
+msgstr "Sie haben die Anzahl von erlaubten Anmelde-Versuche überschritten."
+
+#: index.php:206 index.php:252
+msgid "Your account has been locked for 1 hour."
+msgstr "Ihr Konto wurde für 1 Stunde gesperrt."
+
+#: index.php:216
+msgid "Not So Fast"
+msgstr "Nicht so schnell"
+
+#: index.php:217
+msgid ""
+"Your account isn't active yet.  Your website administrator must activate "
+"your account before you can login and begin using the website."
+msgstr ""
+"Ihr Konto ist noch nicht aktiviert. Ihr Webseiten-systemverwalter muss Ihr "
+"Konto aktivieren, bevor Sie sich anmelden können und beginnen können die "
+"Webseite zu verwenden"
+
+#: index.php:271
+msgid "That login information wasn't quite right."
+msgstr "Die Anmeldeinformationen waren falsch."
+
+#: index.php:272
+msgid "Be sure and check that you typed your username/password correctly."
+msgstr "Haben Sie Ihren Benutzernamen und das Passwort korrekt eingegeben?"
+
+#: index.php:385
+msgid "Login to"
+msgstr "Login für"
+
+#: index.php:396
+msgid "Remember Me"
+msgstr "merken"
+
+#: index.php:399
+msgid "Login"
+msgstr "Anmelden"
+
+#: index.php:404
+msgid "Forgot Password?"
+msgstr "Passwort vergessen?"
+
+#: index.php:404 register.php:200
+msgid "Register"
+msgstr "Registrieren"
+
+#: install.php:39
+msgid "Installation"
+msgstr "Installation"
+
+#: install.php:57
+msgid "Wait a Minute."
+msgstr "Warten Sie eine Minute"
+
+#: install.php:58
+msgid ""
+"The installation for this site is already finished. Running the installation "
+"again will cause you to Lose All Your Previous Information.  Are you sure "
+"you want to continue?"
+msgstr ""
+"Die Installation ist bereits abgeschlossen!!! Wenn Sie jetzt die "
+"Installation nochmals durchlaufen, werden ALLE Daten und Einstellungen "
+"GELÖSCHT! Sind Sie sich sicher, dass Sie fortfahren wollen?"
+
+#: install.php:62
+msgid "I just want to view my site."
+msgstr "Ich will nur meine Seite ansehen."
+
+#: install.php:67
+msgid "I want to run the installation anyway. (Not Recommended)"
+msgstr ""
+"Ich möchte die Installation trotzdem nochmal durchlaufen. (Nicht empfohlen)"
+
+#: install.php:91 install.php:117 install.php:188
+msgid "You forgot a required field.  Please fill out all required fields."
+msgstr ""
+"Sie haben ein Pflichtfeld vergessen auszufüllen. Holen Sie dies bitte nach."
+
+#: install.php:246 install.php:254 install.php:262 install.php:270
+#: install.php:278
+msgid "OK"
+msgstr "OK"
+
+#: install.php:249 install.php:257 install.php:265 install.php:273
+#: install.php:281
+msgid "BAD"
+msgstr "SCHLECHT"
+
+#: install.php:285 install.php:323 install.php:389 install.php:456
+#: install.php:520
+msgid "Install"
+msgstr "Installieren"
+
+#: install.php:286
+msgid "Pre-Installation Check"
+msgstr "Vor-Installationsprüfung"
+
+#: install.php:288
+msgid "Step 1 of 5"
+msgstr "Schritt 1 von 5"
+
+#: install.php:289
+msgid "Checking Folder Permissions"
+msgstr "Überprüfe Ordner-Zugriffsrechte"
+
+#: install.php:302
+msgid "Your site is ready to be installed.  Please proceed to the next step."
+msgstr ""
+"Die Seite ist bereit zu Installation. Bitte gehen Sie zum nächsten Schritt."
+
+#: install.php:307
+msgid ""
+"Unfortunatly your site is not ready to be installed.  Please make sure that "
+"the folders above exist and have the proper permissions set."
+msgstr ""
+"Die Installation kann erst weiter gehen, wenn die richtigen Datei- und "
+"Ordner-Rechte gesetzt sind. Erst wenn Sie die oben angezeigten Dateien und "
+"Ordner mit den richtigen CHMOD-Rechten versehen habe, kann die Installation "
+"fortgesetzt werden."
+
+#: install.php:324
+msgid "Database Information"
+msgstr "Datenbank Information"
+
+#: install.php:325
+msgid "Step 2 of 5"
+msgstr "Schritt 2 von 5"
+
+#: install.php:329
+msgid "Database Host"
+msgstr "Datenbank-Server"
+
+#: install.php:332
+msgid "This is usually localhost or your database ip address."
+msgstr ""
+"Dies ist üblicherweise \"localhost\" oder aber Ihre Datenbank IP-Adresse."
+
+#: install.php:337 install.php:348 install.php:532 install.php:548
+#: install.php:556
+msgid "Sorry, but I can't install without this information."
+msgstr "Ich kann ohne diese Infos nicht weiter installieren."
+
+#: install.php:340
+msgid "Database Name"
+msgstr "Datenbankname"
+
+#: install.php:343
+#, php-format
+msgid "The database name where you want to install %s."
+msgstr "Der Name der Datenbank, wo Sie %s installieren möchten."
+
+#: install.php:351
+msgid "Database Username"
+msgstr "Datenbank-Benutzername"
+
+#: install.php:354
+msgid "The username for the database specified above."
+msgstr "Den Benutzernamen der Datenbank auf die Sie installieren wollen."
+
+#: install.php:359
+msgid "There has to be a user for this database."
+msgstr "Es muss einen Benutzer für diese Datenbank geben."
+
+#: install.php:362
+msgid "Database Password"
+msgstr "Datenbank-Passwort"
+
+#: install.php:365
+msgid "The password for the database specified above."
+msgstr "Das Passwort für die Datenbank auf die Sie installieren wollen."
+
+#: install.php:370 install.php:540
+msgid "Passwords are hard to remember, but unfortunately necessary."
+msgstr "Passwörter sind schwer zu merken, aber dennoch notwendig."
+
+#: install.php:391
+msgid "Checking Database Connection"
+msgstr "Überprüfe Datenbankverbindung"
+
+#: install.php:392
+msgid "Step 3 of 5"
+msgstr "Schritt 3 von 5"
+
+#: install.php:394
+#, php-format
+msgid "Attempting to connect to database %s on %s using user %s."
+msgstr ""
+"Versuche zu Datenbank %s auf %s mit Hilfe des Benutzers %s zu verbinden"
+
+#: install.php:398
+msgid "Uh-Oh!"
+msgstr "Uh-Oh!"
+
+#: install.php:398
+msgid ""
+"A connection to the database could not be made.  Please shut down your "
+"browser and then re-run the installation."
+msgstr ""
+"Eine Verbindung zur Datenbank konnte nicht hergestellt werden. \r\n"
+"Bitte starten Sie ihren Browser neu und beginnen Sie die Installation erneut."
+
+#: install.php:402
+msgid "Awesome!"
+msgstr "Großartig!"
+
+#: install.php:403
+msgid ""
+"A connection was successfully made to the database.  Please proceed to the "
+"next step."
+msgstr ""
+"Die Verbindung zu Datenbank war erfolgreich. Sie können jetzt zum nächsten "
+"Schritt gehen."
+
+#: install.php:458
+msgid "Step 4 of 5"
+msgstr "Schritt 4 von 5"
+
+#: install.php:461
+msgid "Website Name"
+msgstr "Website-Name"
+
+#: install.php:463
+msgid "What do you want your website to be called?"
+msgstr "Wie soll ihre Internetseite heißen?"
+
+#: install.php:464
+msgid "(Examples: \"The Smith's\" or \"The Johnson Family Website\")"
+msgstr ""
+"(Beispiele: \"Die Familie Smith's\" oder \"Die Johnson Familien Seite)"
+
+#: install.php:469
+msgid "Without a name, how will you tell people about your website?"
+msgstr ""
+"Wie möchten Sie den Leuten Ihre Webseite zeigen ohne einen Namen dafür?"
+
+#: install.php:475
+msgid ""
+"The email address you want all questions, comments and concerns about the "
+"site to go."
+msgstr ""
+"Bitte geben Sie eine eMail-Adresse an, wo alle Informationen (Fragen, "
+"Kommentare, Systemnachrichten) eingehen sollen."
+
+#: install.php:481
+msgid "That's not a valid emaill address is it?"
+msgstr "Das ist keine gültige eMail-Adresse. Stimmts?"
+
+#: install.php:499
+msgid "Which sections would you like to use on your site?"
+msgstr "Welche Module würden Sie gerne auf ihrer Seite verwenden?"
+
+#: install.php:521
+msgid "Administrative Account"
+msgstr "Verwaltungskonto"
+
+#: install.php:522
+msgid "Step 5 of 5"
+msgstr "Schritt 5 von 5"
+
+#: install.php:524
+msgid ""
+"Everyone will be required to have an account and be logged in at all times "
+"to use this website.  This will help protect your site."
+msgstr ""
+"Jeder wird aufgefordert ein Konto zu besitzen und sich mit diesem "
+"einzuloggen. Dies dient der Sicherheit deiner Seite."
+
+#: install.php:525
+msgid ""
+"You must have at least one administrative account.  Please fill out the "
+"information below for the person who will be the administrator of this site."
+msgstr ""
+"Sie müssen mindestens ein Administrator-Konto besitzen. Bitte füllen Sie die "
+"nachfolgenden Informationen für die Person, der Administrator dieser Website "
+"werden soll, aus."
+
+#: install.php:559
+msgid "Email Address"
+msgstr "E-Mailadresse"
+
+#: install.php:818
+msgid "Christmas"
+msgstr "Weihnachten"
+
+#: install.php:819
+msgid "Valentine's Day"
+msgstr "Valentinstag"
+
+#: install.php:820
+msgid "New Year's Day"
+msgstr "Neujahr (Silvester)"
+
+#: install.php:821
+msgid "Independence Day"
+msgstr "Unabhängigkeit Tag (USA)"
+
+#: install.php:822
+msgid "Groundhog Day"
+msgstr "Groundhog Day (USA)"
+
+#: install.php:823
+msgid "St. Patrick's Day"
+msgstr "St. Patrick's Day (USA)"
+
+#: install.php:824
+msgid "April Fools Day"
+msgstr "April, April :)"
+
+#: install.php:825
+msgid "Halloween"
+msgstr "Halloween"
+
+#: install.php:967
+msgid "Family Connections software is..."
+msgstr "Die Seite Family Connections ist ..."
+
+#: install.php:993
+msgid "Easy to use!"
+msgstr "Einfach zu benutzen"
+
+#: install.php:994
+msgid "Visually appealing!"
+msgstr "Optisch ansprechend!"
+
+#: install.php:995
+msgid "Just what our family needed!"
+msgstr "Genau das, was unsere Familie benötigt! hat"
+
+#: install.php:1109
+#, php-format
+msgid "Welcome to the %s Message Board."
+msgstr "Herzlich Willkommen zum %s Forum"
+
+#: install.php:1266
+msgid "Hooray!  Yippie!"
+msgstr "Hurra! Juhuu!"
+
+#: install.php:1267
+#, php-format
+msgid "%s has been installed successfully."
+msgstr "%s wurde erfolgreich installiert."
+
+#: install.php:1268
+#, php-format
+msgid "Please continue to the homepage to login and begin using %s."
+msgstr "Bitte besuchen Sie nun die Internetseite und melden Sie sich an (%s)"
+
+#: lostpw.php:34
+msgid ""
+"Your email address could not be found.  Please make sure you have entered it "
+"correctly."
+msgstr ""
+"Ihre E-Mail-Adresse konnte nicht gefunden werden. Stellen Sie bitte sicher, "
+"dass Sie es richtig eingegeben haben."
+
+#: lostpw.php:63
+msgid "Password Reset"
+msgstr "Passwort zurücksetzen"
+
+#: lostpw.php:65
+#, php-format
+msgid "Your password at %s has been reset."
+msgstr "Dein Passwort wurde zurückgesetzt (%s)"
+
+#: lostpw.php:67
+msgid "New Password"
+msgstr "neues Passwort"
+
+#: lostpw.php:69 register.php:169
+msgid "Thanks"
+msgstr "Danke"
+
+#: lostpw.php:70 register.php:170
+#, php-format
+msgid "The %s Webmaster"
+msgstr "Der Webmaster (%s)"
+
+#: lostpw.php:72
+msgid "This is an automated message, please do not reply."
+msgstr "Dies ist eine automatische Nachricht. Bitte nicht antworten."
+
+#: lostpw.php:77
+msgid "Your password has been reset, please check your email."
+msgstr "Ihr Passwort wurde zurückgesetzt, bitte prüfen Sie Ihre E-Mail."
+
+#: lostpw.php:100 lostpw.php:109
+msgid "Reset Password"
+msgstr "Passwort zurücksetzen"
+
+#: lostpw.php:105
+msgid "The email address associated with your account."
+msgstr "Die Email-Adresse mit Ihrem Konto verknüpft."
+
+#: members.php:38
+msgid "Order Members By:"
+msgstr "Sortiere Mitglieder:"
+
+#: members.php:40
+msgid "Alphabetical"
+msgstr "Alphabetisch"
+
+#: members.php:41
+msgid "Age"
+msgstr "Alter"
+
+#: members.php:42
+msgid "Participation"
+msgstr "nach Aktivität"
+
+#: members.php:43
+msgid "Last Seen"
+msgstr "nach Zuletzt Online"
+
+#: members.php:44
+msgid "Joined"
+msgstr "nach Registrierungsdatum"
+
+#: messageboard.php:121
+#, php-format
+msgid "%s started the new thread: %s"
+msgstr "%s erstellte einen neuen Beitrag: %s"
+
+#: messageboard.php:197
+#, php-format
+msgid "%s has replied to the thread: %s"
+msgstr "%s hat auf den Beitrag %s geantwortet"
+
+#: prayers.php:72
+msgid "Prayer Concern Added Successfully"
+msgstr "Todesanzeige erfolgreich hinzugefügt"
+
+#: prayers.php:90
+#, php-format
+msgid "%s added a new Prayer Concern for %s"
+msgstr "%s fügte eine neue Todesanzeige für %s hinzu"
+
+#: prayers.php:161
+msgid "Prayer Concern Deleted Successfully"
+msgstr "Löschen der Todesanzeige erfolgreich"
+
+#: prayers.php:193
+msgid "Add a Prayer Concern"
+msgstr "Gedenken hinzufügen"
+
+#: privatemsg.php:125
+#, php-format
+msgid "A new Private Message at %s"
+msgstr "Eine neue private Nachricht an %s"
+
+#: privatemsg.php:130
+#, php-format
+msgid "%s has sent you a new Private Message at %s"
+msgstr "%s hat Ihnen eine neue private Nachricht (%s) geschickt"
+
+#: privatemsg.php:132
+msgid "The message has been attached below."
+msgstr "Die Nachricht wurde unten hinzugefügt."
+
+#: privatemsg.php:134
+#, php-format
+msgid "To respond to this message either visit %s or respond to this email."
+msgstr ""
+"Um auf diese Nachricht zu antworten, besuchen Sie %s oder antworten Sie auf "
+"diese Nachricht."
+
+#: privatemsg.php:139
+msgid "Message Title"
+msgstr "Betreff"
+
+#: privatemsg.php:151
+#, php-format
+msgid "A Private Message has been sent to %s"
+msgstr "Eine private Nachricht wurde an %s gesendet"
+
+#: recipes.php:96
+msgid "Recipe Added Successfully"
+msgstr "Rezept erfolgreich hinzugefügt"
+
+#: recipes.php:115
+#, php-format
+msgid "%s has added the recipe: %s"
+msgstr "%s hat das Rezept: %s hinzugefügt"
+
+#: recipes.php:202
+msgid "Recipe Deleted Successfully"
+msgstr "Rezept erfolgreich gelöscht"
+
+#: recipes.php:267
+msgid "You do not have permission to delete this comment."
+msgstr "Du hast nicht die Berechtigung diesen Kommentar zu löschen."
+
+#: register.php:10
+msgid "Register for"
+msgstr "Registrieren für"
+
+#: register.php:74
+msgid "You forgot to fill out a required field."
+msgstr "Sie haben ein benötigtes Feld vergessen auszufüllen."
+
+#: register.php:78
+msgid ""
+"The email you have choosen is already in use.  Please choose a different "
+"email."
+msgstr ""
+"Die E-Mail, die Sie gewählt haben ist bereits in Benutzung. Bitte wählen Sie "
+"eine andere E-Mail."
+
+#: register.php:79
+msgid "If you have forgotten your password please reset it"
+msgstr "Wenn Sie Ihr Passwort vergessen haben, setzen Sie es bitte zurück"
+
+#: register.php:83
+msgid ""
+"Sorry, but that username is already taken.  Please choose another username."
+msgstr ""
+"Entschuldigung, aber der Benutzername ist bereits vergeben. Bitte wählen Sie "
+"einen anderen Benutzernamen."
+
+#: register.php:118
+msgid "Membership"
+msgstr "Mitgliedschaft"
+
+#: register.php:123
+#, php-format
+msgid "New User Registration at %s"
+msgstr "Neue User hat sich angemeldet (%s)"
+
+#: register.php:124
+#, php-format
+msgid "A new user has registered at %s"
+msgstr "Ein neuer Benutzer hat sich auf %s registriert"
+
+#: register.php:126
+msgid "Time of Registration"
+msgstr "Zeit der Registrierung"
+
+#: register.php:144
+msgid "Please click the following link to activate your account"
+msgstr "Bitte klicken Sie auf den folgenden Link, um Ihr Konto zu aktivieren"
+
+#: register.php:149 register.php:175
+msgid "Congratulations and Welcome"
+msgstr "Herzlichen Glückwunsch und Willkommen"
+
+#: register.php:151 register.php:177
+#, php-format
+msgid "You have been successfully registered at %s."
+msgstr "Sie haben sich erfolgreich bei %s registriert."
+
+#: register.php:152 register.php:178
+#, php-format
+msgid "Your account information has been emailed to %s."
+msgstr "Ihre Kontoinformationen wurden via E-Mail an %s gesendet."
+
+#: register.php:153 register.php:179
+msgid "Please remember your username and password for this site."
+msgstr ""
+"Bitte merken Sie sich Ihren Benutzernamen und Passwort für diese Seite."
+
+#: register.php:155
+msgid ""
+"Unfortunately you must activate your account before you can <a "
+"href=\"index.php\">login</a> and begin using the site"
+msgstr ""
+"Leider müssen Sie Ihr Konto aktivieren, bevor Sie sich <a "
+"href=\"index.php\">Anmelden</a> können."
+
+#: register.php:161
+#, php-format
+msgid "Thank you for registering at %s"
+msgstr "Vielen Dank für Ihre Registrierung %s"
+
+#: register.php:163
+msgid ""
+"In order to login and beging using the site, your administrator must "
+"activate your account.  You will get an email when this has been done."
+msgstr ""
+"Der Administrator der Internetseite muss den Account erst freischalten, "
+"bevor Sie die Internetseite nutzen können. Sie werden per eMail informiert, "
+"sobald der Admin Se freigeschaltet hat."
+
+#: register.php:165
+msgid ""
+"After your account is activated you can login using the following information"
+msgstr ""
+"Nachdem Ihr Konto aktiviert wurde, können Sie zum Anmelden und die folgenden "
+"Informationen verwenden."
+
+#: register.php:172
+msgid "This is an automated response, please do not reply."
+msgstr "Dies ist eine automatische Antwort, bitte antworten Sie nicht."
+
+#: register.php:181
+msgid ""
+"Unfortunately your account must be activated before you can  <a "
+"href=\"index.php\">login</a> and begin using the site."
+msgstr ""
+"Leider muss Ihr Konto aktiviert werden, bevor Sie sich <a "
+"href=\"index.php\">anmelden</a> können und beginnen können, die Seite zu "
+"verwenden."
+
+#: register.php:209
+msgid "Used for logging into the site."
+msgstr "Benötigt für das Anmelden auf die Seite."
+
+#: register.php:214
+msgid "Required: Can' login without one."
+msgstr "Achtung: Username ist zwingend notwendig!!!"
+
+#: register.php:219
+msgid "Used for loggin into the site."
+msgstr "Benötigt für das Anmelden auf die Seite."
+
+#: register.php:224
+msgid "Required: Can't login without one."
+msgstr "Achtung: Passwort ist zwingend notwendig!!!"
+
+#: register.php:229
+msgid "The name your mother gave you."
+msgstr "Der Name, den Ihnen Ihre Mutter gab."
+
+#: register.php:239
+msgid "Your family name."
+msgstr "Ihr Familienname."
+
+#: register.php:247
+msgid "Email Addrss"
+msgstr "E-Mail-Adresse"
+
+#: register.php:249
+msgid "Where can we send validation and updates?"
+msgstr "Wohin können wir Validationen und Updates senden?"
+
+#: register.php:255
+msgid "Invalid Email"
+msgstr "Ungültige E-Mail"
+
+#: rss.php:15
+msgid "The RSS feed you requested doesn't exist"
+msgstr "Der angeforderte RSS-Feed existiert nicht"
+
+#: rss.php:167
+#, php-format
+msgid "%s has updated his/her address."
+msgstr "%s hat seine/ihre Adresse aktualisiert."
+
+#: rss.php:233
+msgid "m-d-y"
+msgstr "d.m.'y"
+
+#: rss.php:248 rss.php:250
+msgid "D, d M Y H:i:s"
+msgstr "D, d M Y H:i:s"
+
+#: settings.php:222
+msgid "Your Settings were Updated Successfully."
+msgstr "Ihre Einstellungen wurden erfolgreich aktualisiert."
+
+#: settings.php:223
+msgid "You must now logout and login again to complete your changes."
+msgstr ""
+"Sie müssen sich nun abmelden und wieder anmelden, um Ihre Änderungen "
+"abzuschließen."
