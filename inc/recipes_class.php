@@ -564,38 +564,8 @@ class Recipes
             while ($r = $this->db->get_row()) {
                 $name = $r['name'];
                 $displayname = getUserDisplayName($r['user']);
-                switch ($r['category']) {
-                    case T_('Appetizer'):
-                        $url = "recipes.php?category=1&amp;id=" . (int)$r['id'];
-                        break;
-                    case T_('Breakfast'):
-                        $url = "recipes.php?category=2&amp;id=" . (int)$r['id'];
-                        break;
-                    case T_('Dessert'):
-                        $url = "recipes.php?category=3&amp;id=" . (int)$r['id'];
-                        break;
-                    case T_('Entree (Meat)'):
-                        $url = "recipes.php?category=4&amp;id=" . (int)$r['id'];
-                        break;
-                    case T_('Entree (Seafood)'):
-                        $url = "recipes.php?category=5&amp;id=" . (int)$r['id'];
-                        break;
-                    case T_('Entree (Vegetarian)'):
-                        $url = "recipes.php?category=6&amp;id=" . (int)$r['id'];
-                        break;
-                    case T_('Salad'):
-                        $url = "recipes.php?category=7&amp;id=" . (int)$r['id'];
-                        break;
-                    case T_('Side Dish'):
-                        $url = "recipes.php?category=8&amp;id=" . (int)$r['id'];
-                        break;
-                    case T_('Soup'):
-                        $url = "recipes.php?category=9&amp;id=" . (int)$r['id'];
-                        break;
-                    default:
-                        $url = "recipes.php";
-                        break;
-                }
+
+                $url = 'recipes.php?category='.(int)$r['category'].'&amp;id='.(int)$r['id'];
 
                 $date = $locale->fixDate('YmdHis', $this->tz_offset, $r['date']);
 

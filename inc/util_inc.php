@@ -2273,21 +2273,9 @@ function displayWhatsNewAll ($userid)
             echo '
                 <p class="newprayer">'.sprintf(T_('%s has added a Prayer Concern for %s.'), $displayname, $for).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'RECIPES') {
-            switch ($r['id2']) {
-                case T_('Appetizer'): $url = "recipes.php?category=1&amp;id=".$r['id']; break;
-                case T_('Breakfast'): $url = "recipes.php?category=2&amp;id=".$r['id']; break;
-                case T_('Dessert'): $url = "recipes.php?category=3&amp;id=".$r['id']; break;
-                case T_('Entree (Meat)'): $url = "recipes.php?category=4&amp;id=".$r['id']; break;
-                case T_('Entree (Seafood)'): $url = "recipes.php?category=5&amp;id=".$r['id']; break;
-                case T_('Entree (Vegetarian)'): $url = "recipes.php?category=6&amp;id=".$r['id']; break;
-                case T_('Salad'): $url = "recipes.php?category=7&amp;id=".$r['id']; break;
-                case T_('Side Dish'): $url = "recipes.php?category=8&amp;id=".$r['id']; break;
-                case T_('Soup'): $url = "recipes.php?category=9&amp;id=".$r['id']; break;
-                default: $url = "recipes.php"; break;
-            }
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $rec = '<a href="'.$url.'">'.cleanOutput($r['title']).'</a>';
+            $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
             echo '
                 <p class="newrecipe">'.sprintf(T_('%s has added the %s recipe.'), $displayname, $rec).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'DOCS') {
@@ -2341,13 +2329,12 @@ function displayWhatsNewAll ($userid)
                         </a>
                     </p>';
         } elseif ($r['type'] == 'CALENDAR') {
-            $date_date   = $locale->fixDate('m-d-y', $tz_offset, $r['id2']);
-            $date_date2  = $locale->fixDate('F j, Y', $tz_offset, $r['id2']);
+            $date_date   = date('F j, Y', strtotime($r['id2']));
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $for = '<a href="calendar.php?year='.date('Y', strtotime($date_date2))
-                .'&amp;month='.date('m', strtotime($date_date2))
-                .'&amp;day='.date('d', strtotime($date_date2)).'">'.cleanOutput($r['title']).'</a>';
+            $for = '<a href="calendar.php?year='.date('Y', strtotime($date_date))
+                .'&amp;month='.date('m', strtotime($date_date))
+                .'&amp;day='.date('d', strtotime($date_date)).'">'.cleanOutput($r['title']).'</a>';
             echo '
                     <p class="newcal">'.sprintf(T_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $for).' <small><i>'.$rdate.'</i></small></p>';
         } elseif ($r['type'] == 'POLL') {

@@ -1244,8 +1244,8 @@ class PhotoGallery {
             // only hide the select box if last cat is set
             // giving an id to select will hide it
             $category_options = '
-                    <input class="frm_text" type="text" name="new-category" size="35"/>
-                    <select id="existing-categories" name="category" onchange="sendCategory(this.form.category)">
+                    <input class="frm_text" type="text" id="new-category" name="new-category" size="35" onchange="sendNewCategory()"/>
+                    <select id="existing-categories" name="category" onchange="sendCategory()">
                         <option value="0">&nbsp;</option>';
             foreach ($categories as $id => $name) {
                 $category_options .= '
@@ -1257,7 +1257,7 @@ class PhotoGallery {
         // No Categories (force creation of new one)
         } else {
             $category_options = '
-                    <input class="frm_text" type="text" name="new-category" size="50" onchange="sendNewCategory(this.form.new-category)"/>';
+                    <input class="frm_text" type="text" id="new-category" name="new-category" size="50" onchange="sendNewCategory()"/>';
         }
 
         echo '
@@ -1308,19 +1308,21 @@ class PhotoGallery {
                     <param name="ac_fireUploaderStatusChanged" value="true"/> 
                 </applet>
                 <script language="javascript">
-                function sendCategory(select) {
+                function sendCategory() {
                     var uploader = document.jumpLoaderApplet.getUploader();
                     var attrSet = uploader.getAttributeSet();
-                    var attr = attrSet.createStringAttribute("category", select.value);
+                    var value = $F("existing-categories");
+                    var attr = attrSet.createStringAttribute("category", value);
                     attr.setSendToServer(true);
                 }
-                function sendNewCategory(input) {
+                function sendNewCategory() {
                     var uploader = document.jumpLoaderApplet.getUploader();
                     var attrSet = uploader.getAttributeSet();
-                    var attr = attrSet.createStringAttribute("new_category", input.value);
+                    var value = $F("new-category");
+                    var attr = attrSet.createStringAttribute("new-category", value );
                     attr.setSendToServer(true);
                 }
-                function uploaderStatusChanged( uploader ) {
+                function uploaderStatusChanged(uploader) {
                     if (uploader.isReady() && uploader.getFileCountByStatus(3) == 0) { 
                         window.location.href = "index.php?action=advanced";
                     }
