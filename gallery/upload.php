@@ -10,6 +10,8 @@ $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
 $file_param_name[] = 'small';
 $file_param_name[] = 'medium';
+$file_param_name[] = 'full';
+
 $known_photo_types = array(
     'image/pjpeg'   => 'jpg', 
     'image/jpeg'    => 'jpg', 
@@ -76,7 +78,7 @@ mysql_query($sql) or displaySQLError(
     'Update Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
 );
 
-// Loop through each photo (medium, small)
+// Loop through each photo (small, medium, full?)
 foreach ($file_param_name AS $file) {
 
     // Create new member directory if needed
@@ -86,6 +88,8 @@ foreach ($file_param_name AS $file) {
 
     if ($file == 'small') {
         $dest_path = "photos/member$currentUserId/tb_$filename";
+    } elseif ($file == 'full' && isset($_POST['full-sized-photos'])) {
+        $dest_path = "photos/member$currentUserId/full_$filename";
     } else {
         $dest_path = "photos/member$currentUserId/$filename";
     }

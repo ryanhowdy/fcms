@@ -1260,6 +1260,31 @@ class PhotoGallery {
                     <input class="frm_text" type="text" id="new-category" name="new-category" size="50" onchange="sendNewCategory()"/>';
         }
 
+        // Are we using full sized photos?
+        $sql = "SELECT `full_size_photos` 
+                FROM `fcms_config`";
+        $this->db->query($sql) or displaySQLError(
+            'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $r = $this->db->get_row();
+
+        $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="small,medium"/>';
+        $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit"/>';
+        $fullSizedPhotos          = '';
+
+        if ($r['full_size_photos'] == 1) {
+            $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="small,medium,full"/>';
+            $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit,1400x1400xfit"/>';
+            $fullSizedPhotos          = '
+                function sendFullSizedPhotos() {
+                    var uploader = document.jumpLoaderApplet.getUploader();
+                    var attrSet = uploader.getAttributeSet();
+                    var attr = attrSet.createStringAttribute("full-sized-photos", "1");
+                    attr.setSendToServer(true);
+                }
+                sendFullSizedPhotos();';
+        }
+
         echo '
             <noscript>
                 <style type="text/css">
@@ -1298,8 +1323,8 @@ class PhotoGallery {
                     <param name="vc_useThumbs" value="true"/>
                     <param name="uc_uploadScaledImagesNoZip" value="true"/>
                     <param name="uc_uploadScaledImages" value="true"/>
-                    <param name="uc_scaledInstanceNames" value="small,medium"/>
-                    <param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit"/>
+                    '.$scaledInstanceNames.'
+                    '.$scaledInstanceDimensions.'
                     <param name="uc_scaledInstanceQualityFactors" value="900"/>
                     <param name="uc_uploadFormName" value="uploadForm"/>
                     <param name="vc_lookAndFeel" value="system"/>
@@ -1314,7 +1339,7 @@ class PhotoGallery {
                     var value = $F("existing-categories");
                     var attr = attrSet.createStringAttribute("category", value);
                     attr.setSendToServer(true);
-                }
+                }'.$fullSizedPhotos.'
                 function sendNewCategory() {
                     var uploader = document.jumpLoaderApplet.getUploader();
                     var attrSet = uploader.getAttributeSet();
@@ -1620,8 +1645,8 @@ class PhotoGallery {
                         (`date`, `caption`, `category`, `user`)
                     VALUES(
                         NOW(), 
-                        '" . cleanInput($caption) . "', 
-                        '" . cleanInput($category) . "', 
+                        '$caption', 
+                        '$category', 
                         '" . $this->currentUserId . "'
                     )";
             $this->db->query($sql) or displaySQLError(
@@ -1700,7 +1725,7 @@ class PhotoGallery {
                 echo '
             <p class="ok-alert">
                 <b>'.T_('The following photo was added successfully.').'</b><br/><br/>
-                &nbsp;&nbsp;&nbsp;<img src="photos/member'.$this->currentUserId.'/tb_'.$filename.'" alt="'.$caption.'"/>
+                &nbsp;&nbsp;&nbsp;<img src="photos/member'.$this->currentUserId.'/tb_'.$filename.'" alt="'.cleanOutput($caption).'"/>
             </p>';
                 return $new_id;
             }
@@ -1710,6 +1735,13 @@ class PhotoGallery {
                 $memoryAvailable = ini_get('memory_limit');
                 $memoryAvailable = substr($memoryAvailable, 0, -1);
                 $memoryAvailable = ($memoryAvailable * 1024) * 1024;
+                // channels and bits are optional
+                if (!isset($size['channels'])) {
+                    $size['channels'] = 3;
+                }
+                if (!isset($size['bits'])) {
+                    $size['bits'] = 8;
+                }
                 $memoryNeeded = Round(($size[0] * $size[1] * $size['bits'] * $size['channels'] / 8 + Pow(2, 16)) * 1.65);
                 if ($memoryNeeded > $memoryAvailable) {
                     // Remove the photo from the DB
@@ -1789,7 +1821,7 @@ class PhotoGallery {
 
             if ($r['full_size_photos'] == '1') {
                 $full_destination_handle = $function_to_read(
-                    "photos/member" . $this->currentUserId . "/" . $filename
+                    "photos/member" . $this->currentUserId . "/full_" . $filename
                 );
             }
             $function_to_write(
@@ -1913,7 +1945,7 @@ class PhotoGallery {
             echo '
             <p class="ok-alert">
                 <b>'.T_('The following photo was added successfully.').'</b><br/><br/>
-                &nbsp;&nbsp;&nbsp;<img src="photos/member'.$this->currentUserId.'/tb_'.$filename.'" alt="'.$caption.'"/>
+                &nbsp;&nbsp;&nbsp;<img src="photos/member'.$this->currentUserId.'/tb_'.$filename.'" alt="'.cleanOutput($caption).'"/>
             </p>';
         }
 

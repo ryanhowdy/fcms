@@ -1,3 +1,11 @@
+ 2.3.1
+    #218 - Avatar doesn't allow all cap file extensions
+    #219 - Family Tree - no female members causes errors
+    #221 - Latest Comments doesn't work
+    #225 - Install doesn't properly delete existing tables
+    #226 - Registration email_header issue
+    #227 - User Auto Account Activation not working
+
  2.3
     #16 - Relationships (geneology)
     #30 - Add/edit catagories to recipies

@@ -1,11 +1,11 @@
 
-FAMILY CONNECTIONS 2.3.1
+FAMILY CONNECTIONS 2.3.2
 
 
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.3.1.zip to your web host.
+  1. Upload the entire contents of FCMS_2.3.2.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
@@ -24,7 +24,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.3 to 2.3.1
+II. Upgrading from 2.3.1 to 2.3.2
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -41,15 +41,16 @@ II. Upgrading from 2.3 to 2.3.1
   2. Login as the administartor and turn off the site by visiting the 
      configuration section.
 
-  3. Upload the following list of files from FCMS_2.3.1.zip to your web host
+  3. Upload the following list of files from FCMS_2.3.2.zip to your web host
      (Overwriting any previous files other than the above mentioned files/directories).
 
-    activate.php
-    admin/members.php
+    admin/upgrade.php
+    gallery/upload.php
     install.php
-    inc/util_inc.php
+    inc/calendar_class.php
     inc/gallery_class.php
-    register.php
+    inc/recipes_class.php
+    inc/util_inc.php
   
   4. Login as the administrator and visit the upgrade section and run the
      upgrade script (only needed to update version number).
@@ -62,14 +63,15 @@ II. Upgrading from 2.3 to 2.3.1
 
 III. Change Log
 ----------------
- 2.3.1
+ 2.3.2
 
-    #218 - Avatar doesn't allow all cap file extensions
-    #219 - Family Tree - no female members causes errors
-    #221 - Latest Comments doesn't work
-    #225 - Install doesn't properly delete existing tables
-    #226 - Registration email_header issue
-    #227 - User Auto Account Activation not working
+    #231 - Advanced Uploader not working with IE
+    #238 - What's New Calendar date is wrong
+    #242 - Photo Gallery captions not cleaned properly
+    #232 - New recipe link on What's New page doesn't link to recipe
+    #240 - Install doesn't use calendar widget for bday
+    #245 - Full sized images not working with Advanced Uploader
+    #246 - This and next month events out of order
 
   For the full change log please refer to the included ChangeLog file.
 

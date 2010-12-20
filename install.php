@@ -40,6 +40,19 @@ echo '
 <link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
 <script type="text/javascript" src="inc/prototype.js"></script>
 <script type="text/javascript" src="inc/livevalidation.js"></script>
+<link rel="stylesheet" type="text/css" href="themes/datechooser.css"/>
+<script type="text/javascript" src="inc/datechooser.js"></script>
+<script type="text/javascript">
+//<![CDATA[
+Event.observe(window, "load", function() {
+    // Datechooser
+    var objDatePicker = new DateChooser();
+    objDatePicker.setUpdateField({"day":"j", "month":"n", "year":"Y"});
+    objDatePicker.setIcon("themes/default/images/datepicker.jpg", "year");
+    return true;
+});
+//]]>
+</script>
 </head>
 <body>';
 
@@ -133,7 +146,7 @@ if (isset($_POST['submit1'])) {
         $sql = "INSERT INTO `fcms_config` (
                     `sitename`, `contact`, `current_version`
                 ) VALUES (
-                    '".$_POST['sitename']."', '".$_POST['contact']."', 'Family Connections 2.3.1'
+                    '".$_POST['sitename']."', '".$_POST['contact']."', 'Family Connections 2.3.2'
                 )";
         mysql_query($sql) or die($sql . "<br/><br/>" . mysql_error());
 

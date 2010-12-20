@@ -567,11 +567,12 @@ class Calendar
         echo '
                 <h3>'.date('F', mktime(0,0,0,$month,1,$year)).':</h3>';
 
-        $sql = "SELECT `title`, `desc`, `date`, `private`, `created_by`
+        $sql = "SELECT DAYOFMONTH(`date`) as day, `title`, `desc`, 
+                    `date`, `private`, `created_by`
                 FROM fcms_calendar 
                 WHERE (`date` LIKE '$year-$month-%%') 
                 OR (`date` LIKE '%%%%-$month-%%' AND `repeat` = 'yearly') 
-                ORDER BY `date`";
+                ORDER BY day";
         $this->db->query($sql) or displaySQLError(
             'Events Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
