@@ -1,7 +1,8 @@
 <?php
 set_error_handler("fcmsErrorHandler");
-include_once('gettext.inc');
-include_once('locale.php');
+include_once 'gettext.inc';
+include_once 'locale.php';
+include_once 'constants.php';
 
 // Setup MySQL
 $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
@@ -19,7 +20,6 @@ T_bind_textdomain_codeset('messages', 'UTF-8');
 T_textdomain('messages');
 
 // Email Headers and Smileys
-$smileydir = "themes/smileys/";
 $smiley_array = array(':smile:', ':none:', ':)', '=)', ':wink:', ';)', ':tongue:', ':biggrin:', ':sad:', ':(', ':sick:', ':cry:', ':shocked:', ':cool:', ':sleep:', 'zzz', ':angry:', ':mad:', ':embarrassed:', ':shy:', 
     ':rolleyes:', ':nervous:', ':doh:', ':love:', ':please:', ':1please:', ':hrmm:', ':quiet:', ':clap:', ':twitch:', ':blah:', ':bored:', ':crazy:', ':excited:', ':noidea:', ':disappointed:', ':banghead:', 
     ':dance:', ':laughat:', ':ninja:', ':pirate:', ':thumbup:', ':thumbdown:', ':twocents:'
@@ -33,9 +33,10 @@ $smiley_file_array = array('smile.gif', 'smile.gif', 'smile.gif', 'smile.gif', '
 /**
  * getEmailHeaders 
  * 
- * @param   string  $name 
- * @param   string  $email 
- * @return  string
+ * @param string $name 
+ * @param string $email 
+ * 
+ * @return string
  */
 function getEmailHeaders ($name = '', $email = '')
 {
@@ -56,27 +57,42 @@ function getEmailHeaders ($name = '', $email = '')
  * getTheme 
  * 
  * @param   int     $userid 
- * @param   string  $d          the path
+ *
  * @return  void
  */
-function getTheme ($userid, $d = "")
+function getTheme ($userid = 0)
 {
-    if (empty($userid)) {
-        return $d . "themes/default/";
-    } else {
+    if (empty($userid))
+    {
+        return ROOT."themes/default/";
+    }
+    else
+    {
         $userid = cleanInput($userid, 'int');
+
         $sql = "SELECT `theme` 
                 FROM `fcms_user_settings` 
                 WHERE `user` = '$userid'";
-        $result = mysql_query($sql) or displaySQLError(
-            'Theme Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySQLError('Theme Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return ROOT."themes/default/";
+        }
+
         $r = mysql_fetch_array($result);
+
+        // old versions of fcms may still list .css in theme name
         $pos = strpos($r['theme'], '.css');
-        if ($pos === false) {
-            return $d . "themes/" . basename($r['theme']) . "/";
-        } else {
-            return $d . "themes/" . substr($r['theme'], 0, $pos) . "/";
+
+        if ($pos === false)
+        {
+            return ROOT."themes/".basename($r['theme'])."/";
+        }
+        else
+        {
+            return ROOT."themes/".substr($r['theme'], 0, $pos)."/";
         }
     }
 }
@@ -211,35 +227,84 @@ function getDefaultNavUrl ()
 /**
  * getNavLinks 
  *
- * Gets the links and order for the given sub menu (column)
+ * Gets the links and order for all the navigation.
+ * Creates a multi-dimensional array of the nav, where
+ * the first array is the navigation tabs and the second
+ * is the links in those tabs.
  * 
- *      1. home
- *      2. my stuff
- *      3. communicate
- *      4. share
- *      5. misc.
- *      6. administration
- * 
- * @param int $column
+ *      Home
+ *      My Stuff
+ *        - Profile
+ *        - Settings
+ *        - Private Messages
+ *      Communicate
+ *        - Message Board
+ *        - Family News
+ *        - Prayer Concerns
+ *      Share
+ *        - Photo Gallery
+ *        - Address Book 
+ *        - Calendar
+ *        - Recipes
+ *        - Family Tree
+ *        - Documents
+ *      Misc.
+ *        - Members
+ *        - Contact Webmaster
+ *        - Help
+ *      Administration
+ *        - Upgrade
+ *        - Configuration
+ *        - Members
+ *        - Photo Gallery
+ *        - Where Is Everyone
+ *        - Polls
+ *        - Awards
  * 
  * @return  array
  */
 function getNavLinks ()
 {
+    $ret = array();
+
     $sql = "SELECT `link`, `col`
             FROM `fcms_navigation` 
             WHERE `order` != 0 
             ORDER BY `col`, `order`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Nav Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $ret = array();
-    while ($r = mysql_fetch_array($result)) {
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Nav Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return $ret;
+    }
+
+    $currentUserId = cleanInput($_SESSION['login_id'], 'int');
+
+    $access = checkAccess($currentUserId);
+
+    while ($r = mysql_fetch_array($result))
+    {
+        // Skip the entire admin column for members and lower
+        if ($r['col'] == 6 && $access > 2)
+        {
+            continue;
+        }
+
+        // Helpers can not see all admin pages
+        if ($access == 2)
+        {
+            if ($r['link'] == 'admin_upgrade' || $r['link'] == 'admin_configuration' || $r['link'] == 'admin_members' ||  $r['link'] == 'admin_photogallery')
+            {
+                continue;
+            }
+        }
+
         $ret[$r['col']][] = array(
-            'url'  => getSectionUrl($r['link']),
-            'text' => getSectionName($r['link']),
+            'url'   => getSectionUrl($r['link']),
+            'text'  => getSectionName($r['link']),
         ); 
     }
+
     return $ret;
 }
 
@@ -254,6 +319,27 @@ function getNavLinks ()
 function getSectionName ($section)
 {
     switch ($section) {
+        case 'admin_awards':
+            return T_('Awards');
+            break;
+        case 'admin_configuration':
+            return T_('Configuration');
+            break;
+        case 'admin_members':
+            return T_('Members');
+            break;
+        case 'admin_photogallery':
+            return T_('Photo Gallery');
+            break;
+        case 'admin_polls':
+            return T_('Polls');
+            break;
+        case 'admin_upgrade':
+            return T_('Upgrade');
+            break;
+        case 'admin_whereiseveryone':
+            return T_('Where Is Everyone');
+            break;
         case 'addressbook':
             return T_('Address Book');
             break;
@@ -263,14 +349,23 @@ function getSectionName ($section)
         case 'chat':
             return T_('Chat');
             break;
+        case 'contact':
+            return T_('Contact Webmaster');
+            break;
         case 'documents':
             return T_('Documents');
             break;
         case 'familynews':
             return T_('Family News');
             break;
+        case 'help':
+            return T_('Help');
+            break;
         case 'messageboard':
             return T_('Message Board');
+            break;
+        case 'members':
+            return T_('Members');
             break;
         case 'photogallery':
             return T_('Photo Gallery');
@@ -282,7 +377,7 @@ function getSectionName ($section)
             return T_('Profile');
             break;
         case 'pm':
-            return T_('Private Messages');
+            return T_('Private Messages').getPMCount();
             break;
         case 'recipes':
             return T_('Recipes');
@@ -292,6 +387,9 @@ function getSectionName ($section)
             break;
         case 'tree':
             return T_('Family Tree');
+            break;
+        case 'whereiseveryone':
+            return T_('Where Is Everyone');
             break;
         default:
             return 'error';
@@ -310,6 +408,27 @@ function getSectionName ($section)
 function getSectionUrl ($section)
 {
     switch ($section) {
+        case 'admin_awards':
+            return 'admin/awards.php';
+            break;
+        case 'admin_configuration':
+            return 'admin/config.php';
+            break;
+        case 'admin_members':
+            return 'admin/members.php';
+            break;
+        case 'admin_photogallery':
+            return 'admin/gallery.php';
+            break;
+        case 'admin_polls':
+            return 'admin/polls.php';
+            break;
+        case 'admin_upgrade':
+            return 'admin/upgrade.php';
+            break;
+        case 'admin_whereiseveryone':
+            return 'admin/whereiseveryone.php';
+            break;
         case 'addressbook':
             return 'addressbook.php';
             break;
@@ -317,7 +436,10 @@ function getSectionUrl ($section)
             return 'calendar.php';
             break;
         case 'chat':
-            return 'chat.php';
+            return 'inc/chat/index.php';
+            break;
+        case 'contact':
+            return 'contact.php';
             break;
         case 'documents':
             return 'documents.php';
@@ -325,8 +447,14 @@ function getSectionUrl ($section)
         case 'familynews':
             return 'familynews.php';
             break;
+        case 'help':
+            return 'help.php';
+            break;
         case 'messageboard':
             return 'messageboard.php';
+            break;
+        case 'members':
+            return 'members.php';
             break;
         case 'photogallery':
             return 'gallery/index.php';
@@ -349,6 +477,9 @@ function getSectionUrl ($section)
         case 'tree':
             return 'familytree.php';
             break;
+        case 'whereiseveryone':
+            return 'whereiseveryone.php';
+            break;
         default:
             return 'home.php';
             break;
@@ -359,10 +490,10 @@ function getSectionUrl ($section)
  * displayNewPM 
  * 
  * @param   int     $userid 
- * @param   string  $d 
+ *
  * @return  void
  */
-function displayNewPM ($userid, $d = "")
+function displayNewPM ($userid)
 {
     $userid = cleanInput($userid, 'int');
 
@@ -373,10 +504,13 @@ function displayNewPM ($userid, $d = "")
         'Get New PM', 'util_inc.php [' . __LINE__ . ']', $sql, mysql_error()
     );
 
-    if (mysql_num_rows($result) > 0) {
-        echo "<a href=\"" . $d . "privatemsg.php\" class=\"new_pm\">" . T_('New PM') . "</a> ";
-    } else {
-        echo " ";
+    if (mysql_num_rows($result) > 0)
+    {
+        echo '<a href="'.URL_PREFIX.'privatemsg.php" class="new_pm">'.T_('New PM').'</a> ';
+    }
+    else
+    {
+        echo ' ';
     }
 }
 
@@ -395,10 +529,19 @@ function checkAccess ($userid)
     $sql = "SELECT `access` 
             FROM `fcms_users` 
             WHERE `id` = '$userid'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Access Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Access Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+    }
+
+    if (mysql_num_rows($result) <= 0)
+    {
+        return '10'; // guest
+    }
+
     $r = mysql_fetch_array($result);
+
     return $r['access'];
 }
 
@@ -412,60 +555,59 @@ function checkAccess ($userid)
  */
 function getAccessLevel ($userid)
 {
-    $sql = "SELECT `access` 
-            FROM `fcms_users` 
-            WHERE `id` = '$userid'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Access Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $r = mysql_fetch_array($result);
-    $access = T_('Member');
-    switch ($r['access']) {
+    $access = checkAccess($userid);
+
+    $accessLevel = T_('Member');
+
+    switch ($access) {
         case 1:
-            $access = T_('Admin');
+            $accessLevel = T_('Admin');
             break;
         case 2:
-            $access = T_('Helper');
+            $accessLevel = T_('Helper');
             break;
         case 3:
-            $access = T_('Member');
+            $accessLevel = T_('Member');
             break;
         case 4:
-            $access = T_('Non-Photographer');
+            $accessLevel = T_('Non-Photographer');
             break;
         case 5:
-            $access = T_('Non-Poster');
+            $accessLevel = T_('Non-Poster');
             break;
         case 6:
-            $access = T_('Commenter');
+            $accessLevel = T_('Commenter');
             break;
         case 7:
-            $access = T_('Poster');
+            $accessLevel = T_('Poster');
             break;
         case 8:
-            $access = T_('Photographer');
+            $accessLevel = T_('Photographer');
             break;
         case 9:
-            $access = T_('Blogger');
+            $accessLevel = T_('Blogger');
             break;
         case 10:
-            $access = T_('Guest');
+            $accessLevel = T_('Guest');
+            break;
+        case 11:
+            $accessLevel = T_('Non-editable Member');
             break;
     }
-    return $access;
+    return $accessLevel;
 }
 
 /**
  * parse 
  * 
  * @param   string  $data 
- * @param   string  $d 
+ *
  * @return  void
  */
-function parse ($data, $d = '')
+function parse ($data)
 {
     $data = htmlentities($data, ENT_COMPAT, 'UTF-8');
-    $data = parse_smilies($data, $d);
+    $data = parse_smilies($data);
     $data = parse_bbcodes($data);
     $data = nl2br_nospaces($data);
     return $data;
@@ -593,17 +735,25 @@ function getBBCodeList ()
  * parse_smilies 
  * 
  * @param   string  $data 
- * @param   string  $d 
+ *
  * @return  void
  */
-function parse_smilies ($data, $d = '')
+function parse_smilies ($data)
 {
-    global $smiley_array, $smiley_file_array, $smileydir;
+    global $smiley_array, $smiley_file_array;
+
     $i = 0;
-    while($i < count($smiley_array)) {
-        $data = str_replace($smiley_array[$i], '<img src="' . $d . $smileydir . $smiley_file_array[$i] . '" alt="'. $smiley_array[$i] . '" />', $data);
-        $i ++;
+    while($i < count($smiley_array))
+    {
+        $data = str_replace(
+            $smiley_array[$i], 
+            '<img src="'.URL_PREFIX.'themes/smileys/'.$smiley_file_array[$i].'" alt="'.$smiley_array[$i].'"/>', 
+            $data
+        );
+
+        $i++;
     }
+
     return $data;
 }
 
@@ -1478,11 +1628,11 @@ function getCurrentVersion()
 }
 
 /**
- * displayMBToolbar 
+ * displayBBCodeToolbar
  * 
  * @return  void
  */
-function displayMBToolbar ()
+function displayBBCodeToolbar ()
 {
     echo '
             <div id="toolbar" class="toolbar hideme">
@@ -1501,6 +1651,101 @@ function displayMBToolbar ()
                 <input type="button" class="smileys button" onclick="window.open(\'inc/smileys.php\',\'name\',\'width=500,height=200,scrollbars=no,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('Insert Smiley').'"/>
                 <input type="button" class="help button" onclick="window.open(\'inc/bbcode.php\',\'name\',\'width=400,height=300,scrollbars=yes,resizable=no,location=no,menubar=no,status=no\'); return false;" onmouseout="style.border=\'1px solid #f6f6f6\';" onmouseover="style.border=\'1px solid #c1c1c1\';" title="'.T_('BBCode Help').'"/>
             </div>';
+}
+
+/**
+ * displayWysiwygJs 
+ * 
+ * @param mixed $id 
+ * 
+ * @return void
+ */
+function displayWysiwygJs ($id)
+{
+    $elements = $id;
+
+    if (is_array($id))
+    {
+        $elements = implode(",", $id);
+    }
+
+    echo '
+<script type="text/javascript">
+tinyMCE.init({
+    // General options
+    mode : "exact",
+    elements : "'.$elements.'",
+    theme : "advanced",
+
+    // Theme options
+    theme_advanced_buttons1 : "myimage,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,|,bullist,numlist,|,link,unlink,|,blockquote,|,forecolor,removeformat",
+    theme_advanced_buttons2 : "",
+    theme_advanced_buttons3 : "",
+    theme_advanced_buttons4 : "",
+    theme_advanced_toolbar_location : "top",
+    theme_advanced_toolbar_align : "left",
+    theme_advanced_statusbar_location : "bottom",
+    theme_advanced_resizing : true,
+    setup : function(ed) {
+        ed.addButton("myimage", {
+            title : "'.T_('Images').'",
+            image : "img/example.gif",
+            onclick : function() {
+                window.open("inc/upimages.php","name","width=700,height=500,scrollbars=yes,resizable=no,location=no,menubar=no,status=no"); 
+                return false;
+            }
+        });
+    }
+});
+</script>';
+}
+
+
+/**
+ * displayOkMessage 
+ * 
+ * Displays a success/ok message that closes automatically through js.
+ * 
+ * @param string $msg     defaults to 'Changes Updated Successfully.'
+ * @param int    $timeout defaults to 4000 ms
+ * 
+ * @return void
+ */
+function displayOkMessage ($msg = '', $timeout = 0)
+{
+    $id = 'msg-'.time();
+
+    if (empty($msg))
+    {
+        $msg = T_('Changes Updated Successfully.');
+    }
+
+    if ($timeout <= 0)
+    {
+        $timeout = '4000';
+    }
+
+    echo '
+        <script type="text/javascript" src="'.URL_PREFIX.'inc/js/scriptaculous.js"></script>
+        <div id="'.$id.'" class="ok-msg-container" style="display:none">
+            <div class="ok-msg">
+                <a class="close-msg" href="#" onclick="Effect.Fade(\''.$id.'\')" title="'.T_('Close Message').'">x</a>
+                '.$msg.'
+            </div>
+        </div>
+        <noscript>
+        <style type="text/css">
+        .ok-msg-container { display: block !important; margin: 0 0 30px 0 !important; position: relative; }
+        .ok-msg { width: auto !important; padding: 10px 45px !important; }
+        .close-msg { display: none; }
+        </style>
+        </noscript>
+        <script type="text/javascript">
+            Event.observe(window, \'load\', function() {
+                Effect.BlindDown(\''.$id.'\');
+                var t=setTimeout("Effect.Fade(\''.$id.'\')",'.$timeout.'); 
+            });
+        </script>';
 }
 
 /**
@@ -1738,43 +1983,44 @@ function formatSize($file_size)
  */
 function displayMembersOnline ()
 {
-    $last15min = time() - (60 * 15);
-    $lastday = time() - (60 * 60 * 24);
-    $sql_last15min = mysql_query("SELECT * FROM fcms_users WHERE UNIX_TIMESTAMP(activity) >= $last15min ORDER BY `activity` DESC") or die('<h1>Online Error (util.inc.php 246)</h1>' . mysql_error());
-    $sql_lastday = mysql_query("SELECT * FROM fcms_users WHERE UNIX_TIMESTAMP(activity) >= $lastday ORDER BY `activity` DESC") or die('<h1>Online Error (util.inc.php 247)</h1>' . mysql_error());
+    global $locale;
+
+    $last24hours = time() - (60 * 60 * 24);
+
+    $sql = "SELECT * 
+            FROM fcms_users 
+            WHERE UNIX_TIMESTAMP(`activity`) >= $last24hours 
+            ORDER BY `activity` DESC";
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Online Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return;
+    }
+
     echo '
-            <h3>'.T_('Now').':</h3>
+            <h3>'.T_('Last Seen').':</h3>
             <ul class="online-members">';
-    $i = 1;
-    $onlinenow_array = array();
-    while ($e = mysql_fetch_array($sql_last15min)) {
-        $displayname = getUserDisplayName($e['id']);
-        $onlinenow_array[$i] = $e['id'];
-        $i++;
+
+    while ($r = mysql_fetch_assoc($result))
+    {
+        $displayname = getUserDisplayName($r['id']);
+        $tz_offset   = getTimezone($r['id']);
+        $activity    = $locale->fixDate('F d, h:i a', $tz_offset, $r['activity']);
+        $since       = getHumanTimeSince(strtotime($r['activity']));
+
         echo '
                 <li>
-                    <a href="profile.php?member='.$e['id'].'">
-                        <img alt="avatar" src="'.getCurrentAvatar($e['id']).'"/> 
-                        '.$displayname.'
+                    <a href="profile.php?member='.$r['id'].'" class="tooltip" title="['.$displayname.'] - '.$activity.'" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">
+                        <img alt="avatar" src="'.getCurrentAvatar($r['id']).'" alt="'.$displayname.'"/> 
                     </a>
+                    <div class="tooltip" style="display:none;">
+                        <h5>'.$displayname.'</h5>
+                        <span>'.$since.'</span>
+                    </div>
                 </li>';
     }
-    echo '
-            </ul>
-            <h3>'.T_('Last 24 Hours').':</h3>
-            <ul class="online-members">';
-    while ($d = mysql_fetch_array($sql_lastday)) {
-        $displayname = getUserDisplayName($d['id']);
-        if (!array_search((string)$d['id'], $onlinenow_array)) {
-            echo '
-                <li>
-                    <a href="profile.php?member='.$d['id'].'">
-                        <img alt="avatar" src="'.getCurrentAvatar($d['id']).'"/> 
-                        '.$displayname.'
-                    </a>
-                </li>';
-        }
-    }
+
     echo '
             </ul><br/><br/>';
 }
@@ -1786,64 +2032,81 @@ function displayMembersOnline ()
  * it just returns, if not, it redirects to login screen.
  * returns  boolean
  */
-function isLoggedIn ($d = '')
+function isLoggedIn ($directory = '')
 {
-    if ($d != '') {
+    $up = '';
+
+    // We have are looking for a sub directory, then index is up a level
+    if ($directory != '')
+    {
         $up = '../';
-    } else {
-        $up = '';
     }
 
     // User has a session
-    if (isset($_SESSION['login_id'])) {
+    if (isset($_SESSION['login_id']))
+    {
         $id = $_SESSION['login_id'];
         $user = $_SESSION['login_uname'];
         $pass = $_SESSION['login_pw'];
+    }
     // User has a cookie
-    } elseif (isset($_COOKIE['fcms_login_id'])) {
+    elseif (isset($_COOKIE['fcms_login_id']))
+    {
         $_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
         $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
         $_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
         $id = $_SESSION['login_id'];
         $user = $_SESSION['login_uname'];
         $pass = $_SESSION['login_pw'];
+    }
     // User has nothing
-    } else {
+    else
+    {
         $url = basename($_SERVER["REQUEST_URI"]);
-        header("Location: {$up}index.php?err=login&url=$d$url");
+        header("Location: {$up}index.php?err=login&url=$directory$url");
         exit();
     }
 
     // Make sure id is a digit
-    if (!ctype_digit($id)) {
+    if (!ctype_digit($id))
+    {
         $url = basename($_SERVER["REQUEST_URI"]);
-        header("Location: {$up}index.php?err=login&url=$d$url");
+        header("Location: {$up}index.php?err=login&url=$directory$url");
         exit();
     }
 
     // User's session/cookie credentials are good
-    if (checkLoginInfo($id, $user, $pass)) {
-        $sql = "SELECT `access`, `site_off` 
-                FROM `fcms_users` AS u, `fcms_config` 
+    if (checkLoginInfo($id, $user, $pass))
+    {
+        $sql = "SELECT `access`, `site_off`
+                FROM `fcms_users` AS u, `fcms_config`
                 WHERE u.`id` = ".escape_string($id)." LIMIT 1";
         $result = mysql_query($sql) or displaySQLError(
             'Site Status Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         $r = mysql_fetch_array($result);
+
         // Site is off and your not an admin
-        if ($r['site_off'] == 1 && $r['access'] > 1) {
+        if ($r['site_off'] == 1 && $r['access'] > 1)
+        {
             header("Location: {$up}index.php?err=off");
             exit();
+        }
         // Good login, you may proceed
-        } else {
+        else
+        {
             return;
         }
+    }
     // The user's session/cookie credentials are bad
-    } else {
+    else
+    {
         unset($_SESSION['login_id']);
         unset($_SESSION['login_uname']);
         unset($_SESSION['login_pw']);
-        if (isset($_COOKIE['fcms_login_id'])) {
+
+        if (isset($_COOKIE['fcms_login_id']))
+        {
             setcookie('fcms_login_id', '', time() - 3600, '/');
             setcookie('fcms_login_uname', '', time() - 3600, '/');
             setcookie('fcms_login_pw', '', time() - 3600, '/');
@@ -1961,6 +2224,17 @@ function usingDocuments()
     return usingSection('documents');
 }
 /**
+ * usingWhereIsEveryone
+ * 
+ * Wrapper function for usingSection.
+ * 
+ * @return  boolean
+ */
+function usingWhereIsEveryone()
+{
+    return usingSection('whereiseveryone');
+}
+/**
  * usingSection 
  * 
  * Checks whether the given section is currently being used.
@@ -2049,40 +2323,46 @@ function displaySQLError ($heading, $file, $sql, $error)
 /**
  * fcmsErrorHandler 
  * 
- * @param   string  $errno 
- * @param   string  $errstr 
- * @param   string  $errfile 
- * @param   string  $errline 
- * @return  void
+ * @param string $errno 
+ * @param string $errstr 
+ * @param string $errfile 
+ * @param string $errline 
+ *
+ * @return boolean
  */
 function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
 {
     $pos = strpos($errstr, "It is not safe to rely on the system's timezone settings");
-    if ($pos === false) {
-        switch ($errno) {
-            case E_USER_ERROR:
-                echo "<div class=\"error-alert\"><big><b>Fatal Error</b></big><br/><small><b>$errstr</b></small><br/>";
-                echo  "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
-                echo  "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
-                exit(1);
-                break;
-            case E_USER_WARNING:
-                echo "<div class=\"error-alert\"><big><b>Warning</b></big><br/><small><b>$errstr</b></small><br/>";
-                echo  "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
-                echo  "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
-                break;
-            case E_USER_NOTICE:
-                echo "<div class=\"error-alert\"><big><b>Notice</b></big><br/><small><b>$errstr</b></small><br/>";
-                echo "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
-                echo  "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
-                break;
-            default:
-                echo "<div class=\"error-alert\"><big><b>Error</b></big><br/><small><b>$errstr</b></small><br/>";
-                echo "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
-                echo "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
-                break;
-        }
+    if ($pos !== false)
+    {
+        return true;
     }
+
+    switch ($errno)
+    {
+        case E_USER_ERROR:
+            echo "<div class=\"error-alert\"><big><b>Fatal Error</b></big><br/><small><b>$errstr</b></small><br/>";
+            echo  "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
+            echo  "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+            exit(1);
+            break;
+        case E_USER_WARNING:
+            echo "<div class=\"error-alert\"><big><b>Warning</b></big><br/><small><b>$errstr</b></small><br/>";
+            echo  "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
+            echo  "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+            break;
+        case E_USER_NOTICE:
+            echo "<div class=\"error-alert\"><big><b>Notice</b></big><br/><small><b>$errstr</b></small><br/>";
+            echo "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
+            echo  "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+            break;
+        default:
+            echo "<div class=\"error-alert\"><big><b>Error</b></big><br/><small><b>$errstr</b></small><br/>";
+            echo "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
+            echo "<small><b>Environment:</b> PHP " . PHP_VERSION . " (" . PHP_OS . ")</small></div>";
+            break;
+    }
+
     // Don't execute PHP internal error handler
     return true;
 }
@@ -2096,119 +2376,52 @@ function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
 function displayWhatsNewAll ($userid)
 {
     global $cfg_mysql_host, $cfg_use_news, $cfg_use_prayers;
-    $locale = new Locale();
-    $userid = cleanInput($userid, 'int');
-    $sql = "SELECT `timezone` 
-            FROM `fcms_user_settings` 
-            WHERE `user` = '$userid'";
-    $t_result = mysql_query($sql) or displaySQLError(
-        'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $t = mysql_fetch_array($t_result);
-    $tz_offset = $t['timezone'];
 
-    $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type 
-            FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
-            WHERE p.`thread` = t.`id` 
-            AND p.`user` = u.`id` 
-            AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
+    $locale = new FCMS_Locale();
 
-            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.entered_by AS id2, u.joindate AS id3, 'ADDRESSEDIT' AS type
-            FROM fcms_address AS a, fcms_users AS u
-            WHERE a.user = u.id
-            AND DATE_FORMAT(a.updated, '%Y-%m-%d %h') != DATE_FORMAT(u.joindate, '%Y-%m-%d %h') 
-            AND a.updated >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
+    $userid    = cleanInput($userid, 'int');
+    $tz_offset = getTimezone($userid);
 
-            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.entered_by AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
-            FROM fcms_address AS a, fcms_users AS u
-            WHERE a.user = u.id
-            AND u.`password` = 'NONMEMBER' 
-            AND u.`activated` < 1 
-            AND a.updated >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
-
-            UNION SELECT `id`, `joindate` AS date, 0 AS title, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
-            FROM `fcms_users` 
-            WHERE `password` != 'NONMEMBER' 
-            AND `activated` > 0 
-            AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) ";
-    if (usingFamilyNews()) {
-        $sql .= "UNION SELECT n.`id` AS id, n.`date`, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type 
-                 FROM `fcms_users` AS u, `fcms_news` AS n 
-                 WHERE u.`id` = n.`user` 
-                 AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
-                 AND `username` != 'SITENEWS' 
-                 AND `password` != 'SITENEWS' ";
-    }
-    if (usingPrayers()) {
-        $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type 
-                 FROM `fcms_prayers` 
-                 WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) ";
-    }
-    if (usingRecipes()) {
-        $sql .= "UNION SELECT `id` AS id, `date`, `name` AS title, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type 
-                 FROM `fcms_recipes` 
-                 WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) ";
-    }
-    if (usingdocuments()) {
-        $sql .= "UNION SELECT d.`id` AS 'id', d.`date`, `name` AS title, d.`user` AS userid, 0 AS id2, 0 AS id3, 'DOCS' AS type 
-                 FROM `fcms_documents` AS d, `fcms_users` AS u 
-                 WHERE d.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
-                 AND d.`user` = u.`id` ";
-    }
-    $sql .= "UNION SELECT DISTINCT p.`category` AS id, p.`date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(p.`date`) AS id3, 'GALLERY' AS type 
-             FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_category` AS c 
-             WHERE p.`user` = u.`id` 
-             AND p.`category` = c.`id` 
-             AND 'date' >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
-             GROUP BY userid, title, id3 ";
-    if (usingFamilyNews()) {
-        $sql .= "UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
-                 FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u 
-                 WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
-                 AND nc.`user` = u.`id` 
-                 AND n.`id` = nc.`news` ";
-    }
-    $sql .= "UNION SELECT p.`id`, gc.`date`, `comment` AS title, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type 
-             FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p 
-             WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
-             AND gc.`user` = u.`id` 
-             AND gc.`photo` = p.`id` 
-
-             UNION SELECT c.`id`, c.`date_added` AS date, `title`, `created_by` AS userid, `date` AS id2, `category` AS id3, 'CALENDAR' AS type 
-             FROM `fcms_calendar` AS c, `fcms_users` AS u 
-             WHERE c.`date_added` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
-             AND c.`created_by` = u.`id` AND `private` < 1 
-
-             UNION SELECT `id`, `started` AS date, `question`, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type 
-             FROM `fcms_polls` 
-             WHERE `started` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
-
-             ORDER BY date DESC LIMIT 0, 35";
-    $result = mysql_query($sql) or displaySQLError(
-        'Latest Info Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
     $lastday = '0-0';
 
-    $today_start = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-    $today_end   = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+    $today_start = $locale->fixDate('Ymd', $tz_offset, date('Y-m-d H:i:s')) . '000000';
+    $today_end   = $locale->fixDate('Ymd', $tz_offset, date('Y-m-d H:i:s')) . '235959';
 
-    $time = gmmktime(0, 0, 0, gmdate('m')  , gmdate('d')-1, gmdate('Y'));
-    $yesterday_start = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s', $time)) . '000000';
-    $yesterday_end   = $locale->fixDate('Ymd', $tz_offset, gmdate('Y-m-d H:i:s', $time)) . '235959';
+    $time            = mktime(0, 0, 0, date('m')  , date('d')-1, date('Y'));
+    $yesterday_start = $locale->fixDate('Ymd', $tz_offset, date('Y-m-d H:i:s', $time)) . '000000';
+    $yesterday_end   = $locale->fixDate('Ymd', $tz_offset, date('Y-m-d H:i:s', $time)) . '235959';
 
-    while ($r=mysql_fetch_array($result)) {
+    // Get data
+    $whatsNewData = getWhatsNewData($userid, 30);
+    if ($whatsNewData === false)
+    {
+        return;
+    }
 
-        $updated     = $locale->fixDate('Ymd', $tz_offset, $r['date']);
+    // Loop through data
+    foreach ($whatsNewData as $r)
+    {
+        $updated     = $locale->fixDate('Ymd',    $tz_offset, $r['date']);
         $updatedFull = $locale->fixDate('YmdHis', $tz_offset, $r['date']);
 
-        if ($updated != $lastday) {
-            if ($updatedFull >= $today_start && $updatedFull <= $today_end) {
+        // Print date header
+        if ($updated != $lastday)
+        {
+            // Today
+            if ($updatedFull >= $today_start && $updatedFull <= $today_end)
+            {
                 echo '
                 <p><b>'.T_('Today').'</b></p>';
-            } elseif ($updatedFull >= $yesterday_start && $updatedFull <= $yesterday_end) {
+            }
+            // Yesterday
+            elseif ($updatedFull >= $yesterday_start && $updatedFull <= $yesterday_end)
+            {
                 echo '
                 <p><b>'.T_('Yesterday').'</b></p>';
-            } else {
+            }
+            // Earlier
+            else
+            {
                 $date = $locale->fixDate('F j, Y', $tz_offset, $r['date']);
                 echo '
                 <p><b>'.$date.'</b></p>';
@@ -2216,7 +2429,8 @@ function displayWhatsNewAll ($userid)
         }
         $rdate = $locale->fixDate('g:i a', $tz_offset, $r['date']);
 
-        if ($r['type'] == 'BOARD') {
+        if ($r['type'] == 'BOARD')
+        {
             $check = mysql_query("SELECT min(`id`) AS id FROM `fcms_board_posts` WHERE `thread` = " . $r['id2']) or die("<h1>Thread or Post Error (util.inc.php 360)</h1>" . mysql_error());
             $minpost = mysql_fetch_array($check);
             $userName = getUserDisplayName($r['userid']);
@@ -2240,51 +2454,82 @@ function displayWhatsNewAll ($userid)
                 <p class="'.$class.'">
                     '.$text.'. <small><i>'.$rdate.'</i></small>
                 </p>';
-        } elseif ($r['type'] == 'JOINED') {
-            // A new user joined the site
+        }
+        elseif ($r['type'] == 'JOINED')
+        {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             echo '
                 <p class="newmember">'.sprintf(T_('%s has joined the website.'), $displayname).' <small><i>'.$rdate.'</i></small></p>';
-        } elseif ($r['type'] == 'ADDRESSEDIT') {
-            // User updated his/her address
+        }
+        elseif ($r['type'] == 'ADDRESSEDIT')
+        {
             $displayname = getUserDisplayName($r['id2']);
+
+            // TODO
+            // Log this error (user doesn't have settings)
+            if ($displayname == "")
+            {
+                $displayname = getUserDisplayName($r['id2'], 2, false);
+            }
+
             $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
-            $address = '<a href="addressbook.php?address='.$r['id'].'">'.T_('address').'</a>';
+            $address     = '<a href="addressbook.php?address='.$r['id'].'">'.T_('address').'</a>';
+
+            if ($r['id3'] == 'F')
+            {
+                $text = sprintf(T_('%s has updated her %s.'), $displayname, $address);
+            }
+            else
+            {
+                $text = sprintf(T_('%s has updated his %s.'), $displayname, $address);
+            }
+
             echo '
-                <p class="newaddress">'.sprintf(T_('%s has updated his/her %s.'), $displayname, $address).' <small><i>'.$rdate.'</i></small></p>';
-        } elseif ($r['type'] == 'ADDRESSADD') {
-            // A user has added an address for a non-member
+                <p class="newaddress">'.$text.' <small><i>'.$rdate.'</i></small></p>';
+        }
+        elseif ($r['type'] == 'ADDRESSADD')
+        {
             $displayname = getUserDisplayName($r['id2']);
             $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
             $for = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
             echo '
                 <p class="newaddress">'.sprintf(T_('%s has added address information for %s.'), $displayname, $for).' <small><i>'.$rdate.'</i></small></p>';
-        } elseif ($r['type'] == 'NEWS') {
+        }
+        elseif ($r['type'] == 'NEWS')
+        {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.cleanOutput($r['title']).'</a>'; 
             echo '
                 <p class="newnews">'.sprintf(T_('%s has added %s to his/her Family News.'), $displayname, $news).' <small><i>'.$rdate.'</i></small></p>';
-        } elseif ($r['type'] == 'PRAYERS') {
+        }
+        elseif ($r['type'] == 'PRAYERS')
+        {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $for = '<a href="prayers.php">'.cleanOutput($r['title']).'</a>';
             echo '
                 <p class="newprayer">'.sprintf(T_('%s has added a Prayer Concern for %s.'), $displayname, $for).' <small><i>'.$rdate.'</i></small></p>';
-        } elseif ($r['type'] == 'RECIPES') {
+        }
+        elseif ($r['type'] == 'RECIPES')
+        {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
             echo '
                 <p class="newrecipe">'.sprintf(T_('%s has added the %s recipe.'), $displayname, $rec).' <small><i>'.$rdate.'</i></small></p>';
-        } elseif ($r['type'] == 'DOCS') {
+        }
+        elseif ($r['type'] == 'DOCS')
+        {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $doc = '<a href="documents.php">'.cleanOutput($r['title']).'</a>';
             echo '
                 <p class="newdocument">'.sprintf(T_('%s has added a new Document (%s).'), $displayname, $doc).' <small><i>'.$rdate.'</i></small></p>';
-        } elseif ($r['type'] == 'GALLERY') {
+        }
+        elseif ($r['type'] == 'GALLERY')
+        {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $cat = '<a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
@@ -2307,43 +2552,279 @@ function displayWhatsNewAll ($userid)
             while ($p=mysql_fetch_array($photos)) {
                 echo '
                         <a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'&amp;pid='.$p['id'].'">
-                            <img src="gallery/photos/member'.$r['userid'].'/tb_'.basename($p['filename']).'" alt="'.cleanOutput($p['caption']).'"/>
+                            <img src="uploads/photos/member'.$r['userid'].'/tb_'.basename($p['filename']).'" alt="'.cleanOutput($p['caption']).'"/>
                         </a> &nbsp;';
             }
             echo '
                     </p>';
-        } elseif ($r['type'] == 'NEWSCOM') {
+        }
+        elseif ($r['type'] == 'NEWSCOM')
+        {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
             echo '
                     <p class="newcom">'.sprintf(T_('%s commented on Family News %s.'), $displayname, $news).' <small><i>'.$rdate.'</i></small></p>';
-        } elseif ($r['type'] == 'GALCOM') {
+        }
+        elseif ($r['type'] == 'GALCOM')
+        {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             echo '
                     <p class="newcom">
                         '.sprintf(T_('%s commented on the following photo:'), $displayname).' <small><i>'.$rdate.'</i></small><br/>
                         <a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'">
-                            <img src="gallery/photos/member'.$r['id2'].'/tb_'.basename($r['id3']).'"/>
+                            <img src="uploads/photos/member'.$r['id2'].'/tb_'.basename($r['id3']).'"/>
                         </a>
                     </p>';
-        } elseif ($r['type'] == 'CALENDAR') {
+        }
+        elseif ($r['type'] == 'RECIPECOM')
+        {
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+            echo '
+                    <p class="newcom">'.sprintf(T_('%s commented on Recipe %s.'), $displayname, $rec).' <small><i>'.$rdate.'</i></small></p>';
+        }
+        elseif ($r['type'] == 'CALENDAR')
+        {
             $date_date   = date('F j, Y', strtotime($r['id2']));
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $for = '<a href="calendar.php?year='.date('Y', strtotime($date_date))
-                .'&amp;month='.date('m', strtotime($date_date))
-                .'&amp;day='.date('d', strtotime($date_date)).'">'.cleanOutput($r['title']).'</a>';
+            $for = '<a href="calendar.php?event='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
             echo '
                     <p class="newcal">'.sprintf(T_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $for).' <small><i>'.$rdate.'</i></small></p>';
-        } elseif ($r['type'] == 'POLL') {
+        }
+        elseif ($r['type'] == 'POLL')
+        {
             $poll = '<a href="home.php?poll_id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
             echo '
                 <p class="newpoll">'.sprintf(T_('A new Poll (%s) has been added.'), $poll).' <small><i>'.$rdate.'</i></small></p>';
         }
+        elseif ($r['type'] == 'WHEREISEVERYONE')
+        {
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+
+            echo '
+                <p class="newwhere">'.sprintf(T_('%s visited %s.'), $displayname, $r['title']).' <small><i>'.$rdate.'</i></small></p>';
+        }
+
         $lastday = $updated;
     }
+}
+
+/**
+ * getWhatsNewData 
+ * 
+ * Get the latest information in the site, including any external data.
+ * Defaults to the last 30 days.
+ * 
+ * @param int $userid
+ * @param int $days 
+ * 
+ * @return void
+ */
+function getWhatsNewData ($userid, $days = 30)
+{
+    $currentUserId = cleanInput($userid, 'int');
+
+    $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type 
+            FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
+            WHERE p.`thread` = t.`id` 
+            AND p.`user` = u.`id` 
+            AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+
+            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.entered_by AS id2, u.`sex` AS id3, 'ADDRESSEDIT' AS type
+            FROM fcms_address AS a, fcms_users AS u
+            WHERE a.user = u.id
+            AND DATE_FORMAT(a.updated, '%Y-%m-%d %h') != DATE_FORMAT(u.joindate, '%Y-%m-%d %h') 
+            AND a.updated >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+
+            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.entered_by AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
+            FROM fcms_address AS a, fcms_users AS u
+            WHERE a.user = u.id
+            AND u.`password` = 'NONMEMBER' 
+            AND u.`activated` < 1 
+            AND a.updated >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+
+            UNION SELECT `id`, `joindate` AS date, 0 AS title, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
+            FROM `fcms_users` 
+            WHERE `password` != 'NONMEMBER' 
+            AND `activated` > 0 
+            AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
+    if (usingFamilyNews())
+    {
+        $sql .= "UNION SELECT n.`id` AS id, n.`date`, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type 
+                 FROM `fcms_users` AS u, `fcms_news` AS n 
+                 WHERE u.`id` = n.`user` 
+                 AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+                 AND `username` != 'SITENEWS' 
+                 AND `password` != 'SITENEWS'
+
+                 UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
+                 FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u 
+                 WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+                 AND nc.`user` = u.`id` 
+                 AND n.`id` = nc.`news` ";
+    }
+    if (usingPrayers())
+    {
+        $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type 
+                 FROM `fcms_prayers` 
+                 WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
+    }
+    if (usingRecipes())
+    {
+        $sql .= "UNION SELECT `id` AS id, `date`, `name` AS title, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type 
+                 FROM `fcms_recipes` 
+                 WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+
+                 UNION SELECT r.`id`, rc.`date`, `comment` AS title, rc.`user` AS userid, r.`category` AS id2, 0 AS id3, 'RECIPECOM' AS type
+                 FROM `fcms_recipe_comment` AS rc, `fcms_recipes` AS r
+                 WHERE rc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY)
+                 AND rc.`recipe` = r.`id` ";
+    }
+    if (usingdocuments())
+    {
+        $sql .= "UNION SELECT d.`id` AS 'id', d.`date`, `name` AS title, d.`user` AS userid, 0 AS id2, 0 AS id3, 'DOCS' AS type 
+                 FROM `fcms_documents` AS d, `fcms_users` AS u 
+                 WHERE d.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+                 AND d.`user` = u.`id` ";
+    }
+    $sql .= "UNION SELECT DISTINCT p.`category` AS id, p.`date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(p.`date`) AS id3, 'GALLERY' AS type 
+             FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_category` AS c 
+             WHERE p.`user` = u.`id` 
+             AND p.`category` = c.`id` 
+             AND 'date' >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+             GROUP BY userid, title, id3
+
+             UNION SELECT p.`id`, gc.`date`, `comment` AS title, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type 
+             FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p 
+             WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+             AND gc.`user` = u.`id` 
+             AND gc.`photo` = p.`id` 
+
+             UNION SELECT c.`id`, c.`date_added` AS date, `title`, `created_by` AS userid, `date` AS id2, `category` AS id3, 'CALENDAR' AS type 
+             FROM `fcms_calendar` AS c, `fcms_users` AS u 
+             WHERE c.`date_added` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+             AND c.`created_by` = u.`id` AND `private` < 1 
+
+             UNION SELECT `id`, `started` AS date, `question`, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type 
+             FROM `fcms_polls` 
+             WHERE `started` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+
+             ORDER BY date DESC LIMIT 0, 35";
+
+    $result = mysql_query($sql);
+
+    if (!$result)
+    {
+        displaySQLError('Latest Info Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return false;
+    }
+
+    // Save data
+    while ($r = mysql_fetch_assoc($result))
+    {
+        $whatsNewData[] = $r;
+    }
+
+    // Add external foursquare data
+    if (usingWhereIsEveryone())
+    {
+        include_once('whereiseveryone_class.php');
+        include_once('foursquare/EpiFoursquare.php');
+        include_once('foursquare/EpiCurl.php');
+
+        $whereObj = new WhereIsEveryone($currentUserId);
+
+        $users  = $whereObj->getActiveUsers();
+        $config = $whereObj->getFoursquareConfigData();
+
+        // Foursquare hasn't been setup or is invalid
+        if (empty($config['fs_client_id']) or empty($config['fs_client_secret']))
+        {
+            // If admin is viewing, alert them that the config is missing/messed up
+            if (checkAccess($currentUserId) < 2)
+            {
+                echo '
+                    <div class="info-alert">
+                        <h2>'.T_('Foursquare is not configured correctly.').'</h2>
+                        <p>'.T_('The "Where Is Everyone" feature cannot work without Foursquare.  Please configure Foursquare or turn off "Where Is Everyone".').'</p>
+                    </div>';
+            }
+
+            return $whatsNewData;
+        }
+
+        $foursquareData = array();
+
+        if (count($users[0]) > 0)
+        {
+            $timeago = gmmktime(0, 0, 0, gmdate('m'), gmdate('d')-$days, gmdate('Y'));
+
+            $i = 0;
+            foreach ($users as $k => $data)
+            {
+                // Skip users who don't have foursquare setup
+                if (empty($data['access_token']))
+                {
+                    continue;
+                }
+
+                $fsObj = new EpiFoursquare($config['fs_client_id'], $config['fs_client_secret'], $data['access_token']);
+
+                try
+                {
+                    $params = array(
+                        'afterTimestamp' => $timeago
+                    );
+                    $creds = $fsObj->get('/users/'.$data['user_id'].'/checkins', $params);
+                }
+                catch(EpiFoursquareException $e)
+                {
+                    echo 'We caught an EpiOAuthException';
+                    echo $e->getMessage();
+                    return false;
+                }
+                catch(Exception $e)
+                {
+                    echo 'We caught an unexpected Exception';
+                    echo $e->getMessage();
+                    return false;
+                }
+
+                foreach ($creds->response->checkins->items as $checkin)
+                {
+                    // Skip shouts, etc
+                    if ($checkin->type != 'checkin')
+                    {
+                        continue;
+                    }
+
+                    $date = date('Y-m-d H:i:s', $checkin->createdAt);
+                    $sort = $checkin->createdAt;
+
+                    $whatsNewData[] = array(
+                        'id'        => '',
+                        'date'      => $date,
+                        'title'     => $checkin->venue->name,
+                        'userid'    => $data['fcms_user_id'],
+                        'id2'       => '',
+                        'id3'       => '',
+                        'type'      => 'WHEREISEVERYONE'
+                    );
+                }
+            }
+        }
+
+        // Order is messed up now, so fix it
+        $whatsNewData = subval_sort($whatsNewData, 'date');
+        $whatsNewData = array_reverse($whatsNewData);
+    }
+
+    return $whatsNewData;
 }
 
 /**
@@ -2444,6 +2925,29 @@ function usingAdvancedUploader ($userid)
     );
     $r = mysql_fetch_array($result);
     if ($r['advanced_upload'] == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * usingAdvancedTagging
+ * 
+ * @param   int     $userid 
+ * @return  boolean
+ */
+function usingAdvancedTagging ($userid)
+{
+    $userid = cleanInput($userid, 'int');
+    $sql = "SELECT `advanced_tagging`
+            FROM `fcms_user_settings` 
+            WHERE `user` = '$userid'";
+    $result = mysql_query($sql) or displaySQLError(
+        'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+    );
+    $r = mysql_fetch_array($result);
+    if ($r['advanced_tagging'] == 1) {
         return true;
     } else {
         return false;
@@ -2632,11 +3136,12 @@ function getCalendarCategory ($cat, $caseSensitive = false)
 /**
  * getCurrentAvatar 
  * 
- * @param   int     $id 
- * @param   boolean $gallery 
- * @return  string
+ * @param int     $id 
+ * @param boolean $gallery 
+ * 
+ * @return string
  */
-function getCurrentAvatar ($id, $gallery = true)
+function getCurrentAvatar ($id, $gallery = false)
 {
     $id = cleanInput($id, 'int');
 
@@ -2654,19 +3159,204 @@ function getCurrentAvatar ($id, $gallery = true)
 
     $r = mysql_fetch_array($result);
 
-    // include gallery directory
-    $url = $gallery ? 'gallery/' : '';
+    // Do we need to back out of the gallery/ sub directory?
+    $url = $gallery ? '../' : '';
 
-    switch ($r['avatar'])
+    return getAvatarPath($r['avatar'], $r['gravatar'], $url);
+}
+
+function getAvatarPath ($avatar, $gravatar, $url = '')
+{
+    switch ($avatar)
     {
         case 'no_avatar.jpg':
-            return $url.'avatar/no_avatar.jpg';
+            return $url.'uploads/avatar/no_avatar.jpg';
             break;
         case 'gravatar':
-            return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($r['gravatar'])).'&amp;s=80'; 
+            return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80'; 
         default:
-            return $url.'avatar/'.basename($r['avatar']);
+            return $url.'uploads/avatar/'.basename($avatar);
     }
 }
 
-?>
+function getTimezone ($user_id)
+{
+    $sql = "SELECT `timezone` 
+            FROM `fcms_user_settings` 
+            WHERE `user` = '$user_id'";
+
+    $result = mysql_query($sql);
+
+    if (!$result) {
+        displaySQLError('Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        die();
+    }
+
+    if (mysql_num_rows($result) <= 0) {
+        return;
+    }
+
+    $r = mysql_fetch_array($result);
+
+    return $r['timezone'];
+}
+
+/**
+ * subval_sort 
+ * 
+ * Sorts a multidimensional array by a key in the sub array.
+ * 
+ * @param array  $a 
+ * @param string $subkey 
+ * 
+ * @return void
+ */
+function subval_sort ($a, $subkey)
+{
+    foreach($a as $k => $v)
+    {
+        $b[$k] = strtolower($v[$subkey]);
+    }
+
+    asort($b);
+
+    foreach($b as $key => $val)
+    {
+        $c[] = $a[$key];
+    }
+
+    return $c;
+}
+
+/**
+ * deleteDirectory 
+ * 
+ * Recursively deletes a directory and anything in it.
+ * 
+ * @param string $dir 
+ * 
+ * @return void
+ */
+function deleteDirectory ($dir)
+{
+    $files = scandir($dir);
+
+    if ($files === false)
+    {
+        return false;
+    }
+
+    // remove . and .. if they exist
+    if ($files[0] == '.') { array_shift($files); }
+    if ($files[0] == '..') { array_shift($files); }
+   
+    foreach ($files as $file)
+    {
+        $file = $dir . '/' . $file;
+
+        if (is_dir($file))
+        {
+            deleteDirectory($file);
+        }
+        else
+        {
+            unlink($file);
+        }
+    }
+
+    if (is_dir($dir))
+    {
+        rmdir($dir);
+    } 
+
+    return true;
+}
+
+/**
+ * isRegistrationOn 
+ * 
+ * Checks the admin configuration to see if the site is allowing registration of new users.
+ * 
+ * @return void
+ */
+function isRegistrationOn ()
+{
+    $sql = "SELECT `registration` FROM `fcms_config` LIMIT 1";
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Register Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return false;
+    }
+    $r = mysql_fetch_array($result);
+
+    $on = $r['registration'] == 1 ? true : false;
+
+    return $on;
+}
+
+/**
+ * getHumanTimeSince 
+ * 
+ * Returns a nice, human readable difference between two dates.
+ * ex: "5 days", "24 minutes"
+ *
+ * to time will be set to time() if not supplied
+ * 
+ * @param int $from 
+ * @param int $to 
+ * 
+ * @return void
+ */
+function getHumanTimeSince ($from, $to = 0)
+{
+    if ($to == 0)
+    {
+        $to = time();
+    }
+
+    $diff = (int)abs($to - $from);
+
+    // now
+    if ($diff < 1)
+    {
+        $since = T_('right now');
+    }
+    // seconds
+    elseif ($diff < 60)
+    {
+        $since = sprintf(T_ngettext('%s second ago', '%s seconds ago', $diff), $diff);
+    }
+    // minutes
+    elseif ($diff <= 3600)
+    {
+        $mins = round($diff / 60);
+        if ($mins <= 1)
+        {
+            $mins = 1;
+        }
+        $since = sprintf(T_ngettext('%s minute ago', '%s minutes ago', $mins), $mins);
+    }
+    // hours
+    elseif (($diff <= 86400) && ($diff > 3600))
+    {
+        $hours = round($diff / 3600);
+        if ($hours <= 1)
+        {
+            $hours = 1;
+        }
+        $since = sprintf(T_ngettext('%s hour ago', '%s hours ago', $hours), $hours);
+    }
+    // days
+    elseif ($diff >= 86400)
+    {
+        $days = round($diff / 86400);
+        if ($days <= 1)
+        {
+            $days = 1;
+        }
+        $since = sprintf(T_ngettext('%s day ago', '%s days ago', $days), $days);
+    }
+
+    return $since;
+}

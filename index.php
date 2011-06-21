@@ -358,6 +358,12 @@ function displayLogin() {
                     continue;
                 }
 
+                // Skip files (messages.pot)
+                if (!is_dir("$lang_dir$file"))
+                {
+                    continue;
+                }
+
                 // Skip directories that don't include a messages.mo file
                 if (!file_exists($lang_dir . $file . '/LC_MESSAGES/messages.mo')) {
                     continue;
@@ -379,6 +385,13 @@ function displayLogin() {
         }
     }
 
+    $forgotPassLink = '<a href="lostpw.php">'.T_('Forgot Password?').'</a>';
+    $registerLink   = '';
+
+    if (isRegistrationOn())
+    {
+        $registerLink = ' | <a href="register.php">'.T_('Register').'</a>';
+    }
 
     echo '
     <div id="login_box">
@@ -386,7 +399,7 @@ function displayLogin() {
         <form action="index.php" method="post">
             <div style="float:right">
                 <select style="background-color:#e9f3fb; border:none;" onchange="window.location.href=\'?lang=\'+this.options[this.selectedIndex].value;">
-                    <option>Language:</option>
+                    <option>'.T_('Language').':</option>
                     '.$lang_options.'
                 </select>
             </div>
@@ -400,9 +413,8 @@ function displayLogin() {
             </p>
             <div class="clear"></div>
         </form>
-        <p class="center">
-            <a href="lostpw.php">'.T_('Forgot Password?').'</a> | <a href="register.php">'.T_('Register').'</a>
-        </p>
+        <p class="center">'.$forgotPassLink.$registerLink.'</p>
+        <p style="color:silver; text-align:center; font-size:11px">'.getCurrentVersion().'</p>
     </div>
 </body>
 </html>';

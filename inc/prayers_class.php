@@ -15,33 +15,25 @@ class Prayers {
 
     var $db;
     var $db2;
-    var $tz_offset;
+    var $tzOffset;
     var $currentUserId;
 
     /**
      * Prayers 
      * 
      * @param   int     $currentUserId 
-     * @param   string  $type 
-     * @param   string  $host 
-     * @param   string  $database 
-     * @param   string  $user 
-     * @param   string  $pass 
+     *
      * @return  void
      */
-    function Prayers ($currentUserId, $type, $host, $database, $user, $pass)
+    function Prayers ($currentUserId)
     {
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
         $this->currentUserId = cleanInput($currentUserId, 'int');
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $this->db2 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
     /**
@@ -52,7 +44,7 @@ class Prayers {
      */
     function showPrayers ($page = 1)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
         $from = (($page * 5) - 5); 
         $sql = "SELECT p.`id`, `for`, `desc`, `user`, `date` 
                 FROM `fcms_prayers` AS p, `fcms_users` AS u 
@@ -64,7 +56,7 @@ class Prayers {
         );
         if ($this->db->count_rows() > 0) {
             while($r = $this->db->get_row()) {
-                $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tz_offset, $r['date']);
+                $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $r['date']);
                 $displayname = getUserDisplayName($r['user']);
 
                 // TODO
@@ -139,7 +131,7 @@ class Prayers {
     function displayForm ($type, $id = 0, $for = 'error', $desc = 'error')
     {
         echo '
-            <script type="text/javascript" src="inc/livevalidation.js"></script>';
+            <script type="text/javascript" src="inc/js/livevalidation.js"></script>';
         if ($type == 'edit') {
             $for = cleanInput($for);
             echo '
@@ -197,9 +189,9 @@ class Prayers {
      */
     function displayWhatsNewPrayers ()
     {
-        $locale = new Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+        $locale = new FCMS_Locale();
+        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
 
         $sql = "SELECT * 
                 FROM `fcms_prayers` 
@@ -216,12 +208,12 @@ class Prayers {
             while ($r = $this->db->get_row()) {
                 $displayname = getUserDisplayName($r['user']);
                 $for = $r['for'];
-                $date = $locale->fixDate('YmdHis', $this->tz_offset, $r['date']);
+                $date = $locale->fixDate('YmdHis', $this->tzOffset, $r['date']);
                 if ($date >= $today_start && $date <= $today_end) {
                     $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
+                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
                     $d = '';
                 }
                 echo '

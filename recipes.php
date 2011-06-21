@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+define('URL_PREFIX', '');
+
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
 include_once('inc/recipes_class.php');
@@ -18,8 +20,7 @@ $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Recipes'),
-    'path'          => "",
-    'admin_path'    => "admin/",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
@@ -28,6 +29,7 @@ $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
+    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
     initHideAddFormDetails();
     if (!$$(\'.delrec input[type="submit"]\')) { return; }
     $$(\'.delrec input[type="submit"]\').each(function(item) {
@@ -89,7 +91,7 @@ if (isset($_POST['submitadd'])) {
                 NOW()
             )";
     mysql_query($sql) or displaySQLError(
-        'New Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'New Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
     );
     $rec_id = mysql_insert_id();
     echo '
@@ -104,7 +106,7 @@ if (isset($_POST['submitadd'])) {
             WHERE `email_updates` = '1'
             AND u.`id` = s.`user`";
     $result = mysql_query($sql) or displaySQLError(
-        'Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', 
+        'Email Updates Error', __FILE__.' ['.__LINE__.']', 
         $sql, mysql_error()
     );
     if (mysql_num_rows($result) > 0) {
@@ -144,7 +146,7 @@ if (isset($_POST['submitedit'])) {
                 `directions`    = '" . cleanInput($_POST['directions']) . "' 
             WHERE `id` = '" . cleanInput($_POST['id'], 'int') . "'";
     mysql_query($sql) or displaySQLError(
-        'Edit Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Edit Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
     );
     echo '
             <p class="ok-alert" id="edit">'.T_('Changes Updated Successfully').'</p>
@@ -165,7 +167,7 @@ if (isset($_POST['submit-category'])) {
                 '$currentUserId'
             )";
     mysql_query($sql) or displaySQLError(
-        'New Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'New Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
     );
     $cat = mysql_insert_id();
     $rec->displayAddRecipeForm($cat);
@@ -196,7 +198,7 @@ if (isset($_POST['delrecipe']) && !isset($_POST['confirmed'])) {
     $sql = "DELETE FROM `fcms_recipes` 
             WHERE `id` = '" . cleanInput($_POST['id'], 'int') . "'";
     mysql_query($sql) or displaySQLError(
-        'Delete Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Delete Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
     echo '
             <p class="ok-alert" id="del">'.T_('Recipe Deleted Successfully').'</p>
@@ -247,7 +249,7 @@ if (isset($_POST['addcom'])) {
                 NOW()
             )";
     mysql_query($sql) or displaySQLError(
-        'Add Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Add Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
     );
 }
 
@@ -259,12 +261,81 @@ if (isset($_POST['delcom'])) {
         $sql = "DELETE FROM `fcms_recipe_comment`
                 WHERE `id` = '" . cleanInput($_POST['id'], 'int') . "'";
         mysql_query($sql) or displaySQLError(
-            'Delete Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Delete Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
 
     } else {
         echo '
         <p class="error-alert">'.T_('You do not have permission to delete this comment.').'</p>';
+    }
+}
+
+//------------------------------------------------------------------------------
+// Show edit Category
+//------------------------------------------------------------------------------
+if (isset($_GET['categoryedit']))
+{
+    if (checkAccess($currentUserId) <= 2)
+    {
+        $show = false;
+        $rec->displayEditCategoryForm();
+    }
+}
+//------------------------------------------------------------------------------
+// Edit/Delete Categories
+//------------------------------------------------------------------------------
+if (isset($_POST['submit_cat_edit']))
+{
+    if (checkAccess($currentUserId) <= 2)
+    {
+        // Edit
+        if (isset($_POST['category']) && isset($_POST['id']))
+        {
+            $ids = $_POST['id'];
+
+            foreach ($_POST['category'] as $key => $category)
+            {
+                $id = $ids[$key];
+                $sql = "UPDATE `fcms_category` 
+                        SET `name` = '".cleanInput($category)."' 
+                        WHERE `id` = '".cleanInput($id, 'int')."'";
+
+                if (!mysql_query($sql))
+                {
+                    displaySQLError('Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                    return;
+                }
+            }
+
+            displayOkMessage();
+        }
+
+        // Deleting
+        if (isset($_POST['delete']))
+        {
+            foreach ($_POST['delete'] as $id)
+            {
+                // Delete recipes
+                $sql = "DELETE FROM `fcms_recipes` WHERE `category` = '".cleanInput($id, 'int')."'";
+
+                if (!mysql_query($sql))
+                {
+                    displaySQLError('Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                    return;
+                }
+
+                // Delete category
+                $sql = "DELETE FROM `fcms_category` WHERE `id` = '".cleanInput($id, 'int')."'";
+
+                if (!mysql_query($sql))
+                {
+                    displaySQLError('Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                    return;
+                }
+            }
+
+            displayOkMessage();
+        }
     }
 }
 

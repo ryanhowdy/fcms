@@ -12,6 +12,8 @@
  */
 session_start();
 
+define('URL_PREFIX', '');
+
 require_once 'inc/config_inc.php';
 require_once 'inc/util_inc.php';
 require_once 'inc/documents_class.php';
@@ -22,13 +24,13 @@ fixMagicQuotes();
 isLoggedIn();
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-$docs = new Documents($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$docs = new Documents($currentUserId);
 
 // Download Document
 header("Cache-control: private");
 if (isset($_GET['download'])) {
     $show = false;
-    $filename = "gallery/documents/" . basename($_GET['download']);
+    $filename = "uploads/documents/" . basename($_GET['download']);
     $mimetype = isset($_GET['mime']) ? cleanInput($_GET['mime']) : 'application/download';
     header("Pragma: public");
     header("Expires: 0");
@@ -46,12 +48,13 @@ $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Documents'),
-    'path'          => "",
-    'admin_path'    => "admin/",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
+$TMPL['javascript'] = '
+<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
 require_once getTheme($currentUserId) . 'header.php';
@@ -62,35 +65,47 @@ echo '
 $show = true;
 
 // Add new document
-if (isset($_POST['submitadd'])) {
+if (isset($_POST['submitadd']))
+{
     $doc = $_FILES['doc']['name'];
     $doc = cleanFilename($doc);
     $desc = cleanInput($_POST['desc']);
     $mime = cleanInput($_FILES['doc']['type']);
-    if ($docs->uploadDocument($_FILES['doc'], $doc)) {
+
+    if ($docs->uploadDocument($_FILES['doc'], $doc))
+    {
         $sql = "INSERT INTO `fcms_documents` (
                     `name`, `description`, `mime`, `user`, `date`
                 ) VALUES(
                     '$doc', '$desc', '$mime', '$currentUserId', NOW()
                 )";
-        mysql_query($sql) or displaySQLError(
-            'New Document Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        echo '
-            <p class="ok-alert" id="add">'.T_('Document Added Successfully').'</p>
-            <script type="text/javascript">
-                window.onload=function(){ var t=setTimeout("$(\'add\').toggle()",3000); }
-            </script>';
+
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Document Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return;
+        }
+
+        displayOkMessage();
+
         // Email members
         $sql = "SELECT u.`email`, s.`user` 
                 FROM `fcms_user_settings` AS s, `fcms_users` AS u 
                 WHERE `email_updates` = '1'
                 AND u.`id` = s.`user`";
-        $result = mysql_query($sql) or displaySQLError(
-            'Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if (mysql_num_rows($result) > 0) {
-            while ($r = mysql_fetch_array($result)) {
+
+        $result = mysql_query($sql);
+
+        if (!$result)
+        {
+            displaySQLError('Email Updates Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if (mysql_num_rows($result) > 0)
+        {
+            while ($r = mysql_fetch_array($result))
+            {
                 $name = getUserDisplayName($currentUserId);
                 $to = getUserDisplayName($r['user']);
                 $subject = sprintf(T_('%s has added a new document (%s).'), $name, $doc);
@@ -117,38 +132,46 @@ if (isset($_POST['submitadd'])) {
 } 
 
 // Delete document
-if (isset($_POST['deldoc'])) {
+if (isset($_POST['deldoc']))
+{
     $sql = "DELETE FROM `fcms_documents` 
             WHERE `id` = " . cleanInput($_POST['id'], 'int');
-    mysql_query($sql) or displaySQLError(
-        'Delete Document Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    unlink("gallery/documents/" . basename($_POST['name']));
-    echo '
-            <p class="ok-alert" id="del">'.T_('Document Deleted Successfully').'</p>
-            <script type="text/javascript">
-                window.onload=function(){ var t=setTimeout("$(\'del\').toggle()",2000); }
-            </script>';
+
+    if (!mysql_query($sql))
+    {
+        displaySQLError('Delete Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return;
+    }
+
+    if (!unlink("uploads/documents/" . basename($_POST['name'])))
+    {
+        echo '<p class="error-alert">'.T_('Document could not be deleted from the server.').'</p>';
+        return;
+    }
+
+    displayOkMessage(T_('Document Deleted Successfully'));
 }
 
 // Show add document form
-if (isset($_GET['adddoc']) && checkAccess($currentUserId) <= 5) {
+if (isset($_GET['adddoc']) && checkAccess($currentUserId) <= 5)
+{
     $show = false;
     $docs->displayForm();
 }
 
 // Show list of documents
-if ($show) {
-    if (checkAccess($currentUserId) <= 5) {
+if ($show)
+{
+    if (checkAccess($currentUserId) <= 5)
+    {
         echo '
             <div id="actions_menu" class="clearfix">
                 <ul><li><a href="?adddoc=yes">'.T_('Add Document').'</a></li></ul>
             </div>';
     }
-    $page = 1;
-    if (isset($_GET['page'])) {
-        $page = cleanInput($_GET['page'], 'int');
-    }
+
+    $page = isset($_GET['page']) ? cleanInput($_GET['page'], 'int') : 1;
+
     $docs->showDocuments($page);
 }
 echo '

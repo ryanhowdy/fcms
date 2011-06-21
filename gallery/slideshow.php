@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+define('URL_PREFIX', '../');
+
 include_once('../inc/config_inc.php');
 include_once('../inc/util_inc.php');
 include_once('../inc/gallery_class.php');
@@ -11,9 +13,7 @@ fixMagicQuotes();
 // Check that the user is logged in
 isLoggedIn('gallery/');
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
-
-$database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$gallery = new PhotoGallery($currentUserId, $database);
+$gallery = new PhotoGallery($currentUserId);
 
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -28,8 +28,8 @@ echo '
 html { background-image: none !important; background-color: #000; }
 body { background-color: #000; margin: 10px 0 0 0 !important; padding: 0 !important; width: 650px !important; text-align: center; }
 </style>
-<script type="text/javascript" src="../inc/prototype.js"></script>
-<script type="text/javascript" src="../inc/effects.js"></script>
+<script type="text/javascript" src="../inc/js/prototype.js"></script>
+<script type="text/javascript" src="../inc/js/effects.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 function slideshow(start,last,interval) {  
@@ -76,7 +76,7 @@ if (mysql_num_rows($result) > 0) {
     while ($r = mysql_fetch_array($result)) {
         $i++;
         echo '
-    <img id="img'.$i.'" style="display:none;" src="photos/member'.$r['user'].'/'.$r['filename'].'" alt="'.$r['caption'].'"/>';
+    <img id="img'.$i.'" style="display:none;" src="../uploads/photos/member'.$r['user'].'/'.$r['filename'].'" alt="'.$r['caption'].'"/>';
     }
     echo '
     <script type="text/javascript">slideshow(1,'.$i.',5000);</script>';

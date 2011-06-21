@@ -1,6 +1,7 @@
 <?php
-include_once('util_inc.php');
-include_once('locale.php');
+include_once 'util_inc.php';
+include_once 'image_class.php';
+include_once 'locale.php';
 
 /**
  * PhotoGallery 
@@ -10,35 +11,32 @@ include_once('locale.php');
  * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
-class PhotoGallery {
-
+class PhotoGallery
+{
     var $db;
     var $db2;
-    var $tz_offset;
+    var $tzOffset;
     var $currentUserId;
-    var $categories_per_row;
+    var $img;
 
     /**
      * PhotoGallery 
      * 
      * @param   int         $currentUserId 
-     * @param   database    $database 
+     * 
      * @return  void
      */
-    function PhotoGallery ($currentUserId, $database)
+    function PhotoGallery ($currentUserId)
     {
-        $this->categories_per_row = 4;
-        $this->currentUserId = $currentUserId;
-        $this->db = $database;
-        $this->db2 = $database;
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
+        $this->currentUserId        = $currentUserId;
+        $this->img                  = new Image($this->currentUserId);
+        $this->tzOffset             = getTimezone($this->currentUserId);
+
         T_bindtextdomain('messages', '.././language');
     }
 
@@ -172,7 +170,7 @@ class PhotoGallery {
      */
     function displayLatestCategories()
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $sql = "SELECT * 
                 FROM (
@@ -183,33 +181,15 @@ class PhotoGallery {
                 ) AS sub
                 GROUP BY `category`
                 ORDER BY `date` DESC LIMIT 6";
-        $this->db->query($sql) or displaySQLError(
-            'Latest Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        while ($row = $this->db->get_row()) {
-            $date = $locale->fixDate(T_('M. j, Y'), $this->tz_offset, $row['date']);
-            $cat_array[] = '
-                        <a href="?uid='.$row['user'].'&amp;cid='.$row['category'].'&amp;pid='.$row['id'].'">
-                            <img class="photo" 
-                                src="photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']).'" 
-                                alt="'.cleanOutput($row['name']).'"/>
-                        </a>
-                        <span>
-                            <strong>'.cleanOutput($row['name']).'</strong>
-                            <i>'.$date.'</i>
-                        </span>';
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Latest Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
         }
-        if (!empty($cat_array)) {
-            echo '
-                <ul class="categories clearfix">';
-            foreach ($cat_array as $cat_link) {
-                echo '
-                    <li class="category">'.$cat_link.'
-                    </li>';
-            }
-            echo '
-                </ul>';
-        } else {
+
+        if ($this->db->count_rows() <= 0)
+        {
             echo '
                 <div class="info-alert">
                     <h2>'.T_('Welcome to the Photo Gallery').'</h2>
@@ -220,7 +200,32 @@ class PhotoGallery {
                         <li><a href="?action=upload">'.T_('Upload Photos').'</a></li>
                     </ol>
                 </div>';
+            return;
         }
+
+        echo '
+                <ul class="categories clearfix">';
+
+        while ($row = $this->db->get_row())
+        {
+            $date = $locale->fixDate(T_('M. j, Y'), $this->tzOffset, $row['date']);
+
+            echo '
+                    <li class="category">
+                        <a href="?uid='.$row['user'].'&amp;cid='.$row['category'].'">
+                            <img class="photo" 
+                                src="../uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']).'" 
+                                alt="'.cleanOutput($row['name']).'"/>
+                        </a>
+                        <span>
+                            <strong>'.cleanOutput($row['name']).'</strong>
+                            <i>'.$date.'</i>
+                        </span>
+                    </li>';
+        }
+
+        echo '
+                </ul>';
     }
     
     /**
@@ -242,196 +247,114 @@ class PhotoGallery {
      */
     function showPhoto ($uid, $cid, $pid)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
-        // Select all photos for the category/group you are trying to view
+        $uid = (int)$uid;
+        $pid = (int)$pid;
 
-        //--------------------------------------------------------------------
-        // Latest Comments View
-        //--------------------------------------------------------------------
-        if (strpos($cid, 'comments') !== false) {
-            $special_breadcrumbs = '<a href="?uid=0&amp;cid=comments">'.T_('Latest Comments').'</a>';
-            $urlcid = $cid;
-            $cid = substr($cid, 8);
-            $cid = (int)$cid;
-            $sql = "SELECT DISTINCT `filename` 
-                    FROM (
-                        SELECT p.`filename` 
-                        FROM `fcms_gallery_comments` AS c, `fcms_gallery_photos` AS p 
-                        WHERE c.`photo` = p.`id` ORDER BY c.`date` DESC
-                    ) as z";
-        
-        //--------------------------------------------------------------------
-        // Top Rated View
-        //--------------------------------------------------------------------
-        } elseif (strpos($cid, 'toprated') !== false) {
-            $special_breadcrumbs = '<a href="?uid=0&amp;cid=toprated">'.T_('Top Rated').'</a>';
-            $urlcid = $cid;
-            $cid = substr($cid, 8);
-            $cid = (int)$cid;
-            $sql = "SELECT `filename` 
-                    FROM `fcms_gallery_photos` 
-                    WHERE `votes` > 0 
-                    ORDER BY `rating`/`votes` DESC";
-        
-        //--------------------------------------------------------------------
-        // Most Viewed View
-        //--------------------------------------------------------------------
-        } elseif (strpos($cid, 'mostviewed') !== false) {
-            $special_breadcrumbs = "<a href=\"?uid=$uid&amp;cid=$cid\">".T_('Most Viewed')."</a>";
-            $urlcid = $cid;
-            $cid = substr($cid, 10);
-            $cid = (int)$cid;
-            $sql = "SELECT `filename` 
-                    FROM `fcms_gallery_photos` 
-                    WHERE `views` > 0";
-            if ($uid > 0) {
-                $sql .= " AND `user` = '$uid'";
-            }
-            $sql .= " ORDER BY `views` DESC";
-        
-        //--------------------------------------------------------------------
-        // Tagged Photos View -- here $cid = 'tagged' plus the tagged user's id
-        //--------------------------------------------------------------------
-        } elseif (strpos($cid, 'tagged') !== false) {
-            $urlcid = $cid;
-            $cid = substr($cid, 6);
-            $cid = (int)$cid;
-            $userName = getUserDisplayName($cid);
-            $special_breadcrumbs = "<a href=\"?uid=0&amp;cid=$cid\">".sprintf(T_('Photos of %s'), $userName)."</a>";
-            $sql = "SELECT `filename` 
-                    FROM `fcms_gallery_photos` AS p, `fcms_gallery_photos_tags` AS t 
-                    WHERE t.`user` = '$cid' 
-                    AND t.`photo` = p.`id` 
-                    ORDER BY `date`";
-        
-        //-----------------------------------------------------------------
-        // All Photos for Member
-        //-----------------------------------------------------------------
-        } elseif ($cid == 'all') {
-            $urlcid = $cid;
-            $userName = getUserDisplayName($uid);
-            $special_breadcrumbs = '<a href="?uid='.$uid.'&amp;cid=all">'.sprintf(T_('Photos uploaded by %s'), $userName).'</a>';
-            $sql = "SELECT `filename` 
-                    FROM `fcms_gallery_photos`
-                    WHERE `user` = $uid
-                    ORDER BY `id` DESC";
-                
-        //--------------------------------------------------------------------
-        // Category of Photos
-        //--------------------------------------------------------------------
-        } elseif (preg_match('/^\d+$/', $cid)) {
-            $urlcid = $cid;
-            $sql = "SELECT `filename` 
-                    FROM `fcms_gallery_photos` 
-                    WHERE `category` = '$cid' 
-                    ORDER BY `date`";
+        list($breadcrumbs, $cid, $urlcid, $sql) = $this->getShowPhotoParams($uid, $cid);
+
+        if (!$this->db2->query($sql))
+        {
+            displaySQLError('Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
         }
 
-        // Run the SQL specified above
-        $this->db2->query($sql) or displaySQLError(
-            'Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
         // Save filenames in an array, so we can see next/prev, etc
-        while ($row = $this->db2->get_row()) {
+        while ($row = $this->db2->get_row())
+        {
             $photo_arr[] = $row['filename'];
         }
 
-        // Check that we have atleast one photo in the current view        
-        if (isset($photo_arr)) {
+        // No photos exist for the current view/category
+        // Even though we are in photo view, bump them back to the category view
+        // and let the user know that this category is now empty
+        if ($this->db2->count_rows() <= 0)
+        {
+            $this->displayGalleryMenu($uid, $cid);
 
-            // Select Current Photo to view
-            $sql = "SELECT p.`user` AS uid, `filename`, `caption`, `category` AS cid, p.`date`, 
-                        `name` AS category_name, `views`, `votes`, `rating` 
-                    FROM `fcms_gallery_photos` AS p, `fcms_category` AS c 
-                    WHERE p.`id` = '$pid' 
-                    AND p.`category` = c.`id`";
-            $this->db->query($sql) or displaySQLError(
-                'Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            echo '
+            <div class="info-alert">
+                <h2>'.T_('Oops!').'</h2>
+                <p>'.T_('The Category you are trying to view is Empty.').'</p>
+            </div>';
+
+            return;
+        }
+
+        // Select Current Photo to view
+        $sql = "SELECT p.`user` AS uid, `filename`, `caption`, `category` AS cid, p.`date`, 
+                    `name` AS category_name, `views`, `votes`, `rating` 
+                FROM `fcms_gallery_photos` AS p, `fcms_category` AS c 
+                WHERE p.`id` = '$pid' 
+                AND p.`category` = c.`id`";
+
+        if (!$this->db2->query($sql))
+        {
+            displaySQLError('Photo Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db2->count_rows() <= 0)
+        {
+            echo '
+            <p class="error-alert">'.T_('The Photo you are trying to view can not be found.').'</p>';
+            return;
+        }
             
-            // Display the photo and other info
-            if ($this->db->count_rows() > 0) {
-                $r = $this->db->get_row();
-                $displayname = getUserDisplayName($r['uid']);
+        // Save info about current photo
+        $r = $this->db2->get_row();
+        $displayname = getUserDisplayName($r['uid']);
                 
-                // Update View count
-                $sql = "UPDATE `fcms_gallery_photos` 
-                        SET `views` = `views`+1 
-                        WHERE `id` = '$pid'";
-                $this->db->query($sql) or displaySQLError(
-                    'Update View Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                );
+        // Update View count
+        $sql = "UPDATE `fcms_gallery_photos` 
+                SET `views` = `views`+1 
+                WHERE `id` = '$pid'";
+        if (!$this->db->query($sql))
+        {
+            // Just show error and continue
+            displaySQLError('Update View Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        }
 
-                // Next / Previous links
-                $total_photos = count($photo_arr);
-                $cur = array_search($r['filename'], $photo_arr);
-                // strip the extension off the filename to get the pid #s (ex: 453.gif)
-                if (isset($photo_arr[$cur-1])) {
-                    $prev_pid = substr($photo_arr[$cur-1], 0, strpos($photo_arr[$cur-1], '.'));
-                }
-                if (isset($photo_arr[$cur+1])) {
-                    $next_pid = substr($photo_arr[$cur+1], 0, strpos($photo_arr[$cur+1], '.'));
-                }
+        // Get photo comments
+        $comments = $this->getPhotoComments($pid);
 
-                // Showing only 1 of 1 photos
-                if (!isset($prev_pid) && !isset($next_pid)) {
-                    $c = $cur + 1;
-                    $photos_of = '<i>('.sprintf(T_('%d of %d'), $c, $total_photos).')</i>';
-                    $prev_next = '';
+        $total   = count($photo_arr);
+        $current = array_search($r['filename'], $photo_arr);
+        $prev    = 0;
+        $next    = 0;
 
-                // Showing the first of multiple photos
-                } elseif (!isset($prev_pid)) {
-                    $c = $cur + 1;
-                    $photos_of = '<i>('.sprintf(T_('%d of %d'), $c, $total_photos).')</i>';
-                    $prev_next = '
+        // Previous pid
+        if (isset($photo_arr[$current-1]))
+        {
+            // strip the extension off the filename to get the pid #s (ex: 453.gif)
+            $prev = substr($photo_arr[$current-1], 0, strpos($photo_arr[$current-1], '.'));
+        }
+        else
+        {
+            $prev = substr(end($photo_arr), 0, strpos(end($photo_arr), '.'));
+        }
+
+        // Next pid
+        if (isset($photo_arr[$current+1]))
+        {
+            $next = substr($photo_arr[$current+1], 0, strpos($photo_arr[$current+1], '.'));
+        }
+        else
+        {
+            $next = substr($photo_arr[0], 0, strpos($photo_arr[0], '.'));
+        }
+
+        $photos_of = '<i>('.sprintf(T_('%d of %d'), $current+1, $total).')</i>';
+
+        $prev_next = '';
+
+        if ($total > 1)
+        {
+            $prev_next .= '
                 <div class="prev_next clearfix">
-                    <span class="previous">&nbsp;</span>
-                    <a class="next" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$next_pid.'">'.T_('Next').'</a>
-                </div>
-                <script type="text/javascript">
-                function keyHandler(e) {
-                    if (!e) { e = window.event; }
-                    arrowRight = 39;
-                    switch (e.keyCode) {
-                        case arrowRight:
-                        document.location.href = "index.php?uid='.$uid.'&cid='.$urlcid.'&pid='.$next_pid.'";
-                        break;
-                    }
-                }
-                document.onkeydown = keyHandler;
-                </script>';
-
-                // Showing the last of multiple photos
-                } elseif (!isset($next_pid)) {
-                    $c = $cur + 1;
-                    $photos_of = '<i>('.sprintf(T_('%d of %d'), $c, $total_photos).')</i>';
-                    $prev_next = '
-                <div class="prev_next clearfix">
-                    <a class="previous" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$prev_pid.'">'.T_('Previous').'</a>
-                    <span class="next">&nbsp;</span>
-                </div>
-                <script type="text/javascript">
-                function keyHandler(e) {
-                    if (!e) { e = window.event; }
-                    arrowLeft = 37;
-                    switch (e.keyCode) {
-                        case arrowLeft:
-                        document.location.href = "index.php?uid='.$uid.'&cid='.$urlcid.'&pid='.$prev_pid.'";
-                        break;
-                    }
-                }
-                document.onkeydown = keyHandler;
-                </script>';
-
-                // Showing photo with prev and next
-                } else {
-                    $c = $cur + 1;
-                    $photos_of = '<i>('.sprintf(T_('%d of %d'), $c, $total_photos).')</i>';
-                    $prev_next = '
-                <div class="prev_next clearfix">
-                    <a class="previous" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$prev_pid.'">'.T_('Previous').'</a>
-                    <a class="next" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$next_pid.'">'.T_('Next').'</a>
+                    <a class="previous" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$prev.'">'.T_('Previous').'</a>
+                    <a class="next" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$next.'">'.T_('Next').'</a>
                 </div>
                 <script type="text/javascript">
                 function keyHandler(e) {
@@ -440,200 +363,188 @@ class PhotoGallery {
                     arrowLeft = 37;
                     switch (e.keyCode) {
                         case arrowRight:
-                        document.location.href = "index.php?uid='.$uid.'&cid='.$urlcid.'&pid='.$next_pid.'";
+                        document.location.href = "index.php?uid='.$uid.'&cid='.$urlcid.'&pid='.$next.'";
                         break;
                         case arrowLeft:
-                        document.location.href = "index.php?uid='.$uid.'&cid='.$urlcid.'&pid='.$prev_pid.'";
+                        document.location.href = "index.php?uid='.$uid.'&cid='.$urlcid.'&pid='.$prev.'";
                         break;
                     }
                 }
                 document.onkeydown = keyHandler;
                 </script>';
-                }
+        }
 
-                // What type of breadcrumbs
-                if (isset($special_breadcrumbs)) {
-                    echo '
-                <p class="breadcrumbs">
-                    '.$special_breadcrumbs.'
-                    '.$prev_next.'
-                </p>
-                <small>
+        // special view detail
+        $special = '
+                <div id="special">
                     '.T_('From the Category:').' <a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'">'.cleanOutput($r['category_name']).'</a> 
                     '.T_('by').' 
                     <a class="u" href="../profile.php?member='.$r['uid'].'">'.$displayname.'</a>
-                </small>';
-
-                } else {
-                    echo '
-                <div class="breadcrumbs clearfix">
-                    <a href="?uid=0">'.T_('Members').'</a> &gt; 
-                    <a href="?uid='.$uid.'">'.$displayname.'</a> &gt; 
-                    <a href="?uid='.$uid.'&amp;cid='.$cid.'">'.cleanOutput($r['category_name']).'</a>
-                    '.$photos_of.'
-                    '.$prev_next.'
                 </div>';
 
-                }
-                
-                // Setup photo path
-                $photo_path = '';
-                $caption = cleanOutput($r['caption']);
-                // Link to the full sized photo if using full sized
-                $sql = "SELECT `full_size_photos` 
-                        FROM `fcms_config`";
-                $this->db->query($sql) or displaySQLError(
-                    'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                );
-                $row = $this->db->get_row();
-                if ($row['full_size_photos'] == 1) {
-                    // If you are using full sized but a photo was uploaded prior to that change, 
-                    // no full sized photo will be available, so don't link to it
-                    if (file_exists("photos/member" . $r['uid'] . "/full_" . $r['filename'])) {
-                        $photo_path .= "/full_";
-                        $dimensions = GetImageSize("photos/member".$r['uid']."/full_".$r['filename']);
-                        $size = filesize("photos/member" . $r['uid'] . "/full_" . $r['filename']);
-                    } else {
-                        $photo_path .= "/";
-                        $dimensions = GetImageSize("photos/member" . $r['uid'] . "/" . $r['filename']);
-                        $size = filesize("photos/member" . $r['uid'] . "/" . $r['filename']);
-                    }
-                } else {
-                    $photo_path .= "/";
-                    $dimensions = GetImageSize("photos/member" . $r['uid'] . "/" . $r['filename']);
-                    $size = filesize("photos/member" . $r['uid'] . "/" . $r['filename']);
-                }            
-                // Calculate rating
-                if ($r['votes'] <= 0) {
-                    $rating = 0;
-                    $width = 0;
-                } else {
-                    $rating = ($r['rating'] / $r['votes']) * 100;
-                    $rating = round($rating, 0);
-                    $width = $rating / 5;
-                }
-                // Get Tagged Members
-                $tagged_mem_list = '';
-                $sql = "SELECT u.`id`, u.`lname` 
-                        FROM `fcms_users` AS u, `fcms_gallery_photos_tags` AS t 
-                        WHERE t.`photo` = '$pid' 
-                        AND t.`user` = u.`id`
-                        ORDER BY u.`lname`";
-                $this->db->query($sql) or displaySQLError(
-                    'Tagged Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                );
-                if ($this->db->count_rows() > 0) {
-                    while ($t = $this->db->get_row()) {
-                        $tagged_mem_list .= getUserDisplayName($t['id']) . ", ";
-                    }
-                    $tagged_mem_list = substr($tagged_mem_list, 0, -2); // remove the extra ", "
-                } else {
-                    $tagged_mem_list .= "<i>".T_('none')."</i>";
-                }
-                $date_added = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $r['date']);
-                $size = formatSize($size);
+        // if breadcrumbs haven't been defined, give the default
+        if ($breadcrumbs == '')
+        {
+            $breadcrumbs = '
+                <a href="?uid=0">'.T_('Members').'</a> &gt; 
+                <a href="?uid='.$uid.'">'.$displayname.'</a> &gt; 
+                <a href="?uid='.$uid.'&amp;cid='.$cid.'">'.cleanOutput($r['category_name']).'</a>
+                '.$photos_of;
 
-                // Edit / Delete Photo options
-                $edit_del_options = '';
-                if ($this->currentUserId == $r['uid'] || checkAccess($this->currentUserId) < 2) {
-                    $edit_del_options = '
-            <div class="edit_del_photo">
-                <form action="index.php" method="post">
-                    <div>
-                        <input type="hidden" name="photo" id="photo" value="'.$pid.'"/>
-                        <input type="hidden" name="url" id="url" value="uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'"/>
-                        <input type="submit" name="editphoto" id="editphoto" value="'.T_('Edit').'" class="editbtn"/><br/>
-                        <input type="submit" name="deletephoto" id="deletephoto" value="'.T_('Delete').'" class="delbtn"/>
-                    </div>
-                </form>
-            </div>';
-                }
-                
-                // Display Photo -- caption, rating and other info
-                echo '
+            $special = '';
+        }
+
+        // setup some vars to hold photo details
+        $photo_path        = $this->getPhotoPath($r['filename'], $r['uid']);
+        $photo_path_middle = $photo_path[0];
+        $photo_path_full   = $photo_path[1];
+        $caption           = cleanOutput($r['caption']);
+        $dimensions        = GetImageSize($photo_path_full);
+        $size              = filesize($photo_path_full);
+        $size              = formatSize($size);
+        $date_added        = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
+
+        // Calculate rating
+        if ($r['votes'] <= 0)
+        {
+            $rating = 0;
+            $width = 0;
+        }
+        else
+        {
+            $rating = ($r['rating'] / $r['votes']) * 100;
+            $rating = round($rating, 0);
+            $width = $rating / 5;
+        }
+
+        // Get Tagged Members
+        $sql = "SELECT u.`id`, u.`lname` 
+                FROM `fcms_users` AS u, `fcms_gallery_photos_tags` AS t 
+                WHERE t.`photo` = '$pid' 
+                AND t.`user` = u.`id`
+                ORDER BY u.`lname`";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Tagged Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return;
+        }
+
+        $tagged_mem_list = '<li>'.T_('none').'</li>';
+
+        if ($this->db->count_rows() > 0)
+        {
+            $tagged_mem_list = '';
+
+            while ($t = $this->db->get_row())
+            {
+                $tagged_mem_list .= '<li>'.getUserDisplayName($t['id']).'</li>';
+            }
+        }
+
+        // Edit / Delete Photo options
+        $edit_del_options = '';
+        if ($this->currentUserId == $r['uid'] || checkAccess($this->currentUserId) < 2)
+        {
+            $edit_del_options = '
+                            <li>
+                                <input type="submit" name="editphoto" id="editphoto" value="'.T_('Edit').'" class="editbtn"/>
+                            </li>
+                            <li>
+                                <input type="submit" name="deletephoto" id="deletephoto" value="'.T_('Delete').'" class="delbtn"/>
+                            </li>';
+        }
+        
+        // Display
+        echo '
+            <div class="breadcrumbs clearfix">
+                '.$breadcrumbs.'
+                '.$prev_next.'
+            </div>
             <div id="photo">
-                <p>
-                    <a href="photos/member'.$r['uid'].$photo_path.basename($r['filename']).'"><img class="photo" 
-                        src="photos/member'.$r['uid'].'/'.basename($r['filename']).'" alt="'.$caption.'" title="'.$caption.'"/></a>
-                </p>
+                <a href="'.$photo_path_full.'"><img class="photo" src="'.$photo_path_middle.'" alt="'.$caption.'" title="'.$caption.'"/></a>
+            </div>
+
+            <div id="photo_details">
+
                 <div id="caption">
                     '.$caption.'
+                    <ul class="star-rating small-star">
+                        <li class="current-rating" style="width:'.$width.'%">'.sprintf(T_('Currently %s/5 Starts'), $r['rating']).'</li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=1" title="'.T_('1 out of 5 Stars').'" class="one-star">1</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=2" title="'.T_('2 out of 5 Stars').'" class="two-stars">2</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=3" title="'.T_('3 out of 5 Stars').'" class="three-stars">3</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=4" title="'.T_('4 out of 5 Stars').'" class="four-stars">4</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=5" title="'.T_('5 out of 5 Stars').'" class="five-stars">5</a></li>
+                    </ul>
                 </div>
-                <ul class="star-rating small-star">
-                    <li class="current-rating" style="width:'.$width.'%">'.sprintf(T_('Currently %s/5 Starts'), $r['rating']).'</li>
-                    <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=1" title="'.T_('1 out of 5 Stars').'" class="one-star">1</a></li>
-                    <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=2" title="'.T_('2 out of 5 Stars').'" class="two-stars">2</a></li>
-                    <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=3" title="'.T_('3 out of 5 Stars').'" class="three-stars">3</a></li>
-                    <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=4" title="'.T_('4 out of 5 Stars').'" class="four-stars">4</a></li>
-                    <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=5" title="'.T_('5 out of 5 Stars').'" class="five-stars">5</a></li>
-                </ul>
-            </div>
-            '.$edit_del_options.'
-            <div id="photo_details">
-                <table id="photo_details_sub" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td>'.T_('Filename').':</td>
-                        <td>'.$r['filename'].'</td>
-                    </tr>
-                    <tr>
-                        <td>'.T_('Views').':</td>
-                        <td>'.$r['views'].'</td>
-                    </tr>
-                    <tr>
-                        <td>'.T_('Photo Size').':</td>
-                        <td>'.$size.'</td>
-                    </tr>
-                    <tr>
-                        <td>'.T_('Dimensions').':</td>
-                        <td>'.$dimensions[0].' x '.$dimensions[1].'</td>
-                    </tr>
-                    <tr>
-                        <td>'.T_('Date Added').':</td>
-                        <td>'.$date_added.'</td>
-                    </tr>
-                    <tr>
-                        <td>'.T_('Members in Photo').':</td>
-                        <td>'.$tagged_mem_list.'</td>
-                    </tr>
-                </table>
+
+                <div id="photo_stats">
+                    <form action="index.php" method="post">
+                        <ul>
+                            <li class="photo_views">'.$r['views'].'</li>
+                            <li class="photo_comments">'.count($comments).'</li> 
+                            '.$edit_del_options.'
+                        </ul>
+                        <div>
+                            <input type="hidden" name="photo" id="photo" value="'.$pid.'"/>
+                            <input type="hidden" name="url" id="url" value="uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'"/>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="members_in_photo">
+                    <b>'.T_('Members in Photo').'</b>
+                    <ul>
+                        '.$tagged_mem_list.'
+                    </ul>
+                </div>
+
+                '.$special.'
+
+                <div id="more_details">
+                    <div id="photo_details_sub">
+                        <p><b>'.T_('Filename').':</b> '.$r['filename'].'</p>
+                        <p><b>'.T_('Photo Size').':</b> '.$size.'</p>
+                        <p><b>'.T_('Dimensions').':</b> '.$dimensions[0].' x '.$dimensions[1].'</p>
+                        <p><b>'.T_('Date Added').':</b> '.$date_added.'</p>
+                    </div>
+                </div>
+
             </div>';
                 
-                // Display Comments
-                if (
-                    checkAccess($this->currentUserId) <= 8 && 
-                    checkAccess($this->currentUserId) != 7 && 
-                    checkAccess($this->currentUserId) != 4
-                ) {
+        // Display Comments
+        if (   checkAccess($this->currentUserId) <= 8
+            && checkAccess($this->currentUserId) != 7
+            && checkAccess($this->currentUserId) != 4
+        )
+        {
+
+            echo '
+            <h3 id="comments">'.T_('Comments').'</h3>';
+
+            if (count($comments) > 0)
+            { 
+                foreach ($comments as $row)
+                {
+                    // Setup some vars for each comment block
+                    $del_comment = '';
+                    $date        = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['date']);
+                    $displayname = getUserDisplayName($row['user']);
+                    $comment     = $row['comment'];
+
+                    if ($this->currentUserId == $row['user'] || checkAccess($this->currentUserId) < 2)
+                    {
+                        $del_comment .= '<input type="submit" name="delcom" id="delcom" '
+                            . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
+                            . T_('Delete this Comment') . '"/>';
+                    }
+
                     echo '
-            <div style="clear:both"></div>
-            <p>&nbsp;</p>
-            <h3>'.T_('Comments').'</h3>';
-                    $sql = "SELECT c.`id`, `comment`, `date`, `fname`, `lname`, `username`, `user`, `avatar` 
-                            FROM `fcms_gallery_comments` AS c, `fcms_users` AS u 
-                            WHERE `photo` = '$pid' 
-                            AND c.`user` = u.`id` 
-                            ORDER BY `date`";
-                    $this->db->query($sql) or displaySQLError(
-                        'Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                    );
-                    if ($this->db->count_rows() > 0) { 
-                        while ($row = $this->db->get_row()) {
-                            // Setup some vars for each comment block
-                            $del_comment = '';
-                            $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $row['date']);
-                            $displayname = getUserDisplayName($row['user']);
-                            $comment = $row['comment'];
-                            if ($this->currentUserId == $row['user'] || 
-                                checkAccess($this->currentUserId) < 2) {
-                                $del_comment .= '<input type="submit" name="delcom" id="delcom" '
-                                    . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
-                                    . T_('Delete this Comment') . '"/>';
-                            }
-                            echo '
             <div class="comment_block clearfix">
                 <form class="delcom" action="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'" method="post">
                     '.$del_comment.'
-                    <img class="avatar" alt="avatar" src="'.getCurrentAvatar($row['user'], false).'"/>
+                    <img class="avatar" alt="avatar" src="'.getCurrentAvatar($row['user'], true).'"/>
                     <b>'.$displayname.'</b>
                     <span>'.$date.'</span>
                     <p>
@@ -642,38 +553,185 @@ class PhotoGallery {
                     <input type="hidden" name="id" value="'.$row['id'].'">
                 </form>
             </div>';
-                        }
-                    }
+                }
+            }
 
-                    echo '
-            <p>&nbsp;</p>
+            echo '
             <div class="add_comment_block">
                 <form action="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'" method="post">
                     '.T_('Add Comment').'<br/>
                     <textarea class="frm_textarea" name="post" id="post" rows="3" cols="63"></textarea>
                     <input type="submit" name="addcom" id="addcom" value="'.T_('Add Comment').'" title="'.T_('Add Comment').'" class="gal_addcombtn"/>
                 </form>
-            </div>
-            <p>&nbsp;</p>';
-                }
-            
-            // Specific Photo couldn't be found
-            } else {
-                echo '
-            <p class="error-alert">'.T_('The Photo you are trying to view can not be found.').'</p>';
-            }
-
-        // No photos exist for the current view/category
-        // Even though we are in photo view, bump them back to the category view
-        // and let the user know that this category is now empty
-        } else {
-            $this->displayGalleryMenu($uid, $cid);
-            echo '
-            <div class="info-alert">
-                <h2>'.T_('Oops!').'</h2>
-                <p>'.T_('The Category you are trying to view is Empty.').'</p>
             </div>';
         }
+    }
+
+    /**
+     * getShowPhotoParams 
+     * 
+     * Returns an array of params used for showing a photo.
+     *
+     * return array(
+     *       0 => $breadcrumbs,
+     *       1 => $cid,
+     *       2 => $urlcid,
+     *       3 => $sql
+     * );
+     *
+     * @param string $user 
+     * @param string $category 
+     * 
+     * @return array
+     */
+    function getShowPhotoParams ($user, $category)
+    {
+        // Latest Comments View
+        if ($category == 'comments')
+        {
+            $urlcid = $category;
+            $cid    = $urlcid;
+
+            $sql = "SELECT DISTINCT `filename` 
+                    FROM (
+                        SELECT p.`filename` 
+                        FROM `fcms_gallery_comments` AS c, `fcms_gallery_photos` AS p 
+                        WHERE c.`photo` = p.`id` ORDER BY c.`date` DESC
+                    ) as z";
+
+            $breadcrumbs = '<a href="?uid=0&amp;cid=comments">'.T_('Latest Comments').'</a>';
+        }
+        // Top Rated View
+        elseif ($category == 'toprated')
+        {
+            $urlcid = $category;
+            $cid    = $urlcid;
+
+            $sql = "SELECT `filename` 
+                    FROM `fcms_gallery_photos` 
+                    WHERE `votes` > 0 
+                    ORDER BY `rating`/`votes` DESC";
+
+            $breadcrumbs = '<a href="?uid=0&amp;cid=toprated">'.T_('Top Rated').'</a>';
+        }
+        // Most Viewed View
+        elseif ($category == 'mostviewed')
+        {
+            $urlcid = $category;
+            $cid    = $urlcid;
+
+            $sql = "SELECT `filename` 
+                    FROM `fcms_gallery_photos` 
+                    WHERE `views` > 0";
+            if ($user > 0) {
+                $sql .= " AND `user` = '$user'";
+            }
+            $sql .= " ORDER BY `views` DESC";
+
+            $breadcrumbs = "<a href=\"?uid=$user&amp;cid=$cid\">".T_('Most Viewed')."</a>";
+        }
+        // Tagged Photos View
+        elseif (strpos($category, 'tagged') !== false)
+        {
+            $urlcid = $category;
+
+            // $category = 'tagged#' we only want the number
+            $cid = substr($category, 6);
+            $cid = (int)$cid;
+
+            $sql = "SELECT `filename` 
+                    FROM `fcms_gallery_photos` AS p, `fcms_gallery_photos_tags` AS t 
+                    WHERE t.`user` = '$cid' 
+                    AND t.`photo` = p.`id` 
+                    ORDER BY `date`";
+
+            $userName    = getUserDisplayName($cid);
+            $breadcrumbs = "<a href=\"?uid=0&amp;cid=$cid\">".sprintf(T_('Photos of %s'), $userName)."</a>";
+        }
+        // All Photos for Member
+        elseif ($category == 'all')
+        {
+            $urlcid = $category;
+            $cid    = $urlcid;
+
+            $sql = "SELECT `filename` 
+                    FROM `fcms_gallery_photos`
+                    WHERE `user` = $user
+                    ORDER BY `id` DESC";
+
+            $userName    = getUserDisplayName($user);
+            $breadcrumbs = '<a href="?uid='.$user.'&amp;cid=all">'.sprintf(T_('Photos uploaded by %s'), $userName).'</a>';
+        }
+        // Category of Photos
+        else
+        {
+            $urlcid = (int)$category;
+            $cid    = $urlcid;
+
+            $sql = "SELECT `filename` 
+                    FROM `fcms_gallery_photos` 
+                    WHERE `category` = '$cid' 
+                    ORDER BY `date`";
+
+            $breadcrumbs = '';
+        }
+
+        return array(
+            0 => $breadcrumbs,
+            1 => $cid,
+            2 => $urlcid,
+            3 => $sql
+        );
+    }
+
+    /**
+     * getPhotoPath 
+     * 
+     * Returns an array of photo paths.
+     * The first path is the path to the middle sized photo.
+     * The second path is the path to the full sized photo or the middle again if no full sized exists.
+     * 
+     * @param string $filename 
+     * @param int    $uid 
+     * 
+     * @return array
+     */
+    function getPhotoPath ($filename, $uid)
+    {
+        $filename = basename($filename);
+        $uid      = (int)$uid;
+
+        // Link to the full sized photo if using full sized
+        $sql = "SELECT `full_size_photos` 
+                FROM `fcms_config`";
+
+        $full_size_photos = false; 
+
+        if (!$this->db->query($sql))
+        {
+            // If we can't figure out full sized, we will default to no and continue on
+            displaySQLError('Full Size Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        }
+        else
+        {
+            $row = $this->db->get_row();
+            $full_size_photos = $row['full_size_photos'] == 1 ? true : false;
+        }
+
+        $photo_path[0] = "../uploads/photos/member$uid/$filename";
+        $photo_path[1] = "../uploads/photos/member$uid/$filename";
+
+        if ($full_size_photos)
+        {
+            // If you are using full sized but a photo was uploaded prior to that change, 
+            // no full sized photo will be available, so don't link to it
+            if (file_exists("../uploads/photos/member$uid/full_$filename"))
+            {
+                $photo_path[1] = "../uploads/photos/member$uid/full_$filename";
+            }
+        }
+
+        return $photo_path;
     }
 
     /*
@@ -697,10 +755,10 @@ class PhotoGallery {
      */
     function showCategories ($page, $uid, $cid = 'none')
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         // # of categories per page -- used for pagination
-        $perPage = 15;
+        $perPage = 18;
         
         // No user id specified
         if ($uid == 0) {
@@ -722,8 +780,8 @@ class PhotoGallery {
                         GROUP BY p.`user`";
 
                 // Pagination
-                $from = ($page * 15) - 15;
-                $sql .= " LIMIT $from, 15";
+                $from = ($page * $perPage) - $perPage;
+                $sql .= " LIMIT $from, $perPage";
                 
             //-----------------------------------------------------------------
             // Latest Comments View
@@ -742,8 +800,8 @@ class PhotoGallery {
                 // Pagination
                 if ($page >= 1) {
                     // ALL Latest Comments
-                    $from = ($page * 15) - 15;
-                    $sql .= " LIMIT $from, 15";
+                    $from = ($page * $perPage) - $perPage;
+                    $sql .= " LIMIT $from, $perPage";
                 } else {
                     // Front page Latest Comments
                     $sql .= " LIMIT 6";
@@ -760,8 +818,8 @@ class PhotoGallery {
                         ORDER BY r DESC";
 
                 // Pagination
-                $from = ($page * 15) - 15;
-                $sql .= " LIMIT $from, 15";
+                $from = ($page * $perPage) - $perPage;
+                $sql .= " LIMIT $from, $perPage";
                 
             //-----------------------------------------------------------------
             // Overall Most Viewed View
@@ -774,8 +832,8 @@ class PhotoGallery {
                         ORDER BY VIEWS DESC";
 
                 // Pagination
-                $from = ($page * 15) - 15;
-                $sql .= " LIMIT $from, 15";
+                $from = ($page * $perPage) - $perPage;
+                $sql .= " LIMIT $from, $perPage";
                 
             //-----------------------------------------------------------------
             // Tagged Photos View (only number 0-9)
@@ -788,9 +846,9 @@ class PhotoGallery {
                      . "AND t.`photo` = p.`id`";
 
                 // Pagination
-                $from = ($page * 32) - 32;
-                $sql .= " LIMIT $from, 32";
-                $perPage = 32;
+                $perPage = 30;
+                $from = ($page * $perPage) - $perPage;
+                $sql .= " LIMIT $from, $perPage";
             }
             
         // Valid user id specified
@@ -806,8 +864,8 @@ class PhotoGallery {
                      . "WHERE `votes` > 0 AND `user` = '$uid' ";
 
                 // Pagination
-                $from = ($page * 15) - 15;
-                $sql .= " LIMIT $from, 15";
+                $from = ($page * $perPage) - $perPage;
+                $sql .= " LIMIT $from, $perPage";
                 
             //-----------------------------------------------------------------
             // Member's Most Viewed View
@@ -821,11 +879,11 @@ class PhotoGallery {
                         ORDER BY `views` DESC";
 
                 // Pagination
-                $from = ($page * 15) - 15;
-                $sql .= " LIMIT $from, 15";
+                $from = ($page * $perPage) - $perPage;
+                $sql .= " LIMIT $from, $perPage";
                 
             //-----------------------------------------------------------------
-            // Photo Listing for Member's Sub Category (only numbers 0-9)
+            // Category View
             //-----------------------------------------------------------------
             } elseif (preg_match('/^\d+$/', $cid)) {
                 $sql = "SELECT 'PHOTOS' AS type, u.`id` AS uid, `category` AS cid, "
@@ -837,11 +895,12 @@ class PhotoGallery {
                      . "AND `category` = '$cid'";
 
                 // Pagination
-                $from = ($page * 15) - 15;
-                $sql .= " LIMIT $from, 15";
+                $perPage = 30;
+                $from = ($page * $perPage) - $perPage;
+                $sql .= " LIMIT $from, $perPage";
                 
             //-----------------------------------------------------------------
-            // All Photos for Member
+            // All Photos for Member (Search)
             //-----------------------------------------------------------------
             } elseif ($cid == 'all') {
                 $sql = "SELECT 'ALL' AS type, u.`id` AS uid, `category` AS cid, 
@@ -854,12 +913,12 @@ class PhotoGallery {
                         ORDER BY p.`id`";
 
                 // Pagination
-                $from = ($page * 32) - 32;
-                $sql .= " LIMIT $from, 32";
-                $perPage = 32;
+                $perPage = 30;
+                $from = ($page * $perPage) - $perPage;
+                $sql .= " LIMIT $from, $perPage";
                 
             //-----------------------------------------------------------------
-            // Member's Sub Categories View
+            // Member's Categories View
             //-----------------------------------------------------------------
             // invalid $cid's will default to member's sub cat listing
             } else {
@@ -878,8 +937,8 @@ class PhotoGallery {
                      . "GROUP BY cat.`id` DESC";
 
                 // Pagination
-                $from = ($page * 15) - 15;
-                $sql .= " LIMIT $from, 15";
+                $from = ($page * $perPage) - $perPage;
+                $sql .= " LIMIT $from, $perPage";
             }
         // Catch all invalid $uid's
         } else {
@@ -935,7 +994,7 @@ class PhotoGallery {
             <a href="?uid=0&amp;cid=comments">('.T_('View All').')</a><br/>';
                         }
                     }
-                    $date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tz_offset, $row['heading']);
+                    $date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $row['heading']);
                     $cat_name = "<strong>$date</strong>";
                     $url = "?uid=0&amp;cid=comments&amp;pid=" . $row['pid'];
                     $urlPage = "?uid=0&amp;cid=comments";
@@ -1002,7 +1061,7 @@ class PhotoGallery {
             <p class="breadcrumbs">'.sprintf(T_('Photos of %s'), $userName).'</p>';
                     }
                     $url = "?uid=0&amp;cid=tagged" . $row['user'] . "&amp;pid=" . $row['pid'];
-                    $urlPage = "?uid=0&amp;cid=tagged" . $row['user'];
+                    $urlPage = "?uid=0&amp;cid=" . $row['user'];
                     $alt = ' alt="' . cleanOutput($row['caption']) . '"';
                     $title = ' title="' . cleanOutput($row['caption']) . '"';
 
@@ -1058,13 +1117,13 @@ class PhotoGallery {
                 if ($type == 'PHOTOS' || $type == 'TAGGED' || $type == 'ALL') {
                     $category_rows[] = '
                     <a href="index.php'.$url.'">
-                        <img class="photo" src="photos/member'.$row['uid'].'/tb_'.basename($row['filename']).'" 
+                        <img class="photo" src="../uploads/photos/member'.$row['uid'].'/tb_'.basename($row['filename']).'" 
                             '.$alt.' '.$title.'/>
                     </a>';
                 } else {
                     $category_rows[] = '
                     <a href="index.php'.$url.'">
-                        <img src="photos/member'.$row['uid'].'/tb_'.basename($row['filename']).'" 
+                        <img src="../uploads/photos/member'.$row['uid'].'/tb_'.basename($row['filename']).'" 
                             '.$alt.' '.$title.'/>
                     </a>
                     <span>
@@ -1076,22 +1135,50 @@ class PhotoGallery {
             }
 
             // Output for Photos
-            if ($type == 'PHOTOS' || $type == 'TAGGED' || $type == 'ALL') {
+            if ($type == 'PHOTOS' || $type == 'TAGGED' || $type == 'ALL')
+            {
+                $tag   = '';
+                $admin = '';
+                if ($type == 'PHOTOS')
+                {
+                    if ($uid == $this->currentUserId || checkAccess($this->currentUserId) < 2)
+                    {
+                        $tag = '<li><a href="?tag='.$cid.'&amp;user='.$uid.'">'.T_('Tag Members In Photos').'</a></li>';
+                    }
+
+                    if (checkAccess($this->currentUserId) < 2)
+                    {
+                        $admin = '<li><a href="../admin/gallery.php?edit='.$cid.'">'.T_('Administrate').'</a></li>';
+                    }
+
+                    echo '
+            <ul id="category_actions">
+                '.$admin.'
+                '.$tag.'
+                <li><a class="new_window" href="slideshow.php?category='.$cid.'">'.T_('View Slideshow').'</a></li>
+            </ul>';
+
+                }
+
                 echo '
             <ul class="photos clearfix">';
+
                 $i = 0;
-                foreach ($category_rows as $row) {
+                foreach ($category_rows as $row)
+                {
                     echo '
                 <li class="photo">'.$row.'
                 </li>';
                     $i++;
                 }
-                echo '
-            </ul>
-            <p id="slideshow"><a class="new_window" href="slideshow.php?category='.$cid.'">'.T_('View Slideshow').'</a></p>';
 
+                echo '
+            </ul>';
+
+            }
             // Output for Categories
-            } else {
+            else
+            {
                 echo '
             <ul class="categories clearfix">';
                 $i = 0;
@@ -1147,12 +1234,8 @@ class PhotoGallery {
             $category_options = '
                             <input class="frm_text" type="text" id="new-category" name="new-category" size="35"/>
                             <select id="existing-categories" name="category">
-                                <option value="0">&nbsp;</option>';
-            foreach ($categories as $id => $name) {
-                $category_options .= '
-                                <option value="' . $id . '">' . cleanOutput($name) . '</option>';
-            }
-            $category_options .= '
+                                <option value="0">&nbsp;</option>
+                                '.buildHtmlSelectOptions($categories, '').'
                             </select>';
 
         // No Categories (force creation of new one)
@@ -1161,24 +1244,79 @@ class PhotoGallery {
                             <input class="frm_text" type="text" name="new-category" size="50"/>';
         }
 
-        $memory = '';
-        if ($overrideMemoryLimit) {
-           $memory = '<input type="hidden" id="memory_override" name="memory_override" value="1"/>';
-        }
+        $advanced_tagging = usingAdvancedTagging($this->currentUserId);
 
-        // Setup the list of members for the tagging select box
-        $sql = "SELECT `id` FROM `fcms_users` WHERE `activated` > 0";
+        $members = array();
+
+        $autocomplete_selected  = '';
+
+        // Setup the photo tagging options (autocomplete or checkbox)
+        $tagging_options    = '';
+        $users_list         = '';
+        $users_lkup         = '';
+
+        // Setup the list of active members for possible tags
+        $sql = "SELECT `id` 
+                FROM `fcms_users` 
+                WHERE `activated` > 0";
         $this->db2->query($sql) or displaySQLError(
             'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         while ($r = $this->db2->get_row()) {
-            $displayNameArr[$r['id']] = getUserDisplayName($r['id'], 2);
+            $members[$r['id']] = getUserDisplayName($r['id'], 2);
         }
-        asort($displayNameArr);
-        $tag_checkboxes = '';
-        foreach ($displayNameArr as $key => $value) {
-            $tag_checkboxes .= '<label for="' . $key . '"><input type="checkbox" id="'
-                . $key . '" name="tagged[]"  value="' . $key . '"/> ' . $value . '</label>';
+        asort($members);
+
+        // Advanced (autocomplete)
+        if ($advanced_tagging)
+        {
+            foreach ($members as $key => $value)
+            {
+                $users_list .= "'$key: $value', ";
+                $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
+            }
+
+            $users_list = substr($users_list, 0, -2); // remove the extra comma space at the end
+
+            $tagging_options = '
+                                <input type="text" id="autocomplete_input" class="frm_text autocomplete_input" 
+                                    autocomplete="off" size="50" tabindex="3"/>
+                                <div id="autocomplete_instructions" class="autocomplete_instructions">
+                                    '.T_('Type name of person...').'
+                                </div>
+                                <ul id="autocomplete_selected" class="autocomplete_selected"></ul>
+                                <div id="autocomplete_search" class="autocomplete_search" style="display:none"></div>
+                                <script type="text/javascript">
+                                //<![CDATA[
+                                Event.observe(window, "load", function() {
+                                    var users_list = [ '.$users_list.' ];
+                                    var users_lkup = new Array();
+                                    '.$users_lkup.'
+                                    new Autocompleter.Local(
+                                        "autocomplete_input", "autocomplete_search", users_list, {
+                                            fullSearch: true,
+                                            partialChars: 1,
+                                            updateElement: newUpdateElement
+                                        }
+                                    );
+                                });
+                                //]]>
+                                </script>';
+        }
+        // Basic (checkbox)
+        else
+        {
+            $tag_checkboxes = '';
+            foreach ($members as $key => $value)
+            {
+                $tag_checkboxes .= '<label for="'.$key.'">';
+                $tag_checkboxes .= '<input type="checkbox" id="'.$key.'" name="tagged[]" 
+                    value="'.cleanOutput($key).'"/> '.$value.'</label>';
+            }
+            $tagging_options = '
+                            <div class="multi-checkbox" style="margin: 0 auto;">
+                                '.$tag_checkboxes.'
+                            </div>';
         }
 
         // Display the form
@@ -1188,7 +1326,8 @@ class PhotoGallery {
                 <p class="alignright">
                     <a class="help" href="../help.php#gallery-howworks">'.T_('Help').'</a>
                 </p>
-                <form enctype="multipart/form-data" action="?action=upload" method="post">
+                <script type="text/javascript" src="../inc/js/scriptaculous.js"></script>
+                <form id="autocomplete_form" enctype="multipart/form-data" action="?action=upload" method="post">
                     <div class="field-row clearfix">
                         <div class="field-label"><label><b>'.T_('Category').'</b></label></div>
                         <div class="field-widget">
@@ -1207,21 +1346,21 @@ class PhotoGallery {
                             <input class="frm_text" type="text" name="photo_caption" size="50"/>
                         </div>
                     </div>
+                    <div id="atag-options" class="field-row clearfix">
+                        <div class="field-label"><label><b>'.T_('Who is in this Photo?').'</b></label></div>
+                        <div class="field-widget">
+                            '.$tagging_options.'
+                        </div>
+                    </div>
                     <div id="rotate-options">
-                        <p class="center">
-                            '.T_('Rotate Left').': <input type="radio" name="rotate" value="left"/>&nbsp;&nbsp; 
-                            '.T_('Rotate Right').': <input type="radio" name="rotate" value="right"/>
-                        </p>
+                        <div class="field-label"><label><b>'.T_('Rotate').'</b></label></div>
+                        <div class="field-widget">
+                            <input type="radio" id="left" name="rotate" value="left"/>
+                            <label for="left" class="radio_label">'.T_('Left').'</label>&nbsp;&nbsp; 
+                            <input type="radio" id="right" name="rotate" value="right"/>
+                            <label for="right" class="radio_label">'.T_('Right').'</label>
+                        </div>
                     </div>
-                    <div id="tag-options">
-                        <p class="center">
-                            '.T_('Members in this Photo').':
-                            <div class="multi-checkbox" style="margin: 0 auto;">
-                                '.$tag_checkboxes.'
-                            </div>
-                        </p>
-                    </div>
-                    '.$memory.'
                     <input class="sub1" type="submit" id="addphoto" name="addphoto" value="'.T_('Submit').'"/>
                 </form>';
 
@@ -1241,11 +1380,9 @@ class PhotoGallery {
 
         // We have existing categories
         if (count($categories) > 0) {
-            // only hide the select box if last cat is set
-            // giving an id to select will hide it
             $category_options = '
-                    <input class="frm_text" type="text" id="new-category" name="new-category" size="35" onchange="sendNewCategory()"/>
-                    <select id="existing-categories" name="category" onchange="sendCategory()">
+                    <input class="frm_text" type="text" id="new-category" name="new-category" size="35""/>
+                    <select id="existing-categories" name="category">
                         <option value="0">&nbsp;</option>';
             foreach ($categories as $id => $name) {
                 $category_options .= '
@@ -1257,7 +1394,7 @@ class PhotoGallery {
         // No Categories (force creation of new one)
         } else {
             $category_options = '
-                    <input class="frm_text" type="text" id="new-category" name="new-category" size="50" onchange="sendNewCategory()"/>';
+                    <input class="frm_text" type="text" id="new-category" name="new-category" size="50""/>';
         }
 
         // Are we using full sized photos?
@@ -1295,7 +1432,7 @@ class PhotoGallery {
                 </style>
                 <div id="noscript">
                 <p>
-                    '.T_('JavaScript must be enabled in order for you to use the Chat Room. However, it seems JavaScript is either disabled or not supported by your browser.').'<br/>
+                    '.T_('JavaScript must be enabled in order for you to use the Advanced Uploader. However, it seems JavaScript is either disabled or not supported by your browser.').'<br/>
                     <span>
                         '.T_('Either enable JavaScript by changing your browser options.').'<br/>
                         '.T_('or').'<br/>
@@ -1311,42 +1448,51 @@ class PhotoGallery {
                     '.$category_options.'
                     <br/>
                     <br/>
+                    <applet name="jumpLoaderApplet"
+                        code="jmaster.jumploader.app.JumpLoaderApplet.class"
+                        archive="../inc/jumploader_z.jar"
+                        width="540"
+                        height="300"
+                        mayscript>
+                        <param name="uc_sendImageMetadata" value="true"/>
+                        <param name="uc_uploadUrl" value="upload.php"/>
+                        <param name="vc_useThumbs" value="true"/>
+                        <param name="uc_uploadScaledImagesNoZip" value="true"/>
+                        <param name="uc_uploadScaledImages" value="true"/>
+                        '.$scaledInstanceNames.'
+                        '.$scaledInstanceDimensions.'
+                        <param name="uc_scaledInstanceQualityFactors" value="900"/>
+                        <param name="uc_uploadFormName" value="uploadForm"/>
+                        <param name="vc_lookAndFeel" value="system"/>
+                        <param name="vc_uploadViewStartActionVisible" value="false"/>
+                        <param name="vc_uploadViewStopActionVisible" value="false"/>
+                        <param name="vc_uploadViewPasteActionVisible" value="false"/>
+                        <param name="vc_uploadViewRetryActionVisible" value="false"/>
+                        <param name="vc_uploadViewFilesSummaryBarVisible" value="false"/>
+                        <param name="vc_uiDefaults" value="Panel.background=#eff0f4; List.background=#eff0f4;"/> 
+                        <param name="ac_fireUploaderStatusChanged" value="true"/> 
+                    </applet>
+                    <br/>
+                    <br/>
+                    <input class="sub1" type="button" value="'.T_('Upload').'" id="start-upload" name="start-upload"/>
                 </form>
-                <applet name="jumpLoaderApplet"
-                    code="jmaster.jumploader.app.JumpLoaderApplet.class"
-                    archive="../inc/jumploader_z.jar"
-                    width="540"
-                    height="300"
-                    mayscript>
-                    <param name="uc_sendImageMetadata" value="true"/>
-                    <param name="uc_uploadUrl" value="upload.php"/>
-                    <param name="vc_useThumbs" value="true"/>
-                    <param name="uc_uploadScaledImagesNoZip" value="true"/>
-                    <param name="uc_uploadScaledImages" value="true"/>
-                    '.$scaledInstanceNames.'
-                    '.$scaledInstanceDimensions.'
-                    <param name="uc_scaledInstanceQualityFactors" value="900"/>
-                    <param name="uc_uploadFormName" value="uploadForm"/>
-                    <param name="vc_lookAndFeel" value="system"/>
-                    <param name="vc_uploadViewStartUploadButtonText" value="Start upload"/>
-                    <param name="vc_uploadViewFilesSummaryBarVisible" value="false"/>
-                    <param name="ac_fireUploaderStatusChanged" value="true"/> 
-                </applet>
                 <script language="javascript">
-                function sendCategory() {
+                Event.observe("start-upload","click",function(){
                     var uploader = document.jumpLoaderApplet.getUploader();
                     var attrSet = uploader.getAttributeSet();
-                    var value = $F("existing-categories");
-                    var attr = attrSet.createStringAttribute("category", value);
-                    attr.setSendToServer(true);
-                }'.$fullSizedPhotos.'
-                function sendNewCategory() {
-                    var uploader = document.jumpLoaderApplet.getUploader();
-                    var attrSet = uploader.getAttributeSet();
-                    var value = $F("new-category");
-                    var attr = attrSet.createStringAttribute("new-category", value );
-                    attr.setSendToServer(true);
-                }
+
+                    var newValue = $F("new-category");
+                    var newAttr  = attrSet.createStringAttribute("new-category", newValue);
+                    newAttr.setSendToServer(true);
+
+                    if ($("existing-categories")) {
+                        var value = $F("existing-categories");
+                        var attr  = attrSet.createStringAttribute("category", value);
+                        attr.setSendToServer(true);
+                    }
+
+                    uploader.startUpload();
+                });'.$fullSizedPhotos.'
                 function uploaderStatusChanged(uploader) {
                     if (uploader.isReady() && uploader.getFileCountByStatus(3) == 0) { 
                         window.location.href = "index.php?action=advanced";
@@ -1369,7 +1515,7 @@ class PhotoGallery {
     {
         $photo = cleanInput($photo, 'int');
 
-        $sql = "SELECT p.`user`, `filename`, `caption`, `name` 
+        $sql = "SELECT p.`user`, `filename`, `caption`, `name`, c.`id` AS category_id
                 FROM `fcms_gallery_photos` AS p, `fcms_category` AS c 
                 WHERE p.`id` = '$photo'
                 AND p.`category` = c.`id`";
@@ -1377,36 +1523,44 @@ class PhotoGallery {
             'Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
 
-        if ($this->db->count_rows() > 0) {
-            $row = $this->db->get_row();
+        if ($this->db->count_rows() > 0)
+        {
+            $row        = $this->db->get_row();
+
             $photo_user = cleanInput($row['user'], 'int');
-            $filename = basename($row['filename']);
-            $caption = cleanOutput($row['caption']);
-            $category = cleanOutput($row['name']);
-            
-            // Setup the list of categories for the select box
-            $categories = $this->getUserCategories($photo_user);
+            $filename   = basename($row['filename']);
+            $caption    = cleanOutput($row['caption']);
+            $cat_name   = cleanOutput($row['name']);
+            $cat_id     = cleanOutput($row['category_id']);
 
-            $cat_options = '';
+            $categories     = $this->getUserCategories($photo_user);
+            $cat_options    = buildHtmlSelectOptions($categories, $cat_id);
 
-            foreach ($categories as $id => $name) {
-                $cat_options .= '<option value="' . $id . '"';
-                if ($category == $name) {
-                    $cat_options .= ' selected="selected"';
-                }
-                $cat_options .= '>' . cleanOutput($name) . '</option>';
-            }
-            
-            // Setup the list of active members for the select box
-            $sql = "SELECT * 
+            $advanced_tagging = usingAdvancedTagging($photo_user);
+
+            $prev_tagged    = array();
+            $members        = array();
+
+            $autocomplete_selected  = '';
+            $prev_tagged_options    = '';
+
+            // Setup the photo tagging options (autocomplete or checkbox)
+            $tagging_options    = '';
+            $users_list         = '';
+            $users_lkup         = '';
+
+            // Setup the list of users already tagged
+            $sql = "SELECT `id`, `user` 
                     FROM `fcms_gallery_photos_tags` 
                     WHERE `photo` = '$photo'";
             $this->db2->query($sql) or displaySQLError(
                 'Find Tagged Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
             while ($r = $this->db2->get_row()) {
-                $users_in_photo[$r['id']] = $r['user'];
+                $prev_tagged[$r['user']] = 1;
             }
+
+            // Setup the list of active members for possible tags
             $sql = "SELECT `id` 
                     FROM `fcms_users` 
                     WHERE `activated` > 0";
@@ -1414,48 +1568,91 @@ class PhotoGallery {
                 'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
             while ($r = $this->db2->get_row()) {
-                $displayNameArr[$r['id']] = getUserDisplayName($r['id'], 2);
+                $members[$r['id']] = getUserDisplayName($r['id'], 2);
             }
-            asort($displayNameArr);
-            $tag_checkboxes = '';
-            foreach ($displayNameArr as $key => $value) {
-                $tag_checkboxes .= '<label for="' . $key . '"><input type="checkbox" id="'
-                    . cleanOutput($key) . '" name="tagged[]"  value="' . cleanOutput($key) . '"';
-                if (isset($users_in_photo)) {
-                    $found = array_search($key, $users_in_photo);
-                    if ($found !== false) {
-                        $tag_checkboxes .= ' checked="checked"';
+            asort($members);
+
+            // handle previously tagged members
+            if (count($prev_tagged) > 0)
+            {
+                foreach ($prev_tagged as $id => $name)
+                {
+                    $prev_tagged_options .= '<input type="hidden" name="prev_tagged_users[]" value="'.$id.'"/>';
+                    if ($advanced_tagging) {
+                        $prev_tagged_options .= '<input type="hidden" name="tagged[]" class="tagged" value="'.$id.'"/>';
                     }
+                    $autocomplete_selected .= '<li>'.$members[$id].'<a href="#" alt="'.$id.'" onclick="removeTagged()">x</a></li>';
                 }
-                $tag_checkboxes .= "/> $value</label>";
             }
             
-            // Send over a string of the previous members who were tagged, if applicable
-            $prev_tagged = '';
-            if (isset($users_in_photo)) {
-                $prev_tagged .= '<div><input type="hidden" name="prev_tagged_users" value="';
-                $first = true;
-                foreach ($users_in_photo as $uid) {
-                    if ($first) {
-                        $prev_tagged .= $uid;
-                    } else {
-                        $prev_tagged .= ",$uid";
-                    }
-                    $first = false;
+
+            // Advanced (autocomplete)
+            if ($advanced_tagging)
+            {
+                foreach ($members as $key => $value)
+                {
+                    $users_list .= "'$key: $value', ";
+                    $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
                 }
-                $prev_tagged .= '"/></div>';
+
+                $users_list = substr($users_list, 0, -2); // remove the extra comma space at the end
+
+                $tagging_options = '
+                                <input type="text" id="autocomplete_input" class="frm_text autocomplete_input" 
+                                    autocomplete="off" size="50" tabindex="3"/>
+                                <div id="autocomplete_instructions" class="autocomplete_instructions">
+                                    '.T_('Type name of person...').'
+                                </div>
+                                <ul id="autocomplete_selected" class="autocomplete_selected"></ul>
+                                <div id="autocomplete_search" class="autocomplete_search" style="display:none"></div>
+                                <script type="text/javascript">
+                                //<![CDATA[
+                                Event.observe(window, "load", function() {
+                                    var users_list = [ '.$users_list.' ];
+                                    var users_lkup = new Array();
+                                    '.$users_lkup.'
+                                    new Autocompleter.Local(
+                                        "autocomplete_input", "autocomplete_search", users_list, {
+                                            fullSearch: true,
+                                            partialChars: 1,
+                                            updateElement: newUpdateElement
+                                        }
+                                    );
+                                    initPreviouslyTagged(users_lkup);
+                                });
+                                //]]>
+                                </script>';
+            }
+            // Basic (checkbox)
+            else
+            {
+                $tag_checkboxes = '';
+                foreach ($members as $key => $value)
+                {
+                    $check = isset($prev_tagged[$key]) ? 'checked="checked"' : '';
+
+                    $tag_checkboxes .= '<label for="' . $key . '">';
+                    $tag_checkboxes .= '<input type="checkbox" id="'.cleanOutput($key).'" 
+                        name="tagged[]"  value="'.cleanOutput($key).'" '.$check.'/> '.$value;
+                    $tag_checkboxes .= '</label>';
+                }
+                $tagging_options = '
+                                <div class="multi-checkbox">
+                                    '.$tag_checkboxes.'
+                                </div>';
             }
             
             // Display the form
             echo '
                 <fieldset>
+                    <script type="text/javascript" src="../inc/js/scriptaculous.js"></script>
                     <legend><span>'.T_('Edit Photo').'</span></legend>
-                    <img class="thumbnail" src="photos/member'.$photo_user.'/tb_'.$filename.'"/>
-                    <form enctype="multipart/form-data" action="index.php?'.$url.'" method="post">
+                    <img class="thumbnail" src="../uploads/photos/member'.$photo_user.'/tb_'.$filename.'"/>
+                    <form id="autocomplete_form" enctype="multipart/form-data" action="index.php?'.$url.'" method="post">
                         <div class="field-row clearfix">
                             <div class="field-label"><label><b>'.T_('Change Category').'</b></label></div>
                             <div class="field-widget">
-                                <select class="frm_sel" name="category">
+                                <select class="frm_sel" name="category" tabindex="1">
                                     '.$cat_options.'
                                 </select>
                             </div>
@@ -1463,21 +1660,19 @@ class PhotoGallery {
                         <div class="field-row clearfix">
                             <div class="field-label"><label><b>'.T_('Caption').'</b></label></div>
                             <div class="field-widget">
-                                <input class="frm_text" type="text" name="photo_caption" size="50" value="'.$caption.'"/>
+                                <input class="frm_text" type="text" name="photo_caption" size="50" tabindex="2" value="'.$caption.'"/>
                             </div>
                         </div>
                         <div class="field-row clearfix">
                             <div class="field-label"><label><b>'.T_('Who is in this Photo?').'</b></label></div>
                             <div class="field-widget">
-                                <div class="multi-checkbox">
-                                    '.$tag_checkboxes.'
-                                </div>
+                                '.$tagging_options.'
                             </div>
                         </div>
-                        '.$prev_tagged.'
                         <p>
+                            '.$prev_tagged_options.'
                             <input type="hidden" name="photo_id" id="photo_id" value="'.$photo.'"/>
-                            <input type="submit" name="add_editphoto" value="'.T_('Edit').'"/> 
+                            <input class="sub1" type="submit" name="add_editphoto" value="'.T_('Edit').'"/> 
                             '.T_('or').' <a href="index.php?'.$url.'">'.T_('Cancel').'</a>
                         </p>
                     </form>
@@ -1506,7 +1701,21 @@ class PhotoGallery {
             return;
         }
 
-        // Setup the list of active members for the select box
+        $advanced_tagging = usingAdvancedTagging($this->currentUserId);
+
+        $members = array();
+
+        $autocomplete_selected  = '';
+
+        // Setup the photo tagging options (autocomplete or checkbox)
+        $tagging_options    = '';
+        $users_list         = '';
+        $users_lkup         = '';
+        $js                 = '';
+        $js_list            = '';
+        $js_autocompleter   = '';
+
+        // Setup the list of active members for possible tags
         $sql = "SELECT `id` 
                 FROM `fcms_users` 
                 WHERE `activated` > 0";
@@ -1514,41 +1723,102 @@ class PhotoGallery {
             'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         while ($r = $this->db2->get_row()) {
-            $displayNameArr[$r['id']] = getUserDisplayName($r['id'], 2);
+            $members[$r['id']] = getUserDisplayName($r['id'], 2);
         }
-        asort($displayNameArr);
+        asort($members);
+
+        // Advanced (autocomplete)
+        if ($advanced_tagging)
+        {
+            foreach ($members as $key => $value)
+            {
+                $users_list .= "'$key: $value', ";
+                $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
+            }
+
+            $users_list = substr($users_list, 0, -2); // remove the extra comma space at the end
+
+            $js_list = '
+                <script type="text/javascript">
+                //<![CDATA[
+                Event.observe(window, "load", function() {
+                    var users_list = [ '.$users_list.' ];
+                    var users_lkup = new Array();
+                    '.$users_lkup;
+        }
 
         // Display the form
         echo '
-                <form action="index.php?action=advanced" method="post">
+                <script type="text/javascript" src="../inc/js/scriptaculous.js"></script>
+                <form id="autocomplete_form" action="index.php?action=advanced" method="post">
                     <fieldset>
                         <legend><span>'.T_('Edit Photos').'</span></legend>';
 
+        // Loop over each photo
         $i=0;
-        foreach ($_SESSION['photos'] AS $photo) {
+        foreach ($_SESSION['photos'] AS $photo)
+        {
+            // Advanced (autocomplete)
+            if ($advanced_tagging)
+            {
+                $tagging_options = '
+                            <input type="text" id="autocomplete_input_'.$i.'" class="frm_text autocomplete_input" 
+                                autocomplete="off" size="50" tabindex="3"/>
+                            <div id="autocomplete_instructions_'.$i.'" class="autocomplete_instructions">
+                                '.T_('Type name of person...').'
+                            </div>
+                            <ul id="autocomplete_selected_'.$i.'" class="autocomplete_selected"></ul>
+                            <div id="autocomplete_search_'.$i.'" class="autocomplete_search" style="display:none"></div>';
+
+                $js_autocompleter .= '
+                    new Autocompleter.Local(
+                        "autocomplete_input_'.$i.'", "autocomplete_search_'.$i.'", users_list, {
+                            fullSearch: true,
+                            partialChars: 1,
+                            updateElement: newMultiUpdateElement
+                        }
+                    );';
+            }
+            // Basic (checkbox)
+            else
+            {
+                $tag_checkboxes = '';
+                foreach ($members as $key => $value)
+                {
+                    $tag_checkboxes .= '<label for="'.$key.$i.'">';
+                    $tag_checkboxes .= '<input type="checkbox" id="'.$key.$i.'" name="tagged['.$i.'][]" 
+                        value="'.cleanOutput($key).'"/> '.$value.'</label>';
+                }
+                $tagging_options = '
+                            <div class="multi-checkbox">
+                                '.$tag_checkboxes.'
+                            </div>';
+            }
+
             echo '
-                        <img style="float:right" src="photos/member'.$this->currentUserId.'/tb_'.basename($photo['filename']).'"/>
+                        <img style="float:right" src="../uploads/photos/member'.$this->currentUserId.'/tb_'.basename($photo['filename']).'"/>
                         <p>
                             '.T_('Caption').'<br/>
                             <input type="text" class="frm_text" name="caption[]" width="50"/>
                             <input type="hidden" name="id[]" value="'.(int)$photo['id'].'"/>
                             <input type="hidden" name="category[]" value="'.(int)$photo['category'].'"/>
                         </p>
-                        <p>
-                            '.T_('Who is in this Photo?').' 
-                            <div class="multi-checkbox">';
-
-            $tag_checkboxes = '';
-            foreach ($displayNameArr as $key => $value) {
-                $tag_checkboxes .= '<label for="'.$key.$i.'"><input type="checkbox" id="'.$key.$i.'" name="tagged['.$i.'][]"  value="'.$key.'"/> '.$value.'</label>';
-            }
-            echo '
-                                '.$tag_checkboxes.'
-                            </div>
-                        </p>
+                        <div>
+                            '.T_('Who is in this Photo?').'<br/>
+                            '.$tagging_options.'
+                        </div><br/>
                         <hr/>';
             $i++;
         }
+
+        if ($advanced_tagging)
+        {
+            $js = $js_list.$js_autocompleter.'
+                });
+                //]]>
+                </script>';
+        }
+
         echo '
                         <br/>
                         <p>
@@ -1557,13 +1827,14 @@ class PhotoGallery {
                             <a href="index.php?action=upload">'.T_('Cancel').'</a>
                         </p>
                     </fieldset>
-                </form>';
+                </form>
+                '.$js;
     }
 
     /**
      * uploadPhoto 
      * 
-     * Uploads a photo to the /gallery/photos/memberX/ directory where x is the user id.
+     * Uploads a photo to the /uploads/photos/memberX/ directory where x is the user id.
      * Adds photo info to the db, creates a thumbnail, resizes middle sized photo 
      * and rotates the photo if desired.
      *
@@ -1591,460 +1862,138 @@ class PhotoGallery {
         $main_max_height = 600
     )
     {
-        $known_photo_types = array(
-            'image/pjpeg'   => 'jpeg', 
-            'image/jpeg'    => 'jpg', 
-            'image/gif'     => 'gif', 
-            'image/bmp'     => 'bmp', 
-            'image/x-png'   => 'png', 
-            'image/png'     => 'png'
+        // Valid photo?
+        if ($photo['size'] <= 0)
+        {
+            echo '
+            <p class="error-alert">'.T_('Photo is corrupt or missing.').'</p>';
+
+            return false;
+        }
+
+        // Create new directory if needed
+        if (!file_exists('../uploads/photos/member'.$this->currentUserId))
+        {
+            mkdir('../uploads/photos/member'.$this->currentUserId);
+        }
+
+        // Insert new photo record
+        $sql = "INSERT INTO `fcms_gallery_photos`
+                    (`date`, `caption`, `category`, `user`)
+                VALUES(
+                    NOW(), 
+                    '$caption', 
+                    '$category', 
+                    '".$this->currentUserId."'
+                )";
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Add Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return false;
+        }
+
+        $id = mysql_insert_id();
+
+        // Temporarily set name so we can get extension, then change name below
+        $this->img->name = $photo['name'];
+        $this->img->getExtension();
+
+        // Setup the array of photos that need uploaded
+        $upload_photos = array(
+            'main'  => array(
+                'resize'    => true,
+                'prefix'    => '',
+                'width'     => $main_max_width,
+                'height'    => $main_max_height
+            ),
+            'thumb' => array(
+                'resize'    => true,
+                'prefix'    => 'tb_',
+                'width'     => $thumb_max_width,
+                'height'    => $thumb_max_height
+            ),
         );
-        $gd_function_suffix = array(
-            'image/pjpeg'   => 'JPEG', 
-            'image/jpeg'    => 'JPEG', 
-            'image/gif'     => 'GIF', 
-            'image/bmp'     => 'BMP', 
-            'image/x-png'   => 'PNG', 
-            'image/png'     => 'PNG'
-        );
 
-        // Are we using full sized photos?
-        $sql = "SELECT `full_size_photos` FROM `fcms_config`";
-        $this->db->query($sql) or displaySQLError(
-            'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $r = $this->db->get_row();
-
-        if ($photo['size'] > 0) {
-                
-            // Check file type
-            if (!array_key_exists($photo['type'], $known_photo_types)) {
-                echo '
-            <p class="error-alert">
-                '.sprintf(T_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $photo['type']).'
-            </p>';
-                return;
-            }
-
-            // Get extension of photo
-            $ext = explode('.', $photo['name']);
-            $ext = end($ext);
-            $ext = strtolower($ext);
-
-            // Check file extension
-            if (!in_array($ext, $known_photo_types)) {
-                echo '
-            <p class="error-alert">
-                '.sprintf(T_('Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, .BMP or .PNG).'), $photo['type']).'
-            </p>';
-                return;
-            }
-                    
-            // Create a new photo record in DB
-            $sql = "INSERT INTO `fcms_gallery_photos`
-                        (`date`, `caption`, `category`, `user`)
-                    VALUES(
-                        NOW(), 
-                        '$caption', 
-                        '$category', 
-                        '" . $this->currentUserId . "'
-                    )";
-            $this->db->query($sql) or displaySQLError(
-                'Add Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        if ($this->usingFullSizePhotos())
+        {
+            $upload_photos['full'] = array(
+                'resize'    => false,
+                'prefix'    => 'full_',
+                'width'     => 0,
+                'height'    => 0
             );
-                    
-            // Update the filename and update the photo record in DB
-            // We an insert above and update below so we can make sure that the filename of
-            // the photo is the same as the photo id
-            $new_id     = mysql_insert_id();
-            $filetype   = $photo['type'];
-            $filename   = $new_id . "." . $ext;
-            $sql = "UPDATE `fcms_gallery_photos` 
-                    SET `filename` = '" . cleanInput($filename) . "' 
-                    WHERE `id` = " . cleanInput($new_id);
-            $this->db->query($sql) or displaySQLError(
-                'Update Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-                    
-            // Create new member directory if needed
-            if (!file_exists("photos/member" . $this->currentUserId)) {
-                mkdir("photos/member" . $this->currentUserId);
-            }
-                    
-            // Copy the tmp file to the member's photo dir
-            copy($photo['tmp_name'], "photos/member" . $this->currentUserId . "/" . $filename);
+        }
 
-            // If using full sized photos, make another copy of the file, because the first
-            // copy is going to be resized.
-            if ($r['full_size_photos'] == '1') {
-                copy($photo['tmp_name'], "photos/member" . $this->currentUserId . "/full_" . $filename);
-            }
-                    
-            // Get image sizes
-            $size = GetImageSize("photos/member" . $this->currentUserId . "/" . $filename);
+        // Loop through each photo that needs uploaded
+        foreach ($upload_photos as $key => $value)
+        {
+            $resize = $upload_photos[$key]['resize'];
+            $prefix = $upload_photos[$key]['prefix'];
+            $width  = $upload_photos[$key]['width'];
+            $height = $upload_photos[$key]['height'];
 
-            // Set Thumbnail Size -- make it square
-            $thumbnail = $this->getResizeSizeSquare(
-                $size[0], 
-                $size[1], 
-                $thumb_max_width
-            );
-            $thumbnail_temp_width  = $thumbnail[0];
-            $thumbnail_temp_height = $thumbnail[1];
-            $thumbnail_width       = $thumbnail[2];
-            $thumbnail_height      = $thumbnail[3];
-                    
-            // Set Main Photo Size -- make it proportional
-            $main = $this->getResizeSize(
-                $size[0], 
-                $size[1], 
-                $main_max_width, 
-                $main_max_height
-            );
-            $main_width  = $main[0];
-            $main_height = $main[1];
+            // Setup image upload settings
+            $this->img->name          = $prefix.$id.'.'.$this->img->extension;
+            $this->img->destination   = '../uploads/photos/member'.$this->currentUserId.'/';
+            $this->img->resizeSquare  = $key == 'thumb' ? true : false;
 
-
-            // Do we need to resize the photos?
-            $thumbNeedsResized = true;
-            $mainNeedsResized = true;
-            if ($size[0] < $thumb_max_width && $size[1] < $thumb_max_height) {
-                $thumbNeedsResized = false;
-            }
-            if ($size[0] < $main_max_width && $size[1] < $main_max_height) {
-                $mainNeedsResized = false;
-            }
-
-            // If were not resizing or rotating, then no need to do fancy GD stuf below, just copy over thumbnail and return
-            if (   !$thumbNeedsResized
-                && !$mainNeedsResized
-                && $rotateoptions != 'left'
-                && $rotateoptions != 'right'
-            ) {
-                copy($photo['tmp_name'], "photos/member" . $this->currentUserId . "/tb_" . $filename);
-                echo '
-            <p class="ok-alert">
-                <b>'.T_('The following photo was added successfully.').'</b><br/><br/>
-                &nbsp;&nbsp;&nbsp;<img src="photos/member'.$this->currentUserId.'/tb_'.$filename.'" alt="'.cleanOutput($caption).'"/>
-            </p>';
-                return $new_id;
-            }
-
-            // Check to see if we are going to run out of memory
-            if (!$overrideMemoryWarning) {
-                $memoryAvailable = ini_get('memory_limit');
-                $memoryAvailable = substr($memoryAvailable, 0, -1);
-                $memoryAvailable = ($memoryAvailable * 1024) * 1024;
-                // channels and bits are optional
-                if (!isset($size['channels'])) {
-                    $size['channels'] = 3;
-                }
-                if (!isset($size['bits'])) {
-                    $size['bits'] = 8;
-                }
-                $memoryNeeded = Round(($size[0] * $size[1] * $size['bits'] * $size['channels'] / 8 + Pow(2, 16)) * 1.65);
-                if ($memoryNeeded > $memoryAvailable) {
-                    // Remove the photo from the DB
-                    $sql = "DELETE FROM `fcms_gallery_photos` 
-                            WHERE `id` = '$new_id'";
-                    mysql_query($sql) or displaySQLError(
-                        'Delete Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                    );
-                    
-                    // Remove the Photo from the server
-                    unlink("photos/member" . $this->currentUserId . "/" . $filename);
-                    if ($r['full_size_photos'] == 1) {
-                        unlink("photos/member" . $this->currentUserId . "/full_" . $filename);
-                    }
-                    echo '
-            <div class="info-alert">
-                <h2>'.T_('Out of Memory Warning.').'</h2>
-                <p>
-                    '.T_('The photo you are trying to upload is quite large and the server might run out of memory if you continue.').' 
-                    '.T_('It is recommended that you try to upload this photo using the "Advanced Uploader" instead.').'
-                    <small>('.$memoryNeeded.' / '.$memoryAvailable.')</small>
-                </p>
-                <h3>'.T_('What do you want to do?').'</h3>
-                <table cellpadding="0" cellspacing="0" style="width:100%">
-                    <tr>
-                        <td><a href="../settings.php">'.T_('Use the "Advanced Uploader"').'</a></td>
-                        <td class="center">'.T_('or').'</td>
-                        <td style="text-align:right">
-                            <a class="u" href="?action=upload&amp;memory=confirm">'.T_('I want to continue with this photo').'</a>
-                        </td>
-                    </tr>
-                </table>
-            </div>';
+            if ($key == 'main')
+            {
+                // Update photo record
+                $sql = "UPDATE `fcms_gallery_photos` 
+                        SET `filename` = '".$this->img->name."' 
+                        WHERE `id` = $id";
+                if (!$this->db->query($sql))
+                {
+                    displaySQLError('Update Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
                     return false;
                 }
             }
 
-            // Setup function to create new file
-            $function_suffix  = $gd_function_suffix[$filetype];
-            $function_to_read = "ImageCreateFrom" . $function_suffix;
-            // Treat Bitmaps as Jpeg
-            if ($function_suffix == 'BMP') {
-                $function_to_write = "ImageJPEG";
-            } else {
-                $function_to_write = "Image" . $function_suffix;
+            // Upload photo
+            $this->img->upload($photo);
+
+            if ($this->img->error == 1)
+            {
+                echo '
+                <p class="error-alert">
+                    '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->img->name).'
+                </p>';
+
+                return false;
             }
 
-            // Create new file
-            $source_handle = $function_to_read(
-                "photos/member" . $this->currentUserId . "/" . $filename
-            );
-
-            if ($source_handle) {
-                // Create a new square Thumbnail
-                $thumb_destination_handle = ImageCreateTrueColor($thumbnail_width, $thumbnail_height);
-                ImageCopyResampled(
-                    $thumb_destination_handle, 
-                    $source_handle, 
-                    0, 0, 0, 0, 
-                    $thumbnail_temp_width, 
-                    $thumbnail_temp_height, 
-                    $size[0], 
-                    $size[1]
-                );
-                // Create a new resized copy of the Main Photo
-                $main_destination_handle = ImageCreateTrueColor($main_width, $main_height);
-                ImageCopyResampled(
-                    $main_destination_handle, 
-                    $source_handle, 
-                    0, 0, 0, 0, 
-                    $main_width, 
-                    $main_height, 
-                    $size[0], 
-                    $size[1]
-                );
+            // Rotate
+            if ($rotateoptions == 'left')
+            {
+                $this->img->rotate(90);
+            }
+            elseif ($rotateoptions == 'right')
+            {
+                $this->img->rotate(270);
             }
 
-            if ($r['full_size_photos'] == '1') {
-                $full_destination_handle = $function_to_read(
-                    "photos/member" . $this->currentUserId . "/full_" . $filename
-                );
+            // Resize
+            if ($resize)
+            {
+                $this->img->resize($width, $height);
             }
-            $function_to_write(
-                $thumb_destination_handle, 
-                "photos/member" . $this->currentUserId . "/tb_" . $filename
-            );
-            $function_to_write(
-                $main_destination_handle, 
-                "photos/member" . $this->currentUserId . "/" . $filename
-            );
-                    
-            // File Rotation
-            if ($rotateoptions == 'left' || $rotateoptions =='right') {
-                if ($rotateoptions == 'left') {
-                    $rotate_thumb = imagerotate($thumb_destination_handle, 90, 0);
-                    $rotate_main = imagerotate($main_destination_handle, 90, 0);
-                    if ($r['full_size_photos'] == '1') {
-                        $rotate_full = imagerotate($full_destination_handle, 90, 0);
-                    }
-                }
-                if ($rotateoptions == 'right') {
-                    $rotate_thumb = imagerotate($thumb_destination_handle, 270, 0);
-                    $rotate_main = imagerotate($main_destination_handle, 270, 0);
-                    if ($r['full_size_photos'] == '1') {
-                        $rotate_full = imagerotate($full_destination_handle, 270, 0);
-                    }
-                }
-                // Save the new rotated image
-                switch($function_suffix) {
-                    case 'JPEG':
-                        imagejpeg(
-                            $rotate_thumb, 
-                            "photos/member" . $this->currentUserId . "/tb_" . $filename
-                        );
-                        imagejpeg(
-                            $rotate_main, 
-                            "photos/member" . $this->currentUserId . "/" . $filename
-                        );
-                        if ($r['full_size_photos'] == '1') {
-                            imagejpeg(
-                                $rotate_full, 
-                                "photos/member" . $this->currentUserId . "/full_" . $filename
-                            );
-                        }
-                        break;
-                    case 'GIF':
-                        imagegif(
-                            $rotate_thumb, 
-                            "photos/member" . $this->currentUserId . "/tb_" . $filename
-                        );
-                        imagegif(
-                            $rotate_main, 
-                            "photos/member" . $this->currentUserId . "/" . $filename
-                        );
-                        if ($r['full_size_photos'] == '1') {
-                            imagegif(
-                                $rotate_full, 
-                                "photos/member" . $this->currentUserId . "/full_" . $filename
-                            );
-                        }
-                        break;
-                    case 'WBMP':
-                        imagewbmp(
-                            $rotate_thumb, 
-                            "photos/member" . $this->currentUserId . "/tb_" . $filename
-                        );
-                        imagewbmp(
-                            $rotate_main, 
-                            "photos/member" . $this->currentUserId . "/" . $filename
-                        );
-                        if ($r['full_size_photos'] == '1') {
-                            imagewbmp(
-                                $rotate_full, 
-                                "photos/member" . $this->currentUserId . "/full_" . $filename
-                            );
-                        }
-                        break;
-                    case 'PNG':
-                        imagepng(
-                            $rotate_thumb, 
-                            "photos/member" . $this->currentUserId . "/tb_" . $filename
-                        );
-                        imagepng(
-                            $rotate_main, 
-                            "photos/member" . $this->currentUserId . "/" . $filename
-                        );
-                        if ($r['full_size_photos'] == '1') {
-                            imagepng(
-                                $rotate_full, 
-                                "photos/member" . $this->currentUserId . "/full_" . $filename
-                            );
-                        }
-                        break;
-                    default:
-                        imagejpg(
-                            $rotate_thumb, 
-                            "photos/member" . $this->currentUserId . "/tb_" . $filename
-                        );
-                        imagejpg(
-                            $rotate_main, 
-                            "photos/member" . $this->currentUserId . "/" . $filename
-                        );
-                        if ($r['full_size_photos'] == '1') {
-                            imagejpg(
-                                $rotate_full, 
-                                "photos/member" . $this->currentUserId . "/full_" . $filename
-                            );
-                        }
-                        break;
-                }
+
+            // Errors?
+            if ($this->img->error > 0)
+            {
+                $this->handleImageErrors($id);
+                return false;
             }
-                    
-            // Clean up the temporary files
-            ImageDestroy($thumb_destination_handle);
-            ImageDestroy($main_destination_handle);
-            if ($r['full_size_photos'] == '1') {
-                ImageDestroy($full_destination_handle);
-            }
-            
-            // Output a success message
-            echo '
+        }
+
+        echo '
             <p class="ok-alert">
                 <b>'.T_('The following photo was added successfully.').'</b><br/><br/>
-                &nbsp;&nbsp;&nbsp;<img src="photos/member'.$this->currentUserId.'/tb_'.$filename.'" alt="'.cleanOutput($caption).'"/>
+                <img src="../uploads/photos/member'.$this->currentUserId.'/'.$this->img->name.'" alt="'.cleanOutput($caption).'"/>
             </p>';
-        }
 
-        if (isset($new_id)) {
-            return $new_id;
-        }
-    }
-    
-    /**
-     * getResizeSize 
-     * 
-     * Given a photo's width/height, and the maximum resized width/height, it will calculate 
-     * the width/height while not distorting.
-     *
-     * For example, a 800x600 photo with a max size of 500x500 will return 500x375
-     *
-     * @param int $orig_width  the original width of the photo
-     * @param int $orig_height the original height of the photo
-     * @param int $max_width   the maximum width for the new photo size
-     * @param int $max_height  the maximum height for the new photo size
-     * @param int $square      force width/height to be square?
-     *
-     * @return  array   the new width/height
-     */
-    function getResizeSize ($orig_width, $orig_height, $max_width, $max_height)
-    {
-        // Wider than tall
-        if ($orig_width > $orig_height) {
-            // Check width
-            if ($orig_width > $max_width) {
-                $height = (int)($max_width * $orig_height / $orig_width);
-                return array($max_width, $height);
-            // No need to resize if it's smaller than max
-            } else {
-                return array($orig_width, $orig_height);
-            }
-
-        // Taller than wide
-        } else {
-            // Check height
-            if ($orig_height > $max_height) {
-                $width = (int)($max_height * $orig_width / $orig_height);
-                return array($width, $max_height);
-            // Check width
-            } elseif ($orig_width > $max_width) {
-                $height = (int)($max_width * $orig_height / $orig_width);
-                return array($max_width, $height);
-            // No need to resize if it's smaller than max
-            } else {
-                return array($orig_width, $orig_height);
-            }
-        }
-    }
-
-    /**
-     * getResizeSizeSquare 
-     * 
-     * Given the photos width/height and a max, it will resize the photo to as close to
-     * square as possible, allowing the smallest amount of cropping possible.
-     * Photos smaller than the max will not be square and will not be resized/cropped.
-     * 
-     * Returns an array with the photo demensions and crop demensions:
-     *      array( resize_width, resize_height, crop_width, crop_height )
-     *
-     * For example: given a photo of 800x600 and max size of 150
-     *      will return:  array(200, 150, 150, 150)
-     * 
-     * For example: given a photo of 45x20 and max size of 150
-     *      will return:  array(45, 20, 45, 20)
-     * 
-     * @param string $width 
-     * @param string $height 
-     * @param string $max 
-     * 
-     * @return  array
-     */
-    function getResizeSizeSquare ($width, $height, $max)
-    {
-        // Wider than tall
-        if ($width > $height) {
-
-            // Check height
-            if ($height > $max) {
-                $width = (int)($max * $width / $height);
-                return array($width, $max, $max, $max);
-            }
-
-        // Taller than wide
-        } else {
-
-            // Check width
-            if ($width > $max) {
-                $height = (int)($max * $height / $width);
-                return array($max, $height, $max, $max);
-            }
-        }
-
-        // if all else fails return orig dimensions
-        return array($width, $height, $width, $height);
+        return $id;
     }
 
     /**
@@ -2098,9 +2047,9 @@ class PhotoGallery {
      */
     function displayWhatsNewGallery ()
     {
-        $locale = new Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+        $locale = new FCMS_Locale();
+        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
 
         echo '
             <h3>'.T_('Photo Gallery').'</h3>';
@@ -2135,14 +2084,14 @@ class PhotoGallery {
                     'Date Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
                 );
                 $found = mysql_fetch_array($result);
-                $date = $locale->fixDate('YmdHis', $this->tz_offset, $found['date']);
+                $date = $locale->fixDate('YmdHis', $this->tzOffset, $found['date']);
 
                 // Today
                 if ($date >= $today_start && $date <= $today_end) {
                     $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tz_offset, $found['date']);
+                    $full_date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $found['date']);
                     $d = '';
                 }
                 echo '
@@ -2223,7 +2172,7 @@ class PhotoGallery {
      */
     function displayAdminDeleteCategories ($page)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $perPage = 5;
         $from = ($page * $perPage) - $perPage;
@@ -2250,43 +2199,33 @@ class PhotoGallery {
         }
 
         echo '
-            <form id="delete_category" action="gallery.php" method="post">
-                <p><input type="submit" class="sub1" id="deleteAll" name="deleteAll" value="'.T_('Delete All').'"/></p>
-                <table class="sortable" cellspacing="0" cellpadding="0">
-                    <tr>
-                        <th class="id">'.T_('ID').'</th>
-                        <th>'.T_('Category').'</th>
-                        <th>'.T_('User').'</th>
-                        <th>'.T_('Photos').'</th>
-                        <th>'.T_('Edit').'</th>
-                        <th>'.T_('Delete').'</th>
-                    </tr>
-                    <tr class="check_all_none">
-                        <td colspan="6">
-                            '.T_('Select:').'
-                            <a href="#" onclick="$(\'delete_category\').getInputs(\'checkbox\').each(function(e){ e.checked = 1 }); return false;">'.T_('All').'</a> 
-                            <a href="#" onclick="$(\'delete_category\').getInputs(\'checkbox\').each(function(e){ e.checked = 0 }); return false;">'.T_('None').'</a>
-                        </td>
-                    </tr>';
+            <form id="check_all_form" name="check_all_form" action="gallery.php" method="post">
+                <ul class="photos clearfix">';
 
-        while ($row = $this->db->get_row()) {
+        while ($row = $this->db->get_row())
+        {
+            $count = $this->getCategoryPhotoCount($row['category']);
             echo '
-                    <tr>
-                        <td>'.$row['category'].'</td>
-                        <td>
+                    <li class="tag_photo">
+                        <p>
                             <b>'.$row['name'].'</b><br/>
-                            <img src="../gallery/photos/member'.$row['user'].'/tb_'.basename($row['filename']).'" alt="'.cleanOutput($row['name']).'"/>
-                        </td>
-                        <td>'.getUserDisplayName($row['user']).'</td>
-                        <td>'.$this->getCategoryPhotoCount($row['category']).'</td>
-                        <td><a href="?edit='.$row['category'].'">'.T_('Edit').'</a></td>
-                        <td class="check"><input type="checkbox" id="cat'.$row['category'].'" name="bulk_actions[]" value="'.$row['category'].'"/></td>
-                    </tr>';
+                            <i>'.sprintf(T_('%d photos'), $count).'</i>
+                        </p>
+                        <label for="'.$row['category'].'">
+                            <span></span>
+                            <img src="../uploads/photos/member'.$row['user'].'/tb_'.basename($row['filename']).'" 
+                                alt="'.cleanOutput($row['name']).'"/>
+                        </label>
+                        <input type="checkbox" id="'.$row['category'].'" name="bulk_actions[]" value="'.$row['category'].'"/>
+                        <p>
+                            <a href="?edit='.$row['category'].'">'.T_('Edit').'</a>
+                        </p>
+                    </li>';
 
         }
 
         echo '
-                </table>
+                </ul>
                 <p><input type="submit" class="sub1" id="deleteAll" name="deleteAll" value="'.T_('Delete All').'"/></p>
             </form>';
 
@@ -2314,7 +2253,7 @@ class PhotoGallery {
      */
     function displayAdminDeletePhotos ($id)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
         $id = cleanInput($id, 'int');
 
         $sql = "SELECT p.`id`, p.`date`, p.`filename`, c.`name` AS category, p.`user`, p.`caption`, p.`views`
@@ -2335,43 +2274,28 @@ class PhotoGallery {
         $this->displayAdminMenu();
 
         echo '
-            <form id="delete_category" action="gallery.php?edit='.$id.'" method="post">
-                <p><input type="submit" class="sub1" id="deleteAllPhotos" name="deleteAllPhotos" value="'.T_('Delete All').'"/></p>
-                <table class="sortable" cellspacing="0" cellpadding="0">
-                    <tr>
-                        <th class="id">'.T_('ID').'</th>
-                        <th>'.T_('Photo').'</th>
-                        <th>'.T_('Views').'</th>
-                        <th>'.T_('Date').'</th>
-                        <th>'.T_('Delete').'</th>
-                    </tr>
-                    <tr class="check_all_none">
-                        <td colspan="6">
-                            '.T_('Select:').'
-                            <a href="#" onclick="$(\'delete_category\').getInputs(\'checkbox\').each(function(e){ e.checked = 1 }); return false;">'.T_('All').'</a> 
-                            <a href="#" onclick="$(\'delete_category\').getInputs(\'checkbox\').each(function(e){ e.checked = 0 }); return false;">'.T_('None').'</a>
-                        </td>
-                    </tr>';
+            <form id="check_all_form" name="check_all_form" action="gallery.php?edit='.$id.'" method="post">
+                <ul class="photos clearfix">';
 
-        while ($row = $this->db->get_row()) {
-            $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $row['date']);
+        while ($row = $this->db->get_row())
+        {
             echo '
-                    <tr>
-                        <td>'.$row['id'].'</td>
-                        <td>
-                            <img src="../gallery/photos/member'.$row['user'].'/tb_'.basename($row['filename']).'" alt="'.cleanOutput($row['caption']).'"/><br/>
-                            '.$row['caption'].'
-                        </td>
-                        <td>'.$row['views'].'</td>
-                        <td>'.$date.'</td>
-                        <td class="check"><input type="checkbox" id="photo'.$row['id'].'" name="bulk_actions[]" value="'.$row['id'].'"/></td>
-                    </tr>';
-
+                    <li class="tag_photo">
+                        <label for="'.$row['id'].'">
+                            <span></span>
+                            <img src="../uploads/photos/member'.$row['user'].'/tb_'.basename($row['filename']).'" 
+                                alt="'.cleanOutput($row['caption']).'"/>
+                        </label>
+                        <input type="checkbox" id="'.$row['id'].'" name="bulk_actions[]" value="'.$row['id'].'"/>
+                    </li>';
         }
 
         echo '
-                </table>
-                <p><input type="submit" class="sub1" id="deleteAllPhotos" name="deleteAllPhotos" value="'.T_('Delete All').'"/></p>
+                </ul>
+                <p style="text-align: right">
+                    <input type="submit" class="sub1" id="deleteAllPhotos" 
+                        name="deleteAllPhotos" value="'.T_('Delete Selected').'"/>
+                </p>
             </form>';
     }
 
@@ -2432,5 +2356,337 @@ class PhotoGallery {
             return;
         }
         return $this->db->get_row();
+    }
+
+    /**
+     * usingFullSizePhotos 
+     * 
+     * @return void
+     */
+    function usingFullSizePhotos ()
+    {
+        $sql = "SELECT `full_size_photos`
+                FROM `fcms_config`";
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return false;
+        }
+
+        $r = $this->db->get_row();
+
+        if ($r['full_size_photos'] == 1)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * handleImageErrors 
+     * 
+     *  1   Image type not supported or invalid
+     *  2   GD doesn't support image type
+     *  3   Could not write new image
+     *  4   Not enough memory to resize image
+     * 
+     * @param int $id 
+     * 
+     * @return void
+     */
+    function handleImageErrors ($id)
+    {
+        switch ($this->img->error)
+        {
+            case 2:
+
+                echo '
+            <div class="error-alert">
+                '.T_('GD Library is either not installed or does not support this file type.').'
+            </div>';
+
+                break;
+
+            case 3:
+
+                echo '
+            <div class="error-alert">
+                '.T_('Could not write file, check folder permissions.').'
+            </div>';
+
+                break;
+
+            case 4:
+
+                // Remove the photo from the DB
+                $sql = "DELETE FROM `fcms_gallery_photos` 
+                        WHERE `id` = '$id'";
+                mysql_query($sql) or displaySQLError(
+                    'Delete Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                );
+                
+                // Remove the Photo from the server
+                unlink("photos/member".$this->currentUserId."/".$this->img->name);
+
+                echo '
+            <div class="info-alert">
+                <h2>'.T_('Out of Memory Warning.').'</h2>
+                <p>
+                    '.T_('The photo you are trying to upload is quite large and the server might run out of memory if you continue.').' 
+                    '.T_('It is recommended that you try to upload this photo using the "Advanced Uploader" instead.').'
+                    <small>('.number_format($this->img->memoryNeeded).' / '.number_format($this->img->memoryAvailable).')</small>
+                </p>
+                <h3>'.T_('What do you want to do?').'</h3>
+                <p>
+                    <a href="?action=upload&amp;advanced=on">'.T_('Use the "Advanced Uploader"').'</a>&nbsp; 
+                    '.T_('or').'
+                    <a class="u" href="index.php">'.T_('Cancel').'</a>
+                </p>
+            </div>';
+                break;
+
+            default:
+
+                echo '
+            <div class="error-alert">'.T_('An unknown error has occured.').'</div>';
+
+                break;
+        }
+    }
+
+    /**
+     * displayMassTagCategory 
+     * 
+     * Displays the form for tagging users in multiple categories.
+     * 
+     * @param int $category 
+     * @param int $user 
+     * 
+     * @return void
+     */
+    function displayMassTagCategory ($category, $user)
+    {
+        $advanced_tagging = usingAdvancedTagging($this->currentUserId);
+        $members          = array();
+        $tagging_options  = '';
+        $users_list       = '';
+        $users_lkup       = '';
+        $js               = '';
+        $js_list          = '';
+        $js_autocompleter = '';
+
+        // Setup the list of active members for possible tags
+        $sql = "SELECT `id` 
+                FROM `fcms_users` 
+                WHERE `activated` > 0";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Members Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        }
+
+        if ($this->db->count_rows() < 0)
+        {
+            echo '<p class="error">'.T_('No members found.').'</p>';
+            return;
+        }
+
+        $members = array();
+
+        while ($r = $this->db->get_row())
+        {
+            $members[$r['id']] = getUserDisplayName($r['id'], 2);
+        }
+
+        asort($members);
+
+        // Get photos in category
+        $sql = "SELECT u.`id` AS uid, `category` AS cid, p.`id` AS pid, `caption`, c.`name` AS category, `filename` 
+                FROM `fcms_category` AS c, `fcms_gallery_photos` AS p, `fcms_users` AS u 
+                WHERE p.`user` = '$user' 
+                AND `category` = '$category'
+                AND p.`user` = u.`id`
+                AND `category` = c.`id`
+                ORDER BY p.`id`";
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() < 0)
+        {
+            echo '<p class="error">'.T_('No photos found in this category.').'</p>';
+            return;
+        }
+
+        // Advanced (autocomplete)
+        if ($advanced_tagging)
+        {
+            foreach ($members as $key => $value)
+            {
+                $users_list .= "'$key: $value', ";
+                $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
+            }
+
+            $users_list = substr($users_list, 0, -2); // remove the extra comma space at the end
+
+            $js_list = '
+                <script type="text/javascript">
+                //<![CDATA[
+                Event.observe(window, "load", function() {
+                    var users_list = [ '.$users_list.' ];
+                    var users_lkup = new Array();
+                    '.$users_lkup;
+        }
+
+        // Display the form
+        echo '
+                <script type="text/javascript" src="../inc/js/scriptaculous.js"></script>
+                <form id="autocomplete_form" action="index.php?uid='.$user.'&amp;cid='.$category.'" method="post">
+                    <fieldset>
+                        <legend><span>'.T_('Tag Members In Photos').'</span></legend>';
+
+        // Loop over each photo
+        $i = 1;
+        while ($row = $this->db->get_row())
+        {
+            $prev_tagged         = array();
+            $prev_tagged_options = '';
+
+            // Setup the list of users already tagged
+            $sql = "SELECT `id`, `user` 
+                    FROM `fcms_gallery_photos_tags` 
+                    WHERE `photo` = '".$row['pid']."'";
+
+            if (!$this->db2->query($sql))
+            {
+                displaySQLError('Tagged Users Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            }
+
+            while ($r = $this->db2->get_row()) {
+                $prev_tagged[$r['user']] = 1;
+            }
+
+            // handle previously tagged members
+            if (count($prev_tagged) > 0)
+            {
+                foreach ($prev_tagged as $id => $name)
+                {
+                    $prev_tagged_options .= '<input type="hidden" name="prev_tagged_users['.$row['pid'].'][]" value="'.$id.'"/>';
+                    if ($advanced_tagging) {
+                        $prev_tagged_options .= '<input type="hidden" id="tagged_'.$row['pid'].'" name="tagged['.$row['pid'].'][]" class="tagged" value="'.$id.'"/>';
+                    }
+                }
+            }
+
+            // Advanced (autocomplete)
+            if ($advanced_tagging)
+            {
+                $tagging_options = '
+                            <input type="text" id="autocomplete_input_'.$row['pid'].'" class="frm_text autocomplete_input" 
+                                autocomplete="off" size="50" tabindex="'.$i.'"/>
+                            <div id="autocomplete_instructions_'.$row['pid'].'" class="autocomplete_instructions">
+                                '.T_('Type name of person...').'
+                            </div>
+                            <ul id="autocomplete_selected_'.$row['pid'].'" class="autocomplete_selected"></ul>
+                            <div id="autocomplete_search_'.$row['pid'].'" class="autocomplete_search" style="display:none"></div>';
+
+                $js_autocompleter .= '
+                    new Autocompleter.Local(
+                        "autocomplete_input_'.$row['pid'].'", "autocomplete_search_'.$row['pid'].'", users_list, {
+                            fullSearch: true,
+                            partialChars: 1,
+                            updateElement: newMultiUpdateElement
+                        }
+                    );
+                    initMultiPreviouslyTagged('.$row['pid'].', users_lkup);';
+            }
+            // Basic (checkbox)
+            else
+            {
+                $tag_checkboxes = '';
+                foreach ($members as $key => $value)
+                {
+                    $check = isset($prev_tagged[$key]) ? 'checked="checked"' : '';
+
+                    $tag_checkboxes .= '<label for="'.$key.$i.'">';
+                    $tag_checkboxes .= '<input type="checkbox" id="'.$key.$i.'" name="tagged['.$row['pid'].'][]" 
+                        value="'.cleanOutput($key).'" '.$check.'/> '.$value.'</label>';
+                }
+                $tagging_options = '
+                            <div class="multi-checkbox">
+                                '.$tag_checkboxes.'
+                            </div>';
+            }
+
+            echo '
+                        <img style="float:right" src="../uploads/photos/member'.$user.'/tb_'.basename($row['filename']).'"/>
+                        <p>
+                            '.T_('Caption').'<br/>
+                            '.cleanOutput($row['caption']).'
+                        </p>
+                        <div>
+                            '.T_('Who is in this Photo?').'<br/>
+                            '.$tagging_options.'
+                            '.$prev_tagged_options.'
+                        </div><br/>
+                        <hr/>';
+            $i++;
+        }
+
+        if ($advanced_tagging)
+        {
+            $js = $js_list.$js_autocompleter.'
+                });
+                //]]>
+                </script>';
+        }
+
+        echo '
+                        <br/>
+                        <p>
+                            <input class="sub1" type="submit" name="submit_mass_tag" id="submit_mass_tag" value="'.T_('Save').'"/> 
+                            '.T_('or').' 
+                            <a href="index.php?uid='.$user.'&amp;cid='.$category.'">'.T_('Cancel').'</a>
+                        </p>
+                    </fieldset>
+                </form>
+                '.$js;
+    }
+
+    /**
+     * getPhotoComments 
+     * 
+     * @param int $pid 
+     * 
+     * @return void
+     */
+    function getPhotoComments ($pid)
+    {
+        $comments = array();
+
+        $sql = "SELECT c.`id`, `comment`, `date`, `fname`, `lname`, `username`, `user`, `avatar` 
+                FROM `fcms_gallery_comments` AS c, `fcms_users` AS u 
+                WHERE `photo` = '$pid' 
+                AND c.`user` = u.`id` 
+                ORDER BY `date`";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Comments Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        { 
+            while ($row = $this->db->get_row())
+            {
+                $comments[] = $row;
+            }
+        }
+
+        return $comments;
     }
 }

@@ -11,6 +11,8 @@
  */
 session_start();
 
+define('URL_PREFIX', '');
+
 require_once 'inc/config_inc.php';
 require_once 'inc/util_inc.php';
 require_once 'inc/familynews_class.php';
@@ -21,15 +23,14 @@ fixMagicQuotes();
 isLoggedIn();
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-$fnews = new FamilyNews($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$fnews = new FamilyNews($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Family News'),
-    'path'          => "",
-    'admin_path'    => "admin/",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
@@ -38,6 +39,7 @@ $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
+    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
     if (!$$(\'.delnews input[type="submit"]\')) { return; }
     $$(\'.delnews input[type="submit"]\').each(function(item) {
         item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
@@ -110,7 +112,8 @@ if (!isset($_GET['addnews']) && !isset($_POST['editnews'])) {
 //-------------------------------------
 // Add news
 //-------------------------------------
-if (isset($_POST['submitadd'])) {
+if (isset($_POST['submitadd']))
+{
     $title = cleanInput($_POST['title']);
     $news  = cleanInput($_POST['post']);
 
@@ -122,24 +125,31 @@ if (isset($_POST['submitadd'])) {
                 '$currentUserId', 
                 NOW()
             )";
-    mysql_query($sql) or displaySQLError(
-        'Add News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    echo '
-            <p class="ok-alert" id="add">'.T_('Family News Added Successfully').'</p>
-            <script type="text/javascript">
-                window.onload=function(){ var t=setTimeout("$(\'add\').toggle()",3000); }
-            </script>';
+
+    if (!mysql_query($sql))
+    {
+        displaySQLError('News Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return;
+    }
+
+    displayOkMessage();
+
     // Email members
     $sql = "SELECT u.`email`, s.`user` 
             FROM `fcms_user_settings` AS s, `fcms_users` AS u 
             WHERE `email_updates` = '1'
             AND u.`id` = s.`user`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    if (mysql_num_rows($result) > 0) {
-        while ($r = mysql_fetch_array($result)) {
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Email Updates Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return;
+    }
+
+    if (mysql_num_rows($result) > 0)
+    {
+        while ($r = mysql_fetch_array($result))
+        {
             $name = getUserDisplayName($currentUserId);
             $to = getUserDisplayName($r['user']);
             $subject = sprintf(T_('%s has added %s to his/her Family News'), $name, $title);
@@ -161,56 +171,63 @@ if (isset($_POST['submitadd'])) {
             mail($email, $subject, $msg, $email_headers);
         }
     }
-
+}
 //-------------------------------------
 // Edit news
 //-------------------------------------
-} elseif (isset($_POST['submitedit'])) {
+elseif (isset($_POST['submitedit']))
+{
     $show_last5 = false;
+
     $title = cleanInput($_POST['title']);
     $news  = cleanInput($_POST['post']);
+    $id    = cleanInput($_POST['id'], 'int');
+    $user  = cleanInput($_POST['user'], 'int');
 
     $sql = "UPDATE `fcms_news` 
             SET `title` = '$title', 
                 `news`  = '$news' 
-            WHERE `id`  = '" . cleanInput($_POST['id'], 'int') . "'";
-    mysql_query($sql) or displaySQLError(
-        'Edit News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    // TODO
-    // Remove this page refresh and make the standard js message
-    // this would include sending the GET['getnews'] and GET['newsid'] variables to the edit page
-    // so they can be sent to back to that page on completion
-    echo '
-            <p class="ok-alert">
-                '.T_('Changes Updated Successfully').'<br/>
-                <a href="familynews.php?getnews='.(int)$_POST['user'].'">'.T_('View Changes').'</a>
-            </p>
-            <meta http-equiv=\'refresh\' content=\'0;URL=familynews.php?getnews='.(int)$_POST['user'].'\'>';
+            WHERE `id`  = '$id'";
+
+    if (!mysql_query($sql))
+    {
+        displaySQLError('Edit Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+
+        $fnews->displayFamilyNews($user, $id);
+
+        return;
+    }
+
+    displayOkMessage();
+
+    $fnews->displayFamilyNews($user, $id);
 }
 
 //-------------------------------------
 // Add news form
 //-------------------------------------
-if (isset($_GET['addnews']) && (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9)) { 
+if (isset($_GET['addnews']) && (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9))
+{ 
     $show_last5 = false;
     $fnews->displayForm('add', $currentUserId);
-
+}
 //-------------------------------------
 // Edit news form
 //-------------------------------------
-} else if (isset($_POST['editnews'])) {
+else if (isset($_POST['editnews']))
+{
     $show_last5 = false;
     $user   = cleanOutput($_POST['user']);
     $id     = cleanOutput($_POST['id']);
     $title  = cleanOutput($_POST['title']);
     $news   = cleanOutput($_POST['news']);
     $fnews->displayForm('edit', $user, $id, $title, $news);
-
+}
 //-------------------------------------
 // Delete news confirmation
 //-------------------------------------
-} else if (isset($_POST['delnews']) && !isset($_POST['confirmed'])) {
+else if (isset($_POST['delnews']) && !isset($_POST['confirmed']))
+{
     $show_last5 = false;
     echo '
                 <div class="info-alert clearfix">
@@ -225,32 +242,35 @@ if (isset($_GET['addnews']) && (checkAccess($currentUserId) < 6 || checkAccess($
                         </div>
                     </form>
                 </div>';
-
+}
 //-------------------------------------
 // Delete news
 //-------------------------------------
-} elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
+elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
+{
     $show_last5 = false;
     $sql = "DELETE FROM `fcms_news` 
             WHERE id = '" . cleanInput($_POST['id'], 'int') . "'";
-    mysql_query($sql) or displaySQLError(
-        'Delete News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    echo '
-            <p class="ok-alert" id="del">'.T_('Family News Deleted Successfully').'</p>
-            <script type="text/javascript">
-                window.onload=function(){ var t=setTimeout("$(\'del\').toggle()",3000); }
-            </script>';
+    if (!mysql_query($sql))
+    {
+        displaySQLError('Delete News Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return;
+    }
+
+    displayOkMessage(T_('Family News Deleted Successfully'));
 }
 
 //-------------------------------------
 // Show news
 //-------------------------------------
-if (isset($_GET['getnews'])) {
+if (isset($_GET['getnews']))
+{
     $show_last5 = false;
 
-    $page   = isset($_GET['page'])      ? cleanInput($_GET['page'], 'int')      : 1;; 
-    $nid    = isset($_GET['newsid'])    ? cleanInput($_GET['newsid'], 'int')    : 0;
+    $user = cleanInput($_GET['getnews'], 'int');
+
+    $page = isset($_GET['page'])   ? cleanInput($_GET['page'], 'int')   : 1;
+    $nid  = isset($_GET['newsid']) ? cleanInput($_GET['newsid'], 'int') : 0;
 
     // Add Comment
     if (isset($_POST['addcom'])) {
@@ -286,14 +306,22 @@ if (isset($_GET['getnews'])) {
         $sql = "DELETE FROM fcms_news_comments WHERE id = " . escape_string($_POST['id']);
         mysql_query($sql) or displaySQLError('Delete Comment Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
     }
-    // Santizing user input - getnews - only allow digits 0-9
-    if (preg_match('/^\d+$/', $_GET['getnews'])) {
-        $fnews->showFamilyNews($_GET['getnews'], $nid, $page);
+
+    // Show single news
+    if ($nid > 0)
+    {
+        $fnews->displayFamilyNews($user, $nid);
+    }
+    // Show news for this user
+    else
+    {
+        $fnews->displayUserFamilyNews($user, $page);
     }
 }
 
 // Show last 5 news
-if ($show_last5) {
+if ($show_last5)
+{
     $fnews->displayLast5News();
 }
 

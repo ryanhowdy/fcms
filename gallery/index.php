@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+define('URL_PREFIX', '../');
+
 include_once('../inc/config_inc.php');
 include_once('../inc/util_inc.php');
 include_once('../inc/gallery_class.php');
@@ -11,17 +13,14 @@ fixMagicQuotes();
 // Check that the user is logged in
 isLoggedIn('gallery/');
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
-
-$database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$gallery = new PhotoGallery($currentUserId, $database);
+$gallery = new PhotoGallery($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Photo Gallery'),
-    'path'          => "../",
-    'admin_path'    => "../admin/",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
@@ -30,10 +29,11 @@ $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
+    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
     hideUploadOptions(
         \''.T_('Rotate Photo').'\', 
-        \''.T_('Tag Members in this Photo').'\', 
-        \''.T_('Use Existing Category').'\'
+        \''.T_('Use Existing Category').'\',
+        \''.T_('Create New Category').'\'
     );
     hidePhotoDetails(\''.T_('More Details').'\');
     initConfirmPhotoDelete(\''.T_('Are you sure you want to DELETE this Photo?').'\');
@@ -76,7 +76,7 @@ if (isset($_POST['add_editphoto'])) {
         if (isset($_POST['prev_tagged_users'])) {
             
             // Delete all members who were previously tagged, but now are not
-            $prev_users = explode(",", $_POST['prev_tagged_users']);
+            $prev_users = $_POST['prev_tagged_users'];
             foreach ($prev_users as $user) {
                 $key = array_search($user, $_POST['tagged']);
                 if ($key === false) {
@@ -211,15 +211,15 @@ if (isset($_POST['deletephoto']) && !isset($_POST['confirmed'])) {
     );
     
     // Remove the Photo from the server
-    unlink("photos/member$photoUserId/" . $photoFilename);
-    unlink("photos/member$photoUserId/tb_" . $photoFilename);
+    unlink("../uploads/photos/member$photoUserId/" . $photoFilename);
+    unlink("../uploads/photos/member$photoUserId/tb_" . $photoFilename);
     $sql = "SELECT `full_size_photos` FROM `fcms_config`";
     $result = mysql_query($sql) or displaySQLError(
         'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
     );
     $r = mysql_fetch_array($result);
     if ($r['full_size_photos'] == 1) {
-        unlink("photos/member$photoUserId/full_" . $photoFilename);
+        unlink("../uploads/photos/member$photoUserId/full_" . $photoFilename);
     }
     $gallery->displayGalleryMenu($photoUserId);
     $gallery->showCategories(1, $photoUserId, $photoCategory);
@@ -247,7 +247,20 @@ if (isset($_GET['action']) &&
     //-----------------------------------------------
     // Upload a photo
     //-----------------------------------------------
-    if ($_GET['action'] == "upload") {
+    if ($_GET['action'] == "upload")
+    {
+        // Turn on advanced uploader
+        if (isset($_GET['advanced']))
+        {
+            $sql = "UPDATE `fcms_user_settings`
+                    SET `advanced_upload` = '1'
+                    WHERE `user` = '$currentUserId'";
+            if (!mysql_query($sql))
+            {
+                displaySQLError('Advanced Uploader Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            }
+        }
+
         $show_latest = false;
 
         $newPhotoId = 0;
@@ -515,9 +528,125 @@ if (isset($_GET['action']) &&
 }
 
 //------------------------------------------------------------------------------
+// Submit Mass Tag
+//------------------------------------------------------------------------------
+if (isset($_POST['submit_mass_tag']))
+{
+    $show_latest = false;
+
+    $category = cleanInput($_GET['cid']);
+    $photos   = array();
+    $photos1  = array();
+    $photos2  = array();
+
+    // Get all photo ids
+    if (isset($_POST['tagged']))
+    {
+        $photos1 = array_keys($_POST['tagged']);
+    }
+    if (isset($_POST['prev_tagged_users']))
+    {
+        $photos2 = array_keys($_POST['prev_tagged_users']);
+    }
+
+    $photos = array_merge($photos1, $photos2);
+    $photos = array_unique($photos);
+
+    // Loop through each photo
+    foreach ($photos as $pid)
+    {
+        // members have been tagged in this photo
+        if (isset($_POST['tagged'][$pid]))
+        {
+            $tagged = $_POST['tagged'][$pid];
+
+            // anyone previously tagged?
+            if (isset($_POST['prev_tagged_users'][$pid]))
+            {
+                $prev_tagged = $_POST['prev_tagged_users'][$pid];
+
+                // remove users that were tagged but aren't anymore
+                foreach ($prev_tagged as $uid)
+                {
+                    $key = array_search($uid, $tagged);
+                    if ($key === false)
+                    {
+                        $sql = "DELETE FROM `fcms_gallery_photos_tags` 
+                                WHERE `photo` = '".cleanInput($pid, 'int')."' 
+                                AND `user` = '".cleanInput($uid, 'int'). "'";
+
+                        if (!mysql_query($sql))
+                        {
+                            displaySQLError('Delete Tag Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                            return;
+                        }
+                    }
+                }
+
+                // tag members that were not previously tagged
+                foreach ($tagged as $uid)
+                {
+                    $key = array_search($uid, $prev_tagged);
+                    if ($key === false)
+                    {
+                        $sql = "INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`) 
+                                VALUES (
+                                    '".cleanInput($uid, 'int')."', 
+                                    '".cleanInput($pid, 'int')."'
+                                )";
+
+                        if (!mysql_query($sql))
+                        {
+                            displaySQLError('Tag Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                            return;
+                        }
+                    }
+                }
+            }
+            // no one was previously tagged
+            else
+            {
+                // add all tagged members, since no one was previously tagged
+                foreach ($tagged as $uid)
+                {
+                    $sql = "INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`) 
+                            VALUES (
+                                '".cleanInput($uid, 'int')."', 
+                                '".cleanInput($pid, 'int')."'
+                            )";
+
+                    if (!mysql_query($sql))
+                    {
+                        displaySQLError('Tag Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                    }
+                }
+            }
+        }
+        // no tagged members means that we are untagging everyone in this photo
+        elseif (isset($_POST['prev_tagged_users'][$pid]))
+        {
+            $sql = "DELETE FROM `fcms_gallery_photos_tags` 
+                    WHERE `photo` = '".cleanInput($pid, 'int')."'";
+
+            if (!mysql_query($sql))
+            {
+                displaySQLError('Delete Tag Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            }
+        }
+    }
+
+    echo '
+            <p class="ok-alert" id="msg">'.T_('Changes Updated Successfully').'</p>
+            <script type="text/javascript">
+                window.onload=function(){ var t=setTimeout("$(\'msg\').toggle()",4000); }
+            </script>';
+}
+
+//------------------------------------------------------------------------------
 // View - Member Category
 //------------------------------------------------------------------------------
-if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid'])) {
+if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid']))
+{
     $show_latest = false;
     if (isset($_GET['page'])) { $page = $_GET['page']; } else { $page = 1; }
     $gallery->displayGalleryMenu($_GET['uid']);
@@ -598,6 +727,17 @@ if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid'])) {
         $pid = cleanInput($_GET['pid'], 'int');
         $gallery->showPhoto($uid, $cid, $pid);
     }
+}
+
+//------------------------------------------------------------------------------
+// Mass Tag
+//------------------------------------------------------------------------------
+if (isset($_GET['tag']))
+{
+    $show_latest = false;
+    $category = cleanInput($_GET['tag'], 'int');
+    $user     = cleanInput($_GET['user'], 'int');
+    $gallery->displayMassTagCategory($category, $user);
 }
 
 //------------------------------------------------------------------------------

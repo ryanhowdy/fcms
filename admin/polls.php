@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+define('URL_PREFIX', '../');
+
 include_once('../inc/config_inc.php');
 include_once('../inc/util_inc.php');
 include_once('../inc/admin_class.php');
@@ -13,17 +15,15 @@ fixMagicQuotes();
 isLoggedIn('admin/');
 $currentUserId = (int)escape_string($_SESSION['login_id']);
 
-$admin = new Admin($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$alert = new Alerts($currentUserId, $database);
+$admin = new Admin($currentUserId);
+$alert = new Alerts($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Administration: Polls'),
-    'path'          => "../",
-    'admin_path'    => "",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
@@ -32,6 +32,7 @@ $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
+    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
     if (!$$(\'form.frm_line input[type="submit"]\')) { return; }
     $$(\'form.frm_line input[type="submit"]\').each(function(item) {
         item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };

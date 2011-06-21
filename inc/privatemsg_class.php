@@ -14,29 +14,25 @@ class PrivateMessage {
 
     var $db;
     var $db2;
-    var $tz_offset;
+    var $tzOffset;
     var $currentUserId;
 
     /**
      * PrivateMessage 
      * 
      * @param   int         $currentUserId 
-     * @param   database    $database 
+     *
      * @return  void
      */
-    function PrivateMessage ($currentUserId, $database)
+    function PrivateMessage ($currentUserId)
     {
-        $this->currentUserId = $currentUserId;
-        $this->db = $database;
-        $this->db2 = $database;
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
+        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
     /**
@@ -46,7 +42,7 @@ class PrivateMessage {
      */
     function displayInbox ()
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
         echo '
             <form method="post" action="privatemsg.php">
                 <table id="pm" cellpadding="0" cellspacing="0">
@@ -64,7 +60,7 @@ class PrivateMessage {
             'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         while ($r = $this->db->get_row()) {
-            $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
+            $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
             $class = '';
             if ($r['read'] < 1) {
                 $class = " class=\"new\"";
@@ -95,7 +91,7 @@ class PrivateMessage {
      */
     function displaySentFolder ()
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
         echo '
                 <table id="pm" cellpadding="0" cellspacing="0">
                     <tr><th colspan="5" class="pm_header">'.T_('Private Messages (PM)').' - '.T_('Sent').'</th></tr>
@@ -111,7 +107,7 @@ class PrivateMessage {
             'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         while ($r = $this->db->get_row()) {
-            $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
+            $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
             echo '
                     <tr>
                         <td>'.getUserDisplayName($r['to']).'</td>
@@ -132,7 +128,7 @@ class PrivateMessage {
      */
     function displayPM ($id)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $id = cleanInput($id, 'int');
 
@@ -151,7 +147,7 @@ class PrivateMessage {
             $this->db->query($sql) or displaySQLError(
                 'PM Read Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
-            $date = $locale->fixDate(T_('n/j/Y g:i a'), $this->tz_offset, $r['date']);
+            $date = $locale->fixDate(T_('n/j/Y g:i a'), $this->tzOffset, $r['date']);
             echo '
             <div id="pm_msg">
                 <b>'.T_('Received').':</b> '.$date.'<br/>
@@ -180,7 +176,7 @@ class PrivateMessage {
      */
     function displaySentPM ($id)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
         $sql = "SELECT * 
                 FROM `fcms_privatemsg` 
                 WHERE `id` = '$id' 
@@ -190,7 +186,7 @@ class PrivateMessage {
         );
         if ($this->db->count_rows() > 0) { 
             $r = $this->db->get_row();
-            $date = $locale->fixDate(T_('n/j/Y g:i a'), $this->tz_offset, $r['date']);
+            $date = $locale->fixDate(T_('n/j/Y g:i a'), $this->tzOffset, $r['date']);
             echo '
             <div id="pm_msg">
                 <b>'.T_('Sent').':</b> '.$date.'<br/>
@@ -218,20 +214,24 @@ class PrivateMessage {
     function displayNewMessageForm ($id = '', $title = '')
     {
         $titleVal = strlen($title) > 0 ? 'RE: '.cleanOutput($title) : '';
-        $sql = "SELECT * 
+
+        $sql = "SELECT `id`
                 FROM `fcms_users` 
-                WHERE `activated` > 0";
+                WHERE `activated` > 0
+                AND `password` != 'NONMEMBER'";
         $this->db->query($sql) or displaySQLError(
             'Active User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         while ($r = $this->db->get_row()) {
-            $displayNameList[$r['id']] = getUserDisplayName($r['id']);
+            $displayNameList[$r['id']] = getUserDisplayName($r['id'], 2);
         }
+
         asort($displayNameList);
+
         $user_options = buildHtmlSelectOptions($displayNameList, $id);
+
         echo '
-            <script type="text/javascript" src="inc/livevalidation.js"></script>
-            <script type="text/javascript" src="inc/messageboard.inc.js"></script>
+            <script type="text/javascript" src="inc/js/livevalidation.js"></script>
             <form method="post" id="newpmform" action="privatemsg.php">
                 <fieldset>
                     <legend><span>'.T_('New PM').'</span></legend>
@@ -250,7 +250,7 @@ class PrivateMessage {
                         </select>
                     </div><br/>
                     <script type="text/javascript">var bb = new BBCode();</script>';
-        displayMBToolbar();
+        displayBBCodeToolbar();
         echo '
                     <div><textarea name="post" id="post" rows="10" cols="63"></textarea></div>
                     <script type="text/javascript">bb.init(\'post\');</script>

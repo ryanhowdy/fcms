@@ -11,6 +11,9 @@ fixMagicQuotes();
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo T_('lang'); ?>" lang="<?php echo T_('lang'); ?>">
 <head>
 <title><?php echo getSiteName()." - ".T_('powered by')." ".getCurrentVersion(); ?></title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<meta name="author" content="Ryan Haudenschilt" />
+<link rel="shortcut icon" href="themes/favicon.ico"/>
 <link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
 </head>
 <body onload="document.resetform.email.focus()"><?php
@@ -71,6 +74,7 @@ if (isset($_POST['email'])) {
 
 ".T_('This is an automated message, please do not reply.');
 
+        $email_headers = getEmailHeaders();
         mail($email, $subject, $message, $email_headers);
         echo '
     <div class="err-msg">

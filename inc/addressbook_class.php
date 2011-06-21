@@ -1,13 +1,13 @@
 <?php
-include_once('util_inc.php');
+require_once 'util_inc.php';
 
 /**
  * AddressBook 
  * 
- * @package     Family Connections
- * @copyright   Copyright (c) 2010 Haudenschilt LLC
- * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
- * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ * @package   Family_Connections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2010 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html
  */
 class AddressBook
 {
@@ -18,32 +18,29 @@ class AddressBook
     /**
      * AddressBook 
      * 
-     * @param   int         $currentUserId 
-     * @param   database    $database 
-     * @return  void
+     * @param int $currentUserId 
+     * 
+     * @return void
      */
-    function AddressBook ($currentUserId, $database)
+    function AddressBook ($currentUserId)
     {
-        $this->currentUserId = $currentUserId;
-        $this->db = $database;
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tzOffset = $row['timezone'];
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
+        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
-    /*
+    /**
      *  displayAddress
      *
-     *  Displays the selected address information, including the category it belongs to.
+     *  Displays the address details.
      *
-     *  @param      int     $aid
-     *  @param      string  $cat
-     *  @return     void
+     *  @param int    $aid
+     *  @param string $cat
+     *
+     *  @return void
      */
     function displayAddress ($aid, $cat)
     {
@@ -55,101 +52,126 @@ class AddressBook
                 FROM `fcms_address` AS a, `fcms_users` AS u 
                 WHERE a.`user` = u.`id` 
                 AND a.`id` = '$aid'";
-        $this->db->query($sql) or displaySQLError(
-            'Get Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            $r = $this->db->get_row();
 
-            // Set up vars
-            // Edit / Delete links
-            $edit_del = '';
-            if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2) {
-                $edit_del = '<div class="edit_del_menu">
-                    <form action="addressbook.php" method="post">
-                        <div>
-                            <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
-                            <input type="hidden" name="user" value="'.(int)$r['user'].'"/>
-                            <input type="submit" id="edit" name="edit" class="editbtn" value="'.T_('Edit').'"/>';
-                if ($r['password'] == 'NONMEMBER' || $r['password'] == 'PRIVATE') {
-                    $edit_del .='
-                            <input type="submit" id="del" name="del" class="delbtn" value="'.T_('Delete').'"/>';
-                }
-                $edit_del .= '
-                        </div>
-                    </form>
-                </div>';
-            }
-            // Address
-            $address = '';
-            if (empty($r['address']) && empty($r['state'])) {
-                $address = "<i>(".T_('none').")</i>";
-            } else {
-                if (!empty($r['address'])) {
-                    $address .= cleanOutput($r['address']) . "<br/>";
-                }
-                if (!empty($r['city'])) {
-                    $address .= cleanOutput($r['city']) . ", ";
-                }
-                $address .= cleanOutput($r['state']) . " " . cleanOutput($r['zip']);
-            }
-            // Email
-            if (empty($r['email'])) {
-                $email = "<i>(".T_('none').")</i>";
-            } else {
-                $email = cleanOutput($r['email']) . 
-                    ' <a class="email" href="mailto:' . cleanOutput($r['email']) . '" title="'.T_('Email This Member').'">&nbsp;</a>';
-            }
-            // Phone Numbers
-            $home = empty($r['home']) ? "<i>(" . T_('none') . ")</i>" : cleanOutput($r['home']);
-            $work = empty($r['work']) ? "<i>(" . T_('none') . ")</i>" : cleanOutput($r['work']);
-            $cell = empty($r['cell']) ? "<i>(" . T_('none') . ")</i>" : cleanOutput($r['cell']);
-            
-            // Display address
-            echo '
-                <div id="addressbook-list" class="clearfix">';
-            $this->displayToolbar();
-            echo '
-                    <div id="address-categories">';
-            $this->displayCategories($cat);
-            echo '
-                    </div>
-                    <div id="addresses">';
-            $this->displayAddressInCategory($cat, $aid);
-            echo '
-                    </div>
-                    <div id="address-details">
-                        '.$edit_del.'
-                        <p>
-                            <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/>
-                            <b>'.cleanOutput($r['lname']).', '.cleanOutput($r['fname']).'</b>
-                        </p>
-                        <p class="clearfix">
-                            <b class="label">'.T_('Address').':</b>
-                            <span class="data">'.$address.'</span>
-                        </p>
-                        <p class="clearfix">
-                            <b class="label">'.T_('Email').':</b>
-                            <span class="data">'.$email.'</span>
-                        </p>
-                        <p class="clearfix">
-                            <b class="label">'.T_('Home').':</b>
-                            <span class="data">'.$home.'</span>
-                        </p>
-                        <p class="clearfix">
-                            <b class="label">'.T_('Work').':</b>
-                            <span class="data">'.$work.'</span>
-                        </p>
-                        <p class="clearfix">
-                            <b class="label">'.T_('Mobile').':</b>
-                            <span class="data">'.$cell.'</span>
-                        </p>
-                    </div>
-                </div>';
-        } else {
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
             echo '
             <p class="error-alert">'.sprintf(T_('Could not find address (%s)'), $aid).'</p>';
+
+            return;
         }
+
+        $r = $this->db->get_row();
+
+        // Edit / Delete links
+        $edit_del = '';
+
+        if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2)
+        {
+            $edit_del = '<li id="edit"><a href="?cat='.$cat.'&amp;edit='.$r['id'].'">'.T_('Edit').'</a></li>';
+
+            if ($r['password'] == 'NONMEMBER' || $r['password'] == 'PRIVATE')
+            {
+                $edit_del .='
+                        <li id="delete"><a id="del_address" href="?cat='.$cat.'&amp;delete='.$r['id'].'">'.T_('Delete').'</a></li>';
+            }
+        }
+
+        // Address
+        $address     = '';
+        $address_url = '';
+
+        if (empty($r['address']) && empty($r['state']))
+        {
+            $address = "<i>(".T_('none').")</i>";
+        }
+        else
+        {
+            if (!empty($r['address']))
+            {
+                $address     .= cleanOutput($r['address'])."<br/>";
+                $address_url .= cleanOutput($r['address']).",%20";
+            }
+            if (!empty($r['city']))
+            {
+                $address     .= cleanOutput($r['city']).", ";
+                $address_url .= cleanOutput($r['city']).",%20";
+            }
+            $address     .= cleanOutput($r['state'])." ".cleanOutput($r['zip']);
+            $address_url .= cleanOutput($r['state'])."%20".cleanOutput($r['zip']);
+        }
+
+        $map_link = !empty($address_url) 
+                  ? '<br/><a href="http://maps.google.com/maps?q='.$address_url.'"/>'.T_('Map').'</a>' 
+                  : '';
+
+        // Email
+        if (empty($r['email']))
+        {
+            $email = "<i>(".T_('none').")</i>";
+        }
+        else
+        {
+            $email = cleanOutput($r['email']).' <a class="email" href="mailto:'.cleanOutput($r['email']).'" 
+                title="'.T_('Email This Member').'">&nbsp;</a>';
+        }
+
+        // Phone Number
+        $home = empty($r['home']) ? '<i>('.T_('none').')</i>' : cleanOutput($r['home']);
+        $work = empty($r['work']) ? '<i>('.T_('none').')</i>' : cleanOutput($r['work']);
+        $cell = empty($r['cell']) ? '<i>('.T_('none').')</i>' : cleanOutput($r['cell']);
+
+        // Display address
+        echo '
+            <div id="leftcolumn">';
+
+        $this->displayCategories($cat);
+
+        echo '
+            </div>
+            <div id="maincolumn">
+
+                <div id="address-options">
+                    <ul>
+                        <li id="back"><a href="?cat='.$cat.'">'.T_('Back to Addresses').'</a></li>
+                        <li id="email"><a href="mailto:'.cleanOutput($r['email']).'">'.T_('Email').'</a></li>
+                        '.$edit_del.'
+                    </ul>
+                </div>
+                <div id="address-details">
+                    <p>
+                        <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/>
+                        <b class="name">'.cleanOutput($r['fname']).' '.cleanOutput($r['lname']).'</b>
+                    </p>
+                    <p class="clearfix">
+                        <b class="label">'.T_('Address').':</b>
+                        <span class="data">'.$address.' '.$map_link.'</span>
+                    </p>
+                    <p class="clearfix">
+                        <b class="label">'.T_('Email').':</b>
+                        <span class="data">'.$email.'</span>
+                    </p>
+                    <p class="clearfix">
+                        <b class="label">'.T_pgettext('The dwelling where you live.', 'Home').':</b>
+                        <span class="data">'.$home.'</span>
+                    </p>
+                    <p class="clearfix">
+                        <b class="label">'.T_('Work').':</b>
+                        <span class="data">'.$work.'</span>
+                    </p>
+                    <p class="clearfix">
+                        <b class="label">'.T_('Mobile').':</b>
+                        <span class="data">'.$cell.'</span>
+                    </p>
+                </div>
+
+            </div>';
     }
 
     /**
@@ -157,59 +179,55 @@ class AddressBook
      * 
      * Displays the categories and the user's in that category.
      *
-     * @param   string  $cat
-     * @return  void
+     * @param string $cat
+     *
+     * @return void
      */
     function displayAddressList ($cat = '')
     {
-        $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` 
-                FROM `fcms_users` AS u, `fcms_address` as a 
-                WHERE u.`id` = a.`user` 
-                ORDER BY `lname`";
         echo '
-            <form action="addressbook.php" id="mass_mail_form" name="mass_mail_form" method="post">
-                <div id="addressbook-list" class="clearfix">';
-        $this->displayToolbar();
-        echo '
-                    <div id="address-categories">';
-        $this->displayCategories($cat);
-        echo '
-                    </div>
-                    <div id="addresses">';
-        $this->displayAddressInCategory($cat);
-        echo '
-                    </div>
-                    <div id="address-details">
-                        <p>'.T_('Choose an Address from the list.').'</p>
-                    </div>
-                </div>';
-        $dis = '';
-        if (checkAccess($this->currentUserId) > 3) {
-            $dis = 'disabled="disabled"';
-        }
-        echo '
-                <div class="alignright"><input '.$dis.' type="submit" name="emailsubmit" value="'.T_('Email Selected').'"/></div>
-            </form>';
-    }
+            <div id="leftcolumn">';
 
-    /**
-     * displayToolbar 
-     * 
-     * @return void
-     */
-    function displayToolbar ()
-    {
+        $this->displayCategories($cat);
+
         echo '
-                    <div id="address-toolbar" class="clearfix">
-                        <ul id="add">
-                            <li><a class="add" href="?add=yes">'.T_('Add Contact').'</a></li>
-                            <li><a href="?address='.$this->currentUserId.'">'.T_('View My Address').'</a></li>
-                        </ul>
-                        <ul id="import-export">
-                            <li><a href="?csv=import">'.T_('Import').'</a></li>
-                            <li><a href="?csv=export">'.T_('Export').'</a></li>
-                        </ul>
-                    </div>';
+            </div>
+            <div id="maincolumn">
+
+                <form action="addressbook.php" id="check_all_form" name="check_all_form" method="post">
+                <table id="address-table" cellspacing="0" cellpadding="0">
+                    <thead>
+                        <tr>
+                            <th colspan="2">
+                                <div id="check-all"></div>
+                            </th>
+                            <th style="text-align:right" colspan="2">
+                                <a href="?add=yes">'.T_('Add New Address').'</a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="header">
+                            <td class="chk"></td> 
+                            <td>'.T_('Name').'</td> 
+                            <td>'.T_('Address').'</td> 
+                            <td>'.T_('Phone').'</td> 
+                        </tr>';
+
+        $this->displayAddressInCategory($cat);
+
+        echo '
+                    </tbody>
+                </table>';
+
+        if (checkAccess($this->currentUserId) <= 3)
+        {
+            echo '
+                <p class="alignright"><input class="sub1" type="submit" name="emailsubmit" value="'.T_('Email Selected').'"/></p>';
+        }
+
+        echo '
+            </form>';
     }
 
     /**
@@ -217,31 +235,42 @@ class AddressBook
      *
      * Displays the list of categories.
      *
-     * @param      $selected   the currently selected category
-     * @return     void
+     * @param string $selected the currently selected category
+     *
+     * @return void
      */
-    function displayCategories ($selected = '')
+    function displayCategories ($selected = 'members')
     {
         $all = $my = $mem = $non = '';
-        if ($selected == '') {
+        if ($selected == 'all')
+        {
             $all = 'class="selected"';
         }
-        if ($selected == 'my') {
+        if ($selected == 'my')
+        {
             $my = 'class="selected"';
         }
-        if ($selected == 'members') {
+        if ($selected == 'members')
+        {
             $mem = 'class="selected"';
         }
-        if ($selected == 'non') {
+        if ($selected == 'non')
+        {
             $non = 'class="selected"';
         }
         echo '
-                        <ul>
-                            <li '.$all.'><a href="addressbook.php">'.T_('All Addresses').'</a></li>
-                            <li '.$my.'><a href="?cat=my" title="'.T_('Only show My personal Addresses').'">'.T_('My Addresses').'</a></li>
-                            <li '.$mem.'><a href="?cat=members" title="'.T_('Only show Addresses for members of the site').'">'.T_('Members').'</a></li>
-                            <li '.$non.'><a href="?cat=non" title="'.T_('Only show Addresses for non-members').'">'.T_('Non-Members').'</a></li>
-                        </ul>';
+                <b>'.T_('View').'</b>
+                <ul class="address-categories">
+                    <li '.$all.'><a href="?cat=all">'.T_('All').'</a></li>
+                    <li '.$my.'><a href="?cat=my" title="'.T_('Only show My personal Addresses').'">'.T_('My Addresses').'</a></li>
+                    <li '.$mem.'><a href="?cat=members" title="'.T_('Only show Addresses for members of the site').'">'.T_('Members').'</a></li>
+                    <li '.$non.'><a href="?cat=non" title="'.T_('Only show Addresses for non-members').'">'.T_('Non-Members').'</a></li>
+                </ul>
+                <b>'.T_('Options').'</b>
+                <ul class="address-options">
+                    <li><a href="?csv=import">'.T_('Import').'</a></li>
+                    <li><a href="?csv=export">'.T_('Export').'</a></li>
+                </ul>';
     }
 
     /**
@@ -255,135 +284,151 @@ class AddressBook
      */
     function displayAddressInCategory ($category = '', $selected = '')
     {
-        $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` 
+        $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
+                    `address`, `city`, `state`, `zip`
                 FROM `fcms_users` AS u, `fcms_address` as a 
                 WHERE u.`id` = a.`user` 
-                AND `password` != 'PRIVATE' 
+                AND (
+                    `password` != 'PRIVATE' 
+                    OR (
+                        a.`entered_by` = ".$this->currentUserId." 
+                        AND `password` = 'PRIVATE' 
+                    )
+                )
                 ORDER BY `lname`";
-        $cat = '';
-        if ($category == 'members') {
+
+        $cat = 'cat=all&amp;';
+        if ($category == 'members')
+        {
             $cat = 'cat=members&amp;';
-            $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` 
+            $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
+                        `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
                     AND `password` != 'NONMEMBER' 
                     AND `password` != 'PRIVATE' 
                     ORDER BY `lname`";
         }
-        if ($category == 'non') {
+        else if ($category == 'non')
+        {
             $cat = 'cat=non&amp;';
-            $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` 
+            $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
+                        `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
                     AND `password` = 'NONMEMBER' 
                     ORDER BY `lname`";
         }
-        if ($category == 'my') {
+        else if ($category == 'my')
+        {
             $cat = 'cat=my&amp;';
-            $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email` 
+            $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
+                        `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
                     AND a.`entered_by` = ".$this->currentUserId." 
                     AND `password` = 'PRIVATE' 
                     ORDER BY `lname`";
         }
-        echo '
-                        <div id="check-all"></div>
-                        <ul>';
-        $result = mysql_query($sql) or displaySQLError(
-            'Get Addresses Error', 'addressbook.php [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        while ($r = mysql_fetch_array($result)) {
-            $sel = '';
-            if ($r['id'] == $selected) {
-                $sel = 'selected';
-            }
-            $email = '<input disabled="disabled" type="checkbox"/>';
-            if (!empty($r['email'])) {
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySQLError('Addresses Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        }
+
+        while ($r = mysql_fetch_array($result))
+        {
+            $email = '';
+
+            if (!empty($r['email']))
+            {
                 $email = '<input type="checkbox" name="massemail[]" value="'.cleanOutput($r['email']).'"/>';
             }
+
+            $address = '';
+            if (!empty($r['address']))
+            {
+                $address .= cleanOutput($r['address']).', ';
+            }
+
+            if (!empty($r['city']))
+            {
+                $address .= cleanOutput($r['city']).', ';
+            }
+
+            if (!empty($r['state']))
+            {
+                $address .= cleanOutput($r['state']).', ';
+            }
+
+            if (!empty($r['zip']))
+            {
+                $address .= cleanOutput($r['zip']);
+            }
+
             echo '
-                            <li class="clearfix '.$sel.'"> '
-                                . $email . 
-                                '<a href="?' . $cat . 'address=' . (int)$r['id'] . '">'
-                                    . cleanOutput($r['lname']) . ', ' . cleanOutput($r['fname']) . 
-                                '</a>' . 
-                            '</li>';
+                        <tr>
+                            <td class="chk">'.$email.'</td>
+                            <td><a href="?'.$cat.'address='.(int)$r['id'].'">
+                                '.cleanOutput($r['lname']).', '.cleanOutput($r['fname']).'</a></td>
+                            <td>'.$address.'</td>
+                            <td>'.cleanOutput($r['home']).'</td>
+                        </tr>';
         }
-        echo '
-                        </ul>';
     }
 
     /**
-     * displayForm
+     * displayEditForm
      *
-     * Displays the form for adding/editing an address.
+     * Displays the form for editing an address.
      *
-     * @param      $type       edit | add
-     * @param      $addressid  the id of the address you want to edit
-     * @return     none
+     * @param int    $addressid the id of the address you want to edit
+     * @param string $cancel    the url to cancel and go back to
+     * @param string $submit    the url to submit the form to
+     *
+     * @return void
      */
-    function displayForm ($type, $addressid = 0)
+    function displayEditForm ($addressid, $cancel, $submit = 'addressbook.php')
     {
         $addressid = cleanInput($addressid, 'int');
 
-        if ($type == 'edit') {
-            $sql = "SELECT a.`id`, u.`id` AS uid, `fname`, `lname`, `email`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell` "
-                 . "FROM `fcms_users` AS u, `fcms_address` AS a "
-                 . "WHERE a.`id` = $addressid "
-                 . "AND a.`user` = u.`id`";
-            $this->db->query($sql) or displaySQLError('Get Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
-            $row=$this->db->get_row();
+        $sql = "SELECT a.`id`, u.`id` AS uid, `fname`, `lname`, `email`, `address`, 
+                    `city`, `state`, `zip`, `home`, `work`, `cell` 
+                FROM `fcms_users` AS u, `fcms_address` AS a 
+                WHERE a.`id` = $addressid 
+                AND a.`user` = u.`id`";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Get Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        }
+
+        $row = $this->db->get_row();
+
+        if (checkAccess($this->currentUserId) >= 2 && $this->currentUserId !== $row['uid'])
+        {
+            echo '
+                    <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
+            return;
         }
 
         // Setup vars for output
-        if ($type == 'edit') {
-            $note = '';
-            $legend = T_('Edit Address') . " (" . cleanOutput($row['fname']) . " " . cleanOutput($row['lname']) . ")";
-            $add = '';
-            $email      = cleanOutput($row['email']);
-            $address    = cleanOutput($row['address']);
-            $city       = cleanOutput($row['city']);
-            $state      = cleanOutput($row['state']);
-            $zip        = cleanOutput($row['zip']);
-            $home       = cleanOutput($row['home']);
-            $work       = cleanOutput($row['work']);
-            $cell       = cleanOutput($row['cell']);
-        } else {
-            // TODO
-            // Make this a removable alert message (part of Alerts table)
-            $note = '
-            <p class="info-alert">
-                '.T_('Please only add addresses for Non-members. Anyone who is a member of this website must add/update their own address.').'
-            </p>';
-            $legend = T_('Add Address');
-            $add = '<div class="field-row clearfix">
-                        <div class="field-label"><label for="fname"><b>'.T_('First Name').'</b></label></div>
-                        <div class="field-widget"><input class="frm_text" type="text" name="fname" id="fname" size="25"/></div>
-                    </div>
-                    <script type="text/javascript">
-                        var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
-                        ffname.add(Validate.Presence, {failureMessage: ""});
-                    </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="lname"><b>'.T_('Last Name').'</b></label></div>
-                        <div class="field-widget"><input class="frm_text" type="text" name="lname" id="lname" size="25"/></div>
-                    </div>
-                    <script type="text/javascript">
-                        var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
-                        flname.add(Validate.Presence, {failureMessage: ""});
-                    </script>';
-            $email = $address = $city = $state = $zip = $home = $work = $cell = '';
-        }
+        $email   = cleanOutput($row['email']);
+        $address = cleanOutput($row['address']);
+        $city    = cleanOutput($row['city']);
+        $state   = cleanOutput($row['state']);
+        $zip     = cleanOutput($row['zip']);
+        $home    = cleanOutput($row['home']);
+        $work    = cleanOutput($row['work']);
+        $cell    = cleanOutput($row['cell']);
 
         // Print the form
         echo '
-            <script type="text/javascript" src="inc/livevalidation.js"></script>
-            <form id="addressbook_form" action="addressbook.php" method="post">
-                '.$note.'
+            <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+            <form id="addressbook_form" action="'.$submit.'" method="post">
                 <fieldset>
-                    <legend><span>'.$legend.'</span></legend>
-                    '.$add.'
+                    <legend><span>'.T_('Edit Address').'</span></legend>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="email" id="email" size="50" value="'.$email.'"/></div>
@@ -431,22 +476,113 @@ class AddressBook
                     <script type="text/javascript">
                         var fcell = new LiveValidation(\'cell\', { onlyOnSubmit: true });
                         fcell.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
-                    </script>';
-        if ($type == 'edit') {
-            echo '
+                    </script>
                     <div>
                         <input type="hidden" name="aid" value="'.$addressid.'"/>
                         <input type="hidden" name="uid" value="'.(int)$row['uid'].'"/>
+                        <input type="hidden" name="cat" value="'.(isset($_GET['cat'])?$_GET['cat']:0).'"/>
                     </div>
                     <p>
-                        <input class="sub1" type="submit" name="editsubmit" value="'.T_('Edit').'"/> 
+                        <input class="sub1" type="submit" name="editsubmit" value="'.T_('Edit').'"/>';
+
+        if ($cancel != '')
+        {
+            echo '
                         '.T_('or').' 
-                        <a href="addressbook.php?address='.$addressid.'">'.T_('Cancel').'</a>
+                        <a href="'.$cancel.'">'.T_('Cancel').'</a>';
+        }
+
+        print '
                     </p>
                 </fieldset>
             </form>';
-        } else {
-            echo '
+    }
+
+    /**
+     * displayAddForm
+     *
+     * Displays the form for adding an address.
+     *
+     * @return void
+     */
+    function displayAddForm ()
+    {
+        // TODO
+        // Make this a removable alert message (part of Alerts table)
+
+        // Print the form
+        echo '
+            <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+            <form id="addressbook_form" action="addressbook.php" method="post">
+                <p class="info-alert">
+                    '.T_('Please only add addresses for Non-members. Anyone who is a member of this website must add/update their own address.').'
+                </p>
+                <fieldset>
+                    <legend><span>'.T_('Add Address').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="fname"><b>'.T_('First Name').'</b></label></div>
+                        <div class="field-widget"><input class="frm_text" type="text" name="fname" id="fname" size="25"/></div>
+                    </div>
+                    <script type="text/javascript">
+                        var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
+                        ffname.add(Validate.Presence, {failureMessage: ""});
+                    </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="lname"><b>'.T_('Last Name').'</b></label></div>
+                        <div class="field-widget"><input class="frm_text" type="text" name="lname" id="lname" size="25"/></div>
+                    </div>
+                    <script type="text/javascript">
+                        var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
+                        flname.add(Validate.Presence, {failureMessage: ""});
+                    </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div>
+                        <div class="field-widget"><input class="frm_text" type="text" name="email" id="email" size="50"/></div>
+                    </div>
+                    <script type="text/javascript">
+                        var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
+                        femail.add( Validate.Email, { failureMessage: "'.T_('That\'s not a valid email, is it?').'"});
+                    </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="address"><b>'.T_('Street Address').'</b></label></div>
+                        <div class="field-widget"><input class="frm_text" type="text" name="address" id="address" size="25"/></div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="city"><b>'.T_('City').'</b></label></div>
+                        <div class="field-widget"><input class="frm_text" type="text" name="city" id="city" size="50"/></div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="state"><b>'.T_('State').'</b></label></div>
+                        <div class="field-widget"><input class="frm_text" type="text" name="state" id="state" size="50"/></div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="zip"><b>'.T_('Zip Code').'</b></label></div>
+                        <div class="field-widget"><input class="frm_text" type="text" name="zip" id="zip" size="10"/></div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="home"><b>'.T_('Home Phone').'</b></label></div>
+                        <div class="field-widget"><input class="frm_text" type="text" name="home" id="home" size="20"/></div>
+                    </div>
+                    <script type="text/javascript">
+                        var fhome = new LiveValidation(\'home\', { onlyOnSubmit: true });
+                        fhome.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
+                    </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="work"><b>'.T_('Work Phone').'</b></label></div>
+                        <div class="field-widget"><input class="frm_text" type="text" name="work" id="work" size="20"/></div>
+                    </div>
+                    <script type="text/javascript">
+                        var fwork = new LiveValidation(\'work\', { onlyOnSubmit: true });
+                        fwork.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
+                    </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="cell"><b>'.T_('Cell Phone').'</b></label></div>
+                        <div class="field-widget"><input class="frm_text" type="text" name="cell" id="cell" size="20"/></div>
+                    </div>
+                    <script type="text/javascript">
+                        var fcell = new LiveValidation(\'cell\', { onlyOnSubmit: true });
+                        fcell.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
+                    </script>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="private"><b>'.T_('Private').'</b></label></div>
                         <div class="field-widget"><input type="checkbox" name="private" id="private"/></div>
@@ -458,7 +594,6 @@ class AddressBook
                     </p>
                 </fieldset>
             </form>';
-        }
     }
 
     /**
@@ -507,16 +642,16 @@ class AddressBook
             </p>';
         if ($errors) {
             echo '
-            <p class="error-alert">' . T_('Missing Required Field') . '</p>';
+            <p class="error-alert">'.T_('Missing Required Field').'</p>';
         }
         echo '
-            <script type="text/javascript" src="inc/livevalidation.js"></script>
+            <script type="text/javascript" src="inc/js/livevalidation.js"></script>
             <form method="post" class="contactform" action="addressbook.php">
                 <fieldset>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="email"><b>'.T_('Your Email').'</b></label></div>
                         <div class="field-widget">
-                            <input class="frm_text" value="' . cleanOutput($email) . '" type="text" name="email" id="email" size="30"/>
+                            <input class="frm_text" value="'.cleanOutput($email).'" type="text" name="email" id="email" size="30"/>
                             '.$err_email.'
                         </div>
                     </div>
@@ -527,7 +662,7 @@ class AddressBook
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="name"><b>'.T_('Your Name').'</b></label></div>
                         <div class="field-widget">
-                            <input class="frm_text" value="' . cleanOutput($name) . '" type="text" name="name" id="name" size="30"/>
+                            <input class="frm_text" value="'.cleanOutput($name).'" type="text" name="name" id="name" size="30"/>
                             '.$err_name.'
                         </div>
                     </div>
@@ -538,7 +673,7 @@ class AddressBook
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="subject"><b>'.T_('Subject').'</b></label></div>
                         <div class="field-widget">
-                            <input class="frm_text" value="' . cleanOutput($subject) . '" type="text" name="subject" id="subject" size="30"/>
+                            <input class="frm_text" value="'.cleanOutput($subject).'" type="text" name="subject" id="subject" size="30"/>
                             '.$err_subject.'
                         </div>
                     </div>
@@ -549,7 +684,7 @@ class AddressBook
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="msg"><b>'.T_('Message').'</b></label></div>
                         <div class="field-widget">
-                            <textarea name="msg" id="msg" rows="10" cols="40"/>' . cleanOutput($message, 'html') . '</textarea>
+                            <textarea name="msg" id="msg" rows="10" cols="40"/>'.cleanOutput($message, 'html').'</textarea>
                             '.$err_msg.'
                         </div>
                     </div>
@@ -560,7 +695,7 @@ class AddressBook
                     <div>';
         foreach ($emails as $email) {
             echo '
-                        <input type="hidden" name="emailaddress[]" value="' . cleanOutput($email) . '"/>';
+                        <input type="hidden" name="emailaddress[]" value="'.cleanOutput($email).'"/>';
         }
         echo '
                     </div>
@@ -585,7 +720,7 @@ class AddressBook
     {
         $sql = "SELECT * FROM `fcms_address` WHERE `user` = $id";
         $this->db->query($sql) or displaySQLError(
-            'Has Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Has Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         if ($this->db->count_rows() == 1) {
             $r = $this->db->get_row();
@@ -613,9 +748,9 @@ class AddressBook
      */
     function displayWhatsNewAddressBook ()
     {
-        $locale = new Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
+        $locale = new FCMS_Locale();
+        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')).'000000';
+        $today_end = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')).'235959';
 
         echo '
             <h3>'.T_('Address Book').'</h3>
@@ -627,7 +762,7 @@ class AddressBook
              . "ORDER BY updated DESC "
              . "LIMIT 0, 5";
         $this->db->query($sql) or displaySQLError(
-            'What\'s New Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'What\'s New Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         if ($this->db->count_rows() > 0) {
             while($row = $this->db->get_row()) {
@@ -687,284 +822,286 @@ class AddressBook
      */
     function importAddressCsv ($file)
     {
-        if (!in_array($file['type'], array('text/plain', 'text/x-csv', 'text/csv'))) {
+        if (!in_array($file['type'], array('text/plain', 'text/x-csv', 'text/csv', 'application/vnd.ms-excel')))
+        {
             echo '
             <p class="error-alert">'.
                 sprintf(T_('%s (%s) is not a CSV file.'), $file['name'], $file['type']).'
             </p>';
-        } else {
 
-            // Read in the file and parse the data to an array of arrays
-            $row = 0;
-            $addresses = array();
-            $handle = fopen($file['tmp_name'], "r");
-            while (($data = fgetcsv($handle, 4096, ",")) !== FALSE) {
-                if ($row == 0) {
-                    // Get Column headers
-                    $headers = $data;
-                    $row++;
-                } else {
-                    $num = count($data);
-                    $row++;
-                    for ($i=0; $i < $num; $i++) {
-                        if ($data[$i]) {
-                            $addresses[$row][$headers[$i]] = $data[$i];
-                        }
-                    }
-                }
-            }
-
-            // Loop through the multidimensional array and insert valid addresses into db
-            $i = 0;
-            foreach ($addresses as $address) {
-                // First Name
-                $fname = '';
-                if (isset($address['fname'])) {
-                    // FCMS
-                    $fname = $address['fname'];
-                } elseif (isset($address['First Name'])) {
-                    // Outlook
-                    $fname = $address['First Name'];
-                } elseif (isset($address['Given Name'])) {
-                    // Gmail
-                    $fname = $address['Given Name'];
-                }
-                // Last Name
-                $lname = '';
-                if (isset($address['lname'])) {
-                    // FCMS
-                    $lname = $address['lname'];
-                } elseif (isset($address['Last Name'])) {
-                    // Outlook
-                    $lname = $address['Last Name'];
-                } elseif (isset($address['Family Name'])) {
-                    // Gmail
-                    $lname = $address['Family Name'];
-                }
-                // Email
-                $email = '';
-                if (isset($address['email'])) {
-                    // FCMS
-                    $email = $address['email'];
-                } elseif (isset($address['E-mail Address'])) {
-                    // Outlook
-                    $email = $address['E-mail Address'];
-                } elseif (isset($address['E-mail 1 - Value'])) {
-                    // Gmail
-                    $email = $address['E-mail 1 - Value'];
-                }
-                // Street Address
-                $street = '';
-                $city = '';
-                $state = '';
-                $zip = '';
-                if (isset($address['address'])) {
-                    // FCMS
-                    $street = $address['address'];
-                } elseif (isset($address['Home Address'])) {
-                    // Outlook (all in one)
-                    // Try to parse the data into individual fields
-                    // This only works for US formatted addressess
-                    $endStreet = strpos($address['Home Address'], "\n");
-                    if ($endStreet !== false) {
-                        $street = substr($address['Home Address'], 0, $endStreet-1);
-                        $endCity = strpos($address['Home Address'], ",", $endStreet);
-                        if ($endCity !== false) {
-                            $city = substr($address['Home Address'], $endStreet+1, ($endCity - $endStreet)-1);
-                            $tmpZip = substr($address['Home Address'], -5);
-                            if (is_numeric($tmpZip)) {
-                                $endZip = strpos($address['Home Address'], $tmpZip, $endCity);
-                                if ($endZip !== false) {
-                                    $state = substr($address['Home Address'], $endCity+2);
-                                    $state = substr($state, 0, -6);  // 5 zip + space
-                                    $zip = $tmpZip;
-                                }
-                            } else {
-                                $state = substr($address['Home Address'], $endCity);
-                            }
-                        }
-                    // Can't figure out which part is which
-                    } else {
-                        $street = $address['Home Address'];
-                    }
-                } elseif (isset($address['Home Street'])) {
-                    // Outlook
-                    $street = $address['Home Street'];
-                } elseif (isset($address['Address 1 - Formatted'])) {
-                    // Gmail (all in one)
-                    // Try to parse the data into individual fields
-                    // This only works for US formatted addressess
-                    $endStreet = strpos($address['Address 1 - Formatted'], "\n");
-                    if ($endStreet !== false) {
-                        $street = substr($address['Address 1 - Formatted'], 0, $endStreet-1);
-                        $endCity = strpos($address['Address 1 - Formatted'], ",", $endStreet);
-                        if ($endCity !== false) {
-                            $city = substr($address['Address 1 - Formatted'], $endStreet+1, ($endCity - $endStreet)-1);
-                            $tmpZip = substr($address['Address 1 - Formatted'], -5);
-                            if (is_numeric($tmpZip)) {
-                                $endZip = strpos($address['Address 1 - Formatted'], $tmpZip, $endCity);
-                                if ($endZip !== false) {
-                                    $state = substr($address['Address 1 - Formatted'], $endCity+2);
-                                    $state = substr($state, 0, -6);  // 5 zip + space
-                                    $zip = $tmpZip;
-                                }
-                            } else {
-                                $state = substr($address['Address 1 - Formatted'], $endCity);
-                            }
-                        }
-                    // Can't figure out which part is which
-                    } else {
-                        $street = $address['Home Address'];
-                    }
-                } elseif (isset($address['Address 1 - Street'])) {
-                    // Gmail
-                    $street = $address['Address 1 - Street'];
-                }
-                // City
-                if (isset($address['city'])) {
-                    // FCMS
-                    $city = $address['city'];
-                } elseif (isset($address['Home City'])) {
-                    // Outlook
-                    $city = $address['Home City'];
-                } elseif (isset($address['Address 1 - City'])) {
-                    // Gmail
-                    $city = $address['Address 1 - City'];
-                }
-                // State
-                if (isset($address['state'])) {
-                    // FCMS
-                    $state = $address['state'];
-                } elseif (isset($address['Home State'])) {
-                    // Outlook
-                    $state = $address['Home State'];
-                } elseif (isset($address['Address 1 - Region'])) {
-                    // Gmail
-                    $state = $address['Address 1 - Region'];
-                }
-                // Zip
-                if (isset($address['zip'])) {
-                    // FCMS
-                    $zip = $address['zip'];
-                } elseif (isset($address['Home Postal Code'])) {
-                    // Outlook
-                    $zip = $address['Home Postal Code'];
-                } elseif (isset($address['Address 1 - Postal Code'])) {
-                    // Gmail
-                    $zip = $address['Address 1 - Postal Code'];
-                }
-                // Phone Numbers
-                $home = '';
-                $work = '';
-                $cell = '';
-                // FCMS
-                if (isset($address['home'])) {
-                    $home = $address['home'];
-                }
-                if (isset($address['work'])) {
-                    $work = $address['work'];
-                }
-                if (isset($address['cell'])) {
-                    $cell = $address['cell'];
-                }
-                // Outlook
-                if (isset($address['Home Phone'])) {
-                    $home = $address['Home Phone'];
-                }
-                if (isset($address['Business Phone'])) {
-                    $work = $address['Business Phone'];
-                }
-                if (isset($address['Mobile Phone'])) {
-                    $cell = $address['Mobile Phone'];
-                }
-                // Gmail
-                if (isset($address['Phone 1 - Type'])) {
-                    switch ($address['Phone 1 - Type']) {
-                        case 'Home':
-                            $home = $address['Phone 1 - Type'];
-                            break;
-                        case 'Work':
-                            $work = $address['Phone 1 - Type'];
-                            break;
-                        case 'Mobile':
-                            $cell = $address['Phone 1 - Type'];
-                            break;
-                    }
-                }
-                if (isset($address['Phone 2 - Type'])) {
-                    switch ($address['Phone 2 - Type']) {
-                        case 'Home':
-                            $home = $address['Phone 2 - Type'];
-                            break;
-                        case 'Work':
-                            $work = $address['Phone 2 - Type'];
-                            break;
-                        case 'Mobile':
-                            $cell = $address['Phone 2 - Type'];
-                            break;
-                    }
-                }
-                if (isset($address['Phone 3 - Type'])) {
-                    switch ($address['Phone 3 - Type']) {
-                        case 'Home':
-                            $home = $address['Phone 3 - Type'];
-                            break;
-                        case 'Work':
-                            $work = $address['Phone 3 - Type'];
-                            break;
-                        case 'Mobile':
-                            $cell = $address['Phone 3 - Type'];
-                            break;
-                    }
-                }
-
-                // Create non-member
-                $uniq = uniqid("");
-                $pw = 'NONMEMBER';
-                if (isset($_POST['private'])) {
-                    $pw = 'PRIVATE';
-                }
-                $sql = "INSERT INTO `fcms_users` (
-                            `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`
-                        ) VALUES (
-                            3, 
-                            NOW(), 
-                            '" . cleanInput($fname) . "', 
-                            '" . cleanInput($lname) . "', 
-                            '" . cleanInput($email) . "', 
-                            'NONMEMBER-$uniq', 
-                            '$pw'
-                        )";
-                mysql_query($sql) or displaySQLError(
-                    'Add Non-Member Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                );
-                $id = mysql_insert_id();
-                // Create address for non-member
-                $sql = "INSERT INTO `fcms_address`(
-                            `user`, `entered_by`, `updated`, `address`, `city`, `state`, 
-                            `zip`, `home`, `work`, `cell`
-                        ) VALUES (
-                            '$id', 
-                            '" . $this->currentUserId . "', 
-                            NOW(), 
-                            '" . cleanInput($street) . "', 
-                            '" . cleanInput($city) . "', 
-                            '" . cleanInput($state) . "', 
-                            '" . cleanInput($zip) . "', 
-                            '" . cleanInput($home) . "', 
-                            '" . cleanInput($work) . "', 
-                            '" . cleanInput($cell) . "'
-                        )";
-                mysql_query($sql) or displaySQLError(
-                    'New Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                );
-                $i++;
-            }
-            echo '
-            <p class="ok-alert">
-                '.sprintf(_ngettext('%d Address Added Successfully', '%d Addresses Added Successfully', $i), $i).'
-            </p>';
+            return;
         }
+
+        // Read in the file and parse the data to an array of arrays
+        $row = 0;
+        $addresses = array();
+        $handle = fopen($file['tmp_name'], "r");
+        while (($data = fgetcsv($handle, 4096, ",")) !== FALSE) {
+            if ($row == 0) {
+                // Get Column headers
+                $headers = $data;
+                $row++;
+            } else {
+                $num = count($data);
+                $row++;
+                for ($i=0; $i < $num; $i++) {
+                    if ($data[$i]) {
+                        $addresses[$row][$headers[$i]] = $data[$i];
+                    }
+                }
+            }
+        }
+
+        // Loop through the multidimensional array and insert valid addresses into db
+        $i = 0;
+        foreach ($addresses as $address) {
+            // First Name
+            $fname = '';
+            if (isset($address['fname'])) {
+                // FCMS
+                $fname = $address['fname'];
+            } elseif (isset($address['First Name'])) {
+                // Outlook
+                $fname = $address['First Name'];
+            } elseif (isset($address['Given Name'])) {
+                // Gmail
+                $fname = $address['Given Name'];
+            }
+            // Last Name
+            $lname = '';
+            if (isset($address['lname'])) {
+                // FCMS
+                $lname = $address['lname'];
+            } elseif (isset($address['Last Name'])) {
+                // Outlook
+                $lname = $address['Last Name'];
+            } elseif (isset($address['Family Name'])) {
+                // Gmail
+                $lname = $address['Family Name'];
+            }
+            // Email
+            $email = '';
+            if (isset($address['email'])) {
+                // FCMS
+                $email = $address['email'];
+            } elseif (isset($address['E-mail Address'])) {
+                // Outlook
+                $email = $address['E-mail Address'];
+            } elseif (isset($address['E-mail 1 - Value'])) {
+                // Gmail
+                $email = $address['E-mail 1 - Value'];
+            }
+            // Street Address
+            $street = '';
+            $city = '';
+            $state = '';
+            $zip = '';
+            if (isset($address['address'])) {
+                // FCMS
+                $street = $address['address'];
+            } elseif (isset($address['Home Address'])) {
+                // Outlook (all in one)
+                // Try to parse the data into individual fields
+                // This only works for US formatted addressess
+                $endStreet = strpos($address['Home Address'], "\n");
+                if ($endStreet !== false) {
+                    $street = substr($address['Home Address'], 0, $endStreet-1);
+                    $endCity = strpos($address['Home Address'], ",", $endStreet);
+                    if ($endCity !== false) {
+                        $city = substr($address['Home Address'], $endStreet+1, ($endCity - $endStreet)-1);
+                        $tmpZip = substr($address['Home Address'], -5);
+                        if (is_numeric($tmpZip)) {
+                            $endZip = strpos($address['Home Address'], $tmpZip, $endCity);
+                            if ($endZip !== false) {
+                                $state = substr($address['Home Address'], $endCity+2);
+                                $state = substr($state, 0, -6);  // 5 zip + space
+                                $zip = $tmpZip;
+                            }
+                        } else {
+                            $state = substr($address['Home Address'], $endCity);
+                        }
+                    }
+                // Can't figure out which part is which
+                } else {
+                    $street = $address['Home Address'];
+                }
+            } elseif (isset($address['Home Street'])) {
+                // Outlook
+                $street = $address['Home Street'];
+            } elseif (isset($address['Address 1 - Formatted'])) {
+                // Gmail (all in one)
+                // Try to parse the data into individual fields
+                // This only works for US formatted addressess
+                $endStreet = strpos($address['Address 1 - Formatted'], "\n");
+                if ($endStreet !== false) {
+                    $street = substr($address['Address 1 - Formatted'], 0, $endStreet-1);
+                    $endCity = strpos($address['Address 1 - Formatted'], ",", $endStreet);
+                    if ($endCity !== false) {
+                        $city = substr($address['Address 1 - Formatted'], $endStreet+1, ($endCity - $endStreet)-1);
+                        $tmpZip = substr($address['Address 1 - Formatted'], -5);
+                        if (is_numeric($tmpZip)) {
+                            $endZip = strpos($address['Address 1 - Formatted'], $tmpZip, $endCity);
+                            if ($endZip !== false) {
+                                $state = substr($address['Address 1 - Formatted'], $endCity+2);
+                                $state = substr($state, 0, -6);  // 5 zip + space
+                                $zip = $tmpZip;
+                            }
+                        } else {
+                            $state = substr($address['Address 1 - Formatted'], $endCity);
+                        }
+                    }
+                // Can't figure out which part is which
+                } else {
+                    $street = $address['Home Address'];
+                }
+            } elseif (isset($address['Address 1 - Street'])) {
+                // Gmail
+                $street = $address['Address 1 - Street'];
+            }
+            // City
+            if (isset($address['city'])) {
+                // FCMS
+                $city = $address['city'];
+            } elseif (isset($address['Home City'])) {
+                // Outlook
+                $city = $address['Home City'];
+            } elseif (isset($address['Address 1 - City'])) {
+                // Gmail
+                $city = $address['Address 1 - City'];
+            }
+            // State
+            if (isset($address['state'])) {
+                // FCMS
+                $state = $address['state'];
+            } elseif (isset($address['Home State'])) {
+                // Outlook
+                $state = $address['Home State'];
+            } elseif (isset($address['Address 1 - Region'])) {
+                // Gmail
+                $state = $address['Address 1 - Region'];
+            }
+            // Zip
+            if (isset($address['zip'])) {
+                // FCMS
+                $zip = $address['zip'];
+            } elseif (isset($address['Home Postal Code'])) {
+                // Outlook
+                $zip = $address['Home Postal Code'];
+            } elseif (isset($address['Address 1 - Postal Code'])) {
+                // Gmail
+                $zip = $address['Address 1 - Postal Code'];
+            }
+            // Phone Numbers
+            $home = '';
+            $work = '';
+            $cell = '';
+            // FCMS
+            if (isset($address['home'])) {
+                $home = $address['home'];
+            }
+            if (isset($address['work'])) {
+                $work = $address['work'];
+            }
+            if (isset($address['cell'])) {
+                $cell = $address['cell'];
+            }
+            // Outlook
+            if (isset($address['Home Phone'])) {
+                $home = $address['Home Phone'];
+            }
+            if (isset($address['Business Phone'])) {
+                $work = $address['Business Phone'];
+            }
+            if (isset($address['Mobile Phone'])) {
+                $cell = $address['Mobile Phone'];
+            }
+            // Gmail
+            if (isset($address['Phone 1 - Type'])) {
+                switch ($address['Phone 1 - Type']) {
+                    case 'Home':
+                        $home = $address['Phone 1 - Type'];
+                        break;
+                    case 'Work':
+                        $work = $address['Phone 1 - Type'];
+                        break;
+                    case 'Mobile':
+                        $cell = $address['Phone 1 - Type'];
+                        break;
+                }
+            }
+            if (isset($address['Phone 2 - Type'])) {
+                switch ($address['Phone 2 - Type']) {
+                    case 'Home':
+                        $home = $address['Phone 2 - Type'];
+                        break;
+                    case 'Work':
+                        $work = $address['Phone 2 - Type'];
+                        break;
+                    case 'Mobile':
+                        $cell = $address['Phone 2 - Type'];
+                        break;
+                }
+            }
+            if (isset($address['Phone 3 - Type'])) {
+                switch ($address['Phone 3 - Type']) {
+                    case 'Home':
+                        $home = $address['Phone 3 - Type'];
+                        break;
+                    case 'Work':
+                        $work = $address['Phone 3 - Type'];
+                        break;
+                    case 'Mobile':
+                        $cell = $address['Phone 3 - Type'];
+                        break;
+                }
+            }
+
+            // Create non-member
+            $uniq = uniqid("");
+            $pw = 'NONMEMBER';
+            if (isset($_POST['private'])) {
+                $pw = 'PRIVATE';
+            }
+            $sql = "INSERT INTO `fcms_users` (
+                        `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`
+                    ) VALUES (
+                        3, 
+                        NOW(), 
+                        '" . cleanInput($fname) . "', 
+                        '" . cleanInput($lname) . "', 
+                        '" . cleanInput($email) . "', 
+                        'NONMEMBER-$uniq', 
+                        '$pw'
+                    )";
+            mysql_query($sql) or displaySQLError(
+                'Add Non-Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
+            );
+            $id = mysql_insert_id();
+            // Create address for non-member
+            $sql = "INSERT INTO `fcms_address`(
+                        `user`, `entered_by`, `updated`, `address`, `city`, `state`, 
+                        `zip`, `home`, `work`, `cell`
+                    ) VALUES (
+                        '$id', 
+                        '" . $this->currentUserId . "', 
+                        NOW(), 
+                        '" . cleanInput($street) . "', 
+                        '" . cleanInput($city) . "', 
+                        '" . cleanInput($state) . "', 
+                        '" . cleanInput($zip) . "', 
+                        '" . cleanInput($home) . "', 
+                        '" . cleanInput($work) . "', 
+                        '" . cleanInput($cell) . "'
+                    )";
+            mysql_query($sql) or displaySQLError(
+                'New Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
+            );
+            $i++;
+        }
+        echo '
+            <p class="ok-alert">
+                '.sprintf(T_ngettext('%d Address Added Successfully', '%d Addresses Added Successfully', $i), $i).'
+            </p>';
     }
 
 }

@@ -1,7 +1,7 @@
 .calendar * { margin: 0; padding: 0; border: 0; font-family: Tahoma, serif; font-weight: normal; color: #000; }
 .calendar .invalidday a, .calendar .invalidday a:hover { color: #ccc; background: #fff; cursor: default; }
 .calendar .selectedday { background: #ddd; }
-.calendar .today { font-weight: bold; color: #f00; }
+.calendar .today { font-weight: bold; color: #f00; margin: 0 !important; float: none !important; }
 .calendar a { padding: 0 2px; color: #000; text-decoration: none; }
 .calendar a:hover { background: #bbb; }
 .calendar table { border-collapse: collapse; font-size: 90%; }

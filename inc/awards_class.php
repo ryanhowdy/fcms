@@ -23,16 +23,17 @@ class Awards
     /**
      * Awards 
      * 
-     * @param int    $id       current user id
-     * @param object $database database object 
+     * @param int $id
      * 
      * @return void
      */
-    function Awards ($id, $database)
+    function Awards ($id)
     {
         global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
-        $this->db  = $database;
+
+        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
         $this->currentUserId = cleanInput($id, 'int');
     }
 
@@ -180,47 +181,47 @@ class Awards
         return array(
             'board'         => array(
                 'name'          => T_('Message Board'),
-                'description'   => 'Adding the most Message Board posts for the month.',
+                'description'   => T_('Adding the most Message Board posts for the month.'),
             ),
             'gallery'       => array(
                 'name'          => T_('Photo Gallery'),
-                'description'   => 'Uploading the most photos for the month.',
+                'description'   => T_('Uploading the most photos for the month.'),
             ),
             'recipes'       => array(
                 'name'          => T_('Recipes'),
-                'description'   => 'Adding the most recipes for the month.',
+                'description'   => T_('Adding the most recipes for the month.'),
             ),
             'news'          => array(
                 'name'          => T_('Family News'),
-                'description'   => 'Adding the most Family News for the month.',
+                'description'   => T_('Adding the most Family News for the month.'),
             ),
             'docs'          => array(
                 'name'          => T_('Documents'),
-                'description'   => 'Sharing the most documents for the month.',
+                'description'   => T_('Sharing the most documents for the month.'),
             ),
             'icebreaker'    => array(
                 'name'          => T_('Ice Breaker'),
-                'description'   => 'Starting a Message Board post with over 20 replies.',
+                'description'   => T_('Starting a Message Board post with over 20 replies.'),
             ),
             'shutterbug'    => array(
                 'name'          => T_('Shutterbug'),
-                'description'   => 'Uploading a photo with over 100 views.',
+                'description'   => T_('Uploading a photo with over 100 views.'),
             ),
             'interesting'   => array(
                 'name'          => T_('Interesting'),
-                'description'   => 'Adding Family News with over 20 comments.',
+                'description'   => T_('Adding Family News with over 20 comments.'),
             ),
             'secretive'     => array(
                 'name'          => T_('Secretive'),
-                'description'   => 'Sending over 100 Private Messages (PM).',
+                'description'   => T_('Sending over 100 Private Messages (PM).'),
             ),
             'planner'       => array(
                 'name'          => T_('Planner'),
-                'description'   => 'Adding over 50 events to the calendar.',
+                'description'   => T_('Adding over 50 events to the calendar.'),
             ),
             'photogenic'    => array(
                 'name'          => T_('Photogenic'),
-                'description'   => 'Being tagged in over 50 photos.',
+                'description'   => T_('Being tagged in over 50 photos.'),
             ),
         );
     }

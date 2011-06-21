@@ -1,20 +1,20 @@
 
-FAMILY CONNECTIONS 2.3.2
+FAMILY CONNECTIONS 2.4
 
 
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.3.2.zip to your web host.
+  1. Upload the entire contents of FCMS_2.4.zip to your web host.
 
   2. Set permissions to the following folders to 777 (read, write, and execute for 
      user, group and other)
 
     inc/
-    gallery/avatar/
-    gallery/documents/
-    gallery/photos/
-    gallery/upimages/
+    uploads/avatar/
+    uploads/documents/
+    uploads/photos/
+    uploads/upimages/
 
   3. Go to http://www.yourdomain.com/fcms/ where yourdomain.com is your domain and  
      fcms/ is the directory you used to install FCMS.
@@ -24,7 +24,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.3.1 to 2.3.2
+II. Upgrading from 2.3.x to 2.4
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -41,19 +41,14 @@ II. Upgrading from 2.3.1 to 2.3.2
   2. Login as the administartor and turn off the site by visiting the 
      configuration section.
 
-  3. Upload the following list of files from FCMS_2.3.2.zip to your web host
+  3. Upload the entire contents of FCMS_2.4.zip to your web host 
      (Overwriting any previous files other than the above mentioned files/directories).
 
-    admin/upgrade.php
-    gallery/upload.php
-    install.php
-    inc/calendar_class.php
-    inc/gallery_class.php
-    inc/recipes_class.php
-    inc/util_inc.php
+     ** You should also not upload or create the uploads/ directory, this will be 
+        created for you during the upgrade process.
   
   4. Login as the administrator and visit the upgrade section and run the
-     upgrade script (only needed to update version number).
+     upgrade script.
 
   5. Delete the install.php file from your web host (if it still exists).
 
@@ -63,15 +58,61 @@ II. Upgrading from 2.3.1 to 2.3.2
 
 III. Change Log
 ----------------
- 2.3.2
+ 2.4
 
-    #231 - Advanced Uploader not working with IE
-    #238 - What's New Calendar date is wrong
-    #242 - Photo Gallery captions not cleaned properly
-    #232 - New recipe link on What's New page doesn't link to recipe
-    #240 - Install doesn't use calendar widget for bday
-    #245 - Full sized images not working with Advanced Uploader
-    #246 - This and next month events out of order
+    #143 - Invite Only Registration
+    #145 - Creat JS function for delete confirmation
+    #175 - php-gettext: undefined index: messages
+    #183 - Message Board Search
+    #190 - Rename Toolbar to be more generic
+    #194 - Make displayWhatsNewXXX functions static
+    #195 - Classes should create their own DB Objects
+    #196 - Create a global displayHeader() and displayFooter()
+    #217 - Photo Upload Class
+    #220 - Photo Gallery check all/none needs made unobtrusive
+    #222 - Member Lists need to be Autocomplete fields
+    #223 - Break up My Settings into smaller sections
+    #228 - Activating members should notify that member through email
+    #229 - Separate content from member data
+    #234 - Recipes comments missing from What's New page
+    #236 - Cannot edit/delete Recipe Categories
+    #237 - Date of Death
+    #239 - Cannot uncheck the Select All box in the Address Book
+    #243 - Allow birth/death years to be older than 1900
+    #247 - Mass photo tagging
+    #251 - Family Tree members messing up Address Book
+    #252 - Create new category still not working Advanced Uploader
+    #253 - lostpw.php missing utf-8 charset
+    #254 - translations not working on register page
+    #255 - calendar only prints in english
+    #257 - lostpw.php email_headers
+    #258 - "Language" not included in .po file
+    #259 - Dates not being translated correctly.
+    #260 - Words not included in translation
+    #262 - Gender missing from Admin: Member creation
+    #264 - Event Invitations
+    #267 - Next/Previous buttons should cycle through photos
+    #268 - Show "Who is in this Photo" on photo view
+    #271 - Small Calendar Enhancements
+    #272 - Update Merge process to handle new fields
+    #273 - Fix ___ has updated his/her address.
+    #274 - Calendar event view
+    #275 - Foursquare integration (Where is Everyone)
+    #276 - Separate profile from settings
+    #277 - Import blogs to Family News
+    #279 - Family Tree enhancements
+    #281 - Implement AJAX Chat
+    #285 - Screenshot Preview for Theme Selection
+    #287 - Create a new non-editable user type
+    #288 - Constants class
+    #289 - Chat Bar
+    #291 - Navigation Configuration/Display Updates
+    #294 - Rename Locale Class
+    #296 - Category view needs to show all photos
+    #297 - Tagged member search pagination broken
+    #298 - Include members tagged in photos, in category view
+    #302 - open_basedir restriction language error
+    #305 - 'subject' Parameter HTML Injection Vulnerability
 
   For the full change log please refer to the included ChangeLog file.
 

@@ -11,12 +11,12 @@ include_once('locale.php');
  * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
-class Admin {
-
+class Admin
+{
     var $db;
     var $db2;
     var $db3;
-    var $tz_offset;
+    var $tzOffset;
     var $lastmonth_beg;
     var $lastmonth_end;
     var $currentUserId;
@@ -25,329 +25,23 @@ class Admin {
      * Admin 
      * 
      * @param   int     $currentUserId 
-     * @param   string  $type 
-     * @param   string  $host 
-     * @param   string  $database 
-     * @param   string  $user 
-     * @param   string  $pass 
+     *
      * @return  void
      */
-    function Admin ($currentUserId, $type, $host, $database, $user, $pass)
+    function Admin ($currentUserId)
     {
-        $this->currentUserId = $currentUserId;
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $this->db2 = new database($type, $host, $database, $user, $pass);
-        $this->db3 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '" . cleanInput($currentUserId, 'int') . "'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->db3 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
+        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->tzOffset      = getTimezone($this->currentUserId);
         $this->lastmonth_beg = date('Y-m', mktime(0, 0, 0, date('m')-1, 1, date('Y'))) . "-01 00:00:00";
         $this->lastmonth_end = date('Y-m', mktime(0, 0, 0, date('m')-1, 1, date('Y'))) . "-31 23:59:59";
+
         T_bindtextdomain('messages', '.././language');
-    }
-
-    /**
-     * showThreads 
-     * 
-     * @param   string  $type 
-     * @param   int     $page 
-     * @return  void
-     */
-    function showThreads ($type, $page = 0)
-    {
-        $locale = new Locale();
-
-        $from = (($page * 25) - 25);
-        if ($type == 'announcement') {
-            echo '
-            <table id="threadlist" cellpadding="0" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th class="images">&nbsp;</th>
-                        <th class="subject">'.T_('Subject').'</th>
-                        <th class="replies">'.T_('Replies').'</th>
-                        <th class="views">'.T_('Views').'</th>
-                        <th class="updated">'.T_('Last Updated').'</th>
-                    </tr>
-                </thead>
-                <tbody>';
-            $sql = "SELECT t.`id`, `subject`, `started_by`, `updated`, `updated_by`, `views`, `user` 
-                    FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
-                    WHERE t.`id` = p.`thread` 
-                    AND `subject` LIKE '#ANOUNCE#%' 
-                    GROUP BY t.`id` 
-                    ORDER BY `updated` DESC";
-            $this->db->query($sql) or displaySQLError(
-                'Announcements Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-        } else {
-            $sql = "SELECT t.`id`, `subject`, `started_by`, `updated`, `updated_by`, `views`, `user` 
-                    FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
-                    WHERE t.`id` = p.`thread` 
-                    AND `subject` NOT LIKE '#ANOUNCE#%' 
-                    GROUP BY t.`id` 
-                    ORDER BY `updated` DESC 
-                    LIMIT " . $from . ", 25";
-            $this->db->query($sql) or displaySQLError(
-                'Threads Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-        }
-        $alt = 0;
-        while ($row = $this->db->get_row()) {
-            $started_by = getUserDisplayName($row['started_by']);
-            $updated_by = getUserDisplayName($row['updated_by']);
-            $subject = $row['subject'];
-            if ($type == 'announcement') {
-                $subject = substr($subject, 9, strlen($subject)-9);
-                $subject = '<small><b>'.T_('Announcement').': </b></small>'.$subject;
-                $tr_class = 'announcement';
-            } else {
-                if ($alt % 2 == 0) {
-                    $tr_class = '';
-                } else {
-                    $tr_class = 'alt';
-                }
-            }
-
-            $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-            $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
-
-            $time = gmmktime(0, 0, 0, gmdate('m')  , gmdate('d')-1, gmdate('Y'));
-            $yesterday_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s', $time)) . '000000';
-            $yesterday_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s', $time)) . '235959';
-
-            $updated = $locale->fixDate('YmdHis', $this->tz_offset, strtotime($row['updated']));
-
-            // Updated Today
-            if ($updated >= $today_start && $updated <= $today_end) {
-                if ($type == 'announcement') {
-                    $up_class = 'announcement_today';
-                } else {
-                    $up_class = 'today';
-                }
-                $date = $locale->fixDate('h:ia', $this->tz_offset, strtotime($row['updated']));
-                $last_updated = sprintf(T_('Today at %s'), $date)
-                    . "<br/>" . sprintf(T_('by %s'), $updated_by);
-
-            // Updated Yesterday
-            } elseif ($updated >= $yesterday_start && $updated <= $yesterday_end) {
-                if ($type == 'announcement') {
-                    $up_class = 'announcement_yesterday';
-                } else {
-                    $up_class = 'yesterday';
-                }
-                $date = $locale->fixDate('h:ia', $this->tz_offset, strtotime($row['updated']));
-                $last_updated = sprintf(T_('Yesterday at %s'), $date)
-                    . "<br/>" . sprintf(T_('by %s'), $updated_by);
-
-            // Updated older than yesterday
-            } else {
-                if ($type == 'announcement') {
-                    $up_class = 'announcement';
-                } else {
-                    $up_class = '';
-                }
-                $date = $locale->fixDate(T_('m/d/Y h:ia'), $this->tz_offset, strtotime($row['updated']));
-                $last_updated = $date . "<br/>" . sprintf(T_('by %s'), $updated_by);
-            }
-            $replies = $this->getNumberOfPosts($row['id']) - 1;
-            
-            // Display Row
-            echo '
-                    <tr class="'.$tr_class.'">
-                        <td class="images"><div class="'.$up_class.'"&nbsp;</div></td>
-                        <td class="subject">
-                            '.$subject.' 
-                            <small>
-                                <a class="edit_thread" href="board.php?edit='.(int)$row['id'].'">'.T_('Edit').'</a> 
-                                <a class="del_thread" href="board.php?del='.(int)$row['id'].'">'.T_('Delete').'</a>
-                            </small><br/>
-                            '.$started_by.'
-                        </td>
-                        <td class="replies">'.$replies.'</td>
-                        <td class="views">'.$row['views'].'</td>
-                        <td class="updated">
-                            '.$last_updated.'
-                        </td>
-                    </tr>';
-            $alt++;
-        }
-        if ($type == 'thread') {
-            echo '
-                </tbody>
-            </table>
-            <div class="top clearfix"><a href="#top">'.T_('Back to Top').'</a></div>';
-            $this->displayPages($page);
-        }
-    }
-
-    /**
-     * getNumberOfPosts 
-     * 
-     * @param  int $thread_id 
-     * @return void
-     */
-    function getNumberOfPosts ($thread_id)
-    {
-        $sql = "SELECT COUNT(*) AS c 
-                FROM `fcms_board_posts` 
-                WHERE `thread` = '" . cleanInput($thread_id, 'int') . "'";
-        $this->db2->query($sql) or displaySQLError(
-            '# of Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row=$this->db2->get_row();
-        return $row['c'];
-    }
-
-    /**
-     * getSortOrder 
-     * 
-     * @param  int $user_id 
-     * @return void
-     */
-    function getSortOrder ($user_id)
-    {
-        $sql = "SELECT `boardsort` 
-                FROM `fcms_users` 
-                WHERE `id` = '" . cleanInput($user_id, 'int') . "'";
-        $this->db2->query($sql) or displaySQLError(
-            'Sort Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row=$this->db2->get_row();
-        return $row['boardsort'];
-    }
-
-    /**
-     * getShowAvatar 
-     * 
-     * @param  int $user_id 
-     * @return void
-     */
-    function getShowAvatar ($user_id)
-    {
-        $sql = "SELECT `showavatar` 
-                FROM `fcms_users` 
-                WHERE `id` = '" . cleanInput($user_id, 'int') . "'";
-        $this->db2->query($sql) or displaySQLError(
-            'Avatar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row=$this->db2->get_row();
-        return $row['showavatar'];
-    }
-
-    /**
-     * getUserPostCountById 
-     * 
-     * @param  int      $user_id 
-     * @return string
-     */
-    function getUserPostCountById ($user_id)
-    {
-        $sql = "SELECT `id`
-                FROM `fcms_board_posts`";
-        $this->db2->query($sql) or displaySQLError(
-            'Post Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $total=$this->db2->count_rows();
-
-        $sql = "SELECT COUNT(`user`) AS c 
-                FROM `fcms_board_posts` 
-                WHERE `user` = '" . cleanInput($user_id, 'int') . "'";
-        $this->db2->query($sql) or displaySQLError(
-            'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row=$this->db2->get_row();
-        $count=$row['c'];
-
-        if($total < 1) { 
-            return "0 (0%)";
-        } else { 
-            return $count . " (" . round((($count/$total)*100), 1) . "%)";
-        }
-    }
-
-    /**
-     * displayPages 
-     *
-     * @todo    this needs removed in favor of the global function in inc/util
-     * @param   int $page 
-     * @param   int $thread_id 
-     * @return  void
-     */
-    function displayPages ($page = 1, $thread_id = 0)
-    {
-        $thread_id = cleanInput($thread_id, 'int');
-
-        if ($thread_id < 1) {
-            $sql = "SELECT COUNT(`id`) AS c 
-                    FROM `fcms_board_threads`";
-            $this->db2->query($sql) or displaySQLError(
-                'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            $row=$this->db2->get_row();
-            $total_pages = ceil($row['c'] / 25); 
-        } else {
-            $sql = "SELECT COUNT(`id`) AS c 
-                    FROM `fcms_board_posts` 
-                    WHERE `thread` = '$thread_id'";
-            $this->db2->query($sql) or displaySQLError(
-                'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            $row=$this->db2->get_row();
-            $total_pages = ceil($row['c'] / 15); 
-        }
-        if ($total_pages > 1) {
-            echo '
-            <div class="pages clearfix">
-                <ul>';
-            $url = '';
-            if ($thread_id != 0) {
-                $url = 'thread='.$thread_id.'&amp;';
-            }
-            if ($page > 1) { 
-                $prev = ($page - 1); 
-                echo '
-                    <li><a title="'.T_('First Page').'" class="first" href="board.php?'.$url.'page=1"></a></li>
-                    <li><a title="'.T_('Previous Page').'" class="previous" href="board.php?'.$url.'page='.$prev.'"></a></li>'; 
-            } 
-            if ($total_pages > 8) {
-                if ($page > 2) {
-                    for ($i = ($page-2); $i <= ($page+5); $i++) {
-                        $class = ($page == $i) ? 'class="current"' : '';
-                        if ($i <= $total_pages) {
-                            echo '
-                    <li><a href="board.php?'.$url.'page='.$i.'" '.$class.'>'.$i.'</a></li>';
-                        }
-                    } 
-                } else {
-                    for ($i = 1; $i <= 8; $i++) {
-                        $class = ($page == $i) ? 'class="current"' : '';
-                        echo '
-                    <li><a href="board.php?'.$url.'page='.$i.'" '.$class.'>'.$i.'</a></li>';
-                    } 
-                }
-            } else {
-                for ($i = 1; $i <= $total_pages; $i++) {
-                    $class = ($page == $i) ? 'class="current"' : '';
-                    echo '
-                    <li><a href="board.php?'.$url.'page='.$i.'" '.$class.'>'.$i.'</a></li>';
-                } 
-            }
-            if ($page < $total_pages) { 
-                $next = ($page + 1); 
-                echo '
-                    <li><a title="'.T_('Next Page').'" class="next" href="board.php?'.$url.'page='.$next.'"></a></li>
-                    <li><a title="'.T_('Last Page').'" class="last" href="board.php?'.$url.'page='.$total_pages.'"></a></li>';
-            } 
-            echo '
-                </ul>
-            </div>';
-        }
     }
 
     /**
@@ -455,7 +149,7 @@ class Admin {
     function displayAddPollForm ()
     {
         echo '
-            <script type="text/javascript" src="../inc/livevalidation.js"></script>
+            <script type="text/javascript" src="../inc/js/livevalidation.js"></script>
             <form id="addform" action="polls.php" method="post">
                 <fieldset>
                     <legend><span>'.T_('Add New Poll').'</span></legend>
@@ -570,6 +264,13 @@ class Admin {
             "1" => T_('Auto Activation')
         );
         $activate_options = buildHtmlSelectOptions($activate_list, $row['auto_activate']);
+        
+        // Register Options
+        $register_list = array (
+            "0" => T_('Off'),
+            "1" => T_('On')
+        );
+        $register_options = buildHtmlSelectOptions($register_list, $row['registration']);
 
         // Site Off Options
         $site_off_options = '<input type="radio" name="site_off" id="site_off_yes" '
@@ -611,6 +312,14 @@ class Admin {
                     email.add(Validate.Email, {failureMessage: "'.T_('That\'s not a valid email address is it?').'"});
                     email.add(Validate.Length, {minimum: 10});
                 </script>
+                <div class="field-row clearfix">
+                    <div class="field-label"><label for="registration"><b>'.T_('Registration').'</b></label></div>
+                    <div class="field-widget">
+                        <select name="registration">
+                            '.$register_options.'
+                        </select>
+                    </div>
+                </div>
                 <div class="field-row clearfix">
                     <div class="field-label"><label for="activation"><b>'.T_('Account Activation').'</b></label></div>
                     <div class="field-widget">
@@ -843,25 +552,32 @@ class Admin {
     /**
      * getOrderSelectBox 
      * 
-     * @param  int  $c 
-     * @param  int  $total 
-     * @param  int  $selected 
-     * @param  int  $start 
+     * @param int $name
+     * @param int $id
+     * @param int $total 
+     * @param int $selected 
+     * @param int $start 
+     * 
      * @return void
      */
-    function getOrderSelectBox ($c, $total, $selected, $start = 1)
+    function getOrderSelectBox ($name, $id, $total, $selected, $start = 1)
     {
-        $order_options = '<select id="order'.$c.'" name="order'.$c.'">';
-        for ($i = $start; $i <= $total; $i++) {
-            $order_options .= '
-                                    <option value="'.$i.'"';
-            if ($i == $selected) {
+        $order_options = '<select id="'.$name.'-order_'.$id.'" name="'.$name.'-order_'.$id.'">';
+
+        for ($i = $start; $i <= $total; $i++)
+        {
+            $order_options .= '<option value="'.$i.'"';
+
+            if ($i == $selected)
+            {
                 $order_options .= ' selected="selected"';
             }
+
             $order_options .= '>'.$i.'</option>';
         }
-        $order_options .= '
-                                </select>';
+
+        $order_options .= '</select>';
+
         return $order_options;
     }
 
@@ -873,15 +589,34 @@ class Admin {
     function displayAdminConfigSections ()
     {
         // Get Navigation Data
-        $nav = array();
-        $unused = array();
-        $sql = "SELECT * FROM `fcms_navigation` WHERE `col` = 4 ORDER BY `order`";
-        $this->db2->query($sql) or displaySQLError(
-            'Navigation Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        while ($r = $this->db2->get_row()) {
-            array_push($nav, $r);
-            if ($r['order'] == 0) {
+        $communicateNav = array();
+        $shareNav       = array();
+        $unused         = array();
+
+        $sql = "SELECT `id`, `link`, `col`, `order`, `req`
+                FROM `fcms_navigation` 
+                WHERE `col` = 3 
+                OR `col` = 4
+                ORDER BY `order`";
+        if (!$this->db2->query($sql))
+        {
+            displaySQLError('Navigation Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        while ($r = $this->db2->get_row())
+        {
+            if ($r['col'] == 3)
+            {
+                array_push($communicateNav, $r);
+            }
+            else
+            {
+                array_push($shareNav, $r);
+            }
+
+            if ($r['order'] == 0)
+            {
                 array_push($unused, $r);
             }
         }
@@ -890,40 +625,84 @@ class Admin {
         <form action="config.php?view=sections" method="post">
             <fieldset>
                 <legend><span>'.T_('Navigation').'</span></legend>';
-        if (count($unused) > 0) {
+
+        if (count($unused) > 0)
+        {
             echo '
                 <p><b>'.T_('Add Optional Sections').'</b></p>
                 <p>';
-            foreach ($unused AS $r) {
+
+            foreach ($unused AS $r)
+            {
                 echo getSectionName($r['link']).' &nbsp;<a class="add" href="?view=sections&amp;add='.$r['id'].'">'.T_('Add').'</a><br/>';
             }
+
             echo '
                 </p>';
         }
+
         echo '
-                <table class="order-nav">
+                <table class="communicate-nav">
                     <thead>
+                        <tr colspan="3"><th><h4>'.T_('Communicate').'</h4></th></tr>
                         <tr><th>'.T_('Section').'</th><th>'.T_('Order').'</th><th class="remove">'.T_('Remove').'</th></tr>
                     </thead>
                     <tbody>';
 
-        foreach ($nav AS $r) {
+        $communicateTotal = count($communicateNav);
+        foreach ($communicateNav AS $r)
+        {
             // order = 0 means it's unused
-            if ($r['order'] > 0) {
+            if ($r['order'] > 0)
+            {
                 $del = '<i>'.T_('required').'</i>';
-                if ($r['req'] < 1 && usingSection($r['link'])) {
+                if ($r['req'] < 1 && usingSection($r['link']))
+                {
                     $del = '&nbsp;<input class="delbtn" type="submit" name="remove" value="'.$r['id'].'"/>';
                 }
                 echo '
                         <tr>
                             <td>'.getSectionName($r['link']).'</td>
                             <td>
-                                '.$this->getOrderSelectBox($r['id'], 8, $r['order']).'
+                                '.$this->getOrderSelectBox('com', $r['id'], $communicateTotal, $r['order']).'
                             </td>
                             <td class="remove">'.$del.'</td>
                         </tr>';
             }
         }
+
+        echo '
+                    </tbody>
+                </table>
+                <table class="share-nav">
+                    <thead>
+                        <tr colspan="3"><th><h4>'.T_('Share').'</h4></th></tr>
+                        <tr><th>'.T_('Section').'</th><th>'.T_('Order').'</th><th class="remove">'.T_('Remove').'</th></tr>
+                    </thead>
+                    <tbody>';
+
+        $shareTotal = count($shareNav);
+        foreach ($shareNav AS $r)
+        {
+            // order = 0 means it's unused
+            if ($r['order'] > 0)
+            {
+                $del = '<i>'.T_('required').'</i>';
+                if ($r['req'] < 1 && usingSection($r['link']))
+                {
+                    $del = '&nbsp;<input class="delbtn" type="submit" name="remove" value="'.$r['id'].'"/>';
+                }
+                echo '
+                        <tr>
+                            <td>'.getSectionName($r['link']).'</td>
+                            <td>
+                                '.$this->getOrderSelectBox('share', $r['id'], $shareTotal, $r['order']).'
+                            </td>
+                            <td class="remove">'.$del.'</td>
+                        </tr>';
+            }
+        }
+
         echo '
                     </tbody>
                 </table>

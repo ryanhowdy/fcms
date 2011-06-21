@@ -11,38 +11,29 @@ include_once('locale.php');
  * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
-class FamilyTree {
-
+class FamilyTree
+{
     var $db;
     var $db2;
-    var $tz_offset;
+    var $tzOffset;
     var $currentUserId;
 
     /**
      * FamilyTree 
      * 
      * @param   int     $currentUserId 
-     * @param   string  $type 
-     * @param   string  $host 
-     * @param   string  $database 
-     * @param   string  $user 
-     * @param   string  $pass 
+     *
      * @return  void
      */
-    function FamilyTree ($currentUserId, $type, $host, $database, $user, $pass)
+    function FamilyTree ($currentUserId)
     {
-        $this->currentUserId = cleanInput($currentUserId, 'int');
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $this->db2 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
 
+        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
+        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
     /**
@@ -56,6 +47,7 @@ class FamilyTree {
      * 
      * @param   int     $id     the id of the user's family tree
      * @param   string  $type   tree or list or list_edit
+     * 
      * @return  void
      */
     function displayFamilyTree ($id, $type = 'tree')
@@ -66,10 +58,11 @@ class FamilyTree {
         if (!in_array($type, $valid_types)) {
             echo '
             <div class="error-alert">' . T_('Invalid Display Type') . '</div>';
+            return;
         }
 
         // Get info for user
-        $sql = "SELECT `id`, `fname`, `lname`, `sex`, `avatar`, `birthday`
+        $sql = "SELECT `id`, `fname`, `mname`, `lname`, `sex`, `avatar`, `birthday`
                 FROM `fcms_users` 
                 WHERE `id` = '$id'
                 LIMIT 1";
@@ -83,7 +76,7 @@ class FamilyTree {
         $user = $this->db->get_row();
 
         // Get spouse and kids for user
-        $sql = "SELECT u.`id`, u.`fname`, u.`lname`, u.`avatar`, r.`relationship`, r.`rel_user` 
+        $sql = "SELECT u.`id`, u.`fname`, u.`mname`, u.`lname`, u.`avatar`, r.`relationship`, r.`rel_user` 
                 FROM `fcms_relationship` AS r, `fcms_users` AS u 
                 WHERE `user` = '$id' 
                 AND r.`rel_user` = u.`id`";
@@ -97,6 +90,7 @@ class FamilyTree {
                 $spouse = array(
                     'id'        => $row['id'], 
                     'fname'     => $row['fname'], 
+                    'mname'     => $row['mname'], 
                     'lname'     => $row['lname'], 
                     'avatar'    => $row['avatar']
                 );
@@ -105,6 +99,7 @@ class FamilyTree {
                 $tmp = array(
                     'id'        => $row['id'], 
                     'fname'     => $row['fname'], 
+                    'mname'     => $row['mname'], 
                     'lname'     => $row['lname'], 
                     'avatar'    => $row['avatar']
                 );
@@ -113,7 +108,8 @@ class FamilyTree {
         }
 
         // Get user's parents
-        $sql = "SELECT u.`id`, u.`fname`, u.`lname`, u.`avatar`, r.`relationship`, r.`rel_user`, u.`birthday`, u.`sex` 
+        $sql = "SELECT u.`id`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`avatar`, 
+                    r.`relationship`, r.`rel_user`, u.`birthday`, u.`death`, u.`sex` 
                 FROM `fcms_relationship` AS r, `fcms_users` AS u 
                 WHERE `rel_user` = '$id' 
                 AND r.`user` = u.`id`
@@ -133,9 +129,11 @@ class FamilyTree {
                     $tmp = array(
                         'id'        => $row['id'], 
                         'fname'     => $row['fname'], 
+                        'mname'     => $row['mname'], 
                         'lname'     => $row['lname'], 
                         'avatar'    => $row['avatar'],
-                        'birthday'  => $row['birthday']
+                        'birthday'  => $row['birthday'],
+                        'death'     => $row['death']
                     );
                     $parents[0] = $tmp;
                 // mom
@@ -144,9 +142,12 @@ class FamilyTree {
                     $tmp = array(
                         'id'        => $row['id'], 
                         'fname'     => $row['fname'], 
+                        'mname'     => $row['mname'], 
                         'lname'     => $row['lname'], 
+                        'maiden'    => $row['maiden'], 
                         'avatar'    => $row['avatar'],
-                        'birthday'  => $row['birthday']
+                        'birthday'  => $row['birthday'],
+                        'death'     => $row['death']
                     );
                     $parents[1] = $tmp;
                 }
@@ -157,7 +158,8 @@ class FamilyTree {
         $dadParents = array();
         $momParents = array();
         if (!empty($dad) or !empty($mom)) {
-            $sql = "SELECT u.`id`, u.`fname`, u.`lname`, u.`avatar`, r.`relationship`, r.`rel_user`, u.`birthday`, u.`sex` 
+            $sql = "SELECT u.`id`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`avatar`, 
+                        r.`relationship`, r.`rel_user`, u.`birthday`, u.`death`, u.`sex` 
                     FROM `fcms_relationship` AS r, `fcms_users` AS u ";
             if ($dad > 0 and $mom > 0) {
                 $sql .= "WHERE (`rel_user` = $dad OR `rel_user` = $mom) ";
@@ -181,9 +183,11 @@ class FamilyTree {
                             $tmp = array(
                                 'id'        => $row['id'], 
                                 'fname'     => $row['fname'], 
+                                'mname'     => $row['mname'], 
                                 'lname'     => $row['lname'], 
                                 'avatar'    => $row['avatar'],
-                                'birthday'  => $row['birthday']
+                                'birthday'  => $row['birthday'],
+                                'death'     => $row['death']
                             );
                             $dadParents[0] = $tmp;
                         // grandma
@@ -191,9 +195,12 @@ class FamilyTree {
                             $tmp = array(
                                 'id'        => $row['id'], 
                                 'fname'     => $row['fname'], 
+                                'mname'     => $row['mname'], 
                                 'lname'     => $row['lname'], 
+                                'maiden'    => $row['maiden'], 
                                 'avatar'    => $row['avatar'],
-                                'birthday'  => $row['birthday']
+                                'birthday'  => $row['birthday'],
+                                'death'     => $row['death']
                             );
                             $dadParents[1] = $tmp;
                         }
@@ -204,9 +211,11 @@ class FamilyTree {
                             $tmp = array(
                                 'id'        => $row['id'], 
                                 'fname'     => $row['fname'], 
+                                'mname'     => $row['mname'], 
                                 'lname'     => $row['lname'], 
                                 'avatar'    => $row['avatar'],
-                                'birthday'  => $row['birthday']
+                                'birthday'  => $row['birthday'],
+                                'death'     => $row['death']
                             );
                             $momParents[0] = $tmp;
                         // grandma
@@ -214,9 +223,12 @@ class FamilyTree {
                             $tmp = array(
                                 'id'        => $row['id'], 
                                 'fname'     => $row['fname'], 
+                                'mname'     => $row['mname'], 
                                 'lname'     => $row['lname'], 
+                                'maiden'    => $row['maiden'], 
                                 'avatar'    => $row['avatar'],
-                                'birthday'  => $row['birthday']
+                                'birthday'  => $row['birthday'],
+                                'death'     => $row['death']
                             );
                             $momParents[1] = $tmp;
                         }
@@ -226,22 +238,32 @@ class FamilyTree {
         }
 
         // Display Tree
-        if ($type == 'tree') {
+        if ($type == 'tree')
+        {
             $this->displayMembersTreeList();
+
             echo '
             <div id="tree">';
+
             $this->displaySpouseKidsColumn($user, $spouse, $kids);
             $this->displayParentsColumn($id, $parents);
             $this->displayGrandparentsColumn($dad, $mom, $dadParents, $momParents);
+
             echo '
             </div>
             <div id="tree_toolbar">
                 <a href="?remove=user&amp;id=' . $id . '">' . T_('Remove Relationship') . '</a>
             </div>';
 
-        } elseif ($type == 'list') {
+        }
+        // Display family list (used in profile)
+        elseif ($type == 'list')
+        {
             $this->displayFamilyTreeList($spouse, $kids, $parents, $dadParents, $momParents);
-        } elseif ($type == 'list_edit') {
+        }
+        // Display edit list
+        elseif ($type == 'list_edit')
+        {
             $this->displayFamilyTreeEditList($id, $spouse, $kids, $parents, $dadParents, $momParents);
         }
     }
@@ -315,31 +337,35 @@ class FamilyTree {
                 <div class="column second">';
 
         // dad
-        if (isset($parents[0])) {
-            echo '
-                    <a href="?tree=' . $parents[0]['id'] . '" class="leaf dad">
-                        <b>' . $parents[0]['fname'] . ' ' . $parents[0]['lname'] . '</b>
-                        <span> ' . date('Y', strtotime($parents[0]['birthday'])) . ' - </span>
-                    </a>';
-        } else {
-            echo '
-                    <a href="?add=dad&amp;user=' . $id . '" class="leaf dad unknown">
-                        ' . T_('Add Father') . '
-                    </a>';
+        if (isset($parents[0]))
+        {
+            $pid  = $parents[0]['id'];
+            $name = $parents[0]['fname'].' '.$parents[0]['mname'].' '.$parents[0]['lname'];
+            $bday = $parents[0]['birthday'];
+            $dday = isset($parents[0]['death']) ? $parents[0]['death'] : 0;
+
+            $this->displayLeaf('dad', $pid, $name, $bday, $dday);
+        }
+        else
+        {
+            $this->displayAddLeaf('dad', $id, T_('Add Father'));
         }
 
         // mom
-        if (isset($parents[1])) {
-            echo '
-                    <a href="?tree=' . $parents[1]['id'] . '" class="leaf mom">
-                        <b>' . $parents[1]['fname'] . ' ' . $parents[1]['lname'] . '</b>
-                        <span> ' . date('Y', strtotime($parents[1]['birthday'])) . ' - </span>
-                    </a>';
-        } else {
-            echo '
-                    <a href="?add=mom&amp;user=' . $id . '" class="leaf mom unknown">
-                        ' . T_('Add Mother') . '
-                    </a>';
+        if (isset($parents[1]))
+        {
+            $maiden = !empty($parents[1]['maiden']) ? '('.$parents[1]['maiden'].')' : '';
+
+            $pid  = $parents[1]['id'];
+            $name = $parents[1]['fname'].' '.$parents[1]['mname'].' '.$parents[1]['lname'].' '.$maiden;
+            $bday = $parents[1]['birthday'];
+            $dday = isset($parents[1]['death']) ? $parents[1]['death'] : 0;
+
+            $this->displayLeaf('mom', $pid, $name, $bday, $dday);
+        }
+        else
+        {
+            $this->displayAddLeaf('mom', $id, T_('Add Mother'));
         }
 
         echo '
@@ -364,80 +390,100 @@ class FamilyTree {
                 <div class="column third">';
 
         // dad's dad
-        if (isset($dadParents[0])) {
-            echo '
-                    <a href="?tree=' . $dadParents[0]['id'] . '" class="leaf grandpa">
-                        <b>' . $dadParents[0]['fname'] . ' ' . $dadParents[0]['lname'] . '</b>
-                        <span> ' . date('Y', strtotime($dadParents[0]['birthday'])) . ' - </span>
-                    </a>';
-        } else {
+        if (isset($dadParents[0]))
+        {
+            $pid  = $dadParents[0]['id'];
+            $name = $dadParents[0]['fname'].' '.$dadParents[0]['mname'].' '.$dadParents[0]['lname'];
+            $bday = $dadParents[0]['birthday'];
+            $dday = isset($dadParents[0]['death']) ? $dadParents[0]['death'] : 0;
+
+            $this->displayLeaf('grandpa', $pid, $name, $bday, $dday);
+        }
+        else
+        {
             // can only add a grandfather if they have a father added
-            if (!empty($dad)) {
-                echo '
-                    <a href="?add=dad&amp;user=' . $dad . '" class="leaf grandpa unknown">
-                        ' . T_('Add Grandfather') . '
-                    </a>';
-            } else {
+            if (!empty($dad))
+            {
+                $this->displayAddLeaf('grandpa', $dad, T_('Add Grandfather'));
+            }
+            else
+            {
                 echo '
                     <div class="leaf grandpa unknown"></div>';
             }
         }
 
         // dad's mom
-        if (isset($dadParents[1])) {
-            echo '
-                    <a href="?tree=' . $dadParents[1]['id'] . '" class="leaf grandma">
-                        <b>' . $dadParents[1]['fname'] . ' ' . $dadParents[1]['lname'] . '</b>
-                        <span> ' . date('Y', strtotime($dadParents[1]['birthday'])) . ' - </span>
-                    </a>';
-        } else {
+        if (isset($dadParents[1]))
+        {
+            $maiden = !empty($dadParents[1]['maiden']) ? '('.$dadParents[1]['maiden'].')' : '';
+
+            $pid  = $dadParents[1]['id'];
+            $name = $dadParents[1]['fname'].' '.$dadParents[1]['mname'].' '.$dadParents[1]['lname'].' '.$maiden;
+            $bday = $dadParents[1]['birthday'];
+            $dday = isset($dadParents[1]['death']) ? $dadParents[1]['death'] : 0;
+
+            $this->displayLeaf('grandma', $pid, $name, $bday, $dday);
+        }
+        else
+        {
             // can only add a grandmother if they have a father added
-            if (!empty($dad)) {
-                echo '
-                    <a href="?add=mom&amp;user=' . $dad . '" class="leaf grandma unknown">
-                        ' . T_('Add Grandmother') . '
-                    </a>';
-            } else {
+            if (!empty($dad))
+            {
+                $this->displayAddLeaf('grandma', $dad, T_('Add Grandmother'));
+            }
+            else
+            {
                 echo '
                     <div class="leaf grandma unknown"></div>';
             }
         }
 
         // mom's dad
-        if (isset($momParents[0])) {
-            echo '
-                    <a href="?tree=' . $momParents[0]['id'] . '" class="leaf grandpa">
-                        <b>' . $momParents[0]['fname'] . ' ' . $momParents[0]['lname'] . '</b>
-                        <span> ' . date('Y', strtotime($momParents[0]['birthday'])) . ' - </span>
-                    </a>';
-        } else {
+        if (isset($momParents[0]))
+        {
+            $pid  = $momParents[0]['id'];
+            $name = $momParents[0]['fname'].' '.$momParents[0]['mname'].' '.$momParents[0]['lname'];
+            $bday = $momParents[0]['birthday'];
+            $dday = isset($momParents[0]['death']) ? $momParents[0]['death'] : 0;
+
+            $this->displayLeaf('grandpa', $pid, $name, $bday, $dday);
+        }
+        else
+        {
             // can only add a grandfather if they have a mother added
-            if (!empty($mom)) {
-                echo '
-                    <a href="?add=dad&amp;user=' . $mom . '" class="leaf grandpa unknown">
-                        ' . T_('Add Grandfather') . '
-                    </a>';
-            } else {
+            if (!empty($mom))
+            {
+                $this->displayAddLeaf('grandpa', $mom, T_('Add Grandfather'));
+            }
+            else
+            {
                 echo '
                     <div class="leaf grandpa unknown"></div>';
             }
         }
 
         // mom's mom
-        if (isset($momParents[1])) {
-            echo '
-                    <a href="?tree=' . $momParents[1]['id'] . '" class="leaf grandma">
-                        <b>' . $momParents[1]['fname'] . ' ' . $momParents[1]['lname'] . '</b>
-                        <span> ' . date('Y', strtotime($momParents[1]['birthday'])) . ' - </span>
-                    </a>';
-        } else {
+        if (isset($momParents[1]))
+        {
+            $maiden = !empty($momParents[1]['maiden']) ? '('.$momParents[1]['maiden'].')' : '';
+
+            $pid  = $momParents[1]['id'];
+            $name = $momParents[1]['fname'].' '.$momParents[1]['mname'].' '.$momParents[1]['lname'].' '.$maiden;
+            $bday = $momParents[1]['birthday'];
+            $dday = isset($momParents[1]['death']) ? $momParents[1]['death'] : 0;
+
+            $this->displayLeaf('grandma', $pid, $name, $bday, $dday);
+        }
+        else
+        {
             // can only add a grandmother if they have a mother added
-            if (!empty($mom)) {
-                echo '
-                    <a href="?add=mom&amp;user=' . $mom . '" class="leaf grandma unknown">
-                        ' . T_('Add Grandmother') . '
-                    </a>';
-            } else {
+            if (!empty($mom))
+            {
+                $this->displayAddLeaf('grandma', $mom, T_('Add Grandmother'));
+            }
+            else
+            {
                 echo '
                     <div class="leaf grandma unknown"></div>';
             }
@@ -453,58 +499,114 @@ class FamilyTree {
      * Displays the form for adding a parent to the family tree
      * 
      * @param   string  $type   mom or dad
-     * @param   int     $id     the child's user id
+     * @param   int     $userid the child's user id
+     * 
      * @return  void
      */
-    function displayAddParentForm ($type, $id)
+    function displayAddParentForm ($type, $userid)
     {
         // Can only add a mom or dad
-        if ($type !== 'dad' and $type !== 'mom') {
+        if ($type !== 'dad' and $type !== 'mom')
+        {
             echo '<div class="error-alert">' . T_('Invalid parent type.') . '</div>';
             return;
         }
 
-        $sex = ($type == 'dad') ? 'M' : 'F';
+        $parents     = array();
+        $displayName = getUserDisplayname($userid, 2);
 
-        // Get list of available users
+        if ($type == 'dad')
+        {
+            $sex    = 'M';
+            $legend = sprintf(T_('Add Father for %s'), $displayName);
+        }
+        else
+        {
+            $sex    = 'F';
+            $legend = sprintf(T_('Add Mother for %s'), $displayName);
+        }
+
+
+        // Get list of possible users
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users` 
                 WHERE `sex` = '$sex'  
-                AND `id` != $id  
+                AND `id` != $userid  
                 ORDER BY `lname`, `fname`";
-        $result = mysql_query($sql) or displaySQLError(
-            'Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() < 1) {
-            echo '
-        <p><a class="u" href="?create=user&amp;type=' . $type . '&amp;id=' . $id . '">' . T_('Add New Parent') . '</a></p>';
 
-        } else {
-            while($r = mysql_fetch_assoc($result)) {
-                $parents[$r['id']] = $r['fname'] . ' ' . $r['lname'];
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return;
+        }
+
+        // we have at least one possible parent
+        if ($this->db->count_rows() >= 1)
+        {
+            while($r = $this->db->get_row())
+            {
+                $possibleParents[$r['id']] = $r['fname'] . ' ' . $r['lname'];
             }
-            
+
+            // get children
+            $children = $this->getChildren($userid);
+
+            // get children of children (grandchildren)
+            foreach ($children as $id => $name)
+            {
+                $grandchildren = $this->getChildren($id);
+                $children += $grandchildren;
+
+                // get great-grandchildren
+                foreach ($grandchildren as $i => $n)
+                {
+                    $greatchildren = $this->getChildren($i);
+                    $children += $greatchildren;
+                }
+            }
+
+            // Remove children/grandchildren/great-grandchildren from list of possible parents
+            foreach ($possibleParents as $id => $name)
+            {
+                if (isset($children[$id]))
+                {
+                    unset($possibleParents[$id]);
+                }
+            }
+            $parents = $possibleParents;
+        }
+
+        if (count($parents) < 1)
+        {
             echo '
+        <fieldset>
+            <legend><span>'.$legend.'</span></legend>
+            <p><a class="u" href="?create=user&amp;type=' . $type . '&amp;id=' . $userid . '">' . T_('Add New Parent') . '</a></p>
+        </fieldset>';
+            return;
+        }
+
+        echo '
         <form action="familytree.php" method="post">
             <fieldset>
-                <legend><span>'.T_('Add Parent').'</span></legend>
+                <legend><span>'.$legend.'</span></legend>
                 <div class="field-row clearfix">
                     <div class="field-label"><label for="user"><b>'.T_('Parent').'</b></label></div>
                     <div class="field-widget">
                         <select name="user">
                             '.buildHtmlSelectOptions($parents, '-1').'
                         </select><br/>
-                        <p><a class="u" href="?create=user&amp;type=' . $type . '&amp;id=' . $id . '">' . T_('Add Parent Not Listed Above') . '</a></p>
+                        <p><a class="u" href="?create=user&amp;type=' . $type . '&amp;id=' . $userid . '">' . T_('Add Parent Not Listed Above') . '</a></p>
                     </div>
                 </div>
                 <p>
                     <input type="hidden" id="relationship" name="relationship" value="CHIL"/>
-                    <input type="hidden" id="rel_user" name="rel_user" value="'.$id.'"/>
-                    <input type="submit" id="add-leaf" name="add-leaf" value="'.T_('Add').'"/>
+                    <input type="hidden" id="rel_user" name="rel_user" value="'.$userid.'"/>
+                    <input class="sub1" type="submit" id="add-leaf" name="add-leaf" value="'.T_('Add').'"/> &nbsp;
+                    <a href="familytree.php">'.T_('Cancel').'</a>
                 </p>
             </fieldset>
         </form>';
-        }
     }
 
     /**
@@ -532,15 +634,18 @@ class FamilyTree {
                 WHERE `sex` = '$sex'  
                 AND `id` != $id  
                 ORDER BY `lname`, `fname`";
-        $result = mysql_query($sql) or displaySQLError(
-            'Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql)) {
+            displaySQLError('Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        }
         if ($this->db->count_rows() < 1) {
             echo '
-        <p><a class="u" href="?create=user&amp;type=' . $type . '&amp;id=' . $id . '">' . T_('Add New Spouse') . '</a></p>';
+        <fieldset>
+            <legend><span>'.T_('Add Spouse').'</span></legend>
+            <p><a class="u" href="?create=user&amp;type=' . $type . '&amp;id=' . $id . '">' . T_('Add New Spouse') . '</a></p>
+        </fieldset>';
 
         } else {
-            while($r = mysql_fetch_assoc($result)) {
+            while($r = $this->db->get_row()) {
                 $spouse[$r['id']] = $r['fname'] . ' ' . $r['lname'];
             }
             
@@ -560,7 +665,8 @@ class FamilyTree {
                 <p>
                     <input type="hidden" id="relationship" name="relationship" value="'.strtoupper($type).'"/>
                     <input type="hidden" id="rel_user" name="user" value="'.$id.'"/>
-                    <input type="submit" id="add-leaf" name="add-leaf" value="'.T_('Add').'"/>
+                    <input class="sub1" type="submit" id="add-leaf" name="add-leaf" value="'.T_('Add').'"/> &nbsp;
+                    <a href="familytree.php">'.T_('Cancel').'</a>
                 </p>
             </fieldset>
         </form>';
@@ -573,48 +679,65 @@ class FamilyTree {
      * Displays the form for adding a child to the family tree
      * 
      * @param  int  $id the id of the person your adding a child for
+     * 
      * @return void
      */
-    function displayAddChildForm ($id)
+    function displayAddChildForm ($userId)
     {
-        // Get list of available users
+        $displayName = getUserDisplayname($userId, 2);
+
+        // Get list of possible children
+        // -- users who are not already a child of someone
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users`
-                WHERE `id` != '$id'
+                WHERE `id` NOT IN (
+                  SELECT `rel_user` 
+                  FROM `fcms_relationship` 
+                  WHERE `relationship` = 'CHIL'
+                )
                 ORDER BY `lname`, `fname`";
-        $result = mysql_query($sql) or displaySQLError(
-            'Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() < 1) {
-            echo '
-        <p><a class="u" href="?create=user&amp;type=child&amp;id=' . $id . '">' . T_('Add New Child') . '</a></p>';
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return;
+        }
 
-        } else {
-            while($r = mysql_fetch_assoc($result)) {
-                $children[$r['id']] = $r['fname'] . ' ' . $r['lname'];
-            }
-            
+        if ($this->db->count_rows() < 1)
+        {
             echo '
+        <fieldset>
+            <legend><span>'.T_('Add Child').'</span></legend>
+            <p><a class="u" href="?create=user&amp;type=child&amp;id=' . $id . '">' . T_('Add New Child') . '</a></p>
+        </fieldset>';
+            return;
+        }
+
+        while($r = $this->db->get_row())
+        {
+            $children[$r['id']] = $r['fname'] . ' ' . $r['lname'];
+        }
+
+        echo '
         <form action="familytree.php" method="post">
             <fieldset>
-                <legend><span>'.T_('Add Child').'</span></legend>
+                <legend><span>'.sprintf(T_('Add Child for %s'), $displayName).'</span></legend>
                 <div class="field-row clearfix">
                     <div class="field-label"><label for="rel_user"><b>'.T_('Child').'</b></label></div>
                     <div class="field-widget">
                         <select name="rel_user">
                             '.buildHtmlSelectOptions($children, '-1').'
                         </select><br/>
-                        <p><a class="u" href="?create=user&amp;type=child&amp;id=' . $id . '">' . T_('Add Child Not Listed Above') . '</a></p>
+                        <p><a class="u" href="?create=user&amp;type=child&amp;id=' . $userId . '">' . T_('Add Child Not Listed Above') . '</a></p>
                     </div>
                 </div>
                 <p>
                     <input type="hidden" id="relationship" name="relationship" value="CHIL"/>
-                    <input type="hidden" id="user" name="user" value="'.(int)$id.'"/>
-                    <input type="submit" id="add-leaf" name="add-leaf" value="'.T_('Add').'"/>
+                    <input type="hidden" id="user" name="user" value="'.(int)$userId.'"/>
+                    <input class="sub1" type="submit" id="add-leaf" name="add-leaf" value="'.T_('Add').'"/> &nbsp;
+                    <a href="familytree.php">'.T_('Cancel').'</a>
                 </p>
             </fieldset>
         </form>';
-        }
     }
 
     /**
@@ -622,89 +745,155 @@ class FamilyTree {
      * 
      * Displays the form for creating a new user to be added to the family tree
      * 
-     * @param string $url the url to go back to after creating this user
+     * @param string $type mom or dad
+     * @param int    $id   id of user your adding a relationship for
+     * 
      * @return void
      */
-    function displayCreateUserForm ($url)
+    function displayCreateUserForm ($type, $id)
     {
-        $locale = new Locale();
-        $year   = $locale->fixDate('Y', $this->tz_offset, gmdate('Y-m-d H:i:s'));
-        $month  = $locale->fixDate('m', $this->tz_offset, gmdate('Y-m-d H:i:s'));
-        $day    = $locale->fixDate('j', $this->tz_offset, gmdate('Y-m-d H:i:s'));
+        $locale = new FCMS_Locale();
+
+        $displayname = getUserDisplayName($id, 2);
+
+        switch ($type)
+        {
+            case 'dad':
+                $sex    = 'M';
+                $legend = sprintf(T_('Add New Father for %s'), $displayname);
+                break;
+
+            case 'mom':
+                $sex    = 'F';
+                $legend = sprintf(T_('Add New Mother for %s'), $displayname);
+                break;
+
+            case 'husb':
+                $sex    = 'M';
+                $legend = sprintf(T_('Add New Spouse for %s'), $displayname);
+                break;
+
+            case 'wife':
+                $sex    = 'F';
+                $legend = sprintf(T_('Add New Spouse for %s'), $displayname);
+                break;
+
+            case 'child':
+                $sex    = '?';
+                $legend = sprintf(T_('Add New Child for %s'), $displayname);
+                break;
+
+            default:
+                echo '
+            <div class="error-alert">' . T_('Invalid Display Type') . '</div>';
+                return;
+        }
+
+        $year   = $locale->fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $month  = $locale->fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $day    = $locale->fixDate('j', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+
+        $day_list = array();
+        $i = 1;
+        while ($i <= 31) {
+            $day_list[$i] = $i;
+            $i++;
+        }
+
+        $month_list = array();
+        $i = 1;
+        while ($i <= 12) {
+            $month_list[$i] = $locale->getMonthAbbr($i);
+            $i++;
+        }
 
         echo '
         <form action="familytree.php" method="post">
-            <fieldset>
-                <legend><span>' . T_('Add New Member') . '</span></legend>
-                <div class="field-row clearfix">
-                    <div class="field-label"><label for="fname"><b>' . T_('First Name') . '</b></label></div>
-                    <div class="field-widget"><input class="frm_text" type="text" name="fname" id="fname" size="25"/></div>
+            <fieldset class="relationship-form">
+                <legend><span>'.$legend.'</span></legend>
+                <div class="cols clearfix">
+                    <div>
+                        <label for="fname"><b>' . T_('First Name') . '</b></label><br/>
+                        <input class="frm_text" type="text" name="fname" id="fname" size="25"/>
+                    </div>
+                    <div>
+                        <label for="mname"><b>'.T_('Middle Name').'</b></label><br/>
+                        <input class="frm_text" type="text" name="mname" id="mname" size="25"/>
+                    </div>
+                    <div>
+                        <label for="lname"><b>' . T_('Last Name') . '</b></label><br/>
+                        <input class="frm_text" type="text" name="lname" id="lname" size="25"/>
+                    </div>
+                </div>';
+
+        // don't show maiden name unless it's needed
+        if ($type == 'wife' || $type == 'mom' || $type == 'chil')
+        {
+            echo '
+                <p class="maiden-name">
+                    <label for="maiden"><b>' . T_('Maiden Name') . '</b></label><br/>
+                    <input class="frm_text" type="text" name="maiden" id="maiden" size="25"/>
+                </p>';
+        }
+
+        // We don't know the sex of the child, but we do for all other relationships
+        if ($type == 'child')
+        {
+            echo '
+                <p>
+                    <label><b>' . T_('Sex') . '</b></label><br/>
+                    <select id="sex" name="sex">
+                        '.buildHtmlSelectOptions(array('M' => T_('Male'), 'F' => T_('Female')), '-1').'
+                    </select>
+                </p>';
+        }
+        else
+        {
+            echo '<div><input type="hidden" id="sex" name="sex" value="'.$sex.'"/></div>';
+        }
+
+        echo '
+                <div class="cols clearfix">
+                    <div>
+                        <label for="day"><b>' . T_('Birthday') . '</b></label><br/>
+                        <select id="bday" name="bday">
+                            '.buildHtmlSelectOptions($day_list, $day).'
+                        </select>
+                        <select id="bmonth" name="bmonth">
+                            '.buildHtmlSelectOptions($month_list, $month).'
+                        </select>
+                        <input class="frm_text" type="text" name="byear" id="byear" value="'.$year.'" size="5" maxlength="4"/>
+                    </div>
+                    <div>
+                        <label for="day"><b>' . T_('Date Deceased') . '</b></label><br/>
+                        <select id="dday" name="dday">
+                            '.buildHtmlSelectOptions($day_list, $day).'
+                        </select>
+                        <select id="dmonth" name="dmonth">
+                            '.buildHtmlSelectOptions($month_list, $month).'
+                        </select>
+                        <input class="frm_text" type="text" name="dyear" id="dyear" size="5" maxlength="4"/>
+                    </div>
                 </div>
                 <script type="text/javascript">
                     var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
                     ffname.add(Validate.Presence, {failureMessage: ""});
-                </script>
-                <div class="field-row clearfix">
-                    <div class="field-label"><label for="lname"><b>' . T_('Last Name') . '</b></label></div>
-                    <div class="field-widget"><input class="frm_text" type="text" name="lname" id="lname" size="25"/></div>
-                </div>
-                <script type="text/javascript">
+
                     var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
                     flname.add(Validate.Presence, {failureMessage: ""});
+
+                    var fbyear = new LiveValidation(\'byear\', { onlyOnSubmit: true });
+                    fbyear.add(Validate.Presence, {failureMessage: ""});
+                    fbyear.add(Validate.Numericality, { minimum: 1000, maximum: 9999 } );
+
+                    var fdyear = new LiveValidation(\'dyear\', { onlyOnSubmit: true });
+                    fdyear.add(Validate.Numericality, { minimum: 1000, maximum: 9999 } );
                 </script>
-                <div class="field-row clearfix">
-                    <div class="field-label"><label><b>' . T_('Sex') . '</b></label></div>
-                    <div class="field-widget">
-                        <input type="radio" name="sex" id="sex_m" value="M"/>
-                        <label class="radio_label" for="sex_m"> ' . T_('Male') . '</label><br>
-                        <input type="radio" name="sex" id="sex_f" value="F"/>
-                        <label class="radio_label" for="sex_f"> ' . T_('Female') . '</label>
-                    </div>
-                </div>
-                <div class="field-row clearfix">
-                    <div class="field-label"><label for="day"><b>' . T_('Birthday') . '</b></label></div> 
-                    <div class="field-widget">
-                        <select id="day" name="day">';
-        $d = 1;
-        while ($d <= 31) {
-            echo "<option value=\"$d\"";
-            if ($day == $d) {
-                echo ' selected="selected"';
-            }
-            echo ">$d</option>";
-            $d++;
-        }
-        echo '
-                        </select>
-                        <select id="month" name="month">';
-        $m = 1;
-        while ($m <= 12) {
-            echo "<option value=\"$m\"";
-            if ($month == $m) {
-                echo ' selected="selected"';
-            }
-            echo ">" . $locale->getMonthAbbr($m) . "</option>";
-            $m++;
-        }
-        echo '
-                        </select>
-                        <select id="year" name="year">';
-        $y = 1900;
-        while ($y <= date('Y')) {
-            echo "<option value=\"$y\"";
-            if ($year == $y) {
-                echo ' selected="selected"';
-            }
-            echo ">$y</option>";
-            $y++;
-        }
-        echo '
-                        </select>
-                    </div>
-                </div>
                 <p>
-                    <input type="hidden" id="url" name="url" value="' . cleanOutput($url) . '"/>
-                    <input type="submit" id="add-user" name="add-user" value="' . T_('Add') . '"/>
+                    <input type="hidden" id="id" name="id" value="'.cleanOutput($id).'"/>
+                    <input type="hidden" id="type" name="type" value="'.cleanOutput($type).'"/>
+                    <input class="sub1" type="submit" id="add-user" name="add-user" value="' . T_('Add') . '"/> &nbsp;
+                    <a href="familytree.php">'.T_('Cancel').'</a>
                 </p>
             </fieldset>
         </form>';
@@ -722,12 +911,16 @@ class FamilyTree {
         // Get list of available users
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users`
-                WHERE `id` != '" . $this->currentUserId . "'
+                WHERE `id` != '".$this->currentUserId."'
                 ORDER BY `lname`, `fname`";
-        $result = mysql_query($sql) or displaySQLError(
-            'Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() < 1) {
+        $result = $this->db->query($sql);
+        if (!$result)
+        {
+            displaySQLError('Users Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+        if ($this->db->count_rows() < 1)
+        {
             return;
         }
 
@@ -737,7 +930,7 @@ class FamilyTree {
                 <select name="tree">
                     <option value="' . $this->currentUserId . '">' . T_('View Family Tree for...') . '</option>';
 
-        while($r = mysql_fetch_assoc($result)) {
+        while($r = $this->db->get_row()) {
             echo '
                     <option value="' . $r['id'] . '">' . $r['fname'] . ' ' . $r['lname'] . '</option>';
         }
@@ -1059,6 +1252,132 @@ class FamilyTree {
     }
 
     /**
+     * displayEditForm 
+     * 
+     * @param string  $userid 
+     * 
+     * @return void
+     */
+    function displayEditForm ($userid)
+    {
+        $locale = new FCMS_Locale();
+
+        // Get user info
+        $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`, `birthday`, `death`, `sex`
+                FROM `fcms_users`
+                WHERE `id` = $userid";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return;
+        }
+
+        $row = $this->db->get_row();
+
+        $byear  = substr($row['birthday'], 0,4);
+        $bmonth = substr($row['birthday'], 5,2);
+        $bday   = substr($row['birthday'], 8,2);
+
+        $dyear  = substr($row['death'], 0,4);
+        $dmonth = substr($row['death'], 5,2);
+        $dday   = substr($row['death'], 8,2);
+
+        $day_list = array();
+        $i = 1;
+        while ($i <= 31) {
+            $day_list[$i] = $i;
+            $i++;
+        }
+
+        $month_list = array();
+        $i = 1;
+        while ($i <= 12) {
+            $month_list[$i] = $locale->getMonthAbbr($i);
+            $i++;
+        }
+
+        echo '
+        <form action="familytree.php" method="post">
+            <fieldset class="relationship-form">
+                <legend><span>' . T_('Edit') . '</span></legend>
+                <div class="cols clearfix">
+                    <div>
+                        <label for="fname"><b>' . T_('First Name') . '</b></label><br/>
+                        <input class="frm_text" type="text" name="fname" id="fname" size="25" value="'.cleanOutput($row['fname']).'"/>
+                    </div>
+                    <div>
+                        <label for="mname"><b>'.T_('Middle Name').'</b></label><br/>
+                        <input class="frm_text" type="text" name="mname" id="mname" size="25" value="'.cleanOutput($row['mname']).'"/>
+                    </div>
+                    <div>
+                        <label for="lname"><b>' . T_('Last Name') . '</b></label><br/>
+                        <input class="frm_text" type="text" name="lname" id="lname" size="25" value="'.cleanOutput($row['lname']).'"/>
+                    </div>
+                </div>';
+
+        if ($row['sex'] == 'F')
+        {
+            echo '
+                <p class="maiden-name">
+                    <label for="maiden"><b>' . T_('Maiden Name') . '</b></label><br/>
+                    <input class="frm_text" type="text" name="maiden" id="maiden" size="25" value="'.cleanOutput($row['maiden']).'"/>
+                </p>';
+        }
+
+        echo '
+                <p>
+                    <label><b>' . T_('Sex') . '</b></label><br/>
+                    <select id="sex" name="sex">
+                        '.buildHtmlSelectOptions(array('M' => T_('Male'), 'F' => T_('Female')), $row['sex']).'
+                    </select>
+                </p>
+                <div class="cols clearfix">
+                    <div>
+                        <label for="day"><b>' . T_('Birthday') . '</b></label><br/>
+                        <select id="bday" name="bday">
+                            '.buildHtmlSelectOptions($day_list, $bday).'
+                        </select>
+                        <select id="bmonth" name="bmonth">
+                            '.buildHtmlSelectOptions($month_list, $bmonth).'
+                        </select>
+                        <input class="frm_text" type="text" name="byear" id="byear" size="5" maxlength="4" value="'.cleanOutput($byear).'"/>
+                    </div>
+                    <div>
+                        <label for="day"><b>' . T_('Date Deceased') . '</b></label><br/>
+                        <select id="dday" name="dday">
+                            '.buildHtmlSelectOptions($day_list, $dday).'
+                        </select>
+                        <select id="dmonth" name="dmonth">
+                            '.buildHtmlSelectOptions($month_list, $dmonth).'
+                        </select>
+                        <input class="frm_text" type="text" name="dyear" id="dyear" size="5" maxlength="4" value="'.cleanOutput($dyear).'"/>
+                    </div>
+                </div>
+                <script type="text/javascript">
+                    var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
+                    ffname.add(Validate.Presence, {failureMessage: ""});
+
+                    var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
+                    flname.add(Validate.Presence, {failureMessage: ""});
+
+                    var fbyear = new LiveValidation(\'byear\', { onlyOnSubmit: true });
+                    fbyear.add(Validate.Presence, {failureMessage: ""});
+                    fbyear.add(Validate.Numericality, { minimum: 1000, maximum: 9999 } );
+
+                    var fdyear = new LiveValidation(\'dyear\', { onlyOnSubmit: true });
+                    fdyear.add(Validate.Numericality, { minimum: 1000, maximum: 9999 } );
+                </script>
+                <p>
+                    <input type="hidden" id="id" name="id" value="'.$userid.'"/>
+                    <input class="sub1" type="submit" id="edit-user" name="edit-user" value="' . T_('Edit') . '"/> &nbsp;
+                    <a href="familytree.php">'.T_('Cancel').'</a>
+                </p>
+            </fieldset>
+        </form>';
+    }
+
+    /**
      * addSpouse 
      * 
      * @param int    $user 
@@ -1174,6 +1493,106 @@ class FamilyTree {
             $this->addSpouse($row['user'], $spouse_relationship, $user);
         }
 
+    }
+
+    /**
+     * displayLeaf 
+     * 
+     * @param string $type 
+     * @param int    $user 
+     * @param string $name 
+     * @param int    $id 
+     * @param date   $bday 
+     * @param date   $dday 
+     * 
+     * @return void
+     */
+    function displayLeaf ($type, $id, $name, $bday = 0, $dday = 0)
+    {
+        $linkName = '';
+        $details  = '';
+        $edit     = '';
+
+        if ($id > 0)
+        {
+            $title    = sprintf(T_('View tree for %s.'), $name);
+            $linkName = '<a href="?tree='.$id.'" title="'.$title.'">'.$name.'</a>';
+
+            $byear    = $bday == 0 ? '' : date('Y', strtotime($bday)).' - ';
+            $dyear    = $dday == 0 ? '' : date('Y', strtotime($dday));
+            $details  = '<span>'.$byear.$dyear.'</span>';
+
+            $edit     = '<a href="?edit='.$id.'" class="edit">'.T_('Edit').'</a>';
+        }
+
+        echo '
+                    <div class="leaf '.$type.'">
+                        '.$linkName.'
+                        '.$details.'
+                        '.$edit.'
+                    </div>';
+    }
+
+    /**
+     * displayAddLeaf 
+     * 
+     * @param string  $type 
+     * @param string  $user 
+     * @param string  $name 
+     * 
+     * @return void
+     */
+    function displayAddLeaf ($type, $user, $name)
+    {
+        $addType = $type;
+
+        if ($type == 'grandpa')
+        {
+            $addType = 'dad';
+        }
+
+        if ($type == 'grandma')
+        {
+            $addType = 'mom';
+        }
+
+        echo '
+                    <a href="?add='.$addType.'&amp;user='.$user.'" class="leaf '.$type.' unknown">
+                        '.$name.'
+                    </a>';
+    }
+
+    /**
+     * getChildren 
+     * 
+     * Returns an array of children's names keyed by id, for the given user's id.
+     * 
+     * @param int    $id 
+     * 
+     * @return void
+     */
+    function getChildren ($id)
+    {
+        $children = array();
+
+        $sql = "SELECT `rel_user` AS id, `fname`, `lname`
+                FROM `fcms_relationship` AS r, `fcms_users` AS u
+                WHERE r.`user` = $id
+                AND `rel_user` = u.`id`
+                ORDER BY `lname`, `fname`";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Children Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return false;
+        }
+
+        while($r = $this->db->get_row())
+        {
+            $children[$r['id']] = $r['fname'] . ' ' . $r['lname'];
+        }
+
+        return $children;
     }
 
 }

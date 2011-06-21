@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+define('URL_PREFIX', '../');
+
 include_once('../inc/config_inc.php');
 include_once('../inc/util_inc.php');
 include_once('../inc/admin_class.php');
@@ -12,21 +14,21 @@ fixMagicQuotes();
 isLoggedIn('admin/');
 $currentUserId = (int)escape_string($_SESSION['login_id']);
 
-$admin      = new Admin($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$database   = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$awards     = new Awards($currentUserId, $database);
+$admin  = new Admin($currentUserId);
+$awards = new Awards($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Administration: Awards'),
-    'path'          => "../",
-    'admin_path'    => "",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
+$TMPL['javascript'] = '
+<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
 include_once(getTheme($currentUserId, $TMPL['path']) . 'header.php');
@@ -42,7 +44,6 @@ if (checkAccess($currentUserId) > 2) {
                 '.T_('This page requires an access level 2 (Helper) or better.').' 
                 <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
             </p>';
-    displayFooter();
     echo '
         </div><!-- .centercontent -->';
     include_once(getTheme($currentUserId, $TMPL['path']) . 'footer.php');

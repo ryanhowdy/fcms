@@ -1,3 +1,12 @@
+ 2.3.2
+    #231 - Advanced Uploader not working with IE
+    #238 - What's New Calendar date is wrong
+    #242 - Photo Gallery captions not cleaned properly
+    #232 - New recipe link on What's New page doesn't link to recipe
+    #240 - Install doesn't use calendar widget for bday
+    #245 - Full sized images not working with Advanced Uploader
+    #246 - This and next month events out of order
+
  2.3.1
     #218 - Avatar doesn't allow all cap file extensions
     #219 - Family Tree - no female members causes errors

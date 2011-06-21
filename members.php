@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+define('URL_PREFIX', '');
+
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
 include_once('inc/database_class.php');
@@ -12,20 +14,20 @@ fixMagicQuotes();
 isLoggedIn();
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-$database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$member = new Members($currentUserId, $database);
+$member = new Members($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Members'),
-    'path'          => "",
-    'admin_path'    => "admin/",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
+$TMPL['javascript'] = '
+<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 $show_all = true;
 

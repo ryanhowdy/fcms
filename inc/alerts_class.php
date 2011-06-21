@@ -19,12 +19,15 @@ class Alerts
      * Alerts 
      * 
      * @param string $id 
-     * @param string $database 
+     *
      * @return void
      */
-    function Alerts ($id, $database)
+    function Alerts ($id)
     {
-        $this->db = $database;
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
         $this->currentUserId = cleanInput($id, 'int');
     }
     

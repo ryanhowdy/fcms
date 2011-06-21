@@ -17,96 +17,232 @@ class Settings
     var $db;
     var $currentUserId;
     var $currentUserEmail;
-    var $tz_offset;
+    var $tzOffset;
 
     /**
      * Settings 
      * 
      * @param   int     $currentUserId 
-     * @param   string  $type 
-     * @param   string  $host 
-     * @param   string  $database 
-     * @param   string  $user 
-     * @param   string  $pass 
+     *
      * @return  void
      */
-    function Settings ($currentUserId, $type, $host, $database, $user, $pass)
+    function Settings ($currentUserId)
     {
-        $this->currentUserId = cleanInput($currentUserId, 'int');
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
 
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
+        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->tzOffset      = getTimezone($this->currentUserId);
 
         $sql = "SELECT `email` 
                 FROM `fcms_users` 
                 WHERE `id` = '$currentUserId'";
         $this->db->query($sql) or displaySQLError(
-            'Email Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Email Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $row = $this->db->get_row();
         $this->currentUserEmail = $row['email'];
     }
 
     /**
-     * displayForm 
+     * displayAccountInformation 
      * 
-     * @param   string  $option 
-     * @return  void
+     * @return void
      */
-    function displayForm ($option = 'all')
+    function displayAccountInformation ()
     {
-        $locale = new Locale();
-        $sql = "SELECT u.`fname`, u.`lname`, u.`username`, u.`password`, u.`access`, u.`email`, 
-                    u.`birthday`, s.`theme`, u.`avatar`, u.`gravatar`, s.`displayname`, s.`frontpage`, 
-                    s.`timezone`, s.`dst`, s.`boardsort`, s.`showavatar`, s.`email_updates`, 
-                    s.`advanced_upload`, s.`language`, u.`sex` 
-                FROM `fcms_users` AS u, `fcms_user_settings` AS s 
-                WHERE u.`id` = '" . $this->currentUserId . "' 
-                AND u.`id` = s.`user`";
+        $locale = new FCMS_Locale();
+        $sql = "SELECT `username`, `email`, `password`
+                FROM `fcms_users`
+                WHERE `id` = '" . $this->currentUserId . "'";
         $this->db->query($sql) or displaySQLError(
-            'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $row = $this->db->get_row();
 
-        $year  = substr($row['birthday'], 0,4);
-        $month = substr($row['birthday'], 5,2);
-        $day   = substr($row['birthday'], 8,2);
+        echo '
+                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <form id="frm" action="settings.php?view=account" method="post">
+                <fieldset>
+                    <legend><span>'.T_('Account Information').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="uname"><b>'.T_('Username').'</b></label></div>
+                        <div class="field-widget">
+                            <input disabled="disabled" type="text" name="uname" size="50" id="uname" value="'.cleanOutput($row['username']).'"/>
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div>
+                        <div class="field-widget">
+                            <input type="text" name="email" size="50" id="email" value="'.cleanOutput($row['email']).'"/>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
+                        femail.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
+                        femail.add(Validate.Email, {failureMessage: "'.T_('That\'s not a valid email address is it?').'" });
+                        femail.add(Validate.Length, {minimum: 10});
+                    </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="pass"><b>'.T_('Change Password').'</b></label></div>
+                        <div class="field-widget">
+                            <input type="password" name="pass" size="50" id="pass"/><br/>
+                            '.T_('Leave blank if you don\'t wish to change it.').'
+                        </div>
+                    </div>
+                    <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                </fieldset>
+                </form>';
+    }
 
-        // Access Level
-        $access = $this->getAccessLevelDescription($row['access']);
+    /**
+     * displayTheme 
+     * 
+     * @return void
+     */
+    function displayTheme ()
+    {
+        $locale = new FCMS_Locale();
+        $sql = "SELECT `theme`
+                FROM `fcms_user_settings`
+                WHERE `user` = '" . $this->currentUserId . "'";
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        $row = $this->db->get_row();
 
         // Theme
         $dir = "themes/";
-        $theme_options = '';
-        if (is_dir($dir))    {
-            if ($dh = opendir($dir)) {
-                while (($file = readdir($dh)) !== false) {
-                    if (filetype($dir . $file) === "dir" && 
-                        $file !== "." && 
-                        $file !== ".." && 
-                        $file !== "smileys"
-                    ) {
-                        $arr[] = $file;
+        $themes = array();
+
+        if (is_dir($dir))
+        {
+            if ($dh = opendir($dir))
+            {
+                while (($file = readdir($dh)) !== false)
+                {
+                    // Skip non directories
+                    if (filetype($dir . $file) !== "dir") {
+                        continue;
                     }
+                    // Skip smileys
+                    if ($file == 'smileys') {
+                        continue;
+                    }
+                    // Skip directories that start with a period
+                    if ($file[0] === '.') {
+                        continue;
+                    }
+                    // skip images dir
+                    if ($file === 'images') {
+                        continue;
+                    }
+
+                    $arr[] = $file;
                 }
                 closedir($dh);
+
                 sort($arr);
-                foreach($arr as $file) {
-                    $theme_options .= "<option value=\"$file\"";
-                    if ($row['theme'] == $file) {
-                        $theme_options .= " selected=\"selected\"";
-                    }
-                    $theme_options .= ">$file</option>";
+
+                foreach($arr as $file)
+                {
+                    $themeData = $this->getThemeData($file);
+                    $themes[$file]  = $themeData;
                 }
             }
         }
+
+        $currentTheme = $themes[$row['theme']];
+
+        // current theme screenshot
+        if (file_exists('themes/'.$currentTheme['file'].'/screenshot.png'))
+        {
+            $img = '<img src="themes/'.$currentTheme['file'].'/screenshot.png"/>';
+        }
+        else
+        {
+            $img = '<span>'.T_('No Preview').'</span>';
+        }
+
+        echo '
+                <h3>'.T_('Current Theme').'</h3>
+
+                <div class="current-theme">
+                    '.$img.'
+                    <div>
+                        <p><b>'.$currentTheme['name'].'</b></p>
+                        <p>'.$currentTheme['desc'].'</p>
+                        <p>'.$currentTheme['author'].'<br/>'.$currentTheme['updated'].'</p>
+                    </div>
+                </div>
+
+                <h3>'.T_('Themes').'</h3>';
+
+        $canDelete = false;
+        if (checkAccess($this->currentUserId) == 1)
+        {
+            $canDelete = true;
+        }
+
+        foreach ($themes as $theme)
+        {
+            // skip current theme
+            if ($theme['file'] == $row['theme'])
+            {
+                continue;
+            }
+
+            // screenshot
+            if (file_exists('themes/'.$theme['file'].'/screenshot.png'))
+            {
+                $img = '<img src="themes/'.$theme['file'].'/screenshot.png"/>';
+            }
+            else
+            {
+                $img = '<span>'.T_('No Preview').'</span>';
+            }
+
+            // only admin can delete themes
+            $del = '';
+            if ($canDelete)
+            {
+                $del = ' | <a class="del_theme"href="?view=theme&amp;delete='.$theme['file'].'">'.T_('Delete').'</a>';
+            }
+
+            echo '
+                <div class="theme-block">
+                    <a href="?view=theme&amp;use='.$theme['file'].'" 
+                        title="'.T_('Click to use this theme.').'">'.$img.'</a><br/>
+                    <b>'.$theme['name'].'</b>
+                    <p><a href="?view=theme&amp;use='.$theme['file'].'">'.T_('Use Theme').'</a>'.$del.'</p>
+                    <p>'.$theme['desc'].'</p>
+                    <p>'.$theme['author'].'<br/>'.$theme['updated'].'</p>
+                </div>';
+        }
+    }
+
+    /**
+     * displaySettings 
+     * 
+     * @return void
+     */
+    function displaySettings ()
+    {
+        $locale = new FCMS_Locale();
+        $sql = "SELECT `displayname`, `advanced_upload`, `advanced_tagging`, `language`,
+                    `dst`, `timezone`, `boardsort`, `showavatar`, `frontpage`
+                FROM `fcms_user_settings`
+                WHERE `user` = '" . $this->currentUserId . "'";
+        $this->db->query($sql) or displaySQLError(
+            'Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
+        );
+        $row = $this->db->get_row();
+
+
         // Display Name
         $displayname_list = array(
             "1" => T_('First Name'),
@@ -115,34 +251,21 @@ class Settings
         );
         $displayname_options = buildHtmlSelectOptions($displayname_list, $row['displayname']);
 
-        // Front Page
-        $frontpage_list = array(
-            "1" => T_('All (by date)'),
-            "2" => T_('Last 5 (by section)')
-        );
-        $frontpage_options = buildHtmlSelectOptions($frontpage_list, $row['frontpage']);
-
-        // Email Options
-        $email_updates_options = '<input type="radio" name="email_updates" id="email_updates_yes" '
-            . 'value="yes"';
-        if ($row['email_updates'] == 1) { $email_updates_options .= ' checked="checked"'; }
-        $email_updates_options .= '><label class="radio_label" for="email_updates_yes"> '
-            . T_('Yes') . '</label><br><input type="radio" name="email_updates" '
-            . 'id="email_updates_no" value="no"';
-        if ($row['email_updates'] == 0) { $email_updates_options .= ' checked="checked"'; }
-        $email_updates_options .= '><label class="radio_label" for="email_updates_no"> '
-            . T_('No') . '</label>';
-
         // Advanced Upload
-        $advanced_upload_options = '<input type="radio" name="advanced_upload" id="advanced_upload_yes" '
-            . 'value="yes"';
-        if ($row['advanced_upload'] == 1) { $advanced_upload_options .= ' checked="checked"'; }
-        $advanced_upload_options .= '><label class="radio_label" for="advanced_upload_yes"> '
-            . T_('Yes') . '</label><br><input type="radio" name="advanced_upload" '
-            . 'id="advanced_upload_no" value="no"';
-        if ($row['advanced_upload'] == 0) { $advanced_upload_options .= ' checked="checked"'; }
-        $advanced_upload_options .= '><label class="radio_label" for="advanced_upload_no"> '
-            . T_('No') . '</label>';
+        $yc = $row['advanced_upload'] == 1 ? 'checked="checked"' : '';
+        $nc = $row['advanced_upload'] == 0 ? 'checked="checked"' : '';
+        $advanced_upload_options  = '<input type="radio" name="advanced_upload" id="advanced_upload_yes" value="yes" '.$yc.'>';
+        $advanced_upload_options .= '<label class="radio_label" for="advanced_upload_yes">'.T_('Yes').'</label>&nbsp;&nbsp; ';
+        $advanced_upload_options .= '<input type="radio" name="advanced_upload" id="advanced_upload_no" value="no" '.$nc.'>';
+        $advanced_upload_options .= '<label class="radio_label" for="advanced_upload_no">'.T_('No').'</label>';
+
+        // Advanced Tagging
+        $yc = $row['advanced_tagging'] == 1 ? 'checked="checked"' : '';
+        $nc = $row['advanced_tagging'] == 0 ? 'checked="checked"' : '';
+        $advanced_tagging_options  = '<input type="radio" name="advanced_tagging" id="advanced_tagging_yes" value="yes" '.$yc.'>';
+        $advanced_tagging_options .= '<label class="radio_label" for="advanced_tagging_yes">'.T_('Yes').'</label>&nbsp;&nbsp; ';
+        $advanced_tagging_options .= '<input type="radio" name="advanced_tagging" id="advanced_tagging_no" value="no" '.$nc.'>';
+        $advanced_tagging_options .= '<label class="radio_label" for="advanced_tagging_no">'.T_('No').'</label>';
 
         // Language
         $lang_dir = "language/";
@@ -159,6 +282,12 @@ class Settings
                         continue;
                     }
 
+                    // Skip files (messages.pot)
+                    if (!is_dir("$lang_dir$file"))
+                    {
+                        continue;
+                    }
+
                     // Skip directories that don't include a messages.mo file
                     if (!file_exists($lang_dir . $file . '/LC_MESSAGES/messages.mo')) {
                         continue;
@@ -170,11 +299,8 @@ class Settings
                 asort($arr);
                 foreach($arr as $key => $val)
                 {
-                    $lang_options .= '<option value="'.$key.'"';
-                    if ($row['language'] == $key) {
-                        $lang_options .= ' selected="selected"';
-                    }
-                    $lang_options .= '>'.$val.'</option>';
+                    $sel = $row['language'] == $key ? 'selected="selected"' : '';
+                    $lang_options .= '<option value="'.$key.'" '.$sel.'>'.$val.'</option>';
                 }
             }
         }
@@ -215,141 +341,48 @@ class Settings
         $tz_options = buildHtmlSelectOptions($tz_list, $row['timezone']);
 
         // DST
-        $dst_options = '<input type="radio" name="dst" id="dst_on" '
-            . 'value="on"';
-        if ($row['dst'] == 1) { $dst_options .= ' checked="checked"'; }
-        $dst_options .= '><label class="radio_label" for="dst_on"> ' . T_('On') . '</label><br>'
-            . '<input type="radio" name="dst" id="dst_off" value="off"';
-        if ($row['dst'] == 0) { $dst_options .= ' checked="checked"'; }
-        $dst_options .= '><label class="radio_label" for="dst_off"> ' . T_('Off') . '</label>';
+        $yc = $row['dst'] == 1 ? 'checked="checked"' : '';
+        $nc = $row['dst'] == 0 ? 'checked="checked"' : '';
+        $dst_options  = '<input type="radio" name="dst" id="dst_on" value="on" '.$yc.'>';
+        $dst_options .= '<label class="radio_label" for="dst_on">'.T_('On').'</label>&nbsp;&nbsp; ';
+        $dst_options .= '<input type="radio" name="dst" id="dst_off" value="off" '.$nc.'>';
+        $dst_options .= '<label class="radio_label" for="dst_off">'.T_('Off').'</label>';
 
-        // Messageboard Sort
-        $boardsort_list = array(
-            "ASC" => T_('New Messages at Bottom'),
-            "DESC" => T_('New Messages at Top')
+        // Front Page
+        $frontpage_list = array(
+            "1" => T_('All (by date)'),
+            "2" => T_('Last 5 (by section)')
         );
-        $boardsort_options = buildHtmlSelectOptions($boardsort_list, $row['boardsort']);
+        $frontpage_options = buildHtmlSelectOptions($frontpage_list, $row['frontpage']);
 
-        // Avatar
-        $current_avatar_type = 'fcms';
-        if ($row['avatar'] == 'no_avatar.jpg') {
-            $current_avatar_type = 'default';
-        } else if ($row['avatar'] == 'gravatar') {
-            $current_avatar_type = 'gravatar';
-        }
-        $avatar_list = array(
-            'fcms'      => T_('Upload Avatar'),
-            'gravatar'  => T_('Use Gravatar'),
-            'default'   => T_('Use Default'),
-        );
-        $avatar_options = buildHtmlSelectOptions($avatar_list, $current_avatar_type);
-
-        // Show Avatars
-        $show_avatars_options = '<input type="radio" name="showavatar" id="showavatar_yes" '
-            . 'value="yes"';
-        if ($row['showavatar'] == 1) { $show_avatars_options .= ' checked="checked"'; }
-        $show_avatars_options .= '><label class="radio_label" for="showavatar_yes"> '
-            . T_('Yes') . '</label><br><input type="radio" name="showavatar" '
-            . 'id="showavatar_no" value="no"';
-        if ($row['showavatar'] == 0) { $show_avatars_options .= ' checked="checked"'; }
-        $show_avatars_options .= '><label class="radio_label" for="showavatar_no"> '
-            . T_('No') . '</label>';
-
-        // Gender
-        $gender_options = buildHtmlSelectOptions(array('M' => T_('Male'), 'F' => T_('Female')), $row['sex']);
-
-        // Birthday
-        $day_list = array();
-        $i = 1;
-        while ($i <= 31) {
-            $day_list[$i] = $i;
-            $i++;
-        }
-        $day_options = buildHtmlSelectOptions($day_list, $day);
-        $month_list = array();
-        $i = 1;
-        while ($i <= 12) {
-            $month_list[$i] = $locale->getMonthAbbr($i);
-            $i++;
-        }
-        $month_options = buildHtmlSelectOptions($month_list, $month);
-        $year_list = array();
-        $i = 1900;
-        $year_end = $locale->fixDate('Y', $this->tz_offset);
-        while ($i <= $year_end) {
-            $year_list[$i] = $i;
-            $i++;
-        }
-        $year_options = buildHtmlSelectOptions($year_list, $year);
-        
         echo '
-                <script type="text/javascript" src="inc/livevalidation.js"></script>
-                <form id="frm" enctype="multipart/form-data" action="settings.php" method="post">';
-
-        if ($option == 'all' || $option == 'settings') {
-            echo '
-                <fieldset class="settings_stgs">
-                    <legend><span>'.T_('Settings').'</span></legend>
-                    <input type="hidden" name="settings" value="settings"/>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><b>'.T_('Access Level').'</b></div>
-                        <div class="field-widget">'.$access.'</div>
-                    </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="theme"><b>'.T_('Theme').'</b></label></div>
-                        <div class="field-widget">
-                            <select name="theme" id="theme">
-                                '.$theme_options.'
-                            </select>
-                        </div>
-                    </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label">
-                            <label for="avatar"><b>'.T_('Avatar').'</b></label>
-                        </div>
-                        <div class="field-widget">
-                            <select name="avatar_type" id="avatar_type">
-                                '.$avatar_options.'
-                            </select><br/>
-                            <div id="not-gravatar">
-                                <input type="file" name="avatar" id="avatar" size="30" title="'.T_('Upload your personal image (Avatar)').'"/>
-                                <input type="hidden" name="avatar_orig" value="'.cleanOutput($row['avatar']).'"/>
-                            </div>
-                            <div id="gravatar">
-                                <b>'.T_('Gravatar Email').'</b><br/>
-                                <input type="text" name="gravatar_email" size="30" value="'.cleanOutput($row['gravatar']).'"/>
-                            </div>
-                            <img id="current-avatar" src="'.getCurrentAvatar($this->currentUserId).'" alt="'.T_('This is your current avatar.').'"/>
-                        </div>
-                    </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="displayname"><b>'.T_('Display Name').'</b></label></div>
-                        <div class="field-widget">
-                            <select name="displayname" id="displayname" title="'.T_('How do you want your name to display?').'">
-                                '.$displayname_options.'
-                            </select>
-                        </div>
-                    </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="frontpage"><b>'.T_('Frontpage').'</b></label></div>
-                        <div class="field-widget">
-                            <select name="frontpage" id="frontpage" title="'.T_('How do you want the latest information to display on the frontpage?').'">
-                                '.$frontpage_options.'
-                            </select>
-                        </div>
-                    </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="email_updates"><b>'.T_('Email Updates').'</b></label></div>
-                        <div class="field-widget">
-                            '.$email_updates_options.'
-                        </div>
-                    </div>
+                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <form id="frm" action="settings.php?view=settings" method="post">
+                <fieldset>
+                    <legend><span>'.T_('Advanced Settings').'</span></legend>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="advanced_upload"><b>'.T_('Advanced Uploader').'</b></label></div>
                         <div class="field-widget">
-                            '.$advanced_upload_options.'
+                            '.$advanced_upload_options.'<br/>
+                            <small>
+                                <b>'.T_('Requires Java.').'</b>
+                                '.T_('Allows you to upload multiple photos at once and very large photos.').'
+                            </small>
                         </div>
                     </div>
+                    <div id="advanced_tagging_div" class="field-row clearfix" style="display:none">
+                        <div class="field-label"><label for="advanced_tagging"><b>'.T_('Advanced Tagging').'</b></label></div>
+                        <div class="field-widget">
+                            '.$advanced_tagging_options.'<br/>
+                            <small>
+                                <b>'.T_('Requires JavaScript.').'</b>
+                                '.T_('Allows you to more quickly tag members in photos.').'
+                            </small>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend><span>'.T_('Langugage and Time').'</span></legend>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="language"><b>'.T_('Language').'</b></label></div>
                         <div class="field-widget">
@@ -370,17 +403,188 @@ class Settings
                         <div class="field-label"><label for="dst"><b>'.T_('Daylight Savings Time').'</b></label></div>
                         <div class="field-widget">
                             '.$dst_options.'<br/>
-                            <small>('.T_('You will need to manually change this off and on if your City/Town makes use of DST.').')</small>
+                            <small>'.T_('You will need to manually change this off and on if your City/Town makes use of DST.').'</small>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend><span>'.T_('Preferences').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="displayname"><b>'.T_('Display Name').'</b></label></div>
+                        <div class="field-widget">
+                            <select name="displayname" id="displayname" title="'.T_('How do you want your name to display?').'">
+                                '.$displayname_options.'
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="frontpage"><b>'.T_('Frontpage').'</b></label></div>
+                        <div class="field-widget">
+                            <select name="frontpage" id="frontpage" title="'.T_('How do you want the latest information to display on the frontpage?').'">
+                                '.$frontpage_options.'
+                            </select>
                         </div>
                     </div>
                     <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
-                </fieldset>';
+                </fieldset>
+                </form>';
+    }
+
+    /**
+     * displayNotifications 
+     * 
+     * @return void
+     */
+    function displayNotifications ()
+    {
+        $locale = new FCMS_Locale();
+        $sql = "SELECT `email_updates` 
+                FROM `fcms_user_settings`
+                WHERE `user` = '" . $this->currentUserId . "'";
+        $this->db->query($sql) or displaySQLError(
+            'Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
+        );
+        $row = $this->db->get_row();
+
+        // Email Options
+        $email_updates_options = '<input type="radio" name="email_updates" id="email_updates_yes" '
+            . 'value="yes"';
+        if ($row['email_updates'] == 1) { $email_updates_options .= ' checked="checked"'; }
+        $email_updates_options .= '><label class="radio_label" for="email_updates_yes">'
+            . T_('Yes') . '</label>&nbsp;&nbsp; <input type="radio" name="email_updates" '
+            . 'id="email_updates_no" value="no"';
+        if ($row['email_updates'] == 0) { $email_updates_options .= ' checked="checked"'; }
+        $email_updates_options .= '><label class="radio_label" for="email_updates_no">'
+            . T_('No') . '</label>';
+
+        echo '
+                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <form id="frm" action="settings.php?view=notifications" method="post">
+                <fieldset>
+                    <legend><span>'.T_('Notifications').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="email_updates"><b>'.T_('Email Updates').'</b></label></div>
+                        <div class="field-widget">
+                            '.$email_updates_options.'
+                        </div>
+                    </div>
+                    <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                </fieldset>
+                </form>';
+    }
+
+    /**
+     * displayFamilyNews 
+     * 
+     * @return void
+     */
+    function displayFamilyNews ()
+    {
+        $locale = new FCMS_Locale();
+        $sql = "SELECT `blogger`, `tumblr`, `wordpress`, `posterous`
+                FROM `fcms_user_settings`
+                WHERE `user` = '" . $this->currentUserId . "'";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
         }
-        if ($option == 'all' || $option == 'board') {
-            echo '
-                <fieldset class="messageboard_stgs">
+
+        $row = $this->db->get_row();
+
+        echo '
+                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <form id="frm" action="settings.php?view=familynews" method="post">
+                <fieldset>
+                    <legend><span>'.T_('Import Blog Posts').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label">
+                            <label for="blogger"><b>'.T_('Blogger').'</b></label>
+                        </div>
+                        <div class="field-widget">
+                            <input type="text" name="blogger" name="blogger" size="50" value="'.cleanOutput($row['blogger']).'"/><br/>
+                            '.T_('Enter your blogger id.').'
+                            <a href="http://www.google.com/support/blogger/bin/answer.py?answer=42191">'.T_('More Info').'</a>
+                            <p><a class="blogger" href="?view=familynews&amp;import=blogger">'.T_('Manually Import Posts').'</a></p>
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label">
+                            <label for="tumblr"><b>'.T_('Tumblr').'</b></label>
+                        </div>
+                        <div class="field-widget">
+                            <input type="text" name="tumblr" name="tumblr" size="50" value="'.cleanOutput($row['tumblr']).'"/><br/>
+                            '.T_('Enter the url to your blog.').'
+                            <p><a class="tumblr" href="?view=familynews&amp;import=tumblr">'.T_('Manually Import Posts').'</a></p>
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label">
+                            <label for="wordpress"><b>'.T_('WordPress').'</b></label>
+                        </div>
+                        <div class="field-widget">
+                            <input type="text" name="wordpress" name="wordpress" size="50" value="'.cleanOutput($row['wordpress']).'"/><br/>
+                            '.T_('Enter the url to the wordpress rss feed.').'
+                            <p><a class="wordpress" href="?view=familynews&amp;import=wordpress">'.T_('Manually Import Posts').'</a></p>
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label">
+                            <label for="posterous"><b>'.T_('Posterous').'</b></label>
+                        </div>
+                        <div class="field-widget">
+                            <input type="text" name="posterous" name="posterous" size="50" value="'.cleanOutput($row['posterous']).'"/><br/>
+                            '.T_('Enter the account name for your blog.').'<br/>
+                            Ex: bob123.posterous.com use bob123'.'
+                            <p><a class="posterous" href="?view=familynews&amp;import=posterous">'.T_('Manually Import Posts').'</a></p>
+                        </div>
+                    </div>
+                    <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                </fieldset>
+                </form>';
+    }
+
+    /**
+     * displayMessageBoard 
+     * 
+     * @return void
+     */
+    function displayMessageBoard ()
+    {
+        $locale = new FCMS_Locale();
+
+        $sql = "SELECT `boardsort`, `showavatar`
+                FROM `fcms_user_settings`
+                WHERE `user` = '".$this->currentUserId."'";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        $row = $this->db->get_row();
+
+        // Messageboard Sort
+        $boardsort_list = array(
+            "ASC" => T_('New Messages at Bottom'),
+            "DESC" => T_('New Messages at Top')
+        );
+        $boardsort_options = buildHtmlSelectOptions($boardsort_list, $row['boardsort']);
+
+        // Show Avatars
+        $yc = $row['showavatar'] == 1 ? 'checked="checked"' : '';
+        $nc = $row['showavatar'] == 0 ? 'checked="checked"' : '';
+        $show_avatars_options  = '<input type="radio" name="showavatar" id="showavatar_yes" value="yes" '.$yc.'>';
+        $show_avatars_options .= '<label class="radio_label" for="showavatar_yes">'.T_('Yes').'</label>&nbsp;&nbsp; ';
+        $show_avatars_options .= '<input type="radio" name="showavatar" id="showavatar_no" value="no" '.$nc.'>';
+        $show_avatars_options .= '<label class="radio_label" for="showavatar_no">'.T_('No').'</label>';
+
+        echo '
+                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <form id="frm" action="settings.php?view=messageboard" method="post">
+                <fieldset>
                     <legend><span>'.T_('Message Board').'</span></legend>
-                    <input type="hidden" name="board" value="board"/>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="boardsort"><b>'.T_('Sort Messages').'</b></label></div>
                         <div class="field-widget">
@@ -396,96 +600,72 @@ class Settings
                         </div>
                     </div>
                     <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
-                </fieldset>';
+                </fieldset>
+                </form>';
+    }
+
+    /**
+     * displayWhereIsEveryone
+     * 
+     * Displays the form for linking your foursquare account.
+     * 
+     * @return void
+     */
+    function displayWhereIsEveryone ()
+    {
+        $locale = new FCMS_Locale();
+        $sql = "SELECT `fs_user_id`, `fs_access_token`
+                FROM `fcms_user_settings`
+                WHERE `user` = '" . $this->currentUserId . "'";
+        $this->db->query($sql) or displaySQLError(
+            'Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
+        );
+        $row = $this->db->get_row();
+
+        $link = '';
+        if (!empty($row['fs_user_id']))
+        {
+            $sql = "SELECT `fs_client_id`, `fs_client_secret`, `fs_callback_url`
+                    FROM `fcms_config`
+                    LIMIT 1";
+            $result = mysql_query($sql);
+            if (!$result)
+            {
+                displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displayFooter();
+                return;
+            }
+            if (mysql_num_rows($result) <= 0)
+            {
+                echo '
+                    <p class="error-alert">'.T_('No configuration data found.').'</p>';
+                displayFooter();
+                return;
+            }
+            $r = mysql_fetch_assoc($result);
+
+            $id     = cleanOutput($r['fs_client_id']);
+            $secret = cleanOutput($r['fs_client_secret']);
+            $url    = cleanOutput($r['fs_callback_url']);
+
+            $url = 'https://foursquare.com/oauth2/authenticate?client_id='.$id.'&response_type=code&redirect_uri='.$url;
+            $link = '<p><a class="foursquare" href="'.$url.'">'.T_('Click here to link your account to foursquare.').'</a></p>';
         }
-        if ($option == 'all' || $option == 'personal') {
-            echo '
-                <fieldset class="info_stgs">
-                    <legend><span>'.T_('Personal Info').'</span></legend>
-                    <input type="hidden" name="personal" value="personal"/>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="fname"><b>'.T_('First Name').'</b></label></div>
-                        <div class="field-widget">
-                            <input type="text" name="fname" size="50" id="fname" value="'.cleanOutput($row['fname']).'"/>
-                        </div>
-                    </div>
-                    <script type="text/javascript">
-                        var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
-                        ffname.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
-                    </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><b><label for="lname">'.T_('Last Name').'</label></b></div>
-                        <div class="field-widget">
-                            <input type="text" name="lname" size="50" id="lname" value="'.cleanOutput($row['lname']).'"/>
-                        </div>
-                    </div>
-                    <script type="text/javascript">
-                        var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
-                        flname.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
-                    </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div>
-                        <div class="field-widget">
-                            <input type="text" name="email" size="50" id="email" value="'.cleanOutput($row['email']).'"/>
-                        </div>
-                    </div>
-                    <script type="text/javascript">
-                        var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
-                        femail.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
-                        femail.add(Validate.Email, {failureMessage: "'.T_('That\'s not a valid email address is it?').'" });
-                        femail.add(Validate.Length, {minimum: 10});
-                    </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><b><label for="sex">'.T_('Gender').'</label></b></div>
-                        <div class="field-widget">
-                            <select id="sex" name="sex">
-                                '.$gender_options.'
-                            </select>
-                        </div>
-                    </div>
-                    <script type="text/javascript">
-                        var fsex = new LiveValidation(\'sex\', { onlyOnSubmit: true });
-                        fsex.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
-                    </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="sday"><b>'.T_('Birthday').'</b></label></div>
-                        <div class="field-widget">
-                            <select id="sday" name="sday">
-                                '.$day_options.'
-                            </select>
-                            <select id="smonth" name="smonth">
-                                '.$month_options.'
-                            </select>
-                            <select id="syear" name="syear">
-                                '.$year_options.'
-                            </select>
-                        </div>
-                    </div>
-                    <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
-                </fieldset>';
-        }
-        if ($option == 'all' || $option == 'password') {
-            echo '
-                <fieldset class="login_stgs">
-                    <legend><span>'.T_('Password').'</span></legend>
-                    <input type="hidden" name="password" value="password"/>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="uname"><b>'.T_('Username').'</b></label></div>
-                        <div class="field-widget">
-                            <input disabled="disabled" type="text" name="uname" size="50" id="uname" value="'.cleanOutput($row['username']).'"/>
-                        </div>
-                    </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="pass"><b>'.T_('Password').'</b></label></div>
-                        <div class="field-widget">
-                            <input type="password" name="pass" size="50" id="pass"/>
-                        </div>
-                    </div>
-                    <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
-                </fieldset>';
-        }
+
         echo '
-            </form>';
+                <form id="frm" action="settings.php?view=whereiseveryone" method="post">
+                <fieldset>
+                    <legend><span>'.T_('Foursquare').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="id"><b>'.T_('Foursquare ID').'</b></label></div>
+                        <div class="field-widget">
+                            <input type="text" name="id" name="id" size="20" value="'.cleanOutput($row['fs_user_id']).'"/>
+                            '.$link.'
+                        </div>
+                    </div>
+                    <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                </fieldset>
+                </form>';
     }
 
     /**
@@ -545,6 +725,78 @@ class Settings
                 break;
         }
         return $ret;
+    }
+
+    function getThemeData ($file)
+    {
+        $data = array(
+            'file'      => $file,
+            'name'      => '',
+            'desc'      => '',
+            'size'      => '',
+            'updated'   => '',
+            'author'    => '',
+        );
+
+        if (!file_exists("themes/$file/style.css"))
+        {
+            $data['name'] = $file;
+            return $data;
+        }
+
+        $f = @fopen("themes/$file/style.css", 'r');
+        if (!$f)
+        {
+            $data['name'] = $file;
+            return $data;
+        }
+
+        $comment = fgets($f, 1000);
+
+        // name
+        $name = fgets($f, 1000);
+        $name = explode(':', $name);
+        $name = end($name);
+        $name = trim($name);
+
+        $data['name'] = $name;
+
+        // description
+        $desc = fgets($f, 1000);
+        $desc = explode(':', $desc);
+        $desc = end($desc);
+        $desc = trim($desc);
+
+        $data['desc'] = $desc;
+
+        // size
+        $size = fgets($f, 1000);
+        $size = explode(':', $size);
+        $size = end($size);
+        $size = trim($size);
+
+        $data['size'] = $size;
+
+        // compatible
+        $version = fgets($f, 1000);
+
+        // updated
+        $updated = fgets($f, 1000);
+        $updated = explode(':', $updated);
+        $updated = end($updated);
+        $updated = trim($updated);
+
+        $data['updated'] = $updated;
+
+        // author
+        $author  = fgets($f, 1000);
+        $author = explode(':', $author);
+        $author = end($author);
+        $author = trim($author);
+
+        $data['author'] = $author;
+
+        return $data;
     }
 
 } ?>

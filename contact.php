@@ -11,6 +11,8 @@
  */
 session_start();
 
+define('URL_PREFIX', '');
+
 require_once 'inc/config_inc.php';
 require_once 'inc/util_inc.php';
 
@@ -25,12 +27,13 @@ $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Contact'),
-    'path'          => "",
-    'admin_path'    => "admin/",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
+$TMPL['javascript'] = '
+<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
 require_once getTheme($currentUserId) . 'header.php';

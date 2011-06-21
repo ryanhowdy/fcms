@@ -9,58 +9,49 @@ include_once('awards_class.php');
  * Profile 
  * 
  * @package     Family Connections
- * @copyright   Copyright (c) 2010 Haudenschilt LLC
+ * @copyright   2010 Haudenschilt LLC
  * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
-class Profile {
-
+class Profile
+{
     var $db;
     var $db2;
-    var $tz_offset;
+    var $treeObj;
+    var $awardObj;
+    var $tzOffset;
     var $currentUserId;
 
     /**
      * Profile 
      * 
-     * @param   int     $currentUserId 
-     * @param   string  $type 
-     * @param   string  $host 
-     * @param   string  $database 
-     * @param   string  $user 
-     * @param   string  $pass 
+     * @param int $currentUserId 
+     *
      * @return  void
      */
-    function Profile ($currentUserId, $type, $host, $database, $user, $pass)
+    function Profile ($currentUserId)
     {
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
         $this->currentUserId = cleanInput($currentUserId, 'int');
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $this->db2 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
-        $this->tree = new FamilyTree($currentUserId, $type, $host, $database, $user, $pass);
+        $this->tzOffset      = getTimezone($this->currentUserId);
+        $this->awardObj      = new Awards($this->currentUserId);
+        $this->treeObj       = new FamilyTree($this->currentUserId);
     }
 
     /**
      * displayProfile 
      * 
-     * @param   int     $userid 
+     * @param int $userid 
+     * 
      * @return  void
      */
     function displayProfile ($userid)
     {
-        global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
-
-        $locale = new Locale();
-        $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $awards = new Awards($this->currentUserId, $database);
-
+        $locale = new FCMS_Locale();
 
         // Check for valid user id
         if (!ctype_digit($userid)) {
@@ -74,9 +65,12 @@ class Profile {
                 FROM fcms_users AS u, fcms_address AS a 
                 WHERE u.id = '$userid' 
                 AND u.id = a.user";
-        $this->db->query($sql) or displaySQLError(
-            'Profile Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Profile Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        }
+
         $row = $this->db->get_row();
 
         // Rank Info
@@ -85,91 +79,34 @@ class Profile {
         $pts = 0;
 
         // Dates Info
-        $joinDate = $locale->fixDate(T_('F j, Y'), $this->tz_offset, $row['joindate']);
-        $activityDate = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $row['activity']);
+        $joinDate = $locale->fixDate(T_('F j, Y'), $this->tzOffset, $row['joindate']);
+        $activityDate = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['activity']);
 
-        // Stats Info
-        $posts = '';
-        $photos = '';
-        $comments = '';
-        $calendars = '';
-        $news = '';
-        $recipes = '';
-        $documents = '';
-        $prayers = '';
-
-        // If user is not a guest
-        if (checkAccess($this->currentUserId) != 10) {
-
-            $postsCount     = getPostsById($userid, 'array');
-            $photosCount    = getPhotosById($userid, 'array');
-            $commentsCount  = getCommentsById($userid, 'array');
-            $calendarsCount = getCalendarEntriesById($userid, 'array');
-
-            $posts = '<div class="stat c1">
-                        <span title="'.$postsCount['percent'].' of total">'.$postsCount['count'].'</span>
-                        <b>'.T_('Posts').'</b>
-                    </div>';
-            $photos = '<div class="stat c2">
-                        <span title="'.$photosCount['percent'].' of total">'.$photosCount['count'].'</span>
-                        <b>'.T_('Photos').'</b>
-                    </div>';
-            $comments = '<div class="stat c3">
-                        <span title="'.$commentsCount['percent'].' of total">'.$commentsCount['count'].'</span>
-                        <b>'.T_('Comments').'</b>
-                    </div>';
-            $calendars = '<div class="stat c4">
-                        <span title="'.$calendarsCount['percent'].' of total">'.$calendarsCount['count'].'</span>
-                        <b>'.T_('Dates').'</b>
-                    </div>';
-            $i = 5;
-            if (usingFamilyNews()) {
-                $newsCount = getFamilyNewsById($userid, 'array');
-                $news = '<div class="stat c'.$i.'">
-                        <span title="'.$newsCount['percent'].' of total">'.$newsCount['count'].'</span>
-                        <b>'.T_('Family News').'</b>
-                    </div>';
-                $i++;
-            }
-            if (usingRecipes()) {
-                $recipesCount = getRecipesById($userid, 'array');
-                $recipes = '<div class="stat c'.$i.'">
-                        <span title="'.$recipesCount['percent'].' of total">'.$recipesCount['count'].'</span>
-                        <b>'.T_('Recipes').'</b>
-                    </div>';
-                $i++;
-            }
-            if (usingDocuments()) {
-                $documentsCount = getDocumentsById($userid, 'array');
-                $documents = '<div class="stat c'.$i.'">
-                        <span title="'.$documentsCount['percent'].' of total">'.$documentsCount['count'].'</span>
-                        <b>'.T_('Documents').'</b>
-                    </div>';
-                $i++;
-            }
-            if (usingPrayers()) {
-                $prayersCount = getPrayersById($userid, 'array');
-                $prayers = '<div class="stat c'.$i.'">
-                        <span title="'.$prayersCount['percent'].' of total">'.$prayersCount['count'].'</span>
-                        <b>'.T_('Prayer Concerns').'</b>
-                    </div>';
-                $i++;
-            }
+        // Stats Info -- if user is not a guest
+        if (checkAccess($this->currentUserId) != 10)
+        {
+            $statsData = $this->getStats($userid);
         }
 
         // Address
         $address = '';
-        if (empty($row['address']) && empty($row['state'])) {
+        if (empty($row['address']) && empty($row['state']))
+        {
             $address = "<i>(".T_('none').")</i>";
-        } else {
-            if (!empty($row['address'])) {
+        }
+        else
+        {
+            if (!empty($row['address']))
+            {
                 $address .= $row['address'] . "<br/>";
             }
-            if (!empty($row['city'])) {
+            if (!empty($row['city']))
+            {
                 $address .= $row['city'] . ", ";
             }
             $address .= $row['state'] . " " . $row['zip'];
         }
+
         // Phone Numbers
         $home = empty($row['home']) ? "<i>(" . T_('none') . ")</i>" : $row['home'];
         $work = empty($row['work']) ? "<i>(" . T_('none') . ")</i>" : $row['work'];
@@ -190,20 +127,7 @@ class Profile {
                 <p>
                     <a class="action" href="privatemsg.php?compose=new&amp;id='.$userid.'">'.T_('Send PM').'</a>
                 </p>
-                <b>'.T_('Address').'</b>&nbsp;&nbsp;';
-
-        if ($this->currentUserId == $userid) {
-            echo '
-                <form action="addressbook.php" method="post">
-                    <div>
-                        <input type="hidden" value="'.$row['aid'].'" name="id">
-                        <input type="hidden" value="'.$userid.'" name="user">
-                        <input type="submit" title="'.T_('Edit').'" class="editbtn" value="'.T_('Edit').'" name="edit">
-                    </div>
-                </form>';
-        }
-
-        echo '
+                <b>'.T_('Address').'</b>
                 <br/>'.$address.'<br/>
                 <p>
                     <b>'.T_('Home Phone').'</b>: '.$home.'<br/>
@@ -222,26 +146,25 @@ class Profile {
                 <h4>'.T_('Relationships').'</h4>';
 
         // Display Family Tree Listing
-        $this->tree->displayFamilyTree($userid, 'list');
+        $this->treeObj->displayFamilyTree($userid, 'list');
 
         echo '
                 <p><a href="familytree.php?tree=' . $userid . '">' . T_('View Family Tree') . '</a></p>
             </div>
             <div id="main-info">
                 <h2>'.T_('Stats').'</h2>
-                <div id="stats" class="clearfix">
-                    '.$posts.'
-                    '.$photos.'
-                    '.$comments.'
-                    '.$calendars.'
-                    '.$news.'
-                    '.$recipes.'
-                    '.$documents.'
-                    '.$prayers.'
+                <div id="stats" class="clearfix">';
+
+        foreach ($statsData as $stats)
+        {
+            echo $stats;
+        }
+
+        echo '
                 </div>
                 <h2>'.T_('Awards').'</h2>';
 
-        $awards->displayAwards($userid);
+        $this->awardObj->displayAwards($userid);
 
         echo '
                 <h2>'.T_('Last 5 Posts').'</h2>';
@@ -257,12 +180,427 @@ class Profile {
     }
 
     /**
+     * displayEditProfile 
+     * 
+     * @return void
+     */
+    function displayEditProfile ()
+    {
+        $stats = $this->getStats($this->currentUserId);
+
+        echo '
+            <div id="leftcolumn">
+                <ul class="menu">
+                    <li><a href="?view=info">'.T_('Basic Information').'</a></li>
+                    <li><a href="?view=picture">'.T_('Profile Picture').'</a></li>
+                    <li><a href="?view=address">'.T_('Address / Contact').'</a></li>
+                </ul>
+            </div>
+            <div id="maincolumn">
+                <div id="actions_menu" class="clearfix">
+                    <ul>
+                        <li><a href="?member='.$this->currentUserId.'">'.T_('View Profile').'</a></li>
+                    </ul>
+                </div>
+                <h2>'.T_('Stats').'</h2>
+                <div id="stats" class="clearfix">';
+
+        foreach ($stats as $stat)
+        {
+            echo $stat;
+        }
+
+        echo '
+                </div>
+            </div>';
+    }
+
+    /**
+     * displayEditBasicInfo 
+     * 
+     * @return void
+     */
+    function displayEditBasicInfo ()
+    {
+        $locale = new FCMS_Locale();
+        $sql = "SELECT `fname`, `mname`, `lname`, `maiden`, `bio`, `sex`, `birthday`
+                FROM `fcms_users`
+                WHERE `id` = '".$this->currentUserId."'";
+        $this->db->query($sql) or displaySQLError(
+            'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $row = $this->db->get_row();
+
+        // Gender
+        $gender_options = buildHtmlSelectOptions(array('M' => T_('Male'), 'F' => T_('Female')), $row['sex']);
+
+        // Birthday
+        $year  = substr($row['birthday'], 0,4);
+        $month = substr($row['birthday'], 5,2);
+        $day   = substr($row['birthday'], 8,2);
+        $day_list = array();
+        $i = 1;
+        while ($i <= 31) {
+            $day_list[$i] = $i;
+            $i++;
+        }
+        $day_options = buildHtmlSelectOptions($day_list, $day);
+        $month_list = array();
+        $i = 1;
+        while ($i <= 12) {
+            $month_list[$i] = $locale->getMonthAbbr($i);
+            $i++;
+        }
+        $month_options = buildHtmlSelectOptions($month_list, $month);
+        $year_list = array();
+        $i = 1900;
+        $year_end = $locale->fixDate('Y', $this->tzOffset);
+        while ($i <= $year_end) {
+            $year_list[$i] = $i;
+            $i++;
+        }
+        $year_options = buildHtmlSelectOptions($year_list, $year);
+
+        echo '
+            <div id="leftcolumn">
+                <ul class="menu">
+                    <li><a href="?view=info">'.T_('Basic Information').'</a></li>
+                    <li><a href="?view=picture">'.T_('Profile Picture').'</a></li>
+                    <li><a href="?view=address">'.T_('Address / Contact').'</a></li>
+                </ul>
+            </div>
+            <div id="maincolumn">
+                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <form id="frm" action="profile.php?view=info" method="post">
+                <fieldset>
+                    <legend><span>'.T_('Name').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="fname"><b>'.T_('First').'</b></label></div>
+                        <div class="field-widget">
+                            <input type="text" name="fname" size="50" id="fname" value="'.cleanOutput($row['fname']).'"/>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
+                        ffname.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
+                    </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label class="optional" for="mname"><b>'.T_('Middle').'</b></label></div>
+                        <div class="field-widget">
+                            <input type="text" name="mname" size="50" id="mname" value="'.cleanOutput($row['mname']).'"/>
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="lname"><b>'.T_('Last').'</b></label></div>
+                        <div class="field-widget">
+                            <input type="text" name="lname" size="50" id="lname" value="'.cleanOutput($row['lname']).'"/>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
+                        flname.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
+                    </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label class="optional" for="maiden"><b>'.T_('Maiden').'</b></label></b></div>
+                        <div class="field-widget">
+                            <input type="text" name="maiden" size="50" id="maiden" value="'.cleanOutput($row['maiden']).'"/>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend><span>'.T_('Bio').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label class="optional" for="bio"><b>'.T_('Bio').'</b></label></div>
+                        <div class="field-widget">
+                            <textarea name="bio" id="bio" cols="40" rows="5">'.cleanOutput($row['bio']).'</textarea>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend><span>'.T_('Gender').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><b><label for="sex">'.T_('Gender').'</label></b></div>
+                        <div class="field-widget">
+                            <select id="sex" name="sex">
+                                '.$gender_options.'
+                            </select>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        var fsex = new LiveValidation(\'sex\', { onlyOnSubmit: true });
+                        fsex.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
+                    </script>
+                </fieldset>
+                <fieldset>
+                    <legend><span>'.T_('Birthday').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="sday"><b>'.T_('Birthday').'</b></label></div>
+                        <div class="field-widget">
+                            <select id="sday" name="sday">
+                                '.$day_options.'
+                            </select>
+                            <select id="smonth" name="smonth">
+                                '.$month_options.'
+                            </select>
+                            <select id="syear" name="syear">
+                                '.$year_options.'
+                            </select>
+                        </div>
+                    </div>
+                </fieldset>
+                <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                </form>
+            </div>';
+    }
+
+    /**
+     * displayEditProfilePicture 
+     * 
+     * @return void
+     */
+    function displayEditProfilePicture ()
+    {
+        $locale = new FCMS_Locale();
+        $sql = "SELECT `avatar`, `gravatar` 
+                FROM `fcms_users`
+                WHERE `id` = '" . $this->currentUserId . "'";
+        $this->db->query($sql) or displaySQLError(
+            'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        );
+        $row = $this->db->get_row();
+
+        // Avatar
+        $current_avatar_type = 'fcms';
+        if ($row['avatar'] == 'no_avatar.jpg') {
+            $current_avatar_type = 'default';
+        } else if ($row['avatar'] == 'gravatar') {
+            $current_avatar_type = 'gravatar';
+        }
+        $avatar_list = array(
+            'fcms'      => T_('Upload Avatar'),
+            'gravatar'  => T_('Use Gravatar'),
+            'default'   => T_('Use Default'),
+        );
+        $avatar_options = buildHtmlSelectOptions($avatar_list, $current_avatar_type);
+
+        $form   = '';
+        $input  = '';
+        $js     = '';
+
+        if (usingAdvancedUploader($this->currentUserId))
+        {
+            $form  = '<form id="frm" name="frm" method="post">';
+
+            $input = '<applet name="jumpLoaderApplet"
+                    code="jmaster.jumploader.app.JumpLoaderApplet.class"
+                    archive="inc/jumploader_z.jar"
+                    width="200"
+                    height="260"
+                    mayscript>
+                    <param name="uc_sendImageMetadata" value="true"/>
+                    <param name="uc_maxFiles" value="1"/>
+                    <param name="uc_uploadUrl" value="profile.php?advanced-avatar=true"/>
+                    <param name="vc_useThumbs" value="true"/>
+                    <param name="uc_uploadScaledImagesNoZip" value="true"/>
+                    <param name="uc_uploadScaledImages" value="true"/>
+                    <param name="uc_scaledInstanceNames" value="avatar"/>
+                    <param name="uc_scaledInstanceDimensions" value="80x80xcrop"/>
+                    <param name="uc_scaledInstanceQualityFactors" value="900"/>
+                    <param name="uc_uploadFormName" value="frm"/>
+                    <param name="vc_lookAndFeel" value="system"/>
+                    <param name="vc_uploadViewStartActionVisible" value="false"/>
+                    <param name="vc_uploadViewStopActionVisible" value="false"/>
+                    <param name="vc_uploadViewPasteActionVisible" value="false"/>
+                    <param name="vc_uploadViewRetryActionVisible" value="false"/>
+                    <param name="vc_uploadViewFilesSummaryBarVisible" value="false"/>
+                    <param name="vc_uiDefaults" value="Panel.background=#eff0f4; List.background=#eff0f4;"/> 
+                    <param name="ac_fireUploaderStatusChanged" value="true"/> 
+                </applet>
+                <br/>';
+
+            $js = '<script language="javascript">
+                Event.observe("submit","click",function(){
+                    var uploader = document.jumpLoaderApplet.getUploader();
+                    uploader.startUpload();
+                });
+                function uploaderStatusChanged(uploader) {
+                    if (uploader.isReady() && uploader.getFileCountByStatus(3) == 0) { 
+                        window.location.href = "profile.php?view=advanced-picture&avatar_orig='.cleanOutput($row['avatar']).'";
+                    }
+                }
+                </script>';
+        }
+        else
+        {
+            $form  = '<form id="frm" name="frm" enctype="multipart/form-data" action="profile.php?view=picture" method="post">';
+
+            $input = '<input type="file" name="avatar" id="avatar" size="30" 
+                title="'.T_('Upload your personal image (Avatar)').'"/>';
+        }
+
+        echo '
+            <div id="leftcolumn">
+                <ul class="menu">
+                    <li><a href="?view=info">'.T_('Basic Information').'</a></li>
+                    <li><a href="?view=picture">'.T_('Profile Picture').'</a></li>
+                    <li><a href="?view=address">'.T_('Address / Contact').'</a></li>
+                </ul>
+            </div>
+            <div id="maincolumn">
+                '.$form.'
+                <fieldset>
+                    <legend><span>'.T_('Profile Picture').'</span></legend>
+                    <div class="field-row clearfix">
+                        <div class="field-label">
+                            <label for="avatar"><b>'.T_('Avatar').'</b></label>
+                        </div>
+                        <div class="field-widget">
+                            <select name="avatar_type" id="avatar_type">
+                                '.$avatar_options.'
+                            </select><br/>
+                            <div id="not-gravatar">
+                                '.$input.'
+                                <input type="hidden" name="avatar_orig" value="'.cleanOutput($row['avatar']).'"/>
+                            </div>
+                            <div id="gravatar">
+                                <b>'.T_('Gravatar Email').'</b><br/>
+                                <input type="text" name="gravatar_email" size="30" value="'.cleanOutput($row['gravatar']).'"/>
+                            </div>
+                            <img id="current-avatar" src="'.getCurrentAvatar($this->currentUserId).'" alt="'.T_('This is your current avatar.').'"/>
+                        </div>
+                    </div>
+                    <p><input class="sub1" type="button" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                </fieldset>
+                </form>
+                '.$js.'
+            </div>';
+    }
+
+    /**
+     * displayEditAddress 
+     * 
+     * @return void
+     */
+    function displayEditAddress ()
+    {
+        require_once 'inc/addressbook_class.php';
+
+        global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
+
+        $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $book = new AddressBook($this->currentUserId, $database);
+
+        $sql = "SELECT `id`
+                FROM `fcms_address`
+                WHERE `user` = '".$this->currentUserId."'";
+        if (!$this->db->query($sql)) {
+            displaySQLError('Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return;
+        }
+
+        $row = $this->db->get_row();
+
+        $address_id = $row['id'];
+
+        echo '
+            <div id="leftcolumn">
+                <ul class="menu">
+                    <li><a href="?view=info">'.T_('Basic Information').'</a></li>
+                    <li><a href="?view=picture">'.T_('Profile Picture').'</a></li>
+                    <li><a href="?view=address">'.T_('Address / Contact').'</a></li>
+                </ul>
+            </div>
+            <div id="maincolumn">';
+
+        $book->displayEditForm($address_id, '', 'profile.php?view=address');
+
+        echo '
+            </div>';
+    }
+
+    /**
+     * getStats 
+     * 
+     * @param int $userid 
+     * 
+     * @return void
+     */
+    function getStats ($userid)
+    {
+        $data = array();
+
+        $postsCount     = getPostsById($userid, 'array');
+        $photosCount    = getPhotosById($userid, 'array');
+        $commentsCount  = getCommentsById($userid, 'array');
+        $calendarsCount = getCalendarEntriesById($userid, 'array');
+
+        $data['posts'] = '<div class="stat c1">
+                        <span title="'.$postsCount['percent'].' of total">'.$postsCount['count'].'</span>
+                        <b>'.T_('Posts').'</b>
+                    </div>';
+        $data['photos'] = '<div class="stat c2">
+                        <span title="'.$photosCount['percent'].' of total">'.$photosCount['count'].'</span>
+                        <b>'.T_('Photos').'</b>
+                    </div>';
+        $data['comments'] = '<div class="stat c3">
+                        <span title="'.$commentsCount['percent'].' of total">'.$commentsCount['count'].'</span>
+                        <b>'.T_('Comments').'</b>
+                    </div>';
+        $data['events'] = '<div class="stat c4">
+                        <span title="'.$calendarsCount['percent'].' of total">'.$calendarsCount['count'].'</span>
+                        <b>'.T_('Dates').'</b>
+                    </div>';
+
+        $i = 5;
+
+        if (usingFamilyNews())
+        {
+            $newsCount = getFamilyNewsById($userid, 'array');
+            $data['news'] = '<div class="stat c'.$i.'">
+                        <span title="'.$newsCount['percent'].' of total">'.$newsCount['count'].'</span>
+                        <b>'.T_('Family News').'</b>
+                    </div>';
+            $i++;
+        }
+        if (usingRecipes())
+        {
+            $recipesCount = getRecipesById($userid, 'array');
+            $data['recipes'] = '<div class="stat c'.$i.'">
+                        <span title="'.$recipesCount['percent'].' of total">'.$recipesCount['count'].'</span>
+                        <b>'.T_('Recipes').'</b>
+                    </div>';
+            $i++;
+        }
+        if (usingDocuments())
+        {
+            $documentsCount = getDocumentsById($userid, 'array');
+            $data['documents'] = '<div class="stat c'.$i.'">
+                        <span title="'.$documentsCount['percent'].' of total">'.$documentsCount['count'].'</span>
+                        <b>'.T_('Documents').'</b>
+                    </div>';
+            $i++;
+        }
+        if (usingPrayers())
+        {
+            $prayersCount = getPrayersById($userid, 'array');
+            $data['prayers'] = '<div class="stat c'.$i.'">
+                        <span title="'.$prayersCount['percent'].' of total">'.$prayersCount['count'].'</span>
+                        <b>'.T_('Prayer Concerns').'</b>
+                    </div>';
+            $i++;
+        }
+
+        return $data;
+    }
+
+    /**
      * displayPointsToGo 
      *
      * Shows how many more points are needed for the next rank.
      *
      * @deprecated
      * @param       string  $pts 
+     *
      * @return      void
      */
     function displayPointsToGo ($pts)
@@ -291,7 +629,7 @@ class Profile {
     {
         $userid = cleanInput($userid, 'int');
 
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
         $sql = "SELECT t.`id`, `subject`, `date`, `post` 
                 FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, `fcms_users` AS u 
                 WHERE t.`id` = p.`thread` 
@@ -304,7 +642,7 @@ class Profile {
         );
         if ($this->db2->count_rows() > 0) {
             while ($row = $this->db2->get_row()) {
-                $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tz_offset, $row['date']);
+                $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $row['date']);
                 $post = removeBBCode($row['post']);
                 $subject = stripslashes($row['subject']);
                 $pos = strpos($subject, '#ANOUNCE#');
@@ -349,7 +687,7 @@ class Profile {
                 echo '
                 <li class="photo">
                     <a href="gallery/index.php?uid='.$userid.'&amp;cid='.(int)$row['category'].'&amp;pid='.(int)$row['id'].'">
-                        <img class="photo" src="gallery/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']).'" alt=""/>
+                        <img class="photo" src="uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']).'" alt=""/>
                     </a>
                 </li>';
             }

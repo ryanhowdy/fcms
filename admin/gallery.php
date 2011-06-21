@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+define('URL_PREFIX', '../');
+
 include_once('../inc/config_inc.php');
 include_once('../inc/util_inc.php');
 include_once('../inc/gallery_class.php');
@@ -12,16 +14,14 @@ fixMagicQuotes();
 isLoggedIn('admin/');
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-$database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$gallery  = new PhotoGallery($currentUserId, $database);
+$gallery = new PhotoGallery($currentUserId);
 
 // Setup the Template variables
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Administration: Photo Gallery'),
-    'path'          => "../",
-    'admin_path'    => "",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
@@ -30,6 +30,7 @@ $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
+    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
     // Delete Confirmation All
     if ($(\'deleteAll\')) {
         var item = $(\'deleteAll\'); 
@@ -40,6 +41,10 @@ Event.observe(window, \'load\', function() {
         hid.setAttribute(\'value\', \'true\');
         item.insert({\'after\':hid});
     }
+    $$(".tag_photo input").each(function(el) {
+        el.observe("click", clickMassTagMember);
+
+    });
 });
 //]]>
 </script>';
@@ -61,7 +66,11 @@ if (checkAccess($currentUserId) > 1) {
                 <p>
                     <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
                 </p>
-            </div>';
+            </div>
+        </div><!-- .centercontent -->';
+
+    include_once(getTheme($currentUserId, $TMPL['path']) . 'footer.php');
+    exit();
 }
 
 $show = true;

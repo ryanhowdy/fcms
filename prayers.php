@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+define('URL_PREFIX', '');
+
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
 include_once('inc/prayers_class.php');
@@ -11,15 +13,14 @@ fixMagicQuotes();
 isLoggedIn();
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-$prayers = new Prayers($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$prayers = new Prayers($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Prayer Concerns'),
-    'path'          => "",
-    'admin_path'    => "admin/",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
@@ -28,6 +29,7 @@ $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
+    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
     if (!$$(\'.delform input[type="submit"]\')) { return; }
     $$(\'.delform input[type="submit"]\').each(function(item) {
         item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };

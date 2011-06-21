@@ -18,12 +18,14 @@ class AdminMembers
     /**
      * AdminMembers 
      * 
-     * @param   database    $database 
      * @return  void
      */
-    function AdminMembers ($database)
+    function AdminMembers ()
     {
-        $this->db = $database;
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
         bindtextdomain('messages', '.././language');
     }
     
@@ -51,11 +53,14 @@ class AdminMembers
      */
     function displayCreateMemberForm ($error = '')
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $username   =   isset($_POST['username'])   ?   $_POST['username']  :   '';
         $fname      =   isset($_POST['fname'])      ?   $_POST['fname']     :   '';
+        $mname      =   isset($_POST['mname'])      ?   $_POST['mname']     :   '';
         $lname      =   isset($_POST['lname'])      ?   $_POST['lname']     :   '';
+        $maiden     =   isset($_POST['maiden'])     ?   $_POST['maiden']    :   '';
+        $sex        =   isset($_POST['sex'])        ?   $_POST['sex']       :   '';
         $email      =   isset($_POST['email'])      ?   $_POST['email']     :   '';
         $year       =   isset($_POST['year'])       ?   $_POST['year']      :   date('Y');
         $month      =   isset($_POST['month'])      ?   $_POST['month']     :   date('m');
@@ -103,25 +108,34 @@ class AdminMembers
                         fpass.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
-                        <div class="field-label"><label for="fname"><b>'.T_('First Name').'</b></label></div> 
+                        <div class="field-label"><label for="fname"><b>'.T_('Name').'</b></label></div> 
                         <div class="field-widget">
-                            <input type="text" name="fname" id="fname" value="'.cleanOutput($fname).'" size="50"/>
+                            <input type="text" name="fname" id="fname" value="'.cleanOutput($fname).'" placeholder="'.T_('First').'" title="'.T_('First').'" size="20"/>
+                            <input type="text" name="mname" id="mname" value="'.cleanOutput($mname).'" placeholder="'.T_('Middle').'" title="'.T_('Middle').'" size="10"/>
+                            <input type="text" name="lname" id="lname" value="'.cleanOutput($lname).'" placeholder="'.T_('Last').'" title="'.T_('Last').'" size="20"/>
                         </div>
                     </div>
                     <script type="text/javascript">
                         var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
                         ffname.add(Validate.Presence, {failureMessage: ""});
-                    </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="lname"><b>'.T_('Last Name').'</b></label></div> 
-                        <div class="field-widget">
-                            <input type="text" name="lname" id="lname" value="'.cleanOutput($lname).'" size="50"/>
-                        </div>
-                    </div>
-                    <script type="text/javascript">
                         var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
                         flname.add(Validate.Presence, {failureMessage: ""});
                     </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="maiden"><b>'.T_('Maiden Name').'</b></label></div> 
+                        <div class="field-widget">
+                            <input type="text" name="maiden" id="maiden" value="'.cleanOutput($maiden).'" size="50"/>
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="sex"><b>'.T_('Gender').'</b></label></div> 
+                        <div class="field-widget">
+                            <select name="sex" id="sex">
+                                <option value="M">'.T_('Male').'</option>
+                                <option value="F">'.T_('Female').'</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div> 
                         <div class="field-widget">
@@ -148,6 +162,13 @@ class AdminMembers
                             </select>
                         </div>
                     </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label">&nbsp;</div> 
+                        <div class="field-widget">
+                            <input type="checkbox" id="invite" name="invite" value="1"/>
+                            <label for="invite">'.T_('Send Invitation Email').'</label>
+                        </div>
+                    </div>
                     <p>
                         <input class="sub1" type="submit" id="create" name="create" value="'.T_('Create').'"/> '.T_('or').' &nbsp;
                         <a href="members.php">'.T_('Cancel').'</a>
@@ -165,11 +186,12 @@ class AdminMembers
      */
     function displayEditMemberForm ($id, $error = '')
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $member = cleanInput($id, 'int');
 
-        $sql = "SELECT `id`, `username`, `fname`, `lname`, `email`, `birthday`, `access` 
+        $sql = "SELECT `id`, `username`, `fname`, `mname`, `lname`, `maiden`, `sex`, 
+                    `email`, `birthday`, `access` 
                 FROM `fcms_users` 
                 WHERE `id` = '$member'";
         if (!$this->db->query($sql)) {
@@ -187,7 +209,10 @@ class AdminMembers
         $id       = isset($_POST['id'])       ? $_POST['id']       : $r['id'];
         $username = isset($_POST['username']) ? $_POST['username'] : $r['username'];
         $fname    = isset($_POST['fname'])    ? $_POST['fname']    : $r['fname'];
+        $mname    = isset($_POST['mname'])    ? $_POST['mname']    : $r['mname'];
         $lname    = isset($_POST['lname'])    ? $_POST['lname']    : $r['lname'];
+        $maiden   = isset($_POST['maiden'])   ? $_POST['maiden']   : $r['maiden'];
+        $sex      = isset($_POST['sex'])      ? $_POST['sex']      : $r['sex'];
         $email    = isset($_POST['email'])    ? $_POST['email']    : $r['email'];
         $year     = isset($_POST['year'])     ? $_POST['year']     : substr($r['birthday'], 0, 4);
         $month    = isset($_POST['month'])    ? $_POST['month']    : substr($r['birthday'], 5, 2);
@@ -237,6 +262,12 @@ class AdminMembers
                         ffname.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div class="field-row clearfix">
+                        <div class="field-label"><label for="mname"><b>'.T_('Middle Name').'</b></label></div> 
+                        <div class="field-widget">
+                            <input type="text" name="mname" id="mname" value="'.cleanOutput($mname).'" size="50"/>
+                        </div>
+                    </div>
+                    <div class="field-row clearfix">
                         <div class="field-label"><label for="lname"><b>'.T_('Last Name').'</b></label></div> 
                         <div class="field-widget">
                             <input type="text" name="lname" id="lname" value="'.cleanOutput($lname).'" size="50"/>
@@ -245,7 +276,29 @@ class AdminMembers
                     <script type="text/javascript">
                         var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
                         flname.add(Validate.Presence, {failureMessage: ""});
-                    </script>
+                    </script>';
+
+        if ($sex == 'F')
+        {
+            echo '
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="maiden"><b>'.T_('Maiden Name').'</b></label></div> 
+                        <div class="field-widget">
+                            <input type="text" name="maiden" id="maiden" value="'.cleanOutput($maiden).'" size="50"/>
+                        </div>
+                    </div>';
+        }
+
+        echo '
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="sex"><b>'.T_('Gender').'</b></label></div> 
+                        <div class="field-widget">
+                            <select name="sex" id="sex">
+                                <option value="M"'; if ($sex == 'M') { echo ' selected="selected"'; } echo '>'.T_('Male').'</option>
+                                <option value="F"'; if ($sex == 'F') { echo ' selected="selected"'; } echo '>'.T_('Female').'</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div> 
                         <div class="field-widget">
@@ -276,53 +329,20 @@ class AdminMembers
                         <div class="field-label"><label for="access"><b>'.T_('Access Level').'</b></label></div> 
                         <div class="field-widget">
                             <select id="access" name="access">
-                                <option value="1"';
-            if ($access == 1) {
-                echo " selected=\"selected\"";
-            }
-            echo ">1. " . T_('Admin') . "</option><option value=\"2\"";
-            if ($access == 2) {
-                echo " selected=\"selected\"";
-            }
-            echo ">2. " . T_('Helper') . "</option><option value=\"3\"";
-            if ($access == 3) {
-                echo " selected=\"selected\"";
-            }
-            echo ">3. " . T_('Member') . "</option>";
-            echo "<option value=\"" . (int)$access . "\"></option>";
-            echo "<option value=\"" . (int)$access . "\">" . T_('Advanced Options')
-                . "</option>";
-            echo "<option value=\"" . (int)$access . "\">"
-                . "-------------------------------------</option>";
-            echo "<option value=\"4\"";
-            if ($access == 4) {
-                echo " selected=\"selected\"";
-            }
-            echo ">4. " . T_('Non-Photographer') . "</option><option value=\"5\"";
-            if ($access == 5) {
-                echo " selected=\"selected\"";
-            }
-            echo ">5. " . T_('Non-Poster') . "</option><option value=\"6\"";
-            if ($access == 6) {
-                echo " selected=\"selected\"";
-            }
-            echo ">6. " . T_('Commenter') . "</option><option value=\"7\"";
-            if ($access == 7) {
-                echo " selected=\"selected\"";
-            }
-            echo ">7. " . T_('Poster') . "</option><option value=\"8\"";
-            if ($access == 8) {
-                echo " selected=\"selected\"";
-            }
-            echo ">8. " . T_('Photographer') . "</option><option value=\"9\"";
-            if ($access == 9) {
-                echo " selected=\"selected\"";
-            }
-            echo ">9. " . T_('Blogger') . "</option><option value=\"10\"";
-            if ($access == 10) {
-                echo " selected=\"selected\"";
-            }
-            echo '>10. '.T_('Guest').'</option>
+                                <option value="1"'; if ($access == 1) { echo ' selected="selected"'; } echo '>1. '.T_('Admin').'</option>
+                                <option value="2"'; if ($access == 2) { echo ' selected="selected"'; } echo '>2. '.T_('Helper').'</option>
+                                <option value="3"'; if ($access == 3) { echo ' selected="selected"'; } echo '>3. '.T_('Member').'</option>
+                                <option value="'.(int)$access.'"></option>
+                                <option value="'.(int)$access.'">'.T_('Advanced Options').'</option>
+                                <option value="'.(int)$access.'">-------------------------------------</option>
+                                <option value="4"'; if ($access == 4) { echo ' selected="selected"'; } echo '>4. '.T_('Non-Photographer').'</option>
+                                <option value="5"'; if ($access == 5) { echo ' selected="selected"'; } echo '>5. '.T_('Non-Poster').'</option>
+                                <option value="6"'; if ($access == 6) { echo ' selected="selected"'; } echo '>6. '.T_('Commenter').'</option>
+                                <option value="7"'; if ($access == 7) { echo ' selected="selected"'; } echo '>7. '.T_('Poster').'</option>
+                                <option value="8"'; if ($access == 8) { echo ' selected="selected"'; } echo '>8. '.T_('Photographer').'</option>
+                                <option value="9"'; if ($access == 9) { echo ' selected="selected"'; } echo '>9. '.T_('Blogger').'</option>
+                                <option value="10"'; if ($access == 10) { echo ' selected="selected"'; } echo '>10. '.T_('Guest').'</option>
+                                <option value="11"'; if ($access == 11) { echo ' selected="selected"'; } echo '>11. '.T_('Non-Editable Member').'</option>
                             </select>
                         </div>
                     </div>
@@ -346,13 +366,14 @@ class AdminMembers
     function displayMergeMemberForm ($id)
     {
         global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
+
         $db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $id     = cleanInput($id, 'int');
+        $id = cleanInput($id, 'int');
 
         // Get current member info
-        $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`lname`, u.`email`, u.`birthday`,
-                    a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`
+        $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, u.`birthday`,
+                    a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`bio`
                 FROM `fcms_users` AS u, `fcms_address` AS a
                 WHERE u.`id` = '$id'
                 AND u.`id` = a.`user`";
@@ -403,7 +424,13 @@ class AdminMembers
                             <div class="field-label">
                                 <label><b>'.T_('Name').'</b></label>
                             </div> 
-                            <div class="field-widget">'.$r['fname'].' '.$r['lname'].'</div>
+                            <div class="field-widget">'.$r['fname'].' '.$r['mname'].' '.$r['lname'].'</div>
+                        </div>
+                        <div class="field-row clearfix">
+                            <div class="field-label">
+                                <label><b>'.T_('Maiden Name').'</b></label>
+                            </div> 
+                            <div class="field-widget">'.$r['maiden'].'</div>
                         </div>
                         <div class="field-row clearfix">
                             <div class="field-label">
@@ -459,6 +486,12 @@ class AdminMembers
                             </div> 
                             <div class="field-widget">'.$r['cell'].'</div>
                         </div>
+                        <div class="field-row clearfix">
+                            <div class="field-label">
+                                <label><b>'.T_('Bio').'</b></label>
+                            </div> 
+                            <div class="field-widget">'.$r['bio'].'</div>
+                        </div>
                     </div>
                     <div id="merge-member">
                         <p>
@@ -492,8 +525,8 @@ class AdminMembers
         $id     = cleanInput($id, 'int');
         $merge  = cleanInput($merge, 'int');
 
-        $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`lname`, u.`email`, u.`birthday`,
-                    a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`
+        $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, u.`birthday`,
+                    a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`bio`
                 FROM `fcms_users` AS u, `fcms_address` AS a
                 WHERE u.`id` IN ('$id', '$merge') 
                 AND u.`id` = a.`user`";
@@ -523,10 +556,7 @@ class AdminMembers
                             <div class="field-label">
                                 <label><b>'.T_('Username').'</b></label>
                             </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="u1" name="username" value="'.$members[$id]['username'].'"/>
-                                <label for="u1">'.$members[$id]['username'].'</label>
-                            </div>
+                            <div class="field-widget">'.$members[$id]['username'].'</div>
                         </div>
                         <div class="field-row clearfix">
                             <div class="field-label">
@@ -539,11 +569,29 @@ class AdminMembers
                         </div>
                         <div class="field-row clearfix">
                             <div class="field-label">
+                                <label><b>'.T_('Middle Name').'</b></label>
+                            </div> 
+                            <div class="field-widget">
+                                <input type="radio" checked="checked" id="m1" name="mname" value="'.$members[$id]['mname'].'"/>
+                                <label for="m1">'.$members[$id]['mname'].'</label>
+                            </div>
+                        </div>
+                        <div class="field-row clearfix">
+                            <div class="field-label">
                                 <label><b>'.T_('Last Name').'</b></label>
                             </div> 
                             <div class="field-widget">
                                 <input type="radio" checked="checked" id="l1" name="lname" value="'.$members[$id]['lname'].'"/>
                                 <label for="l1">'.$members[$id]['lname'].'</label>
+                            </div>
+                        </div>
+                        <div class="field-row clearfix">
+                            <div class="field-label">
+                                <label><b>'.T_('Maiden Name').'</b></label>
+                            </div> 
+                            <div class="field-widget">
+                                <input type="radio" checked="checked" id="ma1" name="maiden" value="'.$members[$id]['maiden'].'"/>
+                                <label for="ma1">'.$members[$id]['maiden'].'</label>
                             </div>
                         </div>
                         <div class="field-row clearfix">
@@ -627,6 +675,15 @@ class AdminMembers
                                 <label for="ce1">'.$members[$id]['cell'].'</label>
                             </div>
                         </div>
+                        <div class="field-row clearfix">
+                            <div class="field-label">
+                                <label><b>'.T_('Bio').'</b></label>
+                            </div> 
+                            <div class="field-widget">
+                                <input type="radio" checked="checked" id="bi1" name="bio" value="'.$members[$id]['bio'].'"/>
+                                <label for="bi1">'.$members[$id]['bio'].'</label>
+                            </div>
+                        </div>
                     </div>
                     <div id="merge-member">
                         <div class="field-row clearfix">
@@ -639,10 +696,7 @@ class AdminMembers
                             <div class="field-label">
                                 <label><b>'.T_('Username').'</b></label>
                             </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="u2" name="username" value="'.$members[$merge]['username'].'"/>
-                                <label for="u2">'.$members[$merge]['username'].'</label>
-                            </div>
+                            <div class="field-widget">'.$members[$merge]['username'].'</div>
                         </div>
                         <div class="field-row clearfix">
                             <div class="field-label">
@@ -655,11 +709,29 @@ class AdminMembers
                         </div>
                         <div class="field-row clearfix">
                             <div class="field-label">
+                                <label><b>'.T_('Middle Name').'</b></label>
+                            </div> 
+                            <div class="field-widget">
+                                <input type="radio" id="m2" name="mname" value="'.$members[$merge]['mname'].'"/>
+                                <label for="m2">'.$members[$merge]['mname'].'</label>
+                            </div>
+                        </div>
+                        <div class="field-row clearfix">
+                            <div class="field-label">
                                 <label><b>'.T_('Last Name').'</b></label>
                             </div> 
                             <div class="field-widget">
                                 <input type="radio" id="l2" name="lname" value="'.$members[$merge]['lname'].'"/>
                                 <label for="l2">'.$members[$merge]['lname'].'</label>
+                            </div>
+                        </div>
+                        <div class="field-row clearfix">
+                            <div class="field-label">
+                                <label><b>'.T_('Maiden Name').'</b></label>
+                            </div> 
+                            <div class="field-widget">
+                                <input type="radio" id="ma2" name="maiden" value="'.$members[$merge]['maiden'].'"/>
+                                <label for="ma2">'.$members[$merge]['maiden'].'</label>
                             </div>
                         </div>
                         <div class="field-row clearfix">
@@ -741,6 +813,15 @@ class AdminMembers
                             <div class="field-widget">
                                 <input type="radio" id="ce2" name="cell" value="'.$members[$merge]['cell'].'"/>
                                 <label for="ce2">'.$members[$merge]['cell'].'</label>
+                            </div>
+                        </div>
+                        <div class="field-row clearfix">
+                            <div class="field-label">
+                                <label><b>'.T_('Bio').'</b></label>
+                            </div> 
+                            <div class="field-widget">
+                                <input type="radio" id="bi2" name="bio" value="'.$members[$merge]['bio'].'"/>
+                                <label for="bi2">'.$members[$merge]['bio'].'</label>
                             </div>
                         </div>
                     </div>
@@ -951,6 +1032,9 @@ class AdminMembers
             case 10:
                 echo "10. ".T_('Guest');
                 break;
+            case 11:
+                echo "11. ".T_('Non-editable Member');
+                break;
             default:
                 echo "10. ".T_('Guest');
                 break;
@@ -1029,14 +1113,6 @@ class AdminMembers
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_category').'<br/>';
 
         // fcms_chat_messages
-        $sql = "UPDATE `fcms_chat_messages`
-                SET `user_id` = '$id'
-                WHERE `user_id` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_chat_messages').'<br/>';
 
         // fcms_chat_users
 

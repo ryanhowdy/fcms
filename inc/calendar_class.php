@@ -15,30 +15,24 @@ class Calendar
 {
     var $db;
     var $currentUserId;
+    var $tzOffset;
 
     /**
      * Calendar 
      * 
      * @param  int      $currentUserId 
-     * @param  string   $type 
-     * @param  string   $host 
-     * @param  string   $database 
-     * @param  string   $user 
-     * @param  string   $pass 
+     *
      * @return void
      */
-    function Calendar ($currentUserId, $type, $host, $database, $user, $pass)
+    function Calendar ($currentUserId)
     {
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
         $this->currentUserId = cleanInput($currentUserId, 'int');
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        $this->tzOffset      = getTimezone($this->currentUserId);
+
     }
 
     /**
@@ -63,7 +57,7 @@ class Calendar
                 OR (`date` LIKE '%%%%-$month-%%' AND `repeat` = 'yearly') 
                 ORDER BY day";
         $this->db->query($sql) or displaySQLError(
-            'Events Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         if ($this->db->count_rows() > 0) {
             while($r = $this->db->get_row()) {
@@ -92,15 +86,22 @@ class Calendar
      * @param   int     $day 
      * @return  void
      */
-    function displayCalendarMonth ($month, $year, $day)
+    function displayCalendarMonth ($month = 0, $year = 0, $day = 0)
     {
+        $locale = new FCMS_Locale();
+
+        if ($month == 0)
+        {
+            $year  = $locale->fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+            $month = $locale->fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+            $day   = $locale->fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        }
+
         $month = cleanInput($month, 'int');
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
         $year  = cleanInput($year, 'int');
         $day   = cleanInput($day, 'int');
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
-
-        $locale = new Locale();
 
         $weekDays   = $locale->getDayNames();
         $categories = $this->getCategories();
@@ -119,9 +120,9 @@ class Calendar
         list($pYear, $pMonth) = explode('-', date('Y-m', $prevTS));
 
         // Today links
-        $tYear  = $locale->fixDate('Y', $this->tz_offset, gmdate('Y-m-d H:i:s'));
-        $tMonth = $locale->fixDate('m', $this->tz_offset, gmdate('Y-m-d H:i:s'));
-        $tDay   = $locale->fixDate('d', $this->tz_offset, gmdate('Y-m-d H:i:s'));
+        $tYear  = $locale->fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tMonth = $locale->fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tDay   = $locale->fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
 
         // Next month links
         $nextTS = strtotime("$year-$month-01 +1 month");
@@ -248,7 +249,7 @@ class Calendar
         $day   = cleanInput($day, 'int');
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $categories = $this->getCategories();
 
@@ -257,9 +258,9 @@ class Calendar
         list($pYear, $pMonth, $pDay) = explode('-', date('Y-m-d', $prevTS));
 
         // Today links
-        $tYear = $locale->fixDate('Y', $this->tz_offset, gmdate('Y-m-d H:i:s'));
-        $tMonth = $locale->fixDate('m', $this->tz_offset, gmdate('Y-m-d H:i:s'));
-        $tDay = $locale->fixDate('d', $this->tz_offset, gmdate('Y-m-d H:i:s'));
+        $tYear = $locale->fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tMonth = $locale->fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tDay = $locale->fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
         $isToday = false;
         $header = $locale->formatDate(T_('l, F j, Y'), "$year-$month-$day");
         if ("$year$month$day" === "$tYear$tMonth$tDay") {
@@ -310,7 +311,7 @@ class Calendar
                     AND c.`category` = ca.`id`
                 ORDER BY c.`time_start`";
         $this->db->query($sql) or displaySQLError(
-            'Events Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         if ($this->db->count_rows() > 0) {
             while ($row = $this->db->get_row()) {
@@ -343,7 +344,7 @@ class Calendar
         foreach($allDayEvents AS $event) {
             echo '
                         <div class="event">' .
-                            '<a class="' . $event['color'] . '" href="?edit=' . $event['id'] . '">' . 
+                            '<a class="' . $event['color'] . '" href="?event=' . $event['id'] . '">' . 
                                 cleanOutput($event['title']) . 
                                 '<span>' . cleanOutput($event['desc']) . '</span>' .
                             '</a>' .
@@ -357,7 +358,7 @@ class Calendar
 
         // Time Specific Events
         $times = $this->getTimesList();
-        $curTime = $locale->fixDate('Hi', $this->tz_offset, date('Y-m-d H:i:s')) . "00";
+        $curTime = $locale->fixDate('Hi', $this->tzOffset, date('Y-m-d H:i:s')) . "00";
         
         foreach($times AS $key => $val) {
 
@@ -447,7 +448,7 @@ class Calendar
         $day   = cleanInput($day, 'int');
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $weekDays = $locale->getDayInitials();
         $categories = $this->getCategories();
@@ -466,9 +467,9 @@ class Calendar
         list($pYear, $pMonth) = explode('-', date('Y-m', $prevTS));
 
         // Today links
-        $tYear = $locale->fixDate('Y', $this->tz_offset, gmdate('Y-m-d H:i:s'));
-        $tMonth = $locale->fixDate('m', $this->tz_offset, gmdate('Y-m-d H:i:s'));
-        $tDay = $locale->fixDate('d', $this->tz_offset, gmdate('Y-m-d H:i:s'));
+        $tYear = $locale->fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tMonth = $locale->fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tDay = $locale->fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
 
         // Next month links
         $nextTS = strtotime("$year-$month-01 +1 month");
@@ -481,13 +482,9 @@ class Calendar
             <table id="small-calendar">
                 <tr>
                     <th colspan="7">
-                        <a class="prev" href="?year=' . $pYear . '&amp;month=' . $pMonth . '&amp;day=' . $pDay . '">'
-                            . T_('Previous') .
-                        '</a> 
-                        <a class="next" href="?year=' . $nYear . '&amp;month=' . $nMonth . '&amp;day=' . $nDay . '">'
-                            . T_('Next') .
-                        '</a>
-                        <h3>' . $locale->formatDate('F Y', "$year-$month-$day") . '</h3>
+                        <h3><a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'
+                            .$locale->formatDate('F Y', "$year-$month-$day").
+                        '</a></h3>
                     </th>
                 </tr>
                 <tr>';
@@ -554,51 +551,90 @@ class Calendar
      * Displays a listing of events for a given month.
      * Used on the homepage with the small calendar view.
      *
-     * @param   int     $month 
-     * @param   int     $year 
-     * @return  void
+     * @param int $month 
+     * @param int $year 
+     *
+     * @return void
      */
     function displayMonthEvents ($month, $year)
     {
+        $locale = new FCMS_Locale();
+
         $month = cleanInput($month, 'int');
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
         $year  = cleanInput($year, 'int');
 
-        echo '
-                <h3>'.date('F', mktime(0,0,0,$month,1,$year)).':</h3>';
+        $gm_next   = gmdate('Y-m-d H:i:s', gmmktime(gmdate('h'), gmdate('i'), gmdate('s'), $month+1, 1, $year));
+        $nextMonth = $locale->fixDate('m', $this->tzOffset, $gm_next);
 
-        $sql = "SELECT DAYOFMONTH(`date`) as day, `title`, `desc`, 
-                    `date`, `private`, `created_by`
+        $today      = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $today_year = $locale->fixDate('Y',   $this->tzOffset, gmdate('Y-m-d H:i:s'));
+
+        $sql = "SELECT `id`, DATE_FORMAT(`date`, '%m%d') as day, `title`, `desc`, 
+                    `date`, `private`, `created_by`, `repeat`
                 FROM fcms_calendar 
                 WHERE (`date` LIKE '$year-$month-%%') 
+                OR (`date` LIKE '$year-$nextMonth-%%') 
                 OR (`date` LIKE '%%%%-$month-%%' AND `repeat` = 'yearly') 
+                OR (`date` LIKE '%%%%-$nextMonth-%%' AND `repeat` = 'yearly') 
                 ORDER BY day";
-        $this->db->query($sql) or displaySQLError(
-            'Events Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            while ($row = $this->db->get_row()) {
-                $show = false;
-                if ($row['private'] == 0) {
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        // show the next 5
+        $count = 0;
+
+        while ($row = $this->db->get_row())
+        {
+            if ($count > 5)
+            {
+                break;
+            }
+
+            $show = false;
+
+            list($event_year, $event_month, $event_day) = explode("-", $row['date']);
+
+            // Fix repeating event year
+            if ($row['repeat'] == 'yearly')
+            {
+                $event_year = $today_year;
+            }
+
+            // Skip events that have already happened
+            if ($event_year.$event_month.$event_day < $today)
+            {
+                continue;
+            }
+
+            if ($row['private'] == 0)
+            {
+                $show = true;
+            }
+            else
+            {
+                if ($row['created_by'] == $this->currentUserId)
+                {
                     $show = true;
-                } else {
-                    if ($row['created_by'] == $this->currentUserId) {
-                        $show = true;
-                    }
-                }
-                if ($show) {
-                    $title = !empty($row['desc']) ? $row['desc'] : $row['title'];
-                    $title = cleanOutput($title);
-                    echo '
-                <div class="events">
-                    '.date('d', strtotime($row['date'])).' - '
-                    . '<dfn title="'.$title.'">'.cleanOutput($row['title']).'</dfn>
-                </div>';
                 }
             }
-        } else {
-            echo '
-                <div class="events"><i>'.T_('No events for this month.').'</i></div>';
+
+            if ($show)
+            {
+                $count++;
+
+                $title = !empty($row['desc']) ? $row['desc'] : $row['title'];
+                $title = cleanOutput($title);
+
+                echo '
+                <div class="events">
+                    <a title="'.$title.'" href="calendar.php?event='.$row['id'].'">'.cleanOutput($row['title']).'</a><br/>
+                    '.date('M. d', strtotime($row['date'])).'
+                </div>';
+            }
         }
     }
 
@@ -625,7 +661,7 @@ class Calendar
                 WHERE (`date` LIKE '$year-$month-$day') 
                 OR (`date` LIKE '%%%%-$month-$day' AND `repeat` = 'yearly')";
         $this->db->query($sql) or displaySQLError(
-            'Today Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Today Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
 
         if ($this->db->count_rows() > 0) {
@@ -700,65 +736,84 @@ class Calendar
                     AND c.`category` = ca.`id`
                 ORDER BY c.`time_start`";
         $this->db->query($sql) or displaySQLError(
-            'Events Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
 
         $times = $this->getTimesList(false);
 
-        if ($this->db->count_rows() > 0) {
-            while ($row = $this->db->get_row()) {
+        if ($this->db->count_rows() > 0)
+        {
+            while ($row = $this->db->get_row())
+            {
                 $show = false;
-                if ($row['private'] == 0) {
+
+                if ($row['private'] == 0)
+                {
                     $show = true;
-                } else {
-                    if ($row['created_by'] == $this->currentUserId) {
-                        $show = true;
-                    }
                 }
-                if ($show) {
+                elseif ($row['created_by'] == $this->currentUserId)
+                {
+                    $show = true;
+                }
 
-                    $url = 'event';
-                    if (
-                        checkAccess($this->currentUserId) < 2 || 
-                        $this->currentUserId == $row['created_by']
-                    ) {
-                        $url = 'edit';
-                    }
-
+                if ($show)
+                {
                     // Show The Description
-                    if ($showDesc) {
+                    if ($showDesc)
+                    {
                         echo '<div class="event">' . 
-                                '<a class="' . $row['color'] . '" href="?edit=' . $row['id'] . '">' . 
+                                '<a class="' . $row['color'] . '" href="?event=' . $row['id'] . '">' . 
                                     cleanOutput($row['title']) . 
                                     '<span>'. cleanOutput($row['desc']) . '</span>' .
                                 '</a>' .
                             '</div>';
-
+                    }
                     // No description
-                    } else {
+                    else
+                    {
+                        // event title/description
+                        if (empty($row['desc']))
+                        {
+                            $title = cleanOutput($row['title']);
 
-                        $title = !empty($row['desc']) ? $row['title'].' : '.$row['desc'] : $row['title'];
-                        $htmlTitle = cleanOutput($title);
-
-                        // Add time to event
-                        $start = '';
-                        if (isset($times[$row['time_start']])) {
-                            $start = $times[$row['time_start']];
+                            $tooltipDetails = '<h5>'.$title.'</h5>';
                         }
-                        $end = '';
-                        if (isset($times[$row['time_end']])) {
-                            if ($row['time_start'] != $row['time_end']) {
-                                $end = ' - ' . $times[$row['time_end']];
+                        else
+                        {
+                            $cleanTitle = cleanOutput($row['title']);
+                            $cleanDesc  = cleanOutput($row['desc']);
+
+                            $title = $cleanTitle.' : '.$cleanDesc;
+
+                            $tooltipDetails = '<h5 class="highlight">'.$cleanTitle.'</h5><h5>'.$cleanDesc.'</h5>';
+                        }
+
+                        // event time
+                        $start = '';
+                        $end   = '';
+                        if (isset($times[$row['time_start']]))
+                        {
+                            $start = $times[$row['time_start']];
+
+                            $tooltipDetails .= '<span>'.$start;
+
+                            if (isset($times[$row['time_end']]))
+                            {
+                                if ($row['time_start'] != $row['time_end'])
+                                {
+                                    $end = ' - ' . $times[$row['time_end']];
+
+                                    $tooltipDetails .= $end;
+                                }
                             }
+                            $tooltipDetails .= '</span>';
                         }
 
                         echo '<div class="event">' .
-                                '<a class="' . $row['color'] . '" ' . 
-                                    'title="' . $start .  $end . ' ' . $title . '" ' . 
-                                    'href="?' . $url . '=' . $row['id'] . '">' .
-                                    '<i>' . $start . '</i> ' .
-                                    $row['title'] . 
+                                '<a class="'.$row['color'].' tooltip" title="'.$start.$end.' '.$title.'" href="?event='.$row['id'].'" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">' .
+                                    '<i>' . $start . '</i> '.$row['title'] .
                                 '</a>' .
+                                '<div class="tooltip" style="display:none">'.$tooltipDetails.'</div>' .
                             '</div>';
                     }
                 }
@@ -776,7 +831,7 @@ class Calendar
      */
     function displayAddForm ($addDate)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         // Check Access
         if (checkAccess($this->currentUserId) > 3) {
@@ -806,7 +861,7 @@ class Calendar
         }
 
         // Setup time fields
-        $defaultTimeStart = $locale->fixDate('H:i', $this->tz_offset, date('Y-m-d H:i:s'));
+        $defaultTimeStart = $locale->fixDate('H:i', $this->tzOffset, date('Y-m-d H:i:s'));
         list($hour, $min) = explode(':', $defaultTimeStart);
         if ($min > 30) {
             $defaultTimeStart   = ($hour + 1) . ":00:00";
@@ -820,7 +875,7 @@ class Calendar
         // Setup category field
         $sql = "SELECT * FROM `fcms_category` WHERE `type` = 'calendar'";
         $this->db->query($sql) or displaySQLError(
-            'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $choose = '';
         while($r = $this->db->get_row()) {
@@ -883,15 +938,21 @@ class Calendar
                                 </div>
                             </div>
                             <div class="field-row clearfix">
-                                <div class="field-label"><label for="repeat-yearly"><b>'.T_('Repeat (Yearly)').'</b></label></div>
                                 <div class="field-widget">
                                     <input type="checkbox" name="repeat-yearly" id="repeat-yearly"/>
+                                    <label for="repeat-yearly"><b>'.T_('Repeat (Yearly)').'</b></label>
                                 </div>
                             </div>
                             <div class="field-row clearfix">
-                                <div class="field-label"><label for="private"><b>'.T_('Private?').'</b></label></div>
                                 <div class="field-widget">
                                     <input type="checkbox" name="private" id="private"/>
+                                    <label for="private"><b>'.T_('Private?').'</b></label>
+                                </div>
+                            </div>
+                            <div class="field-row clearfix">
+                                <div class="field-widget">
+                                    <input type="checkbox" name="invite" id="invite"/>
+                                    <label for="invite"><b>'.T_('Invite Guests?').'</b></label>
                                 </div>
                             </div>
                         </div>
@@ -919,20 +980,25 @@ class Calendar
     {
         $id = cleanInput($id, 'int');
 
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $sql = "SELECT `id`, `date`, `time_start`, `time_end`, `date_added`, 
-                    `title`, `desc`, `created_by`, `category`, `repeat`, `private`
+                    `title`, `desc`, `created_by`, `category`, `repeat`, `private`, `invite`
                 FROM `fcms_calendar` 
                 WHERE `id` = '$id' 
                 LIMIT 1";
-        $this->db->query($sql) or displaySQLError(
-            'Date Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Date Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
         $row = $this->db->get_row();
 
         // Make sure then can edit this event
-        if (checkAccess($this->currentUserId) > 1 and $row['created_by'] != $this->currentUserId) {
+        if (checkAccess($this->currentUserId) > 1 and $row['created_by'] != $this->currentUserId)
+        {
             echo '
             <div class="error-alert">' . T_('You do not have permission to perform this task.')  . '</div>';
             return;
@@ -959,7 +1025,7 @@ class Calendar
         // Setup category field
         $sql = "SELECT * FROM `fcms_category` WHERE `type` = 'calendar'";
         $this->db->query($sql) or displaySQLError(
-            'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $choose = '';
         while($r = $this->db->get_row()) {
@@ -972,6 +1038,7 @@ class Calendar
 
         $repeatChk  = ($row['repeat'] == 'yearly')  ? 'checked="checked"' : '';
         $privateChk = ($row['private'] == 1)        ? 'checked="checked"' : '';
+        $inviteChk  = ($row['invite'] == 1)         ? 'checked="checked"' : '';
 
         // Display the form
         echo '
@@ -1046,6 +1113,12 @@ class Calendar
                             <input type="checkbox" name="private" id="private" ' . $privateChk . '/>
                         </div>
                     </div>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="invite"><b>'.T_('Invite Guests?').'</b></label></div>
+                        <div class="field-widget">
+                            <input type="checkbox" name="invite" id="invite" ' . $inviteChk . '/>
+                        </div>
+                    </div>
 
                     <p>
                         <input type="hidden" name="id" value="' . $id . '"/>
@@ -1061,89 +1134,279 @@ class Calendar
     /**
      * displayEvent
      * 
-     * Displays the event for users who can't edit event.
+     * Displays the event details.
      *
-     * @param   int     $id
+     * @param int $id
+     *
      * @return  void
      */
     function displayEvent ($id)
     {
         $id = cleanInput($id, 'int');
 
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
-        $sql = "SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, 
-                    c.`title`, c.`desc`, c.`created_by`, cat.`name` AS category, c.`repeat`, c.`private`
+        $sql = "SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, c.`title`, 
+                    c.`desc`, c.`created_by`, cat.`name` AS category, c.`repeat`, c.`private`,
+                    c.`invite`
                 FROM `fcms_calendar` AS c, `fcms_category` AS cat 
                 WHERE c.`id` = '$id' 
                     AND c.`category` = cat.`id` 
                 LIMIT 1";
-        $this->db->query($sql) or displaySQLError(
-            'Date Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Event Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
         $row = $this->db->get_row();
 
         $times = $this->getTimesList();
+        $date  = $locale->formatDate(T_('F j, Y'), $row['date']);
+        $title = cleanOutput($row['title']);
+
+        $time = '';
+        $cat  = '';
+        $desc = '';
+
         list($year, $month, $day) = explode('-', $row['date']);
 
-        $date = $locale->formatDate(T_('F j, Y'), $row['date']);
-        if ($row['repeat'] == 'yearly') {
+        if ($row['repeat'] == 'yearly')
+        {
+            $date = $locale->formatDate(T_('F j'), $row['date']);
             $date = sprintf(T_('Every year on %s'), $date);
         }
 
-        $time = '';
-        if (isset($times[$row['time_start']])) {
-            if ($row['time_start'] == $row['time_end']) {
+
+        // handle time
+        if (isset($times[$row['time_start']]))
+        {
+            // one moment in time
+            if ($row['time_start'] == $row['time_end'])
+            {
                 $time = '<br/>' . sprintf(T_('beginning at %s'), $times[$row['time_start']]);
-            } else {
+            }
+            // start and end
+            else
+            {
                 $time = '<br/>' . sprintf(T_('between %s and %s'), $times[$row['time_start']], $times[$row['time_end']]);
             }
         }
 
-        $title = cleanOutput($row['title']);
-
-        $cat = '';
-        if (!empty($row['category'])) {
-            $cat = ' <i>(' . $row['category'] . ')</i>';
+        if (!empty($row['category']))
+        {
+            $cat = ' <h2>' . $row['category'] . '</h2>';
         }
 
-        $desc = '';
-        if (!empty($row['desc'])) {
+        if (!empty($row['desc']))
+        {
             $desc = '<br/>' . cleanOutput($row['desc']);
+        }
+
+        // host/created by
+        $hostOrCreatedTitle = T_('Created By');
+        if ($row['invite'] == 1)
+        {
+            $hostOrCreatedTitle = T_('Host');
+        }
+
+        $edit = '';
+        if (checkAccess($this->currentUserId) == 1 || $row['created_by'] == $this->currentUserId)
+        {
+            $edit = '<span><a href="?edit='.$id.'" class="edit_event">'.T_('Edit').'</a></span>';
         }
 
         // Display the form
         echo '
-            <form id="frm" method="post" action="calendar.php">
-                <fieldset>
-                    <legend><span>' . T_('Event') . '</span></legend>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="title"><b>' . T_('What') . '</b></label></div>
-                        <div class="field-widget">
-                            <b>' . $title . '</b>' . $cat . $desc . '
-                        </div>
-                    </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="sday"><b>'.T_('When').'</b></label></div>
-                        <div class="field-widget">
-                            <b>' . $date . '</b> ' . $time . '
-                        </div>
-                    </div>
-                    <p style="text-align: right">
-                        <a href="calendar.php?year=' . $year . '&amp;month=' . $month . '&amp;day=' . $day . '">' 
-                            . T_('Back to Calendar') . 
-                        '</a>
+            <p id="back">
+                <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Back to Calendar').'</a>
+            </p>
+            <div id="event_details">
+                '.$edit.'
+                <h1>'.$title.'</h1>
+                '.$cat.'
+                <p id="desc">'.$desc.'</p>
+                <div id="when">
+                    <h3>'.T_('When').'</h3>
+                    <p><b>'.$date.'</b> '.$time.'</p>
+                    <h3>'.$hostOrCreatedTitle.'</h3>
+                    <p>'.getUserDisplayName($row['created_by']).'</p>
+                </div>
+            </div>';
+
+        // Show invitation stuff
+        if ($row['invite'] == 1)
+        {
+            $this->displayInvitationDetails($id);
+        }
+    }
+
+    /**
+     * displayInvitationDetails 
+     * 
+     * @param int $id 
+     * 
+     * @return void
+     */
+    function displayInvitationDetails ($id)
+    {
+        $locale = new FCMS_Locale();
+
+        // Get info on who's coming
+        $sql = "SELECT `id`, `user`, `email`, `attending`, `response`, `updated`
+                FROM `fcms_invitation`
+                WHERE `event_id` = '$id'
+                ORDER BY `updated` DESC";
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySQLError('Attending Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            exit();
+        }
+
+        $yesCount        = 0;
+        $noCount         = 0;
+        $maybeCount      = 0;
+        $undecidedCount  = 0;
+        $comingYes       = '';
+        $comingNo        = '';
+        $comingMaybe     = '';
+        $comingUndecided = '';
+        $responses       = array();
+        $usersLkup       = array();
+
+        while ($r = mysql_fetch_array($result))
+        {
+            $usersLkup[$r['user']] = array(
+                'attending' => $r['attending'],
+                'id'        => $r['id']
+            );
+
+            $img = '';
+
+            $displayname = cleanOutput($r['email']);
+            if ($r['user'] != 0)
+            {
+                $displayname = getUserDisplayName($r['user'], 2);
+            }
+
+            if ($r['attending'] === NULL)
+            {
+                $undecidedCount++;
+                $comingUndecided .= "<p>$displayname</p>";
+            }
+            elseif ($r['attending'] == 0)
+            {
+                $noCount++;
+                $img = '<img class="avatar" src="themes/images/attend_no.png" alt="'.T_('No').'"/>';
+                $comingNo .= "<p>$displayname</p>";
+            }
+            elseif ($r['attending'] == 1)
+            {
+                $yesCount++;
+                $img = '<img class="avatar" src="themes/images/attend_yes.png" alt="'.T_('Yes').'"/>';
+                $comingYes .= "<p>$displayname</p>";
+            }
+            elseif ($r['attending'] > 1)
+            {
+                $maybeCount++;
+                $img = '<img class="avatar" src="themes/images/attend_maybe.png" alt="'.T_('Maybe').'"/>';
+                $comingMaybe .= "<p>$displayname</p>";
+            }
+
+            $responses[] = array(
+                'user'        => $r['user'],
+                'updated'     => $r['updated'],
+                'displayname' => $displayname,
+                'response'    => $r['response'],
+                'attending'   => $r['attending'],
+                'img'         => $img
+            );
+        }
+
+        if (isset($usersLkup[$this->currentUserId]) && $usersLkup[$this->currentUserId]['attending'] === NULL)
+        {
+            echo '
+            <form action="calendar.php?event='.$id.'" method="post">
+                <h1 id="attending_header">'.T_('Are you attending?').'</h1>
+                <ul id="attending" class="clearfix">
+                    <li>
+                        <label for="yes">
+                            <img src="themes/images/attend_yes.png"/><br/>
+                            <b>'.T_('Yes').'</b>
+                        </label>
+                        <input type="radio" id="yes" name="attending" value="1"/>
+                    </li>
+                    <li>
+                        <label for="maybe">
+                            <img src="themes/images/attend_maybe.png"/><br/>
+                            <b>'.T_('Maybe').'</b>
+                        </label>
+                        <input type="radio" id="maybe" name="attending" value="2"/>
+                    </li>
+                    <li>
+                        <label for="no">
+                            <img src="themes/images/attend_no.png"/><br/>
+                            <b>'.T_('No').'</b>
+                        </label>
+                        <input type="radio" id="no" name="attending" value="0"/>
+                    </li>
+                    <li class="submit">
+                        <textarea id="response" name="response" cols="50" rows="10"></textarea>
+                        <input type="hidden" id="id" name="id" value="'.$usersLkup[$this->currentUserId]['id'].'"/>
+                        <input type="submit" id="attend_submit" name="attend_submit" value="'.T_('Submit').'"/>
+                    </li>
+                </ul>
+            </form>';
+        }
+
+        echo '
+            <div id="leftcolumn">
+                <div id="whos_coming">
+                    <h3>'.T_('Who\'s Coming').'</h3>
+                    <h3 class="coming"><span class="ok"></span>'.T_('Yes').' <i>'.$yesCount.'</i></h3>
+                    <div class="coming_details">'.$comingYes.'</div>
+                    <h3 class="coming"><span class="maybe"></span>'.T_('Maybe').' <i>'.$maybeCount.'</i></h3>
+                    <div class="coming_details">'.$comingMaybe.'</div>
+                    <h3 class="coming"><span class="no"></span>'.T_('No').' <i>'.$noCount.'</i></h3>
+                    <div class="coming_details">'.$comingNo.'</div>
+                    <h3 class="coming">'.T_('Undecided').' <i>'.$undecidedCount.'</i></h3>
+                    <div class="coming_details">'.$comingUndecided.'</div>
+                </div>
+            </div>
+
+            <div id="maincolumn">';
+
+        foreach ($responses as $response)
+        {
+            if (isset($response['attending']))
+            {
+                $updated = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $response['updated']);
+
+                echo '
+                <div class="comment_block clearfix">
+                    '.$response['img'].'
+                    <b>'.$response['displayname'].'</b> <i>'.$updated.'</i>
+                    <p>
+                        '.cleanOutput($response['response']).'
                     </p>
-                </form>
-            </fieldset>';
+                </div>';
+            }
+        }
+
+        echo '
+            </div>';
     }
 
     /**
      * displayCategoryForm 
      * 
-     * Displays the Form to add a new category.
+     * Displays the form to add or edit a category.
+     * If no id is given, we are adding a new category.
      * 
      * @param int $id 
+     * 
      * @return void
      */
     function displayCategoryForm ($id = 0)
@@ -1159,26 +1422,30 @@ class Calendar
         $blue   = '';
         $indigo = '';
         $violet = '';
-        $url    = '';
+        $url    = '?category=add';
+        $title  = T_('Add New Category');
 
-        $title = T_('Add New Category');
-
-        if ($id > 0) {
+        // Edit
+        if ($id > 0)
+        {
             $sql = "SELECT `name`, `color` 
                     FROM `fcms_category` 
                     WHERE `id` = '$id' 
                     LIMIT 1";
             $this->db->query($sql) or displaySQLError(
-                'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                'Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
             $row = $this->db->get_row();
+
             $title = T_('Edit Category');
-            $url = '&amp;id='.$id;
-            $name = $row['name'];
+            $url   = '?category=edit&amp;id='.$id;
+            $name  = $row['name'];
+
             ${$row['color']} = 'checked="checked"';
         }
+
         echo '
-            <form method="post" action="calendar.php?category=add'.$url.'">
+            <form method="post" action="'.$url.'">
                 <fieldset>
                     <legend><span>'.$title.'</span></legend>
                     <div class="field-row clearfix">
@@ -1245,7 +1512,7 @@ class Calendar
                 FROM `fcms_calendar` AS c, `fcms_users` AS u 
                 WHERE c.`created_by` = u.`id";
         $this->db->query($sql) or displaySQLError(
-            'Calendar Entries Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Calendar Entries Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         if ($this->db->count_rows() > 0) {
             while ($r = $this->db->get_row()) {
@@ -1359,7 +1626,7 @@ class Calendar
             }
             $sql .= ")";
             $this->db->query($sql) or displaySQLError(
-                'Import Entries Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                'Import Entries Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
         }
     }
@@ -1396,10 +1663,10 @@ class Calendar
      */
     function displayWhatsNewCalendar ()
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
-        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
 
         $sql = "SELECT * 
                 FROM `fcms_calendar` 
@@ -1407,7 +1674,7 @@ class Calendar
                 AND `private` < 1 
                 ORDER BY `date_added` DESC LIMIT 0, 5";
         $this->db->query($sql) or displaySQLError(
-            'What\'s New Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'What\'s New Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
 
         if ($this->db->count_rows() > 0) {
@@ -1419,12 +1686,12 @@ class Calendar
             while ($r = $this->db->get_row()) {
                 $title = $r['title'];
                 $displayname = getUserDisplayName($r['created_by']);
-                $date = $locale->fixDate('YmdHis', $this->tz_offset, $r['date_added']);
+                $date = $locale->fixDate('YmdHis', $this->tzOffset, $r['date_added']);
                 if ($date >= $today_start && $date <= $today_end) {
                     $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date_added']);
+                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date_added']);
                     $d = '';
                 }
                 list($year, $month, $day) = explode('-', date('Y-m-d', strtotime($r['date'])));
@@ -1455,7 +1722,7 @@ class Calendar
                 WHERE `type` = 'calendar'
                 AND `name` != ''";
         $this->db->query($sql) or displaySQLError(
-            'Categories Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Categories Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $cats = array();
         if ($this->db->count_rows() > 0) {
@@ -1480,7 +1747,7 @@ class Calendar
                 WHERE `type` = 'calendar'
                 AND `name` != ''";
         $this->db->query($sql) or displaySQLError(
-            'Categories Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Categories Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $ret = '';
         if ($this->db->count_rows() > 0) {
@@ -1516,7 +1783,7 @@ class Calendar
                 foreach($timeEvents[$hour] AS $event) {
                     echo '
                         <div class="event">' .
-                            '<a class="' . $event['color'] . '" href="?edit=' . $event['id'] . '">' . 
+                            '<a class="' . $event['color'] . '" href="?event=' . $event['id'] . '">' . 
                                 '<i>' . $t[$event['time_start']] . ' - ' . $t[$event['time_end']] . '</i>' .
                                 $event['title'] . 
                                 '<span>' . $event['desc'] . '</span>' .
@@ -1526,7 +1793,7 @@ class Calendar
             } else {
                 echo '
                         <div class="event">' .
-                            '<a class="' . $timeEvents[$hour]['color'] . '" href="?edit=' . $timeEvents[$hour]['id'] . '">' . 
+                            '<a class="' . $timeEvents[$hour]['color'] . '" href="?event=' . $timeEvents[$hour]['id'] . '">' . 
                                 '<i>' . $t[$timeEvents[$hour]['time_start']] . '</i>' .
                                 $timeEvents[$hour]['title'] . 
                                 '<span>' . $timeEvents[$hour]['desc'] . '</span>' .

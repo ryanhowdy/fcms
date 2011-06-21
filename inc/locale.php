@@ -1,7 +1,7 @@
 <?php
 include_once('util_inc.php');
 
-class Locale
+class FCMS_Locale
 {
     var $day;
     var $day_initial;
@@ -10,7 +10,7 @@ class Locale
     var $month_abbr;
     var $meridiem;
 
-    function Locale ()
+    function FCMS_Locale ()
     {
         $this->day[0] = T_('Sunday');
         $this->day[1] = T_('Monday');
@@ -109,17 +109,24 @@ class Locale
      *
      * Used to output all date/time info.  Fixes timezone, dst and translation.
      *
-     * @param      $dateFormat     a string of the format of the date/time, PHP date
-     * @param      $tzOffset       the timezone offset from the current user
-     * @param      $date           the date to fix
+     * @param string $dateFormat a string of the format of the date/time, PHP date
+     * @param string $tzOffset   the timezone offset from the current user
+     * @param date   $date       the date to fix
+     * @param int    $userid     optional, user id to get dst/tz from
+     *
      * @return     a fixed date as a string
      */
-    function fixDate ($dateFormat, $tzOffset = '', $date = '')
+    function fixDate ($dateFormat, $tzOffset = '', $date = '', $userid = '')
     {
         $fixedDate = $date;
 
+        if ($userid == '')
+        {
+            $userid = cleanInput($_SESSION['login_id'], 'int');
+        }
+
         // GET DST
-        $sql = "SELECT `dst` FROM `fcms_user_settings` WHERE `user` = ".escape_string($_SESSION['login_id']);
+        $sql = "SELECT `dst` FROM `fcms_user_settings` WHERE `user` = '$userid'";
         $result = mysql_query($sql) or displaySQLError(
             'DST Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -157,10 +164,10 @@ class Locale
         $month_abbr = $this->getMonthAbbr($m);
         $day = $this->getDayName($d);
         $day_abbr = $this->getDayAbbr($d);
-        $dateFormat = preg_replace( "/([^\\\])D/", "\\1" . $this->addBackSlashes($day_abbr), $dateFormat);
-        $dateFormat = preg_replace( "/([^\\\])F/", "\\1" . $this->addBackSlashes($month), $dateFormat);
-        $dateFormat = preg_replace( "/([^\\\])l/", "\\1" . $this->addBackSlashes($day), $dateFormat);
-        $dateFormat = preg_replace( "/([^\\\])M/", "\\1" . $this->addBackSlashes($month_abbr), $dateFormat);
+        $dateFormat = preg_replace( "/(?<!\\\)D/", $this->addBackSlashes($day_abbr), $dateFormat);
+        $dateFormat = preg_replace( "/(?<!\\\)F/", $this->addBackSlashes($month), $dateFormat);
+        $dateFormat = preg_replace( "/(?<!\\\)l/", $this->addBackSlashes($day), $dateFormat);
+        $dateFormat = preg_replace( "/(?<!\\\)M/", $this->addBackSlashes($month_abbr), $dateFormat);
 
         // Format date with translated data
         $fixedDate = date($dateFormat, strtotime($date));

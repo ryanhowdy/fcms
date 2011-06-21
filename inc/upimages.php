@@ -1,12 +1,15 @@
 <?php
 session_start();
-include_once('config_inc.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once 'config_inc.php';
+include_once 'util_inc.php';
+include_once 'image_class.php';
+include_once 'locale.php';
 
 // Check that the user is logged in
 isLoggedIn();
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
+
+$img = new Image($currentUserId);
 
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -44,19 +47,54 @@ function insertUpImage(str) {
 </script>
 </head>
 <body>';
+
+// Delete image
 if (isset($_POST['delimg'])) {
     if (checkAccess($currentUserId) < 2) {
-        unlink("../gallery/upimages/" . basename($_POST['img']));
+        unlink("../uploads/upimages/" . basename($_POST['img']));
         echo "<p class=\"ok-alert\">".sprintf(T_('%s was Deleted Successfully'), $_POST['img'])."</p>";
     } else {
         echo "<p class=\"error-alert\">".T_('You do not have access to delete this image.')."</p>";
     }
 }
-if (isset($_POST['upload'])) {
-    if ($_FILES['upfile']['name']) {
-        uploadImages($_FILES['upfile']['type'], $_FILES['upfile']['name'], $_FILES['upfile']['tmp_name'], "../gallery/upimages/", 600, 400);
+
+// Upload image
+if (isset($_POST['upload']))
+{
+    $img->destination   = '../uploads/upimages/';
+
+    $img->upload($_FILES['upfile']);
+
+    if ($img->error == 1)
+    {
+        echo '
+    <p class="error-alert">
+        '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->img->name).'
+    </p>';
     }
-} else {
+
+    $img->resize(600, 400);
+
+    if ($img->error > 0)
+    {
+        echo '
+    <p class="error-alert">
+        '.T_('There was an error uploading your avatar.').'
+    </p>';
+    }
+    else
+    {
+        echo '
+    <p>
+        <b>'.T_('Click to insert image into message.').'</b><br/>
+        <a href="#" onclick="insertUpImage(\'[IMG=uploads/upimages/'.$img->name.']\')" 
+            title="'.T_('Click to insert image into message.').'"><img src="'.$img->destination.$img->name.'"/></a>
+    </p>';
+    }
+}
+// Show form
+else
+{
     echo '
     <h2>'.T_('Upload Image').'</h2>
     <form enctype="multipart/form-data" action="upimages.php" method="post">
@@ -70,7 +108,7 @@ echo '
     <h2>'.T_('Uploaded Images').'</h2>
     <table>';
 
-$img_dir = opendir("../gallery/upimages");
+$img_dir = opendir("../uploads/upimages");
 while ($file = readdir($img_dir)) {
     if ($file !== 'index.htm') {
         $images_in_dir[] = $file;
@@ -90,18 +128,18 @@ foreach ($images_in_dir as $file) {
     $img_name_arr = explode(".", $file);
     $img_type = end($img_name_arr);
 
-    $this_size =  filesize("../gallery/upimages/" . $file);
+    $this_size =  filesize("../uploads/upimages/" . $file);
     $total_size += $this_size;
-    $img_info = getimagesize("../gallery/upimages/" . $file);
+    $img_info = getimagesize("../uploads/upimages/" . $file);
     $win_w = $img_info[0] + 50;
     $win_h = $img_info[1] + 50;
 
     $i++;
     echo '
         <tr'; if ($i % 2 != 0) { echo 'class="alt"'; } echo '>
-            <td class="v"><button class="viewbtn" onclick="window.open(\'../gallery/upimages/'.basename($file).'\',\'file\',
+            <td class="v"><button class="viewbtn" onclick="window.open(\'../uploads/upimages/'.basename($file).'\',\'file\',
                 \'width='.$win_w.',height='.$win_h.',resizable=no,location=no,menubar=no,status=no\'); return false;"/></td>
-            <td class="file"><a href="#" onclick="insertUpImage(\'[IMG=gallery/upimages/'.basename($file).']\')" title="'.T_('Insert Image into Message').'">'.$file.'</a></td>
+            <td class="file"><a href="#" onclick="insertUpImage(\'[IMG=uploads/upimages/'.basename($file).']\')" title="'.T_('Click to insert image into message.').'">'.$file.'</a></td>
             <td>';
 
     if (checkAccess($currentUserId) < 2) {

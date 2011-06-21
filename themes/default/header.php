@@ -6,8 +6,20 @@
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>themes/favicon.ico"/>
 <link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>themes/default/style.css"/>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/prototype.js"></script>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/fcms.js"></script>
+<!--[if IE 5.5]>
+<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>themes/default/ie55.css"/>
+<![endif]-->
+<!--[if IE 6]>
+<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>themes/default/ie6.css"/>
+<![endif]-->
+<!--[if IE 7]>
+<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>themes/default/ie7.css"/>
+<![endif]-->
+<!--[if IE 8]>
+<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>themes/default/ie8.css"/>
+<![endif]-->
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/js/prototype.js"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/js/fcms.js<?php echo '?'.time();?>"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
 </head>
 <body id="top">
@@ -15,7 +27,7 @@
     <div id="header">
         <div id="logo">
             <a href="<?php echo $TMPL['path']; ?>index.php">
-                <img src="<?php echo $TMPL['path']; ?>themes/default/images/logo.jpg" alt="<?php echo $TMPL['sitename'];?>"/>
+                <img src="<?php echo $TMPL['path']; ?>themes/images/logo.gif" alt="<?php echo $TMPL['sitename'];?>"/>
             </a>
         </div>
         <p>

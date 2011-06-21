@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+define('URL_PREFIX', '../');
+
 include_once('../inc/config_inc.php');
 include_once('../inc/util_inc.php');
 
@@ -82,16 +84,18 @@ mysql_query($sql) or displaySQLError(
 foreach ($file_param_name AS $file) {
 
     // Create new member directory if needed
-    if (!file_exists("photos/member$currentUserId")) {
-        mkdir("photos/member$currentUserId");
+    if (!file_exists("../uploads/photos/member$currentUserId")) {
+        mkdir("../uploads/photos/member$currentUserId");
     }
 
     if ($file == 'small') {
-        $dest_path = "photos/member$currentUserId/tb_$filename";
+        $dest_path = "../uploads/photos/member$currentUserId/tb_$filename";
+    } elseif ($file == 'full' && isset($_POST['full-sized-photos'])) {
+        $dest_path = "../uploads/photos/member$currentUserId/full_$filename";
     } elseif ($file == 'full' && isset($_POST['full-sized-photos'])) {
         $dest_path = "photos/member$currentUserId/full_$filename";
     } else {
-        $dest_path = "photos/member$currentUserId/$filename";
+        $dest_path = "../uploads/photos/member$currentUserId/$filename";
     }
 
     if (move_uploaded_file($_FILES[$file]['tmp_name'], $dest_path)) {

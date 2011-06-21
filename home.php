@@ -13,6 +13,8 @@ if (!isset($_SESSION)) {
     session_start();
 }
 
+define('URL_PREFIX', '');
+
 require_once 'inc/config_inc.php';
 require_once 'inc/util_inc.php';
 require_once 'inc/locale.php';
@@ -30,32 +32,23 @@ $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 // Update activity
 mysql_query("UPDATE `fcms_users` SET `activity`=NOW() WHERE `id` = '$currentUserId'");
 
-$locale     = new Locale();
-$calendar   = new Calendar($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$poll       = new Poll($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$database   = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$alert      = new Alerts($currentUserId, $database);
+$locale   = new FCMS_Locale();
+$calendar = new Calendar($currentUserId);
+$poll     = new Poll($currentUserId);
+$alert    = new Alerts($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Home'),
-    'path'          => "",
-    'admin_path'    => "admin/",
+    'pagetitle'     => T_pgettext('The beginning or starting place.', 'Home'),
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
 $TMPL['javascript'] = '
-<script type="text/javascript" src="inc/tablesort.js"></script>
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
-    initLatestInfoHighlight();
-});
-//]]>
-</script>';
+<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
 $theme = getTheme($currentUserId);
@@ -67,30 +60,18 @@ echo '
             <div id="leftcolumn">
                 <h2 class="calmenu">'.T_('Calendar').'</h2>';
 
-// Use the supplied date, if available
-if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day'])) {
-    $year  = cleanInput($_GET['year'], 'int');
-    $month = cleanInput($_GET['month'], 'int');
-    $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-    $day   = cleanInput($_GET['day'], 'int');
-    $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
-// get today's date
-} else {
-    $year  = $locale->fixDate('Y', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
-    $month = $locale->fixDate('m', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
-    $day   = $locale->fixDate('d', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
-}
+$year  = $locale->fixDate('Y', $calendar->tzOffset, gmdate('Y-m-d H:i:s'));
+$month = $locale->fixDate('m', $calendar->tzOffset, gmdate('Y-m-d H:i:s'));
+$day   = $locale->fixDate('d', $calendar->tzOffset, gmdate('Y-m-d H:i:s'));
 
 // Display Small Calendar
 $calendar->displaySmallCalendar($month, $year, $day);
 
+echo '
+                <h3>'.T_('Upcoming').'</h3>';
+
 // Display This months events
 $calendar->displayMonthEvents($month, $year);
-
-// Display next months events
-$currentMonth = gmdate('Y-m-d H:i:s', gmmktime(gmdate('h'), gmdate('i'), gmdate('s'), $month+1, 1, $year));
-$nextMonth    = $locale->fixDate('m', $calendar->tz_offset, $currentMonth);
-$calendar->displayMonthEvents($nextMonth, $year);
 
 // TODO
 // Create a function canDisplayPoll() for this
@@ -105,13 +86,17 @@ if (   (!isset($_POST['vote']) || !isset($_POST['option_id']))
 ) {
     $poll->displayPoll('0', false);
 }
+
 echo '
                 <h2 class="membermenu">'.T_('Members Online').'</h2>
                 <div class="membermenu">';
+
 displayMembersOnline();
+
 echo '
                 </div>
             </div>
+
 
             <div id="maincolumn">';
 $showWhatsNew = true;
@@ -196,23 +181,22 @@ if ($showWhatsNew) {
 
     // Last 5 by category
     } else {
-        require_once 'inc/messageboard_class.php';
-        require_once 'inc/addressbook_class.php';
-        require_once 'inc/familynews_class.php';
-        require_once 'inc/gallery_class.php';
-        require_once 'inc/prayers_class.php';
-        require_once 'inc/recipes_class.php';
-        require_once 'inc/documents_class.php';
-        require_once 'inc/database_class.php';
+        require_once INC.'messageboard_class.php';
+        require_once INC.'addressbook_class.php';
+        require_once INC.'familynews_class.php';
+        require_once INC.'gallery_class.php';
+        require_once INC.'prayers_class.php';
+        require_once INC.'recipes_class.php';
+        require_once INC.'documents_class.php';
 
-        $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $mboard = new MessageBoard($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $book = new AddressBook($currentUserId, $database);
-        $news = new FamilyNews($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $gallery = new PhotoGallery($currentUserId, $database);
-        $prayers = new Prayers($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $recs = new Recipes($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $docs = new Documents($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $mboard  = new MessageBoard($currentUserId);
+        $book    = new AddressBook($currentUserId);
+        $news    = new FamilyNews($currentUserId);
+        $gallery = new PhotoGallery($currentUserId);
+        $prayers = new Prayers($currentUserId);
+        $recs    = new Recipes($currentUserId);
+        $docs    = new Documents($currentUserId);
+
         echo '
                 <div class="half">';
         $mboard->displayWhatsNewMessageBoard();
@@ -233,8 +217,10 @@ if ($showWhatsNew) {
         echo '
                     <h3>'.T_('Comments').'</h3>
                     <ul>';
+
         $sql_comments = '';
-        if (usingFamilyNews()) {
+        if (usingFamilyNews())
+        {
             $sql_comments = "SELECT n.`user` AS 'id', n.`id` as 'id2', `comment`, "
                              . "nc.`date`, nc.`user`, 'NEWS' AS 'check' "
                           . "FROM `fcms_news_comments` AS nc, `fcms_news` AS n, "
@@ -243,6 +229,14 @@ if ($showWhatsNew) {
                           . "AND nc.`user` = u.`id` "
                           . "AND n.`id` = nc.`news` "
                           . "UNION ";
+        }
+        if (usingRecipes())
+        {
+            $sql_comments .= "SELECT r.`id`, r.`category` AS id2, `comment`, rc.`date`, rc.`user`, 'RECIPE' AS 'check' 
+                              FROM `fcms_recipe_comment` AS rc, `fcms_recipes` AS r
+                              WHERE rc.`date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                              AND rc.`recipe` = r.`id` 
+                              UNION ";
         }
         $sql_comments .= "SELECT `filename` AS 'id', p.`id` as 'id2', `comment`, "
                           . "gc.`date`, gc.`user`, `category` AS 'check' "
@@ -254,14 +248,20 @@ if ($showWhatsNew) {
                        . "ORDER BY `date` DESC LIMIT 5";
         $result = mysql_query($sql_comments);
 
+        if (!$result)
+        {
+            displaySQLError('Comments Error', __FILE__.' ['.__LINE__.']', $sql_comments, mysql_error());
+            return;
+        }
+
         // Display Latest Comments
         if (mysql_num_rows($result) > 0) {
 
-            $today_start = $locale->fixDate('Ymd', $mboard->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-            $today_end = $locale->fixDate('Ymd', $mboard->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+            $today_start = $locale->fixDate('Ymd', $mboard->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
+            $today_end = $locale->fixDate('Ymd', $mboard->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
 
             while ($com = mysql_fetch_array($result)) {
-                $date = $locale->fixDate('YmdHis', $mboard->tz_offset, $com['date']);
+                $date = $locale->fixDate('YmdHis', $mboard->tzOffset, $com['date']);
                 $comment = $com['comment'];
                 if (strlen($comment) > 30) {
                     $comment = substr($comment, 0, 27) . "...";
@@ -270,13 +270,21 @@ if ($showWhatsNew) {
                     $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $mboard->tz_offset, $com['date']);
+                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $mboard->tzOffset, $com['date']);
                     $d = '';
                 }
-                if ($com['check'] !== 'NEWS') {
-                    $url = 'gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$com['id2'];
-                } else {
+
+                if ($com['check'] == 'NEWS')
+                {
                     $url = 'familynews.php?getnews='.$com['id'].'&amp;newsid='.$com['id2'];
+                }
+                elseif ($com['check'] == 'RECIPE')
+                {
+                    $url = 'recipes.php?category='.$com['id2'].'&amp;id='.$com['id'];
+                }
+                else
+                {
+                    $url = 'gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$com['id2'];
                 }
                 $user = cleanOutput($com['user']);
                 $userName = getUserDisplayName($com['user']);

@@ -15,33 +15,25 @@ class Documents {
 
     var $db;
     var $db2;
-    var $tz_offset;
+    var $tzOffset;
     var $currentUserId;
 
     /**
      * Documents 
      * 
      * @param  int      $currentUserId 
-     * @param  string   $type 
-     * @param  string   $host 
-     * @param  string   $database 
-     * @param  string   $user 
-     * @param  string   $pass 
+     *
      * @return void
      */
-    function Documents ($currentUserId, $type, $host, $database, $user, $pass)
+    function Documents ($currentUserId)
     {
-        $this->currentUserId = $currentUserId;
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $this->db2 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
+        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
     /**
@@ -52,7 +44,7 @@ class Documents {
      */
     function showDocuments ($page = 1)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
         $from = (($page * 25) - 25); 
         $sql = "SELECT `id`, `name`, `description`, `user`, `date` 
                 FROM `fcms_documents` AS d 
@@ -63,7 +55,7 @@ class Documents {
         );
         if ($this->db->count_rows() > 0) {
             echo '
-            <script type="text/javascript" src="inc/tablesort.js"></script>
+            <script type="text/javascript" src="inc/js/tablesort.js"></script>
             <table id="docs" class="sortable">
                 <thead>
                     <tr>
@@ -76,7 +68,7 @@ class Documents {
                 <tbody>';
 
             while ($r = $this->db->get_row()) {
-                $date = $locale->fixDate(T_('m/d/Y h:ia'), $this->tz_offset, $r['date']);
+                $date = $locale->fixDate(T_('m/d/Y h:ia'), $this->tzOffset, $r['date']);
                 echo '
                     <tr>
                         <td>
@@ -169,25 +161,47 @@ class Documents {
     function uploadDocument ($file, $filename)
     {
         $valid_docs = array(
-            'application/msword'            => 'doc', 
-            'text/plain'                    => 'txt', 
-            'application/excel'             => 'xsl', 
-            'application/vnd.ms-excel'      => 'xsl', 
-            'application/x-msexcel'         => 'xsl', 
-            'application/x-compressed'      => 'zip', 
-            'application/x-zip-compressed'  => 'zip', 
-            'application/x-zip'             => 'zip', 
-            'application/zip'               => 'zip', 
-            'multipart/x-zip'               => 'zip', 
-            'application/rtf'               => 'rtf', 
-            'application/x-rtf'             => 'rtf', 
-            'text/richtext'                 => 'rtf', 
-            'application/mspowerpoint'      => 'ppt', 
-            'application/powerpoint'        => 'ppt', 
-            'application/vnd.ms-powerpoint' => 'ppt', 
-            'application/x-mspowerpoint'    => 'ppt', 
-            'application/x-excel'           => 'xsl', 
-            'application/pdf'               => 'pdf'
+            'application/msword'                                                        => 'doc',
+            'application/msword'                                                        => 'dot',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'   => 'docx',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.template'   => 'dotx',
+
+            'application/excel'                                                         => 'xls', 
+            'application/x-excel'                                                       => 'xls', 
+            'application/x-msexcel'                                                     => 'xls', 
+            'application/vnd.ms-excel'                                                  => 'xls',
+            'application/vnd.ms-excel'                                                  => 'xlt',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'         => 'xlsx',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.template'      => 'xltx',
+
+            'application/mspowerpoint'                                                  => 'ppt', 
+            'application/powerpoint'                                                    => 'ppt', 
+            'application/x-mspowerpoint'                                                => 'ppt', 
+            'application/vnd.ms-powerpoint'                                             => 'ppt',
+            'application/vnd.ms-powerpoint'                                             => 'pot',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'pptx',
+            'application/vnd.openxmlformats-officedocument.presentationml.template'     => 'potx',
+
+            'application/msaccess'                                                      => 'accdb',
+
+            'application/vnd.oasis.opendocument.presentation'                           => 'odp',
+            'application/vnd.oasis.opendocument.spreadsheet'                            => 'ods',
+            'application/vnd.oasis.opendocument.text'                                   => 'odt',
+
+            'text/plain'                                                                => 'txt', 
+            'text/css'                                                                  => 'css', 
+
+            'application/rtf'                                                           => 'rtf', 
+            'application/x-rtf'                                                         => 'rtf', 
+            'text/richtext'                                                             => 'rtf', 
+
+            'application/pdf'                                                           => 'pdf',
+
+            'application/x-compressed'                                                  => 'zip', 
+            'application/x-zip-compressed'                                              => 'zip', 
+            'application/x-zip'                                                         => 'zip', 
+            'application/zip'                                                           => 'zip', 
+            'multipart/x-zip'                                                           => 'zip'
         );
         $filetmpname = $file['tmp_name'];
         $filetype = $file['type'];
@@ -221,7 +235,7 @@ class Documents {
         $filename = basename($filename); // just the filename, no paths
 
         // Check if a file with that name exists already
-        if (file_exists("gallery/documents/$filename")) {
+        if (file_exists("uploads/documents/$filename")) {
             echo '
             <p class="error-alert">
                 '.sprintf(T_('Document %s already exists!  Please change the filename and try again.'), $filename).'
@@ -230,7 +244,7 @@ class Documents {
         }
 
         // Upload the file
-        copy($filetmpname, "gallery/documents/$filename");
+        copy($filetmpname, "uploads/documents/$filename");
         return true;
     }
 
@@ -241,9 +255,9 @@ class Documents {
      */
     function displayWhatsNewDocuments ()
     {
-        $locale = new Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+        $locale = new FCMS_Locale();
+        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
 
         $sql = "SELECT * 
                 FROM `fcms_documents` 
@@ -260,12 +274,12 @@ class Documents {
             while ($r = $this->db->get_row()) {
                 $document = cleanOutput($r['name']);
                 $displayname = getUserDisplayName($r['user']);
-                $date = $locale->fixDate('YmdHis', $this->tz_offset, $r['date']);
+                $date = $locale->fixDate('YmdHis', $this->tzOffset, $r['date']);
                 if ($date >= $today_start && $date <= $today_end) {
                     $date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
+                    $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
                     $d = '';
                 }
                 echo '

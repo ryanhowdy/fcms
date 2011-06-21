@@ -15,30 +15,23 @@ class Members
 
     var $currentUserId;
     var $db;
-    var $tz_offset;
+    var $tzOffset;
 
     /**
      * Members 
      * 
      * @param int    $id 
-     * @param object $database 
      * 
      * @return  void
      */
-    function Members ($id, $database)
+    function Members ($id)
     {
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
         $this->currentUserId = cleanInput($id, 'int');
-
-        $this->db = $database;
-
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '".$this->currentUserId."'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
     /**
@@ -50,7 +43,7 @@ class Members
      */
     function displayAll ($order)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $validOrderTypes = array(
             'alphabetical'  => 'ORDER BY u.`fname`',
@@ -126,12 +119,12 @@ class Members
             } elseif ($order == 'activity') {
                 $display = '';
                 if ($row['activity'] != '0000-00-00 00:00:00') {
-                    $display = $locale->fixDate(T_('M. j, Y'), $this->tz_offset, $row['activity']);
+                    $display = $locale->fixDate(T_('M. j, Y'), $this->tzOffset, $row['activity']);
                 }
 
             // Joined
             } elseif ($order == 'joined') {
-                $display = $locale->fixDate(T_('M. j, Y'), $this->tz_offset, $row['joindate']);
+                $display = $locale->fixDate(T_('M. j, Y'), $this->tzOffset, $row['joindate']);
             }
 
             // Display members

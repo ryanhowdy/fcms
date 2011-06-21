@@ -13,36 +13,27 @@ include_once('locale.php');
  */
 class Recipes
 {
-
     var $db;
     var $db2;
-    var $tz_offset;
+    var $tzOffset;
     var $currentUserId;
 
     /**
      * Recipes 
      * 
      * @param   int     $currentUserId 
-     * @param   string  $type 
-     * @param   string  $host 
-     * @param   string  $database 
-     * @param   string  $user 
-     * @param   string  $pass 
+     *
      * @return  void
      */
-    function Recipes ($currentUserId, $type, $host, $database, $user, $pass)
+    function Recipes ($currentUserId)
     {
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
         $this->currentUserId = cleanInput($currentUserId, 'int');
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $this->db2 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
     /**
@@ -56,7 +47,7 @@ class Recipes
      */
     function showRecipes ($page = 1)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
         $page = cleanInput($page, 'int');
         $from = (($page * 5) - 5);
 
@@ -82,7 +73,6 @@ class Recipes
             </div>';
             return;
         }
-
 
         echo '
             <div id="maincolumn">';
@@ -139,7 +129,7 @@ class Recipes
      */
     function showRecipeInCategory ($cat, $page = 1)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $cat  = cleanInput($cat, 'int');
         $page = cleanInput($page, 'int');
@@ -247,7 +237,7 @@ class Recipes
      */
     function showRecipe ($cat, $id)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $cat = cleanInput($cat, 'int');
         $id  = cleanInput($id, 'int');
@@ -296,7 +286,7 @@ class Recipes
 
         $displayname = getUserDisplayName($r['user']);
         $displayname = '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>';
-        $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tz_offset, $r['date']);
+        $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $r['date']);
 
         $cleanName          = cleanOutput($r['name']);
         $cleanCategory      = cleanOutput($r['category'], 'int');
@@ -307,7 +297,7 @@ class Recipes
         // Display Recipe
         echo '
             <div id="maincolumn">
-                <div class="recipe-thumbnail"><img src="gallery/upimages/'.$cleanThumb.'"/></div>
+                <div class="recipe-thumbnail"><img src="uploads/upimages/'.$cleanThumb.'"/></div>
                 <h4 class="recipe-name">' . $cleanName . '</h4>
                 <span class="date">
                     '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date);
@@ -360,8 +350,7 @@ class Recipes
         $categories = $this->getCategoryList();
 
         echo '
-            <script type="text/javascript" src="inc/livevalidation.js"></script>
-            <script type="text/javascript" src="inc/messageboard.inc.js"></script>
+            <script type="text/javascript" src="inc/js/livevalidation.js"></script>
             <form method="post" id="addform" name="addform" enctype="multipart/form-data" action="recipes.php">
                 <fieldset>
                     <legend><span>'.T_('Add Recipe').'</span></legend>
@@ -437,7 +426,6 @@ class Recipes
 
         echo '
             <script type="text/javascript" src="inc/livevalidation.js"></script>
-            <script type="text/javascript" src="inc/messageboard.inc.js"></script>
             <form method="post" id="editform" name="editform" action="recipes.php">
                 <fieldset>
                     <legend><span>'.T_('Edit Recipe').'</span></legend>
@@ -543,9 +531,9 @@ class Recipes
      */
     function displayWhatsNewRecipes ()
     {
-        $locale = new Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = $locale->fixDate('Ymd', $this->tz_offset, gmdate('Y-m-d H:i:s')) . '235959';
+        $locale = new FCMS_Locale();
+        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
 
         $sql = "SELECT *
                 FROM `fcms_recipes`
@@ -567,13 +555,13 @@ class Recipes
 
                 $url = 'recipes.php?category='.(int)$r['category'].'&amp;id='.(int)$r['id'];
 
-                $date = $locale->fixDate('YmdHis', $this->tz_offset, $r['date']);
+                $date = $locale->fixDate('YmdHis', $this->tzOffset, $r['date']);
 
                 if ($date >= $today_start && $date <= $today_end) {
                     $full_date = T_('Today');
                     $d = ' class="today"';
                 } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $r['date']);
+                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
                     $d = '';
                 }
                 echo '
@@ -615,7 +603,6 @@ class Recipes
             return false;
         }
 
-
         $categories = array();
         $counts     = array();
 
@@ -639,7 +626,18 @@ class Recipes
         }
 
         echo '
-                </ul>
+                </ul>';
+
+        if (checkAccess($this->currentUserId) <= 2)
+        {
+            echo '<br/>
+                <h3>' . T_('Admin Options') . '</h3>
+                <ul class="menu">
+                    <li><a href="?categoryedit=1">'.T_('Edit Categories').'</a></li>
+                </ul>';
+        }
+
+        echo '
             </div>';
 
         return true;
@@ -656,7 +654,7 @@ class Recipes
      */
     function showComments ($id, $category)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
 
         $id       = cleanInput($id, 'int');
         $category = cleanInput($category, 'int');
@@ -675,7 +673,7 @@ class Recipes
             while ($r = $this->db->get_row()) {
 
                 $del_comment = '';
-                $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tz_offset, $r['date']);
+                $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
                 $displayname = getUserDisplayName($r['user']);
                 $comment = $r['comment'];
                 if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2) {
@@ -715,4 +713,60 @@ class Recipes
             <p>&nbsp;</p>';
     }
 
-} ?>
+    /**
+     * displayEditCategoryForm 
+     * 
+     * @return void
+     */
+    function displayEditCategoryForm ()
+    {
+        $categories = $this->getCategoryList();
+
+        echo '
+            <div id="sections_menu" class="clearfix">
+                <ul>
+                    <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>
+                </ul>
+            </div>
+            <script type="text/javascript" src="inc/livevalidation.js"></script>
+            <form method="post" id="editcategories" name="editcategories" action="recipes.php">
+                <table class="sortable">
+                    <thead>
+                        <tr>
+                            <th>'.T_('ID').'</th>
+                            <th>'.T_('Category').'</th>
+                            <th>'.T_('Delete').'</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+
+        foreach ($categories as $id => $category)
+        {
+            echo '
+                        <tr>
+                            <td>'.$id.'</td>
+                            <td>
+                                <input type="text" name="category[]" id="category_'.$id.'" value="'.$category.'" size="50"/>
+                                <input type="hidden" name="id[]" id="id_'.$id.'" value="'.$id.'"/>
+                                <script type="text/javascript">
+                                    var fcat'.$id.' = new LiveValidation(\'category_'.$id.'\', { onlyOnSubmit: true });
+                                    fcat'.$id.'.add(Validate.Presence, {failureMessage: ""});
+                                </script>
+                            </td>
+                            <td>
+                                <input type="checkbox" name="delete[]" id="delete[]" value="'.$id.'"/>
+                            </td>
+                        </tr>';
+        }
+
+        echo '
+                    </tbody>
+                </table>
+                <p>
+                    <input class="sub1" type="submit" id="submit_cat_edit" name="submit_cat_edit" value="' . T_('Save Changes') . '"/> &nbsp;
+                    <a href="recipes.php">' . T_('Cancel') . '</a>
+                </p>
+            </form>';
+    }
+
+}

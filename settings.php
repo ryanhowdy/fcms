@@ -1,241 +1,950 @@
 <?php
+/**
+ * AddressBook 
+ * 
+ * PHP versions 4 and 5
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
-include 'inc/settings_class.php';
+define('URL_PREFIX', '');
+
+require_once 'inc/config_inc.php';
+require_once 'inc/util_inc.php';
+require_once 'inc/settings_class.php';
+require_once 'inc/foursquare/EpiCurl.php';
+require_once 'inc/foursquare/EpiFoursquare.php';
 
 fixMagicQuotes();
 
 // Check that the user is logged in
 isLoggedIn();
-$currentUserId = (int)escape_string($_SESSION['login_id']);
 
-$settings = new Settings($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+// Globals
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$settingsObj   = new Settings($currentUserId);
 
-// Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Settings'),
-    'path'          => "",
-    'admin_path'    => "admin/",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
-$TMPL['javascript'] = <<<HTML
-<link rel="stylesheet" type="text/css" href="themes/datechooser.css"/>
-<script type="text/javascript" src="inc/datechooser.js"></script>
+
+
+control();
+exit();
+
+
+/**
+ * control 
+ * 
+ * The controlling structure for this script.
+ * 
+ * @return void
+ */
+function control ()
+{
+    global $currentUserId;
+
+    if (checkAccess($currentUserId) == 11)
+    {
+        displayInvalidAccessLevel();
+        return;
+    }
+    // Saving changes
+    elseif (isset($_POST['submit']))
+    {
+        if ($_GET['view'] == 'account')
+        {
+            displayEditAccountSubmit();
+        }
+        elseif ($_GET['view'] == 'settings')
+        {
+            displayEditSettingsSubmit();
+        }
+        elseif ($_GET['view'] == 'notifications')
+        {
+            displayEditNotificationsSubmit();
+        }
+        elseif ($_GET['view'] == 'familynews')
+        {
+            displayEditFamilyNewsSubmit();
+        }
+        elseif ($_GET['view'] == 'messageboard')
+        {
+            displayEditMessageBoardSubmit();
+        }
+        elseif ($_GET['view'] == 'whereiseveryone')
+        {
+            displayEditWhereIsEveryoneSubmit();
+        }
+    }
+    // Theme
+    elseif (isset($_GET['use']) && $_GET['view'] == 'theme')
+    {
+        displayEditThemeSubmit();
+    }
+    elseif (isset($_GET['delete']) && $_GET['view'] == 'theme' && !isset($_GET['confirmed']))
+    {
+        displayDeleteThemeConfirmation();
+    }
+    elseif (isset($_POST['delconfirm']) || (isset($_GET['delete']) && isset($_GET['confirmed'])))
+    {
+        displayDeleteThemeSubmit();
+    }
+    // Save Foursquare access token
+    elseif (isset($_GET['code']))
+    {
+        displayFoursquareSubmit();
+    }
+    // Import
+    elseif (isset($_GET['import']) && isset($_GET['view']))
+    {
+        displayImportBlogPosts();
+    }
+    // Edit
+    elseif (isset($_GET['view']))
+    {
+        if ($_GET['view'] == 'account')
+        {
+            displayEditAccount();
+        }
+        elseif ($_GET['view'] == 'theme')
+        {
+            displayEditTheme();
+        }
+        elseif ($_GET['view'] == 'settings')
+        {
+            displayEditSettings();
+        }
+        elseif ($_GET['view'] == 'notifications')
+        {
+            displayEditNotifications();
+        }
+        elseif ($_GET['view'] == 'familynews')
+        {
+            displayEditFamilyNews();
+        }
+        elseif ($_GET['view'] == 'messageboard')
+        {
+            displayEditMessageBoard();
+        }
+        elseif ($_GET['view'] == 'whereiseveryone')
+        {
+            displayEditWhereIsEveryone();
+        }
+        else
+        {
+            displayEditAccount();
+        }
+    }
+    else
+    {
+        displayEditAccount();
+    }
+}
+
+/**
+ * displayHeader 
+ * 
+ * Displays the header of the page, including the leftcolumn navigation.
+ * 
+ * @param string $js Allows you to overwrite the javascript that is included in the header.
+ * 
+ * @return void
+ */
+function displayHeader ($js = '')
+{
+    global $currentUserId, $TMPL;
+
+    $TMPL['javascript'] = $js;
+
+    // Default js
+    if ($js == '')
+    {
+        $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[ 
-window.onload = WindowLoad;
-function WindowLoad() {
-    initGravatar();
-    var objDatePicker = new DateChooser();
-    objDatePicker.setUpdateField({'sday':'j', 'smonth':'n', 'syear':'Y'});
-    objDatePicker.setIcon('themes/default/images/datepicker.jpg', 'syear'); 
-    return true;
-}
+Event.observe(window, \'load\', function() {
+    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initAdvancedTagging();
+});
 //]]>
-</script>
-HTML;
+</script>';
+    }
 
-// Show Header
-include_once(getTheme($currentUserId) . 'header.php');
+    include_once getTheme($currentUserId).'header.php';
 
-echo '
+    echo '
         <div id="settings" class="centercontent">
 
             <div id="leftcolumn">
+                <h3>'.T_('General Settings').'</h3>
                 <ul class="menu">
+                    <li><a href="?view=account">'.T_('Account').'</a></li>
+                    <li><a href="?view=theme">'.T_('Theme').'</a></li>
                     <li><a href="?view=settings">'.T_('Settings').'</a></li>
-                    <li><a href="?view=board">'.T_('Message Board').'</a></li>
-                    <li><a href="?view=personal">'.T_('Personal Info').'</a></li>
-                    <li><a href="?view=password">'.T_('Password').'</a></li>
+                    <li><a href="?view=notifications">'.T_('Notifications').'</a></li>
+                </ul>
+                <h3>'.T_('Section Settings').'</h3>
+                <ul class="menu">
+                    <li><a href="?view=familynews">'.T_('Family News').'</a></li>
+                    <li><a href="?view=messageboard">'.T_('Message Board').'</a></li>';
+
+    if (usingWhereIsEveryone())
+    {
+        echo '
+                    <li><a href="?view=whereiseveryone">'.T_('Where Is Everyone').'</a></li>';
+    }
+
+    echo '
                 </ul>
             </div>
 
             <div id="maincolumn">';
+}
 
-$emailstart = $settings->currentUserEmail;
+/**
+ * displayFooter 
+ * 
+ * @return void
+ */
+function displayFooter()
+{
+    global $currentUserId, $TMPL;
 
-if (isset($_POST['submit'])) {
+    echo '
+            </div>
+            <div style="clear:both"></div>
+        </div><!-- #settings .centercontent -->';
 
-    //-----------------------------------------------
-    // Update `fcms_users`
-    //-----------------------------------------------
-    $sql = "UPDATE `fcms_users` SET ";
-    // Settings
-    if (isset($_POST['settings'])) {
-        // Avatar uploads
-        if ($_POST['avatar_type'] == 'fcms') {
-            if ($_FILES['avatar']['error'] < 1) {
-                $upfile = uploadImages(
-                    $_FILES['avatar']['type'], $_FILES['avatar']['name'], 
-                    $_FILES['avatar']['tmp_name'], "gallery/avatar/", 80, 80, true, false, true
-                );
-                $sql .= "`avatar` = '$upfile', ";
-                if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar') {
-                    unlink("gallery/avatar/" . basename($_POST['avatar_orig']));
-                }
-            } else {
-                $sql .= "`avatar` = `avatar`, ";
-            }
-        // Avatar Gravatar
-        } else if ($_POST['avatar_type'] == 'gravatar') {
-            $sql .= "`avatar` = 'gravatar', `gravatar` = '".cleanInput($_POST['gravatar_email'])."', ";
-            if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar') {
-                unlink("gallery/avatar/" . basename($_POST['avatar_orig']));
-            }
-        // Avatar default
-        } else {
-            $sql .= "`avatar` = 'no_avatar.jpg', ";
+    include_once getTheme($currentUserId).'footer.php';
+}
+
+/**
+ * displayEditAccount 
+ * 
+ * @return void
+ */
+function displayEditAccount ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+    $settingsObj->displayAccountInformation();
+    displayFooter();
+
+    return;
+}
+
+/**
+ * displayEditAccountSubmit 
+ * 
+ * @return void
+ */
+function displayEditAccountSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    $emailstart = $settingsObj->currentUserEmail;
+
+    // Check email
+    if ($_POST['email'] != $emailstart)
+    {
+        $sql2 = "SELECT `email` FROM `fcms_users` 
+                 WHERE email='".cleanInput($_POST['email'])."'";
+
+        $result = mysql_query($sql2);
+        if (!$result)
+        {
+            displayHeader();
+            displaySQLError('Email Error', ___FILE___.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            return;
         }
-    }
-    // Personal Info
-    if (isset($_POST['personal'])) {
-        if ($_POST['fname']) {
-            $sql .= "`fname` = '" . cleanInput($_POST['fname']) . "', ";
-        }
-        if ($_POST['lname']) {
-            $sql .= "`lname` = '" . cleanInput($_POST['lname']) . "', ";
-        }
-        if ($_POST['email']) { 
-            if ($_POST['email'] != $emailstart) {
-                $sql2 = "SELECT `email` FROM `fcms_users` 
-                         WHERE email='" . cleanInput($_POST['email']) . "'";
-                $result = mysql_query($sql2) or displaySQLError(
-                    'Email Check Error', ___FILE___ . ' [' . __LINE__ . ']', 
-                    $sql, mysql_error()
-                );
-                $email_check = mysql_num_rows($result);
-                if ($email_check > 0) { 
-                    echo '
+
+        $email_check = mysql_num_rows($result);
+
+        if ($email_check > 0)
+        {
+            displayHeader();
+            echo '
             <p class="error-alert">
                 '.sprintf(T_('The email address %s is already in use.  Please choose a different email.'), $_POST['email']).'
             </p>';
-                    $settings->displayForm();
-                    exit();
-                }
-                $sql .= "`email` = '" . cleanInput($_POST['email']) . "', ";
-            }
+
+            $settingsObj->displayAccountInformation();
+            displayFooter();
+            return;
         }
-        if ($_POST['sex']) {
-            $sql .= "`sex` = '" . cleanInput($_POST['sex']) . "', ";
-        }
-        $year   = cleanInput($_POST['syear'], 'int');
-        $month  = cleanInput($_POST['smonth'], 'int'); 
-        $month  = str_pad($month, 2, "0", STR_PAD_LEFT);
-        $day    = cleanInput($_POST['sday'], 'int');
-        $day    = str_pad($day, 2, "0", STR_PAD_LEFT);
-        $birthday = "$year-$month-$day";
-        $sql .= "birthday = '$birthday', ";
     }
-    // Password
-    if (isset($_POST['password'])) {
+
+    $sql = "UPDATE `fcms_users` SET ";
+
+    if (isset($_POST['pass']))
+    {
         $orig_pass = $_SESSION['login_pw'];
-        if (!empty($_POST['pass'])) {
-            $sql .= "password = '" . md5($_POST['pass']) . "', ";
+        if (!empty($_POST['pass']))
+        {
+            $sql .= "password = '".md5($_POST['pass'])."', ";
             $_SESSION['login_pw'] = md5($_POST['pass']);
         }
     }
-    // Only update user if there's somethign to update
-    if (!empty($_POST['pass']) || isset($_POST['syear']) || isset($_POST['theme'])) {
-        $sql = substr($sql, 0, -2); // remove the extra comma space at the end
-        $sql .= "WHERE id = '$currentUserId'";
-        mysql_query($sql) or displaySQLError(
-            'Update User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+
+    $sql .= "`email` = '".cleanInput($_POST['email'])."'
+            WHERE id = '$currentUserId'";
+    if (!mysql_query($sql))
+    {
+        displayHeader();
+        displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
     }
 
-    //-----------------------------------------------
-    // Update `fcms_user_settings`
-    //-----------------------------------------------
-    $sql = "UPDATE `fcms_user_settings` SET ";
-    // Settings
-    if (isset($_POST['settings'])) {
-        if ($_POST['theme']) {
-            $sql .= "`theme` = '" . basename($_POST['theme']) . "', ";
-        }
-        if ($_POST['displayname']) {
-            $sql .= "`displayname` = '" . cleanInput($_POST['displayname']) . "', ";
-        }
-        if ($_POST['frontpage']) {
-            $sql .= "`frontpage` = '" . cleanInput($_POST['frontpage']) . "', ";
-        }
-        if ($_POST['email_updates']) {
-            if ($_POST['email_updates'] == 'yes') {
-                $sql .= "`email_updates` = '1', ";
-            } else {
-                $sql .= "`email_updates` = '0', ";
-            }
-        }
-        if ($_POST['advanced_upload']) {
-            if ($_POST['advanced_upload'] == 'yes') {
-                $sql .= "`advanced_upload` = '1', ";
-            } else {
-                $sql .= "`advanced_upload` = '0', ";
-            }
-        }
-        if ($_POST['language']) {
-            $lang = cleanInput($_POST['language']);
-            $sql .= "`language` = '" . $lang . "', ";
-            $_SESSION['language'] = $lang;
-            T_setlocale(LC_MESSAGES, $lang);
-        }
-        if ($_POST['timezone']) {
-            $sql .= "`timezone` = '" . cleanInput($_POST['timezone']) . "', ";
-        }
-        if ($_POST['dst']) {
-            if ($_POST['dst'] == 'on') {
-                $sql .= "`dst` = '1', ";
-            } else {
-                $sql .= "`dst` = '0', ";
-            }
-        }
-    }
-    // Message Board
-    if (isset($_POST['board'])) {
-        if ($_POST['boardsort']) {
-            $sql .= "`boardsort` = '" . cleanInput($_POST['boardsort']) . "', ";
-        }
-        if ($_POST['showavatar']) {
-            if ($_POST['showavatar'] == 'yes') {
-                $sql .= "`showavatar` = '1', ";
-            } else {
-                $sql .= "`showavatar` = '0', ";
-            }
-        }
-    }
-    // Only update user if there's something to update
-    if (isset($_POST['settings']) || isset($_POST['board'])) {
-        $sql = substr($sql, 0, -2); // remove the extra comma space at the end
-        $sql .= " WHERE `user` = '$currentUserId'";
-        mysql_query($sql) or displaySQLError(
-            'Update Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-    }
-    if (isset($orig_pass)) {
+    if (isset($orig_pass))
+    {
         echo '
-            <div class="ok-alert">
-                <p>'.T_('Your Settings were Updated Successfully.').'</p>
-                <p><a href="logout.php">'.T_('You must now logout and login again to complete your changes.').'</a></p>
-            </div>
-            <meta http-equiv=\'refresh\' content=\'5;URL=logout.php\'>';
-    } else {
-        echo '
-            <p class="ok-alert">'.T_('Changes Updated Successfully').'</p>
-            <p><a href="settings.php">'.T_('Continue').'</a></p>';
+<html>
+<head>
+<title>'.T_('Password Change').'</title>
+<style>
+html { font: 12px/18px Verdana, Arial, sans-serif; background-color: #fff; color: #333; text-align: center; }
+body { width: 500px; margin: 50px auto; }
+div { padding: 30px; background-color: #cff0cc; -moz-border-radius: 10px; -webkit-border-radius: 10px; border-radius: 10px; }
+h1 { font: bold 20px/28px Verdana, Arial, sans-serif; }
+a { font: bold 14px/20px Verdana, Arial, sans-serif; background-color: #aae4a5; color: #333; text-decoration: none; padding: 5px 15px; -moz-border-radius: 10px; -webkit-border-radius: 10px; border-radius: 10px; }
+a:hover { background-color: #6cd163; }
+</style>
+</head>
+<body>
+    <div class="ok-alert">
+        <h1>'.T_('To complete your changes, you must logout and log back in again.').'</h1><br/>
+        <a href="logout.php">'.T_('Logout').'</a><br/>
+        <p>'.T_('You will be automatically logged out in 10 seconds.').'</a></p>
+    </div>
+    <meta http-equiv=\'refresh\' content=\'10;URL=logout.php\'>
+</body>
+</html>';
+
+        return;
     }
-} else {
-    $option = isset($_GET['view']) ? cleanInput($_GET['view']) : 'settings';
-    $settings->displayForm($option);
+
+    displayHeader();
+    displayOkMessage();
+    $settingsObj->displayAccountInformation();
+    displayFooter();
 }
 
-echo '
-            </div>
-        </div><!-- #settings .centercontent -->';
+/**
+ * displayEditTheme 
+ * 
+ * @return void
+ */
+function displayEditTheme ()
+{
+    global $currentUserId, $settingsObj;
 
-// Show Footer
-include_once(getTheme($currentUserId) . 'footer.php');
+    $js = '
+<script type="text/javascript">
+Event.observe(window, \'load\', function() {
+    deleteConfirmationLinks("del_theme", "'.T_('Are you sure you want to DELETE this theme?').'");
+});
+</script>';
+
+    displayHeader($js);
+    $settingsObj->displayTheme();
+    displayFooter();
+
+    return;
+}
+
+/**
+ * displayEditThemeSubmit 
+ * 
+ * Changes the theme.
+ * 
+ * @return void
+ */
+function displayEditThemeSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    $theme = basename($_GET['use']);
+
+    $sql = "UPDATE `fcms_user_settings`
+            SET `theme` = '$theme'
+            WHERE `user` = '$currentUserId'";
+    if (!mysql_query($sql))
+    {
+        displayHeader();
+        displaySQLError('Update Theme Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    displayHeader();
+    displayOkMessage();
+
+    $settingsObj->displayTheme();
+
+    displayFooter();
+}
+
+/**
+ * displayDeleteThemeSubmit 
+ * 
+ * @return void
+ */
+function displayDeleteThemeSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+
+    $theme = basename($_GET['delete']);
+
+    if (!file_exists("themes/$theme"))
+    {
+        echo '
+                <p class="error-alert">'.sprintf(T_('Theme [%s] not found.'), $theme).'</p>';
+        $settingsObj->displayTheme();
+        displayFooter();
+        return;
+    }
+
+    if (!is_dir("themes/$theme"))
+    {
+        echo '
+                <p class="error-alert">'.sprintf(T_('[%s] is not a directory.'), $theme).'</p>';
+        $settingsObj->displayTheme();
+        displayFooter();
+        return;
+    }
+
+    if (!deleteDirectory("themes/$theme"))
+    {
+        echo '
+                <p class="error-alert">'.sprintf(T_('Could not delete theme [%s].'), $theme).'</p>';
+        $settingsObj->displayTheme();
+        displayFooter();
+        return;
+    }
+
+    displayOkMessage();
+    $settingsObj->displayTheme();
+    displayFooter();
+}
+
+/**
+ * displayEditSettings 
+ * 
+ * @return void
+ */
+function displayEditSettings ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+    $settingsObj->displaySettings();
+    displayFooter();
+
+    return;
+}
+
+/**
+ * displayEditSettingsSubmit 
+ * 
+ * @return void
+ */
+function displayEditSettingsSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+
+    $sql = "UPDATE `fcms_user_settings` SET ";
+
+    if ($_POST['advanced_upload'])
+    {
+        if ($_POST['advanced_upload'] == 'yes')
+        {
+            $sql .= "`advanced_upload` = '1', ";
+        }
+        else
+        {
+            $sql .= "`advanced_upload` = '0', ";
+        }
+    }
+    if ($_POST['advanced_tagging'])
+    {
+        if ($_POST['advanced_tagging'] == 'yes')
+        {
+            $sql .= "`advanced_tagging` = '1', ";
+        }
+        else
+        {
+            $sql .= "`advanced_tagging` = '0', ";
+        }
+    }
+    if ($_POST['language'])
+    {
+        $sql .= "`language` = '".cleanInput($_POST['language'])."', ";
+    }
+    if ($_POST['timezone'])
+    {
+        $sql .= "`timezone` = '".cleanInput($_POST['timezone'])."', ";
+    }
+    if ($_POST['dst'])
+    {
+        if ($_POST['dst'] == 'on')
+        {
+            $sql .= "`dst` = '1', ";
+        }
+        else
+        {
+            $sql .= "`dst` = '0', ";
+        }
+    }
+    if ($_POST['displayname'])
+    {
+        $sql .= "`displayname` = '".cleanInput($_POST['displayname'], 'int')."', ";
+    }
+    if ($_POST['frontpage'])
+    {
+        $sql .= "`frontpage` = '".cleanInput($_POST['frontpage'])."', ";
+    }
+
+    $sql  = substr($sql, 0, -2); // remove the extra comma space at the end
+    $sql .= " WHERE `user` = '$currentUserId'";
+
+    if (strlen($sql) > 50)
+    {
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            return;
+        }
+
+        displayOkMessage();
+    }
+
+    $settingsObj->displaySettings();
+    displayFooter();
+}
+
+/**
+ * displayEditNotifications 
+ * 
+ * @return void
+ */
+function displayEditNotifications ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+    $settingsObj->displayNotifications();
+    displayFooter();
+
+    return;
+}
+
+/**
+ * displayEditNotificationsSubmit 
+ * 
+ * @return void
+ */
+function displayEditNotificationsSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+
+    if ($_POST['email_updates'])
+    {
+        if ($_POST['email_updates'] == 'yes')
+        {
+            $email_updates = '1';
+        }
+        else
+        {
+            $email_updates = '0';
+        }
+        $sql = "UPDATE `fcms_user_settings`
+                SET `email_updates` = '$email_updates'
+                WHERE `user` = '$currentUserId'";
+
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            return;
+        }
+
+        displayOkMessage();
+    }
+
+    $settingsObj->displayNotifications();
+    displayFooter();
+}
+
+/**
+ * displayEditFamilyNews 
+ * 
+ * @return void
+ */
+function displayEditFamilyNews ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+    $settingsObj->displayFamilyNews();
+    displayFooter();
+
+    return;
+}
+
+/**
+ * displayEditFamilyNewsSubmit 
+ * 
+ * @return void
+ */
+function displayEditFamilyNewsSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+
+    $blogger   = isset($_POST['blogger'])   ? cleanInput($_POST['blogger'])   : '';
+    $tumblr    = isset($_POST['tumblr'])    ? cleanInput($_POST['tumblr'])    : '';
+    $wordpress = isset($_POST['wordpress']) ? cleanInput($_POST['wordpress']) : '';
+    $posterous = isset($_POST['posterous']) ? cleanInput($_POST['posterous']) : '';
+
+    $sql = "UPDATE `fcms_user_settings`
+            SET `blogger` = '$blogger',
+            `tumblr` = '$tumblr',
+            `wordpress` = '$wordpress',
+            `posterous` = '$posterous'
+            WHERE `user` = '$currentUserId'";
+
+    if (!mysql_query($sql))
+    {
+        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    displayOkMessage();
+
+    $settingsObj->displayFamilyNews();
+    displayFooter();
+}
+
+/**
+ * displayEditMessageBoard 
+ * 
+ * @return void
+ */
+function displayEditMessageBoard ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+    $settingsObj->displayMessageBoard();
+    displayFooter();
+
+    return;
+}
+
+/**
+ * displayEditMessageBoardSubmit
+ * 
+ * @return void
+ */
+function displayEditMessageBoardSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+
+    if (isset($_POST['boardsort']) && isset($_POST['showavatar']))
+    {
+        $showavatar = ($_POST['showavatar'] == 'yes') ? 1 : 0;
+        $boardsort  = cleanInput($_POST['boardsort']);
+
+        $sql = "UPDATE `fcms_user_settings`
+                SET `boardsort` = '$boardsort',
+                    `showavatar` = '$showavatar'
+                WHERE `user` = '$currentUserId'";
+
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Update MB Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            return;
+        }
+
+        displayOkMessage();
+    }
+
+    $settingsObj->displayMessageBoard();
+    displayFooter();
+}
+
+/**
+ * displayEditWhereIsEveryone 
+ * 
+ * @return void
+ */
+function displayEditWhereIsEveryone ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+    $settingsObj->displayWhereIsEveryone();
+    displayFooter();
+
+    return;
+}
+
+/**
+ * displayEditWhereIsEveryoneSubmit 
+ * 
+ * @return void
+ */
+function displayEditWhereIsEveryoneSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+
+    if (isset($_POST['id']))
+    {
+        $id = cleanInput($_POST['id'], 'int');
+
+        $sql = "UPDATE `fcms_user_settings`
+                SET `fs_user_id` = '$id'
+                WHERE `user` = '$currentUserId'";
+
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            return;
+        }
+    }
+
+    if (isset($_POST['id']) || isset($_GET['code']))
+    {
+        displayOkMessage();
+    }
+
+    $settingsObj->displayWhereIsEveryone();
+    displayFooter();
+}
+
+/**
+ * displayFoursquareSubmit 
+ * 
+ * The submit screen for saving foursquare data.
+ * 
+ * @return void
+ */
+function displayFoursquareSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+
+    $sql = "SELECT `fs_client_id`, `fs_client_secret`, `fs_callback_url`
+            FROM `fcms_config`
+            LIMIT 1";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+    if (mysql_num_rows($result) <= 0)
+    {
+        echo '
+                <p class="error-alert">'.T_('No configuration data found.').'</p>';
+        displayFooter();
+        return;
+    }
+    $r = mysql_fetch_assoc($result);
+
+    $id     = cleanOutput($r['fs_client_id']);
+    $secret = cleanOutput($r['fs_client_secret']);
+    $url    = cleanOutput($r['fs_callback_url']);
+
+    $fsObj = new EpiFoursquare($id, $secret);
+    $token = $fsObj->getAccessToken($_GET['code'], $url);
+
+    $sql = "UPDATE `fcms_user_settings`
+            SET `fs_access_token` = '".$token->access_token."'
+            WHERE `user` = '$currentUserId'";
+    if (!mysql_query($sql))
+    {
+        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    displayOkMessage(T_('Your Foursquare Account has been Linked'), 5000);
+    $settingsObj->displayWhereIsEveryone();
+    displayFooter();
+}
+
+/**
+ * displayImportBlogPosts 
+ * 
+ * @return void
+ */
+function displayImportBlogPosts ()
+{
+    global $currentUserId, $settingsObj;
+
+    displayHeader();
+
+    // setup familynew obj
+    require_once 'inc/familynews_class.php';
+    $newsObj = new FamilyNews($currentUserId);
+
+    // get external ids
+    $external_ids = $newsObj->getExternalPostIds();
+
+    // Get import blog settings
+    $sql = "SELECT `user`, `blogger`, `tumblr`, `wordpress`, `posterous`
+            FROM `fcms_user_settings`
+            WHERE `user` = '$currentUserId'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+    if (mysql_num_rows($result) <= 0)
+    {
+        echo '<div class="error-alert">'.T_('Nothing to import.').'</div>';
+        $settingsObj->displayFamilyNews();
+        displayFooter();
+        return;
+    }
+
+    $r = mysql_fetch_assoc($result);
+
+    $count = 0;
+
+    switch ($_GET['import'])
+    {
+        case 'blogger':
+            $count = $newsObj->importBloggerPosts($r['blogger'], $currentUserId, '', $external_ids);
+            if ($count === false)
+            {
+                $settingsObj->displayFamilyNews();
+                displayFooter();
+                return;
+            }
+            break;
+
+        case 'tumblr':
+            $count = $newsObj->importTumblrPosts($r['tumblr'], $currentUserId, '', $external_ids);
+            if ($count === false)
+            {
+                $settingsObj->displayFamilyNews();
+                displayFooter();
+                return;
+            }
+            break;
+
+        case 'wordpress':
+            $count = $newsObj->importWordpressPosts($r['wordpress'], $currentUserId, '', $external_ids);
+            if ($count === false)
+            {
+                $settingsObj->displayFamilyNews();
+                displayFooter();
+                return;
+            }
+            break;
+
+        case 'posterous':
+            $count = $newsObj->importPosterousPosts($r['posterous'], $currentUserId, '', $external_ids);
+            if ($count === false)
+            {
+                $settingsObj->displayFamilyNews();
+                displayFooter();
+                return;
+            }
+            break;
+    }
+
+    displayOkMessage(sprintf(T_ngettext('%d post has been imported.', '%d posts have been imported.', $count), $count));
+    $settingsObj->displayFamilyNews();
+    displayFooter();
+
+    return;
+}
+
+/**
+ * displayDeleteThemeConfirmation 
+ * 
+ * The confirmation screen that is shown when trying to delete a theme with js turned off.
+ * 
+ * @return void
+ */
+function displayDeleteThemeConfirmation ()
+{
+    $theme = basename($_GET['delete']);
+
+    displayHeader();
+
+    echo '
+                <div class="info-alert clearfix">
+                    <form action="?view=theme&amp;delete='.$theme.'&amp;confirmed=1" method="post">
+                        <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
+                        <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
+                        <div>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
+                            <a style="float:right;" href="?view=theme">'.T_('Cancel').'</a>
+                        </div>
+                    </form>
+                </div>';
+
+    displayFooter();
+}
+
+/**
+ * displayInvalidAccessLevel 
+ * 
+ * @return void
+ */
+function displayInvalidAccessLevel ()
+{
+    displayHeader();
+
+    echo '
+            <p class="error-alert">
+                <b>'.T_('You do not have access to view this page.').'</b><br/>
+                <a href="contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
+            </p>';
+
+    displayFooter();
+}
+/**
+ *  
+ */

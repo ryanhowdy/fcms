@@ -1,5 +1,8 @@
 <?php
 session_start();
+
+define('URL_PREFIX', '../');
+
 include_once('../inc/config_inc.php');
 include_once('../inc/util_inc.php');
 
@@ -15,8 +18,7 @@ $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Administration: Upgrade'),
-    'path'          => "../",
-    'admin_path'    => "",
+    'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')

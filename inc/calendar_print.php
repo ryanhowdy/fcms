@@ -7,6 +7,9 @@ include_once('calendar_class.php');
 
 // Check that the user is logged in
 isLoggedIn();
+
+T_bindtextdomain('messages', '.././language');
+
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
 $calendar = new Calendar($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
@@ -18,9 +21,11 @@ echo '
 <title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="author" content="Ryan Haudenschilt" />
-<style type="text/css">
-/* TODO
-   Move to fcms-core.css */
+<style type="text/css">';
+
+// TODO
+// Move to fcms-core.css
+echo '
 #big-calendar { width: 658px; border-collapse: collapse; }
 a { text-decoration: none; }
 h3 { text-align: center; }

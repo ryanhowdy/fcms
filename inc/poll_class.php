@@ -16,33 +16,25 @@ class Poll
 
     var $db;
     var $db2;
-    var $tz_offset;
+    var $tzOffset;
     var $currentUserId;
 
     /**
      * Poll 
      * 
      * @param   int     $currentUserId 
-     * @param   string  $type 
-     * @param   string  $host 
-     * @param   string  $database 
-     * @param   string  $user 
-     * @param   string  $pass 
+     *
      * @return  void
      */
-    function Poll ($currentUserId, $type, $host, $database, $user, $pass)
+    function Poll ($currentUserId)
     {
+        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+
         $this->currentUserId = cleanInput($currentUserId, 'int');
-        $this->db = new database($type, $host, $database, $user, $pass);
-        $this->db2 = new database($type, $host, $database, $user, $pass);
-        $sql = "SELECT `timezone` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db->get_row();
-        $this->tz_offset = $row['timezone'];
+        $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
     /**
@@ -280,7 +272,7 @@ class Poll
      */
     function displayPastPolls ($page)
     {
-        $locale = new Locale();
+        $locale = new FCMS_Locale();
         $from = (($page * 15) - 15);
         echo '
             <h2>'.T_('Past Polls').'</h3>';
@@ -303,7 +295,7 @@ class Poll
                 </thead>
                 <tbody>';
             while ($row = $this->db->get_row()) {
-                $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tz_offset, $row['started']);
+                $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $row['started']);
                 echo '
                     <tr>
                         <td><a href="?poll_id='.(int)$row['id'].'">'.cleanOutput($row['question']).'</a></td>

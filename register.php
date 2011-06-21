@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 include_once('inc/config_inc.php');
 include_once('inc/util_inc.php');
 
@@ -11,8 +13,8 @@ fixMagicQuotes();
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
-<script type="text/javascript" src="inc/prototype.js"></script>
-<script type="text/javascript" src="inc/livevalidation.js"></script>
+<script type="text/javascript" src="inc/js/prototype.js"></script>
+<script type="text/javascript" src="inc/js/livevalidation.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, 'load', function() {
@@ -53,6 +55,12 @@ function process(transport) {
 <?php
 mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 mysql_select_db($cfg_mysql_db);
+
+if (!isRegistrationOn())
+{
+    echo '<div id="column"><p class="error-alert">'.T_('Registration is closed.').'</p></div></body></html>';
+    return;
+}
 
 if (isset($_POST['submit'])) {
     $email      = cleanInput($_POST['email']);
