@@ -1,11 +1,13 @@
-Create POT File
+[Language Info]
+
+ Create POT File
 
     xgettext --files-from=list --keyword=T_ --keyword=T_ngettext:1,2 --keyword=T_pgettext:1c,2 --language=PHP --no-wrap -o messages.pot
 
-Create mo file from po
+ Create mo file from po
 
     msgfmt messages.po
 
-Create test data
+ Create test data
 
     %s/^msgid "\(.*\)"\nmsgstr ""/msgid "\1"\rmsgstr "xx\1xx"
