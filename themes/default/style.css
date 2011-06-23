@@ -3,7 +3,7 @@ Theme Name:         Default
 Description:        The default theme for Family Connections.  Fixed 980px Centered Layout
 Screen Size:        1024x768+
 FCMS Compatible:    2.4
-Updated:            June 17, 2011
+Updated:            June 23, 2011
 Author:             Ryan Haudenschilt
 ------------------------------------------------*/
 body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, form, fieldset, input, textarea, p, blockquote, th, td { margin: 0; padding: 0; }
@@ -48,7 +48,7 @@ label.radio_label { cursor: pointer; cursor: hand; }
 div.mouseover { background-color: #9ccef0; }
 fieldset { background-color: #eff0f4; border: 1px solid #ccc; color: #000; font-size: 12px; margin: 20px 100px; padding: 60px 20px 20px 20px; position: relative; }
 fieldset legend { color: #000; border-top: 1px solid #ccc; font-size: 20px; }
-legend span { display: block; padding: 20px 0 0 20px; position: absolute; }
+legend span { display: block; padding: 20px 0 0 20px; position: absolute; top: 0; }
 fieldset .field-row { clear: both; padding: 10px 0 20px 0; width: 100%; }
 fieldset .field-label { float: left; text-align: right; width: 30%; }
 fieldset .field-label b, fieldset .field-label img { padding-right: 15px; }
