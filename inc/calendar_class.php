@@ -632,7 +632,7 @@ class Calendar
                 echo '
                 <div class="events">
                     <a title="'.$title.'" href="calendar.php?event='.$row['id'].'">'.cleanOutput($row['title']).'</a><br/>
-                    '.date('M. d', strtotime($row['date'])).'
+                    '.$locale->formatDate(T_('M. d'), $row['date']).'
                 </div>';
             }
         }

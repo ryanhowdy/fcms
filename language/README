@@ -5,3 +5,7 @@ Create POT File
 Create mo file from po
 
     msgfmt messages.po
+
+Create test data
+
+    %s/^msgid "\(.*\)"\nmsgstr ""/msgid "\1"\rmsgstr "xx\1xx"

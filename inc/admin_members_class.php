@@ -26,7 +26,7 @@ class AdminMembers
 
         $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        bindtextdomain('messages', '.././language');
+        T_bindtextdomain('messages', '.././language');
     }
     
     /**
