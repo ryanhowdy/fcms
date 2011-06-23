@@ -63,8 +63,8 @@ else
             <h2>'.T_('Version Check').'</h2>';
 
         if (
-            trim(str_pad(str_replace(".", "", substr($latest_release, 18)), 4, "0")) <= 
-            trim(str_pad(str_replace(".", "", substr($current_version, 18)), 4, "0"))
+            str_pad(trim(str_replace(".", "", substr($latest_release, 18))), 4, "0") <=
+            str_pad(trim(str_replace(".", "", substr($current_version, 18))), 4, "0")
         )
         {
             $uptodate = true;
