@@ -124,7 +124,7 @@ class FamilyTree
         if ($this->db->count_rows() > 0) {
             while($row = mysql_fetch_assoc($result)) {
                 // dad
-                if (!isset($parents[0]) and $row['sex'] == 'M') {
+                if ($row['sex'] == 'M') {
                     $dad = $row['id'];
                     $tmp = array(
                         'id'        => $row['id'], 
@@ -179,7 +179,7 @@ class FamilyTree
                     // dad's parents
                     if ($row['rel_user'] == $dad) {
                         // grandpa
-                        if (!isset($dadParents[0]) and $row['sex'] == 'M') {
+                        if ($row['sex'] == 'M') {
                             $tmp = array(
                                 'id'        => $row['id'], 
                                 'fname'     => $row['fname'], 
@@ -207,7 +207,7 @@ class FamilyTree
                     // mom's parents
                     } else  {
                         // grandpa
-                        if (!isset($momParents[0]) and $row['sex'] == 'M') {
+                        if ($row['sex'] == 'M') {
                             $tmp = array(
                                 'id'        => $row['id'], 
                                 'fname'     => $row['fname'], 
@@ -530,21 +530,8 @@ class FamilyTree
         // Get list of possible users
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users` 
-                WHERE `id` != '$userid'
-                AND `id` NOT IN (
-                  SELECT `user`
-                  FROM `fcms_relationship`
-                  WHERE `rel_user` = '$userid'
-                )
-                AND `id` NOT IN (
-                  SELECT `user`
-                  FROM `fcms_relationship`
-                  WHERE `rel_user` IN (
-                    SELECT `user`
-                    FROM `fcms_relationship`
-                    WHERE `rel_user` = '$userid'
-                  )
-                )
+                WHERE `sex` = '$sex'  
+                AND `id` != $userid  
                 ORDER BY `lname`, `fname`";
 
         if (!$this->db->query($sql))
@@ -639,33 +626,13 @@ class FamilyTree
             return;
         }
 
-        //Commenting out for same sex marriage
         $sex = ($type == 'husb') ? 'M' : 'F';
 
         // Get list of available users
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users` 
-                WHERE `id` != $id
-                AND `id` NOT IN (
-                  SELECT `rel_user`
-                  FROM `fcms_relationship`
-                  WHERE `user` = '$id'
-                  AND `relationship` = 'CHIL'
-                )
-                AND `id` NOT IN (
-                  SELECT `user`
-                  FROM `fcms_relationship`
-                  WHERE `rel_user` = '$id'
-                )
-                AND `id` NOT IN (
-                  SELECT `user`
-                  FROM `fcms_relationship`
-                  WHERE `rel_user` IN (
-                    SELECT `user`
-                    FROM `fcms_relationship`
-                    WHERE `rel_user` = '$id'
-                  )
-                )
+                WHERE `sex` = '$sex'  
+                AND `id` != $id  
                 ORDER BY `lname`, `fname`";
         if (!$this->db->query($sql)) {
             displaySQLError('Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
@@ -723,20 +690,10 @@ class FamilyTree
         // -- users who are not already a child of someone
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users`
-                WHERE `id` != '$userId'
-                AND `id` NOT IN (
-                  SELECT `user` 
+                WHERE `id` NOT IN (
+                  SELECT `rel_user` 
                   FROM `fcms_relationship` 
-                  WHERE `rel_user` = '$userId'
-                )
-                AND `id` NOT IN (
-                  SELECT `user`
-                  FROM `fcms_relationship`
-                  WHERE `rel_user` IN (
-                    SELECT `user`
-                    FROM `fcms_relationship`
-                    WHERE `rel_user` = '$userId'
-                  )
+                  WHERE `relationship` = 'CHIL'
                 )
                 ORDER BY `lname`, `fname`";
         if (!$this->db->query($sql))
@@ -750,7 +707,7 @@ class FamilyTree
             echo '
         <fieldset>
             <legend><span>'.T_('Add Child').'</span></legend>
-            <p><a class="u" href="?create=user&amp;type=child&amp;id=' . $userId . '">' . T_('Add New Child') . '</a></p>
+            <p><a class="u" href="?create=user&amp;type=child&amp;id=' . $id . '">' . T_('Add New Child') . '</a></p>
         </fieldset>';
             return;
         }
