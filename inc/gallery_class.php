@@ -438,7 +438,7 @@ class PhotoGallery
 
             while ($t = $this->db->get_row())
             {
-                $tagged_mem_list .= '<li>'.getUserDisplayName($t['id']).'</li>';
+                $tagged_mem_list .= '<li><a href="?uid=0&cid='.$t['id'].'" title="Show more photos of '.getUserDisplayName($t['id'],2).'">'.getUserDisplayName($t['id']).'</a></li>';
             }
         }
 
