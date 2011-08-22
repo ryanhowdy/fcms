@@ -108,19 +108,6 @@ Event.observe(window, "load", function() {
 });
 //]]>
 </script>
-<link rel="stylesheet" type="text/css" href="themes/datechooser.css"/>
-<script type="text/javascript" src="inc/datechooser.js"></script>
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, "load", function() {
-    // Datechooser
-    var objDatePicker = new DateChooser();
-    objDatePicker.setUpdateField({"day":"j", "month":"n", "year":"Y"});
-    objDatePicker.setIcon("themes/default/images/datepicker.jpg", "year");
-    return true;
-});
-//]]>
-</script>
 </head>
 <body>';
 }
