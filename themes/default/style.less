@@ -188,25 +188,25 @@ label.radio_label {
     padding: 5px 10px;
 }
 div.mouseover { background-color: @main_light_blue; }
+fieldset { border: none; }
 fieldset {
     background-color: @main_gray;
     border: 1px solid #ccc;
     color: #000;
     font-size: 12px;
     margin: 20px 100px;
-    padding: 60px 20px 20px 20px;
+    padding: 50px 20px 20px 20px;
     position: relative;
 }
-fieldset legend {
-    color: #000;
-    border-top: 1px solid #ccc;
-    font-size: 20px;
-}
-legend span {
-    display: block;
-    padding: 20px 0 0 20px;
+fieldset legend { border-top: 1px solid #ccc; }
+fieldset legend span { 
     position: absolute;
-    top: 0;
+    left: 20px;
+    *top: 0;    /* IE6 IE7 */
+    top: 0\0/;  /* IE8 IE9 */
+    color: #000;
+    font-size: 20px;
+    margin-top: .5em;
 }
 fieldset .field-row {
     clear: both;

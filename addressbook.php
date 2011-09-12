@@ -172,6 +172,8 @@ function displayExportSubmit ()
  */
 function displayMassEmailForm ()
 {
+    global $currentUserId, $book;
+
     displayHeader();
 
     if (checkAccess($currentUserId) > 3)
@@ -253,6 +255,8 @@ function displayMassEmailSubmit ()
 {
     global $book;
 
+    displayHeader();
+
     $requiredFields = array('subject', 'email', 'name', 'msg');
 
     $missingRequired = false;
@@ -286,6 +290,7 @@ function displayMassEmailSubmit ()
     }
 
     displayOkMessage(T_('Email has been sent.'));
+    $book->displayAddressList('members');
     displayFooter();
 }
 

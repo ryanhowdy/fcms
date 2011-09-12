@@ -1,3 +1,59 @@
+ 2.4
+
+    #143 - Invite Only Registration
+    #145 - Creat JS function for delete confirmation
+    #175 - php-gettext: undefined index: messages
+    #183 - Message Board Search
+    #190 - Rename Toolbar to be more generic
+    #194 - Make displayWhatsNewXXX functions static
+    #195 - Classes should create their own DB Objects
+    #196 - Create a global displayHeader() and displayFooter()
+    #217 - Photo Upload Class
+    #220 - Photo Gallery check all/none needs made unobtrusive
+    #222 - Member Lists need to be Autocomplete fields
+    #223 - Break up My Settings into smaller sections
+    #228 - Activating members should notify that member through email
+    #229 - Separate content from member data
+    #234 - Recipes comments missing from What's New page
+    #236 - Cannot edit/delete Recipe Categories
+    #237 - Date of Death
+    #239 - Cannot uncheck the Select All box in the Address Book
+    #243 - Allow birth/death years to be older than 1900
+    #247 - Mass photo tagging
+    #251 - Family Tree members messing up Address Book
+    #252 - Create new category still not working Advanced Uploader
+    #253 - lostpw.php missing utf-8 charset
+    #254 - translations not working on register page
+    #255 - calendar only prints in english
+    #257 - lostpw.php email_headers
+    #258 - "Language" not included in .po file
+    #259 - Dates not being translated correctly.
+    #260 - Words not included in translation
+    #262 - Gender missing from Admin: Member creation
+    #264 - Event Invitations
+    #267 - Next/Previous buttons should cycle through photos
+    #268 - Show "Who is in this Photo" on photo view
+    #271 - Small Calendar Enhancements
+    #272 - Update Merge process to handle new fields
+    #273 - Fix ___ has updated his/her address.
+    #274 - Calendar event view
+    #275 - Foursquare integration (Where is Everyone)
+    #276 - Separate profile from settings
+    #277 - Import blogs to Family News
+    #279 - Family Tree enhancements
+    #281 - Implement AJAX Chat
+    #285 - Screenshot Preview for Theme Selection
+    #287 - Create a new non-editable user type
+    #288 - Constants class
+    #289 - Chat Bar
+    #291 - Navigation Configuration/Display Updates
+    #294 - Rename Locale Class
+    #296 - Category view needs to show all photos
+    #297 - Tagged member search pagination broken
+    #298 - Include members tagged in photos, in category view
+    #302 - open_basedir restriction language error
+    #305 - 'subject' Parameter HTML Injection Vulnerability
+
  2.3.2
     #231 - Advanced Uploader not working with IE
     #238 - What's New Calendar date is wrong

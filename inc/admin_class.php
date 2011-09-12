@@ -384,31 +384,54 @@ class Admin
                 $default_boardsort = $drow['Default'];
             }
         }
+
         // Themes
-        $dir = "../themes/";
+        $dir           = "../themes/";
         $theme_options = '';
-        if (is_dir($dir))    {
-            if ($dh = opendir($dir)) {
-                while (($file = readdir($dh)) !== false) {
-                    if (filetype($dir . $file) === "dir" && 
-                        $file !== "." && 
-                        $file !== ".." && 
-                        $file !== "smileys"
-                    ) {
-                        $arr[] = $file;
+
+        if (is_dir($dir))
+        {
+            if ($dh = opendir($dir))
+            {
+                while (($file = readdir($dh)) !== false)
+                {
+                    // Skip non directories
+                    if (filetype($dir . $file) !== "dir") {
+                        continue;
                     }
+                    // Skip smileys
+                    if ($file == 'smileys') {
+                        continue;
+                    }
+                    // Skip directories that start with a period
+                    if ($file[0] === '.') {
+                        continue;
+                    }
+                    // skip images dir
+                    if ($file === 'images') {
+                        continue;
+                    }
+
+                    $arr[] = $file;
                 }
+
                 closedir($dh);
                 sort($arr);
-                foreach($arr as $file) {
-                    $theme_options .= "<option value=\"$file\"";
-                    if ($default_theme == $file) {
-                        $theme_options .= " selected=\"selected\"";
+
+                foreach($arr as $file)
+                {
+                    $theme_options .= '<option value="'.$file.'"';
+
+                    if ($default_theme == $file)
+                    {
+                        $theme_options .= ' selected="selected"';
                     }
+
                     $theme_options .= ">$file</option>";
                 }
             }
         }
+
         // Show Avatars
         $avatars_options = '<input type="radio" name="showavatar" id="showavatar_yes" '
             . 'value="yes"';

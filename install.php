@@ -487,10 +487,13 @@ function displayStepFive ($error = '0')
     installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 2.4');
 
     // Setup Navigation
-    $order = 0;
+    $order  = 0;
+    $order2 = 7;
+
     $nextComOrder   = 2;
     $nextShareOrder = 4;
     $nextAdminOrder = 7;
+
     $params = array();
 
     // Family News
