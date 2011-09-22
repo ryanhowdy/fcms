@@ -1,5 +1,5 @@
 <?php
-require_once 'util_inc.php';
+require_once 'utils.php';
 require_once 'database_class.php';
 
 /**

@@ -1,15 +1,66 @@
 <?php
+/**
+ * Register
+ *  
+ * PHP versions 4 and 5
+ *  
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
+require 'fcms.php';
 
-fixMagicQuotes();
-?>
+load('facebook', 'socialmedia');
+
+control();
+exit();
+
+/**
+ * control 
+ * 
+ * The controlling structure for this page.
+ * 
+ * @return void
+ */
+function control ()
+{
+    if (!isRegistrationOn())
+    {
+        displayClosed();
+    }
+    elseif (isset($_GET['ajax'])) {
+        checkUsername();
+    }
+    elseif (isset($_GET['facebook'])) {
+        handleFacebookRegister();
+    }
+    elseif (isset($_POST['submit']))
+    {
+        displaySubmit();
+    }
+    else
+    {
+        displayForm();
+    }
+}
+
+/**
+ * displayHeader 
+ * 
+ * @return void
+ */
+function displayHeader ()
+{
+    print '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo T_('lang'); ?>" lang="<?php echo T_('lang'); ?>">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
-<title><?php T_('Register for').' '.getSiteName(); ?></title>
+<title>'.sprintf(T_pgettext('%s is the name of the website', 'Register for %s.'), getSiteName()).'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
@@ -17,168 +68,233 @@ fixMagicQuotes();
 <script type="text/javascript" src="inc/js/livevalidation.js"></script>
 <script type="text/javascript">
 //<![CDATA[
-Event.observe(window, 'load', function() {
-    var u = $('username');
+Event.observe(window, "load", function() {
+    var u = $("username");
     u.focus();
     u.onchange = function(){
         checkAvailability();
     }
 });
-var url = "inc/checkAvailability.php"; 
+var url = "register.php";
 function checkAvailability() {
     new Ajax.Request(url, {
-        method: 'get',
-        parameters: { username: $('username').value },
+        method: "get",
+        parameters: { ajax: 1, username: $("username").value },
         onSuccess: process,
-        onFailure: function() { 
-        alert("There was an error with the connection"); 
-        }
+        onFailure: function() { alert("'.T_('There was an error with the connection.').'"); }
     });
 }
 function process(transport) {
     var response = transport.responseText;
-    if (response == 'available') {
-        // do nothing
+    var u = $("username");
+    var s = document.createElement("span");
+
+    if (response == "available") {
+        s.addClassName("available");
+        s.appendChild(document.createTextNode("'.T_('Available').'"));
+        u.insert({"after":s});
+    } else if (response == "unavailable") {
+        u.addClassName("LV_invalid_field");
+        s.addClassName("LV_validation_message LV_invalid");
+        s.appendChild(document.createTextNode("'.T_('That username has already been taken.').'"));
+        u.insert({"after":s});
     } else {
-        var u = $('username');
-        var s = document.createElement('span');
-        u.addClassName('LV_invalid_field');
-        s.addClassName('LV_validation_message LV_invalid');
-        s.appendChild(document.createTextNode('That username has already been taken.'));
-        u.insert({'after':s});
+        alert("'.T_('Could not check availability of username.').'");
     }
 }
 //]]>
 </script>
 </head>
-<body>
-<?php
-mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-mysql_select_db($cfg_mysql_db);
-
-if (!isRegistrationOn())
-{
-    echo '<div id="column"><p class="error-alert">'.T_('Registration is closed.').'</p></div></body></html>';
-    return;
+<body>';
 }
 
-if (isset($_POST['submit'])) {
-    $email      = cleanInput($_POST['email']);
-    $username   = cleanInput($_POST['username']);
+/**
+ * displayFooter 
+ * 
+ * @return void
+ */
+function displayFooter ()
+{
+    echo '
+</body>
+</html>';
+}
 
-	$result = mysql_query("SELECT `email` FROM `fcms_users` WHERE `email` = '$email'"); 
-	$email_check = mysql_num_rows($result);
+/**
+ * displayClosed 
+ * 
+ * @return void
+ */
+function displayClosed ()
+{
+    displayHeader();
 
-	$result = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '$username'"); 
-	$username_check = mysql_num_rows($result);
+    echo '
+    <div id="column"><p class="error-alert">'.T_('Registration is closed.').'</p></div>';
 
-	if (
-        strlen($_POST['username']) < 1 ||
-        strlen($_POST['password']) < 1 ||
-        strlen($_POST['fname']) < 1 ||
-        strlen($_POST['lname']) < 1 ||
-        strlen($_POST['email']) < 1
-    ) {
-		displayForm('<p class="error">'.T_('You forgot to fill out a required field.').'</p>');
-	} elseif ($email_check > 0) {
-		displayForm(
-            '<p class="error">
-                '.T_('The email you have choosen is already in use.  Please choose a different email.').' 
-                <a href="lostpw.php">'.T_('If you have forgotten your password please reset it').'</a></p>'
+    displayFooter();
+    die();
+}
+
+/**
+ * displaySubmit 
+ * 
+ * @param string $params The params that have been submitted to the form.
+ * 
+ * @return void
+ */
+function displaySubmit ($params = '')
+{
+    displayHeader();
+
+    if ($params == '')
+    {
+        $formData = $_POST;
+    }
+    else
+    {
+        $formData = $params;
+    }
+
+    // Make sure they filled out all required fields
+    $required_fields = array('username', 'password', 'fname', 'lname', 'email');
+    foreach ($required_fields as $f)
+    {
+        if (strlen($formData[$f]) < 1)
+        {
+            displayHtmlForm('<p class="error">'.T_('You forgot to fill out a required field.').'</p>');
+            displayFooter();
+            return;
+        }
+    }
+
+    $email    = cleanInput($formData['email']);
+    $username = cleanInput($formData['username']);
+    $fname    = cleanInput($formData['fname']);
+    $lname    = cleanInput($formData['lname']);
+    $password = cleanInput($formData['password']);
+
+    if ($params == '')
+    {
+        $password = md5($password);
+    }
+
+    // Is email available?
+    $result      = mysql_query("SELECT `email` FROM `fcms_users` WHERE `email` = '$email'"); 
+    $email_check = mysql_num_rows($result);
+
+    if ($email_check > 0)
+    {
+        displayHtmlForm(
+            '<p class="error">'.T_('The email you have choosen is already in use.  Please choose a different email.').' <a href="lostpw.php">'.T_('If you have forgotten your password please reset it').'</a></p>'
         );
-	} elseif ($username_check > 0) {
-		displayForm(
+        displayFooter();
+        return;
+    }
+
+    // Is username availabel?
+    $result         = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '$username'"); 
+    $username_check = mysql_num_rows($result);
+
+    if ($username_check > 0)
+    {
+        displayHtmlForm(
             '<p class="error">'.T_('Sorry, but that username is already taken.  Please choose another username.').'</p>'
         );
-	} else {
-		$fname      = cleanInput($_POST['fname']);
-		$lname      = cleanInput($_POST['lname']);
-		$password   = cleanInput($_POST['password']);
-		$md5pass    = md5($password);
+        displayFooter();
+        return;
+    }
 
-		$sql = "INSERT INTO `fcms_users`
-                    (`access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`) 
-                VALUES (
-                    3, 
-                    NOW(), 
-                    '$fname', 
-                    '$lname', 
-                    '$email', 
-                    '$username', 
-                    '$md5pass'
-                )";
-		mysql_query($sql) or displaySQLError(
-            'New User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-		$lastid = mysql_insert_id();
+    $birthday = isset($formData['birthday']) ? $formData['birthday'] : '0000-00-00';
+    $sex      = isset($formData['sex'])      ? $formData['sex']      : 'M';
 
-		$sql = "INSERT INTO `fcms_user_settings`(`user`) VALUES ($lastid)";
-		mysql_query($sql) or displaySQLError(
-            'User Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+    // Create new user
+    $sql = "INSERT INTO `fcms_users`
+                (`access`, `joindate`, `fname`, `lname`, `sex`, `email`, `birthday`, `username`, `password`) 
+            VALUES (
+                3, 
+                NOW(), 
+                '$fname', 
+                '$lname', 
+                '$sex', 
+                '$email', 
+                '$birthday',
+                '$username', 
+                '$password'
+            )";
+    if (!mysql_query($sql))
+    {
+        displaySQLError('New User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
 
-		$sql = "INSERT INTO `fcms_address`(`user`, `updated`) 
-                VALUES ($lastid, NOW())";
-		mysql_query($sql) or displaySQLError(
-            'New Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $sitename = getSiteName();
-		$subject = $sitename.' '.T_('Membership');
-        // TODO
-        // Maybe we should get the timezone of the admin account
-        // and use that to format this date
-		$now = gmdate('F j, Y, g:i a');
-		$subject2 = sprintf(T_('New User Registration at %s'), $sitename);
-		$message2 = sprintf(T_('A new user has registered at %s'), $sitename).':
+    $lastid = mysql_insert_id();
 
-'.T_('Time of Registration').': '.$now.'
+    $fbAccessToken = isset($formData['accessToken']) ? $formData['accessToken'] : '';
 
-'.T_('Username').': '.$username.'
-'.T_('Name').': '.$fname.' '.$lname;
+    // Create user's settings
+    $sql = "INSERT INTO `fcms_user_settings`(`user`, `fb_access_token`)
+            VALUES ($lastid, '$fbAccessToken')";
+    if (!mysql_query($sql))
+    {
+        displaySQLError('New Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
 
-		$sql = "SELECT `auto_activate` FROM `fcms_config`";
-		$result = mysql_query($sql) or displaySQLError(
-            'Activation Check Error', __FILE__.' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-		$row = mysql_fetch_assoc($result);
-		if ($row['auto_activate'] == 1) {
-			$code = uniqid(''); //bug in some versions of php, needs some value here
-			$sql = "UPDATE `fcms_users` 
-                    SET `activate_code` = '$code' 
-                    WHERE `id` = '$lastid'";
-			mysql_query($sql) or displaySQLError(
-                'Activation Code Error', __FILE__.' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-			$message = T_('Please click the following link to activate your account').':
+    // Create user's address
+    $sql = "INSERT INTO `fcms_address`(`user`, `updated`) 
+            VALUES ($lastid, NOW())";
+    if (!mysql_query($sql))
+    {
+        displaySQLError('New Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
 
-'.getDomainAndDir().'activate.php?uid='.$lastid.'&code='.$code;
-			echo '
-            <div id="msg">
-                <h1>'.T_('Congratulations and Welcome').'</h1>
-                <p>
-                    '.sprintf(T_('You have been successfully registered at %s.'), $sitename).' 
-                    '.sprintf(T_('Your account information has been emailed to %s.'), $email).'<br/>
-                    <b>'.T_('Please remember your username and password for this site.').'</b>
-                </p>
-                <p>'.T_('Unfortunately you must activate your account before you can <a href="index.php">login</a> and begin using the site').'</p>
-            </div>';
-			mail($email, $subject, $message, getEmailHeaders());
-		} elseif ($row['auto_activate'] == 0) {
-			$message = T_('Dear').' '.escape_string($fname).' '.escape_string($lname).', 
+    // Setup some stuff for sending email
+    $sitename = getSiteName();
+    $now      = gmdate('F j, Y, g:i a'); // TODO: use admin's tz?
+    $subject  = $sitename.' '.T_('Membership');
+    $message  = '';
+
+    // Which activation method?
+    $sql = "SELECT `auto_activate`
+            FROM `fcms_config`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Activation Check Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    $row = mysql_fetch_assoc($result);
+
+    // Auto activation
+    if ($row['auto_activate'] == 1)
+    {
+        handleAutoActivation($email, $subject, $lastid, $sitename);
+    }
+    elseif ($row['auto_activate'] == 0)
+    {
+        $message = T_('Dear').' '.escape_string($fname).' '.escape_string($lname).', 
 
 '.sprintf(T_('Thank you for registering at %s'), $sitename).'
 
-'.T_('In order to login and beging using the site, your administrator must activate your account.  You will get an email when this has been done.').'
+'.T_('In order to login and begin using the site, your administrator must activate your account.  You will get an email when this has been done.').'
 
 '.T_('After your account is activated you can login using the following information').':
 '.T_('Username').': '.$username.' 
-'.T_('Password').': '.$password.' 
 
 '.T_('Thanks').',  
 '.sprintf(T_('The %s Webmaster'), $sitename).'
 
 '.T_('This is an automated response, please do not reply.');
-			echo '
+
+        echo '
             <div id="msg">
                 <h1>'.T_('Congratulations and Welcome').'</h1>
                 <p>
@@ -188,28 +304,105 @@ if (isset($_POST['submit'])) {
                 </p>
                 <p>'.T_('Unfortunately your account must be activated before you can  <a href="index.php">login</a> and begin using the site.').'</p>
             </div>';
-			mail($email, $subject, $message, getEmailHeaders());
-		}
-		mail(getContactEmail(), $subject2, $message2, getEmailHeaders());
-	}
-} else { displayForm(); } ?>
-</body>
-</html>
 
-<?php
-function displayForm ($error = '0')
+        mail($email, $subject, $message, getEmailHeaders());
+    }
+
+    // Email the admin
+    $admin_subject = sprintf(T_('New User Registration at %s'), $sitename);
+    $admin_message = sprintf(T_('A new user has registered at %s'), $sitename).':
+
+'.T_('Time of Registration').': '.$now.'
+
+'.T_('Username').': '.$username.'
+'.T_('Name').': '.$fname.' '.$lname;
+
+    mail(getContactEmail(), $admin_subject, $admin_message, getEmailHeaders());
+}
+
+/**
+ * displayForm 
+ * 
+ * @return void
+ */
+function displayForm ()
 {
-    $user   = isset($_POST['username']) ? cleanOutput($_POST['username'])   : '';
-    $first  = isset($_POST['fname'])    ? cleanOutput($_POST['fname'])      : '';
-    $last   = isset($_POST['lname'])    ? cleanOutput($_POST['lname'])      : '';
-    $email  = isset($_POST['email'])    ? cleanOutput($_POST['email'])      : '';
+    displayHeader();
+    displayHtmlForm();
+    displayFooter();
+}
+
+/**
+ * displayHtmlForm 
+ * 
+ * @param string $error Any errors from the previous form
+ * 
+ * @return void
+ */
+function displayHtmlForm ($error = '0')
+{
+    $user  = isset($_POST['username']) ? cleanOutput($_POST['username'])   : '';
+    $first = isset($_POST['fname'])    ? cleanOutput($_POST['fname'])      : '';
+    $last  = isset($_POST['lname'])    ? cleanOutput($_POST['lname'])      : '';
+    $email = isset($_POST['email'])    ? cleanOutput($_POST['email'])      : '';
+
+    $fbData = getFacebookConfigData();
+
     echo '
-	<div id="column">
+    <div id="column">
         <h1>'.T_('Register').'</h1>';
-	if ($error !== '0') {
+
+    if ($error !== '0')
+    {
         echo $error;
     }
-    echo '
+
+    // Print the facebook register button
+    if (!empty($fbData['fb_app_id']) && !empty($fbData['fb_secret']))
+    {
+        $facebook = new Facebook(array(
+            'appId'  => $fbData['fb_app_id'],
+            'secret' => $fbData['fb_secret'],
+        ));
+
+        // Check if the user is logged in and authed
+        $fbUser = $facebook->getUser();
+        if ($fbUser)
+        {
+            try
+            {
+                $fbProfile = $facebook->api('/me');
+            }
+            catch (FacebookApiException $e)
+            {
+                $fbUser = null;
+            }
+        }
+    }
+
+    if ($fbUser && !isset($_GET['normal']))
+    {
+        echo '
+        <p style="text-align:center; padding: 20px 0">
+            <a class="fbbutton" href="?facebook=1">'.T_('Register with Facebook').'</a><br/><br/><br/>
+            <small><a style="text-decoration:none" href="register.php?normal=1">'.T_('Cancel').'</a></small>
+        </p>';
+    }
+
+    if (!$fbUser)
+    {
+        $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
+
+        echo '
+        <p style="text-align:right">
+            <a class="fbbutton" href="'.$facebook->getLoginUrl($params).'">'.T_('Connect with Facebook').'</a>
+        </p>';
+    }
+
+    if (!$fbUser || isset($_GET['normal']))
+    {
+
+        echo '
         <form id="registerform" name="registerform" action="register.php" method="post">
             <div class="field-row">
                 <div class="field-label"><label for="username"><b>'.T_('Username').'</b> <span class="req">*</span></label></div>
@@ -269,5 +462,131 @@ function displayForm ($error = '0')
             </p>
             <div class="clear"></div>
         </form>
-	</div>';
-} ?>
+    </div>';
+    }
+}
+
+/**
+ * handleAutoActivation 
+ * 
+ * @param string $email    email address to send email to
+ * @param string $subject  subject of email
+ * @param int    $id       id of user being activated
+ * @param string $sitename sitename
+ * 
+ * @return void
+ */
+function handleAutoActivation ($email, $subject, $id, $sitename)
+{
+    $code = uniqid(''); //bug in some versions of php, needs some value here
+
+    $sql = "UPDATE `fcms_users` 
+            SET `activate_code` = '$code' 
+            WHERE `id` = '$id'";
+
+    if (!mysql_query($sql))
+    {
+        displaySQLError('Activation Code Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        die();
+    }
+
+    $message = T_('Please click the following link to activate your account').':
+
+'.getDomainAndDir().'activate.php?uid='.$id.'&code='.$code;
+
+        echo '
+            <div id="msg">
+                <h1>'.T_('Congratulations and Welcome').'</h1>
+                <p>
+                    '.sprintf(T_('You have been successfully registered at %s.'), $sitename).' 
+                    '.sprintf(T_('Your account information has been emailed to %s.'), $email).'<br/>
+                    <b>'.T_('Please remember your username and password for this site.').'</b>
+                </p>
+                <p>'.T_('Unfortunately you must activate your account before you can <a href="index.php">login</a> and begin using the site').'</p>
+            </div>';
+
+    mail($email, $subject, $message, getEmailHeaders());
+}
+
+/**
+ * checkUsername 
+ * 
+ * @return void
+ */
+function checkUsername ()
+{
+    $result = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '".cleanInput($_GET['username'])."'"); 
+
+    $username_check = mysql_num_rows($result);
+
+    if ($username_check > 0)
+    {
+        echo 'unavailable';
+    }
+    else
+    {
+        echo 'available';
+    }
+}
+
+/**
+ * displayFacebookRegister 
+ * 
+ * @return void
+ */
+function handleFacebookRegister ()
+{
+    $fbData    = getFacebookConfigData();
+    $fbProfile = '';
+
+    if (empty($fbData['fb_app_id']) && empty($fbData['fb_secret']))
+    {
+        displayHeader();
+        displayHtmlForm(T_('Facebook isn\'t Configured Yet.'));
+        displayFooter();
+        return;
+    }
+
+    $facebook = new Facebook(array(
+        'appId'  => $fbData['fb_app_id'],
+        'secret' => $fbData['fb_secret'],
+    ));
+
+    // Check if the user is logged in and authed
+    $fbUser = $facebook->getUser();
+    if ($fbUser)
+    {
+        try
+        {
+            $fbProfile = $facebook->api('/me');
+        }
+        catch (FacebookApiException $e)
+        {
+            $fbUser = null;
+        }
+    }
+
+    // the user's auth went away or logged out of fb, send them back to register form
+    if (!$fbUser)
+    {
+        displayForm();
+        return;
+    }
+
+    // Register new user
+    $accessToken = $facebook->getAccessToken();
+
+    $params = array(
+        'fname'       => $fbProfile['first_name'],
+        'lname'       => $fbProfile['last_name'],
+        'email'       => $fbProfile['email'],
+        'sex'         => $fbProfile['gender'] == 'male' ? 'M' : 'F',
+        'username'    => $fbProfile['email'],
+        'password'    => 'FACEBOOK',
+        'birthday'    => $fbProfile['birthday'],
+        'accessToken' => $accessToken
+    );
+
+    displaySubmit($params);
+}

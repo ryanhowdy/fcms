@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 
 /**
  * MessageBoard 
@@ -50,8 +50,6 @@ class MessageBoard
      */
     function showThreads ($type, $page = 0)
     {
-        $locale = new FCMS_Locale();
-
         $page = cleanInput($page, 'int');
         $from = (($page * 25) - 25);
 
@@ -111,13 +109,13 @@ class MessageBoard
         $alt = 0;
 
         // Setup today and yesterday dates
-        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
+        $today_start = fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end   = fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
 
         $time = gmmktime(0, 0, 0, gmdate('m')  , gmdate('d')-1, gmdate('Y'));
 
-        $yesterday_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s', $time)) . '000000';
-        $yesterday_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s', $time)) . '235959';
+        $yesterday_start = fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s', $time)) . '000000';
+        $yesterday_end   = fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s', $time)) . '235959';
 
         // Loop through threads/annoucements
         while ($row = $this->db->get_row())
@@ -142,7 +140,7 @@ class MessageBoard
                 if ($alt % 2 !== 0) { $tr_class = 'alt'; }
             }
 
-            $updated = $locale->fixDate('YmdHis', $this->tzOffset, $row['updated']);
+            $updated = fixDate('YmdHis', $this->tzOffset, $row['updated']);
 
             // Updated Today
             if ($updated >= $today_start && $updated <= $today_end)
@@ -152,7 +150,7 @@ class MessageBoard
                 {
                     $img_class = 'announcement_' . $img_class;
                 }
-                $date = $locale->fixDate(T_('h:ia'), $this->tzOffset, $row['updated']);
+                $date = fixDate(T_('h:ia'), $this->tzOffset, $row['updated']);
                 $last_updated = sprintf(T_('Today at %s'), $date).'<br/>'
                     .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.(int)$row['updated_by'].'">'.$updated_by.'</a>');
             }
@@ -164,7 +162,7 @@ class MessageBoard
                 {
                     $img_class = 'announcement_' . $img_class;
                 }
-                $date = $locale->fixDate(T_('h:ia'), $this->tzOffset, $row['updated']);
+                $date = fixDate(T_('h:ia'), $this->tzOffset, $row['updated']);
                 $last_updated = sprintf(T_('Yesterday at %s'), $date).'<br/>'
                     .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.(int)$row['updated_by'].'">'.$updated_by.'</a>');
             }
@@ -176,7 +174,7 @@ class MessageBoard
                 {
                     $img_class = 'announcement';
                 }
-                $last_updated = $locale->fixDate(T_('m/d/Y h:ia'), $this->tzOffset, $row['updated']) . '<br/>'
+                $last_updated = fixDate(T_('m/d/Y h:ia'), $this->tzOffset, $row['updated']) . '<br/>'
                     .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.(int)$row['updated_by'].'">'.$updated_by.'</a>');
             }
 
@@ -244,8 +242,6 @@ class MessageBoard
      */
     function showPosts ($thread_id, $page = 1)
     {
-        $locale = new FCMS_Locale();
-
         $thread_id  = cleanInput($thread_id, 'int');
         $page       = cleanInput($page, 'int');
 
@@ -315,7 +311,7 @@ class MessageBoard
             }
 
             $displayname = getUserDisplayName($row['user']);
-            $date = $locale->fixDate(T_('n/d/y g:ia'), $this->tzOffset, $row['date']);
+            $date = fixDate(T_('n/d/y g:ia'), $this->tzOffset, $row['date']);
             if ($alt % 2 == 0) {
                 $tr_class = '';
             } else {
@@ -405,19 +401,14 @@ class MessageBoard
     /**
      * getNumberOfPosts 
      * 
+     * Moved to inc/utils.php
+     * 
      * @param   int $thread_id 
      * @return  int
      */
     function getNumberOfPosts ($thread_id)
     {
-        $sql = "SELECT count(*) AS c 
-                FROM `fcms_board_posts` 
-                WHERE `thread` = '" . cleanInput($thread_id, 'int') . "'";
-        $this->db2->query($sql) or displaySQLError(
-            '# Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $row = $this->db2->get_row();
-        return (int)$row['c'];
+        return getNumberOfPosts($thread_id);
     }
 
     /**
@@ -823,88 +814,6 @@ class MessageBoard
                     </p>
                 </fieldset>
             </form>';
-    }
-    /**
-     * displayWhatsNewMessageBoard 
-     * 
-     * @return void
-     */
-    function displayWhatsNewMessageBoard ()
-    {
-        $locale = new FCMS_Locale();
-
-        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        echo '
-            <h3>'.T_('Message Board').'</h3>
-            <ul>';
-        $sql = "SELECT * 
-                FROM (
-                    SELECT p.id, `date`, subject, u.id AS userid, fname, lname, username, thread 
-                    FROM fcms_board_posts AS p, fcms_board_threads AS t, fcms_users AS u 
-                    WHERE p.thread = t.id 
-                    AND p.user = u.id 
-                    AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
-                    ORDER BY `date` DESC 
-                ) AS r 
-                GROUP BY subject 
-                ORDER BY `date` DESC 
-                LIMIT 0, 5";
-        $this->db->query($sql) or displaySQLError(
-            'Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-
-        if ($this->db->count_rows() > 0) {
-            while ($row = $this->db->get_row()) {
-                $displayname = getUserDisplayName($row['userid']);
-                $subject = $row['subject'];
-                $subject_full = cleanOutput($row['subject']);
-
-                // Remove announcment
-                $pos = strpos($subject, '#ANOUNCE#');
-                if ($pos !== false) {
-                    $subject = substr($subject, 9, strlen($subject)-9);
-                }
-
-                // Chop Long subjects
-                if (strlen($subject) > 23) {
-                    $subject = substr($subject, 0, 20) . "...";
-                }
-
-                $date = $locale->fixDate('YmdHis', $this->tzOffset, $row['date']);
-                if ($date >= $today_start && $date <= $today_end) {
-                    $full_date = T_('Today');
-                    $d = ' class="today"';
-                } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $row['date']);
-                    $d = '';
-                }
-                echo '
-                <li>
-                    <div'.$d.'>'.$full_date.'</div>
-                    <a href="messageboard.php?thread='.(int)$row['thread'].'" title="'.$subject_full.'">'.$subject.'</a> ';
-
-                if ($this->getNumberOfPosts($row['thread']) > 15) {
-                    $num_posts = $this->getNumberOfPosts($row['thread']);
-                    echo '
-                    ('.T_('Page').' ';
-                    $times2loop = ceil($num_posts/15);
-                    for ($i=1; $i<=$times2loop; $i++) {
-                        echo '<a href="messageboard.php?thread='.(int)$row['thread'].'&amp;page='.$i.'" title="'.T_('Page').' '.$i.'">'.$i.'</a> ';
-                    }
-                    echo ")";
-                }
-                echo '
-                     - <a class="u" href="profile.php?member='.(int)$row['userid'].'">'.$displayname.'</a>
-                </li>';
-            }
-        } else {
-            echo '
-                <li><i>'.T_('nothing new last 30 days').'</i></li>';
-        }
-        echo '
-            </ul>';
     }
 
     /**

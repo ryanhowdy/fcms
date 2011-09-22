@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 
 /**
  * FamilyNews 
@@ -45,7 +45,6 @@ class FamilyNews
      */
     function displayNewsList ()
     {
-        $locale = new FCMS_Locale();
         $sql = "SELECT u.`id`, `fname`, `lname`, `displayname`, `username`, MAX(`date`) AS d 
                 FROM `fcms_news` AS n, `fcms_users` AS u, `fcms_user_settings` AS s 
                 WHERE u.`id` = n.`user` 
@@ -60,7 +59,7 @@ class FamilyNews
                 <ul>';
 
             while ($r = $this->db->get_row()) {
-                $date = $locale->fixDate(T_('M. j'), $this->tzOffset, $r['d']);
+                $date = fixDate(T_('M. j'), $this->tzOffset, $r['d']);
                 $displayname = getUserDisplayName($r['id']);
                 echo '
                     <li><a href="familynews.php?getnews='.(int)$r['id'].'">'.$displayname.'</a> &nbsp;<small>'.$date.'</small></li>';
@@ -135,8 +134,6 @@ class FamilyNews
      */
     function displayFamilyNews ($user, $id)
     {
-        $locale = new FCMS_Locale();
-
         $user = cleanInput($user, 'int');
         $id   = cleanInput($id, 'int');
 
@@ -154,7 +151,7 @@ class FamilyNews
 
         $row = $this->db->get_row();
 
-        $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['date']);
+        $date = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['date']);
         $displayname = getUserDisplayName($user);
 
         $edit = '';
@@ -353,8 +350,6 @@ class FamilyNews
      */
     function displayLast5News ()
     {
-        $locale = new FCMS_Locale();
-        
         // Get import blog settings
         $this->importExternalPosts();
 
@@ -408,52 +403,6 @@ class FamilyNews
             return true;
         } else {
             return false;
-        }
-    }
-
-    /**
-     * displayWhatsNewFamilyNews 
-     * 
-     * @return void
-     */
-    function displayWhatsNewFamilyNews ()
-    {
-        $locale = new FCMS_Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $sql = "SELECT n.`id`, n.`title`, u.`id` AS userid, n.`date` 
-                FROM `fcms_users` AS u, `fcms_news` AS n 
-                WHERE u.`id` = n.`user` 
-                    AND `date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
-                ORDER BY `date` DESC 
-                LIMIT 0, 5";
-        $this->db->query($sql) or displaySQLError(
-            'What\'s New Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            echo '
-            <h3>'.T_('Family News').'</h3>
-            <ul>';
-            while ($row = $this->db->get_row()) {
-                $displayname = getUserDisplayName($row['userid']);
-                $date = $locale->fixDate('YmdHis', $this->tzOffset, $row['date']);
-                if ($date >= $today_start && $date <= $today_end) {
-                    $full_date = T_('Today');
-                    $d = ' class="today"';
-                } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $row['date']);
-                    $d = '';
-                }
-                echo '
-                <li>
-                    <div'.$d.'>'.$full_date.'</div>
-                    <a href="familynews.php?getnews='.(int)$row['userid'].'&amp;newsid='.(int)$row['id'].'">'.cleanOutput($row['title']).'</a> - 
-                    <a class="u" href="profile.php?member='.(int)$row['userid'].'">'.$displayname.'</a>
-                </li>';
-            }
-            echo '
-            </ul>';
         }
     }
 
@@ -569,10 +518,8 @@ class FamilyNews
      */
     function displayNews ($data)
     {
-        $locale = new FCMS_Locale();
-
         $displayname = getUserDisplayName($data['user']);
-        $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $data['date']);
+        $date = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $data['date']);
 
         $newsSource = '';
 

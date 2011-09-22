@@ -1,14 +1,23 @@
 <?php
+/**
+ * Photo Gallery
+ * 
+ * PHP versions 4 and 5
+ *
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2010 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '../');
 
-include_once('../inc/config_inc.php');
-include_once('../inc/util_inc.php');
-include_once('../inc/gallery_class.php');
-include_once('../inc/database_class.php');
+require URL_PREFIX.'fcms.php';
 
-fixMagicQuotes();
+load('gallery', 'database');
 
 // Check that the user is logged in
 isLoggedIn('admin/');
@@ -50,7 +59,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($currentUserId, $TMPL['path']) . 'header.php');
+require_once getTheme($currentUserId, $TMPL['path']).'header.php';
 
 echo '
         <div class="centercontent">';
@@ -58,7 +67,8 @@ echo '
 //--------------------------------------------------------------------------
 // Check Access
 //--------------------------------------------------------------------------
-if (checkAccess($currentUserId) > 1) {
+if (checkAccess($currentUserId) > 1)
+{
     echo '
             <div class="error-alert">
                 <h3>'.T_('You do not have access to view this page.').'</h3>
@@ -69,7 +79,7 @@ if (checkAccess($currentUserId) > 1) {
             </div>
         </div><!-- .centercontent -->';
 
-    include_once(getTheme($currentUserId, $TMPL['path']) . 'footer.php');
+    include_once getTheme($currentUserId, $TMPL['path']).'footer.php';
     exit();
 }
 
@@ -78,7 +88,8 @@ $show = true;
 //--------------------------------------------------------------------------
 // Confirm Delete All Categories
 //--------------------------------------------------------------------------
-if (isset($_POST['deleteAll']) && !isset($_POST['confirmedall']) && isset($_POST['bulk_actions'])) {
+if (isset($_POST['deleteAll']) && !isset($_POST['confirmedall']) && isset($_POST['bulk_actions']))
+{
     $show = false;
     echo '
             <div class="info-alert clearfix">
@@ -87,7 +98,8 @@ if (isset($_POST['deleteAll']) && !isset($_POST['confirmedall']) && isset($_POST
                     <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                     <div>';
 
-    foreach ($_POST['bulk_actions'] AS $id) {
+    foreach ($_POST['bulk_actions'] AS $id)
+    {
         echo '
                         <input type="hidden" name="bulk_actions[]" value="'.$id.'"/>';
     }
@@ -104,19 +116,24 @@ if (isset($_POST['deleteAll']) && !isset($_POST['confirmedall']) && isset($_POST
 //--------------------------------------------------------------------------
 // Delete All Categories
 //--------------------------------------------------------------------------
-if (isset($_POST['deleteAll']) && isset($_POST['confirmedall']) && isset($_POST['bulk_actions'])) {
-    foreach ($_POST['bulk_actions'] AS $category) {
+if (isset($_POST['deleteAll']) && isset($_POST['confirmedall']) && isset($_POST['bulk_actions']))
+{
+    foreach ($_POST['bulk_actions'] AS $category)
+    {
         $category = cleanInput($category, 'int');
+
         $sql = "DELETE FROM `fcms_gallery_photos`
                 WHERE `category` = '$category'";
-        if (!mysql_query($sql)) {
-            displaySQLError('Delete Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Delete Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             exit();
         }
         $sql = "DELETE FROM `fcms_category`
                 WHERE `id` = '$category'";
-        if (!mysql_query($sql)) {
-            displaySQLError('Delete Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Delete Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             exit();
         }
     }
@@ -127,7 +144,8 @@ if (isset($_POST['deleteAll']) && isset($_POST['confirmedall']) && isset($_POST[
 //--------------------------------------------------------------------------
 // Confirm Delete All Photos
 //--------------------------------------------------------------------------
-if (isset($_POST['deleteAllPhotos']) && !isset($_POST['confirmedall']) && isset($_POST['bulk_actions'])) {
+if (isset($_POST['deleteAllPhotos']) && !isset($_POST['confirmedall']) && isset($_POST['bulk_actions']))
+{
     $show = false;
     echo '
             <div class="info-alert clearfix">
@@ -136,7 +154,8 @@ if (isset($_POST['deleteAllPhotos']) && !isset($_POST['confirmedall']) && isset(
                     <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                     <div>';
 
-    foreach ($_POST['bulk_actions'] AS $id) {
+    foreach ($_POST['bulk_actions'] AS $id)
+    {
         echo '
                         <input type="hidden" name="bulk_actions[]" value="'.$id.'"/>';
     }
@@ -153,13 +172,17 @@ if (isset($_POST['deleteAllPhotos']) && !isset($_POST['confirmedall']) && isset(
 //--------------------------------------------------------------------------
 // Delete All Photos
 //--------------------------------------------------------------------------
-if (isset($_POST['deleteAllPhotos']) && isset($_POST['confirmedall']) && isset($_POST['bulk_actions'])) {
-    foreach ($_POST['bulk_actions'] AS $id) {
+if (isset($_POST['deleteAllPhotos']) && isset($_POST['confirmedall']) && isset($_POST['bulk_actions']))
+{
+    foreach ($_POST['bulk_actions'] AS $id)
+    {
         $id = cleanInput($id, 'int');
+
         $sql = "DELETE FROM `fcms_gallery_photos`
                 WHERE `id` = '$id'";
-        if (!mysql_query($sql)) {
-            displaySQLError('Delete Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Delete Photo Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             exit();
         }
     }
@@ -170,15 +193,17 @@ if (isset($_POST['deleteAllPhotos']) && isset($_POST['confirmedall']) && isset($
 //--------------------------------------------------------------------------
 // Show
 //--------------------------------------------------------------------------
-if ($show) {
-
+if ($show)
+{
     // Show Photos
-    if (isset($_GET['edit'])) {
+    if (isset($_GET['edit']))
+    {
         $category = cleanInput($_GET['edit'], 'int');
         $gallery->displayAdminDeletePhotos($category);
-
+    }
     // Show Categories
-    } else {
+    else
+    {
         $page = (isset($_GET['page'])) ? $_GET['page'] : 1;
         $gallery->displayAdminDeleteCategories($page);
     }
@@ -188,4 +213,4 @@ echo '
         </div><!-- .centercontent -->';
 
 // Show Footer
-include_once(getTheme($currentUserId, $TMPL['path']) . 'footer.php');
+require_once getTheme($currentUserId, $TMPL['path']).'footer.php';

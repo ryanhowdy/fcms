@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 
 /**
  * Calendar 
@@ -38,10 +38,13 @@ class Calendar
     /**
      * getEventDays 
      * 
-     * Gets a list (array) of days that have events for a given month/year
+     * Gets a list (array) of days that have events (fcms_calendar) for a given month/year.
+     *
+     * Will also include birthday's from the fcms_users table. [since 2.5]
      * 
      * @param   int     $month 
      * @param   int     $year 
+     * 
      * @return  array   $days
      */
     function getEventDays ($month, $year)
@@ -51,26 +54,59 @@ class Calendar
         $year  = cleanInput($year, 'int');
 
         $days = array();
+
+        // Get days from calendar events
         $sql = "SELECT DAYOFMONTH(`date`) as day, `private`, `created_by` 
                 FROM `fcms_calendar` 
                 WHERE (`date` LIKE '$year-$month-%%') 
                 OR (`date` LIKE '%%%%-$month-%%' AND `repeat` = 'yearly') 
                 ORDER BY day";
-        $this->db->query($sql) or displaySQLError(
-            'Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            while($r = $this->db->get_row()) {
-                if ($r['private'] == 1) {
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return $days;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while($r = $this->db->get_row())
+            {
+                if ($r['private'] == 1)
+                {
                     // only the user who created the private event can see it
-                    if ($r['created_by'] == $this->currentUserId) {
+                    if ($r['created_by'] == $this->currentUserId)
+                    {
                         $days[] = $r['day'];
                     }
-                } else {
+                }
+                else
+                {
                     $days[] = $r['day'];
                 }
             }
         }
+
+        // Get days from user's birthdays
+        $sql = "SELECT DAYOFMONTH(`birthday`) as day 
+                FROM `fcms_users` 
+                WHERE `birthday` LIKE '%%%%-$month-%%' 
+                ORDER BY day";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return $days;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while($r = $this->db->get_row())
+            {
+                $days[] = $r['day'];
+            }
+        }
+
         return $days;
     }
 
@@ -81,20 +117,19 @@ class Calendar
      *
      * NOTE: Dates are assumed already fixed for timezone and dst.
      * 
-     * @param   int     $month 
-     * @param   int     $year 
-     * @param   int     $day 
+     * @param int $month 
+     * @param int $year 
+     * @param int $day 
+     * 
      * @return  void
      */
     function displayCalendarMonth ($month = 0, $year = 0, $day = 0)
     {
-        $locale = new FCMS_Locale();
-
         if ($month == 0)
         {
-            $year  = $locale->fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-            $month = $locale->fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-            $day   = $locale->fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+            $year  = fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+            $month = fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+            $day   = fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
         }
 
         $month = cleanInput($month, 'int');
@@ -103,7 +138,7 @@ class Calendar
         $day   = cleanInput($day, 'int');
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
-        $weekDays   = $locale->getDayNames();
+        $weekDays   = getDayNames();
         $categories = $this->getCategories();
         $eventDays  = $this->getEventDays($month, $year);
         
@@ -120,9 +155,9 @@ class Calendar
         list($pYear, $pMonth) = explode('-', date('Y-m', $prevTS));
 
         // Today links
-        $tYear  = $locale->fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tMonth = $locale->fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tDay   = $locale->fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tYear  = fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tMonth = fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tDay   = fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
 
         // Next month links
         $nextTS = strtotime("$year-$month-01 +1 month");
@@ -145,7 +180,7 @@ class Calendar
                             . T_('Next') .
                         '</a>
                     </th>
-                    <th colspan="3"><h3>' . $locale->formatDate('F Y', "$year-$month-$day") . '</h3></th>
+                    <th colspan="3"><h3>'.formatDate('F Y', "$year-$month-$day").'</h3></th>
                     <th class="views" colspan="2">
                         <a class="day" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;view=day">'.T_('Day').'</a> | 
                         <a class="month" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Month').'</a>
@@ -154,7 +189,8 @@ class Calendar
                 <tr>';
 
         // Weekday names
-        foreach ($weekDays as $wd) {
+        foreach ($weekDays as $wd)
+        {
             echo '
                     <td class="weekDays">' . $wd . '</td>';
         }
@@ -162,52 +198,80 @@ class Calendar
         echo '
                 </tr>';
             
-        // Display the days in the month, fill with events
         $i = 0;
-        for ($d = (1 - $offset); $d <= $daysInMonth; $d++) {
-            if ($i % 7 == 0) {
+
+        // Display the days in the month, fill with events
+        for ($d = (1 - $offset); $d <= $daysInMonth; $d++)
+        {
+            // start new row
+            if ($i % 7 == 0)
+            {
                 echo '
                 <tr>';
             }
-            if ($d < 1) {
+
+            // display cell for date outside of this month
+            if ($d < 1)
+            {
                 echo '
                     <td class="nonMonthDay">&nbsp;</td>';
-            } else {
-                if ($d == $day) {
+            }
+            // display cell for a day in this month
+            else
+            {
+                // today
+                if ($d == $day)
+                {
                     echo '
                     <td class="monthToday">';
-                } else {
+                }
+                // every day other than today
+                else
+                {
                     echo '
                     <td class="monthDay">';
                 }
+
                 // add the add cal date link
-                if (checkAccess($this->currentUserId) <= 5) {
+                if (checkAccess($this->currentUserId) <= 5)
+                {
                     echo '<a class="add" href="?add='.$year.'-'.$month.'-'.$d.'">'.T_('Add').'</a>';
                 }
+
                 // display the day #
                 echo '<a href="?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'&amp;view=day">'.$d.'</a>';
+
                 // display the events for each day
-                if (in_array($d, $eventDays)) {
+                if (in_array($d, $eventDays))
+                {
                     $this->displayEvents($month, $d, $year);
                 }
+
                 echo "</td>";
             }
+
             $i++;
             // if we have 7 <td> for the current week close the <tr>
-            if ($i % 7 == 0) {
+            if ($i % 7 == 0)
+            {
                 echo '
                 </tr>';
             }
         }
+
         // close any opening <tr> and insert any additional empty <td>
-        if ($i % 7 != 0) {
-            for ($j = 0; $j < (7 - ($i % 7)); $j++) {
+        if ($i % 7 != 0)
+        {
+            for ($j = 0; $j < (7 - ($i % 7)); $j++)
+            {
                 echo '
                     <td class="nonMonthDay">&nbsp;</td>';
             }
             echo '
                 </tr>';
         }
+
+        // Display the bottom menu of calendar
         echo '
                 <tr class="actions">
                     <td style="text-align:left;" colspan="3">
@@ -249,8 +313,6 @@ class Calendar
         $day   = cleanInput($day, 'int');
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
-        $locale = new FCMS_Locale();
-
         $categories = $this->getCategories();
 
         // Previous day links
@@ -258,12 +320,14 @@ class Calendar
         list($pYear, $pMonth, $pDay) = explode('-', date('Y-m-d', $prevTS));
 
         // Today links
-        $tYear = $locale->fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tMonth = $locale->fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tDay = $locale->fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tYear   = fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tMonth  = fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tDay    = fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
         $isToday = false;
-        $header = $locale->formatDate(T_('l, F j, Y'), "$year-$month-$day");
-        if ("$year$month$day" === "$tYear$tMonth$tDay") {
+        $header  = formatDate(T_('l, F j, Y'), "$year-$month-$day");
+
+        if ("$year$month$day" === "$tYear$tMonth$tDay")
+        {
             $isToday = true;
             $header = T_('Today');
         }
@@ -296,9 +360,10 @@ class Calendar
                     </th>
                 </tr>';
 
-        // Get Events
         $allDayEvents = array();
         $timeEvents = array();
+
+        // Get Events
         $sql = "SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, 
                     c.`title`, c.`desc`, c.`created_by`, c.`private`, c.`repeat`, 
                     ca.`name` AS 'category', ca.`color` 
@@ -310,28 +375,103 @@ class Calendar
                     )
                     AND c.`category` = ca.`id`
                 ORDER BY c.`time_start`";
-        $this->db->query($sql) or displaySQLError(
-            'Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            while ($row = $this->db->get_row()) {
-                if (empty($row['time_start'])) {
-                    $allDayEvents[] = $row;
-                } else {
 
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while ($row = $this->db->get_row())
+            {
+                if (empty($row['time_start']))
+                {
+                    $allDayEvents[] = $row;
+                }
+                else
+                {
                     list($hour, $min, $sec) = explode(':', $row['time_start']);
 
                     // multiple events for this hour?
-                    if (array_key_exists($hour, $timeEvents)) {
-                        $singleEvent = $timeEvents[$hour];
+                    if (array_key_exists($hour, $timeEvents))
+                    {
+                        $singleEvent       = $timeEvents[$hour];
                         $timeEvents[$hour] = array($singleEvent);
-                        array_push($timeEvents[$hour], $row);
 
+                        array_push($timeEvents[$hour], $row);
+                    }
                     // nope
-                    } else {
+                    else
+                    {
                         $timeEvents[$hour] = $row;
                     }
                 }
+            }
+        }
+
+        // Get Birthday Category info
+        $birthdayCategory = 1;
+        $birthdayColor    = 'none';
+
+        // Get birthday category and color
+        $sql = "SELECT `id`, `color` 
+                FROM `fcms_category` 
+                WHERE `name` = 'Birthday'
+                LIMIT 1";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            $r = $this->db->get_row();
+
+            $birthdayCategory = $r['id'];
+            $birthdayColor    = $r['color'];
+        }
+
+        // Get Birthdays
+        $sql = "SELECT `id`, `fname`, `lname`, `birthday`
+                FROM `fcms_users` 
+                WHERE `birthday` LIKE '%%%%-$month-%%'";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while ($row = $this->db->get_row())
+            {
+                list($year,$month,$day) = explode("-",$row['birthday']);
+
+                $year_diff  = gmdate("Y") - $year;
+                $month_diff = gmdate("m") - $month;
+                $day_diff   = gmdate("d") - $day;
+
+                if ($month_diff < 0)
+                {
+                    $year_diff--;
+                }
+                elseif ($month_diff == 0 && $day_diff < 0)
+                {
+                    $year_diff--;
+                }
+
+                $age = $year_diff;
+
+                $row['color'] = $birthdayColor;
+                $row['title'] = $row['fname'].' '.$row['lname'];
+                $row['desc']  = sprintf(T_('%s turns %s today.'), $row['fname'], $age);
+
+                $allDayEvents[] = $row;
             }
         }
 
@@ -357,8 +497,8 @@ class Calendar
 
 
         // Time Specific Events
-        $times = $this->getTimesList();
-        $curTime = $locale->fixDate('Hi', $this->tzOffset, date('Y-m-d H:i:s')) . "00";
+        $times   = $this->getTimesList();
+        $curTime = fixDate('Hi', $this->tzOffset, date('Y-m-d H:i:s')) . "00";
         
         foreach($times AS $key => $val) {
 
@@ -448,11 +588,9 @@ class Calendar
         $day   = cleanInput($day, 'int');
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
-        $locale = new FCMS_Locale();
-
-        $weekDays = $locale->getDayInitials();
+        $weekDays   = getDayInitials();
         $categories = $this->getCategories();
-        $eventDays = $this->getEventDays($month, $year);
+        $eventDays  = $this->getEventDays($month, $year);
         
         // First day of the month starts on?
         $first = mktime(0,0,0,$month,1,$year);
@@ -467,9 +605,9 @@ class Calendar
         list($pYear, $pMonth) = explode('-', date('Y-m', $prevTS));
 
         // Today links
-        $tYear = $locale->fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tMonth = $locale->fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tDay = $locale->fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tYear  = fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tMonth = fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tDay   = fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
 
         // Next month links
         $nextTS = strtotime("$year-$month-01 +1 month");
@@ -483,7 +621,7 @@ class Calendar
                 <tr>
                     <th colspan="7">
                         <h3><a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'
-                            .$locale->formatDate('F Y', "$year-$month-$day").
+                            .formatDate('F Y', "$year-$month-$day").
                         '</a></h3>
                     </th>
                 </tr>
@@ -558,17 +696,15 @@ class Calendar
      */
     function displayMonthEvents ($month, $year)
     {
-        $locale = new FCMS_Locale();
-
         $month = cleanInput($month, 'int');
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
         $year  = cleanInput($year, 'int');
 
         $gm_next   = gmdate('Y-m-d H:i:s', gmmktime(gmdate('h'), gmdate('i'), gmdate('s'), $month+1, 1, $year));
-        $nextMonth = $locale->fixDate('m', $this->tzOffset, $gm_next);
+        $nextMonth = fixDate('m', $this->tzOffset, $gm_next);
 
-        $today      = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $today_year = $locale->fixDate('Y',   $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $today      = fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $today_year = fixDate('Y',   $this->tzOffset, gmdate('Y-m-d H:i:s'));
 
         $sql = "SELECT `id`, DATE_FORMAT(`date`, '%m%d') as day, `title`, `desc`, 
                     `date`, `private`, `created_by`, `repeat`
@@ -632,7 +768,7 @@ class Calendar
                 echo '
                 <div class="events">
                     <a title="'.$title.'" href="calendar.php?event='.$row['id'].'">'.cleanOutput($row['title']).'</a><br/>
-                    '.$locale->formatDate(T_('M. d'), $row['date']).'
+                    '.formatDate(T_('M. d'), $row['date']).'
                 </div>';
             }
         }
@@ -710,10 +846,11 @@ class Calendar
      *
      * Display the events for a given day.
      * 
-     * @param   int     $month 
-     * @param   int     $day 
-     * @param   int     $year 
-     * @param   boolean $showDesc 
+     * @param int     $month 
+     * @param int     $day 
+     * @param int     $year 
+     * @param boolean $showDesc 
+     * 
      * @return  void
      */
     function displayEvents ($month, $day, $year, $showDesc = false)
@@ -724,6 +861,7 @@ class Calendar
         $day   = cleanInput($day, 'int');
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
+        // Get events from fcms_calendar
         $sql = "SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, 
                     c.`title`, c.`desc`, c.`created_by`, 
                     c.`private`, c.`repeat`, ca.`name` AS 'category', ca.`color` 
@@ -735,23 +873,107 @@ class Calendar
                     )
                     AND c.`category` = ca.`id`
                 ORDER BY c.`time_start`";
-        $this->db->query($sql) or displaySQLError(
-            'Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
 
-        $times = $this->getTimesList(false);
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        $events = array();
 
         if ($this->db->count_rows() > 0)
         {
             while ($row = $this->db->get_row())
             {
+                $events[] = $row;
+            }
+        }
+
+
+        $birthdayCategory = 1;
+        $birthdayColor    = 'none';
+
+        // Get birthday category and color
+        $sql = "SELECT `id`, `color` 
+                FROM `fcms_category` 
+                WHERE `name` = 'Birthday'
+                LIMIT 1";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            $r = $this->db->get_row();
+
+            $birthdayCategory = $r['id'];
+            $birthdayColor    = $r['color'];
+        }
+
+        // Get birthdays
+        $sql = "SELECT `id`, `fname`, `lname`, `birthday` as 'date' 
+                FROM `fcms_users` 
+                WHERE `birthday` LIKE '%%%%-$month-$day'";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Birthdays Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while($r = $this->db->get_row())
+            {
+                $birthday = $r['date'];
+
+                list($year,$month,$day) = explode("-",$birthday);
+
+                $year_diff  = gmdate("Y") - $year;
+                $month_diff = gmdate("m") - $month;
+                $day_diff   = gmdate("d") - $day;
+
+                if ($month_diff < 0)
+                {
+                    $year_diff--;
+                }
+                elseif ($month_diff == 0 && $day_diff < 0)
+                {
+                    $year_diff--;
+                }
+
+                $age = $year_diff;
+
+                $r['private']    = 0;
+                $r['id']         = 'birthday'.$r['id'];
+                $r['time_start'] = 0;
+                $r['color']      = $birthdayColor;
+                $r['title']      = $r['fname'].' '.$r['lname'];
+                $r['desc']       = sprintf(T_('%s turns %s today.'), $r['fname'], $age);
+
+                $events[] = $r;
+            }
+        }
+
+        if (count($events) > 0)
+        {
+            $times = $this->getTimesList(false);
+
+            foreach ($events as $event)
+            {
                 $show = false;
 
-                if ($row['private'] == 0)
+                // always display non-private events
+                if ($event['private'] == 0)
                 {
                     $show = true;
                 }
-                elseif ($row['created_by'] == $this->currentUserId)
+                // show private events to the user who created it
+                elseif ($event['created_by'] == $this->currentUserId)
                 {
                     $show = true;
                 }
@@ -762,9 +984,9 @@ class Calendar
                     if ($showDesc)
                     {
                         echo '<div class="event">' . 
-                                '<a class="' . $row['color'] . '" href="?event=' . $row['id'] . '">' . 
-                                    cleanOutput($row['title']) . 
-                                    '<span>'. cleanOutput($row['desc']) . '</span>' .
+                                '<a class="' . $event['color'] . '" href="?event=' . $event['id'] . '">' . 
+                                    cleanOutput($event['title']) . 
+                                    '<span>'. cleanOutput($event['desc']) . '</span>' .
                                 '</a>' .
                             '</div>';
                     }
@@ -772,16 +994,16 @@ class Calendar
                     else
                     {
                         // event title/description
-                        if (empty($row['desc']))
+                        if (empty($event['desc']))
                         {
-                            $title = cleanOutput($row['title']);
+                            $title = cleanOutput($event['title']);
 
                             $tooltipDetails = '<h5>'.$title.'</h5>';
                         }
                         else
                         {
-                            $cleanTitle = cleanOutput($row['title']);
-                            $cleanDesc  = cleanOutput($row['desc']);
+                            $cleanTitle = cleanOutput($event['title']);
+                            $cleanDesc  = cleanOutput($event['desc']);
 
                             $title = $cleanTitle.' : '.$cleanDesc;
 
@@ -791,17 +1013,17 @@ class Calendar
                         // event time
                         $start = '';
                         $end   = '';
-                        if (isset($times[$row['time_start']]))
+                        if (isset($times[$event['time_start']]))
                         {
-                            $start = $times[$row['time_start']];
+                            $start = $times[$event['time_start']];
 
                             $tooltipDetails .= '<span>'.$start;
 
-                            if (isset($times[$row['time_end']]))
+                            if (isset($times[$event['time_end']]))
                             {
-                                if ($row['time_start'] != $row['time_end'])
+                                if ($event['time_start'] != $event['time_end'])
                                 {
-                                    $end = ' - ' . $times[$row['time_end']];
+                                    $end = ' - ' . $times[$event['time_end']];
 
                                     $tooltipDetails .= $end;
                                 }
@@ -810,14 +1032,14 @@ class Calendar
                         }
 
                         echo '<div class="event">' .
-                                '<a class="'.$row['color'].' tooltip" title="'.$start.$end.' '.$title.'" href="?event='.$row['id'].'" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">' .
-                                    '<i>' . $start . '</i> '.$row['title'] .
+                                '<a class="'.$event['color'].' tooltip" title="'.$start.$end.' '.$title.'" href="?event='.$event['id'].'" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">' .
+                                    '<i>' . $start . '</i> '.$event['title'] .
                                 '</a>' .
                                 '<div class="tooltip" style="display:none">'.$tooltipDetails.'</div>' .
                             '</div>';
                     }
                 }
-            }
+            } // foreach
         }
     }
 
@@ -831,8 +1053,6 @@ class Calendar
      */
     function displayAddForm ($addDate)
     {
-        $locale = new FCMS_Locale();
-
         // Check Access
         if (checkAccess($this->currentUserId) > 3) {
             echo '
@@ -846,7 +1066,7 @@ class Calendar
         }
 
         // Format date
-        $dateTitle = $locale->formatDate(T_('M. d, Y'), $addDate);
+        $dateTitle = formatDate(T_('M. d, Y'), $addDate);
 
         // Split date
         list($year, $month, $day) = explode('-', $addDate);
@@ -854,14 +1074,14 @@ class Calendar
             $days[$i] = $i;
         }
         for ($i = 1; $i <= 12; $i++) {
-            $months[$i] = $locale->getMonthAbbr($i);
+            $months[$i] = getMonthAbbr($i);
         }
         for ($i = 1900; $i <= date('Y')+5; $i++) {
             $years[$i] = $i;
         }
 
         // Setup time fields
-        $defaultTimeStart = $locale->fixDate('H:i', $this->tzOffset, date('Y-m-d H:i:s'));
+        $defaultTimeStart = fixDate('H:i', $this->tzOffset, date('Y-m-d H:i:s'));
         list($hour, $min) = explode(':', $defaultTimeStart);
         if ($min > 30) {
             $defaultTimeStart   = ($hour + 1) . ":00:00";
@@ -980,8 +1200,6 @@ class Calendar
     {
         $id = cleanInput($id, 'int');
 
-        $locale = new FCMS_Locale();
-
         $sql = "SELECT `id`, `date`, `time_start`, `time_end`, `date_added`, 
                     `title`, `desc`, `created_by`, `category`, `repeat`, `private`, `invite`
                 FROM `fcms_calendar` 
@@ -1009,7 +1227,7 @@ class Calendar
             $days[$i] = $i;
         }
         for ($i = 1; $i <= 12; $i++) {
-            $months[$i] = $locale->getMonthAbbr($i);
+            $months[$i] = getMonthAbbr($i);
         }
         for ($i = 1900; $i <= date('Y')+5; $i++) {
             $years[$i] = $i;
@@ -1144,8 +1362,6 @@ class Calendar
     {
         $id = cleanInput($id, 'int');
 
-        $locale = new FCMS_Locale();
-
         $sql = "SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, c.`title`, 
                     c.`desc`, c.`created_by`, cat.`name` AS category, c.`repeat`, c.`private`,
                     c.`invite`
@@ -1153,16 +1369,24 @@ class Calendar
                 WHERE c.`id` = '$id' 
                     AND c.`category` = cat.`id` 
                 LIMIT 1";
+
         if (!$this->db->query($sql))
         {
             displaySQLError('Event Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             return;
         }
 
+        if ($this->db->count_rows() <= 0)
+        {
+            echo '<div class="info-alert"><h2>'.T_('I can\'t seem to find that calendar event.').'</h2>';
+            echo '<p>'.T_('Please double check and try again.').'</p></div>';
+            return;
+        }
+
         $row = $this->db->get_row();
 
         $times = $this->getTimesList();
-        $date  = $locale->formatDate(T_('F j, Y'), $row['date']);
+        $date  = formatDate(T_('F j, Y'), $row['date']);
         $title = cleanOutput($row['title']);
 
         $time = '';
@@ -1173,10 +1397,9 @@ class Calendar
 
         if ($row['repeat'] == 'yearly')
         {
-            $date = $locale->formatDate(T_('F j'), $row['date']);
+            $date = formatDate(T_('F j'), $row['date']);
             $date = sprintf(T_('Every year on %s'), $date);
         }
-
 
         // handle time
         if (isset($times[$row['time_start']]))
@@ -1242,6 +1465,90 @@ class Calendar
     }
 
     /**
+     * displayBirthdayEvent
+     * 
+     * Displays the event details for a birthday, which is treated like an event,
+     * but isn't really.  Birthday comes from the fcms_user table, and not the fcms_calendar table.
+     *
+     * @param int $id
+     *
+     * @return void
+     */
+    function displayBirthdayEvent ($id)
+    {
+        $id = cleanInput($id, 'int');
+
+        $sql = "SELECT `id`, `fname`, `lname`, `birthday`
+                FROM `fcms_users`
+                WHERE `id` = '$id'";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Event Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
+            echo '<div class="info-alert"><h2>'.T_('I can\'t seem to find that calendar event.').'</h2>';
+            echo '<p>'.T_('Please double check and try again.').'</p></div>';
+            return;
+        }
+
+        $row = $this->db->get_row();
+
+        list($year, $month, $day) = explode('-', $row['birthday']);
+
+        $date = formatDate(T_('F j'), $row['birthday']);
+        $date = sprintf(T_('Every year on %s, since %s.'), $date, $year);
+
+        // Figure out age
+        $year_diff  = gmdate("Y") - $year;
+        $month_diff = gmdate("m") - $month;
+        $day_diff   = gmdate("d") - $day;
+
+        if ($month_diff < 0)
+        {
+            $year_diff--;
+        }
+        elseif ($month_diff == 0 && $day_diff < 0)
+        {
+            $year_diff--;
+        }
+
+        $age = $year_diff;
+        
+
+        $edit = '';
+
+        // If this bday is the current user's, edit sends them to their profile
+        if ($id == $this->currentUserId)
+        {
+            $edit = '<span><a href="profile.php?view=info" class="edit_event">'.T_('Edit').'</a></span>';
+        }
+        // If current user is admin, edit sends them to the admin member's page
+        elseif (checkAccess($this->currentUserId) == 1)
+        {
+            $edit = '<span><a href="admin/members.php?edit='.$id.'" class="edit_event">'.T_('Edit').'</a></span>';
+        }
+
+        // Display the form
+        echo '
+            <p id="back">
+                <a href="calendar.php?year='.date('Y').'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Back to Calendar').'</a>
+            </p>
+            <div id="event_details">
+                '.$edit.'
+                <h1>'.$row['fname'].' '.$row['lname'].'</h1>
+                <p id="desc">'.sprintf(T_('%s turns %s today.'), $row['fname'], $age).'</p>
+                <div id="when">
+                    <h3>'.T_('When').'</h3>
+                    <p><b>'.$date.'</b></p>
+                </div>
+            </div>';
+    }
+
+    /**
      * displayInvitationDetails 
      * 
      * @param int $id 
@@ -1250,8 +1557,6 @@ class Calendar
      */
     function displayInvitationDetails ($id)
     {
-        $locale = new FCMS_Locale();
-
         // Get info on who's coming
         $sql = "SELECT `id`, `user`, `email`, `attending`, `response`, `updated`
                 FROM `fcms_invitation`
@@ -1382,7 +1687,7 @@ class Calendar
         {
             if (isset($response['attending']))
             {
-                $updated = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $response['updated']);
+                $updated = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $response['updated']);
 
                 echo '
                 <div class="comment_block clearfix">
@@ -1652,60 +1957,6 @@ class Calendar
                     </p>
                 </fieldset>
             </form>';
-    }
-
-    /**
-     * displayWhatsNewCalendar
-     * 
-     * Returns the last 5 added calendar entries in the current month
-     * 
-     * @return void
-     */
-    function displayWhatsNewCalendar ()
-    {
-        $locale = new FCMS_Locale();
-
-        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $sql = "SELECT * 
-                FROM `fcms_calendar` 
-                WHERE `date_added` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
-                AND `private` < 1 
-                ORDER BY `date_added` DESC LIMIT 0, 5";
-        $this->db->query($sql) or displaySQLError(
-            'What\'s New Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
-
-        if ($this->db->count_rows() > 0) {
-
-            echo '
-            <h3>'.T_('Calendar').'</h3>
-            <ul>';
-
-            while ($r = $this->db->get_row()) {
-                $title = $r['title'];
-                $displayname = getUserDisplayName($r['created_by']);
-                $date = $locale->fixDate('YmdHis', $this->tzOffset, $r['date_added']);
-                if ($date >= $today_start && $date <= $today_end) {
-                    $full_date = T_('Today');
-                    $d = ' class="today"';
-                } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date_added']);
-                    $d = '';
-                }
-                list($year, $month, $day) = explode('-', date('Y-m-d', strtotime($r['date'])));
-                echo '
-                <li>
-                    <div'.$d.'>'.$full_date.'</div>
-                    <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.$title.' ('.date('n/j/Y', strtotime($r['date'])).')</a> - 
-                    <a class="u" href="profile.php?member='.$r['created_by'].'">'.$displayname.'</a>
-                </li>';
-            }
-
-            echo '
-            </ul>';
-        }
     }
 
     /**

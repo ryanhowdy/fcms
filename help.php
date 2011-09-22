@@ -2,6 +2,8 @@
 /**
  * Help
  * 
+ * PHP versions 4 and 5
+ * 
  * @category  FCMS
  * @package   FamilyConnections
  * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
@@ -13,8 +15,7 @@ session_start();
 
 define('URL_PREFIX', '');
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
+require 'fcms.php';
 
 // Check that the user is logged in
 isLoggedIn();
@@ -34,7 +35,7 @@ $TMPL['javascript'] = '
 <script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
-require_once getTheme($currentUserId) . 'header.php';
+require_once getTheme($currentUserId).'header.php';
 
 echo '
         <div id="help" class="centercontent">
@@ -344,4 +345,4 @@ echo '
         </div><!-- .centercontent -->';
 
 // Show Footer
-require_once getTheme($currentUserId) . 'footer.php';
+require_once getTheme($currentUserId).'footer.php';

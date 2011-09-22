@@ -15,19 +15,15 @@ session_start();
 
 define('URL_PREFIX', '');
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-require_once 'inc/locale.php';
-require_once 'inc/calendar_class.php';
+require 'fcms.php';
 
-fixMagicQuotes();
+load('datetime', 'calendar');
 
 // Check that the user is logged in
 isLoggedIn();
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
 // Globals
-$locale   = new FCMS_Locale();
 $calendar = new Calendar($currentUserId);
 
 $TMPL = array(
@@ -161,10 +157,10 @@ function control ()
  */
 function displayExportSubmit ()
 {
-    global $locale, $calendar;
+    global $calendar;
 
     $cal  = $calendar->exportCalendar();
-    $date = $locale->fixDate('Y-m-d', $calendar->tzOffset);
+    $date = fixDate('Y-m-d', $calendar->tzOffset);
 
     header("Cache-control: private");
     header("Content-type: text/plain");
@@ -512,9 +508,23 @@ function displayEvent ()
         return;
     }
 
-    $id = cleanInput($_GET['event'], 'int');
+    if (ctype_digit($_GET['event']))
+    {
+        $id = cleanInput($_GET['event'], 'int');
+        $calendar->displayEvent($id);
+    }
+    elseif (strlen($_GET['event']) >= 8 && substr($_GET['event'], 0, 8) == 'birthday')
+    {
+        $id = substr($_GET['event'], 8);
+        $id = cleanInput($id, 'int');
+        $calendar->displayBirthdayEvent($id);
+    }
+    else
+    {
+        echo '<div class="info-alert"><h2>'.T_('I can\'t seem to find that calendar event.').'</h2>';
+        echo '<p>'.T_('Please double check and try again.').'</p></div>';
+    }
 
-    $calendar->displayEvent($id);
     displayFooter();
 }
 
@@ -752,7 +762,7 @@ function displayCalendarDay ()
  */
 function displayCalendar ()
 {
-    global $calendar, $locale;
+    global $calendar;
 
     displayHeader();
 
@@ -768,7 +778,7 @@ function displayCalendar ()
 
         $calendar->displayCalendarMonth($month, $year, $day);
     }
-    // get today's date
+    // use today's date
     else
     {
         $calendar->displayCalendarMonth();
@@ -782,14 +792,14 @@ function displayCalendar ()
  * 
  * Used for both creating and editing an invitation.
  * 
- * @param int $calendarId 
- * @param int $errors 
+ * @param int $calendarId The calendar entry id
+ * @param int $errors     Any errors from previous form
  * 
  * @return void
  */
 function displayInvitationForm ($calendarId = 0, $errors = 0)
 {
-    global $currentUserId, $locale;
+    global $currentUserId;
 
     displayHeader();
 
@@ -1127,8 +1137,8 @@ function displayAttendSubmit ()
  * 
  * Will also add a key of _current_user if the current user is included.
  * 
- * @param int     $eventId 
- * @param boolean $keyByEmail
+ * @param int     $eventId    The calendar event id
+ * @param boolean $keyByEmail Whether or not to key the array by email or 0,1,2 etc.
  * 
  * @return array
  */

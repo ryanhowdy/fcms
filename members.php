@@ -1,14 +1,23 @@
 <?php
+/**
+ * Members
+ *  
+ * PHP versions 4 and 5
+ *  
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2008 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '');
 
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
-include_once('inc/database_class.php');
-include_once('inc/members_class.php');
+require 'fcms.php';
 
-fixMagicQuotes();
+load('members', 'database');
 
 // Check that the user is logged in
 isLoggedIn();
@@ -32,12 +41,12 @@ $TMPL['javascript'] = '
 $show_all = true;
 
 // Show Header
-include_once(getTheme($currentUserId) . 'header.php');
+require_once getTheme($currentUserId).'header.php';
 
 echo '
         <div id="members" class="centercontent">
             <div id="leftcolumn">
-                <h3>' . T_('Order Members By:') . '</h3>
+                <h3>'.T_('Order Members By:').'</h3>
                 <ul class="menu">
                     <li><a href="?order=alphabetical">'.T_('Alphabetical').'</a></li>
                     <li><a href="?order=age">'.T_('Age').'</a></li>
@@ -56,4 +65,4 @@ echo '
         </div><!-- #members  -->';
 
 // Show Footer
-include_once(getTheme($currentUserId) . 'footer.php');
+require_once getTheme($currentUserId).'footer.php';

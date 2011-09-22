@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 include_once('familytree_class.php');
 include_once('awards_class.php');
 
@@ -51,8 +51,6 @@ class Profile
      */
     function displayProfile ($userid)
     {
-        $locale = new FCMS_Locale();
-
         // Check for valid user id
         if (!ctype_digit($userid)) {
             echo '
@@ -79,8 +77,8 @@ class Profile
         $pts = 0;
 
         // Dates Info
-        $joinDate = $locale->fixDate(T_('F j, Y'), $this->tzOffset, $row['joindate']);
-        $activityDate = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['activity']);
+        $joinDate     = fixDate(T_('F j, Y'), $this->tzOffset, $row['joindate']);
+        $activityDate = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['activity']);
 
         // Stats Info -- if user is not a guest
         if (checkAccess($this->currentUserId) != 10)
@@ -222,7 +220,6 @@ class Profile
      */
     function displayEditBasicInfo ()
     {
-        $locale = new FCMS_Locale();
         $sql = "SELECT `fname`, `mname`, `lname`, `maiden`, `bio`, `sex`, `birthday`
                 FROM `fcms_users`
                 WHERE `id` = '".$this->currentUserId."'";
@@ -248,13 +245,13 @@ class Profile
         $month_list = array();
         $i = 1;
         while ($i <= 12) {
-            $month_list[$i] = $locale->getMonthAbbr($i);
+            $month_list[$i] = getMonthAbbr($i);
             $i++;
         }
         $month_options = buildHtmlSelectOptions($month_list, $month);
         $year_list = array();
         $i = 1900;
-        $year_end = $locale->fixDate('Y', $this->tzOffset);
+        $year_end = fixDate('Y', $this->tzOffset);
         while ($i <= $year_end) {
             $year_list[$i] = $i;
             $i++;
@@ -360,7 +357,6 @@ class Profile
      */
     function displayEditProfilePicture ()
     {
-        $locale = new FCMS_Locale();
         $sql = "SELECT `avatar`, `gravatar` 
                 FROM `fcms_users`
                 WHERE `id` = '" . $this->currentUserId . "'";
@@ -629,7 +625,6 @@ class Profile
     {
         $userid = cleanInput($userid, 'int');
 
-        $locale = new FCMS_Locale();
         $sql = "SELECT t.`id`, `subject`, `date`, `post` 
                 FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, `fcms_users` AS u 
                 WHERE t.`id` = p.`thread` 
@@ -642,7 +637,7 @@ class Profile
         );
         if ($this->db2->count_rows() > 0) {
             while ($row = $this->db2->get_row()) {
-                $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $row['date']);
+                $date = fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $row['date']);
                 $post = removeBBCode($row['post']);
                 $subject = stripslashes($row['subject']);
                 $pos = strpos($subject, '#ANOUNCE#');

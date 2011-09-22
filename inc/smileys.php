@@ -2,7 +2,6 @@
 session_start();
 include_once('config_inc.php');
 include_once('util_inc.php');
-include_once('locale.php');
 
 // Check that the user is logged in
 isLoggedIn();

@@ -9,6 +9,7 @@ include_once 'gettext.inc';
 function dropTables ()
 {
     mysql_query("DROP TABLE IF EXISTS `fcms_config`")               or die("fcms_config<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_status`")               or die("fcms_status<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_navigation`")           or die("fcms_navigation<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_chat_online`")          or die("fcms_chat_oneline<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_chat_messages`")        or die("fcms_chat_messages<br/>" . mysql_error());
@@ -63,7 +64,9 @@ function installConfig ($sitename, $contact, $version)
                 `fs_client_id` CHAR(50) NULL,
                 `fs_client_secret` CHAR(50) NULL, 
                 `fs_callback_url` VARCHAR(255) NULL,
-                `external_news_date` DATETIME NULL
+                `external_news_date` DATETIME NULL,
+                `fb_app_id` VARCHAR(50) NULL,
+                `fb_secret` VARCHAR(50) NULL
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
@@ -98,7 +101,6 @@ function installNavigation ($sections)
                 ('settings', 2, 2, 1),
                 ('pm', 2, 3, 1),
                 ('messageboard', 3, 1, 1),
-                ('chat', 3, 2, 1),
                 ('photogallery', 4, 1, 1),
                 ('addressbook', 4, 2, 1),
                 ('calendar', 4, 3, 1),
@@ -208,6 +210,7 @@ function installUsers ($fname, $lname, $email, $birthday, $username, $password)
                 `tumblr` VARCHAR(255) NULL,
                 `wordpress` VARCHAR(255) NULL,
                 `posterous` VARCHAR(255) NULL,
+                `fb_access_token` VARCHAR(255) NULL,
                 PRIMARY KEY (`id`), 
                 KEY `user_ind` (`user`)
             ) 
@@ -301,7 +304,7 @@ function installCategory ()
  * 
  * @return void
  */
-function installCalendar ($fname, $lname, $birthday)
+function installCalendar ()
 {
     // create calendar
     $sql = "CREATE TABLE `fcms_calendar` (
@@ -333,7 +336,6 @@ function installCalendar ($fname, $lname, $birthday)
     $sql = "INSERT INTO `fcms_calendar` 
                 (`id`, `date`, `date_added`, `title`, `created_by`, `category`, `repeat`) 
             VALUES 
-                (NULL, '$birthday', NOW(), '$fname $lname', 1, 3, 'yearly'), 
                 (NULL, '2007-12-25', NOW(), \"".T_('Christmas')."\", 1, 4, 'yearly'), 
                 (NULL, '2007-02-14', NOW(), \"".T_('Valentine\'s Day')."\", 1, 4, 'yearly'), 
                 (NULL, '2007-01-01', NOW(), \"".T_('New Year\'s Day')."\", 1, 4, 'yearly'), 
@@ -810,4 +812,16 @@ function installTables ()
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 
+    // create fcms_status
+    $sql = "CREATE TABLE `fcms_status` (
+                `id` INT(25) NOT NULL AUTO_INCREMENT,
+                `user` INT(25) NOT NULL DEFAULT '0',
+                `status` TEXT DEFAULT NULL,
+                `parent` INT(25) NOT NULL DEFAULT '0',
+                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `updated` DATETIME DEFAULT NULL,
+                PRIMARY KEY (`id`),
+                CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 }

@@ -1,18 +1,31 @@
 <?php
-include_once('util_inc.php');
-include_once('locale.php');
+/**
+ * AdminMembers
+ * 
+ * PHP versions 4 and 5
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
+require_once 'utils.php';
+require_once 'datetime.php';
 
 /**
  * AdminMembers 
  * 
- * @package     Family Connections
- * @copyright   Copyright (c) 2010 Haudenschilt LLC
- * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
- * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
  */
 class AdminMembers
 {
-
     var $db;
 
     /**
@@ -32,15 +45,20 @@ class AdminMembers
     /**
      * getUsersEmail 
      * 
-     * @param   int     $id 
-     * @return  void
+     * @param int $id The id of the user
+     * 
+     * @return void
      */
     function getUsersEmail ($id)
     {
         $sql = "SELECT `email` FROM `fcms_users` WHERE `id` = $id";
-        $this->db->query($sql) or displaySQLError(
-            'Email Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Email Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return '';
+        }
+
         $r = $this->db->get_row();
         return $r['email'];
     }
@@ -48,36 +66,39 @@ class AdminMembers
     /**
      * displayCreateMemberForm 
      * 
-     * @param   string $error 
-     * @return  void
+     * @param string $error Any errors from previous form
+     * 
+     * @return void
      */
     function displayCreateMemberForm ($error = '')
     {
-        $locale = new FCMS_Locale();
+        $username = isset($_POST['username']) ? $_POST['username'] : '';
+        $fname    = isset($_POST['fname'])    ? $_POST['fname']    : '';
+        $mname    = isset($_POST['mname'])    ? $_POST['mname']    : '';
+        $lname    = isset($_POST['lname'])    ? $_POST['lname']    : '';
+        $maiden   = isset($_POST['maiden'])   ? $_POST['maiden']   : '';
+        $sex      = isset($_POST['sex'])      ? $_POST['sex']      : '';
+        $email    = isset($_POST['email'])    ? $_POST['email']    : '';
+        $year     = isset($_POST['year'])     ? $_POST['year']     : date('Y');
+        $month    = isset($_POST['month'])    ? $_POST['month']    : date('m');
+        $day      = isset($_POST['day'])      ? $_POST['day']      : date('d');
 
-        $username   =   isset($_POST['username'])   ?   $_POST['username']  :   '';
-        $fname      =   isset($_POST['fname'])      ?   $_POST['fname']     :   '';
-        $mname      =   isset($_POST['mname'])      ?   $_POST['mname']     :   '';
-        $lname      =   isset($_POST['lname'])      ?   $_POST['lname']     :   '';
-        $maiden     =   isset($_POST['maiden'])     ?   $_POST['maiden']    :   '';
-        $sex        =   isset($_POST['sex'])        ?   $_POST['sex']       :   '';
-        $email      =   isset($_POST['email'])      ?   $_POST['email']     :   '';
-        $year       =   isset($_POST['year'])       ?   $_POST['year']      :   date('Y');
-        $month      =   isset($_POST['month'])      ?   $_POST['month']     :   date('m');
-        $day        =   isset($_POST['day'])        ?   $_POST['day']       :   date('d');
-
-        for ($i = 1; $i <= 31; $i++) {
+        for ($i = 1; $i <= 31; $i++)
+        {
             $days[$i] = $i;
         }
-        for ($i = 1; $i <= 12; $i++) {
-            $months[$i] = $locale->getMonthAbbr($i);
+        for ($i = 1; $i <= 12; $i++)
+        {
+            $months[$i] = getMonthAbbr($i);
         }
-        for ($i = 1900; $i <= date('Y')+5; $i++) {
+        for ($i = 1900; $i <= date('Y')+5; $i++)
+        {
             $years[$i] = $i;
         }
 
         // Display applicable errors
-        if ($error != '') {
+        if ($error != '')
+        {
             echo '
             <p class="error-alert">'.$error.'</p>';
         }
@@ -180,28 +201,29 @@ class AdminMembers
     /**
      * displayEditMemberForm 
      * 
-     * @param   int     $id 
-     * @param   string  $error 
+     * @param int    $id    The id of the user
+     * @param string $error Any errors from previous form
+     * 
      * @return  void
      */
     function displayEditMemberForm ($id, $error = '')
     {
-        $locale = new FCMS_Locale();
-
         $member = cleanInput($id, 'int');
 
         $sql = "SELECT `id`, `username`, `fname`, `mname`, `lname`, `maiden`, `sex`, 
                     `email`, `birthday`, `access` 
                 FROM `fcms_users` 
                 WHERE `id` = '$member'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Member Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             return;
         }
         $r = $this->db->get_row();
         
         // Display applicable errors
-        if ($error != '') {
+        if ($error != '')
+        {
             echo '
             <p class="error-alert">'.$error.'</p>';
         }
@@ -219,13 +241,17 @@ class AdminMembers
         $day      = isset($_POST['day'])      ? $_POST['day']      : substr($r['birthday'], 8, 2);
         $access   = isset($_POST['access'])   ? $_POST['access']   : $r['access'];
 
-        for ($i = 1; $i <= 31; $i++) {
+        for ($i = 1; $i <= 31; $i++)
+        {
             $days[$i] = $i;
         }
-        for ($i = 1; $i <= 12; $i++) {
-            $months[$i] = $locale->getMonthAbbr($i);
+        for ($i = 1; $i <= 12; $i++)
+        {
+            $months[$i] = getMonthAbbr($i);
         }
-        for ($i = 1900; $i <= date('Y')+5; $i++) {
+        // TODO This needs to be an input box, members can older than 1900.
+        for ($i = 1900; $i <= date('Y')+5; $i++)
+        {
             $years[$i] = $i;
         }
 
@@ -289,13 +315,80 @@ class AdminMembers
                     </div>';
         }
 
+        $maleSelected   = '';
+        $femaleSelected = '';
+        if ($sex == 'M')
+        {
+            $maleSelected = 'selected="selected"';
+        }
+        else
+        {
+            $femaleSelected = 'selected="selected"';
+        }
+
+        $accessSelected1  = '';
+        $accessSelected2  = '';
+        $accessSelected3  = '';
+        $accessSelected4  = '';
+        $accessSelected5  = '';
+        $accessSelected6  = '';
+        $accessSelected7  = '';
+        $accessSelected8  = '';
+        $accessSelected9  = '';
+        $accessSelected10 = '';
+        $accessSelected11 = '';
+        if ($access == 1)
+        {
+            $accessSelected1 = 'selected="selected"';
+        }
+        if ($access == 2)
+        {
+            $accessSelected2 = 'selected="selected"';
+        }
+        if ($access == 3)
+        {
+            $accessSelected3 = 'selected="selected"';
+        }
+        if ($access == 4)
+        {
+            $accessSelected4 = 'selected="selected"';
+        }
+        if ($access == 5)
+        {
+            $accessSelected5 = 'selected="selected"';
+        }
+        if ($access == 6)
+        {
+            $accessSelected6 = 'selected="selected"';
+        }
+        if ($access == 7)
+        {
+            $accessSelected7 = 'selected="selected"';
+        }
+        if ($access == 8)
+        {
+            $accessSelected8 = 'selected="selected"';
+        }
+        if ($access == 9)
+        {
+            $accessSelected9 = 'selected="selected"';
+        }
+        if ($access == 10)
+        {
+            $accessSelected10 = 'selected="selected"';
+        }
+        if ($access == 11)
+        {
+            $accessSelected11 = 'selected="selected"';
+        }
+
         echo '
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="sex"><b>'.T_('Gender').'</b></label></div> 
                         <div class="field-widget">
                             <select name="sex" id="sex">
-                                <option value="M"'; if ($sex == 'M') { echo ' selected="selected"'; } echo '>'.T_('Male').'</option>
-                                <option value="F"'; if ($sex == 'F') { echo ' selected="selected"'; } echo '>'.T_('Female').'</option>
+                                <option value="M" '.$maleSelected.'>'.T_('Male').'</option>
+                                <option value="F" '.$femaleSelected.'>'.T_('Female').'</option>
                             </select>
                         </div>
                     </div>
@@ -329,20 +422,20 @@ class AdminMembers
                         <div class="field-label"><label for="access"><b>'.T_('Access Level').'</b></label></div> 
                         <div class="field-widget">
                             <select id="access" name="access">
-                                <option value="1"'; if ($access == 1) { echo ' selected="selected"'; } echo '>1. '.T_('Admin').'</option>
-                                <option value="2"'; if ($access == 2) { echo ' selected="selected"'; } echo '>2. '.T_('Helper').'</option>
-                                <option value="3"'; if ($access == 3) { echo ' selected="selected"'; } echo '>3. '.T_('Member').'</option>
+                                <option value="1" '.$accessSelected1.'>1. '.T_('Admin').'</option>
+                                <option value="2" '.$accessSelected2.'>2. '.T_('Helper').'</option>
+                                <option value="3" '.$accessSelected3.'>3. '.T_('Member').'</option>
                                 <option value="'.(int)$access.'"></option>
                                 <option value="'.(int)$access.'">'.T_('Advanced Options').'</option>
                                 <option value="'.(int)$access.'">-------------------------------------</option>
-                                <option value="4"'; if ($access == 4) { echo ' selected="selected"'; } echo '>4. '.T_('Non-Photographer').'</option>
-                                <option value="5"'; if ($access == 5) { echo ' selected="selected"'; } echo '>5. '.T_('Non-Poster').'</option>
-                                <option value="6"'; if ($access == 6) { echo ' selected="selected"'; } echo '>6. '.T_('Commenter').'</option>
-                                <option value="7"'; if ($access == 7) { echo ' selected="selected"'; } echo '>7. '.T_('Poster').'</option>
-                                <option value="8"'; if ($access == 8) { echo ' selected="selected"'; } echo '>8. '.T_('Photographer').'</option>
-                                <option value="9"'; if ($access == 9) { echo ' selected="selected"'; } echo '>9. '.T_('Blogger').'</option>
-                                <option value="10"'; if ($access == 10) { echo ' selected="selected"'; } echo '>10. '.T_('Guest').'</option>
-                                <option value="11"'; if ($access == 11) { echo ' selected="selected"'; } echo '>11. '.T_('Non-Editable Member').'</option>
+                                <option value="4" '.$accessSelected4.'>4. '.T_('Non-Photographer').'</option>
+                                <option value="5" '.$accessSelected5.'>5. '.T_('Non-Poster').'</option>
+                                <option value="6" '.$accessSelected6.'>6. '.T_('Commenter').'</option>
+                                <option value="7" '.$accessSelected7.'>7. '.T_('Poster').'</option>
+                                <option value="8" '.$accessSelected8.'>8. '.T_('Photographer').'</option>
+                                <option value="9" '.$accessSelected9.'>9. '.T_('Blogger').'</option>
+                                <option value="10" '.$accessSelected10.'>10. '.T_('Guest').'</option>
+                                <option value="11" '.$accessSelected11.'>11. '.T_('Non-Editable Member').'</option>
                             </select>
                         </div>
                     </div>
@@ -359,7 +452,7 @@ class AdminMembers
     /**
      * displayMergeMemberForm 
      * 
-     * @param int $id
+     * @param int $id The id of current member
      * 
      * @return void
      */
@@ -377,8 +470,9 @@ class AdminMembers
                 FROM `fcms_users` AS u, `fcms_address` AS a
                 WHERE u.`id` = '$id'
                 AND u.`id` = a.`user`";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Member Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             return;
         }
         $r = $this->db->get_row();
@@ -387,13 +481,16 @@ class AdminMembers
         $sql = "SELECT `id`, `username`, `password`,`fname`, `lname`
                 FROM `fcms_users` 
                 WHERE `id` != '$id'";
-        if (!$db2->query($sql)) {
-            displaySQLError('Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$db2->query($sql))
+        {
+            displaySQLError('Members Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             return;
         }
         $members = array();
-        while ($row = $db2->get_row()) {
-            if ($row['password'] == 'NONMEMBER') {
+        while ($row = $db2->get_row())
+        {
+            if ($row['password'] == 'NONMEMBER')
+            {
                 $members[$row['id']] = $row['lname'].', '.$row['fname'].' ('.T_('Non-member').')';
                 continue;
             }
@@ -515,26 +612,28 @@ class AdminMembers
     /**
      * displayMergeMemberFormReview
      * 
-     * @param int $id 
-     * @param int $merge
+     * @param int $id    The id of the current member
+     * @param int $merge The id of the member you are merging with
      * 
      * @return void
      */
     function displayMergeMemberFormReview ($id, $merge)
     {
-        $id     = cleanInput($id, 'int');
-        $merge  = cleanInput($merge, 'int');
+        $id    = cleanInput($id, 'int');
+        $merge = cleanInput($merge, 'int');
 
         $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, u.`birthday`,
                     a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`bio`
                 FROM `fcms_users` AS u, `fcms_address` AS a
                 WHERE u.`id` IN ('$id', '$merge') 
                 AND u.`id` = a.`user`";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Member Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             return;
         }
-        while($r = $this->db->get_row()) {
+        while ($r = $this->db->get_row())
+        {
             $members[$r['id']] = $r;
         }
 
@@ -841,10 +940,11 @@ class AdminMembers
      * 
      * Displays the list of members, by default list all or list based on search results.
      *
-     * @param   int     $page   which page to display
-     * @param   string  $fname  search parameter for first name
-     * @param   string  $lname  search parameter for last name
-     * @param   string  $uname  search parameter for username
+     * @param int    $page  which page to display
+     * @param string $fname search parameter for first name
+     * @param string $lname search parameter for last name
+     * @param string $uname search parameter for username
+     *
      * @return  void
      */
     function displayMemberList ($page, $fname = '', $lname = '', $uname = '')
@@ -890,55 +990,68 @@ class AdminMembers
                     <tbody>';
         
         // prevent sql injections - only allow letters, numbers, a space and the % sign
-        if (strlen($fname) > 0) {
-            if (!preg_match('/^[A-Za-z0-9%\s]+$/', $fname)) {
+        if (strlen($fname) > 0)
+        {
+            if (!preg_match('/^[A-Za-z0-9%\s]+$/', $fname))
+            {
                 $valid_search++;
             }
         }
-        if (strlen($lname) > 0) {
-            if (!preg_match('/^[A-Za-z0-9%\s]+$/', $lname)) {
+        if (strlen($lname) > 0)
+        {
+            if (!preg_match('/^[A-Za-z0-9%\s]+$/', $lname))
+            {
                 $valid_search++;
             }
         }
-        if (strlen($uname) > 0) {
-            if (!preg_match('/^[A-Za-z0-9%\s]+$/', $uname)) {
+        if (strlen($uname) > 0)
+        {
+            if (!preg_match('/^[A-Za-z0-9%\s]+$/', $uname))
+            {
                 $valid_search++;
             }
         }
         
         // Search - one or valid search parameters
-        if ($valid_search < 1) {
+        if ($valid_search < 1)
+        {
             $sql = "SELECT * FROM `fcms_users` 
                     WHERE `password` != 'NONMEMBER' 
                     AND `password` != 'PRIVATE' ";
-            if (strlen($fname) > 0) {
+            if (strlen($fname) > 0)
+            {
                 $sql .= "AND `fname` LIKE '".cleanInput($fname)."' ";
             }
-            if (strlen($lname) > 0) {
+            if (strlen($lname) > 0)
+            {
                 $sql .= "AND `lname` LIKE '".cleanInput($lname)."' ";
             }
-            if (strlen($uname) > 0) {
+            if (strlen($uname) > 0)
+            {
                 $sql .= "AND `username` LIKE '".cleanInput($uname)."' ";
             }
             $sql .= "ORDER BY `id` LIMIT $from, 15";
-        
+        }
         // Display All - one of more blank or invalid search parameters
-        } else {
-            $sql = "SELECT * FROM fcms_users "
-                 . "WHERE password != 'NONMEMBER' "
-                 . "ORDER BY `id` "
-                 . "LIMIT $from, 15";
+        else
+        {
+            $sql = "SELECT * FROM fcms_users
+                    WHERE password != 'NONMEMBER'
+                    ORDER BY `id`
+                    LIMIT $from, 15";
         }
         $result = mysql_query($sql) or displaySQLError(
             'Member Info Error', 
-            __FILE__ . ' [' . __LINE__ . ']', 
+            __FILE__.' ['.__LINE__.']', 
             $sql, 
             mysql_error()
-            );
+        );
         
         // Display the member list
-        while($r = mysql_fetch_array($result)) {
-            if ($r['id'] > 1) {
+        while ($r = mysql_fetch_array($result))
+        {
+            if ($r['id'] > 1)
+            {
                 echo '
                         <tr>
                             <td><b>'.(int)$r['id'].'</b>:</td>
@@ -949,7 +1062,8 @@ class AdminMembers
                 echo $this->displayAccessType($r['access']);
                 echo '</td>
                             <td style="text-align:center">';
-                if ($r['activated'] > 0) {
+                if ($r['activated'] > 0)
+                {
                     echo T_('Yes');
                 } else {
                     echo T_('No');
@@ -984,10 +1098,12 @@ class AdminMembers
         // used above, so we can get the total count
         $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
         $this->db->query($sql) or displaySQLError(
-            'Page Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Page Count Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
-        $count = $this->db->count_rows();
+
+        $count       = $this->db->count_rows();
         $total_pages = ceil($count / 15); 
+
         displayPages("members.php", $page, $total_pages);
     }
     
@@ -996,12 +1112,14 @@ class AdminMembers
      * 
      * Displays the access type based on access level code
      *
-     * @param   int     $access_level 
+     * @param int $access_level The level of access
+     *
      * @return  void
      */
     function displayAccessType ($access_level)
     {
-        switch ($access_level) {
+        switch ($access_level)
+        {
             case 1:
                 echo "1. ".T_('Admin');
                 break;
@@ -1044,8 +1162,8 @@ class AdminMembers
     /**
      * mergeMember 
      * 
-     * @param int $id 
-     * @param int $merge 
+     * @param int $id    The id of the current member
+     * @param int $merge The id of the user you are merging with
      * 
      * @return void
      */
@@ -1059,8 +1177,9 @@ class AdminMembers
         // fcms_alerts
         $sql = "DELETE FROM `fcms_alerts`
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_alerts').'<br/>';
@@ -1069,8 +1188,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_board_posts`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_board_posts').'<br/>';
@@ -1079,15 +1199,17 @@ class AdminMembers
         $sql = "UPDATE `fcms_board_threads`
                 SET `started_by` = '$id'
                 WHERE `started_by` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         $sql = "UPDATE `fcms_board_threads`
                 SET `updated_by` = '$id'
                 WHERE `updated_by` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_board_threads').'<br/>';
@@ -1096,8 +1218,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_calendar`
                 SET `created_by` = '$id'
                 WHERE `created_by` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_calendar').'<br/>';
@@ -1106,8 +1229,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_category`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_category').'<br/>';
@@ -1122,8 +1246,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_documents`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_documents').'<br/>';
@@ -1132,8 +1257,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_gallery_comments`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_comments').'<br/>';
@@ -1142,8 +1268,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_gallery_photos`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_photos').'<br/>';
@@ -1152,8 +1279,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_gallery_photos_tags`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_photos_tags').'<br/>';
@@ -1164,8 +1292,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_news`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_news').'<br/>';
@@ -1174,8 +1303,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_news_comments`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_news_comments').'<br/>';
@@ -1188,8 +1318,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_poll_votes`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_poll_votes').'<br/>';
@@ -1198,8 +1329,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_prayers`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_prayers').'<br/>';
@@ -1208,15 +1340,17 @@ class AdminMembers
         $sql = "UPDATE `fcms_privatemsg`
                 SET `to` = '$id'
                 WHERE `to` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         $sql = "UPDATE `fcms_privatemsg`
                 SET `from` = '$id'
                 WHERE `from` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_privatemsg').'<br/>';
@@ -1225,8 +1359,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_recipes`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_recipes').'<br/>';
@@ -1235,8 +1370,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_recipe_comment`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_recipe_comment').'<br/>';
@@ -1245,15 +1381,17 @@ class AdminMembers
         $sql = "UPDATE `fcms_relationship`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         $sql = "UPDATE `fcms_relationship`
                 SET `rel_user` = '$id'
                 WHERE `rel_user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_relationship').'<br/>';
@@ -1264,8 +1402,9 @@ class AdminMembers
         $sql = "UPDATE `fcms_user_awards`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Merge Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_user_awards').'<br/>';

@@ -1,15 +1,28 @@
 <?php
-include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+/**
+ * Admin
+ * 
+ * PHP versions 4 and 5
+ *
+ * @category  FCMS
+ * @package   Family_Connections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
+require_once 'database_class.php';
+require_once 'utils.php';
 
 /**
- * Admin 
+ * Admin
  * 
- * @package     Family Connections
- * @copyright   Copyright (c) 2010 Haudenschilt LLC
- * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
- * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ * @category  FCMS
+ * @package   Family_Connections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
  */
 class Admin
 {
@@ -24,9 +37,9 @@ class Admin
     /**
      * Admin 
      * 
-     * @param   int     $currentUserId 
+     * @param int $currentUserId The current user's id
      *
-     * @return  void
+     * @return void
      */
     function Admin ($currentUserId)
     {
@@ -38,8 +51,8 @@ class Admin
 
         $this->currentUserId = cleanInput($currentUserId, 'int');
         $this->tzOffset      = getTimezone($this->currentUserId);
-        $this->lastmonth_beg = date('Y-m', mktime(0, 0, 0, date('m')-1, 1, date('Y'))) . "-01 00:00:00";
-        $this->lastmonth_end = date('Y-m', mktime(0, 0, 0, date('m')-1, 1, date('Y'))) . "-31 23:59:59";
+        $this->lastmonth_beg = date('Y-m', mktime(0, 0, 0, date('m')-1, 1, date('Y')))."-01 00:00:00";
+        $this->lastmonth_end = date('Y-m', mktime(0, 0, 0, date('m')-1, 1, date('Y')))."-31 23:59:59";
 
         T_bindtextdomain('messages', '.././language');
     }
@@ -47,56 +60,66 @@ class Admin
     /**
      * displayEditPollForm 
      * 
-     * @param  int $pollid 
+     * @param int $pollid The id of the poll
+     * 
      * @return void
      */
     function displayEditPollForm ($pollid = 0)
     {
         $poll_exists = true;
 
-        if ($pollid > 0) {
+        if ($pollid > 0)
+        {
             $sql = "SELECT `question`, o.`id`, `option` 
                     FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
                     WHERE p.`id` = o.`poll_id` 
-                    AND p.`id` = '" . cleanInput($pollid, 'int') . "'";
+                    AND p.`id` = '".cleanInput($pollid, 'int')."'";
             $this->db->query($sql) or displaySQLError(
-                'Poll Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                'Poll Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
-            if ($this->db->count_rows() <= 0) {
+            if ($this->db->count_rows() <= 0)
+            {
                 $poll_exists = false;
             }
-        } else {
-
+        }
+        else
+        {
             // Get last poll info
             $sql = "SELECT MAX(`id`) AS c FROM `fcms_polls`";
             $this->db->query($sql) or displaySQLError(
-                'Max Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                'Max Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
             $row = $this->db->get_row();
             $latest_poll_id = $row['c'];
-            if (is_null($row['c'])) {
+            if (is_null($row['c']))
+            {
                 $poll_exists = false;
                 $this->displayAddPollForm();
-            } else {
+            }
+            else
+            {
                 $sql = "SELECT `question`, o.`id`, `option` 
                         FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
                         WHERE p.`id` = o.`poll_id` 
                         AND p.`id` = $latest_poll_id";
                 $this->db->query($sql) or displaySQLError(
-                    'Poll Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    'Poll Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
                 );
             }
         }
 
         // Display the current poll
-        if ($poll_exists) {
+        if ($poll_exists)
+        {
             echo '
             <form id="editform" name="editform" action="?page=admin_polls" method="post">
                 <fieldset>
                     <legend><span>'.T_('Edit Poll').'</span></legend>';
             $i = 1;
-            while ($row = $this->db->get_row()) {
-                if ($i < 2) {
+            while ($row = $this->db->get_row())
+            {
+                if ($i < 2)
+                {
                     echo '
                     <h3>'.cleanOutput($row['question']).'</h3>';
                 }
@@ -105,12 +128,14 @@ class Admin
                         <div class="field-label"><label for="show'.$i.'"><b>'.sprintf(T_('Option %s'), $i).':</b></label></div>
                         <div class="field-widget">
                             <input type="text" name="show'.$i.'" id="show'.$i.'" ';
-                if ($i < 3) {
+                if ($i < 3)
+                {
                     echo "class=\"required\"";
                 }
                 echo ' size="50" value="'.cleanOutput($row['option']).'"/>
                             <input type="hidden" name="option'.$i.'" value="'.$row['id'].'"/>';
-                if ($i >= 3) {
+                if ($i >= 3)
+                {
                     echo '
                             <input type="button" name="deleteoption" class="delbtn" value="'.T_('Delete').'" 
                                 title="'.T_('Delete').'" onclick="document.editform.show'.$i.'.value=\'\';"/>';
@@ -120,7 +145,8 @@ class Admin
                     </div>';
                 $i++;
             }
-            while ($i < 11) {
+            while ($i < 11)
+            {
                 echo '
                     <div class="field-row">
                         <div class="field-label"><label for="show'.$i.'"><b>'.sprintf(T_('Option %s'), $i).':</b></label></div>
@@ -223,12 +249,14 @@ class Admin
      * Displays the forms for changing/configuring the sitename,
      * email, auto activation, user defaults and sections.
      * 
-     * @param   $view   which admin config section to view/edit
-     * @return  void
+     * @param string $view Which admin config section to view/edit
+     * 
+     * @return void
      */
     function displayAdminConfig ($view)
     {
-        switch($view) {
+        switch($view)
+        {
             case 'general':
                 $this->displayAdminConfigInfo();
                 break;
@@ -254,7 +282,7 @@ class Admin
         // General Config
         $sql = "SELECT * FROM `fcms_config`";
         $this->db->query($sql) or displaySQLError(
-            'Site Info Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Site Info Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $row = $this->db->get_row();
         
@@ -263,6 +291,7 @@ class Admin
             "0" => T_('Admin Activation'),
             "1" => T_('Auto Activation')
         );
+
         $activate_options = buildHtmlSelectOptions($activate_list, $row['auto_activate']);
         
         // Register Options
@@ -270,24 +299,28 @@ class Admin
             "0" => T_('Off'),
             "1" => T_('On')
         );
+
         $register_options = buildHtmlSelectOptions($register_list, $row['registration']);
 
         // Site Off Options
-        $site_off_options = '<input type="radio" name="site_off" id="site_off_yes" '
-            . 'value="yes"';
-        if ($row['site_off'] == 1) { $site_off_options .= ' checked="checked"'; }
-        $site_off_options .= '><label class="radio_label" for="site_off_yes"> '
-            . T_('Yes') . '</label><br><input type="radio" name="site_off" '
-            . 'id="site_off_no" value="no"';
-        if ($row['site_off'] == 0) { $site_off_options .= ' checked="checked"'; }
-        $site_off_options .= '><label class="radio_label" for="site_off_no"> '
-            . T_('No') . '</label>';
+        $site_off_options = '<input type="radio" name="site_off" id="site_off_yes" value="yes"';
+        if ($row['site_off'] == 1)
+        {
+            $site_off_options .= ' checked="checked"';
+        }
+        $site_off_options .= '><label class="radio_label" for="site_off_yes"> '.T_('Yes').'</label><br><input type="radio" name="site_off" id="site_off_no" value="no"';
+        if ($row['site_off'] == 0)
+        {
+            $site_off_options .= ' checked="checked"';
+        }
+        $site_off_options .= '><label class="radio_label" for="site_off_no"> '.T_('No').'</label>';
 
         // Errors
         $error_list = array(
             '1' => T_('Log Errors'),
             '0' => T_('Display Errors')
         );
+
         $error_options = buildHtmlSelectOptions($error_list, $row['log_errors']);
         
         echo '
@@ -359,28 +392,36 @@ class Admin
         // Defaults Config
         $sql = "DESCRIBE `fcms_user_settings`";
         $this->db3->query($sql) or displaySQLError(
-            'Describe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Describe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
-        while ($drow = $this->db3->get_row()) {
-            if ($drow['Field'] == 'theme') {
+        while ($drow = $this->db3->get_row())
+        {
+            if ($drow['Field'] == 'theme')
+            {
                 $default_theme = $drow['Default'];
             }
-            if ($drow['Field'] == 'showavatar') {
+            if ($drow['Field'] == 'showavatar')
+            {
                 $default_showavatar = $drow['Default'];
             }
-            if ($drow['Field'] == 'displayname') {
+            if ($drow['Field'] == 'displayname')
+            {
                 $default_displayname = $drow['Default'];
             }
-            if ($drow['Field'] == 'frontpage') {
+            if ($drow['Field'] == 'frontpage')
+            {
                 $default_frontpage = $drow['Default'];
             }
-            if ($drow['Field'] == 'timezone') {
+            if ($drow['Field'] == 'timezone')
+            {
                 $default_tz = $drow['Default'];
             }
-            if ($drow['Field'] == 'dst') {
+            if ($drow['Field'] == 'dst')
+            {
                 $default_dst = $drow['Default'];
             }
-            if ($drow['Field'] == 'boardsort') {
+            if ($drow['Field'] == 'boardsort')
+            {
                 $default_boardsort = $drow['Default'];
             }
         }
@@ -433,75 +474,96 @@ class Admin
         }
 
         // Show Avatars
-        $avatars_options = '<input type="radio" name="showavatar" id="showavatar_yes" '
-            . 'value="yes"';
-        if ($default_showavatar == 1) { $avatars_options .= ' checked="checked"'; }
-        $avatars_options .= '><label class="radio_label" for="showavatar_yes"> '
-            . T_('Yes') . '</label><br><input type="radio" name="showavatar" '
-            . 'id="showavatar_no" value="no"';
-        if ($default_showavatar == 0) { $avatars_options .= ' checked="checked"'; }
-        $avatars_options .= '><label class="radio_label" for="showavatar_no"> '
-            . T_('No') . '</label>';
+        $avatar_yes_check = '';
+        $avatar_no_check  = '';
+        if ($default_showavatar == 1)
+        {
+            $avatar_yes_check = 'checked="checked"';
+        }
+        else
+        {
+            $avatar_no_check = 'checked="checked"';
+        }
+        $avatars_options  = '<input type="radio" name="showavatar" id="showavatar_yes" value="yes" '.$avatar_yes_check.'>';
+        $avatars_options .= '<label class="radio_label" for="showavatar_yes"> '.T_('Yes').'</label><br>';
+        $avatars_options .= '<input type="radio" name="showavatar" id="showavatar_no" value="no" '.$avatar_no_check.'>';
+        $avatars_options .= '<label class="radio_label" for="showavatar_no"> '.T_('No').'</label>';
+
         // Display Name
         $displayname_list = array(
             "1" => T_('First Name'),
             "2" => T_('First & Last Name'),
             "3" => T_('Username')
         );
+
         $displayname_options = buildHtmlSelectOptions($displayname_list, $default_displayname);
+
         // Frontpage
         $frontpage_list = array(
             "1" => T_('All (by date)'),
             "2" => T_('Last 5 (by section)')
         );
+
         $frontpage_options = buildHtmlSelectOptions($frontpage_list, $default_frontpage);
+
         // Timezone
         $tz_list = array(
-            "-12 hours" => T_('(GMT -12:00) Eniwetok, Kwajalein'),
-            "-11 hours" => T_('(GMT -11:00) Midway Island, Samoa'),
-            "-10 hours" => T_('(GMT -10:00) Hawaii'),
-            "-9 hours" => T_('(GMT -9:00) Alaska'),
-            "-8 hours" => T_('(GMT -8:00) Pacific Time (US & Canada)'),
-            "-7 hours" => T_('(GMT -7:00) Mountain Time (US & Canada)'),
-            "-6 hours" => T_('(GMT -6:00) Central Time (US & Canada), Mexico City'),
-            "-5 hours" => T_('(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima'),
-            "-4 hours" => T_('(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz'),
+            "-12 hours"            => T_('(GMT -12:00) Eniwetok, Kwajalein'),
+            "-11 hours"            => T_('(GMT -11:00) Midway Island, Samoa'),
+            "-10 hours"            => T_('(GMT -10:00) Hawaii'),
+            "-9 hours"             => T_('(GMT -9:00) Alaska'),
+            "-8 hours"             => T_('(GMT -8:00) Pacific Time (US & Canada)'),
+            "-7 hours"             => T_('(GMT -7:00) Mountain Time (US & Canada)'),
+            "-6 hours"             => T_('(GMT -6:00) Central Time (US & Canada), Mexico City'),
+            "-5 hours"             => T_('(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima'),
+            "-4 hours"             => T_('(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz'),
             "-3 hours -30 minutes" => T_('(GMT -3:30) Newfoundland'),
-            "-3 hours" => T_('(GMT -3:00) Brazil, Buenos Aires, Georgetown'),
-            "-2 hours" => T_('(GMT -2:00) Mid-Atlantic'),
-            "-1 hours" => T_('(GMT -1:00) Azores, Cape Verde Islands'),
-            "-0 hours" => T_('(GMT) Western Europe Time, London, Lisbon, Casablanca'),
-            "+1 hours" => T_('(GMT +1:00) Brussels, Copenhagen, Madrid, Paris'),
-            "+2 hours" => T_('(GMT +2:00) Kaliningrad, South Africa'),
-            "+3 hours" => T_('(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh'),
-            "+3 hours 30 minutes" => T_('(GMT +3:30) Tehran'),
-            "+4 hours" => T_('(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi'),
-            "+4 hours 30 minutes" => T_('(GMT +4:30) Kabul'),
-            "+5 hours" => T_('(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent'),
-            "+5 hours 30 minutes" => T_('(GMT +5:30) Bombay, Calcutta, Madras, New Delhi'),
-            "+6 hours" => T_('(GMT +6:00) Almaty, Dhaka, Colombo'),
-            "+7 hours" => T_('(GMT +7:00) Bangkok, Hanoi, Jakarta'),
-            "+8 hours" => T_('(GMT +8:00) Beijing, Perth, Singapore, Hong Kong'),
-            "+9 hours" => T_('(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk'),
-            "+9 hours 30 minutes" => T_('(GMT +9:30) Adeliaide, Darwin'),
-            "+10 hours" => T_('(GMT +10:00) Eastern Australia, Guam, Vladivostok'),
-            "+11 hours" => T_('(GMT +11:00) Magadan, Solomon Islands, New Caledonia'),
-            "+12 hours" => T_('(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka')
+            "-3 hours"             => T_('(GMT -3:00) Brazil, Buenos Aires, Georgetown'),
+            "-2 hours"             => T_('(GMT -2:00) Mid-Atlantic'),
+            "-1 hours"             => T_('(GMT -1:00) Azores, Cape Verde Islands'),
+            "-0 hours"             => T_('(GMT) Western Europe Time, London, Lisbon, Casablanca'),
+            "+1 hours"             => T_('(GMT +1:00) Brussels, Copenhagen, Madrid, Paris'),
+            "+2 hours"             => T_('(GMT +2:00) Kaliningrad, South Africa'),
+            "+3 hours"             => T_('(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh'),
+            "+3 hours 30 minutes"  => T_('(GMT +3:30) Tehran'),
+            "+4 hours"             => T_('(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi'),
+            "+4 hours 30 minutes"  => T_('(GMT +4:30) Kabul'),
+            "+5 hours"             => T_('(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent'),
+            "+5 hours 30 minutes"  => T_('(GMT +5:30) Bombay, Calcutta, Madras, New Delhi'),
+            "+6 hours"             => T_('(GMT +6:00) Almaty, Dhaka, Colombo'),
+            "+7 hours"             => T_('(GMT +7:00) Bangkok, Hanoi, Jakarta'),
+            "+8 hours"             => T_('(GMT +8:00) Beijing, Perth, Singapore, Hong Kong'),
+            "+9 hours"             => T_('(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk'),
+            "+9 hours 30 minutes"  => T_('(GMT +9:30) Adeliaide, Darwin'),
+            "+10 hours"            => T_('(GMT +10:00) Eastern Australia, Guam, Vladivostok'),
+            "+11 hours"            => T_('(GMT +11:00) Magadan, Solomon Islands, New Caledonia'),
+            "+12 hours"            => T_('(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka')
         );
+
         $tz_options = buildHtmlSelectOptions($tz_list, $default_tz);
+
         // DST
-        $dst_options = '<input type="radio" name="dst" id="dst_on" '
-            . 'value="on"';
-        if ($default_dst == 1) { $dst_options .= ' checked="checked"'; }
-        $dst_options .= '><label class="radio_label" for="dst_on"> ' . T_('On') . '</label><br>'
-            . '<input type="radio" name="dst" id="dst_off" value="off"';
-        if ($default_dst == 0) { $dst_options .= ' checked="checked"'; }
-        $dst_options .= '><label class="radio_label" for="dst_off"> ' . T_('Off') . '</label>';
+        $dst_on_check  = '';
+        $dst_off_check = '';
+        if ($default_dst == 1)
+        {
+            $dst_on_check = 'checked="checked"';
+        }
+        else
+        {
+            $dst_off_check = 'checked="checked"';
+        }
+        $dst_options  = '<input type="radio" name="dst" id="dst_on" value="on" '.$dst_on_check.'>';
+        $dst_options .= '<label class="radio_label" for="dst_on"> '.T_('On').'</label><br>';
+        $dst_options .= '<input type="radio" name="dst" id="dst_off" value="off" '.$dst_off_check.'>';
+        $dst_options .= '<label class="radio_label" for="dst_off"> '.T_('Off').'</label>';
+
         // Board Sort
         $boardsort_list = array(
             "ASC" => T_('New Messages at Bottom'),
             "DESC" => T_('New Messages at Top')
         );
+
         $boardsort_options = buildHtmlSelectOptions($boardsort_list, $default_boardsort);
         
         echo '
@@ -575,11 +637,11 @@ class Admin
     /**
      * getOrderSelectBox 
      * 
-     * @param int $name
-     * @param int $id
-     * @param int $total 
-     * @param int $selected 
-     * @param int $start 
+     * @param int $name     The name of the select box (comm|share)
+     * @param int $id       The order number of the spot we are talking about
+     * @param int $total    The total number of options for the select box
+     * @param int $selected Which order is currently selected
+     * @param int $start    What order to start on
      * 
      * @return void
      */
@@ -729,7 +791,7 @@ class Admin
         echo '
                     </tbody>
                 </table>
-                <p><input type="submit" id="submit-sections" name="submit-sections" value="' . T_('Save') . '"/></p>
+                <p><input type="submit" id="submit-sections" name="submit-sections" value="'.T_('Save').'"/></p>
             </fieldset>
         </form>';
     }
@@ -743,7 +805,7 @@ class Admin
     {
         $sql = "SELECT * FROM `fcms_config`";
         $this->db->query($sql) or displaySQLError(
-            'Site Info Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Site Info Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $row = $this->db->get_row();
         
@@ -751,6 +813,7 @@ class Admin
             "0" => T_('Off (2 photos)'),
             "1" => T_('On (3 photos)')
         );
+
         $full_size_options = buildHtmlSelectOptions($full_size_list, $row['full_size_photos']);
         
         echo '
@@ -778,9 +841,10 @@ class Admin
     /**
      * displaySectionDropdown 
      * 
-     * @param string $which_nav 
-     * @param string $which_selected 
-     * @param string $num 
+     * @param string $which_nav      The name of the navigation item
+     * @param string $which_selected The table name for the navigation item that is currently selected for this select box.
+     * @param string $num            Which navigation item order number.
+     * 
      * @return void
      */
     function displaySectionDropdown ($which_nav, $which_selected, $num)
@@ -790,44 +854,53 @@ class Admin
                     <div class="field-label"><label for="'.$which_nav.'"><b>'.T_('Section').' '.$num.'</b></label></div>
                     <div class="field-widget">
                         <select name="'.$which_nav.'">';
-        if (tableExists('fcms_news')) {
+        if (tableExists('fcms_news'))
+        {
             echo '<option value="familynews"';
-            if ($which_selected == 'familynews') {
+            if ($which_selected == 'familynews')
+            {
                 echo ' selected="selected"';
             }
-            echo '>' . T_('Family News') . '</option>';
+            echo '>'.T_('Family News').'</option>';
         }
-        if (tableExists('fcms_recipes')) {
+        if (tableExists('fcms_recipes'))
+        {
             echo '<option value="recipes"';
-            if ($which_selected == 'recipes') {
+            if ($which_selected == 'recipes')
+            {
                 echo ' selected="selected"';
             }
-            echo '>' . T_('Recipes') . '</option>';
+            echo '>'.T_('Recipes').'</option>';
         }
-        if (tableExists('fcms_documents')) {
+        if (tableExists('fcms_documents'))
+        {
             echo '<option value="documents"';
-            if ($which_selected == 'documents') {
+            if ($which_selected == 'documents')
+            {
                 echo ' selected="selected"';
             }
-            echo '>' . T_('Documents') . '</option>';
+            echo '>'.T_('Documents').'</option>';
         }
-        if (tableExists('fcms_prayers')) {
+        if (tableExists('fcms_prayers'))
+        {
             echo '<option value="prayers"';
-            if ($which_selected == 'prayers') {
+            if ($which_selected == 'prayers')
+            {
                 echo ' selected="selected"';
             }
-            echo '>' . T_('Prayer Concerns') . '</option>';
+            echo '>'.T_('Prayer Concerns').'</option>';
         }
         $i = substr($which_nav, 7);
         echo '<option value="none'.$i.'"';
         $pos = strpos($which_selected, "none");
-        if ($pos !== false) {
+        if ($pos !== false)
+        {
             echo ' selected="selected"';
         }
-        echo '>' . T_('none') . '</option>
+        echo '>'.T_('none').'</option>
                         </select>
                     </div>
                 </div>';
     }
 
-} ?>
+}

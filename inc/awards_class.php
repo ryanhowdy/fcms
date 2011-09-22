@@ -1,5 +1,5 @@
 <?php
-require_once 'util_inc.php';
+require_once 'utils.php';
 require_once 'messageboard_class.php';
 require_once 'gallery_class.php';
 

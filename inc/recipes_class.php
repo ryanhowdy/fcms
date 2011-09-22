@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 
 /**
  * Recipes 
@@ -47,7 +47,6 @@ class Recipes
      */
     function showRecipes ($page = 1)
     {
-        $locale = new FCMS_Locale();
         $page = cleanInput($page, 'int');
         $from = (($page * 5) - 5);
 
@@ -129,8 +128,6 @@ class Recipes
      */
     function showRecipeInCategory ($cat, $page = 1)
     {
-        $locale = new FCMS_Locale();
-
         $cat  = cleanInput($cat, 'int');
         $page = cleanInput($page, 'int');
         $from = (($page * 5) - 5);
@@ -237,8 +234,6 @@ class Recipes
      */
     function showRecipe ($cat, $id)
     {
-        $locale = new FCMS_Locale();
-
         $cat = cleanInput($cat, 'int');
         $id  = cleanInput($id, 'int');
 
@@ -286,7 +281,7 @@ class Recipes
 
         $displayname = getUserDisplayName($r['user']);
         $displayname = '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>';
-        $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $r['date']);
+        $date = fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $r['date']);
 
         $cleanName          = cleanOutput($r['name']);
         $cleanCategory      = cleanOutput($r['category'], 'int');
@@ -523,60 +518,6 @@ class Recipes
     }
 
     /**
-     * displayWhatsNewRecipes 
-     * 
-     * Displays the last 5 recipes, in the last 30 days.
-     *
-     * @return void
-     */
-    function displayWhatsNewRecipes ()
-    {
-        $locale = new FCMS_Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $sql = "SELECT *
-                FROM `fcms_recipes`
-                WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY)
-                ORDER BY `date` DESC 
-                LIMIT 0 , 5";
-        $this->db->query($sql) or displaySQLError(
-            "What's New Error", __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-
-        if ($this->db->count_rows() > 0) {
-            echo '
-            <h3>'.T_('Recipes').'</h3>
-            <ul>';
-
-            while ($r = $this->db->get_row()) {
-                $name = $r['name'];
-                $displayname = getUserDisplayName($r['user']);
-
-                $url = 'recipes.php?category='.(int)$r['category'].'&amp;id='.(int)$r['id'];
-
-                $date = $locale->fixDate('YmdHis', $this->tzOffset, $r['date']);
-
-                if ($date >= $today_start && $date <= $today_end) {
-                    $full_date = T_('Today');
-                    $d = ' class="today"';
-                } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
-                    $d = '';
-                }
-                echo '
-                <li>
-                    <div'.$d.'>'.$full_date.'</div>
-                    <a href="'.$url.'">'.cleanOutput($name).'</a> - 
-                    <a class="u" href="profile.php?member='.(int)$r['user'].'">'.$displayname.'</a>
-                </li>';
-            }
-            echo '
-            </ul>';
-        }
-    }
-
-    /**
      * showCategoryMenu 
      * 
      * Displays the left side category menu. Returns true if categories exist.
@@ -654,8 +595,6 @@ class Recipes
      */
     function showComments ($id, $category)
     {
-        $locale = new FCMS_Locale();
-
         $id       = cleanInput($id, 'int');
         $category = cleanInput($category, 'int');
 
@@ -673,7 +612,7 @@ class Recipes
             while ($r = $this->db->get_row()) {
 
                 $del_comment = '';
-                $date = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
+                $date = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
                 $displayname = getUserDisplayName($r['user']);
                 $comment = $r['comment'];
                 if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2) {

@@ -1,13 +1,23 @@
 <?php
+/**
+ * Prayers
+ *  
+ * PHP versions 4 and 5
+ *  
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '');
 
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
-include_once('inc/prayers_class.php');
+require 'fcms.php';
 
-fixMagicQuotes();
+load('prayers');
 
 // Check that the user is logged in
 isLoggedIn();
@@ -45,7 +55,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($currentUserId) . 'header.php');
+require_once getTheme($currentUserId).'header.php';
 
 echo '
         <div id="prayers" class="centercontent">';
@@ -55,8 +65,8 @@ $show = true;
 //------------------------------------------------------------------------------
 // Add prayer concern
 //------------------------------------------------------------------------------
-if (isset($_POST['submitadd'])) {
-
+if (isset($_POST['submitadd']))
+{
     $for  = cleanInput($_POST['for']);
     $desc = cleanInput($_POST['desc']);
 
@@ -67,9 +77,13 @@ if (isset($_POST['submitadd'])) {
                 '$currentUserId', 
                 NOW()
             )";
-    mysql_query($sql) or displaySQLError(
-        'New Prayer Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+    if (!mysql_query($sql))
+    {
+        displaySQLError('New Prayer Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        exit();
+    }
+
     echo '
             <p class="ok-alert" id="add">'.T_('Prayer Concern Added Successfully').'</p>
             <script type="text/javascript">
@@ -77,21 +91,30 @@ if (isset($_POST['submitadd'])) {
             </script>';
 
     // Email members
-    $sql = "SELECT u.`email`, s.`user` "
-         . "FROM `fcms_user_settings` AS s, `fcms_users` AS u "
-         . "WHERE `email_updates` = '1'"
-         . "AND u.`id` = s.`user`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', 
-        $sql, mysql_error()
-    );
-    if (mysql_num_rows($result) > 0) {
-        while ($r = mysql_fetch_array($result)) {
-            $name = getUserDisplayName($currentUserId);
-            $to = getUserDisplayName($r['user']);
-            $subject = sprintf(T_('%s added a new Prayer Concern for %s'), $name, $for);
-            $email = $r['email'];
-            $url = getDomainAndDir();
+    $sql = "SELECT u.`email`, s.`user`
+            FROM `fcms_user_settings` AS s, `fcms_users` AS u 
+            WHERE `email_updates` = '1'
+            AND u.`id` = s.`user`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Email Updates Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        exit();
+    }
+
+    if (mysql_num_rows($result) > 0)
+    {
+        while ($r = mysql_fetch_array($result))
+        {
+            $name          = getUserDisplayName($currentUserId);
+            $to            = getUserDisplayName($r['user']);
+            $subject       = sprintf(T_('%s added a new Prayer Concern for %s'), $name, $for);
+            $email         = $r['email'];
+            $url           = getDomainAndDir();
+            $email_headers = getEmailHeaders();
+
             $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
@@ -104,7 +127,6 @@ if (isset($_POST['submitadd'])) {
 '.$url.'settings.php
 
 ';
-            $email_headers = getEmailHeaders();
             mail($email, $subject, $msg, $email_headers);
         }
     }
@@ -113,17 +135,21 @@ if (isset($_POST['submitadd'])) {
 //------------------------------------------------------------------------------
 // Edit prayer concern
 //------------------------------------------------------------------------------
-if (isset($_POST['submitedit'])) {
-
+if (isset($_POST['submitedit']))
+{
     $for  = cleanInput($_POST['for']);
     $desc = cleanInput($_POST['desc']);
 
     $sql = "UPDATE `fcms_prayers` 
             SET `for` = '$for', `desc` = '$desc' 
-            WHERE `id` = '" . cleanInput($_POST['id'], 'int'). "'";
-    mysql_query($sql) or displaySQLError(
-        'Edit Prayer Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+            WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
+    if (!mysql_query($sql))
+    {
+        displaySQLError('Edit Prayer Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        exit();
+    }
+
     echo '
             <p class="ok-alert" id="edit">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
@@ -134,8 +160,10 @@ if (isset($_POST['submitedit'])) {
 //------------------------------------------------------------------------------
 // Delete confirmation
 //------------------------------------------------------------------------------
-if (isset($_POST['delprayer']) && !isset($_POST['confirmed'])) {
+if (isset($_POST['delprayer']) && !isset($_POST['confirmed']))
+{
     $show = false;
+
     echo '
             <div class="info-alert clearfix">
                 <form action="prayers.php" method="post">
@@ -149,16 +177,21 @@ if (isset($_POST['delprayer']) && !isset($_POST['confirmed'])) {
                 </form>
             </div>';
 
+}
 //------------------------------------------------------------------------------
 // Delete prayer concern
 //------------------------------------------------------------------------------
-} elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
-
+elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
+{
     $sql = "DELETE FROM `fcms_prayers` 
-            WHERE `id` = '" . cleanInput($_POST['id'], 'int') . "'";
-    mysql_query($sql) or displaySQLError(
-        'Delete Prayer Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+            WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
+    if (!mysql_query($sql))
+    {
+        displaySQLError('Delete Prayer Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        exit();
+    }
+
     echo '
             <p class="ok-alert" id="del">'.T_('Prayer Concern Deleted Successfully').'</p>
             <script type="text/javascript">
@@ -169,7 +202,8 @@ if (isset($_POST['delprayer']) && !isset($_POST['confirmed'])) {
 //------------------------------------------------------------------------------
 // Add Form
 //------------------------------------------------------------------------------
-if (isset($_GET['addconcern']) && checkAccess($currentUserId) <= 5) {
+if (isset($_GET['addconcern']) && checkAccess($currentUserId) <= 5)
+{
     $show = false;
     $prayers->displayForm('add');
 }
@@ -177,33 +211,49 @@ if (isset($_GET['addconcern']) && checkAccess($currentUserId) <= 5) {
 //------------------------------------------------------------------------------
 // Edit Form
 //------------------------------------------------------------------------------
-if (isset($_POST['editprayer'])) {
+if (isset($_POST['editprayer']))
+{
     $show = false;
-    $id     = cleanInput($_POST['id'], 'int');
-    $for    = cleanInput($_POST['for']);
-    $desc   = cleanInput($_POST['desc']);
-    $prayers->displayForm('edit', $_POST['id'], $_POST['for'], $_POST['desc']);
+    $id   = cleanInput($_POST['id'], 'int');
+    $for  = cleanInput($_POST['for']);
+    $desc = cleanInput($_POST['desc']);
+
+    $prayers->displayForm('edit', $id, $for, $desc);
 }
 
 //------------------------------------------------------------------------------
 // Show Prayers
 //------------------------------------------------------------------------------
-if ($show) {
-    if (checkAccess($currentUserId) <= 5) {
+if ($show)
+{
+    if (checkAccess($currentUserId) <= 5)
+    {
         echo '
             <div id="actions_menu" class="clearfix">
                 <ul><li><a class="action" href="?addconcern=yes">'.T_('Add a Prayer Concern').'</a></li></ul>
             </div>';
     }
+
     $page = 1;
-    if (isset($_GET['page'])) {
+    if (isset($_GET['page']))
+    {
         $page = cleanInput($_GET['page'], 'int');
     }
+
     $prayers->showPrayers($page);
 }
 
-echo '
+displayFooter();
+
+/**
+ * displayFooter 
+ * 
+ * @return void
+ */
+function displayFooter ()
+{
+    echo '
         </div><!-- #prayers .centercontent -->';
 
-// Show Footer
-include_once(getTheme($currentUserId) . 'footer.php');
+    include_once getTheme($currentUserId).'footer.php';
+}

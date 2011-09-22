@@ -2,6 +2,8 @@
 /**
  * Contact
  * 
+ * PHP versions 4 and 5
+ * 
  * @category  FCMS
  * @package   FamilyConnections
  * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
@@ -13,10 +15,7 @@ session_start();
 
 define('URL_PREFIX', '');
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-
-fixMagicQuotes();
+require 'fcms.php';
 
 // Check that the user is logged in
 isLoggedIn();
@@ -36,29 +35,35 @@ $TMPL['javascript'] = '
 <script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
-require_once getTheme($currentUserId) . 'header.php';
+require_once getTheme($currentUserId).'header.php';
 
 echo '
         <div id="contact" class="centercontent">';
 
 // Send mail
-if (!empty($_POST['subject']) && !empty($_POST['email']) && !empty($_POST['name']) && !empty($_POST['msg'])) {
-    $subject    = cleanOutput($_POST['subject']);
-    $email      = cleanOutput($_POST['email']);
-    $name       = cleanOutput($_POST['name']);
-    $msg        = cleanOutput($_POST['msg'], 'html');
+if (!empty($_POST['subject']) && !empty($_POST['email']) && !empty($_POST['name']) && !empty($_POST['msg']))
+{
+    $subject       = cleanOutput($_POST['subject']);
+    $email         = cleanOutput($_POST['email']);
+    $name          = cleanOutput($_POST['name']);
+    $msg           = cleanOutput($_POST['msg'], 'html');
     $email_headers = getEmailHeaders($name, $email);
+
     mail(getContactEmail(), $subject, "$msg\r\n-$name", $email_headers);
+
     echo '
             <p>'.T_('The following message has been sent to the Administrator:').'</p>
-            <p>' . $msg . '<br/>- ' . $name . '</p>';
+            <p>'.$msg.'<br/>- '.$name.'</p>';
 
+}
 // Show form
-} else {
-    $email      = isset($_POST['email'])    ? cleanOutput($_POST['email'])          : '';
-    $name       = isset($_POST['name'])     ? cleanOutput($_POST['name'])           : '';
-    $subject    = isset($_POST['subject'])  ? cleanOutput($_POST['subject'])        : '';
-    $msg        = isset($_POST['msg'])      ? cleanOutput($_POST['msg'], 'html')    : '';
+else
+{
+    $email   = isset($_POST['email'])   ? cleanOutput($_POST['email'])       : '';
+    $name    = isset($_POST['name'])    ? cleanOutput($_POST['name'])        : '';
+    $subject = isset($_POST['subject']) ? cleanOutput($_POST['subject'])     : '';
+    $msg     = isset($_POST['msg'])     ? cleanOutput($_POST['msg'], 'html') : '';
+
     echo '
             <fieldset>
                 <form method="post" class="contactform" action="contact.php">
@@ -82,8 +87,9 @@ if (!empty($_POST['subject']) && !empty($_POST['email']) && !empty($_POST['name'
                 </form>
             </fieldset>';
 }
+
 echo '
         </div><!-- #contact .centercontent -->';
 
 // Show Footer
-require_once getTheme($currentUserId) . 'footer.php';
+require_once getTheme($currentUserId).'footer.php';

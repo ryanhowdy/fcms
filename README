@@ -7,17 +7,12 @@ I. Installation
 
   1. Upload the entire contents of FCMS_2.4.1.zip to your web host.
 
-  2. Set permissions to the following folders to 777 (read, write, and execute for 
-     user, group and other)
+  2. Run the online installation script by visiting your website.
 
-    inc/
-    uploads/avatar/
-    uploads/documents/
-    uploads/photos/
-    uploads/upimages/
-
-  3. Go to http://www.yourdomain.com/fcms/ where yourdomain.com is your domain and  
-     fcms/ is the directory you used to install FCMS.
+        If you installed Family Connections in a directory called
+        fcms/ and your domain is yourdomain.com, then you would 
+        type in the url http://www.yourdomain.com/fcms/ into your
+        browser.
 
   4. It is recommended that you delete the install.php file after installation.
 
@@ -35,11 +30,14 @@ II. Upgrading from 2.4 to 2.4.1
     gallery/photos/memberX/
     gallery/upimages/
 
+  FCMS 2.5 includes a new feature where you can do automatic upgrades.  If you are
+  upgrading from version 2.4 or later you can make use of this new feature and do
+  a semi-automatic upgrade.  Subsequent versions will be fully automatic.
+
   1. It is recommended that you backup your entire site, including your
      MySQL database before upgrading.
 
-  2. Login as the administartor and turn off the site by visiting the 
-     configuration section.
+  2. Login as the administrator and visit the upgrade section (keep this window open).
 
   3. Upload the entire contents of FCMS_2.4.1.zip to your web host 
      (Overwriting any previous files other than the above mentioned files/directories).
@@ -47,9 +45,14 @@ II. Upgrading from 2.4 to 2.4.1
   4. Login as the administrator and visit the upgrade section and run the
      upgrade script.
 
-  5. Delete the install.php file from your web host (if it still exists).
+  4. Delete the following files:
 
-  6. Turn the site back on.
+       inc/util_inc.php
+
+  5. Go back to your browser (from step 2) and refresh the page.  You will probably get
+     a few errors at the top.  Click the 'Automatic Upgrade' button.
+
+  5. Delete the install.php file from your web host (if it still exists).
 
 
 

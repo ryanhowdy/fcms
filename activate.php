@@ -14,19 +14,18 @@
  * @since     1.7
  */
 header("Cache-control: private");
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-$link = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-mysql_select_db($cfg_mysql_db, $link);
-?>
+
+require 'fcms.php';
+
+echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo T_('lang'); ?>" lang="<?php echo T_('lang'); ?>">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
-<title><?php echo getSiteName()." - ".T_('powered by')." ".getCurrentVersion(); ?></title>
+<title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
 <link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
 </head>
-<body>
-<?php
+<body>';
+
 if (isset($_GET['uid']))
 {
     // Check for valid user id
@@ -40,9 +39,13 @@ if (isset($_GET['uid']))
                 FROM `fcms_users` 
                 WHERE `id` = '".cleanInput($_GET['uid'], 'int')."'";
 
-        $result = mysql_query($sql) or displaySQLError(
-            'Check Code Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySQLError('Check Code Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            echo '</body></html>';
+            exit();
+        }
 
         $row = mysql_fetch_array($result);
 
@@ -56,9 +59,13 @@ if (isset($_GET['uid']))
                 $sql = "UPDATE `fcms_users` 
                         SET `activated` = 1, `joindate` = NOW() 
                         WHERE `id` = '".cleanInput($_GET['uid'], 'int')."'";
-                mysql_query($sql) or displaySQLError(
-                    'Activation Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-                );
+                if (!mysql_query($sql))
+                {
+                    displaySQLError('Activation Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                    echo '</body></html>';
+                    exit();
+                }
+
                 echo '
         <p><b>'.T_('Alright!').'</b></p>
         <p>'.T_('Your account is now active.').'</p>
@@ -100,6 +107,8 @@ if (isset($_GET['uid']))
 else
 {
     echo T_('Access Denied');
-} ?>
+}
+
+echo '
 </body>
-</html>
+</html>';

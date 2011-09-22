@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 
 /**
  * Poll 
@@ -13,7 +13,6 @@ include_once('locale.php');
  */
 class Poll
 {
-
     var $db;
     var $db2;
     var $tzOffset;
@@ -272,7 +271,6 @@ class Poll
      */
     function displayPastPolls ($page)
     {
-        $locale = new FCMS_Locale();
         $from = (($page * 15) - 15);
         echo '
             <h2>'.T_('Past Polls').'</h3>';
@@ -295,7 +293,7 @@ class Poll
                 </thead>
                 <tbody>';
             while ($row = $this->db->get_row()) {
-                $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $row['started']);
+                $date = fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $row['started']);
                 echo '
                     <tr>
                         <td><a href="?poll_id='.(int)$row['id'].'">'.cleanOutput($row['question']).'</a></td>

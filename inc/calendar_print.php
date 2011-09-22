@@ -2,7 +2,7 @@
 session_start();
 
 include_once('config_inc.php');
-include_once('util_inc.php');
+include_once('utils.php');
 include_once('calendar_class.php');
 
 // Check that the user is logged in
@@ -48,9 +48,9 @@ if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day'])) {
     $day    = str_pad($day, 2, "0", STR_PAD_LEFT);
 // get today's date
 } else {
-    $year  = $locale->fixDate('Y', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
-    $month = $locale->fixDate('m', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
-    $day   = $locale->fixDate('d', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+    $year  = fixDate('Y', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+    $month = fixDate('m', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
+    $day   = fixDate('d', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
 }
 $calendar->displayCalendarMonth($month, $year, $day);
 

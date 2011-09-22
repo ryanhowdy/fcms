@@ -2,7 +2,7 @@
 /**
  * AddressBook 
  * 
- * PHP versions 4 and 5
+ * PHP version 5
  * 
  * @category  FCMS
  * @package   FamilyConnections
@@ -15,13 +15,9 @@ session_start();
 
 define('URL_PREFIX', '');
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-require_once 'inc/settings_class.php';
-require_once 'inc/foursquare/EpiCurl.php';
-require_once 'inc/foursquare/EpiFoursquare.php';
+require 'fcms.php';
 
-fixMagicQuotes();
+load('settings', 'foursquare', 'facebook', 'socialmedia', 'vimeo');
 
 // Check that the user is logged in
 isLoggedIn();
@@ -39,7 +35,6 @@ $TMPL = array(
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
-
 
 control();
 exit();
@@ -84,10 +79,6 @@ function control ()
         {
             displayEditMessageBoardSubmit();
         }
-        elseif ($_GET['view'] == 'whereiseveryone')
-        {
-            displayEditWhereIsEveryoneSubmit();
-        }
     }
     // Theme
     elseif (isset($_GET['use']) && $_GET['view'] == 'theme')
@@ -101,11 +92,6 @@ function control ()
     elseif (isset($_POST['delconfirm']) || (isset($_GET['delete']) && isset($_GET['confirmed'])))
     {
         displayDeleteThemeSubmit();
-    }
-    // Save Foursquare access token
-    elseif (isset($_GET['code']))
-    {
-        displayFoursquareSubmit();
     }
     // Import
     elseif (isset($_GET['import']) && isset($_GET['view']))
@@ -139,13 +125,41 @@ function control ()
         {
             displayEditMessageBoard();
         }
-        elseif ($_GET['view'] == 'whereiseveryone')
+        elseif ($_GET['view'] == 'socialmedia' && isset($_GET['code']) && isset($_GET['state']))
         {
-            displayEditWhereIsEveryone();
+            displayEditFacebookSubmit();
+        }
+        elseif ($_GET['view'] == 'socialmedia' && isset($_GET['code']))
+        {
+            displayFoursquareSubmit();
+        }
+        elseif ($_GET['view'] == 'socialmedia' && isset($_GET['oauth_token']))
+        {
+            displayEditVimeoSubmit();
+        }
+        elseif ($_GET['view'] == 'socialmedia')
+        {
+            displayEditSocialMedia();
         }
         else
         {
             displayEditAccount();
+        }
+    }
+    // Revoke app access
+    elseif (isset($_GET['revoke']))
+    {
+        if ($_GET['revoke'] == 'facebook')
+        {
+            displayRevokeFacebookAccess();
+        }
+        elseif ($_GET['revoke'] == 'foursquare')
+        {
+            displayRevokeFoursquareAccess();
+        }
+        elseif ($_GET['revoke'] == 'vimeo')
+        {
+            displayRevokeVimeoAccess();
         }
     }
     else
@@ -195,19 +209,12 @@ Event.observe(window, \'load\', function() {
                     <li><a href="?view=theme">'.T_('Theme').'</a></li>
                     <li><a href="?view=settings">'.T_('Settings').'</a></li>
                     <li><a href="?view=notifications">'.T_('Notifications').'</a></li>
+                    <li><a href="?view=socialmedia">'.T_('Social Media').'</a></li>
                 </ul>
                 <h3>'.T_('Section Settings').'</h3>
                 <ul class="menu">
                     <li><a href="?view=familynews">'.T_('Family News').'</a></li>
-                    <li><a href="?view=messageboard">'.T_('Message Board').'</a></li>';
-
-    if (usingWhereIsEveryone())
-    {
-        echo '
-                    <li><a href="?view=whereiseveryone">'.T_('Where Is Everyone').'</a></li>';
-    }
-
-    echo '
+                    <li><a href="?view=messageboard">'.T_('Message Board').'</a></li>
                 </ul>
             </div>
 
@@ -702,58 +709,6 @@ function displayEditMessageBoardSubmit ()
 }
 
 /**
- * displayEditWhereIsEveryone 
- * 
- * @return void
- */
-function displayEditWhereIsEveryone ()
-{
-    global $currentUserId, $settingsObj;
-
-    displayHeader();
-    $settingsObj->displayWhereIsEveryone();
-    displayFooter();
-
-    return;
-}
-
-/**
- * displayEditWhereIsEveryoneSubmit 
- * 
- * @return void
- */
-function displayEditWhereIsEveryoneSubmit ()
-{
-    global $currentUserId, $settingsObj;
-
-    displayHeader();
-
-    if (isset($_POST['id']))
-    {
-        $id = cleanInput($_POST['id'], 'int');
-
-        $sql = "UPDATE `fcms_user_settings`
-                SET `fs_user_id` = '$id'
-                WHERE `user` = '$currentUserId'";
-
-        if (!mysql_query($sql))
-        {
-            displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-            displayFooter();
-            return;
-        }
-    }
-
-    if (isset($_POST['id']) || isset($_GET['code']))
-    {
-        displayOkMessage();
-    }
-
-    $settingsObj->displayWhereIsEveryone();
-    displayFooter();
-}
-
-/**
  * displayFoursquareSubmit 
  * 
  * The submit screen for saving foursquare data.
@@ -764,8 +719,6 @@ function displayFoursquareSubmit ()
 {
     global $currentUserId, $settingsObj;
 
-    displayHeader();
-
     $sql = "SELECT `fs_client_id`, `fs_client_secret`, `fs_callback_url`
             FROM `fcms_config`
             LIMIT 1";
@@ -773,12 +726,14 @@ function displayFoursquareSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
+        displayHeader();
         displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
         displayFooter();
         return;
     }
     if (mysql_num_rows($result) <= 0)
     {
+        displayHeader();
         echo '
                 <p class="error-alert">'.T_('No configuration data found.').'</p>';
         displayFooter();
@@ -793,19 +748,46 @@ function displayFoursquareSubmit ()
     $fsObj = new EpiFoursquare($id, $secret);
     $token = $fsObj->getAccessToken($_GET['code'], $url);
 
+    $fsObjAuth = new EpiFoursquare($id, $secret, $token->access_token);
+    $self      = $fsObjAuth->get('/users/self');
+
     $sql = "UPDATE `fcms_user_settings`
-            SET `fs_access_token` = '".$token->access_token."'
+            SET `fs_user_id` = '".$self->response->user->id."',
+                `fs_access_token` = '".$token->access_token."'
             WHERE `user` = '$currentUserId'";
     if (!mysql_query($sql))
     {
+        displayHeader();
         displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
         displayFooter();
         return;
     }
 
-    displayOkMessage(T_('Your Foursquare Account has been Linked'), 5000);
-    $settingsObj->displayWhereIsEveryone();
-    displayFooter();
+    header("Location: settings.php?view=socialmedia");
+}
+
+/**
+ * displayRevokeFoursquareAccess 
+ * 
+ * @return void
+ */
+function displayRevokeFoursquareAccess ()
+{
+    global $currentUserId;
+
+    $sql = "UPDATE `fcms_user_settings`
+            SET `fs_user_id` = NULL, `fs_access_token` = NULL
+            WHERE `user` = '$currentUserId'";
+
+    if (!mysql_query($sql))
+    {
+        displayHeader();
+        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    header("Location: settings.php?view=socialmedia");
 }
 
 /**
@@ -820,7 +802,7 @@ function displayImportBlogPosts ()
     displayHeader();
 
     // setup familynew obj
-    require_once 'inc/familynews_class.php';
+    include_once 'inc/familynews_class.php';
     $newsObj = new FamilyNews($currentUserId);
 
     // get external ids
@@ -945,6 +927,325 @@ function displayInvalidAccessLevel ()
 
     displayFooter();
 }
+
 /**
- *  
+ * displayEditFacebookSubmit 
+ * 
+ * @return void
  */
+function displayEditFacebookSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    $data = getFacebookConfigData();
+
+    if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
+    {
+        $facebook = new Facebook(array(
+          'appId'  => $data['fb_app_id'],
+          'secret' => $data['fb_secret'],
+        ));
+
+        $accessToken = $facebook->getAccessToken();
+
+        $sql = "UPDATE `fcms_user_settings`
+                SET `fb_access_token` = '$accessToken'
+                WHERE `user` = '$currentUserId'";
+        if (!mysql_query($sql))
+        {
+            displayHeader();
+            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            return;
+        }
+    }
+
+    // Facebook isn't configured
+    else
+    {
+        displayHeader();
+
+        echo '
+            <div class="info-alert">
+                <h2>'.T_('Facebook isn\'t Configured Yet.').'</h2>
+                <p>'.T_('Unfortunately, your website administrator has not set up Facebook yet.').'</p>
+            </div>';
+
+        displayFooter();
+    }
+
+    header("Location: settings.php?view=socialmedia");
+}
+
+/**
+ * displayRevokeFacebookAccess 
+ * 
+ * @return void
+ */
+function displayRevokeFacebookAccess ()
+{
+    global $currentUserId;
+
+    $sql = "UPDATE `fcms_user_settings`
+            SET `fb_access_token` = NULL
+            WHERE `user` = '$currentUserId'";
+
+    if (!mysql_query($sql))
+    {
+        displayHeader();
+        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    // remove any facebook session vars
+    foreach ($_SESSION as $key => $val)
+    {
+        if (substr($key, 0, 3) == 'fb_')
+        {
+            unset($_SESSION[$key]);
+        }
+    }
+
+    header("Location: settings.php?view=socialmedia");
+}
+
+/**
+ * displayEditVimeoSubmit
+ * 
+ * @return void
+ */
+function displayEditVimeoSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    $data = getVimeoConfigData();
+
+    if (!empty($data['vimeo_key']) && !empty($data['vimeo_secret']))
+    {
+        $vimeo = new phpVimeo($data['vimeo_key'], $data['vimeo_secret']);
+        $vimeo->enableCache(phpVimeo::CACHE_FILE, './cache', 300);
+
+        // Set request token
+        $vimeo->setToken($_SESSION['oauth_request_token'], $_SESSION['oauth_request_token_secret']);
+
+        // Exchange it for an access token
+        $token = $vimeo->getAccessToken($_REQUEST['oauth_verifier']);
+
+        // Set access token
+        $vimeo->setToken($token['oauth_token'], $token['oauth_token_secret']);
+
+        $sql = "UPDATE `fcms_user_settings`
+                SET `vimeo_access_token` = '".$token['oauth_token']."',
+                    `vimeo_access_token_secret` = '".$token['oauth_token_secret']."'
+                WHERE `user` = '$currentUserId'";
+
+        if (!mysql_query($sql))
+        {
+            displayHeader();
+            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            return;
+        }
+    }
+
+    // Vimeo isn't configured
+    else
+    {
+        displayHeader();
+
+        echo '
+            <div class="info-alert">
+                <h2>'.T_('Vimeo isn\'t Configured Yet.').'</h2>
+                <p>'.T_('Unfortunately, your website administrator has not set up Vimeo yet.').'</p>
+            </div>';
+
+        displayFooter();
+        return;
+    }
+
+    header("Location: settings.php?view=socialmedia");
+}
+
+/**
+ * displayRevokeVimeoAccess 
+ * 
+ * @return void
+ */
+function displayRevokeVimeoAccess ()
+{
+    global $currentUserId;
+
+    $sql = "UPDATE `fcms_user_settings`
+            SET `vimeo_access_token` = NULL, `vimeo_access_token_secret` = NULL
+            WHERE `user` = '$currentUserId'";
+
+    if (!mysql_query($sql))
+    {
+        displayHeader();
+        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    header("Location: settings.php?view=socialmedia");
+}
+
+/**
+ * displayEditSocialMedia 
+ * 
+ * @return void
+ */
+function displayEditSocialMedia ()
+{
+    global $currentUserId;
+
+    displayHeader();
+
+    // Get Data
+    $facebookConfig      = getFacebookConfigData();
+    $facebookAccessToken = getUserFacebookAccessToken($currentUserId);
+    $foursquareConfig    = getFoursquareConfigData();
+    $foursquareUser      = getFoursquareUserData($currentUserId);
+    //$vimeoConfig         = getVimeoConfigData();
+    //$vimeoUser           = getVimeoUserData($currentUserId);
+
+    // Setup url for callbacks
+    $callbackUrl  = getDomainAndDir();
+    $callbackUrl .= 'settings.php?view=socialmedia';
+
+    // Facebook
+    //------------------------------------------------------------------------------------
+    $facebookRow    = '';
+    $facebookStatus = '';
+    $facebookLink   = '';
+
+    if (!empty($facebookConfig['fb_app_id']) && !empty($facebookConfig['fb_secret']))
+    {
+        $facebook = new Facebook(array(
+            'appId'  => $facebookConfig['fb_app_id'],
+            'secret' => $facebookConfig['fb_secret'],
+        ));
+
+        $facebook->setAccessToken($facebookAccessToken);
+
+        // Check if the user is logged in and authed
+        $fbUser    = $facebook->getUser();
+        $fbProfile = '';
+        if ($fbUser)
+        {
+            try
+            {
+                $fbProfile = $facebook->api('/me');
+            }
+            catch (FacebookApiException $e)
+            {
+                $fbUser = null;
+            }
+        }
+
+        if ($fbUser)
+        {
+            $facebookStatus = '<a href="'.$fbProfile['link'].'">'.$fbProfile['email'].'</span>';
+            $facebookLink   = '<a class="disconnect" href="?revoke=facebook">'.T_('Disconnect').'</a>';
+        }
+        else
+        {
+            $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
+
+            $facebookStatus = '<span class="not_connected">'.T_('Not Connected').'</span>';
+            $facebookLink   = '<a href="'.$facebook->getLoginUrl($params).'">'.T_('Connect').'</a>';
+        }
+
+        $facebookRow = '
+                <tr>
+                    <td><img src="themes/images/facebook_24.png" alt="'.T_('Facebook').'"/></td>
+                    <td>'.T_('Facebook').'</td>
+                    <td>'.$facebookStatus.'</td>
+                    <td>'.$facebookLink.'</td>
+                </tr>';
+    }
+
+    // Foursquare
+    //------------------------------------------------------------------------------------
+    $foursquareRow    = '';
+    $foursquareStatus = '';
+    $foursquareLink   = '';
+
+    if (!empty($foursquareConfig['fs_client_id']) && !empty($foursquareConfig['fs_client_secret']))
+    {
+        $fsObj = new EpiFoursquare($foursquareConfig['fs_client_id'], $foursquareConfig['fs_client_secret']);
+
+        if (!empty($foursquareUser['fs_user_id']) && !empty($foursquareUser['fs_access_token']))
+        {
+            $fsObjAuth = new EpiFoursquare($foursquareConfig['fs_client_id'], $foursquareConfig['fs_client_secret'], $foursquareUser['fs_access_token']);
+            $self      = $fsObjAuth->get('/users/self');
+
+            $foursquareStatus = '<a href="http://foursquare.com/user/'.$self->response->user->id.'">'.$self->response->user->contact->email.'</a>';
+            $foursquareLink   = '<a class="disconnect" href="?revoke=foursquare">'.T_('Disconnect').'</a>';
+        }
+        else
+        {
+            $foursquareStatus = '<span class="not_connected">'.T_('Not Connected').'</span>';
+            $foursquareLink   = '<a href="'.$fsObj->getAuthorizeUrl($callbackUrl).'">'.T_('Connect').'</a>';
+        }
+
+        $foursquareRow = '
+                <tr>
+                    <td><img src="themes/images/foursquare_24.png" alt="'.T_('Foursquare').'"/></td>
+                    <td>'.T_('Foursquare').'</td>
+                    <td>'.$foursquareStatus.'</td>
+                    <td>'.$foursquareLink.'</td>
+                </tr>';
+    }
+
+    // Vimeo
+    //------------------------------------------------------------------------------------
+    //$vimeoRow    = '';
+    //$vimeoStatus = '';
+    //$vimeoLink   = '';
+
+    //if (!empty($vimeoConfig['vimeo_key']) && !empty($vimeoConfig['vimeo_secret']))
+    //{
+    //    $vimeo = new phpVimeo($vimeoConfig['vimeo_key'], $vimeoConfig['vimeo_secret']);
+    //    $vimeo->enableCache(phpVimeo::CACHE_FILE, './cache', 300);
+
+    //    if (!empty($vimeoUser['vimeo_access_token']) && !empty($vimeoUser['vimeo_access_token_secret']))
+    //    {
+    //        $vimeo->setToken($vimeoUser['vimeo_access_token'], $vimeoUser['vimeo_access_token_secret']);
+    //        $response = $vimeo->call('vimeo.people.getInfo');
+
+    //        $vimeoStatus = '<a href="http://vimeo.com/'.$response->person->username.'">'.$response->person->username.'</a>';
+    //        $vimeoLink   = '<a class="disconnect" href="?revoke=vimeo">'.T_('Disconnect').'</a>';
+    //    }
+    //    else
+    //    {
+    //        unset($_SESSION['oauth_request_token']);
+    //        unset($_SESSION['oauth_request_token_secret']);
+
+    //        $token = $vimeo->getRequestToken($callbackUrl);
+
+    //        $_SESSION['oauth_request_token']        = $token['oauth_token'];
+    //        $_SESSION['oauth_request_token_secret'] = $token['oauth_token_secret'];
+
+    //        $vimeoStatus = '<span class="not_connected">'.T_('Not Connected').'</span>';
+    //        $vimeoLink   = '<a href="'.$vimeo->getAuthorizeUrl($token['oauth_token'], 'write').'">'.T_('Connect').'</a>';
+    //    }
+
+    //    $vimeoRow = '
+    //            <tr>
+    //                <td><img src="themes/images/vimeo_24.png" alt="'.T_('Vimeo').'"/></td>
+    //                <td>'.T_('Vimeo').'</td>
+    //                <td>'.$vimeoStatus.'</td>
+    //                <td>'.$vimeoLink.'</td>
+    //            </tr>';
+    //}
+
+    echo '
+        <table id="socialmedia-connect">
+            <tbody>'.$facebookRow.$foursquareRow.'
+            </tbody>
+        </table>';
+
+    displayFooter();
+}

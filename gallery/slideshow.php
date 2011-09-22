@@ -1,18 +1,28 @@
 <?php
+/**
+ * Slideshow
+ * 
+ * PHP versions 4 and 5
+ *
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '../');
 
-include_once('../inc/config_inc.php');
-include_once('../inc/util_inc.php');
-include_once('../inc/gallery_class.php');
-include_once('../inc/database_class.php');
+require URL_PREFIX.'fcms.php';
 
-fixMagicQuotes();
+load('gallery');
 
 // Check that the user is logged in
 isLoggedIn('gallery/');
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
+
 $gallery = new PhotoGallery($currentUserId);
 
 echo '
@@ -52,7 +62,8 @@ function slideshow(start,last,interval) {
 <body>
 <div class="fadein">';
 
-if (!isset($_GET['category'])) {
+if (!isset($_GET['category']))
+{
     echo '
     <div class="error-alert">
         <h3>'.T_('Invalid Category ID').'</h3>
@@ -65,22 +76,38 @@ if (!isset($_GET['category'])) {
 }
 
 $cid = cleanInput($_GET['category'], 'int');
+
 $sql = "SELECT `caption`, `filename`, `user` 
         FROM `fcms_gallery_photos` 
         WHERE `category` = '$cid'";
-$result = mysql_query($sql) or displaySQLError(
-    'Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-);
-if (mysql_num_rows($result) > 0) {
+
+$result = mysql_query($sql);
+if (!$result)
+{
+    displaySQLError('Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+    return;
+}
+
+if (mysql_num_rows($result) > 0)
+{
     $i = 0;
-    while ($r = mysql_fetch_array($result)) {
+    while ($r = mysql_fetch_array($result))
+    {
         $i++;
+
+        $user    = cleanInput($r['user'], 'int');
+        $file    = basename($r['filename']);
+        $caption = cleanOutput($r['caption']);
+        
         echo '
-    <img id="img'.$i.'" style="display:none;" src="../uploads/photos/member'.$r['user'].'/'.$r['filename'].'" alt="'.$r['caption'].'"/>';
+    <img id="img'.$i.'" style="display:none;" src="../uploads/photos/member'.$user.'/'.$filename.'" alt="'.$caption.'"/>';
     }
+
     echo '
     <script type="text/javascript">slideshow(1,'.$i.',5000);</script>';
-} else {
+}
+else
+{
     echo '
     <p class="info-alert">'.T_('No photos found.').'</p>';
 }

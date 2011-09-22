@@ -1,14 +1,24 @@
 <?php
+/**
+ * Members
+ *  
+ * PHP versions 4 and 5
+ *  
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '');
 
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
-include_once('inc/locale.php');
-include_once('inc/messageboard_class.php');
+require 'fcms.php';
 
-fixMagicQuotes();
+load('datetime', 'messageboard');
+
 
 // Check that the user is logged in
 isLoggedIn();
@@ -16,7 +26,6 @@ isLoggedIn();
 // Setup some globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 $currentAccess = checkAccess($currentUserId);
-$localeObj     = new FCMS_Locale();
 $msgBoardObj   = new MessageBoard($currentUserId);
 
 // Setup the Template variables;
@@ -94,10 +103,10 @@ function control ()
     {
         displayAdvancedSearchForm();
     }
-//    elseif (isset($_POST['advanced-search']))
-//    {
-//        displayAdvancedSearchSubmit();
-//    }
+    //elseif (isset($_POST['advanced-search']))
+    //{
+    //    displayAdvancedSearchSubmit();
+    //}
     elseif (isset($_GET['thread']))
     {
         displayThread();
@@ -111,7 +120,7 @@ function control ()
 /**
  * displayHeader 
  * 
- * @param string $js 
+ * @param string $js Javascript to overwrite the default
  * 
  * @return void
  */
@@ -230,7 +239,7 @@ function displayNewThreadSubmit ()
 
     if (isset($_POST['sticky']))
     {
-        $subject = "#ANOUNCE#" . $subject;
+        $subject = "#ANOUNCE#".$subject;
     }
 
     // Create new thread
@@ -271,6 +280,7 @@ function displayNewThreadSubmit ()
             FROM `fcms_user_settings` AS s, `fcms_users` AS u 
             WHERE `email_updates` = '1'
             AND u.`id` = s.`user`";
+
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -282,16 +292,19 @@ function displayNewThreadSubmit ()
         while ($r = mysql_fetch_array($result))
         {
             $name = getUserDisplayName($_SESSION['login_id']);
-            $to = getUserDisplayName($r['user']);
-            $pos = strpos($subject, '#ANOUNCE#'); 
+            $to   = getUserDisplayName($r['user']);
+            $pos  = strpos($subject, '#ANOUNCE#'); 
+
             if ($pos !== false)
             {
                 $subject = substr($subject, 9, strlen($subject)-9);
             } 
+
             $threadSubject = $subject;
-            $emailSubject = sprintf(T_('%s started the new thread: %s'), $name, $threadSubject);
-            $email = $r['email'];
-            $url = getDomainAndDir();
+            $emailSubject  = sprintf(T_('%s started the new thread: %s'), $name, $threadSubject);
+            $email         = $r['email'];
+            $url           = getDomainAndDir();
+            $email_headers = getEmailHeaders();
 
             $msg = T_('Dear').' '.$to.',
 
@@ -305,7 +318,7 @@ function displayNewThreadSubmit ()
 '.$url.'settings.php
 
 ';
-            $email_headers = getEmailHeaders();
+
             mail($email, $subject, $msg, $email_headers);
         }
     }
@@ -358,6 +371,7 @@ function displayNewPostSubmit ()
             FROM `fcms_user_settings` AS s, `fcms_users` AS u 
             WHERE `email_updates` = '1'
             AND u.`id` = s.`user`";
+
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -385,7 +399,8 @@ function displayNewPostSubmit ()
             $thread_subject = $row['subject'];
 
             $pos = strpos($thread_subject, '#ANOUNCE#'); 
-            if ($pos !== false) { 
+            if ($pos !== false)
+            {
                 $thread_subject = substr($thread_subject, 9, strlen($thread_subject)-9);
             } 
 
@@ -476,6 +491,7 @@ function displayEditPostForm ()
             FROM `fcms_board_posts` 
             WHERE `id` = $id
             LIMIT 1";
+
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -499,7 +515,7 @@ function displayEditPostForm ()
  */
 function displayEditPostSubmit ()
 {
-    global $localeObj, $msgBoardObj;
+    global $msgBoardObj;
 
     $id        = cleanInput($_POST['id'], 'int');
     $thread_id = cleanInput($_POST['thread_id'], 'int');
@@ -511,14 +527,14 @@ function displayEditPostSubmit ()
     // Need to find a better way to add the edited by text
     // this method could mess up if the site changes languages at some point
     $pos = strpos($post, "[size=small][i]".T_('Edited'));
-    if($pos === false)
+    if ($pos === false)
     {
-        $post = $post . "\n\n[size=small][i]".T_('Edited')." " . $localeObj->fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset) . "[/i][/size]";
+        $post = $post."\n\n[size=small][i]".T_('Edited')." ".fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset)."[/i][/size]";
     }
     else
     {
         $post = substr($post, 0, $pos);
-        $post = $post . "[size=small][i]".T_('Edited')." " . $localeObj->fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset) . "[/i][/size]";
+        $post = $post."[size=small][i]".T_('Edited')." ".fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset)."[/i][/size]";
     }
 
     // Update Post
@@ -553,7 +569,7 @@ function displayAdminEditSubjectSubmit ()
 
     if (isset($_POST['sticky']))
     {
-        $subject = "#ANOUNCE#" . cleanInput($_POST['subject']);
+        $subject = "#ANOUNCE#".cleanInput($_POST['subject']);
     }
     else
     {
@@ -627,6 +643,7 @@ function displayDeletePostSubmit ()
     $sql = "SELECT MAX(`id`) AS max 
             FROM `fcms_board_posts` 
             WHERE `thread` = '$thread'";
+
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -642,6 +659,7 @@ function displayDeletePostSubmit ()
     $sql = "SELECT `id` 
             FROM `fcms_board_posts` 
             WHERE `thread` = '$thread'";
+
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -690,6 +708,7 @@ function displayDeletePostSubmit ()
         $sql = "SELECT MAX(`id`) AS max 
                 FROM `fcms_board_posts` 
                 WHERE `thread` = '$thread'";
+
         $result = mysql_query($sql);
         if (!$result)
         {
@@ -705,6 +724,7 @@ function displayDeletePostSubmit ()
         $sql = "SELECT `date`, `user` 
                 FROM `fcms_board_posts` 
                 WHERE `id` = '$newmax'";
+
         $result = mysql_query($sql);
         if (!$result)
         {
@@ -717,10 +737,10 @@ function displayDeletePostSubmit ()
 
         // Update the thread with last post info
         $sql = "UPDATE `fcms_board_threads` 
-                SET `updated` = '" . $r['date'] . "', `updated_by` = " . $r['user'] . " 
+                SET `updated` = '".$r['date']."', `updated_by` = ".$r['user']." 
                 WHERE `id` = '$thread'";
         mysql_query($sql) or displaySQLError(
-            'Update Thread Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Update Thread Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
 
         displayOkMessage();
@@ -766,7 +786,7 @@ function displayAdministrateThreadSubmit ()
 
     displayHeader();
 
-    # Did they submit a blank form?
+    // Did they submit a blank form?
     if (empty($_POST['admin_option']))
     {
         $msgBoardObj->showPosts($thread, 1);
@@ -781,6 +801,7 @@ function displayAdministrateThreadSubmit ()
                 FROM `fcms_board_threads`
                 WHERE `id` = '$thread'
                 LIMIT 1";
+
         $result = mysql_query($sql);
         if (!$result)
         {
@@ -835,6 +856,37 @@ function displayAdministrateThreadSubmit ()
         $msgBoardObj->displayAdminEditSubjectForm($thread);
         return;
     }
+
+    // Delete thread
+    if ($_POST['admin_option'] == 'delete')
+    {
+        $sql = "DELETE FROM `fcms_board_posts` 
+                WHERE `thread` = '$thread'";
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Delete Posts Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            return;
+        }
+
+        $sql = "DELETE FROM `fcms_board_threads` 
+                WHERE `id` = '$thread'";
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Thread Thread Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            return;
+        }
+
+        displayOkMessage();
+
+        $msgBoardObj->showThreads('announcement');
+        $msgBoardObj->showThreads('thread', 1);
+
+        displayFooter();
+
+        return;
+    }
 }
 
 /**
@@ -846,7 +898,7 @@ function displayAdministrateThreadSubmit ()
  */
 function displaySearchSubmit ()
 {
-    global $msgBoardObj, $localeObj;
+    global $msgBoardObj;
 
     $advanced = false;
 
@@ -950,7 +1002,7 @@ function displaySearchSubmit ()
         $post = removeBBCode($r['post']);
         $post = str_ireplace($search, '<b>'.$search.'</b>', $post);
 
-        $date = $localeObj->fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset, $r['date']);
+        $date = fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset, $r['date']);
 
         echo '
             <div class="search_result">
@@ -966,13 +1018,13 @@ function displaySearchSubmit ()
 /**
  * displayAdvancedSearchForm 
  * 
- * @param string  $error 
+ * @param string $error Any previous error for this form.
  * 
  * @return void
  */
 function displayAdvancedSearchForm ($error = '')
 {
-    global $localeObj, $tzOffset;
+    global $tzOffset;
 
     $js = '
 <link rel="stylesheet" type="text/css" href="themes/datechooser.css"/>
@@ -992,7 +1044,7 @@ Event.observe(window, \'load\', function() {
 
     displayHeader($js);
 
-    $end   = $localeObj->fixDate('Y-m-d', $tzOffset, gmdate('Y-m-d H:i:s'));
+    $end   = fixDate('Y-m-d', $tzOffset, gmdate('Y-m-d H:i:s'));
     $start = date('Y-m-d', strtotime("$end -30 day"));
 
     if ($error != '')
@@ -1035,7 +1087,7 @@ Event.observe(window, \'load\', function() {
  */
 function displayAdvancedSearchSubmit ()
 {
-    global $msgBoardObj, $localeObj;
+    global $msgBoardObj;
 
     // validate dates
     $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $_POST['start']);
@@ -1087,6 +1139,7 @@ function displayAdvancedSearchSubmit ()
             AND `post` LIKE '%$search%'
             AND `date` >= '$start'
             AND `date` <= '$end'";
+
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -1126,7 +1179,7 @@ function displayAdvancedSearchSubmit ()
         $post = removeBBCode($r['post']);
         $post = str_ireplace($search, '<b>'.$search.'</b>', $post);
 
-        $date = $localeObj->fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset, $r['updated']);
+        $date = fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset, $r['updated']);
 
         echo '
             <div class="search_result">

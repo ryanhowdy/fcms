@@ -1,14 +1,23 @@
 <?php
+/**
+ * Awards
+ * 
+ * PHP versions 4 and 5
+ *
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2010 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '../');
 
-include_once('../inc/config_inc.php');
-include_once('../inc/util_inc.php');
-include_once('../inc/admin_class.php');
-include_once('../inc/awards_class.php');
+require URL_PREFIX.'fcms.php';
 
-fixMagicQuotes();
+load('admin', 'awards');
 
 // Check that the user is logged in
 isLoggedIn('admin/');
@@ -31,13 +40,14 @@ $TMPL['javascript'] = '
 <script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
-include_once(getTheme($currentUserId, $TMPL['path']) . 'header.php');
+require_once getTheme($currentUserId, $TMPL['path']).'header.php';
 
 echo '
         <div class="centercontent">';
 
 // Check permissions
-if (checkAccess($currentUserId) > 2) {
+if (checkAccess($currentUserId) > 2)
+{
     echo '
             <p class="error-alert">
                 <b>'.T_('You do not have access to view this page.').'</b><br/>
@@ -46,20 +56,23 @@ if (checkAccess($currentUserId) > 2) {
             </p>';
     echo '
         </div><!-- .centercontent -->';
-    include_once(getTheme($currentUserId, $TMPL['path']) . 'footer.php');
+    include_once getTheme($currentUserId, $TMPL['path']).'footer.php';
     die();
 }
 
 // Calculate awards
-if (isset($_POST['submit'])) {
+if (isset($_POST['submit']))
+{
     $awards->calculateMonthlyAwards();
-    if ($awards->calculateAchievementAwards()) {
+    if ($awards->calculateAchievementAwards())
+    {
         echo '
             <p class="ok-alert">'.T_('The Latest Awards have been calculated successfully.').'</p>';
     }
-
+}
 // Show button
-} else {
+else
+{
     echo '
             <form method="post" action="awards.php">
                 <div class="center">
@@ -72,4 +85,4 @@ echo '
         </div><!-- .centercontent -->';
 
 // Show Footer
-include_once(getTheme($currentUserId, $TMPL['path']) . 'footer.php');
+require_once getTheme($currentUserId, $TMPL['path']).'footer.php';

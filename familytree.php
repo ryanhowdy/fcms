@@ -2,6 +2,8 @@
 /**
  * Family Tree
  * 
+ * PHP versions 4 and 5
+ * 
  * @category  FCMS
  * @package   FamilyConnections
  * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
@@ -14,11 +16,9 @@ session_start();
 
 define('URL_PREFIX', '');
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-require_once 'inc/familytree_class.php';
+require 'fcms.php';
 
-fixMagicQuotes();
+load('familytree');
 
 // Check that the user is logged in
 isLoggedIn();
@@ -55,7 +55,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-require_once getTheme($currentUserId) . 'header.php';
+require_once getTheme($currentUserId).'header.php';
 
 $show_tree = true;
 
@@ -82,12 +82,14 @@ if (isset($_POST['add-leaf']))
     $rel_user     = cleanInput($_POST['rel_user'], 'int');
 
     // Spouse
-    if ($relationship == 'WIFE' || $relationship == 'HUSB') {
+    if ($relationship == 'WIFE' || $relationship == 'HUSB')
+    {
         $worked = $ftree->addSpouse($user, $relationship, $rel_user);
     }
 
     // Child
-    if ($relationship == 'CHIL') {
+    if ($relationship == 'CHIL')
+    {
         $worked = $ftree->addChild($user, $relationship, $rel_user);
     }
 
@@ -112,7 +114,7 @@ if (isset($_POST['add-user']))
     if (!isset($_POST['fname']) or !isset($_POST['lname']) or !isset($_POST['sex']))
     {
         echo '
-        <p class="error-alert">' . T_('Missing Required Field') . '</p>';
+        <p class="error-alert">'.T_('Missing Required Field').'</p>';
 
         $ftree->displayCreateUserForm($type, $id);
         return;
@@ -120,26 +122,24 @@ if (isset($_POST['add-user']))
 
     $uniq = uniqid("");
 
-    $year   = cleanInput($_POST['byear'], 'int');
-    $month  = cleanInput($_POST['bmonth'], 'int'); 
-    $month  = str_pad($month, 2, "0", STR_PAD_LEFT);
-    $day    = cleanInput($_POST['bday'], 'int');
-    $day    = str_pad($day, 2, "0", STR_PAD_LEFT);
+    $year  = cleanInput($_POST['byear'], 'int');
+    $month = cleanInput($_POST['bmonth'], 'int'); 
+    $month = str_pad($month, 2, "0", STR_PAD_LEFT);
+    $day   = cleanInput($_POST['bday'], 'int');
+    $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
 
     $birthday = "$year-$month-$day";
 
     $death = 'NULL';
     if (isset($_POST['dyear']) && strlen($_POST['dyear']) == 4)
     {
-        $year   = cleanInput($_POST['dyear'], 'int');
-        $month  = cleanInput($_POST['dmonth'], 'int'); 
-        $month  = str_pad($month, 2, "0", STR_PAD_LEFT);
-        $day    = cleanInput($_POST['dday'], 'int');
-        $day    = str_pad($day, 2, "0", STR_PAD_LEFT);
-
+        $year  = cleanInput($_POST['dyear'], 'int');
+        $month = cleanInput($_POST['dmonth'], 'int'); 
+        $month = str_pad($month, 2, "0", STR_PAD_LEFT);
+        $day   = cleanInput($_POST['dday'], 'int');
+        $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
         $death = "'$year-$month-$day'";
     }
-
 
     $maiden = isset($_POST['maiden']) ? "'".cleanInput($_POST['maiden'])."'" : 'NULL';
 
@@ -175,7 +175,7 @@ if (isset($_POST['add-user']))
             VALUES ('$lastid', '$currentUserId', NOW())";
     if (!mysql_query($sql))
     {
-        displaySQLError('Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
         // ok to continue
     }
 
@@ -216,22 +216,21 @@ if (isset($_POST['add-user']))
 //-------------------------------------
 if (isset($_POST['edit-user']))
 {
-    $year   = cleanInput($_POST['byear'], 'int');
-    $month  = cleanInput($_POST['bmonth'], 'int'); 
-    $month  = str_pad($month, 2, "0", STR_PAD_LEFT);
-    $day    = cleanInput($_POST['bday'], 'int');
-    $day    = str_pad($day, 2, "0", STR_PAD_LEFT);
+    $year     = cleanInput($_POST['byear'], 'int');
+    $month    = cleanInput($_POST['bmonth'], 'int'); 
+    $month    = str_pad($month, 2, "0", STR_PAD_LEFT);
+    $day      = cleanInput($_POST['bday'], 'int');
+    $day      = str_pad($day, 2, "0", STR_PAD_LEFT);
     $birthday = "$year-$month-$day";
 
     $death = '';
     if (isset($_POST['dyear']) && strlen($_POST['dyear']) == 4)
     {
-        $year   = cleanInput($_POST['dyear'], 'int');
-        $month  = cleanInput($_POST['dmonth'], 'int'); 
-        $month  = str_pad($month, 2, "0", STR_PAD_LEFT);
-        $day    = cleanInput($_POST['dday'], 'int');
-        $day    = str_pad($day, 2, "0", STR_PAD_LEFT);
-
+        $year  = cleanInput($_POST['dyear'], 'int');
+        $month = cleanInput($_POST['dmonth'], 'int'); 
+        $month = str_pad($month, 2, "0", STR_PAD_LEFT);
+        $day   = cleanInput($_POST['dday'], 'int');
+        $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
         $death = "`death` = '$year-$month-$day',";
     }
 
@@ -259,15 +258,23 @@ if (isset($_POST['edit-user']))
 //-------------------------------------
 // Display add relationship form
 //-------------------------------------
-if (isset($_GET['add']) and isset($_GET['user'])) {
+if (isset($_GET['add']) and isset($_GET['user']))
+{
     $show_tree = false;
+
     $add  = cleanInput($_GET['add']);
     $user = cleanInput($_GET['user'], 'int');
-    if ($add == 'child') {
+
+    if ($add == 'child')
+    {
         $ftree->displayAddChildForm($user);
-    } elseif ($add == 'wife' || $add == 'husb') {
+    }
+    elseif ($add == 'wife' || $add == 'husb')
+    {
         $ftree->displayAddSpouseForm($add, $user);
-    } else {
+    }
+    else
+    {
         $ftree->displayAddParentForm($add, $user);
     }
 }
@@ -309,7 +316,8 @@ if (isset($_GET['remove']))
     if ($_GET['remove'] == 'user')
     {
         $show_tree = false;
-        $id = (int)$_GET['id'];
+
+        $id = cleanInput($_GET['id'], 'int');
         $ftree->displayFamilyTree($id, 'list_edit');
     }
     // Remove from db
@@ -342,4 +350,4 @@ echo '
         </div><!-- #familytree-page .centercontent -->';
 
 // Show Footer
-require_once getTheme($currentUserId) . 'footer.php';
+require_once getTheme($currentUserId).'footer.php';

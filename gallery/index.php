@@ -1,18 +1,28 @@
 <?php
+/**
+ * Photo Gallery
+ * 
+ * PHP versions 4 and 5
+ *
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '../');
 
-include_once('../inc/config_inc.php');
-include_once('../inc/util_inc.php');
-include_once('../inc/gallery_class.php');
-include_once('../inc/database_class.php');
+require URL_PREFIX.'fcms.php';
 
-fixMagicQuotes();
+load('gallery');
 
 // Check that the user is logged in
 isLoggedIn('gallery/');
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
+
 $gallery = new PhotoGallery($currentUserId);
 
 // Setup the Template variables;
@@ -45,7 +55,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($currentUserId, $TMPL['path']) . 'header.php');
+require_once getTheme($currentUserId, $TMPL['path']).'header.php';
 
 echo '
         <div id="gallery" class="centercontent">';
@@ -55,7 +65,8 @@ $show_latest = true;
 //------------------------------------------------------------------------------
 // Edit Photo
 //------------------------------------------------------------------------------
-if (isset($_POST['add_editphoto'])) {
+if (isset($_POST['add_editphoto']))
+{
 
     $photo_caption = cleanInput($_POST['photo_caption']);
     $category      = cleanInput($_POST['category']);
@@ -66,72 +77,75 @@ if (isset($_POST['add_editphoto'])) {
                 `caption` = '$photo_caption' 
             WHERE `id` = '$pid'";
     mysql_query($sql) or displaySQLError(
-        'Edit Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Edit Photo Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
     );
     
     // Has someone been tagged?
-    if (isset($_POST['tagged'])) {
+    if (isset($_POST['tagged']))
+    {
         
         // Check whether previously tagged members exist
-        if (isset($_POST['prev_tagged_users'])) {
+        if (isset($_POST['prev_tagged_users']))
+        {
             
             // Delete all members who were previously tagged, but now are not
             $prev_users = $_POST['prev_tagged_users'];
-            foreach ($prev_users as $user) {
+            foreach ($prev_users as $user)
+            {
                 $key = array_search($user, $_POST['tagged']);
-                if ($key === false) {
+                if ($key === false)
+                {
                     $sql = "DELETE FROM `fcms_gallery_photos_tags` 
                             WHERE `photo` = '$pid' 
-                            AND `user` = '" . cleanInput($user, 'int') . "'";
-                    mysql_query($sql) or displaySQLError('
-                        Delete Tagged Member Error', __FILE__ . ' [' . __LINE__ . ']', 
-                        $sql, mysql_error()
-                    );
+                            AND `user` = '".cleanInput($user, 'int')."'";
+                    mysql_query($sql) or displaySQLError('Delete Tagged Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
                 }
                 
             }
             
             // Add only members who were not previously tagged
-            foreach ($_POST['tagged'] as $user) {
+            foreach ($_POST['tagged'] as $user)
+            {
                 $key = array_search($user, $prev_users);
-                if ($key === false) {
+                if ($key === false)
+                {
                     $sql = "INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`) 
                             VALUES (
-                                '" . cleanInput($user, 'int') . "', 
+                                '".cleanInput($user, 'int')."', 
                                 '$pid'
                             )";
                     mysql_query($sql) or displaySQLError(
-                        'Tag Members Error', __FILE__ . ' [' . __LINE__ . ']', 
+                        'Tag Members Error', __FILE__.' ['.__LINE__.']', 
                         $sql, mysql_error()
                     );
                 }
                 
             }
-
+        }
         // No one was previously tagged
-        } else {
+        else
+        {
             
             // Add all tagged members, since no one was previously tagged
-            foreach ($_POST['tagged'] as $user) {
+            foreach ($_POST['tagged'] as $user)
+            {
                 $sql = "INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`) 
                         VALUES (
-                            '" . cleanInput($user, 'int') . "', 
+                            '".cleanInput($user, 'int')."', 
                             '$pid'
                         )";
-                mysql_query($sql) or displaySQLError('
-                    Tag Members Error', __FILE__ . ' [' . __LINE__ . ']', 
-                    $sql, mysql_error()
-                );
+                mysql_query($sql) or displaySQLError('Tag Members Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             }
         }
-    
+    }
     // If no one is currently tagged, but we have previously tagged members, 
     // then we are removing all members
-    } elseif (isset($_POST['prev_tagged_users'])) {
+    elseif (isset($_POST['prev_tagged_users']))
+    {
         $sql = "DELETE FROM `fcms_gallery_photos_tags` 
                 WHERE `photo` = '$pid'";
         mysql_query($sql) or displaySQLError(
-            'Delete All Tagged Error', __FILE__ . ' [' . __LINE__ . ']', 
+            'Delete All Tagged Error', __FILE__.' ['.__LINE__.']', 
             $sql, mysql_error()
         );
     }
@@ -146,8 +160,10 @@ if (isset($_POST['add_editphoto'])) {
 //------------------------------------------------------------------------------
 // Display Edit Form
 //------------------------------------------------------------------------------
-if (isset($_POST['editphoto'])) {
+if (isset($_POST['editphoto']))
+{
     $show_latest = false;
+
     $cleanPhoto = cleanInput($_POST['photo']);
     $cleanUrl   = cleanInput($_POST['url']);
     $gallery->displayEditPhotoForm($cleanPhoto, $cleanUrl);
@@ -156,7 +172,8 @@ if (isset($_POST['editphoto'])) {
 //------------------------------------------------------------------------------
 // Delete photo confirmation
 //------------------------------------------------------------------------------
-if (isset($_POST['deletephoto']) && !isset($_POST['confirmed'])) {
+if (isset($_POST['deletephoto']) && !isset($_POST['confirmed']))
+{
     $show_latest = false;
     echo '
                 <div class="info-alert clearfix">
@@ -171,55 +188,60 @@ if (isset($_POST['deletephoto']) && !isset($_POST['confirmed'])) {
                         </div>
                     </form>
                 </div>';
-
+}
 //------------------------------------------------------------------------------
 // Delete Photo
 //------------------------------------------------------------------------------
-} elseif (
-    isset($_POST['delconfirm']) || 
-    (isset($_POST['confirmed']) && !isset($_POST['editphoto']))
-) {
-
+elseif (isset($_POST['delconfirm']) || (isset($_POST['confirmed']) && !isset($_POST['editphoto'])))
+{
     $show_latest = false;
 
-    $cleanPhotoId = cleanInput($_POST['photo'] , 'int');
+    $cleanPhotoId = cleanInput($_POST['photo'], 'int');
 
     // Get photo info
     $sql = "SELECT `user`, `category`, `filename` 
             FROM `fcms_gallery_photos` 
             WHERE `id` = '$cleanPhotoId'";
+
     $result = mysql_query($sql) or displaySQLError(
-        'Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Photo Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
     );
+
     $filerow = mysql_fetch_array($result);
-    $photoFilename  = $filerow['filename'];
-    $photoUserId    = $filerow['user'];
-    $photoCategory  = $filerow['category'];
+
+    $photoFilename = $filerow['filename'];
+    $photoUserId   = $filerow['user'];
+    $photoCategory = $filerow['category'];
     
     // Remove the photo from the DB
     $sql = "DELETE FROM `fcms_gallery_photos` 
             WHERE `id` = '$cleanPhotoId'";
     mysql_query($sql) or displaySQLError(
-        'Delete Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Delete Photo Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
     );
 
     // Remove any comments for this photo
     $sql = "DELETE FROM `fcms_gallery_comments` 
             WHERE `photo` = '$cleanPhotoId'";
     mysql_query($sql) or displaySQLError(
-        'Delete Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Delete Comments Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
     );
     
     // Remove the Photo from the server
-    unlink("../uploads/photos/member$photoUserId/" . $photoFilename);
-    unlink("../uploads/photos/member$photoUserId/tb_" . $photoFilename);
+    unlink("../uploads/photos/member$photoUserId/".$photoFilename);
+    unlink("../uploads/photos/member$photoUserId/tb_".$photoFilename);
+
     $sql = "SELECT `full_size_photos` FROM `fcms_config`";
+
     $result = mysql_query($sql) or displaySQLError(
-        'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+        'Full Size Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
     );
+
     $r = mysql_fetch_array($result);
-    if ($r['full_size_photos'] == 1) {
-        unlink("../uploads/photos/member$photoUserId/full_" . $photoFilename);
+
+    if ($r['full_size_photos'] == 1)
+    {
+        unlink("../uploads/photos/member$photoUserId/full_".$photoFilename);
     }
     $gallery->displayGalleryMenu($photoUserId);
     $gallery->showCategories(1, $photoUserId, $photoCategory);
@@ -228,19 +250,12 @@ if (isset($_POST['deletephoto']) && !isset($_POST['confirmed'])) {
 //------------------------------------------------------------------------------
 // Do you have access to perform actions?
 //------------------------------------------------------------------------------
-if (isset($_GET['action']) && 
-    (
-        checkAccess($currentUserId) <= 3 || 
-        checkAccess($currentUserId) == 8 || 
-        checkAccess($currentUserId) == 5
-    )
-) {
+if (isset($_GET['action']) && (checkAccess($currentUserId) <= 3 || checkAccess($currentUserId) == 8 || checkAccess($currentUserId) == 5))
+{
     // We don't want to show the gallery menu on delete confirmation screen
     // or advanced upload
-    if (
-            ( !isset($_POST['delcat']) || isset($_POST['confirmedcat']) ) &&
-            $_GET['action'] != 'advanced'
-    ) {
+    if ((!isset($_POST['delcat']) || isset($_POST['confirmedcat'])) && $_GET['action'] != 'advanced')
+    {
         $gallery->displayGalleryMenu('none');
     }
     
@@ -257,7 +272,7 @@ if (isset($_GET['action']) &&
                     WHERE `user` = '$currentUserId'";
             if (!mysql_query($sql))
             {
-                displaySQLError('Advanced Uploader Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                displaySQLError('Advanced Uploader Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             }
         }
 
@@ -265,10 +280,11 @@ if (isset($_GET['action']) &&
 
         $newPhotoId = 0;
 
-        if (isset($_POST['addphoto'])) {
-
+        if (isset($_POST['addphoto']))
+        {
             // Catch photos that are too large
-            if ($_FILES['photo_filename']['error'] == 1) {
+            if ($_FILES['photo_filename']['error'] == 1)
+            {
                 $max = ini_get('upload_max_filesize');
                 echo '
             <div class="error-alert">
@@ -276,39 +292,45 @@ if (isset($_GET['action']) &&
                 <p>'.T_('Please try the \'Advanced Photo Uploader\' instead.').'</p>
             </div>
         </div><!-- #gallery .centercontent -->';
-                include_once(getTheme($currentUserId, $TMPL['path']) . 'footer.php');
+                include_once getTheme($currentUserId, $TMPL['path']).'footer.php';
                 exit();
             }
 
             // Make sure we have a category
-            if (empty($_POST['new-category']) and empty($_POST['category'])) { 
+            if (empty($_POST['new-category']) and empty($_POST['category']))
+            { 
                 echo '
             <p class="error-alert">'.T_('You must choose a category first.').'</p>';
 
             } else {
 
                 // Create a new category
-                if (!empty($_POST['new-category'])) {
+                if (!empty($_POST['new-category']))
+                {
                     $sql = "INSERT INTO `fcms_category`(`name`, `type`, `user`) 
                             VALUES (
-                                '" . cleanInput($_POST['new-category']) . "', 
+                                '".cleanInput($_POST['new-category'])."', 
                                 'gallery', 
                                 '$currentUserId'
                             )";
                     mysql_query($sql) or displaySQLError(
-                        'New Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                        'New Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
                     );
                     $cleanCategory = mysql_insert_id();
-
+                }
                 // Existing category
-                } else {
+                else
+                {
                     $cleanCategory = cleanInput($_POST['category']);
                 }
 
                 // Rotate photo
-                if (isset($_POST['rotate'])) {
+                if (isset($_POST['rotate']))
+                {
                     $cleanRotate = cleanInput($_POST['rotate']);
-                } else {
+                }
+                else
+                {
                     $cleanRotate = '0';
                 }
 
@@ -326,22 +348,27 @@ if (isset($_GET['action']) &&
                 );
 
                 // Photo Uploaded successfully
-                if ($newPhotoId !== false) {
-
+                if ($newPhotoId !== false)
+                {
                     // Tag photo
-                    if (isset($_POST['tagged'])) {
+                    if (isset($_POST['tagged']))
+                    {
                         $sql = "INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`)
                                 VALUES ";
+
                         $first = true;
-                        foreach ($_POST['tagged'] as $member) {
-                            if (!$first) {
+                        foreach ($_POST['tagged'] as $member)
+                        {
+                            if (!$first)
+                            {
                                 $sql .= ", ";
                             }
-                            $sql .= "('" . cleanInput($member, 'int') . "', '$newPhotoId') ";
+                            $sql .= "('".cleanInput($member, 'int')."', '$newPhotoId') ";
+
                             $first = false;
                         }
                         mysql_query($sql) or displaySQLError(
-                            'Tagging Error', __FILE__ . ' [' . __LINE__ . ']', 
+                            'Tagging Error', __FILE__.' ['.__LINE__.']', 
                             $sql, mysql_error()
                         );
                     }
@@ -351,17 +378,22 @@ if (isset($_GET['action']) &&
                             FROM `fcms_user_settings` AS s, `fcms_users` AS u 
                             WHERE `email_updates` = '1'
                             AND u.`id` = s.`user`";
+
                     $result = mysql_query($sql) or displaySQLError(
-                        'Email Updates Error', __FILE__ . ' [' . __LINE__ . ']', 
+                        'Email Updates Error', __FILE__.' ['.__LINE__.']', 
                         $sql, mysql_error()
                     );
-                    if (mysql_num_rows($result) > 0) {
-                        while ($r = mysql_fetch_array($result)) {
-                            $name = getUserDisplayName($currentUserId);
-                            $to = getUserDisplayName($r['user']);
-                            $subject = sprintf(T_('%s has added a new photo.'), $name);
-                            $email = $r['email'];
-                            $url = getDomainAndDir();
+                    if (mysql_num_rows($result) > 0)
+                    {
+                        while ($r = mysql_fetch_array($result))
+                        {
+                            $name          = getUserDisplayName($currentUserId);
+                            $to            = getUserDisplayName($r['user']);
+                            $subject       = sprintf(T_('%s has added a new photo.'), $name);
+                            $email         = $r['email'];
+                            $url           = getDomainAndDir();
+                            $email_headers = getEmailHeaders();
+
                             $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
@@ -374,7 +406,6 @@ if (isset($_GET['action']) &&
 '.$url.'settings.php
 
 ';
-                            $email_headers = getEmailHeaders();
                             mail($email, $subject, $msg, $email_headers);
                         }
                     }
@@ -383,29 +414,33 @@ if (isset($_GET['action']) &&
         }
 
         // Show the upload form
-        if ($newPhotoId !== false) {
-            if (usingAdvancedUploader($currentUserId)) {
+        if ($newPhotoId !== false)
+        {
+            if (usingAdvancedUploader($currentUserId))
+            {
                 $gallery->displayJavaUploadForm();
-            } else {
+            }
+            else
+            {
                 $overrideMemoryLimit = isset($_GET['memory']) ? true : false;
                 $gallery->displayUploadForm($overrideMemoryLimit);
             }
         }
-
+    }
     //-----------------------------------------------
     // Advanced Upload
     //-----------------------------------------------
-    } elseif ($_GET['action'] == 'advanced') {
-
+    elseif ($_GET['action'] == 'advanced')
+    {
         // Submit the edited photos 
-        if (isset($_POST['submit_advanced_edit'])) {
-
+        if (isset($_POST['submit_advanced_edit']))
+        {
             // Loop through each photo
-            for ($i=0; $i < count($_POST['id']); $i++) {
-
-                $cleanCaption   = cleanInput($_POST['caption'][$i]);
-                $cleanCategory  = cleanInput($_POST['category'][0]); // categories are always the same
-                $cleanId        = cleanInput($_POST['id'][$i]);
+            for ($i=0; $i < count($_POST['id']); $i++)
+            {
+                $cleanCaption  = cleanInput($_POST['caption'][$i]);
+                $cleanCategory = cleanInput($_POST['category'][0]); // categories are always the same
+                $cleanId       = cleanInput($_POST['id'][$i]);
 
                 // Update the caption
                 $sql = "UPDATE `fcms_gallery_photos` 
@@ -413,88 +448,104 @@ if (isset($_GET['action']) &&
                             `caption`  = '$cleanCaption' 
                         WHERE `id` = '$cleanId'";
                 mysql_query($sql) or displaySQLError(
-                    'Edit Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    'Edit Photo Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
                 );
 
                 // Tag members
-                if (isset($_POST['tagged'])) {
-                    $sql = "INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`) "
-                         . "VALUES ";
+                if (isset($_POST['tagged']))
+                {
+                    $sql = "INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`) 
+                            VALUES ";
+
                     $first = true;
-                    if (isset($_POST['tagged'][$i])) {
-                        foreach ($_POST['tagged'][$i] as $member) {
-                            if (!$first) {
+                    if (isset($_POST['tagged'][$i]))
+                    {
+                        foreach ($_POST['tagged'][$i] as $member)
+                        {
+                            if (!$first)
+                            {
                                 $sql .= ", ";
                             }
-                            $sql .= "('" . cleanInput($member, 'int') . "', '$cleanId') ";
+                            $sql .= "('".cleanInput($member, 'int')."', '$cleanId') ";
+
                             $first = false;
                         }
                         mysql_query($sql) or displaySQLError(
-                            'Tagging Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                            'Tagging Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
                         );
                     }
                 }
             }
-
+        }
         // Show edit form
-        } else {
+        else
+        {
             $show_latest = false;
             $gallery->displayAdvancedUploadEditForm();
             // clear the photos in the session
             unset($_SESSION['photos']);
             unset($_SESSION['mass_photos_category']);
         }
-
+    }
     //-----------------------------------------------
     // Edit/Create Category
     //-----------------------------------------------
-    } elseif ($_GET['action'] == "category") {
+    elseif ($_GET['action'] == "category")
+    {
         $show_latest = false;
-        $show_cat = true;
+        $show_cat    = true;
 
         // New category
-        if (isset($_POST['newcat'])) {
-            if (empty($_POST['cat_name'])) {
+        if (isset($_POST['newcat']))
+        {
+            if (empty($_POST['cat_name']))
+            {
                 echo '
             <p class="error-alert">'.T_('You must specify a category name.').'</p>';
-            } else {
+            }
+            else
+            {
                 $sql = "INSERT INTO `fcms_category`(`name`, `type`, `user`) 
                         VALUES (
-                            '" . cleanInput($_POST['cat_name']) . "', 
+                            '".cleanInput($_POST['cat_name'])."', 
                             'gallery', 
                             '$currentUserId'
                         )";
                 mysql_query($sql) or displaySQLError(
-                    'New Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    'New Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
                 );
                 echo '
             <div class="ok-alert">
-                <p>'.sprintf(T_('The Category %s was Created Successfully.'), "<b>" . $_POST['cat_name'] . "</b>").'
+                <p>'.sprintf(T_('The Category %s was Created Successfully.'), "<b>".$_POST['cat_name']."</b>").'
                 <p><small><a href="?action=upload">'.T_('Upload Photos').'</a></small></p>
             </div>';
             }
         }
 
         // Existing category
-        if (isset($_POST['editcat'])) {
-            if(empty($_POST['cat_name'])) {
+        if (isset($_POST['editcat']))
+        {
+            if (empty($_POST['cat_name']))
+            {
                 echo '
             <p class="error-alert">'.T_('Category name cannot be blank.').'</p>';
-            } else {
+            }
+            else
+            {
                 $sql = "UPDATE fcms_category 
-                        SET `name` = '" . cleanInput($_POST['cat_name']) . "' 
-                        WHERE `id` = '" . cleanInput($_POST['cid'], 'int') . "'";
+                        SET `name` = '".cleanInput($_POST['cat_name'])."' 
+                        WHERE `id` = '".cleanInput($_POST['cid'], 'int')."'";
                 mysql_query($sql) or displaySQLError(
-                    'Update Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                    'Update Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
                 );
                 echo '
-            <p class="ok-alert">'
-                .sprintf(T_('The Category %s was Updated Successfully'), "<b>" . $_POST['cat_name'] . "</b>").'</p>';
+            <p class="ok-alert">'.sprintf(T_('The Category %s was Updated Successfully'), "<b>".$_POST['cat_name']."</b>").'</p>';
             }
         }
 
         // Delete category confirmation
-        if (isset($_POST['delcat']) && !isset($_POST['confirmedcat'])) {
+        if (isset($_POST['delcat']) && !isset($_POST['confirmedcat']))
+        {
             $show_cat = false;
             echo '
                 <div class="info-alert clearfix">
@@ -508,20 +559,22 @@ if (isset($_GET['action']) &&
                         </div>
                     </form>
                 </div>';
-
+        }
         // Delete category
-        } elseif (isset($_POST['delconfirmcat']) || (isset($_POST['confirmedcat']) && !isset($_POST['editcat']))) { 
+        elseif (isset($_POST['delconfirmcat']) || (isset($_POST['confirmedcat']) && !isset($_POST['editcat'])))
+        { 
             $sql = "DELETE FROM fcms_category 
-                    WHERE `id` = '" . cleanInput($_POST['cid'], 'int') . "'";
+                    WHERE `id` = '".cleanInput($_POST['cid'], 'int')."'";
             mysql_query($sql) or displaySQLError(
-                'Delete Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                'Delete Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
             echo '
             <p class="ok-alert">'.T_('Category Deleted Successfully').'</p>';
         }
 
         // Show form
-        if ($show_cat) {
+        if ($show_cat)
+        {
             $gallery->displayAddCatForm();
         }
     }
@@ -573,7 +626,7 @@ if (isset($_POST['submit_mass_tag']))
                     {
                         $sql = "DELETE FROM `fcms_gallery_photos_tags` 
                                 WHERE `photo` = '".cleanInput($pid, 'int')."' 
-                                AND `user` = '".cleanInput($uid, 'int'). "'";
+                                AND `user` = '".cleanInput($uid, 'int')."'";
 
                         if (!mysql_query($sql))
                         {
@@ -648,46 +701,55 @@ if (isset($_POST['submit_mass_tag']))
 if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid']))
 {
     $show_latest = false;
-    if (isset($_GET['page'])) { $page = $_GET['page']; } else { $page = 1; }
+
+    $page = isset($_GET['page']) ? $page = $_GET['page'] : $page = 1;
+
     $gallery->displayGalleryMenu($_GET['uid']);
     $gallery->showCategories($page, $_GET['uid']);
-
+}
 //------------------------------------------------------------------------------
 // View - Category
 //------------------------------------------------------------------------------
-} elseif (isset($_GET['cid']) && !isset($_GET['pid'])) {
+elseif (isset($_GET['cid']) && !isset($_GET['pid']))
+{
     $show_latest = false;
-    if (isset($_GET['page'])) { $page = $_GET['page']; } else { $page = 1; }
+
+    $page = isset($_GET['page']) ? $page = $_GET['page'] : $page = 1;
+
     $gallery->displayGalleryMenu($_GET['uid'], $_GET['cid']);
     $gallery->showCategories($page, $_GET['uid'], $_GET['cid']);
-
+}
 //------------------------------------------------------------------------------
 // View - Photo
 //------------------------------------------------------------------------------
-} elseif (isset($_GET['pid'])) {
+elseif (isset($_GET['pid']))
+{
     $show_latest = false;
-    $show_photo = true;
+    $show_photo  = true;
 
     // Add Comment
-    if (isset($_POST['addcom'])) {
+    if (isset($_POST['addcom']))
+    {
         $com = ltrim($_POST['post']);
-        if (!empty($com)) {
+        if (!empty($com))
+        {
             $sql = "INSERT INTO `fcms_gallery_comments` (
                         `photo`, `comment`, `date`, `user`
                     ) VALUES (
-                        '" . cleanInput($_GET['pid'], 'int') . "', 
-                        '" . cleanInput($_POST['post']) . "', 
+                        '".cleanInput($_GET['pid'], 'int')."', 
+                        '".cleanInput($_POST['post'])."', 
                         NOW(), 
                         '$currentUserId'
                     )";
             mysql_query($sql) or displaySQLError(
-                'Add Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+                'Add Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
         }
     }
 
     // Delete Comment confirmation
-    if (isset($_POST['delcom']) && !isset($_POST['confirmedcom'])) {
+    if (isset($_POST['delcom']) && !isset($_POST['confirmedcom']))
+    {
         $show_photo = false;
         echo '
                 <div class="info-alert clearfix">
@@ -701,30 +763,34 @@ if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid']))
                         </div>
                     </form>
                 </div>';
-
+    }
     // Delete Comment
-    } elseif (isset($_POST['delconfirmcom']) || isset($_POST['confirmedcom'])) {
+    elseif (isset($_POST['delconfirmcom']) || isset($_POST['confirmedcom']))
+    {
         $sql = "DELETE FROM `fcms_gallery_comments` 
-                WHERE `id` = '" . cleanInput($_POST['id'], 'int') . "'";
+                WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
         mysql_query($sql) or displaySQLError(
-            'Delete Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Delete Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
     }
 
     // Vote
-    if (isset($_GET['vote'])) {
+    if (isset($_GET['vote']))
+    {
         $sql = "UPDATE `fcms_gallery_photos` 
                 SET `votes` = `votes`+1, 
-                    `rating` = `rating`+" . cleanInput($_GET['vote'], 'int') . " 
-                WHERE `id` = '" . cleanInput($_GET['pid'], 'int') . "'";
+                    `rating` = `rating`+".cleanInput($_GET['vote'], 'int')." 
+                WHERE `id` = '".cleanInput($_GET['pid'], 'int')."'";
         mysql_query($sql) or displaySQLError(
-            'Vote Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
+            'Vote Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
     }
-    if ($show_photo) {
+    if ($show_photo)
+    {
         $uid = cleanInput($_GET['uid'], 'int');
         $cid = cleanInput($_GET['cid']); // not always an #
         $pid = cleanInput($_GET['pid'], 'int');
+
         $gallery->showPhoto($uid, $cid, $pid);
     }
 }
@@ -735,15 +801,18 @@ if (isset($_GET['uid']) && !isset($_GET['cid']) && !isset($_GET['pid']))
 if (isset($_GET['tag']))
 {
     $show_latest = false;
+
     $category = cleanInput($_GET['tag'], 'int');
     $user     = cleanInput($_GET['user'], 'int');
+
     $gallery->displayMassTagCategory($category, $user);
 }
 
 //------------------------------------------------------------------------------
 // Search
 //------------------------------------------------------------------------------
-if (isset($_GET['search'])) {
+if (isset($_GET['search']))
+{
     $show_latest = false;
     $gallery->displayGalleryMenu();
     $gallery->displaySearchForm();
@@ -752,7 +821,8 @@ if (isset($_GET['search'])) {
 //------------------------------------------------------------------------------
 // Show Latest Categories/Comments
 //------------------------------------------------------------------------------
-if ($show_latest) {
+if ($show_latest)
+{
     $gallery->displayGalleryMenu();
     $gallery->displayLatestCategories();
     $gallery->showCategories(-1, 0, 'comments');
@@ -764,4 +834,4 @@ echo '
         </div><!-- #gallery .centercontent -->';
 
 // Show Footer
-include_once(getTheme($currentUserId, $TMPL['path']) . 'footer.php');
+require_once getTheme($currentUserId, $TMPL['path']).'footer.php';

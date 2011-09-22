@@ -1,5 +1,5 @@
 <?php
-include_once('util_inc.php');
+include_once('utils.php');
 
 /**
  * Alerts 
@@ -11,7 +11,6 @@ include_once('util_inc.php');
  */
 class Alerts
 {
-
     var $db;
     var $currentUserId;
 
@@ -35,88 +34,120 @@ class Alerts
      * displayNewAdminHome 
      * 
      * @param  int  $userid 
-     * @return void
-     */
-    function displayNewAdminHome ($userid)
-    {
-        $userid = cleanInput($userid, 'int');
-
-        if (checkAccess($userid) < 2) {
-            $sql = "SELECT * 
-                    FROM `fcms_alerts` 
-                    WHERE `alert` = 'alert_new_admin_home'
-                    AND `user` = '$userid' 
-                    AND `hide` = 1";
-            $this->db->query($sql) or displaySQLError(
-                'Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            if ($this->db->count_rows() < 1) { 
-                $sitename = getSiteName();
-                $sitename = cleanOutput($sitename);
-                echo '
-            <div id="alert_new_admin_home" class="info-alert">
-                <h2>'.sprintf(T_('Welcome to %s'), $sitename).'</h2>
-                <p>'.T_('It looks like you have an Admin Access Level, which allow you to:').'</p>
-                <ul>
-                    <li>'.T_('Edit or delete just about anything').'</li>
-                    <li>'.T_('Add/edit/delete members').'</li>
-                    <li>'.T_('Create/edit polls').'</li>
-                    <li>'.T_('Change site settings').'</li>
-                    <li>'.T_('Upgrade the site').'</li>
-                    <li><a href="help.php#adm-access">'.T_('Find out more.').'</a></li>
-                </ul>
-                <p><b>'.T_('Getting Started...').'</b></p>
-                <ul>
-                    <li><a href="settings.php">'.T_('Personalize the site').'</a></li>
-                    <li><a href="addressbook.php">'.T_('Share your Address/Contact information').'</a></li>
-                    <li><a href="gallery/index.php">'.T_('Share Photos').'</a></li>
-                    <li><a href="messageboard.php">'.T_('Start a discussion').'</a></li>
-                </ul>
-                <div class="close-alert"><a id="new_admin" href="?alert=alert_new_admin_home">'.T_('Delete This Alert').'</a></div>
-            </div>';
-            }
-        }
-    }
-
-    /**
-     * displayNewUserHome 
      * 
-     * @param  int  $userid 
-     * @return void
+     * @return boolean
      */
     function displayNewUserHome ($userid)
     {
+        include_once 'addressbook_class.php';
+        $addressObj = new AddressBook($userid);
+
         $userid = cleanInput($userid, 'int');
 
-        if (checkAccess($userid) > 1) {
-            $sql = "SELECT * 
-                    FROM `fcms_alerts` 
-                    WHERE `alert` = 'alert_new_user_home'
-                    AND `user` = '$userid' 
-                    AND `hide` = 1";
-            $this->db->query($sql) or displaySQLError(
-                'Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            if ($this->db->count_rows() < 1) { 
-                $user = getUserDisplayName($userid);
-                $sitename = getSiteName();
-                $sitename = cleanOutput($sitename);
-                $access = getAccessLevel($userid);
-                echo '
-            <div id="alert_new_user_home" class="info-alert">
-                <h2>'.sprintf(T_('Hey, %s. Thanks for joining.'), $user).'</h2>
-                <p>'.sprintf(T_('It looks like you have an Access Level of %s.'), $access).'  <a href="help.php#adm-access">'.T_('Find out more.').'</a></p>
-                <p><b>'.T_('Getting Started...').'</b></p>
-                <ul>
-                    <li><a href="settings.php">'.T_('Personalize the site').'</a></li>
-                    <li><a href="addressbook.php">'.T_('Share your Address/Contact information').'</a></li>
-                    <li><a href="gallery/index.php">'.T_('Share Photos').'</a></li>
-                    <li><a href="messageboard.php">'.T_('Start a discussion').'</a></li>
-                </ul>
-                <div class="close-alert"><a id="new_user" href="?alert=alert_new_user_home">'.T_('Delete This Alert.').'</a></div>
-            </div>';
-            }
+        $sql = "SELECT `id`
+                FROM `fcms_alerts` 
+                WHERE `alert` = 'alert_new_user_home'
+                AND `user` = '$userid' 
+                AND `hide` = 1";
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return false;
         }
+
+        if ($this->db->count_rows() >= 1)
+        {
+            return false;
+        }
+
+        $sitename = getSiteName();
+        $sitename = cleanOutput($sitename);
+        $complete = 0;
+
+        // social media
+        $social = '<a href="settings.php?view=socialmedia">'.T_('Connect social media sites').'</a>';
+        $facebook   = getUserFacebookAccessToken($userid);
+        $foursquare = getFoursquareUserData($userid);
+        if (!empty($facebook))
+        {
+            $social = '<span>'.T_('Connect social media sites').'</span>';
+            $complete++;
+        }
+        elseif (!empty($foursquare['fs_user_id']) && !empty($foursquare['fs_access_token']))
+        {
+            $social = '<span>'.T_('Connect social media sites').'</span>';
+            $complete++;
+        }
+
+        // add profile pic
+        $profilePicture = '<span>'.T_('Add a Profile Picture').'</span>';
+        $complete++;
+        $avatar = getCurrentAvatar($userid);
+        if ($avatar == 'uploads/avatar/no_avatar.jpg')
+        {
+            $profilePicture = '<a href="profile.php?view=picture">'.T_('Add a Profile Picture').'</a>';
+            $complete--;
+        }
+
+        // update contact info
+        $address = '<a href="addressbook.php?cat=all&edit='.$userid.'">'.T_('Add your Address/Contact information').'</a>';
+        if ($addressObj->userhasAddress($userid))
+        {
+            $address = '<span>'.T_('Add your Address/Contact information').'</span>';
+            $complete++;
+        }
+
+        // vote
+        $sql = "SELECT MAX(`id`) AS 'max'
+                FROM `fcms_polls`";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySQLError('Current Poll Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+        $r = mysql_fetch_array($result);
+        $currentPoll = $r['max'];
+
+        $sql = "SELECT `id`
+                FROM `fcms_poll_votes`
+                WHERE `user` = '$userid'
+                AND `poll_id` = '$currentPoll'";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySQLError('Vote Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+        $rows = mysql_num_rows($result);
+
+        $poll = '<a href="?poll_id='.$currentPoll.'">'.T_('Vote on the Poll').'</a>';
+        if ($rows > 0)
+        {
+            $poll = '<span>'.T_('Vote on the Poll').'</span>';
+            $complete++;
+        }
+
+        $percent = ($complete / 4) * 100;
+
+        echo '
+        <div id="alert_new_user_home" class="info-alert">
+            <h2>'.T_('It looks like you\'re new here.').'</h2>
+            <p>'.T_('Complete the following list to get the most out of the site:').'</p>
+            <small>'.sprintf(T_('Your profile is %s complete.'), $percent).'</small>
+            <div id="progress"><div style="width: '.$percent.'%"></div></div>
+            <ol class="todo">
+                <li>'.$social.'</a></li>
+                <li>'.$profilePicture.'</a></li>
+                <li>'.$address.'</li>
+                <li>'.$poll.'</li>
+            </ol>
+            <p style="text-align:right"><a id="new_admin" href="?alert=alert_new_user_home">'.T_('Skip This and get right to the app.').'</a></p>
+        </div>';
+
+        return true;
     }
 
     /**

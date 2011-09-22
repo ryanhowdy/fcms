@@ -2,6 +2,8 @@
 /**
  * WhereIsEveryone
  * 
+ * PHP version 5
+ *
  * @category  FCMS
  * @package   FamilyConnections
  * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
@@ -14,21 +16,15 @@ session_start();
 
 define('URL_PREFIX', '');
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-require_once 'inc/whereiseveryone_class.php';
-require_once 'inc/foursquare/EpiCurl.php';
-require_once 'inc/foursquare/EpiFoursquare.php';
-require_once 'inc/locale.php';
+require 'fcms.php';
 
-fixMagicQuotes();
+load('datetime', 'whereiseveryone', 'foursquare');
 
 // Check that the user is logged in
 isLoggedIn();
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-$localeObj = new FCMS_Locale();
-$whereObj  = new WhereIsEveryone($currentUserId);
+$whereObj = new WhereIsEveryone($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
@@ -45,7 +41,7 @@ $TMPL['javascript'] = '
 <script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
-require_once getTheme($currentUserId) . 'header.php';
+require_once getTheme($currentUserId).'header.php';
 
 echo '
         <div id="whereiseveryone-page" class="centercontent clearfix">';
@@ -53,81 +49,6 @@ echo '
 // Add the following info to documentation/help
 // If you receive the following error, its because your site isn't using php 5
 //      Parse error: syntax error, unexpected '{' in
-
-echo '
-<style>
-#history {
-    background-color: #f9f9f9;
-    color: #999;
-    font: 14px/18px Verdana, Arial, sans-serif;
-    list-style-type: none;
-    width: 300px;
-}
-#history li {
-    border-left: 1px solid #ccc;
-    border-right: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-    padding: 10px;
-}
-#history li#label {
-    -webkit-border-top-left-radius: 5px;
-    -webkit-border-top-right-radius: 5px;
-    -moz-border-radius-topleft: 5px;
-    -moz-border-radius-topright: 5px;
-    background-color: #3e89bd;
-    border: 1px solid #3e89bd;
-    color: #fff;
-}
-#history li span {
-    color: #5a5858;
-    display: block;
-    padding: 3px 0;
-}
-#latest-history {
-    border: 1px solid #d4d4d4;
-    color: #999;
-    font: 14px/18px Verdana, Arial, sans-serif;
-    list-style-type: none;
-    overflow: hidden;
-}
-#latest-history li#label {
-    background: #f9f8f6;
-    background: -webkit-gradient(linear, left top, left bottom, from(#f9f8f6), to(#e6e6e6));
-    background: -moz-linear-gradient(top,  #f9f8f6,  #e6e6e6);
-    border-top: 1px solid #d4d4d4;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#f9f8f6", endColorstr="#e6e6e6");
-    float: left;
-    height: 40px;
-    line-height: 40px;
-    margin-top: -1px;
-    padding: 0 0 0 10px;
-    width: 950px;
-}
-#latest-history li {
-    border-bottom: 1px solid #d4d4d4;
-    float: left;
-    width: 960px;
-}
-#latest-history li:hover { background-color: #f0f0ef; }
-#latest-history .img {
-    float: left;
-    padding: 20px 10px 10px 10px;
-}
-#latest-history .user {
-    color: #555;
-    float: left;
-    font-weight: bold;
-    width: 300px;
-    height: 75px;
-    line-height: 75px;
-}
-#latest-history .checkin {
-    padding: 10px 0;
-    float: left;
-    width: 580px;
-}
-.checkin span { display: block; }
-</style>';
 
 //-------------------------------------
 // Show Latest checkins
@@ -202,7 +123,7 @@ foreach ($users as $k => $data)
 
         $address = isset($checkin->venue->location->address) ? $checkin->venue->location->address : '';
 
-        $date = $localeObj->fixDate('F j, Y', $data['timezone'], date('Y-m-d H:i:s', $checkin->createdAt));
+        $date = fixDate('F j, Y', $data['timezone'], date('Y-m-d H:i:s', $checkin->createdAt));
         $sort = $checkin->createdAt;
 
         $historyData[$i] = array(
@@ -244,4 +165,4 @@ echo '
         </div><!-- #whereiseveryone-page .centercontent -->';
 
 // Show Footer
-require_once getTheme($currentUserId) . 'footer.php';
+require_once getTheme($currentUserId).'footer.php';

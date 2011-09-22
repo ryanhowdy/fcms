@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 
 /**
  * Documents 
@@ -44,7 +44,6 @@ class Documents {
      */
     function showDocuments ($page = 1)
     {
-        $locale = new FCMS_Locale();
         $from = (($page * 25) - 25); 
         $sql = "SELECT `id`, `name`, `description`, `user`, `date` 
                 FROM `fcms_documents` AS d 
@@ -68,7 +67,7 @@ class Documents {
                 <tbody>';
 
             while ($r = $this->db->get_row()) {
-                $date = $locale->fixDate(T_('m/d/Y h:ia'), $this->tzOffset, $r['date']);
+                $date = fixDate(T_('m/d/Y h:ia'), $this->tzOffset, $r['date']);
                 echo '
                     <tr>
                         <td>
@@ -248,50 +247,4 @@ class Documents {
         return true;
     }
 
-    /**
-     * displayWhatsNewDocuments 
-     * 
-     * @return void
-     */
-    function displayWhatsNewDocuments ()
-    {
-        $locale = new FCMS_Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $sql = "SELECT * 
-                FROM `fcms_documents` 
-                WHERE `date` >= DATE_SUB(CURDATE() , INTERVAL 30 DAY) 
-                ORDER BY `date` DESC 
-                LIMIT 0 , 5";
-        $this->db->query($sql) or displaySQLError(
-            'What\'s New Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            echo '
-            <h3>'.T_('Documents').'</h3>
-            <ul>';
-            while ($r = $this->db->get_row()) {
-                $document = cleanOutput($r['name']);
-                $displayname = getUserDisplayName($r['user']);
-                $date = $locale->fixDate('YmdHis', $this->tzOffset, $r['date']);
-                if ($date >= $today_start && $date <= $today_end) {
-                    $date = T_('Today');
-                    $d = ' class="today"';
-                } else {
-                    $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
-                    $d = '';
-                }
-                echo '
-                <li>
-                    <div'.$d.'>'.$date.'</div>
-                    <a href="documents.php">'.$document.'</a> - 
-                    <a class="u" href="profile.php?member='.$r['user'].'">'.$displayname.'</a>
-                </li>';
-            }
-            echo '
-            </ul>';
-        }
-    }
-
-} ?>
+}

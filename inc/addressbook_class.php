@@ -1,13 +1,27 @@
 <?php
-require_once 'util_inc.php';
+/**
+ * AddressBook 
+ * 
+ * PHP versions 4 and 5
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
+require_once 'utils.php';
 
 /**
  * AddressBook 
  * 
+ * @category  FCMS
  * @package   Family_Connections
  * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
- * @copyright 2010 Haudenschilt LLC
- * @license   http://www.gnu.org/licenses/gpl-2.0.html
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
  */
 class AddressBook
 {
@@ -18,7 +32,7 @@ class AddressBook
     /**
      * AddressBook 
      * 
-     * @param int $currentUserId 
+     * @param int $currentUserId Id of the current user
      * 
      * @return void
      */
@@ -37,8 +51,8 @@ class AddressBook
      *
      *  Displays the address details.
      *
-     *  @param int    $aid
-     *  @param string $cat
+     *  @param int    $aid Id of the address
+     *  @param string $cat Category name
      *
      *  @return void
      */
@@ -179,7 +193,7 @@ class AddressBook
      * 
      * Displays the categories and the user's in that category.
      *
-     * @param string $cat
+     * @param string $cat Category name
      *
      * @return void
      */
@@ -235,7 +249,7 @@ class AddressBook
      *
      * Displays the list of categories.
      *
-     * @param string $selected the currently selected category
+     * @param string $selected The currently selected category
      *
      * @return void
      */
@@ -278,11 +292,11 @@ class AddressBook
      *
      * Displays all the addresses in the given category.
      *
-     * @param      $category    the category, if any
-     * @param      $selected    the addresses that is selected, if any
-     * @return     void
+     * @param string $category Category name
+     *
+     * @return void
      */
-    function displayAddressInCategory ($category = '', $selected = '')
+    function displayAddressInCategory ($category = '')
     {
         $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
                     `address`, `city`, `state`, `zip`
@@ -601,49 +615,59 @@ class AddressBook
      *
      * Displays the form for sending out mass emails.
      * 
-     * @param   array   $emails     the email address you are mass mailing to
-     * @param   string  $email 
-     * @param   string  $name 
-     * @param   string  $subject 
-     * @param   string  $message 
-     * @param   string  $show 
+     * @param array  $emails  The email addresses you are mass mailing to
+     * @param string $email   The email address you are sending from
+     * @param string $name    The name you are sending from
+     * @param string $subject The subject of the email
+     * @param string $message The body of the email
+     * @param string $show    Show errors or not
+     * 
      * @return  void
      */
     function displayMassEmailForm ($emails, $email = '', $name = '', $subject = '', $message = '', $show = '')
     {
-        $errors = false;
-        $err_email = '';
-        $err_name = '';
+        $errors      = false;
+        $err_email   = '';
+        $err_name    = '';
         $err_subject = '';
-        $err_msg = '';
+        $err_msg     = '';
 
         // Are we allowed to show errors?
-        if (!empty($show)) {
-            if (empty($email)) {
-                $errors = true;
+        if (!empty($show))
+        {
+            if (empty($email))
+            {
+                $errors    = true;
                 $err_email = '<br/><span class="error">'.T_('Required').'</span>';
             }
-            if (empty($name)) {
-                $errors = true;
+            if (empty($name))
+            {
+                $errors   = true;
                 $err_name = '<br/><span class="error">'.T_('Required').'</span>';
             }
-            if (empty($subject)) {
-                $errors = true;
+            if (empty($subject))
+            {
+                $errors      = true;
                 $err_subject = '<br/><span class="error">'.T_('Required').'</span>';
             }
-            if (empty($message)) {
-                $errors = true;
+            if (empty($message))
+            {
+                $errors  = true;
                 $err_msg = '<br/><span class="error">'.T_('Required').'</span>';
             }
         }
+
         echo '
             <p class="info-alert">
                 '.T_('Filling out the form below will send an email to all the selected members in your addressbook. Sending an email to a large number of people can take a long time. Please be patient.').'
             </p>';
-        if ($errors) {
+
+        if ($errors)
+        {
             echo '
             <p class="error-alert">'.T_('Missing Required Field').'</p>';
         }
+
         echo '
             <script type="text/javascript" src="inc/js/livevalidation.js"></script>
             <form method="post" class="contactform" action="addressbook.php">
@@ -693,7 +717,9 @@ class AddressBook
                         fmsg.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div>';
-        foreach ($emails as $email) {
+
+        foreach ($emails as $email)
+        {
             echo '
                         <input type="hidden" name="emailaddress[]" value="'.cleanOutput($email).'"/>';
         }
@@ -713,86 +739,52 @@ class AddressBook
      *
      * Checks whether or not the user has entered address info.
      *
-     * @param      $id    the user's id
-     * @return     true/false
+     * @param int $id The user's id
+     *
+     * @return boolean
      */
     function userHasAddress ($id)
     {
-        $sql = "SELECT * FROM `fcms_address` WHERE `user` = $id";
-        $this->db->query($sql) or displaySQLError(
-            'Has Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() == 1) {
+        $sql = "SELECT `state`, `home`, `work`, `cell`
+                FROM `fcms_address` 
+                WHERE `user` = $id";
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Has Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return false;
+        }
+
+        if ($this->db->count_rows() == 1)
+        {
             $r = $this->db->get_row();
+
             // Must fill in at least state and one phone number to be
             // considered having address info filled out
-            if (
-                !empty($r['state']) && 
-                ( !empty($r['home']) || !empty($r['work']) || !empty($r['cell']) )
-            ) {
+            if (!empty($r['state']) && (!empty($r['home']) || !empty($r['work']) || !empty($r['cell'])))
+            {
                 return true;
-            } else {
+            }
+            else
+            {
                 return false;
             }
-        } elseif ($this->db->count_rows() > 1) {
+        }
+        elseif ($this->db->count_rows() > 1)
+        {
             die("Multiple Addresses found!");
-        } else {
+        }
+        else
+        {
             return false;
         }
     }
 
     /**
-     * displayWhatsNewAddressBook 
-     * 
-     * @return void
-     */
-    function displayWhatsNewAddressBook ()
-    {
-        $locale = new FCMS_Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')).'000000';
-        $today_end = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')).'235959';
-
-        echo '
-            <h3>'.T_('Address Book').'</h3>
-            <ul>';
-        $sql = "SELECT a.id, u.id AS user, lname, fname, username, updated "
-             . "FROM fcms_users AS u, fcms_address AS a "
-             . "WHERE u.id = a.user "
-             . "AND updated >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) "
-             . "ORDER BY updated DESC "
-             . "LIMIT 0, 5";
-        $this->db->query($sql) or displaySQLError(
-            'What\'s New Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            while($row = $this->db->get_row()) {
-                $displayname = getUserDisplayName($row['user'], 2, false);
-                $date = $locale->fixDate('YmdHis', $this->tzOffset, $row['updated']);
-                if ($date >= $today_start && $date <= $today_end) {
-                    $full_date = T_('Today');
-                    $d = ' class="today"';
-                } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $row['updated']);
-                    $d = '';
-                }
-                echo '
-                <li>
-                    <div'.$d.'>'.$full_date.'</div>
-                    <a href="addressbook.php?address='.(int)$row['id'].'">'.$displayname.'</a>
-                </li>';
-            }
-        } else {
-            echo '
-                <li><i>'.T_('Nothing new Last 30 Days').'</i></li>';
-        }
-        echo '
-            </ul>';
-    }
-
-    /**
-     * displayImportForm
+     * displayImportForm 
      *
      * Displays the form to allow csv imports.
+     * 
+     * @return void
      */
     function displayImportForm ()
     {
@@ -817,35 +809,42 @@ class AddressBook
      *
      * Imports a CSV file into the address book
      *
-     * @param      $file   the csv file
-     * @return     nothing
+     * @param array $file The csv file
+     *
+     * @return void
      */
     function importAddressCsv ($file)
     {
         if (!in_array($file['type'], array('text/plain', 'text/x-csv', 'text/csv', 'application/vnd.ms-excel')))
         {
             echo '
-            <p class="error-alert">'.
-                sprintf(T_('%s (%s) is not a CSV file.'), $file['name'], $file['type']).'
-            </p>';
+            <p class="error-alert">'.sprintf(T_('%s (%s) is not a CSV file.'), $file['name'], $file['type']).'</p>';
 
             return;
         }
 
         // Read in the file and parse the data to an array of arrays
-        $row = 0;
         $addresses = array();
-        $handle = fopen($file['tmp_name'], "r");
-        while (($data = fgetcsv($handle, 4096, ",")) !== FALSE) {
-            if ($row == 0) {
+        $handle    = fopen($file['tmp_name'], "r");
+
+        $row = 0;
+        while (($data = fgetcsv($handle, 4096, ",")) !== false)
+        {
+            if ($row == 0)
+            {
                 // Get Column headers
                 $headers = $data;
                 $row++;
-            } else {
+            }
+            else
+            {
                 $num = count($data);
                 $row++;
-                for ($i=0; $i < $num; $i++) {
-                    if ($data[$i]) {
+
+                for ($i=0; $i < $num; $i++)
+                {
+                    if ($data[$i])
+                    {
                         $addresses[$row][$headers[$i]] = $data[$i];
                     }
                 }
@@ -854,170 +853,241 @@ class AddressBook
 
         // Loop through the multidimensional array and insert valid addresses into db
         $i = 0;
-        foreach ($addresses as $address) {
+        foreach ($addresses as $address)
+        {
             // First Name
             $fname = '';
-            if (isset($address['fname'])) {
+            if (isset($address['fname']))
+            {
                 // FCMS
                 $fname = $address['fname'];
-            } elseif (isset($address['First Name'])) {
+            }
+            elseif (isset($address['First Name']))
+            {
                 // Outlook
                 $fname = $address['First Name'];
-            } elseif (isset($address['Given Name'])) {
+            }
+            elseif (isset($address['Given Name']))
+            {
                 // Gmail
                 $fname = $address['Given Name'];
             }
+
             // Last Name
             $lname = '';
-            if (isset($address['lname'])) {
+            if (isset($address['lname']))
+            {
                 // FCMS
                 $lname = $address['lname'];
-            } elseif (isset($address['Last Name'])) {
+            }
+            elseif (isset($address['Last Name']))
+            {
                 // Outlook
                 $lname = $address['Last Name'];
-            } elseif (isset($address['Family Name'])) {
+            }
+            elseif (isset($address['Family Name']))
+            {
                 // Gmail
                 $lname = $address['Family Name'];
             }
+
             // Email
             $email = '';
-            if (isset($address['email'])) {
+            if (isset($address['email']))
+            {
                 // FCMS
                 $email = $address['email'];
-            } elseif (isset($address['E-mail Address'])) {
+            }
+            elseif (isset($address['E-mail Address']))
+            {
                 // Outlook
                 $email = $address['E-mail Address'];
-            } elseif (isset($address['E-mail 1 - Value'])) {
+            }
+            elseif (isset($address['E-mail 1 - Value']))
+            {
                 // Gmail
                 $email = $address['E-mail 1 - Value'];
             }
+
             // Street Address
             $street = '';
-            $city = '';
-            $state = '';
-            $zip = '';
-            if (isset($address['address'])) {
+            $city   = '';
+            $state  = '';
+            $zip    = '';
+            if (isset($address['address']))
+            {
                 // FCMS
                 $street = $address['address'];
-            } elseif (isset($address['Home Address'])) {
+            }
+            elseif (isset($address['Home Address']))
+            {
                 // Outlook (all in one)
                 // Try to parse the data into individual fields
                 // This only works for US formatted addressess
                 $endStreet = strpos($address['Home Address'], "\n");
-                if ($endStreet !== false) {
-                    $street = substr($address['Home Address'], 0, $endStreet-1);
+                if ($endStreet !== false)
+                {
+                    $street  = substr($address['Home Address'], 0, $endStreet-1);
                     $endCity = strpos($address['Home Address'], ",", $endStreet);
-                    if ($endCity !== false) {
-                        $city = substr($address['Home Address'], $endStreet+1, ($endCity - $endStreet)-1);
+                    if ($endCity !== false)
+                    {
+                        $city   = substr($address['Home Address'], $endStreet+1, ($endCity - $endStreet)-1);
                         $tmpZip = substr($address['Home Address'], -5);
-                        if (is_numeric($tmpZip)) {
+                        if (is_numeric($tmpZip))
+                        {
                             $endZip = strpos($address['Home Address'], $tmpZip, $endCity);
-                            if ($endZip !== false) {
+                            if ($endZip !== false)
+                            {
                                 $state = substr($address['Home Address'], $endCity+2);
                                 $state = substr($state, 0, -6);  // 5 zip + space
-                                $zip = $tmpZip;
+                                $zip   = $tmpZip;
                             }
-                        } else {
+                        }
+                        else
+                        {
                             $state = substr($address['Home Address'], $endCity);
                         }
                     }
+                }
                 // Can't figure out which part is which
-                } else {
+                else
+                {
                     $street = $address['Home Address'];
                 }
-            } elseif (isset($address['Home Street'])) {
+            }
+            elseif (isset($address['Home Street']))
+            {
                 // Outlook
                 $street = $address['Home Street'];
-            } elseif (isset($address['Address 1 - Formatted'])) {
+            }
+            elseif (isset($address['Address 1 - Formatted']))
+            {
                 // Gmail (all in one)
                 // Try to parse the data into individual fields
                 // This only works for US formatted addressess
                 $endStreet = strpos($address['Address 1 - Formatted'], "\n");
-                if ($endStreet !== false) {
-                    $street = substr($address['Address 1 - Formatted'], 0, $endStreet-1);
+                if ($endStreet !== false)
+                {
+                    $street  = substr($address['Address 1 - Formatted'], 0, $endStreet-1);
                     $endCity = strpos($address['Address 1 - Formatted'], ",", $endStreet);
-                    if ($endCity !== false) {
-                        $city = substr($address['Address 1 - Formatted'], $endStreet+1, ($endCity - $endStreet)-1);
+                    if ($endCity !== false)
+                    {
+                        $city   = substr($address['Address 1 - Formatted'], $endStreet+1, ($endCity - $endStreet)-1);
                         $tmpZip = substr($address['Address 1 - Formatted'], -5);
-                        if (is_numeric($tmpZip)) {
+                        if (is_numeric($tmpZip))
+                        {
                             $endZip = strpos($address['Address 1 - Formatted'], $tmpZip, $endCity);
-                            if ($endZip !== false) {
+                            if ($endZip !== false)
+                            {
                                 $state = substr($address['Address 1 - Formatted'], $endCity+2);
                                 $state = substr($state, 0, -6);  // 5 zip + space
-                                $zip = $tmpZip;
+                                $zip   = $tmpZip;
                             }
-                        } else {
+                        }
+                        else
+                        {
                             $state = substr($address['Address 1 - Formatted'], $endCity);
                         }
                     }
+                }
                 // Can't figure out which part is which
-                } else {
+                else
+                {
                     $street = $address['Home Address'];
                 }
-            } elseif (isset($address['Address 1 - Street'])) {
+            }
+            elseif (isset($address['Address 1 - Street']))
+            {
                 // Gmail
                 $street = $address['Address 1 - Street'];
             }
+
             // City
-            if (isset($address['city'])) {
+            if (isset($address['city']))
+            {
                 // FCMS
                 $city = $address['city'];
-            } elseif (isset($address['Home City'])) {
+            }
+            elseif (isset($address['Home City']))
+            {
                 // Outlook
                 $city = $address['Home City'];
-            } elseif (isset($address['Address 1 - City'])) {
+            }
+            elseif (isset($address['Address 1 - City']))
+            {
                 // Gmail
                 $city = $address['Address 1 - City'];
             }
+
             // State
-            if (isset($address['state'])) {
+            if (isset($address['state']))
+            {
                 // FCMS
                 $state = $address['state'];
-            } elseif (isset($address['Home State'])) {
+            }
+            elseif (isset($address['Home State']))
+            {
                 // Outlook
                 $state = $address['Home State'];
-            } elseif (isset($address['Address 1 - Region'])) {
+            }
+            elseif (isset($address['Address 1 - Region']))
+            {
                 // Gmail
                 $state = $address['Address 1 - Region'];
             }
+
             // Zip
-            if (isset($address['zip'])) {
+            if (isset($address['zip']))
+            {
                 // FCMS
                 $zip = $address['zip'];
-            } elseif (isset($address['Home Postal Code'])) {
+            }
+            elseif (isset($address['Home Postal Code']))
+            {
                 // Outlook
                 $zip = $address['Home Postal Code'];
-            } elseif (isset($address['Address 1 - Postal Code'])) {
+            }
+            elseif (isset($address['Address 1 - Postal Code']))
+            {
                 // Gmail
                 $zip = $address['Address 1 - Postal Code'];
             }
+
             // Phone Numbers
             $home = '';
             $work = '';
             $cell = '';
             // FCMS
-            if (isset($address['home'])) {
+            if (isset($address['home']))
+            {
                 $home = $address['home'];
             }
-            if (isset($address['work'])) {
+            if (isset($address['work']))
+            {
                 $work = $address['work'];
             }
-            if (isset($address['cell'])) {
+            if (isset($address['cell']))
+            {
                 $cell = $address['cell'];
             }
             // Outlook
-            if (isset($address['Home Phone'])) {
+            if (isset($address['Home Phone']))
+            {
                 $home = $address['Home Phone'];
             }
-            if (isset($address['Business Phone'])) {
+            if (isset($address['Business Phone']))
+            {
                 $work = $address['Business Phone'];
             }
-            if (isset($address['Mobile Phone'])) {
+            if (isset($address['Mobile Phone']))
+            {
                 $cell = $address['Mobile Phone'];
             }
             // Gmail
-            if (isset($address['Phone 1 - Type'])) {
-                switch ($address['Phone 1 - Type']) {
+            if (isset($address['Phone 1 - Type']))
+            {
+                switch ($address['Phone 1 - Type'])
+                {
                     case 'Home':
                         $home = $address['Phone 1 - Type'];
                         break;
@@ -1029,8 +1099,10 @@ class AddressBook
                         break;
                 }
             }
-            if (isset($address['Phone 2 - Type'])) {
-                switch ($address['Phone 2 - Type']) {
+            if (isset($address['Phone 2 - Type']))
+            {
+                switch ($address['Phone 2 - Type'])
+                {
                     case 'Home':
                         $home = $address['Phone 2 - Type'];
                         break;
@@ -1042,8 +1114,10 @@ class AddressBook
                         break;
                 }
             }
-            if (isset($address['Phone 3 - Type'])) {
-                switch ($address['Phone 3 - Type']) {
+            if (isset($address['Phone 3 - Type']))
+            {
+                switch ($address['Phone 3 - Type'])
+                {
                     case 'Home':
                         $home = $address['Phone 3 - Type'];
                         break;
@@ -1058,44 +1132,54 @@ class AddressBook
 
             // Create non-member
             $uniq = uniqid("");
-            $pw = 'NONMEMBER';
-            if (isset($_POST['private'])) {
+            $pw   = 'NONMEMBER';
+
+            if (isset($_POST['private']))
+            {
                 $pw = 'PRIVATE';
             }
+
             $sql = "INSERT INTO `fcms_users` (
                         `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`
                     ) VALUES (
                         3, 
                         NOW(), 
-                        '" . cleanInput($fname) . "', 
-                        '" . cleanInput($lname) . "', 
-                        '" . cleanInput($email) . "', 
+                        '".cleanInput($fname)."', 
+                        '".cleanInput($lname)."', 
+                        '".cleanInput($email)."', 
                         'NONMEMBER-$uniq', 
                         '$pw'
                     )";
-            mysql_query($sql) or displaySQLError(
-                'Add Non-Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySQLError('Add Non-Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                return;
+            }
+
             $id = mysql_insert_id();
+
             // Create address for non-member
             $sql = "INSERT INTO `fcms_address`(
                         `user`, `entered_by`, `updated`, `address`, `city`, `state`, 
                         `zip`, `home`, `work`, `cell`
                     ) VALUES (
                         '$id', 
-                        '" . $this->currentUserId . "', 
+                        '".$this->currentUserId."', 
                         NOW(), 
-                        '" . cleanInput($street) . "', 
-                        '" . cleanInput($city) . "', 
-                        '" . cleanInput($state) . "', 
-                        '" . cleanInput($zip) . "', 
-                        '" . cleanInput($home) . "', 
-                        '" . cleanInput($work) . "', 
-                        '" . cleanInput($cell) . "'
+                        '".cleanInput($street)."', 
+                        '".cleanInput($city)."', 
+                        '".cleanInput($state)."', 
+                        '".cleanInput($zip)."', 
+                        '".cleanInput($home)."', 
+                        '".cleanInput($work)."', 
+                        '".cleanInput($cell)."'
                     )";
-            mysql_query($sql) or displaySQLError(
-                'New Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySQLError('New Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                return;
+            }
+
             $i++;
         }
         echo '
@@ -1105,4 +1189,3 @@ class AddressBook
     }
 
 }
-?>

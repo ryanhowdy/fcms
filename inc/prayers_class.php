@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 
 /**
  * Prayers 
@@ -11,8 +11,8 @@ include_once('locale.php');
  * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
-class Prayers {
-
+class Prayers
+{
     var $db;
     var $db2;
     var $tzOffset;
@@ -44,7 +44,6 @@ class Prayers {
      */
     function showPrayers ($page = 1)
     {
-        $locale = new FCMS_Locale();
         $from = (($page * 5) - 5); 
         $sql = "SELECT p.`id`, `for`, `desc`, `user`, `date` 
                 FROM `fcms_prayers` AS p, `fcms_users` AS u 
@@ -56,7 +55,7 @@ class Prayers {
         );
         if ($this->db->count_rows() > 0) {
             while($r = $this->db->get_row()) {
-                $date = $locale->fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $r['date']);
+                $date = fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $r['date']);
                 $displayname = getUserDisplayName($r['user']);
 
                 // TODO
@@ -180,52 +179,6 @@ class Prayers {
         echo '
                 </fieldset>
             </form>';
-    }
-
-    /**
-     * displayWhatsNewPrayers 
-     * 
-     * @return  void
-     */
-    function displayWhatsNewPrayers ()
-    {
-        $locale = new FCMS_Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $sql = "SELECT * 
-                FROM `fcms_prayers` 
-                WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
-                ORDER BY `date` DESC 
-                LIMIT 5";
-        $this->db->query($sql) or displaySQLError(
-            'Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            echo '
-            <h3>'.T_('Prayer Concerns').'</h3>
-            <ul>';
-            while ($r = $this->db->get_row()) {
-                $displayname = getUserDisplayName($r['user']);
-                $for = $r['for'];
-                $date = $locale->fixDate('YmdHis', $this->tzOffset, $r['date']);
-                if ($date >= $today_start && $date <= $today_end) {
-                    $full_date = T_('Today');
-                    $d = ' class="today"';
-                } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
-                    $d = '';
-                }
-                echo '
-                <li>
-                    <div'.$d.'>'.$full_date.'</div>
-                    <a href="prayers.php">'.$for.'</a> - 
-                    <a class="u" href="profile.php?member='.$r['user'].'">'.$displayname.'</a>
-                </li>';
-            }
-            echo '
-            </ul>';
-        }
     }
 
 }

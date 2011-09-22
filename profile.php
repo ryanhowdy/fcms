@@ -1,20 +1,30 @@
 <?php
+/**
+ * Profile
+ *  
+ * PHP versions 4 and 5
+ *  
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '');
 
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
-include_once('inc/profile_class.php');
+require 'fcms.php';
 
-fixMagicQuotes();
+load('profile');
 
 // Check that the user is logged in
 isLoggedIn();
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-$profile  = new Profile($currentUserId);
-$awards   = new Awards($currentUserId);
+$profile = new Profile($currentUserId);
+$awards  = new Awards($currentUserId);
 
 // Changing Avatar with Advanced Uploader
 if (isset($_GET['advanced-avatar']))
@@ -28,10 +38,10 @@ if (isset($_GET['advanced-avatar']))
         'image/png'     => 'png'
     );
 
-    $type       = $_FILES['avatar']['type'];
-    $extention  = $filetypes[$type];
-    $id         = uniqid("");
-    $name       = $id.".".$extention;
+    $type      = $_FILES['avatar']['type'];
+    $extention = $filetypes[$type];
+    $id        = uniqid("");
+    $name      = $id.".".$extention;
 
     $sql = "UPDATE `fcms_users`
             SET `avatar` = '".$name."'
@@ -42,9 +52,12 @@ if (isset($_GET['advanced-avatar']))
         exit();
     }
 
-    if (move_uploaded_file($_FILES['avatar']['tmp_name'], 'uploads/avatar/'.$name)) {
+    if (move_uploaded_file($_FILES['avatar']['tmp_name'], 'uploads/avatar/'.$name))
+    {
         echo "success";
-    } else{
+    }
+    else
+    {
         echo "failure";
     }
     exit();
@@ -71,7 +84,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($currentUserId) . 'header.php');
+require_once getTheme($currentUserId).'header.php';
 
 echo '
         <div id="profile" class="centercontent">';
@@ -109,18 +122,21 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
     if ($_GET['view'] == 'info')
     {
         $sql = "UPDATE `fcms_users`
-                SET `fname` = '" . cleanInput($_POST['fname']) . "',
-                    `lname` = '" . cleanInput($_POST['lname']) . "',
-                    `sex` = '" . cleanInput($_POST['sex']) . "', ";
+                SET `fname` = '".cleanInput($_POST['fname'])."',
+                    `lname` = '".cleanInput($_POST['lname'])."',
+                    `sex` = '".cleanInput($_POST['sex'])."', ";
 
-        if ($_POST['mname']) {
-            $sql .= "`mname` = '" . cleanInput($_POST['mname']) . "', ";
+        if ($_POST['mname'])
+        {
+            $sql .= "`mname` = '".cleanInput($_POST['mname'])."', ";
         }
-        if ($_POST['maiden']) {
-            $sql .= "`maiden` = '" . cleanInput($_POST['maiden']) . "', ";
+        if ($_POST['maiden'])
+        {
+            $sql .= "`maiden` = '".cleanInput($_POST['maiden'])."', ";
         }
-        if ($_POST['bio']) {
-            $sql .= "`bio` = '" . cleanInput($_POST['bio']) . "', ";
+        if ($_POST['bio'])
+        {
+            $sql .= "`bio` = '".cleanInput($_POST['bio'])."', ";
         }
 
         $year     = cleanInput($_POST['syear'], 'int');
@@ -135,7 +151,7 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
 
         if (!mysql_query($sql))
         {
-            displaySQLError('Update User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             displayFooter();
             return;
         }
@@ -143,6 +159,7 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
         echo '
             <p class="ok-alert">'.T_('Changes Updated Successfully').'</p>
             <p><a href="profile.php?view=info">'.T_('Continue').'</a></p>';
+
         displayFooter();
         return;
     }
@@ -157,9 +174,9 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
         {
             if ($_FILES['avatar']['error'] < 1)
             {
-                $img->destination   = 'uploads/avatar/';
-                $img->resizeSquare  = true;
-                $img->uniqueName    = true;
+                $img->destination  = 'uploads/avatar/';
+                $img->resizeSquare = true;
+                $img->uniqueName   = true;
 
                 $img->upload($_FILES['avatar']);
 
@@ -189,8 +206,9 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
 
                 $sql .= "`avatar` = '".$img->name."'";
 
-                if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar') {
-                    unlink("uploads/avatar/" . basename($_POST['avatar_orig']));
+                if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
+                {
+                    unlink("uploads/avatar/".basename($_POST['avatar_orig']));
                 }
 
             } else {
@@ -202,8 +220,9 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
         {
             $sql .= "`avatar` = 'gravatar', `gravatar` = '".cleanInput($_POST['gravatar_email'])."'";
 
-            if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar') {
-                unlink("uploads/avatar/" . basename($_POST['avatar_orig']));
+            if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
+            {
+                unlink("uploads/avatar/".basename($_POST['avatar_orig']));
             }
         }
         // Avatar default
@@ -215,7 +234,7 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
         $sql .= "WHERE `id` = '$currentUserId'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Update User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             displayFooter();
             return;
         }
@@ -230,8 +249,9 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
 // Advanced Photo success
 elseif (isset($_GET['view']) && $_GET['view'] == 'advanced-picture')
 {
-    if ($_GET['avatar_orig'] != 'no_avatar.jpg' && $_GET['avatar_orig'] != 'gravatar') {
-        unlink("uploads/avatar/" . basename($_GET['avatar_orig']));
+    if ($_GET['avatar_orig'] != 'no_avatar.jpg' && $_GET['avatar_orig'] != 'gravatar')
+    {
+        unlink("uploads/avatar/".basename($_GET['avatar_orig']));
     }
 
     echo '
@@ -245,14 +265,14 @@ elseif (isset($_POST['editsubmit']))
 {
     $sql = "UPDATE `fcms_address` 
             SET `updated`=NOW(), 
-                `address`   = '" . cleanInput($_POST['address']) . "', 
-                `city`      = '" . cleanInput($_POST['city']) . "', 
-                `state`     = '" . cleanInput($_POST['state']) . "', 
-                `zip`       = '" . cleanInput($_POST['zip']) . "', 
-                `home`      = '" . cleanInput($_POST['home']) . "', 
-                `work`      = '" . cleanInput($_POST['work']) . "', 
-                `cell`      = '" . cleanInput($_POST['cell']) . "' 
-            WHERE `id` = '" . cleanInput($_POST['aid'], 'int') . "'";
+                `address`   = '".cleanInput($_POST['address'])."', 
+                `city`      = '".cleanInput($_POST['city'])."', 
+                `state`     = '".cleanInput($_POST['state'])."', 
+                `zip`       = '".cleanInput($_POST['zip'])."', 
+                `home`      = '".cleanInput($_POST['home'])."', 
+                `work`      = '".cleanInput($_POST['work'])."', 
+                `cell`      = '".cleanInput($_POST['cell'])."' 
+            WHERE `id` = '".cleanInput($_POST['aid'], 'int')."'";
     if (!mysql_query($sql))
     {
         displaySQLError('Edit Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -305,7 +325,11 @@ else
 displayFooter();
 return;
 
-
+/**
+ * displayFooter 
+ * 
+ * @return void
+ */
 function displayFooter()
 {
     global $currentUserId, $TMPL;
@@ -313,5 +337,5 @@ function displayFooter()
     echo '
         </div><!-- #profile .centercontent -->';
 
-    include_once(getTheme($currentUserId) . 'footer.php');
+    include_once getTheme($currentUserId).'footer.php';
 }

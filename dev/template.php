@@ -15,18 +15,15 @@ session_start();
 
 define('URL_PREFIX', '');
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-require_once 'inc/locale.php';
+require 'fcms.php';
 
-fixMagicQuotes();
+load('datetime');
 
 // Check that the user is logged in
 isLoggedIn();
 
 // Globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
-$locale        = new FCMS_Locale();
 
 $TMPL = array(
     'sitename'      => getSiteName(),

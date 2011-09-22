@@ -1,14 +1,23 @@
 <?php
+/**
+ * Members
+ * 
+ * PHP versions 4 and 5
+ *
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2010 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '../');
 
-include_once(URL_PREFIX.'inc/config_inc.php');
-include_once(URL_PREFIX.'inc/util_inc.php');
-include_once(URL_PREFIX.'inc/admin_members_class.php');
-include_once(URL_PREFIX.'inc/database_class.php');
+require URL_PREFIX.'fcms.php';
 
-fixMagicQuotes();
+load('admin_members', 'database');
 
 // Check that the user is logged in
 isLoggedIn('admin/');
@@ -86,7 +95,7 @@ function control ()
         }
         else
         {
-            $merge  = cleanInput($_POST['merge-with'], 'int');
+            $merge = cleanInput($_POST['merge-with'], 'int');
             $memberObj->displayMergeMemberFormReview($id, $merge);
         }
 
@@ -135,7 +144,7 @@ function control ()
         $last  = cleanInput($_POST['lname']);
         $user  = cleanInput($_POST['uname']);
 
-        $memberObj->displayMemberList(1, $first, $last,$user);
+        $memberObj->displayMemberList(1, $first, $last, $user);
 
         displayFooter();
     }
@@ -154,7 +163,7 @@ function control ()
 /**
  * displayHeader 
  * 
- * @param string $js 
+ * @param string $js JavaScript to override default.
  * 
  * @return void
  */
@@ -206,7 +215,7 @@ Event.observe(window, \'load\', function() {
 </script>';
     }
 
-    include_once(getTheme($currentUserId) . 'header.php');
+    include_once getTheme($currentUserId).'header.php';
 
     echo '
         <div class="centercontent">';
@@ -224,7 +233,7 @@ function displayFooter ()
     echo '
         </div><!-- .centercontent -->';
 
-    include_once(getTheme($currentUserId) . 'footer.php');
+    include_once getTheme($currentUserId).'footer.php';
 }
 
 /**
@@ -355,7 +364,8 @@ function displayCreateSubmit ()
 
     // Check Email
     $sql = "SELECT `email` FROM `fcms_users` 
-            WHERE `email` = '" . cleanInput($_POST['email']) . "'";
+            WHERE `email` = '".cleanInput($_POST['email'])."'";
+
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -381,14 +391,12 @@ function displayCreateSubmit ()
     $maiden   = cleanInput($_POST['maiden']);
     $sex      = cleanInput($_POST['sex']);
     $email    = cleanInput($_POST['email']);
-
     $year     = cleanInput($_POST['year'], 'int');
     $month    = cleanInput($_POST['month'], 'int'); 
     $month    = str_pad($month, 2, "0", STR_PAD_LEFT);
     $day      = cleanInput($_POST['day'], 'int');
     $day      = str_pad($day, 2, "0", STR_PAD_LEFT);
     $birthday = "$year-$month-$day";
-
     $username = cleanInput($_POST['username']);
     $password = cleanInput($_POST['password']);
     $md5pass  = md5($password);
@@ -410,8 +418,8 @@ function displayCreateSubmit ()
     $lastid = mysql_insert_id();
 
     // Create member's address
-    $sql = "INSERT INTO `fcms_address`(`user`, `entered_by`,`updated`) "
-         . "VALUES ($lastid, $lastid, NOW())";
+    $sql = "INSERT INTO `fcms_address`(`user`, `entered_by`,`updated`)
+            VALUES ($lastid, $lastid, NOW())";
     if (!mysql_query($sql))
     {
         displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -430,8 +438,8 @@ function displayCreateSubmit ()
 
     // Create calendar entry for member's bday
     $cat = getBirthdayCategory();
-    $sql = "INSERT INTO `fcms_calendar`(`date`, `title`, `created_by`, `date_added`, `category`) "
-         . "VALUES ('$birthday', '$fname $lname', $currentUserId, NOW(), $cat)";
+    $sql = "INSERT INTO `fcms_calendar`(`date`, `title`, `created_by`, `date_added`, `category`)
+            VALUES ('$birthday', '$fname $lname', $currentUserId, NOW(), $cat)";
     if (!mysql_query($sql))
     {
         displaySQLError('Calendar Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -520,15 +528,16 @@ function displayEditSubmit ()
 
     // Update user info
     $sql = "UPDATE `fcms_users` SET 
-                `fname` = '" . cleanInput($_POST['fname']) . "', 
-                `lname` = '" . cleanInput($_POST['lname']) . "', 
-                `sex` = '" . cleanInput($_POST['sex']) . "', ";
+                `fname` = '".cleanInput($_POST['fname'])."', 
+                `lname` = '".cleanInput($_POST['lname'])."', 
+                `sex` = '".cleanInput($_POST['sex'])."', ";
 
     if (isset($_POST['email']) && $_POST['email'] != $emailstart)
     {
         $email_sql = "SELECT `email` 
                       FROM `fcms_users` 
-                      WHERE `email` = '" . cleanInput($_POST['email']) . "'";
+                      WHERE `email` = '".cleanInput($_POST['email'])."'";
+
         $result = mysql_query($email_sql);
         if (!$result)
         {
@@ -543,17 +552,12 @@ function displayEditSubmit ()
         { 
             $memberObj->displayEditMemberForm(
                 $_POST['id'],
-                '<p class="error-alert">'
-                    .sprintf(
-                        T_('The email address %s is already in use.  Please choose a different email.'), 
-                        $_POST['email']
-                    ).
-                '</p>'
+                '<p class="error-alert">'.sprintf(T_('The email address %s is already in use.  Please choose a different email.'), $_POST['email']).'</p>'
             );
             exit();
         }
 
-        $sql .= "email = '" . cleanInput($_POST['email']) . "', ";
+        $sql .= "email = '".cleanInput($_POST['email'])."', ";
     }
 
     if ($_POST['password'])
@@ -571,10 +575,10 @@ function displayEditSubmit ()
         mail($_POST['email'], $subject, $message, getEmailHeaders());
     }
 
-    $sql .= "`birthday` = '$birthday', "
-          . "`joindate` = NOW(), "
-          . "`access` = '" . cleanInput($_POST['access'], 'int') . "' "
-          . "WHERE id = '" . cleanInput($_POST['id'], 'int') . "'";
+    $sql .= "`birthday` = '$birthday', 
+            `joindate` = NOW(), 
+            `access` = '".cleanInput($_POST['access'], 'int')."'
+            WHERE id = '".cleanInput($_POST['id'], 'int')."'";
     if (!mysql_query($sql))
     {
         displaySQLError('Edit Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -623,7 +627,7 @@ function displayActivateSubmit ()
         // Activate the member
         $sql = "UPDATE `fcms_users` 
                 SET `activated` = 1 
-                WHERE `id` = '" . cleanInput($id, 'int') . "'";
+                WHERE `id` = '".cleanInput($id, 'int')."'";
 
         if (!mysql_query($sql))
         {
@@ -639,7 +643,7 @@ function displayActivateSubmit ()
             {
                 $sql = "UPDATE `fcms_users` 
                         SET `joindate` = NOW() 
-                        WHERE `id` = '" . cleanInput($id, 'int') . "'";
+                        WHERE `id` = '".cleanInput($id, 'int')."'";
 
                 if (!mysql_query($sql))
                 {
@@ -680,7 +684,7 @@ function displayInactivateSubmit ()
     {
         $sql = "UPDATE `fcms_users` 
                 SET `activated` = 0 
-                WHERE `id` = '" . cleanInput($id, 'int') . "'";
+                WHERE `id` = '".cleanInput($id, 'int')."'";
         if (!mysql_query($sql))
         {
             displaySQLError('Inactivate Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -707,7 +711,8 @@ function displayDeleteAllConfirmForm ()
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>';
-    foreach ($_POST['massupdate'] AS $id) {
+    foreach ($_POST['massupdate'] AS $id)
+    {
         $id = cleanInput($id, 'int');
         echo '
                             <input type="hidden" name="massupdate[]" value="'.$id.'"/>';
@@ -734,7 +739,7 @@ function displayDeleteAllSubmit ()
     foreach ($_POST['massupdate'] AS $id)
     {
         $sql = "DELETE FROM `fcms_users` 
-                WHERE `id` = '" . cleanInput($id, 'int') . "'";
+                WHERE `id` = '".cleanInput($id, 'int')."'";
         if (!mysql_query($sql))
         {
             displaySQLError('Delete Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -785,6 +790,7 @@ function displayDeleteSubmit ()
     displayHeader();
 
     $id = cleanInput($_POST['id'], 'int');
+
     $sql = "DELETE FROM `fcms_users` 
             WHERE `id` = '$id'";
     if (!mysql_query($sql))

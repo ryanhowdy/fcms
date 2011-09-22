@@ -2,6 +2,8 @@
 /**
  * Documents
  * 
+ * PHP versions 4 and 5
+ * 
  * @category  FCMS
  * @package   FamilyConnections
  * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
@@ -14,11 +16,9 @@ session_start();
 
 define('URL_PREFIX', '');
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-require_once 'inc/documents_class.php';
+require 'fcms.php';
 
-fixMagicQuotes();
+load('documents');
 
 // Check that the user is logged in
 isLoggedIn();
@@ -27,11 +27,13 @@ $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 $docs = new Documents($currentUserId);
 
 // Download Document
-header("Cache-control: private");
-if (isset($_GET['download'])) {
-    $show = false;
-    $filename = "uploads/documents/" . basename($_GET['download']);
+if (isset($_GET['download']))
+{
+    $show     = false;
+    $filename = "uploads/documents/".basename($_GET['download']);
     $mimetype = isset($_GET['mime']) ? cleanInput($_GET['mime']) : 'application/download';
+
+    header("Cache-control: private");
     header("Pragma: public");
     header("Expires: 0");
     header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
@@ -45,19 +47,19 @@ if (isset($_GET['download'])) {
 
 // Setup the Template variables;
 $TMPL = array(
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Documents'),
-    'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
+    'sitename'    => getSiteName(),
+    'nav-link'    => getNavLinks(),
+    'pagetitle'   => T_('Documents'),
+    'path'        => URL_PREFIX,
+    'displayname' => getUserDisplayName($currentUserId),
+    'version'     => getCurrentVersion(),
+    'year'        => date('Y')
 );
 $TMPL['javascript'] = '
 <script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
-require_once getTheme($currentUserId) . 'header.php';
+require_once getTheme($currentUserId).'header.php';
 
 echo '
         <div id="documents" class="centercontent">';
@@ -67,8 +69,8 @@ $show = true;
 // Add new document
 if (isset($_POST['submitadd']))
 {
-    $doc = $_FILES['doc']['name'];
-    $doc = cleanFilename($doc);
+    $doc  = $_FILES['doc']['name'];
+    $doc  = cleanFilename($doc);
     $desc = cleanInput($_POST['desc']);
     $mime = cleanInput($_FILES['doc']['type']);
 
@@ -82,7 +84,7 @@ if (isset($_POST['submitadd']))
 
         if (!mysql_query($sql))
         {
-            displaySQLError('Document Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySQLError('Document Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             return;
         }
 
@@ -106,11 +108,13 @@ if (isset($_POST['submitadd']))
         {
             while ($r = mysql_fetch_array($result))
             {
-                $name = getUserDisplayName($currentUserId);
-                $to = getUserDisplayName($r['user']);
-                $subject = sprintf(T_('%s has added a new document (%s).'), $name, $doc);
-                $email = $r['email'];
-                $url = getDomainAndDir();
+                $name          = getUserDisplayName($currentUserId);
+                $to            = getUserDisplayName($r['user']);
+                $subject       = sprintf(T_('%s has added a new document (%s).'), $name, $doc);
+                $email         = $r['email'];
+                $url           = getDomainAndDir();
+                $email_headers = getEmailHeaders();
+
                 $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
@@ -124,7 +128,8 @@ if (isset($_POST['submitadd']))
 '.$url.'settings.php
 
 ';
-                $email_headers = getEmailHeaders();
+
+
                 mail($email, $subject, $msg, $email_headers);
             }
         }
@@ -135,7 +140,7 @@ if (isset($_POST['submitadd']))
 if (isset($_POST['deldoc']))
 {
     $sql = "DELETE FROM `fcms_documents` 
-            WHERE `id` = " . cleanInput($_POST['id'], 'int');
+            WHERE `id` = ".cleanInput($_POST['id'], 'int');
 
     if (!mysql_query($sql))
     {
@@ -143,7 +148,7 @@ if (isset($_POST['deldoc']))
         return;
     }
 
-    if (!unlink("uploads/documents/" . basename($_POST['name'])))
+    if (!unlink("uploads/documents/".basename($_POST['name'])))
     {
         echo '<p class="error-alert">'.T_('Document could not be deleted from the server.').'</p>';
         return;
@@ -178,4 +183,4 @@ echo '
         </div><!-- #documents .centercontent -->';
 
 // Show Footer
-require_once getTheme($currentUserId) . 'footer.php';
+require_once getTheme($currentUserId).'footer.php';

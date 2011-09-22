@@ -1,13 +1,23 @@
 <?php
+/**
+ * Recipes
+ *  
+ * PHP versions 4 and 5
+ *  
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '');
 
-include_once('inc/config_inc.php');
-include_once('inc/util_inc.php');
-include_once('inc/recipes_class.php');
+require 'fcms.php';
 
-fixMagicQuotes();
+load('recipes');
 
 // Check that the user is logged in
 isLoggedIn();
@@ -55,7 +65,7 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-include_once(getTheme($currentUserId) . 'header.php');
+require_once getTheme($currentUserId).'header.php';
 
 echo '
         <div id="recipe-page" class="centercontent">';
@@ -64,16 +74,17 @@ $show = true;
 //------------------------------------------------------------------------------
 // Add recipe
 //------------------------------------------------------------------------------
-if (isset($_POST['submitadd'])) {
-
-    $name           = cleanInput($_POST['name']);
-    $category       = cleanInput($_POST['category'], 'int');
-    $ingredients    = cleanInput($_POST['ingredients']);
-    $directions     = cleanInput($_POST['directions']);
-    $thumbnail      = 'no_recipe.jpg';
+if (isset($_POST['submitadd']))
+{
+    $name        = cleanInput($_POST['name']);
+    $category    = cleanInput($_POST['category'], 'int');
+    $ingredients = cleanInput($_POST['ingredients']);
+    $directions  = cleanInput($_POST['directions']);
+    $thumbnail   = 'no_recipe.jpg';
 
     // Upload Recipe Image
-    if ($_FILES['thumbnail']['name'] && $_FILES['thumbnail']['error'] < 1) {
+    if ($_FILES['thumbnail']['name'] && $_FILES['thumbnail']['error'] < 1)
+    {
         $thumbnail = uploadImages(
             $_FILES['thumbnail']['type'], $_FILES['thumbnail']['name'], 
             $_FILES['thumbnail']['tmp_name'], "gallery/upimages/", 100, 100, true, false
@@ -105,18 +116,23 @@ if (isset($_POST['submitadd'])) {
             FROM `fcms_user_settings` AS s, `fcms_users` AS u 
             WHERE `email_updates` = '1'
             AND u.`id` = s.`user`";
+
     $result = mysql_query($sql) or displaySQLError(
         'Email Updates Error', __FILE__.' ['.__LINE__.']', 
         $sql, mysql_error()
     );
-    if (mysql_num_rows($result) > 0) {
-        while ($r = mysql_fetch_array($result)) {
-            $recipeName = $name;
-            $recipeUser = getUserDisplayName($currentUserId);
-            $to = getUserDisplayName($r['user']);
-            $subject = sprintf(T_('%s has added the recipe: %s'), $recipeUser, $recipeName);
-            $email = $r['email'];
-            $url = getDomainAndDir();
+    if (mysql_num_rows($result) > 0)
+    {
+        while ($r = mysql_fetch_array($result))
+        {
+            $recipeName    = $name;
+            $recipeUser    = getUserDisplayName($currentUserId);
+            $to            = getUserDisplayName($r['user']);
+            $subject       = sprintf(T_('%s has added the recipe: %s'), $recipeUser, $recipeName);
+            $email         = $r['email'];
+            $url           = getDomainAndDir();
+            $email_headers = getEmailHeaders();
+
             $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
@@ -129,7 +145,6 @@ if (isset($_POST['submitadd'])) {
 '.$url.'settings.php
 
 ';
-            $email_headers = getEmailHeaders();
             mail($email, $subject, $msg, $email_headers);
         }
     }
@@ -138,13 +153,15 @@ if (isset($_POST['submitadd'])) {
 //------------------------------------------------------------------------------
 // Edit recipe
 //------------------------------------------------------------------------------
-if (isset($_POST['submitedit'])) {
+if (isset($_POST['submitedit']))
+{
     $sql = "UPDATE `fcms_recipes` 
-            SET `name`          = '" . cleanInput($_POST['name']) . "', 
-                `category`      = '" . cleanInput($_POST['category']) . "', 
-                `ingredients`   = '" . cleanInput($_POST['ingredients']) . "',
-                `directions`    = '" . cleanInput($_POST['directions']) . "' 
-            WHERE `id` = '" . cleanInput($_POST['id'], 'int') . "'";
+            SET `name`          = '".cleanInput($_POST['name'])."', 
+                `category`      = '".cleanInput($_POST['category'])."', 
+                `ingredients`   = '".cleanInput($_POST['ingredients'])."',
+                `directions`    = '".cleanInput($_POST['directions'])."' 
+            WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
+
     mysql_query($sql) or displaySQLError(
         'Edit Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
     );
@@ -158,11 +175,12 @@ if (isset($_POST['submitedit'])) {
 //------------------------------------------------------------------------------
 // Add category
 //------------------------------------------------------------------------------
-if (isset($_POST['submit-category'])) {
+if (isset($_POST['submit-category']))
+{
     $show = false;
-    $sql = "INSERT INTO `fcms_category` (`name`, `type`, `user`)
+    $sql  = "INSERT INTO `fcms_category` (`name`, `type`, `user`)
             VALUES (
-                '" . cleanInput($_POST['name']) . "',
+                '".cleanInput($_POST['name'])."',
                 'recipe', 
                 '$currentUserId'
             )";
@@ -176,7 +194,8 @@ if (isset($_POST['submit-category'])) {
 //------------------------------------------------------------------------------
 // Delete confirmation
 //------------------------------------------------------------------------------
-if (isset($_POST['delrecipe']) && !isset($_POST['confirmed'])) {
+if (isset($_POST['delrecipe']) && !isset($_POST['confirmed']))
+{
     $show = false;
     echo '
                 <div class="info-alert clearfix">
@@ -190,16 +209,17 @@ if (isset($_POST['delrecipe']) && !isset($_POST['confirmed'])) {
                         </div>
                     </form>
                 </div>';
-
+}
 //------------------------------------------------------------------------------
 // Delete recipe
 //------------------------------------------------------------------------------
-} elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
+elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
+{
     $sql = "DELETE FROM `fcms_recipes` 
-            WHERE `id` = '" . cleanInput($_POST['id'], 'int') . "'";
+            WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
     mysql_query($sql) or displaySQLError(
         'Delete Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+    );
     echo '
             <p class="ok-alert" id="del">'.T_('Recipe Deleted Successfully').'</p>
             <script type="text/javascript">
@@ -210,29 +230,35 @@ if (isset($_POST['delrecipe']) && !isset($_POST['confirmed'])) {
 //------------------------------------------------------------------------------
 // Add recipe form
 //------------------------------------------------------------------------------
-if (isset($_GET['addrecipe']) && checkAccess($currentUserId) <= 5) {
+if (isset($_GET['addrecipe']) && checkAccess($currentUserId) <= 5)
+{
     $show = false;
-    $cat = isset($_GET['cat']) ? (int)$_GET['cat'] : 0;
+    $cat  = isset($_GET['cat']) ? (int)$_GET['cat'] : 0;
+
     $rec->displayAddRecipeForm($cat);
 }
 
 //------------------------------------------------------------------------------
 // Edit recipe form
 //------------------------------------------------------------------------------
-if (isset($_POST['editrecipe'])) {
+if (isset($_POST['editrecipe']))
+{
     $show = false;
-    $id             = cleanOutput($_POST['id']);
-    $name           = cleanOutput($_POST['name']);
-    $category       = cleanOutput($_POST['category']);
-    $ingredients    = cleanOutput($_POST['ingredients']);
-    $directions     = cleanOutput($_POST['directions']);
+
+    $id          = cleanOutput($_POST['id']);
+    $name        = cleanOutput($_POST['name']);
+    $category    = cleanOutput($_POST['category']);
+    $ingredients = cleanOutput($_POST['ingredients']);
+    $directions  = cleanOutput($_POST['directions']);
+
     $rec->displayEditRecipeForm($id, $name, $category, $ingredients, $directions);
 }
 
 //------------------------------------------------------------------------------
 // Add category form
 //------------------------------------------------------------------------------
-if (isset($_GET['add']) and checkAccess($currentUserId) <= 5) {
+if (isset($_GET['add']) and checkAccess($currentUserId) <= 5)
+{
     $show = false;
     $rec->displayAddCategoryForm();
 }
@@ -240,11 +266,12 @@ if (isset($_GET['add']) and checkAccess($currentUserId) <= 5) {
 //------------------------------------------------------------------------------
 // Add comment
 //------------------------------------------------------------------------------
-if (isset($_POST['addcom'])) {
+if (isset($_POST['addcom']))
+{
     $sql = "INSERT INTO `fcms_recipe_comment` (`recipe`, `comment`, `user`, `date`)
             VALUES (
-                '" . cleanInput($_POST['recipe'], 'int') . "',
-                '" . cleanInput($_POST['comment']) . "',
+                '".cleanInput($_POST['recipe'], 'int')."',
+                '".cleanInput($_POST['comment'])."',
                 '$currentUserId',
                 NOW()
             )";
@@ -256,15 +283,19 @@ if (isset($_POST['addcom'])) {
 //------------------------------------------------------------------------------
 // Delete comment
 //------------------------------------------------------------------------------
-if (isset($_POST['delcom'])) {
-    if ($currentUserId == $_POST['user'] || checkAccess($currentUserId) < 2) {
+if (isset($_POST['delcom']))
+{
+    if ($currentUserId == $_POST['user'] || checkAccess($currentUserId) < 2)
+    {
         $sql = "DELETE FROM `fcms_recipe_comment`
-                WHERE `id` = '" . cleanInput($_POST['id'], 'int') . "'";
+                WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
         mysql_query($sql) or displaySQLError(
             'Delete Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
 
-    } else {
+    }
+    else
+    {
         echo '
         <p class="error-alert">'.T_('You do not have permission to delete this comment.').'</p>';
     }
@@ -295,11 +326,10 @@ if (isset($_POST['submit_cat_edit']))
 
             foreach ($_POST['category'] as $key => $category)
             {
-                $id = $ids[$key];
+                $id  = $ids[$key];
                 $sql = "UPDATE `fcms_category` 
                         SET `name` = '".cleanInput($category)."' 
                         WHERE `id` = '".cleanInput($id, 'int')."'";
-
                 if (!mysql_query($sql))
                 {
                     displaySQLError('Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -342,20 +372,22 @@ if (isset($_POST['submit_cat_edit']))
 //------------------------------------------------------------------------------
 // Show recipes in specific Category
 //------------------------------------------------------------------------------
-if (isset($_GET['category'])) {
-
-    $show = false;
-    $id = 0;
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if (isset($_GET['category']))
+{
+    $show     = false;
+    $id       = 0;
+    $page     = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $category = cleanInput($_GET['category'], 'int');
 
     // Show recipe
-    if (isset($_GET['id'])) {
+    if (isset($_GET['id']))
+    {
         $id = cleanInput($_GET['id'], 'int');
         $rec->showRecipe($category, $id);
-
+    }
     // Show list of recipes
-    } else {
+    else
+    {
         $rec->showRecipeInCategory($category, $page);
     }
 
@@ -364,7 +396,8 @@ if (isset($_GET['category'])) {
 //------------------------------------------------------------------------------
 // Display Last 5 recipes
 //------------------------------------------------------------------------------
-if ($show) {
+if ($show)
+{
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $rec->showRecipes($page);
 }
@@ -374,4 +407,4 @@ echo '
 
 
 // Show Footer
-include_once(getTheme($currentUserId) . 'footer.php');
+require_once getTheme($currentUserId).'footer.php';

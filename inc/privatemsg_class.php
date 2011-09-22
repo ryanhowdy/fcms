@@ -1,6 +1,6 @@
 <?php
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 
 /**
  * PrivateMessage 
@@ -42,7 +42,6 @@ class PrivateMessage {
      */
     function displayInbox ()
     {
-        $locale = new FCMS_Locale();
         echo '
             <form method="post" action="privatemsg.php">
                 <table id="pm" cellpadding="0" cellspacing="0">
@@ -60,7 +59,7 @@ class PrivateMessage {
             'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         while ($r = $this->db->get_row()) {
-            $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
+            $date = fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
             $class = '';
             if ($r['read'] < 1) {
                 $class = " class=\"new\"";
@@ -91,7 +90,6 @@ class PrivateMessage {
      */
     function displaySentFolder ()
     {
-        $locale = new FCMS_Locale();
         echo '
                 <table id="pm" cellpadding="0" cellspacing="0">
                     <tr><th colspan="5" class="pm_header">'.T_('Private Messages (PM)').' - '.T_('Sent').'</th></tr>
@@ -107,7 +105,7 @@ class PrivateMessage {
             'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
         while ($r = $this->db->get_row()) {
-            $date = $locale->fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
+            $date = fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
             echo '
                     <tr>
                         <td>'.getUserDisplayName($r['to']).'</td>
@@ -128,8 +126,6 @@ class PrivateMessage {
      */
     function displayPM ($id)
     {
-        $locale = new FCMS_Locale();
-
         $id = cleanInput($id, 'int');
 
         $sql = "SELECT * 
@@ -147,7 +143,7 @@ class PrivateMessage {
             $this->db->query($sql) or displaySQLError(
                 'PM Read Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
             );
-            $date = $locale->fixDate(T_('n/j/Y g:i a'), $this->tzOffset, $r['date']);
+            $date = fixDate(T_('n/j/Y g:i a'), $this->tzOffset, $r['date']);
             echo '
             <div id="pm_msg">
                 <b>'.T_('Received').':</b> '.$date.'<br/>
@@ -176,7 +172,6 @@ class PrivateMessage {
      */
     function displaySentPM ($id)
     {
-        $locale = new FCMS_Locale();
         $sql = "SELECT * 
                 FROM `fcms_privatemsg` 
                 WHERE `id` = '$id' 
@@ -186,7 +181,7 @@ class PrivateMessage {
         );
         if ($this->db->count_rows() > 0) { 
             $r = $this->db->get_row();
-            $date = $locale->fixDate(T_('n/j/Y g:i a'), $this->tzOffset, $r['date']);
+            $date = fixDate(T_('n/j/Y g:i a'), $this->tzOffset, $r['date']);
             echo '
             <div id="pm_msg">
                 <b>'.T_('Sent').':</b> '.$date.'<br/>

@@ -1,13 +1,23 @@
 <?php
+/**
+ * Configuration
+ * 
+ * PHP versions 4 and 5
+ *
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2010 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
 session_start();
 
 define('URL_PREFIX', '../');
 
-include_once('../inc/config_inc.php');
-include_once('../inc/util_inc.php');
-include_once('../inc/admin_class.php');
+require URL_PREFIX.'fcms.php';
 
-fixMagicQuotes();
+load('admin');
 
 // Check that the user is logged in
 isLoggedIn('admin/');
@@ -31,19 +41,22 @@ $TMPL['javascript'] = '
 
 
 // Show Header
-include_once(getTheme($currentUserId, URL_PREFIX) . 'header.php');
+require_once getTheme($currentUserId, URL_PREFIX).'header.php';
 
 echo '
         <div id="config" class="centercontent">';
 
-if (checkAccess($currentUserId) > 1) {
+if (checkAccess($currentUserId) > 1)
+{
     echo '
             <p class="error-alert">
                 <b>'.T_('You do not have access to view this page.').'</b><br/>
                 '.T_('This page requires an access level 1 (Admin).').' 
                 <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
             </p>';
-} else {
+}
+else
+{
     echo '
             <div id="leftcolumn">
                 <ul class="menu">
@@ -61,49 +74,65 @@ if (checkAccess($currentUserId) > 1) {
     //--------------------------------------------------------------------------
     // Update General
     //--------------------------------------------------------------------------
-    if (isset($_POST['submit-sitename'])) {
-        if (isset($_POST['sitename'])) {
+    if (isset($_POST['submit-sitename']))
+    {
+        if (isset($_POST['sitename']))
+        {
             $sql = "UPDATE `fcms_config` 
-                    SET `sitename` = '" . cleanInput($_POST['sitename']) . "'";
+                    SET `sitename` = '".cleanInput($_POST['sitename'])."'";
             mysql_query($sql) or displaySQLError(
                 'Sitename Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
         }
-        if (isset($_POST['contact'])) {
+
+        if (isset($_POST['contact']))
+        {
             $sql = "UPDATE `fcms_config` 
-                    SET `contact` = '" . cleanInput($_POST['contact']) . "'";
+                    SET `contact` = '".cleanInput($_POST['contact'])."'";
             mysql_query($sql) or displaySQLError(
                 'Contact Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
         }
-        if (isset($_POST['activation'])) {
+
+        if (isset($_POST['activation']))
+        {
             $sql = "UPDATE `fcms_config` 
-                    SET `auto_activate` = " . cleanInput($_POST['activation']);
+                    SET `auto_activate` = ".cleanInput($_POST['activation']);
             mysql_query($sql) or displaySQLError(
                 'Activation Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
         }
-        if (isset($_POST['registration'])) {
+
+        if (isset($_POST['registration']))
+        {
             $sql = "UPDATE `fcms_config` 
-                    SET `registration` = " . cleanInput($_POST['registration']);
+                    SET `registration` = ".cleanInput($_POST['registration']);
             mysql_query($sql) or displaySQLError(
                 'Registration Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
         }
-        if (isset($_POST['site_off'])) {
+
+        if (isset($_POST['site_off']))
+        {
             $sql = "UPDATE `fcms_config` ";
-            if ($_POST['site_off'] == 'yes') {
+
+            if ($_POST['site_off'] == 'yes')
+            {
                 $sql .= "SET `site_off` = '1'";
-            } else {
+            }
+            else
+            {
                 $sql .= "SET `site_off` = '0'";
             }
             mysql_query($sql) or displaySQLError(
                 'Site Off Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
         }
-        if (isset($_POST['log_errors'])) {
+
+        if (isset($_POST['log_errors']))
+        {
             $sql = "UPDATE `fcms_config` 
-                    SET `log_errors` = " . cleanInput($_POST['log_errors']);
+                    SET `log_errors` = ".cleanInput($_POST['log_errors']);
             mysql_query($sql) or displaySQLError(
                 'Logging Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
@@ -115,17 +144,22 @@ if (checkAccess($currentUserId) > 1) {
     //--------------------------------------------------------------------------
     // Update Defaults
     //--------------------------------------------------------------------------
-    if (isset($_POST['submit-defaults'])) {
+    if (isset($_POST['submit-defaults']))
+    {
         $sql = "ALTER TABLE `fcms_user_settings` 
-                ALTER `theme` SET DEFAULT '" . basename($_POST['theme']) . "'";
+                ALTER `theme` SET DEFAULT '".basename($_POST['theme'])."'";
         mysql_query($sql) or displaySQLError(
             'Theme Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $sql = "ALTER TABLE `fcms_user_settings` ALTER `showavatar` ";
-        if (isset($_POST['showavatar'])) {
-            if ($_POST['showavatar'] == 'yes') {
+        if (isset($_POST['showavatar']))
+        {
+            if ($_POST['showavatar'] == 'yes')
+            {
                 $sql .= "SET DEFAULT '1'";
-            } else {
+            }
+            else
+            {
                 $sql .= "SET DEFAULT '0'";
             }
         }
@@ -134,27 +168,31 @@ if (checkAccess($currentUserId) > 1) {
         );
         $sql = "ALTER TABLE `fcms_user_settings` 
                 ALTER `displayname` 
-                SET DEFAULT '" . cleanInput($_POST['displayname']) . "'";
+                SET DEFAULT '".cleanInput($_POST['displayname'])."'";
         mysql_query($sql) or displaySQLError(
             'Display Name Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $sql = "ALTER TABLE `fcms_user_settings` 
                 ALTER `frontpage` 
-                SET DEFAULT '" . cleanInput($_POST['frontpage']) . "'";
+                SET DEFAULT '".cleanInput($_POST['frontpage'])."'";
         mysql_query($sql) or displaySQLError(
             'Frontpage Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $sql = "ALTER TABLE `fcms_user_settings` 
                 ALTER `timezone` 
-                SET DEFAULT '" . cleanInput($_POST['timezone']) . "'";
+                SET DEFAULT '".cleanInput($_POST['timezone'])."'";
         mysql_query($sql) or displaySQLError(
             'Timezone Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
         $sql = "ALTER TABLE `fcms_user_settings` ALTER `dst` ";
-        if (isset($_POST['dst'])) {
-            if ($_POST['dst'] == 'on') {
+        if (isset($_POST['dst']))
+        {
+            if ($_POST['dst'] == 'on')
+            {
                 $sql .= "SET DEFAULT '1'";
-            } else {
+            }
+            else
+            {
                 $sql .= "SET DEFAULT '0'";
             }
         }
@@ -163,36 +201,46 @@ if (checkAccess($currentUserId) > 1) {
         );
         $sql = "ALTER TABLE `fcms_user_settings` 
                 ALTER `boardsort` 
-                SET DEFAULT '" . cleanInput($_POST['boardsort']) . "'";
+                SET DEFAULT '".cleanInput($_POST['boardsort'])."'";
         mysql_query($sql) or displaySQLError(
             'Board Sort Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
 
         // Update existing users
-        if (isset($_POST['changeAll'])) {
+        if (isset($_POST['changeAll']))
+        {
             $avatar = isset($upfile) ? $upfile : 'no_avatar.jpg';
+
             $sql = "UPDATE `fcms_user_settings` 
-                    SET `theme` = '" . basename($_POST['theme']) . "', ";
-            if (isset($_POST['showavatar'])) {
-                if ($_POST['showavatar'] == 'yes') {
+                    SET `theme` = '".basename($_POST['theme'])."', ";
+            if (isset($_POST['showavatar']))
+            {
+                if ($_POST['showavatar'] == 'yes')
+                {
                     $sql .= "`showavatar` = '1', ";
-                } else {
+                }
+                else
+                {
                     $sql .= "`showavatar` = '0', ";
                 }
             }
-            $sql .= "`displayname`  = '" . cleanInput($_POST['displayname']) . "', 
-                     `frontpage`    = '" . cleanInput($_POST['frontpage']) . "', 
-                     `timezone`     = '" . cleanInput($_POST['timezone']) . "', ";
-            if (isset($_POST['dst'])) {
-                if ($_POST['dst'] == 'on') {
+            $sql .= "`displayname`  = '".cleanInput($_POST['displayname'])."', 
+                     `frontpage`    = '".cleanInput($_POST['frontpage'])."', 
+                     `timezone`     = '".cleanInput($_POST['timezone'])."', ";
+            if (isset($_POST['dst']))
+            {
+                if ($_POST['dst'] == 'on')
+                {
                     $sql .= "`dst` = '1', ";
-                } else {
+                }
+                else
+                {
                     $sql .= "`dst` = '0', ";
                 }
             }
-            $sql .= "`boardsort` = '" . cleanInput($_POST['boardsort']) . "'";
+            $sql .= "`boardsort` = '".cleanInput($_POST['boardsort'])."'";
             mysql_query($sql) or displaySQLError(
-                'Update All Users Error',  __FILE__.' ['.__LINE__.']', $sql, mysql_error()
+                'Update All Users Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
         }
         echo '
@@ -223,10 +271,11 @@ if (checkAccess($currentUserId) > 1) {
                     SELECT `link` AS 'col', 'link' AS 'type'
                     FROM `fcms_navigation`
                     WHERE `id` = '$id'";
+
             $result = mysql_query($sql);
             if (!$result)
             {
-                displaySQLError('Last Order Error',  __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySQLError('Last Order Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
                 return;
             }
             while ($r = mysql_fetch_array($result))
@@ -257,7 +306,7 @@ if (checkAccess($currentUserId) > 1) {
                     WHERE `id` = '$id'";
             if (!mysql_query($sql))
             {
-                displaySQLError('Section Error',  __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySQLError('Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
                 return;
             }
 
@@ -268,7 +317,7 @@ if (checkAccess($currentUserId) > 1) {
                         VALUES ('admin_whereiseveryone', 6, $adminOrder, 0)";
                 if (!mysql_query($sql))
                 {
-                    displaySQLError('Admin Section Error',  __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                    displaySQLError('Admin Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
                     return;
                 }
             }
@@ -289,10 +338,11 @@ if (checkAccess($currentUserId) > 1) {
         $sql = "SELECT `id`, `link` 
                 FROM `fcms_navigation` 
                 WHERE `id` = '$id'";
+
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Remove Section Error',  __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySQLError('Remove Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             return;
         }
         $info = mysql_fetch_array($result);
@@ -300,10 +350,10 @@ if (checkAccess($currentUserId) > 1) {
         // Remove section
         $sql = "UPDATE `fcms_navigation` 
                 SET `order` = 0 
-                WHERE `id` = '" . cleanInput($_POST['remove'], 'int') . "'";
+                WHERE `id` = '".cleanInput($_POST['remove'], 'int')."'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Remove Section Error',  __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySQLError('Remove Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             return;
         }
 
@@ -314,7 +364,7 @@ if (checkAccess($currentUserId) > 1) {
                     WHERE `link` = 'admin_whereiseveryone'";
             if (!mysql_query($sql))
             {
-                displaySQLError('Remove Admin Error',  __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySQLError('Remove Admin Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
                 return;
             }
         }
@@ -324,8 +374,9 @@ if (checkAccess($currentUserId) > 1) {
                 FROM `fcms_navigation` 
                 WHERE `col` = 4 
                 ORDER BY `order`";
+
         $result = mysql_query($sql)  or displaySQLError(
-            'Remove Section Error',  __FILE__.' ['.__LINE__.']', $sql, mysql_error()
+            'Remove Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
 
         if (mysql_num_rows($result) > 0)
@@ -338,9 +389,9 @@ if (checkAccess($currentUserId) > 1) {
                     // Update the new order
                     $sql = "UPDATE `fcms_navigation` 
                             SET `order` = '$i' 
-                            WHERE `id` = '" . $r['id'] . "'";
+                            WHERE `id` = '".$r['id']."'";
                     mysql_query($sql) or displaySQLError(
-                        'Update Order Error',  __FILE__.' ['.__LINE__.']', $sql, mysql_error()
+                        'Update Order Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
                     );
                     $i++;
                 }
@@ -362,11 +413,13 @@ if (checkAccess($currentUserId) > 1) {
         foreach ($_POST as $key => $value)
         {
             $comPos = strpos($key, 'com-order');
-            if ($comPos !== false) {
+            if ($comPos !== false)
+            {
                 $communicateOrders[] = $value;
             }
             $sharePos = strpos($key, 'share-order');
-            if ($sharePos !== false) {
+            if ($sharePos !== false)
+            {
                 $shareOrders[] = $value;
             }
         }
@@ -399,11 +452,11 @@ if (checkAccess($currentUserId) > 1) {
             $arr = explode('_', $key);
             $id  = end($arr);
             $sql = "UPDATE `fcms_navigation` 
-                    SET `order` = '" . cleanInput($value, 'int') . "' 
-                    WHERE `id` = '" . cleanInput($id, 'int') . "'";
+                    SET `order` = '".cleanInput($value, 'int')."' 
+                    WHERE `id` = '".cleanInput($id, 'int')."'";
             if (!mysql_query($sql))
             {
-                displaySQLError('Update Order Error',  __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySQLError('Update Order Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
                 return;
             }
         }
@@ -414,9 +467,10 @@ if (checkAccess($currentUserId) > 1) {
     //-------------------------------------------------------------------------
     // Update Photo Gallery
     //-------------------------------------------------------------------------
-    if (isset($_POST['submit-gallery'])) {
+    if (isset($_POST['submit-gallery']))
+    {
         $sql = "UPDATE `fcms_config` 
-                SET `full_size_photos` = " . cleanInput($_POST['full_size_photos']);
+                SET `full_size_photos` = ".cleanInput($_POST['full_size_photos']);
         mysql_query($sql) or displaySQLError(
             'Full Size Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
@@ -430,10 +484,11 @@ if (checkAccess($currentUserId) > 1) {
     //-------------------------------------------------------------------------
     // Add new sections
     //-------------------------------------------------------------------------
-    if (isset($_GET['addsection'])) {
-
+    if (isset($_GET['addsection']))
+    {
         // Family News
-        if ($_GET['addsection'] == 'news') {
+        if ($_GET['addsection'] == 'news')
+        {
             $sql = "CREATE TABLE `fcms_news` (
                         `id` int(11) NOT NULL auto_increment, 
                         `title` varchar(50) NOT NULL default '', 
@@ -481,7 +536,8 @@ if (checkAccess($currentUserId) > 1) {
         }
 
         // Prayer Concerns
-        if ($_GET['addsection'] == 'prayers') {
+        if ($_GET['addsection'] == 'prayers')
+        {
             $sql = "CREATE TABLE `fcms_prayers` (
                         `id` int(11) NOT NULL auto_increment, 
                         `for` varchar(50) NOT NULL default '', 
@@ -504,7 +560,8 @@ if (checkAccess($currentUserId) > 1) {
         }
 
         // Recipes
-        if ($_GET['addsection'] == 'recipes') {
+        if ($_GET['addsection'] == 'recipes')
+        {
             $sql = "CREATE TABLE `fcms_recipes` (
                         `id` INT(11) NOT NULL AUTO_INCREMENT, 
                         `category` VARCHAR(50) NOT NULL, 
@@ -514,9 +571,7 @@ if (checkAccess($currentUserId) > 1) {
                         `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                         PRIMARY KEY (`id`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-            mysql_query($sql) or displaySQLError('
-                New Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            mysql_query($sql) or displaySQLError('New Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             $sql = "ALTER TABLE `fcms_recipes` 
                     ADD CONSTRAINT `fcms_recipes_ibfk_1` 
                     FOREIGN KEY (`user`) 
@@ -527,7 +582,8 @@ if (checkAccess($currentUserId) > 1) {
         }
 
         // Documents
-        if ($_GET['addsection'] == 'documents') {
+        if ($_GET['addsection'] == 'documents')
+        {
             $sql = "CREATE TABLE `fcms_documents` (
                         `id` INT(11) NOT NULL AUTO_INCREMENT, 
                         `name` VARCHAR(50) NOT NULL, 
@@ -552,7 +608,8 @@ if (checkAccess($currentUserId) > 1) {
     //-------------------------------------------------------------------------
     // Display Config forms 
     //-------------------------------------------------------------------------
-    if ($show) {
+    if ($show)
+    {
         $view = isset($_GET['view']) ? cleanInput($_GET['view']) : 'general';
         $admin->displayAdminConfig($view);
     }
@@ -564,4 +621,4 @@ echo '
         </div><!-- .centercontent -->';
 
 // Show Footer
-include_once(getTheme($currentUserId, URL_PREFIX) . 'footer.php');
+require_once getTheme($currentUserId, URL_PREFIX).'footer.php';

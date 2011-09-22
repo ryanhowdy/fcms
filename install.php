@@ -1,6 +1,8 @@
 <?php
 /**
- * Family Connections - a family oriented CMS - http://www.familycms.com/
+ * Family Connections - www.familycms.com
+ * 
+ * PHP versions 4 and 5
  * 
  * Copyright (C) 2007 Ryan Haudenschilt
  * 
@@ -17,9 +19,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
  */
 
-include_once('inc/gettext.inc');
+require_once 'inc/gettext.inc';
+require_once 'inc/constants.php';
 
 // Setup php-gettext
 T_setlocale(LC_MESSAGES, 'en_US');
@@ -28,11 +38,12 @@ T_bind_textdomain_codeset('messages', 'UTF-8');
 T_textdomain('messages');
 
 // Fix magic quotes
-if (get_magic_quotes_gpc()) {
+if (get_magic_quotes_gpc())
+{
     $_REQUEST = array_map('stripslashes', $_REQUEST);
-    $_GET = array_map('stripslashes', $_GET);
-    $_POST = array_map('stripslashes', $_POST);
-    $_COOKIE = array_map('stripslashes', $_COOKIE);
+    $_GET     = array_map('stripslashes', $_GET);
+    $_POST    = array_map('stripslashes', $_POST);
+    $_COOKIE  = array_map('stripslashes', $_COOKIE);
 }
 
 main();
@@ -162,45 +173,68 @@ function displayAlreadyInstalled ()
  */
 function displayStepOne ()
 {
+    $inc    = "<span class=\"bad\">".T_('BAD')."</span>";
+    $avatar = "<span class=\"bad\">".T_('BAD')."</span>";
+    $docs   = "<span class=\"bad\">".T_('BAD')."</span>";
+    $photos = "<span class=\"bad\">".T_('BAD')."</span>";
+    $up     = "<span class=\"bad\">".T_('BAD')."</span>";
+    $curl   = "<span class=\"bad\">".T_('BAD')."</span>";
+    $php    = "<span class=\"bad\">".T_('BAD')."</span>";
+
     // Check inc
     $check_inc = false;
-    if (is__writable('inc/')) {
-        $inc = "<span class=\"ok\">".T_('OK')."</span>";
+    if (isWritable('inc/'))
+    {
         $check_inc = true;
-    } else {
-        $inc = "<span class=\"bad\">".T_('BAD')."</span>";
+        $inc       = "<span class=\"ok\">".T_('OK')."</span>";
     }
+
     // Check avatar
     $check_avatar = false;
-    if (is__writable('uploads/avatar/')) {
-        $avatar = "<span class=\"ok\">".T_('OK')."</span>";
+    if (isWritable('uploads/avatar/'))
+    {
         $check_avatar = true;
-    } else {
-        $avatar = "<span class=\"bad\">".T_('BAD')."</span>";
+        $avatar       = "<span class=\"ok\">".T_('OK')."</span>";
     }
+
     // Check documents
     $check_docs = false;
-    if (is__writable('uploads/documents/')) {
-        $docs = "<span class=\"ok\">".T_('OK')."</span>";
+    if (isWritable('uploads/documents/'))
+    {
         $check_docs = true;
-    } else {
-        $docs = "<span class=\"bad\">".T_('BAD')."</span>";
+        $docs       = "<span class=\"ok\">".T_('OK')."</span>";
     }
+
     // Check photos
     $check_photos = false;
-    if (is__writable('uploads/photos/')) {
-        $photos = "<span class=\"ok\">".T_('OK')."</span>";
+    if (isWritable('uploads/photos/'))
+    {
         $check_photos = true;
-    } else {
-        $photos = "<span class=\"bad\">".T_('BAD')."</span>";
+        $photos       = "<span class=\"ok\">".T_('OK')."</span>";
     }
+
     // Check upimages
     $check_up = false;
-    if (is__writable('uploads/upimages/')) {
-        $up = "<span class=\"ok\">".T_('OK')."</span>";
+    if (isWritable('uploads/upimages/'))
+    {
         $check_up = true;
-    } else {
-        $up = "<span class=\"bad\">".T_('BAD')."</span>";
+        $up       = "<span class=\"ok\">".T_('OK')."</span>";
+    }
+
+    // Check curl support
+    $check_curl = false;
+    if (function_exists('curl_init'))
+    {
+        $check_curl = true;
+        $curl       = "<span class=\"ok\">".T_('OK')."</span>";
+    }
+
+    // Check PHP Version
+    $check_php = false;
+    if (function_exists('version_compare') && version_compare(phpversion(), '5.0.0', '>='))
+    {
+        $check_php = true;
+        $php       = "<span class=\"ok\">".T_('OK')."</span>";
     }
 
     echo '
@@ -208,6 +242,12 @@ function displayStepOne ()
         <h2>'.T_('Pre-Installation Check').'</h2>
         <form class="nofields" action="install.php" method="post">
             <div style="text-align:center">'.T_('Step 1 of 5').'</div><div class="progress"><div style="width:20%"></div></div>
+            <div><b>'.T_('Checking Requirements').'</b></div>
+            <div><div class="dir">PHP 5+</div> <div class="status">'.$php.'</div></div>
+            <div style="clear:both;"></div>
+            <div><div class="dir">cURL</div> <div class="status">'.$curl.'</div></div>
+            <div style="clear:both;"></div>
+            <p>&nbsp;</p>
             <div><b>'.T_('Checking Folder Permissions').'</b></div>
             <div><div class="dir">inc/</div> <div class="status">'.$inc.'</div></div>
             <div style="clear:both;"></div>
@@ -220,20 +260,20 @@ function displayStepOne ()
             <div><div class="dir">uploads/upimages/</div> <div class="status">'.$up.'</div></div>
             <div style="clear:both;"></div>';
 
-        if ($check_inc && $check_avatar && $check_docs && $check_photos && $check_up)
-        {
-            echo '
+    if ($check_inc && $check_avatar && $check_docs && $check_photos && $check_up && $check_curl && $check_php)
+    {
+        echo '
             <p>'.T_('Your site is ready to be installed.  Please proceed to the next step.').'</p>
             <p style="text-align:right;"><input id="submit" name="submit1" type="submit"  value="'.T_('Next').' >>"/></p>
             <div class="clear"></div>';
-        }
-        else
-        {
-            echo '
-            <div>'.T_('Unfortunatly your site is not ready to be installed.  Please make sure that the folders above exist and have the proper permissions set.').'</div>';
-        }
-
+    }
+    else
+    {
         echo '
+            <br/><div>'.T_('Unfortunatly your site is not ready to be installed.  Please make sure that the folders above exist and have the proper permissions set.').'</div>';
+    }
+
+    echo '
         </form>
     </div><!-- /column -->';
 }
@@ -241,7 +281,8 @@ function displayStepOne ()
 /**
  * displayStepTwo 
  * 
- * @param string $error 
+ * @param string $error Any previous errors with this step.
+ * 
  * @return void
  */
 function displayStepTwo ($error = '0')
@@ -340,13 +381,13 @@ function displayStepThree ()
     }
 
     $file = fopen('inc/config_inc.php', 'w') or die("<h1>Error Creating Config File</h1>");
-    $str = "<?php \$cfg_mysql_host = '".$_POST['dbhost']."'; \$cfg_mysql_db = '".$_POST['dbname']."'; \$cfg_mysql_user = '".$_POST['dbuser']."'; \$cfg_mysql_pass = '".$_POST['dbpass']."'; ?".">";
+    $str  = "<?php \$cfg_mysql_host = '".$_POST['dbhost']."'; \$cfg_mysql_db = '".$_POST['dbname']."'; \$cfg_mysql_user = '".$_POST['dbuser']."'; \$cfg_mysql_pass = '".$_POST['dbpass']."'; ?".">";
 
     fwrite($file, $str) or die("<h1>Could not write to config.</h1>");
     fclose($file);
 
-    include_once('inc/config_inc.php');
-    include_once('inc/install_inc.php');
+    include_once 'inc/config_inc.php';
+    include_once 'inc/install_inc.php';
 
     echo '
     <div id="column">
@@ -366,7 +407,7 @@ function displayStepThree ()
         die('<h3 class="bad">'.T_('Uh-Oh!').'</h3><div>'.T_('A connection to the database could not be made.  Please shut down your browser and then re-run the installation.').'</div>');
     }
 
-    mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Connection made, but database could not be found!</b></p>" . mysql_error());
+    mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Connection made, but database could not be found!</b></p>".mysql_error());
 
     dropTables();
 
@@ -382,17 +423,14 @@ function displayStepThree ()
 /**
  * displayStepFour 
  * 
- * @param string $error 
+ * @param string $error Any previous errors with this step.
+ * 
  * @return void
  */
 function displayStepFour ($error = '0')
 {
     echo '
-    <script type="text/javascript">
-    Event.observe(window, \'load\', function() {
-        $(\'sitename\').focus();
-    });
-    </script>
+    <script type="text/javascript">Event.observe(window, \'load\', function() { $(\'sitename\').focus(); });</script>
     <div id="column">
         <h1>'.T_('Install').' Family Connections</h1>
         <h2>'.T_('Website Information').'</h2>
@@ -450,7 +488,8 @@ function displayStepFour ($error = '0')
 /**
  * displayStepFive 
  * 
- * @param string $error 
+ * @param string $error Any previous errors with this step.
+ * 
  * @return void
  */
 function displayStepFive ($error = '0')
@@ -463,11 +502,9 @@ function displayStepFive ($error = '0')
         return;
     }
 
-    include_once('inc/config_inc.php');
-    include_once('inc/install_inc.php');
-    include_once('inc/locale.php');
-
-    $locale = new FCMS_Locale();
+    include_once 'inc/config_inc.php';
+    include_once 'inc/install_inc.php';
+    include_once 'inc/datetime.php';
 
     mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
     mysql_select_db($cfg_mysql_db);
@@ -475,12 +512,12 @@ function displayStepFive ($error = '0')
     if (version_compare(phpversion(), "4.3.0") == "-1")
     {
         $_POST['sitename'] = mysql_escape_string($_POST['sitename']);
-        $_POST['contact'] = mysql_escape_string($_POST['contact']);
+        $_POST['contact']  = mysql_escape_string($_POST['contact']);
     }
     else
     {
         $_POST['sitename'] = mysql_real_escape_string($_POST['sitename']);
-        $_POST['contact'] = mysql_real_escape_string($_POST['contact']);
+        $_POST['contact']  = mysql_real_escape_string($_POST['contact']);
     }
 
     // Setup Config
@@ -497,48 +534,54 @@ function displayStepFive ($error = '0')
     $params = array();
 
     // Family News
-    if (isset($_POST['sections-news'])) {
+    if (isset($_POST['sections-news']))
+    {
         $order = $nextComOrder;
         $nextComOrder++;
     }
     $params['familynews'] = array(3, $order, 0);
 
     // Prayers
-    if (isset($_POST['sections-prayers'])) {
+    if (isset($_POST['sections-prayers']))
+    {
         $order = $nextComOrder;
         $nextComOrder++;
     }
     $params['prayers'] = array(3, $order, 0);
 
     // Recipes
-    if (isset($_POST['sections-recipes'])) {
+    if (isset($_POST['sections-recipes']))
+    {
         $order = $nextShareOrder;
         $nextShareOrder++;
     }
     $params['recipes'] = array(4, $order, 0);
 
     // Family Tree
-    if (isset($_POST['sections-tree'])) {
+    if (isset($_POST['sections-tree']))
+    {
         $order = $nextShareOrder;
         $nextShareOrder++;
     }
     $params['tree'] = array(4, $order, 0);
 
     // Documents
-    if (isset($_POST['sections-documents'])) {
+    if (isset($_POST['sections-documents']))
+    {
         $order = $nextShareOrder;
         $nextShareOrder++;
     }
     $params['documents'] = array(4, $order, 0);
 
     // Where Is Everyone
-    if (isset($_POST['sections-whereiseveryone'])) {
+    if (isset($_POST['sections-whereiseveryone']))
+    {
         $order  = $nextShareOrder;
         $order2 = $nextAdminOrder;
         $nextShareOrder++;
         $nextAdminOrder++;
     }
-    $params['whereiseveryone'] = array(4, $order, 0);
+    $params['whereiseveryone']       = array(4, $order, 0);
     $params['admin_whereiseveryone'] = array(6, $order2, 0);
 
     installNavigation($params);
@@ -600,26 +643,44 @@ function displayStepFive ($error = '0')
                     <select id="day" name="day">';
 
     $d = 1;
-    while ($d <= 31) {
-        if ($day == $d) { echo "<option value=\"$d\" selected=\"selected\">$d</option>"; }
-        else { echo "<option value=\"$d\">$d</option>"; }
+    while ($d <= 31)
+    {
+        if ($day == $d)
+        {
+            echo "<option value=\"$d\" selected=\"selected\">$d</option>";
+        }
+        else
+        {
+            echo "<option value=\"$d\">$d</option>";
+        }
         $d++;
     }
     echo '</select><select id="month" name="month">';
     $m = 1;
-    while ($m <= 12) {
-        if ($month == $m) {
-            echo "<option value=\"$m\" selected=\"selected\">" . $locale->getMonthAbbr($m) . "</option>";
-        } else {
-            echo "<option value=\"$m\">" . $locale->getMonthAbbr($m) . "</option>";
+    while ($m <= 12)
+    {
+        if ($month == $m)
+        {
+            echo "<option value=\"$m\" selected=\"selected\">".getMonthAbbr($m)."</option>";
+        }
+        else
+        {
+            echo "<option value=\"$m\">".getMonthAbbr($m)."</option>";
         }
         $m++;
     }
     echo '</select><select id="year" name="year">';
     $y = 1900;
-    while ($y - 5 <= gmdate('Y')) {
-        if ($year == $y) { echo "<option value=\"$y\" selected=\"selected\">$y</option>"; }
-        else { echo "<option value=\"$y\">$y</option>"; }
+    while ($y - 5 <= gmdate('Y'))
+    {
+        if ($year == $y)
+        {
+            echo "<option value=\"$y\" selected=\"selected\">$y</option>";
+        }
+        else
+        {
+            echo "<option value=\"$y\">$y</option>";
+        }
         $y++;
     }
 
@@ -646,22 +707,20 @@ function setupDatabase ()
         return;
     }
 
-    include_once('inc/config_inc.php');
-    include_once('inc/install_inc.php');
-    include_once('inc/util_inc.php');
+    include_once 'inc/config_inc.php';
+    include_once 'inc/install_inc.php';
+    include_once 'inc/utils.php';
 
-    $birthday = $_POST['year'] . "-" . str_pad($_POST['month'], 2, "0", STR_PAD_LEFT) . "-" . str_pad($_POST['day'], 2, "0", STR_PAD_LEFT);
-
-    $password = md5($_POST['password']);
+    $birthday   = $_POST['year']."-".str_pad($_POST['month'], 2, "0", STR_PAD_LEFT)."-".str_pad($_POST['day'], 2, "0", STR_PAD_LEFT);
+    $password   = md5($_POST['password']);
     $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 
     if (!$connection)
     {
-        die("<h1>Connection Error [" . __FILE__ . __LINE__ . "]</h1>" . mysql_error());
-
+        die("<h1>Connection Error [".__FILE__.__LINE__."]</h1>".mysql_error());
     }
 
-    mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Database could not be found!</b></p>" . mysql_error());
+    mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Database could not be found!</b></p>".mysql_error());
 
     $fname    = cleanInput($_POST['fname']);
     $lname    = cleanInput($_POST['lname']);
@@ -671,7 +730,7 @@ function setupDatabase ()
 
     installUsers($fname, $lname, $email, $birthday, $username, $password);
     installCategory();
-    installCalendar($fname, $lname, $birthday);
+    installCalendar();
     installTables();
 
     echo '
@@ -683,7 +742,7 @@ function setupDatabase ()
 }
 
 /**
- * is__writable 
+ * isWritable 
  * 
  * will work in despite of Windows ACLs bug
  *
@@ -691,18 +750,19 @@ function setupDatabase ()
  * see http://bugs.php.net/bug.php?id=27609
  * see http://bugs.php.net/bug.php?id=30931
  * 
- * @param   string $path 
+ * @param string $path File path to check permissions
+ * 
  * @return  void
  */
-function is__writable ($path)
+function isWritable ($path)
 {
     if ($path{strlen($path)-1}=='/') // recursively return a temporary file path
-        return is__writable($path.uniqid(mt_rand()).'.tmp');
+        return isWritable($path.uniqid(mt_rand()).'.tmp');
     else if (@is_dir($path))
-        return is__writable($path.'/'.uniqid(mt_rand()).'.tmp');
+        return isWritable($path.'/'.uniqid(mt_rand()).'.tmp');
     // check tmp file for read/write capabilities
     $rm = file_exists($path);
-    $f = @fopen($path, 'a');
+    $f  = @fopen($path, 'a');
     if ($f===false)
         return false;
     fclose($f);

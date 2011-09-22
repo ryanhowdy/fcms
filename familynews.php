@@ -2,6 +2,8 @@
 /**
  * Family News
  * 
+ * PHP versions 4 and 5
+ * 
  * @category  FCMS
  * @package   FamilyConnections
  * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
@@ -13,11 +15,9 @@ session_start();
 
 define('URL_PREFIX', '');
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-require_once 'inc/familynews_class.php';
+require 'fcms.php';
 
-fixMagicQuotes();
+load('familynews');
 
 // Check that the user is logged in
 isLoggedIn();
@@ -73,20 +73,24 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-require_once getTheme($currentUserId) . 'header.php';
+require_once getTheme($currentUserId).'header.php';
 
 echo '
         <div id="familynews" class="centercontent clearfix">';
 
-if (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9) {
+if (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9)
+{
     echo '
             <div id="sections_menu" class="clearfix">
                 <ul>
                     <li><a href="familynews.php">'.T_('Latest News').'</a></li>';
-    if ($fnews->hasNews($currentUserId)) {
+
+    if ($fnews->hasNews($currentUserId))
+    {
         echo '
                     <li><a href="?getnews='.$currentUserId.'">'.T_('My News').'</a></li>';
     }
+
     echo '
                 </ul>
             </div>
@@ -105,7 +109,8 @@ $show_last5 = true;
 //-------------------------------------
 // Side menu user's news listing
 //-------------------------------------
-if (!isset($_GET['addnews']) && !isset($_POST['editnews'])) {
+if (!isset($_GET['addnews']) && !isset($_POST['editnews']))
+{
     $fnews->displayNewsList();
 }
 
@@ -139,6 +144,7 @@ if (isset($_POST['submitadd']))
             FROM `fcms_user_settings` AS s, `fcms_users` AS u 
             WHERE `email_updates` = '1'
             AND u.`id` = s.`user`";
+
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -150,11 +156,13 @@ if (isset($_POST['submitadd']))
     {
         while ($r = mysql_fetch_array($result))
         {
-            $name = getUserDisplayName($currentUserId);
-            $to = getUserDisplayName($r['user']);
-            $subject = sprintf(T_('%s has added %s to his/her Family News'), $name, $title);
-            $email = $r['email'];
-            $url = getDomainAndDir();
+            $name          = getUserDisplayName($currentUserId);
+            $to            = getUserDisplayName($r['user']);
+            $subject       = sprintf(T_('%s has added %s to his/her Family News'), $name, $title);
+            $email         = $r['email'];
+            $url           = getDomainAndDir();
+            $email_headers = getEmailHeaders();
+
             $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
@@ -167,7 +175,6 @@ if (isset($_POST['submitadd']))
 '.$url.'settings.php
 
 ';
-            $email_headers = getEmailHeaders();
             mail($email, $subject, $msg, $email_headers);
         }
     }
@@ -217,10 +224,12 @@ if (isset($_GET['addnews']) && (checkAccess($currentUserId) < 6 || checkAccess($
 else if (isset($_POST['editnews']))
 {
     $show_last5 = false;
-    $user   = cleanOutput($_POST['user']);
-    $id     = cleanOutput($_POST['id']);
-    $title  = cleanOutput($_POST['title']);
-    $news   = cleanOutput($_POST['news']);
+
+    $user  = cleanOutput($_POST['user']);
+    $id    = cleanOutput($_POST['id']);
+    $title = cleanOutput($_POST['title']);
+    $news  = cleanOutput($_POST['news']);
+
     $fnews->displayForm('edit', $user, $id, $title, $news);
 }
 //-------------------------------------
@@ -249,8 +258,9 @@ else if (isset($_POST['delnews']) && !isset($_POST['confirmed']))
 elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
 {
     $show_last5 = false;
+
     $sql = "DELETE FROM `fcms_news` 
-            WHERE id = '" . cleanInput($_POST['id'], 'int') . "'";
+            WHERE id = '".cleanInput($_POST['id'], 'int')."'";
     if (!mysql_query($sql))
     {
         displaySQLError('Delete News Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -273,20 +283,26 @@ if (isset($_GET['getnews']))
     $nid  = isset($_GET['newsid']) ? cleanInput($_GET['newsid'], 'int') : 0;
 
     // Add Comment
-    if (isset($_POST['addcom'])) {
+    if (isset($_POST['addcom']))
+    {
         $com = ltrim($_POST['comment']);
-        if (!empty($com)) {
+        if (!empty($com))
+        {
             $sql = "INSERT INTO `fcms_news_comments` (
                         `news`, `comment`, `date`, `user`
                     ) VALUES (
-                        '$nid', '" . escape_string($com) . "', NOW(), $currentUserId
+                        '$nid', '".escape_string($com)."', NOW(), $currentUserId
                     )";
-            mysql_query($sql) or displaySQLError('New Comment Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
+            if (!mysql_query($sql))
+            {
+                displaySQLError('New Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            }
         }
     }
 
     // Delete comment confirmation
-    if (isset($_POST['delcom']) && !isset($_POST['comconfirmed'])) {
+    if (isset($_POST['delcom']) && !isset($_POST['comconfirmed']))
+    {
         $show_last5 = false;
         echo '
                 <div class="info-alert clearfix">
@@ -301,10 +317,17 @@ if (isset($_GET['getnews']))
                     </form>
                 </div>';
 
+    }
     // Delete news
-    } elseif (isset($_POST['delcomconfirm']) || isset($_POST['comconfirmed'])) {
-        $sql = "DELETE FROM fcms_news_comments WHERE id = " . escape_string($_POST['id']);
-        mysql_query($sql) or displaySQLError('Delete Comment Error', 'familynews.php [' . __LINE__ . ']', $sql, mysql_error());
+    elseif (isset($_POST['delcomconfirm']) || isset($_POST['comconfirmed']))
+    {
+        $sql = "DELETE FROM `fcms_news_comments`
+                WHERE `id` = ".cleanInput($_POST['id'], 'int');
+
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Delete Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        }
     }
 
     // Show single news
@@ -329,4 +352,4 @@ echo '
         </div><!-- #familynews .centercontent -->';
 
 // Show Footer
-require_once getTheme($currentUserId) . 'footer.php';
+require_once getTheme($currentUserId).'footer.php';

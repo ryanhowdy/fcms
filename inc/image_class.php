@@ -1,7 +1,6 @@
 <?php
-include_once 'util_inc.php';
+include_once 'utils.php';
 include_once 'database_class.php';
-include_once 'locale.php';
 
 /**
  * Image

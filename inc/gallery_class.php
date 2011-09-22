@@ -1,7 +1,7 @@
 <?php
-include_once 'util_inc.php';
+include_once 'utils.php';
 include_once 'image_class.php';
-include_once 'locale.php';
+include_once 'datetime.php';
 
 /**
  * PhotoGallery 
@@ -170,8 +170,6 @@ class PhotoGallery
      */
     function displayLatestCategories()
     {
-        $locale = new FCMS_Locale();
-
         $sql = "SELECT * 
                 FROM (
                     SELECT p.`id`, p.`date`, p.`filename`, c.`name`, p.`user`, p.`category`
@@ -208,7 +206,7 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
-            $date = $locale->fixDate(T_('M. j, Y'), $this->tzOffset, $row['date']);
+            $date = fixDate(T_('M. j, Y'), $this->tzOffset, $row['date']);
 
             echo '
                     <li class="category">
@@ -247,8 +245,6 @@ class PhotoGallery
      */
     function showPhoto ($uid, $cid, $pid)
     {
-        $locale = new FCMS_Locale();
-
         $uid = (int)$uid;
         $pid = (int)$pid;
 
@@ -402,7 +398,7 @@ class PhotoGallery
         $dimensions        = GetImageSize($photo_path_full);
         $size              = filesize($photo_path_full);
         $size              = formatSize($size);
-        $date_added        = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
+        $date_added        = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
 
         // Calculate rating
         if ($r['votes'] <= 0)
@@ -438,7 +434,7 @@ class PhotoGallery
 
             while ($t = $this->db->get_row())
             {
-                $tagged_mem_list .= '<li>'.getUserDisplayName($t['id']).'</li>';
+                 $tagged_mem_list .= '<li><a href="?uid=0&cid='.$t['id'].'" title="Show more photos of '.getUserDisplayName($t['id'],2).'">'.getUserDisplayName($t['id']).'</a></li>';
             }
         }
 
@@ -529,7 +525,7 @@ class PhotoGallery
                 {
                     // Setup some vars for each comment block
                     $del_comment = '';
-                    $date        = $locale->fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['date']);
+                    $date        = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['date']);
                     $displayname = getUserDisplayName($row['user']);
                     $comment     = $row['comment'];
 
@@ -755,8 +751,6 @@ class PhotoGallery
      */
     function showCategories ($page, $uid, $cid = 'none')
     {
-        $locale = new FCMS_Locale();
-
         // # of categories per page -- used for pagination
         $perPage = 18;
         
@@ -994,13 +988,13 @@ class PhotoGallery
             <a href="?uid=0&amp;cid=comments">('.T_('View All').')</a><br/>';
                         }
                     }
-                    $date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $row['heading']);
+                    $date     = fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $row['heading']);
                     $cat_name = "<strong>$date</strong>";
-                    $url = "?uid=0&amp;cid=comments&amp;pid=" . $row['pid'];
-                    $urlPage = "?uid=0&amp;cid=comments";
-                    $alt = ' alt="' . cleanOutput($row['caption']) . '"';
-                    $title = ' title="' . cleanOutput($row['caption']) . '"';
-                    $comment = $row['comment'];
+                    $url      = "?uid=0&amp;cid=comments&amp;pid=" . $row['pid'];
+                    $urlPage  = "?uid=0&amp;cid=comments";
+                    $alt      = ' alt="' . cleanOutput($row['caption']) . '"';
+                    $title    = ' title="' . cleanOutput($row['caption']) . '"';
+                    $comment  = $row['comment'];
                     $cat_info = "<i><b>" . getUserDisplayName($row['user']) . ":</b> $comment</i>";
 
                 //-------------------------------------------------------------
@@ -2041,76 +2035,6 @@ class PhotoGallery
     }
 
     /**
-     * displayWhatsNewGallery 
-     * 
-     * @return void
-     */
-    function displayWhatsNewGallery ()
-    {
-        $locale = new FCMS_Locale();
-        $today_start = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = $locale->fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        echo '
-            <h3>'.T_('Photo Gallery').'</h3>';
-        $sql = "SELECT DISTINCT p.user, name AS category, p.category AS cid, 
-                    DAYOFYEAR(p.`date`) AS d, COUNT(*) AS c 
-                FROM fcms_gallery_photos AS p, fcms_users AS u, fcms_category AS c 
-                WHERE p.user = u.id 
-                    AND p.category = c.id 
-                    AND p.`date` >= DATE_SUB(CURDATE(),INTERVAL 30 DAY) 
-                GROUP BY user, category, d 
-                ORDER BY p.`date` DESC LIMIT 0 , 5";
-        $this->db->query($sql) or displaySQLError(
-            'Last 5 New Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            echo '
-            <ul>';
-            while ($row = $this->db->get_row()) {
-                $displayname = getUserDisplayName($row['user']);
-                $category = cleanOutput($row['category']);
-                $full_category = cleanOutput($category);
-                if (strlen($category) > 20) {
-                    $category = substr($category, 0, 17) . "...";
-                }
-                $sql = "SELECT p.`date` FROM fcms_gallery_photos AS p, fcms_category AS c "
-                     . "WHERE p.user = '" . $row['user'] . "' "
-                     . "AND c.id = p.category "
-                     . "AND c.name = '" . cleanInput($full_category) . "' "
-                     . "AND DAYOFYEAR(p.`date`) = " . $row['d'] . " "
-                     . "ORDER BY p.`date` DESC LIMIT 1";
-                $result = mysql_query($sql) or displaySQLError(
-                    'Date Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                );
-                $found = mysql_fetch_array($result);
-                $date = $locale->fixDate('YmdHis', $this->tzOffset, $found['date']);
-
-                // Today
-                if ($date >= $today_start && $date <= $today_end) {
-                    $full_date = T_('Today');
-                    $d = ' class="today"';
-                } else {
-                    $full_date = $locale->fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $found['date']);
-                    $d = '';
-                }
-                echo '
-                    <li>
-                        <div'.$d.'>'.$full_date.'</div>
-                        <a href="gallery/index.php?uid='.$row['user'].'&amp;cid='.$row['cid'].'" title="'.$full_category.'">'.$category.'</a>
-                        ('.sprintf(T_('%d new photos'), $row['c']).') - 
-                        <a class="u" href="profile.php?member='.$row['user'].'">'.$displayname.'</a>
-                    </li>';
-            }
-            echo '
-                </ul>';
-        } else {
-            echo '
-                <ul><li><i>'.T_('nothing new last 30 days').'</i></li></ul>';
-        }
-    }
-
-    /**
      * getUserCategories 
      * 
      * Returns an array of the categories for the given user.
@@ -2172,8 +2096,6 @@ class PhotoGallery
      */
     function displayAdminDeleteCategories ($page)
     {
-        $locale = new FCMS_Locale();
-
         $perPage = 5;
         $from = ($page * $perPage) - $perPage;
 
@@ -2253,7 +2175,6 @@ class PhotoGallery
      */
     function displayAdminDeletePhotos ($id)
     {
-        $locale = new FCMS_Locale();
         $id = cleanInput($id, 'int');
 
         $sql = "SELECT p.`id`, p.`date`, p.`filename`, c.`name` AS category, p.`user`, p.`caption`, p.`views`

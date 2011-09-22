@@ -1,6 +1,6 @@
 <?php
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 
 /**
  * Members 
@@ -12,7 +12,6 @@ include_once('locale.php');
  */
 class Members
 {
-
     var $currentUserId;
     var $db;
     var $tzOffset;
@@ -43,8 +42,6 @@ class Members
      */
     function displayAll ($order)
     {
-        $locale = new FCMS_Locale();
-
         $validOrderTypes = array(
             'alphabetical'  => 'ORDER BY u.`fname`',
             'age'           => 'ORDER BY u.`birthday`',
@@ -119,12 +116,12 @@ class Members
             } elseif ($order == 'activity') {
                 $display = '';
                 if ($row['activity'] != '0000-00-00 00:00:00') {
-                    $display = $locale->fixDate(T_('M. j, Y'), $this->tzOffset, $row['activity']);
+                    $display = fixDate(T_('M. j, Y'), $this->tzOffset, $row['activity']);
                 }
 
             // Joined
             } elseif ($order == 'joined') {
-                $display = $locale->fixDate(T_('M. j, Y'), $this->tzOffset, $row['joindate']);
+                $display = fixDate(T_('M. j, Y'), $this->tzOffset, $row['joindate']);
             }
 
             // Display members

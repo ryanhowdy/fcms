@@ -3,8 +3,7 @@ session_start();
 
 define('URL_PREFIX', '../');
 
-include_once('../inc/config_inc.php');
-include_once('../inc/util_inc.php');
+require URL_PREFIX.'fcms.php';
 
 // Check that the user is logged in
 isLoggedIn('admin/');

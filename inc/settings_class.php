@@ -1,7 +1,6 @@
 <?php
 include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
 
 /**
  * Settings 
@@ -13,7 +12,6 @@ include_once('locale.php');
  */
 class Settings
 {
-
     var $db;
     var $currentUserId;
     var $currentUserEmail;
@@ -52,7 +50,6 @@ class Settings
      */
     function displayAccountInformation ()
     {
-        $locale = new FCMS_Locale();
         $sql = "SELECT `username`, `email`, `password`
                 FROM `fcms_users`
                 WHERE `id` = '" . $this->currentUserId . "'";
@@ -103,7 +100,6 @@ class Settings
      */
     function displayTheme ()
     {
-        $locale = new FCMS_Locale();
         $sql = "SELECT `theme`
                 FROM `fcms_user_settings`
                 WHERE `user` = '" . $this->currentUserId . "'";
@@ -232,7 +228,6 @@ class Settings
      */
     function displaySettings ()
     {
-        $locale = new FCMS_Locale();
         $sql = "SELECT `displayname`, `advanced_upload`, `advanced_tagging`, `language`,
                     `dst`, `timezone`, `boardsort`, `showavatar`, `frontpage`
                 FROM `fcms_user_settings`
@@ -437,7 +432,6 @@ class Settings
      */
     function displayNotifications ()
     {
-        $locale = new FCMS_Locale();
         $sql = "SELECT `email_updates` 
                 FROM `fcms_user_settings`
                 WHERE `user` = '" . $this->currentUserId . "'";
@@ -480,7 +474,6 @@ class Settings
      */
     function displayFamilyNews ()
     {
-        $locale = new FCMS_Locale();
         $sql = "SELECT `blogger`, `tumblr`, `wordpress`, `posterous`
                 FROM `fcms_user_settings`
                 WHERE `user` = '" . $this->currentUserId . "'";
@@ -551,8 +544,6 @@ class Settings
      */
     function displayMessageBoard ()
     {
-        $locale = new FCMS_Locale();
-
         $sql = "SELECT `boardsort`, `showavatar`
                 FROM `fcms_user_settings`
                 WHERE `user` = '".$this->currentUserId."'";
@@ -613,7 +604,6 @@ class Settings
      */
     function displayWhereIsEveryone ()
     {
-        $locale = new FCMS_Locale();
         $sql = "SELECT `fs_user_id`, `fs_access_token`
                 FROM `fcms_user_settings`
                 WHERE `user` = '" . $this->currentUserId . "'";

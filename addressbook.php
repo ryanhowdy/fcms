@@ -15,21 +15,15 @@ session_start();
 
 define('URL_PREFIX', '');
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-require_once 'inc/alerts_class.php';
-require_once 'inc/database_class.php';
-require_once 'inc/locale.php';
-require_once 'inc/addressbook_class.php';
+require 'fcms.php';
 
-fixMagicQuotes();
+load('datetime', 'addressbook', 'database', 'alerts');
 
 // Check that the user is logged in
 isLoggedIn();
 
 // Globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
-$locale        = new FCMS_Locale();
 $book          = new AddressBook($currentUserId);
 $alert         = new Alerts($currentUserId);
 
@@ -134,7 +128,7 @@ function control ()
  */
 function displayExportSubmit ()
 {
-    global $locale, $book;
+    global $book;
 
     $sql = "SELECT `lname`, `fname`, `address`, `city`, `state`, `zip`, `email`, `home`, `work`, `cell` 
             FROM `fcms_address` AS a, `fcms_users` AS u 
@@ -157,7 +151,7 @@ function displayExportSubmit ()
         $csv .= '"'.join('","', str_replace('"', '""', $row))."\"\015\012";
     }
 
-    $date = $locale->fixDate('Y-m-d', $book->tzOffset);
+    $date = fixDate('Y-m-d', $book->tzOffset);
 
     header("Content-type: text/plain");
     header("Content-disposition: csv; filename=FCMS_Addresses_$date.csv; size=".strlen($csv));
@@ -418,6 +412,8 @@ function displayAddSubmit ()
  */
 function displayConfirmDeleteForm ()
 {
+    global $currentUserId, $book;
+
     displayHeader();
 
     $aid = cleanInput($_GET['delete'], 'int');

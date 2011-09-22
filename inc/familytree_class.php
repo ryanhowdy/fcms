@@ -1,7 +1,7 @@
 <?php
 include_once('database_class.php');
-include_once('util_inc.php');
-include_once('locale.php');
+include_once('utils.php');
+include_once('datetime.php');
 
 /**
  * FamilyTree 
@@ -124,7 +124,7 @@ class FamilyTree
         if ($this->db->count_rows() > 0) {
             while($row = mysql_fetch_assoc($result)) {
                 // dad
-                if ($row['sex'] == 'M') {
+                if (!isset($parents[0]) and $row['sex'] == 'M') {
                     $dad = $row['id'];
                     $tmp = array(
                         'id'        => $row['id'], 
@@ -179,7 +179,7 @@ class FamilyTree
                     // dad's parents
                     if ($row['rel_user'] == $dad) {
                         // grandpa
-                        if ($row['sex'] == 'M') {
+                        if (!isset($dadParents[0]) and $row['sex'] == 'M') {
                             $tmp = array(
                                 'id'        => $row['id'], 
                                 'fname'     => $row['fname'], 
@@ -207,7 +207,7 @@ class FamilyTree
                     // mom's parents
                     } else  {
                         // grandpa
-                        if ($row['sex'] == 'M') {
+                        if (!isset($momParents[0]) and $row['sex'] == 'M') {
                             $tmp = array(
                                 'id'        => $row['id'], 
                                 'fname'     => $row['fname'], 
@@ -530,8 +530,21 @@ class FamilyTree
         // Get list of possible users
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users` 
-                WHERE `sex` = '$sex'  
-                AND `id` != $userid  
+                WHERE `id` != '$userid'
+                AND `id` NOT IN (
+                    SELECT `user`
+                    FROM `fcms_relationship`
+                    WHERE `rel_user` = '$userid'
+                )
+                AND `id` NOT IN (
+                    SELECT `user`
+                    FROM `fcms_relationship`
+                    WHERE `rel_user` IN (
+                        SELECT `user`
+                        FROM `fcms_relationship`
+                        WHERE `rel_user` = '$userid'
+                  )
+                )
                 ORDER BY `lname`, `fname`";
 
         if (!$this->db->query($sql))
@@ -626,13 +639,30 @@ class FamilyTree
             return;
         }
 
-        $sex = ($type == 'husb') ? 'M' : 'F';
-
         // Get list of available users
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users` 
-                WHERE `sex` = '$sex'  
-                AND `id` != $id  
+                WHERE `id` != $id
+                AND `id` NOT IN (
+                  SELECT `rel_user`
+                  FROM `fcms_relationship`
+                  WHERE `user` = '$id'
+                  AND `relationship` = 'CHIL'
+                )
+                AND `id` NOT IN (
+                  SELECT `user`
+                  FROM `fcms_relationship`
+                  WHERE `rel_user` = '$id'
+                )
+                AND `id` NOT IN (
+                  SELECT `user`
+                  FROM `fcms_relationship`
+                  WHERE `rel_user` IN (
+                    SELECT `user`
+                    FROM `fcms_relationship`
+                    WHERE `rel_user` = '$id'
+                  )
+                )
                 ORDER BY `lname`, `fname`";
         if (!$this->db->query($sql)) {
             displaySQLError('Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
@@ -690,10 +720,20 @@ class FamilyTree
         // -- users who are not already a child of someone
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users`
-                WHERE `id` NOT IN (
-                  SELECT `rel_user` 
-                  FROM `fcms_relationship` 
-                  WHERE `relationship` = 'CHIL'
+                WHERE `id` != '$userId'
+                AND `id` NOT IN (
+                    SELECT `rel_user` 
+                    FROM `fcms_relationship` 
+                    WHERE `rel_user` = '$userId'
+                )
+                AND `id` NOT IN (
+                  SELECT `rel_user`
+                  FROM `fcms_relationship`
+                  WHERE `rel_user` IN (
+                    SELECT `user`
+                    FROM `fcms_relationship`
+                    WHERE `rel_user` = '$userId'
+                  )
                 )
                 ORDER BY `lname`, `fname`";
         if (!$this->db->query($sql))
@@ -707,7 +747,7 @@ class FamilyTree
             echo '
         <fieldset>
             <legend><span>'.T_('Add Child').'</span></legend>
-            <p><a class="u" href="?create=user&amp;type=child&amp;id=' . $id . '">' . T_('Add New Child') . '</a></p>
+            <p><a class="u" href="?create=user&amp;type=child&amp;id=' . $userId . '">' . T_('Add New Child') . '</a></p>
         </fieldset>';
             return;
         }
@@ -752,8 +792,6 @@ class FamilyTree
      */
     function displayCreateUserForm ($type, $id)
     {
-        $locale = new FCMS_Locale();
-
         $displayname = getUserDisplayName($id, 2);
 
         switch ($type)
@@ -789,9 +827,9 @@ class FamilyTree
                 return;
         }
 
-        $year   = $locale->fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $month  = $locale->fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $day    = $locale->fixDate('j', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $year   = fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $month  = fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $day    = fixDate('j', $this->tzOffset, gmdate('Y-m-d H:i:s'));
 
         $day_list = array();
         $i = 1;
@@ -803,7 +841,7 @@ class FamilyTree
         $month_list = array();
         $i = 1;
         while ($i <= 12) {
-            $month_list[$i] = $locale->getMonthAbbr($i);
+            $month_list[$i] = getMonthAbbr($i);
             $i++;
         }
 
@@ -1260,8 +1298,6 @@ class FamilyTree
      */
     function displayEditForm ($userid)
     {
-        $locale = new FCMS_Locale();
-
         // Get user info
         $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`, `birthday`, `death`, `sex`
                 FROM `fcms_users`
@@ -1293,7 +1329,7 @@ class FamilyTree
         $month_list = array();
         $i = 1;
         while ($i <= 12) {
-            $month_list[$i] = $locale->getMonthAbbr($i);
+            $month_list[$i] = getMonthAbbr($i);
             $i++;
         }
 

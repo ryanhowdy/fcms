@@ -1,6 +1,6 @@
 <?php
 /**
- * Activate
+ * Invitation
  *  
  * PHP versions 4 and 5
  *  
@@ -13,19 +13,13 @@
  * @since     2.4
  */
 
-require_once 'inc/config_inc.php';
-require_once 'inc/util_inc.php';
-require_once 'inc/calendar_class.php';
+define('URL_PREFIX', '');
 
-fixMagicQuotes();
+require 'fcms.php';
 
+load('datetime', 'calendar');
 
-$link = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-mysql_select_db($cfg_mysql_db, $link);
-
-$locale   = new FCMS_Locale();
 $calendar = new Calendar(1);
-
 
 main();
 exit();
@@ -101,7 +95,7 @@ function displayFooter ()
  */
 function displayAttendForm ()
 {
-    global $calendar, $locale;
+    global $calendar;
 
     displayHeader();
 
@@ -155,7 +149,7 @@ function displayAttendForm ()
     }
 
     $times = $calendar->getTimesList();
-    $date  = $locale->formatDate(T_('F j, Y'), $event['date']);
+    $date  = formatDate(T_('F j, Y'), $event['date']);
     $title = cleanOutput($event['title']);
     $host  = getUserDisplayname($event['created_by'], 2);
 
@@ -171,18 +165,18 @@ function displayAttendForm ()
         // one moment in time
         if ($event['time_start'] == $event['time_end'])
         {
-            $time = '<br/>' . sprintf(T_('beginning at %s'), $times[$event['time_start']]);
+            $time = '<br/>'.sprintf(T_('beginning at %s'), $times[$event['time_start']]);
         }
         // start and end
         else
         {
-            $time = '<br/>' . sprintf(T_('between %s and %s'), $times[$event['time_start']], $times[$event['time_end']]);
+            $time = '<br/>'.sprintf(T_('between %s and %s'), $times[$event['time_start']], $times[$event['time_end']]);
         }
     }
 
     if (!empty($event['desc']))
     {
-        $desc = '<br/>' . cleanOutput($event['desc']);
+        $desc = '<br/>'.cleanOutput($event['desc']);
     }
 
     echo '
@@ -197,7 +191,7 @@ function displayAttendForm ()
         </div>
     </div>';
 
-    if ($invitation['attending'] === NULL)
+    if ($invitation['attending'] === null)
     {
         echo '
     <form action="invitation.php?event='.$id.'&amp;code='.$code.'" method="post">
@@ -237,6 +231,7 @@ function displayAttendForm ()
     $sql = "SELECT `user`, `email`, `attending`, `response`, `updated`
             FROM `fcms_invitation`
             WHERE `event_id` = '$id'";
+
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -255,7 +250,7 @@ function displayAttendForm ()
     {
         $img = '';
 
-        if ($r['attending'] === NULL)
+        if ($r['attending'] === null)
         {
             $undecidedCount++;
             $img = T_('Undecided');
@@ -324,6 +319,11 @@ function displayAttendForm ()
     displayFooter();
 }
 
+/**
+ * displayAttendSubmit 
+ * 
+ * @return void
+ */
 function displayAttendSubmit ()
 {
     $id        = cleanInput($_POST['id'], 'int');
