@@ -31,7 +31,7 @@ class Alerts
     }
     
     /**
-     * displayNewAdminHome 
+     * displayNewUserHome 
      * 
      * @param  int  $userid 
      * 

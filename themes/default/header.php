@@ -19,7 +19,7 @@
 <link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>themes/default/ie8.css"/>
 <![endif]-->
 <script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/js/prototype.js"></script>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/js/fcms.js<?php echo '?'.time();?>"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/js/fcms.js"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
 </head>
 <body id="top">

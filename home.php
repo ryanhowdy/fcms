@@ -330,12 +330,6 @@ function displayWhatsNew ()
     // Show Alerts
     $alertShown = $alert->displayNewUserHome($currentUserId);
 
-    if ($alertShown)
-    {
-        displayFooter();
-        return;
-    }
-
     // Show any events happening today
         // Note: no need to fix dates for locale
         //       the db stores dates in server tz
