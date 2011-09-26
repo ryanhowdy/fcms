@@ -453,6 +453,7 @@ function displayLogin()
 
     $forgotPassLink = '<a href="lostpw.php">'.T_('Forgot Password?').'</a>';
     $registerLink   = '';
+    $facebookLogin  = '';
 
     if (isRegistrationOn())
     {
@@ -469,6 +470,8 @@ function displayLogin()
             'appId'  => $fbData['fb_app_id'],
             'secret' => $fbData['fb_secret'],
         ));
+
+        $facebookLogin = '<a href="'.$facebook->getLoginUrl($params).'" title="'.T_('Login using Facebook').'"><img src="themes/images/facebook_tiny.png"/></a>';
     }
 
     echo '
@@ -495,7 +498,7 @@ function displayLogin()
         <p style="text-align:center; margin-bottom:20px;">'.$forgotPassLink.$registerLink.'</p>
         <div style="color:silver; font-size:11px; float:left;">'.getCurrentVersion().'</div>
         <div style="float:right">
-            <a href="'.$facebook->getLoginUrl($params).'" title="'.T_('Login using Facebook').'"><img src="themes/images/facebook_tiny.png"/></a>
+            '.$facebookLogin.'
         </div>
     </div>
 </body>

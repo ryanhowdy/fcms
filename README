@@ -1,11 +1,11 @@
 
-FAMILY CONNECTIONS 2.4.1
+FAMILY CONNECTIONS 2.5.1
 
 
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.4.1.zip to your web host.
+  1. Upload the entire contents of FCMS_2.5.1.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -19,7 +19,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.4 to 2.4.1
+II. Upgrading from 2.5 to 2.5.1
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -30,41 +30,18 @@ II. Upgrading from 2.4 to 2.4.1
     gallery/photos/memberX/
     gallery/upimages/
 
-  FCMS 2.5 includes a new feature where you can do automatic upgrades.  If you are
-  upgrading from version 2.4 or later you can make use of this new feature and do
-  a semi-automatic upgrade.  Subsequent versions will be fully automatic.
+  1. Login as the administrator and visit the upgrade section, and run the automatic
+     upgrade process.
 
-  1. It is recommended that you backup your entire site, including your
-     MySQL database before upgrading.
-
-  2. Login as the administrator and visit the upgrade section (keep this window open).
-
-  3. Upload the entire contents of FCMS_2.4.1.zip to your web host 
-     (Overwriting any previous files other than the above mentioned files/directories).
-
-  4. Login as the administrator and visit the upgrade section and run the
-     upgrade script.
-
-  4. Delete the following files:
-
-       inc/util_inc.php
-
-  5. Go back to your browser (from step 2) and refresh the page.  You will probably get
-     a few errors at the top.  Click the 'Automatic Upgrade' button.
-
-  5. Delete the install.php file from your web host (if it still exists).
+  2. Delete the install.php file from your web host (if it still exists).
 
 
 
 III. Change Log
 ----------------
- 2.4.1
+ 2.5.1
 
-    #319 - RSS Feed broken
-    #327 - Can't send mass email
-    #328 - Changing Theme default in the Admin Configuration not working
-    #331 - Install doesn't work without "Where is Everyone"
-    #333 - Form legend display problems
+    #352 - Login page doesn't work without Facebook setup
 
   For the full change log please refer to the included ChangeLog file.
 
