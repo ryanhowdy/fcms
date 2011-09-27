@@ -1,5 +1,28 @@
- 2.4
+ 2.5.1
+    #352 - Login page doesn't work without Facebook setup
 
+ 2.5
+    #141 - Status Updates
+    #209 - Link user's bday with calendar event
+    #224 - Automatic Upgrade
+    #263 - Add facebook login/registration
+    #299 - Photo View: make tagged members' names a link
+    #330 - Infinite parent of family member
+    #335 - Update Last 5 by Section view
+    #269 - Family tree, sex-independent parents
+    #312 - Better blank state (new user welcome message)
+    #325 - Change unambiguous spouses to ambiguous
+    #326 - Same sex parents
+    #346 - Administrate thread does not delete
+
+ 2.4.1
+    #319 - RSS Feed broken
+    #327 - Can't send mass email
+    #328 - Changing Theme default in the Admin Configuration not working
+    #331 - Install doesn't work without "Where is Everyone"
+    #333 - Form legend display problems
+
+ 2.4
     #143 - Invite Only Registration
     #145 - Creat JS function for delete confirmation
     #175 - php-gettext: undefined index: messages

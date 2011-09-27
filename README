@@ -1,11 +1,11 @@
 
-FAMILY CONNECTIONS 2.5.1
+FAMILY CONNECTIONS 2.5.2
 
 
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.5.1.zip to your web host.
+  1. Upload the entire contents of FCMS_2.5.2.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -19,7 +19,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.5 to 2.5.1
+II. Upgrading from 2.5.x to 2.5.2
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -30,18 +30,21 @@ II. Upgrading from 2.5 to 2.5.1
     gallery/photos/memberX/
     gallery/upimages/
 
-  1. Login as the administrator and visit the upgrade section, and run the automatic
-     upgrade process.
+  1. It is recommended that you backup your entire site, including your
+     MySQL database before upgrading.
 
-  2. Delete the install.php file from your web host (if it still exists).
+  2. Login as the administrator, visit the upgrade section, and run the automatic
+     upgrade.
+
+  3. Delete the install.php file from your web host (if it still exists).
 
 
 
 III. Change Log
 ----------------
- 2.5.1
+ 2.5.2
 
-    #352 - Login page doesn't work without Facebook setup
+    #353 - Last 5 View not working
 
   For the full change log please refer to the included ChangeLog file.
 
