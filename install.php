@@ -645,42 +645,21 @@ function displayStepFive ($error = '0')
     $d = 1;
     while ($d <= 31)
     {
-        if ($day == $d)
-        {
-            echo "<option value=\"$d\" selected=\"selected\">$d</option>";
-        }
-        else
-        {
-            echo "<option value=\"$d\">$d</option>";
-        }
+        echo "<option value=\"$d\">$d</option>";
         $d++;
     }
     echo '</select><select id="month" name="month">';
     $m = 1;
     while ($m <= 12)
     {
-        if ($month == $m)
-        {
-            echo "<option value=\"$m\" selected=\"selected\">".getMonthAbbr($m)."</option>";
-        }
-        else
-        {
-            echo "<option value=\"$m\">".getMonthAbbr($m)."</option>";
-        }
+        echo "<option value=\"$m\">".getMonthAbbr($m)."</option>";
         $m++;
     }
     echo '</select><select id="year" name="year">';
     $y = 1900;
     while ($y - 5 <= gmdate('Y'))
     {
-        if ($year == $y)
-        {
-            echo "<option value=\"$y\" selected=\"selected\">$y</option>";
-        }
-        else
-        {
-            echo "<option value=\"$y\">$y</option>";
-        }
+        echo "<option value=\"$y\">$y</option>";
         $y++;
     }
 
