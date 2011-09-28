@@ -525,11 +525,11 @@ function displayStepFive ($error = '0')
 
     // Setup Navigation
     $order  = 0;
-    $order2 = 7;
+    $order2 = 8;
 
     $nextComOrder   = 2;
     $nextShareOrder = 4;
-    $nextAdminOrder = 7;
+    $nextAdminOrder = 8;
 
     $params = array();
 

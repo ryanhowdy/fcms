@@ -112,7 +112,8 @@ function installNavigation ($sections)
                 ('admin_members', 6, 3, 1),
                 ('admin_photogallery', 6, 4, 1),
                 ('admin_polls', 6, 5, 1),
-                ('admin_awards', 6, 6, 1)";
+                ('admin_awards', 6, 6, 1), 
+                ('admin_facebook', 6, 7, 1)";
     mysql_query($sql) or die("$sql<br/>".mysql_error());
 
     $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
