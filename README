@@ -1,11 +1,11 @@
 
-FAMILY CONNECTIONS 2.5.2
+FAMILY CONNECTIONS 2.5.3
 
 
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.5.2.zip to your web host.
+  1. Upload the entire contents of FCMS_2.5.3.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -19,7 +19,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.5.x to 2.5.2
+II. Upgrading from 2.5.x to 2.5.3
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -42,9 +42,9 @@ II. Upgrading from 2.5.x to 2.5.2
 
 III. Change Log
 ----------------
- 2.5.2
+ 2.5.3
 
-    #353 - Last 5 View not working
+    #354 - Slideshow not working
 
   For the full change log please refer to the included ChangeLog file.
 

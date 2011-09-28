@@ -42,20 +42,22 @@ body { background-color: #000; margin: 10px 0 0 0 !important; padding: 0 !import
 <script type="text/javascript" src="../inc/js/effects.js"></script>
 <script type="text/javascript">
 //<![CDATA[
-function slideshow(start,last,interval) {  
-  var frame = start;  
-  var nextframe = start+1;  
-  Effect.Appear(\'img1\',{duration:.5,from:0.0,to:1.0});  
-    setInterval(function() {  
-    Effect.Fade(\'img\'+frame,{duration:.5,from:1.0,to:0.0,afterFinish:function(){  
-    $(\'img\'+frame).hide();  
-    Effect.Appear(\'img\'+nextframe,{duration:.5,from:0.0,to:1.0});  
-    frame = nextframe;  
-    nextframe = (frame == last) ? start : nextframe+1;  
-    }});  
- },interval);  
- return;  
-};  
+function slideshow(start,last,interval) {
+    var frame = start;
+    var nextframe = start+1;
+
+    Effect.Appear(\'img1\',{duration:.5,from:0.0,to:1.0});
+    setInterval(function() {
+        Effect.Fade(\'img\'+frame,{duration:.5,from:1.0,to:0.0,afterFinish:function() {
+            $(\'img\'+frame).hide();
+            Effect.Appear(\'img\'+nextframe,{duration:.5,from:0.0,to:1.0});
+            frame = nextframe;
+            nextframe = (frame == last) ? start : nextframe+1;
+        }});
+    }, interval);
+
+    return;
+};
 //]]>
 </script>
 </head>
@@ -95,12 +97,16 @@ if (mysql_num_rows($result) > 0)
     {
         $i++;
 
-        $user    = cleanInput($r['user'], 'int');
-        $file    = basename($r['filename']);
-        $caption = cleanOutput($r['caption']);
-        
+        $user     = cleanInput($r['user'], 'int');
+        $filename = basename($r['filename']);
+        $caption  = cleanOutput($r['caption']);
+
         echo '
-    <img id="img'.$i.'" style="display:none;" src="../uploads/photos/member'.$user.'/'.$filename.'" alt="'.$caption.'"/>';
+    <div id="img'.$i.'" style="display:none; color:#fff;">
+        <img src="../uploads/photos/member'.$user.'/'.$filename.'" alt="'.$caption.'"/><br/>
+        '.$caption.'
+    </div>';
+
     }
 
     echo '
