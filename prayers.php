@@ -252,6 +252,8 @@ displayFooter();
  */
 function displayFooter ()
 {
+    global $currentUserId, $TMPL;
+
     echo '
         </div><!-- #prayers .centercontent -->';
 
