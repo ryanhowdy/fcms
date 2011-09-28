@@ -1241,6 +1241,19 @@ function displayEditSocialMedia ()
     //            </tr>';
     //}
 
+    // Blank state
+    if ($facebookRow == '' && $foursquareRow == '')
+    {
+        echo '
+        <div class="info-alert">
+            <h2>'.T_('Bummer!').'</h2>
+            <p>'.T_('Your site is not configured to use any Social Media sites yet.').'</p>
+            <p>'.T_('Your site administrator must configure these before you can connect to them.').'</p>
+        </div>';
+        displayFooter();
+        return;
+    }
+
     echo '
         <table id="socialmedia-connect">
             <tbody>'.$facebookRow.$foursquareRow.'
