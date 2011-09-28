@@ -634,73 +634,76 @@ function formatWhatsNewMessageBoard ($whatsNewData, $tzOffset)
     // been updated, so we keep track of threads as we display them
     $displayedThreads = array();
 
-    foreach ($whatsNewData['BOARD'] as $row)
+    foreach ($whatsNewData['BOARD'] as $data)
     {
-        // Skip, if we displayed this thread already
-        if (isset($displayedThreads[$row['title']]))
+        foreach ($data as $row)
         {
-            continue;
-        }
-        $displayedThreads[$row['title']] = 1;
+            // Skip, if we displayed this thread already
+            if (isset($displayedThreads[$row['title']]))
+            {
+                continue;
+            }
+            $displayedThreads[$row['title']] = 1;
 
-        // Quit, if we displayed 5 already
-        if ($count > 5)
-        {
-            break;
-        }
-        $count++;
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
 
-        $displayname  = getUserDisplayName($row['userid']);
-        $subject      = $row['title'];
-        $subject_full = cleanOutput($subject);
+            $displayname  = getUserDisplayName($row['userid']);
+            $subject      = $row['title'];
+            $subject_full = cleanOutput($subject);
 
-        // Remove announcment
-        $pos = strpos($subject, '#ANOUNCE#');
-        if ($pos !== false)
-        {
-            $subject = substr($subject, 9, strlen($subject)-9);
-        }
+            // Remove announcment
+            $pos = strpos($subject, '#ANOUNCE#');
+            if ($pos !== false)
+            {
+                $subject = substr($subject, 9, strlen($subject)-9);
+            }
 
-        // Chop Long subjects
-        if (strlen($subject) > 23)
-        {
-            $subject = substr($subject, 0, 20) . "...";
-        }
+            // Chop Long subjects
+            if (strlen($subject) > 23)
+            {
+                $subject = substr($subject, 0, 20) . "...";
+            }
 
-        $date = fixDate('YmdHis', $tzOffset, $row['date']);
+            $date = fixDate('YmdHis', $tzOffset, $row['date']);
 
-        if ($date >= $today_start && $date <= $today_end)
-        {
-            $full_date = T_('Today');
-            $d = ' class="today"';
-        }
-        else
-        {
-            $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
-            $d = '';
-        }
+            if ($date >= $today_start && $date <= $today_end)
+            {
+                $full_date = T_('Today');
+                $d = ' class="today"';
+            }
+            else
+            {
+                $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
+                $d = '';
+            }
 
-        $return .= '
+            $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
                     <a href="messageboard.php?thread='.cleanInput($row['id2'], 'int').'" title="'.$subject_full.'">'.$subject.'</a> ';
 
-        if (getNumberOfPosts($row['id2']) > 15)
-        {
-            $num_posts  = getNumberOfPosts($row['id2']);
-            $times2loop = ceil($num_posts/15);
-
-            $return .= '('.T_('Page').' ';
-            for ($i=1; $i<=$times2loop; $i++)
+            if (getNumberOfPosts($row['id2']) > 15)
             {
-                $return .= '<a href="messageboard.php?thread='.cleanInput($row['id2'], 'int').'&amp;page='.$i.'" title="'.T_('Page').' '.$i.'">'.$i.'</a> ';
-            }
-            $return .= ')';
-        }
+                $num_posts  = getNumberOfPosts($row['id2']);
+                $times2loop = ceil($num_posts/15);
 
-        $return .= '
+                $return .= '('.T_('Page').' ';
+                for ($i=1; $i<=$times2loop; $i++)
+                {
+                    $return .= '<a href="messageboard.php?thread='.cleanInput($row['id2'], 'int').'&amp;page='.$i.'" title="'.T_('Page').' '.$i.'">'.$i.'</a> ';
+                }
+                $return .= ')';
+            }
+
+            $return .= '
                      - <a class="u" href="profile.php?member='.cleanInput($row['userid'], 'int').'">'.$displayname.'</a>
                 </li>';
+        }
     }
 
     return $return.'
@@ -739,36 +742,39 @@ function formatWhatsNewFamilyNews ($whatsNewData, $tzOffset)
 
     $count = 0;
 
-    foreach ($whatsNewData['NEWS'] as $row)
+    foreach ($whatsNewData['NEWS'] as $data)
     {
-        // Quit, if we displayed 5 already
-        if ($count > 5)
+        foreach ($data as $row)
         {
-            break;
-        }
-        $count++;
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
 
-        $displayname = getUserDisplayName($row['userid']);
-        $date        = fixDate('YmdHis', $tzOffset, $row['date']);
-        $title       = !empty($row['title']) ? cleanOutput($row['title']) : T_('untitled');
+            $displayname = getUserDisplayName($row['userid']);
+            $date        = fixDate('YmdHis', $tzOffset, $row['date']);
+            $title       = !empty($row['title']) ? cleanOutput($row['title']) : T_('untitled');
 
-        if ($date >= $today_start && $date <= $today_end)
-        {
-            $full_date = T_('Today');
-            $d = ' class="today"';
-        }
-        else
-        {
-            $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
-            $d = '';
-        }
+            if ($date >= $today_start && $date <= $today_end)
+            {
+                $full_date = T_('Today');
+                $d = ' class="today"';
+            }
+            else
+            {
+                $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
+                $d = '';
+            }
 
-        $return .= '
+            $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
                     <a href="familynews.php?getnews='.cleanInput($row['userid'], 'int').'&amp;newsid='.cleanInput($row['id'], 'int').'">'.$title.'</a> - 
                     <a class="u" href="profile.php?member='.cleanInput($row['userid'], 'int').'">'.$displayname.'</a>
                 </li>';
+        }
     }
 
     $return .= '
@@ -801,34 +807,37 @@ function formatWhatsNewAddressBook ($whatsNewData, $tzOffset)
 
     $count = 0;
 
-    foreach ($whatsNewData['ADDRESSEDIT'] as $row)
+    foreach ($whatsNewData['ADDRESSEDIT'] as $data)
     {
-        // Quit, if we displayed 5 already
-        if ($count > 5)
+        foreach ($data as $row)
         {
-            break;
-        }
-        $count++;
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
 
-        $displayname = getUserDisplayName($row['userid'], 2, false);
-        $date        = fixDate('YmdHis', $tzOffset, $row['date']);
+            $displayname = getUserDisplayName($row['userid'], 2, false);
+            $date        = fixDate('YmdHis', $tzOffset, $row['date']);
 
-        if ($date >= $today_start && $date <= $today_end)
-        {
-            $full_date = T_('Today');
-            $d = ' class="today"';
-        }
-        else
-        {
-            $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $row['date']);
-            $d = '';
-        }
+            if ($date >= $today_start && $date <= $today_end)
+            {
+                $full_date = T_('Today');
+                $d = ' class="today"';
+            }
+            else
+            {
+                $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $row['date']);
+                $d = '';
+            }
 
-        $return .= '
+            $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
                     <a href="addressbook.php?address='.cleanInput($row['id'], 'int').'">'.$displayname.'</a>
                 </li>';
+        }
     }
 
     $return .= '
@@ -868,39 +877,42 @@ function formatWhatsNewRecipes ($whatsNewData, $tzOffset)
 
     $count = 0;
 
-    foreach ($whatsNewData['RECIPES'] as $r)
+    foreach ($whatsNewData['RECIPES'] as $data)
     {
-        // Quit, if we displayed 5 already
-        if ($count > 5)
+        foreach ($data as $r)
         {
-            break;
-        }
-        $count++;
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
 
-        $name = $r['title'];
-        $displayname = getUserDisplayName($r['userid']);
+            $name = $r['title'];
+            $displayname = getUserDisplayName($r['userid']);
 
-        $url = 'recipes.php?category='.cleanInput($r['id2'], 'int').'&amp;id='.cleanInput($r['id'], 'int');
+            $url = 'recipes.php?category='.cleanInput($r['id2'], 'int').'&amp;id='.cleanInput($r['id'], 'int');
 
-        $date = fixDate('YmdHis', $tzOffset, $r['date']);
+            $date = fixDate('YmdHis', $tzOffset, $r['date']);
 
-        if ($date >= $today_start && $date <= $today_end)
-        {
-            $full_date = T_('Today');
-            $d = ' class="today"';
-        }
-        else
-        {
-            $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-            $d = '';
-        }
+            if ($date >= $today_start && $date <= $today_end)
+            {
+                $full_date = T_('Today');
+                $d = ' class="today"';
+            }
+            else
+            {
+                $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
+                $d = '';
+            }
 
-        $return .= '
+            $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
                     <a href="'.$url.'">'.cleanOutput($name).'</a> - 
                     <a class="u" href="profile.php?member='.cleanInput($r['userid'], 'int').'">'.$displayname.'</a>
                 </li>';
+        }
     }
 
     $return .= '
@@ -940,32 +952,35 @@ function formatWhatsNewPrayers ($whatsNewData, $tzOffset)
 
     $count = 0;
 
-    foreach ($whatsNewData['PRAYERS'] as $r)
+    foreach ($whatsNewData['PRAYERS'] as $data)
     {
-        // Quit, if we displayed 5 already
-        if ($count > 5)
+        foreach ($data as $r)
         {
-            break;
-        }
-        $count++;
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
 
-        $displayname = getUserDisplayName($r['userid']);
-        $for = $r['title'];
-        $date = fixDate('YmdHis', $tzOffset, $r['date']);
-        if ($date >= $today_start && $date <= $today_end) {
-            $full_date = T_('Today');
-            $d = ' class="today"';
-        } else {
-            $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-            $d = '';
-        }
+            $displayname = getUserDisplayName($r['userid']);
+            $for = $r['title'];
+            $date = fixDate('YmdHis', $tzOffset, $r['date']);
+            if ($date >= $today_start && $date <= $today_end) {
+                $full_date = T_('Today');
+                $d = ' class="today"';
+            } else {
+                $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
+                $d = '';
+            }
 
-        $return .= '
+            $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
                     <a href="prayers.php">'.$for.'</a> - 
                     <a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>
                 </li>';
+        }
     }
 
     $return .= '
@@ -998,37 +1013,39 @@ function formatWhatsNewPhotoGallery ($whatsNewData, $tzOffset)
 
     $count = 0;
 
-    foreach ($whatsNewData['GALLERY'] as $row)
+    foreach ($whatsNewData['GALLERY'] as $data)
     {
-        // Quit, if we displayed 5 already
-        if ($count > 5)
+        foreach ($data as $row)
         {
-            break;
-        }
-        $count++;
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
 
-        $displayname   = getUserDisplayName($row['userid']);
-        $category      = cleanOutput($row['title']);
-        $full_category = cleanOutput($category);
-        $date          = fixDate('YmdHis', $tzOffset, $row['date']);
-        if (strlen($category) > 20)
-        {
-            $category = substr($category, 0, 17) . "...";
-        }
+            $displayname   = getUserDisplayName($row['userid']);
+            $category      = cleanOutput($row['title']);
+            $full_category = cleanOutput($category);
+            $date          = fixDate('YmdHis', $tzOffset, $row['date']);
+            if (strlen($category) > 20)
+            {
+                $category = substr($category, 0, 17) . "...";
+            }
 
-        // Today
-        if ($date >= $today_start && $date <= $today_end)
-        {
-            $full_date = T_('Today');
-            $d = ' class="today"';
-        }
-        else
-        {
-            $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
-            $d = '';
-        }
+            // Today
+            if ($date >= $today_start && $date <= $today_end)
+            {
+                $full_date = T_('Today');
+                $d = ' class="today"';
+            }
+            else
+            {
+                $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
+                $d = '';
+            }
 
-        $return .= '
+            $return .= '
                     <li>
                         <div'.$d.'>'.$full_date.'</div>
                         <p>
@@ -1036,37 +1053,38 @@ function formatWhatsNewPhotoGallery ($whatsNewData, $tzOffset)
                             <a class="u" href="profile.php?member='.$row['userid'].'">'.$displayname.'</a>
                         </p>';
 
-        $limit = 4;
-        if ($row['id2'] < $limit)
-        {
-            $limit = $row['id2'];
-        }
-        $sql = "SELECT `id`, `user`, `category`, `filename`, `caption`
-                FROM `fcms_gallery_photos` 
-                WHERE `category` = '".cleanInput($row['id'], 'int')."' 
-                AND DAYOFYEAR(`date`) = '".cleanInput($row['id3'])."' 
-                ORDER BY `date` 
-                DESC LIMIT $limit";
+            $limit = 4;
+            if ($row['id2'] < $limit)
+            {
+                $limit = $row['id2'];
+            }
+            $sql = "SELECT `id`, `user`, `category`, `filename`, `caption`
+                    FROM `fcms_gallery_photos` 
+                    WHERE `category` = '".cleanInput($row['id'], 'int')."' 
+                    AND DAYOFYEAR(`date`) = '".cleanInput($row['id3'])."' 
+                    ORDER BY `date` 
+                    DESC LIMIT $limit";
 
-        $result = mysql_query($sql);
-        if (!$result)
-        {
-            displaysqlerror('Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-            return;
-        }
+            $result = mysql_query($sql);
+            if (!$result)
+            {
+                displaysqlerror('Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                return;
+            }
 
-        while ($p = mysql_fetch_assoc($result))
-        {
-            $return .= '
+            while ($p = mysql_fetch_assoc($result))
+            {
+                $return .= '
                             <a href="gallery/index.php?uid='.$p['user'].'&amp;cid='.$p['category'].'&amp;pid='.$p['id'].'">
                                 <img src="uploads/photos/member'.$p['user'].'/tb_'.basename($p['filename']).'" 
                                     style="height:50px; width:50px;" 
                                     alt="'.cleanOutput($p['caption']).'"/>
                             </a> &nbsp;';
-        }
+            }
 
-        $return .= '
+            $return .= '
                     </li>';
+        }
     }
 
     $return .= '
@@ -1120,7 +1138,10 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
         }
         foreach ($whatsNewData[$type] as $row)
         {
-            $commentsData[] = $row;
+            foreach ($data as $row)
+            {
+                $commentsData[] = $row;
+            }
         }
     }
 
@@ -1206,22 +1227,24 @@ function formatWhatsNewStatusUpdates ($whatsNewData, $tzOffset)
 
     $count = 0;
 
-    foreach ($whatsNewData['STATUS'] as $r)
+    foreach ($whatsNewData['STATUS'] as $data)
     {
-        // Quit, if we displayed 5 already
-        if ($count > 5)
+        foreach ($data as $r)
         {
-            break;
-        }
-        $count++;
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
 
-        $displayname = getUserDisplayName($r['userid']);
-        $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
+            $displayname = getUserDisplayName($r['userid']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
 
-        $title = cleanOutput($r['title']);
-        $title = nl2br_nospaces($title);
+            $title = cleanOutput($r['title']);
+            $title = nl2br_nospaces($title);
 
-        $return .= '
+            $return .= '
                 <li style="line-height: 120%;">
                     <div>
                         <p>
@@ -1231,39 +1254,40 @@ function formatWhatsNewStatusUpdates ($whatsNewData, $tzOffset)
                         </p>
                     </div>';
 
-        // Get any replies to this status update
-        $sql = "SELECT `id`, `user`, `status`, `parent`, `updated`, `created` 
-                FROM `fcms_status` 
-                WHERE `parent` = '".cleanInput($r['id'], 'int')."' 
-                ORDER BY `id`";
-        $result = mysql_query($sql);
-        if (!$result)
-        {
-            displaySQLError('Status Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-            return;
-        }
+            // Get any replies to this status update
+            $sql = "SELECT `id`, `user`, `status`, `parent`, `updated`, `created` 
+                    FROM `fcms_status` 
+                    WHERE `parent` = '".cleanInput($r['id'], 'int')."' 
+                    ORDER BY `id`";
+            $result = mysql_query($sql);
+            if (!$result)
+            {
+                displaySQLError('Status Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                return;
+            }
 
-        $return .= '
+            $return .= '
                     <div class="status_replies">';
 
-        if (mysql_num_rows($result) > 0)
-        {
-            while ($s = mysql_fetch_array($result))
+            if (mysql_num_rows($result) > 0)
             {
-                $name = getUserDisplayName($s['user']);
-                $name = '<a class="u" href="profile.php?member='.$s['user'].'">'.$name.'</a>';
+                while ($s = mysql_fetch_array($result))
+                {
+                    $name = getUserDisplayName($s['user']);
+                    $name = '<a class="u" href="profile.php?member='.$s['user'].'">'.$name.'</a>';
 
-                $status = cleanOutput($s['status']);
-                $status = nl2br_nospaces($status);
+                    $status = cleanOutput($s['status']);
+                    $status = nl2br_nospaces($status);
 
-                $return .= '<div><p>'.$name.': '.$status.'<br/><small><i>'.getHumanTimeSince(strtotime($s['created'])).'</i></small></p></div>';
+                    $return .= '<div><p>'.$name.': '.$status.'<br/><small><i>'.getHumanTimeSince(strtotime($s['created'])).'</i></small></p></div>';
+                }
             }
-        }
 
-        //displayStatusUpdateForm($r['id']);
-        $return .= '
+            //displayStatusUpdateForm($r['id']);
+            $return .= '
                     </div>
                 </li>';
+        }
     }
 
     $return .= '
@@ -1296,38 +1320,41 @@ function formatWhatsNewCalendar ($whatsNewData, $tzOffset)
 
     $count = 0;
 
-    foreach ($whatsNewData['CALENDAR'] as $r)
+    foreach ($whatsNewData['CALENDAR'] as $data)
     {
-        // Quit, if we displayed 5 already
-        if ($count > 5)
+        foreach ($data as $r)
         {
-            break;
-        }
-        $count++;
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
 
-        $displayname = getUserDisplayName($r['userid']);
-        $title       = $r['title'];
-        $date        = fixDate('YmdHis', $tzOffset, $r['date']);
+            $displayname = getUserDisplayName($r['userid']);
+            $title       = $r['title'];
+            $date        = fixDate('YmdHis', $tzOffset, $r['date']);
 
-        if ($date >= $today_start && $date <= $today_end)
-        {
-            $full_date = T_('Today');
-            $d         = ' class="today"';
-        }
-        else
-        {
-            $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-            $d         = '';
-        }
+            if ($date >= $today_start && $date <= $today_end)
+            {
+                $full_date = T_('Today');
+                $d         = ' class="today"';
+            }
+            else
+            {
+                $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
+                $d         = '';
+            }
 
-        list($year, $month, $day) = explode('-', date('Y-m-d', strtotime($r['date'])));
+            list($year, $month, $day) = explode('-', date('Y-m-d', strtotime($r['date'])));
 
-        $return .= '
+            $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
                     <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.$title.' ('.date('n/j/Y', strtotime($r['id2'])).')</a> - 
                     <a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>
                 </li>';
+        }
     }
 
     $return .= '
@@ -1367,36 +1394,39 @@ function formatWhatsNewDocuments ($whatsNewData, $tzOffset)
 
     $count = 0;
 
-    foreach ($whatsNewData['DOCS'] as $r)
+    foreach ($whatsNewData['DOCS'] as $data)
     {
-        // Quit, if we displayed 5 already
-        if ($count > 5)
+        foreach ($data as $r)
         {
-            break;
-        }
-        $count++;
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
 
-        $displayname = getUserDisplayName($r['userid']);
-        $document    = cleanOutput($r['title']);
-        $date        = fixDate('YmdHis', $tzOffset, $r['date']);
+            $displayname = getUserDisplayName($r['userid']);
+            $document    = cleanOutput($r['title']);
+            $date        = fixDate('YmdHis', $tzOffset, $r['date']);
 
-        if ($date >= $today_start && $date <= $today_end)
-        {
-            $date = T_('Today');
-            $d = ' class="today"';
-        }
-        else
-        {
-            $date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-            $d = '';
-        }
+            if ($date >= $today_start && $date <= $today_end)
+            {
+                $date = T_('Today');
+                $d = ' class="today"';
+            }
+            else
+            {
+                $date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
+                $d = '';
+            }
 
-        $return .= '
+            $return .= '
                 <li>
                     <div'.$d.'>'.$date.'</div>
                     <a href="documents.php">'.$document.'</a> - 
                     <a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>
                 </li>';
+        }
     }
 
     $return .= '
@@ -1436,38 +1466,41 @@ function formatWhatsNewWhereIsEveryone ($whatsNewData, $tzOffset)
 
     $count = 0;
 
-    foreach ($whatsNewData['WHEREISEVERYONE'] as $r)
+    foreach ($whatsNewData['WHEREISEVERYONE'] as $data)
     {
-        // Quit, if we displayed 5 already
-        if ($count > 5)
+        foreach ($data as $r)
         {
-            break;
-        }
-        $count++;
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
 
-        $displayname = getUserDisplayName($r['userid']);
-        $title       = cleanOutput($r['title']);
-        $date        = fixDate('YmdHis', $tzOffset, $r['date']);
+            $displayname = getUserDisplayName($r['userid']);
+            $title       = cleanOutput($r['title']);
+            $date        = fixDate('YmdHis', $tzOffset, $r['date']);
 
-        if ($date >= $today_start && $date <= $today_end)
-        {
-            $date = T_('Today');
-            $d = ' class="today"';
-        }
-        else
-        {
-            $date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-            $d = '';
-        }
+            if ($date >= $today_start && $date <= $today_end)
+            {
+                $date = T_('Today');
+                $d = ' class="today"';
+            }
+            else
+            {
+                $date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
+                $d = '';
+            }
 
-        $displayname = getUserDisplayName($r['userid']);
+            $displayname = getUserDisplayName($r['userid']);
 
-        $return .= '
+            $return .= '
                 <li>
                     <div'.$d.'>'.$date.'</div>
                     <a href="whereiseveryone.php">'.sprintf(T_('%s visited %s.'), $displayname, $title).'</a> - 
                     <a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>
                 </li>';
+        }
     }
 
     $return .= '
@@ -1509,9 +1542,12 @@ function formatWhatsNewMisc ($whatsNewData, $tzOffset)
         {
             continue;
         }
-        foreach ($whatsNewData[$type] as $row)
+        foreach ($whatsNewData[$type] as $data)
         {
-            $miscData[] = $row;
+            foreach ($data as $row)
+            {
+                $miscData[] = $row;
+            }
         }
     }
 

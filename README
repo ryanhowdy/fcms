@@ -44,6 +44,7 @@ III. Change Log
 ----------------
  2.5.3
 
+    #353 - Last 5 View not working
     #354 - Slideshow not working
     #357 - Undefined variable: year in install.php
     #363 - Admin: Facebook nav missing from fresh install
