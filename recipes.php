@@ -83,7 +83,7 @@ if (isset($_POST['submitadd']))
     $thumbnail   = 'no_recipe.jpg';
 
     // Upload Recipe Image
-    if ($_FILES['thumbnail']['name'] && $_FILES['thumbnail']['error'] < 1)
+    if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['name'] && $_FILES['thumbnail']['error'] < 1)
     {
         $thumbnail = uploadImages(
             $_FILES['thumbnail']['type'], $_FILES['thumbnail']['name'], 

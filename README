@@ -50,6 +50,7 @@ III. Change Log
     #357 - Undefined variable: year in install.php
     #358 - Undefined variable: currentUserId in prayers.php
     #359 - Errors on Private Messages
+    #362 - Undefined index: thumbnail in recipes.php
     #363 - Admin: Facebook nav missing from fresh install
 
   For the full change log please refer to the included ChangeLog file.
