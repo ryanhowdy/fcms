@@ -274,6 +274,8 @@ displayFooter();
  */
 function displayFooter ()
 {
+    global $currentUserId, $TMPL;
+
     echo '
             </div>
         </div><!-- #profile .centercontent -->';

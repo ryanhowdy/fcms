@@ -49,6 +49,7 @@ III. Change Log
     #356 - Blank state needed for Social Media page
     #357 - Undefined variable: year in install.php
     #358 - Undefined variable: currentUserId in prayers.php
+    #359 - Errors on Private Messages
     #363 - Admin: Facebook nav missing from fresh install
 
   For the full change log please refer to the included ChangeLog file.
