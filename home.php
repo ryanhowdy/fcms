@@ -1136,7 +1136,7 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
         {
             continue;
         }
-        foreach ($whatsNewData[$type] as $row)
+        foreach ($whatsNewData[$type] as $data)
         {
             foreach ($data as $row)
             {
