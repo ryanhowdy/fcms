@@ -144,7 +144,7 @@ function displayUpgradeForm ()
             <h2>'.T_('Awesome, you have the latest version of Family Connections.').'</h2>
             <p>'.sprintf(T_('You do not need to upgrade at this time, you are currently running %s, which is the most up to date version. If you need to, you can re-install the current version.'), $currentVersion).'</p>';
 
-        if (class_exists('ZipArchive'))
+        if (class_exists('ZipArchive') && function_exists('curl_init'))
         {
             echo '
             <form method="post" action="upgrade.php">
@@ -170,7 +170,7 @@ function displayUpgradeForm ()
             <p>'.sprintf(T_('Your version (%s) is out of date.  Please update to the latest version using the Automatic Upgrade, or by downloading and manually upgrading.'), $currentVersion).'</p>
             <p><b>'.T_('Remember to back up your site first.').'</b></p>';
 
-        if (class_exists('ZipArchive'))
+        if (class_exists('ZipArchive') && function_exists('curl_init'))
         {
             echo '
             <form method="post" action="upgrade.php">
