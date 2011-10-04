@@ -691,16 +691,19 @@ function initGravatar() {
 }
 function handleAvatar() {
     if ($F('avatar_type') == "fcms") {
-        $('not-gravatar').show();
+        $('fcms').show();
         $('gravatar').hide();
+        $('default').hide();
     }
     if ($F('avatar_type') == "gravatar") {
-        $('not-gravatar').hide();
+        $('fcms').hide();
         $('gravatar').show();
+        $('default').hide();
     }
     if ($F('avatar_type') == "default") {
-        $('not-gravatar').hide();
+        $('fcms').hide();
         $('gravatar').hide();
+        $('default').show();
     }
 }
 function initAdvancedTagging() {

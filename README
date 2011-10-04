@@ -53,6 +53,7 @@ III. Change Log
     #362 - Undefined index: thumbnail in recipes.php
     #363 - Admin: Facebook nav missing from fresh install
     #367 - Register not working without facebook integration
+    #368 - Gravatar does not work
 
   For the full change log please refer to the included ChangeLog file.
 

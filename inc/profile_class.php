@@ -416,8 +416,10 @@ class Profile
 
             $js = '<script language="javascript">
                 Event.observe("submit","click",function(){
-                    var uploader = document.jumpLoaderApplet.getUploader();
-                    uploader.startUpload();
+                    if ($(\'fcms\').visible()) {
+                        var uploader = document.jumpLoaderApplet.getUploader();
+                        uploader.startUpload();
+                    }
                 });
                 function uploaderStatusChanged(uploader) {
                     if (uploader.isReady() && uploader.getFileCountByStatus(3) == 0) { 
@@ -434,6 +436,8 @@ class Profile
                 title="'.T_('Upload your personal image (Avatar)').'"/>';
         }
 
+        $currentAvatar = '<img id="current-avatar" src="'.getCurrentAvatar($this->currentUserId).'" alt="'.T_('This is your current avatar.').'"/>';
+
         echo '
             <div id="leftcolumn">
                 <ul class="menu">
@@ -444,29 +448,49 @@ class Profile
             </div>
             <div id="maincolumn">
                 '.$form.'
-                <fieldset>
-                    <legend><span>'.T_('Profile Picture').'</span></legend>
-                    <div class="field-row clearfix">
-                        <div class="field-label">
-                            <label for="avatar"><b>'.T_('Avatar').'</b></label>
+                    <fieldset>
+                        <legend><span>'.T_('Profile Picture').'</span></legend>
+
+                        <div class="field-row clearfix">
+                            <div class="field-label">
+                                <label for="avatar"><b>'.T_('Avatar').'</b></label>
+                            </div>
+                            <div class="field-widget">
+                                <select name="avatar_type" id="avatar_type">
+                                    '.$avatar_options.'
+                                </select><br/>
+                            </div>
                         </div>
-                        <div class="field-widget">
-                            <select name="avatar_type" id="avatar_type">
-                                '.$avatar_options.'
-                            </select><br/>
-                            <div id="not-gravatar">
+
+                        <div id="fcms" class="field-row clearfix">
+                            <div class="field-label">&nbsp;</div>
+                            <div class="field-widget">
                                 '.$input.'
-                                <input type="hidden" name="avatar_orig" value="'.cleanOutput($row['avatar']).'"/>
+                                <input type="hidden" name="avatar_orig" value="'.cleanOutput($row['avatar']).'"/><br/>
+                                '.$currentAvatar.'
                             </div>
-                            <div id="gravatar">
-                                <b>'.T_('Gravatar Email').'</b><br/>
-                                <input type="text" name="gravatar_email" size="30" value="'.cleanOutput($row['gravatar']).'"/>
-                            </div>
-                            <img id="current-avatar" src="'.getCurrentAvatar($this->currentUserId).'" alt="'.T_('This is your current avatar.').'"/>
+                            <p><input class="sub1" type="button" name="submit" id="submit" value="'.T_('Submit').'"/></p>
                         </div>
-                    </div>
-                    <p><input class="sub1" type="button" name="submit" id="submit" value="'.T_('Submit').'"/></p>
-                </fieldset>
+
+                        <div id="gravatar" class="field-row clearfix">
+                            <div class="field-label">&nbsp;</div>
+                            <div class="field-widget">
+                                <b>'.T_('Gravatar Email').'</b><br/>
+                                <input type="text" name="gravatar_email" size="30" value="'.cleanOutput($row['gravatar']).'"/><br/>
+                                '.$currentAvatar.'
+                            </div>
+                            <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                        </div>
+
+                        <div id="default" class="field-row clearfix">
+                            <div class="field-label">&nbsp;</div>
+                            <div class="field-widget">
+                                '.$currentAvatar.'
+                            </div>
+                            <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                        </div>
+
+                    </fieldset>
                 </form>
                 '.$js.'
             </div>';
