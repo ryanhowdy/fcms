@@ -348,6 +348,9 @@ function displayHtmlForm ($error = '0')
 
     $fbData = getFacebookConfigData();
 
+    $fbUser   = null;
+    $facebook = null;
+
     echo '
     <div id="column">
         <h1>'.T_('Register').'</h1>';
@@ -389,7 +392,7 @@ function displayHtmlForm ($error = '0')
         </p>';
     }
 
-    if (!$fbUser)
+    if (!$fbUser && $facebook)
     {
         $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
 
