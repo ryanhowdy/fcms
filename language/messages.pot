@@ -1,19 +1,20 @@
-# Translation for Family Connections 2.5
+# Translation for Family Connections
 # Copyright (C) 2007 Haudenschilt LLC
-# This file is distributed under the same license as the PACKAGE package.
+# This file is distributed under the same license as the Family Connections package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: Family Connections 2.5.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-07 13:34-0600\n"
+"POT-Creation-Date: 2011-10-21 16:20-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
@@ -33,7 +34,7 @@ msgid "Chat"
 msgstr ""
 
 #: admin/awards.php:53 admin/config.php:53 admin/gallery.php:74
-#: admin/members.php:252 admin/polls.php:88 admin/upgrade.php:115
+#: admin/members.php:252 admin/polls.php:88 admin/upgrade.php:240
 #: messageboard.php:448 profile.php:97 settings.php:924
 msgid "You do not have access to view this page."
 msgstr ""
@@ -43,8 +44,7 @@ msgid "This page requires an access level 2 (Helper) or better."
 msgstr ""
 
 #: admin/awards.php:55 admin/config.php:55 admin/gallery.php:77
-#: admin/members.php:254 admin/polls.php:90 admin/upgrade.php:117
-#: profile.php:98 settings.php:925
+#: admin/members.php:254 admin/polls.php:90 profile.php:98 settings.php:925
 msgid "Please contact your website's administrator if you feel you should have access to this page."
 msgstr ""
 
@@ -61,7 +61,6 @@ msgid "Administration: Configuration"
 msgstr ""
 
 #: admin/config.php:54 admin/gallery.php:75 admin/members.php:253
-#: admin/upgrade.php:116
 msgid "This page requires an access level 1 (Admin)."
 msgstr ""
 
@@ -370,86 +369,107 @@ msgstr ""
 msgid "No Previous Polls"
 msgstr ""
 
-#: admin/upgrade.php:35
-msgid "Administration: Upgrade"
-msgstr ""
-
-#: admin/upgrade.php:144
-msgid "Awesome, you have the latest version of Family Connections."
-msgstr ""
-
-#: admin/upgrade.php:145
-#, php-format
-msgid "You do not need to upgrade at this time, you are currently running %s, which is the most up to date version. If you need to, you can re-install the current version."
-msgstr ""
-
-#: admin/upgrade.php:152
-msgid "Re-install"
-msgstr ""
-
-#: admin/upgrade.php:161 admin/upgrade.php:189
-msgid "Upgrade Database"
-msgstr ""
-
-#: admin/upgrade.php:169
-msgid "Bummer!, you need to Update."
-msgstr ""
-
-#: admin/upgrade.php:170
-#, php-format
-msgid "Your version (%s) is out of date.  Please update to the latest version using the Automatic Upgrade, or by downloading and manually upgrading."
-msgstr ""
-
-#: admin/upgrade.php:171
-msgid "Remember to back up your site first."
-msgstr ""
-
-#: admin/upgrade.php:178
+#: admin/upgrade.php:103 admin/upgrade.php:333
 msgid "Automatic Upgrade"
 msgstr ""
 
-#: admin/upgrade.php:180 admin/upgrade.php:191
-msgid "Download"
+#: admin/upgrade.php:187
+msgid "You must be logged in to view this page."
 msgstr ""
 
-#: admin/upgrade.php:238 admin/upgrade.php:309
+#: admin/upgrade.php:199
+msgid "Invalid login id."
+msgstr ""
+
+#: admin/upgrade.php:213
+msgid "Invalid request."
+msgstr ""
+
+#: admin/upgrade.php:222
+msgid "User not found."
+msgstr ""
+
+#: admin/upgrade.php:232
+msgid "Invalid login credentials."
+msgstr ""
+
+#: admin/upgrade.php:258 admin/upgrade.php:514
+msgid "Turning off site."
+msgstr ""
+
+#: admin/upgrade.php:259
+msgid "Downloading latest version."
+msgstr ""
+
+#: admin/upgrade.php:260
+msgid "Unpacking files."
+msgstr ""
+
+#: admin/upgrade.php:261
+msgid "Installing files."
+msgstr ""
+
+#: admin/upgrade.php:262 admin/upgrade.php:522
+msgid "Upgrading database."
+msgstr ""
+
+#: admin/upgrade.php:263
+msgid "Upgrading version number."
+msgstr ""
+
+#: admin/upgrade.php:264 admin/upgrade.php:535
+msgid "Turning site back on."
+msgstr ""
+
+#: admin/upgrade.php:267 admin/upgrade.php:510
 #, php-format
 msgid "Upgrading to %s"
 msgstr ""
 
-#: admin/upgrade.php:242 admin/upgrade.php:313
-msgid "Turning off site."
+#: admin/upgrade.php:306
+msgid "Awesome, you have the latest version of Family Connections."
 msgstr ""
 
-#: admin/upgrade.php:250
-msgid "Downloading latest version."
+#: admin/upgrade.php:307
+#, php-format
+msgid "You do not need to upgrade at this time, you are currently running %s, which is the most up to date version. If you need to, you can re-install the current version."
 msgstr ""
 
-#: admin/upgrade.php:254
-msgid "Unpacking files."
+#: admin/upgrade.php:312
+msgid "Re-install"
 msgstr ""
 
-#: admin/upgrade.php:262
-msgid "Installing latest version."
+#: admin/upgrade.php:314 admin/upgrade.php:320 admin/upgrade.php:335
+#: admin/upgrade.php:343
+msgid "Upgrade Database"
 msgstr ""
 
-#: admin/upgrade.php:270 admin/upgrade.php:321
-msgid "Upgrading database."
+#: admin/upgrade.php:326
+msgid "Bummer!, you need to Update."
 msgstr ""
 
-#: admin/upgrade.php:283 admin/upgrade.php:334
-msgid "Turning site back on."
+#: admin/upgrade.php:327
+#, php-format
+msgid "Your version (%s) is out of date.  Please update to the latest version using the Automatic Upgrade, or by downloading and manually upgrading."
 msgstr ""
 
-#: admin/upgrade.php:290 admin/upgrade.php:341
+#: admin/upgrade.php:328
+msgid "Remember to back up your site first."
+msgstr ""
+
+#: admin/upgrade.php:337 admin/upgrade.php:345
+msgid "Download"
+msgstr ""
+
+#: admin/upgrade.php:542
 msgid "Upgrade Complete"
 msgstr ""
 
-#: admin/upgrade.php:442
+#: admin/upgrade.php:643
 msgid "Could not open zip file."
 msgstr ""
 
-#: admin/upgrade.php:453
+#: admin/upgrade.php:654
 msgid "Corrupt zip file."
 msgstr ""
 

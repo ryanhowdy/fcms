@@ -1,11 +1,11 @@
 
-FAMILY CONNECTIONS 2.5.3
+FAMILY CONNECTIONS 2.5.4
 
 
 I. Installation
 ----------------
 
-  1. Upload the entire contents of FCMS_2.5.3.zip to your web host.
+  1. Upload the entire contents of FCMS_2.5.4.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -19,7 +19,7 @@ I. Installation
 
 
 
-II. Upgrading from 2.5.x to 2.5.3
+II. Upgrading from 2.5.x to 2.5.4
 --------------------------------
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
@@ -42,18 +42,10 @@ II. Upgrading from 2.5.x to 2.5.3
 
 III. Change Log
 ----------------
- 2.5.3
+ 2.5.4
 
-    #353 - Last 5 View not working
-    #354 - Slideshow not working
-    #356 - Blank state needed for Social Media page
-    #357 - Undefined variable: year in install.php
-    #358 - Undefined variable: currentUserId in prayers.php
-    #359 - Errors on Private Messages
-    #362 - Undefined index: thumbnail in recipes.php
-    #363 - Admin: Facebook nav missing from fresh install
-    #367 - Register not working without facebook integration
-    #368 - Gravatar does not work
+    #382 - English MO displaying messed up dates
+    #383 - Automatic Upgrade from 2.5.3 to 2.6 not working
 
   For the full change log please refer to the included ChangeLog file.
 
