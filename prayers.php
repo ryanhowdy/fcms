@@ -19,11 +19,10 @@ require 'fcms.php';
 
 load('prayers');
 
-// Check that the user is logged in
-isLoggedIn();
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init();
 
-$prayers = new Prayers($currentUserId);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$prayers       = new Prayers($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(

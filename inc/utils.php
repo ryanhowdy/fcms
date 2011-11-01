@@ -131,15 +131,32 @@ function getUserDisplayName ($userid, $display = 0, $isMember = true)
  */
 function getPMCount ()
 {
-    $sql = "SELECT * FROM `fcms_privatemsg` 
-            WHERE `read` < 1 
-            AND `to` = '" . cleanInput($_SESSION['login_id'], 'int') . "'";
-    $result = mysql_query($sql) or displaySQLError(
-        'PM Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    if (mysql_num_rows($result) > 0) {
-        return ' ('.mysql_num_rows($result).')';
+    // Count was calculated during getUserNotifications()
+    if (isset($_SESSION['private_messages']))
+    {
+        $count = $_SESSION['private_messages'];
     }
+    else
+    {
+        $sql = "SELECT * FROM `fcms_privatemsg` 
+                WHERE `read` < 1 
+                AND `to` = '" . cleanInput($_SESSION['login_id'], 'int') . "'";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySQLError('PM Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return '';
+        }
+
+        $count = mysql_num_rows($result);
+    }
+
+    if ($count > 0)
+    {
+        return " ($count)";
+    }
+
     return '';
 }
 
@@ -258,6 +275,15 @@ function getNavLinks ()
             }
         }
 
+        $ret['my-stuff'] = T_('My Stuff');
+
+        // Notifications
+        $notifications = getUserNotifications($currentUserId);
+        if ($notifications > 0)
+        {
+            $ret['my-stuff'] = '<b>'.$notifications.'</b>'.$ret['my-stuff'];
+        }
+
         $ret[$r['col']][] = array(
             'url'   => getSectionUrl($r['link']),
             'text'  => getSectionName($r['link']),
@@ -287,6 +313,9 @@ function getSectionName ($section)
         case 'admin_facebook':
             return T_('Facebook');
             break;
+        case 'admin_foursquare':
+            return T_('Foursquare');
+            break;
         case 'admin_members':
             return T_('Members');
             break;
@@ -296,6 +325,9 @@ function getSectionName ($section)
         case 'admin_polls':
             return T_('Polls');
             break;
+        case 'admin_scheduler':
+            return T_('Scheduler');
+            break;
         case 'admin_upgrade':
             return T_('Upgrade');
             break;
@@ -303,7 +335,10 @@ function getSectionName ($section)
             return T_('Vimeo');
             break;
         case 'admin_whereiseveryone':
-            return T_('Where Is Everyone');
+            return T_('Foursquare');
+            break;
+        case 'admin_youtube':
+            return T_('YouTube');
             break;
         case 'addressbook':
             return T_('Address Book');
@@ -353,7 +388,7 @@ function getSectionName ($section)
         case 'tree':
             return T_('Family Tree');
             break;
-        case 'video':
+        case 'videogallery':
             return T_('Video Gallery');
             break;
         case 'whereiseveryone':
@@ -385,6 +420,9 @@ function getSectionUrl ($section)
         case 'admin_facebook':
             return 'admin/facebook.php';
             break;
+        case 'admin_foursquare':
+            return 'admin/foursquare.php';
+            break;
         case 'admin_members':
             return 'admin/members.php';
             break;
@@ -394,6 +432,9 @@ function getSectionUrl ($section)
         case 'admin_polls':
             return 'admin/polls.php';
             break;
+        case 'admin_scheduler':
+            return 'admin/scheduler.php';
+            break;
         case 'admin_upgrade':
             return 'admin/upgrade.php';
             break;
@@ -401,7 +442,10 @@ function getSectionUrl ($section)
             return 'admin/vimeo.php';
             break;
         case 'admin_whereiseveryone':
-            return 'admin/whereiseveryone.php';
+            return 'admin/foursquare.php';
+            break;
+        case 'admin_youtube':
+            return 'admin/youtube.php';
             break;
         case 'addressbook':
             return 'addressbook.php';
@@ -451,7 +495,7 @@ function getSectionUrl ($section)
         case 'tree':
             return 'familytree.php';
             break;
-        case 'video':
+        case 'videogallery':
             return 'video.php';
             break;
         case 'whereiseveryone':
@@ -461,6 +505,40 @@ function getSectionUrl ($section)
             return 'home.php';
             break;
     }
+}
+
+/**
+ * getUserNotifications 
+ * 
+ * @param int $userId 
+ * 
+ * @return mixed Returns # of notifications or false.
+ */
+function getUserNotifications ($userId)
+{
+    $notifications = 0;
+
+    $_SESSION['private_messages'] = $notifications;
+
+    // Private Messages
+    $sql = "SELECT * FROM `fcms_privatemsg` 
+            WHERE `read` < 1 
+            AND `to` = '$userId'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        return false;
+    }
+
+    if (mysql_num_rows($result) > 0)
+    {
+        $notifications += mysql_num_rows($result);
+
+        $_SESSION['private_messages'] = $notifications;
+    }
+
+    return $notifications;
 }
 
 /**
@@ -1542,9 +1620,18 @@ function getUserParticipationLevel ($points)
  */
 function getContactEmail ()
 {
-    $result = mysql_query("SELECT `contact` FROM `fcms_config`");
+    $sql = "SELECT `value` 
+            FROM `fcms_config`
+            WHERE `name` = 'contact'";
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        return 'ERROR-contact';
+    }
+
     $r = mysql_fetch_array($result);
-    return $r['contact'];
+
+    return $r['value'];
 }
 
 /**
@@ -1554,9 +1641,19 @@ function getContactEmail ()
  */
 function getSiteName()
 {
-    $result = mysql_query("SELECT `sitename` FROM `fcms_config`");
+    $sql = "SELECT `value`
+            FROM `fcms_config`
+            WHERE `name` = 'sitename'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        return 'ERROR-sitename';
+    }
+
     $r = mysql_fetch_array($result);
-    return cleanOutput($r['sitename']);
+
+    return cleanOutput($r['value']);
 }
 
 /**
@@ -1566,9 +1663,19 @@ function getSiteName()
  */
 function getCurrentVersion()
 {
-    $result = mysql_query("SELECT `current_version` FROM `fcms_config`");
+    $sql = "SELECT `value`
+            FROM `fcms_config`
+            WHERE `name` = 'current_version'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        return 'ERROR-current_version';
+    }
+
     $r = mysql_fetch_array($result);
-    return $r['current_version'];
+
+    return $r['value'];
 }
 
 /**
@@ -1968,97 +2075,6 @@ function displayMembersOnline ()
 }
 
 /**
- * isLoggedIn
- * 
- * Checks whether user is logged in or not.  If user is logged in 
- * it just returns, if not, it redirects to login screen.
- * returns  boolean
- */
-function isLoggedIn ($directory = '')
-{
-    $up = '';
-
-    // We have are looking for a sub directory, then index is up a level
-    if ($directory != '')
-    {
-        $up = '../';
-    }
-
-    // User has a session
-    if (isset($_SESSION['login_id']))
-    {
-        $id = $_SESSION['login_id'];
-        $user = $_SESSION['login_uname'];
-        $pass = $_SESSION['login_pw'];
-    }
-    // User has a cookie
-    elseif (isset($_COOKIE['fcms_login_id']))
-    {
-        $_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-        $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-        $_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-        $id = $_SESSION['login_id'];
-        $user = $_SESSION['login_uname'];
-        $pass = $_SESSION['login_pw'];
-    }
-    // User has nothing
-    else
-    {
-        $url = basename($_SERVER["REQUEST_URI"]);
-        header("Location: {$up}index.php?err=login&url=$directory$url");
-        exit();
-    }
-
-    // Make sure id is a digit
-    if (!ctype_digit($id))
-    {
-        $url = basename($_SERVER["REQUEST_URI"]);
-        header("Location: {$up}index.php?err=login&url=$directory$url");
-        exit();
-    }
-
-    // User's session/cookie credentials are good
-    if (checkLoginInfo($id, $user, $pass))
-    {
-        $sql = "SELECT `access`, `site_off`
-                FROM `fcms_users` AS u, `fcms_config`
-                WHERE u.`id` = ".escape_string($id)." LIMIT 1";
-        $result = mysql_query($sql) or displaySQLError(
-            'Site Status Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $r = mysql_fetch_array($result);
-
-        // Site is off and your not an admin
-        if ($r['site_off'] == 1 && $r['access'] > 1)
-        {
-            header("Location: {$up}index.php?err=off");
-            exit();
-        }
-        // Good login, you may proceed
-        else
-        {
-            return;
-        }
-    }
-    // The user's session/cookie credentials are bad
-    else
-    {
-        unset($_SESSION['login_id']);
-        unset($_SESSION['login_uname']);
-        unset($_SESSION['login_pw']);
-
-        if (isset($_COOKIE['fcms_login_id']))
-        {
-            setcookie('fcms_login_id', '', time() - 3600, '/');
-            setcookie('fcms_login_uname', '', time() - 3600, '/');
-            setcookie('fcms_login_pw', '', time() - 3600, '/');
-        }
-        header("Location: {$up}index.php?err=login");
-        exit();
-    }
-}
-
-/**
  * checkLoginInfo
  * 
  * Checks the user's username/pw combo
@@ -2188,17 +2204,6 @@ function usingFacebook()
     return usingSection('admin_facebook');
 }
 /**
- * usingVimeo
- * 
- * Wrapper function for usingSection.
- * 
- * @return  boolean
- */
-function usingVimeo()
-{
-    return usingSection('admin_vimeo');
-}
-/**
  * usingSection 
  * 
  * Checks whether the given section is currently being used.
@@ -2320,6 +2325,8 @@ function displayWhatsNewAll ($userid)
         return;
     }
 
+    $cachedUserData = array();
+
     // Loop through data
     foreach ($whatsNewData as $r)
     {
@@ -2345,115 +2352,231 @@ function displayWhatsNewAll ($userid)
 
         $rtime = strtotime($r['date']);
 
-        if ($r['type'] == 'BOARD')
+        // Use cached data
+        if (isset($cachedUserData[$r['userid']]))
         {
-            $check = mysql_query("SELECT min(`id`) AS id FROM `fcms_board_posts` WHERE `thread` = " . $r['id2']) or die("<h1>Thread or Post Error (util.inc.php 360)</h1>" . mysql_error());
-            $minpost = mysql_fetch_array($check);
-            $userName = getUserDisplayName($r['userid']);
-            $userName = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$userName.'</a>';
-            $subject = $r['title'];
-            $pos = strpos($subject, '#ANOUNCE#');
-            if ($pos !== false) {
-                $subject = substr($subject, 9, strlen($subject)-9);
-            }
-            $title = cleanOutput($subject);
-            $subject = cleanOutput($subject);
-            $subject = '<a href="messageboard.php?thread='.$r['id2'].'" title="'.$title.'">'.$subject.'</a>';
-            if ($r['id'] == $minpost['id']) {
-                $class = 'newthread';
-                $text = sprintf(T_('%s started the new thread %s.'), $userName, $subject);
-            } else {
-                $class = 'newpost';
-                $text = sprintf(T_('%s replied to %s.'), $userName, $subject);
-            }
-            echo '
-                <p class="'.$class.'">
-                    '.$text.'. <small><i>'.getHumanTimeSince($rtime).'</i></small>
-                </p>';
+            $displayname = $cachedUserData[$r['userid']]['displayname'];
+            $avatar      = $cachedUserData[$r['userid']]['avatar'];
         }
-        elseif ($r['type'] == 'JOINED')
+        // Get new data
+        else
         {
             $displayname = getUserDisplayName($r['userid']);
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            echo '
-                <p class="newmember">'.sprintf(T_('%s has joined the website.'), $displayname).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
-        }
-        elseif ($r['type'] == 'ADDRESSEDIT')
-        {
-            $displayname = getUserDisplayName($r['id2']);
+            $avatar      = '<img src="'.getCurrentAvatar($r['userid']).'" alt="'.cleanOutput($displayname).'"/>';
 
-            // TODO
-            // Log this error (user doesn't have settings)
-            if ($displayname == "")
+            // Save this for later
+            $cachedUserData[$r['userid']]['avatar']      = $avatar;
+            $cachedUserData[$r['userid']]['displayname'] = $displayname;
+        }
+
+        if ($r['type'] == 'BOARD')
+        {
+            $sql = "SELECT MIN(`id`) AS 'id' 
+                    FROM `fcms_board_posts` 
+                    WHERE `thread` = '".$r['id2']."'";
+
+            $result = mysql_query($sql);
+            if (!$result)
             {
-                $displayname = getUserDisplayName($r['id2'], 2, false);
+                displaySQLError('Thread/Post Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                return;
+            }
+            $minpost = mysql_fetch_array($result);
+
+            $subject  = $r['title'];
+
+            $pos = strpos($subject, '#ANOUNCE#');
+            if ($pos !== false)
+            {
+                $subject = substr($subject, 9, strlen($subject)-9);
             }
 
-            $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
-            $address     = '<a href="addressbook.php?address='.$r['id'].'">'.T_('address').'</a>';
+            $title   = cleanOutput($subject);
+            $subject = cleanOutput($subject);
+            $subject = '<a href="messageboard.php?thread='.$r['id2'].'" title="'.$title.'">'.$subject.'</a>';
 
-            if ($r['id3'] == 'F')
+            if ($r['id'] == $minpost['id'])
             {
-                $text = sprintf(T_('%s has updated her %s.'), $displayname, $address);
+                $class = 'newthread';
+                $text = sprintf(T_('Started the new thread %s.'), $subject);
             }
             else
             {
-                $text = sprintf(T_('%s has updated his %s.'), $displayname, $address);
+                $class = 'newpost';
+                $text = sprintf(T_('Replied to %s.'), $subject);
             }
 
             echo '
-                <p class="newaddress">'.$text.' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <div class="new '.$class.'">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.$text.'
+                        </p>
+                    </div>
+                </div>';
+        }
+        elseif ($r['type'] == 'JOINED')
+        {
+            echo '
+                <div class="new newmember">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>'.T_('Joined the website.').'</p>
+                    </div>
+                </div>';
+        }
+        elseif ($r['type'] == 'ADDRESSEDIT')
+        {
+            if ($r['title'] == 'address')
+            {
+                $titleType = T_('address');
+            }
+            elseif ($r['title'] == 'email')
+            {
+                $titleType = T_('email address');
+            }
+            elseif ($r['title'] == 'home')
+            {
+                $titleType = T_('home phone number');
+            }
+            elseif ($r['title'] == 'work')
+            {
+                $titleType = T_('work phone number');
+            }
+            elseif ($r['title'] == 'cell')
+            {
+                $titleType = T_('cell phone number');
+            }
+            // this shouldn't happen
+            else
+            {
+                $titleType = T_('address');
+            }
+
+            $editor  = getUserDisplayName($r['id2']);
+            $editor  = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$editor.'</a>';
+            $avatar  = '<img src="'.getCurrentAvatar($r['id2']).'" alt="'.cleanOutput($editor).'"/>';
+            $address = '<a href="addressbook.php?address='.$r['id'].'">'.$titleType.'</a>';
+
+            if ($r['id2'] != $r['userid'])
+            {
+                $user = getUserDisplayName($r['userid']);
+                $text = sprintf(T_pgettext('Example: "Updated the <address/phone/email> for <name>."', 'Updated the %s for %s.'), $address, $user);
+            }
+            else
+            {
+                if ($r['id3'] == 'F')
+                {
+                    $text = sprintf(T_pgettext('Example: "Updated her <address/phone/email>."', 'Updated her %s.'), $address);
+                }
+                else
+                {
+                    $text = sprintf(T_pgettext('Example: "Updated his <address/phone/email>."', 'Updated his %s.'), $address);
+                }
+            }
+
+            echo '
+                <div class="new newaddress">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$editor.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.$text.'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'ADDRESSADD')
         {
             $displayname = getUserDisplayName($r['id2']);
             $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
-            $for = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
+            $avatar      = '<img src="'.getCurrentAvatar($r['id2']).'" alt="'.cleanOutput($displayname).'"/>';
+            $for         = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
+
             echo '
-                <p class="newaddress">'.sprintf(T_('%s has added address information for %s.'), $displayname, $for).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <div class="new newaddress">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Added address information for %s.'), $for).'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'NEWS')
         {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.cleanOutput($r['title']).'</a>'; 
+            $title = !empty($r['title']) ? cleanOutput($r['title']) : T_('untitled');
+            $news  = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$title.'</a>'; 
+
             echo '
-                <p class="newnews">'.sprintf(T_('%s has added %s to his/her Family News.'), $displayname, $news).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <div class="new newnews">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Added %s to his/her Family News.'), $news).'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'PRAYERS')
         {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $for = '<a href="prayers.php">'.cleanOutput($r['title']).'</a>';
+
             echo '
-                <p class="newprayer">'.sprintf(T_('%s has added a Prayer Concern for %s.'), $displayname, $for).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <div class="new newprayer">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Added a Prayer Concern for %s.'), $for).'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'RECIPES')
         {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
             echo '
-                <p class="newrecipe">'.sprintf(T_('%s has added the %s recipe.'), $displayname, $rec).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <div class="new newrecipe">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Added the %s recipe.'), $rec).'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'DOCS')
         {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $doc = '<a href="documents.php">'.cleanOutput($r['title']).'</a>';
+
             echo '
-                <p class="newdocument">'.sprintf(T_('%s has added a new Document (%s).'), $displayname, $doc).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <div class="new newdocument">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Added a new Document (%s).'), $doc).'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'GALLERY')
         {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $cat = '<a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-            echo '
-                    <p class="newphoto">
-                        '.sprintf(T_('%s has added %d new photos to the %s category.'), $displayname, $r['id2'], $cat).' <small><i>'.getHumanTimeSince($rtime).'</i></small><br/>';
+            $cat    = '<a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+            $photos = '';
+
             $limit = 4;
-            if ($r['id2'] < $limit) {
+            if ($r['id2'] < $limit)
+            {
                 $limit = $r['id2'];
             }
             $sql = "SELECT * 
@@ -2462,89 +2585,120 @@ function displayWhatsNewAll ($userid)
                     AND DAYOFYEAR(`date`) = '".cleanInput($r['id3'])."' 
                     ORDER BY `date` 
                     DESC LIMIT $limit";
-            $photos = mysql_query($sql) or displaySQLError(
-                'Photos Info Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            while ($p=mysql_fetch_array($photos)) {
-                echo '
+
+            $result = mysql_query($sql);
+            if (!$result)
+            {
+                displaySQLError('Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                return;
+            }
+
+            while ($p = mysql_fetch_assoc($result))
+            {
+                $photos .= '
                         <a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'&amp;pid='.$p['id'].'">
                             <img src="uploads/photos/member'.$r['userid'].'/tb_'.basename($p['filename']).'" alt="'.cleanOutput($p['caption']).'"/>
                         </a> &nbsp;';
             }
+
             echo '
-                    </p>';
+                <div class="new newphoto">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Added %d new photos to the %s category.'), $r['id2'], $cat).'<br/>
+                            '.$photos.'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'NEWSCOM')
         {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
             echo '
-                    <p class="newcom">'.sprintf(T_('%s commented on Family News %s.'), $displayname, $news).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <div class="new newcom">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Commented on Family News %s.'), $news).'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'GALCOM')
         {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             echo '
-                    <p class="newcom">
-                        '.sprintf(T_('%s commented on the following photo:'), $displayname).' <small><i>'.getHumanTimeSince($rtime).'</i></small><br/>
-                        <a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'">
-                            <img src="uploads/photos/member'.$r['id2'].'/tb_'.basename($r['id3']).'"/>
-                        </a>
-                    </p>';
+                <div class="new newcom">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.T_('Commented on the following photo:').'<br/>
+                            <a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'">
+                                <img src="uploads/photos/member'.$r['id2'].'/tb_'.basename($r['id3']).'"/>
+                            </a>
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'RECIPECOM')
         {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
             $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
             echo '
-                    <p class="newcom">'.sprintf(T_('%s commented on Recipe %s.'), $displayname, $rec).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <div class="new newcom">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Commented on Recipe %s.'), $rec).'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'CALENDAR')
         {
-            $date_date   = date('F j, Y', strtotime($r['id2']));
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $for = '<a href="calendar.php?event='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+            $date_date = date('F j, Y', strtotime($r['id2']));
+            $for       = '<a href="calendar.php?event='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
             echo '
-                    <p class="newcal">'.sprintf(T_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $for).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <div class="new newcal">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.$for.' - '.$date_date.'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'POLL')
         {
             $poll = '<a href="home.php?poll_id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
             echo '
-                <p class="newpoll">'.sprintf(T_('A new Poll (%s) has been added.'), $poll).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <p class="new newpoll">'.sprintf(T_('A new Poll (%s) has been added.'), $poll).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
         }
         elseif ($r['type'] == 'WHEREISEVERYONE')
         {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-
             echo '
-                <p class="newwhere">'.sprintf(T_('%s visited %s.'), $displayname, $r['title']).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+                <div class="new newwhere">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Visited %s.'), $r['title']).'
+                        </p>
+                    </div>
+                </div>';
         }
         elseif ($r['type'] == 'STATUS')
         {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-
-            $avatar = '<img src="'.getCurrentAvatar($r['userid']).'" alt="'.cleanOutput($displayname).'"/>';
-
             $title = cleanOutput($r['title']);
             $title = nl2br_nospaces($title);
-
-            echo '
-                <div class="newstatus">
-                    <div class="status">
-                        '.$avatar.'
-                        <p>
-                            '.$displayname.'<br/>
-                            '.$title.'<br/>
-                            <small><i>'.getHumanTimeSince(strtotime($r['id3'])).'</i></small>
-                        </p>
-                    </div>';
 
             // Get any replies to this status update
             $sql = "SELECT `id`, `user`, `status`, `parent`, `updated`, `created` 
@@ -2558,30 +2712,90 @@ function displayWhatsNewAll ($userid)
                 return;
             }
 
-            echo '
-                    <div class="status_replies">';
+            $statuses = '';
 
             if (mysql_num_rows($result) > 0)
             {
-                while ($s = mysql_fetch_array($result))
+                while ($s = mysql_fetch_assoc($result))
                 {
                     $name = getUserDisplayName($s['user']);
                     $name = '<a class="u" href="profile.php?member='.$s['user'].'">'.$name.'</a>';
 
-                    $avatar = '<img src="'.getCurrentAvatar($s['user']).'" alt="'.cleanOutput($name).'"/>';
+                    $avatar2 = '<img src="'.getCurrentAvatar($s['user']).'" alt="'.cleanOutput($name).'"/>';
 
                     $status = cleanOutput($s['status']);
                     $status = nl2br_nospaces($status);
 
-                    echo '<div class="status">'.$avatar.'<p>'.$name.'<br/>'.$status.'<br/><small><i>'.getHumanTimeSince(strtotime($s['created'])).'</i></small></p></div>';
+                    $statuses .= '
+                    <div class="newstatus">
+                        <div class="avatar">'.$avatar2.'</div>
+                        <div class="info">
+                            '.$name.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince(strtotime($s['created'])).'</i></small>
+                            <p>
+                                '.$status.'
+                            </p>
+                        </div>
+                    </div>';
                 }
             }
+
+            echo '
+                <div class="new newstatus">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince(strtotime($r['id3'])).'</i></small>
+                        <p>
+                            '.$title.'
+                        </p>
+                        '.$statuses;
 
             displayStatusUpdateForm($r['id']);
             echo '
                     </div>
                 </div>';
         }
+        elseif ($r['type'] == 'AVATAR')
+        {
+            echo '
+                <div class="new newavatar">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.T_('Changed his profile picture.').'
+                        </p>
+                    </div>
+                </div>';
+        }
+        elseif ($r['type'] == 'VIDEO')
+        {
+            echo '
+                <div class="new newvideo">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.T_('Added a new Video.').'<br/>
+                            <a href="video.php?u='.$r['userid'].'&amp;id='.$r['id'].'"><img src="http://i.ytimg.com/vi/'.$r['id2'].'/default.jpg"/></a>
+                        </p>
+                    </div>
+                </div>';
+        }
+        elseif ($r['type'] == 'VIDEOCOM')
+        {
+            echo '
+                <div class="new newcom">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.T_('Commented on the following Video:').'<br/>
+                            <a href="video.php?u='.$r['userid'].'&amp;id='.$r['id'].'#comments"><img src="http://i.ytimg.com/vi/'.$r['id2'].'/default.jpg"/></a>
+                        </p>
+                    </div>
+                </div>';
+        }
+
 
         $lastday = $updated;
     }
@@ -2609,13 +2823,13 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
             AND p.`user` = u.`id` 
             AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
 
-            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.entered_by AS id2, u.`sex` AS id3, 'ADDRESSEDIT' AS type
-            FROM fcms_address AS a, fcms_users AS u
-            WHERE a.user = u.id
-            AND DATE_FORMAT(a.updated, '%Y-%m-%d %h') != DATE_FORMAT(u.joindate, '%Y-%m-%d %h') 
-            AND a.updated >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+            UNION SELECT a.`id`, c.`created` AS date, c.`column` AS title, a.`user` AS userid, a.`updated_id` AS id2, u.`sex` AS id3, 'ADDRESSEDIT' AS type
+            FROM `fcms_changelog` AS c
+            LEFT JOIN `fcms_users` AS u ON c.`user` = u.`id`
+            LEFT JOIN `fcms_address` AS a ON u.`id` = a.`user`
+            WHERE c.`created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
 
-            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.entered_by AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
+            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.`created_id` AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
             FROM fcms_address AS a, fcms_users AS u
             WHERE a.user = u.id
             AND u.`password` = 'NONMEMBER' 
@@ -2629,10 +2843,10 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
             AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
     if (usingFamilyNews())
     {
-        $sql .= "UNION SELECT n.`id` AS id, n.`date`, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type 
+        $sql .= "UNION SELECT n.`id` AS id, n.`updated` AS date, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type 
                  FROM `fcms_users` AS u, `fcms_news` AS n 
                  WHERE u.`id` = n.`user` 
-                 AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+                 AND n.`updated` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
                  AND `username` != 'SITENEWS' 
                  AND `password` != 'SITENEWS'
 
@@ -2693,6 +2907,22 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
              WHERE `updated` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              AND `parent` = 0
 
+             UNION SELECT 0 as id, `created` AS date, 0 AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'AVATAR' AS type
+             FROM `fcms_changelog`
+             WHERE `created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+             AND `column` = 'avatar'
+
+             UNION SELECT `id`, `created` AS date, `title`, `created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEO' AS type
+             FROM `fcms_video`
+             WHERE `created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+             AND `active` = '1'
+
+             UNION SELECT `video_id` AS 'id', c.`created` AS date, `comment`, c.`created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEOCOM' AS type
+             FROM `fcms_video_comment` AS c
+             LEFT JOIN `fcms_video` AS v ON c.`video_id` = v.`id`
+             WHERE c.`created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+             AND v.`active` = '1'
+
              ORDER BY date DESC LIMIT 0, 35";
 
     $result = mysql_query($sql);
@@ -2719,14 +2949,12 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
     // Add external foursquare data
     if (usingWhereIsEveryone())
     {
-        include_once('whereiseveryone_class.php');
+        include_once('socialmedia.php');
         include_once('foursquare/EpiFoursquare.php');
         include_once('foursquare/EpiCurl.php');
 
-        $whereObj = new WhereIsEveryone($currentUserId);
-
-        $users  = $whereObj->getActiveUsers();
-        $config = $whereObj->getFoursquareConfigData();
+        $users  = getFoursquareUsersData();
+        $config = getFoursquareConfigData();
 
         // TODO
         // Move this check inside the getFoursquareConfigData and have it return false on failure.
@@ -3185,6 +3413,15 @@ function getCurrentAvatar ($id, $gallery = false)
     return getAvatarPath($r['avatar'], $r['gravatar'], $url);
 }
 
+/**
+ * getAvatarPath 
+ * 
+ * @param string $avatar   no_avatar.jpg | gravatar | <filename>
+ * @param string $gravatar email address for gravatar or ''
+ * @param string $url      defaults to ''
+ * 
+ * @return string
+ */
 function getAvatarPath ($avatar, $gravatar, $url = '')
 {
     switch ($avatar)
@@ -3199,6 +3436,13 @@ function getAvatarPath ($avatar, $gravatar, $url = '')
     }
 }
 
+/**
+ * getTimezone 
+ * 
+ * @param int $user_id 
+ * 
+ * @return string
+ */
 function getTimezone ($user_id)
 {
     $sql = "SELECT `timezone` 
@@ -3249,50 +3493,6 @@ function subval_sort ($a, $subkey)
 }
 
 /**
- * deleteDirectory 
- * 
- * Recursively deletes a directory and anything in it.
- * 
- * @param string $dir 
- * 
- * @return void
- */
-function deleteDirectory ($dir)
-{
-    $files = scandir($dir);
-
-    if ($files === false)
-    {
-        return false;
-    }
-
-    // remove . and .. if they exist
-    if ($files[0] == '.') { array_shift($files); }
-    if ($files[0] == '..') { array_shift($files); }
-   
-    foreach ($files as $file)
-    {
-        $file = $dir . '/' . $file;
-
-        if (is_dir($file))
-        {
-            deleteDirectory($file);
-        }
-        else
-        {
-            unlink($file);
-        }
-    }
-
-    if (is_dir($dir))
-    {
-        rmdir($dir);
-    } 
-
-    return true;
-}
-
-/**
  * isRegistrationOn 
  * 
  * Checks the admin configuration to see if the site is allowing registration of new users.
@@ -3301,7 +3501,10 @@ function deleteDirectory ($dir)
  */
 function isRegistrationOn ()
 {
-    $sql = "SELECT `registration` FROM `fcms_config` LIMIT 1";
+    $sql = "SELECT `value` AS 'registration'
+            FROM `fcms_config`
+            WHERE `name` = 'registration'
+            LIMIT 1";
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -3396,4 +3599,256 @@ function getNumberOfPosts ($thread_id)
     $row = mysql_fetch_assoc($result);
 
     return (int)$row['c'];
+}
+
+/**
+ * postAsync
+ * 
+ * Sends an asynchronous post without waiting for a response.
+ * Used to start "cron-like" jobs in the background.
+ * 
+ * @param string $url 
+ * @param array  $params 
+ * 
+ * @return void
+ */
+function postAsync ($url, $params)
+{
+    foreach ($params as $key => &$val)
+    {
+        if (is_array($val))
+        {
+            $val = implode(',', $val);
+        }
+        $post_params[] = $key.'='.urlencode($val);
+    }
+
+    $post_string = implode('&', $post_params);
+
+    $parts = parse_url($url);
+
+    $fp = fsockopen($parts['host'], isset($parts['port'])?$parts['port']:80, $errno, $errstr, 30);
+
+    $out  = "POST ".$parts['path']." HTTP/1.1\r\n";
+    $out .= "Host: ".$parts['host']."\r\n";
+    $out .= "Content-Type: application/x-www-form-urlencoded\r\n";
+    $out .= "Content-Length: ".strlen($post_string)."\r\n";
+    $out .= "Connection: Close\r\n\r\n";
+
+    if (isset($post_string))
+    {
+        $out .= $post_string;
+    }
+
+    fwrite($fp, $out);
+    fclose($fp);
+}
+
+/**
+ * runningJob 
+ * 
+ * Is a cron job currently being run?  If any errors occur, we say cron is running
+ * just to be safe.
+ * 
+ * @return boolean
+ */
+function runningJob ()
+{
+    $sql = "SELECT `value`
+            FROM `fcms_config`
+            WHERE `name` = 'running_job'
+            AND `value` = '1'";
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        // Lets be safe and say a job is being run
+        return true;
+    }
+
+    if (mysql_num_rows($result) <= 0)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * runJob 
+ * 
+ * Sets the db flag that a job has started.  Returns true if worked, else false.
+ * 
+ * @return boolean
+ */
+function runJob ()
+{
+    $sql = "UPDATE `fcms_config`
+            SET `value` = '1'
+            WHERE `name` = 'running_job'";
+    if (!mysql_query($sql))
+    {
+        return false;
+    }
+
+    // running_job config was missing, add it
+    if (mysql_affected_rows() <= 0)
+    {
+        $sql = "INSERT INTO `fcms_config` (`name`, `value`)
+                VALUES ('running_job', '1')";
+        if (!mysql_query($sql))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * stopJob 
+ * 
+ * Turns off the job flag.  Returns true if worked, else false.
+ * 
+ * @return boolean
+ */
+function stopJob ()
+{
+    $sql = "UPDATE `fcms_config`
+            SET `value` = '0'
+            WHERE `name` = 'running_job'";
+    if (!mysql_query($sql))
+    {
+        return false;
+    }
+
+    if (mysql_affected_rows() <= 0)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * getExistingYouTubeIds 
+ * 
+ * @return array
+ */
+function getExistingYouTubeIds ()
+{
+    $ids = array();
+
+    $sql = "SELECT `source_id`
+            FROM `fcms_video`
+            WHERE `source` = 'youtube'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Import Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+
+        return $ids;
+    }
+
+    while ($row = mysql_fetch_assoc($result))
+    {
+        $ids[$row['source_id']] = 1;
+    }
+
+    return $ids;
+}
+
+/**
+ * userConnectedSocialMedia 
+ * 
+ * @param int $userId 
+ * 
+ * @return boolean
+ */
+function userConnectedSocialMedia ($userId)
+{
+    // Get Social Media data
+    $facebook   = getUserFacebookAccessToken($userId);
+    $foursquare = getFoursquareUserData($userId);
+    $youtube    = getYouTubeUserData($userId);
+
+    // Facebook
+    if (!empty($facebook))
+    {
+        return true;
+    }
+
+    // Foursquare
+    if (!empty($foursquare['fs_user_id']) && !empty($foursquare['fs_access_token']))
+    {
+        return true;
+    }
+
+    // YouTube
+    if (!empty($youtube['youtube_session_token']))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * delete_dir
+ * 
+ * Deletes a directory and everything in it.
+ * 
+ * @param string  $directory 
+ * 
+ * @return void
+ */
+function delete_dir ($directory)
+{
+    // removes trailing slash
+    if (substr($directory, -1) == '/')
+    {
+        $directory = substr($directory, 0, -1);
+    }
+
+    if (!file_exists($directory) || !is_dir($directory))
+    {
+        return false;
+
+    }
+    elseif (!is_readable($directory))
+    {
+        return false;
+    }
+
+    $handle = opendir($directory);
+
+    while (false !== ($item = readdir($handle)))
+    {
+        // skip . and ..
+        if ($item != '.' && $item != '..')
+        {
+            $path = $directory.'/'.$item;
+
+            // dirctory
+            if (is_dir($path)) 
+            {
+                delete_dir($path);
+
+            }
+            else
+            {
+                unlink($path);
+            }
+        }
+    }
+
+    closedir($handle);
+
+    // this dir is empty, delete it
+    if (!rmdir($directory))
+    {
+        return false;
+    }
+
+    return true;
 }

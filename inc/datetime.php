@@ -62,13 +62,13 @@ function getDayInitial ($w)
  */
 function getDayInitials ()
 {
-    $day_initial[0] = T_pgettext('One letter abbreviation for the day of the week.', 'sunday_initial');
-    $day_initial[1] = T_pgettext('One letter abbreviation for the day of the week.', 'monday_initial');
-    $day_initial[2] = T_pgettext('One letter abbreviation for the day of the week.', 'tuesday_initial');
-    $day_initial[3] = T_pgettext('One letter abbreviation for the day of the week.', 'wednesday_initial');
-    $day_initial[4] = T_pgettext('One letter abbreviation for the day of the week.', 'thursday_initial');
-    $day_initial[5] = T_pgettext('One letter abbreviation for the day of the week.', 'friday_initial');
-    $day_initial[6] = T_pgettext('One letter abbreviation for the day of the week.', 'saturday_initial');
+    $day_initial[0] = T_pgettext('One letter abbreviation for Sunday.', 'S');
+    $day_initial[1] = T_pgettext('One letter abbreviation for Monday.', 'M');
+    $day_initial[2] = T_pgettext('One letter abbreviation for Tuesday.', 'T');
+    $day_initial[3] = T_pgettext('One letter abbreviation for Wednesday.', 'W');
+    $day_initial[4] = T_pgettext('One letter abbreviation for Thursday.', 'T');
+    $day_initial[5] = T_pgettext('One letter abbreviation for Friday.', 'F');
+    $day_initial[6] = T_pgettext('One letter abbreviation for Saturday.', 'S');
 
     return $day_initial;
 }
@@ -84,13 +84,13 @@ function getDayInitials ()
  */
 function getDayAbbr ($d)
 {
-    $day_abbr[0] = T_pgettext('Three letter abbreviation for the day of the week.', 'Sun');
-    $day_abbr[1] = T_pgettext('Three letter abbreviation for the day of the week.', 'Mon');
-    $day_abbr[2] = T_pgettext('Three letter abbreviation for the day of the week.', 'Tue');
-    $day_abbr[3] = T_pgettext('Three letter abbreviation for the day of the week.', 'Wed');
-    $day_abbr[4] = T_pgettext('Three letter abbreviation for the day of the week.', 'Thr');
-    $day_abbr[5] = T_pgettext('Three letter abbreviation for the day of the week.', 'Fri');
-    $day_abbr[6] = T_pgettext('Three letter abbreviation for the day of the week.', 'Sat');
+    $day_abbr[0] = T_pgettext('Three letter abbreviation for Sunday.', 'Sun');
+    $day_abbr[1] = T_pgettext('Three letter abbreviation for Monday.', 'Mon');
+    $day_abbr[2] = T_pgettext('Three letter abbreviation for Tuesday.', 'Tue');
+    $day_abbr[3] = T_pgettext('Three letter abbreviation for Wednesday.', 'Wed');
+    $day_abbr[4] = T_pgettext('Three letter abbreviation for Thursday.', 'Thr');
+    $day_abbr[5] = T_pgettext('Three letter abbreviation for Friday.', 'Fri');
+    $day_abbr[6] = T_pgettext('Three letter abbreviation for Saturday.', 'Sat');
 
     return $day_abbr[$d];
 }
@@ -133,18 +133,18 @@ function getMonthName ($m)
  */
 function getMonthAbbr ($m)
 {
-    $month_abbr[1]  = T_pgettext('Three letter abbreviation for the month.', 'january_abbreviation');
-    $month_abbr[2]  = T_pgettext('Three letter abbreviation for the month.', 'february_abbreviation');
-    $month_abbr[3]  = T_pgettext('Three letter abbreviation for the month.', 'march_abbreviation');
-    $month_abbr[4]  = T_pgettext('Three letter abbreviation for the month.', 'april_abbreviation');
-    $month_abbr[5]  = T_pgettext('Three letter abbreviation for the month.', 'may_abbreviation');
-    $month_abbr[6]  = T_pgettext('Three letter abbreviation for the month.', 'jun_abbreviation');
-    $month_abbr[7]  = T_pgettext('Three letter abbreviation for the month.', 'july_abbreviation');
-    $month_abbr[8]  = T_pgettext('Three letter abbreviation for the month.', 'august_abbreviation');
-    $month_abbr[9]  = T_pgettext('Three letter abbreviation for the month.', 'september_abbreviation');
-    $month_abbr[10] = T_pgettext('Three letter abbreviation for the month.', 'october_abbreviation');
-    $month_abbr[11] = T_pgettext('Three letter abbreviation for the month.', 'november_abbreviation');
-    $month_abbr[12] = T_pgettext('Three letter abbreviation for the month.', 'december_abbreviation');
+    $month_abbr[1]  = T_pgettext('Three letter abbreviation for January.', 'Jan');
+    $month_abbr[2]  = T_pgettext('Three letter abbreviation for February.', 'Feb');
+    $month_abbr[3]  = T_pgettext('Three letter abbreviation for March.', 'Mar');
+    $month_abbr[4]  = T_pgettext('Three letter abbreviation for April.', 'Apr');
+    $month_abbr[5]  = T_pgettext('Three letter abbreviation for May.', 'May');
+    $month_abbr[6]  = T_pgettext('Three letter abbreviation for June.', 'Jun');
+    $month_abbr[7]  = T_pgettext('Three letter abbreviation for July.', 'Jul');
+    $month_abbr[8]  = T_pgettext('Three letter abbreviation for August.', 'Aug');
+    $month_abbr[9]  = T_pgettext('Three letter abbreviation for September.', 'Sep');
+    $month_abbr[10] = T_pgettext('Three letter abbreviation for October.', 'Oct');
+    $month_abbr[11] = T_pgettext('Three letter abbreviation for November.', 'Nov');
+    $month_abbr[12] = T_pgettext('Three letter abbreviation for December.', 'Dec');
 
     return $month_abbr[$m];
 }

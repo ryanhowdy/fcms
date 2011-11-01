@@ -430,6 +430,12 @@ a:hover { color: #000; }
 #navigation a:hover ul { display: block; }
 #navigation a:hover ul, #navigation a:hover a:hover ul, #navigation a:hover a:hover a:hover ul { display: block; }
 #navigation a:hover ul ul, #navigation a:hover a:hover ul ul { display: none; }
+#navigation .main b {
+    .border-radius(5px);
+    background-color: #aaa;
+    padding: 3px;
+    margin: 0 10px 0 0;
+}
 ul.menu {
     background-color: @main_gray;
     clear: both;
@@ -690,25 +696,25 @@ ul.whovoted img {
     height: 20px;
     vertical-align: middle;
 }
-.newthread, .newpost, .newaddress, .newnews, .newprayer, .newphoto, .newcom, 
-.newmember, .newrecipe, .newcal, .newpoll, .newdocument, .newwhere { padding: 10px 0 20px 30px; }
-.newstatus { padding: 10px 0 20px 10px; }
-.newthread:hover, .newpost:hover, .newaddress:hover, .newnews:hover, 
-.newprayer:hover, .newphoto:hover, .newcom:hover, .newmember:hover, 
-.newrecipe:hover, .newcal:hover, .newpoll:hover, .newdocument:hover, 
-.newwhere:hover, .newstatus:hover { background-color: @hover_light_blue; }
-.newthread { background: transparent url(images/new_thread.gif) no-repeat 5px 12px; }
-.newpost, .newcom { background: transparent url(images/board_quote.gif) no-repeat 5px 12px; }
-.newaddress { background: transparent url(images/new_book.gif) no-repeat 5px 12px; }
-.newnews { background: transparent url(images/new_news.gif) no-repeat 5px 12px; }
-.newprayer { background: transparent url(images/new_prayer.gif) no-repeat 5px 12px; }
-.newphoto { background: transparent url(images/board_images.gif) no-repeat 5px 12px; }
-.newmember { background: transparent url(images/user.gif) no-repeat 5px 12px; }
-.newrecipe { background: transparent url(images/new_recipe.gif) no-repeat 5px 12px; }
-.newcal { background: transparent url(images/datepicker.jpg) no-repeat 5px 12px; }
-.newpoll { background: transparent url(images/help.gif) no-repeat 5px 12px; }
-.newdocument { background: transparent url(images/new_document.gif) no-repeat 5px 12px; }
-.newwhere { background: transparent url(images/foursquare-logo.png) no-repeat 5px 12px; }
+#home .new {
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+    padding: 20px 10px;
+}
+#home .new:hover { background-color: @hover_light_blue; }
+#home .new i { color: #999; }
+#home .avatar { float: left; }
+#home .avatar img {
+    height: 20px;
+    width: 20px;
+}
+#home .info { margin-left: 30px; }
+#home .newstatus .newstatus { padding: 10px 0; }
+#home .newstatus .newstatus .avatar img {
+    height: 15px;
+    width: 15px;
+}
+#home .newstatus .newstatus .info { margin-left: 25px; }
 ul.todo li span {
     color: #888;
     text-decoration: line-through;
@@ -2271,6 +2277,49 @@ h4.recipe-name {
 #prayers h4 form, #prayers h4 form div { display: inline; }
 
 
+/* =COMMENTS
+------------------------------------------------*/
+#comments {
+    padding: 30px 0;
+}
+#addcomments {
+    padding: 20px 0 50px 0;
+}
+#addcomments h3 {
+    padding: 0;
+}
+.comment {
+    border-top: 1px solid #eee;
+    padding: 15px 0 40px 0;
+    font: 12px/18px @fontstack;
+}
+.comment:hover {
+    background-color: @hover_light_blue;
+    border-color: @hover_dark_blue;
+}
+.comment form { margin: 0; }
+.comment input {
+    float: right;
+    padding-right: 5px;
+}
+.comment img.avatar {
+    float: left;
+    height: 50px;
+    padding: 0 0 0 15px;
+    width: 50px;
+}
+.comment b {
+    color: @link_dark;
+    font: bold 16px/20px @fontstack;
+    padding: 0 10px 0 25px;
+}
+.comment span {
+    color: #999;
+    font: italic 10px/20px @fontstack;
+}
+.comment p { padding: 0 0 0 90px; }
+
+
 /* =PARTICIPATION =LEVELS
 ------------------------------------------------*/
 .level0, .level1, .level2, .level3, .level4, .level5, .level6, .level7, .level8, .level9, .level10 {
@@ -2431,6 +2480,127 @@ a.foursquare {
 .checkin span { display: block; }
 
 
+/* =VIDEO
+------------------------------------------------*/
+#video_content .category {
+    margin: 10px 20px 40px 20px;
+    width: 120px;
+    height: auto;
+}
+#small_video_users {
+    float: left;
+    font: 14px @fontstack;
+    list-style: none;
+}
+#small_video_users li {
+    float: left;
+    padding: 10px;
+    width: 300px;
+}
+#small_video_users img {
+    float: left;
+    height: 40px;
+    padding: 0 5px 10px 0;
+    width: 40px;
+}
+#small_video_users span {
+    display: block;
+}
+#large_video_users {
+    float: left;
+    font: 14px @fontstack;
+    list-style: none;
+}
+#large_video_users li {
+    float: left;
+    height: 150px;
+    width: 80px;
+    margin: 0 20px;
+}
+#large_video_users span {
+    display: block;
+}
+#video_edit {
+    background-color: @hover_light_blue;
+    border: 1px solid @hover_dark_blue;
+    font-size: 11px;
+    margin: 0 0 15px 0;
+    padding: 15px;
+}
+.video_edit_show_hide {
+    display: block;
+    font-size: 13px;
+    margin: 0 0 5px 0;
+    text-align: right;
+}
+#video_edit .btn {
+    cursor: pointer;
+    display: inline-block;
+    background-color: #e6e6e6;
+    background-repeat: no-repeat;
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), color-stop(25%, #ffffff), to(#e6e6e6));
+    background-image: -webkit-linear-gradient(#ffffff, #ffffff 25%, #e6e6e6);
+    background-image: -moz-linear-gradient(top, #ffffff, #ffffff 25%, #e6e6e6);
+    background-image: -ms-linear-gradient(#ffffff, #ffffff 25%, #e6e6e6);
+    background-image: -o-linear-gradient(#ffffff, #ffffff 25%, #e6e6e6);
+    background-image: linear-gradient(#ffffff, #ffffff 25%, #e6e6e6);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e6e6e6', GradientType=0);
+    padding: 5px 14px 6px;
+    color: #333;
+    font: 11px Verdana, Arial, sans-serif;
+    line-height: normal;
+    border: 1px solid #ccc;
+    border-bottom-color: #bbb;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+    -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+    -webkit-transition: 0.1s linear all;
+    -moz-transition: 0.1s linear all;
+    -ms-transition: 0.1s linear all;
+    -o-transition: 0.1s linear all;
+    transition: 0.1s linear all;
+}
+#video_edit .btn:hover {
+    background-position: 0 -15px;
+    color: #333;
+    text-decoration: none;
+}
+#video_edit .btn:focus {
+    outline: 1px dotted #666;
+}
+#video_edit .btn:active {
+    -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05);
+    -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+#video_content #member {
+    padding: 10px;
+    margin: 0 0 50px 0;
+}
+#video_content #member img {
+    float: left;
+    margin-right: 10px;
+}
+#video_content #member span {
+    color: #999;
+    font-size: 12px;
+}
+#video_content #member h2 {
+    font-size: 36px;
+}
+.categories .removed img, .categories .removed span {
+    filter: alpha(opacity=30);
+    opacity: 0.3;
+}
+.categories .removed:hover img, .categories .removed:hover span {
+    filter: alpha(opacity=100);
+    opacity: 1;
+}
+
+
 /* =HELP
 ------------------------------------------------*/
 #help { padding: 0 30px; }
@@ -2477,6 +2647,7 @@ a.foursquare {
 }
 .share-nav td, .share-nav th { padding-left: 10px; }
 #config table .remove { text-align: center; }
+#config table .remove .delbtn { padding: 0; }
 #config fieldset .add {
     padding: 0 0 0 20px;
     background: transparent url(images/add.gif) no-repeat center left;

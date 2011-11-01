@@ -19,12 +19,11 @@ require 'fcms.php';
 
 load('datetime', 'calendar');
 
-// Check that the user is logged in
-isLoggedIn();
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init();
 
 // Globals
-$calendar = new Calendar($currentUserId);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$calendar      = new Calendar($currentUserId);
 
 $TMPL = array(
     'sitename'      => getSiteName(),

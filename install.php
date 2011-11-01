@@ -521,15 +521,15 @@ function displayStepFive ($error = '0')
     }
 
     // Setup Config
-    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 2.5.3');
+    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 2.6');
 
     // Setup Navigation
     $order  = 0;
-    $order2 = 8;
+    $order2 = 0;
 
     $nextComOrder   = 2;
-    $nextShareOrder = 4;
-    $nextAdminOrder = 8;
+    $nextShareOrder = 5;
+    $nextAdminOrder = 10;
 
     $params = array();
 
@@ -542,6 +542,7 @@ function displayStepFive ($error = '0')
     $params['familynews'] = array(3, $order, 0);
 
     // Prayers
+    $order = 0;
     if (isset($_POST['sections-prayers']))
     {
         $order = $nextComOrder;
@@ -550,6 +551,7 @@ function displayStepFive ($error = '0')
     $params['prayers'] = array(3, $order, 0);
 
     // Recipes
+    $order = 0;
     if (isset($_POST['sections-recipes']))
     {
         $order = $nextShareOrder;
@@ -558,6 +560,7 @@ function displayStepFive ($error = '0')
     $params['recipes'] = array(4, $order, 0);
 
     // Family Tree
+    $order = 0;
     if (isset($_POST['sections-tree']))
     {
         $order = $nextShareOrder;
@@ -566,6 +569,7 @@ function displayStepFive ($error = '0')
     $params['tree'] = array(4, $order, 0);
 
     // Documents
+    $order = 0;
     if (isset($_POST['sections-documents']))
     {
         $order = $nextShareOrder;
@@ -574,15 +578,17 @@ function displayStepFive ($error = '0')
     $params['documents'] = array(4, $order, 0);
 
     // Where Is Everyone
+    $order = 0;
     if (isset($_POST['sections-whereiseveryone']))
     {
         $order  = $nextShareOrder;
         $order2 = $nextAdminOrder;
         $nextShareOrder++;
         $nextAdminOrder++;
+
+        $params['admin_foursquare'] = array(6, $order2, 0);
     }
-    $params['whereiseveryone']       = array(4, $order, 0);
-    $params['admin_whereiseveryone'] = array(6, $order2, 0);
+    $params['whereiseveryone'] = array(4, $order, 0);
 
     installNavigation($params);
 

@@ -30,8 +30,7 @@ load(
     'facebook'
 );
 
-// Check that the user is logged in
-isLoggedIn();
+init();
 
 // Globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
@@ -375,6 +374,7 @@ function displayWhatsNew ()
         $recipes         = formatWhatsNewRecipes($whatsNewData, $tzOffset);
         $prayers         = formatWhatsNewPrayers($whatsNewData, $tzOffset);
         $photogallery    = formatWhatsNewPhotoGallery($whatsNewData, $tzOffset);
+        $videogallery    = formatWhatsNewVideoGallery($whatsNewData, $tzOffset);
         $comments        = formatWhatsNewComments($whatsNewData, $tzOffset);
         $statusupdates   = formatWhatsNewStatusUpdates($whatsNewData, $tzOffset);
         $calendar        = formatWhatsNewCalendar($whatsNewData, $tzOffset);
@@ -386,16 +386,17 @@ function displayWhatsNew ()
         $sections = array(
             'photogallery',
             'misc',
-            'messageboard',
+            'videogallery',
             'statusupdates',
-            'comments',
+            'messageboard',
             'familynews',
-            'addressbook',
+            'comments',
             'whereiseveryone',
-            'calendar',
+            'addressbook',
             'recipes',
-            'documents',
-            'prayers'
+            'calendar',
+            'prayers',
+            'documents'
         );
 
         // Remove unused sections
@@ -592,7 +593,7 @@ function displayStatusUpdateSubmit ()
             {
                 try
                 {
-                    $statusUpdate = $facebook->api('/me/feed', 'post', array('message'=> "$status", 'cb' => ''));
+                    $statusUpdate = $facebook->api('/me/feed', 'post', array('message'=> $_POST['status'], 'cb' => ''));
                 }
                 catch (FacebookApiException $e)
                 {
@@ -1094,6 +1095,80 @@ function formatWhatsNewPhotoGallery ($whatsNewData, $tzOffset)
 }
 
 /**
+ * formatWhatsNewVideoGallery 
+ * 
+ * @param array  $whatsNewData 
+ * @param string $tzOffset 
+ * 
+ * @return string
+ */
+function formatWhatsNewVideoGallery ($whatsNewData, $tzOffset)
+{
+    $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
+    $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
+
+    $return = '
+            <h3>'.T_('Video Gallery').'</h3>
+            <ul>';
+
+    if (!isset($whatsNewData['VIDEO']))
+    {
+        return $return.'<i>'.T_('Nothing new').'</i></ul>';
+    }
+
+    $count = 0;
+
+    foreach ($whatsNewData['VIDEO'] as $data)
+    {
+        foreach ($data as $row)
+        {
+            // Quit, if we displayed 5 already
+            if ($count > 5)
+            {
+                break;
+            }
+            $count++;
+
+            $displayname   = getUserDisplayName($row['userid']);
+            $category      = cleanOutput($row['title']);
+            $full_category = cleanOutput($category);
+            $date          = fixDate('YmdHis', $tzOffset, $row['date']);
+            if (strlen($category) > 20)
+            {
+                $category = substr($category, 0, 17) . "...";
+            }
+
+            // Today
+            if ($date >= $today_start && $date <= $today_end)
+            {
+                $full_date = T_('Today');
+                $d = ' class="today"';
+            }
+            else
+            {
+                $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
+                $d = '';
+            }
+
+            $return .= '
+                    <li>
+                        <div'.$d.'>'.$full_date.'</div>
+                        <p>
+                            <a href="video.php?u='.$row['userid'].'&amp;id='.$row['id'].'" title="'.$full_category.'">'.$category.'</a> - 
+                            <a class="u" href="profile.php?member='.$row['userid'].'">'.$displayname.'</a><br/>
+                            <a href="video.php?u='.$row['userid'].'&amp;id='.$row['id'].'"><img src="http://i.ytimg.com/vi/'.$row['id2'].'/default.jpg"/></a>
+                        </p>
+                    </li>';
+        }
+    }
+
+    $return .= '
+            </ul>';
+
+    return $return;
+}
+
+/**
  * formatWhatsNewComments 
  * 
  * @param array  $whatsNewData 
@@ -1110,7 +1185,7 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
             <h3>'.T_('Comments').'</h3>
             <ul>';
 
-    if (!isset($whatsNewData['GALCOM']) && !isset($whatsNewData['NEWSCOM']) && !isset($whatsNewData['RECIPESCOM']))
+    if (!isset($whatsNewData['GALCOM']) && !isset($whatsNewData['NEWSCOM']) && !isset($whatsNewData['RECIPESCOM']) && !isset($whatsNewData['VIDEOCOM']))
     {
         return $return.'<i>'.T_('Nothing new').'</i></ul>';
     }
@@ -1118,7 +1193,7 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
     $count = 0;
 
     # Get each comment type from the $whatsNewData array, store it in a new array
-    $using = array('GALCOM');
+    $using = array('GALCOM', 'VIDEOCOM');
     if (usingFamilyNews())
     {
         array_push($using, 'NEWSCOM');
@@ -1144,6 +1219,10 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
             }
         }
     }
+
+    // Need to resort the commentsData
+    $commentsData = subval_sort($commentsData, 'date');
+    $commentsData = array_reverse($commentsData);
 
     foreach ($commentsData as $row)
     {
@@ -1180,6 +1259,10 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
         elseif ($row['type'] == 'RECIPECOM')
         {
             $url = 'recipes.php?category='.$row['id2'].'&amp;id='.$row['id'];
+        }
+        elseif ($row['type'] == 'VIDEOCOM')
+        {
+            $url = 'video.php?u='.$row['userid'].'&amp;id='.$row['id'].'#comments';
         }
         else
         {
@@ -1526,7 +1609,7 @@ function formatWhatsNewMisc ($whatsNewData, $tzOffset)
             <h3>'.T_('Misc.').'</h3>
             <ul>';
 
-    if (!isset($whatsNewData['JOINED']) && !isset($whatsNewData['ADDRESSADD']) && !isset($whatsNewData['POLL']))
+    if (!isset($whatsNewData['JOINED']) && !isset($whatsNewData['ADDRESSADD']) && !isset($whatsNewData['POLL']) && !isset($whatsNewData['AVATAR']))
     {
         return $return.'<i>'.T_('Nothing new').'</i></ul>';
     }
@@ -1550,6 +1633,10 @@ function formatWhatsNewMisc ($whatsNewData, $tzOffset)
             }
         }
     }
+
+    // Need to resort the miscData
+    $miscData = subval_sort($miscData, 'date');
+    $miscData = array_reverse($miscData);
 
     foreach ($miscData as $r)
     {
@@ -1583,6 +1670,11 @@ function formatWhatsNewMisc ($whatsNewData, $tzOffset)
             $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.getUserDisplayName($r['id2']).'</a>';
             $for         = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
             $title       = sprintf(T_('%s has added address information for %s.'), $displayname, $for);
+        }
+        elseif ($r['type'] == 'AVATAR')
+        {
+            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.getUserDisplayName($r['userid']).'</a>';
+            $title       = sprintf(T_('%s changed his profile picture.'), $displayname);
         }
         // JOINED
         else

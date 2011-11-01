@@ -20,11 +20,10 @@ require 'fcms.php';
 
 load('familytree');
 
-// Check that the user is logged in
-isLoggedIn();
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init();
 
-$ftree = new FamilyTree($currentUserId);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$ftree         = new FamilyTree($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
@@ -171,8 +170,8 @@ if (isset($_POST['add-user']))
     $lastid = mysql_insert_id();
 
     // Create empty address
-    $sql = "INSERT INTO `fcms_address`(`user`, `entered_by`,`updated`) 
-            VALUES ('$lastid', '$currentUserId', NOW())";
+    $sql = "INSERT INTO `fcms_address`(`user`, `created_id`, `created`, `updated_id`, `updated`) 
+            VALUES ('$lastid', '$currentUserId', NOW(), '$currentUserId', NOW())";
     if (!mysql_query($sql))
     {
         displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());

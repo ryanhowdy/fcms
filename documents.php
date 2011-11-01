@@ -20,11 +20,10 @@ require 'fcms.php';
 
 load('documents');
 
-// Check that the user is logged in
-isLoggedIn();
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init();
 
-$docs = new Documents($currentUserId);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$docs          = new Documents($currentUserId);
 
 // Download Document
 if (isset($_GET['download']))

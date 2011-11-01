@@ -19,9 +19,7 @@ require 'fcms.php';
 
 load('datetime', 'messageboard');
 
-
-// Check that the user is logged in
-isLoggedIn();
+init();
 
 // Setup some globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');

@@ -19,11 +19,10 @@ require 'fcms.php';
 
 load('recipes');
 
-// Check that the user is logged in
-isLoggedIn();
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init();
 
-$rec = new Recipes($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$rec           = new Recipes($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 // Setup the Template variables;
 $TMPL = array(

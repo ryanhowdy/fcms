@@ -1,26 +1,30 @@
 
-FAMILY CONNECTIONS 2.5.4
+                             Family Connections 2.6
 
 
-I. Installation
-----------------
+  Installation
+  ------------
 
-  1. Upload the entire contents of FCMS_2.5.4.zip to your web host.
+  1. Upload the entire contents of FCMS_2.6.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
-        If you installed Family Connections in a directory called
-        fcms/ and your domain is yourdomain.com, then you would 
-        type in the url http://www.yourdomain.com/fcms/ into your
-        browser.
+     If you installed Family Connections in a directory called fcms/ and your 
+     domain is yourdomain.com, then you would type in the url 
+     http://www.yourdomain.com/fcms/ into your browser.
 
-  4. It is recommended that you delete the install.php file after installation.
-
+  3. It is recommended that you delete the install.php file after installation.
 
 
 
-II. Upgrading from 2.5.x to 2.5.4
---------------------------------
+
+  Upgrading from 2.5.4 to 2.6
+  ---------------------------
+
+  YOU MUST HAVE VERSION 2.5.4 INSTALLED IN ORDER TO UPGRADE TO 2.6.
+
+  If your version is not 2.5.4, please upgrade to 2.5.4, then to 2.6.
+
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
 
@@ -33,27 +37,44 @@ II. Upgrading from 2.5.x to 2.5.4
   1. It is recommended that you backup your entire site, including your
      MySQL database before upgrading.
 
-  2. Login as the administrator, visit the upgrade section, and run the automatic
-     upgrade.
+  2. Login as the administrator, visit the upgrade section, and run the 
+     automatic upgrade.
 
-  3. Delete the install.php file from your web host (if it still exists).
+  3. Because of a bug in 2.5.4, you will get an error saying
+     'Could not find upgrade directory.'.  Ignore this error and change
+     the current url from 'admin/upgrade.php?auto=4' to
+     'admin/upgrade.php?auto=5'.
+
+  4. Delete the install.php file from your web host (if it still exists).
 
 
 
-III. Change Log
-----------------
- 2.5.4
+  Change Log
+  ----------
 
-    #382 - English MO displaying messed up dates
-    #383 - Automatic Upgrade from 2.5.3 to 2.6 not working
+  2.6
+
+    #22  - Video Section (YouTube)
+    #233 - Show avatar changes in What's New
+    #309 - Create better PM notification
+    #314 - Rename Where Is Everyone Admin
+    #338 - Show specific address/contact info changes
+    #351 - Better family news import
+    #381 - Facebook updates have \"
+    #344 - Add cron jobs (FCMS Scheduler)
+    #349 - Show photos on Family Tree
+    #361 - Adding Images to Message Board / Family News not working
+    #364 - Better error handling when connecting with Foursquare
+    #366 - Usernames with ' apostrophe causes photo tagging javascript to crash
+ 
 
   For the full change log please refer to the included ChangeLog file.
 
 
 
+  License
+  -------
 
-IV. License
-------------
+  This software uses the The GNU General Public License (GPL), please refer to 
+  the full license description in the LICENSE file.
 
-  This software uses the The GNU General Public License (GPL), please refer to the 
-  full license description in the LICENSE file.

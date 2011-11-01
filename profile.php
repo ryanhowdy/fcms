@@ -19,12 +19,11 @@ require 'fcms.php';
 
 load('profile');
 
-// Check that the user is logged in
-isLoggedIn();
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init();
 
-$profile = new Profile($currentUserId);
-$awards  = new Awards($currentUserId);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$profile       = new Profile($currentUserId);
+$awards        = new Awards($currentUserId);
 
 // Changing Avatar with Advanced Uploader
 if (isset($_GET['advanced-avatar']))
@@ -48,7 +47,15 @@ if (isset($_GET['advanced-avatar']))
             WHERE `id` = '$currentUserId'";
     if (!mysql_query($sql))
     {
-        echo "failure";
+        echo "FAILURE: Could not update db with new avatar.\n";
+        exit();
+    }
+
+    $sql = "INSERT INTO `fcms_changelog` (`user`, `table`, `column`, `created`)
+            VALUES ('$currentUserId', 'users', 'avatar', NOW())";
+    if (!mysql_query($sql))
+    {
+        echo "FAILURE: Could not update db with changelog details.\n";
         exit();
     }
 
@@ -58,7 +65,7 @@ if (isset($_GET['advanced-avatar']))
     }
     else
     {
-        echo "failure";
+        echo "FAILURE: Could not move avatar file.\n";
     }
     exit();
 }

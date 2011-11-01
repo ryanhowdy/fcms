@@ -20,10 +20,8 @@ require '../fcms.php';
 
 load('socialmedia');
 
-// Check that the user is logged in
-isLoggedIn('admin/');
+init('admin/');
 
-// Globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
 $TMPL = array(
@@ -176,9 +174,21 @@ function displayFormSubmit ()
     $id     = isset($_POST['id'])     ? cleanInput($_POST['id'])     : '';
     $secret = isset($_POST['secret']) ? cleanInput($_POST['secret']) : '';
 
-    $sql = "UPDATE `fcms_config` SET 
-                `fb_app_id` = '$id',
-                `fb_secret` = '$secret'";
+    $sql = "UPDATE `fcms_config`
+            SET `value` = '$id'
+            WHERE `name` = 'fb_app_id'";
+    
+    if (!mysql_query($sql))
+    {
+        displayHeader();
+        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    $sql = "UPDATE `fcms_config`
+            SET `value` = '$secret'
+            WHERE `name` = 'fb_secret'";
     
     if (!mysql_query($sql))
     {

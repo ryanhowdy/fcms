@@ -20,8 +20,7 @@ require '../fcms.php';
 
 load('socialmedia', 'vimeo');
 
-// Check that the user is logged in
-isLoggedIn('admin/');
+init('admin/');
 
 // Globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');

@@ -260,8 +260,9 @@ function displaySubmit ($params = '')
     $message  = '';
 
     // Which activation method?
-    $sql = "SELECT `auto_activate`
-            FROM `fcms_config`";
+    $sql = "SELECT `value` AS 'auto_activate'
+            FROM `fcms_config`
+            WHERE `name` = 'auto_activate'";
 
     $result = mysql_query($sql);
     if (!$result)

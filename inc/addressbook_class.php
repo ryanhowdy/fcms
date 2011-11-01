@@ -305,7 +305,7 @@ class AddressBook
                 AND (
                     `password` != 'PRIVATE' 
                     OR (
-                        a.`entered_by` = ".$this->currentUserId." 
+                        a.`created_id` = ".$this->currentUserId." 
                         AND `password` = 'PRIVATE' 
                     )
                 )
@@ -340,7 +340,7 @@ class AddressBook
                         `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
-                    AND a.`entered_by` = ".$this->currentUserId." 
+                    AND a.`created_id` = ".$this->currentUserId." 
                     AND `password` = 'PRIVATE' 
                     ORDER BY `lname`";
         }
@@ -1160,10 +1160,12 @@ class AddressBook
 
             // Create address for non-member
             $sql = "INSERT INTO `fcms_address`(
-                        `user`, `entered_by`, `updated`, `address`, `city`, `state`, 
+                        `user`, `created_id`, `created`, `updated_id`, `updated`, `address`, `city`, `state`, 
                         `zip`, `home`, `work`, `cell`
                     ) VALUES (
                         '$id', 
+                        '".$this->currentUserId."', 
+                        NOW(), 
                         '".$this->currentUserId."', 
                         NOW(), 
                         '".cleanInput($street)."', 

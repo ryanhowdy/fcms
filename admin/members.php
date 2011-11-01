@@ -19,8 +19,7 @@ require URL_PREFIX.'fcms.php';
 
 load('admin_members', 'database');
 
-// Check that the user is logged in
-isLoggedIn('admin/');
+init('admin/');
 
 // Globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
@@ -418,8 +417,8 @@ function displayCreateSubmit ()
     $lastid = mysql_insert_id();
 
     // Create member's address
-    $sql = "INSERT INTO `fcms_address`(`user`, `entered_by`,`updated`)
-            VALUES ($lastid, $lastid, NOW())";
+    $sql = "INSERT INTO `fcms_address`(`user`, `created_id`, `created`, `updated_id`, `updated`)
+            VALUES ($lastid, '$currentUserId', NOW(), '$currentUserId', NOW())";
     if (!mysql_query($sql))
     {
         displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());

@@ -786,6 +786,16 @@ class Settings
 
         $data['author'] = $author;
 
+        // Fix missing theme comment
+        if ($name == '0; }')
+        {
+            $data['name']    = 'Error: missing data';
+            $data['desc']    = '';
+            $data['size']    = '';
+            $data['updated'] = '';
+            $data['author']  = '';
+        }
+
         return $data;
     }
 

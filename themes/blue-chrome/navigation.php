@@ -4,7 +4,7 @@
                 <a class="main homelink" href="<?php echo $TMPL['path'].'index.php';?>">&nbsp;</a>
             </li>
             <li class="main dropdown">
-                <a class="main" href="<?php echo $TMPL['path'].$TMPL['nav-link'][2][0]['url'];?>"><?php echo T_('My Stuff');?><![if gt IE 6]></a><![endif]><!--[if lte IE 6]><table><tr><td><![endif]-->
+                <a class="main" href="<?php echo $TMPL['path'].$TMPL['nav-link'][2][0]['url'];?>"><?php echo $TMPL['nav-link']['my-stuff'];?><![if gt IE 6]></a><![endif]><!--[if lte IE 6]><table><tr><td><![endif]-->
                 <ul class="sub">
 <?php foreach($TMPL['nav-link'][2] as $nav): ?>
                     <li class="sub"><a class="sub" href="<?php echo $TMPL['path'].$nav['url'];?>"><?php echo $nav['text'];?></a></li>

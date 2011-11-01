@@ -101,6 +101,11 @@ class database{
                 else{
                     $this->con=call_user_func($this->db_connect,$this->host,$this->user,$this->password);
                 }
+                if(!mysql_query("SET NAMES 'utf8'"))
+                {
+                    $this->halt("UTF8 error.");
+                    return false;
+                }
                 // mSQL
             }else if($this->database_type=="msql"){
                 $this->con=call_user_func($this->db_connect,$this->host,$this->user,$this->password);

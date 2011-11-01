@@ -19,12 +19,11 @@ require URL_PREFIX.'fcms.php';
 
 load('admin', 'database', 'alerts');
 
-// Check that the user is logged in
-isLoggedIn('admin/');
-$currentUserId = (int)escape_string($_SESSION['login_id']);
+init('admin/');
 
-$admin = new Admin($currentUserId);
-$alert = new Alerts($currentUserId);
+$currentUserId = (int)escape_string($_SESSION['login_id']);
+$admin         = new Admin($currentUserId);
+$alert         = new Alerts($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(

@@ -720,10 +720,69 @@ class Calendar
             return;
         }
 
+        $events = array();
+
+        if ($this->db->count_rows() > 0)
+        {
+            while ($row = $this->db->get_row())
+            {
+                $events[] = $row;
+            }
+        }
+
+        // Get birthdays
+        $sql = "SELECT `id`, `fname`, `lname`, `birthday` as 'date' 
+                FROM `fcms_users` 
+                WHERE `birthday` LIKE '%%%%-$month-%%'";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Birthdays Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while($r = $this->db->get_row())
+            {
+                $birthday = $r['date'];
+
+                list($year,$month,$day) = explode("-",$birthday);
+
+                $year_diff  = gmdate("Y") - $year;
+                $month_diff = gmdate("m") - $month;
+                $day_diff   = gmdate("d") - $day;
+
+                if ($month_diff < 0)
+                {
+                    $year_diff--;
+                }
+                elseif ($month_diff == 0 && $day_diff < 0)
+                {
+                    $year_diff--;
+                }
+
+                $age = $year_diff;
+
+                $r['id']         = 'birthday'.$r['id'];
+                $r['day']        = $day;
+                $r['title']      = $r['fname'].' '.$r['lname'];
+                $r['desc']       = sprintf(T_('%s turns %s today.'), $r['fname'], $age);
+                $r['private']    = 0;
+                $r['repeat']     = 'yearly';
+                $r['created_by'] = $r['id'];
+
+                $events[] = $r;
+            }
+        }
+
         // show the next 5
         $count = 0;
 
-        while ($row = $this->db->get_row())
+        // fix order
+        $events = subval_sort($events, 'day');
+
+        foreach ($events as $row)
         {
             if ($count > 5)
             {
@@ -792,28 +851,91 @@ class Calendar
         $day   = cleanInput($day, 'int');
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
-        $sql = "SELECT * 
+        // Get events
+        $sql = "SELECT `title`, `desc`, `private`, `created_by`
                 FROM fcms_calendar 
                 WHERE (`date` LIKE '$year-$month-$day') 
                 OR (`date` LIKE '%%%%-$month-$day' AND `repeat` = 'yearly')";
-        $this->db->query($sql) or displaySQLError(
-            'Today Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Today Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
 
-        if ($this->db->count_rows() > 0) {
+        $events = array();
+
+        if ($this->db->count_rows() > 0)
+        {
+            while ($row = $this->db->get_row())
+            {
+                $events[] = $row;
+            }
+        }
+
+        // Get birthdays
+        $sql = "SELECT `id`, `fname`, `lname`, `birthday` as 'date' 
+                FROM `fcms_users` 
+                WHERE `birthday` LIKE '%%%%-$month-$day'";
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Birthdays Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while($r = $this->db->get_row())
+            {
+                $birthday = $r['date'];
+
+                list($year,$month,$day) = explode("-",$birthday);
+
+                $year_diff  = gmdate("Y") - $year;
+                $month_diff = gmdate("m") - $month;
+                $day_diff   = gmdate("d") - $day;
+
+                if ($month_diff < 0)
+                {
+                    $year_diff--;
+                }
+                elseif ($month_diff == 0 && $day_diff < 0)
+                {
+                    $year_diff--;
+                }
+
+                $age = $year_diff;
+
+                $r['title']      = $r['fname'].' '.$r['lname'];
+                $r['desc']       = sprintf(T_('%s turns %s today.'), $r['fname'], $age);
+                $r['private']    = 0;
+                $r['created_by'] = $r['id'];
+
+                $events[] = $r;
+            }
+        }
+
+        if (count($events) > 0)
+        {
             $first = true;
-            while ($row = $this->db->get_row()) {
+            foreach ($events as $row)
+            {
                 $show = false;
-                if ($row['private'] == 0) {
+                if ($row['private'] == 0)
+                {
                     $show = true;
-                } else {
-                    if ($row['created_by'] == $this->currentUserId) {
+                }
+                else
+                {
+                    if ($row['created_by'] == $this->currentUserId)
+                    {
                         $show = true;
                     }
                 }
 
                 // Start the todaysevents box
-                if ($first & $show) {
+                if ($first & $show)
+                {
                     echo '
                 <div id="todaysevents">
                     <h2>'.T_('Today\'s Events').':</h2>'.
@@ -821,20 +943,25 @@ class Calendar
                 }
 
                 // Display each event/calendar entry
-                if ($show) {
+                if ($show)
+                {
                     echo '
                     <div class="events">
-                        <b>' . cleanOutput($row['title']) . '</b>';
-                    if (!empty($row['desc'])) {
-                        echo '<span>' . cleanOutput($row['desc']) . '</span>';
+                        <b>'.cleanOutput($row['title']).'</b>';
+
+                    if (!empty($row['desc']))
+                    {
+                        echo '<span>'.cleanOutput($row['desc']).'</span>';
                     }
+
                     echo '
                     </div>';
                 }
             }
 
             // close #todaysevents (if it was started)
-            if (!$first) {
+            if (!$first)
+            {
                 echo '
                 </div>';
             }

@@ -2,8 +2,8 @@
 Theme Name:         Default
 Description:        The default theme for Family Connections.  Fixed 980px Centered Layout
 Screen Size:        1024x768+
-FCMS Compatible:    2.5
-Updated:            September 1, 2011
+FCMS Compatible:    2.6
+Updated:            October 28, 2011
 Author:             Ryan Haudenschilt
 ------------------------------------------------*/
 body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, form, fieldset, input, textarea, p, blockquote, th, td { margin: 0; padding: 0; }
@@ -47,24 +47,9 @@ label.radio_label { cursor: pointer; cursor: hand; }
 .sub2 { background-color: #999; border: none; color: #fff; cursor: pointer; cursor: hand; padding: 5px 10px; -moz-border-radius: 10px; -webkit-border-radius: 10px; border-radius: 10px; }
 div.mouseover { background-color: #9ccef0; }
 fieldset { border: none; }
-fieldset { 
-    background: #eff0f4;
-    border: 1px solid #ccc;
-    font-size: 12px;
-    margin: 20px 100px;
-    position: relative; 
-    padding: 50px 20px 20px 20px;
-}
+fieldset { background-color: #eff0f4; border: 1px solid #ccc; font-size: 12px; margin: 20px 100px; padding: 50px 20px 20px 20px; position: relative; }
 fieldset legend { border-top: 1px solid #ccc; }
-fieldset legend span { 
-    position: absolute;
-    left: 20px;
-    *top: 0;    /* IE6 IE7 */
-    top: 0\0/;  /* IE8 IE9 */
-    color: #000;
-    font-size: 20px;
-    margin-top: .5em;
-}
+fieldset legend span { color: #000; font-size: 20px; left: 20px; margin-top: .5em; position: absolute; *top: 0; top: 0\0/; }
 fieldset .field-row { clear: both; padding: 10px 0 20px 0; width: 100%; }
 fieldset .field-label { float: left; text-align: right; width: 30%; }
 fieldset .field-label b, fieldset .field-label img { padding-right: 15px; }
@@ -125,6 +110,7 @@ a.u:hover { background-color: transparent; color: #000; text-decoration: none; }
 #navigation a:hover ul { display: block; }
 #navigation a:hover ul, #navigation a:hover a:hover ul, #navigation a:hover a:hover a:hover ul { display: block; }
 #navigation a:hover ul ul, #navigation a:hover a:hover ul ul { display: none; }
+#navigation .main b { background-color: #444; padding: 3px; margin: 0 10px 0 0; -moz-border-radius: 5px; -webkit-border-radius: 5px; border-radius: 5px; }
 ul.menu { background-color: #eff0f4; clear: both; list-style-type: none; padding: 10px; }
 ul.menu li { border-bottom: 1px solid #ccc; }
 ul.menu li a { display: block; font: normal 11px/11px Verdana, Arial, sans-serif; padding: 5px 5px 5px 12px; text-decoration: none; }
@@ -185,21 +171,18 @@ p.poll { text-align: center; font: italic 12px Verdana, Arial, sans-serif; }
 ul.whovoted { margin: 0 0 20px 0; }
 ul.whovoted li { list-style-type: none; margin: 0 0 0 20px; }
 ul.whovoted img { width: 20px; height: 20px; vertical-align: middle; }
-.newthread, .newpost, .newaddress, .newnews, .newprayer, .newphoto, .newcom, .newmember, .newrecipe, .newcal, .newpoll, .newdocument, .newwhere { padding: 10px 0 20px 30px; }
-.newstatus { padding: 10px 0 20px 10px; }
-.newthread:hover, .newpost:hover, .newaddress:hover, .newnews:hover, .newprayer:hover, .newphoto:hover, .newcom:hover, .newmember:hover, .newrecipe:hover, .newcal:hover, .newpoll:hover, .newdocument:hover, .newwhere:hover, .newstatus:hover { background-color: #ebf2fa; }
-.newthread { background: transparent url(images/new_thread.gif) no-repeat 5px 12px; }
-.newpost, .newcom { background: transparent url(images/board_quote.gif) no-repeat 5px 12px; }
-.newaddress { background: transparent url(images/new_book.gif) no-repeat 5px 12px; }
-.newnews { background: transparent url(images/new_news.gif) no-repeat 5px 12px; }
-.newprayer { background: transparent url(images/new_prayer.gif) no-repeat 5px 12px; }
-.newphoto { background: transparent url(images/board_images.gif) no-repeat 5px 12px; }
-.newmember { background: transparent url(images/user.gif) no-repeat 5px 12px; }
-.newrecipe { background: transparent url(images/new_recipe.gif) no-repeat 5px 12px; }
-.newcal { background: transparent url(images/datepicker.jpg) no-repeat 5px 12px; }
-.newpoll { background: transparent url(images/help.gif) no-repeat 5px 12px; }
-.newdocument { background: transparent url(images/new_document.gif) no-repeat 5px 12px; }
-.newwhere { background: transparent url(images/foursquare-logo.png) no-repeat 5px 12px; }
+#home .new { border-bottom: 1px solid #e0e0e0; color: #333; padding: 20px 10px; }
+#home .new:hover { background-color: #ebf2fa; }
+#home .new i { color: #999; }
+#home .new a.u { color: #1a7ab0; font-weight: bold; text-decoration: none; }
+#home .new a.u:hover { color: #000; }
+#home .avatar { float: left; }
+#home .avatar img { height: 40px; width: 40px; }
+#home .info { margin-left: 50px; }
+#home .newcal .info p { display: block; padding: 23px 0 23px 70px; background: transparent url(images/event.png) no-repeat 0 50%; }
+#home .newstatus .newstatus { padding: 10px 0; }
+#home .newstatus .newstatus .avatar img { height: 25px; width: 25px; }
+#home .newstatus .newstatus .info { margin-left: 35px; }
 ol.todo li span { color: #888; text-decoration: line-through; }
 #status_update { text-align: right; }
 #status_update label { margin: 0 10px 0 0; }
@@ -576,12 +559,14 @@ fieldset #msg { border: 1px solid #b3d5ef; width: 400px; }
 #tree { border: 1px solid #ddd; height: 450px; }
 .column { float: left; width: 319px; }
 .leaf { background-color: #d8e9f8; border: 1px solid #3e8abd; color: #000; display: block; font: 12px/16px Arial, Verdana, sans-serif; height: 50px; margin: 10px; overflow: auto; padding: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; border-radius: 5px; }
+.leaf img { float: left; height: 50px; margin: 0 10px 0 0; width: 50px; }
 .leaf span { display: block; font: normal 10px/15px Arial, Verdana, sans-serif; }
 .leaf a { color: #000; }
 .leaf a:hover { text-decoration: underline; }
 .leaf a.edit { font: normal 10px/15px Arial, Verdana, sans-serif; float: right; }
 .spouse, .child { background-color: #efefef; border: 1px solid #ddd; color: #999; height: auto; margin: 0 10px; }
 .child { background-color: #fff; margin: 0 10px 0 30px; }
+.spouse img, .child img { height: 20px; width: 20px; }
 .mom, .grandma { background-color: #ffdcee; border: 1px solid #df7daf; }
 a.spouse:hover, a.child:hover, a.unknown:hover { background-color: #ccc; }
 .spouse b, .child b { font-weight: normal; }
@@ -625,6 +610,17 @@ h4.recipe-name { margin: 0 0 0 130px; padding: 0 0 15px 0 !important; }
 .recipe-directions b, .recipe-ingredients b { display: block; padding: 0 0 20px 0; }
 #docs td form, #docs td form div { display: inline; }
 #prayers h4 form, #prayers h4 form div { display: inline; }
+#comments { padding: 30px 0; }
+#addcomments { padding: 20px 0 50px 0; }
+#addcomments h3 { padding: 0; }
+.comment { border-top: 1px solid #eee; padding: 15px 0 40px 0; font: 12px/18px Verdana, Arial, sans-serif; }
+.comment:hover { background-color: #ebf2fa; border-color: #a5cae2; }
+.comment form { margin: 0; }
+.comment input { float: right; padding-right: 5px; }
+.comment img.avatar { float: left; height: 50px; padding: 0 0 0 15px; width: 50px; }
+.comment b { color: #016290; font: bold 16px/20px Verdana, Arial, sans-serif; padding: 0 10px 0 25px; }
+.comment span { color: #999; font: italic 10px/20px Verdana, Arial, sans-serif; }
+.comment p { padding: 0 0 0 90px; }
 .level0, .level1, .level2, .level3, .level4, .level5, .level6, .level7, .level8, .level9, .level10 { background-color: transparent; background-image: url(images/levels.gif); background-repeat: no-repeat; display: block; height: 10px; margin: 5px 0; overflow: hidden; width: 71px; }
 .level0 { background-position: 0 0; }
 .level1 { background-position: 0 -9px; }
@@ -665,7 +661,26 @@ a.foursquare { background: transparent url(images/signinwith-foursquare.png) no-
 #latest-history .user { color: #555; float: left; font-weight: bold; width: 300px; height: 75px; line-height: 75px; }
 #latest-history .checkin { padding: 10px 0; float: left; width: 580px; }
 .checkin span { display: block; }
-#help { padding: 0 30px; }
+#video_content .category { margin: 10px 20px 40px 20px; width: 120px; height: auto; }
+#small_video_users { float: left; font: 14px Verdana, Arial, sans-serif; list-style: none; }
+#small_video_users li { float: left; padding: 10px; width: 300px; }
+#small_video_users img { float: left; height: 40px; padding: 0 5px 10px 0; width: 40px; }
+#small_video_users span { display: block; }
+#large_video_users { float: left; font: 14px Verdana, Arial, sans-serif; list-style: none; }
+#large_video_users li { float: left; height: 150px; width: 80px; margin: 0 20px; }
+#large_video_users span { display: block; }
+#video_edit { background-color: #ebf2fa; border: 1px solid #a5cae2; font-size: 11px; margin: 0 0 15px 0; padding: 15px; }
+.video_edit_show_hide { display: block; font-size: 13px; margin: 0 0 5px 0; text-align: right; }
+#video_edit .btn { cursor: pointer; display: inline-block; background-color: #e6e6e6; background-repeat: no-repeat; background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), color-stop(25%, #ffffff), to(#e6e6e6)); background-image: -webkit-linear-gradient(#ffffff, #ffffff 25%, #e6e6e6); background-image: -moz-linear-gradient(top, #ffffff, #ffffff 25%, #e6e6e6); background-image: -ms-linear-gradient(#ffffff, #ffffff 25%, #e6e6e6); background-image: -o-linear-gradient(#ffffff, #ffffff 25%, #e6e6e6); background-image: linear-gradient(#ffffff, #ffffff 25%, #e6e6e6); filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e6e6e6', GradientType=0); padding: 5px 14px 6px; color: #333; font: 11px Verdana, Arial, sans-serif; line-height: normal; border: 1px solid #ccc; border-bottom-color: #bbb; -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px; -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05); -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05); -webkit-transition: 0.1s linear all; -moz-transition: 0.1s linear all; -ms-transition: 0.1s linear all; -o-transition: 0.1s linear all; transition: 0.1s linear all; }
+#video_edit .btn:hover { background-position: 0 -15px; color: #333; text-decoration: none; }
+#video_edit .btn:focus { outline: 1px dotted #666; }
+#video_edit .btn:active { -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05); -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05); }
+#video_content #member { padding: 10px; margin: 0 0 50px 0; }
+#video_content #member img { float: left; margin-right: 10px; }
+#video_content #member span { color: #999; font-size: 12px; }
+#video_content #member h2 { font-size: 36px; }
+.categories .removed img, .categories .removed span { filter: alpha(opacity=30); opacity: 0.3; }
+.categories .removed:hover img, .categories .removed:hover span { filter: alpha(opacity=100); opacity: 1; }
 #help ol { margin: 0 0 0 20px; }
 #help ol li { padding: 0 0 20px 0; }
 #help ol li small { font: italic 12px/16px Verdana, Arial, sans-serif; }
@@ -683,6 +698,7 @@ a.foursquare { background: transparent url(images/signinwith-foursquare.png) no-
 .share-nav { border-left: 1px solid #ccc; }
 .share-nav td, .share-nav th { padding-left: 10px; }
 #config table .remove { text-align: center; }
+#config table .remove .delbtn { padding: 0; }
 #config fieldset .add { padding: 0 0 0 20px; background: transparent url(images/add.gif) no-repeat center left; }
 #delete_category p { text-align: right; }
 #delete_category table th.check { text-indent: -9999px; width: 75px; }
@@ -695,6 +711,10 @@ a.merge { float: right; }
 #current-member .field-row, #merge-member .field-row { padding: 0; }
 #merge-member { float: right; padding: 0 0 20px 0; width: 49%; }
 #merge-with { width: 200px; }
+#scheduler-frm { margin: 0 30px; }
+#scheduler-frm td i { color: #aaa; }
+.current-status-off { padding: 0 3px; background-color: red; }
+.current-status-on { padding: 0 3px; background-color: green; }
 .autocomplete_instructions { color: #3e8ec1; }
 .autocomplete_search { background-color: #fff; border: 1px solid #ccc; margin: 0px; padding: 0px; position: absolute; width: 350px; }
 .autocomplete_search ul { list-style-type: none; margin: 0px; padding: 0px; }

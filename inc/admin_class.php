@@ -280,11 +280,17 @@ class Admin
     function displayAdminConfigInfo ()
     {
         // General Config
-        $sql = "SELECT * FROM `fcms_config`";
+        $sql = "SELECT `name`, `value`
+                FROM `fcms_config`";
         $this->db->query($sql) or displaySQLError(
             'Site Info Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
-        $row = $this->db->get_row();
+
+        $row = array();
+        while ($r = $this->db->get_row())
+        {
+            $row[$r['name']] = $r['value'];
+        }
         
         // Activate Options
         $activate_list = array (
@@ -803,11 +809,17 @@ class Admin
      */
     function displayAdminConfigGallery ()
     {
-        $sql = "SELECT * FROM `fcms_config`";
+        $sql = "SELECT `name`, `value`
+                FROM `fcms_config`";
         $this->db->query($sql) or displaySQLError(
             'Site Info Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );
-        $row = $this->db->get_row();
+
+        $row = array();
+        while ($r = $this->db->get_row())
+        {
+            $row[$r['name']] = $r['value'];
+        }
         
         $full_size_list = array(
             "0" => T_('Off (2 photos)'),

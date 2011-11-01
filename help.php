@@ -17,11 +17,11 @@ define('URL_PREFIX', '');
 
 require 'fcms.php';
 
-// Check that the user is logged in
-isLoggedIn();
+init();
+
+// Globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
-// Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
@@ -31,15 +31,117 @@ $TMPL = array(
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
-$TMPL['javascript'] = '
-<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
-// Show Header
-require_once getTheme($currentUserId).'header.php';
+control();
+exit();
 
-echo '
+/**
+ * control 
+ * 
+ * The controlling structure for this script.
+ * 
+ * @return void
+ */
+function control ()
+{
+    if (isset($_GET['topic']))
+    {
+        $topic = $_GET['topic'];
+
+        if ($topic == 'photo')
+        {
+            displayPhotoGallery();
+        }
+        elseif ($topic == 'video')
+        {
+            displayVideoGallery();
+        }
+        elseif ($topic == 'settings')
+        {
+            displaySettings();
+        }
+        elseif ($topic == 'address')
+        {
+            displayAddressBook();
+        }
+        elseif ($topic == 'admin')
+        {
+            displayAdministration();
+        }
+    }
+    else
+    {
+        displayHome();
+    }
+}
+
+/**
+ * displayHeader 
+ * 
+ * @return void
+ */
+function displayHeader ()
+{
+    global $currentUserId, $TMPL;
+
+    $TMPL['javascript'] = '
+<script type="text/javascript">
+Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });
+</script>';
+
+    include_once getTheme($currentUserId).'header.php';
+
+    echo '
         <div id="help" class="centercontent">
-            <br/>
+
+            <div id="leftcolumn">
+                <h3>'.T_('Topics').'</h3>
+                <ul class="menu">
+                    <li><a href="?topic=photo">'.T_('Photo Gallery').'</a></li>
+                    <li><a href="?topic=video">'.T_('Video Gallery').'</a></li>
+                    <li><a href="?topic=settings">'.T_('Personal Settings').'</a></li>
+                    <li><a href="?topic=address">'.T_('Address Book').'</a></li>
+                    <li><a href="?topic=admin">'.T_('Administration').'</a></li>
+                </ul>
+            </div>
+
+            <div id="maincolumn">';
+}
+
+/**
+ * displayFooter 
+ * 
+ * @return void
+ */
+function displayFooter ()
+{
+    global $currentUserId, $TMPL;
+
+    echo '
+            </div><!--/maincolumn-->
+
+        </div><!--/centercontent-->';
+
+    include_once getTheme($currentUserId).'footer.php';
+}
+
+function displayHome ()
+{
+    displayHeader();
+    echo '
+                <h2>'.T_('Welcome to the Help section.').'</h2>
+                <p>'.T_('Browse the topics to the left to find help on the most frequently asked topics.').'</p>
+                <p>&nbsp;</p>
+                <h3>'.T_('Need more help?').'</h3>
+                <p>'.T_('Check out the support forum for more help.').'</p>
+                <p><a href="http://familycms.tenderapp.com/discussions">'.T_('Support Forum').'</a></p>';
+    displayFooter();
+}
+
+function displayPhotoGallery ()
+{
+    displayHeader();
+    echo '
             <h4>'.T_('Photo Gallery').'</h4>
             <p><a href="#gallery-howworks">'.T_('How does the Photo Gallery work?').'</a></p>
             <p><a href="#gallery-addphoto">'.T_('How do I add a photo?').'</a></p>
@@ -48,20 +150,9 @@ echo '
             <p><a href="#gallery-addcat">'.T_('How do I add a category?').'</a></p>
             <p><a href="#gallery-chgcat">'.T_('How do I rename a category?').'</a></p>
             <p><a href="#gallery-delcat">'.T_('How do I delete a category?').'</a></p>
-            <p>&nbsp;</p>
-            <h4>'.T_('Personal Settings').'</h4>
-            <p><a href="#settings-avatar">'.T_('How do I add/change my avatar?').'</a></p>
-            <p><a href="#settings-theme">'.T_('How do I change my theme?').'</a></p>
-            <p><a href="#settings-password">'.T_('How do I change my password?').'</a></p>
-            <p>&nbsp;</p>
-            <h4>'.T_('Address Book').'</h4>
-            <p><a href="#address-massemail">'.T_('How do I email multiple people (Mass Email)?').'</a></p>
-            <p>&nbsp;</p>
-            <h4>'.T_('Administration').'</h4>
-            <p><a href="#adm-access">'.T_('Member Access Levels').'</a></p>
-            <p><a href="#adm-sections-add">'.T_('How do I add an optional section?').'</a></p>
-            <p><a href="#adm-sections-nav">'.T_('How do I change the site navigation?').'</a></p>
+
             <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
+
             <p><a name="gallery-howworks">&nbsp;</a></p>
             <p>&nbsp;</p>
             <p><b>'.T_('How does the Photo Gallery work?').'</b></p>
@@ -146,10 +237,38 @@ echo '
                 <li>'.T_('Click the delete button <img src="themes/default/images/delete.gif"/> located to the right of the category name.').'</li>
             </ol>
             <p>&nbsp;</p>
-            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>
+            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
+    displayFooter();
+}
+
+function displayVideoGallery ()
+{
+    displayHeader();
+    echo '
+            <h4>'.T_('Video Gallery').'</h4>
+            <p><a href="#video-youtube-private">'.T_('YouTube Private Videos.').'</a></p>
             <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-            <p><a name="settings-avatar">&nbsp;</a></p>
+
+            <p><a name="video-youtube-private">&nbsp;</a></p>
             <p>&nbsp;</p>
+            <p><b>'.T_('YouTube Private Videos').'</b></p>
+            <p>'.T_('When you connect your Family Connections account with YouTube, a unique token is created which grants your Family Connections account access to view data on YouTube, just like if you were logged into YouTube.').'</p>
+            <p>'.T_('In order to keep your videos private on YouTube, but public to the members of your family site, Family Connections will use your unique token to let other members view your private videos.').'</p>
+            <p>&nbsp;</p>
+            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
+    displayFooter();
+}
+
+function displaySettings ()
+{
+    displayHeader();
+    echo '
+            <h4>'.T_('Personal Settings').'</h4>
+            <p><a href="#settings-avatar">'.T_('How do I add/change my avatar?').'</a></p>
+            <p><a href="#settings-theme">'.T_('How do I change my theme?').'</a></p>
+            <p><a href="#settings-password">'.T_('How do I change my password?').'</a></p>
+            <p><a name="settings-avatar">&nbsp;</a></p>
+            <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
             <p><b>'.T_('How do I add/change my avatar?').'</b></p>
             <p>'.T_('An avatar is just a graphical representation of a person.  You can upload a picture of yourself or any picture that you feel represents you.').'</p>
             <ol>
@@ -182,7 +301,16 @@ echo '
                 <li>'.T_('Click the Submit button.').'</li>
             </ol>
             <p>&nbsp;</p>
-            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>
+            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
+    displayFooter();
+}
+
+function displayAddressBook ()
+{
+    displayHeader();
+    echo '
+            <h4>'.T_('Address Book').'</h4>
+            <p><a href="#address-massemail">'.T_('How do I email multiple people (Mass Email)?').'</a></p>
             <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
             <p><a name="address-massemail">&nbsp;</a></p>
             <p>&nbsp;</p>
@@ -193,7 +321,18 @@ echo '
                 <li>'.T_('Fill out the email form (similar to the contact form) and click <b>Send Mass Email</b>.').'</li>
             </ol>
             <p>&nbsp;</p>
-            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>
+            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
+    displayFooter();
+}
+
+function displayAdministration ()
+{
+    displayHeader();
+    echo '
+            <h4>'.T_('Administration').'</h4>
+            <p><a href="#adm-access">'.T_('Member Access Levels').'</a></p>
+            <p><a href="#adm-sections-add">'.T_('How do I add an optional section?').'</a></p>
+            <p><a href="#adm-sections-nav">'.T_('How do I change the site navigation?').'</a></p>
             <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
             <p><a name="adm-access">&nbsp;</a></p>
             <p>&nbsp;</p>
@@ -340,9 +479,6 @@ echo '
             <p><b>'.T_('How do I change the site navigation?').'</b></p>
             <p>'.T_('You can only change the navigation position of a few of the sections.  They are:  Family News, Prayer Concerns, Recipes and Calendar.  The navigation is broken down into two parts, (1) the Top Navigation and the (2) the Side Navigation.  The Top Navigation can hold links for up to 6 sections.').'</p>
             <p>&nbsp;</p>
-            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>
-            <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
-        </div><!-- .centercontent -->';
-
-// Show Footer
-require_once getTheme($currentUserId).'footer.php';
+            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
+    displayFooter();
+}

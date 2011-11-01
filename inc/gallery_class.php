@@ -33,9 +33,9 @@ class PhotoGallery
         $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId        = $currentUserId;
-        $this->img                  = new Image($this->currentUserId);
-        $this->tzOffset             = getTimezone($this->currentUserId);
+        $this->currentUserId = $currentUserId;
+        $this->img           = new Image($this->currentUserId);
+        $this->tzOffset      = getTimezone($this->currentUserId);
 
         T_bindtextdomain('messages', '.././language');
     }
@@ -698,8 +698,9 @@ class PhotoGallery
         $uid      = (int)$uid;
 
         // Link to the full sized photo if using full sized
-        $sql = "SELECT `full_size_photos` 
-                FROM `fcms_config`";
+        $sql = "SELECT `value` AS 'full_size_photos'
+                FROM `fcms_config`
+                WHERE `name` = 'full_size_photos'";
 
         $full_size_photos = false; 
 
@@ -1266,7 +1267,7 @@ class PhotoGallery
         {
             foreach ($members as $key => $value)
             {
-                $users_list .= "'$key: $value', ";
+                $users_list .= '"'.$key.': '.cleanOutput($value).'", ';
                 $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
             }
 
@@ -1392,8 +1393,9 @@ class PhotoGallery
         }
 
         // Are we using full sized photos?
-        $sql = "SELECT `full_size_photos` 
-                FROM `fcms_config`";
+        $sql = "SELECT `value` AS 'full_size_photos'
+                FROM `fcms_config`
+                WHERE `name` = 'full_size_photos'";
         $this->db->query($sql) or displaySQLError(
             'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
@@ -1585,7 +1587,7 @@ class PhotoGallery
             {
                 foreach ($members as $key => $value)
                 {
-                    $users_list .= "'$key: $value', ";
+                    $users_list .= '"'.$key.': '.cleanOutput($value).'", ';
                     $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
                 }
 
@@ -1726,7 +1728,7 @@ class PhotoGallery
         {
             foreach ($members as $key => $value)
             {
-                $users_list .= "'$key: $value', ";
+                $users_list .= '"'.$key.': '.cleanOutput($value).'", ';
                 $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
             }
 
@@ -2096,7 +2098,7 @@ class PhotoGallery
      */
     function displayAdminDeleteCategories ($page)
     {
-        $perPage = 5;
+        $perPage = 10;
         $from = ($page * $perPage) - $perPage;
 
         $sql = "SELECT * 
@@ -2286,8 +2288,9 @@ class PhotoGallery
      */
     function usingFullSizePhotos ()
     {
-        $sql = "SELECT `full_size_photos`
-                FROM `fcms_config`";
+        $sql = "SELECT `value` AS 'full_size_photos'
+                FROM `fcms_config`
+                WHERE `name` = 'full_size_photos'";
         if (!$this->db->query($sql))
         {
             displaySQLError('Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
@@ -2447,7 +2450,7 @@ class PhotoGallery
         {
             foreach ($members as $key => $value)
             {
-                $users_list .= "'$key: $value', ";
+                $users_list .= '"'.$key.': '.cleanOutput($value).'", ';
                 $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
             }
 

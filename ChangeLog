@@ -1,3 +1,7 @@
+ 2.5.4
+    #382 - English MO displaying messed up dates
+    #383 - Automatic Upgrade from 2.5.3 to 2.6 not working
+
  2.5.3
     #353 - Last 5 View not working
     #354 - Slideshow not working

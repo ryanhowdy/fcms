@@ -19,12 +19,11 @@ require URL_PREFIX.'fcms.php';
 
 load('admin', 'awards');
 
-// Check that the user is logged in
-isLoggedIn('admin/');
-$currentUserId = (int)escape_string($_SESSION['login_id']);
+init('admin/');
 
-$admin  = new Admin($currentUserId);
-$awards = new Awards($currentUserId);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$admin         = new Admin($currentUserId);
+$awards        = new Awards($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(

@@ -18,13 +18,11 @@ define('URL_PREFIX', '');
 
 require 'fcms.php';
 
-load('datetime', 'whereiseveryone', 'foursquare');
+load('datetime', 'socialmedia', 'foursquare');
 
-// Check that the user is logged in
-isLoggedIn();
+init();
+
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
-
-$whereObj = new WhereIsEveryone($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
@@ -45,16 +43,12 @@ require_once getTheme($currentUserId).'header.php';
 
 echo '
         <div id="whereiseveryone-page" class="centercontent clearfix">';
-// TODO
-// Add the following info to documentation/help
-// If you receive the following error, its because your site isn't using php 5
-//      Parse error: syntax error, unexpected '{' in
 
 //-------------------------------------
 // Show Latest checkins
 //-------------------------------------
-$users  = $whereObj->getActiveUsers();
-$config = $whereObj->getFoursquareConfigData();
+$users  = getFoursquareUsersData();
+$config = getFoursquareConfigData();
 
 if (count($users[0]) <= 0)
 {

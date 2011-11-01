@@ -2,7 +2,7 @@
 
  Create POT File
 
-    xgettext --files-from=dev/list --keyword=T_ --keyword=T_ngettext:1,2 --keyword=T_pgettext:1c,2 --language=PHP --no-wrap -o messages.pot
+    xgettext --files-from=dev/list --keyword=T_ --keyword=T_ngettext:1,2 --keyword=T_pgettext:1c,2 --language=PHP --no-wrap -o language/messages.pot
 
  Create mo file from po
 

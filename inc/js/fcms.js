@@ -730,6 +730,44 @@ function initAddressBookClickRow()
     }
 }
 
+/* =VIDEO
+------------------------------------------------*/
+function initYouTubeVideoStatus(txt)
+{
+    if ($('current_status')) {
+        $('refresh').hide();
+        $('js_msg').update(txt);
+        pu = new Ajax.PeriodicalUpdater('current_status', 'video.php', {
+            method: 'get', 
+            parameters : 'check_status=1',
+            frequency: 3, 
+            decay: 2,
+            onSuccess : function(t) {
+                if (t.responseText == 'Finished') {
+                    pu.stop();
+                    window.location.reload();
+                }
+            },
+            onFailure : function(t) {
+                alert('Could not get status: ' + t.responseText);
+            }
+        });
+    }
+}
+function initHideVideoEdit(txt)
+{
+    if ($('video_edit')) {
+        $('video_edit').hide();
+        var vDiv = $('video_edit');
+        var vLink = Element.extend(document.createElement('a'));
+        vLink.href = '#';
+        vLink.addClassName('video_edit_show_hide');
+        vLink.appendChild(document.createTextNode(txt));
+        vLink.onclick = function() { $('video_edit').toggle(); return false; };
+        vDiv.insert({'before':vLink});
+    }
+}
+
 // TODO - move these out of here 
 addLoadEvent(initTextFieldHighlight);
 addLoadEvent(initRowHighlight);

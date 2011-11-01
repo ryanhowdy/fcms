@@ -285,6 +285,7 @@ class FamilyTree
         echo '
                 <div class="column first">
                     <div class="leaf me">
+                        <img src="'.getCurrentAvatar($user['id']).'" alt="'.$user['fname'].' '.$user['lname'].'"/>
                         <b>' . $user['fname'] . ' ' . $user['lname'] . '</b>
                         <span>' . date('Y', strtotime($user['birthday'])) . ' - </span>
                     </div>';
@@ -293,6 +294,7 @@ class FamilyTree
         if (count($spouse) > 0) {
             echo '
                     <a href="?tree=' . $spouse['id'] . '" class="leaf spouse">
+                        <img src="'.getCurrentAvatar($spouse['id']).'" alt="'.$spouse['fname'].' '.$spouse['lname'].'"/>
                         <b>' . $spouse['fname'] . ' ' .$spouse['lname'] . '</b>
                     </a>';
         } else {
@@ -308,6 +310,7 @@ class FamilyTree
             foreach ($kids as $kid) {
                 echo '
                     <a href="?tree=' . $kid['id'] . '" class="leaf child">
+                        <img src="'.getCurrentAvatar($kid['id']).'" alt="'.$kid['fname'].' '.$kid['lname'].'"/>
                         <b>' . $kid['fname'] . ' ' . $kid['lname'] . '</b>
                     </a>';
             }
@@ -1563,6 +1566,7 @@ class FamilyTree
 
         echo '
                     <div class="leaf '.$type.'">
+                        <img src="'.getCurrentAvatar($id).'" alt="'.$name.'"/>
                         '.$linkName.'
                         '.$details.'
                         '.$edit.'

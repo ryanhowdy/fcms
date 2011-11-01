@@ -1,14 +1,17 @@
 <?php
 session_start();
-include_once 'config_inc.php';
-include_once 'utils.php';
-include_once 'image_class.php';
 
-// Check that the user is logged in
-isLoggedIn();
+define('URL_PREFIX', '../');
+
+require URL_PREFIX.'fcms.php';
+
+load('image');
+
+setLanguage();
+isLoggedIn('inc/');
+
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
-
-$img = new Image($currentUserId);
+$img           = new Image($currentUserId);
 
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -17,7 +20,7 @@ echo '
 <title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
-<link rel="stylesheet" type="text/css" href="'.getTheme($currentUserId, "../").'style.css"/>
+<link rel="stylesheet" type="text/css" href="../themes/default/style.css"/>
 <link rel="shortcut icon" href="../themes/favicon.ico"/>';
 // TODO
 // Move css to fcms-core
@@ -30,6 +33,7 @@ td.n { padding: 2px; text-align: right; width: 75px; }
 td.v { text-align: center; width: 30px; }
 td.file { padding: 0 5px;  text-align: left; width: 150px; }
 tr.alt { background-color: #f4f4f4; }
+.delbtn, .viewbtn { padding: 0 }
 </style>
 <script type="text/javascript">
 //<![CDATA[

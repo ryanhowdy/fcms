@@ -19,6 +19,12 @@ require URL_PREFIX.'fcms.php';
 
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
+if ($currentUserId < 1)
+{
+    echo "Current User Authorization Failure";
+    die();
+}
+
 $file_param_name[] = 'small';
 $file_param_name[] = 'medium';
 $file_param_name[] = 'full';
@@ -39,7 +45,7 @@ if (empty($_POST['category']))
     {
         // Send error to the edit page
         $_SESSION['photos']['error'] = 'error';
-        echo "failure";
+        echo "Category Failure";
         die();
 
     }
@@ -76,9 +82,11 @@ $sql = "INSERT INTO `fcms_gallery_photos` (`date`, `category`, `user`)
             '".cleanInput($_POST['category'])."', 
             '$currentUserId'
         )";
-mysql_query($sql) or displaySQLError(
-    'Add Photo Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-);
+if (!mysql_query($sql))
+{
+    echo "Insert New Photo Failure";
+    die();
+}
 
 // Update the filename and update the photo record in DB
 // We insert above and update below so we can make sure that the filename of
@@ -91,9 +99,11 @@ $filename  = "$new_id.$extention";
 $sql = "UPDATE `fcms_gallery_photos` 
         SET `filename` = '".cleanInput($filename)."' 
         WHERE `id` = '".cleanInput($new_id)."'";
-mysql_query($sql) or displaySQLError(
-    'Update Photo Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-);
+if (!mysql_query($sql))
+{
+    echo "Update Photo Failure";
+    die();
+}
 
 // Loop through each photo (small, medium, full?)
 foreach ($file_param_name AS $file)
@@ -137,6 +147,6 @@ foreach ($file_param_name AS $file)
     }
     else
     {
-        echo "failure";
+        echo "Move File Failure";
     }
 }

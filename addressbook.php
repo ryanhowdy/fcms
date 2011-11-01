@@ -19,8 +19,7 @@ require 'fcms.php';
 
 load('datetime', 'addressbook', 'database', 'alerts');
 
-// Check that the user is logged in
-isLoggedIn();
+init();
 
 // Globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
@@ -295,7 +294,7 @@ function displayMassEmailSubmit ()
  */
 function displayEditSubmit ()
 {
-    global $book;
+    global $book, $currentUserId;
 
     displayHeader();
 
@@ -303,18 +302,77 @@ function displayEditSubmit ()
     $uid = cleanInput($_POST['uid'], 'int');
     $cat = cleanInput($_POST['cat']);
 
-    // Address
-    $sql = "UPDATE `fcms_address` 
-            SET `updated`=NOW(), 
-                `address`   = '".cleanInput($_POST['address'])."', 
-                `city`      = '".cleanInput($_POST['city'])."', 
-                `state`     = '".cleanInput($_POST['state'])."', 
-                `zip`       = '".cleanInput($_POST['zip'])."', 
-                `home`      = '".cleanInput($_POST['home'])."', 
-                `work`      = '".cleanInput($_POST['work'])."', 
-                `cell`      = '".cleanInput($_POST['cell'])."' 
-            WHERE `id` = '$aid'";
+    $address = cleanInput($_POST['address']);
+    $city    = cleanInput($_POST['city']);
+    $state   = cleanInput($_POST['state']);
+    $zip     = cleanInput($_POST['zip']);
+    $home    = cleanInput($_POST['home']);
+    $work    = cleanInput($_POST['work']);
+    $cell    = cleanInput($_POST['cell']);
+    $email   = cleanInput($_POST['email']);
 
+    // Get current address and email
+    $sql = "SELECT a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`email`
+            FROM `fcms_address` AS a
+            LEFT JOIN `fcms_users` AS u ON a.`user` = u.`id`
+            WHERE a.`id` = '$aid'
+            AND a.`user` = '$uid'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    $row = mysql_fetch_assoc($result);
+
+    $changes = array();
+    $columns = array(
+        'address' => 'address', 
+        'city'    => 'address', 
+        'state'   => 'address', 
+        'zip'     => 'address', 
+        'home'    => 'home', 
+        'work'    => 'work', 
+        'cell'    => 'cell', 
+        'email'   => 'email'
+    );
+
+    // See what changed
+    foreach ($columns as $column => $type)
+    {
+        // if db is null, then the column must be non empty to be considered changed
+        if (is_null($row[$column]))
+        {
+            if (!empty($$column))
+            {
+                $changes[] = $type;
+            }
+        }
+        // db doesn't match post data
+        elseif ($row[$column] !== $$column)
+        {
+            $changes[] = $type;
+        }
+    }
+
+    // We could have duplicate 'address' changes, lets only save once
+    $changes = array_unique($changes);
+
+    // Save Address
+    $sql = "UPDATE `fcms_address` 
+            SET `updated`    = NOW(), 
+                `updated_id` = '$currentUserId',
+                `address`    = '$address', 
+                `city`       = '$city', 
+                `state`      = '$state', 
+                `zip`        = '$zip', 
+                `home`       = '$home', 
+                `work`       = '$work', 
+                `cell`       = '$cell' 
+            WHERE `id` = '$aid'";
     if (!mysql_query($sql))
     {
         displaySQLError('Edit Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -322,15 +380,35 @@ function displayEditSubmit ()
         return;
     }
 
-    // User's email
+    // Save Email
     $sql = "UPDATE `fcms_users` 
-            SET `email`='".cleanInput($_POST['email'])."' 
+            SET `email`='$email' 
             WHERE `id` = '$uid'";
     if (!mysql_query($sql))
     {
         displaySQLError('Edit Email Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
         displayFooter();
         return;
+    }
+
+    // Update changelog
+    $sql = "INSERT INTO `fcms_changelog` (`user`, `table`, `column`, `created`)
+            VALUES ";
+
+    foreach ($changes as $column)
+    {
+        $sql .= "('$uid', 'address', '$column', NOW()),";
+    }
+    $sql = substr($sql, 0, -1); // remove extra comma
+
+    if (count($changes) > 0)
+    {
+        if (!mysql_query($sql))
+        {
+            displaySQLError('Changelog Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displayFooter();
+            return;
+        }
     }
 
     displayOkMessage();
@@ -378,10 +456,12 @@ function displayAddSubmit ()
     $id = mysql_insert_id();
 
     $sql = "INSERT INTO `fcms_address`(
-                `user`, `entered_by`, `updated`, `address`, `city`, `state`, 
+                `user`, `created_id`, `created`, `updated_id`, `updated`, `address`, `city`, `state`, 
                 `zip`, `home`, `work`, `cell`
             ) VALUES (
                 '$id', 
+                '$currentUserId', 
+                NOW(), 
                 '$currentUserId', 
                 NOW(), 
                 '".cleanInput($_POST['address'])."', 

@@ -45,20 +45,26 @@ class FamilyNews
      */
     function displayNewsList ()
     {
-        $sql = "SELECT u.`id`, `fname`, `lname`, `displayname`, `username`, MAX(`date`) AS d 
+        $sql = "SELECT u.`id`, `fname`, `lname`, `displayname`, `username`, MAX(`updated`) AS d 
                 FROM `fcms_news` AS n, `fcms_users` AS u, `fcms_user_settings` AS s 
                 WHERE u.`id` = n.`user` 
                 AND u.`id` = s.`user` GROUP BY id ORDER BY d DESC";
-        $this->db->query($sql) or displaySQLError(
-            'News List Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
+
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('News List Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
             echo '
             <div id="news-list">
                 <h2>'.T_('Family News').'</h2>
                 <ul>';
 
-            while ($r = $this->db->get_row()) {
+            while ($r = $this->db->get_row())
+            {
                 $date = fixDate(T_('M. j'), $this->tzOffset, $r['d']);
                 $displayname = getUserDisplayName($r['id']);
                 echo '
@@ -86,12 +92,12 @@ class FamilyNews
         $from = (($page * 5) - 5); 
 
         // Get family news
-        $sql = "SELECT n.`id`, n.`user`, n.`title`, n.`news`, n.`date`, 
+        $sql = "SELECT n.`id`, n.`user`, n.`title`, n.`news`, n.`updated`, n.`created`, 
                     n.`external_type`, n.`external_id`
                 FROM `fcms_news` AS n, `fcms_users` AS u
                 WHERE n.`user` = '$user' 
                     AND n.`user` = u.`id` 
-                ORDER BY `date` DESC 
+                ORDER BY `updated` DESC 
                 LIMIT " . $from . ", 5";
 
         if (!$this->db->query($sql))
@@ -137,7 +143,7 @@ class FamilyNews
         $user = cleanInput($user, 'int');
         $id   = cleanInput($id, 'int');
 
-        $sql = "SELECT n.`id`, n.`title`, n.`news`, n.`date`,
+        $sql = "SELECT n.`id`, n.`title`, n.`news`, n.`updated`, n.`created`,
                     n.`external_type`, n.`external_id`
                 FROM `fcms_news` AS n, `fcms_users` AS u 
                 WHERE n.`id` = '$id' 
@@ -151,7 +157,9 @@ class FamilyNews
 
         $row = $this->db->get_row();
 
-        $date = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['date']);
+        $updated = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['updated']);
+        $created = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['created']);
+
         $displayname = getUserDisplayName($user);
 
         $edit = '';
@@ -190,7 +198,10 @@ class FamilyNews
         // External news
         else
         {
-            $newsSource = '<span style="background-color:#eee; color:#999; font-size:13px;">'.sprintf(T_('Imported from %s'), $row['external_type']).'</span><br/>';
+            $newsSource = '
+                    <span style="background-color:#eee; color:#999; font-size:13px;">
+                        '.sprintf(T_('Originally from %s, %s.'), $row['external_type'], $created).'
+                    </span><br/>';
             $news = $row['news'];
             $edit = ''; // can't edit external
         }
@@ -203,7 +214,7 @@ class FamilyNews
                     <a href="?getnews='.$user.'&amp;newsid='.(int)$row['id'].'">'.$title.'</a>
                 </h2>
                 <span class="date">
-                    '.$date.' - '.$displayname.$edit.$del.'
+                    '.$updated.' - '.$displayname.$edit.$del.'
                 </span>
                 <p>
                     '.$newsSource.$news.'
@@ -350,12 +361,9 @@ class FamilyNews
      */
     function displayLast5News ()
     {
-        // Get import blog settings
-        $this->importExternalPosts();
-
         $sql = "SELECT * 
                 FROM `fcms_news` 
-                ORDER BY `date` DESC 
+                ORDER BY `updated` DESC 
                 LIMIT 5";
 
         if (!$this->db->query($sql))
@@ -417,8 +425,9 @@ class FamilyNews
     function importExternalPosts ()
     {
         // get date we last checked for external news
-        $sql = "SELECT `external_news_date`
+        $sql = "SELECT `value` AS 'external_news_date'
                 FROM `fcms_config`
+                WHERE `name` = 'external_news_date'
                 LIMIT 1";
         if (!$this->db->query($sql))
         {
@@ -462,36 +471,40 @@ class FamilyNews
             // Blogger
             if (!empty($r['blogger']))
             {
-                if (!$this->importBloggerPosts($r['blogger'], $r['user'], $atomDate, $external_ids))
+                $ret = $this->importBloggerPosts($r['blogger'], $r['user'], $atomDate, $external_ids);
+                if ($ret === false)
                 {
-                    continue;
+                    die();
                 }
             }
 
             // Tumblr
             if (!empty($r['tumblr']))
             {
-                if (!$this->importTumblrPosts($r['tumblr'], $r['user'], $atomDate, $external_ids))
+                $ret = $this->importTumblrPosts($r['tumblr'], $r['user'], $atomDate, $external_ids);
+                if ($ret === false)
                 {
-                    continue;
+                    die();
                 }
             }
 
             // Wordpress
             if (!empty($r['wordpress']))
             {
-                if (!$this->importWordpressPosts($r['wordpress'], $r['user'], $atomDate, $external_ids))
+                $ret = $this->importWordpressPosts($r['wordpress'], $r['user'], $atomDate, $external_ids);
+                if ($ret === false)
                 {
-                    continue;
+                    die();
                 }
             }
 
             // Posterous
             if (!empty($r['posterous']))
             {
-                if (!$this->importPosterousPosts($r['posterous'], $r['user'], $atomDate, $external_ids))
+                $ret = $this->importPosterousPosts($r['posterous'], $r['user'], $atomDate, $external_ids);
+                if ($ret === false)
                 {
-                    continue;
+                    die();
                 }
             }
         }
@@ -499,7 +512,8 @@ class FamilyNews
         // Update date we last checked for external ids
         $now = gmdate('Y-m-d H:i:s');
         $sql = "UPDATE `fcms_config`
-                SET `external_news_date` = '$now'";
+                SET `value` = '$now'
+                WHERE `name` = 'external_news_date'";
         if (!$this->db->query($sql))
         {
             displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -519,14 +533,19 @@ class FamilyNews
     function displayNews ($data)
     {
         $displayname = getUserDisplayName($data['user']);
-        $date = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $data['date']);
+
+        $updated = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $data['updated']);
+        $created = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $data['created']);
 
         $newsSource = '';
 
         // Imported news
         if (strlen($data['external_type']) > 0)
         {
-            $newsSource = '<span style="background-color:#eee; color:#999; font-size:13px;">'.sprintf(T_('Imported from %s'), $data['external_type']).'</span><br/>';
+            $newsSource = '
+                    <span style="background-color:#eee; color:#999; font-size:13px;">
+                        '.sprintf(T_('Originally from %s, %s.'), $data['external_type'], $created).'
+                    </span><br/>';
             $news       = strip_tags($data['news']);
         }
         // Family News
@@ -553,7 +572,7 @@ class FamilyNews
                     <a href="?getnews='.$data['user'].'&amp;newsid='.cleanInput($data['id'], 'int').'">'
                         .cleanOutput($data['title']).'</a>
                 </h2>
-                <span class="date">'.$date.' - '.$displayname.'</span>
+                <span class="date">'.$updated.' - '.$displayname.'</span>
                 <p>'.$newsSource.$news.'</p>
                 <p class="news-comments">
                     <a href="?getnews='.$data['user'].'&amp;newsid='.cleanInput($data['id'], 'int').'#comments">'
@@ -607,6 +626,42 @@ class FamilyNews
      */
     function importBloggerPosts ($bloggerUrl, $userid, $atomDate, $externalIds)
     {
+        // User entered blogger url instead of blog id, lets fix it for them
+        if (!ctype_digit($bloggerUrl))
+        {
+            $xml        = $bloggerUrl;
+            $bloggerUrl = '';
+
+            $beginning = substr($xml, 0, 4);
+            $ending    = substr($xml, -1);
+
+            if ($beginning !== 'http')
+            {
+                $xml = 'http://'.$xml;
+            }
+
+            if ($ending !== '/')
+            {
+                $xml = $xml.'/';
+            }
+
+            $xml = $xml.'feeds/posts/default';
+
+            if (!$this->url_exists($xml))
+            {
+                echo '<div class="error-alert">'.sprintf(T_('Invalid url [%s].'), $xml).'</div>';
+                return false;
+            }
+
+            $feed = simplexml_load_file($xml);
+            foreach ($feed->entry as $entry)
+            {
+                // I'm getting both the blog ID and post ID
+                preg_match('/blog-([0-9]+).*post-([0-9]+)/', $entry->id, $match);
+                $bloggerUrl = $match[1];
+            }
+        }
+
         $url = 'http://www.blogger.com/feeds/'.$bloggerUrl.'/posts/default';
 
         if ($atomDate > 0)
@@ -634,7 +689,7 @@ class FamilyNews
 
         // Insert new external posts
         $sql = "INSERT INTO `fcms_news` (`title`, `news`, `user`, 
-                    `date`, `external_type`, `external_id`)
+                    `created`, `updated`, `external_type`, `external_id`)
                 VALUES ";
 
         $importCount = 0;
@@ -653,7 +708,7 @@ class FamilyNews
             $user  = cleanInput($userid, 'int');
             $date  = date('Y-m-d H:i:s', strtotime($post->published));
 
-            $sql .= "('$title', '$news', '$user', '$date', 'blogger', '$bid'), ";
+            $sql .= "('$title', '$news', '$user', '$date', NOW(), 'blogger', '$bid'), ";
 
             $importCount++;
         }

@@ -19,11 +19,10 @@ require URL_PREFIX.'fcms.php';
 
 load('gallery', 'database');
 
-// Check that the user is logged in
-isLoggedIn('admin/');
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init('admin/');
 
-$gallery = new PhotoGallery($currentUserId);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$gallery       = new PhotoGallery($currentUserId);
 
 // Setup the Template variables
 $TMPL = array(

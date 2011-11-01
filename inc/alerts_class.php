@@ -1,5 +1,6 @@
 <?php
 include_once('utils.php');
+include_once('database_class.php');
 
 /**
  * Alerts 
@@ -66,14 +67,7 @@ class Alerts
 
         // social media
         $social = '<a href="settings.php?view=socialmedia">'.T_('Connect social media sites').'</a>';
-        $facebook   = getUserFacebookAccessToken($userid);
-        $foursquare = getFoursquareUserData($userid);
-        if (!empty($facebook))
-        {
-            $social = '<span>'.T_('Connect social media sites').'</span>';
-            $complete++;
-        }
-        elseif (!empty($foursquare['fs_user_id']) && !empty($foursquare['fs_access_token']))
+        if (userConnectedSocialMedia($userid))
         {
             $social = '<span>'.T_('Connect social media sites').'</span>';
             $complete++;
@@ -200,10 +194,43 @@ class Alerts
         if ($this->db->count_rows() < 1) { 
             echo '
             <div id="alert_address" class="info-alert">
-                <h3>'.T_('It looks like you haven\'t added your address information yet.').'</h3>
-                <p>'.T_('The other website members would appreciate it if you would add your address information.  This will help them stay in touch.').'</p>
-                <p><a href="?address='.$this->currentUserId.'">'.T_('Add Address').'</a></p>
+                <h3>'.T_('It looks like your address is incomplete.').'</h3>
+                <p>'.T_('The other website members would appreciate it if you would complete your address information.  This will help them stay in touch.').'</p>
+                <p><a href="?address='.$this->currentUserId.'">'.T_('Complete Address Now').'</a></p>
                 <div class="close-alert"><a id="new_address" href="?alert=alert_address">'.T_('Delete This Alert').'</a></div>
+            </div>';
+        }
+    }
+
+    /**
+     * displayScheduler
+     * 
+     * @param  int  $userid 
+     * @return void
+     */
+    function displayScheduler ($userid)
+    {
+        $userid = cleanInput($userid, 'int');
+
+        $sql = "SELECT * 
+                FROM `fcms_alerts` 
+                WHERE `alert` = 'alert_scheduler'
+                AND `user` = '$userid' 
+                AND `hide` = 1";
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Alert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() < 1)
+        {
+            echo '
+            <div id="alert_scheduler" class="info-alert">
+                <h3>'.T_('Important info about FCMS Scheduler.').'</h3>
+                <p>'.T_('FCMS Scheduler is a replacement for cron.  If your host supports cron, you should disable the FCMS Scheduler and use cron instead.').'</p>
+                <p>'.T_('FCMS Scheduler can NOT guarantee that the scheduled tasks will complete on the desired intervals.').'</p>
+                <div class="close-alert"><a id="del_scheduler_alert" href="?alert=alert_scheduler">'.T_('Delete This Alert').'</a></div>
             </div>';
         }
     }

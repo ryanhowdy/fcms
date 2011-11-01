@@ -9,6 +9,10 @@ include_once 'gettext.inc';
 function dropTables ()
 {
     mysql_query("DROP TABLE IF EXISTS `fcms_config`")               or die("fcms_config<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_video_comment`")        or die("fcms_video_comment<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_video`")                or die("fcms_video<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_changelog`")            or die("fcms_changelog<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_schedule`")             or die("fcms_schedule<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_status`")               or die("fcms_status<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_navigation`")           or die("fcms_navigation<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_chat_online`")          or die("fcms_chat_oneline<br/>" . mysql_error());
@@ -48,32 +52,37 @@ function dropTables ()
  * @param string  $sitename 
  * @param string  $contact 
  * @param string  $version 
+ * 
  * @return void
  */
 function installConfig ($sitename, $contact, $version)
 {
     $sql = "CREATE TABLE `fcms_config` (
-                `sitename` VARCHAR(50) NOT NULL DEFAULT 'My Site', 
-                `contact` VARCHAR(50) NOT NULL DEFAULT 'nobody@yoursite.com', 
-                `current_version` VARCHAR(50) NOT NULL DEFAULT 'Family Connections', 
-                `auto_activate` TINYINT(1) NOT NULL DEFAULT 0, 
-                `registration` TINYINT(1) NOT NULL DEFAULT 1, 
-                `full_size_photos` TINYINT(1) NOT NULL DEFAULT 0,
-                `site_off` TINYINT(1) NOT NULL DEFAULT '0',
-                `log_errors` TINYINT(1) NOT NULL DEFAULT '1',
-                `fs_client_id` CHAR(50) NULL,
-                `fs_client_secret` CHAR(50) NULL, 
-                `fs_callback_url` VARCHAR(255) NULL,
-                `external_news_date` DATETIME NULL,
-                `fb_app_id` VARCHAR(50) NULL,
-                `fb_secret` VARCHAR(50) NULL
+                `name` VARCHAR(50) NOT NULL,
+                `value` VARCHAR(255) NULL
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 
-    $sql = "INSERT INTO `fcms_config` (`sitename`, `contact`, `current_version`)
-            VALUES ('$sitename', '$contact', '$version')";
-    mysql_query($sql) or die($sql . "<br/>" . mysql_error());
+    $sql = "INSERT INTO `fcms_config` (`name`, `value`)
+            VALUES
+                ('sitename', '$sitename'),
+                ('contact', '$contact'),
+                ('current_version', '$version'),
+                ('auto_activate', '0'),
+                ('registration', '1'), 
+                ('full_size_photos', '0'),
+                ('site_off', '0'),
+                ('log_errors', '0'),
+                ('fs_client_id', NULL),
+                ('fs_client_secret', NULL), 
+                ('fs_callback_url', NULL),
+                ('external_news_date', NULL),
+                ('fb_app_id', NULL),
+                ('fb_secret', NULL),
+                ('youtube_key', NULL),
+                ('running_job', '0')";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 }
 
 /**
@@ -102,8 +111,9 @@ function installNavigation ($sections)
                 ('pm', 2, 3, 1),
                 ('messageboard', 3, 1, 1),
                 ('photogallery', 4, 1, 1),
-                ('addressbook', 4, 2, 1),
-                ('calendar', 4, 3, 1),
+                ('videogallery', 4, 2, 1),
+                ('addressbook', 4, 3, 1),
+                ('calendar', 4, 4, 1),
                 ('members', 5, 1, 1),
                 ('contact', 5, 2, 1),
                 ('help', 5, 3, 1),
@@ -113,7 +123,9 @@ function installNavigation ($sections)
                 ('admin_photogallery', 6, 4, 1),
                 ('admin_polls', 6, 5, 1),
                 ('admin_awards', 6, 6, 1), 
-                ('admin_facebook', 6, 7, 1)";
+                ('admin_facebook', 6, 7, 1),
+                ('admin_youtube', 6, 8, 1),
+                ('admin_scheduler', 6, 9, 1)";
     mysql_query($sql) or die("$sql<br/>".mysql_error());
 
     $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
@@ -212,6 +224,7 @@ function installUsers ($fname, $lname, $email, $birthday, $username, $password)
                 `wordpress` VARCHAR(255) NULL,
                 `posterous` VARCHAR(255) NULL,
                 `fb_access_token` VARCHAR(255) NULL,
+                `youtube_session_token` VARCHAR(255) NULL,
                 PRIMARY KEY (`id`), 
                 KEY `user_ind` (`user`)
             ) 
@@ -234,8 +247,10 @@ function installUsers ($fname, $lname, $email, $birthday, $username, $password)
     $sql = "CREATE TABLE `fcms_address` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `user` INT(11) NOT NULL DEFAULT '0', 
-                `entered_by` INT(11) NOT NULL DEFAULT '0', 
+                `updated_id` INT(11) NOT NULL DEFAULT '0', 
                 `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+                `created_id` INT(11) NOT NULL DEFAULT '0', 
+                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
                 `address` VARCHAR(50) DEFAULT NULL, 
                 `city` VARCHAR(50) DEFAULT NULL, 
                 `state` VARCHAR(50) DEFAULT NULL, 
@@ -245,7 +260,8 @@ function installUsers ($fname, $lname, $email, $birthday, $username, $password)
                 `cell` VARCHAR(20) DEFAULT NULL, 
                 PRIMARY KEY (`id`), 
                 KEY `user_ind` (`user`), 
-                KEY `ent_ind` (`entered_by`)
+                KEY `create_ind` (`created_id`),
+                KEY `update_ind` (`updated_id`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
@@ -259,8 +275,8 @@ function installUsers ($fname, $lname, $email, $birthday, $username, $password)
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 
     // insert address
-    $sql = "INSERT INTO `fcms_address` (`id`, `user`, `entered_by`) 
-            VALUES (NULL, 1, 1)";
+    $sql = "INSERT INTO `fcms_address` (`id`, `user`, `created_id`, `created`, `updated_id`, `updated`) 
+            VALUES (NULL, 1, 1, NOW(), 1, NOW())";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 }
 
@@ -337,14 +353,14 @@ function installCalendar ()
     $sql = "INSERT INTO `fcms_calendar` 
                 (`id`, `date`, `date_added`, `title`, `created_by`, `category`, `repeat`) 
             VALUES 
-                (NULL, '2007-12-25', NOW(), \"".T_('Christmas')."\", 1, 4, 'yearly'), 
-                (NULL, '2007-02-14', NOW(), \"".T_('Valentine\'s Day')."\", 1, 4, 'yearly'), 
-                (NULL, '2007-01-01', NOW(), \"".T_('New Year\'s Day')."\", 1, 4, 'yearly'), 
-                (NULL, '2007-07-04', NOW(), \"".T_('Independence Day')."\", 1, 4, 'yearly'), 
-                (NULL, '2007-02-02', NOW(), \"".T_('Groundhog Day')."\", 1, 4, 'yearly'), 
-                (NULL, '2007-03-17', NOW(), \"".T_('St. Patrick\'s Day')."\", 1, 4, 'yearly'), 
-                (NULL, '2007-04-01', NOW(), \"".T_('April Fools Day')."\", 1, 4, 'yearly'), 
-                (NULL, '2007-10-31', NOW(), \"".T_('Halloween')."\", 1, 4, 'yearly')";
+                (NULL, '2007-12-25', '2007-12-25 01:00:00', \"".T_('Christmas')."\", 1, 4, 'yearly'), 
+                (NULL, '2007-02-14', '2007-02-14 01:00:00', \"".T_('Valentine\'s Day')."\", 1, 4, 'yearly'), 
+                (NULL, '2007-01-01', '2007-01-01 01:00:00', \"".T_('New Year\'s Day')."\", 1, 4, 'yearly'), 
+                (NULL, '2007-07-04', '2007-07-04 01:00:00', \"".T_('Independence Day')."\", 1, 4, 'yearly'), 
+                (NULL, '2007-02-02', '2007-02-02 01:00:00', \"".T_('Groundhog Day')."\", 1, 4, 'yearly'), 
+                (NULL, '2007-03-17', '2007-03-17 01:00:00', \"".T_('St. Patrick\'s Day')."\", 1, 4, 'yearly'), 
+                (NULL, '2007-04-01', '2007-04-01 01:00:00', \"".T_('April Fools Day')."\", 1, 4, 'yearly'), 
+                (NULL, '2007-10-31', '2007-10-31 01:00:00', \"".T_('Halloween')."\", 1, 4, 'yearly')";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 }
 
@@ -355,6 +371,68 @@ function installCalendar ()
  */
 function installTables ()
 {
+    // create video
+    $sql = "CREATE TABLE `fcms_video` (
+                `id`                INT(25) NOT NULL AUTO_INCREMENT,
+                `source_id`         VARCHAR(255) NOT NULL,
+                `title`             VARCHAR(255) NOT NULL DEFAULT 'untitled',
+                `description`       VARCHAR(255) NULL,
+                `duration`          INT(25) NULL,
+                `source`            VARCHAR(50) NULL,
+                `height`            INT(4) NOT NULL DEFAULT '420',
+                `width`             INT(4) NOT NULL DEFAULT '780',
+                `active`            TINYINT(1) NOT NULL DEFAULT '1',
+                `created`           DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `created_id`        INT(25) NOT NULL,
+                `updated`           DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `updated_id`        INT(25) NOT NULL,
+                PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
+
+    $sql = "CREATE TABLE `fcms_video_comment` (
+                `id`            INT(25) NOT NULL AUTO_INCREMENT,
+                `video_id`      INT(25) NOT NULL,
+                `comment`       TEXT NOT NULL,
+                `created`       DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `created_id`    INT(25) NOT NULL,
+                `updated`       DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `updated_id`    INT(25) NOT NULL,
+                PRIMARY KEY (`id`),
+                CONSTRAINT FOREIGN KEY (`video_id`) REFERENCES `fcms_video` (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
+
+    // create schedule
+    $sql = "CREATE TABLE `fcms_schedule` (
+                `id`        INT(25) NOT NULL AUTO_INCREMENT,
+                `type`      VARCHAR(50) NOT NULL DEFAULT 'familynews',
+                `repeat`    VARCHAR(50) NOT NULL DEFAULT 'hourly',
+                `lastrun`   DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `status`    TINYINT(1) NOT NULL DEFAULT 0,
+                PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
+
+    // populate schedule
+    $sql = "INSERT INTO `fcms_schedule` (`type`, `repeat`)
+            VALUES 
+                ('familynews', 'hourly'),
+                ('youtube', 'hourly')";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
+
+    // create changelog
+    $sql = "CREATE TABLE `fcms_changelog` (
+                `id` INT(25) NOT NULL AUTO_INCREMENT,
+                `user` INT(25) NOT NULL DEFAULT '0',
+                `table` VARCHAR(50) NOT NULL,
+                `column` VARCHAR(50) NOT NULL,
+                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                PRIMARY KEY (`id`),
+                CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
+
     // create invitation
     $sql = "CREATE TABLE `fcms_invitation` (
                 `id` INT(25) NOT NULL AUTO_INCREMENT,
@@ -457,7 +535,8 @@ function installTables ()
                 `title` VARCHAR(50) NOT NULL DEFAULT '', 
                 `news` TEXT NOT NULL, 
                 `user` INT(11) NOT NULL DEFAULT '0', 
-                `date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `updated` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
                 `external_type` VARCHAR(20) NULL,
                 `external_id` VARCHAR(255) NULL,
                 PRIMARY KEY (`id`), 

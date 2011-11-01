@@ -17,8 +17,9 @@ define('URL_PREFIX', '');
 
 require 'fcms.php';
 
-// Check that the user is logged in
-isLoggedIn();
+init();
+
+// Globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
 // Setup the Template variables;

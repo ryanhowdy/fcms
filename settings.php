@@ -17,10 +17,9 @@ define('URL_PREFIX', '');
 
 require 'fcms.php';
 
-load('settings', 'foursquare', 'facebook', 'socialmedia', 'vimeo');
+load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube');
 
-// Check that the user is logged in
-isLoggedIn();
+init();
 
 // Globals
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
@@ -125,17 +124,20 @@ function control ()
         {
             displayEditMessageBoard();
         }
+        // Facebook
         elseif ($_GET['view'] == 'socialmedia' && isset($_GET['code']) && isset($_GET['state']))
         {
             displayEditFacebookSubmit();
         }
+        // Foursquare
         elseif ($_GET['view'] == 'socialmedia' && isset($_GET['code']))
         {
             displayFoursquareSubmit();
         }
-        elseif ($_GET['view'] == 'socialmedia' && isset($_GET['oauth_token']))
+        // YouTube
+        elseif ($_GET['view'] == 'socialmedia' && isset($_GET['token']))
         {
-            displayEditVimeoSubmit();
+            displayEditYouTubeSubmit();
         }
         elseif ($_GET['view'] == 'socialmedia')
         {
@@ -157,9 +159,9 @@ function control ()
         {
             displayRevokeFoursquareAccess();
         }
-        elseif ($_GET['revoke'] == 'vimeo')
+        elseif ($_GET['revoke'] == 'youtube')
         {
-            displayRevokeVimeoAccess();
+            displayRevokeYouTubeAccess();
         }
     }
     else
@@ -275,7 +277,7 @@ function displayEditAccountSubmit ()
         if (!$result)
         {
             displayHeader();
-            displaySQLError('Email Error', ___FILE___.' ['.__LINE__.']', $sql, mysql_error());
+            displaySQLError('Email Error', ___FILE___.' ['.__LINE__.']', $sql2, mysql_error());
             displayFooter();
             return;
         }
@@ -719,27 +721,7 @@ function displayFoursquareSubmit ()
 {
     global $currentUserId, $settingsObj;
 
-    $sql = "SELECT `fs_client_id`, `fs_client_secret`, `fs_callback_url`
-            FROM `fcms_config`
-            LIMIT 1";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displayHeader();
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-        displayFooter();
-        return;
-    }
-    if (mysql_num_rows($result) <= 0)
-    {
-        displayHeader();
-        echo '
-                <p class="error-alert">'.T_('No configuration data found.').'</p>';
-        displayFooter();
-        return;
-    }
-    $r = mysql_fetch_assoc($result);
+    $r = getFoursquareConfigData();
 
     $id     = cleanOutput($r['fs_client_id']);
     $secret = cleanOutput($r['fs_client_secret']);
@@ -1011,33 +993,38 @@ function displayRevokeFacebookAccess ()
 }
 
 /**
- * displayEditVimeoSubmit
+ * displayEditYouTubeSubmit
  * 
  * @return void
  */
-function displayEditVimeoSubmit ()
+function displayEditYouTubeSubmit ()
 {
     global $currentUserId, $settingsObj;
 
-    $data = getVimeoConfigData();
+    $data = getYouTubeConfigData();
 
-    if (!empty($data['vimeo_key']) && !empty($data['vimeo_secret']))
+    $singleUseToken = $_GET['token'];
+
+    if (!empty($data['youtube_key']))
     {
-        $vimeo = new phpVimeo($data['vimeo_key'], $data['vimeo_secret']);
-        $vimeo->enableCache(phpVimeo::CACHE_FILE, './cache', 300);
+        // Exchange single use token for a session token
+        try
+        {
+            $sessionToken = Zend_Gdata_AuthSub::getAuthSubSessionToken($singleUseToken);
+        }
+        catch (Zend_Gdata_App_Exception $e)
+        {
+            displayHeader();
+            echo '
+            <div class="error-alert">ERROR - Token upgrade for ['.$singleUseToken.'] failed: '.$e->getMessage();
+            displayFooter();
+            return;
+        }
 
-        // Set request token
-        $vimeo->setToken($_SESSION['oauth_request_token'], $_SESSION['oauth_request_token_secret']);
-
-        // Exchange it for an access token
-        $token = $vimeo->getAccessToken($_REQUEST['oauth_verifier']);
-
-        // Set access token
-        $vimeo->setToken($token['oauth_token'], $token['oauth_token_secret']);
+        $_SESSION['sessionToken'] = $sessionToken;
 
         $sql = "UPDATE `fcms_user_settings`
-                SET `vimeo_access_token` = '".$token['oauth_token']."',
-                    `vimeo_access_token_secret` = '".$token['oauth_token_secret']."'
+                SET `youtube_session_token` = '$sessionToken'
                 WHERE `user` = '$currentUserId'";
 
         if (!mysql_query($sql))
@@ -1049,15 +1036,15 @@ function displayEditVimeoSubmit ()
         }
     }
 
-    // Vimeo isn't configured
+    // YouTube isn't configured
     else
     {
         displayHeader();
 
         echo '
             <div class="info-alert">
-                <h2>'.T_('Vimeo isn\'t Configured Yet.').'</h2>
-                <p>'.T_('Unfortunately, your website administrator has not set up Vimeo yet.').'</p>
+                <h2>'.T_('YouTube isn\'t Configured Yet.').'</h2>
+                <p>'.T_('Unfortunately, your website administrator has not set up YouTube yet.').'</p>
             </div>';
 
         displayFooter();
@@ -1068,16 +1055,21 @@ function displayEditVimeoSubmit ()
 }
 
 /**
- * displayRevokeVimeoAccess 
+ * displayRevokeYouTubeAccess 
  * 
  * @return void
  */
-function displayRevokeVimeoAccess ()
+function displayRevokeYouTubeAccess ()
 {
     global $currentUserId;
 
+    if (isset($_SESSION['sessionToken']))
+    {
+        unset($_SESSION['sessionToken']);
+    }
+
     $sql = "UPDATE `fcms_user_settings`
-            SET `vimeo_access_token` = NULL, `vimeo_access_token_secret` = NULL
+            SET `youtube_session_token` = NULL
             WHERE `user` = '$currentUserId'";
 
     if (!mysql_query($sql))
@@ -1107,8 +1099,8 @@ function displayEditSocialMedia ()
     $facebookAccessToken = getUserFacebookAccessToken($currentUserId);
     $foursquareConfig    = getFoursquareConfigData();
     $foursquareUser      = getFoursquareUserData($currentUserId);
-    //$vimeoConfig         = getVimeoConfigData();
-    //$vimeoUser           = getVimeoUserData($currentUserId);
+    $youtubeConfig       = getYouTubeConfigData();
+    $youtubeUser         = getYouTubeUserData($currentUserId);
 
     // Setup url for callbacks
     $callbackUrl  = getDomainAndDir();
@@ -1199,50 +1191,53 @@ function displayEditSocialMedia ()
                 </tr>';
     }
 
-    // Vimeo
+    // YouTube
     //------------------------------------------------------------------------------------
-    //$vimeoRow    = '';
-    //$vimeoStatus = '';
-    //$vimeoLink   = '';
+    $youtubeRow        = '';
+    $youtubeRowPrivate = '';
+    $youtubeStatus     = '';
+    $youtubeLink       = '';
 
-    //if (!empty($vimeoConfig['vimeo_key']) && !empty($vimeoConfig['vimeo_secret']))
-    //{
-    //    $vimeo = new phpVimeo($vimeoConfig['vimeo_key'], $vimeoConfig['vimeo_secret']);
-    //    $vimeo->enableCache(phpVimeo::CACHE_FILE, './cache', 300);
+    if (!empty($youtubeConfig['youtube_key']))
+    {
+        if (!empty($youtubeUser['youtube_session_token']))
+        {
+            $httpClient = getAuthSubHttpClient($youtubeConfig['youtube_key'], $youtubeUser['youtube_session_token']);
 
-    //    if (!empty($vimeoUser['vimeo_access_token']) && !empty($vimeoUser['vimeo_access_token_secret']))
-    //    {
-    //        $vimeo->setToken($vimeoUser['vimeo_access_token'], $vimeoUser['vimeo_access_token_secret']);
-    //        $response = $vimeo->call('vimeo.people.getInfo');
+            $youTubeService = new Zend_Gdata_YouTube($httpClient);
 
-    //        $vimeoStatus = '<a href="http://vimeo.com/'.$response->person->username.'">'.$response->person->username.'</a>';
-    //        $vimeoLink   = '<a class="disconnect" href="?revoke=vimeo">'.T_('Disconnect').'</a>';
-    //    }
-    //    else
-    //    {
-    //        unset($_SESSION['oauth_request_token']);
-    //        unset($_SESSION['oauth_request_token_secret']);
+            $feed = $youTubeService->getUserProfile('default');
+            if (!$feed instanceof Zend_Gdata_YouTube_UserProfileEntry)
+            {
+                print '
+            <div class="error-alert">'.T_('Could not get YouTube data for user.').'</div>';
+                return;
+            }
 
-    //        $token = $vimeo->getRequestToken($callbackUrl);
+            $username = $feed->getUsername();
 
-    //        $_SESSION['oauth_request_token']        = $token['oauth_token'];
-    //        $_SESSION['oauth_request_token_secret'] = $token['oauth_token_secret'];
+            $youtubeStatus = '<a href="http://www.youtube.com/user/'.$username.'">'.$username.'</a>';
+            $youtubeLink   = '<a class="disconnect" href="?revoke=youtube">'.T_('Disconnect').'</a>';
+        }
+        else
+        {
+            $url = Zend_Gdata_AuthSub::getAuthSubTokenUri($callbackUrl, 'http://gdata.youtube.com', false, true);
 
-    //        $vimeoStatus = '<span class="not_connected">'.T_('Not Connected').'</span>';
-    //        $vimeoLink   = '<a href="'.$vimeo->getAuthorizeUrl($token['oauth_token'], 'write').'">'.T_('Connect').'</a>';
-    //    }
+            $youtubeStatus = '<span class="not_connected">'.T_('Not Connected').'</span>';
+            $youtubeLink   = '<a href="'.$url.'">'.T_('Connect').'</a>';
+        }
 
-    //    $vimeoRow = '
-    //            <tr>
-    //                <td><img src="themes/images/vimeo_24.png" alt="'.T_('Vimeo').'"/></td>
-    //                <td>'.T_('Vimeo').'</td>
-    //                <td>'.$vimeoStatus.'</td>
-    //                <td>'.$vimeoLink.'</td>
-    //            </tr>';
-    //}
+        $youtubeRow = '
+                <tr>
+                    <td><img src="themes/images/youtube_24.png" alt="'.T_('YouTube').'"/></td>
+                    <td>'.T_('YouTube').'</td>
+                    <td>'.$youtubeStatus.'</td>
+                    <td>'.$youtubeLink.'</td>
+                </tr>';
+    }
 
     // Blank state
-    if ($facebookRow == '' && $foursquareRow == '')
+    if ($facebookRow == '' && $foursquareRow == '' && $youtubeRow == '')
     {
         echo '
         <div class="info-alert">
@@ -1254,11 +1249,37 @@ function displayEditSocialMedia ()
         return;
     }
 
+    // Error code was given
+    if (isset($_GET['error']))
+    {
+        echo '
+        <div class="error-alert">
+            <h2>'.T_('Error connecting site.').'</h2>
+            <p>'.T_('Site returned error code:').'</p>
+            <p style="text-align:center"><i>'.$_GET['error'].'</i></p>
+        </div>';
+    }
+
     echo '
         <table id="socialmedia-connect">
-            <tbody>'.$facebookRow.$foursquareRow.'
+            <tbody>'.$facebookRow.$foursquareRow.$youtubeRow.'
             </tbody>
-        </table>';
+        </table><br/>';
+
+
+    // Add a row that allows user to decide if they want to share private videos
+    if ($youtubeStatus !== '' && $youtubeLink !== '')
+    {
+        echo '
+        <div class="info-alert">
+            <p><b>'.T_('YouTube Private Videos').'</b></p>
+            <p>
+                '.T_('By connecting your account to YouTube, you are allowing all members of this site to view your private videos from YouTube.').'
+            </p>
+            <p><a href="help.php#video-youtube-private">'.T_('Learn more.').'</a></p>
+        </div>';
+    }
 
     displayFooter();
 }
+

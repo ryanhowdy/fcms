@@ -19,11 +19,10 @@ require URL_PREFIX.'fcms.php';
 
 load('admin');
 
-// Check that the user is logged in
-isLoggedIn('admin/');
-$currentUserId = cleanInput($_SESSION['login_id'], 'in');
+init('admin/');
 
-$admin = new Admin($currentUserId);
+$currentUserId = cleanInput($_SESSION['login_id'], 'in');
+$admin         = new Admin($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
@@ -79,7 +78,8 @@ else
         if (isset($_POST['sitename']))
         {
             $sql = "UPDATE `fcms_config` 
-                    SET `sitename` = '".cleanInput($_POST['sitename'])."'";
+                    SET `value` = '".cleanInput($_POST['sitename'])."'
+                    WHERE `name` = 'sitename'";
             mysql_query($sql) or displaySQLError(
                 'Sitename Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
@@ -88,7 +88,8 @@ else
         if (isset($_POST['contact']))
         {
             $sql = "UPDATE `fcms_config` 
-                    SET `contact` = '".cleanInput($_POST['contact'])."'";
+                    SET `value` = '".cleanInput($_POST['contact'])."'
+                    WHERE `name` = 'contact'";
             mysql_query($sql) or displaySQLError(
                 'Contact Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
@@ -97,7 +98,8 @@ else
         if (isset($_POST['activation']))
         {
             $sql = "UPDATE `fcms_config` 
-                    SET `auto_activate` = ".cleanInput($_POST['activation']);
+                    SET `value` = '".cleanInput($_POST['activation'])."'
+                    WHERE `name` = 'auto_activate'";
             mysql_query($sql) or displaySQLError(
                 'Activation Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
@@ -106,7 +108,8 @@ else
         if (isset($_POST['registration']))
         {
             $sql = "UPDATE `fcms_config` 
-                    SET `registration` = ".cleanInput($_POST['registration']);
+                    SET `value` = '".cleanInput($_POST['registration'])."'
+                    WHERE `name` = 'registration'";
             mysql_query($sql) or displaySQLError(
                 'Registration Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
@@ -118,12 +121,15 @@ else
 
             if ($_POST['site_off'] == 'yes')
             {
-                $sql .= "SET `site_off` = '1'";
+                $sql .= "SET `value` = '1' ";
             }
             else
             {
-                $sql .= "SET `site_off` = '0'";
+                $sql .= "SET `value` = '0' ";
             }
+
+            $sql .= "WHERE `name` = 'site_off'";
+
             mysql_query($sql) or displaySQLError(
                 'Site Off Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
@@ -132,7 +138,8 @@ else
         if (isset($_POST['log_errors']))
         {
             $sql = "UPDATE `fcms_config` 
-                    SET `log_errors` = ".cleanInput($_POST['log_errors']);
+                    SET `value` = '".cleanInput($_POST['log_errors'])."'
+                    WHERE `name` = 'log_errors'";
             mysql_query($sql) or displaySQLError(
                 'Logging Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
             );
@@ -314,7 +321,7 @@ else
             if ($link == 'whereiseveryone')
             {
                 $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
-                        VALUES ('admin_whereiseveryone', 6, $adminOrder, 0)";
+                        VALUES ('admin_foursquare', 6, $adminOrder, 0)";
                 if (!mysql_query($sql))
                 {
                     displaySQLError('Admin Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
@@ -470,7 +477,8 @@ else
     if (isset($_POST['submit-gallery']))
     {
         $sql = "UPDATE `fcms_config` 
-                SET `full_size_photos` = ".cleanInput($_POST['full_size_photos']);
+                SET `value` = '".cleanInput($_POST['full_size_photos'])."'
+                WHERE `name` = 'full_size_photos'";
         mysql_query($sql) or displaySQLError(
             'Full Size Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
         );

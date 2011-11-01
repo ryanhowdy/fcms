@@ -19,11 +19,11 @@ require 'fcms.php';
 
 load('database', 'privatemsg');
 
-// Check that the user is logged in
-isLoggedIn();
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init();
 
-$pm = new PrivateMessage($currentUserId);
+// Globals
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$pm            = new PrivateMessage($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(

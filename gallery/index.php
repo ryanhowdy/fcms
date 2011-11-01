@@ -19,11 +19,11 @@ require URL_PREFIX.'fcms.php';
 
 load('gallery');
 
-// Check that the user is logged in
-isLoggedIn('gallery/');
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init('gallery/');
 
-$gallery = new PhotoGallery($currentUserId);
+// Globals
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$gallery       = new PhotoGallery($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
@@ -231,7 +231,10 @@ elseif (isset($_POST['delconfirm']) || (isset($_POST['confirmed']) && !isset($_P
     unlink("../uploads/photos/member$photoUserId/".$photoFilename);
     unlink("../uploads/photos/member$photoUserId/tb_".$photoFilename);
 
-    $sql = "SELECT `full_size_photos` FROM `fcms_config`";
+    $sql = "SELECT `value` As 'full_size_photos'
+            FROM `fcms_config`
+            WHERE `name` = 'full_size_photos'
+            LIMIT 1";
 
     $result = mysql_query($sql) or displaySQLError(
         'Full Size Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()

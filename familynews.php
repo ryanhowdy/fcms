@@ -19,11 +19,10 @@ require 'fcms.php';
 
 load('familynews');
 
-// Check that the user is logged in
-isLoggedIn();
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init();
 
-$fnews = new FamilyNews($currentUserId);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$fnews         = new FamilyNews($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(

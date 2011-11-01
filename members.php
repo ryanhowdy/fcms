@@ -19,11 +19,10 @@ require 'fcms.php';
 
 load('members', 'database');
 
-// Check that the user is logged in
-isLoggedIn();
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+init();
 
-$member = new Members($currentUserId);
+$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$member        = new Members($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
