@@ -1,5 +1,9 @@
 [Language Info]
 
+ Create dev/list File
+
+    find . \! -path "./inc/Zend*" \! -path "./test/*" \! -path "./inc/chat/lib/*" \! -path "./inc/facebook/*" \! -path "./inc/foursquare/*" \! -path "./inc/vimeo/*" -type f -name "*.php" | sort > dev/list
+
  Create POT File
 
     xgettext --files-from=dev/list --keyword=T_ --keyword=T_ngettext:1,2 --keyword=T_pgettext:1c,2 --language=PHP --no-wrap -o language/messages.pot
@@ -11,3 +15,10 @@
  Create test data
 
     %s/^msgid "\(.*\)"\nmsgstr ""/msgid "\1"\rmsgstr "xx\1xx"
+
+
+[Translating New Language]
+
+ Plural Forms
+
+    http://translate.sourceforge.net/wiki/l10n/pluralforms
