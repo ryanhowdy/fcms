@@ -8,14 +8,13 @@ msgstr ""
 "Project-Id-Version: Family Connections 2.7\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-11-08 13:07-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2011-11-08 13:09-0500\n"
+"Last-Translator: Ryan Haudenschilt <translate@familycms.com>\n"
+"Language: English\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: activate.php:22 fcms.php:466 gallery/slideshow.php:30 inc/bbcode.php:15
 #: inc/calendar_print.php:19 inc/smileys.php:12 inc/upimages.php:18
@@ -23,7 +22,7 @@ msgstr ""
 #: register.php:61 rss.php:77 rss.php:279 themes/blue-chrome/header.php:2
 #: themes/default/header.php:2
 msgid "lang"
-msgstr ""
+msgstr "en"
 
 #: activate.php:24 inc/bbcode.php:17 inc/calendar_print.php:21
 #: inc/smileys.php:14 inc/upimages.php:20 index.php:351 invitation.php:64

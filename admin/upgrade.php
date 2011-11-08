@@ -496,11 +496,11 @@ function displayStepSeven ()
 }
 
 /**
- * displayUpgradeSubmit 
+ * displayUpgrade
  * 
  * @return void
  */
-function displayUpgradeSubmit ()
+function displayUpgrade ()
 {
     displayHeader();
 

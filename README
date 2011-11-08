@@ -1,11 +1,11 @@
 
-                             Family Connections 2.6
+                             Family Connections 2.7
 
 
   Installation
   ------------
 
-  1. Upload the entire contents of FCMS_2.6.zip to your web host.
+  1. Upload the entire contents of FCMS_2.7.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -17,22 +17,17 @@
 
 
 
-
-  Upgrading from 2.5.4 to 2.6
+  Upgrading from 2.6 to 2.7
   ---------------------------
-
-  YOU MUST HAVE VERSION 2.5.4 INSTALLED IN ORDER TO UPGRADE TO 2.6.
-
-  If your version is not 2.5.4, please upgrade to 2.5.4, then to 2.6.
 
   ** DO NOT DELETE THE FOLLOWING FILE **
     inc/config_inc.php
 
   ** DO NOT TOUCH ANY FILES IN THE FOLLOWING DIRECTORIES **
-    gallery/avatar/
-    gallery/documents/
-    gallery/photos/memberX/
-    gallery/upimages/
+    uploads/avatar/
+    uploads/documents/
+    uploads/photos/memberX/
+    uploads/upimages/
 
   1. It is recommended that you backup your entire site, including your
      MySQL database before upgrading.
@@ -40,33 +35,25 @@
   2. Login as the administrator, visit the upgrade section, and run the 
      automatic upgrade.
 
-  3. Because of a bug in 2.5.4, you will get an error saying
-     'Could not find upgrade directory.'.  Ignore this error and change
-     the current url from 'admin/upgrade.php?auto=4' to
-     'admin/upgrade.php?auto=5'.
-
-  4. Delete the install.php file from your web host (if it still exists).
+  3. Delete the install.php file from your web host (if it still exists).
 
 
 
   Change Log
   ----------
 
-  2.6
+  2.7
 
-    #22  - Video Section (YouTube)
-    #233 - Show avatar changes in What's New
-    #309 - Create better PM notification
-    #314 - Rename Where Is Everyone Admin
-    #338 - Show specific address/contact info changes
-    #351 - Better family news import
-    #381 - Facebook updates have \"
-    #344 - Add cron jobs (FCMS Scheduler)
-    #349 - Show photos on Family Tree
-    #361 - Adding Images to Message Board / Family News not working
-    #364 - Better error handling when connecting with Foursquare
-    #366 - Usernames with ' apostrophe causes photo tagging javascript to crash
- 
+    #343 - Can't upload photo with Recipe
+    #348 - Allow DOB/DOD to be empty
+    #386 - Allow non-members to have empty DOB and DOD
+    #391 - Can't run Get Latest Awards (2.6)
+    #393 - Family News - Undefined variable: date
+    #353 - Last 5 View not working
+    #377 - Import Instagram photos
+    #390 - Add Country to Address
+    #392 - Smiley's doesn't work - Wrong include path
+    #394 - Sort Admin: Members page by member/non-member
 
   For the full change log please refer to the included ChangeLog file.
 

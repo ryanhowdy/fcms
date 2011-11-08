@@ -27,6 +27,7 @@
 ./help.php
 ./home.php
 ./inc/addressbook_class.php
+./inc/address.php
 ./inc/admin_class.php
 ./inc/admin_members_class.php
 ./inc/alerts_class.php
@@ -51,6 +52,7 @@
 ./inc/install_inc.php
 ./inc/members_class.php
 ./inc/messageboard_class.php
+./inc/phone.php
 ./inc/poll_class.php
 ./inc/prayers_class.php
 ./inc/privatemsg_class.php

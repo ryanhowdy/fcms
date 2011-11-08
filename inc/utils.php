@@ -3061,7 +3061,7 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
                 $tmp = subval_sort($whatsNewData[$type], 'date');
                 $tmp = array_reverse($tmp);
 
-                $sorted[$type][] = $tmp;
+                $sorted[$type] = $tmp;
             }
             $whatsNewData = $sorted;
         }
@@ -3851,4 +3851,57 @@ function delete_dir ($directory)
     }
 
     return true;
+}
+
+/**
+ * buildCountryList 
+ * 
+ * Builds an array of country ISO 3166 names keyed by alpha-2 codes from the country.txt file.
+ * This text file is from http://www.iso.org/iso/country_codes/iso_3166_code_lists.htm.
+ * 
+ * @return array
+ */
+function buildCountryList ()
+{
+    $countries = array();
+
+    $lines = @file('inc/country.txt');
+    if ($lines === false)
+    {
+        echo '<div class="error-alert">'.T_('Could not read inc/country.txt file.').'</div>';
+        return $countries;
+    }
+
+    foreach($lines as $line)
+    {
+        $country = explode(";", $line);
+
+        $country[0] = trim($country[0]);
+        $country[1] = trim($country[1]);
+
+        $countries[$country[1]] = $country[0];
+    }
+
+    return $countries;
+}
+
+/**
+ * getDefaultCountry 
+ * 
+ * @return void
+ */
+function getDefaultCountry ()
+{
+    $sql = "SELECT `value` 
+            FROM `fcms_config`
+            WHERE `name` = 'country'";
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        return 'US';
+    }
+
+    $r = mysql_fetch_array($result);
+
+    return $r['value'];
 }

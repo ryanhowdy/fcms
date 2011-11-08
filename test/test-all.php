@@ -26,7 +26,7 @@ while (($file = readdir($dh)) !== false)
 
     $output = exec("php $file", $results, $ret_val);
 
-    $fp = fopen("test_results.txt","a");
+    $fp = fopen("results.txt","a");
 
     foreach ($results as $result)
     {
@@ -40,4 +40,4 @@ while (($file = readdir($dh)) !== false)
     }
 }
 
-echo "\nResults: test_results.txt\n";
+echo "\nResults: results.txt\n";

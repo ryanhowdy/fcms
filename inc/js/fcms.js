@@ -768,6 +768,23 @@ function initHideVideoEdit(txt)
     }
 }
 
+/* =FAMILYTREE =TREE
+------------------------------------------------*/
+function initLivingDeceased()
+{
+    if (!$('living_deceased')) { return; }
+
+    $('living_deceased').show();
+    $('deceased').hide();
+    $('living_option').onchange = initLivingDeceased;
+    $('deceased_option').onchange = initLivingDeceased;
+
+    if ($('deceased_option').checked)
+    {
+        $('deceased').show();
+    }
+}
+
 // TODO - move these out of here 
 addLoadEvent(initTextFieldHighlight);
 addLoadEvent(initRowHighlight);

@@ -17,12 +17,13 @@ define('URL_PREFIX', '');
 
 require 'fcms.php';
 
-load('recipes');
+load('recipes', 'image');
 
 init();
 
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 $rec           = new Recipes($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$img           = new Image($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
@@ -84,10 +85,28 @@ if (isset($_POST['submitadd']))
     // Upload Recipe Image
     if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['name'] && $_FILES['thumbnail']['error'] < 1)
     {
-        $thumbnail = uploadImages(
-            $_FILES['thumbnail']['type'], $_FILES['thumbnail']['name'], 
-            $_FILES['thumbnail']['tmp_name'], "gallery/upimages/", 100, 100, true, false
-        );
+        $img->destination = 'uploads/upimages/';
+        $img->uniqueName  = true;
+
+        $thumbnail = $img->upload($_FILES['thumbnail']);
+
+        if ($img->error == 1)
+        {
+            echo '
+    <p class="error-alert">
+        '.sprintf(T_('Thumbnail [%s] is not a supported type. Thumbnails must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->img->name).'
+    </p>';
+        }
+
+        $img->resize(100, 100);
+
+        if ($img->error > 0)
+        {
+            echo '
+    <p class="error-alert">
+        '.T_('There was an error uploading your thumbnail.').'
+    </p>';
+        }
     }
     $sql = "INSERT INTO `fcms_recipes` 
                 (`name`, `thumbnail`, `category`, `ingredients`, `directions`, `user`, `date`) 

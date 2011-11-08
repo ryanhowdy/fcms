@@ -1,6 +1,7 @@
 #!/usr/bin/php -q
 <?php
 require_once 'lib/Test-More.php';
+require_once 'lib/utils.php';
 require_once '../inc/config_inc.php';
 require_once '../inc/image_class.php';
 
@@ -9,6 +10,8 @@ $imgObj = new Image(1);
 diag('isValid');
 
 plan(4);
+
+connectDatabase();
 
 $imgObj->name = 'normal.gif';
 $imgObj->type = 'image/gif';

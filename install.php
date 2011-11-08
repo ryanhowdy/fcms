@@ -696,7 +696,6 @@ function setupDatabase ()
     include_once 'inc/install_inc.php';
     include_once 'inc/utils.php';
 
-    $birthday   = $_POST['year']."-".str_pad($_POST['month'], 2, "0", STR_PAD_LEFT)."-".str_pad($_POST['day'], 2, "0", STR_PAD_LEFT);
     $password   = md5($_POST['password']);
     $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 
@@ -710,10 +709,12 @@ function setupDatabase ()
     $fname    = cleanInput($_POST['fname']);
     $lname    = cleanInput($_POST['lname']);
     $email    = cleanInput($_POST['email']);
-    $birthday = cleanInput($birthday);
+    $bYear    = cleanInput($_POST['year']);
+    $bMonth   = cleanInput(str_pad($_POST['month'], 2, "0", STR_PAD_LEFT));
+    $bDay     = cleanInput(str_pad($_POST['day'], 2, "0", STR_PAD_LEFT));
     $username = cleanInput($_POST['username']);
 
-    installUsers($fname, $lname, $email, $birthday, $username, $password);
+    installUsers($fname, $lname, $email, $bYear, $bMonth, $bDay, $username, $password);
     installCategory();
     installCalendar();
     installTables();

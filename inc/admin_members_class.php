@@ -211,7 +211,7 @@ class AdminMembers
         $member = cleanInput($id, 'int');
 
         $sql = "SELECT `id`, `username`, `fname`, `mname`, `lname`, `maiden`, `sex`, 
-                    `email`, `birthday`, `access` 
+                    `email`, `dob_year`, `dob_month`, `dob_day`, `access` 
                 FROM `fcms_users` 
                 WHERE `id` = '$member'";
         if (!$this->db->query($sql))
@@ -220,6 +220,14 @@ class AdminMembers
             return;
         }
         $r = $this->db->get_row();
+
+        if ($this->db->count_rows() <= 0)
+        {
+            echo '
+            <p class="error-alert">'.T_('Could not find member.').'</p>';
+
+            return;
+        }
         
         // Display applicable errors
         if ($error != '')
@@ -236,9 +244,9 @@ class AdminMembers
         $maiden   = isset($_POST['maiden'])   ? $_POST['maiden']   : $r['maiden'];
         $sex      = isset($_POST['sex'])      ? $_POST['sex']      : $r['sex'];
         $email    = isset($_POST['email'])    ? $_POST['email']    : $r['email'];
-        $year     = isset($_POST['year'])     ? $_POST['year']     : substr($r['birthday'], 0, 4);
-        $month    = isset($_POST['month'])    ? $_POST['month']    : substr($r['birthday'], 5, 2);
-        $day      = isset($_POST['day'])      ? $_POST['day']      : substr($r['birthday'], 8, 2);
+        $year     = isset($_POST['year'])     ? $_POST['year']     : $r['dob_year'];
+        $month    = isset($_POST['month'])    ? $_POST['month']    : $r['dob_month'];
+        $day      = isset($_POST['day'])      ? $_POST['day']      : $r['dob_day'];
         $access   = isset($_POST['access'])   ? $_POST['access']   : $r['access'];
 
         for ($i = 1; $i <= 31; $i++)
@@ -408,12 +416,15 @@ class AdminMembers
                         <div class="field-label"><label for="day"><b>'.T_('Birthday').'</b></label></div> 
                         <div class="field-widget">
                             <select id="day" name="day">
+                                <option value="">'.T_('Day').'</option>
                                 '.buildHtmlSelectOptions($days, $day).'
                             </select>
                             <select id="month" name="month">
+                                <option value="">'.T_('Month').'</option>
                                 '.buildHtmlSelectOptions($months, $month).'
                             </select>
                             <select id="year" name="year">
+                                <option value="">'.T_('Year').'</option>
                                 '.buildHtmlSelectOptions($years, $year).'
                             </select>
                         </div>
@@ -465,7 +476,8 @@ class AdminMembers
         $id = cleanInput($id, 'int');
 
         // Get current member info
-        $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, u.`birthday`,
+        $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, 
+                    u.`dob_year`, u.`dob_month`, u.`dob_day`,
                     a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`bio`
                 FROM `fcms_users` AS u, `fcms_address` AS a
                 WHERE u.`id` = '$id'
@@ -539,7 +551,7 @@ class AdminMembers
                             <div class="field-label">
                                 <label><b>'.T_('Birthday').'</b></label>
                             </div> 
-                            <div class="field-widget">'.$r['birthday'].'</div>
+                            <div class="field-widget">'.formatBirthday($r['dob_year'], $r['dob_month'], $r['dob_day']).'</div>
                         </div>
                         <div class="field-row clearfix">
                             <div class="field-label">
@@ -622,7 +634,8 @@ class AdminMembers
         $id    = cleanInput($id, 'int');
         $merge = cleanInput($merge, 'int');
 
-        $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, u.`birthday`,
+        $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, 
+                    u.`dob_year`, u.`dob_month`, u.`dob_day`, 
                     a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`bio`
                 FROM `fcms_users` AS u, `fcms_address` AS a
                 WHERE u.`id` IN ('$id', '$merge') 
@@ -636,6 +649,19 @@ class AdminMembers
         {
             $members[$r['id']] = $r;
         }
+
+        $year1  = empty($members[$id]['dob_year'])     ? '0000' : $members[$id]['dob_year'];
+        $month1 = empty($members[$id]['dob_month'])    ? '00'   : $members[$id]['dob_month'];
+        $day1   = empty($members[$id]['dob_day'])      ? '00'   : $members[$id]['dob_day'];
+        $year2  = empty($members[$merge]['dob_year'])  ? '0000' : $members[$merge]['dob_year'];
+        $month2 = empty($members[$merge]['dob_month']) ? '00'   : $members[$merge]['dob_month'];
+        $day2   = empty($members[$merge]['dob_day'])   ? '00'   : $members[$merge]['dob_day'];
+
+        $birthday1 = $year1.'-'.$month1.'-'.$day1;
+        $birthday2 = $year2.'-'.$month2.'-'.$day2;
+
+        $formatBirthday1 = formatBirthday($members[$id]['dob_year'], $members[$id]['dob_month'], $members[$id]['dob_day']);
+        $formatBirthday2 = formatBirthday($members[$merge]['dob_year'], $members[$merge]['dob_month'], $members[$merge]['dob_day']);
 
         // Display form
         echo '
@@ -707,8 +733,8 @@ class AdminMembers
                                 <label><b>'.T_('Birthday').'</b></label>
                             </div> 
                             <div class="field-widget">
-                                <input type="radio" checked="checked" id="b1" name="birthday" value="'.$members[$id]['birthday'].'"/>
-                                <label for="b1">'.$members[$id]['birthday'].'</label>
+                                <input type="radio" checked="checked" id="b1" name="birthday" value="'.$birthday1.'"/>
+                                <label for="b1">'.$formatBirthday1.'</label>
                             </div>
                         </div>
                         <div class="field-row clearfix">
@@ -847,8 +873,8 @@ class AdminMembers
                                 <label><b>'.T_('Birthday').'</b></label>
                             </div> 
                             <div class="field-widget">
-                                <input type="radio" id="b2" name="birthday" value="'.$members[$merge]['birthday'].'"/>
-                                <label for="b2">'.$members[$merge]['birthday'].'</label>
+                                <input type="radio" id="b2" name="birthday" value="'.$birthday2.'"/>
+                                <label for="b2">'.$formatBirthday2.'</label>
                             </div>
                         </div>
                         <div class="field-row clearfix">
@@ -950,10 +976,31 @@ class AdminMembers
     function displayMemberList ($page, $fname = '', $lname = '', $uname = '')
     {
         $valid_search = 0;
-        $from = (($page * 15) - 15);
+        $perPage      = 30;
+
+        $from = (($page * $perPage) - $perPage);
+
+        $view = 'members';
+
+        if (isset($_GET['view']))
+        {
+            if ($_GET['view'] == 'all')
+            {
+                $view = 'all';
+            }
+            elseif ($_GET['view'] == 'non')
+            {
+                $view = 'non';
+            }
+        }
         
         // Display the add link, search box and table header
         echo '
+            <div id="sections_menu" class="clearfix">
+                <ul><li><a href="?view=all">'.T_('All').'</a></li></ul>
+                <ul><li><a href="?view=members">'.T_('Members').'</a></li></ul>
+                <ul><li><a href="?view=non">'.T_('Non-Members').'</a></li></ul>
+            </div>
             <div id="actions_menu" class="clearfix">
                 <ul><li><a class="add" href="?create=member">'.T_('Create Member').'</a></li></ul>
             </div>
@@ -983,6 +1030,7 @@ class AdminMembers
                             <th class="nosort">
                                 <a class="help u" title="'.T_('Get Help using Access Levels').'" href="../help.php#adm-access">'.T_('Access Level').'</a>
                             </th>
+                            <th class="nosort">'.T_('Member?').'</th>
                             <th class="nosort">'.T_('Active?').'</th>
                             <th class="nosort">&nbsp;</th>
                         </tr>
@@ -1011,13 +1059,23 @@ class AdminMembers
                 $valid_search++;
             }
         }
+
+        $sql = "SELECT *
+                FROM `fcms_users` ";
+
+        if ($view == 'members')
+        {
+            $sql .= "WHERE `password` != 'NONMEMBER'
+                     AND `password` != 'PRIVATE' ";
+        }
+        elseif ($view == 'non')
+        {
+            $sql .= "WHERE `password` = 'NONMEMBER' ";
+        }
         
         // Search - one or valid search parameters
         if ($valid_search < 1)
         {
-            $sql = "SELECT * FROM `fcms_users` 
-                    WHERE `password` != 'NONMEMBER' 
-                    AND `password` != 'PRIVATE' ";
             if (strlen($fname) > 0)
             {
                 $sql .= "AND `fname` LIKE '".cleanInput($fname)."' ";
@@ -1030,16 +1088,15 @@ class AdminMembers
             {
                 $sql .= "AND `username` LIKE '".cleanInput($uname)."' ";
             }
-            $sql .= "ORDER BY `id` LIMIT $from, 15";
+            $sql .= "ORDER BY `id` LIMIT $from, $perPage";
         }
         // Display All - one of more blank or invalid search parameters
         else
         {
-            $sql = "SELECT * FROM fcms_users
-                    WHERE password != 'NONMEMBER'
-                    ORDER BY `id`
-                    LIMIT $from, 15";
+            $sql .= "ORDER BY `id`
+                     LIMIT $from, $perPage";
         }
+
         $result = mysql_query($sql) or displaySQLError(
             'Member Info Error', 
             __FILE__.' ['.__LINE__.']', 
@@ -1050,6 +1107,9 @@ class AdminMembers
         // Display the member list
         while ($r = mysql_fetch_array($result))
         {
+            $member = ($r['password'] == 'NONMEMBER') ? T_('No') : T_('Yes');
+            $active = ($r['activated'] <= 0)          ? T_('No') : T_('Yes');
+
             if ($r['id'] > 1)
             {
                 echo '
@@ -1058,17 +1118,9 @@ class AdminMembers
                             <td><a href="?edit='.(int)$r['id'].'">'.cleanOutput($r['username']).'</a></td>
                             <td>'.cleanOutput($r['lname']).'</td>
                             <td>'.cleanOutput($r['fname']).'</td>
-                            <td>';
-                echo $this->displayAccessType($r['access']);
-                echo '</td>
-                            <td style="text-align:center">';
-                if ($r['activated'] > 0)
-                {
-                    echo T_('Yes');
-                } else {
-                    echo T_('No');
-                }
-                echo '</td>
+                            <td>'; echo $this->displayAccessType($r['access']); echo '</td>
+                            <td style="text-align:center">'.$member.'</td>
+                            <td style="text-align:center">'.$active.'</td>
                             <td style="text-align:center"><input type="checkbox" name="massupdate[]" value="'.(int)$r['id'].'"/></td>
                         </tr>';
             } else {
@@ -1079,6 +1131,7 @@ class AdminMembers
                             <td>'.cleanOutput($r['lname']).'</td>
                             <td>'.cleanOutput($r['fname']).'</td>
                             <td>1. '.T_('Admin').'</td>
+                            <td style="text-align:center">'.T_('Yes').'</td>
                             <td style="text-align:center">'.T_('Yes').'</td>
                             <td>&nbsp;</td>
                         </tr>';
@@ -1102,9 +1155,9 @@ class AdminMembers
         );
 
         $count       = $this->db->count_rows();
-        $total_pages = ceil($count / 15); 
+        $total_pages = ceil($count / $perPage); 
 
-        displayPages("members.php", $page, $total_pages);
+        displayPages("members.php?view=$view", $page, $total_pages);
     }
     
     /**

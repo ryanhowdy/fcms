@@ -17,7 +17,7 @@ define('URL_PREFIX', '');
 
 require 'fcms.php';
 
-load('datetime', 'addressbook', 'database', 'alerts');
+load('datetime', 'addressbook', 'database', 'alerts', 'phone', 'address');
 
 init();
 
@@ -302,6 +302,7 @@ function displayEditSubmit ()
     $uid = cleanInput($_POST['uid'], 'int');
     $cat = cleanInput($_POST['cat']);
 
+    $country = cleanInput($_POST['country']);
     $address = cleanInput($_POST['address']);
     $city    = cleanInput($_POST['city']);
     $state   = cleanInput($_POST['state']);
@@ -312,7 +313,7 @@ function displayEditSubmit ()
     $email   = cleanInput($_POST['email']);
 
     // Get current address and email
-    $sql = "SELECT a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`email`
+    $sql = "SELECT a.`country`, a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`email`
             FROM `fcms_address` AS a
             LEFT JOIN `fcms_users` AS u ON a.`user` = u.`id`
             WHERE a.`id` = '$aid'
@@ -330,6 +331,7 @@ function displayEditSubmit ()
 
     $changes = array();
     $columns = array(
+        'country' => 'address', 
         'address' => 'address', 
         'city'    => 'address', 
         'state'   => 'address', 
@@ -365,6 +367,7 @@ function displayEditSubmit ()
     $sql = "UPDATE `fcms_address` 
             SET `updated`    = NOW(), 
                 `updated_id` = '$currentUserId',
+                `country`    = '$country', 
                 `address`    = '$address', 
                 `city`       = '$city', 
                 `state`      = '$state', 
@@ -456,14 +459,15 @@ function displayAddSubmit ()
     $id = mysql_insert_id();
 
     $sql = "INSERT INTO `fcms_address`(
-                `user`, `created_id`, `created`, `updated_id`, `updated`, `address`, `city`, `state`, 
-                `zip`, `home`, `work`, `cell`
+                `user`, `created_id`, `created`, `updated_id`, `updated`, 
+                `country`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`
             ) VALUES (
                 '$id', 
                 '$currentUserId', 
                 NOW(), 
                 '$currentUserId', 
                 NOW(), 
+                '".cleanInput($_POST['country'])."', 
                 '".cleanInput($_POST['address'])."', 
                 '".cleanInput($_POST['city'])."', 
                 '".cleanInput($_POST['state'])."', 

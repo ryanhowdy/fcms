@@ -304,16 +304,26 @@ class Awards
      */
     function calculateAward ($params)
     {
+        $date = 'date';
+
+        if ($params['table'] == 'fcms_news')
+        {
+            $date = 'created';
+        }
+
         $sql = "SELECT `user`, COUNT(`id`) AS c
                 FROM `".$params['table']."` 
-                WHERE `date` >= '".$params['start']."' 
-                  AND `date` <= '".$params['end']."' 
+                WHERE `$date` >= '".$params['start']."' 
+                  AND `$date` <= '".$params['end']."' 
                 GROUP BY `user` 
                 ORDER BY c DESC 
                 LIMIT 1";
-        $this->db->query($sql) or displaySQLError(
-            'Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            die();
+        }
+
         if ($this->db->count_rows() > 0) {
             $r = $this->db->get_row();
             $sql = "INSERT INTO `fcms_user_awards`
@@ -536,12 +546,13 @@ class Awards
      */
     function calculateInterestingAward ($currentAwards)
     {
-        $sql = "SELECT n.`user`, n.`date`, c.`news`, COUNT(c.`id`) AS ct
+        $sql = "SELECT n.`user`, n.`created`, c.`news`, COUNT(c.`id`) AS ct
                 FROM `fcms_news_comments` AS c
                 JOIN `fcms_news` AS n ON c.`news` = n.`id`
                 GROUP BY c.`news`
                 HAVING ct >= 20";
-        if (!$this->db->query($sql)) {
+        if (!$this->db->query($sql))
+        {
             displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
             return false;
         }

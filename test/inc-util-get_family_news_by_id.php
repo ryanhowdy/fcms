@@ -1,12 +1,15 @@
 #!/usr/bin/php -q
 <?php
 require_once 'lib/Test-More.php';
+require_once 'lib/utils.php';
 require_once '../inc/config_inc.php';
-require_once '../inc/util_inc.php';
+require_once '../inc/utils.php';
 
 diag('getFamilyNewsById');
 
 plan(7);
+
+connectDatabase();
 
 $bad_id  = getFamilyNewsById(0);
 $good_id = getFamilyNewsById(1);

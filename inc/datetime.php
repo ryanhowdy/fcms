@@ -331,3 +331,95 @@ function getHumanTimeSince ($from, $to = 0)
 
     return $since;
 }
+
+/**
+ * formatBirthday 
+ * 
+ * Because birthdays are not required, user can have parts of a birthday.
+ * This will format those partial dates in a nice way.
+ * 
+ * Shows the following partial dates:
+ *  Y-m-d   - 2011-03-15
+ *  F, Y    - March, 2011
+ *  M. j    - Mar. 15
+ *  Y       - 2011
+ * 
+ * @param string $year 
+ * @param string $month 
+ * @param string $day 
+ * 
+ * @return string
+ */
+function formatBirthday ($year, $month, $day)
+{
+    if (!empty($year))
+    {
+        if (!empty($month))
+        {
+            if (!empty($day))
+            {
+                return "$year-$month-$day";
+            }
+            else
+            {
+                return getMonthName($month).', '.$year;
+            }
+        }
+        else
+        {
+            return $year;
+        }
+    }
+    elseif (!empty($month))
+    {
+        if (!empty($day))
+        {
+            return getMonthAbbr($month).'. '.$day;
+        }
+    }
+
+    return '';
+}
+
+/**
+ * getAge 
+ * 
+ * @param int    $year 
+ * @param int    $month 
+ * @param int    $day 
+ * @param string $dateToCompare defaults to today
+ * 
+ * @return int
+ */
+function getAge ($year, $month, $day, $dateToCompare = false)
+{
+    global $currentUserId;
+
+    $age = 0;
+
+    if ($dateToCompare === false)
+    {
+        $yearDiff  = gmdate("Y") - $year;
+        $monthDiff = gmdate("m") - $month;
+        $dayDiff   = gmdate("d") - $day;
+    }
+    else
+    {
+        $yearDiff  = gmdate("Y", strtotime($dateToCompare)) - $year;
+        $monthDiff = gmdate("m", strtotime($dateToCompare)) - $month;
+        $dayDiff   = gmdate("d", strtotime($dateToCompare)) - $day;
+    }
+
+    if ($monthDiff < 0)
+    {
+        $yearDiff--;
+    }
+    elseif ($monthDiff == 0 && $dayDiff < 0)
+    {
+        $yearDiff--;
+    }
+
+    $age = $yearDiff;
+
+    return $age;
+}

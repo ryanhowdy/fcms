@@ -58,7 +58,7 @@ class Profile
             return;
         }
 
-        $sql = "SELECT u.fname, u.lname, u.email, u.birthday, u.avatar, u.username, u.joindate, u.activity, 
+        $sql = "SELECT u.fname, u.lname, u.email, u.`dob_year`, u.`dob_month`, u.`dob_day`, u.avatar, u.username, u.joindate, u.activity, 
                     u.`sex`, a.`id` AS aid, a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`cell`, a.`work`  
                 FROM fcms_users AS u, fcms_address AS a 
                 WHERE u.id = '$userid' 
@@ -220,7 +220,8 @@ class Profile
      */
     function displayEditBasicInfo ()
     {
-        $sql = "SELECT `fname`, `mname`, `lname`, `maiden`, `bio`, `sex`, `birthday`
+        $sql = "SELECT `fname`, `mname`, `lname`, `maiden`, `bio`, `sex`, 
+                    `dob_year`, `dob_month`, `dob_day`
                 FROM `fcms_users`
                 WHERE `id` = '".$this->currentUserId."'";
         $this->db->query($sql) or displaySQLError(
@@ -232,31 +233,31 @@ class Profile
         $gender_options = buildHtmlSelectOptions(array('M' => T_('Male'), 'F' => T_('Female')), $row['sex']);
 
         // Birthday
-        $year  = substr($row['birthday'], 0,4);
-        $month = substr($row['birthday'], 5,2);
-        $day   = substr($row['birthday'], 8,2);
         $day_list = array();
         $i = 1;
-        while ($i <= 31) {
+        while ($i <= 31)
+        {
             $day_list[$i] = $i;
             $i++;
         }
-        $day_options = buildHtmlSelectOptions($day_list, $day);
+        $day_options = buildHtmlSelectOptions($day_list, $row['dob_day']);
         $month_list = array();
         $i = 1;
-        while ($i <= 12) {
+        while ($i <= 12)
+        {
             $month_list[$i] = getMonthAbbr($i);
             $i++;
         }
-        $month_options = buildHtmlSelectOptions($month_list, $month);
+        $month_options = buildHtmlSelectOptions($month_list, $row['dob_month']);
         $year_list = array();
         $i = 1900;
         $year_end = fixDate('Y', $this->tzOffset);
-        while ($i <= $year_end) {
+        while ($i <= $year_end)
+        {
             $year_list[$i] = $i;
             $i++;
         }
-        $year_options = buildHtmlSelectOptions($year_list, $year);
+        $year_options = buildHtmlSelectOptions($year_list, $row['dob_year']);
 
         echo '
             <div id="leftcolumn">
@@ -334,12 +335,15 @@ class Profile
                         <div class="field-label"><label for="sday"><b>'.T_('Birthday').'</b></label></div>
                         <div class="field-widget">
                             <select id="sday" name="sday">
+                                <option value="">'.T_('Day').'</option>
                                 '.$day_options.'
                             </select>
                             <select id="smonth" name="smonth">
+                                <option value="">'.T_('Month').'</option>
                                 '.$month_options.'
                             </select>
                             <select id="syear" name="syear">
+                                <option value="">'.T_('Year').'</option>
                                 '.$year_options.'
                             </select>
                         </div>

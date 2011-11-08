@@ -310,6 +310,11 @@ function upgrade ()
         return false;
     }
 
+    if (!upgrade270())
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -322,7 +327,7 @@ function upgrade ()
  */
 function upgrade250 ()
 {
-    global $cfg_mysql_db, $cfg_sitename, $cfg_contact_email, $cfg_use_news, $cfg_use_prayers;
+    global $cfg_mysql_db;
 
     // Status updates
     $status_fixed = false;
@@ -402,7 +407,7 @@ function upgrade250 ()
  */
 function upgrade260 ()
 {
-    global $cfg_mysql_db, $cfg_sitename, $cfg_contact_email, $cfg_use_news, $cfg_use_prayers;
+    global $cfg_mysql_db;
 
     // Family News created/updated
     $fnews_fixed = false;
@@ -547,6 +552,19 @@ function upgrade260 ()
                 $youtube_fixed = true;
             }
         }
+    }
+
+    $sql = "SELECT `value` FROM `fcms_config` WHERE `name` = 'youtube_key'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        $youtube_fixed = true;
     }
 
     if (!$youtube_fixed)
@@ -772,6 +790,151 @@ function upgrade260 ()
         if (!mysql_query($sql))
 		{
 			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * upgrade270
+ * 
+ * Upgrade database to version 2.7.
+ * 
+ * @return boolean
+ */
+function upgrade270 ()
+{
+    global $cfg_mysql_db;
+
+    // Country
+    $country_fixed = false;
+
+    $sql = "SHOW COLUMNS FROM `fcms_address`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r['Field'] == 'country')
+            {
+                $country_fixed = true;
+            }
+        }
+    }
+
+    if (!$country_fixed)
+    {
+        $sql = "ALTER TABLE `fcms_address`
+                ADD COLUMN `country` CHAR(2) DEFAULT NULL AFTER `user`";
+        if (!mysql_query($sql))
+		{
+			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return false;
+        }
+
+        $sql = "INSERT INTO `fcms_config` (`name`, `value`)
+                VALUES ('country', 'US')";
+        if (!mysql_query($sql))
+		{
+			displaySQLError('Insert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return false;
+        }
+    }
+
+    // Birthday and date of death
+    $dob_dod_fixed = false;
+
+    $sql = "SHOW COLUMNS FROM `fcms_users`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r['Field'] == 'dob_year')
+            {
+                $dob_dod_fixed = true;
+            }
+        }
+    }
+
+    if (!$dob_dod_fixed)
+    {
+        $sql = "ALTER TABLE `fcms_users`
+                ADD COLUMN `dob_year` CHAR(4) AFTER `birthday`,
+                ADD COLUMN `dob_month` CHAR(2) AFTER `dob_year`,
+                ADD COLUMN `dob_day` CHAR(2) AFTER `dob_month`,
+                ADD COLUMN `dod_year` CHAR(4) AFTER `dob_day`,
+                ADD COLUMN `dod_month` CHAR(2) AFTER `dod_year`,
+                ADD COLUMN `dod_day` CHAR(2) AFTER `dod_month`";
+        if (!mysql_query($sql))
+		{
+			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return false;
+        }
+
+        $sql = "SELECT `id`, `birthday`, `death`
+                FROM `fcms_users`";
+
+        $result = mysql_query($sql);
+        if (!$result)
+		{
+			displaySQLError('Select Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            return false;
+        }
+
+        if (mysql_num_rows($result) <= 0)
+        {
+            echo '<p>'.T_('No user birthday\'s found.').'</p>';
+            return false;
+        }
+
+        while ($r = mysql_fetch_assoc($result))
+        {
+            $id = $r['id'];
+
+            $bYear  = substr($r['birthday'], 0, 4);
+            $bMonth = substr($r['birthday'], 5, 2);
+            $bDay   = substr($r['birthday'], 8, 2);
+
+            $dYear  = substr($r['death'], 0, 4);
+            $dMonth = substr($r['death'], 5, 2);
+            $dDay   = substr($r['death'], 8, 2);
+
+            $sql = "UPDATE `fcms_users`
+                    SET `dob_year`  = '$bYear',
+                        `dob_month` = '$bMonth',
+                        `dob_day`   = '$bDay',
+                        `dod_year`  = '$dYear',
+                        `dod_month` = '$dMonth',
+                        `dod_day`   = '$dDay'
+                    WHERE `id` = '$id'";
+            if (!mysql_query($sql))
+            {
+                displaySQLError('User DOB/DOD Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                return false;
+            }
+        }
+
+        $sql = "ALTER TABLE `fcms_users`
+                DROP COLUMN `birthday`,
+                DROP COLUMN `death`";
+        if (!mysql_query($sql))
+		{
+			displaySQLError('Drop Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             return false;
         }
     }

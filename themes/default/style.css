@@ -2,8 +2,8 @@
 Theme Name:         Default
 Description:        The default theme for Family Connections.  Fixed 980px Centered Layout
 Screen Size:        1024x768+
-FCMS Compatible:    2.6
-Updated:            October 28, 2011
+FCMS Compatible:    2.7
+Updated:            November 3, 2011
 Author:             Ryan Haudenschilt
 ------------------------------------------------*/
 body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, form, fieldset, input, textarea, p, blockquote, th, td { margin: 0; padding: 0; }
@@ -588,6 +588,7 @@ a.spouse:hover, a.child:hover, a.unknown:hover { background-color: #ccc; }
 .relationship-form .cols { padding: 5px 0 5px 20px; }
 .relationship-form .cols div { float: left; width: 220px; }
 .relationship-form p { padding: 5px 0 5px 20px; }
+#content .relationship-form .half { width: 300px; margin: 5px 0 20px 20px; }
 #recipe-page .menu li span { color: #999; font-weight: normal; font-size: 10px; padding: 0 0 0 10px; }
 #recipe-list { padding: 20px 0; }
 #recipe-list li { border-top: 1px solid #ddd; list-style-type: none; }

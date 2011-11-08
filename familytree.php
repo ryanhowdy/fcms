@@ -49,6 +49,7 @@ Event.observe(window, \'load\', function() {
     var dday = new DateChooser();
     dday.setUpdateField({\'dday\':\'j\', \'dmonth\':\'n\', \'dyear\':\'Y\'});
     dday.setIcon(\'themes/default/images/datepicker.jpg\', \'dyear\');
+    initLivingDeceased();
 });
 //]]>
 </script>';
@@ -121,31 +122,52 @@ if (isset($_POST['add-user']))
 
     $uniq = uniqid("");
 
-    $year  = cleanInput($_POST['byear'], 'int');
-    $month = cleanInput($_POST['bmonth'], 'int'); 
-    $month = str_pad($month, 2, "0", STR_PAD_LEFT);
-    $day   = cleanInput($_POST['bday'], 'int');
-    $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
+    // birthday
+    $bYear  = '';
+    $bMonth = '';
+    $bDay   = '';
 
-    $birthday = "$year-$month-$day";
-
-    $death = 'NULL';
-    if (isset($_POST['dyear']) && strlen($_POST['dyear']) == 4)
+    if (!empty($_POST['byear']))
     {
-        $year  = cleanInput($_POST['dyear'], 'int');
-        $month = cleanInput($_POST['dmonth'], 'int'); 
-        $month = str_pad($month, 2, "0", STR_PAD_LEFT);
-        $day   = cleanInput($_POST['dday'], 'int');
-        $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
-        $death = "'$year-$month-$day'";
+        $bYear = cleanInput($_POST['byear'], 'int');
+    }
+    if (!empty($_POST['month']))
+    {
+        $bMonth = cleanInput($_POST['bmonth'], 'int');
+        $bMonth = str_pad($bMonth, 2, "0", STR_PAD_LEFT);
+    }
+    if (!empty($_POST['bday']))
+    {
+        $bDay = cleanInput($_POST['bday'], 'int');
+        $bDay = str_pad($bDay, 2, "0", STR_PAD_LEFT);
+    }
+
+    // death
+    $dYear  = '';
+    $dMonth = '';
+    $dDay   = '';
+
+    if (!empty($_POST['dyear']))
+    {
+        $dYear = cleanInput($_POST['dyear'], 'int');
+    }
+    if (!empty($_POST['month']))
+    {
+        $dMonth = cleanInput($_POST['dmonth'], 'int');
+        $dMonth = str_pad($dMonth, 2, "0", STR_PAD_LEFT);
+    }
+    if (!empty($_POST['dday']))
+    {
+        $dDay = cleanInput($_POST['dday'], 'int');
+        $dDay = str_pad($dDay, 2, "0", STR_PAD_LEFT);
     }
 
     $maiden = isset($_POST['maiden']) ? "'".cleanInput($_POST['maiden'])."'" : 'NULL';
 
     // Insert new user
     $sql = "INSERT INTO `fcms_users`(
-                `access`, `joindate`, `fname`, `mname`, `lname`, `maiden`, `sex`, 
-                `birthday`, `death`, `username`, `password`, `activated`
+                `access`, `joindate`, `fname`, `mname`, `lname`, `maiden`, `sex`, `dob_year`, `dob_month`, `dob_day`,
+                `dod_year`, `dod_month`, `dod_day`, `death`, `username`, `password`, `activated`
             ) VALUES (
                 10, 
                 NOW(), 
@@ -154,8 +176,12 @@ if (isset($_POST['add-user']))
                 '".cleanInput($_POST['lname'])."', 
                 $maiden,
                 '".cleanInput($_POST['sex'])."', 
-                '$birthday', 
-                $death,
+                '$bYear', 
+                '$bMonth',
+                '$bDay', 
+                '$dYear', 
+                '$dMonth',
+                '$dDay', 
                 'NONMEMBER-$uniq', 
                 'NONMEMBER', 
                 1
@@ -215,34 +241,60 @@ if (isset($_POST['add-user']))
 //-------------------------------------
 if (isset($_POST['edit-user']))
 {
-    $year     = cleanInput($_POST['byear'], 'int');
-    $month    = cleanInput($_POST['bmonth'], 'int'); 
-    $month    = str_pad($month, 2, "0", STR_PAD_LEFT);
-    $day      = cleanInput($_POST['bday'], 'int');
-    $day      = str_pad($day, 2, "0", STR_PAD_LEFT);
-    $birthday = "$year-$month-$day";
+    // birthday
+    $bYear  = '';
+    $bMonth = '';
+    $bDay   = '';
 
-    $death = '';
-    if (isset($_POST['dyear']) && strlen($_POST['dyear']) == 4)
+    if (!empty($_POST['byear']))
     {
-        $year  = cleanInput($_POST['dyear'], 'int');
-        $month = cleanInput($_POST['dmonth'], 'int'); 
-        $month = str_pad($month, 2, "0", STR_PAD_LEFT);
-        $day   = cleanInput($_POST['dday'], 'int');
-        $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
-        $death = "`death` = '$year-$month-$day',";
+        $bYear = cleanInput($_POST['byear'], 'int');
+    }
+    if (!empty($_POST['month']))
+    {
+        $bMonth = cleanInput($_POST['bmonth'], 'int');
+        $bMonth = str_pad($bMonth, 2, "0", STR_PAD_LEFT);
+    }
+    if (!empty($_POST['bday']))
+    {
+        $bDay = cleanInput($_POST['bday'], 'int');
+        $bDay = str_pad($bDay, 2, "0", STR_PAD_LEFT);
+    }
+
+    // death
+    $dYear  = '';
+    $dMonth = '';
+    $dDay   = '';
+
+    if (!empty($_POST['dyear']))
+    {
+        $dYear = cleanInput($_POST['dyear'], 'int');
+    }
+    if (!empty($_POST['month']))
+    {
+        $dMonth = cleanInput($_POST['dmonth'], 'int');
+        $dMonth = str_pad($dMonth, 2, "0", STR_PAD_LEFT);
+    }
+    if (!empty($_POST['dday']))
+    {
+        $dDay = cleanInput($_POST['dday'], 'int');
+        $dDay = str_pad($dDay, 2, "0", STR_PAD_LEFT);
     }
 
     $maiden = isset($_POST['maiden']) ? "`maiden`   = '".cleanInput($_POST['maiden'])."'," : '';
 
     $sql = "UPDATE `fcms_users`
-            SET `fname`    = '".cleanInput($_POST['fname'])."',
-                `mname`    = '".cleanInput($_POST['mname'])."', 
-                `lname`    = '".cleanInput($_POST['lname'])."', 
+            SET `fname`     = '".cleanInput($_POST['fname'])."',
+                `mname`     = '".cleanInput($_POST['mname'])."', 
+                `lname`     = '".cleanInput($_POST['lname'])."', 
                 $maiden
-                $death
-                `birthday` = '$birthday',
-                `sex`      = '".cleanInput($_POST['sex'])."'
+                `dob_year`  = '$bYear', 
+                `dob_month` = '$bMonth',
+                `dob_day`   = '$bDay',
+                `dod_year`  = '$dYear', 
+                `dod_month` = '$dMonth',
+                `dod_day`   = '$dDay',
+                `sex`       = '".cleanInput($_POST['sex'])."'
             WHERE `id` = '".cleanInput($_POST['id'])."'";
 
     if (!mysql_query($sql))

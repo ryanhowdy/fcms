@@ -272,6 +272,10 @@ function displayMergeSubmit ()
     $id    = cleanInput($_POST['id'], 'int');
     $merge = cleanInput($_POST['merge'], 'int');
 
+    $year     = substr($_POST['birthday'], 0,4);
+    $month    = substr($_POST['birthday'], 5,2);
+    $day      = substr($_POST['birthday'], 8,2);
+
     // Update member
     $sql = "UPDATE `fcms_users`
             SET `fname` = '".cleanInput($_POST['fname'])."',
@@ -280,7 +284,9 @@ function displayMergeSubmit ()
                 `maiden` = '".cleanInput($_POST['maiden'])."',
                 `bio` = '".cleanInput($_POST['bio'])."',
                 `email` = '".cleanInput($_POST['email'])."',
-                `birthday` = '".cleanInput($_POST['birthday'])."'
+                `dob_year` = '".cleanInput($year)."',
+                `dob_month` = '".cleanInput($month)."',
+                `dob_day` = '".cleanInput($day)."'
             WHERE `id` = '$id'";
 
     if (!mysql_query($sql))
@@ -384,28 +390,42 @@ function displayCreateSubmit ()
         return;
     }
 
+    // birthday
+    $year  = '';
+    $month = '';
+    $day   = '';
+
+    if (!empty($_POST['year']))
+    {
+        $year = cleanInput($_POST['year'], 'int');
+    }
+    if (!empty($_POST['month']))
+    {
+        $month = cleanInput($_POST['month'], 'int');
+        $month = str_pad($month, 2, "0", STR_PAD_LEFT);
+    }
+    if (!empty($_POST['day']))
+    {
+        $day = cleanInput($_POST['day'], 'int');
+        $day = str_pad($day, 2, "0", STR_PAD_LEFT);
+    }
+
     $fname    = cleanInput($_POST['fname']);
     $mname    = cleanInput($_POST['mname']);
     $lname    = cleanInput($_POST['lname']);
     $maiden   = cleanInput($_POST['maiden']);
     $sex      = cleanInput($_POST['sex']);
     $email    = cleanInput($_POST['email']);
-    $year     = cleanInput($_POST['year'], 'int');
-    $month    = cleanInput($_POST['month'], 'int'); 
-    $month    = str_pad($month, 2, "0", STR_PAD_LEFT);
-    $day      = cleanInput($_POST['day'], 'int');
-    $day      = str_pad($day, 2, "0", STR_PAD_LEFT);
-    $birthday = "$year-$month-$day";
     $username = cleanInput($_POST['username']);
     $password = cleanInput($_POST['password']);
     $md5pass  = md5($password);
 
     // Create new member
     $sql = "INSERT INTO `fcms_users`(
-                `access`, `joindate`, `fname`, `mname`, `lname`, `maiden`, `sex`, `email`, `birthday`,
+                `access`, `joindate`, `fname`, `mname`, `lname`, `maiden`, `sex`, `email`, `dob_year`, `dob_month`, `dob_day`,
                 `username`, `password`, `activated`)
             VALUES (
-                3, NOW(), '$fname', '$mname', '$lname', '$maiden', '$sex', '$email', '$birthday',
+                3, NOW(), '$fname', '$mname', '$lname', '$maiden', '$sex', '$email', '$year', '$month', '$day',
                 '$username', '$md5pass', 1)";
     if (!mysql_query($sql))
     {
@@ -431,17 +451,6 @@ function displayCreateSubmit ()
     if (!mysql_query($sql))
     {
         displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    // Create calendar entry for member's bday
-    $cat = getBirthdayCategory();
-    $sql = "INSERT INTO `fcms_calendar`(`date`, `title`, `created_by`, `date_added`, `category`)
-            VALUES ('$birthday', '$fname $lname', $currentUserId, NOW(), $cat)";
-    if (!mysql_query($sql))
-    {
-        displaySQLError('Calendar Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
         displayFooter();
         return;
     }
@@ -518,12 +527,25 @@ function displayEditSubmit ()
 
     $emailstart = $memberObj->getUsersEmail($id);
 
-    $year     = cleanInput($_POST['year'], 'int');
-    $month    = cleanInput($_POST['month'], 'int'); 
-    $month    = str_pad($month, 2, "0", STR_PAD_LEFT);
-    $day      = cleanInput($_POST['day'], 'int');
-    $day      = str_pad($day, 2, "0", STR_PAD_LEFT);
-    $birthday = "$year-$month-$day";
+    // birthday
+    $year  = '';
+    $month = '';
+    $day   = '';
+
+    if (!empty($_POST['year']))
+    {
+        $year = cleanInput($_POST['year'], 'int');
+    }
+    if (!empty($_POST['month']))
+    {
+        $month = cleanInput($_POST['month'], 'int');
+        $month = str_pad($month, 2, "0", STR_PAD_LEFT);
+    }
+    if (!empty($_POST['day']))
+    {
+        $day = cleanInput($_POST['day'], 'int');
+        $day = str_pad($day, 2, "0", STR_PAD_LEFT);
+    }
 
     // Update user info
     $sql = "UPDATE `fcms_users` SET 
@@ -574,7 +596,9 @@ function displayEditSubmit ()
         mail($_POST['email'], $subject, $message, getEmailHeaders());
     }
 
-    $sql .= "`birthday` = '$birthday', 
+    $sql.= "`dob_year` = '$year', 
+            `dob_month` = '$month',
+            `dob_day` = '$day',
             `joindate` = NOW(), 
             `access` = '".cleanInput($_POST['access'], 'int')."'
             WHERE id = '".cleanInput($_POST['id'], 'int')."'";

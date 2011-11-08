@@ -2,7 +2,7 @@
 <?php
 require_once 'lib/Test-More.php';
 require_once '../inc/config_inc.php';
-require_once '../inc/util_inc.php';
+require_once '../inc/utils.php';
 
 diag("getEmailHeaders");
 

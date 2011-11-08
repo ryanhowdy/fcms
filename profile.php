@@ -151,9 +151,10 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
         $month    = str_pad($month, 2, "0", STR_PAD_LEFT);
         $day      = cleanInput($_POST['sday'], 'int');
         $day      = str_pad($day, 2, "0", STR_PAD_LEFT);
-        $birthday = "$year-$month-$day";
 
-        $sql .= "birthday = '$birthday' 
+        $sql .= "`dob_year` = '$year',
+                 `dob_month` = '$month',
+                 `dob_day` = '$day'
                 WHERE id = '$currentUserId'";
 
         if (!mysql_query($sql))

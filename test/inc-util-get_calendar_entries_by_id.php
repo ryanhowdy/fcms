@@ -1,12 +1,15 @@
 #!/usr/bin/php -q
 <?php
 require_once 'lib/Test-More.php';
+require_once 'lib/utils.php';
 require_once '../inc/config_inc.php';
-require_once '../inc/util_inc.php';
+require_once '../inc/utils.php';
 
 diag('getCalendarEntriesById');
 
 plan(7);
+
+connectDatabase();
 
 $bad_id  = getCalendarEntriesById(0);
 $good_id = getCalendarEntriesById(1);

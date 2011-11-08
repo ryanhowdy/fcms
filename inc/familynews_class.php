@@ -257,6 +257,7 @@ class FamilyNews
         while($row = $this->db2->get_row())
         {
             $displayname = getUserDisplayName($row['user']);
+            $date        = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['date']);
 
             if ($this->currentUserId == $row['user'] || checkAccess($this->currentUserId) < 2)
             {

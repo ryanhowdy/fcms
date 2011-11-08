@@ -88,10 +88,10 @@ class Calendar
         }
 
         // Get days from user's birthdays
-        $sql = "SELECT DAYOFMONTH(`birthday`) as day 
+        $sql = "SELECT `dob_day` 
                 FROM `fcms_users` 
-                WHERE `birthday` LIKE '%%%%-$month-%%' 
-                ORDER BY day";
+                WHERE `dob_month` = '$month' 
+                ORDER BY `dob_day`";
 
         if (!$this->db->query($sql))
         {
@@ -103,7 +103,7 @@ class Calendar
         {
             while($r = $this->db->get_row())
             {
-                $days[] = $r['day'];
+                $days[] = $r['dob_day'];
             }
         }
 
@@ -436,9 +436,9 @@ class Calendar
         }
 
         // Get Birthdays
-        $sql = "SELECT `id`, `fname`, `lname`, `birthday`
+        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`
                 FROM `fcms_users` 
-                WHERE `birthday` LIKE '%%%%-$month-%%'";
+                WHERE `dob_month` = '$month'";
 
         if (!$this->db->query($sql))
         {
@@ -450,23 +450,9 @@ class Calendar
         {
             while ($row = $this->db->get_row())
             {
-                list($year,$month,$day) = explode("-",$row['birthday']);
+                $age = getAge($row['dob_year'], $row['dob_month'], $row['dob_day'], "$year-$month-$day");
 
-                $year_diff  = gmdate("Y") - $year;
-                $month_diff = gmdate("m") - $month;
-                $day_diff   = gmdate("d") - $day;
-
-                if ($month_diff < 0)
-                {
-                    $year_diff--;
-                }
-                elseif ($month_diff == 0 && $day_diff < 0)
-                {
-                    $year_diff--;
-                }
-
-                $age = $year_diff;
-
+                $row['id']    = 'birthday'.$row['id'];
                 $row['color'] = $birthdayColor;
                 $row['title'] = $row['fname'].' '.$row['lname'];
                 $row['desc']  = sprintf(T_('%s turns %s today.'), $row['fname'], $age);
@@ -731,9 +717,9 @@ class Calendar
         }
 
         // Get birthdays
-        $sql = "SELECT `id`, `fname`, `lname`, `birthday` as 'date' 
+        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day` 
                 FROM `fcms_users` 
-                WHERE `birthday` LIKE '%%%%-$month-%%'";
+                WHERE `dob_month` = '$month'";
 
         if (!$this->db->query($sql))
         {
@@ -745,27 +731,16 @@ class Calendar
         {
             while($r = $this->db->get_row())
             {
-                $birthday = $r['date'];
-
-                list($year,$month,$day) = explode("-",$birthday);
-
-                $year_diff  = gmdate("Y") - $year;
-                $month_diff = gmdate("m") - $month;
-                $day_diff   = gmdate("d") - $day;
-
-                if ($month_diff < 0)
+                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
                 {
-                    $year_diff--;
-                }
-                elseif ($month_diff == 0 && $day_diff < 0)
-                {
-                    $year_diff--;
+                    continue;
                 }
 
-                $age = $year_diff;
+                $age = getAge($r['dob_year'], $r['dob_month'], $r['dob_day'], "$year-$month-".$r['dob_day']);
 
                 $r['id']         = 'birthday'.$r['id'];
-                $r['day']        = $day;
+                $r['day']        = $r['dob_day'];
+                $r['date']       = $r['dob_year'].'-'.$r['dob_month'].'-'.$r['dob_day'];
                 $r['title']      = $r['fname'].' '.$r['lname'];
                 $r['desc']       = sprintf(T_('%s turns %s today.'), $r['fname'], $age);
                 $r['private']    = 0;
@@ -873,9 +848,10 @@ class Calendar
         }
 
         // Get birthdays
-        $sql = "SELECT `id`, `fname`, `lname`, `birthday` as 'date' 
+        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day` 
                 FROM `fcms_users` 
-                WHERE `birthday` LIKE '%%%%-$month-$day'";
+                WHERE `dob_month` = '$month'
+                AND `dob_day` = '$day'";
 
         if (!$this->db->query($sql))
         {
@@ -887,24 +863,12 @@ class Calendar
         {
             while($r = $this->db->get_row())
             {
-                $birthday = $r['date'];
-
-                list($year,$month,$day) = explode("-",$birthday);
-
-                $year_diff  = gmdate("Y") - $year;
-                $month_diff = gmdate("m") - $month;
-                $day_diff   = gmdate("d") - $day;
-
-                if ($month_diff < 0)
+                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
                 {
-                    $year_diff--;
-                }
-                elseif ($month_diff == 0 && $day_diff < 0)
-                {
-                    $year_diff--;
+                    continue;
                 }
 
-                $age = $year_diff;
+                $age = getAge($r['dob_year'], $r['dob_month'], $r['dob_day'], "$year-$month-$day");
 
                 $r['title']      = $r['fname'].' '.$r['lname'];
                 $r['desc']       = sprintf(T_('%s turns %s today.'), $r['fname'], $age);
@@ -1042,9 +1006,10 @@ class Calendar
         }
 
         // Get birthdays
-        $sql = "SELECT `id`, `fname`, `lname`, `birthday` as 'date' 
+        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`
                 FROM `fcms_users` 
-                WHERE `birthday` LIKE '%%%%-$month-$day'";
+                WHERE `dob_month` = '$month'
+                AND `dob_day` = '$day'";
 
         if (!$this->db->query($sql))
         {
@@ -1056,24 +1021,12 @@ class Calendar
         {
             while($r = $this->db->get_row())
             {
-                $birthday = $r['date'];
-
-                list($year,$month,$day) = explode("-",$birthday);
-
-                $year_diff  = gmdate("Y") - $year;
-                $month_diff = gmdate("m") - $month;
-                $day_diff   = gmdate("d") - $day;
-
-                if ($month_diff < 0)
+                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
                 {
-                    $year_diff--;
-                }
-                elseif ($month_diff == 0 && $day_diff < 0)
-                {
-                    $year_diff--;
+                    continue;
                 }
 
-                $age = $year_diff;
+                $age = getAge($r['dob_year'], $r['dob_month'], $r['dob_day'], "$year-$month-$day");
 
                 $r['private']    = 0;
                 $r['id']         = 'birthday'.$r['id'];
@@ -1605,7 +1558,7 @@ class Calendar
     {
         $id = cleanInput($id, 'int');
 
-        $sql = "SELECT `id`, `fname`, `lname`, `birthday`
+        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`
                 FROM `fcms_users`
                 WHERE `id` = '$id'";
 
@@ -1624,27 +1577,15 @@ class Calendar
 
         $row = $this->db->get_row();
 
-        list($year, $month, $day) = explode('-', $row['birthday']);
+        $year  = $row['dob_year'];
+        $month = $row['dob_month'];
+        $day   = $row['dob_day'];
 
-        $date = formatDate(T_('F j'), $row['birthday']);
+        $date = formatDate(T_('F j'), "$year-$month-$day");
         $date = sprintf(T_('Every year on %s, since %s.'), $date, $year);
 
         // Figure out age
-        $year_diff  = gmdate("Y") - $year;
-        $month_diff = gmdate("m") - $month;
-        $day_diff   = gmdate("d") - $day;
-
-        if ($month_diff < 0)
-        {
-            $year_diff--;
-        }
-        elseif ($month_diff == 0 && $day_diff < 0)
-        {
-            $year_diff--;
-        }
-
-        $age = $year_diff;
-        
+        $age = getAge($year, $month, $day);
 
         $edit = '';
 

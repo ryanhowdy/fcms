@@ -44,7 +44,7 @@ class Members
     {
         $validOrderTypes = array(
             'alphabetical'  => 'ORDER BY u.`fname`',
-            'age'           => 'ORDER BY u.`birthday`',
+            'age'           => 'ORDER BY u.`dob_year`, u.`dob_month`, u.`dob_day`',
             'participation' => '',
             'activity'      => 'ORDER BY u.`activity` DESC',
             'joined'        => 'ORDER BY u.`joindate` DESC',
@@ -57,7 +57,7 @@ class Members
 
         $sql = "SELECT 
                     u.`id`, u.`activity`, u.`joindate`, u.`fname`, u.`lname`, u.`sex`, 
-                    u.`birthday`, u.`username`, u.`avatar`, u.`gravatar`
+                    u.`dob_year`, u.`dob_month`, u.`dob_day`, u.`username`, u.`avatar`, u.`gravatar`
                 FROM `fcms_users` AS u
                 WHERE u.`password` != 'NONMEMBER'
                 AND u.`password` != 'PRIVATE'
@@ -96,11 +96,9 @@ class Members
 
             // Age
             } elseif ($order == 'age') {
-                $birthday = $row['birthday'];
-                list($year,$month,$day) = explode("-",$birthday);
-                $year_diff  = gmdate("Y") - $year;
-                $month_diff = gmdate("m") - $month;
-                $day_diff   = gmdate("d") - $day;
+                $year_diff  = gmdate("Y") - $row['dob_year'];
+                $month_diff = gmdate("m") - $row['dob_month'];
+                $day_diff   = gmdate("d") - $row['dob_day'];
                 if ($month_diff < 0) {
                     $year_diff--;
                 } elseif (($month_diff==0) && ($day_diff < 0)) {

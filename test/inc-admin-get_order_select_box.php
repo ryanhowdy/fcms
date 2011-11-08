@@ -2,6 +2,7 @@
 <?php
 require_once 'lib/Test-More.php';
 require_once '../inc/config_inc.php';
+require_once '../inc/gettext.inc';
 require_once '../inc/admin_class.php';
 
 $adminObj = new Admin(1);

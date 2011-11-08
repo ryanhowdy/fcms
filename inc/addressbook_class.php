@@ -61,8 +61,8 @@ class AddressBook
         $aid = cleanInput($aid, 'int');
         $cat = cleanInput($cat);
 
-        $sql = "SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `address`, `city`, `state`, 
-                    `zip`, `home`, `work`, `cell`, `email`, `birthday`, `password` 
+        $sql = "SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `country`, `address`, `city`, `state`, 
+                    `zip`, `home`, `work`, `cell`, `email`, `password` 
                 FROM `fcms_address` AS a, `fcms_users` AS u 
                 WHERE a.`user` = u.`id` 
                 AND a.`id` = '$aid'";
@@ -97,32 +97,18 @@ class AddressBook
             }
         }
 
+
         // Address
-        $address     = '';
-        $address_url = '';
+        $address    = formatAddress($r);
+        $addressUrl = formatAddressUrl($address);
 
-        if (empty($r['address']) && empty($r['state']))
+        if ($address == '')
         {
-            $address = "<i>(".T_('none').")</i>";
-        }
-        else
-        {
-            if (!empty($r['address']))
-            {
-                $address     .= cleanOutput($r['address'])."<br/>";
-                $address_url .= cleanOutput($r['address']).",%20";
-            }
-            if (!empty($r['city']))
-            {
-                $address     .= cleanOutput($r['city']).", ";
-                $address_url .= cleanOutput($r['city']).",%20";
-            }
-            $address     .= cleanOutput($r['state'])." ".cleanOutput($r['zip']);
-            $address_url .= cleanOutput($r['state'])."%20".cleanOutput($r['zip']);
+            $str = "<i>(".T_('none').")</i>";
         }
 
-        $map_link = !empty($address_url) 
-                  ? '<br/><a href="http://maps.google.com/maps?q='.$address_url.'"/>'.T_('Map').'</a>' 
+        $map_link = !empty($addressUrl) 
+                  ? '<br/><a href="http://maps.google.com/maps?q='.$addressUrl.'"/>'.T_('Map').'</a>' 
                   : '';
 
         // Email
@@ -137,9 +123,9 @@ class AddressBook
         }
 
         // Phone Number
-        $home = empty($r['home']) ? '<i>('.T_('none').')</i>' : cleanOutput($r['home']);
-        $work = empty($r['work']) ? '<i>('.T_('none').')</i>' : cleanOutput($r['work']);
-        $cell = empty($r['cell']) ? '<i>('.T_('none').')</i>' : cleanOutput($r['cell']);
+        $home = empty($r['home']) ? '<i>('.T_('none').')</i>' : formatPhone($r['home'], $r['country']);
+        $work = empty($r['work']) ? '<i>('.T_('none').')</i>' : formatPhone($r['work'], $r['country']);
+        $cell = empty($r['cell']) ? '<i>('.T_('none').')</i>' : formatPhone($r['cell'], $r['country']);
 
         // Display address
         echo '
@@ -299,7 +285,7 @@ class AddressBook
     function displayAddressInCategory ($category = '')
     {
         $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
-                    `address`, `city`, `state`, `zip`
+                    `country`, `address`, `city`, `state`, `zip`
                 FROM `fcms_users` AS u, `fcms_address` as a 
                 WHERE u.`id` = a.`user` 
                 AND (
@@ -316,7 +302,7 @@ class AddressBook
         {
             $cat = 'cat=members&amp;';
             $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
-                        `address`, `city`, `state`, `zip`
+                        `country`, `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
                     AND `password` != 'NONMEMBER' 
@@ -327,7 +313,7 @@ class AddressBook
         {
             $cat = 'cat=non&amp;';
             $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
-                        `address`, `city`, `state`, `zip`
+                        `country`, `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
                     AND `password` = 'NONMEMBER' 
@@ -337,7 +323,7 @@ class AddressBook
         {
             $cat = 'cat=my&amp;';
             $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
-                        `address`, `city`, `state`, `zip`
+                        `country`, `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
                     AND a.`created_id` = ".$this->currentUserId." 
@@ -387,7 +373,7 @@ class AddressBook
                             <td><a href="?'.$cat.'address='.(int)$r['id'].'">
                                 '.cleanOutput($r['lname']).', '.cleanOutput($r['fname']).'</a></td>
                             <td>'.$address.'</td>
-                            <td>'.cleanOutput($r['home']).'</td>
+                            <td>'.formatPhone($r['home'], $r['country']).'</td>
                         </tr>';
         }
     }
@@ -407,8 +393,8 @@ class AddressBook
     {
         $addressid = cleanInput($addressid, 'int');
 
-        $sql = "SELECT a.`id`, u.`id` AS uid, `fname`, `lname`, `email`, `address`, 
-                    `city`, `state`, `zip`, `home`, `work`, `cell` 
+        $sql = "SELECT a.`id`, u.`id` AS uid, `fname`, `lname`, `email`, `country`,
+                    `address`, `city`, `state`, `zip`, `home`, `work`, `cell` 
                 FROM `fcms_users` AS u, `fcms_address` AS a 
                 WHERE a.`id` = $addressid 
                 AND a.`user` = u.`id`";
@@ -437,6 +423,9 @@ class AddressBook
         $work    = cleanOutput($row['work']);
         $cell    = cleanOutput($row['cell']);
 
+        $country_list    = buildCountryList();
+        $country_options = buildHtmlSelectOptions($country_list, $row['country']);
+
         // Print the form
         echo '
             <script type="text/javascript" src="inc/js/livevalidation.js"></script>
@@ -451,6 +440,15 @@ class AddressBook
                         var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
                         femail.add( Validate.Email, { failureMessage: "'.T_('That\'s not a valid email, is it?').'"});
                     </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="country"><b>'.T_('Country').'</b></label></div>
+                        <div class="field-widget">
+                            <select name="country" id="country">
+                                <option></option>
+                                '.$country_options.'
+                            </select>
+                        </div>
+                    </div>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="address"><b>'.T_('Street Address').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="address" id="address" size="25" value="'.$address.'"/></div>
@@ -521,10 +519,12 @@ class AddressBook
      */
     function displayAddForm ()
     {
+        $country_list    = buildCountryList();
+        $selected        = getDefaultCountry();
+        $country_options = buildHtmlSelectOptions($country_list, $selected);
+
         // TODO
         // Make this a removable alert message (part of Alerts table)
-
-        // Print the form
         echo '
             <script type="text/javascript" src="inc/js/livevalidation.js"></script>
             <form id="addressbook_form" action="addressbook.php" method="post">
@@ -557,6 +557,15 @@ class AddressBook
                         var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
                         femail.add( Validate.Email, { failureMessage: "'.T_('That\'s not a valid email, is it?').'"});
                     </script>
+                    <div class="field-row clearfix">
+                        <div class="field-label"><label for="country"><b>'.T_('Country').'</b></label></div>
+                        <div class="field-widget">
+                            <select name="country" id="country">
+                                <option></option>
+                                '.$country_options.'
+                            </select>
+                        </div>
+                    </div>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="address"><b>'.T_('Street Address').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="address" id="address" size="25"/></div>

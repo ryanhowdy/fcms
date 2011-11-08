@@ -122,11 +122,12 @@ if (isset($_POST['submitadd']))
     $news  = cleanInput($_POST['post']);
 
     $sql = "INSERT INTO `fcms_news` (
-                `title`, `news`, `user`, `date`
+                `title`, `news`, `user`, `created`, `updated`
             ) VALUES (
                 '$title', 
                 '$news', 
                 '$currentUserId', 
+                NOW(),
                 NOW()
             )";
 

@@ -1,3 +1,17 @@
+ 2.6
+    #22  - Video Section (YouTube)
+    #233 - Show avatar changes in What's New
+    #309 - Create better PM notification
+    #314 - Rename Where Is Everyone Admin
+    #338 - Show specific address/contact info changes
+    #351 - Better family news import
+    #381 - Facebook updates have \"
+    #344 - Add cron jobs (FCMS Scheduler)
+    #349 - Show photos on Family Tree
+    #361 - Adding Images to Message Board / Family News not working
+    #364 - Better error handling when connecting with Foursquare
+    #366 - Usernames with ' apostrophe causes photo tagging javascript to crash
+ 
  2.5.4
     #382 - English MO displaying messed up dates
     #383 - Automatic Upgrade from 2.5.3 to 2.6 not working

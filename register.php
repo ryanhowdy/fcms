@@ -205,12 +205,11 @@ function displaySubmit ($params = '')
         return;
     }
 
-    $birthday = isset($formData['birthday']) ? $formData['birthday'] : '0000-00-00';
-    $sex      = isset($formData['sex'])      ? $formData['sex']      : 'M';
+    $sex = isset($formData['sex']) ? $formData['sex'] : 'M';
 
     // Create new user
     $sql = "INSERT INTO `fcms_users`
-                (`access`, `joindate`, `fname`, `lname`, `sex`, `email`, `birthday`, `username`, `password`) 
+                (`access`, `joindate`, `fname`, `lname`, `sex`, `email`, `username`, `password`) 
             VALUES (
                 3, 
                 NOW(), 
@@ -218,7 +217,6 @@ function displaySubmit ($params = '')
                 '$lname', 
                 '$sex', 
                 '$email', 
-                '$birthday',
                 '$username', 
                 '$password'
             )";
@@ -588,7 +586,6 @@ function handleFacebookRegister ()
         'sex'         => $fbProfile['gender'] == 'male' ? 'M' : 'F',
         'username'    => $fbProfile['email'],
         'password'    => 'FACEBOOK',
-        'birthday'    => $fbProfile['birthday'],
         'accessToken' => $accessToken
     );
 

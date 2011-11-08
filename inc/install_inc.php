@@ -81,7 +81,8 @@ function installConfig ($sitename, $contact, $version)
                 ('fb_app_id', NULL),
                 ('fb_secret', NULL),
                 ('youtube_key', NULL),
-                ('running_job', '0')";
+                ('running_job', '0'),
+                ('country', 'US')";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 }
 
@@ -149,13 +150,15 @@ function installNavigation ($sections)
  * @param string $fname 
  * @param string $lname 
  * @param string $email 
- * @param string $birthday 
+ * @param string $dobYear
+ * @param string $dobMonth
+ * @param string $dobDay
  * @param string $username 
  * @param string $password 
  * 
  * @return void
  */
-function installUsers ($fname, $lname, $email, $birthday, $username, $password)
+function installUsers ($fname, $lname, $email, $dobYear, $dobMonth, $dobDay, $username, $password)
 {
     $sql = "CREATE TABLE `fcms_users` (
                 `id` INT(25) NOT NULL AUTO_INCREMENT, 
@@ -168,8 +171,12 @@ function installUsers ($fname, $lname, $email, $birthday, $username, $password)
                 `maiden` VARCHAR(25) NULL,
                 `sex` CHAR(1) NOT NULL DEFAULT 'M',
                 `email` VARCHAR(50) NOT NULL DEFAULT 'me@mail.com', 
-                `birthday` DATE NOT NULL DEFAULT '0000-00-00', 
-                `death` DATE NULL,
+                `dob_year` CHAR(4),
+                `dob_month` CHAR(2),
+                `dob_day` CHAR(2),
+                `dod_year` CHAR(4),
+                `dod_month` CHAR(2),
+                `dod_day` CHAR(2),
                 `username` VARCHAR(25) NOT NULL DEFAULT '0', 
                 `password` VARCHAR(255) NOT NULL DEFAULT '0', 
                 `avatar` VARCHAR(25) NOT NULL DEFAULT 'no_avatar.jpg', 
@@ -187,7 +194,7 @@ function installUsers ($fname, $lname, $email, $birthday, $username, $password)
 
     // insert users
     $sql = "INSERT INTO `fcms_users` (
-                `id`, `access`, `joindate`, `fname`, `lname`, `email`, `birthday`, `username`, `password`, `activated`
+                `id`, `access`, `joindate`, `fname`, `lname`, `email`, `dobYear`, `dobMonth`, `dobDay`, `username`, `password`, `activated`
             ) VALUES (
                 1, 
                 1, 
@@ -195,7 +202,9 @@ function installUsers ($fname, $lname, $email, $birthday, $username, $password)
                 '$fname', 
                 '$lname', 
                 '$email', 
-                '$birthday', 
+                '$dobYear', 
+                '$dobMonth', 
+                '$dobDay', 
                 '$username', 
                 '$password', 
                 1
@@ -247,10 +256,7 @@ function installUsers ($fname, $lname, $email, $birthday, $username, $password)
     $sql = "CREATE TABLE `fcms_address` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `user` INT(11) NOT NULL DEFAULT '0', 
-                `updated_id` INT(11) NOT NULL DEFAULT '0', 
-                `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
-                `created_id` INT(11) NOT NULL DEFAULT '0', 
-                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `country` CHAR(2) DEFAULT NULL, 
                 `address` VARCHAR(50) DEFAULT NULL, 
                 `city` VARCHAR(50) DEFAULT NULL, 
                 `state` VARCHAR(50) DEFAULT NULL, 
@@ -258,6 +264,10 @@ function installUsers ($fname, $lname, $email, $birthday, $username, $password)
                 `home` VARCHAR(20) DEFAULT NULL, 
                 `work` VARCHAR(20) DEFAULT NULL, 
                 `cell` VARCHAR(20) DEFAULT NULL, 
+                `created_id` INT(11) NOT NULL DEFAULT '0', 
+                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `updated_id` INT(11) NOT NULL DEFAULT '0', 
+                `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                 PRIMARY KEY (`id`), 
                 KEY `user_ind` (`user`), 
                 KEY `create_ind` (`created_id`),
@@ -314,10 +324,6 @@ function installCategory ()
 
 /**
  * installCalendar 
- * 
- * @param string $fname
- * @param string $lname
- * @param string $birthday 
  * 
  * @return void
  */
