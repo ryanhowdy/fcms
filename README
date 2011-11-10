@@ -1,11 +1,11 @@
 
-                             Family Connections 2.7
+                             Family Connections 2.7.1
 
 
   Installation
   ------------
 
-  1. Upload the entire contents of FCMS_2.7.zip to your web host.
+  1. Upload the entire contents of FCMS_2.7.1.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -17,7 +17,7 @@
 
 
 
-  Upgrading from 2.6 to 2.7
+  Upgrading from 2.7 to 2.7.1
   ---------------------------
 
   ** DO NOT DELETE THE FOLLOWING FILE **
@@ -42,18 +42,10 @@
   Change Log
   ----------
 
-  2.7
+  2.7.1
 
-    #343 - Can't upload photo with Recipe
-    #348 - Allow DOB/DOD to be empty
-    #386 - Allow non-members to have empty DOB and DOD
-    #391 - Can't run Get Latest Awards (2.6)
-    #393 - Family News - Undefined variable: date
-    #353 - Last 5 View not working
-    #377 - Import Instagram photos
-    #390 - Add Country to Address
-    #392 - Smiley's doesn't work - Wrong include path
-    #394 - Sort Admin: Members page by member/non-member
+    #395 - Error with 2.7 Fresh Install
+    #396 - RSS Feed not working
 
   For the full change log please refer to the included ChangeLog file.
 

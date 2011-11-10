@@ -194,7 +194,7 @@ function installUsers ($fname, $lname, $email, $dobYear, $dobMonth, $dobDay, $us
 
     // insert users
     $sql = "INSERT INTO `fcms_users` (
-                `id`, `access`, `joindate`, `fname`, `lname`, `email`, `dobYear`, `dobMonth`, `dobDay`, `username`, `password`, `activated`
+                `id`, `access`, `joindate`, `fname`, `lname`, `email`, `dob_year`, `dob_month`, `dob_day`, `username`, `password`, `activated`
             ) VALUES (
                 1, 
                 1, 

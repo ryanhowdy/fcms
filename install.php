@@ -521,7 +521,7 @@ function displayStepFive ($error = '0')
     }
 
     // Setup Config
-    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 2.6');
+    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 2.7.1');
 
     // Setup Navigation
     $order  = 0;

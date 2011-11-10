@@ -103,7 +103,7 @@ function displayFeedAll ()
                  continue;
             }
 
-            $minpost  = mysql_fetch_array($check);
+            $minpost  = mysql_fetch_array($result);
             $userName = getUserDisplayName($cUserid);
             $subject  = $cTitle;
             $link     = "messageboard.php?thread=".$cId2;
