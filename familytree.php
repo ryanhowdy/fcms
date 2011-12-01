@@ -167,7 +167,7 @@ if (isset($_POST['add-user']))
     // Insert new user
     $sql = "INSERT INTO `fcms_users`(
                 `access`, `joindate`, `fname`, `mname`, `lname`, `maiden`, `sex`, `dob_year`, `dob_month`, `dob_day`,
-                `dod_year`, `dod_month`, `dod_day`, `death`, `username`, `password`, `activated`
+                `dod_year`, `dod_month`, `dod_day`, `username`, `password`, `activated`
             ) VALUES (
                 10, 
                 NOW(), 

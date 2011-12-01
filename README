@@ -1,11 +1,11 @@
 
-                             Family Connections 2.7.1
+                             Family Connections 2.7.2
 
 
   Installation
   ------------
 
-  1. Upload the entire contents of FCMS_2.7.1.zip to your web host.
+  1. Upload the entire contents of FCMS_2.7.2.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -17,7 +17,7 @@
 
 
 
-  Upgrading from 2.7 to 2.7.1
+  Upgrading from 2.7.x to 2.7.2
   ---------------------------
 
   ** DO NOT DELETE THE FOLLOWING FILE **
@@ -42,10 +42,11 @@
   Change Log
   ----------
 
-  2.7.1
+  2.7.2
 
-    #395 - Error with 2.7 Fresh Install
-    #396 - RSS Feed not working
+    #399 - Last 5 view - Undefined offset: 7
+    #401 - Can't add non-member to Family Tree (2.7.1)
+    #407 - Security Vulnerability in dev/less.php
 
   For the full change log please refer to the included ChangeLog file.
 

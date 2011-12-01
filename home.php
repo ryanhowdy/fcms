@@ -399,15 +399,6 @@ function displayWhatsNew ()
             'documents'
         );
 
-        // Remove unused sections
-        foreach ($sections as $key => $section)
-        {
-            if (empty(${$section}))
-            {
-                unset($sections[$key]);
-            }
-        }
-
         // Display the left half
         echo '
                 <div class="half">';

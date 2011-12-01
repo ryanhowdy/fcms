@@ -17,7 +17,12 @@ $devdir = dirname(__FILE__);
 
 $dir = substr($devdir, 0, -4);
 
-$theme = isset($argv[1]) ? $argv[1] : 'default';
+$theme = 'default';
+
+if (isset($argv[1]))
+{
+    $theme = basename($argv[1]);
+}
 
 system("clear");
 
