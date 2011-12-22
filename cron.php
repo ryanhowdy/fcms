@@ -18,64 +18,69 @@
  * @since     2.6
  */
 
-$debug = false; // Set to true when debugging issues
+require_once "inc/config_inc.php";
 
-if ($debug)
+$connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
+if (!$connection)
 {
-    $file = fopen('inc/debug.txt', 'a+') or die();
-    fwrite($file, "[".date('Y-m-d H:i:s')."] cron.php - Initialized\n") or die();
+    logError(__FILE__.' ['.__LINE__.'] - Could not connect to db.');
+    die();
 }
-
-if (!isset($_POST['job_type']))
+if (!mysql_select_db($cfg_mysql_db))
 {
-    if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] cron.php - No type given\n") or die(); }
+    logError(__FILE__.' ['.__LINE__.'] - Could not select db.');
     die();
 }
 
-require_once "inc/config_inc.php";
+require_once 'inc/constants.php';
+require_once 'inc/utils.php';
+require_once 'inc/cron.php';
 
-$connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass) or die();
-mysql_select_db($cfg_mysql_db) or die();
-
-require_once "inc/utils.php";
-require_once "inc/cron.php";
+if (isset($_POST['job_type']))
+{
+    $jobType = $_POST['job_type'];
+}
+elseif (isset($argv[1]) && substr($argv[1], 0, 8) == 'job_type')
+{
+    $jobType = substr($argv[1], 9);
+}
+else
+{
+    logError(__FILE__.' ['.__LINE__.'] - No job type given.');
+    die();
+}
 
 // Stop, if we are currently running a job
 if (runningJob() or defined('RUNNING_JOB'))
 {
-    if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] cron.php - Job already running\n") or die(); }
+    if (debugOn())
+    {
+        logError(__FILE__.' ['.__LINE__.'] - Cron Job already running.');
+    }
     die();
 }
 
 define('RUNNING_JOB', true);
 runJob();
-if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] cron.php - Job Started\n") or die(); }
 
-switch ($_POST['job_type'])
+switch ($jobType)
 {
     case 'familynews':
 
-        if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] cron.php - Family News Import\n") or die(); }
         runFamilyNewsJob();
         break;
 
     case 'youtube':
 
-        if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] cron.php - YouTube Videos Import\n") or die(); }
         runYouTubeJob();
         break;
 
     default:
 
-        if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] cron.php - No job type found [".$_POST['job_type']."]\n") or die(); }
+        logError(__FILE__.' ['.__LINE__.'] - Invalid job type given ['.$jobType.'].');
         break;
 }
 
 stopJob();
 
-if ($debug)
-{
-    fwrite($file, "[".date('Y-m-d H:i:s')."] cron.php - Job Ended\n") or die();
-    fclose($file);
-}
 die();

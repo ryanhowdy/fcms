@@ -50,9 +50,12 @@ class Prayers
                 WHERE u.`id` = p.`user` 
                 ORDER BY `date` DESC 
                 LIMIT $from, 5";
-        $this->db->query($sql) or displaySQLError(
-            'Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         if ($this->db->count_rows() > 0) {
             while($r = $this->db->get_row()) {
                 $date = fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $r['date']);
@@ -88,7 +91,7 @@ class Prayers
                 echo '
                 </h4>
                 <b>'.sprintf(T_('%s asks that you please pray for...'), '<a href="profile.php?member='.(int)$r['user'].'">'.$displayname.'</a>').'</b><br/>
-                &nbsp;&nbsp;&nbsp;&nbsp;'.$r['for'].'<br/><br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;'.cleanOutput($r['for']).'<br/><br/>
                 <b>'.T_('Because...').'</b><br/>
                 &nbsp;&nbsp;&nbsp;&nbsp;
                 '.parse($r['desc']).'
@@ -101,19 +104,23 @@ class Prayers
 
             // Display Pagination
             $sql = "SELECT count(`id`) AS c FROM `fcms_prayers`";
-            $this->db2->query($sql) or displaySQLError(
-                'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            if (!$this->db2->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
             $r = $this->db2->get_row();
             $prayercount = (int)$r['c'];
             $total_pages = ceil($prayercount / 5); 
             displayPagination ('prayers.php', $page, $total_pages);
-        } else {
+        }
+        else
+        {
             echo '
-            <div class="info-alert">
-                <h2>'.T_('Welcome to the Prayer Concerns section.').'</h2>
-                <p><i>'.T_('Currently no one has added any Prayer Concerns.').'</i></p>
-                <p><a href="?addconcern=yes">'.T_('Add a new Prayer Concern').'</a></p>
+            <div class="blank-state">
+                <h2>'.T_('Nothing to see here').'</h2>
+                <h3>'.T_('Currently no one has added any Prayer Concerns.').'</h3>
+                <h3><a href="?addconcern=yes">'.T_('Why don\'t you add a new Prayer Concern now?').'</a></h3>
             </div>';
         }
     }
@@ -147,14 +154,14 @@ class Prayers
         echo '
                     <div>
                         <label for="for">'.T_('Pray For').'</label>: 
-                        <input type="text" name="for" id="for" size="50" value="'.$for.'"/>
+                        <input type="text" name="for" id="for" size="50" tabindex="1" value="'.$for.'"/>
                     </div><br/>
                     <script type="text/javascript">
                         var ffor = new LiveValidation(\'for\', { onlyOnSubmit: true });
                         ffor.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div>
-                        <textarea name="desc" id="desc" rows="10" cols="63">';
+                        <textarea name="desc" id="desc" rows="10" cols="63" tabindex="2">';
         if ($type == 'edit') { echo $desc; }
         echo '</textarea>
                     </div>
@@ -165,14 +172,14 @@ class Prayers
         if ($type == 'add') {
             echo '
                     <div>
-                        <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'"/> &nbsp;
+                        <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'" tabindex="3"/> &nbsp;
                         <a href="prayers.php">'.T_('Cancel').'</a>
                     </div>';
         } else {
             echo '
                     <div>
                         <input type="hidden" name="id" value="'.(int)$id.'"/>
-                        <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'"/> &nbsp;
+                        <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'" tabindex="3"/> &nbsp;
                         <a href="prayers.php">'.T_('Cancel').'</a>
                     </div>';
         }

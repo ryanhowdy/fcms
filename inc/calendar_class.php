@@ -64,7 +64,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return $days;
         }
 
@@ -95,7 +95,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return $days;
         }
 
@@ -378,7 +378,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -423,7 +423,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -442,7 +442,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -702,7 +702,7 @@ class Calendar
                 ORDER BY day";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -723,7 +723,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Birthdays Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -739,7 +739,7 @@ class Calendar
                 $age = getAge($r['dob_year'], $r['dob_month'], $r['dob_day'], "$year-$month-".$r['dob_day']);
 
                 $r['id']         = 'birthday'.$r['id'];
-                $r['day']        = $r['dob_day'];
+                $r['day']        = $r['dob_month'].$r['dob_day'];
                 $r['date']       = $r['dob_year'].'-'.$r['dob_month'].'-'.$r['dob_day'];
                 $r['title']      = $r['fname'].' '.$r['lname'];
                 $r['desc']       = sprintf(T_('%s turns %s today.'), $r['fname'], $age);
@@ -833,7 +833,7 @@ class Calendar
                 OR (`date` LIKE '%%%%-$month-$day' AND `repeat` = 'yearly')";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Today Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -855,7 +855,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Birthdays Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -967,7 +967,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Events Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -993,7 +993,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -1013,7 +1013,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Birthdays Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -1113,7 +1113,7 @@ class Calendar
 
                         echo '<div class="event">' .
                                 '<a class="'.$event['color'].' tooltip" title="'.$start.$end.' '.$title.'" href="?event='.$event['id'].'" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">' .
-                                    '<i>' . $start . '</i> '.$event['title'] .
+                                    '<i>' . $start . '</i> '.$title.
                                 '</a>' .
                                 '<div class="tooltip" style="display:none">'.$tooltipDetails.'</div>' .
                             '</div>';
@@ -1163,10 +1163,13 @@ class Calendar
         // Setup time fields
         $defaultTimeStart = fixDate('H:i', $this->tzOffset, date('Y-m-d H:i:s'));
         list($hour, $min) = explode(':', $defaultTimeStart);
-        if ($min > 30) {
+        if ($min > 30)
+        {
             $defaultTimeStart   = ($hour + 1) . ":00:00";
             $defaultTimeEnd     = ($hour + 1) . ":30:00";
-        } else {
+        }
+        else
+        {
             $defaultTimeStart   = "$hour:30:00";
             $defaultTimeEnd     = ($hour + 1) . ":00:00";
         }
@@ -1174,14 +1177,21 @@ class Calendar
 
         // Setup category field
         $sql = "SELECT * FROM `fcms_category` WHERE `type` = 'calendar'";
-        $this->db->query($sql) or displaySQLError(
-            'Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySwlError($sql, mysql_error());
+            return;
+        }
+
         $choose = '';
-        while($r = $this->db->get_row()) {
-            if ($r['name'] == '') {
+        while($r = $this->db->get_row())
+        {
+            if ($r['name'] == '')
+            {
                 $choose = '<option value="'.$r['id'].'"></option>';
-            } else {
+            }
+            else
+            {
                 $categories[$r['id']] = $r['name'];
             }
         }
@@ -1288,7 +1298,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Date Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -1322,9 +1332,11 @@ class Calendar
 
         // Setup category field
         $sql = "SELECT * FROM `fcms_category` WHERE `type` = 'calendar'";
-        $this->db->query($sql) or displaySQLError(
-            'Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
         $choose = '';
         while($r = $this->db->get_row()) {
             if ($r['name'] == '') {
@@ -1452,7 +1464,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Event Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -1564,7 +1576,7 @@ class Calendar
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Event Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -1633,7 +1645,7 @@ class Calendar
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Attending Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             exit();
         }
@@ -1805,9 +1817,12 @@ class Calendar
                     FROM `fcms_category` 
                     WHERE `id` = '$id' 
                     LIMIT 1";
-            $this->db->query($sql) or displaySQLError(
-                'Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
+
             $row = $this->db->get_row();
 
             $title = T_('Edit Category');
@@ -1884,11 +1899,16 @@ class Calendar
                     CONCAT(`fname`, ' ', `lname`) AS 'organizer', `private`
                 FROM `fcms_calendar` AS c, `fcms_users` AS u 
                 WHERE c.`created_by` = u.`id";
-        $this->db->query($sql) or displaySQLError(
-            'Calendar Entries Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            while ($r = $this->db->get_row()) {
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while ($r = $this->db->get_row())
+            {
                 $cal .= "BEGIN:VEVENT\n";
                 $cal .= "DTSTART:" . date('Ymd', strtotime($r['date'])) . "\n";
                 $cal .= "SUMMARY:" . $r['title'] . "\n";
@@ -1998,9 +2018,12 @@ class Calendar
                 $sql .= "'0'";
             }
             $sql .= ")";
-            $this->db->query($sql) or displaySQLError(
-                'Import Entries Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
         }
     }
     
@@ -2036,19 +2059,26 @@ class Calendar
      */
     function getCategoryList ()
     {
+        $cats = array();
+
         $sql = "SELECT `id`, `name` 
                 FROM `fcms_category` 
                 WHERE `type` = 'calendar'
                 AND `name` != ''";
-        $this->db->query($sql) or displaySQLError(
-            'Categories Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
-        $cats = array();
-        if ($this->db->count_rows() > 0) {
-            while ($r = $this->db->get_row()) {
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return $cats;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while ($r = $this->db->get_row())
+            {
                 $cats[$r['id']] = $r['name'];
             }
         }
+
         return $cats;
     }
 
@@ -2061,22 +2091,29 @@ class Calendar
      */
     function getCategories ()
     {
+        $ret = '';
+
         $sql = "SELECT * 
                 FROM `fcms_category` 
                 WHERE `type` = 'calendar'
                 AND `name` != ''";
-        $this->db->query($sql) or displaySQLError(
-            'Categories Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
-        $ret = '';
-        if ($this->db->count_rows() > 0) {
-            while ($r = $this->db->get_row()) {
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return $ret;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while ($r = $this->db->get_row())
+            {
                 $ret .= '
                             <li class="cat '.$r['color'].'">
                                 <a title="'.T_('Edit Category').'" href="?category=edit&amp;id='.$r['id'].'">'.cleanOutput($r['name']).'</a>
                             </li>';
             }
         }
+
         return $ret;
     }
 

@@ -110,7 +110,7 @@ function displayAttendForm ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Code Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }
@@ -134,7 +134,7 @@ function displayAttendForm ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Code Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }
@@ -235,7 +235,7 @@ function displayAttendForm ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Attending Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }
@@ -336,7 +336,7 @@ function displayAttendSubmit ()
             WHERE `id` = '$id'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Attending Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }

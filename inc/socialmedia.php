@@ -17,7 +17,7 @@ function getFacebookConfigData ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
 
@@ -54,7 +54,7 @@ function getUserFacebookAccessToken ($user)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -85,7 +85,7 @@ function getVimeoConfigData ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
 
@@ -120,7 +120,7 @@ function getVimeoUserData ($user)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -150,7 +150,7 @@ function getFoursquareConfigData ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -185,7 +185,7 @@ function getFoursquareUserData ($user)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('User Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -227,7 +227,7 @@ function getFoursquareUsersData ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
     if (mysql_num_rows($result) <= 0)
@@ -273,7 +273,7 @@ function getYouTubeConfigData ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -310,7 +310,7 @@ function getYouTubeUserData ($user)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('User Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 

@@ -17,13 +17,14 @@ define('URL_PREFIX', '');
 
 require 'fcms.php';
 
-load('profile');
+load('profile', 'image');
 
 init();
 
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 $profile       = new Profile($currentUserId);
 $awards        = new Awards($currentUserId);
+$img           = new Image($currentUserId);
 
 // Changing Avatar with Advanced Uploader
 if (isset($_GET['advanced-avatar']))
@@ -159,7 +160,7 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
 
         if (!mysql_query($sql))
         {
-            displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -242,7 +243,16 @@ elseif (isset($_POST['submit']) && isset($_GET['view']))
         $sql .= "WHERE `id` = '$currentUserId'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
+            displayFooter();
+            return;
+        }
+
+        $sql = "INSERT INTO `fcms_changelog` (`user`, `table`, `column`, `created`)
+                VALUES ('$currentUserId', 'users', 'avatar', NOW())";
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -283,7 +293,7 @@ elseif (isset($_POST['editsubmit']))
             WHERE `id` = '".cleanInput($_POST['aid'], 'int')."'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Edit Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -293,7 +303,7 @@ elseif (isset($_POST['editsubmit']))
             WHERE `id` = '".cleanInput($_POST['uid'])."'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Edit Email Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }

@@ -190,10 +190,16 @@ function fixDate ($dateFormat, $tzOffset = '', $date = '', $userid = '')
     }
 
     // GET DST
-    $sql = "SELECT `dst` FROM `fcms_user_settings` WHERE `user` = '$userid'";
-    $result = mysql_query($sql) or displaySQLError(
-        'DST Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+    $sql = "SELECT `dst` 
+            FROM `fcms_user_settings` 
+            WHERE `user` = '$userid'";
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return;
+    }
+
     $r = mysql_fetch_array($result);
     $dst = '';
     if ($r['dst'] > 0) {

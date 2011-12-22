@@ -138,7 +138,7 @@ function displayExportSubmit ()
     if (!$result)
     {
         displayHeader();
-        displaySQLError('Export Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -322,7 +322,7 @@ function displayEditSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -378,7 +378,7 @@ function displayEditSubmit ()
             WHERE `id` = '$aid'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Edit Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -389,7 +389,7 @@ function displayEditSubmit ()
             WHERE `id` = '$uid'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Edit Email Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -408,7 +408,7 @@ function displayEditSubmit ()
     {
         if (!mysql_query($sql))
         {
-            displaySQLError('Changelog Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -451,7 +451,7 @@ function displayAddSubmit ()
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Add Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -479,7 +479,7 @@ function displayAddSubmit ()
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -553,7 +553,7 @@ function displayDeleteSubmit ()
     if (!$result)
     {
         displayHeader();
-        displaySQLError('User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -579,7 +579,7 @@ function displayDeleteSubmit ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Non-member Deletion Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -588,7 +588,7 @@ function displayDeleteSubmit ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Delete Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -676,7 +676,7 @@ function removeAlert ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Remove Alert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }

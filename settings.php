@@ -277,7 +277,7 @@ function displayEditAccountSubmit ()
         if (!$result)
         {
             displayHeader();
-            displaySQLError('Email Error', ___FILE___.' ['.__LINE__.']', $sql2, mysql_error());
+            displaySqlError($sql2, mysql_error());
             displayFooter();
             return;
         }
@@ -315,7 +315,7 @@ function displayEditAccountSubmit ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -396,7 +396,7 @@ function displayEditThemeSubmit ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Update Theme Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -540,7 +540,7 @@ function displayEditSettingsSubmit ()
     {
         if (!mysql_query($sql))
         {
-            displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -595,7 +595,7 @@ function displayEditNotificationsSubmit ()
 
         if (!mysql_query($sql))
         {
-            displaySQLError('Update User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -648,7 +648,7 @@ function displayEditFamilyNewsSubmit ()
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -698,7 +698,7 @@ function displayEditMessageBoardSubmit ()
 
         if (!mysql_query($sql))
         {
-            displaySQLError('Update MB Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -740,7 +740,7 @@ function displayFoursquareSubmit ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -764,7 +764,7 @@ function displayRevokeFoursquareAccess ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -798,7 +798,7 @@ function displayImportBlogPosts ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -936,7 +936,7 @@ function displayEditFacebookSubmit ()
         if (!mysql_query($sql))
         {
             displayHeader();
-            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -975,7 +975,7 @@ function displayRevokeFacebookAccess ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -1030,7 +1030,7 @@ function displayEditYouTubeSubmit ()
         if (!mysql_query($sql))
         {
             displayHeader();
-            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -1075,7 +1075,7 @@ function displayRevokeYouTubeAccess ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }

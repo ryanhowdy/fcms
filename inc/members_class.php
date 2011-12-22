@@ -62,9 +62,11 @@ class Members
                 WHERE u.`password` != 'NONMEMBER'
                 AND u.`password` != 'PRIVATE'
                 ".$validOrderTypes[$order];
-        $this->db->query($sql) or displaySQLError(
-            'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
 
         echo '
             <ul id="memberlist">';

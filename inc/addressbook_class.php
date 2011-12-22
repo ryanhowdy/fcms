@@ -69,7 +69,7 @@ class AddressBook
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -334,7 +334,8 @@ class AddressBook
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Addresses Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
+            return;
         }
 
         while ($r = mysql_fetch_array($result))
@@ -401,7 +402,8 @@ class AddressBook
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Get Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
+            return;
         }
 
         $row = $this->db->get_row();
@@ -759,7 +761,7 @@ class AddressBook
                 WHERE `user` = $id";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Has Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -1161,7 +1163,7 @@ class AddressBook
                     )";
             if (!mysql_query($sql))
             {
-                displaySQLError('Add Non-Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return;
             }
 
@@ -1187,7 +1189,7 @@ class AddressBook
                     )";
             if (!mysql_query($sql))
             {
-                displaySQLError('New Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return;
             }
 

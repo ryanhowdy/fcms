@@ -54,23 +54,34 @@ class Poll
                 FROM `fcms_poll_votes` 
                 WHERE `user` = '$userid'
                 AND `poll_id` = '$pollid'";
-        $this->db->query($sql) or displaySQLError(
-            'User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
             echo "<p class=\"info-alert\">".T_('You have already voted.')."</p>\n\t\t";
-        } else {
+        }
+        else
+        {
             $sql = "UPDATE `fcms_poll_options` 
                     SET `votes` = `votes`+1 
                     WHERE `id` = '$optionid'";
-            $this->db->query($sql) or displaySQLError(
-                '+Vote Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
+
             $sql = "INSERT INTO `fcms_poll_votes`(`user`, `option`, `poll_id`) 
                     VALUES ('$userid', '$optionid', '$pollid')";
-            $this->db->query($sql) or displaySQLError(
-                'Vote Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
         }
     }
 
@@ -94,25 +105,36 @@ class Poll
                 WHERE p.`id` = o.`poll_id` 
                 AND p.`id` = '$pollid' 
                 AND result.`id` = p.`id`";
-        $this->db->query($sql) or displaySQLError(
-            'Result Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         $i = 0;
-        while ($row = $this->db->get_row()) {
+        while ($row = $this->db->get_row())
+        {
             $votes = $row['votes'];
             $total = $row['total'];
-            if ($total < 1) {
+            if ($total < 1)
+            {
                 $percent = 0;
-            } else {
+            }
+            else
+            {
                 $percent = $votes/$total;
             }
             $width = round((140 * $percent) + 10, 0);
-            if ($total < 1) {
+            if ($total < 1)
+            {
                 $percent = 0;
-            } else {
+            }
+            else
+            {
                 $percent = round((($votes/$total) * 100), 0);
             }
-            if ($i < 1) {
+            if ($i < 1)
+            {
                 echo '
             <h3>'.$row['question'].'</h3>
             <ul class="poll">';
@@ -135,20 +157,29 @@ class Poll
                 AND o.`id` = v.`option` 
                 AND v.`user` = u.`id` 
                 ORDER BY o.`option`";
-        $this->db->query($sql) or displaySQLError(
-            'Who Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
             $option = '';
-            while ($r = $this->db->get_row()) {
-                if ($option == '') {
+
+            while ($r = $this->db->get_row())
+            {
+                if ($option == '')
+                {
                     echo '
             <h4>'.$r['option'].'</h4>
             <ul class="whovoted">
                 <li>
                     <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/> '.getUserDisplayName($r['user']). '
                 </li>';
-                } elseif ($r['option'] != $option) {
+                }
+                elseif ($r['option'] != $option)
+                {
                     echo '
             </ul>
             <h4>'.$r['option'].'</h4>
@@ -190,50 +221,66 @@ class Poll
         $poll_exists = true;
 
         // Get Latest Poll ID
-        if ($pollid == 0) {
+        if ($pollid == 0)
+        {
             $sql = "SELECT MAX(`id`) AS max FROM `fcms_polls`";
-            $this->db->query($sql) or displaySQLError(
-                'Max Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
+
             $r = $this->db->get_row();
             $pollid = $r['max'];
-            if (!is_null($r['max'])) { 
+
+            if (!is_null($r['max']))
+            { 
                 $pollid = $r['max'];
-            } else {
+            }
+            else
+            {
                 $poll_exists = false;
             }
         }
 
         // Get Poll Data
-        if ($poll_exists) {
+        if ($poll_exists)
+        {
             $sql = "SELECT p.`id`, `question`, o.`id` AS option_id, `option` 
                     FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
                     WHERE p.`id` = '" . cleanInput($pollid, 'int') . "' 
                     AND p.`id` = o.`poll_id`";
-            $this->db->query($sql) or displaySQLError(
-                'Poll Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                $poll_exists = false;
+            }
             if ($this->db->count_rows() <= 0) {
                 $poll_exists = false;
             }
         }
 
         // We are using Polls
-        if ($poll_exists) {
+        if ($poll_exists)
+        {
             $sql = "SELECT * 
                     FROM `fcms_poll_votes` 
                     WHERE `poll_id` = '" . cleanInput($pollid, 'int') . "'
                     AND `user` = ".$this->currentUserId;
-            $this->db2->query($sql) or displaySQLError(
-                'Voted Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            if (!$this->db2->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
 
             // User has already voted
-            if ($this->db2->count_rows() > 0 && $showResults) {
+            if ($this->db2->count_rows() > 0 && $showResults)
+            {
                 $this->displayResults($pollid);
-
+            }
             // User hasn't voted yet
-            } else {
+            else
+            {
                 echo '
             <h2 class="pollmenu">'.T_('Polls').'</h2>
             <form method="post" action="home.php">';
@@ -278,9 +325,11 @@ class Poll
                 FROM `fcms_polls` 
                 ORDER BY started DESC 
                 LIMIT $from, 15";
-        $this->db->query($sql) or displaySQLError(
-            'Polls Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
         if ($this->db->count_rows() > 0) {
             echo '
             <table class="sortable">
@@ -308,13 +357,17 @@ class Poll
             // Remove the LIMIT from the $sql statement 
             // used above, so we can get the total count
             $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
-            $this->db->query($sql) or displaySQLError(
-                'Page Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
             $count = $this->db->count_rows();
             $total_pages = ceil($count / 15); 
             displayPages("home.php?action=pastpolls", $page, $total_pages);
-        } else {
+        }
+        else
+        {
             echo "<i>".T_('No previous polls')."</i>";
         }
     }
@@ -331,13 +384,19 @@ class Poll
                 FROM `fcms_polls` AS p, `fcms_poll_options` AS o
                 WHERE p.`id` = '" . cleanInput($pollid, 'int') . "' 
                 AND p.`id` = o.`poll_id`";
-        $this->db2->query($sql) or displaySQLError(
-            'Total Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db2->count_rows() > 0) {
+        if (!$this->db2->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db2->count_rows() > 0)
+        {
             $r = $this->db2->get_row();
             return (int)$r['total'];
-        } else {
+        }
+        else
+        {
             return 0;
         }
     }

@@ -52,7 +52,7 @@ class FamilyNews
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('News List Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -102,7 +102,7 @@ class FamilyNews
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('News Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -118,7 +118,7 @@ class FamilyNews
 
         if (!$this->db2->query($sql))
         {
-            displaySQLError('Count Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -151,7 +151,7 @@ class FamilyNews
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('News Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -243,7 +243,7 @@ class FamilyNews
 
         if (!$this->db2->query($sql))
         {
-            displaySQLError('Comments Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -302,12 +302,16 @@ class FamilyNews
     {
         echo '
             <script type="text/javascript" src="inc/js/livevalidation.js"></script>';
-        if ($type == 'edit') {
+
+        if ($type == 'edit')
+        {
             echo '
             <form method="post" id="editform" action="familynews.php">
                 <fieldset>
                     <legend><span>'.T_('Edit News').'</span></legend>';
-        } else {
+        }
+        else
+        {
             echo '
             <form method="post" id="addform" action="familynews.php">
                 <fieldset>
@@ -317,10 +321,12 @@ class FamilyNews
                     <p>
                         <label for="title">'.T_('Title').'</label>:
                         <input type="text" name="title" id="title" title="'.T_('Title of your Family News').'"';
-        if ($type == 'edit') {
+
+        if ($type == 'edit')
+        {
             echo ' value="'.$title.'"';
         }
-        echo ' size="50"/>
+        echo ' tabindex="1" size="50"/>
                     </p>
                     <script type="text/javascript">
                         var ftitle = new LiveValidation(\'title\', { onlyOnSubmit:true });
@@ -329,23 +335,23 @@ class FamilyNews
                     <script type="text/javascript">var bb = new BBCode();</script>';
         displayBBCodeToolbar();
         echo '
-                    <div><textarea name="post" id="post" rows="10" cols="63"';
-        if ($type == 'add') {
-            echo "></textarea></div>";
-        } else {
-            echo ">".$news."</textarea></div>";
+                    <div><textarea name="post" id="post" rows="10" cols="63" tabindex="2">';
+
+        if ($type == 'edit')
+        {
+            echo $news;
         }
-        echo '
+        echo '</textarea></div>
                     <script type="text/javascript">bb.init(\'post\');</script>
                     <p>';
         if ($type == 'add') {
             echo '
-                        <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'"/>';
+                        <input class="sub1" type="submit" name="submitadd" tabindex="3" value="'.T_('Add').'"/>';
         } else {
             echo '
                         <input type="hidden" name="id" value="'.(int)$newsid.'"/>
                         <input type="hidden" name="user" value="'.(int)$user.'"/>
-                        <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'"/>';
+                        <input class="sub1" type="submit" name="submitedit" tabindex="3" value="'.T_('Edit').'"/>';
         }
         echo '
                          &nbsp;'.T_('or').' &nbsp;
@@ -369,18 +375,21 @@ class FamilyNews
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('News Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
         if ($this->db->count_rows() <= 0)
         {
             echo '
-            <div class="info-alert">
-                <h2>'.T_('Welcome to the Family News Section.').'</h2>
-                <p><i>'.T_('Currently no one has added any news.').'</i></p>
-                <p><a href="?addnews=yes">'.T_('Add Family News').'</a></p>
-                <p><a href="settings.php?view=familynews">'.T_('Import News from existing blog').'</a></p>
+            <div class="blank-state">
+                <h2>'.T_('Nothing to see here').'</h2>
+                <h3>'.T_('Currently no one has added any news').'</h3>
+                <h3>'.T_('Why don\'t you be the first to add news?').'</a></h3>
+                <ol>
+                    <li><a href="?addnews=yes">'.T_('Add Family News').'</a></li>
+                    <li><a href="settings.php?view=familynews">'.T_('Import News from existing blog').'</a></li>
+                </ol>
             </div>';
 
             return;
@@ -405,12 +414,17 @@ class FamilyNews
                 FROM `fcms_news` 
                 WHERE `user` = '$userid' 
                 LIMIT 1";
-        $this->db->query($sql) or displaySQLError(
-            'Has News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+        if ($this->db->count_rows() > 0)
+        {
             return true;
-        } else {
+        }
+        else
+        {
             return false;
         }
     }
@@ -432,7 +446,7 @@ class FamilyNews
                 LIMIT 1";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
         $r = $this->db->get_row();
@@ -457,7 +471,7 @@ class FamilyNews
                 FROM `fcms_user_settings`";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
         if ($this->db->count_rows() <= 0)
@@ -517,7 +531,7 @@ class FamilyNews
                 WHERE `name` = 'external_news_date'";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
         }
     }
 
@@ -553,6 +567,7 @@ class FamilyNews
         else
         {
             $news = removeBBCode($data['news']);
+            $news = cleanOutput($news);
         }
 
         if (strlen($data['news']) > 300)
@@ -600,7 +615,7 @@ class FamilyNews
 
         if (!$this->db2->query($sql))
         {
-            displaySQLError('Import Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
 
             return $external_ids;
         }
@@ -727,7 +742,7 @@ class FamilyNews
 
             if (!$this->db2->query($sql))
             {
-                displaySQLError('Import Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return false;
             }
         }
@@ -827,7 +842,7 @@ class FamilyNews
 
             if (!$this->db2->query($sql))
             {
-                displaySQLError('Import Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return false;
             }
         }
@@ -906,7 +921,7 @@ class FamilyNews
 
             if (!$this->db2->query($sql))
             {
-                displaySQLError('Import Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return false;
             }
         }
@@ -1007,7 +1022,7 @@ class FamilyNews
 
             if (!$this->db2->query($sql))
             {
-                displaySQLError('Import Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return false;
             }
         }

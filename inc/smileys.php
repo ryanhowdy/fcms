@@ -1,10 +1,13 @@
 <?php
 session_start();
-include_once('config_inc.php');
-include_once('utils.php');
 
-// Check that the user is logged in
-isLoggedIn();
+define('URL_PREFIX', '../');
+
+require URL_PREFIX.'fcms.php';
+
+setLanguage();
+isLoggedIn('inc/');
+
 $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
 echo '

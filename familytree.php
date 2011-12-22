@@ -131,7 +131,7 @@ if (isset($_POST['add-user']))
     {
         $bYear = cleanInput($_POST['byear'], 'int');
     }
-    if (!empty($_POST['month']))
+    if (!empty($_POST['bmonth']))
     {
         $bMonth = cleanInput($_POST['bmonth'], 'int');
         $bMonth = str_pad($bMonth, 2, "0", STR_PAD_LEFT);
@@ -151,7 +151,7 @@ if (isset($_POST['add-user']))
     {
         $dYear = cleanInput($_POST['dyear'], 'int');
     }
-    if (!empty($_POST['month']))
+    if (!empty($_POST['dmonth']))
     {
         $dMonth = cleanInput($_POST['dmonth'], 'int');
         $dMonth = str_pad($dMonth, 2, "0", STR_PAD_LEFT);
@@ -189,7 +189,7 @@ if (isset($_POST['add-user']))
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Non-Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -200,7 +200,7 @@ if (isset($_POST['add-user']))
             VALUES ('$lastid', '$currentUserId', NOW(), '$currentUserId', NOW())";
     if (!mysql_query($sql))
     {
-        displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         // ok to continue
     }
 
@@ -208,7 +208,7 @@ if (isset($_POST['add-user']))
     $sql = "INSERT INTO `fcms_user_settings`(`user`) VALUES ('$lastid')";
     if (!mysql_query($sql))
     {
-        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         // ok to continue
     }
 
@@ -270,7 +270,7 @@ if (isset($_POST['edit-user']))
     {
         $dYear = cleanInput($_POST['dyear'], 'int');
     }
-    if (!empty($_POST['month']))
+    if (!empty($_POST['dmonth']))
     {
         $dMonth = cleanInput($_POST['dmonth'], 'int');
         $dMonth = str_pad($dMonth, 2, "0", STR_PAD_LEFT);
@@ -299,7 +299,7 @@ if (isset($_POST['edit-user']))
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Non-Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -381,7 +381,7 @@ if (isset($_GET['remove']))
                 OR `rel_user` = '$id'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Remove Relationship Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 

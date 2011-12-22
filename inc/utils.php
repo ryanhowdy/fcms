@@ -58,7 +58,7 @@ function getTheme ($userid = 0)
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Theme Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return ROOT."themes/default/";
         }
 
@@ -93,33 +93,61 @@ function getUserDisplayName ($userid, $display = 0, $isMember = true)
 {
     $userid = cleanInput($userid, 'int');
 
-    if ($isMember) {
-        $sql = "SELECT u.`fname`, u.`lname`, u.`username`, s.`displayname` "
-             . "FROM `fcms_users` AS u, `fcms_user_settings` AS s "
-             . "WHERE u.`id` = '$userid' "
-             . "AND u.`id` = s.`user`";
-    } else {
-        $sql = "SELECT `fname`, `lname`, `username` "
-             . "FROM `fcms_users` "
-             . "WHERE `id` = '$userid' ";
+    if ($isMember)
+    {
+        $sql = "SELECT u.`fname`, u.`lname`, u.`username`, s.`displayname` 
+                FROM `fcms_users` AS u, `fcms_user_settings` AS s 
+                WHERE u.`id` = '$userid' 
+                AND u.`id` = s.`user`";
     }
-    $result = mysql_query($sql) or displaySQLError(
-        'Displayname Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $r = mysql_fetch_array($result);
+    else
+    {
+        $sql = "SELECT `fname`, `lname`, `username` 
+                FROM `fcms_users` 
+                WHERE `id` = '$userid' ";
+    }
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '';
+    }
+
+    $r = mysql_fetch_assoc($result);
 
     // Do we want user's settings or overriding it?
-    if ($display < 1) {
+    if ($display < 1)
+    {
         $displayname = $r['displayname'];
-    } else {
+    }
+    else
+    {
         $displayname = $display;
     }
-    switch($displayname) {
-        case '1': return $r['fname']; break;
-        case '2': return $r['fname'].' '.$r['lname']; break;
-        case '3': return $r['username']; break;
-        default: return $r['username']; break;
+
+    $ret = '';
+
+    switch($displayname)
+    {
+        case '1':
+            $ret = cleanOutput($r['fname']);
+            break;
+
+        case '2':
+            $ret = cleanOutput($r['fname']).' '.cleanOutput($r['lname']);
+            break;
+
+        case '3':
+            $ret = cleanOutput($r['username']);
+            break;
+
+        default:
+            $ret = cleanOutput($r['username']);
+            break;
     }
+
+    return $ret;
 }
 
 /**
@@ -145,7 +173,7 @@ function getPMCount ()
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('PM Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return '';
         }
 
@@ -170,13 +198,19 @@ function getUserEmail ($userid)
 {
     $userid = cleanInput($userid, 'int');
 
-    $sql = "SELECT `email` "
-         . "FROM `fcms_users` "
-         . "WHERE `id` = '$userid'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Email Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $r = mysql_fetch_array($result);
+    $sql = "SELECT `email`
+            FROM `fcms_users`
+            WHERE `id` = '$userid'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 'nothing@mail.com';
+    }
+
+    $r = mysql_fetch_assoc($result);
+
     return $r['email'];
 }
 
@@ -193,10 +227,16 @@ function getDefaultNavUrl ()
             FROM `fcms_navigation` 
             WHERE `col` = 4 
             AND `order` = 1";
-    $result = mysql_query($sql) or displaySQLError(
-        'Default Nav Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $r = mysql_fetch_array($result);
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 'gallery/index.php';
+    }
+
+    $r = mysql_fetch_assoc($result);
+
     return getSectionUrl($r['link']);
 }
 
@@ -250,7 +290,7 @@ function getNavLinks ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Nav Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return $ret;
     }
 
@@ -555,9 +595,13 @@ function displayNewPM ($userid)
     $sql = "SELECT `id` 
             FROM `fcms_privatemsg` 
             WHERE `to` = '$userid' AND `read` < 1";
-    $result = mysql_query($sql) or displaySQLError(
-        'Get New PM', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-    );
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return ' ';
+    }
 
     if (mysql_num_rows($result) > 0)
     {
@@ -587,7 +631,8 @@ function checkAccess ($userid)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Access Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
+        return '10';
     }
 
     if (mysql_num_rows($result) <= 0)
@@ -967,35 +1012,57 @@ function getPostsById ($user_id, $option = 'both')
 {
     $user_id = cleanInput($user_id, 'int');
 
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_board_posts`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Total Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_board_posts`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
     $found = mysql_fetch_array($result);
     $total = $found['c'];
 
-    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_board_posts` WHERE `user` = '$user_id'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Count Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+    $sql = "SELECT COUNT(`user`) AS c 
+            FROM `fcms_board_posts` 
+            WHERE `user` = '$user_id'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
     $found = mysql_fetch_array($result);
     $count = $found['c'];
 
-    if ($total < 1 || $count < 1) {
+    if ($total < 1 || $count < 1)
+    {
         $count = '0';
         $percent = '0%';
-    } else {
+    }
+    else
+    {
         $percent = round((($count/$total)*100), 1) . '%';
     }
-    switch($option) {
+
+    switch($option)
+    {
         case 'count':
             return $count;
             break;
+
         case 'percent':
             return $percent;
             break;
+
         case 'array':
             return array('count' => $count, 'percent' => $percent);
+            break;
+
         case 'both':
         default:
             return "$count ($percent)";
@@ -1019,33 +1086,57 @@ function getPhotosById ($user_id, $option = 'both')
 {
     $user_id = cleanInput($user_id, 'int');
 
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_gallery_photos`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Total Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_gallery_photos`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_photos` WHERE `user` = '$user_id'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Count Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+
+    $sql = "SELECT COUNT(`user`) AS c 
+            FROM `fcms_gallery_photos` 
+            WHERE `user` = '$user_id'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $count = $found['c'];
-    if ($total < 1 || $count < 1) {
+
+    if ($total < 1 || $count < 1)
+    {
         $count = '0';
         $percent = '0%';
-    } else {
+    }
+    else
+    {
         $percent = round((($count/$total)*100), 1) . '%';
     }
-    switch($option) {
+
+    switch($option)
+    {
         case 'count':
             return $count;
             break;
+
         case 'percent':
             return $percent;
             break;
+
         case 'array':
             return array('count' => $count, 'percent' => $percent);
+            break;
+
         case 'both':
         default:
             return "$count ($percent)";
@@ -1069,49 +1160,88 @@ function getCommentsById ($user_id, $option = 'both')
 {
     $user_id = cleanInput($user_id, 'int');
 
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_gallery_comments`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Total Gallery Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_gallery_comments`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`user`) AS c FROM `fcms_gallery_comments` WHERE `user` = '$user_id'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Count Gallery Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+
+    $sql = "SELECT COUNT(`user`) AS c 
+            FROM `fcms_gallery_comments` 
+            WHERE `user` = '$user_id'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $count = $found['c'];
 
     // Check Family News if applicable
-    if (usingFamilyNews()) {
-        $sql = "SELECT COUNT(`id`) AS c FROM `fcms_news_comments`";
-        $result = mysql_query($sql) or displaySQLError(
-            'Total News Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $found = mysql_fetch_array($result);
+    if (usingFamilyNews())
+    {
+        $sql = "SELECT COUNT(`id`) AS c 
+                FROM `fcms_news_comments`";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            return '0';
+        }
+
+        $found = mysql_fetch_assoc($result);
         $total = $total + $found['c'];
-        $sql = "SELECT COUNT(`user`) AS c FROM `fcms_news_comments` WHERE `user` = '$user_id'";
-        $result = mysql_query($sql) or displaySQLError(
-            'Count News Comment Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $found = mysql_fetch_array($result);
+
+        $sql = "SELECT COUNT(`user`) AS c 
+                FROM `fcms_news_comments` 
+                WHERE `user` = '$user_id'";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            return '0';
+        }
+
+        $found = mysql_fetch_assoc($result);
         $count = $count + $found['c'];
     }
-    if ($total < 1 || $count < 1) {
+
+    if ($total < 1 || $count < 1)
+    {
         $count = '0';
         $percent = '0%';
-    } else {
+    }
+    else
+    {
         $percent = round((($count/$total)*100), 1) . '%';
     }
-    switch($option) {
+
+    switch($option)
+    {
         case 'count':
             return $count;
             break;
+
         case 'percent':
             return $percent;
             break;
+
         case 'array':
             return array('count' => $count, 'percent' => $percent);
+            break;
+
         case 'both':
         default:
             return "$count ($percent)";
@@ -1135,33 +1265,57 @@ function getCalendarEntriesById ($user_id, $option = 'both')
 {
     $user_id = cleanInput($user_id, 'int');
 
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_calendar`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Total Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_calendar`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_calendar` WHERE `created_by` = '$user_id'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Count Calendar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_calendar` 
+            WHERE `created_by` = '$user_id'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $count = $found['c'];
-    if ($total < 1 || $count < 1) {
-        $count = '0';
+
+    if ($total < 1 || $count < 1)
+    {
+        $count   = '0';
         $percent = '0%';
-    } else {
+    }
+    else
+    {
         $percent = round((($count/$total)*100), 1) . '%';
     }
-    switch($option) {
+
+    switch ($option)
+    {
         case 'count':
             return $count;
             break;
+
         case 'percent':
             return $percent;
             break;
+
         case 'array':
             return array('count' => $count, 'percent' => $percent);
+            break;
+
         case 'both':
         default:
             return "$count ($percent)";
@@ -1185,33 +1339,58 @@ function getFamilyNewsById ($user_id, $option = 'both')
 {
     $user_id = cleanInput($user_id, 'int');
 
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_news`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Total News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_news`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_news` WHERE `user` = '$user_id' GROUP BY `user`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Count News Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_news` 
+            WHERE `user` = '$user_id' 
+            GROUP BY `user`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
     $found = mysql_fetch_array($result);
     $count = $found['c'];
-    if ($total < 1 || $count < 1) {
+
+    if ($total < 1 || $count < 1)
+    {
         $count = '0';
         $percent = '0%';
-    } else {
+    }
+    else
+    {
         $percent = round((($count/$total)*100), 1) . '%';
     }
-    switch($option) {
+
+    switch($option)
+    {
         case 'count':
             return $count;
             break;
+
         case 'percent':
             return $percent;
             break;
+
         case 'array':
             return array('count' => $count, 'percent' => $percent);
+            break;
+
         case 'both':
         default:
             return "$count ($percent)";
@@ -1235,33 +1414,58 @@ function getRecipesById ($user_id, $option = 'both')
 {
     $user_id = cleanInput($user_id, 'int');
 
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_recipes`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Total Recipes Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_recipes`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_recipes` WHERE `user` = '$user_id' GROUP BY `user`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Count Recipes Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_recipes` 
+            WHERE `user` = '$user_id' 
+            GROUP BY `user`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $count = $found['c'];
-    if ($total < 1 || $count < 1) {
+
+    if ($total < 1 || $count < 1)
+    {
         $count = '0';
         $percent = '0%';
-    } else {
+    }
+    else
+    {
         $percent = round((($count/$total)*100), 1) . '%';
     }
-    switch($option) {
+
+    switch($option)
+    {
         case 'count':
             return $count;
             break;
+
         case 'percent':
             return $percent;
             break;
+
         case 'array':
             return array('count' => $count, 'percent' => $percent);
+            break;
+
         case 'both':
         default:
             return "$count ($percent)";
@@ -1271,7 +1475,7 @@ function getRecipesById ($user_id, $option = 'both')
 
 /**
  * getDocumentsById
-. * 
+ * 
  * Gets the documents count and percentage of total for the givin user
  * @param   user_id     the id of the desired user
  * @param   option      how you want the data returned
@@ -1285,33 +1489,58 @@ function getDocumentsById ($user_id, $option = 'both')
 {
     $user_id = cleanInput($user_id, 'int');
 
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_documents`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Total Documents Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_documents`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_documents` WHERE `user` = '$user_id' GROUP BY `user`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Count Documents Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $found = mysql_fetch_array($result);
+
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_documents` 
+            WHERE `user` = '$user_id' 
+            GROUP BY `user`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
+    $found = mysql_fetch_assoc($result);
     $count = $found['c'];
-    if ($total < 1 || $count < 1) {
+
+    if ($total < 1 || $count < 1)
+    {
         $count = '0';
         $percent = '0%';
-    } else {
+    }
+    else
+    {
         $percent = round((($count/$total)*100), 1) . '%';
     }
-    switch($option) {
+
+    switch($option)
+    {
         case 'count':
             return $count;
             break;
+
         case 'percent':
             return $percent;
             break;
+
         case 'array':
             return array('count' => $count, 'percent' => $percent);
+            break;
+
         case 'both':
         default:
             return "$count ($percent)";
@@ -1335,33 +1564,58 @@ function getPrayersById ($user_id, $option = 'both')
 {
     $user_id = cleanInput($user_id, 'int');
 
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_prayers`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Total Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_prayers`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
     $found = mysql_fetch_array($result);
     $total = $found['c'];
-    $sql = "SELECT COUNT(`id`) AS c FROM `fcms_prayers` WHERE `user` = '$user_id' GROUP BY `user`";
-    $result = mysql_query($sql) or displaySQLError(
-        'Count Prayers Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $sql = "SELECT COUNT(`id`) AS c 
+            FROM `fcms_prayers` 
+            WHERE `user` = '$user_id' 
+            GROUP BY `user`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return '0';
+    }
+
     $found = mysql_fetch_array($result);
     $count = $found['c'];
-    if ($total < 1 || $count < 1) {
+
+    if ($total < 1 || $count < 1)
+    {
         $count = '0';
         $percent = '0%';
-    } else {
+    }
+    else
+    {
         $percent = round((($count/$total)*100), 1) . '%';
     }
-    switch($option) {
+
+    switch($option)
+    {
         case 'count':
             return $count;
             break;
+
         case 'percent':
             return $percent;
             break;
+
         case 'array':
             return array('count' => $count, 'percent' => $percent);
+            break;
+
         case 'both':
         default:
             return "$count ($percent)";
@@ -1382,11 +1636,17 @@ function getNewsComments ($news_id)
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_news_comments` 
             WHERE `news` = '$news_id'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 0;
+    }
+
     $found = mysql_fetch_array($result);
-    return  $found['c'] ? $found['c'] : 0;
+
+    return $found['c'] ? $found['c'] : 0;
 }
 
 /**
@@ -1417,79 +1677,118 @@ function getUserParticipationPoints ($id)
     $id = cleanInput($id, 'int');
 
     $points = 0;
+
     $commentTables = array('fcms_gallery_comments');
 
     // Thread (5)
     $sql = "SELECT COUNT(`id`) AS thread
             FROM `fcms_board_threads`
             WHERE `started_by` = '$id'";
-    $result = mysql_query($sql)  or displaySQLError(
-        'Thread Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 0;
+    }
+
     $r = mysql_fetch_array($result);
+
     $points += $r['thread'] * 5;
 
     // Photo (3)
     $sql = "SELECT COUNT(`id`) AS photo 
             FROM `fcms_gallery_photos` 
             WHERE `user` = '$id'";
-    $result = mysql_query($sql)  or displaySQLError(
-        'Photo Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 0;
+    }
+
     $r = mysql_fetch_array($result);
+
     $points += $r['photo'] * 3;
 
     // News (3)
-    if (usingFamilyNews()) {
-
+    if (usingFamilyNews())
+    {
         array_push($commentTables, 'fcms_news_comments');
 
         $sql = "SELECT COUNT(`id`) AS news 
                 FROM `fcms_news` 
                 WHERE `user` = '$id'";
-        $result = mysql_query($sql)  or displaySQLError(
-            'News Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            return 0;
+        }
+
         $r = mysql_fetch_array($result);
+
         $points += $r['news'] * 3;
     }
 
     // Recipe (2)
-    if (usingRecipes()) {
-
+    if (usingRecipes())
+    {
         array_push($commentTables, 'fcms_recipe_comment');
 
         $sql = "SELECT COUNT(`id`) AS recipe 
                 FROM `fcms_recipes` 
                 WHERE `user` = '$id'";
-        $result = mysql_query($sql)  or displaySQLError(
-            'Recipe Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            return 0;
+        }
+
         $r = mysql_fetch_array($result);
+
         $points += $r['recipe'] * 2;
     }
 
     // Document (2)
-    if (usingDocuments()) {
+    if (usingDocuments())
+    {
         $sql = "SELECT COUNT(`id`) AS doc 
                 FROM `fcms_documents` 
                 WHERE `user` = '$id'";
-        $result = mysql_query($sql)  or displaySQLError(
-            'Doc Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            return 0;
+        }
+
         $r = mysql_fetch_array($result);
+
         $points += $r['doc'] * 2;
     }
 
     // Prayer (2)
-    if (usingPrayers()) {
+    if (usingPrayers())
+    {
         $sql = "SELECT COUNT(`id`) AS prayer 
                 FROM `fcms_prayers` 
                 WHERE `user` = '$id'";
-        $result = mysql_query($sql)  or displaySQLError(
-            'Prayer Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            return 0;
+        }
+
         $r = mysql_fetch_array($result);
+
         $points += $r['prayer'] * 2;
     }
 
@@ -1497,10 +1796,16 @@ function getUserParticipationPoints ($id)
     $sql = "SELECT COUNT(`id`) AS post 
             FROM `fcms_board_posts` 
             WHERE `user` = '$id'";
-    $result = mysql_query($sql)  or displaySQLError(
-        'Post Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 0;
+    }
+
     $r = mysql_fetch_array($result);
+
     $points += $r['post'] * 2;
 
     // Comment (2)
@@ -1510,30 +1815,46 @@ function getUserParticipationPoints ($id)
     $sql = "SELECT COUNT(*) AS comment 
             FROM `$from` 
             WHERE `$where`.`user` = '$id'";
-    $result = mysql_query($sql)  or displaySQLError(
-        'Comment Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 0;
+    }
+
     $r = mysql_fetch_array($result);
+
     $points += $r['comment'] * 2;
 
     // Address/Phone (1)
     $sql = "SELECT `address`, `city`, `state`, `home`, `work`, `cell` 
             FROM `fcms_address` 
             WHERE `user` = '$id'";
-    $result = mysql_query($sql)  or displaySQLError(
-        'Addres Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 0;
+    }
+
     $r = mysql_fetch_array($result);
-    if (!empty($r['address']) && !empty($r['city']) && !empty($r['state'])) {
+
+    if (!empty($r['address']) && !empty($r['city']) && !empty($r['state']))
+    {
         $points++;
     }
-    if (!empty($r['home'])) {
+    if (!empty($r['home']))
+    {
         $points++;
     }
-    if (!empty($r['work'])) {
+    if (!empty($r['work']))
+    {
         $points++;
     }
-    if (!empty($r['cell'])) {
+    if (!empty($r['cell']))
+    {
         $points++;
     }
 
@@ -1541,20 +1862,32 @@ function getUserParticipationPoints ($id)
     $sql = "SELECT COUNT(`id`) AS event 
             FROM `fcms_calendar` 
             WHERE `created_by` = '$id'";
-    $result = mysql_query($sql)  or displaySQLError(
-        'Event Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 0;
+    }
+
     $r = mysql_fetch_array($result);
+
     $points += $r['event'];
 
     // Vote
     $sql = "SELECT COUNT(`id`) AS vote 
             FROM `fcms_poll_votes` 
             WHERE `user` = '$id'";
-    $result = mysql_query($sql)  or displaySQLError(
-        'Vote Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 0;
+    }
+
     $r = mysql_fetch_array($result);
+
     $points += $r['vote'];
 
     return $points;
@@ -2043,13 +2376,13 @@ function displayMembersOnline ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Online Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError('Online Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
         return;
     }
 
     echo '
             <h3>'.T_('Last Seen').':</h3>
-            <ul class="online-members">';
+            <ul class="avatar-member-list">';
 
     while ($r = mysql_fetch_assoc($result))
     {
@@ -2091,20 +2424,32 @@ function checkLoginInfo ($userid, $username, $password)
             FROM `fcms_users` 
             WHERE `id` = '$userid' 
             LIMIT 1";
-    $result = mysql_query($sql) or displaySQLError(
-        'Login Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    if (mysql_num_rows($result) > 0) {
-        $r = mysql_fetch_array($result);
-        if ($r['username'] !== $username) {
-            return false;
-        } elseif ($r['password'] !== $password) {
-            return false;
-        } else {
-            return true;
-        }
-    } else {
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
         return false;
+    }
+
+    if (mysql_num_rows($result) <= 0)
+    {
+        return false;
+    }
+
+    $r = mysql_fetch_array($result);
+
+    if ($r['username'] !== $username)
+    {
+        return false;
+    }
+    elseif ($r['password'] !== $password)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
     }
 }
 
@@ -2220,7 +2565,7 @@ function usingSection ($section)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
 
@@ -2275,25 +2620,125 @@ function getDomainAndDir ()
 }
 
 /**
- * displaySQLError 
+ * displaySqlError 
  * 
- * @param   string  $heading 
- * @param   string  $file 
- * @param   string  $sql 
- * @param   string  $error 
- * @return  void
+ * Logs sql errors and prints a generic error message.
+ * If debugging is turned on, will also print debug info.
+ * 
+ * @param string $sql 
+ * @param string $error 
+ * 
+ * @return void
  */
-function displaySQLError ($heading, $file, $sql, $error)
+function displaySqlError ($sql, $error)
 {
+    $backtrace = debug_backtrace(false);
+    $last      = $backtrace[1];
+    $file      = $last['file'];
+    $line      = $last['line'];
+    $debugInfo = '';
+
+    if (debugOn())
+    {
+        $debugInfo = '
+        <p><b>File:</b> '.$file.'</p>
+        <p><b>Statement:</b> '.$sql.'</p>
+        <p><b>Error:</b> '.$error.'</p>
+        <p><b>MySQL Version:</b> '.mysql_get_server_info().'</p>
+        <p><b>PHP Version:</b> '.phpversion().'</p>';
+    }
+
     echo '
-<div class="error-alert">
-    <big><b>' . $heading . '</b></big><br/>
-    <small><b>File:</b> ' . $file . '</small><br/>
-    <small><b>Statement:</b> ' . $sql . '</small><br/>
-    <small><b>Error:</b> ' . $error . '</small><br/>
-    <small><b>MySQL Version:</b> ' . mysql_get_server_info() . '</small><br/>
-    <small><b>PHP Version:</b> ' . phpversion() . '</small>
-</div>';
+    <div class="error-alert">
+        <p><b>'.T_('There was a problem communicating with the database.').'</b></p>
+        '.$debugInfo.'
+    </div>';
+
+    // Remove newlines, tabs, spaces from sql
+    $sql = str_replace(array("\n", "\r", "  ", "\t"), '', $sql);
+
+    logError($file.' ['.$line.'] - '.$error.' - '.$sql);
+}
+
+/**
+ * displayError 
+ * 
+ * @param string  $error 
+ * 
+ * @return void
+ */
+function displayError ($error)
+{
+    // Get file and line
+    $backtrace = debug_backtrace(false);
+    $last      = $backtrace[1];
+    $file      = $last['file'];
+    $line      = $last['line'];
+    $debugInfo = '';
+
+    if (debugOn())
+    {
+        $debugInfo = '
+        <p><b>File:</b> '.$file.'</p>
+        <p><b>Line:</b> '.$line.'</p>
+        <p><b>MySQL Version:</b> '.mysql_get_server_info().'</p>
+        <p><b>PHP Version:</b> '.phpversion().'</p>';
+    }
+
+    echo '
+    <div class="error-alert">
+        '.$error.'
+        '.$debugInfo.'
+    </div>';
+
+    logError($file.' ['.$line.'] - '.$error);
+}
+
+/**
+ * logError 
+ * 
+ * @param string $string The full error string
+ * 
+ * @return void
+ */
+function logError ($string)
+{
+    require_once INC.'KLogger.php';
+
+    $log = new KLogger(ROOT.'logs/', KLogger::ERR );
+
+    $log->logError($string);
+}
+
+/**
+ * debugOn 
+ * 
+ * @return void
+ */
+function debugOn ()
+{
+    $sql = "SELECT `value`
+            FROM `fcms_config`
+            WHERE `name` = 'debug'
+            LIMIT 1";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+
+    if (mysql_num_rows($result) <= 0)
+    {
+        return false;
+    }
+
+    $r = mysql_fetch_assoc($result);
+
+    $on = $r['value'] == 1 ? true : false;
+
+    return $on;
 }
 
 /**
@@ -2379,7 +2824,7 @@ function displayWhatsNewAll ($userid)
             $result = mysql_query($sql);
             if (!$result)
             {
-                displaySQLError('Thread/Post Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return;
             }
             $minpost = mysql_fetch_array($result);
@@ -2589,7 +3034,7 @@ function displayWhatsNewAll ($userid)
             $result = mysql_query($sql);
             if (!$result)
             {
-                displaySQLError('Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return;
             }
 
@@ -2708,7 +3153,7 @@ function displayWhatsNewAll ($userid)
             $result = mysql_query($sql);
             if (!$result)
             {
-                displaySQLError('Status Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return;
             }
 
@@ -2756,14 +3201,19 @@ function displayWhatsNewAll ($userid)
         }
         elseif ($r['type'] == 'AVATAR')
         {
+            $text = T_('Changed his profile picture.');
+
+            if ($r['id3'] == 'F')
+            {
+                $text = T_('Changed her profile picture.');
+            }
+
             echo '
                 <div class="new newavatar">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.T_('Changed his profile picture.').'
-                        </p>
+                        <p>'.$text.'</p>
                     </div>
                 </div>';
         }
@@ -2828,6 +3278,7 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
             LEFT JOIN `fcms_users` AS u ON c.`user` = u.`id`
             LEFT JOIN `fcms_address` AS a ON u.`id` = a.`user`
             WHERE c.`created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+            AND c.`column` != 'avatar'
 
             UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.`created_id` AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
             FROM fcms_address AS a, fcms_users AS u
@@ -2868,7 +3319,7 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
                  FROM `fcms_recipes` 
                  WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
-                 UNION SELECT r.`id`, rc.`date`, `comment` AS title, rc.`user` AS userid, r.`category` AS id2, 0 AS id3, 'RECIPECOM' AS type
+                 UNION SELECT r.`id`, rc.`date`, r.`name` AS title, rc.`user` AS userid, r.`category` AS id2, 0 AS id3, 'RECIPECOM' AS type
                  FROM `fcms_recipe_comment` AS rc, `fcms_recipes` AS r
                  WHERE rc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY)
                  AND rc.`recipe` = r.`id` ";
@@ -2907,8 +3358,9 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
              WHERE `updated` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              AND `parent` = 0
 
-             UNION SELECT 0 as id, `created` AS date, 0 AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'AVATAR' AS type
-             FROM `fcms_changelog`
+             UNION SELECT 0 as id, c.`created` AS date, 0 AS title, c.`user` AS userid, 0 AS id2, u.`sex` AS id3, 'AVATAR' AS type
+             FROM `fcms_changelog` AS c
+             LEFT JOIN `fcms_users` AS u ON c.`user` = u.`id`
              WHERE `created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
              AND `column` = 'avatar'
 
@@ -2929,7 +3381,7 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
 
     if (!$result)
     {
-        displaySQLError('Latest Info Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
 
@@ -3167,16 +3619,26 @@ function ImageCreateFromBMP ($filename)
 function usingAdvancedUploader ($userid)
 {
     $userid = cleanInput($userid, 'int');
-    $sql = "SELECT `advanced_upload` FROM `fcms_user_settings` WHERE `user` = '$userid'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $r = mysql_fetch_array($result);
-    if ($r['advanced_upload'] == 1) {
+
+    $sql = "SELECT `advanced_upload` 
+            FROM `fcms_user_settings` 
+            WHERE `user` = '$userid'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
         return true;
-    } else {
+    }
+
+    $r = mysql_fetch_array($result);
+
+    if ($r['advanced_upload'] != 1)
+    {
         return false;
     }
+
+    return true;
 }
 
 /**
@@ -3191,13 +3653,22 @@ function usingAdvancedTagging ($userid)
     $sql = "SELECT `advanced_tagging`
             FROM `fcms_user_settings` 
             WHERE `user` = '$userid'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    $r = mysql_fetch_array($result);
-    if ($r['advanced_tagging'] == 1) {
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
         return true;
-    } else {
+    }
+
+    $r = mysql_fetch_array($result);
+
+    if ($r['advanced_tagging'] == 1)
+    {
+        return true;
+    }
+    else
+    {
         return false;
     }
 }
@@ -3332,13 +3803,22 @@ function getBirthdayCategory ()
             FROM `fcms_category` 
             WHERE `type` = 'calendar' 
                 AND `name` like 'Birthday'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Bday Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    if (mysql_num_rows($result) > 0) {
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 1;
+    }
+
+    if (mysql_num_rows($result) > 0)
+    {
         $r = mysql_fetch_array($result);
+
         return $r['id'];
-    } else {
+    }
+    else
+    {
         return 1;
     }
 }
@@ -3354,12 +3834,15 @@ function getBirthdayCategory ()
  */
 function getCalendarCategory ($cat, $caseSensitive = false)
 {
-    if ($caseSensitive) {
+    if ($caseSensitive)
+    {
         $sql = "SELECT `id` 
                 FROM `fcms_category` 
                 WHERE `type` = 'calendar' 
                     AND `name` like '$cat'";
-    } else {
+    }
+    else
+    {
         $sql = "SELECT `id` 
                 FROM `fcms_category` 
                 WHERE `type` = 'calendar' 
@@ -3370,13 +3853,22 @@ function getCalendarCategory ($cat, $caseSensitive = false)
                         `name` like '$cat'
                     )";
     }
-    $result = mysql_query($sql) or displaySQLError(
-        'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
-    if (mysql_num_rows($result) > 0) {
-        $r = mysql_fetch_array($result);
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return;
+    }
+
+    if (mysql_num_rows($result) > 0)
+    {
+        $r = mysql_fetch_assoc($result);
+
         return $r['id'];
-    } else {
+    }
+    else
+    {
         return 1;
     }
 }
@@ -3396,12 +3888,17 @@ function getCurrentAvatar ($id, $gallery = false)
     $sql = "SELECT `avatar`, `gravatar`
             FROM `fcms_users`
             WHERE `id` = '$id'";
-    $result = mysql_query($sql) or displaySQLError(
-        'Avatar Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-    );
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return 'uploads/avatar/no_avatar.jpg';
+    }
 
     // No Avatar set
-    if (mysql_num_rows($result) <= 0) {
+    if (mysql_num_rows($result) <= 0)
+    {
         return 'uploads/avatar/no_avatar.jpg';
     }
 
@@ -3451,13 +3948,16 @@ function getTimezone ($user_id)
 
     $result = mysql_query($sql);
 
-    if (!$result) {
-        displaySQLError('Timezone Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
         die();
     }
 
-    if (mysql_num_rows($result) <= 0) {
-        return;
+    if (mysql_num_rows($result) <= 0)
+    {
+        displaySqlError($sql, mysql_error());
+        die();
     }
 
     $r = mysql_fetch_array($result);
@@ -3508,7 +4008,7 @@ function isRegistrationOn ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Register Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     $r = mysql_fetch_array($result);
@@ -3560,7 +4060,7 @@ function getNextNavigationOrder ($col)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Navigation Order Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
 
@@ -3592,7 +4092,7 @@ function getNumberOfPosts ($thread_id)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('# Posts Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -3745,7 +4245,7 @@ function getExistingYouTubeIds ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Import Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
 
         return $ids;
     }
@@ -3904,4 +4404,57 @@ function getDefaultCountry ()
     $r = mysql_fetch_array($result);
 
     return $r['value'];
+}
+
+/**
+ * getAddRemoveTaggedMembers 
+ * 
+ * @param array $tagged 
+ * @param array $prev 
+ * 
+ * @return array
+ */
+function getAddRemoveTaggedMembers ($tagged = null, $prev = null)
+{
+    if (!is_array($tagged) && !is_array($prev))
+    {
+        return false;
+    }
+
+    $add    = array();
+    $remove = array();
+
+    // Tagging new users on photo with already tagged users
+    if (is_array($tagged) && is_array($prev))
+    {
+        // Find all additions
+        foreach ($tagged as $id)
+        {
+            if (!in_array($id, $prev))
+            {
+                $add[] = $id;
+            }
+        }
+
+        // Find all removals
+        foreach ($prev as $id)
+        {
+            if (!in_array($id, $tagged))
+            {
+                $remove[] = $id;
+            }
+        }
+    }
+    // No tagged members now, but did have some previously
+    elseif (!is_array($tagged) && is_array($prev))
+    {
+        $remove = $prev;
+    }
+    // Tagging new users, didn't have any previously
+    elseif (is_array($tagged) && !is_array($prev))
+    {
+        $add = $tagged;
+    }
+
+    return array('add' => $add, 'remove' => $remove);
 }

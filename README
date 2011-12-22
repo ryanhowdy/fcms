@@ -1,11 +1,11 @@
 
-                             Family Connections 2.7.2
+                             Family Connections 2.8
 
 
   Installation
   ------------
 
-  1. Upload the entire contents of FCMS_2.7.2.zip to your web host.
+  1. Upload the entire contents of FCMS_2.8.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -17,7 +17,7 @@
 
 
 
-  Upgrading from 2.7.x to 2.7.2
+  Upgrading from 2.6+ to 2.8
   ---------------------------
 
   ** DO NOT DELETE THE FOLLOWING FILE **
@@ -42,11 +42,20 @@
   Change Log
   ----------
 
-  2.7.2
+  2.8
 
-    #399 - Last 5 view - Undefined offset: 7
-    #401 - Can't add non-member to Family Tree (2.7.1)
-    #407 - Security Vulnerability in dev/less.php
+    #180 - Log Errors
+    #321 - Can't edit current member, spouse or kids
+    #414 - Members can edit each other on Family Tree
+    #415 - Bulletproof Upgrade Process
+    #416 - Sanitize user output
+    #419 - Error inviting guests to event
+    #265 - Photo Gallery Category description
+    #411 - Nonmember DOB/DOD not saving properly
+    #412 - Non-member birthdays not showing up in Upcoming
+    #420 - Date of death issues
+    #410 - Call to undefined function isLoggedIn() in inc/smileys.php
+    #421 - Gender not taken into account in message when changing profile picture
 
   For the full change log please refer to the included ChangeLog file.
 

@@ -2,8 +2,8 @@
 Theme Name:         Blue Chrome
 Description:        A nice simple blue and chrome theme.
 Screen Size:        1024x768+
-FCMS Compatible:    2.6
-Updated:            October 28, 2011
+FCMS Compatible:    2.8
+Updated:            December 21, 2011
 Author:             Ryan Haudenschilt
 ------------------------------------------------*/
 body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, form, fieldset, input, textarea, p, blockquote, th, td { margin: 0; padding: 0; }
@@ -83,6 +83,14 @@ a.close-msg:hover { background-color: #000; color: #999; }
 div.tooltip { background-color: #202020; color: #888; font: normal 9px/14px Verdana, sans-serif; padding: 8px; position: absolute; text-align: left; width: 110px; z-index: 100; -moz-border-radius: 5px; -webkit-border-radius: 5px; border-radius: 5px; }
 div.tooltip h5 { color: #fff; font: normal 9px/14px Verdana, sans-serif; text-align: left; }
 div.tooltip h5.highlight { color: #bfd8e7; }
+.blank-state { background-color: #eee; padding: 50px 100px; margin: 10px 40px 50px 40px; }
+#content .blank-state h2 { color: #255574; font: bold 40px/50px Arial, Helvetica, sans-serif; padding: 5px 0 20px 0; }
+#content .blank-state h3 { color: #404040; font: normal 26px/32px Arial, Helvetica, sans-serif; }
+.avatar-member-list, .avatar-member-list-small { float: left; padding: 0 0 30px 0; width: 100%; }
+.avatar-member-list li, .avatar-member-list-small li { display: block; float: left; margin: 0 2px 2px 0; position: relative; text-align: center; }
+.avatar-member-list img, .avatar-member-list-small img { display: block; height: 40px; width: 40px; vertical-align: middle; }
+.avatar-member-list-small img { height: 25px; width: 25px; }
+.avatar-member-list a, .avatar-member-list-small a { color: #333; font: normal 10px/12px Arial, sans-serif; }
 a { color: #0281ca; text-decoration: none; }
 a:hover { color: #000; }
 #header a { color: #333; }
@@ -159,10 +167,6 @@ fieldset input.mouseover { background-color: #bfd8e7; border-color: #3e8ec1; cur
 #content .half li div { color: #888; }
 #content .half li div, #content li a.u { font-size: 12px; }
 #content .half li div.today { color: #333; font: bold 16px/25px Arial, Helvetica, sans-serif; }
-.online-members { float: left; padding: 0 0 30px 0; width: 100%; }
-.online-members li { display: block; float: left; margin: 0 2px 2px 0; position: relative; text-align: center; }
-.online-members img { display: block; height: 40px; width: 40px; vertical-align: middle; }
-.online-members a { color: #333; font: normal 10px/12px Arial, sans-serif; }
 ul.poll li { background-color: #d8e9f8; display: block; margin: 5px 0; position: relative; _zoom: 1; }
 ul.poll li div { text-align: right; color: #000; display: block; font-size: 10px; line-height: 18px; padding: 4px 10px; position: relative; z-index: 2; }
 ul.poll li div b { text-align: left; display: block; font-size: 14px; font-weight: bold; }
@@ -202,7 +206,8 @@ ul.todo li span { color: #888; text-decoration: line-through; }
 #gallery #sections_menu li a:hover { text-decoration: underline; }
 #gallery #sections_menu li a.selected { color: #000; }
 #gallery #actions_menu { float: left; height: 40px; margin: 0; width: 330px; }
-.gallery_cat { list-style-type: none; }
+#manage-categories td { padding: 15px; }
+#manage-categories .delbtn, #manage-categories .editbtn { padding: 0; }
 .category { display: inline; float: left; height: 250px; margin: 20px 85px 0 85px; overflow: hidden; width: 150px; }
 .category a:hover { background-color: transparent; }
 .category span { display: block; width: 150px; }
@@ -263,10 +268,14 @@ li.tag_photo label span { background: url(logo.gif) no-repeat -9999px; height: 5
  #gallery fieldset .thumbnail { top: -40px; right: 40px; }
 }
 #new-category, #existing-categories { margin: 0 5px 0 0; width: 250px; }
-#category_actions { float: left; font-size: 12px; list-style-type: none; margin: -15px 0 0 0; overflow: hidden; text-align: right; width: 100%; }
-#category_actions li { float: right; margin: 0 10px 10px 0; }
-#category_actions li a { color: #666; padding: 5px 10px; }
-#category_actions li a:hover { background-color: #ddd; }
+#gallery #maincolumn { width: 700px; }
+#gallery #leftcolumn { width: 240px; font: 12px/20px Arial, Helvetica, sans-serif; }
+#gallery #leftcolumn a { font-weight: normal; }
+#category-actions { list-style: none; margin: 0 0 50px 0; }
+#category-actions li { margin: 0; }
+#category-actions .slideshow a { background: transparent url(images/view_slideshow.png) no-repeat 15px 50%; border: 1px solid #fff; border-radius: 6px; color: #777; display: block; padding: 8px 15px 8px 50px; }
+#category-actions .administrate a { background: transparent url(images/administrate.png) no-repeat 15px 50%; border: 1px solid #fff; border-radius: 6px; color: #777; display: block; padding: 8px 15px 8px 50px; }
+#category-actions .slideshow a:hover, #category-actions .administrate a:hover { border-color: #ccc; }
 #actions_menu li.advanced_search a { background-color: transparent; color: #999; padding: 0; }
 #actions_menu li.advanced_search a:hover { color: #000; }
 #actions_menu li.search { padding: 0 50px; }
@@ -553,13 +562,15 @@ fieldset #msg { border: 1px solid #b3d5ef; width: 400px; }
 #familynews .ok-alert { width: 500px; }
 #tree { border: 1px solid #ddd; height: 450px; }
 .column { float: left; width: 319px; }
-.leaf { background-color: #d8e9f8; border: 1px solid #3e8abd; color: #000; display: block; font: 12px/16px Arial, Verdana, sans-serif; height: 50px; margin: 10px; overflow: auto; padding: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; border-radius: 5px; }
+.leaf { background-color: #d8e9f8; border: 1px solid #3e8abd; color: #000; display: block; font: 12px/16px Arial, Verdana, sans-serif; height: 50px; margin: 10px; overflow: hidden; padding: 5px; position: relative; -moz-border-radius: 5px; -webkit-border-radius: 5px; border-radius: 5px; }
+.leaf img { float: left; height: 50px; margin: 0 10px 0 0; width: 50px; }
 .leaf span { display: block; font: normal 10px/15px Arial, Verdana, sans-serif; }
 .leaf a { color: #000; }
 .leaf a:hover { text-decoration: underline; }
-.leaf a.edit { font: normal 10px/15px Arial, Verdana, sans-serif; float: right; }
+.leaf a.edit { bottom: 5px; font: normal 10px/15px Arial, Verdana, sans-serif; position: absolute; right: 5px; }
 .spouse, .child { background-color: #efefef; border: 1px solid #ddd; color: #999; height: auto; margin: 0 10px; }
 .child { background-color: #fff; margin: 0 10px 0 30px; }
+.spouse img, .child img { height: 20px; width: 20px; }
 .mom, .grandma { background-color: #ffdcee; border: 1px solid #df7daf; }
 a.spouse:hover, a.child:hover, a.unknown:hover { background-color: #ccc; }
 .spouse b, .child b { font-weight: normal; }
@@ -705,6 +716,11 @@ a.merge { float: right; }
 #current-member .field-row, #merge-member .field-row { padding: 0; }
 #merge-member { float: right; padding: 0 0 20px 0; width: 49%; }
 #merge-with { width: 200px; }
+#scheduler-frm { margin: 0 30px; }
+#scheduler-frm td i { color: #aaa; }
+.current-status-off { padding: 0 3px; background-color: red; }
+.current-status-on { padding: 0 3px; background-color: green; }
+.cron-example { background-color: #ddd; border: 1px solid #ccc; font-size: 12px; margin: 0 0 5px 0; padding: 10px; width: 900px; white-space: pre-line; }
 .autocomplete_instructions { color: #3e8ec1; }
 .autocomplete_search { background-color: #fff; border: 1px solid #ccc; margin: 0px; padding: 0px; position: absolute; width: 350px; }
 .autocomplete_search ul { list-style-type: none; margin: 0px; padding: 0px; }

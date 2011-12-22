@@ -259,7 +259,7 @@ function displayFeedPhotoGallery ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Photo Gallery Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 

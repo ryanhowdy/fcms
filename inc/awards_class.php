@@ -52,13 +52,17 @@ class Awards
         $sql = "SELECT `id`, `user`, `award`, `month`, `date`, `item_id`, `count`
                 FROM `fcms_user_awards`
                 WHERE `user` = '$userid'";
-        $this->db->query($sql) or displaySQLError(
-            'Awards Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
 
-        if ($this->db->count_rows() < 0) {
+        if ($this->db->count_rows() < 0)
+        {
             echo '
                 <p>'.T_('none').'</p>';
+
             return;
         }
 
@@ -67,14 +71,16 @@ class Awards
 
         $awardInfo = $this->getAwardsInfoList();
 
-        while ($r = $this->db->get_row()) {
-
-            if ($r['id'] == $exclude) {
+        while ($r = $this->db->get_row())
+        {
+            if ($r['id'] == $exclude)
+            {
                 continue;
             }
 
             $date = '';
-            if (strlen($r['month']) == 6) {
+            if (strlen($r['month']) == 6)
+            {
                 $year  = substr($r['month'], 0, 4);
                 $month = substr($r['month'], 4, 2);
                 $date  = date('F Y', strtotime("$year-$month-01"));
@@ -116,14 +122,17 @@ class Awards
                 FROM `fcms_user_awards`
                 WHERE `user` = '$userid'
                 AND `id` = '$id'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Awards Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return;
         }
 
-        if ($this->db->count_rows() <= 0) {
+        if ($this->db->count_rows() <= 0)
+        {
             echo '
             <p class="error-alert">'.T_('Invalid Member/Award.').'</p>';
+
             return;
         }
 
@@ -248,9 +257,12 @@ class Awards
         $sql = "SELECT `id`, `month`
                 FROM `fcms_user_awards`
                 WHERE `month` = '$lastMonth'";
-        $this->db->query($sql) or displaySQLError(
-            'Check Awards Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         if ($this->db->count_rows() > 0) {
             return;
         }
@@ -320,12 +332,14 @@ class Awards
                 LIMIT 1";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
-            die();
+            displaySqlError($sql, mysql_error());
+            return;
         }
 
-        if ($this->db->count_rows() > 0) {
+        if ($this->db->count_rows() > 0)
+        {
             $r = $this->db->get_row();
+
             $sql = "INSERT INTO `fcms_user_awards`
                         (`user`, `award`, `month`, `date`, `count`)
                     VALUES (
@@ -335,9 +349,11 @@ class Awards
                         NOW(),
                         '".$r['c']."'
                     )";
-            $this->db->query($sql) or displaySQLError(
-                'Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
         }
     }
 
@@ -415,8 +431,9 @@ class Awards
         $sql = "SELECT `user`, `award`, `month`, `item_id`
                 FROM `fcms_user_awards`
                 WHERE `award` IN ('icebreaker', 'shutterbug', 'interesting', 'secretive', 'planner', 'boring', 'photogenic')";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return $array;
         }
 
@@ -451,18 +468,21 @@ class Awards
                 JOIN `fcms_board_threads` AS t ON p.`thread` = t.`id`
                 GROUP BY `thread`
                 HAVING ct >= 21";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
-        if ($this->db->count_rows() > 0) {
-            while ($r = $this->db->get_row()) {
-
+        if ($this->db->count_rows() > 0)
+        {
+            while ($r = $this->db->get_row())
+            {
                 $month = date('Ym', strtotime($r['date']));
 
                 // Skip already awarded awards
-                if (isset($currentAwards['icebreaker_'.$r['started_by'].'_'.$month.'_'.$r['thread']])) {
+                if (isset($currentAwards['icebreaker_'.$r['started_by'].'_'.$month.'_'.$r['thread']]))
+                {
                     continue;
                 }
 
@@ -476,8 +496,9 @@ class Awards
                             '".$r['thread']."',
                             '".$r['ct']."'
                         )";
-                if (!$this->db2->query($sql)) {
-                    displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                if (!$this->db2->query($sql))
+                {
+                    displaySqlError($sql, mysql_error());
                     return false;
                 }
             }
@@ -500,8 +521,9 @@ class Awards
         $sql = "SELECT `id`, `user`, `date`, `views`
                 FROM `fcms_gallery_photos`
                 WHERE `views` >= 100";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -525,8 +547,9 @@ class Awards
                             '".$r['id']."',
                             '".$r['views']."'
                         )";
-                if (!$this->db2->query($sql)) {
-                    displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                if (!$this->db2->query($sql))
+                {
+                    displaySqlError($sql, mysql_error());
                     return false;
                 }
             }
@@ -553,17 +576,19 @@ class Awards
                 HAVING ct >= 20";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
-        if ($this->db->count_rows() > 0) {
-            while ($r = $this->db->get_row()) {
-
+        if ($this->db->count_rows() > 0)
+        {
+            while ($r = $this->db->get_row())
+            {
                 $month = date('Ym', strtotime($r['date']));
 
                 // Skip already awarded awards
-                if (isset($currentAwards['interesting_'.$r['user'].'_'.$month.'_'.$r['news']])) {
+                if (isset($currentAwards['interesting_'.$r['user'].'_'.$month.'_'.$r['news']]))
+                {
                     continue;
                 }
 
@@ -577,8 +602,9 @@ class Awards
                             '".$r['news']."',
                             '".$r['ct']."'
                         )";
-                if (!$this->db2->query($sql)) {
-                    displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                if (!$this->db2->query($sql))
+                {
+                    displaySqlError($sql, mysql_error());
                     return false;
                 }
             }
@@ -602,16 +628,19 @@ class Awards
                 FROM `fcms_privatemsg`
                 GROUP BY `from`
                 HAVING ct >= 100";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
-        if ($this->db->count_rows() > 0) {
-            while ($r = $this->db->get_row()) {
-
+        if ($this->db->count_rows() > 0)
+        {
+            while ($r = $this->db->get_row())
+            {
                 // Skip already awarded awards
-                if (isset($currentAwards['secretive_'.$r['user']])) {
+                if (isset($currentAwards['secretive_'.$r['user']]))
+                {
                     continue;
                 }
 
@@ -625,8 +654,9 @@ class Awards
                             NOW(),
                             '".$r['ct']."'
                         )";
-                if (!$this->db2->query($sql)) {
-                    displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                if (!$this->db2->query($sql))
+                {
+                    displaySqlError($sql, mysql_error());
                     return false;
                 }
             }
@@ -650,16 +680,19 @@ class Awards
                 FROM `fcms_calendar`
                 GROUP BY `created_by`
                 HAVING ct >= 50";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
-        if ($this->db->count_rows() > 0) {
-            while ($r = $this->db->get_row()) {
-
+        if ($this->db->count_rows() > 0)
+        {
+            while ($r = $this->db->get_row())
+            {
                 // Skip already awarded awards
-                if (isset($currentAwards['planner_'.$r['created_by']])) {
+                if (isset($currentAwards['planner_'.$r['created_by']]))
+                {
                     continue;
                 }
 
@@ -673,8 +706,9 @@ class Awards
                             NOW(),
                             '".$r['ct']."'
                         )";
-                if (!$this->db2->query($sql)) {
-                    displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                if (!$this->db2->query($sql))
+                {
+                    displaySqlError($sql, mysql_error());
                     return false;
                 }
             }
@@ -698,8 +732,9 @@ class Awards
                 FROM `fcms_gallery_photos_tags`
                 GROUP BY `user`
                 HAVING ct >= 50";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -720,8 +755,9 @@ class Awards
                             NOW(),
                             '".$r['ct']."'
                         )";
-                if (!$this->db2->query($sql)) {
-                    displaySQLError('Award Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                if (!$this->db2->query($sql))
+                {
+                    displaySqlError($sql, mysql_error());
                     return false;
                 }
             }

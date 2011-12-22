@@ -159,7 +159,7 @@ function displaySchedulerPage ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -175,7 +175,7 @@ function displaySchedulerPage ()
                 <div id="help-debug">
                     <p>'.T_('To debug this job:').'</p>
                     <ol>
-                        <li>'.T_('Edit the cron.php file and set the debug option to true.').'</li>
+                        <li>'.T_('Turn on debugging.').'</li>
                         <li>'.T_('Reset the running job flag.').'</p>
                     </ol>
                     <p style="text-align: right;">
@@ -202,7 +202,7 @@ function displaySchedulerPage ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -248,6 +248,8 @@ function displaySchedulerPage ()
         'daily'  => T_('Daily')
     );
 
+    $setupCron = '';
+
     while ($row = mysql_fetch_assoc($result))
     {
         $id      = cleanOutput($row['id']);
@@ -272,6 +274,10 @@ function displaySchedulerPage ()
             $tzOffset = getTimezone($currentUserId);
             $lastrun  = fixDate('Y-m-d h:i:s', $tzOffset, $lastrun);
         }
+
+        $cronFreq = $row['repeat'] == 'daily' ? '0 0 * * *' : '0 * * * *';
+
+        $setupCron .= '<pre class="cron-example">'.$cronFreq.' php -q '.ROOT.'cron.php job_type='.$type.'</pre>';
 
         echo '
                     <tr>
@@ -301,7 +307,13 @@ function displaySchedulerPage ()
             <p style="text-align:right">
                 <input class="sub1" type="submit" name="save" id="save" value="'.T_('Save Changes').'"/>&nbsp; 
             </p>
-        </form>';
+        </form>
+
+        <p>&nbsp;</p>
+
+        <h2>'.T_('Set up Cron').'</h2>
+        <p>'.T_('Set up a new crontab for each of the following commands.').'</p>
+        '.$setupCron;
 
     displayFooter();
 }
@@ -320,7 +332,7 @@ function displayRestoreSchedulesPage ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Insert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -358,7 +370,7 @@ function displayEditScheduleSubmitPage ()
         if (!mysql_query($sql))
         {
             displayHeader();
-            displaySQLError('Insert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -390,7 +402,7 @@ function removeAlert ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Alert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -411,7 +423,7 @@ function displayTurnOffRunningJobPage ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Running Job Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }

@@ -171,7 +171,7 @@ function connectDatabase ()
 
     if (!mysql_query("SET NAMES 'utf8'"))
     {
-        displaySQLError('UTF8 Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
     }
 }
 
@@ -195,7 +195,7 @@ function getLanguage ()
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Language Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -222,39 +222,54 @@ function getLanguage ()
  */
 function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
 {
+    $debugInfo = '';
+
     $pos = strpos($errstr, "It is not safe to rely on the system's timezone settings");
     if ($pos !== false)
     {
         return true;
     }
 
+    if (debugOn())
+    {
+        $debugInfo = '
+        <p><b>'.$errstr.'</b></p>
+        <p><b>Where:</b> on line '.$errline.' in '.$errfile.'</p>
+        <p><b>Environment:</b> PHP '.PHP_VERSION.' ('.PHP_OS.')</p>';
+    }
+
     switch ($errno)
     {
         case E_USER_ERROR:
-            echo "<div class=\"error-alert\"><big><b>Fatal Error</b></big><br/><small><b>$errstr</b></small><br/>";
-            echo  "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
-            echo  "<small><b>Environment:</b> PHP ".PHP_VERSION." (".PHP_OS.")</small></div>";
+            echo '
+            <div class="error-alert">
+                <p><b>Fatal Error</b></p>
+                '.$debugInfo.'
+            </div>';
+
             exit(1);
             break;
 
         case E_USER_WARNING:
-            echo "<div class=\"error-alert\"><big><b>Warning</b></big><br/><small><b>$errstr</b></small><br/>";
-            echo  "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
-            echo  "<small><b>Environment:</b> PHP ".PHP_VERSION." (".PHP_OS.")</small></div>";
+            $errno = 'PHP Warning';
             break;
 
         case E_USER_NOTICE:
-            echo "<div class=\"error-alert\"><big><b>Notice</b></big><br/><small><b>$errstr</b></small><br/>";
-            echo "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
-            echo  "<small><b>Environment:</b> PHP ".PHP_VERSION." (".PHP_OS.")</small></div>";
+            $errno = 'PHP Notice';
             break;
 
         default:
-            echo "<div class=\"error-alert\"><big><b>Error</b></big><br/><small><b>$errstr</b></small><br/>";
-            echo "<small><b>Where:</b> on line $errline in $errfile</small><br/>";
-            echo "<small><b>Environment:</b> PHP ".PHP_VERSION." (".PHP_OS.")</small></div>";
+            $errno = 'PHP Error';
             break;
     }
+
+    echo '
+    <div class="error-alert">
+        <p><b>Error</b></p>
+        '.$debugInfo.'
+    </div>';
+
+    logError($errfile.' ['.$errline.'] - '.$errstr);
 
     // Don't execute PHP internal error handler
     return true;
@@ -278,7 +293,7 @@ function checkScheduler ($subdir = '')
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Schedule Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -400,7 +415,7 @@ function isLoggedIn ($directory = '')
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Site Status Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             die();
         }
 

@@ -251,7 +251,7 @@ function displayNewThreadSubmit ()
             )";
     if (!mysql_query($sql))
     {
-        displaySQLError('Thread Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -268,7 +268,7 @@ function displayNewThreadSubmit ()
             )";
     if (!mysql_query($sql))
     {
-        displaySQLError('Post Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -282,7 +282,7 @@ function displayNewThreadSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Email Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
     }
 
     if (mysql_num_rows($result) > 0)
@@ -346,7 +346,7 @@ function displayNewPostSubmit ()
             WHERE `id` = $thread_id";
     if (!mysql_query($sql))
     {
-        displaySQLError('Thread Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -360,7 +360,7 @@ function displayNewPostSubmit ()
             )";
     if (!mysql_query($sql))
     {
-        displaySQLError('Post Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -373,7 +373,7 @@ function displayNewPostSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Email Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
     }
 
     if (mysql_num_rows($result) > 0)
@@ -388,7 +388,7 @@ function displayNewPostSubmit ()
             $subject_result = mysql_query($sql);
             if (!$subject_result)
             {
-                displaySQLError('Subject Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return;
             }
 
@@ -493,7 +493,7 @@ function displayEditPostForm ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Get Post Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -541,7 +541,7 @@ function displayEditPostSubmit ()
             WHERE `id` = '$id'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Edit Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -579,7 +579,7 @@ function displayAdminEditSubjectSubmit ()
             WHERE `id` = '$thread'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Edit Thread Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -645,7 +645,7 @@ function displayDeletePostSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Last Post Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -661,7 +661,7 @@ function displayDeletePostSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Post Count Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -676,7 +676,7 @@ function displayDeletePostSubmit ()
                 WHERE `id` = '$thread'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Delete Thread Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -697,7 +697,7 @@ function displayDeletePostSubmit ()
                 WHERE `id` = '$id'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Delete Post Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -710,7 +710,7 @@ function displayDeletePostSubmit ()
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Last Post Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -726,7 +726,7 @@ function displayDeletePostSubmit ()
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Post Info Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -737,9 +737,12 @@ function displayDeletePostSubmit ()
         $sql = "UPDATE `fcms_board_threads` 
                 SET `updated` = '".$r['date']."', `updated_by` = ".$r['user']." 
                 WHERE `id` = '$thread'";
-        mysql_query($sql) or displaySQLError(
-            'Update Thread Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            displayFooter();
+            return;
+        }
 
         displayOkMessage();
 
@@ -755,7 +758,7 @@ function displayDeletePostSubmit ()
                 WHERE `id` = '$id'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Delete Post Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -803,7 +806,7 @@ function displayAdministrateThreadSubmit ()
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Thread Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -836,7 +839,7 @@ function displayAdministrateThreadSubmit ()
                 WHERE `id` = '$thread'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Update Thread Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -862,7 +865,7 @@ function displayAdministrateThreadSubmit ()
                 WHERE `thread` = '$thread'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Delete Posts Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -871,7 +874,7 @@ function displayAdministrateThreadSubmit ()
                 WHERE `id` = '$thread'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Thread Thread Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -978,7 +981,7 @@ function displaySearchSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -1141,7 +1144,7 @@ function displayAdvancedSearchSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }

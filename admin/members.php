@@ -185,9 +185,12 @@ function displayHeader ($js = '')
 Event.observe(window, \'load\', function() {
     initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
     // Datechooser
-    var objDatePicker = new DateChooser();
-    objDatePicker.setUpdateField({\'day\':\'j\', \'month\':\'n\', \'year\':\'Y\'});
-    objDatePicker.setIcon(\''.$TMPL['path'].'themes/default/images/datepicker.jpg\', \'year\');
+    var bday = new DateChooser();
+    bday.setUpdateField({\'bday\':\'j\', \'bmonth\':\'n\', \'byear\':\'Y\'});
+    bday.setIcon(\''.$TMPL['path'].'themes/default/images/datepicker.jpg\', \'byear\');
+    var dday = new DateChooser();
+    dday.setUpdateField({\'dday\':\'j\', \'dmonth\':\'n\', \'dyear\':\'Y\'});
+    dday.setIcon(\''.$TMPL['path'].'themes/default/images/datepicker.jpg\', \'dyear\');
     // Delete Confirmation All
     if ($(\'deleteAll\')) {
         var item = $(\'deleteAll\'); 
@@ -291,7 +294,7 @@ function displayMergeSubmit ()
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -311,7 +314,7 @@ function displayMergeSubmit ()
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -327,7 +330,7 @@ function displayMergeSubmit ()
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Merge Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -374,7 +377,7 @@ function displayCreateSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Email Check Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -429,7 +432,7 @@ function displayCreateSubmit ()
                 '$username', '$md5pass', 1)";
     if (!mysql_query($sql))
     {
-        displaySQLError('User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -441,7 +444,7 @@ function displayCreateSubmit ()
             VALUES ($lastid, '$currentUserId', NOW(), '$currentUserId', NOW())";
     if (!mysql_query($sql))
     {
-        displaySQLError('Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -450,7 +453,7 @@ function displayCreateSubmit ()
     $sql = "INSERT INTO `fcms_user_settings`(`user`) VALUES ($lastid)";
     if (!mysql_query($sql))
     {
-        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -528,23 +531,43 @@ function displayEditSubmit ()
     $emailstart = $memberObj->getUsersEmail($id);
 
     // birthday
-    $year  = '';
-    $month = '';
-    $day   = '';
+    $bYear  = '';
+    $bMonth = '';
+    $bDay   = '';
 
-    if (!empty($_POST['year']))
+    if (!empty($_POST['byear']))
     {
-        $year = cleanInput($_POST['year'], 'int');
+        $bYear = cleanInput($_POST['byear'], 'int');
     }
-    if (!empty($_POST['month']))
+    if (!empty($_POST['bmonth']))
     {
-        $month = cleanInput($_POST['month'], 'int');
-        $month = str_pad($month, 2, "0", STR_PAD_LEFT);
+        $bMonth = cleanInput($_POST['bmonth'], 'int');
+        $bMonth = str_pad($bMonth, 2, "0", STR_PAD_LEFT);
     }
-    if (!empty($_POST['day']))
+    if (!empty($_POST['bday']))
     {
-        $day = cleanInput($_POST['day'], 'int');
-        $day = str_pad($day, 2, "0", STR_PAD_LEFT);
+        $bDay = cleanInput($_POST['bday'], 'int');
+        $bDay = str_pad($bDay, 2, "0", STR_PAD_LEFT);
+    }
+
+    // deceased date
+    $dYear  = '';
+    $dMonth = '';
+    $dDay   = '';
+
+    if (!empty($_POST['dyear']))
+    {
+        $dYear = cleanInput($_POST['dyear'], 'int');
+    }
+    if (!empty($_POST['dmonth']))
+    {
+        $dMonth = cleanInput($_POST['dmonth'], 'int');
+        $dMonth = str_pad($dMonth, 2, "0", STR_PAD_LEFT);
+    }
+    if (!empty($_POST['dday']))
+    {
+        $dDay = cleanInput($_POST['dday'], 'int');
+        $dDay = str_pad($dDay, 2, "0", STR_PAD_LEFT);
     }
 
     // Update user info
@@ -562,7 +585,7 @@ function displayEditSubmit ()
         $result = mysql_query($email_sql);
         if (!$result)
         {
-            displaySQLError('Email Check Error', __FILE__.' ['.__LINE__.']', $email_sql, mysql_error());
+            displaySqlError($email_sql, mysql_error());
             displayFooter();
             return;
         }
@@ -596,15 +619,18 @@ function displayEditSubmit ()
         mail($_POST['email'], $subject, $message, getEmailHeaders());
     }
 
-    $sql.= "`dob_year` = '$year', 
-            `dob_month` = '$month',
-            `dob_day` = '$day',
-            `joindate` = NOW(), 
-            `access` = '".cleanInput($_POST['access'], 'int')."'
+    $sql.= "`dob_year`  = '$bYear', 
+            `dob_month` = '$bMonth',
+            `dob_day`   = '$bDay',
+            `dod_year`  = '$dYear', 
+            `dod_month` = '$dMonth',
+            `dod_day`   = '$dDay',
+            `joindate`  = NOW(), 
+            `access`    = '".cleanInput($_POST['access'], 'int')."'
             WHERE id = '".cleanInput($_POST['id'], 'int')."'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Edit Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -634,7 +660,7 @@ function displayActivateSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Members Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -654,7 +680,7 @@ function displayActivateSubmit ()
 
         if (!mysql_query($sql))
         {
-            displaySQLError('Activate Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -670,7 +696,7 @@ function displayActivateSubmit ()
 
                 if (!mysql_query($sql))
                 {
-                    displaySQLError('Activate Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                    displaySqlError($sql, mysql_error());
                     displayFooter();
                     return;
                 }
@@ -710,7 +736,7 @@ function displayInactivateSubmit ()
                 WHERE `id` = '".cleanInput($id, 'int')."'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Inactivate Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -765,7 +791,7 @@ function displayDeleteAllSubmit ()
                 WHERE `id` = '".cleanInput($id, 'int')."'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Delete Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -818,7 +844,7 @@ function displayDeleteSubmit ()
             WHERE `id` = '$id'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Delete Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }

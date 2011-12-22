@@ -1,15 +1,29 @@
 <?php
-include_once 'utils.php';
-include_once 'image_class.php';
-include_once 'datetime.php';
+/**
+ * PhotoGallery
+ * 
+ * PHP versions 4 and 5
+ * 
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
+ */
+require_once 'utils.php';
+require_once 'image_class.php';
+require_once 'datetime.php';
 
 /**
  * PhotoGallery 
  * 
- * @package     Family Connections
- * @copyright   Copyright (c) 2010 Haudenschilt LLC
- * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
- * @license     http://www.gnu.org/licenses/gpl-2.0.html
+ * @category  FCMS
+ * @package   FamilyConnections
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @copyright 2007 Haudenschilt LLC
+ * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @link      http://www.familycms.com/wiki/
  */
 class PhotoGallery
 {
@@ -22,9 +36,9 @@ class PhotoGallery
     /**
      * PhotoGallery 
      * 
-     * @param   int         $currentUserId 
+     * @param int $currentUserId Id of authed user
      * 
-     * @return  void
+     * @return void
      */
     function PhotoGallery ($currentUserId)
     {
@@ -43,8 +57,9 @@ class PhotoGallery
     /**
      * displayGalleryMenu 
      * 
-     * @param   string $uid 
-     * @param   string $cid 
+     * @param string $uid Member id
+     * @param string $cid Category id
+     * 
      * @return  void
      */
     function displayGalleryMenu ($uid = '', $cid = '')
@@ -56,22 +71,31 @@ class PhotoGallery
         $my     = '';
         $search = '';
 
-        if (isset($_GET['search'])) {
+        if (isset($_GET['search']))
+        {
             $search = ' selected';
-        } elseif ($uid == '' ) {
-            $uid = '0';
+        }
+        elseif ($uid == '')
+        {
+            $uid  = '0';
             $home = ' selected';
-        } elseif ($uid == '0' && $cid == '') {
+        }
+        elseif ($uid == '0' && $cid == '')
+        {
             $member = ' selected';
         }
 
-        if ($cid == 'toprated') {
+        if ($cid == 'toprated')
+        {
             $rated = ' selected';
-        } elseif ($cid == 'mostviewed') {
+        }
+        elseif ($cid == 'mostviewed')
+        {
             $viewed = ' selected';
         }
 
-        if ($uid == $this->currentUserId && $cid == '') {
+        if ($uid == $this->currentUserId && $cid == '')
+        {
             $my = ' selected';
         }
 
@@ -87,11 +111,11 @@ class PhotoGallery
                         <li><a class="'.$search.'" href="?search=form">'.T_('Search').'</a></li>
                     </ul>
                 </div>';
-        if (
-            checkAccess($this->currentUserId) <= 3 or 
-            checkAccess($this->currentUserId) == 5 or 
-            checkAccess($this->currentUserId) == 8
-        ) {
+
+        $access = checkAccess($this->currentUserId);
+
+        if ($access <= 3 or $access == NON_POSTER_USER or $access == PHOTOGRAPHER_USER)
+        {
             echo '
                 <div id="actions_menu" class="clearfix">
                     <ul>
@@ -117,15 +141,22 @@ class PhotoGallery
         $sql = "SELECT `id` 
                 FROM `fcms_users` 
                 WHERE `activated` > 0";
-        $this->db->query($sql) or displaySQLError(
-            'Members Error', 'inc/gallery_class.php [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) { 
-            while ($row = $this->db->get_row()) {
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
+            while ($row = $this->db->get_row())
+            {
                 $displayNameArr[$row['id']] = getUserDisplayName($row['id'], 2);
             }
+
             asort($displayNameArr);
         }
+
         echo '
                 <fieldset>
                     <legend><span>'.T_('Search').'</span></legend>
@@ -135,10 +166,13 @@ class PhotoGallery
                             <div class="field-widget">
                                 <select name="uid">
                                     <option value="0"></option>';
-        foreach ($displayNameArr as $key => $value) {
+
+        foreach ($displayNameArr as $key => $value)
+        {
             echo '
                                     <option value="'.(int)$key.'">'.cleanOutput($value).'</option>';
         }
+
         echo '
                                 </select>
                             </div>
@@ -148,10 +182,13 @@ class PhotoGallery
                             <div class="field-widget">
                                 <select name="cid">
                                     <option value="all"></option>';
-        foreach ($displayNameArr as $key => $value) {
+
+        foreach ($displayNameArr as $key => $value)
+        {
             echo '
                                     <option value="'.(int)$key.'">'.cleanOutput($value).'</option>';
         }
+
         echo '
                                 </select>
                             </div>
@@ -182,23 +219,19 @@ class PhotoGallery
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Latest Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
         if ($this->db->count_rows() <= 0)
         {
             echo '
-                <div class="info-alert">
-                    <h2>'.T_('Welcome to the Photo Gallery').'</h2>
-                    <p><i>'.T_('Currently no one has added any photos').'</i></p>
-                    <p><b>'.T_('How do I add photos?').'</b></p>
-                    <ol>
-                        <li><a href="?action=category">'.T_('Create a Category').'</a></li>
-                        <li><a href="?action=upload">'.T_('Upload Photos').'</a></li>
-                    </ol>
+                <div class="blank-state">
+                    <h2>'.T_('Nothing to see here').'</h2>
+                    <h3>'.T_('Currently no one has added any photos').'</h3>
+                    <h3><a href="?action=upload">'.T_('Why don\'t you upload some photos now?').'</a></h3>
                 </div>';
-            return;
+            return false;
         }
 
         echo '
@@ -224,6 +257,8 @@ class PhotoGallery
 
         echo '
                 </ul>';
+
+        return true;
     }
     
     /**
@@ -238,21 +273,22 @@ class PhotoGallery
      *     Tagged Users    - uid=0         cid=tagged# (where # is the id of the tagged user)
      *     All for User    - uid=userid    cid=all
      *
-     * @param   string  $uid    the user's id or 0
-     * @param   string  $cid    the category id, 'tagged#', 'comments', 'toprated', 'mostviewed' or 'all'
-     * @param   string  $pid    the photo id 
+     * @param string $uid the user's id or 0
+     * @param string $cid the category id, 'tagged#', 'comments', 'toprated', 'mostviewed' or 'all'
+     * @param string $pid the photo id 
+     *
      * @return  void
      */
     function showPhoto ($uid, $cid, $pid)
     {
-        $uid = (int)$uid;
-        $pid = (int)$pid;
+        $uid = cleanInput($uid, 'int');
+        $pid = cleanInput($pid, 'int');
 
         list($breadcrumbs, $cid, $urlcid, $sql) = $this->getShowPhotoParams($uid, $cid);
 
         if (!$this->db2->query($sql))
         {
-            displaySQLError('Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -287,7 +323,7 @@ class PhotoGallery
 
         if (!$this->db2->query($sql))
         {
-            displaySQLError('Photo Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -309,7 +345,7 @@ class PhotoGallery
         if (!$this->db->query($sql))
         {
             // Just show error and continue
-            displaySQLError('Update View Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
         }
 
         // Get photo comments
@@ -404,17 +440,17 @@ class PhotoGallery
         if ($r['votes'] <= 0)
         {
             $rating = 0;
-            $width = 0;
+            $width  = 0;
         }
         else
         {
             $rating = ($r['rating'] / $r['votes']) * 100;
             $rating = round($rating, 0);
-            $width = $rating / 5;
+            $width  = $rating / 5;
         }
 
         // Get Tagged Members
-        $sql = "SELECT u.`id`, u.`lname` 
+        $sql = "SELECT u.`id`, u.`fname`, u.`lname` 
                 FROM `fcms_users` AS u, `fcms_gallery_photos_tags` AS t 
                 WHERE t.`photo` = '$pid' 
                 AND t.`user` = u.`id`
@@ -422,7 +458,7 @@ class PhotoGallery
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Tagged Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -434,7 +470,10 @@ class PhotoGallery
 
             while ($t = $this->db->get_row())
             {
-                 $tagged_mem_list .= '<li><a href="?uid=0&cid='.$t['id'].'" title="Show more photos of '.getUserDisplayName($t['id'],2).'">'.getUserDisplayName($t['id']).'</a></li>';
+                $taggedName = cleanOutput($t['fname']).' '.cleanOutput($t['lname']);
+
+                $tagged_mem_list .= '<li><a href="?uid=0&cid='.$t['id'].'" ';
+                $tagged_mem_list .= 'title="'.sprintf(T_('Click to view more photos of %s.'), $taggedName).'">'.$taggedName.'</a></li>';
             }
         }
 
@@ -531,13 +570,11 @@ class PhotoGallery
 
                     if ($this->currentUserId == $row['user'] || checkAccess($this->currentUserId) < 2)
                     {
-                        $del_comment .= '<input type="submit" name="delcom" id="delcom" '
-                            . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
-                            . T_('Delete this Comment') . '"/>';
+                        $del_comment .= '<input type="submit" name="delcom" id="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this Comment').'"/>';
                     }
 
                     echo '
-            <div class="comment_block clearfix">
+            <div id="comment'.$row['id'].'" class="comment_block clearfix">
                 <form class="delcom" action="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'" method="post">
                     '.$del_comment.'
                     <img class="avatar" alt="avatar" src="'.getCurrentAvatar($row['user'], true).'"/>
@@ -575,8 +612,8 @@ class PhotoGallery
      *       3 => $sql
      * );
      *
-     * @param string $user 
-     * @param string $category 
+     * @param int $user     member id
+     * @param int $category category id
      * 
      * @return array
      */
@@ -619,9 +656,11 @@ class PhotoGallery
             $sql = "SELECT `filename` 
                     FROM `fcms_gallery_photos` 
                     WHERE `views` > 0";
-            if ($user > 0) {
+            if ($user > 0)
+            {
                 $sql .= " AND `user` = '$user'";
             }
+
             $sql .= " ORDER BY `views` DESC";
 
             $breadcrumbs = "<a href=\"?uid=$user&amp;cid=$cid\">".T_('Most Viewed')."</a>";
@@ -687,15 +726,15 @@ class PhotoGallery
      * The first path is the path to the middle sized photo.
      * The second path is the path to the full sized photo or the middle again if no full sized exists.
      * 
-     * @param string $filename 
-     * @param int    $uid 
+     * @param string $filename Filename path
+     * @param int    $uid      Member id
      * 
      * @return array
      */
     function getPhotoPath ($filename, $uid)
     {
         $filename = basename($filename);
-        $uid      = (int)$uid;
+        $uid      = cleanInput($uid, 'int');
 
         // Link to the full sized photo if using full sized
         $sql = "SELECT `value` AS 'full_size_photos'
@@ -707,7 +746,7 @@ class PhotoGallery
         if (!$this->db->query($sql))
         {
             // If we can't figure out full sized, we will default to no and continue on
-            displaySQLError('Full Size Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
         }
         else
         {
@@ -731,484 +770,783 @@ class PhotoGallery
         return $photo_path;
     }
 
-    /*
-     *  showCategories
+    /**
+     * showCategories
      *
-     *  Displays a list of photos in the desired category or view.
+     * Displays a list of photos in the desired category or view.
      *
-     *  The following views use this function:
-     *      Member Gallery  - uid=0             cid=
-     *      Latest Comments - uid=0 or userid   cid='comments'
-     *      Top Rated       - uid=0 or userid   cid='toprated'
-     *      Most  Viewed    - uid=0 or userid   cid='mostviewed'
-     *      Tagged Users    - uid=0             cid=userid
-     *      Category        - uid=userid        cid=#
-     *      All for User    - uid=userid        cid='all'
+     * The following views use this function:
+     *     Member Gallery  - uid=0             cid=
+     *     Latest Comments - uid=0 or userid   cid='comments'
+     *     Top Rated       - uid=0 or userid   cid='toprated'
+     *     Most  Viewed    - uid=0 or userid   cid='mostviewed'
+     *     Tagged Users    - uid=0             cid=userid
+     *     Category        - uid=userid        cid=#
+     *     All for User    - uid=userid        cid='all'
      *
-     *  @param      $page   the page # you want for the specified category
-     *  @param      $uid    the user's id or 0 if displaying view for all users
-     *  @param      $cid    optional, category id, 'comments', 'toprated', 'mostviewed', or 'all'
-     *  @return     nothing
+     * @param int   $page the page # you want for the specified category
+     * @param int   $uid  the user's id or 0 if displaying view for all users
+     * @param mixed $cid  optional, category id, 'comments', 'toprated', 'mostviewed', or 'all'
+     *
+     * @return void
      */
-    function showCategories ($page, $uid, $cid = 'none')
+    function showCategories ($page, $uid, $cid = null)
     {
-        // # of categories per page -- used for pagination
-        $perPage = 18;
-        
-        // No user id specified
-        if ($uid == 0) {
-            
-            //-----------------------------------------------------------------
-            // Member Gallery View
-            //-----------------------------------------------------------------
-            if ($cid == 'none') {
-                $sql = "SELECT 'MEMBER' AS type, u.`id` AS uid, f.`filename`, COUNT(p.`id`) as c 
-                        FROM `fcms_category` AS cat 
-                        LEFT JOIN `fcms_gallery_photos` AS p 
-                        ON p.`category` = cat.`id`, `fcms_users` AS u, (
-                            SELECT * 
-                            FROM `fcms_gallery_photos` 
-                            ORDER BY `date` DESC
-                        ) AS f 
-                        WHERE f.`id` = p.`id` 
-                        AND u.`id` = p.`user` 
-                        GROUP BY p.`user`";
-
-                // Pagination
-                $from = ($page * $perPage) - $perPage;
-                $sql .= " LIMIT $from, $perPage";
-                
-            //-----------------------------------------------------------------
-            // Latest Comments View
-            //-----------------------------------------------------------------
-            } elseif ($cid == 'comments') {
-                $sql = "SELECT 'COMMENTS' AS type, p.`user` AS uid, p.`category` AS cid, 
-                            c.`date` AS heading, p.`id` AS pid, p.`filename`, c.`comment`, 
-                            p.`caption`, c.`user` 
-                        FROM `fcms_gallery_comments` AS c, `fcms_gallery_photos` AS p, 
-                            `fcms_category` AS cat, `fcms_users` AS u 
-                        WHERE c.`photo` = p.`id` 
-                        AND p.`category` = cat.`id` 
-                        AND c.`user` = u.`id` 
-                        ORDER BY c.`date` DESC";
-
-                // Pagination
-                if ($page >= 1) {
-                    // ALL Latest Comments
-                    $from = ($page * $perPage) - $perPage;
-                    $sql .= " LIMIT $from, $perPage";
-                } else {
-                    // Front page Latest Comments
-                    $sql .= " LIMIT 6";
-                }
-                
-            //-----------------------------------------------------------------
-            // Overall Top Rated View
-            //-----------------------------------------------------------------
-            } elseif ($cid == 'toprated') {
-                $sql = "SELECT 'RATED' AS type, `user` AS uid, `filename`, `category`, 
-                            `caption`, `id` AS pid, `rating`/`votes` AS 'r' 
-                        FROM `fcms_gallery_photos` 
-                        WHERE `votes` > 0 
-                        ORDER BY r DESC";
-
-                // Pagination
-                $from = ($page * $perPage) - $perPage;
-                $sql .= " LIMIT $from, $perPage";
-                
-            //-----------------------------------------------------------------
-            // Overall Most Viewed View
-            //-----------------------------------------------------------------
-            } elseif ($cid == 'mostviewed') {
-                $sql = "SELECT 'VIEWED' AS type, `user` AS uid, `filename`, `caption`, 
-                            `id` AS pid, `views` 
-                        FROM `fcms_gallery_photos` 
-                        WHERE `views` > 0 
-                        ORDER BY VIEWS DESC";
-
-                // Pagination
-                $from = ($page * $perPage) - $perPage;
-                $sql .= " LIMIT $from, $perPage";
-                
-            //-----------------------------------------------------------------
-            // Tagged Photos View (only number 0-9)
-            //-----------------------------------------------------------------
-            } elseif (preg_match('/^\d+$/', $cid)) {
-                $sql = "SELECT 'TAGGED' AS type, t.`user`, p.`id` AS pid, p.`filename`, "
-                        . "p.`caption`, p.`user` AS uid "
-                     . "FROM `fcms_gallery_photos` AS p, `fcms_gallery_photos_tags` AS t "
-                     . "WHERE t.`user` = '$cid' "
-                     . "AND t.`photo` = p.`id`";
-
-                // Pagination
-                $perPage = 30;
-                $from = ($page * $perPage) - $perPage;
-                $sql .= " LIMIT $from, $perPage";
-            }
-            
-        // Valid user id specified
-        } elseif (preg_match('/^\d+$/', $uid)) {
-            
-            //-----------------------------------------------------------------
-            // Member's Top Rated View
-            //-----------------------------------------------------------------
-            if ($cid == 'toprated') {
-                $sql = "SELECT 'RATED' AS type, `user` AS uid, `filename`, `category`, "
-                        . "`caption`, `id` AS pid, `rating`/`votes` AS 'r' "
-                     . "FROM `fcms_gallery_photos` "
-                     . "WHERE `votes` > 0 AND `user` = '$uid' ";
-
-                // Pagination
-                $from = ($page * $perPage) - $perPage;
-                $sql .= " LIMIT $from, $perPage";
-                
-            //-----------------------------------------------------------------
-            // Member's Most Viewed View
-            //-----------------------------------------------------------------
-            } elseif ($cid == 'mostviewed') {
-                $sql = "SELECT 'VIEWED' AS type, `user` AS uid, `filename`, `caption`, 
-                            `id` AS pid, `views` 
-                        FROM `fcms_gallery_photos` 
-                        WHERE `views` > 0 
-                        AND `user` = '$uid'
-                        ORDER BY `views` DESC";
-
-                // Pagination
-                $from = ($page * $perPage) - $perPage;
-                $sql .= " LIMIT $from, $perPage";
-                
-            //-----------------------------------------------------------------
-            // Category View
-            //-----------------------------------------------------------------
-            } elseif (preg_match('/^\d+$/', $cid)) {
-                $sql = "SELECT 'PHOTOS' AS type, u.`id` AS uid, `category` AS cid, "
-                        . "p.`id` AS pid, `caption`, c.`name` AS category, `filename` "
-                     . "FROM `fcms_category` AS c, `fcms_gallery_photos` AS p, "
-                        . "`fcms_users` AS u "
-                     . "WHERE p.`user` = u.`id` "
-                     . "AND `category` = c.`id` "
-                     . "AND `category` = '$cid'";
-
-                // Pagination
-                $perPage = 30;
-                $from = ($page * $perPage) - $perPage;
-                $sql .= " LIMIT $from, $perPage";
-                
-            //-----------------------------------------------------------------
-            // All Photos for Member (Search)
-            //-----------------------------------------------------------------
-            } elseif ($cid == 'all') {
-                $sql = "SELECT 'ALL' AS type, u.`id` AS uid, `category` AS cid, 
-                            p.`id` AS pid, `caption`, c.`name` AS category, `filename` 
-                        FROM `fcms_category` AS c, `fcms_gallery_photos` AS p, 
-                            `fcms_users` AS u 
-                        WHERE p.`user` = '$uid' 
-                        AND p.`user` = u.`id`
-                        AND `category` = c.`id`
-                        ORDER BY p.`id`";
-
-                // Pagination
-                $perPage = 30;
-                $from = ($page * $perPage) - $perPage;
-                $sql .= " LIMIT $from, $perPage";
-                
-            //-----------------------------------------------------------------
-            // Member's Categories View
-            //-----------------------------------------------------------------
-            // invalid $cid's will default to member's sub cat listing
-            } else {
-                $sql = "SELECT 'CATEGORIES' AS type, u.`id` AS uid, cat.`name` AS category, "
-                        . "cat.`id` AS cid, f.`filename`, COUNT(p.`id`) AS c "
-                     . "FROM `fcms_category` AS cat "
-                     . "LEFT JOIN `fcms_gallery_photos` AS p "
-                     . "ON p.`category` = cat.`id`, `fcms_users` AS u, ("
-                        . "SELECT * "
-                        . "FROM `fcms_gallery_photos` "
-                        . "ORDER BY `date` DESC"
-                     . ") AS f "
-                     . "WHERE f.`id` = p.`id` "
-                     . "AND u.`id` = p.`user` "
-                     . "AND p.`user` = '$uid' "
-                     . "GROUP BY cat.`id` DESC";
-
-                // Pagination
-                $from = ($page * $perPage) - $perPage;
-                $sql .= " LIMIT $from, $perPage";
-            }
-        // Catch all invalid $uid's
-        } else {
+        if (!ctype_digit($uid))
+        {
             echo '
             <div class="info-alert">
                 <h2>'.T_('Uh Oh!').'</h2>
                 <p>'.T_('The category you are trying to view doesn\'t exist.').'</p>
             </div>';
         }
-        
-        $this->db->query($sql) or displaySQLError(
-            'Categories Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $type = '';
 
-        if ($this->db->count_rows() > 0) {
-            $first = true;
-            while ($row = $this->db->get_row()) {
-                $cat_name = "";
-                $url = "";
-                $alt = "";
-                $title = "";
-                $cat_info = "";
-                $type = $row['type'];
-
-                //-------------------------------------------------------------
-                // Member Gallery
-                //-------------------------------------------------------------
-                if ($row['type'] == 'MEMBER') {
-                    if ($first) {
-                        echo '
-            <p class="breadcrumbs">'.T_('Members').'</p>';
-                    }
-                    $displayname = getUserDisplayName($row['uid']);
-                    $cat_name = "<strong>$displayname</strong>";
-                    $url = "?uid=" . $row['uid'];
-                    $urlPage = "?uid=0";
-                    $alt = ' alt="'.sprintf(T_('View Categories for %s'), cleanOutput($displayname)).'"';
-                    $title = ' title="'.sprintf(T_('View Categories for %s'), cleanOutput($displayname)).'"';
-                    $cat_info = "<i>" . T_('Photos') . " (" . $row['c'] . ")</i>";
-
-                //-------------------------------------------------------------
-                // Comments
-                //-------------------------------------------------------------
-                } elseif ($row['type'] == 'COMMENTS') {
-                    if ($first) {
-                        if ($page >= 0) {
-                            echo '
-            <p class="breadcrumbs">'.T_('Latest Comments').'</p>';
-                        } else {
-                            echo '
-            <h3>'.T_('Latest Comments').'</h3>
-            <a href="?uid=0&amp;cid=comments">('.T_('View All').')</a><br/>';
-                        }
-                    }
-                    $date     = fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $row['heading']);
-                    $cat_name = "<strong>$date</strong>";
-                    $url      = "?uid=0&amp;cid=comments&amp;pid=" . $row['pid'];
-                    $urlPage  = "?uid=0&amp;cid=comments";
-                    $alt      = ' alt="' . cleanOutput($row['caption']) . '"';
-                    $title    = ' title="' . cleanOutput($row['caption']) . '"';
-                    $comment  = $row['comment'];
-                    $cat_info = "<i><b>" . getUserDisplayName($row['user']) . ":</b> $comment</i>";
-
-                //-------------------------------------------------------------
-                // Top Rated
-                //-------------------------------------------------------------
-                } elseif ($row['type'] == 'RATED') {
-                    if ($first) {
-                        echo '
-            <p class="breadcrumbs">'.T_('Top Rated');
-                        if ($uid > 0) {
-                            echo " (" . getUserDisplayName($uid) . ")";
-                        }
-                        echo "</p>";
-                    }
-                    $width = ($row['r'] / 5) * 100;
-                    $url = "?uid=0&amp;cid=toprated" . $row['category'] . "&amp;pid=" . $row['pid'];
-                    $urlPage = "?uid=0&amp;cid=toprated" . $row['category'];
-                    $alt = ' alt="' . cleanOutput($row['caption']) . '"';
-                    $title = ' title="' . cleanOutput($row['caption']) . '"';
-                    $cat_info = "<i><ul class=\"star-rating small-star\">"
-                        . "<li class=\"current-rating\" style=\"width:$width%\">"
-                        . sprintf(T_('Currently %d/5 Stars.'), $row['r'])
-                        . "</li><li><a href=\"$url&amp;vote=1\" title=\"" 
-                        . T_('1 out of 5 Stars') . "\" class=\"one-star\">1</a></li><li>"
-                        . "<a href=\"$url&amp;vote=2\" title=\"" . T_('2 out of 5 Stars')
-                        . "\" class=\"two-stars\">2</a></li><li><a href=\"$url&amp;vote=3\" "
-                        . "title=\"" . T_('3 out of 5 Stars') . "\" class=\"three-stars\">3</a>"
-                        . "</li><li><a href=\"$url&amp;vote=4\" title=\"" . T_('4 out of 5 Stars')
-                        . "\" class=\"four-stars\">4</a></li><li><a href=\"$url&amp;vote=5\" "
-                        . "title=\"" . T_('5 out of 5 Stars') . "\" class=\"five-stars\">5</a>"
-                        . "</li></ul></i>";
-
-                //-------------------------------------------------------------
-                // Most Viewed
-                //-------------------------------------------------------------
-                } elseif ($row['type'] == 'VIEWED') {
-                    if ($first) {
-                        echo '
-            <p class="breadcrumbs">'.T_('Most Viewed');
-                        if ($uid > 0) {
-                            echo " (" . getUserDisplayName($uid) . ")";
-                        }
-                        echo "</p>";
-                    }
-                    $url = "?uid=$uid&amp;cid=mostviewed&amp;pid=" . $row['pid'];
-                    $urlPage = "?uid=$uid&amp;cid=mostviewed";
-                    $alt = ' alt="' . cleanOutput($row['caption']) . '"';
-                    $title = ' title="' . cleanOutput($row['caption']) . '"';
-                    $cat_info = "<i><b>".T_('Views').": </b>" . $row['views'] . "</i>";
-
-                //-------------------------------------------------------------
-                // Tagged
-                //-------------------------------------------------------------
-                } elseif ($row['type'] == 'TAGGED') {
-                    if ($first) {
-                        $userName = getUserDisplayName($row['user']);
-                        echo '
-            <p class="breadcrumbs">'.sprintf(T_('Photos of %s'), $userName).'</p>';
-                    }
-                    $url = "?uid=0&amp;cid=tagged" . $row['user'] . "&amp;pid=" . $row['pid'];
-                    $urlPage = "?uid=0&amp;cid=" . $row['user'];
-                    $alt = ' alt="' . cleanOutput($row['caption']) . '"';
-                    $title = ' title="' . cleanOutput($row['caption']) . '"';
-
-                //-------------------------------------------------------------
-                // ALL
-                //-------------------------------------------------------------
-                } elseif ($row['type'] == 'ALL') {
-                    if ($first) {
-                        $userName = getUserDisplayName($row['uid']);
-                        echo '
-            <p class="breadcrumbs">'.sprintf(T_('Photos uploaded by %s'), $userName).'</p>';
-                    }
-                    $url = "?uid=" . $row['uid'] . "&amp;cid=all&amp;pid=" . $row['pid'];
-                    $urlPage = "?uid=" . $row['uid'] . "&amp;cid=all";
-                    $alt = ' alt="' . cleanOutput($row['caption']) . '"';
-                    $title = ' title="' . cleanOutput($row['caption']) . '"';
-
-                //-------------------------------------------------------------
-                // Photos
-                //-------------------------------------------------------------
-                } elseif ($row['type'] == 'PHOTOS') {
-                    if ($first) {
-                        echo '
-            <p class="breadcrumbs">
-                <a href="?uid=0">'.T_('Members').'</a> &gt; 
-                <a href="?uid='.$uid.'">'.getUserDisplayName($row['uid']).'</a> &gt; 
-                '.$row['category'].'
-            </p>';
-                    }
-                    $url = "?uid=" . $row['uid'] . "&amp;cid=" . $row['cid'] . "&amp;pid=" . $row['pid'];
-                    $urlPage = "?uid=" . $row['uid'] . "&amp;cid=" . $row['cid'];
-                    $alt = ' alt="' . cleanOutput($row['caption']) . '"';
-                    $title = ' title="' . cleanOutput($row['caption']) . '"';
-
-                //-------------------------------------------------------------
-                // Categories
-                //-------------------------------------------------------------
-                } elseif ($row['type'] == 'CATEGORIES') {
-                    if ($first) {
-                        echo '
-            <p class="breadcrumbs">
-                <a href="?uid=0">'.T_('Members').'</a> &gt; '.getUserDisplayName($row['uid']).'
-            </p>';
-                    }
-                    $cat_name = "<strong>" . $row['category'] . "</strong>";
-                    $url = "?uid=" . $row['uid'] . "&amp;cid=" . $row['cid'];
-                    $urlPage = "?uid=" . $row['uid'];
-                    $alt = ' alt="'.sprintf(T_('View Photos in %s'), cleanOutput($row['category'])).'"';
-                    $title = ' title="'.sprintf(T_('View Photos in %s'), cleanOutput($row['category'])).'"';
-                    $cat_info = "<i>" . T_('Photos') . " (" . $row['c'] . ")</i>";
-                }
-
-                if ($type == 'PHOTOS' || $type == 'TAGGED' || $type == 'ALL') {
-                    $category_rows[] = '
-                    <a href="index.php'.$url.'">
-                        <img class="photo" src="../uploads/photos/member'.$row['uid'].'/tb_'.basename($row['filename']).'" 
-                            '.$alt.' '.$title.'/>
-                    </a>';
-                } else {
-                    $category_rows[] = '
-                    <a href="index.php'.$url.'">
-                        <img src="../uploads/photos/member'.$row['uid'].'/tb_'.basename($row['filename']).'" 
-                            '.$alt.' '.$title.'/>
-                    </a>
-                    <span>
-                        '.$cat_name.'
-                        '.$cat_info.'
-                    </span>';
-                }
-                $first = false;
-            }
-
-            // Output for Photos
-            if ($type == 'PHOTOS' || $type == 'TAGGED' || $type == 'ALL')
+        // Top Rated
+        if ($cid == 'toprated')
+        {
+            $this->displayTopRatedCategory($page, $uid);
+        }
+        // Most Viewed
+        elseif ($cid == 'mostviewed')
+        {
+            $this->displayMostViewedCategory($page, $uid);
+        }
+        // Latest Comments
+        elseif ($cid == 'comments')
+        {
+            $this->displayLatestCommentsCategory($page);
+        }
+        elseif ($uid == 0)
+        {
+            // Photos of / Tagged
+            if (ctype_digit($cid))
             {
-                $tag   = '';
-                $admin = '';
-                if ($type == 'PHOTOS')
-                {
-                    if ($uid == $this->currentUserId || checkAccess($this->currentUserId) < 2)
-                    {
-                        $tag = '<li><a href="?tag='.$cid.'&amp;user='.$uid.'">'.T_('Tag Members In Photos').'</a></li>';
-                    }
-
-                    if (checkAccess($this->currentUserId) < 2)
-                    {
-                        $admin = '<li><a href="../admin/gallery.php?edit='.$cid.'">'.T_('Administrate').'</a></li>';
-                    }
-
-                    echo '
-            <ul id="category_actions">
-                '.$admin.'
-                '.$tag.'
-                <li><a class="new_window" href="slideshow.php?category='.$cid.'">'.T_('View Slideshow').'</a></li>
-            </ul>';
-
-                }
-
-                echo '
-            <ul class="photos clearfix">';
-
-                $i = 0;
-                foreach ($category_rows as $row)
-                {
-                    echo '
-                <li class="photo">'.$row.'
-                </li>';
-                    $i++;
-                }
-
-                echo '
-            </ul>';
-
+                $this->displayPhotosOf($page, $cid);
             }
-            // Output for Categories
+            // Member Listing
             else
             {
+                $this->displayMemberListCategory($page);
+            }
+        }
+        else
+        {
+            // Category
+            if (ctype_digit($cid))
+            {
+                $this->displayCategory($page, $uid, $cid);
+            }
+            // Photos upload by user
+            elseif ($cid == 'all')
+            {
+                $this->displayPhotosUploadedBy($page, $uid);
+            }
+            // Categories by member
+            else
+            {
+                $this->displayMemberCategory($page, $uid);
+            }
+        }
+    }
+
+    /**
+     * displayLatestCommentsCategory 
+     * 
+     * Displays the latest comments.
+     * 
+     * @param int $page 
+     * 
+     * @return void
+     */
+    function displayLatestCommentsCategory ($page)
+    {
+        $perPage = 18;
+        $from    = ($page * $perPage) - $perPage;
+
+        $sql = "SELECT p.`user` AS uid, p.`category` AS cid, c.`date` AS heading, p.`id` AS pid, p.`filename`, c.`comment`, 
+                    p.`caption`, c.`user` 
+                FROM `fcms_gallery_comments` AS c, `fcms_gallery_photos` AS p, 
+                    `fcms_category` AS cat, `fcms_users` AS u 
+                WHERE c.`photo` = p.`id` 
+                AND p.`category` = cat.`id` 
+                AND c.`user` = u.`id` 
+                ORDER BY c.`date` DESC";
+
+        if ($page >= 0)
+        {
+            $sql .= " LIMIT $from, $perPage";
+        }
+        else
+        {
+            // Front page Latest Comments
+            $sql .= " LIMIT 6";
+        }
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
+            if ($page >= 0)
+            {
                 echo '
+            <div class="info-alert">
+                <h2>'.T_('Oops!').'</h2>
+                <p>'.T_('The Category you are trying to view is Empty.').'</p>
+            </div>';
+            }
+            return;
+        }
+
+        if ($page >= 0)
+        {
+            echo '
+            <p class="breadcrumbs">'.T_('Latest Comments').'</p>
             <ul class="categories clearfix">';
-                $i = 0;
-                foreach ($category_rows as $row) {
-                    echo '
-                <li class="category">'.$row.'
+        }
+        else
+        {
+            echo '
+            <h3>'.T_('Latest Comments').'</h3>
+            <a href="?uid=0&amp;cid=comments">('.T_('View All').')</a><br/>
+            <ul class="categories clearfix">';
+        }
+
+        while ($row = $this->db->get_row())
+        {
+            $date        = fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $row['heading']);
+            $displayname = getUserDisplayName($row['user']);
+            $filename    = basename($row['filename']);
+            $caption     = cleanOutput($row['caption']);
+            $comment     = cleanOutput($row['comment']);
+            $pid         = cleanInput($row['pid'], 'int');
+            $uid         = cleanInput($row['uid'], 'int');
+
+            echo '
+                <li class="category">
+                    <a href="index.php?uid=0&amp;cid=comments&amp;pid='.$pid.'">
+                        <img src="../uploads/photos/member'.$uid.'/tb_'.$filename.'" alt="'.$caption.'" title="'.$caption.'"/>
+                    </a>
+                    <span>
+                        <strong>'.$date.'</strong>
+                        <i><b>'.$displayname.':</b> '.$comment.'</i>
+                    </span>
                 </li>';
-                    $i++;
-                }
-                echo '
+        }
+
+        echo '
             </ul>';
-            }
-            
-            // Display Pagination (unless it's front page latest comments
-            if ($page > 0) {
-                // Remove the LIMIT from the $sql statement 
-                // used above, so we can get the total count
-                $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
-                $this->db->query($sql) or displaySQLError(
-                    'Page Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                );
-                $count = $this->db->count_rows();
-                $total_pages = ceil($count / $perPage); 
-                displayPages("index.php$urlPage", $page, $total_pages);
-            }
-            
-        // If the sql statement returns no results and we're not trying to show 
-        // the latest comments on the front page
-        } elseif ($uid !== 0 && $cid !== 'comments') {
+
+        if ($page >= 0)
+        {
+            $url = '?uid=0&amp;cid=comments';
+
+            $this->displayCategoryPagination($sql, $page, $perPage, $url);
+        }
+    }
+
+    /**
+     * displayMemberListCategory 
+     * 
+     * Displays the listing of Members who have created categories with photos in them.
+     * 
+     * @param int $page 
+     * 
+     * @return void
+     */
+    function displayMemberListCategory ($page)
+    {
+        $perPage = 18;
+        $from    = ($page * $perPage) - $perPage;
+
+        $sql = "SELECT u.`id` AS uid, f.`filename`, COUNT(p.`id`) as c 
+                FROM `fcms_category` AS cat 
+                LEFT JOIN `fcms_gallery_photos` AS p 
+                ON p.`category` = cat.`id`, `fcms_users` AS u, (
+                    SELECT * 
+                    FROM `fcms_gallery_photos` 
+                    ORDER BY `date` DESC
+                ) AS f 
+                WHERE f.`id` = p.`id` 
+                AND u.`id` = p.`user` 
+                GROUP BY p.`user`
+                ORDER BY cat.`date` DESC
+                LIMIT $from, $perPage";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
             echo '
             <div class="info-alert">
                 <h2>'.T_('Oops!').'</h2>
                 <p>'.T_('The Category you are trying to view is Empty.').'</p>
             </div>';
         }
+
+        echo '
+            <p class="breadcrumbs">'.T_('Members').'</p>
+            <ul class="categories clearfix">';
+
+        while ($row = $this->db->get_row())
+        {
+            $displayname = getUserDisplayName($row['uid']);
+            $displayname = cleanOutput($displayname);
+            $id          = $row['uid'];
+            $filename    = basename($row['filename']);
+            $count       = cleanOutput($row['c']);
+            $alt         = 'alt="'.sprintf(T_('View Categories for %s'), $displayname).'"';
+            $title       = 'title="'.sprintf(T_('View Categories for %s'), $displayname).'"';
+            $url         = '?uid='.$row['uid'];
+
+            echo '
+                <li class="category">
+                    <a href="index.php'.$url.'">
+                        <img src="../uploads/photos/member'.$id.'/tb_'.$filename.'" '.$alt.' '.$title.'/>
+                    </a>
+                    <span>
+                        <strong>'.$displayname.'</strong>
+                        <i>'.T_('Photos').' ('.$count.')</i>
+                    </span>
+                </li>';
+        }
+
+        echo '
+            </ul>';
+
+        $url = '?uid=0';
+
+        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+    }
+
+    /**
+     * displayMemberCategory 
+     * 
+     * Displays all categories created by the given member.
+     * 
+     * @param int $page 
+     * @param int $uid 
+     * 
+     * @return void
+     */
+    function displayMemberCategory ($page, $uid)
+    {
+        $perPage = 18;
+        $from    = ($page * $perPage) - $perPage;
+
+        $sql = "SELECT u.`id` AS uid, cat.`name` AS category, cat.`id` AS cid, f.`filename`, COUNT(p.`id`) AS c
+                FROM `fcms_category` AS cat
+                LEFT JOIN `fcms_gallery_photos` AS p
+                ON p.`category` = cat.`id`, `fcms_users` AS u, (
+                    SELECT *
+                    FROM `fcms_gallery_photos`
+                    ORDER BY `date` DESC
+                ) AS f
+                WHERE f.`id` = p.`id`
+                AND u.`id` = p.`user`
+                AND p.`user` = '$uid'
+                GROUP BY cat.`id` DESC
+                LIMIT $from, $perPage";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
+            echo '
+            <div class="info-alert">
+                <h2>'.T_('Oops!').'</h2>
+                <p>'.T_('The Category you are trying to view is Empty.').'</p>
+            </div>';
+        }
+
+        echo '
+            <p class="breadcrumbs">
+                <a href="?uid=0">'.T_('Members').'</a> &gt; '.getUserDisplayName($uid).'
+            </p>
+            <ul class="categories clearfix">';
+
+        while ($row = $this->db->get_row())
+        {
+            $category = cleanOutput($row['category']);
+            $cid      = cleanInput($row['cid'], 'int');
+            $filename = basename($row['filename']);
+            $alt      = 'alt="'.sprintf(T_('View Photos in %s'), $category).'"';
+            $title    = 'title="'.sprintf(T_('View Photos in %s'), $category).'"';
+            $count    = cleanOutput($row['c']);
+
+            echo '
+                <li class="category">
+                    <a href="index.php?uid='.$uid.'&amp;cid='.$cid.'">
+                        <img src="../uploads/photos/member'.$uid.'/tb_'.$filename.'" '.$alt.' '.$title.'/>
+                    </a>
+                    <span>
+                        <strong>'.$category.'</strong>
+                        <i>'.T_('Photos').' ('.$count.')</i>
+                    </span>
+                </li>';
+        }
+
+        echo '
+            </ul>';
+
+        $url = '?uid='.$uid;
+
+        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+    }
+
+    /**
+     * displayCategory 
+     * 
+     * @param int $page 
+     * @param int $uid 
+     * @param int $cid 
+     * 
+     * @return void
+     */
+    function displayCategory ($page, $uid, $cid)
+    {
+        $perPage = 40;
+        $from    = ($page * $perPage) - $perPage;
+
+        $sql = "SELECT u.`id` AS uid, `category` AS cid, p.`id` AS pid, `caption`, c.`name` AS category, `filename`, c.`description`
+                FROM `fcms_category` AS c, `fcms_gallery_photos` AS p, `fcms_users` AS u
+                WHERE p.`user` = u.`id`
+                AND `category` = c.`id`
+                AND `category` = '$cid'
+                LIMIT $from, $perPage";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
+            echo '
+            <div class="info-alert">
+                <h2>'.T_('Oops!').'</h2>
+                <p>'.T_('The Category you are trying to view is Empty.').'</p>
+            </div>';
+        }
+
+        $photos   = '';
+        $admin    = '';
+        $descInfo = '';
+        $access   = checkAccess($this->currentUserId);
+
+        while ($row = $this->db->get_row())
+        {
+            $category    = cleanOutput($row['category']);
+            $filename    = basename($row['filename']);
+            $description = cleanOutput($row['description']);
+            $caption     = cleanOutput($row['caption']);
+            $pid         = cleanInput($row['pid'], 'int');
+            $alt         = 'alt="'.$caption.'"';
+            $title       = 'title="'.$caption.'"';
+
+            $photos .= '
+                    <li class="photo">
+                        <a href="index.php?uid='.$uid.'&amp;cid='.$cid.'&amp;pid='.$pid.'">
+                            <img class="photo" src="../uploads/photos/member'.$uid.'/tb_'.$filename.'" '.$alt.' '.$title.'/>
+                        </a>
+                    </li>';
+        }
+
+        // Administrate link
+        if ($access < 2)
+        {
+            $admin = '<li class="administrate"><a href="../admin/gallery.php?edit='.$cid.'">'.T_('Administrate').'</a></li>';
+        }
+
+        // Description
+        if (empty($description))
+        {
+            if ($uid == $this->currentUserId)
+            {
+                $descInfo = '<a href="?description='.$cid.'&amp;user='.$uid.'">'.T_('Add Description').'</a>';
+            }
+            else
+            {
+                $descInfo = '<i>'.T_('No description').'</i>';
+            }
+        }
+        else
+        {
+            $descInfo .= $description;
+
+            if ($uid == $this->currentUserId)
+            {
+                $descInfo .= '<br/><a href="?description='.$cid.'&amp;user='.$uid.'">'.T_('Edit Description').'</a>';
+            }
+        }
+
+        // Members in category
+        $membersInCategory = $this->getMembersInCategory($uid, $cid);
+
+        echo '
+            <p class="breadcrumbs">
+                <a href="?uid=0">'.T_('Members').'</a> &gt; 
+                <a href="?uid='.$uid.'">'.getUserDisplayName($uid).'</a> &gt; 
+                '.$category.'
+            </p>
+            <div id="maincolumn">
+                <ul id="photos clearfix">'.$photos.'
+                </ul>
+            </div>
+            <div id="leftcolumn">
+                <ul id="category-actions">
+                    <li class="slideshow"><a class="new_window" href="slideshow.php?category='.$cid.'">'.T_('View Slideshow').'</a></li>
+                    '.$admin.'
+                </ul>
+                <p><b>'.T_('Description').'</b></p>
+                <p>'.$descInfo.'</p>
+                <p><b>'.T_('Members In Category').'</b></p>
+                <p>'.$membersInCategory.'</p>
+            </div>';
+
+        $url = '?uid='.$uid.'&amp;cid='.$cid;
+
+        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+    }
+
+    /**
+     * displayTopRatedCategory 
+     * 
+     * @param int $page 
+     * @param int $uid 
+     * 
+     * @return void
+     */
+    function displayTopRatedCategory ($page, $uid)
+    {
+        $perPage = 18;
+        $from    = ($page * $perPage) - $perPage;
+        $where   = '';
+
+        if ($uid > 0)
+        {
+            $where = " AND `user` = '$uid' ";
+        }
+
+        $sql = "SELECT 'RATED' AS type, `user` AS uid, `filename`, `category`, `caption`, `id` AS pid, `rating`/`votes` AS 'r' 
+                FROM `fcms_gallery_photos` 
+                WHERE `votes` > 0 
+                $where
+                ORDER BY r DESC
+                LIMIT $from, $perPage";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
+            echo '
+            <div class="info-alert">
+                <h2>'.T_('Oops!').'</h2>
+                <p>'.T_('The Category you are trying to view is Empty.').'</p>
+            </div>';
+        }
+
+        $topRatedUser = '';
+        if ($uid > 0)
+        {
+            $topRatedUser = ' ('.getUserDisplayName($uid).')';
+        }
+
+        echo '
+            <p class="breadcrumbs">'.T_('Top Rated').$topRatedUser.'</p>
+            <ul class="categories clearfix">';
+
+        while ($row = $this->db->get_row())
+        {
+            $filename = basename($row['filename']);
+            $user     = cleanInput($row['uid'], 'int');
+            $cid      = cleanInput($row['category'], 'int');
+            $pid      = cleanInput($row['pid'], 'int');
+            $url      = 'index.php?uid='.$uid.'&amp;cid=toprated'.$cid.'&amp;pid='.$pid;
+            $width    = ($row['r'] / 5) * 100;
+            $caption  = cleanOutput($row['caption']);
+
+            echo '
+                <li class="category">
+                    <a href="'.$url.'">
+                        <img src="../uploads/photos/member'.$user.'/tb_'.$filename.'" alt="'.$caption.'" title="'.$caption.'"/>
+                    </a>
+                    <span>
+                        <i>
+                            <ul class="star-rating small-star">
+                                <li class="current-rating" style="width:'.$width.'%">'.sprintf(T_('Currently %d/5 Stars.'), $row['r']).'</li>
+                                <li><a href="'.$url.'&amp;vote=1" title="'.T_('1 out of 5 Stars').'" class="one-star">1</a></li>
+                                <li><a href="'.$url.'&amp;vote=2" title="'.T_('2 out of 5 Stars').'" class="two-stars">2</a></li>
+                                <li><a href="'.$url.'&amp;vote=3" title="'.T_('3 out of 5 Stars').'" class="three-stars">3</a></li>
+                                <li><a href="'.$url.'&amp;vote=4" title="'.T_('4 out of 5 Stars').'" class="four-stars">4</a></li>
+                                <li><a href="'.$url.'&amp;vote=5" title="'.T_('5 out of 5 Stars').'" class="five-stars">5</a></li>
+                            </ul>
+                        </i>
+                    </span>
+                </li>';
+        }
+
+        echo '
+            </ul>';
+
+        $url = '?uid='.$uid.'&amp;cid=toprated';
+
+        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+    }
+
+    /**
+     * displayMostViewedCategory 
+     * 
+     * @param int $page 
+     * @param int $uid 
+     * 
+     * @return void
+     */
+    function displayMostViewedCategory ($page, $uid)
+    {
+        $perPage = 18;
+        $from    = ($page * $perPage) - $perPage;
+        $where   = '';
+
+        if ($uid > 0)
+        {
+            $where = " AND `user` = '$uid' ";
+        }
+
+        $sql = "SELECT 'VIEWED' AS type, `user` AS uid, `filename`, `caption`, 
+                    `id` AS pid, `views` 
+                FROM `fcms_gallery_photos` 
+                WHERE `views` > 0 
+                $where
+                ORDER BY VIEWS DESC
+                LIMIT $from, $perPage";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
+            echo '
+            <div class="info-alert">
+                <h2>'.T_('Oops!').'</h2>
+                <p>'.T_('The Category you are trying to view is Empty.').'</p>
+            </div>';
+        }
+
+        $mostViewedUser = '';
+        if ($uid > 0)
+        {
+            $mostViewedUser = ' ('.getUserDisplayName($uid).')';
+        }
+
+        echo '
+            <p class="breadcrumbs">'.T_('Most Viewed').$mostViewedUser.'</p>
+            <ul class="categories clearfix">';
+
+        while ($row = $this->db->get_row())
+        {
+            $filename = basename($row['filename']);
+            $user     = cleanInput($row['uid'], 'int');
+            $pid      = cleanInput($row['pid'], 'int');
+            $caption  = cleanOutput($row['caption']);
+            $views    = cleanInput($row['views'], 'int');
+
+            echo '
+                <li class="category">
+                    <a href="?uid='.$user.'&amp;cid=mostviewed&amp;pid='.$pid.'">
+                        <img src="../uploads/photos/member'.$user.'/tb_'.$filename.'" alt="'.$caption.'" title="'.$caption.'"/>
+                    </a>
+                    <span>
+                        <i><b>'.T_('Views').': </b>'.$views.'</i>
+                    </span>
+                </li>';
+        }
+
+        echo '
+            </ul>';
+
+        $url = '?uid='.$uid.'&amp;cid=mostviewed';
+
+        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+    }
+
+    /**
+     * displayPhotosOf 
+     * 
+     * @param int $page 
+     * @param int $userId
+     * 
+     * @return void
+     */
+    function displayPhotosOf ($page, $userId)
+    {
+        $perPage = 30;
+        $from    = ($page * $perPage) - $perPage;
+
+        $sql = "SELECT t.`user`, p.`id` AS pid, p.`filename`, p.`caption`, p.`user` AS uid
+                FROM `fcms_gallery_photos` AS p, `fcms_gallery_photos_tags` AS t
+                WHERE t.`user` = '$userId'
+                AND t.`photo` = p.`id`
+                LIMIT $from, $perPage";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
+            echo '
+            <div class="info-alert">
+                <h2>'.T_('Oops!').'</h2>
+                <p>'.T_('The Category you are trying to view is Empty.').'</p>
+            </div>';
+        }
+
+        $userName = getUserDisplayName($userId);
+
+        echo '
+            <p class="breadcrumbs">'.sprintf(T_('Photos of %s'), $userName).'</p>
+            <ul class="photos clearfix">';
+
+        while ($row = $this->db->get_row())
+        {
+            $filename = basename($row['filename']);
+            $uid      = cleanInput($row['uid']);
+            $pid      = cleanInput($row['pid']);
+            $urlPage  = '?uid=0&amp;cid='.$userId;
+            $caption  = cleanOutput($row['caption']);
+
+            echo '
+                <li class="photo">
+                    <a href="index.php?uid=0&amp;cid=tagged'.$userId.'&amp;pid='.$pid.'">
+                        <img class="photo" src="../uploads/photos/member'.$uid.'/tb_'.$filename.'" alt="'.$caption.'" title="'.$caption.'"/>
+                    </a>
+                </li>';
+        }
+
+        echo '
+            </ul>';
+
+        $url = '?uid=0&amp;cid='.$userId;
+
+        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+    }
+
+    /**
+     * displayPhotosUploadedBy 
+     * 
+     * @param int $page 
+     * @param int $userId 
+     * 
+     * @return void
+     */
+    function displayPhotosUploadedBy ($page, $userId)
+    {
+        $perPage = 30;
+        $from    = ($page * $perPage) - $perPage;
+
+        $sql = "SELECT 'ALL' AS type, u.`id` AS uid, `category` AS cid, p.`id` AS pid, `caption`, c.`name` AS category, `filename` 
+                FROM `fcms_category` AS c, `fcms_gallery_photos` AS p, `fcms_users` AS u 
+                WHERE p.`user` = '$userId' 
+                AND p.`user` = u.`id`
+                AND `category` = c.`id`
+                ORDER BY p.`id`
+                LIMIT $from, $perPage";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
+            echo '
+            <div class="info-alert">
+                <h2>'.T_('Oops!').'</h2>
+                <p>'.T_('The Category you are trying to view is Empty.').'</p>
+            </div>';
+        }
+
+        $userName = getUserDisplayName($userId);
+
+        echo '
+            <p class="breadcrumbs">'.sprintf(T_('Photos uploaded by %s'), $userName).'</p>
+            <ul class="photos clearfix">';
+
+        while ($row = $this->db->get_row())
+        {
+            $filename = basename($row['filename']);
+            $pid      = cleanInput($row['pid']);
+            $urlPage  = '?uid='.$userId.'&amp;cid=all';
+            $caption  = cleanOutput($row['caption']);
+
+            echo '
+                <li class="photo">
+                    <a href="index.php?uid='.$userId.'&amp;cid=all&amp;pid='.$pid.'">
+                        <img class="photo" src="../uploads/photos/member'.$userId.'/tb_'.$filename.'" alt="'.$caption.'" title="'.$caption.'"/>
+                    </a>
+                </li>';
+        }
+
+        echo '
+            </ul>';
+
+        $url = '?uid='.$userId.'&amp;cid=all';
+
+        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+    }
+
+    /**
+     * displayCategoryPagination 
+     * 
+     * @param string $sql 
+     * @param int    $page 
+     * @param int    $perPage 
+     * @param string $url 
+     * 
+     * @return void
+     */
+    function displayCategoryPagination ($sql, $page, $perPage, $url)
+    {
+        // Remove the LIMIT from the $sql statement 
+        $findLimit = strpos($sql, 'LIMIT');
+        if ($findLimit !== false)
+        {
+            $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
+        }
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        $count = $this->db->count_rows();
+        $total = ceil($count / $perPage); 
+
+        displayPages("index.php$url", $page, $total);
     }
 
     /**
@@ -1225,16 +1563,18 @@ class PhotoGallery
         $categories = $this->getUserCategories();
 
         // We have existing categories
-        if (count($categories) > 0) {
+        if (count($categories) > 0)
+        {
             $category_options = '
                             <input class="frm_text" type="text" id="new-category" name="new-category" size="35"/>
                             <select id="existing-categories" name="category">
                                 <option value="0">&nbsp;</option>
                                 '.buildHtmlSelectOptions($categories, '').'
                             </select>';
-
+        }
         // No Categories (force creation of new one)
-        } else {
+        else
+        {
             $category_options = '
                             <input class="frm_text" type="text" name="new-category" size="50"/>';
         }
@@ -1246,18 +1586,21 @@ class PhotoGallery
         $autocomplete_selected  = '';
 
         // Setup the photo tagging options (autocomplete or checkbox)
-        $tagging_options    = '';
-        $users_list         = '';
-        $users_lkup         = '';
+        $tagging_options = '';
+        $users_list      = '';
+        $users_lkup      = '';
 
         // Setup the list of active members for possible tags
         $sql = "SELECT `id` 
                 FROM `fcms_users` 
                 WHERE `activated` > 0";
-        $this->db2->query($sql) or displaySQLError(
-            'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        while ($r = $this->db2->get_row()) {
+        if (!$this->db2->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+        while ($r = $this->db2->get_row())
+        {
             $members[$r['id']] = getUserDisplayName($r['id'], 2);
         }
         asort($members);
@@ -1374,38 +1717,47 @@ class PhotoGallery
         $categories = $this->getUserCategories();
 
         // We have existing categories
-        if (count($categories) > 0) {
+        if (count($categories) > 0)
+        {
             $category_options = '
                     <input class="frm_text" type="text" id="new-category" name="new-category" size="35""/>
                     <select id="existing-categories" name="category">
                         <option value="0">&nbsp;</option>';
-            foreach ($categories as $id => $name) {
+
+            foreach ($categories as $id => $name)
+            {
                 $category_options .= '
-                        <option value="' . $id . '">' . cleanOutput($name) . '</option>';
+                        <option value="'.$id.'">'.cleanOutput($name).'</option>';
             }
             $category_options .= '
                     </select>';
-
+        }
         // No Categories (force creation of new one)
-        } else {
+        else
+        {
             $category_options = '
                     <input class="frm_text" type="text" id="new-category" name="new-category" size="50""/>';
         }
 
+        // TODO
         // Are we using full sized photos?
         $sql = "SELECT `value` AS 'full_size_photos'
                 FROM `fcms_config`
                 WHERE `name` = 'full_size_photos'";
-        $this->db->query($sql) or displaySQLError(
-            'Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         $r = $this->db->get_row();
 
         $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="small,medium"/>';
         $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit"/>';
         $fullSizedPhotos          = '';
 
-        if ($r['full_size_photos'] == 1) {
+        if ($r['full_size_photos'] == 1)
+        {
             $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="small,medium,full"/>';
             $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit,1400x1400xfit"/>';
             $fullSizedPhotos          = '
@@ -1515,44 +1867,48 @@ class PhotoGallery
                 FROM `fcms_gallery_photos` AS p, `fcms_category` AS c 
                 WHERE p.`id` = '$photo'
                 AND p.`category` = c.`id`";
-        $this->db->query($sql) or displaySQLError(
-            'Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
 
         if ($this->db->count_rows() > 0)
         {
             $row        = $this->db->get_row();
-
             $photo_user = cleanInput($row['user'], 'int');
             $filename   = basename($row['filename']);
             $caption    = cleanOutput($row['caption']);
             $cat_name   = cleanOutput($row['name']);
             $cat_id     = cleanOutput($row['category_id']);
 
-            $categories     = $this->getUserCategories($photo_user);
-            $cat_options    = buildHtmlSelectOptions($categories, $cat_id);
+            $categories  = $this->getUserCategories($photo_user);
+            $cat_options = buildHtmlSelectOptions($categories, $cat_id);
 
             $advanced_tagging = usingAdvancedTagging($photo_user);
 
-            $prev_tagged    = array();
-            $members        = array();
+            $prev_tagged = array();
+            $members     = array();
 
-            $autocomplete_selected  = '';
-            $prev_tagged_options    = '';
+            $autocomplete_selected = '';
+            $prev_tagged_options   = '';
 
             // Setup the photo tagging options (autocomplete or checkbox)
-            $tagging_options    = '';
-            $users_list         = '';
-            $users_lkup         = '';
+            $tagging_options = '';
+            $users_list      = '';
+            $users_lkup      = '';
 
             // Setup the list of users already tagged
             $sql = "SELECT `id`, `user` 
                     FROM `fcms_gallery_photos_tags` 
                     WHERE `photo` = '$photo'";
-            $this->db2->query($sql) or displaySQLError(
-                'Find Tagged Users Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            while ($r = $this->db2->get_row()) {
+            if (!$this->db2->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
+            while ($r = $this->db2->get_row())
+            {
                 $prev_tagged[$r['user']] = 1;
             }
 
@@ -1560,10 +1916,13 @@ class PhotoGallery
             $sql = "SELECT `id` 
                     FROM `fcms_users` 
                     WHERE `activated` > 0";
-            $this->db2->query($sql) or displaySQLError(
-                'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            while ($r = $this->db2->get_row()) {
+            if (!$this->db2->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
+            while ($r = $this->db2->get_row())
+            {
                 $members[$r['id']] = getUserDisplayName($r['id'], 2);
             }
             asort($members);
@@ -1627,7 +1986,7 @@ class PhotoGallery
                 {
                     $check = isset($prev_tagged[$key]) ? 'checked="checked"' : '';
 
-                    $tag_checkboxes .= '<label for="' . $key . '">';
+                    $tag_checkboxes .= '<label for="'.$key.'">';
                     $tag_checkboxes .= '<input type="checkbox" id="'.cleanOutput($key).'" 
                         name="tagged[]"  value="'.cleanOutput($key).'" '.$check.'/> '.$value;
                     $tag_checkboxes .= '</label>';
@@ -1689,7 +2048,8 @@ class PhotoGallery
     function displayAdvancedUploadEditForm ()
     {
         // Do we have a valid category?
-        if (isset($_SESSION['photos']['error'])) {
+        if (isset($_SESSION['photos']['error']))
+        {
             // clear the photos in the session
             unset($_SESSION['photos']);
             echo '<div class="error-alert">'.T_('You must create a new category, or select an existing category.').'</div>';
@@ -1715,10 +2075,13 @@ class PhotoGallery
         $sql = "SELECT `id` 
                 FROM `fcms_users` 
                 WHERE `activated` > 0";
-        $this->db2->query($sql) or displaySQLError(
-            'Members Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        while ($r = $this->db2->get_row()) {
+        if (!$this->db2->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+        while ($r = $this->db2->get_row())
+        {
             $members[$r['id']] = getUserDisplayName($r['id'], 2);
         }
         asort($members);
@@ -1868,9 +2231,9 @@ class PhotoGallery
         }
 
         // Create new directory if needed
-        if (!file_exists('../uploads/photos/member'.$this->currentUserId))
+        if (!file_exists(ROOT.'uploads/photos/member'.$this->currentUserId))
         {
-            mkdir('../uploads/photos/member'.$this->currentUserId);
+            mkdir(ROOT.'uploads/photos/member'.$this->currentUserId);
         }
 
         // Insert new photo record
@@ -1884,7 +2247,7 @@ class PhotoGallery
                 )";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Add Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -1941,7 +2304,7 @@ class PhotoGallery
                         WHERE `id` = $id";
                 if (!$this->db->query($sql))
                 {
-                    displaySQLError('Update Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+                    displaySqlError($sql, mysql_error());
                     return false;
                 }
             }
@@ -1993,13 +2356,13 @@ class PhotoGallery
     }
 
     /**
-     * displayAddCatForm 
+     * displayCategoryForm 
      *
-     * Displays the form for adding categories 
+     * Displays the form for editing/deleting categories 
      *
      * @return void
      */
-    function displayAddCatForm ()
+    function displayCategoryForm ()
     {
         $cat_list = '';
         
@@ -2007,33 +2370,57 @@ class PhotoGallery
         $sql = "SELECT * FROM `fcms_category` 
                 WHERE `user` = '".$this->currentUserId."'
                 AND `type` = 'gallery'";
-        $this->db->query($sql) or displaySQLError(
-            'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
-            while ($row = $this->db->get_row()) {
-                $name = cleanOutput($row['name']);
-                $cat_list .= '<li>
-                    <form class="frm_line" action="index.php?action=category" method="post">
-                        <input class="frm_text" type="text" name="cat_name" id="cat_name" size="60" value="'.$name.'"/>
-                        <input type="hidden" name="cid" id="cid" value="'.(int)$row['id'].'"/> &nbsp;
-                        <input type="submit" name="editcat" class="editbtn" value="'.T_('Edit').'" title="'.T_('Edit Category').'"/> &nbsp;
-                        <input type="submit" name="delcat" class="delbtn" value="'.T_('Delete').'" title="'.T_('Delete Category').'"/>
-                    </form>
-                </li>';
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        $categories = '';
+
+        if ($this->db->count_rows() > 0)
+        {
+            while ($row = $this->db->get_row())
+            {
+                $id    = cleanOutput($row['id']);
+                $name  = cleanOutput($row['name']);
+                $count = $this->getCategoryPhotoCount($row['id']);
+
+                $categories .= '
+                    <tr>
+                        <td>
+                            <form class="frm_line" action="index.php?action=category" method="post">
+                                <input type="hidden" name="cid" id="cid" value="'.$id.'"/>
+                                <input class="frm_text" type="text" name="cat_name" id="cat_name" size="60" value="'.$name.'"/>
+                                <input type="submit" name="editcat" class="editbtn" value="'.T_('Edit').'" title="'.T_('Edit Category').'"/>
+                            </form>
+                        </td>
+                        <td>'.$count.'</td>
+                        <td>
+                            <a href="?delcat='.$id.'" class="delcategory" title="'.T_('Delete Category').'">'.T_('Delete').'</a>
+                        </td>
+                    </tr>';
             }
-        } else {
-            $cat_list .= "<li><i>".T_('No Categories created yet.')."</i></li>";
+        }
+        else
+        {
+            $categories .= '<tr><td colspan="3"><i>'.T_('No Categories created yet.').'</i></td></tr>';
         }
         
         // Display the form
         echo '
-            <fieldset>
-                <legend><span>'.T_('Edit Category').'</span></legend>
-                <ul class="gallery_cat">
-                    '.$cat_list.'
-                </ul>
-            </fieldset>';
+            <h2>'.T_('Manage Categories').'</h2>
+            <table id="manage-categories" class="sortable">
+                <thead>
+                    <tr>
+                        <th>'.T_('Category').'</th>
+                        <th>'.T_('Photos').'</th>
+                        <th>'.T_('Delete').'</th>
+                    </tr>
+                </thead>
+                <tbody>'.$categories.'
+                </tbody>
+            </table>';
     }
 
     /**
@@ -2051,16 +2438,19 @@ class PhotoGallery
         }
 
         $sql = "SELECT `id`, `name` FROM `fcms_category` 
-                WHERE `user` = '" . cleanInput($userid, 'int') . "'
+                WHERE `user` = '".cleanInput($userid, 'int')."'
                 AND `type` = 'gallery'
                 ORDER BY `id` DESC";
-        $this->db->query($sql) or displaySQLError(
-            'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
 
         $categories = array();
 
-        while($row = $this->db->get_row()) {
+        while($row = $this->db->get_row())
+        {
             $categories[$row['id']] = $row['name'];
         }
 
@@ -2111,8 +2501,9 @@ class PhotoGallery
                 GROUP BY `category`
                 ORDER BY `date` DESC 
                 LIMIT $from, $perPage";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Latest Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -2158,11 +2549,15 @@ class PhotoGallery
         // Remove the LIMIT from the $sql statement 
         // used above, so we can get the total count
         $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
-        $this->db->query($sql) or displaySQLError(
-            'Page Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        $count = $this->db->count_rows();
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        $count       = $this->db->count_rows();
         $total_pages = ceil($count / $perPage); 
+
         displayPages("gallery.php", $page, $total_pages);
     }
 
@@ -2183,8 +2578,9 @@ class PhotoGallery
                 FROM `fcms_gallery_photos` AS p, `fcms_category` AS c
                 WHERE p.`category` = '$id'
                 AND p.`category` = c.`id`";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -2274,8 +2670,9 @@ class PhotoGallery
                 FROM `fcms_gallery_photos`
                 WHERE `id` = '$id'
                 LIMIT 1";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return;
         }
         return $this->db->get_row();
@@ -2293,7 +2690,7 @@ class PhotoGallery
                 WHERE `name` = 'full_size_photos'";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Full Size Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -2346,9 +2743,11 @@ class PhotoGallery
                 // Remove the photo from the DB
                 $sql = "DELETE FROM `fcms_gallery_photos` 
                         WHERE `id` = '$id'";
-                mysql_query($sql) or displaySQLError(
-                    'Delete Photo Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-                );
+                if (!mysql_query($sql))
+                {
+                    displaySqlError($sql, mysql_error());
+                    // continue
+                }
                 
                 // Remove the Photo from the server
                 unlink("photos/member".$this->currentUserId."/".$this->img->name);
@@ -2407,7 +2806,8 @@ class PhotoGallery
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Members Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
+            return;
         }
 
         if ($this->db->count_rows() < 0)
@@ -2435,7 +2835,7 @@ class PhotoGallery
                 ORDER BY p.`id`";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -2486,10 +2886,12 @@ class PhotoGallery
 
             if (!$this->db2->query($sql))
             {
-                displaySQLError('Tagged Users Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
+                return;
             }
 
-            while ($r = $this->db2->get_row()) {
+            while ($r = $this->db2->get_row())
+            {
                 $prev_tagged[$r['user']] = 1;
             }
 
@@ -2499,7 +2901,8 @@ class PhotoGallery
                 foreach ($prev_tagged as $id => $name)
                 {
                     $prev_tagged_options .= '<input type="hidden" name="prev_tagged_users['.$row['pid'].'][]" value="'.$id.'"/>';
-                    if ($advanced_tagging) {
+                    if ($advanced_tagging)
+                    {
                         $prev_tagged_options .= '<input type="hidden" id="tagged_'.$row['pid'].'" name="tagged['.$row['pid'].'][]" class="tagged" value="'.$id.'"/>';
                     }
                 }
@@ -2599,7 +3002,7 @@ class PhotoGallery
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Comments Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -2612,5 +3015,73 @@ class PhotoGallery
         }
 
         return $comments;
+    }
+
+    /**
+     * getMembersInCategory 
+     * 
+     * @param int $cid 
+     * 
+     * @return string
+     */
+    function getMembersInCategory ($uid, $cid)
+    {
+        $retVal = '';
+
+        $sql = "SELECT u.`id`, u.`fname`, u.`lname`, u.`avatar`, u.`gravatar`
+                FROM `fcms_gallery_photos_tags` AS t
+                LEFT JOIN `fcms_gallery_photos` AS p ON t.`photo` = p.`id`
+                LEFT JOIN `fcms_category` AS c ON p.`category` = c.`id`
+                LEFT JOIN `fcms_users` AS u ON t.`user` = u.`id`
+                WHERE p.`category` = '$cid'
+                AND p.`user` = '$uid'
+                GROUP BY u.`id`";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return $retVal;
+        }
+
+        if ($this->db->count_rows() <= 0)
+        {
+            if ($uid == $this->currentUserId || checkAccess($this->currentUserId) < 2)
+            {
+                $retVal .= '<a href="?tag='.$cid.'&amp;user='.$uid.'">'.T_('Tag Members In Photos').'</a>';
+            }
+            return $retVal;
+        }
+
+        $retVal .= '
+            <ul class="avatar-member-list-small">';
+
+        while ($row = $this->db->get_row())
+        {
+            $id          = cleanInput($row['id'], 'int');
+            $displayname = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
+            $avatarPath  = getAvatarPath($row['avatar'], $row['gravatar'], '../');
+
+            $retVal .= '
+                <li>
+                    <a href="index.php?uid=0&amp;cid='.$id.'" class="tooltip" title="" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">
+                        <img class="avatar" alt="avatar" src="'.$avatarPath.'"/>
+                    </a>
+                    <div class="tooltip" style="display:none;">
+                        <h5>'.$displayname.'</h5>
+                        <span>'.sprintf(T_('Click to view more photos of %s.'), $displayname).'</span>
+                    </div>
+                </li>';
+            
+        }
+
+        $retVal .= '
+            </ul>';
+
+        if ($uid == $this->currentUserId || checkAccess($this->currentUserId) < 2)
+        {
+            $retVal .= '<a href="?tag='.$cid.'&amp;user='.$uid.'">'.T_('Tag Members In Photos').'</a>';
+        }
+
+        return $retVal;
     }
 }

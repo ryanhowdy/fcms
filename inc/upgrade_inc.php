@@ -61,7 +61,7 @@ function updateCurrentVersion ($version)
             WHERE `name` = 'current_version'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Version Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
 
@@ -204,8 +204,11 @@ function copy_files ($from, $to)
 
     if (!is_dir($to))
     {
-        echo '<div class="error-alert">'.sprintf(T_('Could not find destination: %s.'), $to).'</div>';
-        return false;
+        if (!mkdir($to))
+        {
+            echo '<div class="error-alert">'.sprintf(T_('Destination not found and could not be created: %s.'), $to).'</div>';
+            return false;
+        }
     }
 
     $dh = @opendir($from);
@@ -315,6 +318,11 @@ function upgrade ()
         return false;
     }
 
+    if (!upgrade280())
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -336,7 +344,7 @@ function upgrade250 ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     if (mysql_num_rows($result) > 0)
@@ -361,28 +369,28 @@ function upgrade250 ()
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
 
         $sql = "ALTER TABLE `fcms_config` ADD `fb_app_id` VARCHAR(50) NULL";
         if (!mysql_query($sql))
         {
-            displaySQLError('Alter Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
         $sql = "ALTER TABLE `fcms_config` ADD `fb_secret` VARCHAR(50) NULL";
         if (!mysql_query($sql))
         {
-            displaySQLError('Alter Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
         $sql = "ALTER TABLE `fcms_user_settings` ADD `fb_access_token` VARCHAR(255) NULL";
         if (!mysql_query($sql))
         {
-            displaySQLError('Alter Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
         $adminOrder = getNextAdminNavigationOrder();
@@ -390,7 +398,7 @@ function upgrade250 ()
                 VALUES ('admin_facebook', 6, $adminOrder, 0)";
         if (!mysql_query($sql))
         {
-            displaySQLError('Alter Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
     }
@@ -417,7 +425,7 @@ function upgrade260 ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     if (mysql_num_rows($result) > 0)
@@ -438,7 +446,7 @@ function upgrade260 ()
                 ADD COLUMN `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00' AFTER `user`";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
     }
@@ -450,7 +458,7 @@ function upgrade260 ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     if (mysql_num_rows($result) > 0)
@@ -474,7 +482,7 @@ function upgrade260 ()
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
     }
@@ -487,7 +495,7 @@ function upgrade260 ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     if (mysql_num_rows($result) > 0)
@@ -509,7 +517,7 @@ function upgrade260 ()
                 ADD COLUMN `updated_id` INT(11) NOT NULL DEFAULT '0' AFTER `updated`";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -518,7 +526,7 @@ function upgrade260 ()
                 WHERE `updated_id` = 0";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Updated Id Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -527,12 +535,12 @@ function upgrade260 ()
                 WHERE `created` = '0000-00-00 00:00:00'";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Created Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
     }
 
-    // YouTube
+    // YouTube (key)
     $youtube_fixed = false;
 
     $sql = "SHOW COLUMNS FROM `fcms_config`";
@@ -540,7 +548,7 @@ function upgrade260 ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     if (mysql_num_rows($result) > 0)
@@ -554,34 +562,13 @@ function upgrade260 ()
         }
     }
 
-    $sql = "SELECT `value` FROM `fcms_config` WHERE `name` = 'youtube_key'";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-        return false;
-    }
-    if (mysql_num_rows($result) > 0)
-    {
-        $youtube_fixed = true;
-    }
-
     if (!$youtube_fixed)
     {
         $sql = "ALTER TABLE `fcms_config`
                 ADD COLUMN `youtube_key` VARCHAR(255) NULL";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Alter Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-            return false;
-        }
-
-        $sql = "ALTER TABLE `fcms_user_settings`
-                ADD COLUMN `youtube_session_token` VARCHAR(255) NULL";
-        if (!mysql_query($sql))
-		{
-			displaySQLError('Alter Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -590,7 +577,40 @@ function upgrade260 ()
                 VALUES ('admin_youtube', 6, $adminOrder, 1)";
         if (!mysql_query($sql))
         {
-            displaySQLError('Insert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // YouTube (token)
+    $youtube_fixed = false;
+
+    $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r['Field'] == 'youtube_session_token')
+            {
+                $youtube_fixed = true;
+            }
+        }
+    }
+
+    if (!$youtube_fixed)
+    {
+        $sql = "ALTER TABLE `fcms_user_settings`
+                ADD COLUMN `youtube_session_token` VARCHAR(255) NULL";
+        if (!mysql_query($sql))
+		{
+			displaySqlError(mysql_error());
             return false;
         }
     }
@@ -603,7 +623,7 @@ function upgrade260 ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     if (mysql_num_rows($result) > 0)
@@ -670,7 +690,7 @@ function upgrade260 ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     if (mysql_num_rows($result) > 0)
@@ -693,7 +713,7 @@ function upgrade260 ()
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -703,7 +723,7 @@ function upgrade260 ()
                     ('youtube', 'hourly')";
         if (!mysql_query($sql))
         {
-            displaySQLError('Insert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -711,7 +731,7 @@ function upgrade260 ()
                 VALUES ('running_job', '0')";
         if (!mysql_query($sql))
         {
-            displaySQLError('Alter Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -720,7 +740,7 @@ function upgrade260 ()
                 VALUES ('admin_scheduler', 6, $adminOrder, 1)";
         if (!mysql_query($sql))
         {
-            displaySQLError('Alter Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
     }
@@ -732,7 +752,7 @@ function upgrade260 ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     if (mysql_num_rows($result) > 0)
@@ -763,7 +783,7 @@ function upgrade260 ()
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -772,7 +792,7 @@ function upgrade260 ()
                 VALUES ('videogallery', 4, $order, 1)";
         if (!mysql_query($sql))
         {
-            displaySQLError('INSERT Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -789,7 +809,7 @@ function upgrade260 ()
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
     }
@@ -816,7 +836,7 @@ function upgrade270 ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     if (mysql_num_rows($result) > 0)
@@ -836,7 +856,7 @@ function upgrade270 ()
                 ADD COLUMN `country` CHAR(2) DEFAULT NULL AFTER `user`";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -844,7 +864,7 @@ function upgrade270 ()
                 VALUES ('country', 'US')";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Insert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
     }
@@ -857,7 +877,7 @@ function upgrade270 ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Table Search Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
     if (mysql_num_rows($result) > 0)
@@ -882,7 +902,7 @@ function upgrade270 ()
                 ADD COLUMN `dod_day` CHAR(2) AFTER `dod_month`";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Create Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -892,7 +912,7 @@ function upgrade270 ()
         $result = mysql_query($sql);
         if (!$result)
 		{
-			displaySQLError('Select Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -924,7 +944,7 @@ function upgrade270 ()
                     WHERE `id` = '$id'";
             if (!mysql_query($sql))
             {
-                displaySQLError('User DOB/DOD Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return false;
             }
         }
@@ -934,7 +954,81 @@ function upgrade270 ()
                 DROP COLUMN `death`";
         if (!mysql_query($sql))
 		{
-			displaySQLError('Drop Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+			displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * upgrade280
+ * 
+ * Upgrade database to version 2.8.
+ * 
+ * @return boolean
+ */
+function upgrade280 ()
+{
+    global $cfg_mysql_db;
+
+    // category description
+    $desc_fixed = false;
+
+    $sql = "SHOW COLUMNS FROM `fcms_category`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r['Field'] == 'description')
+            {
+                $desc_fixed = true;
+            }
+        }
+    }
+
+    if (!$desc_fixed)
+    {
+        $sql = "ALTER TABLE `fcms_category`
+                ADD COLUMN `description` VARCHAR(255) NULL";
+        if (!mysql_query($sql))
+		{
+			displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // debug
+    $debug_fixed = false;
+
+    $sql = "SELECT `name` FROM `fcms_config` WHERE `name` = 'debug'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        $debug_fixed = true;
+    }
+
+    if (!$debug_fixed)
+    {
+        $sql = "INSERT INTO `fcms_config` (`name`, `value`)
+                VALUES ('debug', '0')";
+        if (!mysql_query($sql))
+		{
+			displaySqlError($sql, mysql_error());
             return false;
         }
     }

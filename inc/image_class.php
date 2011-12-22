@@ -51,8 +51,8 @@ class Image
 
         $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->tzOffset         = getTimezone($this->currentUserId);
         $this->currentUserId    = cleanInput($currentUserId, 'int');
+        $this->tzOffset         = getTimezone($this->currentUserId);
         $this->error            = 0;
         $this->resizeSquare     = false;
         $this->uniqueName       = false;

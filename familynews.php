@@ -100,9 +100,6 @@ if (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9)
             </div>';
 }
 
-echo '
-            <br/>';
-
 $show_last5 = true;
 
 //-------------------------------------
@@ -133,7 +130,7 @@ if (isset($_POST['submitadd']))
 
     if (!mysql_query($sql))
     {
-        displaySQLError('News Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -148,7 +145,7 @@ if (isset($_POST['submitadd']))
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Email Updates Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -198,7 +195,7 @@ elseif (isset($_POST['submitedit']))
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Edit Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
 
         $fnews->displayFamilyNews($user, $id);
 
@@ -263,7 +260,7 @@ elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
             WHERE id = '".cleanInput($_POST['id'], 'int')."'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Delete News Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -295,7 +292,7 @@ if (isset($_GET['getnews']))
                     )";
             if (!mysql_query($sql))
             {
-                displaySQLError('New Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
             }
         }
     }
@@ -326,7 +323,7 @@ if (isset($_GET['getnews']))
 
         if (!mysql_query($sql))
         {
-            displaySQLError('Delete Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
         }
     }
 

@@ -109,8 +109,9 @@ if (isset($_GET['compose']))
 //------------------------------------------------------------------------------
 elseif (isset($_POST['submit']))
 {
-    $title = cleanInput($_POST['title']);
-    $msg   = cleanInput($_POST['post']);
+    $title   = cleanInput($_POST['title']);
+    $msg     = cleanInput($_POST['post']);
+    $msgBody = $_POST['post'];
 
     if (strlen($title) > 0 && strlen($msg) > 0)
     {
@@ -126,7 +127,7 @@ elseif (isset($_POST['submit']))
                 )";
         if (!mysql_query($sql))
         {
-            displaySQLError('Send PM Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             exit();
         }
@@ -138,7 +139,7 @@ elseif (isset($_POST['submit']))
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Get User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             exit();
         }
@@ -149,11 +150,12 @@ elseif (isset($_POST['submit']))
         $reply    = getUserEmail($currentUserId);
         $to       = getUserDisplayName($_POST['to']);
         $sitename = getSiteName();
+        $sitename = html_entity_decode($sitename);
         $subject  = sprintf(T_('A new Private Message at %s'), $sitename);
         $email    = $r['email'];
         $url      = getDomainAndDir();
 
-        $email_headers  = 'From: '.getSiteName().' <'.getContactEmail().'>'."\r\n";
+        $email_headers  = 'From: '.$sitename.' <'.getContactEmail().'>'."\r\n";
         $email_headers .= 'Reply-To: '.$reply."\r\n";
         $email_headers .= 'Content-Type: text/plain; charset=UTF-8;'."\r\n";
         $email_headers .= 'MIME-Version: 1.0'."\r\n";
@@ -172,7 +174,7 @@ elseif (isset($_POST['submit']))
 '.T_('From').': '.$from.'
 '.T_('Message Title').': '.$title.'
 
-'.$msg.'
+'.$msgBody.'
 
 ';
 
@@ -225,7 +227,7 @@ elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
             $sql = "DELETE FROM `fcms_privatemsg` WHERE `id` = ".escape_string($id);
             if (!mysql_query($sql))
             {
-                displaySQLError('Delete PM Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 displayFooter();
                 exit();
             }

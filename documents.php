@@ -83,7 +83,7 @@ if (isset($_POST['submitadd']))
 
         if (!mysql_query($sql))
         {
-            displaySQLError('Document Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -99,7 +99,7 @@ if (isset($_POST['submitadd']))
 
         if (!$result)
         {
-            displaySQLError('Email Updates Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -143,7 +143,7 @@ if (isset($_POST['deldoc']))
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Delete Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 

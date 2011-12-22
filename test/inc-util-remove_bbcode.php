@@ -1,8 +1,10 @@
 #!/usr/bin/php -q
 <?php
-require_once 'lib/Test-More.php';
-require_once '../inc/config_inc.php';
-require_once '../inc/utils.php';
+require_once dirname(dirname(__FILE__)).'/test/lib/utils.php';
+
+require_once TEST.'lib/Test-More.php';
+require_once INC.'config_inc.php';
+require_once INC.'utils.php';
 
 diag('removeBBCode');
 

@@ -125,14 +125,14 @@ if (isset($_POST['deleteAll']) && isset($_POST['confirmedall']) && isset($_POST[
                 WHERE `category` = '$category'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Delete Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             exit();
         }
         $sql = "DELETE FROM `fcms_category`
                 WHERE `id` = '$category'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Delete Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             exit();
         }
     }
@@ -181,8 +181,8 @@ if (isset($_POST['deleteAllPhotos']) && isset($_POST['confirmedall']) && isset($
                 WHERE `id` = '$id'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Delete Photo Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-            exit();
+            displaySqlError($sql, mysql_error());
+            die();
         }
     }
     echo '

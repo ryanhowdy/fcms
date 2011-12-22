@@ -57,7 +57,7 @@ function control ()
     }
     elseif (isset($_GET['err']))
     {
-        displayError();
+        displayLoginError();
     }
     elseif (isset($_SESSION['login_id']) || isset($_COOKIE['fcms_login_id']))
     {
@@ -119,11 +119,11 @@ function displayChangeLanguage ()
 }
 
 /**
- * displayError 
+ * displayLoginError 
  * 
  * @return void
  */
-function displayError ()
+function displayLoginError ()
 {
     // Tried to access a page before logging in
     if ($_GET['err'] == 'login')
@@ -176,7 +176,7 @@ function displayLoginSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Login Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -214,7 +214,7 @@ function displayLoginSubmit ()
                 WHERE `id` = ".$row['id'];
         if (!mysql_query($sql))
         {
-            displaySQLError('Activity Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             // We can continue on this error
         }
 
@@ -224,7 +224,7 @@ function displayLoginSubmit ()
                 WHERE `id` = ".$row['id'];
         if (!mysql_query($sql))
         {
-            displaySQLError('Login Attempt Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             // We can continue on this error
         }
 
@@ -243,7 +243,7 @@ function displayLoginSubmit ()
                     WHERE `id` = ".$row['id'];
             if (!mysql_query($sql))
             {
-                displaySQLError('Activated Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 die();
             }
 
@@ -267,7 +267,7 @@ function displayLoginSubmit ()
                     WHERE `id` = ".$row['id'];
             if (!mysql_query($sql))
             {
-                displaySQLError('Activity Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 // We can continue on this error
             }
 
@@ -277,7 +277,7 @@ function displayLoginSubmit ()
                     WHERE `id` = ".$row['id'];
             if (!mysql_query($sql))
             {
-                displaySQLError('Login Attempt Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 // We can continue on this error
             }
 
@@ -319,7 +319,7 @@ function displayAlreadyLoggedIn ()
             WHERE `id` = '".cleanInput($_SESSION['login_id'], 'int')."'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Activity Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         // We can continue on this error
     }
 
@@ -329,7 +329,7 @@ function displayAlreadyLoggedIn ()
             WHERE `id` = '".cleanInput($_SESSION['login_id'], 'int')."'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Login Attempt Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         // We can continue on this error
     }
 
@@ -521,7 +521,7 @@ function handleBadLogin ($user)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Valid Username Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -542,7 +542,7 @@ function handleBadLogin ($user)
 
             if (!mysql_query($sql))
             {
-                displaySQLError('Login Limit Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 return;
             }
 
@@ -557,7 +557,7 @@ function handleBadLogin ($user)
 
         if (!mysql_query($sql))
         {
-            displaySQLError('Login Attempt Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
     }
@@ -627,7 +627,7 @@ function handleFacebookLogin ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Login Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 
@@ -659,7 +659,7 @@ function handleFacebookLogin ()
             WHERE `id` = ".$row['id'];
     if (!mysql_query($sql))
     {
-        displaySQLError('Activity Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return;
     }
 

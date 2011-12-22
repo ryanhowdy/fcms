@@ -119,9 +119,12 @@ if (isset($_POST['submitadd']))
                 $currentUserId, 
                 NOW()
             )";
-    mysql_query($sql) or displaySQLError(
-        'New Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-    );
+    if (!mysql_query($sql))
+    {
+        displaySqlError($sql, mysql_error());
+        die();
+    }
+
     $rec_id = mysql_insert_id();
     echo '
             <p class="ok-alert" id="add">'.T_('Recipe Added Successfully').'</p>
@@ -135,10 +138,13 @@ if (isset($_POST['submitadd']))
             WHERE `email_updates` = '1'
             AND u.`id` = s.`user`";
 
-    $result = mysql_query($sql) or displaySQLError(
-        'Email Updates Error', __FILE__.' ['.__LINE__.']', 
-        $sql, mysql_error()
-    );
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        die();
+    }
+
     if (mysql_num_rows($result) > 0)
     {
         while ($r = mysql_fetch_array($result))
@@ -180,9 +186,12 @@ if (isset($_POST['submitedit']))
                 `directions`    = '".cleanInput($_POST['directions'])."' 
             WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
 
-    mysql_query($sql) or displaySQLError(
-        'Edit Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-    );
+    if(!mysql_query($sql))
+    {
+        displaySqlError($sql, mysql_error());
+        die();
+    }
+
     echo '
             <p class="ok-alert" id="edit">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
@@ -202,9 +211,12 @@ if (isset($_POST['submit-category']))
                 'recipe', 
                 '$currentUserId'
             )";
-    mysql_query($sql) or displaySQLError(
-        'New Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-    );
+    if (!mysql_query($sql))
+    {
+        displaySqlError($sql, mysql_error());
+        die();
+    }
+
     $cat = mysql_insert_id();
     $rec->displayAddRecipeForm($cat);
 }
@@ -235,9 +247,12 @@ elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
 {
     $sql = "DELETE FROM `fcms_recipes` 
             WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
-    mysql_query($sql) or displaySQLError(
-        'Delete Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-    );
+    if (!mysql_query($sql))
+    {
+        displaySqlError($sql, mysql_error());
+        die();
+    }
+
     echo '
             <p class="ok-alert" id="del">'.T_('Recipe Deleted Successfully').'</p>
             <script type="text/javascript">
@@ -293,9 +308,10 @@ if (isset($_POST['addcom']))
                 '$currentUserId',
                 NOW()
             )";
-    mysql_query($sql) or displaySQLError(
-        'Add Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-    );
+    if (!mysql_query($sql))
+    {
+        displaySqlError($sql, mysql_error());
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -307,10 +323,11 @@ if (isset($_POST['delcom']))
     {
         $sql = "DELETE FROM `fcms_recipe_comment`
                 WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
-        mysql_query($sql) or displaySQLError(
-            'Delete Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
-
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
     }
     else
     {
@@ -350,8 +367,8 @@ if (isset($_POST['submit_cat_edit']))
                         WHERE `id` = '".cleanInput($id, 'int')."'";
                 if (!mysql_query($sql))
                 {
-                    displaySQLError('Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-                    return;
+                    displaySqlError($sql, mysql_error());
+                    die();
                 }
             }
 
@@ -368,8 +385,8 @@ if (isset($_POST['submit_cat_edit']))
 
                 if (!mysql_query($sql))
                 {
-                    displaySQLError('Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-                    return;
+                    displaySqlError($sql, mysql_error());
+                    die();
                 }
 
                 // Delete category
@@ -377,8 +394,8 @@ if (isset($_POST['submit_cat_edit']))
 
                 if (!mysql_query($sql))
                 {
-                    displaySQLError('Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-                    return;
+                    displaySqlError($sql, mysql_error());
+                    die();
                 }
             }
 

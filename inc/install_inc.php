@@ -40,7 +40,6 @@ function dropTables ()
     mysql_query("DROP TABLE IF EXISTS `fcms_user_awards`")          or die("fcms_user_awards<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_user_settings`")        or die("fcms_user_settings<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_relationship`")         or die("fcms_relationship<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_category`")             or die("fcms_category<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_users`")                or die("fcms_users<br/>" . mysql_error());
 
     mysql_query("SET NAMES utf8") or die("Encoding<br/>" . mysql_error());
@@ -305,6 +304,7 @@ function installCategory ()
                 `user` INT(11) NOT NULL,
                 `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `color` VARCHAR(20) NULL,
+                `description` VARCHAR(255) NULL,
                 PRIMARY KEY (`id`),
                 KEY `user_ind` (`user`)
             )

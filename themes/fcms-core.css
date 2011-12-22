@@ -20,7 +20,7 @@ a:hover { color: #000; background-color: #9ccef0; }
 
 /* =LOGIN
 ------------------*/
-#login_box { width: 320px; margin: 0 auto; padding: 20px 20px 60px 20px; background: transparent url(default/images/login_bg.gif) 0 0 no-repeat; text-align: left; }
+#login_box { width: 320px; margin: 0 auto; padding: 20px 20px 60px 20px; background-color: #fff; text-align: left; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px; }
 #login_header { text-indent: -9999px; background: #fff url(images/logo.gif) center center no-repeat; height: 90px; margin: 20px 0; }
 #login_box label.rem { display: inline; padding-right: 15px; }
 #login_box .rem { margin-top: 10px; float: left; }

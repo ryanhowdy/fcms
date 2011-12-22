@@ -197,7 +197,7 @@ function checkUserAuthedYouTube ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -361,7 +361,7 @@ function displayYouTubeUploadFilePage ()
             )";
     if (!mysql_query($sql))
     {
-        displaySQLError('Video Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -489,7 +489,7 @@ function displayYouTubeUploadStatusPage ()
             if (!mysql_query($sql))
             {
                 displayHeader();
-                displaySQLError('Video Update Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 displayFooter();
                 return;
             }
@@ -549,7 +549,7 @@ function displayLatestPage ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Video Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -624,7 +624,7 @@ function displayLatestPage ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Video Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -674,7 +674,7 @@ function displayVideoPage ()
     if (!$result)
     {
         displayHeader();
-        displaySQLError('Video Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -979,7 +979,7 @@ function displayCommentSubmit ()
         if (!mysql_query($sql))
         {
             displayHeader();
-            displaySQLError('Comment Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -1008,7 +1008,7 @@ function getSessionToken ($userId)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
 
@@ -1042,7 +1042,7 @@ function displayMembersListPage ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Video Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -1101,7 +1101,7 @@ function displayUserVideosPage ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Member Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -1143,7 +1143,7 @@ function displayUserVideosPage ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Videos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -1220,7 +1220,7 @@ function displayRemoveVideoSubmit ()
     if (!mysql_query($sql))
     {
         displayFooter();
-        displaySQLError('Remove Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -1287,7 +1287,7 @@ function displayDeleteVideoSubmit ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Delete Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -1298,7 +1298,7 @@ function displayDeleteVideoSubmit ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Delete Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }

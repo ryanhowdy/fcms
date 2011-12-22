@@ -49,10 +49,14 @@ class Documents {
                 FROM `fcms_documents` AS d 
                 ORDER BY `date` DESC 
                 LIMIT " . $from . ", 25";
-        $this->db->query($sql) or displaySQLError(
-            'Get Documents Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
             echo '
             <script type="text/javascript" src="inc/js/tablesort.js"></script>
             <table id="docs" class="sortable">
@@ -66,14 +70,17 @@ class Documents {
                 </thead>
                 <tbody>';
 
-            while ($r = $this->db->get_row()) {
+            while ($r = $this->db->get_row())
+            {
                 $date = fixDate(T_('m/d/Y h:ia'), $this->tzOffset, $r['date']);
+
                 echo '
                     <tr>
                         <td>
                             <a href="?download='.cleanOutput($r['name']).'">'.cleanOutput($r['name']).'</a>';
 
-                if (checkAccess($this->currentUserId) < 3 || $this->currentUserId == $r['user']) {
+                if (checkAccess($this->currentUserId) < 3 || $this->currentUserId == $r['user'])
+                {
                     echo '&nbsp;
                             <form method="post" action="documents.php">
                                 <div>
@@ -98,20 +105,27 @@ class Documents {
 
             // Pages
             $sql = "SELECT count(`id`) AS c FROM `fcms_documents`";
-            $this->db2->query($sql) or displaySQLError(
-                'Count Documents Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
-            while ($r = $this->db2->get_row()) { $docscount = $r['c']; }
+            if (!$this->db2->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
+
+            while ($r = $this->db2->get_row())
+            {
+                $docscount = $r['c'];
+            }
             $total_pages = ceil($docscount / 25); 
             displayPages('documents.php', $page, $total_pages);
-
+        }
         // No docs to show
-        } else {
+        else
+        {
             echo '
-            <div class="info-alert">
-                <h2>'.T_('Welcome to the Documents Section.').'</h2>
-                <p><i>'.T_('Currently no one is sharing any documents.').'</i></p>
-                <p><a href="?adddoc=yes">'.T_('Upload a document').'</a></p>
+            <div class="blank-state">
+                <h2>'.T_('Nothing to see here').'</h2>
+                <h3>'.T_('Currently no one has shared any documents.').'</h3>
+                <h3><a href="?adddoc=yes">'.T_('Why don\'t you share a document now?').'</a></h3>
             </div>';
         }
     }

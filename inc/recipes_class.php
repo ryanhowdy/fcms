@@ -62,13 +62,10 @@ class Recipes
 
         if (!$hasCategories) {
             echo '
-            <div class="info-alert">
-                <h2>'.T_('Welcome to the Recipes Section').'</h2>
-                <p><i>'.T_('Currently no one has added any recipes').'</i></p>
-                <ol>
-                    <li><a href="?add=category">'.T_('Create a Category').'</a></li>
-                    <li><a href="?addrecipe=yes">'.T_('Add a Recipe').'</a></li>
-                </ol>
+            <div class="blank-state">
+                <h2>'.T_('Nothing to see here').'</h2>
+                <h3>'.T_('Currently no one has added any recipes').'</h3>
+                <h3><a href="?addrecipe=yes">'.T_('Why don\'t you share a recipe now?').'</a></h3>
             </div>';
             return;
         }
@@ -81,21 +78,26 @@ class Recipes
                 FROM `fcms_recipes` 
                 ORDER BY `date` DESC 
                 LIMIT $from, 5";
-        $this->db->query($sql) or displaySQLError(
-            'Get Last Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) {
 
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
             echo '
                 <h2>'.T_('Latest Recipes').'</h2>
                 <ul id="recipe-list">';
 
-            while ($r = $this->db->get_row()) {
+            while ($r = $this->db->get_row())
+            {
                 echo '
                     <li>
                         <a href="?category=' . (int)$r['category'] . '&amp;id=' . (int)$r['id'] . '">
                             <span>' . T_('Click to view recipe') . '</span>
-                            <b>' . $r['name'] . '</b>
+                            <b>'.cleanOutput($r['name']).'</b>
                         </a>
                     </li>';
             }
@@ -108,9 +110,11 @@ class Recipes
 
         // Display Pagination
         $sql = "SELECT count(`id`) AS c FROM `fcms_recipes`";
-        $this->db->query($sql) or displaySQLError(
-            'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
         $r = $this->db->get_row();
         $recipecount = $r['c'];
         $total_pages = ceil($recipecount / 5);
@@ -164,24 +168,29 @@ class Recipes
                 AND r.`category` = c.`id` 
                 ORDER BY `date` DESC 
                 LIMIT $from, 5";
-        $this->db->query($sql) or displaySQLError(
-            'Recipes Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
 
         $categoryName = '';
 
         // Display Recipes
-        if ($this->db->count_rows() > 0) {
-
+        if ($this->db->count_rows() > 0)
+        {
             $displayed_category = false;
-            while($r = $this->db->get_row()) {
 
+            while($r = $this->db->get_row())
+            {
                 // Category
-                if (!$displayed_category) {
+                if (!$displayed_category)
+                {
                     $displayed_category = true;
-                    $categoryName = $r['category_name'];
+                    $categoryName       = cleanOutput($r['category_name']);
+
                     echo '
-            <h2>' . $r['category_name'] . '</h2>
+            <h2>'.$categoryName.'</h2>
             <ul id="recipe-list">';
                 }
 
@@ -201,16 +210,20 @@ class Recipes
             $sql = "SELECT count(`id`) AS c 
                     FROM `fcms_recipes` 
                     WHERE `category` = '$cat'";
-            $this->db2->query($sql) or displaySQLError(
-                'Count Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            if (!$this->db2->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
             $r = $this->db2->get_row();
             $recipecount = $r['c'];
             $total_pages = ceil($recipecount / 5);
             displayPagination('recipes.php?category='.$cat, $page, $total_pages);
 
         // No recipes for this category
-        } else {
+        }
+        else
+        {
             echo '
             <div class="info-alert">
                 <h2>'.$categoryName.'</h2>
@@ -266,9 +279,11 @@ class Recipes
                 AND r.`category` = '$cat'
                 AND r.`category` = c.`id`
                 LIMIT 1";
-        $this->db->query($sql) or displaySQLError(
-            'Recipe Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
 
         // Invalid id/category
         if ($this->db->count_rows() < 1) {
@@ -283,11 +298,11 @@ class Recipes
         $displayname = '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>';
         $date = fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $r['date']);
 
-        $cleanName          = cleanOutput($r['name']);
-        $cleanCategory      = cleanOutput($r['category'], 'int');
-        $cleanThumb         = basename($r['thumbnail']);
-        $cleanIngredients   = cleanOutput($r['ingredients']);
-        $cleanDirections    = cleanOutput($r['directions']);
+        $cleanName        = cleanOutput($r['name']);
+        $cleanCategory    = cleanOutput($r['category'], 'int');
+        $cleanThumb       = basename($r['thumbnail']);
+        $cleanIngredients = cleanOutput($r['ingredients']);
+        $cleanDirections  = cleanOutput($r['directions']);
 
         // Display Recipe
         echo '
@@ -296,7 +311,9 @@ class Recipes
                 <h4 class="recipe-name">' . $cleanName . '</h4>
                 <span class="date">
                     '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date);
-        if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2) {
+
+        if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2)
+        {
             echo ' &nbsp;
                     <form method="post" action="recipes.php">
                         <div>
@@ -343,6 +360,15 @@ class Recipes
     function displayAddRecipeForm ($category = 0)
     {
         $categories = $this->getCategoryList();
+
+        if (count($categories) <= 0)
+        {
+            echo '
+            <p class="info-alert">'.T_('You need to create a category before you add a recipe.').'</p>';
+
+            $this->displayAddCategoryForm();
+            return;
+        }
 
         echo '
             <script type="text/javascript" src="inc/js/livevalidation.js"></script>
@@ -507,11 +533,15 @@ class Recipes
                 FROM `fcms_category` 
                 WHERE `type` = 'recipe' 
                 ORDER BY `name`"; 
-        $this->db2->query($sql) or displaySQLError(
-            'Categories Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        while ($r = $this->db2->get_row()) {
-            $categories[$r['id']] = $r['name'];
+        if (!$this->db2->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return $categories;
+        }
+
+        while ($r = $this->db2->get_row())
+        {
+            $categories[$r['id']] = cleanOutput($r['name']);
         }
 
         return $categories;
@@ -536,22 +566,29 @@ class Recipes
                 WHERE c.`type` = 'recipe'
                 GROUP by c.`id`
                 ORDER BY `name`";
-        $this->db->query($sql) or displaysqlerror(
-            'Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaysqlerror('Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            return false;
+        }
 
-        if ($this->db->count_rows() <= 0) {
+        if ($this->db->count_rows() <= 0)
+        {
             return false;
         }
 
         $categories = array();
         $counts     = array();
 
-        while ($r = $this->db->get_row()) {
-            if ($r['type'] == 'cat') {
+        while ($r = $this->db->get_row())
+        {
+            if ($r['type'] == 'cat')
+            {
                 $categories[$r['id']] = cleanOutput($r['name']);
-            } else {
-                $counts[$r['id']] = $r['name'];
+            }
+            else
+            {
+                $counts[$r['id']] = cleanOutput($r['name']);
             }
         }
 
@@ -561,7 +598,8 @@ class Recipes
                 <ul class="menu">';
 
 
-        foreach ($categories as $id => $name) {
+        foreach ($categories as $id => $name)
+        {
             echo '
                     <li><a href="?category=' . (int)$id . '">' . $name . '<span>(' . (int)$counts[$id] . ')</span></a></li>';
         }
@@ -603,9 +641,11 @@ class Recipes
                 WHERE `recipe` = '$id' 
                 AND rc.`user` = u.`id` 
                 ORDER BY `date`";
-        $this->db->query($sql) or displaySQLError(
-            'Comments Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
 
         // Display current comments
         if ($this->db->count_rows() >= 0) {

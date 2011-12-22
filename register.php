@@ -222,7 +222,7 @@ function displaySubmit ($params = '')
             )";
     if (!mysql_query($sql))
     {
-        displaySQLError('New User Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -236,7 +236,7 @@ function displaySubmit ($params = '')
             VALUES ($lastid, '$fbAccessToken')";
     if (!mysql_query($sql))
     {
-        displaySQLError('New Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -246,7 +246,7 @@ function displaySubmit ($params = '')
             VALUES ($lastid, NOW())";
     if (!mysql_query($sql))
     {
-        displaySQLError('New Address Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -265,7 +265,7 @@ function displaySubmit ($params = '')
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Activation Check Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -488,7 +488,7 @@ function handleAutoActivation ($email, $subject, $id, $sitename)
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Activation Code Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         die();
     }

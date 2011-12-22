@@ -74,9 +74,12 @@ class Admin
                     FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
                     WHERE p.`id` = o.`poll_id` 
                     AND p.`id` = '".cleanInput($pollid, 'int')."'";
-            $this->db->query($sql) or displaySQLError(
-                'Poll Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
+
             if ($this->db->count_rows() <= 0)
             {
                 $poll_exists = false;
@@ -86,9 +89,12 @@ class Admin
         {
             // Get last poll info
             $sql = "SELECT MAX(`id`) AS c FROM `fcms_polls`";
-            $this->db->query($sql) or displaySQLError(
-                'Max Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
+
             $row = $this->db->get_row();
             $latest_poll_id = $row['c'];
             if (is_null($row['c']))
@@ -102,9 +108,11 @@ class Admin
                         FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
                         WHERE p.`id` = o.`poll_id` 
                         AND p.`id` = $latest_poll_id";
-                $this->db->query($sql) or displaySQLError(
-                    'Poll Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-                );
+                if (!$this->db->query($sql))
+                {
+                    displaySqlError($sql, mysql_error());
+                    return;
+                }
             }
         }
 
@@ -282,9 +290,11 @@ class Admin
         // General Config
         $sql = "SELECT `name`, `value`
                 FROM `fcms_config`";
-        $this->db->query($sql) or displaySQLError(
-            'Site Info Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
 
         $row = array();
         while ($r = $this->db->get_row())
@@ -394,12 +404,14 @@ class Admin
      */
     function displayAdminConfigDefaults ()
     {
- 
         // Defaults Config
         $sql = "DESCRIBE `fcms_user_settings`";
-        $this->db3->query($sql) or displaySQLError(
-            'Describe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db3->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         while ($drow = $this->db3->get_row())
         {
             if ($drow['Field'] == 'theme')
@@ -691,7 +703,7 @@ class Admin
                 ORDER BY `order`";
         if (!$this->db2->query($sql))
         {
-            displaySQLError('Navigation Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -811,9 +823,11 @@ class Admin
     {
         $sql = "SELECT `name`, `value`
                 FROM `fcms_config`";
-        $this->db->query($sql) or displaySQLError(
-            'Site Info Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
 
         $row = array();
         while ($r = $this->db->get_row())

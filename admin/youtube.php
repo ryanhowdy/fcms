@@ -175,7 +175,7 @@ function displayFormSubmitPage ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }

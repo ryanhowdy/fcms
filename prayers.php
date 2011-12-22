@@ -78,7 +78,7 @@ if (isset($_POST['submitadd']))
             )";
     if (!mysql_query($sql))
     {
-        displaySQLError('New Prayer Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }
@@ -98,7 +98,7 @@ if (isset($_POST['submitadd']))
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Email Updates Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }
@@ -144,7 +144,7 @@ if (isset($_POST['submitedit']))
             WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Edit Prayer Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }
@@ -186,7 +186,7 @@ elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
             WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Delete Prayer Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }

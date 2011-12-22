@@ -80,9 +80,11 @@ else
             $sql = "UPDATE `fcms_config` 
                     SET `value` = '".cleanInput($_POST['sitename'])."'
                     WHERE `name` = 'sitename'";
-            mysql_query($sql) or displaySQLError(
-                'Sitename Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
 
         if (isset($_POST['contact']))
@@ -90,9 +92,11 @@ else
             $sql = "UPDATE `fcms_config` 
                     SET `value` = '".cleanInput($_POST['contact'])."'
                     WHERE `name` = 'contact'";
-            mysql_query($sql) or displaySQLError(
-                'Contact Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
 
         if (isset($_POST['activation']))
@@ -100,9 +104,11 @@ else
             $sql = "UPDATE `fcms_config` 
                     SET `value` = '".cleanInput($_POST['activation'])."'
                     WHERE `name` = 'auto_activate'";
-            mysql_query($sql) or displaySQLError(
-                'Activation Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
 
         if (isset($_POST['registration']))
@@ -110,9 +116,11 @@ else
             $sql = "UPDATE `fcms_config` 
                     SET `value` = '".cleanInput($_POST['registration'])."'
                     WHERE `name` = 'registration'";
-            mysql_query($sql) or displaySQLError(
-                'Registration Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
 
         if (isset($_POST['site_off']))
@@ -130,9 +138,11 @@ else
 
             $sql .= "WHERE `name` = 'site_off'";
 
-            mysql_query($sql) or displaySQLError(
-                'Site Off Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
 
         if (isset($_POST['log_errors']))
@@ -140,9 +150,11 @@ else
             $sql = "UPDATE `fcms_config` 
                     SET `value` = '".cleanInput($_POST['log_errors'])."'
                     WHERE `name` = 'log_errors'";
-            mysql_query($sql) or displaySQLError(
-                'Logging Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
 
         displayOkMessage();
@@ -155,10 +167,14 @@ else
     {
         $sql = "ALTER TABLE `fcms_user_settings` 
                 ALTER `theme` SET DEFAULT '".basename($_POST['theme'])."'";
-        mysql_query($sql) or displaySQLError(
-            'Theme Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         $sql = "ALTER TABLE `fcms_user_settings` ALTER `showavatar` ";
+
         if (isset($_POST['showavatar']))
         {
             if ($_POST['showavatar'] == 'yes')
@@ -170,27 +186,40 @@ else
                 $sql .= "SET DEFAULT '0'";
             }
         }
-        mysql_query($sql) or displaySQLError(
-            'Show Avatar Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         $sql = "ALTER TABLE `fcms_user_settings` 
                 ALTER `displayname` 
                 SET DEFAULT '".cleanInput($_POST['displayname'])."'";
-        mysql_query($sql) or displaySQLError(
-            'Display Name Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         $sql = "ALTER TABLE `fcms_user_settings` 
                 ALTER `frontpage` 
                 SET DEFAULT '".cleanInput($_POST['frontpage'])."'";
-        mysql_query($sql) or displaySQLError(
-            'Frontpage Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         $sql = "ALTER TABLE `fcms_user_settings` 
                 ALTER `timezone` 
                 SET DEFAULT '".cleanInput($_POST['timezone'])."'";
-        mysql_query($sql) or displaySQLError(
-            'Timezone Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         $sql = "ALTER TABLE `fcms_user_settings` ALTER `dst` ";
         if (isset($_POST['dst']))
         {
@@ -203,15 +232,21 @@ else
                 $sql .= "SET DEFAULT '0'";
             }
         }
-        mysql_query($sql) or displaySQLError(
-            'DST Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         $sql = "ALTER TABLE `fcms_user_settings` 
                 ALTER `boardsort` 
                 SET DEFAULT '".cleanInput($_POST['boardsort'])."'";
-        mysql_query($sql) or displaySQLError(
-            'Board Sort Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
 
         // Update existing users
         if (isset($_POST['changeAll']))
@@ -245,10 +280,13 @@ else
                     $sql .= "`dst` = '0', ";
                 }
             }
+
             $sql .= "`boardsort` = '".cleanInput($_POST['boardsort'])."'";
-            mysql_query($sql) or displaySQLError(
-                'Update All Users Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
         echo '
             <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
@@ -282,8 +320,8 @@ else
             $result = mysql_query($sql);
             if (!$result)
             {
-                displaySQLError('Last Order Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-                return;
+                displaySqlError($sql, mysql_error());
+                die();
             }
             while ($r = mysql_fetch_array($result))
             {
@@ -313,8 +351,8 @@ else
                     WHERE `id` = '$id'";
             if (!mysql_query($sql))
             {
-                displaySQLError('Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-                return;
+                displaySqlError($sql, mysql_error());
+                die();
             }
 
             // Add admin for whereiseveryone
@@ -324,8 +362,8 @@ else
                         VALUES ('admin_foursquare', 6, $adminOrder, 0)";
                 if (!mysql_query($sql))
                 {
-                    displaySQLError('Admin Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-                    return;
+                    displaySqlError($sql, mysql_error());
+                    die();
                 }
             }
 
@@ -349,8 +387,8 @@ else
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Remove Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-            return;
+            displaySqlError($sql, mysql_error());
+            die();
         }
         $info = mysql_fetch_array($result);
 
@@ -360,8 +398,8 @@ else
                 WHERE `id` = '".cleanInput($_POST['remove'], 'int')."'";
         if (!mysql_query($sql))
         {
-            displaySQLError('Remove Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-            return;
+            displaySqlError($sql, mysql_error());
+            die();
         }
 
         // If we are deleting whereiseveryone, also delete the admin section
@@ -371,8 +409,8 @@ else
                     WHERE `link` = 'admin_whereiseveryone'";
             if (!mysql_query($sql))
             {
-                displaySQLError('Remove Admin Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-                return;
+                displaySqlError($sql, mysql_error());
+                die();
             }
         }
 
@@ -382,9 +420,12 @@ else
                 WHERE `col` = 4 
                 ORDER BY `order`";
 
-        $result = mysql_query($sql)  or displaySQLError(
-            'Remove Section Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
 
         if (mysql_num_rows($result) > 0)
         {
@@ -397,9 +438,11 @@ else
                     $sql = "UPDATE `fcms_navigation` 
                             SET `order` = '$i' 
                             WHERE `id` = '".$r['id']."'";
-                    mysql_query($sql) or displaySQLError(
-                        'Update Order Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-                    );
+                    if (!mysql_query($sql))
+                    {
+                        displaySqlError($sql, mysql_error());
+                        die();
+                    }
                     $i++;
                 }
             }
@@ -463,8 +506,8 @@ else
                     WHERE `id` = '".cleanInput($id, 'int')."'";
             if (!mysql_query($sql))
             {
-                displaySQLError('Update Order Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-                return;
+                displaySqlError($sql, mysql_error());
+                die();
             }
         }
 
@@ -479,9 +522,12 @@ else
         $sql = "UPDATE `fcms_config` 
                 SET `value` = '".cleanInput($_POST['full_size_photos'])."'
                 WHERE `name` = 'full_size_photos'";
-        mysql_query($sql) or displaySQLError(
-            'Full Size Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         echo '
             <p class="ok-alert" id="update">'.T_('Changes Updated Successfully').'</p>
             <script type="text/javascript">
@@ -506,16 +552,22 @@ else
                         PRIMARY KEY (`id`), 
                         KEY `userindx` (`user`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-            mysql_query($sql) or displaySQLError(
-                'New News Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
+
             $sql = "ALTER TABLE `fcms_news` 
                     ADD CONSTRAINT `fcms_news_ibfk_1` 
                     FOREIGN KEY (`user`) 
                     REFERENCES `fcms_users` (`id`) ON DELETE CASCADE";
-            mysql_query($sql) or displaySQLError(
-                'Alter News Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
+
             $sql = "CREATE TABLE `fcms_news_comments` (
                         `id` int(11) NOT NULL auto_increment, 
                         `news` int(11) NOT NULL default '0', 
@@ -526,9 +578,12 @@ else
                         KEY `photo_ind` (`news`), 
                         KEY `user_ind` (`user`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-            mysql_query($sql) or displaySQLError(
-                'New News Comments Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
+
             $sql = "ALTER TABLE `fcms_news_comments` 
                     ADD CONSTRAINT `fcms_news_comments_ibfk_2` 
                     FOREIGN KEY (`user`) 
@@ -538,9 +593,11 @@ else
                     ADD CONSTRAINT `fcms_news_comments_ibfk_1` 
                     FOREIGN KEY (`news`) 
                     REFERENCES `fcms_news` (`id`) ON DELETE CASCADE";
-            mysql_query($sql) or displaySQLError(
-                'Alter News Comments Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
 
         // Prayer Concerns
@@ -555,16 +612,21 @@ else
                         PRIMARY KEY (`id`), 
                         KEY `userindx` (`user`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-            mysql_query($sql) or displaySQLError(
-                'New Prayers Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
+
             $sql = "ALTER TABLE `fcms_prayers` 
                     ADD CONSTRAINT `fcms_prayers_ibfk_1` 
                     FOREIGN KEY (`user`) 
                     REFERENCES `fcms_users` (`id`) ON DELETE CASCADE";
-            mysql_query($sql) or displaySQLError(
-                'Alter Prayers Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
 
         // Recipes
@@ -579,14 +641,21 @@ else
                         `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                         PRIMARY KEY (`id`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-            mysql_query($sql) or displaySQLError('New Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
+
             $sql = "ALTER TABLE `fcms_recipes` 
                     ADD CONSTRAINT `fcms_recipes_ibfk_1` 
                     FOREIGN KEY (`user`) 
                     REFERENCES `fcms_users` (`id`) ON DELETE CASCADE";
-            mysql_query($sql) or displaySQLError(
-                'Alter Recipe Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
 
         // Documents
@@ -600,16 +669,20 @@ else
                         `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                         PRIMARY KEY (`id`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-            mysql_query($sql) or displaySQLError(
-                'New Documents Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
             $sql = "ALTER TABLE `fcms_documents` 
                     ADD CONSTRAINT `fcms_documents_ibfk_1` 
                     FOREIGN KEY (`user`) 
                     REFERENCES `fcms_users` (`id`) ON DELETE CASCADE";
-            mysql_query($sql) or displaySQLError(
-                'Alter Documents Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
         }
     }
 

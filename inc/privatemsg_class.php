@@ -10,8 +10,8 @@ include_once('datetime.php');
  * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
-class PrivateMessage {
-
+class PrivateMessage
+{
     var $db;
     var $db2;
     var $tzOffset;
@@ -54,11 +54,16 @@ class PrivateMessage {
                     </tr>';
         $sql = "SELECT * 
                 FROM `fcms_privatemsg` 
-                WHERE `to` = '" . $this->currentUserId . "'";
-        $this->db->query($sql) or displaySQLError(
-            'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        while ($r = $this->db->get_row()) {
+                WHERE `to` = '" . $this->currentUserId . "'
+                ORDER BY `date` DESC";
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+            
+        while ($r = $this->db->get_row())
+        {
             $date = fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
             $class = '';
             if ($r['read'] < 1) {
@@ -101,9 +106,11 @@ class PrivateMessage {
         $sql = "SELECT * 
                 FROM `fcms_privatemsg` 
                 WHERE `from` = '" . $this->currentUserId . "'";
-        $this->db->query($sql) or displaySQLError(
-            'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
         while ($r = $this->db->get_row()) {
             $date = fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $r['date']);
             echo '
@@ -132,17 +139,25 @@ class PrivateMessage {
                 FROM `fcms_privatemsg` 
                 WHERE `id` = '$id' 
                 AND `to` = '" . $this->currentUserId . "'";
-        $this->db->query($sql) or displaySQLError(
-            'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() > 0) { 
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        {
             $r = $this->db->get_row();
+
             $sql = "UPDATE `fcms_privatemsg` 
                     SET `read` = '1' 
                     WHERE `id` = '$id'";
-            $this->db->query($sql) or displaySQLError(
-                'PM Read Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-            );
+            if (!$this->db->query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
+
             $date = fixDate(T_('n/j/Y g:i a'), $this->tzOffset, $r['date']);
             echo '
             <div id="pm_msg">
@@ -176,9 +191,12 @@ class PrivateMessage {
                 FROM `fcms_privatemsg` 
                 WHERE `id` = '$id' 
                 AND `from` = '" . $this->currentUserId . "'";
-        $this->db->query($sql) or displaySQLError(
-            'Private Msg Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         if ($this->db->count_rows() > 0) { 
             $r = $this->db->get_row();
             $date = fixDate(T_('n/j/Y g:i a'), $this->tzOffset, $r['date']);
@@ -214,10 +232,14 @@ class PrivateMessage {
                 FROM `fcms_users` 
                 WHERE `activated` > 0
                 AND `password` != 'NONMEMBER'";
-        $this->db->query($sql) or displaySQLError(
-            'Active User Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        while ($r = $this->db->get_row()) {
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        while ($r = $this->db->get_row())
+        {
             $displayNameList[$r['id']] = getUserDisplayName($r['id'], 2);
         }
 

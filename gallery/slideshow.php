@@ -86,8 +86,12 @@ $sql = "SELECT `caption`, `filename`, `user`
 $result = mysql_query($sql);
 if (!$result)
 {
-    displaySQLError('Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
-    return;
+    displaySqlError($sql, mysql_error());
+    echo '
+</div>
+</body>
+</html>';
+    die();
 }
 
 if (mysql_num_rows($result) > 0)

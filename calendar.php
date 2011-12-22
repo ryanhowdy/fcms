@@ -325,7 +325,7 @@ function displayAddSubmit ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Add Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -455,7 +455,7 @@ function displayEditSubmit ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Edit Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -598,7 +598,7 @@ function displayDeleteSubmit ()
             WHERE id = '".cleanInput($_POST['id'], 'int')."'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Delete Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -646,7 +646,7 @@ function displayAddCategorySubmit ()
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -679,7 +679,7 @@ function displayEditCategorySubmit ()
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -722,7 +722,7 @@ function displayDeleteCategorySubmit ()
 
     if (!mysql_query($sql))
     {
-        displaySQLError('Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -802,7 +802,7 @@ function displayInvitationForm ($calendarId = 0, $errors = 0)
 
     displayHeader();
 
-    $calendarId = cleanInput($id, 'int');
+    $calendarId = cleanInput($calendarId, 'int');
 
     if (isset($_GET['invite']))
     {
@@ -826,7 +826,7 @@ function displayInvitationForm ($calendarId = 0, $errors = 0)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Members Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -849,7 +849,7 @@ function displayInvitationForm ($calendarId = 0, $errors = 0)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Members Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -952,7 +952,7 @@ function displayInvitationSubmit ()
                 VALUES ('$calendarId', '$currentUserId', NOW(), NOW(), 1)";
         if (!mysql_query($sql))
         {
-            displaySQLError('Invitation Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -964,7 +964,7 @@ function displayInvitationSubmit ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Calendar Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -994,7 +994,7 @@ function displayInvitationSubmit ()
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Members Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -1064,7 +1064,7 @@ function displayInvitationSubmit ()
                 VALUES ('$calendarId', '$user', $email, NOW(), NOW(), '$code')";
         if (!mysql_query($sql))
         {
-            displaySQLError('Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -1119,7 +1119,7 @@ function displayAttendSubmit ()
             WHERE `id` = '$id'";
     if (!mysql_query($sql))
     {
-        displaySQLError('Attending Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }
@@ -1156,7 +1156,7 @@ function getInvitations ($eventId, $keyByEmail = false)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Attending Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return false;
     }
 

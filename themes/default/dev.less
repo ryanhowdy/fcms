@@ -350,6 +350,46 @@ div.tooltip h5 {
     text-align: left;
 }
 div.tooltip h5.highlight { color: @main_light_blue; }
+.blank-state {
+    background-color: #eee;
+    padding: 50px 100px;
+    margin: 10px 40px 50px 40px;
+}
+#content .blank-state h2 {
+    color: #255574;
+    font: bold 40px/50px @fontstack;
+    padding: 5px 0 20px 0;
+}
+#content .blank-state h3 {
+    color: #404040;
+    font: normal 26px/32px @fontstack;
+}
+.avatar-member-list, .avatar-member-list-small {
+    float: left;
+    padding: 0 0 30px 0;
+    width: 100%;
+}
+.avatar-member-list li, .avatar-member-list-small li {
+    display: block;
+    float: left;
+    margin: 0 2px 2px 0;
+    position: relative;
+    text-align: center;
+}
+.avatar-member-list img, .avatar-member-list-small img {
+    display: block;
+    height: 40px;
+    width: 40px;
+    vertical-align: middle;
+}
+.avatar-member-list-small img {
+    height: 25px;
+    width: 25px;
+}
+.avatar-member-list a, .avatar-member-list-small a {
+    color: #333;
+    font: normal 10px/12px Arial, sans-serif;
+}
 
 
 /* =LINKS =NAVIGATION
@@ -632,28 +672,6 @@ fieldset input.mouseover {
     color: #333;
     font: bold 16px/25px @fontstack;
 }
-.online-members {
-    float: left;
-    padding: 0 0 30px 0;
-    width: 100%;
-}
-.online-members li {
-    display: block;
-    float: left;
-    margin: 0 2px 2px 0;
-    position: relative;
-    text-align: center;
-}
-.online-members img {
-    display: block;
-    height: 40px;
-    width: 40px;
-    vertical-align: middle;
-}
-.online-members a {
-    color: #333;
-    font: normal 10px/12px Arial, sans-serif;
-}
 ul.poll li {
     background-color: #d8e9f8;
     display: block;
@@ -840,7 +858,12 @@ ol.todo li span {
     margin: 0;
     width: 330px;
 }
-.gallery_cat { list-style-type: none; }
+#manage-categories td {
+    padding: 15px;
+}
+#manage-categories .delbtn, #manage-categories .editbtn {
+    padding: 0;
+}
 .category {
     display: inline;
     float: left;
@@ -1089,24 +1112,42 @@ li.tag_photo label span {
     margin: 0 5px 0 0;
     width: 250px;
 }
-#category_actions {
-    float: left;
-    font-size: 12px;
-    list-style-type: none;
-    margin: -15px 0 0 0;
-    overflow: hidden;
-    text-align: right;
-    width: 100%;
+#gallery #maincolumn {
+    width: 700px;
 }
-#category_actions li {
-    float: right;
-    margin: 0 10px 10px 0;
+#gallery #leftcolumn {
+    width: 240px;
+    font: 12px/20px @fontstack;
 }
-#category_actions li a {
-    color: #666;
-    padding: 5px 10px;
+#gallery #leftcolumn a {
+    font-weight: normal;
 }
-#category_actions li a:hover { background-color: #ddd; }
+#category-actions {
+    list-style: none;
+    margin: 0 0 50px 0;
+}
+#category-actions li {
+    margin: 0;
+}
+#category-actions .slideshow a {
+    background: transparent url(images/view_slideshow.png) no-repeat 15px 50%;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    color: #777;
+    display: block;
+    padding: 8px 15px 8px 50px;
+}
+#category-actions .administrate a {
+    background: transparent url(images/administrate.png) no-repeat 15px 50%;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    color: #777;
+    display: block;
+    padding: 8px 15px 8px 50px;
+}
+#category-actions .slideshow a:hover, #category-actions .administrate a:hover {
+    border-color: #ccc;
+}
 
 
 /* =MESSAGE =BOARD
@@ -2122,8 +2163,9 @@ fieldset #msg {
     font: 12px/16px Arial, Verdana, sans-serif;
     height: 50px;
     margin: 10px;
-    overflow: auto;
+    overflow: hidden;
     padding: 5px;
+    position: relative;
 }
 .leaf img {
     float: left;
@@ -2138,8 +2180,10 @@ fieldset #msg {
 .leaf a { color: #000; }
 .leaf a:hover { text-decoration: underline; }
 .leaf a.edit {
+    bottom: 5px;
     font: normal 10px/15px Arial, Verdana, sans-serif;
-    float: right;
+    position: absolute;
+    right: 5px;
 }
 .spouse, .child {
     background-color: #efefef;
@@ -2737,6 +2781,15 @@ a.merge { float: right; }
 .current-status-on {
     padding: 0 3px;
     background-color: green;
+}
+.cron-example {
+    background-color: #ddd;
+    border: 1px solid #ccc;
+    font-size: 12px;
+    margin: 0 0 5px 0;
+    padding: 10px;
+    width: 900px;
+    white-space: pre-line;
 }
 
 

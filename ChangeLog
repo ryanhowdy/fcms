@@ -1,3 +1,8 @@
+ 2.7.2
+    #399 - Last 5 view - Undefined offset: 7
+    #401 - Can't add non-member to Family Tree (2.7.1)
+    #407 - Security Vulnerability in dev/less.php
+
  2.7.1
     #395 - Error with 2.7 Fresh Install
     #396 - RSS Feed not working

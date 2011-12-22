@@ -66,7 +66,8 @@ class Profile
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Profile Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
+            return;
         }
 
         $row = $this->db->get_row();
@@ -224,9 +225,12 @@ class Profile
                     `dob_year`, `dob_month`, `dob_day`
                 FROM `fcms_users`
                 WHERE `id` = '".$this->currentUserId."'";
-        $this->db->query($sql) or displaySQLError(
-            'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         $row = $this->db->get_row();
 
         // Gender
@@ -364,9 +368,12 @@ class Profile
         $sql = "SELECT `avatar`, `gravatar` 
                 FROM `fcms_users`
                 WHERE `id` = '" . $this->currentUserId . "'";
-        $this->db->query($sql) or displaySQLError(
-            'Settings Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         $row = $this->db->get_row();
 
         // Avatar
@@ -473,7 +480,7 @@ class Profile
                                 <input type="hidden" name="avatar_orig" value="'.cleanOutput($row['avatar']).'"/><br/>
                                 '.$currentAvatar.'
                             </div>
-                            <p><input class="sub1" type="button" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                            <p><input class="sub1" type="submit" name="submit" id="submitUpload" value="'.T_('Submit').'"/></p>
                         </div>
 
                         <div id="gravatar" class="field-row clearfix">
@@ -483,7 +490,7 @@ class Profile
                                 <input type="text" name="gravatar_email" size="30" value="'.cleanOutput($row['gravatar']).'"/><br/>
                                 '.$currentAvatar.'
                             </div>
-                            <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                            <p><input class="sub1" type="submit" name="submit" id="submitGravatar" value="'.T_('Submit').'"/></p>
                         </div>
 
                         <div id="default" class="field-row clearfix">
@@ -491,7 +498,7 @@ class Profile
                             <div class="field-widget">
                                 '.$currentAvatar.'
                             </div>
-                            <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                            <p><input class="sub1" type="submit" name="submit" id="submitDefault" value="'.T_('Submit').'"/></p>
                         </div>
 
                     </fieldset>
@@ -517,8 +524,9 @@ class Profile
         $sql = "SELECT `id`
                 FROM `fcms_address`
                 WHERE `user` = '".$this->currentUserId."'";
-        if (!$this->db->query($sql)) {
-            displaySQLError('Address Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -660,26 +668,39 @@ class Profile
                 AND u.`id` = '$userid' 
                 ORDER BY `date` DESC 
                 LIMIT 0, 5";
-        $this->db2->query($sql) or displaySQLError(
-            'Posts Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db2->count_rows() > 0) {
-            while ($row = $this->db2->get_row()) {
-                $date = fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $row['date']);
-                $post = removeBBCode($row['post']);
-                $subject = stripslashes($row['subject']);
-                $pos = strpos($subject, '#ANOUNCE#');
-                if ($pos !== false) {
+        if (!$this->db2->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db2->count_rows() > 0)
+        {
+            while ($row = $this->db2->get_row())
+            {
+                $date    = fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $row['date']);
+                $subject = $row['subject'];
+                $post    = removeBBCode($row['post']);
+                $post    = cleanOutput($post);
+                $pos     = strpos($subject, '#ANOUNCE#');
+
+                if ($pos !== false)
+                {
                     $subject = substr($subject, 9, strlen($subject)-9);
                 }
+
+                $subject = cleanOutput($subject);
+
                 echo '
                 <p>
-                    <a href="messageboard.php?thread='.(int)$row['id'].'">'.$subject.'</a> 
+                    <a href="messageboard.php?thread='.cleanInput($row['id'], 'int').'">'.$subject.'</a> 
                     <span class="date">'.$date.'</span><br/>
                     '.$post.'
                 </p>';
             }
-        } else {
+        }
+        else
+        {
             echo '
                 <p>'.T_('none').'</p>';
         }
@@ -700,9 +721,12 @@ class Profile
                 WHERE user = '$userid' 
                 ORDER BY `date` DESC 
                 LIMIT 5";
-        $this->db2->query($sql) or displaySQLError(
-            'Photos Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
+        if (!$this->db2->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         if ($this->db2->count_rows() > 0) {
             echo '
             <ul class="photos clearfix">';

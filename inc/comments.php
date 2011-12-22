@@ -161,7 +161,7 @@ function getVideoComments ($url, $params)
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Video Comments Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         return $comments;
     }
 

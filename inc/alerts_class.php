@@ -52,7 +52,7 @@ class Alerts
                 AND `hide` = 1";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return false;
         }
 
@@ -98,7 +98,7 @@ class Alerts
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Current Poll Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
         $r = mysql_fetch_array($result);
@@ -112,7 +112,7 @@ class Alerts
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Vote Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
         $rows = mysql_num_rows($result);
@@ -159,10 +159,14 @@ class Alerts
                 WHERE `alert` = 'alert_poll'
                 AND `user` = '$userid' 
                 AND `hide` = 1";
-        $this->db->query($sql) or displaySQLError(
-            'Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() < 1) { 
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() < 1)
+        {
             echo '
             <div id="alert_poll" class="info-alert">
                 <h2>'.T_('Welcome to the Poll Section').'</h2>
@@ -188,10 +192,14 @@ class Alerts
                 WHERE `alert` = 'alert_address'
                 AND `user` = '$userid' 
                 AND `hide` = 1";
-        $this->db->query($sql) or displaySQLError(
-            'Alert Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
-        );
-        if ($this->db->count_rows() < 1) { 
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() < 1)
+        {
             echo '
             <div id="alert_address" class="info-alert">
                 <h3>'.T_('It looks like your address is incomplete.').'</h3>
@@ -219,7 +227,7 @@ class Alerts
                 AND `hide` = 1";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Alert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 

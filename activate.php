@@ -42,7 +42,7 @@ if (isset($_GET['uid']))
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Check Code Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             echo '</body></html>';
             exit();
         }
@@ -61,7 +61,7 @@ if (isset($_GET['uid']))
                         WHERE `id` = '".cleanInput($_GET['uid'], 'int')."'";
                 if (!mysql_query($sql))
                 {
-                    displaySQLError('Activation Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                    displaySqlError($sql, mysql_error());
                     echo '</body></html>';
                     exit();
                 }

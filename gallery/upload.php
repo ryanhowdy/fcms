@@ -66,10 +66,13 @@ if (empty($_POST['category']))
                         'gallery', 
                         '$currentUserId'
                     )";
-            mysql_query($sql) or displaySQLError(
-                'New Category Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
-            $_POST['category'] = mysql_insert_id();
+            if (!mysql_query($sql))
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
+
+            $_POST['category']                = mysql_insert_id();
             $_SESSION['mass_photos_category'] = $_POST['category'];
         }
     }

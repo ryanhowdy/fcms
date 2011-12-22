@@ -39,6 +39,7 @@ exit();
  */
 function control ()
 {
+    // Automatic Upgrade
     if (isset($_GET['auto']))
     {
         $step = (int)$_GET['auto'];
@@ -79,9 +80,20 @@ function control ()
             displayStepSeven();
         }
     }
+    // Manual Upgrade
+    elseif (isset($_GET['manual']))
+    {
+        displayManualUpgrade();
+    }
+    // Manual Upgrade Database
     elseif (isset($_GET['upgrade']))
     {
-        displayUpgrade();
+        displayUpgradeDatabase();
+    }
+    // Manual Upgrade Site On/Off
+    elseif (isset($_GET['site']))
+    {
+        displayUpgradeSiteStatus($_GET['site']);
     }
     else
     {
@@ -137,6 +149,10 @@ li h2 { color: #000; margin-left: -20px; }
 li { color: #ccc; font-weight: bold; padding: 3px 0 3px 20px; }
 li.current { color: #000; background: transparent url(../themes/images/current.gif) left center no-repeat; }
 li.complete { color: green; background: transparent url(../themes/images/complete.png) left center no-repeat; }
+.manual { border-bottom: 1px solid #ddd; }
+.manual li { font-weight: normal; color: #000; font: 14px/18px arial, verdana, sans-serif; border: 1px solid #ddd; border-bottom: none; padding: 3px 3px 3px 30px; }
+.manual li.complete { background-position: 8px 17px; }
+.manual li div { float: right; color: #ddd; font: bold 18px/24px arial, verdana, sans-serif; }
 </style>
 </head>
 <body>
@@ -297,8 +313,11 @@ function displayStart ()
     $currentVersion = getCurrentVersion();
     $latestVersion  = file(LATEST_VERSION_URL);
     $latestVersion  = $latestVersion[0];
+    $versionNumber  = substr($latestVersion, 19);
 
     $_SESSION['latestVersion'] = $latestVersion;
+
+    echo '<p><a style="color: #999;" href="../home.php">&laquo; '.T_('Back to Site').'</a></p>';
 
     if (versionUpToDate($currentVersion, $latestVersion))
     {
@@ -309,15 +328,20 @@ function displayStart ()
         if (class_exists('ZipArchive') && function_exists('curl_init'))
         {
             echo '
-            <a class="primary" href="upgrade.php?auto=1">'.T_('Re-install').'</a>
+            <a class="primary" href="upgrade.php?auto=1">'.sprintf(T_('Re-install %s'), $versionNumber).'</a>
             <div style="text-align:right; font-size:small">
-                <a href="upgrade.php?upgrade=1">'.T_('Upgrade Database').'</a>
+                <a href="upgrade.php?manual=1">'.T_('Manual Upgrade').'</a>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <a href="http://www.familycms.com/download.php">'.T_('Download').'</a>
             </div>';
         }
         else
         {
             echo '
-            <a class="primary" href="upgrade.php?upgrade=1">'.T_('Upgrade Database').'</a>';
+            <a class="primary" href="upgrade.php?manual=1">'.T_('Manual Upgrade').'</a>
+            <div style="text-align:right; font-size:small">
+                <a href="http://www.familycms.com/download.php">'.T_('Download').'</a>
+            </div>';
         }
     }
     else
@@ -332,7 +356,7 @@ function displayStart ()
             echo '
             <a class="primary" href="upgrade.php?auto=1">'.T_('Automatic Upgrade').'</a>
             <div style="text-align:right; font-size:small">
-                <a href="upgrade.php?upgrade=1">'.T_('Upgrade Database').'</a>
+                <a href="upgrade.php?manual=1">'.T_('Manual Upgrade').'</a>
                 &nbsp;&nbsp;|&nbsp;&nbsp;
                 <a href="http://www.familycms.com/download.php">'.T_('Download').'</a>
             </div>';
@@ -340,7 +364,7 @@ function displayStart ()
         else
         {
             echo '
-            <a class="primary" href="upgrade.php?upgrade=1">'.T_('Upgrade Database').'</a>
+            <a class="primary" href="upgrade.php?manual=1">'.T_('Manual Upgrade').'</a>
             <div style="text-align:right; font-size:small">
                 <a href="http://www.familycms.com/download.php">'.T_('Download').'</a>
             </div>';
@@ -496,51 +520,141 @@ function displayStepSeven ()
 }
 
 /**
- * displayUpgrade
+ * displayManualUpgrade 
  * 
  * @return void
  */
-function displayUpgrade ()
+function displayManualUpgrade ()
 {
     displayHeader();
 
-    $latestVersion = $_SESSION['latestVersion'];
+    $statusSiteOff  = '';
+    $statusDatabase = '';
+
+    if (file_exists(INC.'siteoff'))
+    {
+        global $upgrading;
+
+        include INC.'siteoff';
+
+        // If the $upgrading timestamp is less than 10 minutes old, then site is off
+        if ((time() - $upgrading) < 600)
+        {
+            $statusSiteOff = 'complete';
+        }
+    }
+
+    $currentVersion = getCurrentVersion();
+    $latestVersion  = file(LATEST_VERSION_URL);
+    $latestVersion  = $latestVersion[0];
+
+    $_SESSION['latestVersion'] = $latestVersion;
+
+    if (versionUpToDate($currentVersion, $latestVersion))
+    {
+        $statusDatabase = 'complete';
+    }
 
     echo '
-            <h2>'.sprintf(T_('Upgrading to %s'), $latestVersion).'</h2>
-            <ol>';
-
-    // Turn off site
-    echo '<li>'.T_('Turning off site.').'</li>';
-    if (!disableSite())
-    {
-        displayFooter();
-        return;
-    }
-
-    // Upgrade DB
-    echo '<li>'.T_('Upgrading database.').'</li>';
-    if (!upgrade())
-    {
-        displayFooter();
-        return;
-    }
-    if (!updateCurrentVersion($latestVersion))
-    {
-        displayFooter();
-        return;
-    }
-
-    // Turn on site
-    echo '<li>'.T_('Turning site back on.').'</li>';
-    if (!enableSite())
-    {
-        displayFooter();
-        return;
-    }
-
-    echo '<li><b>'.T_('Upgrade Complete').'</b></li>';
-    echo '</ol>';
+        <h2>'.T_('Manual Upgrade').'</h2>
+        <p><a style="color: #999;" href="upgrade.php">&laquo; '.T_('Back to Automatic Upgrade').'</a></p>
+        <p>'.sprintf(T_('Please follow the steps below to manually upgrade to %s.'), $latestVersion).'</p>
+        <ul class="manual">
+            <li class="'.$statusSiteOff.'">
+                <div>'.T_('Step 1').'</div>
+                <p><a href="?site=off">'.T_('Turn Off Site').'</a></p>
+                <p>'.T_('Turning the site off during an upgrade keeps users from trying to login and potentially causing problems.').'</p>
+            </li>
+            <li>
+                <div>'.T_('Step 2').'</div>
+                <p>'.T_('Manual Upgrade Files').'</p>
+                <p>'.T_('Since your webserver does not support the Automatic Upgrade, you must download the latest Family Connection files and upload them to your site manually.').'</p>
+                <p>'.T_('You must make sure to complete this step before continuing.').'</p>
+            </li>
+            <li class="'.$statusDatabase.'">
+                <div>'.T_('Step 3').'</div>
+                <p><a href="?upgrade=database">'.T_('Upgrade Database').'</a></p>
+                <p>'.T_('Make any databases changes needed for this upgrade.').'</p>
+            </li>
+            <li>
+                <div>'.T_('Step 4').'</div>
+                <p><a href="?site=on">'.T_('Finish').'</a></p>
+                <p>'.T_('Turn the site back on and go to the homepage.').'</p>
+            </li>
+        </ul>';
 
     displayFooter();
+}
+
+/**
+ * displayUpgradeSiteStatus 
+ * 
+ * @param string $status 
+ * 
+ * @return void
+ */
+function displayUpgradeSiteStatus ($status)
+{
+    // Turn On
+    if ($status == 'on')
+    {
+        if (!enableSite())
+        {
+            displayHeader();
+            echo '<p>'.T_('Could not turn on site').'</p>';
+            displayFooter();
+
+            return;
+        }
+
+        header('Location: ../home.php');
+
+        return;
+    }
+    // Turn Off
+    else
+    {
+        if (!disableSite())
+        {
+            displayHeader();
+            echo '<p>'.T_('Could not turn off site').'</p>';
+            displayFooter();
+
+            return;
+        }
+    }
+
+    header('Location: upgrade.php?manual=1');
+}
+
+/**
+ * displayUpgradeDatabase
+ * 
+ * @return void
+ */
+function displayUpgradeDatabase ()
+{
+    $latestVersion = $_SESSION['latestVersion'];
+
+    if (!upgrade())
+    {
+        // Jacked html, but should work
+        displayHeader();
+        echo '<p>'.T_('Could not upgrade database').'</p>';
+        displayFooter();
+
+        return;
+    }
+
+    if (!updateCurrentVersion($latestVersion))
+    {
+        // Jacked html, but should work
+        displayHeader();
+        echo '<p>'.T_('Could not update version').'</p>';
+        displayFooter();
+
+        return;
+    }
+
+    header('Location: upgrade.php?manual=1');
 }

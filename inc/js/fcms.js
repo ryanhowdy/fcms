@@ -57,7 +57,16 @@ function confirmDeleteLink(obj, confirmTxt) {
     var link = $(obj);
     var url = link.readAttribute('href');
     if (confirm(confirmTxt)) {
-        document.location = url+'&confirmed=1';
+        // Form
+        if (link.tagName == 'INPUT') {
+            var frm = link.up('form');
+            var act = frm.readAttribute('action');
+            frm.writeAttribute('action', act+'?confirmed=1');
+            return true;
+        // Link
+        } else {
+            document.location = url+'&confirmed=1';
+        }
     }
     return false;
 }
@@ -400,39 +409,6 @@ function hidePhotoDetails(txt) {
         pPara.appendChild(pLink);
         pDiv.insert({'before':pPara});
     }
-}
-function initConfirmPhotoDelete(txt) {
-    if ($('deletephoto')) {
-        var item = $('deletephoto');
-        item.onclick = function() { return confirm(txt); };
-        var hid = document.createElement('input');
-        hid.setAttribute('type', 'hidden');
-        hid.setAttribute('name', 'confirmed');
-        hid.setAttribute('value', 'true');
-        item.insert({'after':hid});
-    }
-}
-function initConfirmCommentDelete(txt) {
-    if (!$$('.delcom input[type="submit"]')) { return; }
-    $$('.delcom input[type="submit"]').each(function(item) {
-        item.onclick = function() { return confirm(txt); };
-        var hid = document.createElement('input');
-        hid.setAttribute('type', 'hidden');
-        hid.setAttribute('name', 'confirmedcom');
-        hid.setAttribute('value', 'true');
-        item.insert({'after':hid});
-    });
-}
-function initConfirmCategoryDelete(txt) {
-    if (!$$('.frm_line .delbtn')) { return; }
-    $$('.frm_line .delbtn').each(function(item) {
-        item.onclick = function() { return confirm(txt); };
-        var hid = document.createElement('input');
-        hid.setAttribute('type', 'hidden');
-        hid.setAttribute('name', 'confirmedcat');
-        hid.setAttribute('value', 'true');
-        item.insert({'after':hid});
-    });
 }
 function initPreviouslyTagged(users_lkup)
 {

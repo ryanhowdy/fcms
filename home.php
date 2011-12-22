@@ -321,9 +321,11 @@ function displayWhatsNew ()
                     '".cleanInput($_GET['alert'])."', 
                     '$currentUserId'
                 )";
-        mysql_query($sql) or displaySQLError(
-            'Remove Alert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            // ok to continue
+        }
     }
 
     // Show Alerts
@@ -348,7 +350,7 @@ function displayWhatsNew ()
     $result = mysql_query($sql);
     if (!$result)
     {
-        displaySQLError('Frontpage Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -541,7 +543,7 @@ function displayStatusUpdateSubmit ()
     if (!mysql_query($sql))
     {
         displayHeader();
-        displaySQLError('Status Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
         displayFooter();
         return;
     }
@@ -556,7 +558,7 @@ function displayStatusUpdateSubmit ()
         if (!mysql_query($sql))
         {
             displayHeader();
-            displaySQLError('Status Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             displayFooter();
             return;
         }
@@ -942,12 +944,16 @@ function formatWhatsNewPrayers ($whatsNewData, $tzOffset)
         $count++;
 
         $displayname = getUserDisplayName($r['userid']);
-        $for = $r['title'];
-        $date = fixDate('YmdHis', $tzOffset, $r['date']);
-        if ($date >= $today_start && $date <= $today_end) {
+        $for         = cleanOutput($r['title']);
+        $date        = fixDate('YmdHis', $tzOffset, $r['date']);
+
+        if ($date >= $today_start && $date <= $today_end)
+        {
             $full_date = T_('Today');
             $d = ' class="today"';
-        } else {
+        }
+        else
+        {
             $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
             $d = '';
         }
@@ -1242,7 +1248,7 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
         $return .= '
                         <li>
                             <div'.$d.'>'.$full_date.'</div>
-                            <a href="'.$url.'">'.$comment.'</a> - 
+                            <a href="'.$url.'">'.cleanOutput($comment).'</a> - 
                             <a href="profile.php?member='.$user.'" class="u">'.$userName.'</a>
                         </li>';
     }
@@ -1310,7 +1316,7 @@ function formatWhatsNewStatusUpdates ($whatsNewData, $tzOffset)
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaySQLError('Status Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -1377,7 +1383,7 @@ function formatWhatsNewCalendar ($whatsNewData, $tzOffset)
         $count++;
 
         $displayname = getUserDisplayName($r['userid']);
-        $title       = $r['title'];
+        $title       = cleanOutput($r['title']);
         $date        = fixDate('YmdHis', $tzOffset, $r['date']);
 
         if ($date >= $today_start && $date <= $today_end)

@@ -39,7 +39,15 @@ if (isset($_POST['email']))
             FROM `fcms_users` 
             WHERE `email` = '$email'";
 
-    $sql_check = mysql_query($sql) or displaySQLError('Email Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+    $sql_check = mysql_query($sql);
+    if (!$sql_check)
+    {
+        displaySqlError($sql, mysql_error());
+        displayForm();
+        echo '</body></html>';
+
+        return;
+    }
 
     $sql_check_num = mysql_num_rows($sql_check);
 
@@ -76,9 +84,14 @@ if (isset($_POST['email']))
         $sql = "UPDATE `fcms_users` 
                 SET `password` = '$new_pass' 
                 WHERE `email` = '$email'";
-        mysql_query($sql) or displaySQLError(
-            'Update Password Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            displayForm();
+            echo '</body></html>';
+
+            return;
+        }
 
         // Send email
         $subject       = getSiteName()." ".T_('Password Reset');

@@ -36,9 +36,12 @@ class Settings
         $sql = "SELECT `email` 
                 FROM `fcms_users` 
                 WHERE `id` = '$currentUserId'";
-        $this->db->query($sql) or displaySQLError(
-            'Email Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         $row = $this->db->get_row();
         $this->currentUserEmail = $row['email'];
     }
@@ -53,9 +56,11 @@ class Settings
         $sql = "SELECT `username`, `email`, `password`
                 FROM `fcms_users`
                 WHERE `id` = '" . $this->currentUserId . "'";
-        $this->db->query($sql) or displaySQLError(
-            'Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
         $row = $this->db->get_row();
 
         echo '
@@ -105,7 +110,7 @@ class Settings
                 WHERE `user` = '" . $this->currentUserId . "'";
         if (!$this->db->query($sql))
         {
-            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -232,9 +237,12 @@ class Settings
                     `dst`, `timezone`, `boardsort`, `showavatar`, `frontpage`
                 FROM `fcms_user_settings`
                 WHERE `user` = '" . $this->currentUserId . "'";
-        $this->db->query($sql) or displaySQLError(
-            'Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         $row = $this->db->get_row();
 
 
@@ -435,9 +443,12 @@ class Settings
         $sql = "SELECT `email_updates` 
                 FROM `fcms_user_settings`
                 WHERE `user` = '" . $this->currentUserId . "'";
-        $this->db->query($sql) or displaySQLError(
-            'Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         $row = $this->db->get_row();
 
         // Email Options
@@ -480,7 +491,7 @@ class Settings
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
         }
 
         $row = $this->db->get_row();
@@ -550,7 +561,7 @@ class Settings
 
         if (!$this->db->query($sql))
         {
-            displaySQLError('Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError($sql, mysql_error());
             return;
         }
 
@@ -607,9 +618,12 @@ class Settings
         $sql = "SELECT `fs_user_id`, `fs_access_token`
                 FROM `fcms_user_settings`
                 WHERE `user` = '" . $this->currentUserId . "'";
-        $this->db->query($sql) or displaySQLError(
-            'Settings Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
         $row = $this->db->get_row();
 
         $link = '';
@@ -621,7 +635,7 @@ class Settings
             $result = mysql_query($sql);
             if (!$result)
             {
-                displaySQLError('Config Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+                displaySqlError($sql, mysql_error());
                 displayFooter();
                 return;
             }

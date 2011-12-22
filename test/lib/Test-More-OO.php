@@ -84,6 +84,13 @@ class TestMore extends TestSimple {
     function is ($thing1, $thing2, $name = NULL) {
         $pass = $this->_compare ('==',$thing1,$thing2,$name);
         if (!$pass) {
+            if (is_array($thing1)) {
+                $order  = array("\r\n", "\n", "\r", " ");
+                $thing1 = print_r($thing1, true);
+                $thing1 = str_replace($order, '', $thing1);
+                $thing2 = print_r($thing2, true);
+                $thing2 = str_replace($order, '', $thing2);
+            }
             $this->diag("         got: '$thing1'",
                         "    expected: '$thing2'");
         }

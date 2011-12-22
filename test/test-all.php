@@ -1,11 +1,12 @@
 <?php
 
-$dh = opendir('../test/');
+$testDir = dirname(__FILE__).'/';
+$dh      = opendir($testDir);
 
 while (($file = readdir($dh)) !== false)
 {
     // Skip Directories
-    if (filetype($file) == "dir")
+    if (filetype($testDir.$file) == "dir")
     {
         continue;
     }
@@ -24,7 +25,7 @@ while (($file = readdir($dh)) !== false)
 
     $results = '';
 
-    $output = exec("php $file", $results, $ret_val);
+    $output = exec("php $testDir$file", $results, $ret_val);
 
     $fp = fopen("results.txt","a");
 

@@ -14,7 +14,6 @@
  * @link      http://www.familycms.com/wiki/
  * @since     2.6
  */
-if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - Initialized\n") or die(); }
 
 /**
  * runFamilyNewsJob 
@@ -39,6 +38,7 @@ function runFamilyNewsJob ()
     $result = mysql_query($sql);
     if (!$result)
     {
+        logError(__FILE__.' ['.__LINE__.'] - Could not get external_news_date.');
         die();
     }
     $r = mysql_fetch_assoc($result);
@@ -59,10 +59,17 @@ function runFamilyNewsJob ()
     $result = mysql_query($sql);
     if (!$result)
     {
+        logError(__FILE__.' ['.__LINE__.'] - Could not get blog settings.');
         die();
     }
     if (mysql_num_rows($result) <= 0)
     {
+        if (debugOn())
+        {
+            logError(__FILE__.' ['.__LINE__.'] - No blog settings found.');
+        }
+
+        updateLastRun(date('Y-m-d H:i:s'), 'familynews');
         die();
     }
 
@@ -76,7 +83,11 @@ function runFamilyNewsJob ()
             $ret = $newsObj->importBloggerPosts($r['blogger'], $r['user'], $atomDate, $external_ids);
             if ($ret === false)
             {
-                die();
+                if (debugOn())
+                {
+                    logError(__FILE__.' ['.__LINE__.'] - No posts to import from blogger for user ['.$r['user'].'].');
+                }
+                continue;
             }
         }
 
@@ -86,7 +97,11 @@ function runFamilyNewsJob ()
             $ret = $newsObj->importTumblrPosts($r['tumblr'], $r['user'], $atomDate, $external_ids);
             if ($ret === false)
             {
-                die();
+                if (debugOn())
+                {
+                    logError(__FILE__.' ['.__LINE__.'] - No posts to import from tumblr for user ['.$r['user'].'].');
+                }
+                continue;
             }
         }
 
@@ -96,7 +111,11 @@ function runFamilyNewsJob ()
             $ret = $newsObj->importWordpressPosts($r['wordpress'], $r['user'], $atomDate, $external_ids);
             if ($ret === false)
             {
-                die();
+                if (debugOn())
+                {
+                    logError(__FILE__.' ['.__LINE__.'] - No posts to import from wordpress for user ['.$r['user'].'].');
+                }
+                continue;
             }
         }
 
@@ -106,7 +125,11 @@ function runFamilyNewsJob ()
             $ret = $newsObj->importPosterousPosts($r['posterous'], $r['user'], $atomDate, $external_ids);
             if ($ret === false)
             {
-                die();
+                if (debugOn())
+                {
+                    logError(__FILE__.' ['.__LINE__.'] - No posts to import from posterous for user ['.$r['user'].'].');
+                }
+                continue;
             }
         }
     }
@@ -118,17 +141,12 @@ function runFamilyNewsJob ()
             WHERE `name` = 'external_news_date'";
     if (!mysql_query($sql))
     {
+        logError(__FILE__.' ['.__LINE__.'] - Could not update last imported news date.');
         die();
     }
 
     // Update date we last ran this job
-    $sql = "UPDATE `fcms_schedule`
-            SET `lastrun` = '$now'
-            WHERE `type` = 'familynews'";
-    if (!mysql_query($sql))
-    {
-        die();
-    }
+    updateLastRun($now, 'familynews');
 }
 
 /**
@@ -140,9 +158,7 @@ function runFamilyNewsJob ()
  */
 function runYouTubeJob ()
 {
-    global $debug, $file;
-
-    if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - Job Started\n") or die(); }
+    global $file;
 
     require_once "constants.php";
     require_once "socialmedia.php";
@@ -154,10 +170,7 @@ function runYouTubeJob ()
     Zend_Loader::loadClass('Zend_Gdata_AuthSub');
     Zend_Loader::loadClass('Zend_Gdata_App_Exception');
 
-    if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - Includes included\n") or die(); }
-    
     $existingIds = getExistingYouTubeIds();
-    if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - Existing Ids\n") or die(); }
 
     // Get user's session tokens
     $sql = "SELECT u.`id`, s.`youtube_session_token`
@@ -168,9 +181,9 @@ function runYouTubeJob ()
     $result = mysql_query($sql);
     if (!$result)
     {
+        logError(__FILE__.' ['.__LINE__.'] - Could not get youtube tokens.');
         die();
     }
-    if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - Session Tokens\n") or die(); }
 
     $sessionTokens = array();
 
@@ -180,49 +193,40 @@ function runYouTubeJob ()
     }
 
     $youtubeConfig  = getYouTubeConfigData();
-    if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - Config Data\n") or die(); }
 
     // Get videos for each user
     foreach ($sessionTokens as $userId => $token)
     {
-        if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User [$userId]\n") or die(); }
-
         // Setup youtube api
         $httpClient     = getAuthSubHttpClient($youtubeConfig['youtube_key'], $token);
         $youTubeService = new Zend_Gdata_YouTube($httpClient);
 
         $feed = $youTubeService->getUserUploads('default');
-        if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User Feed\n") or die(); }
 
-        $values = '';
-
+        $values     = '';
         $videoCount = 0;
 
         foreach ($feed as $entry)
         {
-            if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User Feed>Entry\n") or die(); }
             $id = $entry->getVideoId();
 
             if (isset($existingIds[$id]))
             {
-                if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User Video already imported\n") or die(); }
+                if (debugOn())
+                {
+                    logError(__FILE__.' ['.__LINE__.'] - Video ['.$id.'] for user ['.$userId.'] already imported.');
+                }
                 continue;
             }
-            if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User Feed>Entry Not existing\n") or die(); }
 
             $title       = htmlspecialchars($entry->getVideoTitle());
-            if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User Feed>Entry Video title\n") or die(); }
             $description = htmlspecialchars($entry->getVideoDescription());
-            if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User Feed>Entry Video desc\n") or die(); }
             $created     = formatDate('Y-m-d H:i:s', $entry->published);
-            if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User Feed>Entry Video created formatDate\n") or die(); }
             $duration    = $entry->getVideoDuration();
-            if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User Feed>Entry Video duration\n") or die(); }
 
             $height = '420';
             $width  = '780';
             $thumbs = $entry->getVideoThumbnails();
-            if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User Feed>Entry Video Data\n") or die(); }
 
             if (count($thumbs) > 0)
             {
@@ -236,35 +240,43 @@ function runYouTubeJob ()
             $values .= "('$id', '$title', '$description', 'youtube', '$height', '$width', '$created', '$userId', NOW(), '$userId'),";
 
             $videoCount++;
-            if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - Video found\n") or die(); }
         }
-        if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - User Done - Found [$videoCount] Videos\n") or die(); }
 
         if ($videoCount > 0)
         {
-            if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - Preparing Insert [$videoCount] Videos\n") or die(); }
             $values = substr($values, 0, -1); // remove comma
 
             $sql = "INSERT INTO `fcms_video` (`source_id`, `title`, `description`, `source`, `height`, `width`, `created`, `created_id`, `updated`, `updated_id`)
                     VALUES $values";
             if (!mysql_query($sql))
             {
-                if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - Insert Videos failed:\n [ $sql ]\n") or die(); }
+                logError(__FILE__.' ['.__LINE__.'] - Could not insert new video to db.');
                 die();
             }
-            if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - Insert Videos found\n") or die(); }
         }
     }
-    if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - All User's Done\n") or die(); }
 
     // Update date we last ran this job
-    $now = date('Y-m-d H:i:s');
+    updateLastRun(date('Y-m-d H:i:s'), 'youtube');
+}
+
+/**
+ * updateLastRun 
+ * 
+ * @param date   $now 
+ * @param string $type 
+ * 
+ * @return void
+ */
+function updateLastRun ($now, $type)
+{
+    // Update date we last ran this job
     $sql = "UPDATE `fcms_schedule`
             SET `lastrun` = '$now'
-            WHERE `type` = 'youtube'";
+            WHERE `type` = '$type'";
     if (!mysql_query($sql))
     {
+        logError(__FILE__.' ['.__LINE__.'] - Could not update last run date for '.$type.' job.');
         die();
     }
-    if ($debug) { fwrite($file, "[".date('Y-m-d H:i:s')."] inc/cron.php - YouTube - Updated lastrun\n") or die(); }
 }

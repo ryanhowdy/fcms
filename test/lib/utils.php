@@ -1,5 +1,8 @@
 <?php
 
+define('TEST', dirname(dirname(__FILE__)) . '/');
+define('INC', dirname(dirname(dirname(__FILE__))) . '/inc/');
+
 function connectDatabase ()
 {
     global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
@@ -9,6 +12,6 @@ function connectDatabase ()
 
     if (!mysql_query("SET NAMES 'utf8'"))
     {
-        displaySQLError('UTF8 Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        displaySqlError($sql, mysql_error());
     }
 }

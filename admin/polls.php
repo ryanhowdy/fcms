@@ -71,9 +71,11 @@ if (isset($_GET['alert']))
                 '".cleanInput($_GET['alert'])."', 
                 '$currentUserId'
             )";
-    mysql_query($sql) or displaySQLError(
-        'Remove Alert Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-    );
+    if (!mysql_query($sql))
+    {
+        displaySqlError($sql, mysql_error());
+        die();
+    }
 }
 
 // Show Alerts
@@ -100,9 +102,13 @@ else
     {
         $show = false;
         $sql = "SELECT MAX(id) AS c FROM `fcms_polls`";
-        $result = mysql_query($sql) or displaySQLError(
-            'Last Poll Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         $found = mysql_fetch_array($result);
         $latest_poll_id = $found['c'];
         $i = 1;
@@ -119,27 +125,33 @@ else
                                 '".cleanInput($_POST['show'.$i])."', 
                                 0
                             )";
-                    mysql_query($sql) or displaySQLError(
-                        'New Option Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-                    );
+                    if (!mysql_query($sql))
+                    {
+                        displaySqlError($sql, mysql_error());
+                        die();
+                    }
                 }
                 else
                 {
                     $sql = "UPDATE `fcms_poll_options` 
                             SET `option` = '".cleanInput($_POST['show'.$i])."' 
                             WHERE `id` = '".cleanInput($_POST['option'.$i])."'";
-                    mysql_query($sql) or displaySQLError(
-                        'Option Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-                    );
+                    if (!mysql_query($sql))
+                    {
+                        displaySqlError($sql, mysql_error());
+                        die();
+                    }
                 }
             }
             elseif ($_POST['option'.$i] != 'new')
             {
                 $sql = "DELETE FROM `fcms_poll_options` 
                         WHERE `id` = '".cleanInput($_POST['option'.$i])."'";
-                mysql_query($sql) or displaySQLError(
-                    'Delete Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-                );
+                if (!mysql_query($sql))
+                {
+                    displaySqlError($sql, mysql_error());
+                    die();
+                }
             }
             $i++;
         }
@@ -158,9 +170,11 @@ else
                     '".cleanInput($_POST['question'])."', 
                     NOW()
                 )";
-        mysql_query($sql) or displaySQLError(
-            'New Poll Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
 
         $poll_id = mysql_insert_id();
 
@@ -175,9 +189,11 @@ else
                             '".cleanInput($_POST['option'.$i])."', 
                             0
                         )";
-                mysql_query($sql) or displaySQLError(
-                    'New Option Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-                );
+                if (!mysql_query($sql))
+                {
+                    displaySqlError($sql, mysql_error());
+                    die();
+                }
             }
             $i++;
         }
@@ -215,14 +231,19 @@ else
 
         $sql = "DELETE FROM fcms_poll_options 
                 WHERE poll_id = '$poll_id'";
-        mysql_query($sql) or displaySQLError(
-            'Delete Option Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         $sql = "DELETE FROM `fcms_polls` 
                 WHERE `id` = '$poll_id'";
-        mysql_query($sql) or displaySQLError(
-            'Delete Poll Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
 
         echo "<meta http-equiv='refresh' content='0;URL=polls.php'>";
     }
@@ -268,9 +289,13 @@ else
                 ORDER BY `started` DESC 
                 LIMIT $from, 10";
 
-        $result = mysql_query($sql) or displaySQLError(
-            'Poll Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-        );
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            die();
+        }
+
         if (mysql_num_rows($result) > 0)
         {
             while ($r = mysql_fetch_array($result))
@@ -291,9 +316,12 @@ else
             // used above, so we can get the total count
             $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
 
-            $result = mysql_query($sql) or displaySQLError(
-                'Page Count Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error()
-            );
+            $result = mysql_query($sql);
+            if (!$result)
+            {
+                displaySqlError($sql, mysql_error());
+                die();
+            }
 
             $count       = mysql_num_rows($result);
             $total_pages = ceil($count / 10); 

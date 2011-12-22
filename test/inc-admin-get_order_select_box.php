@@ -1,9 +1,11 @@
 #!/usr/bin/php -q
 <?php
-require_once 'lib/Test-More.php';
-require_once '../inc/config_inc.php';
-require_once '../inc/gettext.inc';
-require_once '../inc/admin_class.php';
+require_once dirname(dirname(__FILE__)).'/test/lib/utils.php';
+
+require_once TEST.'lib/Test-More.php';
+require_once INC.'config_inc.php';
+require_once INC.'gettext.inc';
+require_once INC.'admin_class.php';
 
 $adminObj = new Admin(1);
 
