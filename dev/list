@@ -8,7 +8,6 @@
 ./admin/members.php
 ./admin/polls.php
 ./admin/scheduler.php
-./admin/upgrade011_190.php
 ./admin/upgrade.php
 ./admin/vimeo.php
 ./admin/youtube.php
@@ -50,6 +49,7 @@
 ./inc/gettext.php
 ./inc/image_class.php
 ./inc/install_inc.php
+./inc/KLogger.php
 ./inc/members_class.php
 ./inc/messageboard_class.php
 ./inc/phone.php
