@@ -2519,7 +2519,7 @@ msgstr ""
 msgid "Create"
 msgstr ""
 
-#: inc/admin_members_class.php:228
+#: inc/admin_members_class.php:227
 msgid "Could not find member."
 msgstr ""
 
@@ -3950,7 +3950,7 @@ msgstr ""
 
 #: inc/gallery_class.php:1298
 #, php-format
-msgid "View Photos in %s"
+msgid "Currently %d/5 Stars."
 msgstr ""
 
 #: inc/gallery_class.php:1299
