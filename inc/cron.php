@@ -16,6 +16,33 @@
  */
 
 /**
+ * runAwardsJob 
+ * 
+ * @return void
+ */
+function runAwardsJob ()
+{
+    include_once 'awards_class.php';
+
+    $awards = new Awards(1);
+
+    if (!$awards->calculateMonthlyAwards())
+    {
+        logError(__FILE__.' ['.__LINE__.'] - Could not calculate monthly awards.');
+        die();
+    }
+
+    if (!$awards->calculateAchievementAwards())
+    {
+        logError(__FILE__.' ['.__LINE__.'] - Could not calculate achievement awards.');
+        die();
+    }
+
+    // Update date we last ran this job
+    updateLastRun(date('Y-m-d H:i:s'), 'awards');
+}
+
+/**
  * runFamilyNewsJob 
  * 
  * Checks if any user has an external blog setup.
@@ -163,8 +190,8 @@ function runYouTubeJob ()
     require_once "constants.php";
     require_once "socialmedia.php";
     require_once "datetime.php";
-    require_once "inc/gettext.inc";
-    set_include_path(INC);
+    require_once THIRDPARTY."gettext.inc";
+    set_include_path(THIRDPARTY);
     require_once 'Zend/Loader.php';
     Zend_Loader::loadClass('Zend_Gdata_YouTube');
     Zend_Loader::loadClass('Zend_Gdata_AuthSub');
@@ -234,8 +261,8 @@ function runYouTubeJob ()
                 $width  = $thumbs[0]['width'];
             }
 
-            $title       = cleanInput($title);
-            $description = cleanInput($description);
+            $title       = escape_string($title);
+            $description = escape_string($description);
 
             $values .= "('$id', '$title', '$description', 'youtube', '$height', '$width', '$created', '$userId', NOW(), '$userId'),";
 

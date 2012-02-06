@@ -20,7 +20,7 @@ require 'fcms.php';
 init();
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 
 // Setup the Template variables;
 $TMPL = array(
@@ -44,10 +44,10 @@ echo '
 // Send mail
 if (!empty($_POST['subject']) && !empty($_POST['email']) && !empty($_POST['name']) && !empty($_POST['msg']))
 {
-    $subject       = cleanOutput($_POST['subject']);
-    $email         = cleanOutput($_POST['email']);
-    $name          = cleanOutput($_POST['name']);
-    $msg           = cleanOutput($_POST['msg'], 'html');
+    $subject       = $_POST['subject'];
+    $email         = $_POST['email'];
+    $name          = $_POST['name'];
+    $msg           = $_POST['msg'];
     $email_headers = getEmailHeaders($name, $email);
 
     mail(getContactEmail(), $subject, "$msg\r\n-$name", $email_headers);

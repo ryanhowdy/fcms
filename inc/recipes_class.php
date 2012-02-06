@@ -32,7 +32,7 @@ class Recipes
         $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->currentUserId = (int)$currentUserId;
         $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
@@ -47,10 +47,11 @@ class Recipes
      */
     function showRecipes ($page = 1)
     {
-        $page = cleanInput($page, 'int');
+        $page = (int)$page;
         $from = (($page * 5) - 5);
 
-        if (checkAccess($this->currentUserId) <= 5) {
+        if (checkAccess($this->currentUserId) <= 5)
+        {
             echo '
             <div id="actions_menu" class="clearfix">
                 <ul><li><a class="add" href="?addrecipe=yes">'.T_('Add Recipe').'</a></li></ul>
@@ -132,8 +133,8 @@ class Recipes
      */
     function showRecipeInCategory ($cat, $page = 1)
     {
-        $cat  = cleanInput($cat, 'int');
-        $page = cleanInput($page, 'int');
+        $cat  = (int)$cat;
+        $page = (int)$page;
         $from = (($page * 5) - 5);
 
         // Display Menu
@@ -141,7 +142,9 @@ class Recipes
             <div id="sections_menu" class="clearfix">
                 <ul>
                     <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>';
-        if (checkAccess($this->currentUserId) <= 5) {
+
+        if (checkAccess($this->currentUserId) <= 5)
+        {
             echo '
                 </ul>
             </div>
@@ -149,6 +152,7 @@ class Recipes
                 <ul>
                     <li><a href="?addrecipe=yes&amp;cat='.$cat.'">'.T_('Add Recipe').'</a></li>';
         }
+
         echo '
                 </ul>
             </div>';
@@ -247,8 +251,8 @@ class Recipes
      */
     function showRecipe ($cat, $id)
     {
-        $cat = cleanInput($cat, 'int');
-        $id  = cleanInput($id, 'int');
+        $cat = (int)$cat;
+        $id  = (int)$id;
 
         // Display Menu
         echo '
@@ -299,7 +303,7 @@ class Recipes
         $date = fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $r['date']);
 
         $cleanName        = cleanOutput($r['name']);
-        $cleanCategory    = cleanOutput($r['category'], 'int');
+        $cleanCategory    = (int)$r['category'];
         $cleanThumb       = basename($r['thumbnail']);
         $cleanIngredients = cleanOutput($r['ingredients']);
         $cleanDirections  = cleanOutput($r['directions']);
@@ -308,7 +312,7 @@ class Recipes
         echo '
             <div id="maincolumn">
                 <div class="recipe-thumbnail"><img src="uploads/upimages/'.$cleanThumb.'"/></div>
-                <h4 class="recipe-name">' . $cleanName . '</h4>
+                <h4 class="recipe-name">'.$cleanName.'</h4>
                 <span class="date">
                     '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date);
 
@@ -371,7 +375,7 @@ class Recipes
         }
 
         echo '
-            <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form method="post" id="addform" name="addform" enctype="multipart/form-data" action="recipes.php">
                 <fieldset>
                     <legend><span>'.T_('Add Recipe').'</span></legend>
@@ -452,7 +456,7 @@ class Recipes
                     <legend><span>'.T_('Edit Recipe').'</span></legend>
                     <div>
                         <label for="name">'.T_('Name').'</label>
-                        <input type="text" name="name" id="name" value="'.$name.'" size="50"/>
+                        <input type="text" name="name" id="name" value="'.cleanOutput($name).'" size="50"/>
                         <script type="text/javascript">
                             var fname = new LiveValidation(\'name\', { onlyOnSubmit: true });
                             fname.add(Validate.Presence, {failureMessage: ""});
@@ -481,7 +485,7 @@ class Recipes
                         </script>
                     </div>
                     <p>
-                        <input type="hidden" name="id" value="'.$id.'"/>
+                        <input type="hidden" name="id" value="'.(int)$id.'"/>
                         <input class="sub1" type="submit" name="submitedit" value="' . T_('Edit') . '"/> &nbsp;
                         <a href="recipes.php">' . T_('Cancel') . '</a>
                     </p>
@@ -633,8 +637,8 @@ class Recipes
      */
     function showComments ($id, $category)
     {
-        $id       = cleanInput($id, 'int');
-        $category = cleanInput($category, 'int');
+        $id       = (int)$id;
+        $category = (int)$category;
 
         $sql = "SELECT rc.`id`, rc.`recipe`, rc.`comment`, rc.`date`, rc.`user`, u.`avatar` 
                 FROM `fcms_recipe_comment` AS rc, `fcms_users` AS u 

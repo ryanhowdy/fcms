@@ -22,14 +22,16 @@ echo '
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
 <title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
-<link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
+<link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
 </head>
 <body>';
 
 if (isset($_GET['uid']))
 {
+    $uid = $_GET['uid'];
+
     // Check for valid user id
-    if (is_numeric($_GET['uid']))
+    if (is_numeric($uid))
     {
         echo '
     <div id="login_box">
@@ -37,7 +39,7 @@ if (isset($_GET['uid']))
 
         $sql = "SELECT `activate_code` 
                 FROM `fcms_users` 
-                WHERE `id` = '".cleanInput($_GET['uid'], 'int')."'";
+                WHERE `id` = '$uid'";
 
         $result = mysql_query($sql);
         if (!$result)
@@ -53,12 +55,12 @@ if (isset($_GET['uid']))
         if (isset($_GET['code']))
         {
             // Code is valid
-            $code = cleanInput($_GET['code']);
-            if ($row['activate_code'] == $code)
+            if ($row['activate_code'] == $_GET['code'])
             {
                 $sql = "UPDATE `fcms_users` 
                         SET `activated` = 1, `joindate` = NOW() 
-                        WHERE `id` = '".cleanInput($_GET['uid'], 'int')."'";
+                        WHERE `id` = '$uid'";
+
                 if (!mysql_query($sql))
                 {
                     displaySqlError($sql, mysql_error());

@@ -10,7 +10,7 @@ load('image');
 setLanguage();
 isLoggedIn('inc/');
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $img           = new Image($currentUserId);
 
 echo '
@@ -52,11 +52,16 @@ function insertUpImage(str) {
 <body>';
 
 // Delete image
-if (isset($_POST['delimg'])) {
-    if (checkAccess($currentUserId) < 2) {
+if (isset($_POST['delimg']))
+{
+    if (checkAccess($currentUserId) < 2)
+    {
         unlink("../uploads/upimages/" . basename($_POST['img']));
+
         echo "<p class=\"ok-alert\">".sprintf(T_('%s was Deleted Successfully'), $_POST['img'])."</p>";
-    } else {
+    }
+    else
+    {
         echo "<p class=\"error-alert\">".T_('You do not have access to delete this image.')."</p>";
     }
 }
@@ -64,7 +69,7 @@ if (isset($_POST['delimg'])) {
 // Upload image
 if (isset($_POST['upload']))
 {
-    $img->destination   = '../uploads/upimages/';
+    $img->destination = '../uploads/upimages/';
 
     $img->upload($_FILES['upfile']);
 
@@ -112,40 +117,55 @@ echo '
     <table>';
 
 $img_dir = opendir("../uploads/upimages");
-while ($file = readdir($img_dir)) {
-    if ($file !== 'index.htm') {
+
+while ($file = readdir($img_dir))
+{
+    if ($file !== 'index.htm')
+    {
         $images_in_dir[] = $file;
     }
 }
+
 natcasesort($images_in_dir);
 reset($images_in_dir);
-$i = 0;  $total_size = 0;
 
-foreach ($images_in_dir as $file) {
+$i = 0;
+$total_size = 0;
 
+foreach ($images_in_dir as $file)
+{
     // Skip directories that start with a period
-    if ($file[0] === '.') {
+    if ($file[0] === '.')
+    {
         continue;
     }
 
     $img_name_arr = explode(".", $file);
-    $img_type = end($img_name_arr);
+    $img_type     = end($img_name_arr);
 
-    $this_size =  filesize("../uploads/upimages/" . $file);
+    $this_size   = filesize("../uploads/upimages/" . $file);
     $total_size += $this_size;
-    $img_info = getimagesize("../uploads/upimages/" . $file);
+    $img_info    = getimagesize("../uploads/upimages/" . $file);
+
     $win_w = $img_info[0] + 50;
     $win_h = $img_info[1] + 50;
 
     $i++;
+
     echo '
         <tr'; if ($i % 2 != 0) { echo 'class="alt"'; } echo '>
-            <td class="v"><button class="viewbtn" onclick="window.open(\'../uploads/upimages/'.basename($file).'\',\'file\',
-                \'width='.$win_w.',height='.$win_h.',resizable=no,location=no,menubar=no,status=no\'); return false;"/></td>
-            <td class="file"><a href="#" onclick="insertUpImage(\'[IMG=uploads/upimages/'.basename($file).']\')" title="'.T_('Click to insert image into message.').'">'.$file.'</a></td>
+            <td class="v">
+                <button class="viewbtn" onclick="window.open(\'../uploads/upimages/'.basename($file).'\',\'file\',
+                \'width='.$win_w.',height='.$win_h.',resizable=no,location=no,menubar=no,status=no\'); return false;"/>
+            </td>
+            <td class="file">
+                <a href="#" onclick="insertUpImage(\'[IMG=uploads/upimages/'.basename($file).']\')" 
+                    title="'.T_('Click to insert image into message.').'">'.$file.'</a>
+            </td>
             <td>';
 
-    if (checkAccess($currentUserId) < 2) {
+    if (checkAccess($currentUserId) < 2)
+    {
         echo '
                 <form method="post" action="upimages.php">
                     <div>
@@ -161,6 +181,7 @@ foreach ($images_in_dir as $file) {
             <td class="n">'.formatSize($this_size).'</td>
         </tr>';
 }
+
 echo '
         <tr><td></td><td></td><td></td><td class="n">'.T_('Total Size').'</td><td class="n">'.formatSize($total_size).'</td></tr>
     </table>

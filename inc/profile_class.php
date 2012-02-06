@@ -36,146 +36,10 @@ class Profile
         $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->currentUserId = (int)$currentUserId;
         $this->tzOffset      = getTimezone($this->currentUserId);
         $this->awardObj      = new Awards($this->currentUserId);
         $this->treeObj       = new FamilyTree($this->currentUserId);
-    }
-
-    /**
-     * displayProfile 
-     * 
-     * @param int $userid 
-     * 
-     * @return  void
-     */
-    function displayProfile ($userid)
-    {
-        // Check for valid user id
-        if (!ctype_digit($userid)) {
-            echo '
-            <p class="error-alert">'.T_('Invalid User').'</p>';
-            return;
-        }
-
-        $sql = "SELECT u.fname, u.lname, u.email, u.`dob_year`, u.`dob_month`, u.`dob_day`, u.avatar, u.username, u.joindate, u.activity, 
-                    u.`sex`, a.`id` AS aid, a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`cell`, a.`work`  
-                FROM fcms_users AS u, fcms_address AS a 
-                WHERE u.id = '$userid' 
-                AND u.id = a.user";
-
-        if (!$this->db->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        $row = $this->db->get_row();
-
-        // Rank Info
-        $points = getUserParticipationPoints($userid);
-        $level  = getUserParticipationLevel($points);
-        $pts = 0;
-
-        // Dates Info
-        $joinDate     = fixDate(T_('F j, Y'), $this->tzOffset, $row['joindate']);
-        $activityDate = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['activity']);
-
-        // Stats Info -- if user is not a guest
-        if (checkAccess($this->currentUserId) != 10)
-        {
-            $statsData = $this->getStats($userid);
-        }
-
-        // Address
-        $address = '';
-        if (empty($row['address']) && empty($row['state']))
-        {
-            $address = "<i>(".T_('none').")</i>";
-        }
-        else
-        {
-            if (!empty($row['address']))
-            {
-                $address .= $row['address'] . "<br/>";
-            }
-            if (!empty($row['city']))
-            {
-                $address .= $row['city'] . ", ";
-            }
-            $address .= $row['state'] . " " . $row['zip'];
-        }
-
-        // Phone Numbers
-        $home = empty($row['home']) ? "<i>(" . T_('none') . ")</i>" : $row['home'];
-        $work = empty($row['work']) ? "<i>(" . T_('none') . ")</i>" : $row['work'];
-        $cell = empty($row['cell']) ? "<i>(" . T_('none') . ")</i>" : $row['cell'];
-
-        // Sex
-        $sex = ($row['sex'] == 'F') ? 'female' : 'male';
-
-        // Print the profile info
-        echo '
-            <div id="side-info" class="' . $sex . '">
-                <img class="avatar" src="'.getCurrentAvatar($userid).'" alt="avatar"/>
-                <div class="name">
-                    <h3>'.$row['fname'].' '.$row['lname'].'</h3>
-                    <h4>'.$row['username'].'</h4>
-                    '.$level.'
-                </div>
-                <p>
-                    <a class="action" href="privatemsg.php?compose=new&amp;id='.$userid.'">'.T_('Send PM').'</a>
-                </p>
-                <b>'.T_('Address').'</b>
-                <br/>'.$address.'<br/>
-                <p>
-                    <b>'.T_('Home Phone').'</b>: '.$home.'<br/>
-                    <b>'.T_('Work Phone').'</b>: '.$work.'<br/>
-                    <b>'.T_('Cell Phone').'</b>: '.$cell.'<br/>
-                </p>
-                <hr/>
-                <h4>'.T_('Participation Points').'</h4>
-                <p>
-                    <b>'.T_('Points').':</b> '.$points.'<br/>
-                </p>
-                <hr/>
-                <p><b>'.T_('Join Date').':</b><br/>'.$joinDate.'</p>
-                <p><b>'.T_('Last Visit').':</b><br/>'.$activityDate.'</p>
-                <hr/>
-                <h4>'.T_('Relationships').'</h4>';
-
-        // Display Family Tree Listing
-        $this->treeObj->displayFamilyTree($userid, 'list');
-
-        echo '
-                <p><a href="familytree.php?tree=' . $userid . '">' . T_('View Family Tree') . '</a></p>
-            </div>
-            <div id="main-info">
-                <h2>'.T_('Stats').'</h2>
-                <div id="stats" class="clearfix">';
-
-        foreach ($statsData as $stats)
-        {
-            echo $stats;
-        }
-
-        echo '
-                </div>
-                <h2>'.T_('Awards').'</h2>';
-
-        $this->awardObj->displayAwards($userid);
-
-        echo '
-                <h2>'.T_('Last 5 Posts').'</h2>';
-        $this->displayLast5Posts($userid);
-
-        echo '
-                <h2>'.T_('Last 5 Photos').'</h2>';
-        $this->displayLast5Photos($userid);
-
-        echo '
-            </div>
-            <div style="clear:both"></div>';
     }
 
     /**
@@ -272,7 +136,7 @@ class Profile
                 </ul>
             </div>
             <div id="maincolumn">
-                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <script type="text/javascript" src="ui/js/livevalidation.js"></script>
                 <form id="frm" action="profile.php?view=info" method="post">
                 <fieldset>
                     <legend><span>'.T_('Name').'</span></legend>
@@ -314,7 +178,7 @@ class Profile
                     <div class="field-row clearfix">
                         <div class="field-label"><label class="optional" for="bio"><b>'.T_('Bio').'</b></label></div>
                         <div class="field-widget">
-                            <textarea name="bio" id="bio" cols="40" rows="5">'.cleanOutput($row['bio']).'</textarea>
+                            <textarea name="bio" id="bio" cols="40" rows="5">'.$row['bio'].'</textarea>
                         </div>
                     </div>
                 </fieldset>
@@ -393,20 +257,22 @@ class Profile
         $form   = '';
         $input  = '';
         $js     = '';
+        $submit = 'submit';
 
         if (usingAdvancedUploader($this->currentUserId))
         {
-            $form  = '<form id="frm" name="frm" method="post">';
+            $submit = 'button';
+            $form   = '<form id="frm" name="frm" method="post">';
 
             $input = '<applet name="jumpLoaderApplet"
                     code="jmaster.jumploader.app.JumpLoaderApplet.class"
-                    archive="inc/jumploader_z.jar"
+                    archive="inc/thirdparty/jumploader_z.jar"
                     width="200"
                     height="260"
                     mayscript>
                     <param name="uc_sendImageMetadata" value="true"/>
                     <param name="uc_maxFiles" value="1"/>
-                    <param name="uc_uploadUrl" value="profile.php?advanced-avatar=true"/>
+                    <param name="uc_uploadUrl" value="profile.php?advanced-avatar=true&amp;orig='.$row['avatar'].'"/>
                     <param name="vc_useThumbs" value="true"/>
                     <param name="uc_uploadScaledImagesNoZip" value="true"/>
                     <param name="uc_uploadScaledImages" value="true"/>
@@ -426,7 +292,7 @@ class Profile
                 <br/>';
 
             $js = '<script language="javascript">
-                Event.observe("submit","click",function(){
+                Event.observe("submitUpload","click",function(){
                     if ($(\'fcms\').visible()) {
                         var uploader = document.jumpLoaderApplet.getUploader();
                         uploader.startUpload();
@@ -434,7 +300,7 @@ class Profile
                 });
                 function uploaderStatusChanged(uploader) {
                     if (uploader.isReady() && uploader.getFileCountByStatus(3) == 0) { 
-                        window.location.href = "profile.php?view=advanced-picture&avatar_orig='.cleanOutput($row['avatar']).'";
+                        window.location.href = "profile.php?view=picture";
                     }
                 }
                 </script>';
@@ -443,8 +309,7 @@ class Profile
         {
             $form  = '<form id="frm" name="frm" enctype="multipart/form-data" action="profile.php?view=picture" method="post">';
 
-            $input = '<input type="file" name="avatar" id="avatar" size="30" 
-                title="'.T_('Upload your personal image (Avatar)').'"/>';
+            $input = '<input type="file" name="avatar" id="avatar" size="30" title="'.T_('Upload your personal image (Avatar)').'"/>';
         }
 
         $currentAvatar = '<img id="current-avatar" src="'.getCurrentAvatar($this->currentUserId).'" alt="'.T_('This is your current avatar.').'"/>';
@@ -480,7 +345,7 @@ class Profile
                                 <input type="hidden" name="avatar_orig" value="'.cleanOutput($row['avatar']).'"/><br/>
                                 '.$currentAvatar.'
                             </div>
-                            <p><input class="sub1" type="submit" name="submit" id="submitUpload" value="'.T_('Submit').'"/></p>
+                            <p><input class="sub1" type="'.$submit.'" name="submit" id="submitUpload" value="'.T_('Submit').'"/></p>
                         </div>
 
                         <div id="gravatar" class="field-row clearfix">
@@ -624,125 +489,4 @@ class Profile
 
         return $data;
     }
-
-    /**
-     * displayPointsToGo 
-     *
-     * Shows how many more points are needed for the next rank.
-     *
-     * @deprecated
-     * @param       string  $pts 
-     *
-     * @return      void
-     */
-    function displayPointsToGo ($pts)
-    {
-        // Removed in 2.2
-        $posts = ceil($pts / (1 / 75));
-        $photos = ceil($pts / (1 / 25));
-        $comments = ceil($pts / (1 / 20));
-        $calendar = ceil($pts / (1 / 5));
-        $news = ceil($pts / (1 / 10));
-        echo '
-                <div><small><i>&nbsp;&nbsp;&nbsp; '.$posts.' new posts &nbsp;&nbsp;- or -</i></small></div>
-                <div><small><i>&nbsp;&nbsp;&nbsp; '.$photos.' new photos &nbsp;&nbsp;- or -</i></small></div>
-                <div><small><i>&nbsp;&nbsp;&nbsp; '.$comments.' new comments &nbsp;&nbsp;- or -</i></small></div>
-                <div><small><i>&nbsp;&nbsp;&nbsp; '.$calendar.' new calendar entries &nbsp;&nbsp;- or -</i></small></div>
-                <div><small><i>&nbsp;&nbsp;&nbsp; '.$comments.' new family news entries &nbsp;&nbsp;- or -</i></small></div>';
-    }
-
-    /**
-     * displayLast5Posts 
-     * 
-     * @param   int     $userid 
-     * @return  void
-     */
-    function displayLast5Posts ($userid)
-    {
-        $userid = cleanInput($userid, 'int');
-
-        $sql = "SELECT t.`id`, `subject`, `date`, `post` 
-                FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, `fcms_users` AS u 
-                WHERE t.`id` = p.`thread` 
-                AND p.`user` = u.`id` 
-                AND u.`id` = '$userid' 
-                ORDER BY `date` DESC 
-                LIMIT 0, 5";
-        if (!$this->db2->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        if ($this->db2->count_rows() > 0)
-        {
-            while ($row = $this->db2->get_row())
-            {
-                $date    = fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $row['date']);
-                $subject = $row['subject'];
-                $post    = removeBBCode($row['post']);
-                $post    = cleanOutput($post);
-                $pos     = strpos($subject, '#ANOUNCE#');
-
-                if ($pos !== false)
-                {
-                    $subject = substr($subject, 9, strlen($subject)-9);
-                }
-
-                $subject = cleanOutput($subject);
-
-                echo '
-                <p>
-                    <a href="messageboard.php?thread='.cleanInput($row['id'], 'int').'">'.$subject.'</a> 
-                    <span class="date">'.$date.'</span><br/>
-                    '.$post.'
-                </p>';
-            }
-        }
-        else
-        {
-            echo '
-                <p>'.T_('none').'</p>';
-        }
-    }
-
-    /**
-     * displayLast5Photos 
-     * 
-     * @param   int     $userid 
-     * @return  void
-     */
-    function displayLast5Photos ($userid)
-    {
-        $userid = cleanInput($userid, 'int');
-
-        $sql = "SELECT * 
-                FROM `fcms_gallery_photos` 
-                WHERE user = '$userid' 
-                ORDER BY `date` DESC 
-                LIMIT 5";
-        if (!$this->db2->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        if ($this->db2->count_rows() > 0) {
-            echo '
-            <ul class="photos clearfix">';
-            while ($row = $this->db2->get_row()) {
-                echo '
-                <li class="photo">
-                    <a href="gallery/index.php?uid='.$userid.'&amp;cid='.(int)$row['category'].'&amp;pid='.(int)$row['id'].'">
-                        <img class="photo" src="uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']).'" alt=""/>
-                    </a>
-                </li>';
-            }
-            echo '
-            </ul>';
-        } else {
-            echo "<p>".T_('none')."</p>";
-        }
-    }
-
 }

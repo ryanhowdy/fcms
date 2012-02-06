@@ -17,14 +17,13 @@ define('URL_PREFIX', '');
 
 require 'fcms.php';
 
-load('prayers');
+load('datetime');
 
 init();
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
-$prayers       = new Prayers($currentUserId);
+// Globals
+$currentUserId = (int)$_SESSION['login_id'];
 
-// Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
@@ -34,7 +33,60 @@ $TMPL = array(
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
-$TMPL['javascript'] = '
+
+control();
+exit();
+
+
+/**
+ * control 
+ * 
+ * @return void
+ */
+function control ()
+{
+    global $currentUserId;
+
+    if (isset($_GET['addconcern']) && checkAccess($currentUserId) <= 5)
+    {
+        displayAddForm();
+    }
+    elseif (isset($_POST['submitadd']))
+    {
+        displayAddFormSubmit();
+    }
+    elseif (isset($_POST['editprayer']))
+    {
+        displayEditForm();
+    }
+    elseif (isset($_POST['submitedit']))
+    {
+        displayEditFormSubmit();
+    }
+    elseif (isset($_POST['delprayer']) && !isset($_POST['confirmed']))
+    {
+        displayConfirmDelete();
+    }
+    elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
+    {
+        displayDeleteSubmit();
+    }
+    else
+    {
+        displayPrayers();
+    }
+}
+
+/**
+ * displayHeader 
+ * 
+ * @return void
+ */
+function displayHeader ()
+{
+    global $TMPL, $currentUserId;
+
+    $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
@@ -53,41 +105,94 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-// Show Header
-require_once getTheme($currentUserId).'header.php';
+    require_once getTheme($currentUserId).'header.php';
 
-echo '
+    echo '
         <div id="prayers" class="centercontent">';
+}
 
-$show = true;
-
-//------------------------------------------------------------------------------
-// Add prayer concern
-//------------------------------------------------------------------------------
-if (isset($_POST['submitadd']))
+/**
+ * displayFooter 
+ * 
+ * @return void
+ */
+function displayFooter ()
 {
-    $for  = cleanInput($_POST['for']);
-    $desc = cleanInput($_POST['desc']);
+    global $currentUserId, $TMPL;
+
+    echo '
+        </div><!-- #prayers .centercontent -->';
+
+    include_once getTheme($currentUserId).'footer.php';
+}
+
+/**
+ * displayAddForm 
+ * 
+ * @return void
+ */
+function displayAddForm ()
+{
+    displayHeader();
+
+    echo '
+            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
+            <form method="post" name="addform" action="prayers.php">
+                <fieldset>
+                    <legend><span>'.T_('Add a Prayer Concern').'</span></legend>
+                    <div>
+                        <label for="for">'.T_('Pray For').'</label>: 
+                        <input type="text" name="for" id="for" size="50" tabindex="1"/>
+                    </div><br/>
+                    <script type="text/javascript">
+                        var ffor = new LiveValidation(\'for\', { onlyOnSubmit: true });
+                        ffor.add(Validate.Presence, {failureMessage: ""});
+                    </script>
+                    <div>
+                        <textarea name="desc" id="desc" rows="10" cols="63" tabindex="2"></textarea>
+                    </div>
+                    <script type="text/javascript">
+                        var fdesc = new LiveValidation(\'desc\', { onlyOnSubmit: "" });
+                        fdesc.add(Validate.Presence, {failureMessage: ""});
+                    </script>
+                    <div>
+                        <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'" tabindex="3"/> &nbsp;
+                        <a href="prayers.php">'.T_('Cancel').'</a>
+                    </div>
+                </fieldset>
+            </form>';
+
+    displayFooter();
+}
+
+/**
+ * displayAddFormSubmit 
+ * 
+ * @return void
+ */
+function displayAddFormSubmit ()
+{
+    global $currentUserId;
+
+    $for       = strip_tags($_POST['for']);
+    $cleanFor  = escape_string($for);
+    $desc      = strip_tags($_POST['desc']);
+    $cleanDesc = escape_string($desc);
 
     $sql = "INSERT INTO `fcms_prayers`(`for`, `desc`, `user`, `date`) 
             VALUES(
-                '$for', 
-                '$desc', 
+                '$cleanFor', 
+                '$cleanDesc', 
                 '$currentUserId', 
                 NOW()
             )";
     if (!mysql_query($sql))
     {
+        displayHeader();
         displaySqlError($sql, mysql_error());
         displayFooter();
-        exit();
+        return;
     }
-
-    echo '
-            <p class="ok-alert" id="add">'.T_('Prayer Concern Added Successfully').'</p>
-            <script type="text/javascript">
-                window.onload=function(){ var t=setTimeout("$(\'add\').toggle()",3000); }
-            </script>';
 
     // Email members
     $sql = "SELECT u.`email`, s.`user`
@@ -98,9 +203,10 @@ if (isset($_POST['submitadd']))
     $result = mysql_query($sql);
     if (!$result)
     {
+        displayHeader();
         displaySqlError($sql, mysql_error());
         displayFooter();
-        exit();
+        return;
     }
 
     if (mysql_num_rows($result) > 0)
@@ -129,19 +235,73 @@ if (isset($_POST['submitadd']))
             mail($email, $subject, $msg, $email_headers);
         }
     }
+
+    $_SESSION['success'] = 1;
+
+    header("Location: prayers.php");
 }
 
-//------------------------------------------------------------------------------
-// Edit prayer concern
-//------------------------------------------------------------------------------
-if (isset($_POST['submitedit']))
+/**
+ * displayEditForm 
+ * 
+ * @return void
+ */
+function displayEditForm ()
 {
-    $for  = cleanInput($_POST['for']);
-    $desc = cleanInput($_POST['desc']);
+    displayHeader();
+
+    $id   = (int)$_POST['id'];
+    $for  = cleanOutput($_POST['for']);
+    $desc = $_POST['desc'];
+
+    echo '
+            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
+            <form method="post" name="editform" action="prayers.php">
+                <fieldset>
+                    <legend><span>'.T_('Edit Prayer Concern').'</span></legend>
+                    <div>
+                        <label for="for">'.T_('Pray For').'</label>: 
+                        <input type="text" name="for" id="for" size="50" tabindex="1" value="'.$for.'"/>
+                    </div><br/>
+                    <script type="text/javascript">
+                        var ffor = new LiveValidation(\'for\', { onlyOnSubmit: true });
+                        ffor.add(Validate.Presence, {failureMessage: ""});
+                    </script>
+                    <div>
+                        <textarea name="desc" id="desc" rows="10" cols="63" tabindex="2">'.$desc.'</textarea>
+                    </div>
+                    <script type="text/javascript">
+                        var fdesc = new LiveValidation(\'desc\', { onlyOnSubmit: "" });
+                        fdesc.add(Validate.Presence, {failureMessage: ""});
+                    </script>
+                    <div>
+                        <input type="hidden" name="id" value="'.(int)$id.'"/>
+                        <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'" tabindex="3"/> &nbsp;
+                        <a href="prayers.php">'.T_('Cancel').'</a>
+                    </div>
+                </fieldset>
+            </form>';
+
+    displayFooter();
+}
+
+/**
+ * displayEditFormSubmit 
+ * 
+ * @return void
+ */
+function displayEditFormSubmit ()
+{
+    $id   = (int)$_POST['id'];
+    $for  = strip_tags($_POST['for']);
+    $for  = escape_string($for);
+    $desc = strip_tags($_POST['desc']);
+    $desc = escape_string($desc);
 
     $sql = "UPDATE `fcms_prayers` 
-            SET `for` = '$for', `desc` = '$desc' 
-            WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
+            SET `for` = '$for', 
+                `desc` = '$desc' 
+            WHERE `id` = '$id'";
     if (!mysql_query($sql))
     {
         displaySqlError($sql, mysql_error());
@@ -149,19 +309,21 @@ if (isset($_POST['submitedit']))
         exit();
     }
 
-    echo '
-            <p class="ok-alert" id="edit">'.T_('Changes Updated Successfully').'</p>
-            <script type="text/javascript">
-                window.onload=function(){ var t=setTimeout("$(\'edit\').toggle()",3000); }
-            </script>';
+    $_SESSION['success'] = 1;
+
+    header("Location: prayers.php");
 }
 
-//------------------------------------------------------------------------------
-// Delete confirmation
-//------------------------------------------------------------------------------
-if (isset($_POST['delprayer']) && !isset($_POST['confirmed']))
+/**
+ * displayConfirmDelete 
+ * 
+ * @return void
+ */
+function displayConfirmDelete ()
 {
-    $show = false;
+    displayHeader();
+
+    $id = (int)$_POST['id'];
 
     echo '
             <div class="info-alert clearfix">
@@ -169,62 +331,65 @@ if (isset($_POST['delprayer']) && !isset($_POST['confirmed']))
                     <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                     <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                     <div>
-                        <input type="hidden" name="id" value="'.(int)$_POST['id'].'"/>
+                        <input type="hidden" name="id" value="'.$id.'"/>
                         <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
                         <a style="float:right;" href="prayers.php">'.T_('Cancel').'</a>
                     </div>
                 </form>
             </div>';
 
+    displayFooter();
 }
-//------------------------------------------------------------------------------
-// Delete prayer concern
-//------------------------------------------------------------------------------
-elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
+
+/**
+ * displayDeleteSubmit 
+ * 
+ * @return void
+ */
+function displayDeleteSubmit ()
 {
+    $id = (int)$_POST['id'];
+
     $sql = "DELETE FROM `fcms_prayers` 
-            WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
+            WHERE `id` = '$id'";
     if (!mysql_query($sql))
     {
+        displayHeader();
         displaySqlError($sql, mysql_error());
         displayFooter();
         exit();
     }
 
-    echo '
-            <p class="ok-alert" id="del">'.T_('Prayer Concern Deleted Successfully').'</p>
-            <script type="text/javascript">
-                window.onload=function(){ var t=setTimeout("$(\'del\').toggle()",2000); }
-            </script>';
+    $_SESSION['delete_success'] = 1;
+
+    header("Location: prayers.php");
 }
 
-//------------------------------------------------------------------------------
-// Add Form
-//------------------------------------------------------------------------------
-if (isset($_GET['addconcern']) && checkAccess($currentUserId) <= 5)
+/**
+ * displayPrayers 
+ * 
+ * @return void
+ */
+function displayPrayers ()
 {
-    $show = false;
-    $prayers->displayForm('add');
-}
+    global $currentUserId;
 
-//------------------------------------------------------------------------------
-// Edit Form
-//------------------------------------------------------------------------------
-if (isset($_POST['editprayer']))
-{
-    $show = false;
-    $id   = cleanInput($_POST['id'], 'int');
-    $for  = cleanInput($_POST['for']);
-    $desc = cleanInput($_POST['desc']);
+    displayHeader();
 
-    $prayers->displayForm('edit', $id, $for, $desc);
-}
+    if (isset($_SESSION['success']))
+    {
+        displayOkMessage();
 
-//------------------------------------------------------------------------------
-// Show Prayers
-//------------------------------------------------------------------------------
-if ($show)
-{
+        unset($_SESSION['success']);
+    }
+
+    if (isset($_SESSION['delete_success']))
+    {
+        displayOkMessage(T_('Prayer Concern Deleted Successfully'));
+
+        unset($_SESSION['delete_success']);
+    }
+
     if (checkAccess($currentUserId) <= 5)
     {
         echo '
@@ -233,28 +398,102 @@ if ($show)
             </div>';
     }
 
-    $page = 1;
-    if (isset($_GET['page']))
+    $page = getPage();
+
+    $from = (($page * 5) - 5); 
+
+    $sql = "SELECT p.`id`, `for`, `desc`, `user`, `date` 
+            FROM `fcms_prayers` AS p, `fcms_users` AS u 
+            WHERE u.`id` = p.`user` 
+            ORDER BY `date` DESC 
+            LIMIT $from, 5";
+
+    $result = mysql_query($sql);
+    if (!$result)
     {
-        $page = cleanInput($_GET['page'], 'int');
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        exit();
     }
 
-    $prayers->showPrayers($page);
-}
+    if (mysql_num_rows($result) <= 0)
+    {
+        echo '
+            <div class="blank-state">
+                <h2>'.T_('Nothing to see here').'</h2>
+                <h3>'.T_('Currently no one has added any Prayer Concerns.').'</h3>
+                <h3><a href="?addconcern=yes">'.T_('Why don\'t you add a new Prayer Concern now?').'</a></h3>
+            </div>';
 
-displayFooter();
+        displayFooter();
+        exit();
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $currentUserId, $TMPL;
+    $tzOffset = getTimezone($currentUserId);
 
-    echo '
-        </div><!-- #prayers .centercontent -->';
+    while ($r = mysql_fetch_assoc($result))
+    {
+        $date        = fixDate(T_('F j, Y, g:i a'), $tzOffset, $r['date']);
+        $displayname = getUserDisplayName($r['user']);
 
-    include_once getTheme($currentUserId).'footer.php';
+        echo '
+            <hr/>
+            <h4>'.$date.'</h4>
+            <div class="edit_delete">';
+
+        // Edit
+        if ($currentUserId == $r['user'] || checkAccess($currentUserId) < 2)
+        {
+            echo '
+            <form method="post" action="prayers.php">
+                <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
+                <input type="hidden" name="for" value="'.cleanOutput($r['for']).'"/>
+                <input type="hidden" name="desc" value="'.cleanOutput($r['desc']).'"/>
+                <input type="submit" name="editprayer" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Prayer Concern').'"/>
+            </form>';
+        }
+
+        // Delete
+        if (checkAccess($currentUserId) < 2)
+        {
+            echo '
+            <form class="delform" method="post" action="prayers.php">
+                <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
+                <input type="submit" name="delprayer" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Prayer Concern').'"/>
+            </form>';
+        }
+
+        echo '
+            </div>
+            <div class="for">
+                <b>'.sprintf(T_('%s asks that you please pray for...'), '<a href="profile.php?member='.(int)$r['user'].'">'.$displayname.'</a>').'</b>
+                <div>'.cleanOutput($r['for']).'</div>
+            </div>
+            <div class="because">
+                <b>'.T_('Because...').'</b>
+                <div>'.parse($r['desc']).'</div>
+            </div>
+            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
+    }
+
+    // Display Pagination
+    $sql = "SELECT count(`id`) AS c 
+            FROM `fcms_prayers`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        exit();
+    }
+
+    $r = mysql_fetch_assoc($result);
+
+    $prayercount = (int)$r['c'];
+    $total_pages = ceil($prayercount / 5); 
+
+    displayPagination ('prayers.php', $page, $total_pages);
+
+    displayFooter();
 }

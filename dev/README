@@ -2,7 +2,7 @@
 
  Create dev/list File
 
-    find . \! -path "./inc/Zend*" \! -path "./test/*" \! -path "./inc/chat/lib/*" \! -path "./inc/facebook/*" \! -path "./inc/foursquare/*" \! -path "./inc/vimeo/*" -type f -name "*.php" | sort > dev/list
+    find . \! -path "./test/*" \! -path "./inc/chat/lib/*" \! -path "./inc/thirdparty/*" -type f -name "*.php" | sort > dev/list
 
  Create POT File
 

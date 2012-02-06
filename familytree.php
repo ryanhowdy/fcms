@@ -18,12 +18,13 @@ define('URL_PREFIX', '');
 
 require 'fcms.php';
 
-load('familytree');
+load('familytree', 'image');
 
 init();
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $ftree         = new FamilyTree($currentUserId);
+$img           = new Image($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
@@ -36,24 +37,72 @@ $TMPL = array(
     'year'          => date('Y')
 );
 $TMPL['javascript'] = '
-<script type="text/javascript" src="inc/js/livevalidation.js"></script>
-<link rel="stylesheet" type="text/css" href="themes/datechooser.css"/>
-<script type="text/javascript" src="inc/js/datechooser.js"></script>
+<script type="text/javascript" src="ui/js/livevalidation.js"></script>
+<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>
+<script type="text/javascript" src="ui/js/datechooser.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
     initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
     var bday = new DateChooser();
     bday.setUpdateField({\'bday\':\'j\', \'bmonth\':\'n\', \'byear\':\'Y\'});
-    bday.setIcon(\'themes/default/images/datepicker.jpg\', \'byear\');
+    bday.setIcon(\'ui/themes/default/images/datepicker.jpg\', \'byear\');
     var dday = new DateChooser();
     dday.setUpdateField({\'dday\':\'j\', \'dmonth\':\'n\', \'dyear\':\'Y\'});
-    dday.setIcon(\'themes/default/images/datepicker.jpg\', \'dyear\');
+    dday.setIcon(\'ui/themes/default/images/datepicker.jpg\', \'dyear\');
     initLivingDeceased();
 });
 //]]>
 </script>';
 
+// Changing Avatar with Advanced Uploader
+if (isset($_GET['advanced_avatar']))
+{
+    $userid = (int)$_GET['advanced_avatar'];
+
+    $filetypes = array(
+        'image/pjpeg'   => 'jpg', 
+        'image/jpeg'    => 'jpg', 
+        'image/gif'     => 'gif', 
+        'image/bmp'     => 'bmp', 
+        'image/x-png'   => 'png', 
+        'image/png'     => 'png'
+    );
+
+    $type      = $_FILES['avatar']['type'];
+    $extention = $filetypes[$type];
+    $id        = uniqid("");
+    $name      = $id.".".$extention;
+
+    $sql = "UPDATE `fcms_users`
+            SET `avatar` = '".$name."'
+            WHERE `id` = '$userid'";
+    if (!mysql_query($sql))
+    {
+        echo "FAILURE: Could not update db with new avatar.\n";
+        exit();
+    }
+
+    if (move_uploaded_file($_FILES['avatar']['tmp_name'], 'uploads/avatar/'.$name))
+    {
+        echo "success";
+    }
+    else
+    {
+        logError(__FILE__.' ['.__LINE__.'] Could not move avatar file.');
+        echo "FAILURE: Could not move avatar file.\n";
+    }
+
+    if ($_GET['orig'] != 'no_avatar.jpg' && $_GET['orig'] != 'gravatar')
+    {
+        if (file_exists("uploads/avatar/".basename($_GET['orig'])))
+        {
+            unlink("uploads/avatar/".basename($_GET['orig']));
+        }
+    }
+
+    exit();
+}
 // Show Header
 require_once getTheme($currentUserId).'header.php';
 
@@ -62,7 +111,7 @@ $show_tree = true;
 // Set the user's tree we are currently viewing
 if (isset($_GET['tree']))
 {
-    $_SESSION['view_tree_user'] = cleanInput($_GET['tree'], 'int');
+    $_SESSION['view_tree_user'] = (int)$_GET['tree'];
 }
 elseif (!isset($_SESSION['view_tree_user']))
 {
@@ -77,16 +126,16 @@ echo '
 //-------------------------------------
 if (isset($_POST['add-leaf']))
 {
-    $user         = cleanInput($_POST['user'], 'int');
-    $relationship = cleanInput($_POST['relationship']);
-    $rel_user     = cleanInput($_POST['rel_user'], 'int');
+    $user         = (int)$_POST['user'];
+    $relationship = $_POST['relationship'];
+    $rel_user     = (int)$_POST['rel_user'];
 
     // Spouse
     if ($relationship == 'WIFE' || $relationship == 'HUSB')
     {
         $worked = $ftree->addSpouse($user, $relationship, $rel_user);
     }
-
+ 
     // Child
     if ($relationship == 'CHIL')
     {
@@ -107,8 +156,8 @@ if (isset($_POST['add-leaf']))
 //-------------------------------------
 if (isset($_POST['add-user']))
 {
-    $type = cleanOutput($_POST['type']);
-    $id   = cleanOutput($_POST['id']);
+    $type = $_POST['type'];
+    $id   = (int)$_POST['id'];
 
     // Missing req field
     if (!isset($_POST['fname']) or !isset($_POST['lname']) or !isset($_POST['sex']))
@@ -129,16 +178,16 @@ if (isset($_POST['add-user']))
 
     if (!empty($_POST['byear']))
     {
-        $bYear = cleanInput($_POST['byear'], 'int');
+        $bYear = (int)$_POST['byear'];
     }
     if (!empty($_POST['bmonth']))
     {
-        $bMonth = cleanInput($_POST['bmonth'], 'int');
+        $bMonth = (int)$_POST['bmonth'];
         $bMonth = str_pad($bMonth, 2, "0", STR_PAD_LEFT);
     }
     if (!empty($_POST['bday']))
     {
-        $bDay = cleanInput($_POST['bday'], 'int');
+        $bDay = (int)$_POST['bday'];
         $bDay = str_pad($bDay, 2, "0", STR_PAD_LEFT);
     }
 
@@ -149,20 +198,29 @@ if (isset($_POST['add-user']))
 
     if (!empty($_POST['dyear']))
     {
-        $dYear = cleanInput($_POST['dyear'], 'int');
+        $dYear = (int)$_POST['dyear'];
     }
     if (!empty($_POST['dmonth']))
     {
-        $dMonth = cleanInput($_POST['dmonth'], 'int');
+        $dMonth = (int)$_POST['dmonth'];
         $dMonth = str_pad($dMonth, 2, "0", STR_PAD_LEFT);
     }
     if (!empty($_POST['dday']))
     {
-        $dDay = cleanInput($_POST['dday'], 'int');
+        $dDay = (int)$_POST['dday'];
         $dDay = str_pad($dDay, 2, "0", STR_PAD_LEFT);
     }
 
-    $maiden = isset($_POST['maiden']) ? "'".cleanInput($_POST['maiden'])."'" : 'NULL';
+    $fname = strip_tags($_POST['fname']);
+    $mname = strip_tags($_POST['mname']);
+    $lname = strip_tags($_POST['lname']);
+
+    $fname = escape_string($fname);
+    $mname = escape_string($mname);
+    $lname = escape_string($lname);
+    $sex   = escape_string($_POST['sex']);
+
+    $maiden = isset($_POST['maiden']) ? "'".escape_string($_POST['maiden'])."'" : 'NULL';
 
     // Insert new user
     $sql = "INSERT INTO `fcms_users`(
@@ -171,11 +229,11 @@ if (isset($_POST['add-user']))
             ) VALUES (
                 10, 
                 NOW(), 
-                '".cleanInput($_POST['fname'])."', 
-                '".cleanInput($_POST['mname'])."', 
-                '".cleanInput($_POST['lname'])."', 
+                '$fname', 
+                '$mname', 
+                '$lname', 
                 $maiden,
-                '".cleanInput($_POST['sex'])."', 
+                '$sex', 
                 '$bYear', 
                 '$bMonth',
                 '$bDay', 
@@ -248,16 +306,16 @@ if (isset($_POST['edit-user']))
 
     if (!empty($_POST['byear']))
     {
-        $bYear = cleanInput($_POST['byear'], 'int');
+        $bYear = (int)$_POST['byear'];
     }
     if (!empty($_POST['month']))
     {
-        $bMonth = cleanInput($_POST['bmonth'], 'int');
+        $bMonth = (int)$_POST['bmonth'];
         $bMonth = str_pad($bMonth, 2, "0", STR_PAD_LEFT);
     }
     if (!empty($_POST['bday']))
     {
-        $bDay = cleanInput($_POST['bday'], 'int');
+        $bDay = (int)$_POST['bday'];
         $bDay = str_pad($bDay, 2, "0", STR_PAD_LEFT);
     }
 
@@ -268,25 +326,36 @@ if (isset($_POST['edit-user']))
 
     if (!empty($_POST['dyear']))
     {
-        $dYear = cleanInput($_POST['dyear'], 'int');
+        $dYear = (int)$_POST['dyear'];
     }
     if (!empty($_POST['dmonth']))
     {
-        $dMonth = cleanInput($_POST['dmonth'], 'int');
+        $dMonth = (int)$_POST['dmonth'];
         $dMonth = str_pad($dMonth, 2, "0", STR_PAD_LEFT);
     }
     if (!empty($_POST['dday']))
     {
-        $dDay = cleanInput($_POST['dday'], 'int');
+        $dDay = (int)$_POST['dday'];
         $dDay = str_pad($dDay, 2, "0", STR_PAD_LEFT);
     }
 
-    $maiden = isset($_POST['maiden']) ? "`maiden`   = '".cleanInput($_POST['maiden'])."'," : '';
+    $fname = strip_tags($_POST['fname']);
+    $mname = strip_tags($_POST['mname']);
+    $lname = strip_tags($_POST['lname']);
+
+    $fname = escape_string($fname);
+    $mname = escape_string($mname);
+    $lname = escape_string($lname);
+    $sex   = escape_string($_POST['sex']);
+
+    $maiden = isset($_POST['maiden']) 
+            ? "`maiden` = '".(int)$_POST['maiden']."',"
+            : '';
 
     $sql = "UPDATE `fcms_users`
-            SET `fname`     = '".cleanInput($_POST['fname'])."',
-                `mname`     = '".cleanInput($_POST['mname'])."', 
-                `lname`     = '".cleanInput($_POST['lname'])."', 
+            SET `fname`     = '$fname',
+                `mname`     = '$mname', 
+                `lname`     = '$lname', 
                 $maiden
                 `dob_year`  = '$bYear', 
                 `dob_month` = '$bMonth',
@@ -294,8 +363,8 @@ if (isset($_POST['edit-user']))
                 `dod_year`  = '$dYear', 
                 `dod_month` = '$dMonth',
                 `dod_day`   = '$dDay',
-                `sex`       = '".cleanInput($_POST['sex'])."'
-            WHERE `id` = '".cleanInput($_POST['id'])."'";
+                `sex`       = '$sex'
+            WHERE `id` = '".(int)$_POST['id']."'";
 
     if (!mysql_query($sql))
     {
@@ -313,8 +382,8 @@ if (isset($_GET['add']) and isset($_GET['user']))
 {
     $show_tree = false;
 
-    $add  = cleanInput($_GET['add']);
-    $user = cleanInput($_GET['user'], 'int');
+    $add  = $_GET['add'];
+    $user = (int)$_GET['user'];
 
     if ($add == 'child')
     {
@@ -337,8 +406,8 @@ if (isset($_GET['create']) and isset($_GET['type']) and isset($_GET['id']))
 {
     $valid_types = array('dad', 'mom', 'child', 'wife', 'husb');
 
-    $type = cleanInput($_GET['type']);
-    $id   = cleanInput($_GET['id'], 'int');
+    $type = $_GET['type'];
+    $id   = (int)$_GET['id'];
 
     if (in_array($type, $valid_types))
     {
@@ -348,14 +417,81 @@ if (isset($_GET['create']) and isset($_GET['type']) and isset($_GET['id']))
 }
 
 //-------------------------------------
-// Display add new user form
+// Display edit user form
 //-------------------------------------
 if (isset($_GET['edit']))
 {
     $show_tree = false;
 
-    $id = cleanInput($_GET['edit'], 'int');
+    $id = (int)$_GET['edit'];
     $ftree->displayEditForm($id);
+}
+
+//-------------------------------------
+// Avatar non-advanced
+//-------------------------------------
+if (isset($_GET['avatar']))
+{
+    //-------------------------------------
+    // Submit
+    //-------------------------------------
+    if (isset($_POST['submitUpload']))
+    {
+        $img->destination  = 'uploads/avatar/';
+        $img->resizeSquare = true;
+        $img->uniqueName   = true;
+
+        $img->upload($_FILES['avatar']);
+
+        if ($img->error == 1)
+        {
+            echo '
+            <p class="error-alert">
+                '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $img->name).'
+            </p>';
+
+            displayFooter();
+            die();
+        }
+
+        $img->resize(80, 80);
+
+        if ($img->error > 0)
+        {
+            echo '
+            <p class="error-alert">
+                '.T_('There was an error uploading your avatar.').'
+            </p>';
+
+            displayFooter();
+            die();
+        }
+
+        $sql = "UPDATE `fcms_users`
+                SET `avatar` = '".$img->name."'
+                WHERE `id` = '".(int)$_GET['avatar']."'";
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            displayFooter();
+            die();
+        }
+
+        if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
+        {
+            unlink("uploads/avatar/".basename($_POST['avatar_orig']));
+        }
+    }
+    //-------------------------------------
+    // Display form
+    //-------------------------------------
+    else
+    {
+        $show_tree = false;
+
+        $id = (int)$_GET['avatar'];
+        $ftree->displayEditAvatarForm($id);
+    }
 }
 
 //-------------------------------------
@@ -368,7 +504,7 @@ if (isset($_GET['remove']))
     {
         $show_tree = false;
 
-        $id = cleanInput($_GET['id'], 'int');
+        $id = (int)$_GET['id'];
         $ftree->displayFamilyTree($id, 'list_edit');
     }
     // Remove from db

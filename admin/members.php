@@ -22,12 +22,12 @@ load('admin_members', 'database');
 init('admin/');
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $memberObj     = new AdminMembers();
 
 $TMPL = array(
     'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
+    'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: Members'),
     'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
@@ -68,14 +68,14 @@ function control ()
     elseif (isset($_GET['edit']))
     {
         displayHeader();
-        $id = cleanInput($_GET['edit'], 'int');
+        $id = (int)$_GET['edit'];
         $memberObj->displayEditMemberForm($id);
         displayFooter();
     }
     elseif (isset($_GET['merge']))
     {
         displayHeader();
-        $id = cleanInput($_GET['merge'], 'int');
+        $id = (int)$_GET['merge'];
         $memberObj->displayMergeMemberForm($id);
         displayFooter();
     }
@@ -83,7 +83,7 @@ function control ()
     {
         displayHeader();
 
-        $id = cleanInput($_POST['id'], 'int');
+        $id = (int)$_POST['id'];
 
         if ($_POST['merge-with'] < 1)
         {
@@ -94,7 +94,7 @@ function control ()
         }
         else
         {
-            $merge = cleanInput($_POST['merge-with'], 'int');
+            $merge = (int)$_POST['merge-with'];
             $memberObj->displayMergeMemberFormReview($id, $merge);
         }
 
@@ -138,12 +138,7 @@ function control ()
     elseif (isset($_POST['search']))
     {
         displayHeader();
-
-        $first = cleanInput($_POST['fname']);
-        $last  = cleanInput($_POST['lname']);
-        $user  = cleanInput($_POST['uname']);
-
-        $memberObj->displayMemberList(1, $first, $last, $user);
+        $memberObj->displayMemberList(1, $_POST['fname'], $_POST['lname'], $_POST['uname']);
 
         displayFooter();
     }
@@ -151,7 +146,7 @@ function control ()
     {
         displayHeader();
 
-        $page = isset($_GET['page']) ? cleanInput($_GET['page'], 'int') : 1;
+        $page = getPage();
 
         $memberObj->displayMemberList($page);
 
@@ -176,21 +171,20 @@ function displayHeader ($js = '')
     if ($js == '')
     {
         $TMPL['javascript'] = '
-<script type="text/javascript" src="'.$TMPL['path'].'inc/js/livevalidation.js"></script>
-<script type="text/javascript" src="'.$TMPL['path'].'inc/js/tablesort.js"></script>
-<link rel="stylesheet" type="text/css" href="'.$TMPL['path'].'themes/datechooser.css"/>
-<script type="text/javascript" src="'.$TMPL['path'].'inc/js/datechooser.js"></script>
+<script type="text/javascript" src="'.$TMPL['path'].'ui/js/livevalidation.js"></script>
+<script type="text/javascript" src="'.$TMPL['path'].'ui/js/tablesort.js"></script>
+<link rel="stylesheet" type="text/css" href="'.$TMPL['path'].'ui/datechooser.css"/>
+<script type="text/javascript" src="'.$TMPL['path'].'ui/js/datechooser.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
     // Datechooser
     var bday = new DateChooser();
     bday.setUpdateField({\'bday\':\'j\', \'bmonth\':\'n\', \'byear\':\'Y\'});
-    bday.setIcon(\''.$TMPL['path'].'themes/default/images/datepicker.jpg\', \'byear\');
+    bday.setIcon(\''.$TMPL['path'].'ui/themes/default/images/datepicker.jpg\', \'byear\');
     var dday = new DateChooser();
     dday.setUpdateField({\'dday\':\'j\', \'dmonth\':\'n\', \'dyear\':\'Y\'});
-    dday.setIcon(\''.$TMPL['path'].'themes/default/images/datepicker.jpg\', \'dyear\');
+    dday.setIcon(\''.$TMPL['path'].'ui/themes/default/images/datepicker.jpg\', \'dyear\');
     // Delete Confirmation All
     if ($(\'deleteAll\')) {
         var item = $(\'deleteAll\'); 
@@ -217,10 +211,10 @@ Event.observe(window, \'load\', function() {
 </script>';
     }
 
-    include_once getTheme($currentUserId).'header.php';
+    include_once URL_PREFIX.'ui/admin/header.php';
 
     echo '
-        <div class="centercontent">';
+        <div id="admin-members">';
 }
 
 /**
@@ -233,9 +227,9 @@ function displayFooter ()
     global $currentUserId, $TMPL;
 
     echo '
-        </div><!-- .centercontent -->';
+        </div><!-- /admin-members -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once URL_PREFIX.'ui/admin/footer.php';
 }
 
 /**
@@ -272,8 +266,8 @@ function displayMergeSubmit ()
 
     displayHeader();
 
-    $id    = cleanInput($_POST['id'], 'int');
-    $merge = cleanInput($_POST['merge'], 'int');
+    $id    = (int)$_POST['id'];
+    $merge = (int)$_POST['merge'];
 
     $year     = substr($_POST['birthday'], 0,4);
     $month    = substr($_POST['birthday'], 5,2);
@@ -281,15 +275,15 @@ function displayMergeSubmit ()
 
     // Update member
     $sql = "UPDATE `fcms_users`
-            SET `fname` = '".cleanInput($_POST['fname'])."',
-                `mname` = '".cleanInput($_POST['mname'])."',
-                `lname` = '".cleanInput($_POST['lname'])."',
-                `maiden` = '".cleanInput($_POST['maiden'])."',
-                `bio` = '".cleanInput($_POST['bio'])."',
-                `email` = '".cleanInput($_POST['email'])."',
-                `dob_year` = '".cleanInput($year)."',
-                `dob_month` = '".cleanInput($month)."',
-                `dob_day` = '".cleanInput($day)."'
+            SET `fname`     = '".escape_string($_POST['fname'])."',
+                `mname`     = '".escape_string($_POST['mname'])."',
+                `lname`     = '".escape_string($_POST['lname'])."',
+                `maiden`    = '".escape_string($_POST['maiden'])."',
+                `bio`       = '".escape_string($_POST['bio'])."',
+                `email`     = '".escape_string($_POST['email'])."',
+                `dob_year`  = '".escape_string($year)."',
+                `dob_month` = '".escape_string($month)."',
+                `dob_day`   = '".escape_string($day)."'
             WHERE `id` = '$id'";
 
     if (!mysql_query($sql))
@@ -303,13 +297,13 @@ function displayMergeSubmit ()
 
     // Update member address
     $sql = "UPDATE `fcms_address`
-            SET `address` = '".cleanInput($_POST['address'])."',
-                `city` = '".cleanInput($_POST['city'])."',
-                `state` = '".cleanInput($_POST['state'])."',
-                `zip` = '".cleanInput($_POST['zip'])."',
-                `home` = '".cleanInput($_POST['home'])."',
-                `work` = '".cleanInput($_POST['work'])."',
-                `cell` = '".cleanInput($_POST['cell'])."'
+            SET `address` = '".escape_string($_POST['address'])."',
+                `city`    = '".escape_string($_POST['city'])."',
+                `state`   = '".escape_string($_POST['state'])."',
+                `zip`     = '".escape_string($_POST['zip'])."',
+                `home`    = '".escape_string($_POST['home'])."',
+                `work`    = '".escape_string($_POST['work'])."',
+                `cell`    = '".escape_string($_POST['cell'])."'
             WHERE `user` = '$id'";
 
     if (!mysql_query($sql))
@@ -372,7 +366,7 @@ function displayCreateSubmit ()
 
     // Check Email
     $sql = "SELECT `email` FROM `fcms_users` 
-            WHERE `email` = '".cleanInput($_POST['email'])."'";
+            WHERE `email` = '".escape_string($_POST['email'])."'";
 
     $result = mysql_query($sql);
     if (!$result)
@@ -400,36 +394,56 @@ function displayCreateSubmit ()
 
     if (!empty($_POST['year']))
     {
-        $year = cleanInput($_POST['year'], 'int');
+        $year = (int)$_POST['year'];
     }
     if (!empty($_POST['month']))
     {
-        $month = cleanInput($_POST['month'], 'int');
+        $month = (int)$_POST['month'];
         $month = str_pad($month, 2, "0", STR_PAD_LEFT);
     }
     if (!empty($_POST['day']))
     {
-        $day = cleanInput($_POST['day'], 'int');
+        $day = (int)$_POST['day'];
         $day = str_pad($day, 2, "0", STR_PAD_LEFT);
     }
 
-    $fname    = cleanInput($_POST['fname']);
-    $mname    = cleanInput($_POST['mname']);
-    $lname    = cleanInput($_POST['lname']);
-    $maiden   = cleanInput($_POST['maiden']);
-    $sex      = cleanInput($_POST['sex']);
-    $email    = cleanInput($_POST['email']);
-    $username = cleanInput($_POST['username']);
-    $password = cleanInput($_POST['password']);
-    $md5pass  = md5($password);
+    $fname    = strip_tags($_POST['fname']);
+    $mname    = strip_tags($_POST['mname']);
+    $lname    = strip_tags($_POST['lname']);
+    $maiden   = strip_tags($_POST['maiden']);
+    $sex      = strip_tags($_POST['sex']);
+    $email    = strip_tags($_POST['email']);
+    $username = strip_tags($_POST['username']);
+
+    $cleanFname    = escape_string($_POST['fname']);
+    $cleanMname    = escape_string($_POST['mname']);
+    $cleanLname    = escape_string($_POST['lname']);
+    $cleanMaiden   = escape_string($_POST['maiden']);
+    $cleanSex      = escape_string($_POST['sex']);
+    $cleanEmail    = escape_string($_POST['email']);
+    $cleanUsername = escape_string($_POST['username']);
+    $md5pass  = md5($_POST['password']);
 
     // Create new member
     $sql = "INSERT INTO `fcms_users`(
                 `access`, `joindate`, `fname`, `mname`, `lname`, `maiden`, `sex`, `email`, `dob_year`, `dob_month`, `dob_day`,
                 `username`, `password`, `activated`)
             VALUES (
-                3, NOW(), '$fname', '$mname', '$lname', '$maiden', '$sex', '$email', '$year', '$month', '$day',
-                '$username', '$md5pass', 1)";
+                3, 
+                NOW(), 
+                '$cleanFname', 
+                '$cleanMname', 
+                '$cleanLname', 
+                '$cleanMaiden', 
+                '$cleanSex', 
+                '$cleanEmail', 
+                '$year', 
+                '$month', 
+                '$day',
+                '$cleanUsername', 
+                '$md5pass', 
+                1
+            )";
     if (!mysql_query($sql))
     {
         displaySqlError($sql, mysql_error());
@@ -472,7 +486,7 @@ function displayCreateSubmit ()
             $url = substr($url, 0, $pos);
         }
 
-        $message = $_POST['fname'].' '.$_POST['lname'].', 
+        $message = $fname.' '.$lname.', 
 
 '.sprintf(T_('You have been invited by %s to join %s.'), $from, $sitename).'
 
@@ -480,14 +494,14 @@ function displayCreateSubmit ()
 
 '.T_('URL').': '.$url.'
 '.T_('Username').': '.$username.' 
-'.T_('Password').': '.$password.' 
+'.T_('Password').': '.$_POST['password'].' 
 
 '.T_('Thanks').',  
 '.sprintf(T_('The %s Webmaster'), $sitename).'
 
 '.T_('This is an automated response, please do not reply.');
 
-        mail($_POST['email'], $subject, $message, getEmailHeaders());
+        mail($email, $subject, $message, getEmailHeaders());
     }
 
     $memberObj->displayMemberList(1);
@@ -526,7 +540,7 @@ function displayEditSubmit ()
         );
     }
 
-    $id = cleanInput($_POST['id'], 'int');
+    $id = (int)$_POST['id'];
 
     $emailstart = $memberObj->getUsersEmail($id);
 
@@ -537,16 +551,16 @@ function displayEditSubmit ()
 
     if (!empty($_POST['byear']))
     {
-        $bYear = cleanInput($_POST['byear'], 'int');
+        $bYear = (int)$_POST['byear'];
     }
     if (!empty($_POST['bmonth']))
     {
-        $bMonth = cleanInput($_POST['bmonth'], 'int');
+        $bMonth = (int)$_POST['bmonth'];
         $bMonth = str_pad($bMonth, 2, "0", STR_PAD_LEFT);
     }
     if (!empty($_POST['bday']))
     {
-        $bDay = cleanInput($_POST['bday'], 'int');
+        $bDay = (int)$_POST['bday'];
         $bDay = str_pad($bDay, 2, "0", STR_PAD_LEFT);
     }
 
@@ -557,30 +571,41 @@ function displayEditSubmit ()
 
     if (!empty($_POST['dyear']))
     {
-        $dYear = cleanInput($_POST['dyear'], 'int');
+        $dYear = (int)$_POST['dyear'];
     }
     if (!empty($_POST['dmonth']))
     {
-        $dMonth = cleanInput($_POST['dmonth'], 'int');
+        $dMonth = (int)$_POST['dmonth'];
         $dMonth = str_pad($dMonth, 2, "0", STR_PAD_LEFT);
     }
     if (!empty($_POST['dday']))
     {
-        $dDay = cleanInput($_POST['dday'], 'int');
+        $dDay = (int)$_POST['dday'];
         $dDay = str_pad($dDay, 2, "0", STR_PAD_LEFT);
     }
 
+    $fname = strip_tags($_POST['fname']);
+    $lname = strip_tags($_POST['lname']);
+    $sex   = strip_tags($_POST['sex']);
+
+    $fname = escape_string($fname);
+    $lname = escape_string($lname);
+    $sex   = escape_string($sex);
+
     // Update user info
     $sql = "UPDATE `fcms_users` SET 
-                `fname` = '".cleanInput($_POST['fname'])."', 
-                `lname` = '".cleanInput($_POST['lname'])."', 
-                `sex` = '".cleanInput($_POST['sex'])."', ";
+                `fname` = '$fname', 
+                `lname` = '$lname', 
+                `sex`   = '$sex', ";
 
     if (isset($_POST['email']) && $_POST['email'] != $emailstart)
     {
+        $email      = strip_tags($_POST['email']);
+        $cleanEmail = escape_string($email);
+
         $email_sql = "SELECT `email` 
                       FROM `fcms_users` 
-                      WHERE `email` = '".cleanInput($_POST['email'])."'";
+                      WHERE `email` = '$email'";
 
         $result = mysql_query($email_sql);
         if (!$result)
@@ -596,12 +621,12 @@ function displayEditSubmit ()
         { 
             $memberObj->displayEditMemberForm(
                 $_POST['id'],
-                '<p class="error-alert">'.sprintf(T_('The email address %s is already in use.  Please choose a different email.'), $_POST['email']).'</p>'
+                '<p class="error-alert">'.sprintf(T_('The email address %s is already in use.  Please choose a different email.'), $email).'</p>'
             );
             exit();
         }
 
-        $sql .= "email = '".cleanInput($_POST['email'])."', ";
+        $sql .= "email = '$cleanEmail', ";
     }
 
     if ($_POST['password'])
@@ -626,8 +651,8 @@ function displayEditSubmit ()
             `dod_month` = '$dMonth',
             `dod_day`   = '$dDay',
             `joindate`  = NOW(), 
-            `access`    = '".cleanInput($_POST['access'], 'int')."'
-            WHERE id = '".cleanInput($_POST['id'], 'int')."'";
+            `access`    = '".(int)$_POST['access']."'
+            WHERE id = '".(int)$_POST['id']."'";
     if (!mysql_query($sql))
     {
         displaySqlError($sql, mysql_error());
@@ -673,10 +698,12 @@ function displayActivateSubmit ()
     // Loop through selected members
     foreach ($_POST['massupdate'] AS $id)
     {
+        $id = (int)$id;
+
         // Activate the member
         $sql = "UPDATE `fcms_users` 
                 SET `activated` = 1 
-                WHERE `id` = '".cleanInput($id, 'int')."'";
+                WHERE `id` = '$id'";
 
         if (!mysql_query($sql))
         {
@@ -692,7 +719,7 @@ function displayActivateSubmit ()
             {
                 $sql = "UPDATE `fcms_users` 
                         SET `joindate` = NOW() 
-                        WHERE `id` = '".cleanInput($id, 'int')."'";
+                        WHERE `id` = '$id'";
 
                 if (!mysql_query($sql))
                 {
@@ -733,7 +760,7 @@ function displayInactivateSubmit ()
     {
         $sql = "UPDATE `fcms_users` 
                 SET `activated` = 0 
-                WHERE `id` = '".cleanInput($id, 'int')."'";
+                WHERE `id` = '".(int)$id."'";
         if (!mysql_query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -754,24 +781,30 @@ function displayInactivateSubmit ()
  */
 function displayDeleteAllConfirmForm ()
 {
+    displayHeader();
+
     echo '
-                <div class="info-alert clearfix">
+                <div class="alert-message block-message warning">
                     <form action="members.php" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
-                        <div>';
+                        <div class="alert-actions">';
+
     foreach ($_POST['massupdate'] AS $id)
     {
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
         echo '
                             <input type="hidden" name="massupdate[]" value="'.$id.'"/>';
     }
+
     echo '
-                            <input style="float:left;" type="submit" id="delconfirmall" name="delconfirmall" value="'.T_('Yes').'"/>
-                            <a style="float:right;" href="members.php">'.T_('Cancel').'</a>
+                            <input class="btn danger" type="submit" id="delconfirmall" name="delconfirmall" value="'.T_('Yes, Delete').'"/>
+                            <a class="btn secondary" href="members.php">'.T_('No, Cancel').'</a>
                         </div>
                     </form>
                 </div>';
+
+    displayFooter();
 }
 
 /**
@@ -788,7 +821,7 @@ function displayDeleteAllSubmit ()
     foreach ($_POST['massupdate'] AS $id)
     {
         $sql = "DELETE FROM `fcms_users` 
-                WHERE `id` = '".cleanInput($id, 'int')."'";
+                WHERE `id` = '".(int)$id."'";
         if (!mysql_query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -812,14 +845,14 @@ function displayDeleteConfirmForm ()
     displayHeader();
 
     echo '
-                <div class="info-alert clearfix">
+                <div class="alert-message block-message warning">
                     <form action="members.php" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
-                        <div>
+                        <div class="alert-actions">
                             <input type="hidden" name="id" value="'.(int)$_POST['id'].'"/>
-                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
-                            <a style="float:right;" href="members.php?edit='.(int)$_POST['id'].'">'.T_('Cancel').'</a>
+                            <input class="btn danger" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes, Delete').'"/>
+                            <a class="btn secondary" href="members.php?edit='.(int)$_POST['id'].'">'.T_('No, Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -838,7 +871,7 @@ function displayDeleteSubmit ()
 
     displayHeader();
 
-    $id = cleanInput($_POST['id'], 'int');
+    $id = (int)$_POST['id'];
 
     $sql = "DELETE FROM `fcms_users` 
             WHERE `id` = '$id'";

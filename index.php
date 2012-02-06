@@ -80,7 +80,7 @@ function control ()
  */
 function displayNoConfig ()
 {
-    include_once 'inc/gettext.inc';
+    include_once 'inc/thirdparty/gettext.inc';
 
     // Setup php-gettext
     T_setlocale(LC_MESSAGES, 'en_US');
@@ -111,7 +111,7 @@ function displayNoConfig ()
  */
 function displayChangeLanguage ()
 {
-    $_SESSION['language'] = cleanInput($_GET['lang']);
+    $_SESSION['language'] = $_GET['lang'];
 
     T_setlocale(LC_MESSAGES, $_SESSION['language']);
 
@@ -161,10 +161,15 @@ function displayLoginError ()
  */
 function displayLoginSubmit ()
 {
-    $user     = isset($_POST['user']) ? cleanInput($_POST['user']) : 0;
-    $pass     = isset($_POST['pass']) ? cleanInput($_POST['pass']) : 0;
-    $rem      = isset($_POST['rem'])  ? 1                          : 0;
-    $redirect = isset($_POST['url'])  ? $_POST['url']              : 'home.php';
+    $user     = escape_string($_POST['user']);
+    $pass     = escape_string($_POST['pass']);
+    $redirect = 'home.php';
+    $rem      = 0;
+
+    if (isset($_POST['rem']))
+    {
+        $rem = 1;
+    }
 
     $pass = md5($pass);
 
@@ -308,15 +313,15 @@ function displayAlreadyLoggedIn ()
 {
     if (isset($_COOKIE['fcms_login_id']))
     {
-        $_SESSION['login_id']    = cleanInput($_COOKIE['fcms_login_id'], 'int');
-        $_SESSION['login_uname'] = cleanInput($_COOKIE['fcms_login_uname']);
-        $_SESSION['login_pw']    = cleanInput($_COOKIE['fcms_login_pw']);
+        $_SESSION['login_id']    = (int)$_COOKIE['fcms_login_id'];
+        $_SESSION['login_uname'] = escape_string($_COOKIE['fcms_login_uname']);
+        $_SESSION['login_pw']    = escape_string($_COOKIE['fcms_login_pw']);
     }
 
     // Update activity
     $sql = "UPDATE `fcms_users` 
             SET `activity` = NOW() 
-            WHERE `id` = '".cleanInput($_SESSION['login_id'], 'int')."'";
+            WHERE `id` = '".(int)$_SESSION['login_id']."'";
     if (!mysql_query($sql))
     {
         displaySqlError($sql, mysql_error());
@@ -326,7 +331,7 @@ function displayAlreadyLoggedIn ()
     // Reset invalid login attempts
     $sql = "UPDATE `fcms_users` 
             SET `login_attempts` = '0' 
-            WHERE `id` = '".cleanInput($_SESSION['login_id'], 'int')."'";
+            WHERE `id` = '".(int)$_SESSION['login_id']."'";
     if (!mysql_query($sql))
     {
         displaySqlError($sql, mysql_error());
@@ -365,8 +370,8 @@ function displayHeader($login = true)
 <title>'.$sitename.'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="author" content="Ryan Haudenschilt"/>
-<link rel="shortcut icon" href="themes/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="themes/fcms-core.css"/>
+<link rel="shortcut icon" href="ui/favicon.ico"/>
+<link rel="stylesheet" type="text/css" href="ui/fcms-core.css"/>
 </head>
 <body'.$js.'>';
 }
@@ -471,7 +476,7 @@ function displayLogin()
             'secret' => $fbData['fb_secret'],
         ));
 
-        $facebookLogin = '<a href="'.$facebook->getLoginUrl($params).'" title="'.T_('Login using Facebook').'"><img src="themes/images/facebook_tiny.png"/></a>';
+        $facebookLogin = '<a href="'.$facebook->getLoginUrl($params).'" title="'.T_('Login using Facebook').'"><img src="ui/images/facebook_tiny.png"/></a>';
     }
 
     echo '

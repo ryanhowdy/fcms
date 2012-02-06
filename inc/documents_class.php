@@ -11,8 +11,8 @@ include_once('datetime.php');
  * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
-class Documents {
-
+class Documents
+{
     var $db;
     var $db2;
     var $tzOffset;
@@ -32,7 +32,7 @@ class Documents {
         $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->currentUserId = (int)$currentUserId;
         $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
@@ -45,10 +45,12 @@ class Documents {
     function showDocuments ($page = 1)
     {
         $from = (($page * 25) - 25); 
+
         $sql = "SELECT `id`, `name`, `description`, `user`, `date` 
                 FROM `fcms_documents` AS d 
                 ORDER BY `date` DESC 
-                LIMIT " . $from . ", 25";
+                LIMIT $from, 25";
+
         if (!$this->db->query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -58,7 +60,7 @@ class Documents {
         if ($this->db->count_rows() > 0)
         {
             echo '
-            <script type="text/javascript" src="inc/js/tablesort.js"></script>
+            <script type="text/javascript" src="ui/js/tablesort.js"></script>
             <table id="docs" class="sortable">
                 <thead>
                     <tr>
@@ -174,6 +176,7 @@ class Documents {
     function uploadDocument ($file, $filename)
     {
         $valid_docs = array(
+            'application/octet-stream'                                                  => 'doc',
             'application/msword'                                                        => 'doc',
             'application/msword'                                                        => 'dot',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'   => 'docx',
@@ -217,13 +220,15 @@ class Documents {
             'multipart/x-zip'                                                           => 'zip'
         );
         $filetmpname = $file['tmp_name'];
-        $filetype = $file['type'];
-        $error = $file['error'];
+        $filetype    = $file['type'];
+        $error       = $file['error'];
+
         $ext = explode(".", strtolower($file['name']));
         $ext = end($ext);
 
         // Check max file size
-        if ($error == 1) {
+        if ($error == 1)
+        {
             echo '
             <p class="error-alert">
                 '.sprintf(T_('Document %s exceeds the maximum file size allowed by your PHP settings.'), $filename).'
@@ -232,10 +237,8 @@ class Documents {
         }
 
         // Check allowable file type
-        if (
-            !array_key_exists($filetype, $valid_docs) ||
-            !in_array($ext, $valid_docs)
-        ) {
+        if (!array_key_exists($filetype, $valid_docs) || !in_array($ext, $valid_docs))
+        {
             echo '
             <div class="error-alert">
                 <h2>'.T_('Invalid Document').'</h2>
@@ -248,7 +251,8 @@ class Documents {
         $filename = basename($filename); // just the filename, no paths
 
         // Check if a file with that name exists already
-        if (file_exists("uploads/documents/$filename")) {
+        if (file_exists("uploads/documents/$filename"))
+        {
             echo '
             <p class="error-alert">
                 '.sprintf(T_('Document %s already exists!  Please change the filename and try again.'), $filename).'
@@ -260,5 +264,4 @@ class Documents {
         copy($filetmpname, "uploads/documents/$filename");
         return true;
     }
-
 }

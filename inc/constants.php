@@ -3,8 +3,11 @@
 // Absolute Paths
 define('ROOT', dirname(dirname(__FILE__)) . '/');
 define('INC', dirname(__FILE__) . '/');
+define('UI', ROOT.'/ui/');
+define('THEMES', UI.'/themes/');
 define('GALLERY', ROOT.'/gallery/');
 define('ADMIN', ROOT.'/admin/');
+define('THIRDPARTY', INC.'/thirdparty/');
 
 // User Types
 define('ADMIN_USER', 1);

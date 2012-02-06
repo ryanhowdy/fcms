@@ -23,13 +23,13 @@ load('datetime', 'alerts');
 init('admin/');
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $alert         = new Alerts($currentUserId);
 
 // Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
+    'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: Scheduler'),
     'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
@@ -84,12 +84,12 @@ function displayHeader ()
     global $currentUserId, $TMPL;
 
     $TMPL['javascript'] = '
-<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
+<script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>';
 
-    include_once getTheme($currentUserId, $TMPL['path']).'header.php';
+    include_once URL_PREFIX.'ui/admin/header.php';
 
     echo '
-        <div id="scheduler" class="centercontent clearfix">';
+        <div id="scheduler">';
 }
 
 /**
@@ -102,9 +102,9 @@ function displayFooter ()
     global $currentUserId, $TMPL;
 
     echo '
-        </div><!-- /centercontent -->';
+        </div><!-- /scheduler -->';
 
-    include_once getTheme($currentUserId, $TMPL['path']).'footer.php';
+    include_once URL_PREFIX.'ui/admin/footer.php';
 }
 
 /**
@@ -169,30 +169,19 @@ function displaySchedulerPage ()
     if ($row['running_job'] > 0)
     {
         echo '
-            <div class="info-alert">
+            <div class="alert-message block-message warning">
                 <h2>'.T_('A scheduled job is currently running.').'</h2>
                 <p>'.T_('Most jobs take less than an hour to complete, if the last successfull run for a scheduled job below is over an hour ago, their may be a problem with the current job.').'</p>
-                <div id="help-debug">
-                    <p>'.T_('To debug this job:').'</p>
-                    <ol>
-                        <li>'.T_('Turn on debugging.').'</li>
-                        <li>'.T_('Reset the running job flag.').'</p>
-                    </ol>
-                    <p style="text-align: right;">
-                        <a href="?running_job=off">'.T_('Set running job flag to off.').'</a><br/>
-                        <small>'.T_('(only if you know what you are doing)').'</small>
-                    </p>
-                </div>
-            </div>
-            <script type="text/javascript">
-            if ($("help-debug")) {
-                var div = $("help-debug");
-                div.hide();
-                var a = new Element("a", { href: "#" }).update("'.T_('Learn more.').'");
-                a.onclick = function() { $("help-debug").toggle(); return false; };
-                div.insert({"before":a});
-            }
-            </script>';
+                <p>'.T_('To debug this job:').'</p>
+                <ol>
+                    <li>'.T_('Turn on debugging.').'</li>
+                    <li>'.T_('Reset the running job flag.').'</p>
+                </ol>
+                <p>
+                    <a class="btn small" href="?running_job=off">'.T_('Set running job flag to off.').'</a>
+                    '.T_('(only if you know what you are doing)').'
+                </p>
+            </div>';
     }
 
     // Get schedules
@@ -259,10 +248,10 @@ function displaySchedulerPage ()
         $statusOptions = buildHtmlSelectOptions($onOff, $row['status']);
         $repeatOptions = buildHtmlSelectOptions($frequency, $row['repeat']);
 
-        $status = '<b class="current-status-off">&nbsp;</b>';
+        $status = '<span class="label important">'.T_('Off').'</span>';
         if ($row['status'] == 1)
         {
-            $status = '<b class="current-status-on">&nbsp;</b>';
+            $status = '<span class="label success">'.T_('On').'</span>';
         }
 
         if ($lastrun == '0000-00-00 00:00:00')
@@ -287,13 +276,13 @@ function displaySchedulerPage ()
                         </td>
                         <td>'.$type.'</td>
                         <td>
-                            <select name="repeat[]" id="schedule_status">
+                            <select name="repeat[]" id="schedule_status" class="span4">
                                 '.$repeatOptions.'
                             </select>
                         </td>
                         <td>'.$lastrun.'</td>
                         <td>
-                            <select name="status[]" id="schedule_status">
+                            <select name="status[]" id="schedule_status" class="span2">
                                 '.$statusOptions.'
                             </select>
                         </td>
@@ -304,9 +293,9 @@ function displaySchedulerPage ()
     echo '
                 </tbody>
             </table>
-            <p style="text-align:right">
-                <input class="sub1" type="submit" name="save" id="save" value="'.T_('Save Changes').'"/>&nbsp; 
-            </p>
+            <div class="actions">
+                <input class="btn primary" type="submit" name="save" id="save" value="'.T_('Save Changes').'"/>
+            </div>
         </form>
 
         <p>&nbsp;</p>
@@ -359,9 +348,9 @@ function displayEditScheduleSubmitPage ()
             continue;
         }
 
-        $id     = cleanInput($_POST['id'][$i]);
-        $repeat = cleanInput($_POST['repeat'][$i]);
-        $status = cleanInput($_POST['status'][$i]);
+        $id     = (int)$_POST['id'][$i];
+        $repeat = escape_string($_POST['repeat'][$i]);
+        $status = escape_string($_POST['status'][$i]);
 
         $sql = "UPDATE `fcms_schedule`
                 SET `repeat` = '$repeat',
@@ -396,7 +385,7 @@ function removeAlert ()
 
     $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
             VALUES (
-                '".cleanInput($_GET['alert'])."', 
+                '".escape_string($_GET['alert'])."', 
                 '$currentUserId'
             )";
     if (!mysql_query($sql))

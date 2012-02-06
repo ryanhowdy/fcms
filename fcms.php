@@ -2,7 +2,7 @@
 /**
  * fcms 
  * 
- * PHP versions 4 and 5
+ * PHP version 5
  * 
  * @category  FCMS
  * @package   FamilyConnections
@@ -14,9 +14,10 @@
  */
 
 require_once 'inc/config_inc.php';
-require_once 'inc/gettext.inc';
+require_once 'inc/thirdparty/gettext.inc';
 require_once 'inc/utils.php';
 require_once 'inc/constants.php';
+require_once 'inc/error.class.php';
 
 set_error_handler("fcmsErrorHandler");
 
@@ -25,6 +26,8 @@ fixMagicQuotes();
 connectDatabase();
 
 checkSiteStatus();
+
+$_error    = new FCMS_Error();
 
 /**
  * load 
@@ -53,20 +56,20 @@ function load()
         }
         elseif ($include == 'foursquare')
         {
-            include_once INC.'foursquare/EpiCurl.php';
-            include_once INC.'foursquare/EpiFoursquare.php';
+            include_once THIRDPARTY.'foursquare/EpiCurl.php';
+            include_once THIRDPARTY.'foursquare/EpiFoursquare.php';
         }
         elseif ($include == 'facebook')
         {
-            include_once INC.'facebook/src/facebook.php';
+            include_once THIRDPARTY.'facebook/src/facebook.php';
         }
         elseif ($include == 'vimeo')
         {
-            include_once INC.'vimeo/vimeo.php';
+            include_once THIRDPARTY.'vimeo/vimeo.php';
         }
         elseif ($include == 'youtube')
         {
-            set_include_path(INC);
+            set_include_path(THIRDPARTY);
 
             require_once 'Zend/Loader.php';
             Zend_Loader::loadClass('Zend_Gdata_YouTube');
@@ -186,7 +189,7 @@ function getLanguage ()
 {
     if (isset($_SESSION['login_id']))
     {
-        $user = cleanInput($_SESSION['login_id'], 'int');
+        $user = (int)$_SESSION['login_id'];
 
         $sql = "SELECT `language` 
                 FROM `fcms_user_settings` 
@@ -369,17 +372,18 @@ function isLoggedIn ($directory = '')
     // User has a session
     if (isset($_SESSION['login_id']))
     {
-        $id = $_SESSION['login_id'];
-        $user = $_SESSION['login_uname'];
-        $pass = $_SESSION['login_pw'];
+        $id   = (int)$_SESSION['login_id'];
+        $user = escape_string($_SESSION['login_uname']);
+        $pass = escape_string($_SESSION['login_pw']);
     }
     // User has a cookie
     elseif (isset($_COOKIE['fcms_login_id']))
     {
-        $_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
-        $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-        $_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
-        $id = $_SESSION['login_id'];
+        $_SESSION['login_id']    = (int)$_COOKIE['fcms_login_id'];
+        $_SESSION['login_uname'] = escape_string($_COOKIE['fcms_login_uname']);
+        $_SESSION['login_pw']    = escape_string($_COOKIE['fcms_login_pw']);
+
+        $id   = $_SESSION['login_id'];
         $user = $_SESSION['login_uname'];
         $pass = $_SESSION['login_pw'];
     }
@@ -391,8 +395,8 @@ function isLoggedIn ($directory = '')
         exit();
     }
 
-    // Make sure id is a digit
-    if (!ctype_digit($id))
+    // Make sure id is a number
+    if (!is_numeric($id))
     {
         $url = basename($_SERVER["REQUEST_URI"]);
         header("Location: {$up}index.php?err=login&url=$directory$url");
@@ -404,7 +408,7 @@ function isLoggedIn ($directory = '')
     {
         $sql = "SELECT `access`
                 FROM `fcms_users`
-                WHERE `id` = '".escape_string($id)."'
+                WHERE `id` = '$id'
                 LIMIT 1
                 UNION
                 SELECT `value`

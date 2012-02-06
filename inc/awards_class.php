@@ -34,7 +34,7 @@ class Awards
         $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($id, 'int');
+        $this->currentUserId = (int)$id;
     }
 
     /**
@@ -44,12 +44,11 @@ class Awards
      *
      * @return  void
      */
-    function displayAwards ($userid, $exclude = 0)
+    function displayAwards ($userid)
     {
-        $userid  = cleanInput($userid, 'int');
-        $exlcude = cleanInput($exclude, 'int');
+        $userid  = (int)$userid;
 
-        $sql = "SELECT `id`, `user`, `award`, `month`, `date`, `item_id`, `count`
+        $sql = "SELECT `award`
                 FROM `fcms_user_awards`
                 WHERE `user` = '$userid'";
         if (!$this->db->query($sql))
@@ -66,29 +65,39 @@ class Awards
             return;
         }
 
-        echo '
-                <ul id="awards-list" class="clearfix">';
-
         $awardInfo = $this->getAwardsInfoList();
+
+        $awardList = array();
 
         while ($r = $this->db->get_row())
         {
-            if ($r['id'] == $exclude)
-            {
-                continue;
-            }
+            $awardList[$r['award']][] = $r;
+        }
 
-            $date = '';
-            if (strlen($r['month']) == 6)
+        echo '
+                <ul id="awards-list" class="clearfix">';
+
+        if (count($awardList) <= 0)
+        {
+            echo '
+                    <li>'.T_('This user has no awards yet.').'</li>';
+            return;
+        }
+
+        foreach ($awardList as $type => $awards)
+        {
+            $count = count($awards);
+            $name  = $awardInfo[$awards[0]['award']]['name'];
+            $span  = '';
+
+            if ($count > 1)
             {
-                $year  = substr($r['month'], 0, 4);
-                $month = substr($r['month'], 4, 2);
-                $date  = date('F Y', strtotime("$year-$month-01"));
+                $span = '<span>&times; '.$count.'</span>';
             }
 
             echo '
                     <li>
-                        <a href="?member='.$userid.'&amp;award='.$r['id'].'" class="'.$r['award'].'" title="'.$awardInfo[$r['award']]['name'].': '.$date.'"></a>
+                        <a href="?member='.$userid.'&amp;award='.$awards[0]['award'].'" class="'.$awards[0]['award'].'" title="'.$name.'"></a>'.$span.'
                     </li>';
         }
 
@@ -99,15 +108,15 @@ class Awards
     /**
      * displayAward 
      * 
-     * Displays details about the given award 
-     * along with who the award was awarded to and any other awards they own.
+     * Displays details about the given award type.
+     * Along with who the award was awarded to and any other awards they own.
      * 
      * @param int $userid 
-     * @param int $id 
+     * @param int $type
      * 
      * @return void
      */
-    function displayAward ($userid, $id)
+    function displayAward ($userid, $type)
     {
         global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
 
@@ -115,13 +124,15 @@ class Awards
         $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $g        = new PhotoGallery($this->currentUserId, $database);
 
-        $userid = cleanInput($userid, 'int');
-        $id     = cleanInput($id, 'int');
+        $userid = (int)$userid;
+        $type   = escape_string($type);
 
-        $sql = "SELECT `id`, `user`, `award`, `month`, `date`, `item_id`, `count`
-                FROM `fcms_user_awards`
-                WHERE `user` = '$userid'
-                AND `id` = '$id'";
+        $sql = "SELECT a.`id`, a.`user`, a.`award`, a.`month`, a.`date`, a.`item_id`, a.`count`, u.`fname`
+                FROM `fcms_user_awards` AS a,
+                    `fcms_users` AS u
+                WHERE a.`user` = '$userid'
+                AND a.`award` = '$type'
+                AND a.`user` = u.`id`";
         if (!$this->db->query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -136,46 +147,153 @@ class Awards
             return;
         }
 
-        $r = $this->db->get_row();
+        $awardList = array();
+
+        while ($r = $this->db->get_row())
+        {
+            $awardList[] = $r;
+            $fname       = $r['fname'];
+        }
+
         $currentAward = array(
-            'id'        => $r['id'],
-            'award'     => $r['award'],
-            'month'     => $r['month'],
-            'date'      => $r['date'],
-            'item_id'   => $r['item_id'],
-            'count'     => $r['count'],
+            'id'        => $awardList[0]['id'],
+            'award'     => $awardList[0]['award'],
+            'month'     => $awardList[0]['month'],
+            'date'      => $awardList[0]['date'],
+            'item_id'   => $awardList[0]['item_id'],
+            'count'     => $awardList[0]['count'],
         );
 
         $awardsInfo = $this->getAwardsInfoList();
 
-        $details = '';
-        if ($currentAward['award'] == 'icebreaker') {
-            $thread = $currentAward['item_id'];
-            $details = '<h3><a href="messageboard.php?thread='.$thread.'">'.$mb->getThreadSubject($thread).'</a></h3>';
-        }
-        if ($currentAward['award'] == 'shutterbug') {
-            $id = $currentAward['item_id'];
-            $photo = $g->getPhotoInfo($id);
-            $details = '<h3>
-                    <a href="gallery/index.php?uid='.$photo['user'].'&amp;cid='.$photo['category'].'&amp;pid='.$photo['id'].'">
-                        <img src="gallery/photos/member'.$photo['user'].'/tb_'.basename($photo['filename']).'"/>
-                    </a>
-                </h3>';
+        $totalTimesAwarded = count($awardList);
+
+        $string       = T_ngettext('%s has been given this award %d time.', '%s has been given this award %d times.', $totalTimesAwarded);
+        $awardedCount = sprintf($string, $fname, $totalTimesAwarded).'</h5>';
+
+        if ($userid == $this->currentUserId)
+        {
+            $string       = T_ngettext('You have been given this award %d time.', 'You have been given this award %d times.', $totalTimesAwarded);
+            $awardedCount = sprintf($string, $totalTimesAwarded).'</h5>';
         }
 
         echo '
-            <div id="current-award">
+            <div id="current-award" class="clearfix">
                 <div class="'.$currentAward['award'].'"></div>
                 <h1>'.$awardsInfo[$currentAward['award']]['name'].'</h1>
                 <h2>'.$awardsInfo[$currentAward['award']]['description'].'</h2>
-                '.$details.'
-                <h4>'.sprintf(T_('Awarded on %s.'), $currentAward['date']).'</h4>';
+            </div>
 
-        $this->displayAwards($userid, $id);
+            <h5 class="times-awarded">'.$awardedCount.'</h5>';
 
-        echo '
-            </div>';
+        foreach ($awardList as $r)
+        {
+            $details = '';
+            $date    = '';
 
+            if (strlen($r['month']) == 6)
+            {
+                $year  = substr($r['month'], 0, 4);
+                $month = substr($r['month'], 4, 2);
+                $date  = date('F, Y', strtotime("$year-$month-01"));
+            }
+
+            switch ($r['award'])
+            {
+                case 'board':
+
+                    $details = sprintf(T_pgettext('Ex: December, 2011 - 10 posts', '%s - %s posts'), $date, $r['count']);
+                    break;
+
+                case 'gallery':
+
+                    $details = sprintf(T_pgettext('Ex: December, 2011 - 10 photos', '%s - %s photos'), $date, $r['count']);
+                    break;
+
+                case 'recipes':
+
+                    $details = sprintf(T_pgettext('Ex: December, 2011 - 10 recipes', '%s - %s recipes'), $date, $r['count']);
+                    break;
+
+                case 'news':
+
+                    $details = sprintf(T_pgettext('Ex: December, 2011 - 10 posts', '%s - %s posts'), $date, $r['count']);
+                    break;
+
+                case 'docs':
+
+                    $details = sprintf(T_pgettext('Ex: December, 2011 - 10 documents', '%s - %s documents'), $date, $r['count']);
+                    break;
+
+                case 'icebreaker':
+
+                    $thread  = (int)$r['item_id'];
+                    $replies = sprintf(T_pgettext('Ex: 21 replies', '%d replies'), $r['count']);
+
+                    $details = $date.' - <a href="messageboard.php?thread='.$thread.'">'.$mb->getThreadSubject($thread).'</a> - '.$replies;
+                    break;
+
+                case 'shutterbug':
+
+                    $id      = (int)$r['item_id'];
+                    $photo   = $g->getPhotoInfo($id);
+                    $views   = sprintf(T_pgettext('Ex: 210 views', '%d views'), $r['count']);
+
+                    $details  = $date.' - '.$views.'<br/>';
+                    $details .= '<a href="gallery/index.php?uid='.$photo['user'].'&amp;cid='.$photo['category'].'&amp;pid='.$photo['id'].'">';
+                    $details .= '<img src="uploads/photos/member'.$photo['user'].'/tb_'.basename($photo['filename']).'"/>';
+                    $details .= '</a>';
+                    break;
+
+                case 'interesting':
+
+                    $id    = (int)$r['item_id'];
+                    $views = sprintf(T_pgettext('Ex: 21 comments', '%d comments'), $r['count']);
+
+                    $sql = "SELECT `title`
+                            FROM `fcms_news`
+                            WHERE `id` = '$id'";
+
+                    $result = mysql_query($sql);
+                    if (!$result)
+                    {
+                        displaySqlError($sql, mysql_error());
+                        displayFooter();
+                        return;
+                    }
+
+                    $news = mysql_fetch_assoc($result);
+
+                    $title = cleanOutput($news['title']);
+
+                    $details  = $date.' - <a href="familynews.php?getnews='.$r['user'].'&amp;newsid='.$id.'">'.$title.'</a> - '.$views;
+                    break;
+
+                case 'secretive':
+
+                    $views = sprintf(T_pgettext('Ex: 210 private messages', '%d private messages'), $r['count']);
+
+                    $details  = $date.' - '.$views.'<br/>';
+                    break;
+
+                case 'planner':
+
+                    $views = sprintf(T_pgettext('Ex: 53 events', '%d events'), $r['count']);
+
+                    $details  = $date.' - '.$views.'<br/>';
+                    break;
+
+                case 'photogenic':
+
+                    $views = sprintf(T_pgettext('Ex: 53 photos', '%d photos'), $r['count']);
+
+                    $details  = $date.' - '.$views.'<br/>';
+                    break;
+            }
+
+            echo '
+                <p>'.$details.'</p>';
+        }
     }
 
     /**
@@ -260,11 +378,11 @@ class Awards
         if (!$this->db->query($sql))
         {
             displaySqlError($sql, mysql_error());
-            return;
+            return false;
         }
 
         if ($this->db->count_rows() > 0) {
-            return;
+            return true;
         }
 
         $params = array(
@@ -276,27 +394,44 @@ class Awards
         // Message Board
         $params['award'] = 'board';
         $params['table'] = 'fcms_board_posts';
-        $this->calculateAward($params);
+        if (!$this->calculateAward($params))
+        {
+            return false;
+        }
 
         // Photo Gallery
         $params['award'] = 'gallery';
         $params['table'] = 'fcms_gallery_photos';
-        $this->calculateAward($params);
+        if (!$this->calculateAward($params))
+        {
+            return fa;se;
+        }
 
         // Family News
         $params['award'] = 'news';
         $params['table'] = 'fcms_news';
-        $this->calculateAward($params);
+        if (!$this->calculateAward($params))
+        {
+            return fa;se;
+        }
 
         // Recipes
         $params['award'] = 'recipes';
         $params['table'] = 'fcms_recipes';
-        $this->calculateAward($params);
+        if (!$this->calculateAward($params))
+        {
+            return fa;se;
+        }
 
         // Documents
         $params['award'] = 'documents';
         $params['table'] = 'fcms_documents';
-        $this->calculateAward($params);
+        if (!$this->calculateAward($params))
+        {
+            return fa;se;
+        }
+
+        return true;
     }
 
     /**
@@ -333,7 +468,7 @@ class Awards
         if (!$this->db->query($sql))
         {
             displaySqlError($sql, mysql_error());
-            return;
+            return false;
         }
 
         if ($this->db->count_rows() > 0)
@@ -352,9 +487,11 @@ class Awards
             if (!$this->db->query($sql))
             {
                 displaySqlError($sql, mysql_error());
-                return;
+                return false;
             }
         }
+
+        return true;
     }
 
     /**
@@ -384,32 +521,31 @@ class Awards
      */
     function calculateAchievementAwards ()
     {
-        $errors = 0;
-
         $currentAwards = $this->getCurrentAchievementAwards();
+
+        if ($currentAwards === false)
+        {
+            return false;
+        }
 
         // Ice Breaker
         if (!$this->calculateIceBreakerAward($currentAwards)) {
-            $errors++;
+            return false;
         }
         // Shutterbug
         if (!$this->calculateShutterbugAward($currentAwards)) {
-            $errors++;
+            return false;
         }
         // Interesting
         if (!$this->calculateInterestingAward($currentAwards)) {
-            $errors++;
+            return false;
         }
         // Secretive
         if (!$this->calculateSecretiveAward($currentAwards)) {
-            $errors++;
+            return false;
         }
         // Planner
         if (!$this->calculatePlannerAward($currentAwards)) {
-            $errors++;
-        }
-
-        if ($errors > 0) {
             return false;
         }
 
@@ -434,7 +570,7 @@ class Awards
         if (!$this->db->query($sql))
         {
             displaySqlError($sql, mysql_error());
-            return $array;
+            return false;
         }
 
         while ($r = $this->db->get_row()) {

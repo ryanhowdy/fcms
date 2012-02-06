@@ -22,7 +22,7 @@ load('gallery');
 init('gallery/');
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $gallery       = new PhotoGallery($currentUserId);
 
 $TMPL = array(
@@ -208,7 +208,7 @@ Event.observe(window, \'load\', function() {
     );
     hidePhotoDetails(\''.T_('More Details').'\');
     deleteConfirmationLink("deletephoto", "'.T_('Are you sure you want to DELETE this Photo?').'");
-    deleteConfirmationLinks("delcom", "'.T_('Are you sure you want to DELETE this Comment?').'");
+    deleteConfirmationLinks("gal_delcombtn", "'.T_('Are you sure you want to DELETE this Comment?').'");
     deleteConfirmationLinks("delcategory", "'.T_('Are you sure you want to DELETE this Category?').'");
     initNewWindow();
 });
@@ -247,10 +247,7 @@ function displayEditPhotoForm ()
 
     displayHeader();
 
-    $cleanPhoto = cleanInput($_POST['photo']);
-    $cleanUrl   = cleanInput($_POST['url']);
-
-    $gallery->displayEditPhotoForm($cleanPhoto, $cleanUrl);
+    $gallery->displayEditPhotoForm($_POST['photo'], $_POST['url']);
 
     displayFooter();
 }
@@ -262,11 +259,13 @@ function displayEditPhotoForm ()
  */
 function displayEditPhotoSubmit ()
 {
-    $uid           = cleanInput($_GET['uid'], 'int');
-    $photo_caption = cleanInput($_POST['photo_caption']);
-    $category      = cleanInput($_POST['category']);
+    $uid           = (int)$_GET['uid'];
+    $photo_caption = strip_tags($_POST['photo_caption']);
+    $photo_caption = escape_string($photo_caption);
+    $category      = strip_tags($_POST['category']);
+    $category      = escape_string($category);
     $cid           = $category;
-    $pid           = cleanInput($_POST['photo_id'], 'int');
+    $pid           = (int)$_POST['photo_id'];
 
     $sql = "UPDATE `fcms_gallery_photos` 
             SET `category` = '$category', 
@@ -300,6 +299,8 @@ function displayEditPhotoSubmit ()
  * Will tag a group of members in a photo. Will also remove members who were 
  * tagged, but now are not.
  * 
+ * Since 2.9 - Adds a new record to the notification table.
+ * 
  * @param int   $photoId           Id of photo
  * @param array $taggedMembers     Array of member id's who are being tagged
  * @param array $prevTaggedMembers Array of member id's who are being untagged
@@ -311,7 +312,20 @@ function tagMembersInPhoto ($photoId, $taggedMembers = null, $prevTaggedMembers 
     $ids = getAddRemoveTaggedMembers($taggedMembers, $prevTaggedMembers);
     if ($ids === false)
     {
+        $error = T_('Invalid tagged member data.');
+
+        displayHeader();
+        echo '<div class="error-alert">'.$error.'</div>';
+        logError(__FILE__.' ['.__LINE__.'] - '.$error);
+        displayFooter();
+
         return false;
+    }
+
+    // Nothing to add or remove
+    if ($ids === true)
+    {
+        return true;
     }
 
     if (count($ids['add']) > 0)
@@ -327,6 +341,8 @@ function tagMembersInPhoto ($photoId, $taggedMembers = null, $prevTaggedMembers 
             displayFoote();
             return false;
         }
+
+        addTaggedNotifications($photoId, $ids['add']);
     }
 
     if (count($ids['remove']) > 0)
@@ -346,6 +362,57 @@ function tagMembersInPhoto ($photoId, $taggedMembers = null, $prevTaggedMembers 
     }
 
     return true;
+}
+
+/**
+ * addTaggedNotifications 
+ * 
+ * @param int   $photoId 
+ * @param array $ids 
+ * 
+ * @return void
+ */
+function addTaggedNotifications ($photoId, $ids)
+{
+    // Get photo info
+    $sql = "SELECT `user`, `category`, `filename`
+            FROM `fcms_gallery_photos`
+            WHERE `id` = '$photoId'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displayHeader();
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    $photoInfo = array();
+    $photoInfo = mysql_fetch_assoc($result);
+    $values    = '';
+    $data      = $photoInfo['user'].':'.$photoInfo['category'].':'.$photoId.':'.$photoInfo['filename'];
+
+    foreach ($ids as $id)
+    {
+        $values .= "('$id', '".$photoInfo['user']."', 'tagged_photo', '$data', 0, NOW(), NOW()),";
+    }
+
+    if (strlen($values) > 0)
+    {
+        $values = substr($values, 0, -1); // remove trailing comma
+
+        $sql = "INSERT INTO `fcms_notification` (`user`, `created_id`, `notification`, `data`, `read`, `created`, `updated`)
+                VALUES $values";
+
+        if (!mysql_query($sql))
+        {
+            displayHeader();
+            displaySqlError($sql, mysql_error());
+            displayFooter();
+            return;
+        }
+    }
 }
 
 /**
@@ -381,7 +448,7 @@ function displayDeletePhotoSubmit ()
 {
     global $gallery;
 
-    $cleanPhotoId = cleanInput($_POST['photo'], 'int');
+    $cleanPhotoId = (int)$_POST['photo'];
 
     // Get photo info
     $sql = "SELECT `user`, `category`, `filename` 
@@ -426,12 +493,12 @@ function displayDeletePhotoSubmit ()
     }
     
     // Remove the Photo from the server
-    unlink(ROOT."uploads/photos/member$photoUserId/".$photoFilename);
-    unlink(ROOT."uploads/photos/member$photoUserId/tb_".$photoFilename);
+    unlink(ROOT."uploads/photos/member$photoUserId/".basename($photoFilename));
+    unlink(ROOT."uploads/photos/member$photoUserId/tb_".basename($photoFilename));
 
     if ($gallery->usingFullSizePhotos())
     {
-        unlink(ROOT."uploads/photos/member$photoUserId/full_".$photoFilename);
+        unlink(ROOT."uploads/photos/member$photoUserId/full_".basename($photoFilename));
     }
 
     $_SESSION['message'] = 1;
@@ -562,9 +629,12 @@ function displayUploadFormSubmit ()
     // Create a new category
     if (!empty($_POST['new-category']))
     {
+        $newCategory = strip_tags($_POST['new-category']);
+        $newCategory = escape_string($newCategory);
+
         $sql = "INSERT INTO `fcms_category`(`name`, `type`, `user`) 
                 VALUES (
-                    '".cleanInput($_POST['new-category'])."', 
+                    '$newCategory', 
                     'gallery', 
                     '$currentUserId'
                 )";
@@ -582,17 +652,18 @@ function displayUploadFormSubmit ()
     // Existing category
     else
     {
-        $cleanCategory = cleanInput($_POST['category']);
+        $cleanCategory = (int)$_POST['category'];
     }
 
     // Rotate photo
     $cleanRotate = '0';
     if (isset($_POST['rotate']))
     {
-        $cleanRotate = cleanInput($_POST['rotate']);
+        $cleanRotate = escape_string($_POST['rotate']);
     }
 
-    $cleanCaption = cleanInput($_POST['photo_caption']);
+    $caption      = strip_tags($_POST['photo_caption']);
+    $cleanCaption = escape_string($caption);
 
     $memory = isset($_POST['memory_override']) ? true : false;
 
@@ -693,12 +764,14 @@ function displayUploadAdvancedFormSubmit ()
 {
     global $currentUserId;
 
+    // Categories should all be the same
+    $cleanCategory = (int)$_POST['category'][0];
     // Loop through each photo
     for ($i=0; $i < count($_POST['id']); $i++)
     {
-        $cleanCaption  = cleanInput($_POST['caption'][$i]);
-        $cleanCategory = cleanInput($_POST['category'][0]); // categories are always the same
-        $cleanId       = cleanInput($_POST['id'][$i]);
+        $caption      = strip_tags($_POST['caption'][$i]);
+        $cleanCaption = escape_string($caption);
+        $cleanId      = (int)$_POST['id'][$i];
 
         // Update the caption
         $sql = "UPDATE `fcms_gallery_photos` 
@@ -737,7 +810,11 @@ function displayUploadAdvancedFormSubmit ()
  */
 function displayEditCategoryFormSubmit ()
 {
-    if (empty($_POST['cat_name']))
+    $categoryId        = (int)$_POST['cid'];
+    $categoryName      = strip_tags($_POSt['cat_name']);
+    $cleanCategoryName = escape_string($categoryName);
+
+    if (empty($categoryName))
     {
         displayHeader();
         echo '
@@ -746,8 +823,8 @@ function displayEditCategoryFormSubmit ()
     }
 
     $sql = "UPDATE fcms_category 
-            SET `name` = '".cleanInput($_POST['cat_name'])."' 
-            WHERE `id` = '".cleanInput($_POST['cid'], 'int')."'";
+            SET `name` = '$cleanCategoryName' 
+            WHERE `id` = '$categoryId'";
 
     if (!mysql_query($sql))
     {
@@ -757,7 +834,7 @@ function displayEditCategoryFormSubmit ()
         return;
     }
 
-    $_SESSION['message'] = sprintf(T_('The Category %s was Updated Successfully'), "<b>".$_POST['cat_name']."</b>");
+    $_SESSION['message'] = sprintf(T_('The Category %s was Updated Successfully'), "<b>".$categoryName."</b>");
 
     header("Location: index.php?action=category");
 }
@@ -801,7 +878,7 @@ function displayConfirmDeleteCategoryForm ()
                         <h2>'.T_('Are you sure you want to DELETE this category?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
-                            <input type="hidden" name="cid" value="'.cleanInput($_POST['cid'], 'int').'"/>
+                            <input type="hidden" name="cid" value="'.(int)$_POST['cid'].'"/>
                             <input style="float:left;" type="submit" id="delcat" name="delcat" value="'.T_('Yes').'"/>
                             <a style="float:right;" href="index.php?action=category">'.T_('Cancel').'</a>
                         </div>
@@ -824,11 +901,11 @@ function displayDeleteCategorySubmit ()
 
     if (isset($_GET['delcat']))
     {
-        $cid = cleanInput($_GET['delcat'], 'int');
+        $cid = (int)$_GET['delcat'];
     }
     elseif (isset($_POST['cid']))
     {
-        $cid = cleanInput($_POST['cid'], 'int');
+        $cid = (int)$_POST['cid'];
     }
     else
     {
@@ -856,7 +933,7 @@ function displayDeleteCategorySubmit ()
     $row = mysql_fetch_array($result);
 
     // Do you permission to delete?
-    if ($currentUserId !== $row['user'])
+    if ($currentUserId != $row['user'])
     {
         displayHeader();
         echo '<p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
@@ -892,8 +969,8 @@ function displayMassTagForm ()
 
     displayHeader();
 
-    $category = cleanInput($_GET['tag'], 'int');
-    $user     = cleanInput($_GET['user'], 'int');
+    $category = (int)$_GET['tag'];
+    $user     = (int)$_GET['user'];
 
     $gallery->displayMassTagCategory($category, $user);
 
@@ -907,8 +984,8 @@ function displayMassTagForm ()
  */
 function displayMassTagFormSubmit ()
 {
-    $uid      = cleanInput($_GET['uid'], 'int');
-    $cid      = cleanInput($_GET['cid'], 'int');
+    $uid      = (int)$_GET['uid'];
+    $cid      = (int)$_GET['cid'];
     $photos   = array();
     $photos1  = array();
     $photos2  = array();
@@ -963,9 +1040,9 @@ function displayPhoto ()
         displayOkMessage();
     }
 
-    $uid = cleanInput($_GET['uid'], 'int');
-    $cid = cleanInput($_GET['cid']); // not always an #
-    $pid = cleanInput($_GET['pid'], 'int');
+    $uid = (int)$_GET['uid'];
+    $cid = $_GET['cid']; // not always an #
+    $pid = (int)$_GET['pid'];
 
     $gallery->showPhoto($uid, $cid, $pid);
 
@@ -990,7 +1067,7 @@ function displayCategory ()
         displayOkMessage();
     }
 
-    $page = isset($_GET['page']) ? $page = $_GET['page'] : $page = 1;
+    $page = getPage();
 
     $gallery->displayGalleryMenu($_GET['uid'], $_GET['cid']);
     $gallery->showCategories($page, $_GET['uid'], $_GET['cid']);
@@ -1009,7 +1086,7 @@ function displayUserCategory ()
 
     displayHeader();
 
-    $page = isset($_GET['page']) ? $page = $_GET['page'] : $page = 1;
+    $page = getPage();
 
     $gallery->displayGalleryMenu($_GET['uid']);
     $gallery->showCategories($page, $_GET['uid']);
@@ -1026,18 +1103,20 @@ function displayAddPhotoCommentSubmit ()
 {
     global $currentUserId;
 
-    $uid = cleanInput($_GET['uid'], 'int');
-    $cid = cleanInput($_GET['cid']); // not always an #
-    $pid = cleanInput($_GET['pid'], 'int');
-    $com = ltrim($_POST['post']);
+    $uid      = (int)$_GET['uid'];
+    $cid      = $_GET['cid']; // not always an #
+    $pid      = (int)$_GET['pid'];
+    $com      = ltrim($_POST['post']);
+    $com      = strip_tags($com);
+    $cleanCom = escape_string($com);
 
     if (!empty($com))
     {
         $sql = "INSERT INTO `fcms_gallery_comments` (
                     `photo`, `comment`, `date`, `user`
                 ) VALUES (
-                    '".cleanInput($_GET['pid'], 'int')."', 
-                    '".cleanInput($_POST['post'])."', 
+                    '$pid', 
+                    '$cleanCom', 
                     NOW(), 
                     '$currentUserId'
                 )";
@@ -1063,10 +1142,10 @@ function displayAddPhotoCommentSubmit ()
  */
 function displayAddVoteSubmit ()
 {
-    $uid  = cleanInput($_GET['uid'], 'int');
-    $cid  = cleanInput($_GET['cid']); // not always an #
-    $pid  = cleanInput($_GET['pid'], 'int');
-    $vote = cleanInput($_GET['vote'], 'int');
+    $uid  = (int)$_GET['uid'];
+    $cid  = $_GET['cid']; // not always an #
+    $pid  = (int)$_GET['pid'];
+    $vote = (int)$_GET['vote'];
 
     $sql = "UPDATE `fcms_gallery_photos` 
             SET `votes` = `votes`+1, 
@@ -1090,10 +1169,10 @@ function displayAddVoteSubmit ()
  */
 function displayDeleteCommentSubmit ()
 {
-    $uid = cleanInput($_POST['uid'], 'int');
-    $cid = cleanInput($_POST['cid']); // not always an #
-    $pid = cleanInput($_POST['pid'], 'int');
-    $id  = cleanInput($_POST['id'], 'int');
+    $uid = (int)$_POST['uid'];
+    $cid = $_POST['cid']; // not always an #
+    $pid = (int)$_POST['pid'];
+    $id  = (int)$_POST['id'];
 
     $sql = "DELETE FROM `fcms_gallery_comments` 
             WHERE `id` = '$id'";
@@ -1115,9 +1194,11 @@ function displayDeleteCommentSubmit ()
  */
 function displayConfirmDeleteCommentForm ()
 {
-    $uid = cleanInput($_GET['uid'], 'int');
-    $cid = cleanInput($_GET['cid']); // not always an #
-    $pid = cleanInput($_GET['pid'], 'int');
+    $uid = (int)$_GET['uid'];
+    $cid = $_GET['cid']; // not always an #
+    $pid = (int)$_GET['pid'];
+    $id  = (int)$_POST['id'];
+    displayHeader();
 
     echo '
                 <div class="info-alert clearfix">
@@ -1126,14 +1207,16 @@ function displayConfirmDeleteCommentForm ()
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
                             <input type="hidden" name="uid" value="'.$uid.'"/>
-                            <input type="hidden" name="cid" value="'.$cid.'"/>
+                            <input type="hidden" name="cid" value="'.cleanOutput($cid).'"/>
                             <input type="hidden" name="pid" value="'.$pid.'"/>
-                            <input type="hidden" name="id" value="'.cleanInput($_POST['id'], 'int').'"/>
+                            <input type="hidden" name="id" value="'.$id.'"/>
                             <input style="float:left;" type="submit" id="delcom" name="delcom" value="'.T_('Yes').'"/>
-                            <a style="float:right;" href="index.php?uid='.$uid.'&amp;cid='.$cid.'&amp;pid='.$pid.'">'.T_('Cancel').'</a>
+                            <a style="float:right;" href="index.php?uid='.$uid.'&amp;cid='.cleanOutput($cid).'&amp;pid='.$pid.'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
+
+    displayFooter();
 }
 
 /**
@@ -1191,8 +1274,8 @@ function displayEditDescriptionForm ()
 {
     displayHeader();
 
-    $uid = cleanInput($_GET['user'], 'int');
-    $cid = cleanInput($_GET['description'], 'int');
+    $uid = (int)$_GET['user'];
+    $cid = (int)$_GET['description'];
 
     $sql = "SELECT `user`, `description`
             FROM `fcms_category`
@@ -1217,7 +1300,7 @@ function displayEditDescriptionForm ()
     $row = mysql_fetch_assoc($result);
 
     // Can the member edit description
-    if ($row['user'] !== $uid)
+    if ($row['user'] != $uid)
     {
         echo '
             <div class="error-alert">'.T_('You do NOT have access to perform this action.').'</div>';
@@ -1233,7 +1316,7 @@ function displayEditDescriptionForm ()
                     <div class="field-row clearfix">
                         <div class="field-label"></div>
                         <div class="field-widget">
-                            <textarea id="description" name="description" cols="63" rows="10">'.cleanOutput($row['description']).'</textarea>
+                            <textarea id="description" name="description" cols="63" rows="10">'.$row['description'].'</textarea>
                         </div>
                     </div>
                     <p>
@@ -1255,9 +1338,10 @@ function displayEditDescriptionForm ()
  */
 function displayEditDescriptionFormSubmit ()
 {
-    $uid         = cleanInput($_POST['uid'], 'int');
-    $cid         = cleanInput($_POST['cid'], 'int');
-    $description = cleanInput($_POST['description']);
+    $uid         = (int)$_POST['uid'];
+    $cid         = (int)$_POST['cid'];
+    $description = strip_tags($_POST['description']);
+    $description = escape_string($description);
 
     $sql = "UPDATE `fcms_category`
             SET `description` = '$description'

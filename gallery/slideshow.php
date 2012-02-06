@@ -22,7 +22,7 @@ load('gallery');
 init('gallery/');
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $gallery       = new PhotoGallery($currentUserId);
 
 echo '
@@ -32,14 +32,14 @@ echo '
 <title>'.T_('Photo Gallery Slideshow').' - '.getSiteName().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="author" content="Ryan Haudenschilt" />
-<link rel="shortcut icon" href="../themes/favicon.ico"/>
+<link rel="shortcut icon" href="../ui/favicon.ico"/>
 <link rel="stylesheet" type="text/css" href="../themes/default/style.css"/>
 <style type="text/css">
 html { background-image: none !important; background-color: #000; }
 body { background-color: #000; margin: 10px 0 0 0 !important; padding: 0 !important; width: 650px !important; text-align: center; }
 </style>
-<script type="text/javascript" src="../inc/js/prototype.js"></script>
-<script type="text/javascript" src="../inc/js/effects.js"></script>
+<script type="text/javascript" src="../ui/js/prototype.js"></script>
+<script type="text/javascript" src="../ui/js/effects.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 function slideshow(start,last,interval) {
@@ -77,7 +77,7 @@ if (!isset($_GET['category']))
     exit();
 }
 
-$cid = cleanInput($_GET['category'], 'int');
+$cid = (int)$_GET['category'];
 
 $sql = "SELECT `caption`, `filename`, `user` 
         FROM `fcms_gallery_photos` 
@@ -101,7 +101,7 @@ if (mysql_num_rows($result) > 0)
     {
         $i++;
 
-        $user     = cleanInput($r['user'], 'int');
+        $user     = (int)$r['user'];
         $filename = basename($r['filename']);
         $caption  = cleanOutput($r['caption']);
 

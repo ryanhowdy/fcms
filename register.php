@@ -63,9 +63,9 @@ function displayHeader ()
 <title>'.sprintf(T_pgettext('%s is the name of the website', 'Register for %s.'), getSiteName()).'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
-<link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
-<script type="text/javascript" src="inc/js/prototype.js"></script>
-<script type="text/javascript" src="inc/js/livevalidation.js"></script>
+<link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
+<script type="text/javascript" src="ui/js/prototype.js"></script>
+<script type="text/javascript" src="ui/js/livevalidation.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, "load", function() {
@@ -168,11 +168,17 @@ function displaySubmit ($params = '')
         }
     }
 
-    $email    = cleanInput($formData['email']);
-    $username = cleanInput($formData['username']);
-    $fname    = cleanInput($formData['fname']);
-    $lname    = cleanInput($formData['lname']);
-    $password = cleanInput($formData['password']);
+    $email    = strip_tags($formData['email']);
+    $username = strip_tags($formData['username']);
+    $fname    = strip_tags($formData['fname']);
+    $lname    = strip_tags($formData['lname']);
+
+    $cleanEmail    = escape_string($email);
+    $cleanUsername = escape_string($username);
+    $cleanFname    = escape_string($fname);
+    $cleanLname    = escape_string($lname);
+
+    $password = $formData['password'];
 
     if ($params == '')
     {
@@ -180,7 +186,7 @@ function displaySubmit ($params = '')
     }
 
     // Is email available?
-    $result      = mysql_query("SELECT `email` FROM `fcms_users` WHERE `email` = '$email'"); 
+    $result      = mysql_query("SELECT `email` FROM `fcms_users` WHERE `email` = '$cleanEmail'"); 
     $email_check = mysql_num_rows($result);
 
     if ($email_check > 0)
@@ -193,7 +199,7 @@ function displaySubmit ($params = '')
     }
 
     // Is username availabel?
-    $result         = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '$username'"); 
+    $result         = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '$cleanUsername'"); 
     $username_check = mysql_num_rows($result);
 
     if ($username_check > 0)
@@ -205,7 +211,12 @@ function displaySubmit ($params = '')
         return;
     }
 
-    $sex = isset($formData['sex']) ? $formData['sex'] : 'M';
+    $sex = 'M';
+
+    if (isset($formData['sex']))
+    {
+        $sex = $formData['sex'] == 'F' ? 'F' : 'M';
+    }
 
     // Create new user
     $sql = "INSERT INTO `fcms_users`
@@ -213,11 +224,11 @@ function displaySubmit ($params = '')
             VALUES (
                 3, 
                 NOW(), 
-                '$fname', 
-                '$lname', 
+                '$cleanFname', 
+                '$cleanLname', 
                 '$sex', 
-                '$email', 
-                '$username', 
+                '$cleanEmail', 
+                '$cleanUsername', 
                 '$password'
             )";
     if (!mysql_query($sql))
@@ -279,7 +290,7 @@ function displaySubmit ($params = '')
     }
     elseif ($row['auto_activate'] == 0)
     {
-        $message = T_('Dear').' '.escape_string($fname).' '.escape_string($lname).', 
+        $message = T_('Dear').' '.$fname.' '.$lname.', 
 
 '.sprintf(T_('Thank you for registering at %s'), $sitename).'
 
@@ -447,7 +458,7 @@ function displayHtmlForm ($error = '0')
                 flname.add(Validate.Presence, {failureMessage: "'.T_('Required').'"});
             </script>
             <div class="field-row">
-                <div class="field-label"><label for="email"><b>'.T_('Email Addrss').'</b> <span class="req">*</span></label></div>
+                <div class="field-label"><label for="email"><b>'.T_('Email Address').'</b> <span class="req">*</span></label></div>
                 <div class="field-widget clearfix">
                     <input type="text" name="email" id="email" title="'.T_('Where can we send validation and updates?').'" value="'.$email.'"/>
                 </div>
@@ -518,7 +529,10 @@ function handleAutoActivation ($email, $subject, $id, $sitename)
  */
 function checkUsername ()
 {
-    $result = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '".cleanInput($_GET['username'])."'"); 
+    $username = strip_tags($_GET['username']); 
+    $username = escape_string($username); 
+
+    $result = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '$username'"); 
 
     $username_check = mysql_num_rows($result);
 

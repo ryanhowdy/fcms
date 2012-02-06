@@ -7,7 +7,7 @@ if (!defined('AJAX_CHAT_PATH'))
 }
 
 require_once $incPath.'config_inc.php';
-require_once $incPath.'gettext.inc';
+require_once $incPath.'thirdparty/gettext.inc';
 require_once $incPath.'utils.php';
 require_once $incPath.'chat/lib/classes.php';
 

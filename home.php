@@ -33,10 +33,10 @@ load(
 init();
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $calendar      = new Calendar($currentUserId);
 $poll          = new Poll($currentUserId);
-$alert         = new Alerts($currentUserId);
+$alertObj      = new Alerts($currentUserId);
 
 $TMPL = array(
     'sitename'      => getSiteName(),
@@ -67,12 +67,12 @@ function control ()
     mysql_query("UPDATE `fcms_users` SET `activity`=NOW() WHERE `id` = '$currentUserId'");
 
     // previous poll
-    if (isset($_GET['poll_id']) && !isset($_GET['action']) && !isset($_POST['vote']))
+    if (isset($_GET['poll_id']) && !isset($_GET['action']) && !isset($_GET['vote']))
     {
         displayPoll();
     }
     // vote
-    elseif (isset($_POST['vote']) and isset($_POST['option_id']))
+    elseif (isset($_POST['vote']) && isset($_POST['option_id']))
     {
         displayVoteSubmit();
     }
@@ -217,7 +217,8 @@ function displayPoll ()
     displayHeader();
     displayLeftColumn();
 
-    $id = cleanInput($_GET['poll_id'], 'int');
+    $id = (int)$_GET['poll_id'];
+
     $poll->displayPoll($id);
 
     displayFooter();
@@ -235,15 +236,17 @@ function displayVoteSubmit ()
     displayHeader();
     displayLeftColumn();
 
-    $option = cleanInput($_POST['option_id'], 'int');
+    $option = (int)$_POST['option_id'];
 
+    // Get
     if (isset($_GET['poll_id']))
     {
-        $id = cleanInput($_GET['poll_id'], 'int');
+        $id = (int)$_GET['poll_id'];
     }
+    // Post
     else
     {
-        $id = cleanInput($_POST['poll_id'], 'int');
+        $id = (int)$_POST['poll_id'];
     }
 
     $poll->placeVote($currentUserId, $option, $id);
@@ -264,13 +267,15 @@ function displayPollResults ()
     displayHeader();
     displayLeftColumn();
 
+    // Get
     if (isset($_GET['poll_id']))
     {
-        $id = cleanInput($_GET['poll_id'], 'int');
+        $id = (int)$_GET['poll_id'];
     }
+    // Post
     else
     {
-        $id = cleanInput($_POST['poll_id'], 'int');
+        $id = (int)$_POST['poll_id'];
     }
 
     $poll->displayResults($id);
@@ -290,11 +295,7 @@ function displayPastPolls ()
     displayHeader();
     displayLeftColumn();
 
-    $page = 1;
-    if (isset($_GET['page']))
-    {
-        $page = cleanInput($_GET['page'], 'int');
-    }
+    $page = getPage();
 
     $poll->displayPastPolls($page);
 
@@ -308,7 +309,7 @@ function displayPastPolls ()
  */
 function displayWhatsNew ()
 {
-    global $currentUserId, $poll, $alert, $calendar;
+    global $currentUserId, $poll, $alertObj, $calendar;
 
     displayHeader();
     displayLeftColumn();
@@ -316,9 +317,11 @@ function displayWhatsNew ()
     // Remove an alert
     if (isset($_GET['alert']))
     {
+        $alert = escape_string($_GET['alert']);
+
         $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
                 VALUES (
-                    '".cleanInput($_GET['alert'])."', 
+                    '$alert', 
                     '$currentUserId'
                 )";
         if (!mysql_query($sql))
@@ -329,12 +332,11 @@ function displayWhatsNew ()
     }
 
     // Show Alerts
-    $alertShown = $alert->displayNewUserHome($currentUserId);
+    $alertShown = $alertObj->displayNewUserHome($currentUserId);
+
+    list($db_year, $db_month, $db_day) = explode('-', date('Y-m-d'));
 
     // Show any events happening today
-        // Note: no need to fix dates for locale
-        //       the db stores dates in server tz
-    list($db_year, $db_month, $db_day) = explode('-', date('Y-m-d'));
     $calendar->displayTodaysEvents($db_month, $db_day, $db_year);
 
     // status updates
@@ -343,6 +345,7 @@ function displayWhatsNew ()
     // Show what's new based on user's settings
     echo '
                 <h2>'.T_('What\'s New').'</h2>';
+
     $sql = "SELECT `frontpage` 
             FROM `fcms_user_settings` 
             WHERE `user` = '$currentUserId'";
@@ -500,7 +503,7 @@ function displayStatusUpdateForm ($parent = 0)
         $value = T_('Reply');
         $ph    = T_('Reply');
         $title = T_('Reply');
-        $input = '<input type="hidden" id="parent" name="parent" value="'.cleanOutput($parent).'"/>';
+        $input = '<input type="hidden" id="parent" name="parent" value="'.$parent.'"/>';
     }
 
     echo '
@@ -522,14 +525,22 @@ function displayStatusUpdateSubmit ()
 {
     global $currentUserId;
 
+    $superCage = Inpekt::makeSuperCage();
+
+    $status    = escape_string($_POST['status']);
+    $parent    = 0;
+
+    // Submited blank form?
     if (empty($_POST['status']))
     {
         header("Location: home.php");
         return;
     }
 
-    $status = cleanInput($_POST['status']);
-    $parent = isset($_POST['parent']) ? cleanInput($_POST['parent'], 'int') : 0;
+    if (isset($_POST['parent']))
+    {
+        $parent = (int)$_POST['parent'];
+    }
 
     // Insert new status
     $sql = "INSERT INTO `fcms_status` (`user`, `status`, `parent`, `created`, `updated`)
@@ -591,7 +602,6 @@ function displayStatusUpdateSubmit ()
                 catch (FacebookApiException $e)
                 {
                     printr($e);
-                    $user = null;
                 }
             }
         }
@@ -646,7 +656,7 @@ function formatWhatsNewMessageBoard ($whatsNewData, $tzOffset)
 
         $displayname  = getUserDisplayName($row['userid']);
         $subject      = $row['title'];
-        $subject_full = cleanOutput($subject);
+        $subject_full = cleanOutput($subject, 'html');
 
         // Remove announcment
         $pos = strpos($subject, '#ANOUNCE#');
@@ -655,11 +665,8 @@ function formatWhatsNewMessageBoard ($whatsNewData, $tzOffset)
             $subject = substr($subject, 9, strlen($subject)-9);
         }
 
-        // Chop Long subjects
-        if (strlen($subject) > 23)
-        {
-            $subject = substr($subject, 0, 20) . "...";
-        }
+        $subject = shortenString($subject, 30, '...');
+        $subject = cleanOutput($subject, 'html');
 
         $date = fixDate('YmdHis', $tzOffset, $row['date']);
 
@@ -677,7 +684,7 @@ function formatWhatsNewMessageBoard ($whatsNewData, $tzOffset)
         $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
-                    <a href="messageboard.php?thread='.cleanInput($row['id2'], 'int').'" title="'.$subject_full.'">'.$subject.'</a> ';
+                    <a href="messageboard.php?thread='.(int)$row['id2'].'" title="'.$subject_full.'">'.$subject.'</a> ';
 
         if (getNumberOfPosts($row['id2']) > 15)
         {
@@ -687,13 +694,13 @@ function formatWhatsNewMessageBoard ($whatsNewData, $tzOffset)
             $return .= '('.T_('Page').' ';
             for ($i=1; $i<=$times2loop; $i++)
             {
-                $return .= '<a href="messageboard.php?thread='.cleanInput($row['id2'], 'int').'&amp;page='.$i.'" title="'.T_('Page').' '.$i.'">'.$i.'</a> ';
+                $return .= '<a href="messageboard.php?thread='.(int)$row['id2'].'&amp;page='.$i.'" title="'.T_('Page').' '.$i.'">'.$i.'</a> ';
             }
             $return .= ')';
         }
 
         $return .= '
-                     - <a class="u" href="profile.php?member='.cleanInput($row['userid'], 'int').'">'.$displayname.'</a>
+                     - <a class="u" href="profile.php?member='.(int)$row['userid'].'">'.$displayname.'</a>
                 </li>';
     }
 
@@ -744,7 +751,14 @@ function formatWhatsNewFamilyNews ($whatsNewData, $tzOffset)
 
         $displayname = getUserDisplayName($row['userid']);
         $date        = fixDate('YmdHis', $tzOffset, $row['date']);
-        $title       = !empty($row['title']) ? cleanOutput($row['title']) : T_('untitled');
+
+        $title = T_('untitled');
+
+        if (!empty($row['title']))
+        {
+            $title = shortenString($row['title'], 30, '...');
+            $title = cleanOutput($title, 'html');
+        }
 
         if ($date >= $today_start && $date <= $today_end)
         {
@@ -760,8 +774,8 @@ function formatWhatsNewFamilyNews ($whatsNewData, $tzOffset)
         $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
-                    <a href="familynews.php?getnews='.cleanInput($row['userid'], 'int').'&amp;newsid='.cleanInput($row['id'], 'int').'">'.$title.'</a> - 
-                    <a class="u" href="profile.php?member='.cleanInput($row['userid'], 'int').'">'.$displayname.'</a>
+                    <a href="familynews.php?getnews='.(int)$row['userid'].'&amp;newsid='.(int)$row['id'].'">'.$title.'</a> - 
+                    <a class="u" href="profile.php?member='.(int)$row['userid'].'">'.$displayname.'</a>
                 </li>';
     }
 
@@ -821,7 +835,7 @@ function formatWhatsNewAddressBook ($whatsNewData, $tzOffset)
         $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
-                    <a href="addressbook.php?address='.cleanInput($row['id'], 'int').'">'.$displayname.'</a>
+                    <a href="addressbook.php?address='.(int)$row['id'].'">'.$displayname.'</a>
                 </li>';
     }
 
@@ -872,9 +886,12 @@ function formatWhatsNewRecipes ($whatsNewData, $tzOffset)
         $count++;
 
         $name = $r['title'];
+        $name = shortenString($name, 30, '...');
+        $name = cleanOutput($name, 'html');
+
         $displayname = getUserDisplayName($r['userid']);
 
-        $url = 'recipes.php?category='.cleanInput($r['id2'], 'int').'&amp;id='.cleanInput($r['id'], 'int');
+        $url = 'recipes.php?category='.(int)$r['id2'].'&amp;id='.(int)$r['id'];
 
         $date = fixDate('YmdHis', $tzOffset, $r['date']);
 
@@ -892,8 +909,8 @@ function formatWhatsNewRecipes ($whatsNewData, $tzOffset)
         $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
-                    <a href="'.$url.'">'.cleanOutput($name).'</a> - 
-                    <a class="u" href="profile.php?member='.cleanInput($r['userid'], 'int').'">'.$displayname.'</a>
+                    <a href="'.$url.'">'.$name.'</a> - 
+                    <a class="u" href="profile.php?member='.(int)$r['userid'].'">'.$displayname.'</a>
                 </li>';
     }
 
@@ -944,7 +961,8 @@ function formatWhatsNewPrayers ($whatsNewData, $tzOffset)
         $count++;
 
         $displayname = getUserDisplayName($r['userid']);
-        $for         = cleanOutput($r['title']);
+        $for         = shortenString($r['title'], 30, '...');
+        $for         = cleanOutput($for, 'html');
         $date        = fixDate('YmdHis', $tzOffset, $r['date']);
 
         if ($date >= $today_start && $date <= $today_end)
@@ -1006,13 +1024,10 @@ function formatWhatsNewPhotoGallery ($whatsNewData, $tzOffset)
         $count++;
 
         $displayname   = getUserDisplayName($row['userid']);
-        $category      = cleanOutput($row['title']);
-        $full_category = cleanOutput($category);
+        $category      = shortenString($row['title'], 30, '...');
+        $category      = cleanOutput($category, 'html');
+        $full_category = cleanOutput($row['title'], 'html');
         $date          = fixDate('YmdHis', $tzOffset, $row['date']);
-        if (strlen($category) > 20)
-        {
-            $category = substr($category, 0, 17) . "...";
-        }
 
         // Today
         if ($date >= $today_start && $date <= $today_end)
@@ -1041,8 +1056,8 @@ function formatWhatsNewPhotoGallery ($whatsNewData, $tzOffset)
         }
         $sql = "SELECT `id`, `user`, `category`, `filename`, `caption`
                 FROM `fcms_gallery_photos` 
-                WHERE `category` = '".cleanInput($row['id'], 'int')."' 
-                AND DAYOFYEAR(`date`) = '".cleanInput($row['id3'])."' 
+                WHERE `category` = '".(int)$row['id']."' 
+                AND DAYOFYEAR(`date`) = '".(int)$row['id3']."' 
                 ORDER BY `date` 
                 DESC LIMIT $limit";
 
@@ -1059,7 +1074,8 @@ function formatWhatsNewPhotoGallery ($whatsNewData, $tzOffset)
                             <a href="gallery/index.php?uid='.$p['user'].'&amp;cid='.$p['category'].'&amp;pid='.$p['id'].'">
                                 <img src="uploads/photos/member'.$p['user'].'/tb_'.basename($p['filename']).'" 
                                     style="height:50px; width:50px;" 
-                                    alt="'.cleanOutput($p['caption']).'"/>
+                                    alt="'.cleanOutput($p['caption'], 'html').'" 
+                                    title="'.cleanOutput($p['caption'], 'html').'"/>
                             </a> &nbsp;';
         }
 
@@ -1107,13 +1123,10 @@ function formatWhatsNewVideoGallery ($whatsNewData, $tzOffset)
         $count++;
 
         $displayname   = getUserDisplayName($row['userid']);
-        $category      = cleanOutput($row['title']);
-        $full_category = cleanOutput($category);
+        $category      = shortenString($row['title'], 30, '...');
+        $category      = cleanOutput($category, 'html');
+        $full_category = cleanOutput($row['title'], 'html');
         $date          = fixDate('YmdHis', $tzOffset, $row['date']);
-        if (strlen($category) > 20)
-        {
-            $category = substr($category, 0, 17) . "...";
-        }
 
         // Today
         if ($date >= $today_start && $date <= $today_end)
@@ -1206,13 +1219,13 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
         }
         $count++;
 
-        $date = fixDate('YmdHis', $tzOffset, $row['date']);
-
-        $comment = $row['title'];
-        if (strlen($comment) > 30)
-        {
-            $comment = substr($comment, 0, 27)."...";
-        }
+        $date     = fixDate('YmdHis', $tzOffset, $row['date']);
+        $comment  = shortenString($row['title'], 30, '...');
+        $comment  = cleanOutput($comment, 'html');
+        $title    = shortenString($row['title'], 100, '...');
+        $title    = cleanOutput($title, 'html');
+        $user     = cleanOutput($row['userid']);
+        $userName = getUserDisplayName($row['userid']);
 
         if ($date >= $today_start && $date <= $today_end)
         {
@@ -1242,13 +1255,10 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
             $url = 'gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$row['id'];
         }
 
-        $user     = cleanOutput($row['userid']);
-        $userName = getUserDisplayName($row['userid']);
-
         $return .= '
                         <li>
                             <div'.$d.'>'.$full_date.'</div>
-                            <a href="'.$url.'">'.cleanOutput($comment).'</a> - 
+                            <a href="'.$url.'" title="'.$title.'">'.$comment.'</a> - 
                             <a href="profile.php?member='.$user.'" class="u">'.$userName.'</a>
                         </li>';
     }
@@ -1295,8 +1305,8 @@ function formatWhatsNewStatusUpdates ($whatsNewData, $tzOffset)
         $displayname = getUserDisplayName($r['userid']);
         $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
 
-        $title = cleanOutput($r['title']);
-        $title = nl2br_nospaces($title);
+        $title = nl2br_nospaces($r['title']);
+        $title = cleanOutput($title, 'html');
 
         $return .= '
                 <li style="line-height: 120%;">
@@ -1311,8 +1321,9 @@ function formatWhatsNewStatusUpdates ($whatsNewData, $tzOffset)
         // Get any replies to this status update
         $sql = "SELECT `id`, `user`, `status`, `parent`, `updated`, `created` 
                 FROM `fcms_status` 
-                WHERE `parent` = '".cleanInput($r['id'], 'int')."' 
+                WHERE `parent` = '".(int)$r['id']."' 
                 ORDER BY `id`";
+
         $result = mysql_query($sql);
         if (!$result)
         {
@@ -1330,8 +1341,8 @@ function formatWhatsNewStatusUpdates ($whatsNewData, $tzOffset)
                 $name = getUserDisplayName($s['user']);
                 $name = '<a class="u" href="profile.php?member='.$s['user'].'">'.$name.'</a>';
 
-                $status = cleanOutput($s['status']);
-                $status = nl2br_nospaces($status);
+                $status = nl2br_nospaces($s['status']);
+                $status = cleanOutput($status, 'html');
 
                 $return .= '<div><p>'.$name.': '.$status.'<br/><small><i>'.getHumanTimeSince(strtotime($s['created'])).'</i></small></p></div>';
             }
@@ -1383,7 +1394,9 @@ function formatWhatsNewCalendar ($whatsNewData, $tzOffset)
         $count++;
 
         $displayname = getUserDisplayName($r['userid']);
-        $title       = cleanOutput($r['title']);
+        $title       = shortenString($r['title'], 30, '...');
+        $title       = cleanOutput($title, 'html');
+        $titleFull   = cleanOutput($r['title'], 'html');
         $date        = fixDate('YmdHis', $tzOffset, $r['date']);
 
         if ($date >= $today_start && $date <= $today_end)
@@ -1402,7 +1415,8 @@ function formatWhatsNewCalendar ($whatsNewData, $tzOffset)
         $return .= '
                 <li>
                     <div'.$d.'>'.$full_date.'</div>
-                    <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.$title.' ('.date('n/j/Y', strtotime($r['id2'])).')</a> - 
+                    <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'" 
+                        title="'.$titleFull.'">'.$title.'</a> - 
                     <a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>
                 </li>';
     }
@@ -1454,7 +1468,8 @@ function formatWhatsNewDocuments ($whatsNewData, $tzOffset)
         $count++;
 
         $displayname = getUserDisplayName($r['userid']);
-        $document    = cleanOutput($r['title']);
+        $document    = shortenString($r['title'], 30, '...');
+        $document    = cleanOutput($document, 'html');
         $date        = fixDate('YmdHis', $tzOffset, $r['date']);
 
         if ($date >= $today_start && $date <= $today_end)
@@ -1523,7 +1538,8 @@ function formatWhatsNewWhereIsEveryone ($whatsNewData, $tzOffset)
         $count++;
 
         $displayname = getUserDisplayName($r['userid']);
-        $title       = cleanOutput($r['title']);
+        $title       = shortenString($r['title'], 30, '...');
+        $title       = cleanOutput($title, 'html');
         $date        = fixDate('YmdHis', $tzOffset, $r['date']);
 
         if ($date >= $today_start && $date <= $today_end)
@@ -1620,7 +1636,7 @@ function formatWhatsNewMisc ($whatsNewData, $tzOffset)
 
         if ($r['type'] == 'POLL')
         {
-            $poll  = '<a href="home.php?poll_id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+            $poll  = '<a href="home.php?poll_id='.$r['id'].'">'.cleanOutput($r['title'], 'html').'</a>';
             $title = sprintf(T_('A new Poll (%s) has been added.'), $poll);
         }
         elseif ($r['type'] == 'ADDRESSADD')
@@ -1632,7 +1648,12 @@ function formatWhatsNewMisc ($whatsNewData, $tzOffset)
         elseif ($r['type'] == 'AVATAR')
         {
             $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.getUserDisplayName($r['userid']).'</a>';
-            $title       = sprintf(T_('%s changed his profile picture.'), $displayname);
+
+            $title = sprintf(T_('%s changed his profile picture.'), $displayname);
+            if ($r['id3'] == 'F')
+            {
+                $title = sprintf(T_('%s changed her profile picture.'), $displayname);
+            }
         }
         // JOINED
         else

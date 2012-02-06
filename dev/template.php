@@ -74,7 +74,7 @@ function displayHeader ()
     global $currentUserId, $TMPL;
 
     $TMPL['javascript'] = '
-<script type="text/javascript" src="inc/js/tablesort.js"></script>
+<script type="text/javascript" src="ui/js/tablesort.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {

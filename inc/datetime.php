@@ -186,10 +186,10 @@ function fixDate ($dateFormat, $tzOffset = '', $date = '', $userid = '')
 
     if ($userid == '')
     {
-        $userid = cleanInput($_SESSION['login_id'], 'int');
+        $userid = (int)$_SESSION['login_id'];
     }
 
-    // GET DST
+    // Get DST
     $sql = "SELECT `dst` 
             FROM `fcms_user_settings` 
             WHERE `user` = '$userid'";

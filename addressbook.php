@@ -22,9 +22,9 @@ load('datetime', 'addressbook', 'database', 'alerts', 'phone', 'address');
 init();
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $book          = new AddressBook($currentUserId);
-$alert         = new Alerts($currentUserId);
+$alertObj      = new Alerts($currentUserId);
 
 $TMPL = array(
     'sitename'      => getSiteName(),
@@ -167,6 +167,8 @@ function displayMassEmailForm ()
 {
     global $currentUserId, $book;
 
+    $massEmails = $_POST['massemail'];
+
     displayHeader();
 
     if (checkAccess($currentUserId) > 3)
@@ -180,7 +182,7 @@ function displayMassEmailForm ()
         return;
     }
 
-    if (empty($_POST['massemail']))
+    if (empty($massEmails))
     {
         echo '
             <p class="error-alert">
@@ -192,7 +194,7 @@ function displayMassEmailForm ()
         return;
     }
 
-    $book->displayMassEmailForm($_POST['massemail']);
+    $book->displayMassEmailForm($massEmails);
     displayFooter();
 }
 
@@ -206,7 +208,7 @@ function displayHeader ()
     global $currentUserId, $TMPL;
 
     $TMPL['javascript'] = '
-<script type="text/javascript" src="inc/js/tablesort.js"></script>
+<script type="text/javascript" src="ui/js/tablesort.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
@@ -264,26 +266,28 @@ function displayMassEmailSubmit ()
 
     if ($missingRequired)
     {
-        $book->displayMassEmailForm($_POST['emailaddress'], $_POST['email'], $_POST['name'], $_POST['subject'], $_POST['msg'], 'Yes');
+        $book->displayMassEmailForm(
+            $_POST['emailaddress'], 
+            $_POST['email'], 
+            $_POST['name'], 
+            $_POST['subject'], 
+            $_POST['msg'], 
+            'Yes'
+        );
         displayFooter();
         return;
     }
 
-    $subject   = cleanOutput($_POST['subject']);
-    $fromEmail = cleanOutput($_POST['email']);
-    $name      = cleanOutput($_POST['name']);
-    $msg       = cleanOutput($_POST['msg'], 'html');
-
-    $emailHeaders = getEmailHeaders($name, $fromEmail);
+    $emailHeaders = getEmailHeaders($_POST['name'], $_POST['email']);
 
     foreach ($_POST['emailaddress'] as $email)
     {
-        $email = cleanInput($email);
-        mail($email, $subject, "$msg\r\n-$name", $emailHeaders);
+        mail($email, $_POST['subject'], $_POST['msg']."\r\n-".$_POST['name'], $emailHeaders);
     }
 
     displayOkMessage(T_('Email has been sent.'));
     $book->displayAddressList('members');
+
     displayFooter();
 }
 
@@ -298,19 +302,28 @@ function displayEditSubmit ()
 
     displayHeader();
 
-    $aid = cleanInput($_POST['aid'], 'int');
-    $uid = cleanInput($_POST['uid'], 'int');
-    $cat = cleanInput($_POST['cat']);
+    $aid = (int)$_POST['aid'];
+    $uid = (int)$_POST['uid'];
+    $cat = $_POST['cat'];
 
-    $country = cleanInput($_POST['country']);
-    $address = cleanInput($_POST['address']);
-    $city    = cleanInput($_POST['city']);
-    $state   = cleanInput($_POST['state']);
-    $zip     = cleanInput($_POST['zip']);
-    $home    = cleanInput($_POST['home']);
-    $work    = cleanInput($_POST['work']);
-    $cell    = cleanInput($_POST['cell']);
-    $email   = cleanInput($_POST['email']);
+    $address = strip_tags($_POST['address']);
+    $city    = strip_tags($_POST['city']);
+    $state   = strip_tags($_POST['state']);
+    $zip     = strip_tags($_POST['zip']);
+    $home    = strip_tags($_POST['home']);
+    $work    = strip_tags($_POST['work']);
+    $cell    = strip_tags($_POST['cell']);
+    $email   = strip_tags($_POST['email']);
+
+    $country = escape_string($_POST['country']);
+    $address = escape_string($address);
+    $city    = escape_string($city);
+    $state   = escape_string($state);
+    $zip     = escape_string($zip);
+    $home    = escape_string($home);
+    $work    = escape_string($work);
+    $cell    = escape_string($cell);
+    $email   = escape_string($email);
 
     // Get current address and email
     $sql = "SELECT a.`country`, a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`email`
@@ -430,9 +443,34 @@ function displayAddSubmit ()
 
     displayHeader();
 
-    $uniq = uniqid("");
+    $uniq    = uniqid("");
+
+    $fname   = strip_tags($_POST['fname']);
+    $lname   = strip_tags($_POST['lname']);
+    $email   = strip_tags($_POST['email']);
+    $country = strip_tags($_POST['country']);
+    $address = strip_tags($_POST['address']);
+    $city    = strip_tags($_POST['city']);
+    $state   = strip_tags($_POST['state']);
+    $zip     = strip_tags($_POST['zip']);
+    $home    = strip_tags($_POST['home']);
+    $work    = strip_tags($_POST['work']);
+    $cell    = strip_tags($_POST['cell']);
+
+    $fname   = escape_string($fname);
+    $lname   = escape_string($lname);
+    $email   = escape_string($email);
+    $country = escape_string($country);
+    $address = escape_string($address);
+    $city    = escape_string($city);
+    $state   = escape_string($state);
+    $zip     = escape_string($zip);
+    $home    = escape_string($home);
+    $work    = escape_string($work);
+    $cell    = escape_string($cell);
 
     $pw = 'NONMEMBER';
+
     if (isset($_POST['private']))
     {
         $pw = 'PRIVATE';
@@ -443,11 +481,12 @@ function displayAddSubmit ()
             ) VALUES (
                 10, 
                 NOW(), 
-                '".cleanInput($_POST['fname'])."', 
-                '".cleanInput($_POST['lname'])."', 
-                '".cleanInput($_POST['email'])."', 
+                '$fname', 
+                '$lname', 
+                '$email', 
                 'NONMEMBER-$uniq', 
-                '$pw')";
+                '$pw'
+            )";
 
     if (!mysql_query($sql))
     {
@@ -467,14 +506,14 @@ function displayAddSubmit ()
                 NOW(), 
                 '$currentUserId', 
                 NOW(), 
-                '".cleanInput($_POST['country'])."', 
-                '".cleanInput($_POST['address'])."', 
-                '".cleanInput($_POST['city'])."', 
-                '".cleanInput($_POST['state'])."', 
-                '".cleanInput($_POST['zip'])."', 
-                '".cleanInput($_POST['home'])."', 
-                '".cleanInput($_POST['work'])."', 
-                '".cleanInput($_POST['cell'])."'
+                '$country', 
+                '$address', 
+                '$city', 
+                '$state', 
+                '$zip', 
+                '$home', 
+                '$work', 
+                '$cell'
             )";
 
     if (!mysql_query($sql))
@@ -500,8 +539,8 @@ function displayConfirmDeleteForm ()
 
     displayHeader();
 
-    $aid = cleanInput($_GET['delete'], 'int');
-    $cat = cleanInput($_GET['cat']);
+    $aid = (int)$_GET['delete'];
+    $cat = cleanOutput($_GET['cat']);
 
     echo '
                 <div class="info-alert clearfix">
@@ -529,7 +568,7 @@ function displayDeleteSubmit ()
 {
     global $currentUserId, $book;
 
-    $aid = cleanInput($_GET['delete'], 'int');
+    $aid = (int)$_GET['delete'];
     $cat = $_GET['cat'];
 
     if (checkAccess($currentUserId) >= 2)
@@ -563,7 +602,7 @@ function displayDeleteSubmit ()
     $user = $r['user'];
     $pass = $r['password'];
 
-    if ($r['password'] !== 'NONMEMBER')
+    if ($r['password'] !== 'NONMEMBER' && $r['password'] !== 'PRIVATE')
     {
         displayHeader();
 
@@ -609,8 +648,8 @@ function displayEditForm ()
 
     displayHeader();
 
-    $id  = cleanInput($_GET['edit'], 'int');
-    $cat = cleanInput($_GET['cat']);
+    $id  = (int)$_GET['edit'];
+    $cat = cleanOutput($_GET['cat']);
 
     $book->displayEditForm($id, 'addressbook.php?cat='.$cat.'&amp;address='.$id);
     displayFooter();
@@ -651,8 +690,13 @@ function displayAddress ()
 
     displayHeader();
 
-    $address = cleanInput($_GET['address'], 'int');
-    $cat     = isset($_GET['cat']) ? cleanInput($_GET['cat']) : 'all';
+    $address = (int)$_GET['address'];
+    $cat     = 'all';
+
+    if (isset($_GET['cat']))
+    {
+        $cat = $_GET['cat'];
+    }
 
     $book->displayAddress($address, $cat);
     displayFooter();
@@ -667,10 +711,12 @@ function removeAlert ()
 {
     global $currentUserId;
 
+    $alert = (int)$_GET['alert'];
+
     $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
             VALUES (
-                '".cleanInput($_GET['alert'])."', 
-                '".$currentUserId."'
+                '$alert', 
+                '$currentUserId'
             )";
 
     if (!mysql_query($sql))
@@ -689,16 +735,21 @@ function removeAlert ()
  */
 function displayAddressList ()
 {
-    global $alert, $book, $currentUserId;
+    global $alertObj, $book, $currentUserId;
 
     displayHeader();
 
-    $cat = isset($_GET['cat']) ? cleanInput($_GET['cat']) : 'members';
+    $cat = 'members';
+
+    if (isset($_GET['cat']))
+    {
+        $cat = $_GET['cat'];
+    }
 
     if (!$book->userHasAddress($currentUserId))
     {
         // Show Alerts
-        $alert->displayAddress($currentUserId);
+        $alertObj->displayAddress($currentUserId);
     }
 
     $book->displayAddressList($cat);

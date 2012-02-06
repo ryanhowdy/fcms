@@ -27,7 +27,7 @@ $currentUserId = cleanInput($_SESSION['login_id'], 'int');
 
 $TMPL = array(
     'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
+    'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Vimeo'),
     'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),

@@ -32,7 +32,7 @@ class Poll
         $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->currentUserId = (int)$currentUserId;
         $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
@@ -46,9 +46,9 @@ class Poll
      */
     function placeVote ($userid, $optionid, $pollid)
     {
-        $userid   = cleanInput($userid, 'int');
-        $optionid = cleanInput($optionid, 'int');
-        $pollid   = cleanInput($pollid, 'int');
+        $userid   = (int)$userid;
+        $optionid = (int)$optionid;
+        $pollid   = (int)$pollid;
 
         $sql = "SELECT `user` 
                 FROM `fcms_poll_votes` 
@@ -62,7 +62,7 @@ class Poll
 
         if ($this->db->count_rows() > 0)
         {
-            echo "<p class=\"info-alert\">".T_('You have already voted.')."</p>\n\t\t";
+            echo '<p class="info-alert">'.T_('You have already voted.').'</p>';
         }
         else
         {
@@ -93,7 +93,7 @@ class Poll
      */
     function displayResults ($pollid)
     {
-        $pollid   = cleanInput($pollid, 'int');
+        $pollid = (int)$pollid;
 
         $sql = "SELECT result.`total`, `question`, o.`id`, `option`, `votes` 
                 FROM `fcms_polls` AS p, `fcms_poll_options` AS o, (
@@ -116,6 +116,7 @@ class Poll
         {
             $votes = $row['votes'];
             $total = $row['total'];
+
             if ($total < 1)
             {
                 $percent = 0;
@@ -124,7 +125,9 @@ class Poll
             {
                 $percent = $votes/$total;
             }
+
             $width = round((140 * $percent) + 10, 0);
+
             if ($total < 1)
             {
                 $percent = 0;
@@ -133,19 +136,22 @@ class Poll
             {
                 $percent = round((($votes/$total) * 100), 0);
             }
+
             if ($i < 1)
             {
                 echo '
-            <h3>'.$row['question'].'</h3>
+            <h3>'.cleanOutput($row['question'], 'html').'</h3>
             <ul class="poll">';
             }
+
             echo '
                 <li>
-                    <div><b>'.$row['option'].'</b>'.$percent.'%<br/>'.$votes.' votes</div>
+                    <div><b>'.cleanOutput($row['option'], 'html').'</b>'.$percent.'%<br/>'.$votes.' votes</div>
                     <span class="index" style="width:'.$percent.'%">'.$percent.'%</span>
                 </li>';
             $i++;
         }
+
         echo '
             </ul>
             <p class="poll">'.T_('Total Votes').': '.$total.'</p>
@@ -172,7 +178,7 @@ class Poll
                 if ($option == '')
                 {
                     echo '
-            <h4>'.$r['option'].'</h4>
+            <h4>'.cleanOutput($r['option'], 'html').'</h4>
             <ul class="whovoted">
                 <li>
                     <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/> '.getUserDisplayName($r['user']). '
@@ -182,27 +188,36 @@ class Poll
                 {
                     echo '
             </ul>
-            <h4>'.$r['option'].'</h4>
+            <h4>'.cleanOutput($r['option'], 'html').'</h4>
             <ul class="whovoted">
                 <li>
                     <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/> '.getUserDisplayName($r['user']). '
                 </li>';
-                } else {
+                }
+                else
+                {
                     echo '
                 <li>
                     <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/> '.getUserDisplayName($r['user']). '
                 </li>';
                 }
+
                 $option = $r['option'];
             }
+
             echo '
             </ul>
             <p><a href="?action=pastpolls">'.T_('Past Polls').'</a></p>';
-        } else {
-            if ($total > 0 ) {
+        }
+        else
+        {
+            if ($total > 0 )
+            {
                 echo '
             <p class="info-alert">'.T_('No user data could be found.').'</p>';
-            } else {
+            }
+            else
+            {
                 echo '
             <p class="info-alert">'.T_('No one has voted on this poll yet.').'</p>';
             }
@@ -212,16 +227,16 @@ class Poll
     /**
      * displayPoll 
      * 
-     * @param   int     $pollid 
+     * @param   int     $pollId 
      * @param   boolean $showResults 
      * @return  void
      */
-    function displayPoll ($pollid = 0, $showResults = true)
+    function displayPoll ($pollId = 0, $showResults = true)
     {
         $poll_exists = true;
 
         // Get Latest Poll ID
-        if ($pollid == 0)
+        if ($pollId == 0)
         {
             $sql = "SELECT MAX(`id`) AS max FROM `fcms_polls`";
             if (!$this->db->query($sql))
@@ -231,11 +246,11 @@ class Poll
             }
 
             $r = $this->db->get_row();
-            $pollid = $r['max'];
+            $pollId = $r['max'];
 
             if (!is_null($r['max']))
             { 
-                $pollid = $r['max'];
+                $pollId = $r['max'];
             }
             else
             {
@@ -246,16 +261,19 @@ class Poll
         // Get Poll Data
         if ($poll_exists)
         {
+            $pollId = (int)$pollId;
+
             $sql = "SELECT p.`id`, `question`, o.`id` AS option_id, `option` 
                     FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
-                    WHERE p.`id` = '" . cleanInput($pollid, 'int') . "' 
+                    WHERE p.`id` = '$pollId' 
                     AND p.`id` = o.`poll_id`";
             if (!$this->db->query($sql))
             {
                 displaySqlError($sql, mysql_error());
                 $poll_exists = false;
             }
-            if ($this->db->count_rows() <= 0) {
+            if ($this->db->count_rows() <= 0)
+            {
                 $poll_exists = false;
             }
         }
@@ -263,9 +281,11 @@ class Poll
         // We are using Polls
         if ($poll_exists)
         {
+            $pollId = (int)$pollId;
+
             $sql = "SELECT * 
                     FROM `fcms_poll_votes` 
-                    WHERE `poll_id` = '" . cleanInput($pollid, 'int') . "'
+                    WHERE `poll_id` = '$pollId'
                     AND `user` = ".$this->currentUserId;
             if (!$this->db2->query($sql))
             {
@@ -276,7 +296,7 @@ class Poll
             // User has already voted
             if ($this->db2->count_rows() > 0 && $showResults)
             {
-                $this->displayResults($pollid);
+                $this->displayResults($pollId);
             }
             // User hasn't voted yet
             else
@@ -284,18 +304,25 @@ class Poll
                 echo '
             <h2 class="pollmenu">'.T_('Polls').'</h2>
             <form method="post" action="home.php">';
-                $i = 0;
+
+                $i  = 0;
                 $id = '';
-                while ($row = $this->db->get_row()) {
+
+                while ($row = $this->db->get_row())
+                {
                     $id = $row['id'];
-                    if ($i < 1) {
+
+                    if ($i < 1)
+                    {
                         echo '
-                <h3>'.$row['question'].'</h3>';
+                <h3>'.cleanOutput($row['question'], 'html').'</h3>';
                     }
+
                     echo '
-                <p><input type="radio" name="option_id" value="'.(int)$row['option_id'].'"/><span>'.cleanOutput($row['option']).'</span></p>';
+                <p><label class="radio_label"><input type="radio" name="option_id" value="'.(int)$row['option_id'].'"/>'.cleanOutput($row['option'], 'html').'</label></p>';
                     $i++;
                 }
+
                 echo '
                 <p>
                     <input type="hidden" name="poll_id" value="'.$id.'"/>
@@ -319,8 +346,10 @@ class Poll
     function displayPastPolls ($page)
     {
         $from = (($page * 15) - 15);
+
         echo '
             <h2>'.T_('Past Polls').'</h3>';
+
         $sql = "SELECT * 
                 FROM `fcms_polls` 
                 ORDER BY started DESC 
@@ -330,7 +359,9 @@ class Poll
             displaySqlError($sql, mysql_error());
             return;
         }
-        if ($this->db->count_rows() > 0) {
+
+        if ($this->db->count_rows() > 0)
+        {
             echo '
             <table class="sortable">
                 <thead>
@@ -341,15 +372,19 @@ class Poll
                     </tr>
                 </thead>
                 <tbody>';
-            while ($row = $this->db->get_row()) {
+
+            while ($row = $this->db->get_row())
+            {
                 $date = fixDate(T_('M. j, Y, g:i a'), $this->tzOffset, $row['started']);
+
                 echo '
                     <tr>
-                        <td><a href="?poll_id='.(int)$row['id'].'">'.cleanOutput($row['question']).'</a></td>
+                        <td><a href="?poll_id='.(int)$row['id'].'">'.cleanOutput($row['question'], 'html').'</a></td>
                         <td>'.$date.'</td></td>
                         <td>'.$this->getTotalVotes($row['id']).'</td>
                     </tr>';
             }
+
             echo '
                 </tbody>
             </table>';
@@ -375,14 +410,16 @@ class Poll
     /**
      * getTotalVotes 
      * 
-     * @param  int  $pollid 
+     * @param  int  $pollId 
      * @return void
      */
-    function getTotalVotes ($pollid)
+    function getTotalVotes ($pollId)
     {
+        $pollId = (int)$pollId;
+
         $sql = "SELECT SUM(`votes`) AS total 
                 FROM `fcms_polls` AS p, `fcms_poll_options` AS o
-                WHERE p.`id` = '" . cleanInput($pollid, 'int') . "' 
+                WHERE p.`id` = '$pollId' 
                 AND p.`id` = o.`poll_id`";
         if (!$this->db2->query($sql))
         {

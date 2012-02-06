@@ -22,7 +22,7 @@ load('datetime', 'socialmedia', 'foursquare');
 
 init();
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 
 // Setup the Template variables;
 $TMPL = array(
@@ -35,7 +35,7 @@ $TMPL = array(
     'year'          => date('Y')
 );
 $TMPL['javascript'] = '
-<script type="text/javascript" src="'.$TMPL['path'].'inc/js/livevalidation.js"></script>
+<script type="text/javascript" src="'.$TMPL['path'].'ui/js/livevalidation.js"></script>
 <script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
@@ -116,6 +116,7 @@ foreach ($users as $k => $data)
         }
 
         $address = isset($checkin->venue->location->address) ? $checkin->venue->location->address : '';
+        $shout   = isset($checkin->shout)                    ? $checkin->shout                    : '';
 
         $date = fixDate('F j, Y', $data['timezone'], date('Y-m-d H:i:s', $checkin->createdAt));
         $sort = $checkin->createdAt;
@@ -126,7 +127,8 @@ foreach ($users as $k => $data)
             'venue'     => $checkin->venue->name,
             'address'   => $address,
             'date'      => $date,
-            'sort'      => $sort
+            'sort'      => $sort,
+            'shout'     => $shout
         );
         $i++;
     }
@@ -150,6 +152,7 @@ foreach ($historyData as $k => $data)
                         <a href="#">'.$data['venue'].'</a>
                         <span>'.$data['address'].'</span>
                         '.$data['date'].'
+                        <p>'.$data['shout'].'</p>
                     </div>
                 </li>';
 }

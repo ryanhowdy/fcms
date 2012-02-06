@@ -42,7 +42,7 @@ class AddressBook
 
         $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->currentUserId = (int)$currentUserId;
         $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
@@ -58,8 +58,8 @@ class AddressBook
      */
     function displayAddress ($aid, $cat)
     {
-        $aid = cleanInput($aid, 'int');
-        $cat = cleanInput($cat);
+        $aid = (int)$aid;
+        $cat = cleanOutput($cat);
 
         $sql = "SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `country`, `address`, `city`, `state`, 
                     `zip`, `home`, `work`, `cell`, `email`, `password` 
@@ -392,12 +392,12 @@ class AddressBook
      */
     function displayEditForm ($addressid, $cancel, $submit = 'addressbook.php')
     {
-        $addressid = cleanInput($addressid, 'int');
+        $addressid = (int)$addressid;
 
         $sql = "SELECT a.`id`, u.`id` AS uid, `fname`, `lname`, `email`, `country`,
                     `address`, `city`, `state`, `zip`, `home`, `work`, `cell` 
                 FROM `fcms_users` AS u, `fcms_address` AS a 
-                WHERE a.`id` = $addressid 
+                WHERE a.`id` = '$addressid' 
                 AND a.`user` = u.`id`";
 
         if (!$this->db->query($sql))
@@ -430,7 +430,7 @@ class AddressBook
 
         // Print the form
         echo '
-            <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form id="addressbook_form" action="'.$submit.'" method="post">
                 <fieldset>
                     <legend><span>'.T_('Edit Address').'</span></legend>
@@ -447,6 +447,8 @@ class AddressBook
                         <div class="field-widget">
                             <select name="country" id="country">
                                 <option></option>
+                                <option value="US">'.T_('UNITED STATES').'</option>
+                                <option>------</option>
                                 '.$country_options.'
                             </select>
                         </div>
@@ -494,7 +496,7 @@ class AddressBook
                     <div>
                         <input type="hidden" name="aid" value="'.$addressid.'"/>
                         <input type="hidden" name="uid" value="'.(int)$row['uid'].'"/>
-                        <input type="hidden" name="cat" value="'.(isset($_GET['cat'])?$_GET['cat']:0).'"/>
+                        <input type="hidden" name="cat" value="'.(isset($_GET['cat']) ? (int)$_GET['cat'] : 0).'"/>
                     </div>
                     <p>
                         <input class="sub1" type="submit" name="editsubmit" value="'.T_('Edit').'"/>';
@@ -528,7 +530,7 @@ class AddressBook
         // TODO
         // Make this a removable alert message (part of Alerts table)
         echo '
-            <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form id="addressbook_form" action="addressbook.php" method="post">
                 <p class="info-alert">
                     '.T_('Please only add addresses for Non-members. Anyone who is a member of this website must add/update their own address.').'
@@ -564,6 +566,8 @@ class AddressBook
                         <div class="field-widget">
                             <select name="country" id="country">
                                 <option></option>
+                                <option value="US">'.T_('UNITED STATES').'</option>
+                                <option>------</option>
                                 '.$country_options.'
                             </select>
                         </div>
@@ -680,7 +684,7 @@ class AddressBook
         }
 
         echo '
-            <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form method="post" class="contactform" action="addressbook.php">
                 <fieldset>
                     <div class="field-row clearfix">
@@ -826,7 +830,7 @@ class AddressBook
      */
     function importAddressCsv ($file)
     {
-        if (!in_array($file['type'], array('text/plain', 'text/x-csv', 'text/csv', 'application/vnd.ms-excel')))
+        if (!in_array($file['type'], array('text/plain', 'text/x-csv', 'text/csv', 'application/vnd.ms-excel', 'application/octet-stream')))
         {
             echo '
             <p class="error-alert">'.sprintf(T_('%s (%s) is not a CSV file.'), $file['name'], $file['type']).'</p>';
@@ -1004,7 +1008,7 @@ class AddressBook
                 // Can't figure out which part is which
                 else
                 {
-                    $street = $address['Home Address'];
+                    $street = $address['Address 1 - Formatted'];
                 }
             }
             elseif (isset($address['Address 1 - Street']))
@@ -1100,13 +1104,13 @@ class AddressBook
                 switch ($address['Phone 1 - Type'])
                 {
                     case 'Home':
-                        $home = $address['Phone 1 - Type'];
+                        $home = $address['Phone 1 - Value'];
                         break;
                     case 'Work':
-                        $work = $address['Phone 1 - Type'];
+                        $work = $address['Phone 1 - Value'];
                         break;
                     case 'Mobile':
-                        $cell = $address['Phone 1 - Type'];
+                        $cell = $address['Phone 1 - Value'];
                         break;
                 }
             }
@@ -1115,13 +1119,13 @@ class AddressBook
                 switch ($address['Phone 2 - Type'])
                 {
                     case 'Home':
-                        $home = $address['Phone 2 - Type'];
+                        $home = $address['Phone 2 - Value'];
                         break;
                     case 'Work':
-                        $work = $address['Phone 2 - Type'];
+                        $work = $address['Phone 2 - Value'];
                         break;
                     case 'Mobile':
-                        $cell = $address['Phone 2 - Type'];
+                        $cell = $address['Phone 2 - Value'];
                         break;
                 }
             }
@@ -1130,13 +1134,13 @@ class AddressBook
                 switch ($address['Phone 3 - Type'])
                 {
                     case 'Home':
-                        $home = $address['Phone 3 - Type'];
+                        $home = $address['Phone 3 - Value'];
                         break;
                     case 'Work':
-                        $work = $address['Phone 3 - Type'];
+                        $work = $address['Phone 3 - Value'];
                         break;
                     case 'Mobile':
-                        $cell = $address['Phone 3 - Type'];
+                        $cell = $address['Phone 3 - Value'];
                         break;
                 }
             }
@@ -1155,9 +1159,9 @@ class AddressBook
                     ) VALUES (
                         3, 
                         NOW(), 
-                        '".cleanInput($fname)."', 
-                        '".cleanInput($lname)."', 
-                        '".cleanInput($email)."', 
+                        '".escape_string($fname)."', 
+                        '".escape_string($lname)."', 
+                        '".escape_string($email)."', 
                         'NONMEMBER-$uniq', 
                         '$pw'
                     )";
@@ -1179,13 +1183,13 @@ class AddressBook
                         NOW(), 
                         '".$this->currentUserId."', 
                         NOW(), 
-                        '".cleanInput($street)."', 
-                        '".cleanInput($city)."', 
-                        '".cleanInput($state)."', 
-                        '".cleanInput($zip)."', 
-                        '".cleanInput($home)."', 
-                        '".cleanInput($work)."', 
-                        '".cleanInput($cell)."'
+                        '".escape_string($street)."', 
+                        '".escape_string($city)."', 
+                        '".escape_string($state)."', 
+                        '".escape_string($zip)."', 
+                        '".escape_string($home)."', 
+                        '".escape_string($work)."', 
+                        '".escape_string($cell)."'
                     )";
             if (!mysql_query($sql))
             {

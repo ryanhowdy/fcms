@@ -26,9 +26,9 @@ if (isset($argv[1]))
 
 system("clear");
 
-if (file_exists("$dir/themes/$theme/style.css"))
+if (file_exists("$dir/ui/themes/$theme/style.css"))
 {
-    echo "\n[ themes/$theme/style.css ] already exists.\n\n";
+    echo "\n[ ui/themes/$theme/style.css ] already exists.\n\n";
     echo "Overwrite [ y/n ] ? ";
     $handle = fopen ("php://stdin","r");
     $line = fgets($handle);
@@ -38,10 +38,10 @@ if (file_exists("$dir/themes/$theme/style.css"))
     }
 }
 
-$worked = system("php -q ~/bin/lessphp/lessc $dir/themes/$theme/dev.less > $dir/themes/$theme/style.css");
+$worked = system("php -q ~/bin/lessphp/lessc $dir/ui/themes/$theme/dev.less > $dir/ui/themes/$theme/style.css");
 
 if ($worked !== false)
 {
-    echo "\nFile [ $dir/themes/$theme/style.css ] created successfully.\n\n\n";
+    echo "\nFile [ $dir/ui/themes/$theme/style.css ] created successfully.\n\n\n";
 }
 exit();

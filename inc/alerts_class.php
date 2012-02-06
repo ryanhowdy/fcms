@@ -28,7 +28,7 @@ class Alerts
 
         $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($id, 'int');
+        $this->currentUserId = (int)$id;
     }
     
     /**
@@ -43,7 +43,7 @@ class Alerts
         include_once 'addressbook_class.php';
         $addressObj = new AddressBook($userid);
 
-        $userid = cleanInput($userid, 'int');
+        $userid = (int)$userid;
 
         $sql = "SELECT `id`
                 FROM `fcms_alerts` 
@@ -152,7 +152,7 @@ class Alerts
      */
     function displayPoll ($userid)
     {
-        $userid = cleanInput($userid, 'int');
+        $userid = (int)$userid;
 
         $sql = "SELECT * 
                 FROM `fcms_alerts` 
@@ -168,11 +168,16 @@ class Alerts
         if ($this->db->count_rows() < 1)
         {
             echo '
-            <div id="alert_poll" class="info-alert">
-                <h2>'.T_('Welcome to the Poll Section').'</h2>
-                <p>'.T_('Here you can add new Poll questions or edit existing polls.').'</p>
+            <div id="alert_poll" class="alert-message block-message info">
+                <a class="close" href="?alert=alert_poll">&times;</a>
+                <p>
+                    <b>'.T_('Welcome to the Poll Administration.').'</b>
+                    '.T_('Here you can add new Poll questions or edit existing polls.').'
+                </p>
                 <p>'.T_('If you do not want to use Polls on your site, simply delete all existing polls and they will no longer show up on the frontpage.').'</p>
-                <div class="close-alert"><a id="new_poll" href="?alert=alert_poll">'.T_('Delete This Alert').'</a></div>
+                <div class="alert-actions">
+                    <a class="btn small" href="?alert=alert_poll">'.T_('Delete This Alert').'</a>
+                </div>
             </div>';
         }
     }
@@ -185,7 +190,7 @@ class Alerts
      */
     function displayAddress ($userid)
     {
-        $userid = cleanInput($userid, 'int');
+        $userid = (int)$userid;
 
         $sql = "SELECT * 
                 FROM `fcms_alerts` 
@@ -218,7 +223,7 @@ class Alerts
      */
     function displayScheduler ($userid)
     {
-        $userid = cleanInput($userid, 'int');
+        $userid = (int)$userid;
 
         $sql = "SELECT * 
                 FROM `fcms_alerts` 

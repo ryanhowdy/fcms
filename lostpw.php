@@ -22,15 +22,15 @@ echo '
 <title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="author" content="Ryan Haudenschilt" />
-<link rel="shortcut icon" href="themes/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
+<link rel="shortcut icon" href="ui/favicon.ico"/>
+<link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
 </head>
 <body onload="document.resetform.email.focus()">';
 
 // Resset PW
 if (isset($_POST['email']))
 {
-    $email = cleanInput($_POST['email']);
+    $email = escape_string($_POST['email']);
     $link  = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 
     mysql_select_db($cfg_mysql_db, $link);

@@ -22,7 +22,7 @@ load('datetime', 'calendar');
 init();
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $calendar      = new Calendar($currentUserId);
 
 $TMPL = array(
@@ -177,9 +177,9 @@ function displayHeader ()
     global $TMPL, $currentUserId;
 
     $TMPL['javascript'] = '
-<script type="text/javascript" src="inc/js/livevalidation.js"></script>
-<link rel="stylesheet" type="text/css" href="themes/datechooser.css"/>
-<script type="text/javascript" src="inc/js/datechooser.js"></script>
+<script type="text/javascript" src="ui/js/livevalidation.js"></script>
+<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>
+<script type="text/javascript" src="ui/js/datechooser.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
@@ -195,7 +195,7 @@ Event.observe(window, \'load\', function() {
     // Datpicker
     var objDatePicker = new DateChooser();
     objDatePicker.setUpdateField({\'sday\':\'j\', \'smonth\':\'n\', \'syear\':\'Y\'});
-    objDatePicker.setIcon(\''.$TMPL['path'].'themes/default/images/datepicker.jpg\', \'syear\');
+    objDatePicker.setIcon(\''.$TMPL['path'].'ui/themes/default/images/datepicker.jpg\', \'syear\');
     // Delete Confirmation
     if ($(\'delcal\')) {
         var item = $(\'delcal\');
@@ -250,7 +250,7 @@ function displayAddForm ()
         return;
     }
 
-    $date = cleanInput($_GET['add']);
+    $date = strip_tags($_GET['add']);
 
     $calendar->displayAddForm($date);
     displayFooter();
@@ -268,13 +268,13 @@ function displayAddSubmit ()
     $timeStart = "NULL";
     if (isset($_POST['timestart']) and !isset($_POST['all-day']))
     {
-        $timeStart = "'".cleanInput($_POST['timestart'])."'";
+        $timeStart = "'".escape_string($_POST['timestart'])."'";
     }
 
     $timeEnd = "NULL";
     if (isset($_POST['timeend']) and !isset($_POST['all-day']))
     {
-        $timeEnd = "'".cleanInput($_POST['timeend'])."'";
+        $timeEnd = "'".escape_string($_POST['timeend'])."'";
     }
 
     $repeat = "NULL";
@@ -309,14 +309,14 @@ function displayAddSubmit ()
                 `category`, `repeat`, `private`, `invite`
             ) 
             VALUES (
-                '".cleanInput($_POST['date'])."', 
+                '".escape_string($_POST['date'])."', 
                 $timeStart, 
                 $timeEnd, 
                 NOW(),
-                '".cleanInput($_POST['title'])."', 
-                '".cleanInput($_POST['desc'])."', 
+                '".escape_string($_POST['title'])."', 
+                '".escape_string($_POST['desc'])."', 
                 '$currentUserId', 
-                '".cleanInput($_POST['category'])."', 
+                '".escape_string($_POST['category'])."', 
                 $repeat, 
                 '$private', 
                 '$invite'
@@ -379,7 +379,7 @@ function displayEditForm ()
         return;
     }
 
-    $id = cleanInput($_GET['edit'], 'int');
+    $id = (int)$_GET['edit'];
 
     $calendar->displayEditForm($id);
 
@@ -395,36 +395,42 @@ function displayEditSubmit ()
 {
     global $calendar;
 
-    $year  = cleanInput($_POST['syear'], 'int');
-    $month = cleanInput($_POST['smonth'], 'int'); 
-    $month = str_pad($month, 2, "0", STR_PAD_LEFT);
-    $day   = cleanInput($_POST['sday'], 'int');
-    $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
-    $date  = "$year-$month-$day";
-
-    $id = cleanInput($_POST['id'], 'int');
-
+    $id        = (int)$_POST['id'];
+    $year      = (int)$_POST['syear'];
+    $month     = (int)$_POST['smonth']; 
+    $month     = str_pad($month, 2, "0", STR_PAD_LEFT);
+    $day       = (int)$_POST['sday'];
+    $day       = str_pad($day, 2, "0", STR_PAD_LEFT);
+    $date      = "$year-$month-$day";
+    $title     = strip_tags($_POST['title']);
+    $title     = escape_string($title);
+    $desc      = strip_tags($_POST['desc']);
+    $desc      = escape_string($desc);
+    $category  = strip_tags($_POST['category']);
+    $category  = escape_string($category);
     $timeStart = "NULL";
+    $timeEnd   = "NULL";
+    $repeat    = "NULL";
+    $private   = 0;
+    $invite    = 0;
+
+
     if (isset($_POST['timestart']) and !isset($_POST['all-day']))
     {
-        $timeStart = "'".cleanInput($_POST['timestart'])."'";
+        $timeStart = "'".escape_string($_POST['timestart'])."'";
     }
-    $timeEnd = "NULL";
     if (isset($_POST['timeend']) and !isset($_POST['all-day']))
     {
-        $timeEnd = "'".cleanInput($_POST['timeend'])."'";
+        $timeEnd = "'".escape_string($_POST['timeend'])."'";
     }
-    $repeat = "NULL";
     if (isset($_POST['repeat-yearly']))
     {
         $repeat = "'yearly'";
     }
-    $private = 0;
     if (isset($_POST['private']))
     {
         $private = 1;
     }
-    $invite = 0;
     if (isset($_POST['invite']))
     {
         $invite = 1;
@@ -439,14 +445,13 @@ function displayEditSubmit ()
         $notify_user_changed_event = 1;
     }
 
-
     $sql = "UPDATE `fcms_calendar` 
             SET `date`      = '$date', 
                 `time_start`= $timeStart, 
                 `time_end`  = $timeEnd, 
-                `title`     = '".cleanInput($_POST['title'])."', 
-                `desc`      = '".cleanInput($_POST['desc'])."', 
-                `category`  = '".cleanInput($_POST['category'])."', 
+                `title`     = '$title', 
+                `desc`      = '$desc', 
+                `category`  = '$category', 
                 `repeat`    = $repeat, 
                 `private`   = '$private',
                 `invite`    = '$invite' 
@@ -509,13 +514,13 @@ function displayEvent ()
 
     if (ctype_digit($_GET['event']))
     {
-        $id = cleanInput($_GET['event'], 'int');
+        $id = (int)$_GET['event'];
         $calendar->displayEvent($id);
     }
     elseif (strlen($_GET['event']) >= 8 && substr($_GET['event'], 0, 8) == 'birthday')
     {
         $id = substr($_GET['event'], 8);
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
         $calendar->displayBirthdayEvent($id);
     }
     else
@@ -552,9 +557,14 @@ function displayImportSubmit ()
 
     displayHeader();
 
-    $file_name = cleanInput($_FILES["file"]["tmp_name"]);
+    $file_name = $_FILES["file"]["tmp_name"];
 
-    $calendar->importCalendar($file_name);
+    if ($calendar->importCalendar($file_name))
+    {
+        displayOkMessage();
+        $calendar->displayCalendarMonth();
+    }
+
     displayFooter();
 }
 
@@ -580,6 +590,7 @@ function displayDeleteConfirmationForm ()
                     </div>
                 </form>
             </div>';
+
     displayFooter();
 }
 
@@ -595,7 +606,7 @@ function displayDeleteSubmit ()
     displayHeader();
 
     $sql = "DELETE FROM `fcms_calendar` 
-            WHERE id = '".cleanInput($_POST['id'], 'int')."'";
+            WHERE id = '".(int)$_POST['id']."'";
     if (!mysql_query($sql))
     {
         displaySqlError($sql, mysql_error());
@@ -633,15 +644,22 @@ function displayAddCategorySubmit ()
 
     displayHeader();
 
-    $_POST['colors'] = isset($_POST['colors']) ? $_POST['colors'] : 'none';
+    $name   = strip_tags($_POST['name']);
+    $name   = escape_string($name);
+    $colors = 'none';
+
+    if (isset($_POST['colors']))
+    {
+        $colors = escape_string($_POST['colors']);
+    }
 
     $sql = "INSERT INTO `fcms_category` (`name`, `type`, `user`, `date`, `color`)
             VALUES (
-                '".cleanInput($_POST['name'])."', 
+                '$name', 
                 'calendar',
-                '".$currentUserId."', 
+                '$currentUserId', 
                 NOW(),
-                '".cleanInput($_POST['colors'])."'
+                '$colors'
             )";
 
     if (!mysql_query($sql))
@@ -667,9 +685,11 @@ function displayEditCategorySubmit ()
 
     displayHeader();
 
-    $id     = cleanInput($_POST['id'], 'int');
-    $name   = cleanInput($_POST['name']);
-    $colors = cleanInput($_POST['colors']);
+    $id     = (int)$_POST['id'];
+    $name   = strip_tags($_POST['name']);
+    $name   = escape_string($name);
+    $colors = strip_tags($_POST['colors']);
+    $colors = escape_string($colors);
 
     $sql = "UPDATE `fcms_category`
             SET
@@ -700,7 +720,7 @@ function displayEditCategoryForm ()
 
     displayHeader();
 
-    $id = cleanInput($_GET['id'], 'int');
+    $id = (int)$_GET['id'];
 
     $calendar->displayCategoryForm($id);
     displayFooter();
@@ -718,7 +738,7 @@ function displayDeleteCategorySubmit ()
     displayHeader();
 
     $sql = "DELETE FROM `fcms_category` 
-            WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
+            WHERE `id` = '".(int)$_POST['id']."'";
 
     if (!mysql_query($sql))
     {
@@ -743,12 +763,11 @@ function displayCalendarDay ()
 
     displayHeader();
 
-    $year  = cleanInput($_GET['year'], 'int');
-    $month = cleanInput($_GET['month'], 'int'); 
+    $year  = (int)$_GET['year'];
+    $month = (int)$_GET['month']; 
     $month = str_pad($month, 2, "0", STR_PAD_LEFT);
-    $day   = cleanInput($_GET['day'], 'int');
+    $day   = (int)$_GET['day'];
     $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
-    $date  = "$year-$month-$day";
 
     $calendar->displayCalendarDay($month, $year, $day);
     displayFooter();
@@ -768,12 +787,11 @@ function displayCalendar ()
     // Use the supplied date, if available
     if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day']))
     {
-        $year  = cleanInput($_GET['year'], 'int');
-        $month = cleanInput($_GET['month'], 'int'); 
+        $year  = (int)$_GET['year'];
+        $month = (int)$_GET['month']; 
         $month = str_pad($month, 2, "0", STR_PAD_LEFT);
-        $day   = cleanInput($_GET['day'], 'int');
+        $day   = (int)$_GET['day'];
         $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
-        $date  = "$year-$month-$day";
 
         $calendar->displayCalendarMonth($month, $year, $day);
     }
@@ -802,11 +820,11 @@ function displayInvitationForm ($calendarId = 0, $errors = 0)
 
     displayHeader();
 
-    $calendarId = cleanInput($calendarId, 'int');
+    $calendarId = (int)$calendarId;
 
     if (isset($_GET['invite']))
     {
-        $calendarId = cleanInput($_GET['invite'], 'int');
+        $calendarId = (int)$_GET['invite'];
     }
 
     if ($calendarId == 0)
@@ -871,10 +889,10 @@ function displayInvitationForm ($calendarId = 0, $errors = 0)
         }
 
         $rows .= '<tr>';
-        $rows .= '<td class="chk"><input type="checkbox" id="member'.$id.'" name="member[]" value="'.cleanOutput($id).'"/></td>';
+        $rows .= '<td class="chk"><input type="checkbox" id="member'.(int)$id.'" name="member[]" value="'.(int)$id.'"/></td>';
         $rows .= '<td>'.cleanOutput($members[$id]['name']).'</td>';
         $rows .= '<td>'.cleanOutput($members[$id]['email']);
-        $rows .= '<input type="hidden" name="id'.$id.'" value="'.cleanOutput($members[$id]['email']).'"/></td></tr>';
+        $rows .= '<input type="hidden" name="id'.(int)$id.'" value="'.cleanOutput($members[$id]['email']).'"/></td></tr>';
     }
 
     // Display the form
@@ -927,7 +945,7 @@ function displayInvitationSubmit ()
 
     displayHeader();
 
-    $calendarId = cleanInput($_POST['calendar'], 'int');
+    $calendarId = (int)$_POST['calendar'];
 
     // make sure the user submitted atleast one email address
     if (!isset($_POST['all-members']) && !isset($_POST['email']) && !isset($_POST['non-member-emails']))
@@ -968,9 +986,9 @@ function displayInvitationSubmit ()
         displayFooter();
         return;
     }
-    $r = mysql_fetch_array($result);
 
-    $title = cleanOutput($r['title']);
+    $r     = mysql_fetch_array($result);
+    $title = $r['title'];
 
     $invitees   = array();
     $nonMembers = array();
@@ -1035,9 +1053,8 @@ function displayInvitationSubmit ()
         // member
         if (is_array($invitee))
         {
-            $user    = cleanInput($invitee['id'], 'int');
+            $user    = (int)$invitee['id'];
             $toEmail = rtrim($invitee['email']);
-            $toEmail = cleanInput($toEmail);
             $toName  = getUserDisplayName($user);
             $email   = "NULL";
             $url    .= 'calendar.php?event='.$calendarId;
@@ -1047,9 +1064,9 @@ function displayInvitationSubmit ()
         {
             $user    = 0;
             $toEmail = rtrim($invitee);
-            $toEmail = cleanInput($toEmail);
             $toName  = $toEmail;
-            $email   = "'$toEmail'";
+            $email   = escape_string($toEmail);
+            $email   = "'$email'";
             $url    .= 'invitation.php?event='.$calendarId.'&code='.$code;
         }
 
@@ -1062,6 +1079,7 @@ function displayInvitationSubmit ()
         // add an invitation to db
         $sql = "INSERT INTO `fcms_invitation` (`event_id`, `user`, `email`, `created`, `updated`, `code`)
                 VALUES ('$calendarId', '$user', $email, NOW(), NOW(), '$code')";
+
         if (!mysql_query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -1107,10 +1125,10 @@ function displayAttendSubmit ()
 
     displayHeader();
 
-    $calendarId = cleanInput($_GET['event'], 'int');
-    $id         = cleanInput($_POST['id'], 'int');
-    $attending  = isset($_POST['attending']) ? cleanInput($_POST['attending'], 'int') : "NULL";
-    $response   = cleanInput($_POST['response']);
+    $calendarId = (int)$_GET['event'];
+    $id         = (int)$_POST['id'];
+    $attending  = isset($_POST['attending']) ? (int)$_POST['attending'] : "NULL";
+    $response   = escape_string($_POST['response']);
 
     $sql = "UPDATE `fcms_invitation`
             SET `response` = '$response',

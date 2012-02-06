@@ -1,6 +1,6 @@
 <?php
 /**
- * AddressBook 
+ * Settings
  * 
  * PHP version 5
  * 
@@ -22,7 +22,7 @@ load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube');
 init();
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $settingsObj   = new Settings($currentUserId);
 
 $TMPL = array(
@@ -213,7 +213,7 @@ Event.observe(window, \'load\', function() {
                     <li><a href="?view=notifications">'.T_('Notifications').'</a></li>
                     <li><a href="?view=socialmedia">'.T_('Social Media').'</a></li>
                 </ul>
-                <h3>'.T_('Section Settings').'</h3>
+                <h3>'.T_('Plugin Settings').'</h3>
                 <ul class="menu">
                     <li><a href="?view=familynews">'.T_('Family News').'</a></li>
                     <li><a href="?view=messageboard">'.T_('Message Board').'</a></li>
@@ -265,13 +265,15 @@ function displayEditAccountSubmit ()
 {
     global $currentUserId, $settingsObj;
 
+    $email      = strip_tags($_POST['email']);
+    $cleanEmail = escape_string($email);
     $emailstart = $settingsObj->currentUserEmail;
 
     // Check email
     if ($_POST['email'] != $emailstart)
     {
         $sql2 = "SELECT `email` FROM `fcms_users` 
-                 WHERE email='".cleanInput($_POST['email'])."'";
+                 WHERE email='$cleanEmail'";
 
         $result = mysql_query($sql2);
         if (!$result)
@@ -289,7 +291,7 @@ function displayEditAccountSubmit ()
             displayHeader();
             echo '
             <p class="error-alert">
-                '.sprintf(T_('The email address %s is already in use.  Please choose a different email.'), $_POST['email']).'
+                '.sprintf(T_('The email address %s is already in use.  Please choose a different email.'), $email).'
             </p>';
 
             $settingsObj->displayAccountInformation();
@@ -303,14 +305,16 @@ function displayEditAccountSubmit ()
     if (isset($_POST['pass']))
     {
         $orig_pass = $_SESSION['login_pw'];
+
         if (!empty($_POST['pass']))
         {
             $sql .= "password = '".md5($_POST['pass'])."', ";
+
             $_SESSION['login_pw'] = md5($_POST['pass']);
         }
     }
 
-    $sql .= "`email` = '".cleanInput($_POST['email'])."'
+    $sql .= "`email` = '$cleanEmail'
             WHERE id = '$currentUserId'";
     if (!mysql_query($sql))
     {
@@ -389,6 +393,7 @@ function displayEditThemeSubmit ()
     global $currentUserId, $settingsObj;
 
     $theme = basename($_GET['use']);
+    $theme = escape_string($theme);
 
     $sql = "UPDATE `fcms_user_settings`
             SET `theme` = '$theme'
@@ -422,7 +427,7 @@ function displayDeleteThemeSubmit ()
 
     $theme = basename($_GET['delete']);
 
-    if (!file_exists("themes/$theme"))
+    if (!file_exists(THEMES.$theme))
     {
         echo '
                 <p class="error-alert">'.sprintf(T_('Theme [%s] not found.'), $theme).'</p>';
@@ -431,7 +436,7 @@ function displayDeleteThemeSubmit ()
         return;
     }
 
-    if (!is_dir("themes/$theme"))
+    if (!is_dir(THEMES.$theme))
     {
         echo '
                 <p class="error-alert">'.sprintf(T_('[%s] is not a directory.'), $theme).'</p>';
@@ -440,7 +445,7 @@ function displayDeleteThemeSubmit ()
         return;
     }
 
-    if (!deleteDirectory("themes/$theme"))
+    if (!deleteDirectory(THEMES.$theme))
     {
         echo '
                 <p class="error-alert">'.sprintf(T_('Could not delete theme [%s].'), $theme).'</p>';
@@ -507,11 +512,11 @@ function displayEditSettingsSubmit ()
     }
     if ($_POST['language'])
     {
-        $sql .= "`language` = '".cleanInput($_POST['language'])."', ";
+        $sql .= "`language` = '".escape_string($_POST['language'])."', ";
     }
     if ($_POST['timezone'])
     {
-        $sql .= "`timezone` = '".cleanInput($_POST['timezone'])."', ";
+        $sql .= "`timezone` = '".escape_string($_POST['timezone'])."', ";
     }
     if ($_POST['dst'])
     {
@@ -526,11 +531,11 @@ function displayEditSettingsSubmit ()
     }
     if ($_POST['displayname'])
     {
-        $sql .= "`displayname` = '".cleanInput($_POST['displayname'], 'int')."', ";
+        $sql .= "`displayname` = '".(int)$_POST['displayname']."', ";
     }
     if ($_POST['frontpage'])
     {
-        $sql .= "`frontpage` = '".cleanInput($_POST['frontpage'])."', ";
+        $sql .= "`frontpage` = '".escape_string($_POST['frontpage'])."', ";
     }
 
     $sql  = substr($sql, 0, -2); // remove the extra comma space at the end
@@ -634,10 +639,10 @@ function displayEditFamilyNewsSubmit ()
 
     displayHeader();
 
-    $blogger   = isset($_POST['blogger'])   ? cleanInput($_POST['blogger'])   : '';
-    $tumblr    = isset($_POST['tumblr'])    ? cleanInput($_POST['tumblr'])    : '';
-    $wordpress = isset($_POST['wordpress']) ? cleanInput($_POST['wordpress']) : '';
-    $posterous = isset($_POST['posterous']) ? cleanInput($_POST['posterous']) : '';
+    $blogger   = isset($_POST['blogger'])   ? escape_string($_POST['blogger'])   : '';
+    $tumblr    = isset($_POST['tumblr'])    ? escape_string($_POST['tumblr'])    : '';
+    $wordpress = isset($_POST['wordpress']) ? escape_string($_POST['wordpress']) : '';
+    $posterous = isset($_POST['posterous']) ? escape_string($_POST['posterous']) : '';
 
     $sql = "UPDATE `fcms_user_settings`
             SET `blogger` = '$blogger',
@@ -689,7 +694,7 @@ function displayEditMessageBoardSubmit ()
     if (isset($_POST['boardsort']) && isset($_POST['showavatar']))
     {
         $showavatar = ($_POST['showavatar'] == 'yes') ? 1 : 0;
-        $boardsort  = cleanInput($_POST['boardsort']);
+        $boardsort  = escape_string($_POST['boardsort']);
 
         $sql = "UPDATE `fcms_user_settings`
                 SET `boardsort` = '$boardsort',
@@ -874,6 +879,7 @@ function displayImportBlogPosts ()
 function displayDeleteThemeConfirmation ()
 {
     $theme = basename($_GET['delete']);
+    $theme = cleanOutput($theme);
 
     displayHeader();
 
@@ -1151,7 +1157,7 @@ function displayEditSocialMedia ()
 
         $facebookRow = '
                 <tr>
-                    <td><img src="themes/images/facebook_24.png" alt="'.T_('Facebook').'"/></td>
+                    <td><img src="ui/images/facebook_24.png" alt="'.T_('Facebook').'"/></td>
                     <td>'.T_('Facebook').'</td>
                     <td>'.$facebookStatus.'</td>
                     <td>'.$facebookLink.'</td>
@@ -1184,7 +1190,7 @@ function displayEditSocialMedia ()
 
         $foursquareRow = '
                 <tr>
-                    <td><img src="themes/images/foursquare_24.png" alt="'.T_('Foursquare').'"/></td>
+                    <td><img src="ui/images/foursquare_24.png" alt="'.T_('Foursquare').'"/></td>
                     <td>'.T_('Foursquare').'</td>
                     <td>'.$foursquareStatus.'</td>
                     <td>'.$foursquareLink.'</td>
@@ -1229,7 +1235,7 @@ function displayEditSocialMedia ()
 
         $youtubeRow = '
                 <tr>
-                    <td><img src="themes/images/youtube_24.png" alt="'.T_('YouTube').'"/></td>
+                    <td><img src="ui/images/youtube_24.png" alt="'.T_('YouTube').'"/></td>
                     <td>'.T_('YouTube').'</td>
                     <td>'.$youtubeStatus.'</td>
                     <td>'.$youtubeLink.'</td>
@@ -1256,7 +1262,7 @@ function displayEditSocialMedia ()
         <div class="error-alert">
             <h2>'.T_('Error connecting site.').'</h2>
             <p>'.T_('Site returned error code:').'</p>
-            <p style="text-align:center"><i>'.$_GET['error'].'</i></p>
+            <p style="text-align:center"><i>'.cleanOutput($_GET['error']).'</i></p>
         </div>';
     }
 
@@ -1265,20 +1271,6 @@ function displayEditSocialMedia ()
             <tbody>'.$facebookRow.$foursquareRow.$youtubeRow.'
             </tbody>
         </table><br/>';
-
-
-    // Add a row that allows user to decide if they want to share private videos
-    if ($youtubeStatus !== '' && $youtubeLink !== '')
-    {
-        echo '
-        <div class="info-alert">
-            <p><b>'.T_('YouTube Private Videos').'</b></p>
-            <p>
-                '.T_('By connecting your account to YouTube, you are allowing all members of this site to view your private videos from YouTube.').'
-            </p>
-            <p><a href="help.php#video-youtube-private">'.T_('Learn more.').'</a></p>
-        </div>';
-    }
 
     displayFooter();
 }

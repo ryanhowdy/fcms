@@ -21,195 +21,459 @@ load('gallery', 'database');
 
 init('admin/');
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+// Globals
+$currentUserId = (int)$_SESSION['login_id'];
 $gallery       = new PhotoGallery($currentUserId);
 
-// Setup the Template variables
 $TMPL = array(
     'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
+    'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: Photo Gallery'),
     'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
-$TMPL['javascript'] = '
+
+control();
+exit();
+
+
+/**
+ * control 
+ * 
+ * The controlling structure for this script.
+ * 
+ * @return void
+ */
+function control ()
+{
+    global $currentUserId;
+
+    if (checkAccess($currentUserId) > 2)
+    {
+        displayInvalidAccessLevel();
+        return;
+    }
+    // Delete Categories
+    elseif (isset($_POST['deleteAll']) && isset($_POST['bulk_actions']))
+    {
+        if (isset($_GET['confirmed']))
+        {
+            displayDeleteAllCategoriesSubmit();
+        }
+        else
+        {
+            displayConfirmDeleteAllCategoriesForm();
+        }
+    }
+    // Delete Photos
+    elseif (isset($_POST['deleteAllPhotos']) && isset($_POST['bulk_actions']))
+    {
+        if (isset($_GET['confirmed']))
+        {
+            displayDeleteAllPhotosSubmit();
+        }
+        else
+        {
+            displayConfirmDeleteAllPhotosForm();
+        }
+    }
+    elseif (isset($_GET['edit']))
+    {
+        displayEditCategoryForm();
+    }
+    else
+    {
+        displayLatestCategoriesForm();
+    }
+}
+
+/**
+ * displayHeader 
+ * 
+ * @return void
+ */
+function displayHeader ()
+{
+    global $currentUserId, $TMPL;
+
+    $TMPL['javascript'] = '
+<script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>
+<script src="'.URL_PREFIX.'ui/js/fcms.js" type="text/javascript"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
-    // Delete Confirmation All
-    if ($(\'deleteAll\')) {
-        var item = $(\'deleteAll\'); 
-        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE all selected categories?').'\'); };
-        var hid = document.createElement(\'input\');
-        hid.setAttribute(\'type\', \'hidden\');
-        hid.setAttribute(\'name\', \'confirmedall\');
-        hid.setAttribute(\'value\', \'true\');
-        item.insert({\'after\':hid});
-    }
-    $$(".tag_photo input").each(function(el) {
-        el.observe("click", clickMassTagMember);
-
+    deleteConfirmationLink("deleteAll", "'.T_('Are you sure you want to DELETE all selected categories?').'");
+    deleteConfirmationLink("deleteAllPhotos", "'.T_('Are you sure you want to DELETE all selected photos?').'");
+    $("check_all_form").getInputs("checkbox").each(function(item) {
+        item.observe("click", function () {
+            if (item.checked) {
+                item.up("label").addClassName("active");
+            } else {
+                item.up("label").removeClassName("active");
+            }
+        });
     });
 });
 //]]>
 </script>';
 
-// Show Header
-require_once getTheme($currentUserId, $TMPL['path']).'header.php';
+    include_once URL_PREFIX.'ui/admin/header.php';
 
-echo '
-        <div class="centercontent">';
-
-//--------------------------------------------------------------------------
-// Check Access
-//--------------------------------------------------------------------------
-if (checkAccess($currentUserId) > 1)
-{
     echo '
-            <div class="error-alert">
-                <h3>'.T_('You do not have access to view this page.').'</h3>
-                <p>'.T_('This page requires an access level 1 (Admin).').'</p>
-                <p>
-                    <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
-                </p>
-            </div>
-        </div><!-- .centercontent -->';
-
-    include_once getTheme($currentUserId, $TMPL['path']).'footer.php';
-    exit();
+        <div class="admin-gallery">';
 }
 
-$show = true;
-
-//--------------------------------------------------------------------------
-// Confirm Delete All Categories
-//--------------------------------------------------------------------------
-if (isset($_POST['deleteAll']) && !isset($_POST['confirmedall']) && isset($_POST['bulk_actions']))
+/**
+ * displayFooter 
+ * 
+ * @return void
+ */
+function displayFooter ()
 {
-    $show = false;
+    global $currentUserId, $TMPL;
+
     echo '
-            <div class="info-alert clearfix">
-                <form action="gallery.php" method="post">
+        </div><!-- /admin-gallery -->';
+
+    include_once URL_PREFIX.'ui/admin/footer.php';
+}
+
+/**
+ * displayInvalidAccessLevel 
+ * 
+ * @return void
+ */
+function displayInvalidAccessLevel ()
+{
+    displayHeader();
+
+    echo '
+            <p class="alert-message block-message error">
+                <b>'.T_('You do not have access to view this page.').'</b><br/>
+                '.T_('This page requires an access level 1 (Admin).').' 
+                <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
+            </p>';
+
+    displayFooter();
+}
+
+/**
+ * displayLatestCategoriesForm 
+ * 
+ * @return void
+ */
+function displayLatestCategoriesForm ()
+{
+    global $gallery;
+
+    displayHeader();
+
+    $page    = getPage();
+    $perPage = 10;
+    $from    = ($page * $perPage) - $perPage;
+
+    $sql = "SELECT * 
+            FROM (
+                SELECT p.`id`, p.`date`, p.`filename`, c.`name`, p.`user`, p.`category`
+                FROM `fcms_gallery_photos` AS p, `fcms_category` AS c
+                WHERE p.`category` = c.`id`
+                ORDER BY `date` DESC
+            ) AS sub
+            GROUP BY `category`
+            ORDER BY `date` DESC 
+            LIMIT $from, $perPage";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        displayFoote();
+        return;
+    }
+
+    if (mysql_num_rows($result) <= 0)
+    {
+        echo '
+            <p>'.T_('No photos have been added yet.').'</p>';
+
+        displayFooter();
+        return;
+    }
+
+    $message = '';
+
+    if (isset($_SESSION['success']))
+    {
+        $message  = '<div class="alert-message success">';
+        $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
+        $message .= T_('Changes Updated Successfully').'</div>';
+
+        unset($_SESSION['success']);
+    }
+
+    echo '
+            '.$message.'
+            <form id="check_all_form" name="check_all_form" action="gallery.php" method="post">
+                <ul class="unstyled clearfix">';
+
+    while ($row = mysql_fetch_assoc($result))
+    {
+        $count = $gallery->getCategoryPhotoCount($row['category']);
+
+        echo '
+                    <li>
+                        <label for="'.$row['category'].'">
+                            <b>'.cleanOutput($row['name']).'</b><br/>
+                            <i>'.sprintf(T_('%d photos'), $count).'</i><br/>
+                            <img src="../uploads/photos/member'.$row['user'].'/tb_'.basename($row['filename']).'" 
+                                alt="'.cleanOutput($row['name']).'"/><br/>
+                            <input type="checkbox" id="'.$row['category'].'" name="bulk_actions[]" value="'.$row['category'].'"/>
+                        </label>
+                        <p>
+                            <a href="?edit='.$row['category'].'">'.T_('Edit').'</a>
+                        </p>
+                    </li>';
+
+    }
+
+    echo '
+                </ul>
+                <p><input type="submit" class="btn danger" id="deleteAll" name="deleteAll" value="'.T_('Delete Selected').'"/></p>
+            </form>';
+
+    // Pagination
+
+    // Remove the LIMIT from the $sql statement 
+    // used above, so we can get the total count
+    $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    $count       = mysql_num_rows($result);
+    $total_pages = ceil($count / $perPage); 
+
+    displayPages("gallery.php", $page, $total_pages);
+
+    displayFooter();
+}
+
+/**
+ * displayConfirmDeleteAllCategoriesForm 
+ * 
+ * @return void
+ */
+function displayConfirmDeleteAllCategoriesForm ()
+{
+    displayHeader();
+
+    echo '
+            <div class="alert-message block-message warning">
+                <form action="gallery.php?confirmed=1" method="post">
                     <h2>'.T_('Are you sure you want to DELETE all selected categories?').'</h2>
                     <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
-                    <div>';
+                    <div class="alert-actions">';
 
     foreach ($_POST['bulk_actions'] AS $id)
     {
         echo '
-                        <input type="hidden" name="bulk_actions[]" value="'.$id.'"/>';
+                        <input type="hidden" name="bulk_actions[]" value="'.(int)$id.'"/>';
     }
 
     echo '
-                        <input type="hidden" id="confirmedall" name="confirmedall" value="'.T_('Yes').'"/>
-                        <input style="float:left;" type="submit" id="deleteAll" name="deleteAll" value="'.T_('Yes').'"/>
-                        <a style="float:right;" href="gallery.php">'.T_('Cancel').'</a>
+                        <input class="btn danger" type="submit" id="deleteAll" name="deleteAll" value="'.T_('Yes, Delete').'"/>
+                        <a class="btn secondary" href="gallery.php">'.T_('No, Cancel').'</a>
                     </div>
                 </form>
             </div>';
+
+    displayFooter();
 }
 
-//--------------------------------------------------------------------------
-// Delete All Categories
-//--------------------------------------------------------------------------
-if (isset($_POST['deleteAll']) && isset($_POST['confirmedall']) && isset($_POST['bulk_actions']))
+/**
+ * displayDeleteAllCategoriesSubmit 
+ * 
+ * @return void
+ */
+function displayDeleteAllCategoriesSubmit ()
 {
     foreach ($_POST['bulk_actions'] AS $category)
     {
-        $category = cleanInput($category, 'int');
+        $category = (int)$category;
 
         $sql = "DELETE FROM `fcms_gallery_photos`
                 WHERE `category` = '$category'";
+
         if (!mysql_query($sql))
         {
+            displayHeader();
             displaySqlError($sql, mysql_error());
-            exit();
+            displayFooter();
+            return;
         }
+
         $sql = "DELETE FROM `fcms_category`
                 WHERE `id` = '$category'";
         if (!mysql_query($sql))
         {
+            displayHeader();
             displaySqlError($sql, mysql_error());
-            exit();
+            displayFooter();
+            return;
         }
     }
-    echo '
-            <p class="ok-alert">'.T_('Categories Deleted').'</p>';
+
+    $_SESSION['success'] = 1;
+
+    header("Location: gallery.php");
 }
 
-//--------------------------------------------------------------------------
-// Confirm Delete All Photos
-//--------------------------------------------------------------------------
-if (isset($_POST['deleteAllPhotos']) && !isset($_POST['confirmedall']) && isset($_POST['bulk_actions']))
+/**
+ * displayConfirmDeleteAllPhotosForm 
+ * 
+ * @return void
+ */
+function displayConfirmDeleteAllPhotosForm ()
 {
-    $show = false;
+    displayHeader();
+
+    $url = 'edit='.(int)$_GET['edit'];
+
     echo '
-            <div class="info-alert clearfix">
-                <form action="gallery.php" method="post">
+            <div class="alert-message block-message warning">
+                <form action="gallery.php?'.$url.'&amp;confirmed=1" method="post">
                     <h2>'.T_('Are you sure you want to DELETE all selected photos?').'</h2>
                     <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
-                    <div>';
+                    <div class="alert-actions">';
 
     foreach ($_POST['bulk_actions'] AS $id)
     {
         echo '
-                        <input type="hidden" name="bulk_actions[]" value="'.$id.'"/>';
+                        <input type="hidden" name="bulk_actions[]" value="'.(int)$id.'"/>';
     }
 
     echo '
-                        <input type="hidden" id="confirmedall" name="confirmedall" value="'.T_('Yes').'"/>
-                        <input style="float:left;" type="submit" id="deleteAllPhotos" name="deleteAllPhotos" value="'.T_('Yes').'"/>
-                        <a style="float:right;" href="gallery.php">'.T_('Cancel').'</a>
+                        <input class="btn danger" type="submit" id="deleteAllPhotos" name="deleteAllPhotos" value="'.T_('Yes, Delete').'"/>
+                        <a class="btn secondary" href="gallery.php?'.$url.'">'.T_('No, Cancel').'</a>
                     </div>
                 </form>
             </div>';
+
+    displayFooter();
 }
 
-//--------------------------------------------------------------------------
-// Delete All Photos
-//--------------------------------------------------------------------------
-if (isset($_POST['deleteAllPhotos']) && isset($_POST['confirmedall']) && isset($_POST['bulk_actions']))
+/**
+ * displayDeleteAllPhotosSubmit 
+ * 
+ * @return void
+ */
+function displayDeleteAllPhotosSubmit ()
 {
     foreach ($_POST['bulk_actions'] AS $id)
     {
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
 
         $sql = "DELETE FROM `fcms_gallery_photos`
                 WHERE `id` = '$id'";
+
         if (!mysql_query($sql))
         {
+            displayHeader();
             displaySqlError($sql, mysql_error());
-            die();
+            displayFooter();
+            return;
         }
     }
-    echo '
-            <p class="ok-alert">'.T_('Photos Deleted').'</p>';
-}
 
-//--------------------------------------------------------------------------
-// Show
-//--------------------------------------------------------------------------
-if ($show)
-{
-    // Show Photos
+    $_SESSION['success'] = 1;
+
     if (isset($_GET['edit']))
     {
-        $category = cleanInput($_GET['edit'], 'int');
-        $gallery->displayAdminDeletePhotos($category);
+        header("Location: gallery.php?edit=".(int)$_GET['edit']);
+        return;
     }
-    // Show Categories
-    else
-    {
-        $page = (isset($_GET['page'])) ? $_GET['page'] : 1;
-        $gallery->displayAdminDeleteCategories($page);
-    }
+
+    header("Location: gallery.php");
 }
 
-echo '
-        </div><!-- .centercontent -->';
+/**
+ * displayEditCategoryForm 
+ * 
+ * @return void
+ */
+function displayEditCategoryForm ()
+{
+    global $gallery;
 
-// Show Footer
-require_once getTheme($currentUserId, $TMPL['path']).'footer.php';
+    displayHeader();
+
+    $category = (int)$_GET['edit'];
+
+    $sql = "SELECT p.`id`, p.`date`, p.`filename`, c.`name` AS category, p.`user`, p.`caption`, p.`views`
+            FROM `fcms_gallery_photos` AS p, `fcms_category` AS c
+            WHERE p.`category` = '$category'
+            AND p.`category` = c.`id`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    if (mysql_num_rows($result) <= 0)
+    {
+        echo '
+            <p>'.T_('This category contains no photos.').'</p>';
+
+        displayFooter();
+        return;
+    }
+
+    $message = '';
+
+    if (isset($_SESSION['success']))
+    {
+        $message  = '<div class="alert-message success">';
+        $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
+        $message .= T_('Changes Updated Successfully').'</div>';
+
+        unset($_SESSION['success']);
+    }
+
+    echo '
+            <p><a href="gallery.php">'.T_('Categories').'</a></p>
+            '.$message.'
+            <form id="check_all_form" name="check_all_form" action="gallery.php?edit='.$category.'" method="post">
+                <ul class="unstyled clearfix">';
+
+    while ($row = mysql_fetch_assoc($result))
+    {
+        echo '
+                    <li>
+                        <label for="'.$row['id'].'">
+                            <img src="../uploads/photos/member'.$row['user'].'/tb_'.basename($row['filename']).'" 
+                                alt="'.cleanOutput($row['caption']).'"/><br/>
+                            <input type="checkbox" id="'.$row['id'].'" name="bulk_actions[]" value="'.$row['id'].'"/>
+                        </label>
+                    </li>';
+    }
+
+    echo '
+                </ul>
+                <p>
+                    <input type="submit" class="btn danger" id="deleteAllPhotos" name="deleteAllPhotos" value="'.T_('Delete Selected').'"/>
+                    <a class="btn secondary" href="gallery.php">'.T_('Cancel').'</a>
+                </p>
+            </form>';
+
+    displayFooter();
+}

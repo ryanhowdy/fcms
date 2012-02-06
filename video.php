@@ -23,7 +23,7 @@ load('datetime', 'socialmedia', 'youtube', 'comments');
 init();
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 
 $TMPL = array(
     'sitename'      => getSiteName(),
@@ -305,9 +305,10 @@ function displayYouTubeUploadPage ()
                     </div>
                 </div>
                 <div class="field-row clearfix">
-                    <div class="field-label"><label for="private"><b>'.T_('Private').'</b></label></div>
+                    <div class="field-label"><label for="unlisted"><b>'.T_('Unlisted').'</b></label></div>
                     <div class="field-widget">
-                        <input type="checkbox" name="private" id="private" value="yes" checked="checked">
+                        <input type="checkbox" name="unlisted" id="unlisted_" value="yes" checked="checked"><br/>
+                        <small>'.T_('"Unlisted" means that only people who know the link to the video can view it. The video will not appear in any of YouTube\'s public spaces, such as search results, your channel, or the Browse page, but the link can be shared with anyone.').'</small>
                     </div>
                 </div>
                 <input class="sub1" type="submit" id="upload_data" name="upload_data" value="'.T_('Next').'"/>
@@ -333,10 +334,25 @@ function displayYouTubeUploadFilePage ()
 
     displayHeader();
 
-    $videoTitle       = isset($_POST['title'])       ? cleanInput($_POST['title'])       : '';
-    $videoDescription = isset($_POST['description']) ? cleanInput($_POST['description']) : '';
-    $videoCategory    = isset($_POST['category'])    ? cleanInput($_POST['category'])    : '';
-    $videoPrivate     = isset($_POST['private'])     ? true                              : false;
+    $videoTitle            = '';
+    $videoDescription      = '';
+    $cleanVideoTitle       = '';
+    $cleanVideoDescription = '';
+
+    if (isset($_POST['title']))
+    {
+        $videoTitle      = strip_tags($_POST['title']);
+        $cleanVideoTitle = escape_string($videoTitle);
+    }
+
+    if (isset($_POST['description']))
+    {
+        $videoDescription      = strip_tags($_POST['description']);
+        $cleanVideoDescription = escape_string($videoDescription);
+    }
+
+    $videoCategory = isset($_POST['category']) ? escape_string($_POST['category']) : '';
+    $videoUnlisted = isset($_POST['unlisted']) ? true                              : false;
 
     // Create fcms video - we update after the youtube video is created
     $sql = "INSERT INTO `fcms_video` (
@@ -351,8 +367,8 @@ function displayYouTubeUploadFilePage ()
             )
             VALUES (
                 '0',
-                '$videoTitle',
-                '$videoDescription',
+                '$cleanVideoTitle',
+                '$cleanVideoDescription',
                 'youtube',
                 NOW(),
                 '$currentUserId',
@@ -387,9 +403,15 @@ function displayYouTubeUploadFilePage ()
     $newVideoEntry->setVideoDescription($videoDescription);
     $newVideoEntry->setVideoCategory($videoCategory);
 
-    if ($videoPrivate)
+    // make video unlisted
+    if ($videoUnlisted)
     {
-        $newVideoEntry->setVideoPrivate();
+        $unlisted = new Zend_Gdata_App_Extension_Element('yt:accessControl', 'yt', 'http://gdata.youtube.com/schemas/2007', '');
+        $unlisted->setExtensionAttributes(array(
+            array('namespaceUri' => '', 'name' => 'action', 'value' => 'list'),
+            array('namespaceUri' => '', 'name' => 'permission', 'value' => 'denied')
+        ));
+        $newVideoEntry->setExtensionElements(array($unlisted));
     }
 
     try
@@ -443,16 +465,16 @@ function displayYouTubeUploadStatusPage ()
 {
     global $currentUserId;
 
-    $sourceId = cleanInput($_GET['id']);
-    $status   = cleanInput($_GET['status']);
-    $videoId  = $_SESSION['fcmsVideoId'];
+    $sourceId = $_GET['id'];
+    $status   = $_GET['status'];
+    $videoId  = (int)$_SESSION['fcmsVideoId'];
 
     unset($_SESSION['fcmsVideoId']);
 
     switch ($status)
     {
         case $status < 400:
-
+ 
             // Connect to YouTube and get more info about this video
             $youtubeConfig  = getYouTubeConfigData();
             $httpClient     = getAuthSubHttpClient($youtubeConfig['youtube_key']);
@@ -475,13 +497,13 @@ function displayYouTubeUploadStatusPage ()
 
             if (count($thumbs) > 0)
             {
-                $height = $thumbs[0]['height'];
-                $width  = $thumbs[0]['width'];
+                $height = escape_string($thumbs[0]['height']);
+                $width  = escape_string($thumbs[0]['width']);
             }
 
             // Update fcms video
             $sql = "UPDATE `fcms_video`
-                    SET `source_id` = '$sourceId',
+                    SET `source_id` = '".escape_string($sourceId)."',
                         `height` = '$height',
                         `width` = '$width',
                         `updated` = NOW()
@@ -663,9 +685,9 @@ function displayLatestPage ()
  */
 function displayVideoPage ()
 {
-    $id = cleanInput($_GET['id']);
+    $id = (int)$_GET['id'];
 
-    $sql = "SELECT `id`, `source_id`, `height`, `width`, `created`, `created_id`
+    $sql = "SELECT `id`, `source_id`, `title`, `description`, `height`, `width`, `created`, `created_id`
             FROM `fcms_video`
             WHERE `id` = '$id'
             AND `active` = 1";
@@ -728,7 +750,6 @@ function displayYouTubeVideoPage ($video)
     {
         $videoEntry = $youTubeService->getVideoEntry($video['source_id']);
     }
-    // Video is private
     catch (Exception $e)
     {
         $response = $e->getRawResponseBody();
@@ -741,8 +762,18 @@ function displayYouTubeVideoPage ($video)
             displayVideoNotFound($video, 'YouTube');
             return;
         }
-        // Video isn't private
-        elseif ($private === false)
+        // Video is private
+        elseif ($private !== false)
+        {
+            echo '
+            <div class="error-alert">
+                <p>'.T_('Sorry, this video is private.').'</p>
+                <p>'.$e->getMessage().'</p>
+            </div>';
+            displayFooter();
+            return;
+        }
+        else
         {
             echo '
             <div class="error-alert">
@@ -752,28 +783,9 @@ function displayYouTubeVideoPage ($video)
             displayFooter();
             return;
         }
-        // else Video is private
-
-        // Couldn't get entry because it's private, so get session token of user who uploaded
-        $sessionToken = getSessionToken($video['created_id']);
-
-        $youtubeConfig = getYouTubeConfigData();
-        $httpClient    = getAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
-
-        if ($httpClient === false)
-        {
-            // Error message was already displayed by getAuthSubHttpClient()
-            displayFooter();
-            return;
-        }
-
-        $youTubeService = new Zend_Gdata_YouTube($httpClient);
-        $videoEntry     = $youTubeService->getVideoEntry($video['source_id']);
-
-        $status = getUploadStatus($video['source_id'], $sessionToken);
     }
 
-    // Video is public
+    // Video is public/unlisted
     if ($status == null)
     {
         $status = getUploadStatus($video['source_id']);
@@ -807,7 +819,7 @@ function displayYouTubeVideoPage ($video)
     echo '
         <div id="sections_menu" class="clearfix">
             <ul>
-                <li><a href="video.php">Latest Videos</a></li>
+                <li><a href="video.php">'.T_('Latest Videos').'</a></li>
                 <li><a href="video.php?u='.$video['created_id'].'">'.getUserDisplayName($video['created_id'], 2).'</a></li>
             </ul>
         </div>';
@@ -830,6 +842,11 @@ function displayYouTubeVideoPage ($video)
     }
 
     echo '
+        <div id="video_desc">
+            <img src="'.getCurrentAvatar($video['created_id']).'"/>
+            <h2>'.cleanOutput($video['title']).'</h2>
+            <p>'.cleanOutput($video['description']).'</p>
+        </div>
         <div id="video_content">
             <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="'.$video['width'].'" height="'.$video['height'].'">
                 <param name="movie" value="'.$videoUrl.'" />
@@ -957,17 +974,17 @@ function displayCommentSubmit ()
 {
     global $currentUserId;
 
-    $userId   = cleanInput($_GET['u']);
-    $videoId  = cleanInput($_GET['id']);
-    $comments = ltrim($_POST['comments']);
-    $comments = cleanInput($comments);
+    $userId   = (int)$_GET['u'];
+    $videoId  = escape_string($_GET['id']);
+    $comments = strip_tags($_POST['comments']);
+    $comments = escape_string($comments);
 
     if (!empty($comments))
     {
         $sql = "INSERT INTO `fcms_video_comment` (
                     `video_id`, `comment`, `created`, `created_id`, `updated`, `updated_id`
                 )
-                VALUES (
+                VALUES _(
                     '$videoId', 
                     '$comments',
                     NOW(), 
@@ -999,9 +1016,11 @@ function displayCommentSubmit ()
  */
 function getSessionToken ($userId)
 {
+    $userId = (int)$userId;
+
     $sql = "SELECT `youtube_session_token`
             FROM `fcms_user_settings`
-            WHERE `user` = '".cleanInput($userId)."'
+            WHERE `user` = '$userId'
             AND `youtube_session_token` IS NOT NULL
             AND `youtube_session_token` != ''";
 
@@ -1086,7 +1105,7 @@ function displayUserVideosPage ()
 
     displayHeader();
 
-    $userId = cleanInput($_GET['u'], 'int');
+    $userId = (int)$_GET['u'];
 
     if (isset($_SESSION['message']))
     {
@@ -1207,16 +1226,16 @@ function displayRemoveVideoSubmit ()
         return;
     }
 
-    $userId   = cleanInput($_GET['u']);
-    $id       = cleanInput($_POST['id'], 'int');
-    $sourceId = cleanInput($_POST['source_id']);
+    $userId   = (int)$_GET['u'];
+    $id       = (int)$_POST['id'];
+    $sourceId = $_POST['source_id'];
 
     $sql = "UPDATE `fcms_video`
             SET `active` = 0,
             `updated` = NOW(),
             `updated_id` = '$currentUserId'
             WHERE `id` = '$id'";
-
+ 
     if (!mysql_query($sql))
     {
         displayFooter();
@@ -1232,14 +1251,14 @@ function displayRemoveVideoSubmit ()
         $httpClient    = getAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
 
         if ($httpClient === false)
-        {
+         {
             // Error message was already displayed by getAuthSubHttpClient()
             displayFooter();
             return;
         }
 
         $youTubeService = new Zend_Gdata_YouTube($httpClient);
-        $videoEntry     = $youTubeService->getVideoEntry($source_id);
+        $videoEntry     = $youTubeService->getVideoEntry($sourceId);
 
         // Set message
         $_SESSION['message'] = 'delete_video_youtube';
@@ -1277,9 +1296,9 @@ function displayDeleteVideoSubmit ()
         return;
     }
 
-    $userId   = cleanInput($_GET['u']);
-    $id       = cleanInput($_POST['id'], 'int');
-    $sourceId = cleanInput($_POST['source_id']);
+    $userId   = (int)$_GET['u'];
+    $id       = (int)$_POST['id'];
+    $sourceId = $_POST['source_id'];
 
     $sql = "DELETE FROM `fcms_video_comment`
             WHERE `video_id` = '$id'";
@@ -1349,8 +1368,8 @@ function displayMessage ($message)
  */
 function displayVideoNotFound ($video, $source)
 {
-    $userId  = cleanInput($_GET['u']);
-    $videoId = cleanInput($video['id'], 'int');
+    $userId  = (int)$_GET['u'];
+    $videoId = (int)$video['id'];
 
     $url = 'video.php?u='.$userId.'&amp;id='.$videoId;
 

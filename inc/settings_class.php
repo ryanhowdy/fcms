@@ -30,7 +30,7 @@ class Settings
 
         $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->currentUserId = (int)$currentUserId;
         $this->tzOffset      = getTimezone($this->currentUserId);
 
         $sql = "SELECT `email` 
@@ -64,7 +64,7 @@ class Settings
         $row = $this->db->get_row();
 
         echo '
-                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <script type="text/javascript" src="ui/js/livevalidation.js"></script>
                 <form id="frm" action="settings.php?view=account" method="post">
                 <fieldset>
                     <legend><span>'.T_('Account Information').'</span></legend>
@@ -117,52 +117,21 @@ class Settings
         $row = $this->db->get_row();
 
         // Theme
-        $dir = "themes/";
-        $themes = array();
+        $themes    = array();
+        $themeList = getThemeList();
 
-        if (is_dir($dir))
+        foreach($themeList as $file)
         {
-            if ($dh = opendir($dir))
-            {
-                while (($file = readdir($dh)) !== false)
-                {
-                    // Skip non directories
-                    if (filetype($dir . $file) !== "dir") {
-                        continue;
-                    }
-                    // Skip smileys
-                    if ($file == 'smileys') {
-                        continue;
-                    }
-                    // Skip directories that start with a period
-                    if ($file[0] === '.') {
-                        continue;
-                    }
-                    // skip images dir
-                    if ($file === 'images') {
-                        continue;
-                    }
-
-                    $arr[] = $file;
-                }
-                closedir($dh);
-
-                sort($arr);
-
-                foreach($arr as $file)
-                {
-                    $themeData = $this->getThemeData($file);
-                    $themes[$file]  = $themeData;
-                }
-            }
+            $themeData = $this->getThemeData($file);
+            $themes[$file]  = $themeData;
         }
 
         $currentTheme = $themes[$row['theme']];
 
         // current theme screenshot
-        if (file_exists('themes/'.$currentTheme['file'].'/screenshot.png'))
+        if (file_exists('ui/themes/'.$currentTheme['file'].'/screenshot.png'))
         {
-            $img = '<img src="themes/'.$currentTheme['file'].'/screenshot.png"/>';
+            $img = '<img src="ui/themes/'.$currentTheme['file'].'/screenshot.png"/>';
         }
         else
         {
@@ -198,9 +167,9 @@ class Settings
             }
 
             // screenshot
-            if (file_exists('themes/'.$theme['file'].'/screenshot.png'))
+            if (file_exists('ui/themes/'.$theme['file'].'/screenshot.png'))
             {
-                $img = '<img src="themes/'.$theme['file'].'/screenshot.png"/>';
+                $img = '<img src="ui/themes/'.$theme['file'].'/screenshot.png"/>';
             }
             else
             {
@@ -354,12 +323,12 @@ class Settings
         // Front Page
         $frontpage_list = array(
             "1" => T_('All (by date)'),
-            "2" => T_('Last 5 (by section)')
+            "2" => T_('Last 5 (by plugin)')
         );
         $frontpage_options = buildHtmlSelectOptions($frontpage_list, $row['frontpage']);
 
         echo '
-                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <script type="text/javascript" src="ui/js/livevalidation.js"></script>
                 <form id="frm" action="settings.php?view=settings" method="post">
                 <fieldset>
                     <legend><span>'.T_('Advanced Settings').'</span></legend>
@@ -463,7 +432,7 @@ class Settings
             . T_('No') . '</label>';
 
         echo '
-                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <script type="text/javascript" src="ui/js/livevalidation.js"></script>
                 <form id="frm" action="settings.php?view=notifications" method="post">
                 <fieldset>
                     <legend><span>'.T_('Notifications').'</span></legend>
@@ -497,7 +466,7 @@ class Settings
         $row = $this->db->get_row();
 
         echo '
-                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <script type="text/javascript" src="ui/js/livevalidation.js"></script>
                 <form id="frm" action="settings.php?view=familynews" method="post">
                 <fieldset>
                     <legend><span>'.T_('Import Blog Posts').'</span></legend>
@@ -583,7 +552,7 @@ class Settings
         $show_avatars_options .= '<label class="radio_label" for="showavatar_no">'.T_('No').'</label>';
 
         echo '
-                <script type="text/javascript" src="inc/js/livevalidation.js"></script>
+                <script type="text/javascript" src="ui/js/livevalidation.js"></script>
                 <form id="frm" action="settings.php?view=messageboard" method="post">
                 <fieldset>
                     <legend><span>'.T_('Message Board').'</span></legend>
@@ -680,7 +649,7 @@ class Settings
      */
     function getAccessLevelDescription ($access)
     {
-        $access = cleanInput($access, 'int');
+        $access = (int)$access;
 
         switch ($access) {
             case 1:
@@ -717,7 +686,7 @@ class Settings
                 break;
             case 9:
                 $ret = '<b>'.T_('Level 9 (Blogger)').'</b>: '.T_('You have limited rights.').'<br/>'
-                    .T_('You can only add news to the Family News section.');
+                    .T_('You can only add news to Family News.');
                 break;
             case 10:
                 $ret = '<b>'.T_('Level 10 (Guest)').'</b>: '.T_('You have view only rights.').'<br/>'
@@ -742,13 +711,13 @@ class Settings
             'author'    => '',
         );
 
-        if (!file_exists("themes/$file/style.css"))
+        if (!file_exists(THEMES."$file/style.css"))
         {
             $data['name'] = $file;
             return $data;
         }
 
-        $f = @fopen("themes/$file/style.css", 'r');
+        $f = @fopen(THEMES."$file/style.css", 'r');
         if (!$f)
         {
             $data['name'] = $file;
@@ -813,4 +782,4 @@ class Settings
         return $data;
     }
 
-} ?>
+}

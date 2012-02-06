@@ -21,7 +21,7 @@ load('familynews');
 
 init();
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $fnews         = new FamilyNews($currentUserId);
 
 // Setup the Template variables;
@@ -115,8 +115,8 @@ if (!isset($_GET['addnews']) && !isset($_POST['editnews']))
 //-------------------------------------
 if (isset($_POST['submitadd']))
 {
-    $title = cleanInput($_POST['title']);
-    $news  = cleanInput($_POST['post']);
+    $title = escape_string($_POST['title']);
+    $news  = escape_string($_POST['post']);
 
     $sql = "INSERT INTO `fcms_news` (
                 `title`, `news`, `user`, `created`, `updated`
@@ -155,7 +155,7 @@ if (isset($_POST['submitadd']))
         {
             $name          = getUserDisplayName($currentUserId);
             $to            = getUserDisplayName($r['user']);
-            $subject       = sprintf(T_('%s has added %s to his/her Family News'), $name, $title);
+            $subject       = sprintf(T_('%s has added %s to his/her Family News'), $name, $_POST['title']);
             $email         = $r['email'];
             $url           = getDomainAndDir();
             $email_headers = getEmailHeaders();
@@ -183,10 +183,10 @@ elseif (isset($_POST['submitedit']))
 {
     $show_last5 = false;
 
-    $title = cleanInput($_POST['title']);
-    $news  = cleanInput($_POST['post']);
-    $id    = cleanInput($_POST['id'], 'int');
-    $user  = cleanInput($_POST['user'], 'int');
+    $title = escape_string($_POST['title']);
+    $news  = escape_string($_POST['post']);
+    $id    = (int)$_POST['id'];
+    $user  = (int)$_POST['user'];
 
     $sql = "UPDATE `fcms_news` 
             SET `title` = '$title', 
@@ -222,12 +222,7 @@ else if (isset($_POST['editnews']))
 {
     $show_last5 = false;
 
-    $user  = cleanOutput($_POST['user']);
-    $id    = cleanOutput($_POST['id']);
-    $title = cleanOutput($_POST['title']);
-    $news  = cleanOutput($_POST['news']);
-
-    $fnews->displayForm('edit', $user, $id, $title, $news);
+    $fnews->displayForm('edit', $_POST['user'], $_POST['id'], $_POST['title'], $_POST['news']);
 }
 //-------------------------------------
 // Delete news confirmation
@@ -257,7 +252,7 @@ elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
     $show_last5 = false;
 
     $sql = "DELETE FROM `fcms_news` 
-            WHERE id = '".cleanInput($_POST['id'], 'int')."'";
+            WHERE id = '".(int)$_POST['id']."'";
     if (!mysql_query($sql))
     {
         displaySqlError($sql, mysql_error());
@@ -274,21 +269,22 @@ if (isset($_GET['getnews']))
 {
     $show_last5 = false;
 
-    $user = cleanInput($_GET['getnews'], 'int');
+    $user = (int)$_GET['getnews'];
 
-    $page = isset($_GET['page'])   ? cleanInput($_GET['page'], 'int')   : 1;
-    $nid  = isset($_GET['newsid']) ? cleanInput($_GET['newsid'], 'int') : 0;
+    $page = getPage();
+    $nid  = isset($_GET['newsid']) ? (int)$_GET['newsid'] : 0;
 
     // Add Comment
     if (isset($_POST['addcom']))
     {
         $com = ltrim($_POST['comment']);
+        $com = escape_string($com);
         if (!empty($com))
         {
             $sql = "INSERT INTO `fcms_news_comments` (
                         `news`, `comment`, `date`, `user`
                     ) VALUES (
-                        '$nid', '".escape_string($com)."', NOW(), $currentUserId
+                        '$nid', '$com', NOW(), $currentUserId
                     )";
             if (!mysql_query($sql))
             {
@@ -303,13 +299,13 @@ if (isset($_GET['getnews']))
         $show_last5 = false;
         echo '
                 <div class="info-alert clearfix">
-                    <form action="familynews.php?getnews='.$_GET['getnews'].'" method="post">
+                    <form action="familynews.php?getnews='.(int)$_GET['getnews'].'" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone').'</i></b></p>
                         <div>
-                            <input type="hidden" name="id" value="'.$_POST['id'].'"/>
+                            <input type="hidden" name="id" value="'.(int)$_POST['id'].'"/>
                             <input style="float:left;" type="submit" id="delcomconfirm" name="delcomconfirm" value="'.T_('Yes').'"/>
-                            <a style="float:right;" href="familynews.php?getnews='.$_GET['getnews'].'">'.T_('Cancel').'</a>
+                            <a style="float:right;" href="familynews.php?getnews='.(int)$_GET['getnews'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -319,7 +315,7 @@ if (isset($_GET['getnews']))
     elseif (isset($_POST['delcomconfirm']) || isset($_POST['comconfirmed']))
     {
         $sql = "DELETE FROM `fcms_news_comments`
-                WHERE `id` = ".cleanInput($_POST['id'], 'int');
+                WHERE `id` = '".(int)$_POST['id']."'";
 
         if (!mysql_query($sql))
         {

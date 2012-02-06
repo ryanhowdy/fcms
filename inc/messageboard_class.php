@@ -32,7 +32,7 @@ class MessageBoard
         $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->currentUserId = (int)$currentUserId;
         $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
@@ -50,7 +50,7 @@ class MessageBoard
      */
     function showThreads ($type, $page = 0)
     {
-        $page = cleanInput($page, 'int');
+        $page = (int)$page;
         $from = (($page * 25) - 25);
 
         // Announcements
@@ -210,7 +210,7 @@ class MessageBoard
                     <tr class="'.$tr_class.'">
                         <td class="images"><div class="'.$img_class.'">&nbsp;</div></td>
                         <td class="subject">
-                            '.$subject_info.'<a href="messageboard.php?thread='.(int)$row['id'].'">'.cleanOutput($subject).'</a><br/>
+                            '.$subject_info.'<a href="messageboard.php?thread='.(int)$row['id'].'">'.cleanOutput($subject, 'html').'</a><br/>
                             '.$thread_pages.'
                             <span><a class="u" href="profile.php?member='.(int)$row['started_by'].'">'.$started_by.'</a></span>
                         </td>
@@ -243,8 +243,8 @@ class MessageBoard
      */
     function showPosts ($thread_id, $page = 1)
     {
-        $thread_id  = cleanInput($thread_id, 'int');
-        $page       = cleanInput($page, 'int');
+        $thread_id  = (int)$thread_id;
+        $page       = (int)$page;
 
         $from = (($page * 15) - 15);
 
@@ -276,7 +276,7 @@ class MessageBoard
                 WHERE `thread` = '$thread_id'
                 AND t.`id` = `thread` 
                 AND `user` = u.`id` 
-                ORDER BY p.`id` ".cleanInput($sort)."
+                ORDER BY p.`id` ".escape_string($sort)."
                 LIMIT $from, 15";
         if (!$this->db->query($sql))
         {
@@ -393,7 +393,7 @@ class MessageBoard
                         </td>
                         <td class="posts">
                             <div class="header clearfix">
-                                <div class="subject"><b>'.cleanOutput($subject).'</b> - '.$date.'</div>
+                                <div class="subject"><b>'.cleanOutput($subject, 'html').'</b> - '.$date.'</div>
                                 <div class="actions">
                                     '.$actions.'
                                 </div>
@@ -438,9 +438,11 @@ class MessageBoard
      */
     function getSortOrder ($user_id)
     {
+        $user_id = (int)$user_id;
+
         $sql = "SELECT `boardsort` 
                 FROM `fcms_user_settings` 
-                WHERE `user` = '" . cleanInput($user_id, 'int') . "'";
+                WHERE `user` = '$user_id'";
         if (!$this->db2->query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -460,9 +462,11 @@ class MessageBoard
      */
     function getShowAvatar ($user_id)
     {
+        $user_id = (int)$user_id;
+
         $sql = "SELECT `showavatar` 
                 FROM `fcms_user_settings` 
-                WHERE `user` = '" . cleanInput($user_id, 'int') . "'";
+                WHERE `user` = '$user_id'";
         if (!$this->db2->query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -484,6 +488,8 @@ class MessageBoard
      */
     function getUserPostCountById ($user_id)
     {
+        $user_id = (int)$user_id;
+
         $sql = "SELECT `id`
                 FROM `fcms_board_posts`";
         if (!$this->db2->query($sql))
@@ -496,7 +502,7 @@ class MessageBoard
 
         $sql = "SELECT count(`user`) AS c 
                 FROM `fcms_board_posts` 
-                WHERE `user` = '" . cleanInput($user_id, 'int') . "'";
+                WHERE `user` = '$user_id'";
         if (!$this->db2->query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -526,6 +532,8 @@ class MessageBoard
      */
     function displayPages ($page = 1, $thread_id = 0)
     {
+        $thread_id = (int)$thread_id;
+
         if ($thread_id < 1)
         {
             $sql = "SELECT count(`id`) AS c 
@@ -543,7 +551,7 @@ class MessageBoard
         {
             $sql = "SELECT count(`id`) AS c 
                     FROM `fcms_board_posts` 
-                    WHERE `thread` = '" . cleanInput($thread_id, 'int') . "'";
+                    WHERE `thread` = '$thread_id'";
             if (!$this->db2->query($sql))
             {
                 displaySqlError($sql, mysql_error());
@@ -554,7 +562,7 @@ class MessageBoard
 
             $total_pages = ceil($row['c'] / 15);
 
-            $url = 'messageboard.php?thread='.(int)$thread_id;
+            $url = 'messageboard.php?thread='.$thread_id;
         }
         displayPagination ($url, $page, $total_pages);
     }
@@ -572,8 +580,8 @@ class MessageBoard
      */
     function displayForm ($type, $thread_id = 0, $post_id = 0, $post = 'error')
     {
-        $thread_id = cleanInput($thread_id, 'int');
-        $post_id   = cleanInput($post_id, 'int');
+        $thread_id = (int)$thread_id;
+        $post_id   = (int)$post_id;
         $tab       = 1;
 
         // New
@@ -704,8 +712,8 @@ class MessageBoard
 
         // Display the form
         echo '
-            <script type="text/javascript" src="inc/js/livevalidation.js"></script>
-            <script type="text/javascript" src="inc/js/fcms.js"></script>
+            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
+            <script type="text/javascript" src="ui/js/fcms.js"></script>
             <form id="postform" method="post" action="messageboard.php">
                 <fieldset>
                     <legend><span>'.$header.'</span></legend>
@@ -738,9 +746,11 @@ class MessageBoard
      */
     function hasAwards ($user_id)
     {
+        $user_id = (int)$user_id;
+
         $sql = "SELECT `id` 
                 FROM `fcms_user_awards` 
-                WHERE `user` = '" . cleanInput($user_id, 'int') . "' 
+                WHERE `user` = '$user_id' 
                 AND `count` > 0";
         if (!$this->db2->query($sql))
         {
@@ -767,6 +777,8 @@ class MessageBoard
      */
     function displayMessageBoardMenu ($thread_id = 0)
     {
+        $thread_id = (int)$thread_id;
+
         if ($thread_id == 0)
         {
             echo '
@@ -797,7 +809,7 @@ class MessageBoard
                 echo '
             <div id="actions_menu" class="clearfix">
                 <ul>
-                    <li><a class="action" href="messageboard.php?reply=' . (int)$thread_id . '">'.T_('Reply').'</a></li>
+                    <li><a class="action" href="messageboard.php?reply='.$thread_id.'">'.T_('Reply').'</a></li>
                 </ul>
             </div>';
             }
@@ -813,15 +825,18 @@ class MessageBoard
      */
     function displayAdminMenu ($thread, $announcement)
     {
-        $thread = cleanInput($thread, 'int');
+        $thread = (int)$thread;
 
-        if (checkAccess($this->currentUserId) <= 2) {
-
+        if (checkAccess($this->currentUserId) <= 2)
+        {
             $select_options = '<option value=""></option>';
 
-            if ($announcement) {
+            if ($announcement)
+            {
                 $select_options .= '<option value="normal">'.T_('Make Normal Thread').'</option>';
-            } else {
+            }
+            else
+            {
                 $select_options .= '<option value="announcement">'.T_('Make Thread an Announcement').'</option>';
             }
 
@@ -851,7 +866,7 @@ class MessageBoard
      */
     function displayAdminEditSubjectForm ($thread)
     {
-        $thread = cleanInput($thread, 'int');
+        $thread = (int)$thread;
 
         $sql = "SELECT t.`id`, p.`user`, `subject`, `started_by`, `post` 
                 FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
@@ -883,13 +898,13 @@ class MessageBoard
                     <legend><span>'.T_('Edit Thread').'</span></legend>
                     <div>
                         <label for="subject">'.T_('Subject').':</label>
-                        <input class="frm_text" type="text" name="subject" id="subject" size="50" value="'.cleanOutput($subject).'"/>
+                        <input class="frm_text" type="text" name="subject" id="subject" size="50" value="'.cleanOutput($subject, 'html').'"/>
                     </div>
                     <div>
                         <label for="showname">'.T_('Name').':</label>
                         <input type="text" disabled="disabled" name="showname" id="showname" size="50" value="'.cleanOutput($displayname).'"/>
                     </div>
-                    <p><textarea disabled="disabled" name="post" id="post" rows="10" cols="63">' . cleanOutput($row['post']) . '</textarea></p>
+                    <p><textarea disabled="disabled" name="post" id="post" rows="10" cols="63">' . cleanOutput($row['post'], 'html') . '</textarea></p>
                     <p>
                         '.$sticky.'
                         <input type="hidden" name="thread" id="thread" value="'.$thread.'"/>
@@ -910,7 +925,7 @@ class MessageBoard
      */
     function getThreadSubject ($id)
     {
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
 
         $sql = "SELECT `subject`
                 FROM `fcms_board_threads`

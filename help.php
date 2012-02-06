@@ -20,7 +20,7 @@ require 'fcms.php';
 init();
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 
 $TMPL = array(
     'sitename'      => getSiteName(),
@@ -67,6 +67,10 @@ function control ()
         elseif ($topic == 'admin')
         {
             displayAdministration();
+        }
+        else
+        {
+            displayHome();
         }
     }
     else

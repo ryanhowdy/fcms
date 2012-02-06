@@ -21,10 +21,9 @@ load('members', 'database');
 
 init();
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
-$member        = new Members($currentUserId);
+// Globals
+$currentUserId = (int)$_SESSION['login_id'];
 
-// Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
@@ -34,16 +33,41 @@ $TMPL = array(
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
-$TMPL['javascript'] = '
-<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
-$show_all = true;
+control();
+exit();
 
-// Show Header
-require_once getTheme($currentUserId).'header.php';
 
-echo '
-        <div id="members" class="centercontent">
+/**
+ * control 
+ * 
+ * The controlling structure for this script.
+ * 
+ * @return void
+ */
+function control ()
+{
+    displayMembers();
+}
+
+/**
+ * displayHeader 
+ * 
+ * @return void
+ */
+function displayHeader ()
+{
+    global $currentUserId, $TMPL;
+
+    $TMPL['javascript'] = '
+<script type="text/javascript">
+Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });
+</script>';
+
+    include_once getTheme($currentUserId).'header.php';
+
+    echo '
+        <div id="members" class="centercontent clearfix">
             <div id="leftcolumn">
                 <h3>'.T_('Order Members By:').'</h3>
                 <ul class="menu">
@@ -55,13 +79,147 @@ echo '
                 </ul>
             </div>
             <div id="maincolumn">';
+}
 
-$order = isset($_GET['order']) ? $_GET['order'] : 'alphabetical';
-$member->displayAll($order);
+/**
+ * displayFooter 
+ * 
+ * @return void
+ */
+function displayFooter ()
+{
+    global $currentUserId, $TMPL;
 
-echo '
-            </div><!-- #maincolumn -->
-        </div><!-- #members  -->';
+    echo '
+            </div><!-- /maincolumn -->
+        </div><!-- /members -->';
 
-// Show Footer
-require_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($currentUserId).'footer.php';
+}
+
+/**
+ * displayMembers 
+ * 
+ * @return void
+ */
+function displayMembers ()
+{
+    global $currentUserId;
+
+    displayHeader();
+
+    $order = isset($_GET['order']) ? $_GET['order'] : 'alphabetical';
+
+    $tzOffset = getTimezone($currentUserId);
+
+    $validOrderTypes = array(
+        'alphabetical'  => 'ORDER BY u.`fname`',
+        'age'           => 'ORDER BY u.`dob_year`, u.`dob_month`, u.`dob_day`',
+        'participation' => '',
+        'activity'      => 'ORDER BY u.`activity` DESC',
+        'joined'        => 'ORDER BY u.`joindate` DESC',
+    );
+
+    if (!array_key_exists($order, $validOrderTypes))
+    {
+        echo '
+        <div class="error-alert">'.T_('Invalid Order.').'</div>';
+
+        displayFooter();
+        return;
+    }
+
+    $sql = "SELECT u.`id`, u.`activity`, u.`joindate`, u.`fname`, u.`lname`, u.`sex`, 
+                u.`dob_year`, u.`dob_month`, u.`dob_day`, u.`username`, u.`avatar`, u.`gravatar`
+            FROM `fcms_users` AS u
+            WHERE u.`password` != 'NONMEMBER'
+            AND u.`password` != 'PRIVATE'
+            ".$validOrderTypes[$order];
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    while ($row = mysql_fetch_assoc($result))
+    {
+        $row['points'] = getUserParticipationPoints($row['id']);
+
+        $memberData[] = $row;
+    }
+
+    // Sort by participation
+    if ($order == 'participation')
+    {
+        foreach($memberData as $k => $v)
+        {
+            $b[$k] = strtolower($v['points']);
+        }
+
+        asort($b);
+
+        foreach($b as $key => $val)
+        {
+            $c[] = $memberData[$key];
+        }
+
+        $memberData = array_reverse($c);
+    }
+
+    echo '
+        <ul id="memberlist">';
+
+    foreach ($memberData AS $row)
+    {
+        $display = '';
+
+        // Alphabetical
+        if ($order == 'alphabetical')
+        {
+            $display = '('.$row['username'].')';
+        }
+        // Age
+        elseif ($order == 'age')
+        {
+            $age = getAge($row['dob_year'], $row['dob_month'], $row['dob_day']);
+
+            $display = sprintf(T_('%s years old'), $age);
+        }
+        // Participation
+        elseif ($order == 'participation')
+        {
+            $display = $row['points'];
+        }
+        // Last Seen
+        elseif ($order == 'activity')
+        {
+            $display = '';
+
+            if ($row['activity'] != '0000-00-00 00:00:00')
+            {
+                $display = fixDate(T_('M. j, Y'), $tzOffset, $row['activity']);
+            }
+        }
+        // Joined
+        elseif ($order == 'joined')
+        {
+            $display = fixDate(T_('M. j, Y'), $tzOffset, $row['joindate']);
+        }
+
+        // Display members
+        echo '
+                <li>
+                    <a class="avatar" href="profile.php?member='.(int)$row['id'].'">
+                        <img alt="avatar" src="'.getCurrentAvatar($row['id']).'"/>
+                    </a><br/>
+                    <a href="profile.php?member='.(int)$row['id'].'">'.cleanOutput($row['fname']).' '.cleanOutput($row['lname']).'</a><br/>
+                    '.$display.'
+                </li>';
+    }
+
+    echo '
+            </ul>';
+}

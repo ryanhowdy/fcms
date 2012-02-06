@@ -16,6 +16,7 @@ class Calendar
     var $db;
     var $currentUserId;
     var $tzOffset;
+    var $weekStartOffset;
 
     /**
      * Calendar 
@@ -30,9 +31,9 @@ class Calendar
 
         $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($currentUserId, 'int');
-        $this->tzOffset      = getTimezone($this->currentUserId);
-
+        $this->currentUserId   = (int)$currentUserId;
+        $this->tzOffset        = getTimezone($this->currentUserId);
+        $this->weekStartOffset = getCalendarWeekStart();
     }
 
     /**
@@ -49,9 +50,9 @@ class Calendar
      */
     function getEventDays ($month, $year)
     {
-        $month = cleanInput($month, 'int');
+        $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-        $year  = cleanInput($year, 'int');
+        $year  = (int)$year;
 
         $days = array();
 
@@ -132,19 +133,29 @@ class Calendar
             $day   = fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
         }
 
-        $month = cleanInput($month, 'int');
+        $year  = (int)$year;
+        $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-        $year  = cleanInput($year, 'int');
-        $day   = cleanInput($day, 'int');
+        $day   = (int)$day;
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
         $weekDays   = getDayNames();
         $categories = $this->getCategories();
         $eventDays  = $this->getEventDays($month, $year);
         
-        // First day of the month starts on?
+        // First day of the month starts on which day?
         $first = mktime(0,0,0,$month,1,$year);
         $offset = date('w', $first);
+
+        // Fix offset - if day of week changed
+        if ($this->weekStartOffset > 0)
+        {
+            $offset = $offset + (7 - $this->weekStartOffset);
+            if ($offset >= 7)
+            {
+                $offset = $offset - 7;
+            }
+        }
 
         $daysInMonth = date('t', $first);
         
@@ -170,15 +181,9 @@ class Calendar
             <table id="big-calendar" cellpadding="0" cellspacing="0">
                 <tr>
                     <th colspan="2">
-                        <a class="prev" href="?year=' . $pYear . '&amp;month=' . $pMonth . '&amp;day=' . $pDay . '">'
-                            . T_('Previous') .
-                        '</a> 
-                        <a class="today" href="?year=' . $tYear . '&amp;month=' . $tMonth . '&amp;day=' . $tDay . '">'
-                            . T_('Today') . 
-                        '</a> 
-                        <a class="next" href="?year=' . $nYear . '&amp;month=' . $nMonth . '&amp;day=' . $nDay . '">'
-                            . T_('Next') .
-                        '</a>
+                        <a class="prev" href="?year='.$pYear.'&amp;month='.$pMonth.'&amp;day='.$pDay.'">'.T_('Previous').'</a> 
+                        <a class="today" href="?year='.$tYear.'&amp;month='.$tMonth.'&amp;day='.$tDay.'">'.T_('Today').'</a> 
+                        <a class="next" href="?year='.$nYear.'&amp;month='.$nMonth.'&amp;day='.$nDay.'">'.T_('Next').'</a>
                     </th>
                     <th colspan="3"><h3>'.formatDate('F Y', "$year-$month-$day").'</h3></th>
                     <th class="views" colspan="2">
@@ -189,10 +194,10 @@ class Calendar
                 <tr>';
 
         // Weekday names
-        foreach ($weekDays as $wd)
+        for ($w = 0; $w <= 6; $w++)
         {
             echo '
-                    <td class="weekDays">' . $wd . '</td>';
+                    <td class="weekDays">'.$weekDays[($w+$this->weekStartOffset)%7].'</td>';
         }
 
         echo '
@@ -307,10 +312,10 @@ class Calendar
      */
     function displayCalendarDay ($month, $year, $day)
     {
-        $month = cleanInput($month, 'int');
+        $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-        $year  = cleanInput($year, 'int');
-        $day   = cleanInput($day, 'int');
+        $year  = (int)$year;
+        $day   = (int)$day;
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
         $categories = $this->getCategories();
@@ -342,17 +347,11 @@ class Calendar
                 <tr>
                     <th class="header" colspan="2">
                         <div class="navigation">
-                            <a class="prev" href="?year=' . $pYear . '&amp;month=' . $pMonth . '&amp;day=' . $pDay . '&amp;view=day">'
-                                . T_('Previous') .
-                            '</a> 
-                            <a class="today" href="?year=' . $tYear . '&amp;month=' . $tMonth . '&amp;day=' . $tDay . '&amp;view=day">'
-                                . T_('Today') . 
-                            '</a> 
-                            <a class="next" href="?year=' . $nYear . '&amp;month=' . $nMonth . '&amp;day=' . $nDay . '&amp;view=day">'
-                                . T_('Next') .
-                            '</a>
+                            <a class="prev" href="?year='.$pYear.'&amp;month='.$pMonth.'&amp;day='.$pDay.'&amp;view=day">'.T_('Previous').'</a> 
+                            <a class="today" href="?year='.$tYear.'&amp;month='.$tMonth.'&amp;day='.$tDay.'&amp;view=day">'.T_('Today').'</a> 
+                            <a class="next" href="?year='.$nYear.'&amp;month='.$nMonth.'&amp;day='.$nDay.'&amp;view=day">'.T_('Next').'</a>
                         </div>
-                        <h3>' . $header . '</h3>
+                        <h3>'.$header.'</h3>
                         <div class="views">
                             <a class="day" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;view=day">'.T_('Day').'</a> | 
                             <a class="month" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Month').'</a>
@@ -436,7 +435,8 @@ class Calendar
         }
 
         // Get Birthdays
-        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`
+        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`,
+                    `dod_year`, `dod_month`, `dod_day`
                 FROM `fcms_users` 
                 WHERE `dob_month` = '$month'";
 
@@ -450,6 +450,11 @@ class Calendar
         {
             while ($row = $this->db->get_row())
             {
+                if (!empty($row['dod_year']) || !empty($row['dod_month']) || !empty($row['dod_day']))
+                {
+                    continue;
+                }
+
                 $age = getAge($row['dob_year'], $row['dob_month'], $row['dob_day'], "$year-$month-$day");
 
                 $row['id']    = 'birthday'.$row['id'];
@@ -467,14 +472,16 @@ class Calendar
                     <td class="all-day"></td>
                     <td class="time-event-data">';
 
-        foreach($allDayEvents AS $event) {
+        foreach($allDayEvents AS $event)
+        {
+            $id    = (int)$event['id'];
+            $title = cleanOutput($event['title'], 'html');
+            $desc  = cleanOutput($event['desc'], 'html');
+
             echo '
-                        <div class="event">' .
-                            '<a class="' . $event['color'] . '" href="?event=' . $event['id'] . '">' . 
-                                cleanOutput($event['title']) . 
-                                '<span>' . cleanOutput($event['desc']) . '</span>' .
-                            '</a>' .
-                        '</div>';
+                        <div class="event">
+                            <a class="'.$event['color'].'" href="?event='.$id.'">'.$title.'<span>'.$desc.'</span></a>
+                        </div>';
         }
 
         echo '
@@ -484,45 +491,54 @@ class Calendar
 
         // Time Specific Events
         $times   = $this->getTimesList();
-        $curTime = fixDate('Hi', $this->tzOffset, date('Y-m-d H:i:s')) . "00";
+        $curTime = fixDate('Hi', $this->tzOffset, date('Y-m-d H:i:s'))."00";
         
-        foreach($times AS $key => $val) {
-
+        foreach($times AS $key => $val)
+        {
             list($hour, $min, $sec) = explode(':', $key);
 
             // Only show hours
-            if ($min == 30) { continue; }
+            if ($min == 30)
+            {
+                continue;
+            }
 
             $class = '';
             // Show time past, for today only
-            if ($isToday) {
-                if ($curTime > $hour.$min.$sec) {
+            if ($isToday)
+            {
+                if ($curTime > $hour.$min.$sec)
+                {
                     $class = 'past';
                 }
             }
 
             // Shrink hours 12:00am (0) through 7:00am (7)
-            if ($hour < 8) {
-                if ($hour == 0) {
+            if ($hour < 8)
+            {
+                if ($hour == 0)
+                {
                     echo '
                 <tr>
-                    <td class="time ' . $class . '">' . T_('12:00 am - 7:00 am') . '</td>
+                    <td class="time '.$class.'">'.T_('12:00 am - 7:00 am').'</td>
                     <td class="time-event-data">';
                 }
 
                 $this->displayTimeEvents($timeEvents, $hour);
 
-                if ($hour == 7) {
+                if ($hour == 7)
+                {
                     echo '
                     </td>
                 </tr>';
                 }
-
+            }
             // Regular times greater than 7:00am
-            } else {
+            else
+            {
                 echo '
                 <tr>
-                    <td class="time ' . $class . '">' . $val . '</td>
+                    <td class="time '.$class.'">'.$val.'</td>
                     <td class="time-event-data">';
 
                 $this->displayTimeEvents($timeEvents, $hour);
@@ -568,19 +584,29 @@ class Calendar
      */
     function displaySmallCalendar ($month, $year, $day)
     {
-        $month = cleanInput($month, 'int');
+        $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-        $year  = cleanInput($year, 'int');
-        $day   = cleanInput($day, 'int');
+        $year  = (int)$year;
+        $day   = (int)$day;
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
         $weekDays   = getDayInitials();
         $categories = $this->getCategories();
         $eventDays  = $this->getEventDays($month, $year);
         
-        // First day of the month starts on?
+        // First day of the month starts on which day?
         $first = mktime(0,0,0,$month,1,$year);
         $offset = date('w', $first);
+
+        // Fix offset - if day of week changed
+        if ($this->weekStartOffset > 0)
+        {
+            $offset = $offset + (7 - $this->weekStartOffset);
+            if ($offset >= 7)
+            {
+                $offset = $offset - 7;
+            }
+        }
 
         $daysInMonth = date('t', $first);
         
@@ -601,64 +627,86 @@ class Calendar
         $nDay = ($day > date('t', $nextTS)) ? date('t', $nextTS) : $day;
         list($nYear, $nMonth) = explode('-', date('Y-m', $nextTS));
 
+        $formatDate = formatDate('F Y', "$year-$month-$day");
+
         // Display the month
         echo '
             <table id="small-calendar">
                 <tr>
                     <th colspan="7">
-                        <h3><a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'
-                            .formatDate('F Y', "$year-$month-$day").
-                        '</a></h3>
+                        <h3><a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.$formatDate.'</a></h3>
                     </th>
                 </tr>
                 <tr>';
 
         // Weekday names
-        foreach ($weekDays as $wd) {
+        for ($w = 0; $w <= 6; $w++)
+        {
             echo '
-                    <td class="weekDays">' . $wd . '</td>';
+                    <td class="weekDays">'.$weekDays[($w+$this->weekStartOffset)%7].'</td>';
         }
 
         echo '
                 </tr>';
             
-        // Display the days in the month, fill with events
         $i = 0;
-        for ($d = (1 - $offset); $d <= $daysInMonth; $d++) {
-            if ($i % 7 == 0) {
+
+        // Display the days in the month, fill with events
+        for ($d = (1 - $offset); $d <= $daysInMonth; $d++)
+        {
+            if ($i % 7 == 0)
+            {
                 echo '
                 <tr>';
             }
-            if ($d < 1) {
+
+            if ($d < 1)
+            {
                 echo '
                     <td class="nonMonthDay">&nbsp;</td>';
-            } else {
-                if ($d == $day) {
+            }
+            else
+            {
+                if ($d == $day)
+                {
                     echo '
                     <td class="monthToday">';
-                } else {
+                }
+                else
+                {
                     echo '
                     <td class="monthDay">';
                 }
+
                 // display the events for each day
-                if (in_array($d, $eventDays)) {
+                if (in_array($d, $eventDays))
+                {
                     echo '<a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'">'.$d.'</a>';
-                } else {
+                }
+                else
+                {
                     echo $d;
                 }
+
                 // display the day #
                 echo "</td>";
             }
+
             $i++;
+
             // if we have 7 <td> for the current week close the <tr>
-            if ($i % 7 == 0) {
+            if ($i % 7 == 0)
+            {
                 echo '
                 </tr>';
             }
         }
+
         // close any opening <tr> and insert any additional empty <td>
-        if ($i % 7 != 0) {
-            for ($j = 0; $j < (7 - ($i % 7)); $j++) {
+        if ($i % 7 != 0)
+        {
+            for ($j = 0; $j < (7 - ($i % 7)); $j++)
+            {
                 echo '
                     <td class="nonMonthDay">&nbsp;</td>';
             }
@@ -682,9 +730,9 @@ class Calendar
      */
     function displayMonthEvents ($month, $year)
     {
-        $month = cleanInput($month, 'int');
+        $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-        $year  = cleanInput($year, 'int');
+        $year  = (int)$year;
 
         $gm_next   = gmdate('Y-m-d H:i:s', gmmktime(gmdate('h'), gmdate('i'), gmdate('s'), $month+1, 1, $year));
         $nextMonth = fixDate('m', $this->tzOffset, $gm_next);
@@ -717,7 +765,8 @@ class Calendar
         }
 
         // Get birthdays
-        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day` 
+        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`, 
+                    `dod_year`, `dod_month`, `dod_day` 
                 FROM `fcms_users` 
                 WHERE `dob_month` = '$month'";
 
@@ -729,9 +778,14 @@ class Calendar
 
         if ($this->db->count_rows() > 0)
         {
-            while($r = $this->db->get_row())
+            while ($r = $this->db->get_row())
             {
                 if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                {
+                    continue;
+                }
+
+                if (!empty($r['dod_year']) || !empty($r['dod_month']) || !empty($r['dod_day']))
                 {
                     continue;
                 }
@@ -798,10 +852,11 @@ class Calendar
 
                 $title = !empty($row['desc']) ? $row['desc'] : $row['title'];
                 $title = cleanOutput($title);
+                $event = cleanOutput($row['title']);
 
                 echo '
                 <div class="events">
-                    <a title="'.$title.'" href="calendar.php?event='.$row['id'].'">'.cleanOutput($row['title']).'</a><br/>
+                    <a title="'.$title.'" href="calendar.php?event='.$row['id'].'">'.$event.'</a><br/>
                     '.formatDate(T_('M. d'), $row['date']).'
                 </div>';
             }
@@ -820,10 +875,10 @@ class Calendar
      */
     function displayTodaysEvents ($month, $day, $year)
     {
-        $month = cleanInput($month, 'int');
+        $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-        $year  = cleanInput($year, 'int');
-        $day   = cleanInput($day, 'int');
+        $year  = (int)$year;
+        $day   = (int)$day;
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
         // Get events
@@ -848,7 +903,8 @@ class Calendar
         }
 
         // Get birthdays
-        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day` 
+        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`,
+                    `dod_year`, `dod_month`, `dod_day` 
                 FROM `fcms_users` 
                 WHERE `dob_month` = '$month'
                 AND `dob_day` = '$day'";
@@ -861,9 +917,14 @@ class Calendar
 
         if ($this->db->count_rows() > 0)
         {
-            while($r = $this->db->get_row())
+            while ($r = $this->db->get_row())
             {
                 if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                {
+                    continue;
+                }
+
+                if (!empty($r['dod_year']) || !empty($r['dod_month']) || !empty($r['dod_day']))
                 {
                     continue;
                 }
@@ -946,10 +1007,10 @@ class Calendar
      */
     function displayEvents ($month, $day, $year, $showDesc = false)
     {
-        $month = cleanInput($month, 'int');
+        $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-        $year  = cleanInput($year, 'int');
-        $day   = cleanInput($day, 'int');
+        $year  = (int)$year;
+        $day   = (int)$day;
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
         // Get events from fcms_calendar
@@ -1006,7 +1067,8 @@ class Calendar
         }
 
         // Get birthdays
-        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`
+        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`, 
+                    `dod_year`, `dod_month`, `dod_day`
                 FROM `fcms_users` 
                 WHERE `dob_month` = '$month'
                 AND `dob_day` = '$day'";
@@ -1022,6 +1084,11 @@ class Calendar
             while($r = $this->db->get_row())
             {
                 if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                {
+                    continue;
+                }
+
+                if (!empty($r['dod_year']) || !empty($r['dod_month']) || !empty($r['dod_day']))
                 {
                     continue;
                 }
@@ -1063,12 +1130,15 @@ class Calendar
                     // Show The Description
                     if ($showDesc)
                     {
-                        echo '<div class="event">' . 
-                                '<a class="' . $event['color'] . '" href="?event=' . $event['id'] . '">' . 
-                                    cleanOutput($event['title']) . 
-                                    '<span>'. cleanOutput($event['desc']) . '</span>' .
-                                '</a>' .
-                            '</div>';
+                        $id    = (int)$event['id'];
+                        $color = cleanOutput($event['color']);
+                        $title = cleanOutput($event['title']);
+                        $desc  = cleanOutput($event['desc']);
+
+                        echo '
+                            <div class="event">
+                                <a class="'.$color.'" href="?event='.$id.'">'.$title.'<span>'.$desc.'</span></a>
+                            </div>';
                     }
                     // No description
                     else
@@ -1087,7 +1157,13 @@ class Calendar
 
                             $title = $cleanTitle.' : '.$cleanDesc;
 
-                            $tooltipDetails = '<h5 class="highlight">'.$cleanTitle.'</h5><h5>'.$cleanDesc.'</h5>';
+                            $tooltipDesc = $cleanDesc;
+                            if (strlen($tooltipDesc) > 150)
+                            {
+                                $tooltipDesc = substr($tooltipDesc, 0, 147)."...";
+                            }
+
+                            $tooltipDetails = '<h5 class="highlight">'.$cleanTitle.'</h5><h5>'.$tooltipDesc.'</h5>';
                         }
 
                         // event time
@@ -1103,7 +1179,7 @@ class Calendar
                             {
                                 if ($event['time_start'] != $event['time_end'])
                                 {
-                                    $end = ' - ' . $times[$event['time_end']];
+                                    $end = ' - '.$times[$event['time_end']];
 
                                     $tooltipDetails .= $end;
                                 }
@@ -1111,12 +1187,16 @@ class Calendar
                             $tooltipDetails .= '</span>';
                         }
 
-                        echo '<div class="event">' .
-                                '<a class="'.$event['color'].' tooltip" title="'.$start.$end.' '.$title.'" href="?event='.$event['id'].'" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">' .
-                                    '<i>' . $start . '</i> '.$title.
-                                '</a>' .
-                                '<div class="tooltip" style="display:none">'.$tooltipDetails.'</div>' .
-                            '</div>';
+                        $id    = (int)$event['id'];
+                        $color = cleanOutput($event['color']);
+
+                        echo '
+                            <div class="event">
+                                <a class="'.$color.' tooltip" title="'.$start.$end.' '.$title.'" href="?event='.$id.'" 
+                                    onmouseover="showTooltip(this)" 
+                                    onmouseout="hideTooltip(this)"><i>'.$start.'</i> '.$title.'</a>
+                                <div class="tooltip" style="display:none">'.$tooltipDetails.'</div>
+                            </div>';
                     }
                 }
             } // foreach
@@ -1134,15 +1214,17 @@ class Calendar
     function displayAddForm ($addDate)
     {
         // Check Access
-        if (checkAccess($this->currentUserId) > 3) {
+        if (checkAccess($this->currentUserId) > 3)
+        {
             echo '
-            <div class="error-alert">' . T_('You do not have permission to perform this task.') . '</div>';
+            <div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
         }
 
         // Validate date YYYY-MM-DD or YYYY-M-D
-        if (!preg_match('/[0-9]{4}-[0-9]|[0-9]{2}-[0-9]|[0-9]{2}/', $addDate)) {
+        if (!preg_match('/[0-9]{4}-[0-9]|[0-9]{2}-[0-9]|[0-9]{2}/', $addDate))
+        {
             echo '
-            <div class="error-alert">' . T_('Invalid Date') . '</div>';
+            <div class="error-alert">'.T_('Invalid Date').'</div>';
         }
 
         // Format date
@@ -1150,13 +1232,16 @@ class Calendar
 
         // Split date
         list($year, $month, $day) = explode('-', $addDate);
-        for ($i = 1; $i <= 31; $i++) {
+        for ($i = 1; $i <= 31; $i++)
+        {
             $days[$i] = $i;
         }
-        for ($i = 1; $i <= 12; $i++) {
+        for ($i = 1; $i <= 12; $i++)
+        {
             $months[$i] = getMonthAbbr($i);
         }
-        for ($i = 1900; $i <= date('Y')+5; $i++) {
+        for ($i = 1900; $i <= date('Y')+5; $i++)
+        {
             $years[$i] = $i;
         }
 
@@ -1165,13 +1250,13 @@ class Calendar
         list($hour, $min) = explode(':', $defaultTimeStart);
         if ($min > 30)
         {
-            $defaultTimeStart   = ($hour + 1) . ":00:00";
-            $defaultTimeEnd     = ($hour + 1) . ":30:00";
+            $defaultTimeStart   = ($hour + 1).":00:00";
+            $defaultTimeEnd     = ($hour + 1).":30:00";
         }
         else
         {
             $defaultTimeStart   = "$hour:30:00";
-            $defaultTimeEnd     = ($hour + 1) . ":00:00";
+            $defaultTimeEnd     = ($hour + 1).":00:00";
         }
         $times = $this->getTimesList();
 
@@ -1200,7 +1285,7 @@ class Calendar
         echo '
             <form id="frm" method="post" action="calendar.php">
                 <fieldset>
-                    <legend><span>' . $dateTitle . '</span></legend>
+                    <legend><span>'.$dateTitle.'</span></legend>
 
                     <div id="main-cal-info">
                         <div class="field-row clearfix">
@@ -1225,13 +1310,13 @@ class Calendar
                                 <select id="timestart" name="timestart">
                                     '.buildHtmlSelectOptions($times, $defaultTimeStart).'
                                 </select> &nbsp;
-                                ' . T_('through') . ' &nbsp;
+                                '.T_('through').' &nbsp;
                                 <select id="timeend" name="timeend">
                                     '.buildHtmlSelectOptions($times, $defaultTimeEnd).'
                                 </select> &nbsp;
                                 <input id="all-day" name="all-day" type="checkbox" 
                                     onclick="toggleDisable($(\'timestart\'), $(\'timeend\'))"/>
-                                <label for="all-day">' . T_('All Day') . '</label> 
+                                <label for="all-day">'.T_('All Day').'</label> 
                             </div>
                         </div>
                     </div>
@@ -1269,10 +1354,10 @@ class Calendar
                     </div>
 
                     <p>
-                        <input type="hidden" id="date" name="date" value="' . $addDate . '"/> 
+                        <input type="hidden" id="date" name="date" value="'.$addDate.'"/> 
                         <input class="sub1" type="submit" name="add" value="'.T_('Add').'"/> 
-                        ' . T_('or') . '&nbsp;
-                        <a href="calendar.php?year=' . $year . '&amp;month=' . $month . '&amp;day=' . $day . '">' . T_('Cancel') . '</a>
+                        '.T_('or').'&nbsp;
+                        <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Cancel').'</a>
                     </p>
                 </form>
             </fieldset>';
@@ -1288,7 +1373,7 @@ class Calendar
      */
     function displayEditForm ($id)
     {
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
 
         $sql = "SELECT `id`, `date`, `time_start`, `time_end`, `date_added`, 
                     `title`, `desc`, `created_by`, `category`, `repeat`, `private`, `invite`
@@ -1308,7 +1393,7 @@ class Calendar
         if (checkAccess($this->currentUserId) > 1 and $row['created_by'] != $this->currentUserId)
         {
             echo '
-            <div class="error-alert">' . T_('You do not have permission to perform this task.')  . '</div>';
+            <div class="error-alert">'.T_('You do not have permission to perform this task.') .'</div>';
             return;
         }
 
@@ -1338,10 +1423,14 @@ class Calendar
             return;
         }
         $choose = '';
-        while($r = $this->db->get_row()) {
-            if ($r['name'] == '') {
+        while($r = $this->db->get_row())
+        {
+            if ($r['name'] == '')
+            {
                 $choose = '<option value="'.$r['id'].'"></option>';
-            } else {
+            }
+            else
+            {
                 $categories[$r['id']] = $r['name'];
             }
         }
@@ -1354,11 +1443,11 @@ class Calendar
         echo '
             <form id="frm" method="post" action="calendar.php">
                 <fieldset>
-                    <legend><span>' . T_('Edit Event') . '</span></legend>
+                    <legend><span>'.T_('Edit Event').'</span></legend>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="title"><b>'.T_('Event').'</b></label></div>
                         <div class="field-widget">
-                            <input type="text" id="title" name="title" size="40" value="' . $title . '"/>
+                            <input type="text" id="title" name="title" size="40" value="'.$title.'"/>
                             <script type="text/javascript">
                                 var ftitle = new LiveValidation(\'title\', { onlyOnSubmit: true});
                                 ftitle.add(Validate.Presence, {failureMessage: ""});
@@ -1368,7 +1457,7 @@ class Calendar
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="desc"><b>'.T_('Description').'</b></label></div>
                         <div class="field-widget">
-                            <input type="text" id="desc" name="desc" size="50" value="' . $desc . '"/>
+                            <input type="text" id="desc" name="desc" size="50" value="'.$desc.'"/>
                         </div>
                     </div>
                     <div class="field-row clearfix">
@@ -1392,14 +1481,14 @@ class Calendar
                                 <option></option>
                                 '.buildHtmlSelectOptions($times, $row['time_start']).'
                             </select> &nbsp;
-                            ' . T_('through') . ' &nbsp;
+                            '.T_('through').' &nbsp;
                             <select id="timeend" name="timeend">
                                 <option></option>
                                 '.buildHtmlSelectOptions($times, $row['time_end']).'
                             </select> &nbsp;
                             <input id="all-day" named="all-day" type="checkbox" 
-                                onclick="toggleDisable($(\'timestart\'), $(\'timeend\'))" ' . $allDayChk . '/>
-                            <label for="all-day">' . T_('All Day') . '</label> 
+                                onclick="toggleDisable($(\'timestart\'), $(\'timeend\'))" '.$allDayChk.'/>
+                            <label for="all-day">'.T_('All Day').'</label> 
                         </div>
                     </div>
                     <div class="field-row clearfix">
@@ -1426,16 +1515,16 @@ class Calendar
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="invite"><b>'.T_('Invite Guests?').'</b></label></div>
                         <div class="field-widget">
-                            <input type="checkbox" name="invite" id="invite" ' . $inviteChk . '/>
+                            <input type="checkbox" name="invite" id="invite" '.$inviteChk.'/>
                         </div>
                     </div>
 
                     <p>
-                        <input type="hidden" name="id" value="' . $id . '"/>
-                        <input class="sub1" type="submit" name="edit" value="' . T_('Edit') . '"/> 
-                        <input class="sub2" type="submit" id="delcal" name="delete" value="' . T_('Delete') . '"/>
-                        ' . T_('or') . '&nbsp;
-                        <a href="calendar.php?year=' . $year . '&amp;month=' . $month . '&amp;day=' . $day . '">' . T_('Cancel') . '</a>
+                        <input type="hidden" name="id" value="'.$id.'"/>
+                        <input class="sub1" type="submit" name="edit" value="'.T_('Edit').'"/> 
+                        <input class="sub2" type="submit" id="delcal" name="delete" value="'.T_('Delete').'"/>
+                        '.T_('or').'&nbsp;
+                        <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Cancel').'</a>
                     </p>
                 </form>
             </fieldset>';
@@ -1452,14 +1541,14 @@ class Calendar
      */
     function displayEvent ($id)
     {
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
 
         $sql = "SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, c.`title`, 
                     c.`desc`, c.`created_by`, cat.`name` AS category, c.`repeat`, c.`private`,
                     c.`invite`
                 FROM `fcms_calendar` AS c, `fcms_category` AS cat 
                 WHERE c.`id` = '$id' 
-                    AND c.`category` = cat.`id` 
+                AND c.`category` = cat.`id` 
                 LIMIT 1";
 
         if (!$this->db->query($sql))
@@ -1499,23 +1588,23 @@ class Calendar
             // one moment in time
             if ($row['time_start'] == $row['time_end'])
             {
-                $time = '<br/>' . sprintf(T_('beginning at %s'), $times[$row['time_start']]);
+                $time = '<br/>'.sprintf(T_('beginning at %s'), $times[$row['time_start']]);
             }
             // start and end
             else
             {
-                $time = '<br/>' . sprintf(T_('between %s and %s'), $times[$row['time_start']], $times[$row['time_end']]);
+                $time = '<br/>'.sprintf(T_('between %s and %s'), $times[$row['time_start']], $times[$row['time_end']]);
             }
         }
 
         if (!empty($row['category']))
         {
-            $cat = ' <h2>' . $row['category'] . '</h2>';
+            $cat = ' <h2>'.cleanOutput($row['category']).'</h2>';
         }
 
         if (!empty($row['desc']))
         {
-            $desc = '<br/>' . cleanOutput($row['desc']);
+            $desc = '<br/>'.cleanOutput($row['desc']);
         }
 
         // host/created by
@@ -1568,7 +1657,7 @@ class Calendar
      */
     function displayBirthdayEvent ($id)
     {
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
 
         $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`
                 FROM `fcms_users`
@@ -1619,8 +1708,8 @@ class Calendar
             </p>
             <div id="event_details">
                 '.$edit.'
-                <h1>'.$row['fname'].' '.$row['lname'].'</h1>
-                <p id="desc">'.sprintf(T_('%s turns %s today.'), $row['fname'], $age).'</p>
+                <h1>'.cleanOutput($row['fname']).' '.cleanOutput($row['lname']).'</h1>
+                <p id="desc">'.sprintf(T_('%s turns %s today.'), cleanOutput($row['fname']), $age).'</p>
                 <div id="when">
                     <h3>'.T_('When').'</h3>
                     <p><b>'.$date.'</b></p>
@@ -1684,19 +1773,19 @@ class Calendar
             elseif ($r['attending'] == 0)
             {
                 $noCount++;
-                $img = '<img class="avatar" src="themes/images/attend_no.png" alt="'.T_('No').'"/>';
+                $img = '<img class="avatar" src="ui/images/attend_no.png" alt="'.T_('No').'"/>';
                 $comingNo .= "<p>$displayname</p>";
             }
             elseif ($r['attending'] == 1)
             {
                 $yesCount++;
-                $img = '<img class="avatar" src="themes/images/attend_yes.png" alt="'.T_('Yes').'"/>';
+                $img = '<img class="avatar" src="ui/images/attend_yes.png" alt="'.T_('Yes').'"/>';
                 $comingYes .= "<p>$displayname</p>";
             }
             elseif ($r['attending'] > 1)
             {
                 $maybeCount++;
-                $img = '<img class="avatar" src="themes/images/attend_maybe.png" alt="'.T_('Maybe').'"/>';
+                $img = '<img class="avatar" src="ui/images/attend_maybe.png" alt="'.T_('Maybe').'"/>';
                 $comingMaybe .= "<p>$displayname</p>";
             }
 
@@ -1718,21 +1807,21 @@ class Calendar
                 <ul id="attending" class="clearfix">
                     <li>
                         <label for="yes">
-                            <img src="themes/images/attend_yes.png"/><br/>
+                            <img src="ui/images/attend_yes.png"/><br/>
                             <b>'.T_('Yes').'</b>
                         </label>
                         <input type="radio" id="yes" name="attending" value="1"/>
                     </li>
                     <li>
                         <label for="maybe">
-                            <img src="themes/images/attend_maybe.png"/><br/>
+                            <img src="ui/images/attend_maybe.png"/><br/>
                             <b>'.T_('Maybe').'</b>
                         </label>
                         <input type="radio" id="maybe" name="attending" value="2"/>
                     </li>
                     <li>
                         <label for="no">
-                            <img src="themes/images/attend_no.png"/><br/>
+                            <img src="ui/images/attend_no.png"/><br/>
                             <b>'.T_('No').'</b>
                         </label>
                         <input type="radio" id="no" name="attending" value="0"/>
@@ -1796,7 +1885,7 @@ class Calendar
      */
     function displayCategoryForm ($id = 0)
     {
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
 
         $name   = '';
         $none   = '';
@@ -1835,11 +1924,11 @@ class Calendar
         echo '
             <form method="post" action="'.$url.'">
                 <fieldset>
-                    <legend><span>'.$title.'</span></legend>
+                    <legend><span>'.cleanOutput($title).'</span></legend>
                     <div class="field-row clearfix">
                         <div class="field-label"><label for="name"><b>'.T_('Name').'</b></label></div>
                         <div class="field-widget">
-                            <input type="text" id="name" name="name" size="40" value="'.$name.'">
+                            <input type="text" id="name" name="name" size="40" value="'.cleanOutput($name).'">
                             <script type="text/javascript">
                                 var fname = new LiveValidation(\'name\', { onlyOnSubmit: true});
                                 fname.add(Validate.Presence, {failureMessage: ""});
@@ -1859,7 +1948,8 @@ class Calendar
                             <label for="violet" class="colors violet"><input type="radio" '.$violet.' name="colors" id="violet" value="violet"/>'.T_('Violet').'</label>
                         </div>
                     </div>';
-        if ($id > 0) {
+        if ($id > 0)
+        {
             echo '
                     <p>
                         <input type="hidden" id="id" name="id" value="'.$id.'"/> 
@@ -1868,7 +1958,9 @@ class Calendar
                         '.T_('or').' &nbsp;
                         <a href="calendar.php">'.T_('Cancel').'</a>
                     </p>';
-        } else {
+        }
+        else
+        {
             echo '
                     <p>
                         <input class="sub1" type="submit" id="addcat" name="addcat" value="'.T_('Add').'"/>
@@ -1894,7 +1986,7 @@ class Calendar
         // Get List of all categories
         $categories = $this->getCategoryList();
 
-        $cal = "BEGIN:VCALENDAR\nPRODID:-//Family Connections//EN\nVERSION:2.0\n";
+        $cal = "BEGIN:VCALENDAR\r\nPRODID:-//Family Connections//EN\r\nVERSION:2.0\r\n";
         $sql = "SELECT `date`, `date_added`, `title`, `desc`, `repeat`, c.`category`, 
                     CONCAT(`fname`, ' ', `lname`) AS 'organizer', `private`
                 FROM `fcms_calendar` AS c, `fcms_users` AS u 
@@ -1909,27 +2001,28 @@ class Calendar
         {
             while ($r = $this->db->get_row())
             {
-                $cal .= "BEGIN:VEVENT\n";
-                $cal .= "DTSTART:" . date('Ymd', strtotime($r['date'])) . "\n";
-                $cal .= "SUMMARY:" . $r['title'] . "\n";
+                $cal .= "BEGIN:VEVENT\r\n";
+                // datetime must be 20080609T152552Z format
+                $cal .= "DTSTART:".date('Ymd\This\Z', strtotime($r['date']))."\r\n";
+                $cal .= "SUMMARY:".$r['title']."\r\n";
                 // If description is over 30 characters long, do iCal folding technique
                 $desc = $r['desc'];
-                $desc = wordwrap($desc, 30, "\n  ");
-                $cal .= "DESCRIPTION:$desc\n";
+                $desc = wordwrap($desc, 30, "\r\n  ");
+                $cal .= "DESCRIPTION:$desc\r\n";
                 if ($r['private'] > 0) {
-                    $cal .= "CLASS:PRIVATE\n";
+                    $cal .= "CLASS:PRIVATE\r\n";
                 }
                 if ($r['date_added'] != '0000-00-00 00:00:00') {
                     // datetime must be 20080609T152552Z format
-                    $cal .= "CREATED:" . date('Ymd\THis\Z', strtotime($r['date_added'])) . "\n";
+                    $cal .= "CREATED:".date('Ymd\THis\Z', strtotime($r['date_added']))."\r\n";
                 }
                 $category = isset($categories[$r['category']]) ? strtoupper($categories[$r['category']]) : '';
-                $cal .= "CATEGORIES:$category\n";
+                $cal .= "CATEGORIES:$category\r\n";
                 if ($r['repeat'] == 'yearly') {
-                    $cal .= "RRULE:FREQ=YEARLY\n";
+                    $cal .= "RRULE:FREQ=YEARLY\r\n";
                 }
-                $cal .= "ORGANIZER:" . $r['organizer'] . "\n";
-                $cal .= "END:VEVENT\n";
+                $cal .= "ORGANIZER;CN=".$r['organizer']."\r\n";
+                $cal .= "END:VEVENT\r\n";
             }
         } else {
             // Calendar is empty
@@ -1943,28 +2036,35 @@ class Calendar
      * 
      * Imports .iCalendar (.ico) format files into the calendar.
      *
-     * @param   $file
-     * @return  void
+     * @param $file
+     *
+     * @return boolean
      */
     function importCalendar ($file)
     {
         // Read in the file and parse the data to an array or arrays
         $row = file($file);
-        $i = 0;
+
         $foundEvent = false;
-        $events = array();
-        foreach ($row as $r) {
+        $events     = array();
+
+        $i = 0;
+        foreach ($row as $r)
+        {
             $pos = strpos($r, "BEGIN:VEVENT");
-            if ($pos !== false) {
+            if ($pos !== false)
+            {
                 $foundEvent = true;
             }
-            if ($foundEvent === true) {
+            if ($foundEvent === true)
+            {
                 $tag = strpos($r, ":");
                 $name = substr($r, 0, $tag);
                 $events[$i][$name] = substr($r, $tag+1);
             }
             $pos = strpos($r, "END:VEVENT");
-            if ($pos !== false) {
+            if ($pos !== false)
+            {
                 $foundEvent = false;
                 $i++;
             }
@@ -1972,59 +2072,89 @@ class Calendar
 
         
         // Loop through the multidimensional array and insert valid event data into db
-        foreach ($events as $event) {
-            $sql = "INSERT INTO `fcms_calendar` ("
-                    . "`date`, `date_added`, `title`, `desc`, `created_by`, `category`, `private`"
-                    . ") "
-                 . "VALUES (";
+        foreach ($events as $event)
+        {
+            $sql = "INSERT INTO `fcms_calendar` (
+                        `date`, `date_added`, `title`, `desc`, `created_by`, `category`, `private`
+                    ) 
+                    VALUES (";
             // date
-            if (isset($event['DTSTART;VALUE=DATE'])) {
-                $sql .= "'" . date('Y-m-d', strtotime($event['DTSTART;VALUE=DATE'])) . "', ";
-            } elseif (isset($event['DTSTART'])) {
-                $sql .= "'" . date('Y-m-d', strtotime($event['DTSTART'])) . "', ";
-            } else {
+            if (isset($event['DTSTART;VALUE=DATE']))
+            {
+                $sql .= "'".date('Y-m-d', strtotime($event['DTSTART;VALUE=DATE']))."', ";
+            }
+            elseif (isset($event['DTSTART']))
+            {
+                $sql .= "'".date('Y-m-d', strtotime($event['DTSTART']))."', ";
+            }
+            else
+            {
                 $sql .= "'0000-00-00', ";
             }
+
             // date_added
-            if (isset($event['CREATED'])) {
-                $sql .= "'" . date('Y-m-d H:i:s', strtotime($event['CREATED'])) . "', ";
-            } else {
+            if (isset($event['CREATED']))
+            {
+                $sql .= "'".date('Y-m-d H:i:s', strtotime($event['CREATED']))."', ";
+            }
+            else
+            {
                 $sql .= "NOW(), ";
             }
+
             // title
-            $sql .= "'" . addslashes($event['SUMMARY']) . "', ";
+            $sql .= "'".escape_string($event['SUMMARY'])."', ";
+
             // description
-            if (isset($event['DESCRIPTION'])) {
-                $sql .= "'" . addslashes($event['DESCRIPTION']) . "', ";
-            } else {
+            if (isset($event['DESCRIPTION']))
+            {
+                $sql .= "'".escape_string($event['DESCRIPTION'])."', ";
+            }
+            else
+            {
                 $sql .= "NULL, ";
             }
+
             // created_by
-            $sql .= "'" . $this->currentUserId . "', ";
+            $sql .= "'".$this->currentUserId."', ";
+
             // category
-            if (isset($event['CATEGORIES'])) {
-                $sql .= "'" . getCalendarCategory(trim($event['CATEGORIES'])) . "', ";
-            } else {
+            if (isset($event['CATEGORIES']))
+            {
+                $sql .= "'".getCalendarCategory(trim($event['CATEGORIES']))."', ";
+            }
+            else
+            {
                 $sql .= "1, ";
             }
+
             // private
-            if (isset($event['CLASS'])) {
-                if ($event['CLASS'] == 'PRIVATE') {
+            if (isset($event['CLASS']))
+            {
+                if ($event['CLASS'] == 'PRIVATE')
+                {
                     $sql .= "'1'";
-                } else {
+                }
+                else
+                {
                     $sql .= "'0'";
                 }
-            } else {
+            }
+            else
+            {
                 $sql .= "'0'";
             }
+
             $sql .= ")";
 
             if (!$this->db->query($sql))
             {
                 displaySqlError($sql, mysql_error());
-                return;
+                return false;
             }
         }
+
+        return true;
     }
     
     /**
@@ -2108,8 +2238,8 @@ class Calendar
             while ($r = $this->db->get_row())
             {
                 $ret .= '
-                            <li class="cat '.$r['color'].'">
-                                <a title="'.T_('Edit Category').'" href="?category=edit&amp;id='.$r['id'].'">'.cleanOutput($r['name']).'</a>
+                            <li class="cat '.cleanOutput($r['color']).'">
+                                <a title="'.T_('Edit Category').'" href="?category=edit&amp;id='.$r['id'].'">'.cleanOutput($r['name'], 'html').'</a>
                             </li>';
             }
         }
@@ -2134,27 +2264,32 @@ class Calendar
 
         $t = $this->getTimesList();
 
-        if (isset($timeEvents[$hour])) {
-            if (is_array($timeEvents[$hour][0])) {
-                foreach($timeEvents[$hour] AS $event) {
+        if (isset($timeEvents[$hour]))
+        {
+            if (is_array($timeEvents[$hour][0]))
+            {
+                foreach($timeEvents[$hour] AS $event)
+                {
                     echo '
-                        <div class="event">' .
-                            '<a class="' . $event['color'] . '" href="?event=' . $event['id'] . '">' . 
-                                '<i>' . $t[$event['time_start']] . ' - ' . $t[$event['time_end']] . '</i>' .
-                                $event['title'] . 
-                                '<span>' . $event['desc'] . '</span>' .
-                            '</a>' .
-                        '</div>';
+                        <div class="event">
+                            <a class="'.cleanOutput($event['color']).'" href="?event='.$event['id'].'">
+                                <i>'.$t[$event['time_start']].' - '.$t[$event['time_end']].'</i>
+                                '.cleanOutput($event['title'], 'html').'
+                                <span>'.cleanOutput($event['desc'], 'html').'</span>
+                            </a>
+                        </div>';
                 }
-            } else {
+            }
+            else
+            {
                 echo '
-                        <div class="event">' .
-                            '<a class="' . $timeEvents[$hour]['color'] . '" href="?event=' . $timeEvents[$hour]['id'] . '">' . 
-                                '<i>' . $t[$timeEvents[$hour]['time_start']] . '</i>' .
-                                $timeEvents[$hour]['title'] . 
-                                '<span>' . $timeEvents[$hour]['desc'] . '</span>' .
-                            '</a>' .
-                        '</div>';
+                        <div class="event">
+                            <a class="'.$timeEvents[$hour]['color'].'" href="?event='.$timeEvents[$hour]['id'].'">
+                                <i>'.$t[$timeEvents[$hour]['time_start']].'</i>
+                                '.cleanOutput($timeEvents[$hour]['title']).'
+                                <span>'.cleanOutput($timeEvents[$hour]['desc']).'</span>
+                            </a>
+                        </div>';
             }
         }
 
@@ -2170,7 +2305,8 @@ class Calendar
      */
     function getTimesList ($whitespace = true)
     {
-        if ($whitespace) {
+        if ($whitespace)
+        {
             return array(
                 '00:00:00' => '12:00 am',
                 '00:30:00' => '12:30 am',
@@ -2275,5 +2411,4 @@ class Calendar
             '23:30:00' => '11:30pm',
         );
     }
-
-}?>
+}

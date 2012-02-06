@@ -1,18 +1,16 @@
 <?php
 session_start();
 
-include_once('config_inc.php');
-include_once('utils.php');
-include_once('calendar_class.php');
+define('URL_PREFIX', '../');
 
-// Check that the user is logged in
-isLoggedIn();
+require URL_PREFIX.'fcms.php';
+
+load('calendar');
 
 T_bindtextdomain('messages', '.././language');
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
-
-$calendar = new Calendar($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+$currentUserId = (int)$_SESSION['login_id'];
+$calendar      = new Calendar($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -40,14 +38,17 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
 <body onload="window.print();">';
 
 // Use the supplied date, if available
-if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day'])) {
-    $year   = cleanInput($_GET['year'], 'int');
-    $month  = cleanInput($_GET['month'], 'int'); 
+if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day']))
+{
+    $year   = (int)$_GET['year'];
+    $month  = (int)$_GET['month']; 
     $month  = str_pad($month, 2, "0", STR_PAD_LEFT);
-    $day    = cleanInput($_GET['day'], 'int');
+    $day    = (int)$_GET['day'];
     $day    = str_pad($day, 2, "0", STR_PAD_LEFT);
+}
 // get today's date
-} else {
+else
+{
     $year  = fixDate('Y', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
     $month = fixDate('m', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));
     $day   = fixDate('d', $calendar->tz_offset, gmdate('Y-m-d H:i:s'));

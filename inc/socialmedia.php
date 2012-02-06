@@ -263,7 +263,7 @@ function getYouTubeConfigData ()
 {
     if (isset($_SESSION['youtube_key']) && !empty($_SESSION['youtube_key']))
     {
-        return array('youtube_key' => cleanInput($_SESSION['youtube_key']));
+        return array('youtube_key' => $_SESSION['youtube_key']);
     }
 
     $sql = "SELECT `name`, `value`
@@ -286,7 +286,7 @@ function getYouTubeConfigData ()
 
     $row = array();
 
-    $_SESSION['youtube_key'] = cleanInput($r['value']);
+    $_SESSION['youtube_key'] = $r['value'];
 
     $row[$r['name']] = $_SESSION['youtube_key'];
 

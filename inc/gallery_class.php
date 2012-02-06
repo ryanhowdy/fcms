@@ -281,8 +281,8 @@ class PhotoGallery
      */
     function showPhoto ($uid, $cid, $pid)
     {
-        $uid = cleanInput($uid, 'int');
-        $pid = cleanInput($pid, 'int');
+        $uid = (int)$uid;
+        $pid = (int)$pid;
 
         list($breadcrumbs, $cid, $urlcid, $sql) = $this->getShowPhotoParams($uid, $cid);
 
@@ -506,11 +506,11 @@ class PhotoGallery
                     '.$caption.'
                     <ul class="star-rating small-star">
                         <li class="current-rating" style="width:'.$width.'%">'.sprintf(T_('Currently %s/5 Starts'), $r['rating']).'</li>
-                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=1" title="'.T_('1 out of 5 Stars').'" class="one-star">1</a></li>
-                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=2" title="'.T_('2 out of 5 Stars').'" class="two-stars">2</a></li>
-                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=3" title="'.T_('3 out of 5 Stars').'" class="three-stars">3</a></li>
-                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=4" title="'.T_('4 out of 5 Stars').'" class="four-stars">4</a></li>
-                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=5" title="'.T_('5 out of 5 Stars').'" class="five-stars">5</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=1" title="'.sprintf(T_('%s out of 5 Stars', '1'), '1').'" class="one-star">1</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=2" title="'.sprintf(T_('%s out of 5 Stars', '2'), '2').'" class="two-stars">2</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=3" title="'.sprintf(T_('%s out of 5 Stars', '3'), '3').'" class="three-stars">3</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=4" title="'.sprintf(T_('%s out of 5 Stars', '4'), '4').'" class="four-stars">4</a></li>
+                        <li><a href="?uid='.$r['uid'].'&amp;cid='.$r['cid'].'&amp;pid='.$pid.'&amp;vote=5" title="'.sprintf(T_('%s out of 5 Stars', '5'), '5').'" class="five-stars">5</a></li>
                     </ul>
                 </div>
 
@@ -570,12 +570,12 @@ class PhotoGallery
 
                     if ($this->currentUserId == $row['user'] || checkAccess($this->currentUserId) < 2)
                     {
-                        $del_comment .= '<input type="submit" name="delcom" id="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this Comment').'"/>';
+                        $del_comment .= '<input type="submit" name="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this Comment').'"/>';
                     }
 
                     echo '
             <div id="comment'.$row['id'].'" class="comment_block clearfix">
-                <form class="delcom" action="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'" method="post">
+                <form action="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'" method="post">
                     '.$del_comment.'
                     <img class="avatar" alt="avatar" src="'.getCurrentAvatar($row['user'], true).'"/>
                     <b>'.$displayname.'</b>
@@ -583,6 +583,9 @@ class PhotoGallery
                     <p>
                         '.parse($comment, '../').'
                     </p>
+                    <input type="hidden" name="uid" value="'.$uid.'"/>
+                    <input type="hidden" name="cid" value="'.$cid.'"/>
+                    <input type="hidden" name="pid" value="'.$pid.'"/>
                     <input type="hidden" name="id" value="'.$row['id'].'">
                 </form>
             </div>';
@@ -734,7 +737,7 @@ class PhotoGallery
     function getPhotoPath ($filename, $uid)
     {
         $filename = basename($filename);
-        $uid      = cleanInput($uid, 'int');
+        $uid      = (int)$uid;
 
         // Link to the full sized photo if using full sized
         $sql = "SELECT `value` AS 'full_size_photos'
@@ -792,13 +795,15 @@ class PhotoGallery
      */
     function showCategories ($page, $uid, $cid = null)
     {
-        if (!ctype_digit($uid))
+        if (!is_numeric($uid))
         {
             echo '
             <div class="info-alert">
                 <h2>'.T_('Uh Oh!').'</h2>
                 <p>'.T_('The category you are trying to view doesn\'t exist.').'</p>
             </div>';
+
+            return;
         }
 
         // Top Rated
@@ -922,8 +927,8 @@ class PhotoGallery
             $filename    = basename($row['filename']);
             $caption     = cleanOutput($row['caption']);
             $comment     = cleanOutput($row['comment']);
-            $pid         = cleanInput($row['pid'], 'int');
-            $uid         = cleanInput($row['uid'], 'int');
+            $pid         = (int)$row['pid'];
+            $uid         = (int)$row['uid'];
 
             echo '
                 <li class="category">
@@ -1079,7 +1084,7 @@ class PhotoGallery
         while ($row = $this->db->get_row())
         {
             $category = cleanOutput($row['category']);
-            $cid      = cleanInput($row['cid'], 'int');
+            $cid      = (int)$row['cid'];
             $filename = basename($row['filename']);
             $alt      = 'alt="'.sprintf(T_('View Photos in %s'), $category).'"';
             $title    = 'title="'.sprintf(T_('View Photos in %s'), $category).'"';
@@ -1152,7 +1157,7 @@ class PhotoGallery
             $filename    = basename($row['filename']);
             $description = cleanOutput($row['description']);
             $caption     = cleanOutput($row['caption']);
-            $pid         = cleanInput($row['pid'], 'int');
+            $pid         = (int)$row['pid'];
             $alt         = 'alt="'.$caption.'"';
             $title       = 'title="'.$caption.'"';
 
@@ -1275,9 +1280,9 @@ class PhotoGallery
         while ($row = $this->db->get_row())
         {
             $filename = basename($row['filename']);
-            $user     = cleanInput($row['uid'], 'int');
-            $cid      = cleanInput($row['category'], 'int');
-            $pid      = cleanInput($row['pid'], 'int');
+            $user     = (int)$row['uid'];
+            $cid      = (int)$row['category'];
+            $pid      = (int)$row['pid'];
             $url      = 'index.php?uid='.$uid.'&amp;cid=toprated'.$cid.'&amp;pid='.$pid;
             $width    = ($row['r'] / 5) * 100;
             $caption  = cleanOutput($row['caption']);
@@ -1365,10 +1370,10 @@ class PhotoGallery
         while ($row = $this->db->get_row())
         {
             $filename = basename($row['filename']);
-            $user     = cleanInput($row['uid'], 'int');
-            $pid      = cleanInput($row['pid'], 'int');
+            $user     = (int)$row['uid'];
+            $pid      = (int)$row['pid'];
             $caption  = cleanOutput($row['caption']);
-            $views    = cleanInput($row['views'], 'int');
+            $views    = (int)$row['views'];
 
             echo '
                 <li class="category">
@@ -1432,8 +1437,8 @@ class PhotoGallery
         while ($row = $this->db->get_row())
         {
             $filename = basename($row['filename']);
-            $uid      = cleanInput($row['uid']);
-            $pid      = cleanInput($row['pid']);
+            $uid      = (int)$row['uid'];
+            $pid      = (int)$row['pid'];
             $urlPage  = '?uid=0&amp;cid='.$userId;
             $caption  = cleanOutput($row['caption']);
 
@@ -1487,6 +1492,8 @@ class PhotoGallery
                 <h2>'.T_('Oops!').'</h2>
                 <p>'.T_('The Category you are trying to view is Empty.').'</p>
             </div>';
+
+            return;
         }
 
         $userName = getUserDisplayName($userId);
@@ -1498,7 +1505,7 @@ class PhotoGallery
         while ($row = $this->db->get_row())
         {
             $filename = basename($row['filename']);
-            $pid      = cleanInput($row['pid']);
+            $pid      = (int)$row['pid'];
             $urlPage  = '?uid='.$userId.'&amp;cid=all';
             $caption  = cleanOutput($row['caption']);
 
@@ -1664,7 +1671,7 @@ class PhotoGallery
                 <p class="alignright">
                     <a class="help" href="../help.php#gallery-howworks">'.T_('Help').'</a>
                 </p>
-                <script type="text/javascript" src="../inc/js/scriptaculous.js"></script>
+                <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
                 <form id="autocomplete_form" enctype="multipart/form-data" action="?action=upload" method="post">
                     <div class="field-row clearfix">
                         <div class="field-label"><label><b>'.T_('Category').'</b></label></div>
@@ -1798,7 +1805,7 @@ class PhotoGallery
                     <br/>
                     <applet name="jumpLoaderApplet"
                         code="jmaster.jumploader.app.JumpLoaderApplet.class"
-                        archive="../inc/jumploader_z.jar"
+                        archive="../inc/thirdparty/jumploader_z.jar"
                         width="540"
                         height="300"
                         mayscript>
@@ -1861,7 +1868,7 @@ class PhotoGallery
      */
     function displayEditPhotoForm ($photo, $url = '')
     {
-        $photo = cleanInput($photo, 'int');
+        $photo = (int)$photo;
 
         $sql = "SELECT p.`user`, `filename`, `caption`, `name`, c.`id` AS category_id
                 FROM `fcms_gallery_photos` AS p, `fcms_category` AS c 
@@ -1876,7 +1883,7 @@ class PhotoGallery
         if ($this->db->count_rows() > 0)
         {
             $row        = $this->db->get_row();
-            $photo_user = cleanInput($row['user'], 'int');
+            $photo_user = (int)$row['user'];
             $filename   = basename($row['filename']);
             $caption    = cleanOutput($row['caption']);
             $cat_name   = cleanOutput($row['name']);
@@ -2000,7 +2007,7 @@ class PhotoGallery
             // Display the form
             echo '
                 <fieldset>
-                    <script type="text/javascript" src="../inc/js/scriptaculous.js"></script>
+                    <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
                     <legend><span>'.T_('Edit Photo').'</span></legend>
                     <img class="thumbnail" src="../uploads/photos/member'.$photo_user.'/tb_'.$filename.'"/>
                     <form id="autocomplete_form" enctype="multipart/form-data" action="index.php?'.$url.'" method="post">
@@ -2108,7 +2115,7 @@ class PhotoGallery
 
         // Display the form
         echo '
-                <script type="text/javascript" src="../inc/js/scriptaculous.js"></script>
+                <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
                 <form id="autocomplete_form" action="index.php?action=advanced" method="post">
                     <fieldset>
                         <legend><span>'.T_('Edit Photos').'</span></legend>';
@@ -2433,12 +2440,13 @@ class PhotoGallery
      */
     function getUserCategories ($userid = 0)
     {
-        if ($userid == 0) {
+        if ($userid == 0)
+        {
             $userid = $this->currentUserId;
         }
 
         $sql = "SELECT `id`, `name` FROM `fcms_category` 
-                WHERE `user` = '".cleanInput($userid, 'int')."'
+                WHERE `user` = '".(int)$userid."'
                 AND `type` = 'gallery'
                 ORDER BY `id` DESC";
         if (!$this->db->query($sql))
@@ -2478,162 +2486,6 @@ class PhotoGallery
     }
 
     /**
-     * displayAdminDeleteCategories
-     * 
-     * Displays the Admin options to edit/delete categories
-     * 
-     * @param int $page 
-     *
-     * @return  void
-     */
-    function displayAdminDeleteCategories ($page)
-    {
-        $perPage = 10;
-        $from = ($page * $perPage) - $perPage;
-
-        $sql = "SELECT * 
-                FROM (
-                    SELECT p.`id`, p.`date`, p.`filename`, c.`name`, p.`user`, p.`category`
-                    FROM `fcms_gallery_photos` AS p, `fcms_category` AS c
-                    WHERE p.`category` = c.`id`
-                    ORDER BY `date` DESC
-                ) AS sub
-                GROUP BY `category`
-                ORDER BY `date` DESC 
-                LIMIT $from, $perPage";
-        if (!$this->db->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        if ($this->db->count_rows() <= 0) {
-            echo '
-            <p class="info-alert">'.T_('No photos have been added yet.').'</p>';
-            return;
-        }
-
-        echo '
-            <form id="check_all_form" name="check_all_form" action="gallery.php" method="post">
-                <ul class="photos clearfix">';
-
-        while ($row = $this->db->get_row())
-        {
-            $count = $this->getCategoryPhotoCount($row['category']);
-            echo '
-                    <li class="tag_photo">
-                        <p>
-                            <b>'.$row['name'].'</b><br/>
-                            <i>'.sprintf(T_('%d photos'), $count).'</i>
-                        </p>
-                        <label for="'.$row['category'].'">
-                            <span></span>
-                            <img src="../uploads/photos/member'.$row['user'].'/tb_'.basename($row['filename']).'" 
-                                alt="'.cleanOutput($row['name']).'"/>
-                        </label>
-                        <input type="checkbox" id="'.$row['category'].'" name="bulk_actions[]" value="'.$row['category'].'"/>
-                        <p>
-                            <a href="?edit='.$row['category'].'">'.T_('Edit').'</a>
-                        </p>
-                    </li>';
-
-        }
-
-        echo '
-                </ul>
-                <p><input type="submit" class="sub1" id="deleteAll" name="deleteAll" value="'.T_('Delete All').'"/></p>
-            </form>';
-
-        // Pagination
-
-        // Remove the LIMIT from the $sql statement 
-        // used above, so we can get the total count
-        $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
-        if (!$this->db->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        $count       = $this->db->count_rows();
-        $total_pages = ceil($count / $perPage); 
-
-        displayPages("gallery.php", $page, $total_pages);
-    }
-
-    /**
-     * displayAdminDeletePhotos
-     * 
-     * Displays the Admin options to edit/delete photos from a specific category
-     * 
-     * @param int $id 
-     *
-     * @return  void
-     */
-    function displayAdminDeletePhotos ($id)
-    {
-        $id = cleanInput($id, 'int');
-
-        $sql = "SELECT p.`id`, p.`date`, p.`filename`, c.`name` AS category, p.`user`, p.`caption`, p.`views`
-                FROM `fcms_gallery_photos` AS p, `fcms_category` AS c
-                WHERE p.`category` = '$id'
-                AND p.`category` = c.`id`";
-        if (!$this->db->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        if ($this->db->count_rows() <= 0) {
-            echo '
-            <p class="info-alert">'.T_('This category contains no photos.').'</p>';
-            return;
-        }
-
-        $this->displayAdminMenu();
-
-        echo '
-            <form id="check_all_form" name="check_all_form" action="gallery.php?edit='.$id.'" method="post">
-                <ul class="photos clearfix">';
-
-        while ($row = $this->db->get_row())
-        {
-            echo '
-                    <li class="tag_photo">
-                        <label for="'.$row['id'].'">
-                            <span></span>
-                            <img src="../uploads/photos/member'.$row['user'].'/tb_'.basename($row['filename']).'" 
-                                alt="'.cleanOutput($row['caption']).'"/>
-                        </label>
-                        <input type="checkbox" id="'.$row['id'].'" name="bulk_actions[]" value="'.$row['id'].'"/>
-                    </li>';
-        }
-
-        echo '
-                </ul>
-                <p style="text-align: right">
-                    <input type="submit" class="sub1" id="deleteAllPhotos" 
-                        name="deleteAllPhotos" value="'.T_('Delete Selected').'"/>
-                </p>
-            </form>';
-    }
-
-    /**
-     * displayAdminMenu 
-     * 
-     * @return  void
-     */
-    function displayAdminMenu ()
-    {
-        echo '
-            <div class="clearfix" id="sections_menu">
-                <ul>
-                    <li><a href="gallery.php">'.T_('Categories').'</a></li>
-                </ul>
-            </div>';
-    }
-
-    /**
      * getCategoryPhotoCount 
      * 
      * @param int $id 
@@ -2642,7 +2494,7 @@ class PhotoGallery
      */
     function getCategoryPhotoCount ($id)
     {
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
 
         $sql = "SELECT COUNT(`id`) AS count
                 FROM `fcms_gallery_photos`
@@ -2664,7 +2516,7 @@ class PhotoGallery
      */
     function getPhotoInfo ($id)
     {
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
 
         $sql = "SELECT *
                 FROM `fcms_gallery_photos`
@@ -2867,7 +2719,7 @@ class PhotoGallery
 
         // Display the form
         echo '
-                <script type="text/javascript" src="../inc/js/scriptaculous.js"></script>
+                <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
                 <form id="autocomplete_form" action="index.php?uid='.$user.'&amp;cid='.$category.'" method="post">
                     <fieldset>
                         <legend><span>'.T_('Tag Members In Photos').'</span></legend>';
@@ -3057,7 +2909,7 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
-            $id          = cleanInput($row['id'], 'int');
+            $id          = (int)$row['id'];
             $displayname = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
             $avatarPath  = getAvatarPath($row['avatar'], $row['gravatar'], '../');
 

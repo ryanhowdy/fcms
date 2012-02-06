@@ -65,6 +65,11 @@ runJob();
 
 switch ($jobType)
 {
+    case 'awards':
+
+        runAwardsJob();
+        break;
+
     case 'familynews':
 
         runFamilyNewsJob();

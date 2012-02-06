@@ -45,11 +45,11 @@ function getTheme ($userid = 0)
 {
     if (empty($userid))
     {
-        return ROOT."themes/default/";
+        return UI."themes/default/";
     }
     else
     {
-        $userid = cleanInput($userid, 'int');
+        $userid = (int)$userid;
 
         $sql = "SELECT `theme` 
                 FROM `fcms_user_settings` 
@@ -59,7 +59,7 @@ function getTheme ($userid = 0)
         if (!$result)
         {
             displaySqlError($sql, mysql_error());
-            return ROOT."themes/default/";
+            return UI."themes/default/";
         }
 
         $r = mysql_fetch_array($result);
@@ -69,13 +69,54 @@ function getTheme ($userid = 0)
 
         if ($pos === false)
         {
-            return ROOT."themes/".basename($r['theme'])."/";
+            return UI."themes/".basename($r['theme'])."/";
         }
         else
         {
-            return ROOT."themes/".substr($r['theme'], 0, $pos)."/";
+            return UI."themes/".substr($r['theme'], 0, $pos)."/";
         }
     }
+}
+
+/**
+ * getThemeList 
+ * 
+ * Returns an array of available themes.
+ * 
+ * @return array
+ */
+function getThemeList ()
+{
+    $dir = THEMES;
+
+    $themes = array();
+
+    if (is_dir($dir))
+    {
+        if ($dh = opendir($dir))
+        {
+            while (($file = readdir($dh)) !== false)
+            {
+                // Skip files
+                if (filetype($dir.$file) !== "dir")
+                {
+                    continue;
+                }
+                // Skip directories that start with a period
+                if ($file[0] === '.')
+                {
+                    continue;
+                }
+
+                $themes[] = $file;
+            }
+
+            closedir($dh);
+            sort($themes);
+        }
+    }
+
+    return $themes;
 }
 
 /*
@@ -91,7 +132,7 @@ function getTheme ($userid = 0)
  */
 function getUserDisplayName ($userid, $display = 0, $isMember = true)
 {
-    $userid = cleanInput($userid, 'int');
+    $userid = (int)$userid;
 
     if ($isMember)
     {
@@ -168,7 +209,46 @@ function getPMCount ()
     {
         $sql = "SELECT * FROM `fcms_privatemsg` 
                 WHERE `read` < 1 
-                AND `to` = '" . cleanInput($_SESSION['login_id'], 'int') . "'";
+                AND `to` = '".(int)$_SESSION['login_id']."'";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            return '';
+        }
+
+        $count = mysql_num_rows($result);
+    }
+
+    if ($count > 0)
+    {
+        return " ($count)";
+    }
+
+    return '';
+}
+
+/**
+ * getNotificationCount 
+ *
+ * Returns a string consisting of the user's unread notification count in ()'s
+ * 
+ * @return  string
+ */
+function getNotificationCount ()
+{
+    // Count was calculated during getUserNotifications()
+    if (isset($_SESSION['notifications']))
+    {
+        $count = $_SESSION['notifications'];
+    }
+    else
+    {
+        $sql = "SELECT `id` FROM `fcms_notification` 
+                WHERE `read` < 1 
+                AND `user` = '".(int)$_SESSION['login_id']."'
+                AND `created_id` != '".(int)$_SESSION['login_id']."'";
 
         $result = mysql_query($sql);
         if (!$result)
@@ -196,7 +276,7 @@ function getPMCount ()
  */
 function getUserEmail ($userid)
 {
-    $userid = cleanInput($userid, 'int');
+    $userid = (int)$userid;
 
     $sql = "SELECT `email`
             FROM `fcms_users`
@@ -237,7 +317,7 @@ function getDefaultNavUrl ()
 
     $r = mysql_fetch_assoc($result);
 
-    return getSectionUrl($r['link']);
+    return getPluginUrl($r['link']);
 }
 
 /**
@@ -253,29 +333,25 @@ function getDefaultNavUrl ()
  *        - Profile
  *        - Settings
  *        - Private Messages
+ *        - Notifications
  *      Communicate
  *        - Message Board
  *        - Family News
  *        - Prayer Concerns
  *      Share
  *        - Photo Gallery
+ *        - Video Gallery
  *        - Address Book 
  *        - Calendar
  *        - Recipes
  *        - Family Tree
  *        - Documents
+ *        - Where Is Everyone
  *      Misc.
  *        - Members
  *        - Contact Webmaster
  *        - Help
  *      Administration
- *        - Upgrade
- *        - Configuration
- *        - Members
- *        - Photo Gallery
- *        - Where Is Everyone
- *        - Polls
- *        - Awards
  * 
  * @return  array
  */
@@ -286,7 +362,9 @@ function getNavLinks ()
     $sql = "SELECT `link`, `col`
             FROM `fcms_navigation` 
             WHERE `order` != 0 
+            AND `col` != 6
             ORDER BY `col`, `order`";
+
     $result = mysql_query($sql);
     if (!$result)
     {
@@ -294,27 +372,11 @@ function getNavLinks ()
         return $ret;
     }
 
-    $currentUserId = cleanInput($_SESSION['login_id'], 'int');
+    $currentUserId = (int)$_SESSION['login_id'];
 
-    $access = checkAccess($currentUserId);
-
+    // Add links
     while ($r = mysql_fetch_array($result))
     {
-        // Skip the entire admin column for members and lower
-        if ($r['col'] == 6 && $access > 2)
-        {
-            continue;
-        }
-
-        // Helpers can not see all admin pages
-        if ($access == 2)
-        {
-            if ($r['link'] == 'admin_upgrade' || $r['link'] == 'admin_configuration' || $r['link'] == 'admin_members' ||  $r['link'] == 'admin_photogallery')
-            {
-                continue;
-            }
-        }
-
         $ret['my-stuff'] = T_('My Stuff');
 
         // Notifications
@@ -325,8 +387,17 @@ function getNavLinks ()
         }
 
         $ret[$r['col']][] = array(
-            'url'   => getSectionUrl($r['link']),
-            'text'  => getSectionName($r['link']),
+            'url'   => getPluginUrl($r['link']),
+            'text'  => getPluginName($r['link']),
+        ); 
+    }
+
+    // Add admin
+    if (checkAccess($currentUserId) <= 2)
+    {
+        $ret[6][] = array(
+            'url'   => 'index.php',
+            'text'  => T_('Administration')
         ); 
     }
 
@@ -334,14 +405,45 @@ function getNavLinks ()
 }
 
 /**
- * getSectionName 
+ * getAdminNavLinks 
+ * 
+ * @return void
+ */
+function getAdminNavLinks ()
+{
+    $ret = array();
+
+    $sql = "SELECT `link`, `col`
+            FROM `fcms_navigation` 
+            WHERE `col` = 6
+            ORDER BY `order`";
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return $ret;
+    }
+
+    while ($r = mysql_fetch_array($result))
+    {
+        $ret[$r['link']] = array(
+            'url'   => getPluginUrl($r['link']),
+            'text'  => getPluginName($r['link']),
+        ); 
+    }
+
+    return $ret;
+}
+
+/**
+ * getPluginName 
  *
  * Given the name of the section from the db, returns the translated text
  * 
  * @param   string  $section 
  * @return  string
  */
-function getSectionName ($section)
+function getPluginName ($section)
 {
     switch ($section) {
         case 'admin_awards':
@@ -407,6 +509,9 @@ function getSectionName ($section)
         case 'members':
             return T_('Members');
             break;
+        case 'notification':
+            return T_('Notifications').getNotificationCount();
+            break;
         case 'photogallery':
             return T_('Photo Gallery');
             break;
@@ -441,14 +546,14 @@ function getSectionName ($section)
 }
 
 /**
- * getSectionUrl 
+ * getPluginUrl 
  *
  * Given the name of the section from the db, returns the url for that section
  * 
  * @param   string  $section 
  * @return  string
  */
-function getSectionUrl ($section)
+function getPluginUrl ($section)
 {
     switch ($section) {
         case 'admin_awards':
@@ -514,6 +619,9 @@ function getSectionUrl ($section)
         case 'members':
             return 'members.php';
             break;
+        case 'notification':
+            return 'notifications.php';
+            break;
         case 'photogallery':
             return 'gallery/index.php';
             break;
@@ -548,6 +656,113 @@ function getSectionUrl ($section)
 }
 
 /**
+ * getPluginDescription
+ *
+ * Given the name of the plugin from the db, returns the description.
+ * 
+ * @param string$plugin 
+ * 
+ * @return  string
+ */
+function getPluginDescription ($plugin)
+{
+    switch ($plugin) {
+        case 'admin_awards':
+            return T_('Awards');
+            break;
+        case 'admin_configuration':
+            return T_('Configuration');
+            break;
+        case 'admin_facebook':
+            return T_('Facebook');
+            break;
+        case 'admin_foursquare':
+            return T_('Foursquare');
+            break;
+        case 'admin_members':
+            return T_('Members');
+            break;
+        case 'admin_photogallery':
+            return T_('Photo Gallery');
+            break;
+        case 'admin_polls':
+            return T_('Polls');
+            break;
+        case 'admin_scheduler':
+            return T_('Scheduler');
+            break;
+        case 'admin_upgrade':
+            return T_('Upgrade');
+            break;
+        case 'admin_vimeo':
+            return T_('Vimeo');
+            break;
+        case 'admin_whereiseveryone':
+            return T_('Foursquare');
+            break;
+        case 'admin_youtube':
+            return T_('YouTube');
+            break;
+        case 'addressbook':
+            return T_('Allows members to share Address information.');
+            break;
+        case 'calendar':
+            return T_('Allows members to share events and send invitations.');
+            break;
+        case 'chat':
+            return T_('Chat');
+            break;
+        case 'contact':
+            return T_('Contact Webmaster');
+            break;
+        case 'documents':
+            return T_('Allows members to share files.');
+            break;
+        case 'familynews':
+            return T_('Allows members to create a family blog.');
+            break;
+        case 'help':
+            return T_('Help');
+            break;
+        case 'messageboard':
+            return T_('Allows members to communicate with each other.');
+            break;
+        case 'members':
+            return T_('Members');
+            break;
+        case 'photogallery':
+            return T_('Allows members to share photos.');
+            break;
+        case 'prayers':
+            return T_('Allows members to share prayer concerns.');
+            break;
+        case 'profile':
+            return T_('Profile');
+            break;
+        case 'pm':
+            return T_('Private Messages');
+            break;
+        case 'recipes':
+            return T_('Allows members to share recipes.');
+            break;
+        case 'settings':
+            return T_('Settings');
+            break;
+        case 'tree':
+            return T_('Allows members to create a family tree.');
+            break;
+        case 'videogallery':
+            return T_('Allows members to share videos.');
+            break;
+        case 'whereiseveryone':
+            return T_('Allows members to share Foursquare checkins.');
+            break;
+        default:
+            return 'error';
+            break;
+    }
+}
+/**
  * getUserNotifications 
  * 
  * @param int $userId 
@@ -561,13 +776,14 @@ function getUserNotifications ($userId)
     $_SESSION['private_messages'] = $notifications;
 
     // Private Messages
-    $sql = "SELECT * FROM `fcms_privatemsg` 
+    $sql = "SELECT `id` FROM `fcms_privatemsg` 
             WHERE `read` < 1 
             AND `to` = '$userId'";
 
     $result = mysql_query($sql);
     if (!$result)
     {
+        logError(__FILE__.' ['.__LINE__.'] Could not get pm notifications.');
         return false;
     }
 
@@ -576,6 +792,28 @@ function getUserNotifications ($userId)
         $notifications += mysql_num_rows($result);
 
         $_SESSION['private_messages'] = $notifications;
+    }
+
+    // Tagged notifications
+    $sql = "SELECT `id` FROM `fcms_notification` 
+            WHERE `read` < 1 
+            AND `user` = '$userId'
+            AND `created_id` != '$userId'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        logError(__FILE__.' ['.__LINE__.'] Could not get tagged notifications.');
+        return false;
+    }
+
+    if (mysql_num_rows($result) > 0)
+    {
+        $tagged = mysql_num_rows($result);
+
+        $notifications += $tagged;
+
+        $_SESSION['notifications'] = $tagged;
     }
 
     return $notifications;
@@ -590,7 +828,7 @@ function getUserNotifications ($userId)
  */
 function displayNewPM ($userid)
 {
-    $userid = cleanInput($userid, 'int');
+    $userid = (int)$userid;
 
     $sql = "SELECT `id` 
             FROM `fcms_privatemsg` 
@@ -623,7 +861,7 @@ function displayNewPM ($userid)
  */
 function checkAccess ($userid)
 {
-    $userid = cleanInput($userid, 'int');
+    $userid = (int)$userid;
 
     $sql = "SELECT `access` 
             FROM `fcms_users` 
@@ -847,7 +1085,7 @@ function parse_smilies ($data)
     {
         $data = str_replace(
             $smiley_array[$i], 
-            '<img src="'.URL_PREFIX.'themes/smileys/'.$smiley_file_array[$i].'" alt="'.$smiley_array[$i].'"/>', 
+            '<img src="'.URL_PREFIX.'ui/smileys/'.$smiley_file_array[$i].'" alt="'.$smiley_array[$i].'"/>', 
             $data
         );
 
@@ -898,7 +1136,7 @@ function displaySmileys ()
     $previous_smiley_file = '';
     foreach ($smiley_array as $smiley) {
         if ($smiley_file_array[$i] != $previous_smiley_file) {
-            echo '<div class="smiley"><img src="../themes/smileys/' . $smiley_file_array[$i] . '" alt="' . $smiley . '" onclick="return addSmiley(\''.str_replace("'", "\'", $smiley).'\')" /></div>';
+            echo '<div class="smiley"><img src="../ui/smileys/' . $smiley_file_array[$i] . '" alt="' . $smiley . '" onclick="return addSmiley(\''.str_replace("'", "\'", $smiley).'\')" /></div>';
             $previous_smiley_file = $smiley_file_array[$i];
         }
         $i++;
@@ -918,23 +1156,6 @@ function escape_string ($string)
     } else {
         return mysql_real_escape_string($string);
     }
-}
-
-/**
- * cleanInput 
- *
- * Cleans input from the user, so it's safe to insert into the DB.
- * 
- * @param   mixed   $input 
- * @param   string  $type 
- * @return  mixed
- */
-function cleanInput ($input, $type = 'string')
-{
-    if ($type == 'int') {
-        $input = (int)$input;
-    }
-    return escape_string($input);
 }
 
 /**
@@ -1010,7 +1231,7 @@ function unhtmlentities($string)
  */
 function getPostsById ($user_id, $option = 'both')
 {
-    $user_id = cleanInput($user_id, 'int');
+    $user_id = (int)$user_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_board_posts`";
@@ -1084,7 +1305,7 @@ function getPostsById ($user_id, $option = 'both')
  */
 function getPhotosById ($user_id, $option = 'both')
 {
-    $user_id = cleanInput($user_id, 'int');
+    $user_id = (int)$user_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_gallery_photos`";
@@ -1158,7 +1379,7 @@ function getPhotosById ($user_id, $option = 'both')
  */
 function getCommentsById ($user_id, $option = 'both')
 {
-    $user_id = cleanInput($user_id, 'int');
+    $user_id = (int)$user_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_gallery_comments`";
@@ -1263,7 +1484,7 @@ function getCommentsById ($user_id, $option = 'both')
  */
 function getCalendarEntriesById ($user_id, $option = 'both')
 {
-    $user_id = cleanInput($user_id, 'int');
+    $user_id = (int)$user_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_calendar`";
@@ -1337,7 +1558,7 @@ function getCalendarEntriesById ($user_id, $option = 'both')
  */
 function getFamilyNewsById ($user_id, $option = 'both')
 {
-    $user_id = cleanInput($user_id, 'int');
+    $user_id = (int)$user_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_news`";
@@ -1412,7 +1633,7 @@ function getFamilyNewsById ($user_id, $option = 'both')
  */
 function getRecipesById ($user_id, $option = 'both')
 {
-    $user_id = cleanInput($user_id, 'int');
+    $user_id = (int)$user_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_recipes`";
@@ -1487,7 +1708,7 @@ function getRecipesById ($user_id, $option = 'both')
  */
 function getDocumentsById ($user_id, $option = 'both')
 {
-    $user_id = cleanInput($user_id, 'int');
+    $user_id = (int)$user_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_documents`";
@@ -1562,7 +1783,7 @@ function getDocumentsById ($user_id, $option = 'both')
  */
 function getPrayersById ($user_id, $option = 'both')
 {
-    $user_id = cleanInput($user_id, 'int');
+    $user_id = (int)$user_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_prayers`";
@@ -1631,7 +1852,7 @@ function getPrayersById ($user_id, $option = 'both')
  */
 function getNewsComments ($news_id)
 {
-    $news_id = cleanInput($news_id, 'int');
+    $news_id = (int)$news_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_news_comments` 
@@ -1674,7 +1895,7 @@ function getNewsComments ($news_id)
  */
 function getUserParticipationPoints ($id)
 {
-    $id = cleanInput($id, 'int');
+    $id = (int)$id;
 
     $points = 0;
 
@@ -2110,7 +2331,7 @@ function displayOkMessage ($msg = '', $timeout = 0)
     }
 
     echo '
-        <script type="text/javascript" src="'.URL_PREFIX.'inc/js/scriptaculous.js"></script>
+        <script type="text/javascript" src="'.URL_PREFIX.'ui/js/scriptaculous.js"></script>
         <div id="'.$id.'" class="ok-msg-container" style="display:none">
             <div class="ok-msg">
                 <a class="close-msg" href="#" onclick="Effect.Fade(\''.$id.'\')" title="'.T_('Close Message').'">x</a>
@@ -2149,28 +2370,31 @@ function displayOkMessage ($msg = '', $timeout = 0)
  */
 function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h, $max_w, $unique = false, $show = true, $square = false)
 {
+    global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
+
     include_once('gallery_class.php');
     include_once('database_class.php');
-    $currentUserId = cleanInput($_SESSION['login_id'], 'int');
-    global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
+
+    $currentUserId = (int)$_SESSION['login_id'];
+
     $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-    $gallery = new PhotoGallery($currentUserId, $database);
+    $gallery  = new PhotoGallery($currentUserId, $database);
 
     $known_photo_types = array(
         'image/pjpeg' => 'jpeg', 
-        'image/jpeg' => 'jpg', 
-        'image/gif' => 'gif', 
-        'image/bmp' => 'bmp', 
+        'image/jpeg'  => 'jpg', 
+        'image/gif'   => 'gif', 
+        'image/bmp'   => 'bmp', 
         'image/x-png' => 'png', 
-        'image/png' => 'png'
+        'image/png'   => 'png'
     );
     $gd_function_suffix = array(
         'image/pjpeg' => 'JPEG', 
-        'image/jpeg' => 'JPEG', 
-        'image/gif' => 'GIF', 
-        'image/bmp' => 'WBMP', 
+        'image/jpeg'  => 'JPEG', 
+        'image/gif'   => 'GIF', 
+        'image/bmp'   => 'WBMP', 
         'image/x-png' => 'PNG', 
-        'image/png' => 'PNG'
+        'image/png'   => 'PNG'
     );
 
     // Get extension of photo
@@ -2281,59 +2505,83 @@ function displayPagination ($url, $cur_page, $total_pages)
         $divider = '&amp;';
     }
 
-    if ($total_pages > 1) {
+    if ($total_pages > 1)
+    {
         echo '
-            <div class="pages clearfix">
+            <div class="pagination pages clearfix">
                 <ul>';
 
         // First / Previous
-        if ($cur_page > 1) {
+        if ($cur_page > 1)
+        {
             $prev = ($cur_page - 1);
             echo '
                     <li><a title="'.T_('First Page').'" class="first" href="'.$url.$divider.'page=1">'.T_('First').'</a></li>
                     <li><a title="'.T_('Previous Page').'" class="previous" href="'.$url.$divider.'page='.$prev.'">'.T_('Previous').'</a></li>';
-        } else {
+        }
+        else
+        {
             echo '
                     <li><a title="'.T_('First Page').'" class="first" href="'.$url.$divider.'page=1">'.T_('First').'</a></li>
                     <li><a title="'.T_('Previous Page').'" class="previous" href="'.$url.$divider.'page=1">'.T_('Previous').'</a></li>';
         }
 
         // Numbers
-        if ($total_pages > 8) {
-            if ($cur_page > 2) {
-                for ($i = ($cur_page-2); $i <= ($cur_page+5); $i++) {
-                    if ($i <= $total_pages) {
-                        $class = $cur_page == $i ? ' class="current"' : '';
+        if ($total_pages > 8)
+        {
+            if ($cur_page > 2)
+            {
+                for ($i = ($cur_page-2); $i <= ($cur_page+5); $i++)
+                {
+                    if ($i <= $total_pages)
+                    {
+                        $aClass = $cur_page == $i ? ' class="current"' : '';
+                        $lClass = $cur_page == $i ? ' class="active"'  : '';
+
                         echo '
-                    <li><a href="'.$url.$divider.'page='.$i.'"'.$class.'>'.$i.'</a></li>';
+                    <li'.$lClass.'><a href="'.$url.$divider.'page='.$i.'"'.$aClass.'>'.$i.'</a></li>';
                     }
                 } 
-            } else {
-                for ($i = 1; $i <= 8; $i++) {
-                    $class = $cur_page == $i ? ' class="current"' : '';
+            }
+            else
+            {
+                for ($i = 1; $i <= 8; $i++)
+                {
+                    $aClass = $cur_page == $i ? ' class="current"' : '';
+                    $lClass = $cur_page == $i ? ' class="active"'  : '';
+
                     echo '
-                    <li><a href="'.$url.$divider.'page='.$i.'"'.$class.'>'.$i.'</a></li>';
+                    <li'.$lClass.'><a href="'.$url.$divider.'page='.$i.'"'.$aClass.'>'.$i.'</a></li>';
                 } 
             }
-        } else {
-            for ($i = 1; $i <= $total_pages; $i++) {
-                $class = $cur_page == $i ? ' class="current"' : '';
+        }
+        else
+        {
+            for ($i = 1; $i <= $total_pages; $i++)
+            {
+                $aClass = $cur_page == $i ? ' class="current"' : '';
+                $lClass = $cur_page == $i ? ' class="active"'  : '';
+
                 echo '
-                    <li><a href="'.$url.$divider.'page='.$i.'"'.$class.'>'.$i.'</a></li>';
+                    <li'.$lClass.'><a href="'.$url.$divider.'page='.$i.'"'.$aClass.'>'.$i.'</a></li>';
             } 
         }
 
         // Next / Last
-        if ($cur_page < $total_pages) { 
+        if ($cur_page < $total_pages)
+        {
             $next = ($cur_page + 1);
             echo '
                     <li><a title="'.T_('Next Page').'" class="next" href="'.$url.$divider.'page='.$next.'">'.T_('Next').'</a></li>
                     <li><a title="'.T_('Last page').'" class="last" href="'.$url.$divider.'page='.$total_pages.'">'.T_('Last').'</a></li>';
-        } else {
+        }
+        else
+        {
             echo '
                     <li><a title="'.T_('Next Page').'" class="next" href="'.$url.$divider.'page='.$total_pages.'">'.T_('Next').'</a></li>
                     <li><a title="'.T_('Last page').'" class="last" href="'.$url.$divider.'page='.$total_pages.'">'.T_('Last').'</a></li>';
         } 
+
         echo '
                 </ul>
             </div>';
@@ -2419,7 +2667,8 @@ function displayMembersOnline ()
  */
 function checkLoginInfo ($userid, $username, $password)
 {
-    $userid = cleanInput($userid, 'int');
+    $userid = (int)$userid;
+
     $sql = "SELECT `username`, `password` 
             FROM `fcms_users` 
             WHERE `id` = '$userid' 
@@ -2466,101 +2715,111 @@ function checkLoginInfo ($userid, $username, $password)
 function buildHtmlSelectOptions ($options, $selected_options)
 {
     $return = '';
-    foreach ($options as $key => $value) {
+
+    foreach ($options as $key => $value)
+    {
         $selected = '';
-        if (is_array($selected)) {
-            if (array_key_exists($key, $selected_options)) {
-                $selected = ' selected="selected"';
-            }
-        } else {
-            if ($key == $selected_options) {
+        if (is_array($selected))
+        {
+            if (array_key_exists($key, $selected_options))
+            {
                 $selected = ' selected="selected"';
             }
         }
-        $return .= '<option value="' . $key . '"' . $selected . '>' . $value . '</option>';
+        else
+        {
+            if ($key == $selected_options)
+            {
+                $selected = ' selected="selected"';
+            }
+        }
+
+        $return .= '<option value="'.cleanOutput($key).'"'.$selected.'>'.cleanOutput($value).'</option>';
     }
+
     return $return;
 }
 
 /**
  * usingFamilyNews 
  * 
- * Wrapper function for usingSection.
+ * Wrapper function for usingPlugin.
  * 
  * @return  boolean
  */
 function usingFamilyNews()
 {
-    return usingSection('familynews');
+    return usingPlugin('familynews');
 }
 /**
  * usingPrayers 
  * 
- * Wrapper function for usingSection.
+ * Wrapper function for usingPlugin.
  * 
  * @return  boolean
  */
 function usingPrayers()
 {
-    return usingSection('prayers');
+    return usingPlugin('prayers');
 }
 /**
  * usingRecipes 
  * 
- * Wrapper function for usingSection.
+ * Wrapper function for usingPlugin.
  * 
  * @return  boolean
  */
 function usingRecipes()
 {
-    return usingSection('recipes');
+    return usingPlugin('recipes');
 }
 /**
  * usingDocuments 
  * 
- * Wrapper function for usingSection.
+ * Wrapper function for usingPlugin.
  * 
  * @return  boolean
  */
 function usingDocuments()
 {
-    return usingSection('documents');
+    return usingPlugin('documents');
 }
 /**
  * usingWhereIsEveryone
  * 
- * Wrapper function for usingSection.
+ * Wrapper function for usingPlugin.
  * 
  * @return  boolean
  */
 function usingWhereIsEveryone()
 {
-    return usingSection('whereiseveryone');
+    return usingPlugin('whereiseveryone');
 }
 /**
  * usingFacebook
  * 
- * Wrapper function for usingSection.
+ * Wrapper function for usingPlugin.
  * 
  * @return  boolean
  */
 function usingFacebook()
 {
-    return usingSection('admin_facebook');
+    return usingPlugin('admin_facebook');
 }
 /**
- * usingSection 
+ * usingPlugin 
  * 
  * Checks whether the given section is currently being used.
  * 
  * @param   string  $section
  * @return  boolean
  */
-function usingSection ($section)
+function usingPlugin ($section)
 {
     $sql = "SELECT `id`, `link`, `order`
             FROM `fcms_navigation` 
-            WHERE `link` = '" . cleanInput($section) . "' LIMIT 1";
+            WHERE `link` = '".escape_string($section)."'
+            LIMIT 1";
     
     $result = mysql_query($sql);
     if (!$result)
@@ -2589,7 +2848,9 @@ function usingSection ($section)
 function tableExists ($tbl)
 {
     global $cfg_mysql_db;
-    $tbl = cleanInput($tbl);
+
+    $tbl = escape_string($tbl);
+
     $table = mysql_query("SHOW TABLES FROM `$cfg_mysql_db` LIKE '$tbl'");
     if (mysql_fetch_row($table) === false) {
         return false;
@@ -2606,15 +2867,29 @@ function tableExists ($tbl)
 function getDomainAndDir ()
 {
     $pageURL = 'http';
-    if (isset($_SERVER["HTTPS"])) { if ($_SERVER["HTTPS"] == "on") { $pageURL .= "s"; } }
-    $pageURL .= "://";
-    if (isset($_SERVER["SERVER_PORT"])) {
-        if ($_SERVER["SERVER_PORT"] != "80") {
+
+    if (isset($_SERVER["HTTPS"]))
+    {
+        if ($_SERVER["HTTPS"] == "on")
+        {
+            $pageURL .= 's';
+        }
+    }
+
+    $pageURL .= '://';
+
+    if (isset($_SERVER["SERVER_PORT"]))
+    {
+        if ($_SERVER["SERVER_PORT"] != "80")
+        {
             $pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
-        } else {
+        }
+        else
+        {
             $pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
         }
     }
+
     // Return the domain and any directories, but exlude the filename from the end
     return substr($pageURL, 0, strripos($pageURL, '/')+1);
 }
@@ -2703,7 +2978,7 @@ function displayError ($error)
  */
 function logError ($string)
 {
-    require_once INC.'KLogger.php';
+    require_once THIRDPARTY.'KLogger.php';
 
     $log = new KLogger(ROOT.'logs/', KLogger::ERR );
 
@@ -2751,7 +3026,7 @@ function displayWhatsNewAll ($userid)
 {
     global $cfg_mysql_host, $cfg_use_news, $cfg_use_prayers;
 
-    $userid    = cleanInput($userid, 'int');
+    $userid    = (int)$userid;
     $tz_offset = getTimezone($userid);
 
     $lastday = '0-0';
@@ -3026,8 +3301,8 @@ function displayWhatsNewAll ($userid)
             }
             $sql = "SELECT * 
                     FROM `fcms_gallery_photos` 
-                    WHERE `category` = '".cleanInput($r['id'], 'int')."' 
-                    AND DAYOFYEAR(`date`) = '".cleanInput($r['id3'])."' 
+                    WHERE `category` = '".(int)$r['id']."' 
+                    AND DAYOFYEAR(`date`) = '".escape_string($r['id3'])."' 
                     ORDER BY `date` 
                     DESC LIMIT $limit";
 
@@ -3137,6 +3412,7 @@ function displayWhatsNewAll ($userid)
                         <p>
                             '.sprintf(T_('Visited %s.'), $r['title']).'
                         </p>
+                        '.(!empty($r['id2']) ? '<blockquote>'.cleanOutput($r['id2']).'</blockquote>' : '').'
                     </div>
                 </div>';
         }
@@ -3148,7 +3424,7 @@ function displayWhatsNewAll ($userid)
             // Get any replies to this status update
             $sql = "SELECT `id`, `user`, `status`, `parent`, `updated`, `created` 
                     FROM `fcms_status` 
-                    WHERE `parent` = '".cleanInput($r['id'], 'int')."' 
+                    WHERE `parent` = '".(int)$r['id']."' 
                     ORDER BY `id`";
             $result = mysql_query($sql);
             if (!$result)
@@ -3265,7 +3541,7 @@ function displayWhatsNewAll ($userid)
  */
 function getWhatsNewData ($userid, $days = 30, $groupByType = false)
 {
-    $currentUserId = cleanInput($userid, 'int');
+    $currentUserId = (int)$userid;
 
     $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type 
             FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
@@ -3402,8 +3678,8 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
     if (usingWhereIsEveryone())
     {
         include_once('socialmedia.php');
-        include_once('foursquare/EpiFoursquare.php');
-        include_once('foursquare/EpiCurl.php');
+        include_once('thirdparty/foursquare/EpiFoursquare.php');
+        include_once('thirdparty/foursquare/EpiCurl.php');
 
         $users  = getFoursquareUsersData();
         $config = getFoursquareConfigData();
@@ -3472,8 +3748,9 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
                         continue;
                     }
 
-                    $date = date('Y-m-d H:i:s', $checkin->createdAt);
-                    $sort = $checkin->createdAt;
+                    $date  = date('Y-m-d H:i:s', $checkin->createdAt);
+                    $sort  = $checkin->createdAt;
+                    $shout = isset($checkin->shout) ? $checkin->shout : '';
 
                     // Save data
                     if ($groupByType)
@@ -3483,7 +3760,7 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
                             'date'      => $date,
                             'title'     => $checkin->venue->name,
                             'userid'    => $data['fcms_user_id'],
-                            'id2'       => '',
+                            'id2'       => $shout,
                             'id3'       => '',
                             'type'      => 'WHEREISEVERYONE'
                         );
@@ -3495,7 +3772,7 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
                             'date'      => $date,
                             'title'     => $checkin->venue->name,
                             'userid'    => $data['fcms_user_id'],
-                            'id2'       => '',
+                            'id2'       => $shout,
                             'id3'       => '',
                             'type'      => 'WHEREISEVERYONE'
                         );
@@ -3618,7 +3895,7 @@ function ImageCreateFromBMP ($filename)
  */
 function usingAdvancedUploader ($userid)
 {
-    $userid = cleanInput($userid, 'int');
+    $userid = (int)$userid;
 
     $sql = "SELECT `advanced_upload` 
             FROM `fcms_user_settings` 
@@ -3649,7 +3926,8 @@ function usingAdvancedUploader ($userid)
  */
 function usingAdvancedTagging ($userid)
 {
-    $userid = cleanInput($userid, 'int');
+    $userid = (int)$userid;
+
     $sql = "SELECT `advanced_tagging`
             FROM `fcms_user_settings` 
             WHERE `user` = '$userid'";
@@ -3883,7 +4161,7 @@ function getCalendarCategory ($cat, $caseSensitive = false)
  */
 function getCurrentAvatar ($id, $gallery = false)
 {
-    $id = cleanInput($id, 'int');
+    $id = (int)$id;
 
     $sql = "SELECT `avatar`, `gravatar`
             FROM `fcms_users`
@@ -4087,7 +4365,7 @@ function getNumberOfPosts ($thread_id)
 {
     $sql = "SELECT count(*) AS c 
             FROM `fcms_board_posts` 
-            WHERE `thread` = '".cleanInput($thread_id, 'int')."'";
+            WHERE `thread` = '".(int)$thread_id."'";
 
     $result = mysql_query($sql);
     if (!$result)
@@ -4416,6 +4694,12 @@ function getDefaultCountry ()
  */
 function getAddRemoveTaggedMembers ($tagged = null, $prev = null)
 {
+    // Nothing to add or remove
+    if (is_null($tagged) && is_null($prev))
+    {
+        return true;
+    }
+
     if (!is_array($tagged) && !is_array($prev))
     {
         return false;
@@ -4457,4 +4741,109 @@ function getAddRemoveTaggedMembers ($tagged = null, $prev = null)
     }
 
     return array('add' => $add, 'remove' => $remove);
+}
+
+/**
+ * getMembersNeedingActivation 
+ * 
+ * @return void
+ */
+function getMembersNeedingActivation ()
+{
+    $members = array();
+
+    $sql = "SELECT `id`, `fname`, `lname`
+            FROM `fcms_users`
+            WHERE `activated` != 1
+            AND `password` != 'NONMEMBER'
+            ORDER BY `joindate` DESC";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+
+    while ($r = mysql_fetch_assoc($result))
+    {
+        $members[$r['id']] = $r['fname'].' '.$r['lname'];
+    }
+
+    return $members;
+}
+
+/**
+ * getCalendarWeekStart 
+ * 
+ * Returns the day, the calendar is set to start on.
+ * 
+ * 0 - 6, with 0 being Sunday and 6 being Saturday.
+ * 
+ * @return int
+ */
+function getCalendarWeekStart ()
+{
+    $sql = "SELECT `value` 
+            FROM `fcms_config`
+            WHERE `name` = 'start_week'";
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        return '0';
+    }
+
+    if (mysql_num_rows($result) <= 0)
+    {
+        return '0';
+    }
+
+    $r = mysql_fetch_array($result);
+
+    return (int)$r['value'];
+}
+
+/**
+ * getPage 
+ * 
+ * Returns the page number that was requested, defaults to 1.
+ * 
+ * @return int
+ */
+function getPage ()
+{
+    $page = 1;
+
+    if (isset($_GET['page']))
+    {
+        $page = (int)$_GET['page'];
+    }
+
+    return $page;
+}
+
+/**
+ * shortenString 
+ * 
+ * @param string $string 
+ * @param int    $maxLength
+ * @param string $end 
+ * 
+ * @return string
+ */
+function shortenString ($string, $maxLength = 100, $end = '')
+{
+    $endLength = 0;
+
+    if ($end != '')
+    {
+        $endLength = strlen($end);
+    }
+
+    if (strlen($string) > $maxLength)
+    {
+        $string = substr($string, 0, $maxLength - $endLength) . $end;
+    }
+
+    return $string;
 }

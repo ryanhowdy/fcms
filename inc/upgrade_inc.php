@@ -323,6 +323,11 @@ function upgrade ()
         return false;
     }
 
+    if (!upgrade290())
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -541,6 +546,7 @@ function upgrade260 ()
     }
 
     // YouTube (key)
+    // TODO or youtube_key exists as name/value pair
     $youtube_fixed = false;
 
     $sql = "SHOW COLUMNS FROM `fcms_config`";
@@ -657,21 +663,21 @@ function upgrade260 ()
         // Insert current config into new table
         $sql = "INSERT INTO `fcms_config2` (`name`, `value`)
                 VALUES
-                    ('sitename', '".cleanInput($config['sitename'])."'),
-                    ('contact', '".cleanInput($config['contact'])."'),
-                    ('current_version', '".cleanInput($config['current_version'])."'),
-                    ('auto_activate', '".cleanInput($config['auto_activate'])."'),
-                    ('registration', '".cleanInput($config['registration'])."'), 
-                    ('full_size_photos', '".cleanInput($config['full_size_photos'])."'),
-                    ('site_off', '".cleanInput($config['site_off'])."'),
-                    ('log_errors', '".cleanInput($config['log_errors'])."'),
-                    ('fs_client_id', '".cleanInput($config['fs_client_id'])."'),
-                    ('fs_client_secret', '".cleanInput($config['fs_client_secret'])."'), 
-                    ('fs_callback_url', '".cleanInput($config['fs_callback_url'])."'),
-                    ('external_news_date', '".cleanInput($config['external_news_date'])."'),
-                    ('fb_app_id', '".cleanInput($config['fb_app_id'])."'),
-                    ('fb_secret', '".cleanInput($config['fb_secret'])."'),
-                    ('youtube_key', '".cleanInput($config['youtube_key'])."')";
+                    ('sitename',           '".escape_string($config['sitename'])."'),
+                    ('contact',            '".escape_string($config['contact'])."'),
+                    ('current_version',    '".escape_string($config['current_version'])."'),
+                    ('auto_activate',      '".escape_string($config['auto_activate'])."'),
+                    ('registration',       '".escape_string($config['registration'])."'), 
+                    ('full_size_photos',   '".escape_string($config['full_size_photos'])."'),
+                    ('site_off',           '".escape_string($config['site_off'])."'),
+                    ('log_errors',         '".escape_string($config['log_errors'])."'),
+                    ('fs_client_id',       '".escape_string($config['fs_client_id'])."'),
+                    ('fs_client_secret',   '".escape_string($config['fs_client_secret'])."'), 
+                    ('fs_callback_url',    '".escape_string($config['fs_callback_url'])."'),
+                    ('external_news_date', '".escape_string($config['external_news_date'])."'),
+                    ('fb_app_id',          '".escape_string($config['fb_app_id'])."'),
+                    ('fb_secret',          '".escape_string($config['fb_secret'])."'),
+                    ('youtube_key',        '".escape_string($config['youtube_key'])."')";
         mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 
         // Delete current config
@@ -1029,6 +1035,174 @@ function upgrade280 ()
         if (!mysql_query($sql))
 		{
 			displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * upgrade290
+ * 
+ * Upgrade database to version 2.9.
+ * 
+ * @return boolean
+ */
+function upgrade290 ()
+{
+    global $cfg_mysql_db;
+
+    // turn on foursquare admin
+    $foursquare_fixed = false;
+
+    $sql = "SELECT `link`, `order`
+            FROM `fcms_navigation` 
+            WHERE `link` = 'admin_whereiseveryone' 
+            OR `link` = 'admin_foursquare'
+            AND `order` > 0
+            LIMIT 1";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        $foursquare_fixed = true;
+    }
+
+    if (!$foursquare_fixed)
+    {
+        $adminOrder = getNextAdminNavigationOrder();
+
+        $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
+                VALUES ('admin_foursquare', 6, $adminOrder, 0)";
+        if (!mysql_query($sql))
+		{
+			displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // awards scheduler
+    $awards_fixed = false;
+
+    $sql = "SELECT `type`
+            FROM `fcms_schedule` 
+            WHERE `type` = 'awards' 
+            LIMIT 1";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        $awards_fixed = true;
+    }
+
+    if (!$awards_fixed)
+    {
+        $sql = "INSERT INTO `fcms_schedule` (`type`, `repeat`)
+                VALUES ('awards', 'daily')";
+        if (!mysql_query($sql))
+		{
+			displaySqlError($sql, mysql_error());
+            return false;
+        }
+
+        // delete db entry
+        $sql = "DELETE FROM `fcms_navigation`
+                WHERE `link` = 'admin_awards'";
+        if (!mysql_query($sql))
+		{
+			displaySqlError($sql, mysql_error());
+            return false;
+        }
+
+        // delete file
+        if (file_exists('awards.php'))
+        {
+            unlink('awards.php');
+        }
+
+    }
+
+    // Start of week
+    $start_fixed = false;
+
+    $sql = "SELECT `name` FROM `fcms_config` WHERE `name` = 'start_week'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        $start_fixed = true;
+    }
+
+    if (!$start_fixed)
+    {
+        $sql = "INSERT INTO `fcms_config` (`name`, `value`)
+                VALUES ('start_week', '0')";
+        if (!mysql_query($sql))
+		{
+			displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // Notifications
+    $notification_fixed = false;
+
+    $sql    = "SHOW TABLES FROM `$cfg_mysql_db`";
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r[0] == 'fcms_notification') { $notification_fixed = true; }
+        }
+    }
+
+    if (!$notification_fixed)
+    {
+        $sql = "CREATE TABLE `fcms_notification` (
+                    `id` INT(25) NOT NULL AUTO_INCREMENT,
+                    `user` INT(25) NOT NULL DEFAULT '0',
+                    `created_id` INT(25) NOT NULL DEFAULT '0',
+                    `notification` VARCHAR(50) NOT NULL,
+                    `data` VARCHAR(50) NOT NULL,
+                    `read` TINYINT(1) NOT NULL DEFAULT '0',
+                    `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                    `updated` DATETIME DEFAULT NULL,
+                    PRIMARY KEY (`id`),
+                    CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        if (!mysql_query($sql))
+		{
+			displaySqlError($sql, mysql_error());
+            return false;
+        }
+
+        $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
+                VALUES ('notification', 2, 4, 1)";
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
             return false;
         }
     }

@@ -47,7 +47,6 @@ function main ()
     {
         displayAttendForm();
     }
-
 }
 
 /**
@@ -62,8 +61,8 @@ function displayHeader ()
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
 <title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
-<script type="text/javascript" src="inc/js/prototype.js"></script>
-<link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
+<script type="text/javascript" src="ui/js/prototype.js"></script>
+<link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
@@ -73,7 +72,7 @@ Event.observe(window, \'load\', function() {
 </script>
 </head>
 <body id="invitation" class="clearfix">
-    <img id="logo" src="themes/images/logo.gif" alt="'.getSiteName().'"/>';
+    <img id="logo" src="ui/images/logo.gif" alt="'.getSiteName().'"/>';
 }
 
 /**
@@ -99,8 +98,8 @@ function displayAttendForm ()
 
     displayHeader();
 
-    $code = cleanInput($_GET['code']);
-    $id   = cleanInput($_GET['event'], 'int');
+    $id   = (int)$_GET['event'];
+    $code = escape_string($_GET['code']);
 
     $sql = "SELECT `id`, `event_id`, `user`, `created`, `updated`, `attending`, `code`, `response`
             FROM `fcms_invitation` 
@@ -138,6 +137,7 @@ function displayAttendForm ()
         displayFooter();
         exit();
     }
+
     $event = mysql_fetch_array($result);
 
     if (!$event)
@@ -199,21 +199,21 @@ function displayAttendForm ()
         <ul id="attending" class="clearfix">
             <li>
                 <label for="yes">
-                    <img src="themes/images/attend_yes.png"/><br/>
+                    <img src="ui/images/attend_yes.png"/><br/>
                     <b>'.T_('Yes').'</b>
                 </label>
                 <input type="radio" id="yes" name="attending" value="1"/>
             </li>
             <li>
                 <label for="maybe">
-                    <img src="themes/images/attend_maybe.png"/><br/>
+                    <img src="ui/images/attend_maybe.png"/><br/>
                     <b>'.T_('Maybe').'</b>
                 </label>
                 <input type="radio" id="maybe" name="attending" value="2"/>
             </li>
             <li>
                 <label for="no">
-                    <img src="themes/images/attend_no.png"/><br/>
+                    <img src="ui/images/attend_no.png"/><br/>
                     <b>'.T_('No').'</b>
                 </label>
                 <input type="radio" id="no" name="attending" value="0"/>
@@ -258,17 +258,17 @@ function displayAttendForm ()
         elseif ($r['attending'] == 0)
         {
             $noCount++;
-            $img = '<img src="themes/images/attend_no.png" alt="'.T_('No').'"/>';
+            $img = '<img src="ui/images/attend_no.png" alt="'.T_('No').'"/>';
         }
         elseif ($r['attending'] == 1)
         {
             $yesCount++;
-            $img = '<img src="themes/images/attend_yes.png" alt="'.T_('Yes').'"/>';
+            $img = '<img src="ui/images/attend_yes.png" alt="'.T_('Yes').'"/>';
         }
         elseif ($r['attending'] > 1)
         {
             $maybeCount++;
-            $img = '<img src="themes/images/attend_maybe.png" alt="'.T_('Maybe').'"/>';
+            $img = '<img src="ui/images/attend_maybe.png" alt="'.T_('Maybe').'"/>';
         }
 
         $displayname = cleanOutput($r['email']);
@@ -290,9 +290,9 @@ function displayAttendForm ()
     echo '
     <div id="leftcolumn">
         <h3>'.T_('Who\'s Coming').'</h3>
-        <h3 class="coming"><img src="themes/default/images/ok.gif"> '.T_('Yes').' ('.$yesCount.')</h3>
-        <h3 class="coming"><img src="themes/default/images/help.gif"> '.T_('Maybe').' ('.$maybeCount.')</h3>
-        <h3 class="coming"><img src="themes/default/images/delete.gif"> '.T_('No').' ('.$noCount.')</h3>
+        <h3 class="coming"><img src="ui/themes/default/images/ok.gif"> '.T_('Yes').' ('.$yesCount.')</h3>
+        <h3 class="coming"><img src="ui/themes/default/images/help.gif"> '.T_('Maybe').' ('.$maybeCount.')</h3>
+        <h3 class="coming"><img src="ui/themes/default/images/delete.gif"> '.T_('No').' ('.$noCount.')</h3>
         <h3 class="coming">'.T_('Undecided').' ('.$undecidedCount.')</h3>
     </div>
 
@@ -326,9 +326,9 @@ function displayAttendForm ()
  */
 function displayAttendSubmit ()
 {
-    $id        = cleanInput($_POST['id'], 'int');
-    $attending = isset($_POST['attending']) ? cleanInput($_POST['attending'], 'int') : "NULL";
-    $response  = cleanInput($_POST['response']);
+    $id        = (int)$_POST['id'];
+    $attending = isset($_POST['attending']) ? (int)$_POST['attending'] : "NULL";
+    $response  = escape_string($_POST['response']);
 
     $sql = "UPDATE `fcms_invitation`
             SET `response` = '$response',

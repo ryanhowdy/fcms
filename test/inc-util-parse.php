@@ -16,7 +16,7 @@ $in_str_entities = '<a href="#">link</a>';
 $out_str_entities = '&lt;a href=&quot;#&quot;&gt;link&lt;/a&gt;';
 
 $in_str_smilies = ':(:smile:';
-$out_str_smilies = '<img src="'.URL_PREFIX.'themes/smileys/sad.gif" alt=":("/><img src="'.URL_PREFIX.'themes/smileys/smile.gif" alt=":smile:"/>';
+$out_str_smilies = '<img src="'.URL_PREFIX.'ui/smileys/sad.gif" alt=":("/><img src="'.URL_PREFIX.'ui/smileys/smile.gif" alt=":smile:"/>';
 
 $in_str_spaces = 'line 1
 line 2

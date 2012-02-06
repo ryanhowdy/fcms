@@ -23,11 +23,11 @@ load('socialmedia');
 init('admin/');
 
 // Globals
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 
 $TMPL = array(
     'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
+    'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: YouTube'),
     'path'          => URL_PREFIX,
     'displayname'   => getUserDisplayName($currentUserId),
@@ -68,18 +68,12 @@ function displayHeader ()
     global $currentUserId, $TMPL;
 
     $TMPL['javascript'] = '
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
-});
-//]]>
-</script>';
+<script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>';
 
-    include_once getTheme($currentUserId).'header.php';
+    include_once URL_PREFIX.'ui/admin/header.php';
 
     echo '
-        <div id="youtube" class="centercontent clearfix">';
+        <div id="youtube">';
 }
 
 /**
@@ -92,9 +86,9 @@ function displayFooter ()
     global $currentUserId, $TMPL;
 
     echo '
-        </div><!--/centercontent-->';
+        </div><!-- /youtube -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once URL_PREFIX.'ui/admin/footer.php';
 }
 
 /**
@@ -102,27 +96,31 @@ function displayFooter ()
  * 
  * Displays the form for configuring a youtube app.
  * 
- * @param string $displayMessage Any value will display the ok message.
- * 
  * @return void
  */
-function displayFormPage ($displayMessage = '')
+function displayFormPage ()
 {
     global $currentUserId;
 
     displayHeader();
 
-    if (!empty($displayMessage))
+    if (isset($_SESSION['success']))
     {
-        displayOkMessage();
+        echo '
+        <div class="alert-message success">
+            <a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>
+            '.T_('Changes Updated Successfully').'
+        </div>';
+
+        unset($_SESSION['success']);
     }
 
     $r = getYouTubeConfigData();
 
-    $key = isset($r['youtube_key']) ? cleanInput($r['youtube_key']) : '';
+    $key = isset($r['youtube_key']) ? cleanOutput($r['youtube_key']) : '';
 
     echo '
-        <div class="info-alert">
+        <div class="alert-message block-message info">
             <h1>'.T_('YouTube Integration').'</h1>
             <p>
                 '.T_('In order to integrate Family Connections with YouTube, you must get a Developer Key from Google, and provide that Key to Family Connections.').'
@@ -132,29 +130,56 @@ function displayFormPage ($displayMessage = '')
     if (empty($key))
     {
         echo '
-        <div style="margin: 0 100px;">
-            <h2>'.T_('Step 1').'</h2>
-            <p>
-                <a href="http://code.google.com/apis/youtube/dashboard/">'.T_('Create Youtube Application').'</a><br/>
-            </p>
-            <h2>'.T_('Step 2').'</h2>
-            <p>
-                '.T_('Fill out the form below with the YouTube Developer Key provided by Google.').'
-            </p>
-        </div>';
+        <div class="row">
+            <div class="span4">
+                <h2>'.T_('Step 1').'</h2>
+                <p>
+                    '.T_('Got to Google and create a new YouTube Application.').'
+                </p>
+            </div>
+            <div class="span12">
+                <h3>
+                    <a href="http://code.google.com/apis/youtube/dashboard/">'.T_('Create Youtube Application').'</a><br/>
+                </h3>
+            </div><!-- /span12 -->
+        </div><!-- /row -->
+
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+        <p>&nbsp;</p>
+
+        <div class="row">
+            <div class="span4">
+                <h2>'.T_('Step 2').'</h2>
+                <p>
+                    '.T_('Fill out the form below with the YouTube Developer Key provided by Google.').'
+                </p>
+            </div>
+            <div class="span12">';
     }
 
     echo '
-        <form method="post" action="youtube.php">
-            <fieldset>
-                <legend><span>'.T_('YouTube').'</span></legend>
-                <div class="field-row clearfix">
-                    <div class="field-label"><label for="key"><b>'.T_('Developer Key').'</b></label></div>
-                    <div class="field-widget"><input class="frm_text" type="text" name="key" id="key" size="50" value="'.$key.'"/></div>
-                </div>
-                <p><input class="sub1" type="submit" name="submit" value="'.T_('Save').'"/></p>
-            </fieldset>
-        </form>';
+                <form method="post" action="youtube.php">
+                    <fieldset>
+                        <legend>'.T_('YouTube').'</legend>
+                        <div class="clearfix">
+                            <label for="key">'.T_('Developer Key').'</label>
+                            <div class="input">
+                                <input class="span6" type="text" name="key" id="key" value="'.$key.'"/>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <input class="btn primary" type="submit" name="submit" value="'.T_('Save').'"/>
+                        </div>
+                    </fieldset>
+                </form>';
+
+    if (empty($key))
+    {
+        echo '
+            </div><!-- /span12 -->
+        </div><!-- /row -->';
+    }
 
     displayFooter();
 }
@@ -166,7 +191,12 @@ function displayFormPage ($displayMessage = '')
  */
 function displayFormSubmitPage ()
 {
-    $key = isset($_POST['key']) ? cleanInput($_POST['key']) : '';
+    if (isset($_SESSION['youtube_key']))
+    {
+        unset($_SESSION['youtube_key']);
+    }
+
+    $key = isset($_POST['key']) ? escape_string($_POST['key']) : '';
 
     $sql = "UPDATE `fcms_config` 
             SET `value` = '$key'
@@ -180,5 +210,7 @@ function displayFormSubmitPage ()
         return;
     }
 
-    displayFormPage(1);
+    $_SESSION['success'] = 1;
+
+    header("Location: youtube.php");
 }

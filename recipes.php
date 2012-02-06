@@ -21,7 +21,7 @@ load('recipes', 'image');
 
 init();
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $rec           = new Recipes($currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 $img           = new Image($currentUserId);
 
@@ -76,11 +76,15 @@ $show = true;
 //------------------------------------------------------------------------------
 if (isset($_POST['submitadd']))
 {
-    $name        = cleanInput($_POST['name']);
-    $category    = cleanInput($_POST['category'], 'int');
-    $ingredients = cleanInput($_POST['ingredients']);
-    $directions  = cleanInput($_POST['directions']);
-    $thumbnail   = 'no_recipe.jpg';
+    $name        = strip_tags($_POST['name']);
+    $category    = (int)$_POST['category'];
+    $ingredients = strip_tags($_POST['ingredients']);
+    $directions  = strip_tags($_POST['directions']);
+
+    $cleanName        = escape_string($name);
+    $cleanIngredients = escape_string($ingredients);
+    $cleanDirections  = escape_string($directions);
+    $thumbnail        = 'no_recipe.jpg';
 
     // Upload Recipe Image
     if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['name'] && $_FILES['thumbnail']['error'] < 1)
@@ -111,12 +115,12 @@ if (isset($_POST['submitadd']))
     $sql = "INSERT INTO `fcms_recipes` 
                 (`name`, `thumbnail`, `category`, `ingredients`, `directions`, `user`, `date`) 
             VALUES(
-                '$name', 
+                '$cleanName', 
                 '$thumbnail',
                 '$category',
-                '$ingredients', 
-                '$directions', 
-                $currentUserId, 
+                '$cleanIngredients', 
+                '$cleanDirections', 
+                '$currentUserId', 
                 NOW()
             )";
     if (!mysql_query($sql))
@@ -149,10 +153,9 @@ if (isset($_POST['submitadd']))
     {
         while ($r = mysql_fetch_array($result))
         {
-            $recipeName    = $name;
             $recipeUser    = getUserDisplayName($currentUserId);
             $to            = getUserDisplayName($r['user']);
-            $subject       = sprintf(T_('%s has added the recipe: %s'), $recipeUser, $recipeName);
+            $subject       = sprintf(T_('%s has added the recipe: %s'), $recipeUser, $name);
             $email         = $r['email'];
             $url           = getDomainAndDir();
             $email_headers = getEmailHeaders();
@@ -179,12 +182,23 @@ if (isset($_POST['submitadd']))
 //------------------------------------------------------------------------------
 if (isset($_POST['submitedit']))
 {
+    $id       = (int)$_POST['id'];
+    $category = (int)$_POST['category'];
+
+    $name        = strip_tags($_POST['name']);
+    $ingredients = strip_tags($_POST['ingredients']);
+    $directions  = strip_tags($_POST['directions']);
+
+    $name        = escape_string($name);
+    $ingredients = escape_string($ingredients);
+    $directions  = escape_string($directions);
+
     $sql = "UPDATE `fcms_recipes` 
-            SET `name`          = '".cleanInput($_POST['name'])."', 
-                `category`      = '".cleanInput($_POST['category'])."', 
-                `ingredients`   = '".cleanInput($_POST['ingredients'])."',
-                `directions`    = '".cleanInput($_POST['directions'])."' 
-            WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
+            SET `name`          = '$name', 
+                `category`      = '$category', 
+                `ingredients`   = '$ingredients',
+                `directions`    = '$directions' 
+            WHERE `id` = '$id'";
 
     if(!mysql_query($sql))
     {
@@ -205,9 +219,12 @@ if (isset($_POST['submitedit']))
 if (isset($_POST['submit-category']))
 {
     $show = false;
+    $name = strip_tags($_POST['name']);
+    $name = escape_string($name);
+
     $sql  = "INSERT INTO `fcms_category` (`name`, `type`, `user`)
             VALUES (
-                '".cleanInput($_POST['name'])."',
+                '$name',
                 'recipe', 
                 '$currentUserId'
             )";
@@ -227,6 +244,7 @@ if (isset($_POST['submit-category']))
 if (isset($_POST['delrecipe']) && !isset($_POST['confirmed']))
 {
     $show = false;
+
     echo '
                 <div class="info-alert clearfix">
                     <form action="recipes.php" method="post">
@@ -246,7 +264,7 @@ if (isset($_POST['delrecipe']) && !isset($_POST['confirmed']))
 elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
 {
     $sql = "DELETE FROM `fcms_recipes` 
-            WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
+            WHERE `id` = '".(int)$_POST['id']."'";
     if (!mysql_query($sql))
     {
         displaySqlError($sql, mysql_error());
@@ -278,11 +296,12 @@ if (isset($_POST['editrecipe']))
 {
     $show = false;
 
-    $id          = cleanOutput($_POST['id']);
-    $name        = cleanOutput($_POST['name']);
-    $category    = cleanOutput($_POST['category']);
-    $ingredients = cleanOutput($_POST['ingredients']);
-    $directions  = cleanOutput($_POST['directions']);
+    $id = (int)$_POST['id'];
+
+    $name        = $_POST['name'];
+    $category    = $_POST['category'];
+    $ingredients = $_POST['ingredients'];
+    $directions  = $_POST['directions'];
 
     $rec->displayEditRecipeForm($id, $name, $category, $ingredients, $directions);
 }
@@ -301,10 +320,14 @@ if (isset($_GET['add']) and checkAccess($currentUserId) <= 5)
 //------------------------------------------------------------------------------
 if (isset($_POST['addcom']))
 {
+    $recipe  = (int)$_POST['recipe'];
+    $comment = strip_tags($_POST['comment']);
+    $comment = escape_string($comment);
+
     $sql = "INSERT INTO `fcms_recipe_comment` (`recipe`, `comment`, `user`, `date`)
             VALUES (
-                '".cleanInput($_POST['recipe'], 'int')."',
-                '".cleanInput($_POST['comment'])."',
+                '$recipe',
+                '$comment',
                 '$currentUserId',
                 NOW()
             )";
@@ -322,7 +345,7 @@ if (isset($_POST['delcom']))
     if ($currentUserId == $_POST['user'] || checkAccess($currentUserId) < 2)
     {
         $sql = "DELETE FROM `fcms_recipe_comment`
-                WHERE `id` = '".cleanInput($_POST['id'], 'int')."'";
+                WHERE `id` = '".(int)$_POST['id']."'";
         if (!mysql_query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -361,10 +384,13 @@ if (isset($_POST['submit_cat_edit']))
 
             foreach ($_POST['category'] as $key => $category)
             {
-                $id  = $ids[$key];
+                $id       = (int)$ids[$key];
+                $category = stript_tags($category);
+                $category = escape_string($category);
+
                 $sql = "UPDATE `fcms_category` 
-                        SET `name` = '".cleanInput($category)."' 
-                        WHERE `id` = '".cleanInput($id, 'int')."'";
+                        SET `name` = '$category' 
+                        WHERE `id` = '$id'";
                 if (!mysql_query($sql))
                 {
                     displaySqlError($sql, mysql_error());
@@ -381,7 +407,8 @@ if (isset($_POST['submit_cat_edit']))
             foreach ($_POST['delete'] as $id)
             {
                 // Delete recipes
-                $sql = "DELETE FROM `fcms_recipes` WHERE `category` = '".cleanInput($id, 'int')."'";
+                $sql = "DELETE FROM `fcms_recipes` 
+                        WHERE `category` = '".(int)$id."'";
 
                 if (!mysql_query($sql))
                 {
@@ -390,7 +417,8 @@ if (isset($_POST['submit_cat_edit']))
                 }
 
                 // Delete category
-                $sql = "DELETE FROM `fcms_category` WHERE `id` = '".cleanInput($id, 'int')."'";
+                $sql = "DELETE FROM `fcms_category` 
+                        WHERE `id` = '".(int)$id."'";
 
                 if (!mysql_query($sql))
                 {
@@ -411,13 +439,13 @@ if (isset($_GET['category']))
 {
     $show     = false;
     $id       = 0;
-    $page     = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    $category = cleanInput($_GET['category'], 'int');
+    $page     = getPage();
+    $category = (int)$_GET['category'];
 
     // Show recipe
     if (isset($_GET['id']))
     {
-        $id = cleanInput($_GET['id'], 'int');
+        $id = (int)$_GET['id'];
         $rec->showRecipe($category, $id);
     }
     // Show list of recipes
@@ -433,7 +461,7 @@ if (isset($_GET['category']))
 //------------------------------------------------------------------------------
 if ($show)
 {
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $page = getPage();
     $rec->showRecipes($page);
 }
 

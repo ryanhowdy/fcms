@@ -1,5 +1,5 @@
 <?php
-include_once 'gettext.inc';
+include_once 'thirdparty/gettext.inc';
 
 /**
  * dropTables 
@@ -9,6 +9,7 @@ include_once 'gettext.inc';
 function dropTables ()
 {
     mysql_query("DROP TABLE IF EXISTS `fcms_config`")               or die("fcms_config<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_notification`")         or die("fcms_notification<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_video_comment`")        or die("fcms_video_comment<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_video`")                or die("fcms_video<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_changelog`")            or die("fcms_changelog<br/>" . mysql_error());
@@ -81,6 +82,8 @@ function installConfig ($sitename, $contact, $version)
                 ('fb_secret', NULL),
                 ('youtube_key', NULL),
                 ('running_job', '0'),
+                ('start_week', '0'),
+                ('debug', '0'),
                 ('country', 'US')";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 }
@@ -109,6 +112,7 @@ function installNavigation ($sections)
                 ('profile', 2, 1, 1),
                 ('settings', 2, 2, 1),
                 ('pm', 2, 3, 1),
+                ('notification', 2, 4, 1),
                 ('messageboard', 3, 1, 1),
                 ('photogallery', 4, 1, 1),
                 ('videogallery', 4, 2, 1),
@@ -122,9 +126,9 @@ function installNavigation ($sections)
                 ('admin_members', 6, 3, 1),
                 ('admin_photogallery', 6, 4, 1),
                 ('admin_polls', 6, 5, 1),
-                ('admin_awards', 6, 6, 1), 
-                ('admin_facebook', 6, 7, 1),
-                ('admin_youtube', 6, 8, 1),
+                ('admin_facebook', 6, 6, 1),
+                ('admin_youtube', 6, 7, 1),
+                ('admin_foursquare', 6, 8, 1),
                 ('admin_scheduler', 6, 9, 1)";
     mysql_query($sql) or die("$sql<br/>".mysql_error());
 
@@ -423,6 +427,7 @@ function installTables ()
     // populate schedule
     $sql = "INSERT INTO `fcms_schedule` (`type`, `repeat`)
             VALUES 
+                ('awards', 'daily'),
                 ('familynews', 'hourly'),
                 ('youtube', 'hourly')";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
@@ -904,6 +909,21 @@ function installTables ()
                 `user` INT(25) NOT NULL DEFAULT '0',
                 `status` TEXT DEFAULT NULL,
                 `parent` INT(25) NOT NULL DEFAULT '0',
+                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `updated` DATETIME DEFAULT NULL,
+                PRIMARY KEY (`id`),
+                CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
+
+    // create fcms_notification
+    $sql = "CREATE TABLE `fcms_notification` (
+                `id` INT(25) NOT NULL AUTO_INCREMENT,
+                `user` INT(25) NOT NULL DEFAULT '0',
+                `created_id` INT(25) NOT NULL DEFAULT '0',
+                `notification` VARCHAR(50) DEFAULT NULL,
+                `data` VARCHAR(50) NOT NULL,
+                `read` TINYINT(1) NOT NULL DEFAULT '0',
                 `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
                 `updated` DATETIME DEFAULT NULL,
                 PRIMARY KEY (`id`),

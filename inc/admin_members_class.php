@@ -89,38 +89,34 @@ class AdminMembers
         }
         for ($i = 1; $i <= 12; $i++)
         {
-            $months[$i] = getMonthAbbr($i);
-        }
-        for ($i = 1900; $i <= date('Y')+5; $i++)
-        {
-            $years[$i] = $i;
+            $months[$i] = getMonthName($i);
         }
 
         // Display applicable errors
         if ($error != '')
         {
             echo '
-            <p class="error-alert">'.$error.'</p>';
+            <p class="alert-message error">'.$error.'</p>';
         }
         
         // Display the form
         echo '
-            <fieldset>
-                <legend><span>'.T_('Create New Member').'</span></legend>
-                <form method="post" action="members.php">
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="username"><b>'.T_('Username').'</b></label></div> 
-                        <div class="field-widget">
-                            <input type="text" name="username" id="username" value="'.$username.'" size="25"/>
+            <form method="post" action="members.php">
+                <fieldset>
+                    <legend>'.T_('Create New Member').'</legend>
+                    <div class="clearfix">
+                        <label for="username">'.T_('Username').'</label> 
+                        <div class="input">
+                            <input type="text" name="username" id="username" value="'.cleanOutput($username).'" size="25"/>
                         </div>
                     </div>
                     <script type="text/javascript">
                         var funame = new LiveValidation(\'username\', { onlyOnSubmit: true });
                         funame.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="password"><b>'.T_('Password').'</b></label></div>
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="password">'.T_('Password').'</label>
+                        <div class="input">
                             <input type="password" name="password" id="password" size="25"/>
                         </div>
                     </div>
@@ -128,9 +124,9 @@ class AdminMembers
                         var fpass = new LiveValidation(\'password\', { onlyOnSubmit: true });
                         fpass.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="fname"><b>'.T_('Name').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="fname">'.T_('Name').'</label> 
+                        <div class="input">
                             <input type="text" name="fname" id="fname" value="'.cleanOutput($fname).'" placeholder="'.T_('First').'" title="'.T_('First').'" size="20"/>
                             <input type="text" name="mname" id="mname" value="'.cleanOutput($mname).'" placeholder="'.T_('Middle').'" title="'.T_('Middle').'" size="10"/>
                             <input type="text" name="lname" id="lname" value="'.cleanOutput($lname).'" placeholder="'.T_('Last').'" title="'.T_('Last').'" size="20"/>
@@ -142,24 +138,24 @@ class AdminMembers
                         var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
                         flname.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="maiden"><b>'.T_('Maiden Name').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="maiden">'.T_('Maiden Name').'</label> 
+                        <div class="input">
                             <input type="text" name="maiden" id="maiden" value="'.cleanOutput($maiden).'" size="50"/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="sex"><b>'.T_('Gender').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="sex">'.T_('Gender').'</label> 
+                        <div class="input">
                             <select name="sex" id="sex">
                                 <option value="M">'.T_('Male').'</option>
                                 <option value="F">'.T_('Female').'</option>
                             </select>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="email">'.T_('Email').'</label> 
+                        <div class="input">
                             <input type="text" name="email" id="email" value="'.cleanOutput($email).'" size="50"/>
                         </div>
                     </div>
@@ -169,33 +165,36 @@ class AdminMembers
                         femail.add( Validate.Email, { failureMessage: "'.T_('That\'s not a valid email address is it?').'" } );
                         femail.add( Validate.Length, { minimum: 10 } );
                     </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="day"><b>'.T_('Birthday').'</b></label></div> 
-                        <div class="field-widget">
-                            <select id="day" name="day">
+                    <div class="clearfix">
+                        <label for="day">'.T_('Birthday').'</label> 
+                        <div class="input">
+                            <select id="day" name="day" class="span2">
                                 '.buildHtmlSelectOptions($days, $day).'
                             </select>
-                            <select id="month" name="month">
+                            <select id="month" name="month" class="span3">
                                 '.buildHtmlSelectOptions($months, $month).'
                             </select>
-                            <select id="year" name="year">
-                                '.buildHtmlSelectOptions($years, $year).'
-                            </select>
+                            <input type="text" name="year" id="year" value="'.cleanOutput($year).'"/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label">&nbsp;</div> 
-                        <div class="field-widget">
-                            <input type="checkbox" id="invite" name="invite" value="1"/>
-                            <label for="invite">'.T_('Send Invitation Email').'</label>
+                    <div class="clearfix">
+                        <div class="input">
+                            <ul class="inputs-list">
+                                <li>
+                                    <label>
+                                        <input type="checkbox" id="invite" name="invite" value="1"/>
+                                        <span>'.T_('Send Invitation Email').'</span>
+                                    </label>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                    <p>
-                        <input class="sub1" type="submit" id="create" name="create" value="'.T_('Create').'"/> '.T_('or').' &nbsp;
-                        <a href="members.php">'.T_('Cancel').'</a>
-                    </p>
-                </form>
-            </fieldset>';
+                    <div class="actions">
+                        <input class="btn primary" type="submit" id="create" name="create" value="'.T_('Create').'"/>
+                        <a class="btn" href="members.php">'.T_('Cancel').'</a>
+                    </div>
+                </fieldset>
+            </form>';
     }
 
     /**
@@ -208,7 +207,7 @@ class AdminMembers
      */
     function displayEditMemberForm ($id, $error = '')
     {
-        $member = cleanInput($id, 'int');
+        $member = (int)$id;
 
         $sql = "SELECT `id`, `username`, `fname`, `mname`, `lname`, `maiden`, `sex`, 
                     `email`, `dob_year`, `dob_month`, `dob_day`, `dod_year`, `dod_month`,
@@ -259,34 +258,34 @@ class AdminMembers
         }
         for ($i = 1; $i <= 12; $i++)
         {
-            $months[$i] = getMonthAbbr($i);
+            $months[$i] = getMonthName($i);
         }
 
         // Display the form
         echo '
-            <fieldset>
-                <legend><span>'.T_('Edit Member').'</span></legend>
-                <form method="post" action="members.php">
-                    <a class="merge" href="?merge='.$member.'">'.T_('Merge').'</a>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="username"><b>'.T_('Username').'</b></label></div> 
-                        <div class="field-widget">
-                            <input type="text" name="username" id="username" disabled="disabled" value="'.$username.'" size="25"/>
+            <form method="post" action="members.php">
+                <fieldset>
+                    <legend>'.T_('Edit Member').'</legend>
+                    <a class="btn merge" href="?merge='.$member.'">'.T_('Merge').'</a>
+                    <div class="clearfix">
+                        <label for="username">'.T_('Username').'</label>
+                        <div class="input">
+                            <input type="text" name="username" id="username" disabled="disabled" value="'.cleanOutput($username).'" size="25"/>
                         </div>
                     </div>
                     <script type="text/javascript">
                         var funame = new LiveValidation(\'username\', { onlyOnSubmit: true });
                         funame.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="password"><b>'.T_('Password').'</b></label></div>
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="password">'.T_('Password').'</label>
+                        <div class="input">
                             <input type="password" name="password" id="password" size="25"/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="fname"><b>'.T_('First Name').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="fname">'.T_('First Name').'</label> 
+                        <div class="input">
                             <input type="text" name="fname" id="fname" value="'.cleanOutput($fname).'" size="50"/>
                         </div>
                     </div>
@@ -294,15 +293,15 @@ class AdminMembers
                         var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
                         ffname.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="mname"><b>'.T_('Middle Name').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="mname">'.T_('Middle Name').'</label> 
+                        <div class="input">
                             <input type="text" name="mname" id="mname" value="'.cleanOutput($mname).'" size="50"/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="lname"><b>'.T_('Last Name').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="lname">'.T_('Last Name').'</label> 
+                        <div class="input">
                             <input type="text" name="lname" id="lname" value="'.cleanOutput($lname).'" size="50"/>
                         </div>
                     </div>
@@ -314,9 +313,9 @@ class AdminMembers
         if ($sex == 'F')
         {
             echo '
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="maiden"><b>'.T_('Maiden Name').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="maiden">'.T_('Maiden Name').'</label> 
+                        <div class="input">
                             <input type="text" name="maiden" id="maiden" value="'.cleanOutput($maiden).'" size="50"/>
                         </div>
                     </div>';
@@ -390,18 +389,18 @@ class AdminMembers
         }
 
         echo '
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="sex"><b>'.T_('Gender').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="sex">'.T_('Gender').'</label> 
+                        <div class="input">
                             <select name="sex" id="sex">
                                 <option value="M" '.$maleSelected.'>'.T_('Male').'</option>
                                 <option value="F" '.$femaleSelected.'>'.T_('Female').'</option>
                             </select>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="email">'.T_('Email').'</label> 
+                        <div class="input">
                             <input type="text" name="email" id="email" value="'.cleanOutput($email).'" size="50"/>
                         </div>
                     </div>
@@ -411,37 +410,37 @@ class AdminMembers
                         femail.add( Validate.Email, { failureMessage: "'.T_('That\'s not a valid email address is it?').'" } );
                         femail.add( Validate.Length, { minimum: 10 } );
                     </script>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="bday"><b>'.T_('Birthday').'</b></label></div> 
-                        <div class="field-widget">
-                            <select id="bday" name="bday">
+                    <div class="clearfix">
+                        <label for="bday">'.T_('Birthday').'</label> 
+                        <div class="input">
+                            <select id="bday" name="bday" class="span2">
                                 <option value="">'.T_('Day').'</option>
                                 '.buildHtmlSelectOptions($days, $bDay).'
                             </select>
-                            <select id="bmonth" name="bmonth">
+                            <select id="bmonth" name="bmonth" class="span3">
                                 <option value="">'.T_('Month').'</option>
                                 '.buildHtmlSelectOptions($months, $bMonth).'
                             </select>
                             <input type="text" name="byear" id="byear" size="5" maxlength="4" placeholder="'.T_('Year').'" value="'.$bYear.'"/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="dday"><b>'.T_('Deceased').'</b></label></div> 
-                        <div class="field-widget">
-                            <select id="dday" name="dday">
+                    <div class="clearfix">
+                        <label for="dday">'.T_('Deceased').'</label> 
+                        <div class="input">
+                            <select id="dday" name="dday" class="span2">
                                 <option value="">'.T_('Day').'</option>
                                 '.buildHtmlSelectOptions($days, $dDay).'
                             </select>
-                            <select id="dmonth" name="dmonth">
+                            <select id="dmonth" name="dmonth" class="span3">
                                 <option value="">'.T_('Month').'</option>
                                 '.buildHtmlSelectOptions($months, $dMonth).'
                             </select>
                             <input type="text" name="dyear" id="dyear" size="5" maxlength="4" placeholder="'.T_('Year').'" value="'.$dYear.'"/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="access"><b>'.T_('Access Level').'</b></label></div> 
-                        <div class="field-widget">
+                    <div class="clearfix">
+                        <label for="access">'.T_('Access Level').'</label> 
+                        <div class="input">
                             <select id="access" name="access">
                                 <option value="1" '.$accessSelected1.'>1. '.T_('Admin').'</option>
                                 <option value="2" '.$accessSelected2.'>2. '.T_('Helper').'</option>
@@ -460,14 +459,14 @@ class AdminMembers
                             </select>
                         </div>
                     </div>
-                    <p>
+                    <div class="actions">
                         <input type="hidden" id="id" name="id" value="'.(int)$id.'"/>
-                        <input class="sub1" type="submit" id="edit" name="edit" value="'.T_('Edit').'"/>&nbsp;&nbsp;
-                        <input class="sub2" type="submit" id="delete" name="delete" value="'.T_('Delete').'"/> '.T_('or').' &nbsp;
-                        <a class="u" href="members.php">'.T_('Cancel').'</a>
-                    </p>
-                </form>
-            </fieldset>';
+                        <input class="btn primary" type="submit" id="edit" name="edit" value="'.T_('Save Changes').'"/>
+                        <input class="btn danger" type="submit" id="delete" name="delete" value="'.T_('Delete').'"/>
+                        <a class="btn secondary" href="members.php">'.T_('Cancel').'</a>
+                    </div>
+                </fieldset>
+            </form>';
     }
 
     /**
@@ -483,7 +482,7 @@ class AdminMembers
 
         $db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
 
         // Get current member info
         $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, 
@@ -523,112 +522,85 @@ class AdminMembers
 
         // Display the form
         echo '
-            <fieldset>
-                <legend><span>'.T_('Merge Member').'</span></legend>
-                <form method="post" id="merge-form" action="members.php">
-                    <div id="current-member">
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('ID').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['id'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Username').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['username'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Name').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['fname'].' '.$r['mname'].' '.$r['lname'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Maiden Name').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['maiden'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Email').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['email'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Birthday').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.formatBirthday($r['dob_year'], $r['dob_month'], $r['dob_day']).'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Address').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['address'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('City').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['city'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('State').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['state'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Zip').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['zip'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Home Phone').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['home'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Work Phone').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['work'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Cell Phone').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['cell'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Bio').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$r['bio'].'</div>
-                        </div>
-                    </div>
-                    <div id="merge-member">
-                        <p>
-                            <b>'.T_('Member to merge with').'</b><br/>
-                            <select id="merge-with" name="merge-with">
-                                <option value="0"></option>
-                                '.buildHtmlSelectOptions($members, -1).'
-                            </select>
-                        </p>
-                    </div>
-                    <div class="clearfix"></div>
-                    <p>
+            <form method="post" id="merge-form" action="members.php">
+                <fieldset>
+                    <legend><span>'.T_('Merge Member').'</span></legend>
+                    <div class="row">
+                        <div class="span8">
+                            <div class="clearfix">
+                                <label>'.T_('ID').'</label>
+                                <div class="input">'.$r['id'].'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Username').'</label>
+                                <div class="input">'.cleanOutput($r['username']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Name').'</label>
+                                <div class="input">'.cleanOutput($r['fname']).' '.cleanOutput($r['mname']).' '.cleanOutput($r['lname']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Maiden Name').'</label>
+                                <div class="input">'.cleanOutput($r['maiden']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Email').'</label>
+                                <div class="input">'.cleanOutput($r['email']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Birthday').'</label>
+                                <div class="input">'.formatBirthday($r['dob_year'], $r['dob_month'], $r['dob_day']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Address').'</label>
+                                <div class="input">'.cleanOutput($r['address']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('City').'</label>
+                                <div class="input">'.cleanOutput($r['city']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('State').'</label>
+                                <div class="input">'.cleanOutput($r['state']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Zip').'</label>
+                                <div class="input">'.cleanOutput($r['zip']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Home Phone').'</label>
+                                <div class="input">'.cleanOutput($r['home']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Work Phone').'</label>
+                                <div class="input">'.cleanOutput($r['work']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Cell Phone').'</label>
+                                <div class="input">'.cleanOutput($r['cell']).'</div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Bio').'</label>
+                                <div class="input">'.cleanOutput($r['bio']).'</div>
+                            </div>
+                        </div><!-- span8 -->
+                        <div class="span8">
+                            <p>
+                                <b>'.T_('Member to merge with').'</b><br/>
+                                <select id="merge-with" name="merge-with">
+                                    <option value="0"></option>
+                                    '.buildHtmlSelectOptions($members, -1).'
+                                </select>
+                            </p>
+                        </div><!-- /span8 -->
+                    </div><!-- /row -->
+                    <div class="actions">
                         <input type="hidden" id="id" name="id" value="'.(int)$id.'"/>
-                        <input class="sub1" type="submit" id="merge-review" name="merge-review" value="'.T_('Merge').'"/> '.T_('or').' &nbsp;
-                        <a class="u" href="members.php">'.T_('Cancel').'</a>
-                    </p>
-                </form>
-            </fieldset>';
+                        <input class="btn primary" type="submit" id="merge-review" name="merge-review" value="'.T_('Next').'"/>
+                        <a class="btn" href="members.php">'.T_('Cancel').'</a>
+                    </div>
+                </fieldset>
+            </form>';
     }
 
     /**
@@ -641,8 +613,8 @@ class AdminMembers
      */
     function displayMergeMemberFormReview ($id, $merge)
     {
-        $id    = cleanInput($id, 'int');
-        $merge = cleanInput($merge, 'int');
+        $id    = (int)$id;
+        $merge = (int)$merge;
 
         $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, 
                     u.`dob_year`, u.`dob_month`, u.`dob_day`, 
@@ -675,300 +647,415 @@ class AdminMembers
 
         // Display form
         echo '
-            <fieldset>
-                <legend><span>'.T_('Merge Member').'</span></legend>
-                <form method="post" id="merge-form" action="members.php">
-                    <p>'.T_('Choose which information you would like to use from the two members below.').'</p>
-                    <p>'.sprintf(T_('Please note that user [%s] and all information not selected will be deleted.'), $merge).'</p>
-                    <div id="current-member">
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('ID').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$members[$id]['id'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Username').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$members[$id]['username'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('First Name').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="f1" name="fname" value="'.$members[$id]['fname'].'"/>
-                                <label for="f1">'.$members[$id]['fname'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Middle Name').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="m1" name="mname" value="'.$members[$id]['mname'].'"/>
-                                <label for="m1">'.$members[$id]['mname'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Last Name').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="l1" name="lname" value="'.$members[$id]['lname'].'"/>
-                                <label for="l1">'.$members[$id]['lname'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Maiden Name').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="ma1" name="maiden" value="'.$members[$id]['maiden'].'"/>
-                                <label for="ma1">'.$members[$id]['maiden'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Email').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="e1" name="email" value="'.$members[$id]['email'].'"/>
-                                <label for="e1">'.$members[$id]['email'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Birthday').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="b1" name="birthday" value="'.$birthday1.'"/>
-                                <label for="b1">'.$formatBirthday1.'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Address').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="a1" name="address" value="'.$members[$id]['address'].'"/>
-                                <label for="a1">'.$members[$id]['address'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('City').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="c1" name="city" value="'.$members[$id]['city'].'"/>
-                                <label for="c1">'.$members[$id]['city'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('State').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="s1" name="state" value="'.$members[$id]['state'].'"/>
-                                <label for="s1">'.$members[$id]['state'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Zip').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="z1" name="zip" value="'.$members[$id]['zip'].'"/>
-                                <label for="z1">'.$members[$id]['zip'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Home Phone').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="h1" name="home" value="'.$members[$id]['home'].'"/>
-                                <label for="h1">'.$members[$id]['home'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Work Phone').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="w1" name="work" value="'.$members[$id]['work'].'"/>
-                                <label for="w1">'.$members[$id]['work'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Cell Phone').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="ce1" name="cell" value="'.$members[$id]['cell'].'"/>
-                                <label for="ce1">'.$members[$id]['cell'].'</label>
-                            </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Bio').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" checked="checked" id="bi1" name="bio" value="'.$members[$id]['bio'].'"/>
-                                <label for="bi1">'.$members[$id]['bio'].'</label>
-                            </div>
-                        </div>
+            <form method="post" id="merge-form" action="members.php">
+                <fieldset>
+                    <legend><span>'.T_('Merge Member').'</span></legend>
+                    <div class="alert-message block-message info">
+                        <p>'.T_('Choose which information you would like to use from the two members below.').'</p>
+                        <p>'.sprintf(T_('Please note that user [%s] and all information not selected will be deleted.'), $merge).'</p>
                     </div>
-                    <div id="merge-member">
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('ID').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$members[$merge]['id'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Username').'</b></label>
-                            </div> 
-                            <div class="field-widget">'.$members[$merge]['username'].'</div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('First Name').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="f2" name="fname" value="'.$members[$merge]['fname'].'"/>
-                                <label for="f2">'.$members[$merge]['fname'].'</label>
+                    <div class="row">
+                        <div class="span8">
+                            <div class="clearfix">
+                                <label>'.T_('ID').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list"><li><label>'.$members[$id]['id'].'</label></li></ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Middle Name').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="m2" name="mname" value="'.$members[$merge]['mname'].'"/>
-                                <label for="m2">'.$members[$merge]['mname'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('Username').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list"><li><label>'.$members[$id]['username'].'</label></li></ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Last Name').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="l2" name="lname" value="'.$members[$merge]['lname'].'"/>
-                                <label for="l2">'.$members[$merge]['lname'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('First Name').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="f1" name="fname" value="'.$members[$id]['fname'].'"/>
+                                                <span>'.$members[$id]['fname'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Maiden Name').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="ma2" name="maiden" value="'.$members[$merge]['maiden'].'"/>
-                                <label for="ma2">'.$members[$merge]['maiden'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('Middle Name').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="m1" name="mname" value="'.$members[$id]['mname'].'"/>
+                                                <span>'.$members[$id]['mname'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Email').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="e2" name="email" value="'.$members[$merge]['email'].'"/>
-                                <label for="e2">'.$members[$merge]['email'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('Last Name').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="l1" name="lname" value="'.$members[$id]['lname'].'"/>
+                                                <span>'.$members[$id]['lname'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Birthday').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="b2" name="birthday" value="'.$birthday2.'"/>
-                                <label for="b2">'.$formatBirthday2.'</label>
+                            <div class="clearfix">
+                                <label>'.T_('Maiden Name').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="ma1" name="maiden" value="'.$members[$id]['maiden'].'"/>
+                                                <span>'.$members[$id]['maiden'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Address').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="a2" name="address" value="'.$members[$merge]['address'].'"/>
-                                <label for="a2">'.$members[$merge]['address'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('Email').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="e1" name="email" value="'.$members[$id]['email'].'"/>
+                                                <span>'.$members[$id]['email'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('City').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="c2" name="city" value="'.$members[$merge]['city'].'"/>
-                                <label for="c2">'.$members[$merge]['city'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('Birthday').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="b1" name="birthday" value="'.$birthday1.'"/>
+                                                <span>'.$formatBirthday1.'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('State').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="s2" name="state" value="'.$members[$merge]['state'].'"/>
-                                <label for="s2">'.$members[$merge]['state'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('Address').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="a1" name="address" value="'.$members[$id]['address'].'"/>
+                                                <span>'.$members[$id]['address'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Zip').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="z2" name="zip" value="'.$members[$merge]['zip'].'"/>
-                                <label for="z2">'.$members[$merge]['zip'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('City').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="c1" name="city" value="'.$members[$id]['city'].'"/>
+                                                <span>'.$members[$id]['city'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Home Phone').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="h2" name="home" value="'.$members[$merge]['home'].'"/>
-                                <label for="h2">'.$members[$merge]['home'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('State').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="s1" name="state" value="'.$members[$id]['state'].'"/>
+                                                <span>'.$members[$id]['state'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Work Phone').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="w2" name="work" value="'.$members[$merge]['work'].'"/>
-                                <label for="w2">'.$members[$merge]['work'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('Zip').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="z1" name="zip" value="'.$members[$id]['zip'].'"/>
+                                                <span>'.$members[$id]['zip'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Cell Phone').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="ce2" name="cell" value="'.$members[$merge]['cell'].'"/>
-                                <label for="ce2">'.$members[$merge]['cell'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('Home Phone').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="h1" name="home" value="'.$members[$id]['home'].'"/>
+                                                <span>'.$members[$id]['home'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                        <div class="field-row clearfix">
-                            <div class="field-label">
-                                <label><b>'.T_('Bio').'</b></label>
-                            </div> 
-                            <div class="field-widget">
-                                <input type="radio" id="bi2" name="bio" value="'.$members[$merge]['bio'].'"/>
-                                <label for="bi2">'.$members[$merge]['bio'].'</label>
+                            <div class="clearfix">
+                                <label>'.T_('Work Phone').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="w1" name="work" value="'.$members[$id]['work'].'"/>
+                                                <span>'.$members[$id]['work'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="clearfix"></div>
-                    <p>
+                            <div class="clearfix">
+                                <label>'.T_('Cell Phone').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="ce1" name="cell" value="'.$members[$id]['cell'].'"/>
+                                                <span>'.$members[$id]['cell'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Bio').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" checked="checked" id="bi1" name="bio" value="'.$members[$id]['bio'].'"/>
+                                                <span>'.$members[$id]['bio'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div><!-- /span8 -->
+                        <div class="span8">
+                            <div class="clearfix">
+                                <label>'.T_('ID').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list"><li><label>'.$members[$merge]['id'].'</label></li></ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Username').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list"><li><label>'.$members[$merge]['username'].'</label></li></ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('First Name').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="f2" name="fname" value="'.$members[$merge]['fname'].'"/>
+                                                <span>'.$members[$merge]['fname'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Middle Name').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="m2" name="mname" value="'.$members[$merge]['mname'].'"/>
+                                                <span>'.$members[$merge]['mname'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Last Name').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="l2" name="lname" value="'.$members[$merge]['lname'].'"/>
+                                                <span>'.$members[$merge]['lname'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Maiden Name').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="ma2" name="maiden" value="'.$members[$merge]['maiden'].'"/>
+                                                <span>'.$members[$merge]['maiden'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Email').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="e2" name="email" value="'.$members[$merge]['email'].'"/>
+                                                <span>'.$members[$merge]['email'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Birthday').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="b2" name="birthday" value="'.$birthday2.'"/>
+                                                <span>'.$formatBirthday2.'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Address').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="a2" name="address" value="'.$members[$merge]['address'].'"/>
+                                                <span>'.$members[$merge]['address'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('City').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="c2" name="city" value="'.$members[$merge]['city'].'"/>
+                                                <span>'.$members[$merge]['city'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('State').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="s2" name="state" value="'.$members[$merge]['state'].'"/>
+                                                <span>'.$members[$merge]['state'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Zip').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="z2" name="zip" value="'.$members[$merge]['zip'].'"/>
+                                                <span>'.$members[$merge]['zip'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Home Phone').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="h2" name="home" value="'.$members[$merge]['home'].'"/>
+                                                <span>'.$members[$merge]['home'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Work Phone').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="w2" name="work" value="'.$members[$merge]['work'].'"/>
+                                                <span>'.$members[$merge]['work'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Cell Phone').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="ce2" name="cell" value="'.$members[$merge]['cell'].'"/>
+                                                <span>'.$members[$merge]['cell'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix">
+                                <label>'.T_('Bio').'</label>
+                                <div class="input">
+                                    <ul class="inputs-list">
+                                        <li>
+                                            <label>
+                                                <input type="radio" id="bi2" name="bio" value="'.$members[$merge]['bio'].'"/>
+                                                <span>'.$members[$merge]['bio'].'</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div><!-- /span8 -->
+                    </div><!-- /row -->
+                    <div class="actions">
                         <input type="hidden" id="id" name="id" value="'.$id.'"/>
                         <input type="hidden" id="merge" name="merge" value="'.$merge.'"/>
-                        <input class="sub1" type="submit" id="merge-submit" name="merge-submit" value="'.T_('Merge').'"/> '.T_('or').' &nbsp;
-                        <a class="u" href="members.php">'.T_('Cancel').'</a>
-                    </p>
-                </form>
-            </fieldset>';
+                        <input class="btn primary" type="submit" id="merge-submit" name="merge-submit" value="'.T_('Merge').'"/>
+                        <a class="btn" href="members.php">'.T_('Cancel').'</a>
+                    </div>
+                </fieldset>
+            </form>';
     }
 
     /**
@@ -992,41 +1079,47 @@ class AdminMembers
 
         $view = 'members';
 
+        $allActive     = '';
+        $membersActive = '';
+        $nonActive     = '';
+
         if (isset($_GET['view']))
         {
             if ($_GET['view'] == 'all')
             {
-                $view = 'all';
+                $view      = 'all';
+                $allActive = 'active';
             }
             elseif ($_GET['view'] == 'non')
             {
-                $view = 'non';
+                $view      = 'non';
+                $nonActive = 'active';
             }
+            else
+            {
+                $membersActive = 'active';
+            }
+        }
+        else
+        {
+            $membersActive = 'active';
         }
         
         // Display the add link, search box and table header
         echo '
-            <div id="sections_menu" class="clearfix">
-                <ul><li><a href="?view=all">'.T_('All').'</a></li></ul>
-                <ul><li><a href="?view=members">'.T_('Members').'</a></li></ul>
-                <ul><li><a href="?view=non">'.T_('Non-Members').'</a></li></ul>
-            </div>
-            <div id="actions_menu" class="clearfix">
-                <ul><li><a class="add" href="?create=member">'.T_('Create Member').'</a></li></ul>
-            </div>
-            <hr/>
+            <ul class="tabs">
+                <li class="'.$allActive.'"><a href="?view=all">'.T_('All').'</a></li>
+                <li class="'.$membersActive.'"><a href="?view=members">'.T_('Members').'</a></li>
+                <li class="'.$nonActive.'"><a href="?view=non">'.T_('Non-Members').'</a></li>
+                <li class="action"><a href="?create=member">'.T_('Create Member').'</a></li>
+            </ul>
             <form method="post" action="members.php" name="search_frm" id="search_frm">
                 <div>
-                    <b>'.T_('Search').'</b>&nbsp;&nbsp; 
-                    <label for="fname">'.T_('First Name').'</label> 
-                    <input type="text" name="fname" id="fname" value="'.cleanOutput($fname).'"/>&nbsp;&nbsp; 
-                    <label for="lname">'.T_('Last Name').'</label> 
-                    <input type="text" name="lname" id="lname" value="'.cleanOutput($lname).'"/>&nbsp;&nbsp; 
-                    <label for="uname">'.T_('Username').'</label> 
-                    <input type="text" name="uname" id="uname" value="'.cleanOutput($uname).'"/>&nbsp;&nbsp; 
+                    <input type="text" name="fname" id="fname" placeholder="'.T_('First Name').'" title="'.T_('First Name').'" value="'.cleanOutput($fname).'"/>
+                    <input type="text" name="lname" id="lname" placeholder="'.T_('Last Name').'" title="'.T_('Last Name').'" value="'.cleanOutput($lname).'"/>
+                    <input type="text" name="uname" id="uname" placeholder="'.T_('Username').'" title="'.T_('Username').'" value="'.cleanOutput($uname).'"/>
                     <input type="submit" id="search" name="search" value="'.T_('Search').'"/>
                 </div>
-                <hr/>
             </form>
             <p>&nbsp;</p>
             <form method="post" action="members.php">
@@ -1088,15 +1181,15 @@ class AdminMembers
         {
             if (strlen($fname) > 0)
             {
-                $sql .= "AND `fname` LIKE '".cleanInput($fname)."' ";
+                $sql .= "AND `fname` LIKE '".escape_string($fname)."' ";
             }
             if (strlen($lname) > 0)
             {
-                $sql .= "AND `lname` LIKE '".cleanInput($lname)."' ";
+                $sql .= "AND `lname` LIKE '".escape_string($lname)."' ";
             }
             if (strlen($uname) > 0)
             {
-                $sql .= "AND `username` LIKE '".cleanInput($uname)."' ";
+                $sql .= "AND `username` LIKE '".escape_string($uname)."' ";
             }
             $sql .= "ORDER BY `id` LIMIT $from, $perPage";
         }
@@ -1151,9 +1244,9 @@ class AdminMembers
                     </tbody>
                 </table>
                 <p style="text-align:right">
-                    <input type="submit" name="activateAll" id="activateAll" value="'.T_('Activate Selected').'"/>&nbsp; 
-                    <input type="submit" name="inactivateAll" id="inactivateAll" value="'.T_('Inactivate Selected').'"/>&nbsp; 
-                    <input type="submit" name="deleteAll" id="deleteAll" value="'.T_('Delete Selected').'"/>
+                    <input type="submit" class="btn primary" name="activateAll" id="activateAll" value="'.T_('Activate Selected').'"/>&nbsp; 
+                    <input type="submit" class="btn" name="inactivateAll" id="inactivateAll" value="'.T_('Inactivate Selected').'"/>&nbsp; 
+                    <input type="submit" class="btn danger" name="deleteAll" id="deleteAll" value="'.T_('Delete Selected').'"/>
                 </p>
             </form>';
 
@@ -1234,8 +1327,8 @@ class AdminMembers
      */
     function mergeMember ($id, $merge)
     {
-        $id    = cleanInput($_POST['id'], 'int');
-        $merge = cleanInput($_POST['merge'], 'int');
+        $id    = (int)$_POST['id'];
+        $merge = (int)$_POST['merge'];
 
         // fcms_address
 

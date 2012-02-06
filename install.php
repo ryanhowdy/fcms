@@ -28,7 +28,7 @@
  * @link      http://www.familycms.com/wiki/
  */
 
-require_once 'inc/gettext.inc';
+require_once 'inc/thirdparty/gettext.inc';
 require_once 'inc/constants.php';
 
 // Setup php-gettext
@@ -103,18 +103,18 @@ function displayHeader ()
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
 <title>Family Connections '.T_('Installation').'</title>
-<link rel="stylesheet" type="text/css" href="themes/fcms-core.css" />
-<script type="text/javascript" src="inc/js/prototype.js"></script>
-<script type="text/javascript" src="inc/js/livevalidation.js"></script>
-<link rel="stylesheet" type="text/css" href="themes/datechooser.css"/>
-<script type="text/javascript" src="inc/js/datechooser.js"></script>
+<link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
+<script type="text/javascript" src="ui/js/prototype.js"></script>
+<script type="text/javascript" src="ui/js/livevalidation.js"></script>
+<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>
+<script type="text/javascript" src="ui/js/datechooser.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, "load", function() {
     // Datechooser
     var objDatePicker = new DateChooser();
     objDatePicker.setUpdateField({"day":"j", "month":"n", "year":"Y"});
-    objDatePicker.setIcon("themes/default/images/datepicker.jpg", "year");
+    objDatePicker.setIcon("ui/themes/default/images/datepicker.jpg", "year");
     return true;
 });
 //]]>
@@ -462,7 +462,7 @@ function displayStepFour ($error = '0')
                 fcontact.add( Validate.Length, { minimum: 10 } );
             </script>
             <div>
-                <div class="field-label"><label><b>'.T_('Optional Sections').'</b></label></div>
+                <div class="field-label"><label><b>'.T_('Optional Plugins').'</b></label></div>
                 <div>
                     <input type="checkbox" name="sections-news" id="sections-news" value="familynews"/>
                     <label for="sections-news">'.T_('Family News').'</label><br/>
@@ -478,7 +478,7 @@ function displayStepFour ($error = '0')
                     <label for="sections-whereiseveryone">'.T_('Where Is Everyone').'</label>
                 </div>
             </div>
-            <p>'.T_('Which sections would you like to use on your site?').'</p>
+            <p>'.T_('Which plugins would you like to use on your site?').'</p>
             <p style="text-align:right;"><input id="submit" name="submit4" type="submit"  value="'.T_('Next').' >>"/></p>
             <div class="clear"></div>
         </form>
@@ -509,19 +509,11 @@ function displayStepFive ($error = '0')
     mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
     mysql_select_db($cfg_mysql_db);
 
-    if (version_compare(phpversion(), "4.3.0") == "-1")
-    {
-        $_POST['sitename'] = mysql_escape_string($_POST['sitename']);
-        $_POST['contact']  = mysql_escape_string($_POST['contact']);
-    }
-    else
-    {
-        $_POST['sitename'] = mysql_real_escape_string($_POST['sitename']);
-        $_POST['contact']  = mysql_real_escape_string($_POST['contact']);
-    }
+    $_POST['sitename'] = mysql_real_escape_string($_POST['sitename']);
+    $_POST['contact']  = mysql_real_escape_string($_POST['contact']);
 
     // Setup Config
-    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 2.8');
+    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 2.9');
 
     // Setup Navigation
     $order  = 0;
@@ -529,7 +521,6 @@ function displayStepFive ($error = '0')
 
     $nextComOrder   = 2;
     $nextShareOrder = 5;
-    $nextAdminOrder = 10;
 
     $params = array();
 
@@ -582,11 +573,7 @@ function displayStepFive ($error = '0')
     if (isset($_POST['sections-whereiseveryone']))
     {
         $order  = $nextShareOrder;
-        $order2 = $nextAdminOrder;
         $nextShareOrder++;
-        $nextAdminOrder++;
-
-        $params['admin_foursquare'] = array(6, $order2, 0);
     }
     $params['whereiseveryone'] = array(4, $order, 0);
 
@@ -706,13 +693,15 @@ function setupDatabase ()
 
     mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Database could not be found!</b></p>".mysql_error());
 
-    $fname    = cleanInput($_POST['fname']);
-    $lname    = cleanInput($_POST['lname']);
-    $email    = cleanInput($_POST['email']);
-    $bYear    = cleanInput($_POST['year']);
-    $bMonth   = cleanInput(str_pad($_POST['month'], 2, "0", STR_PAD_LEFT));
-    $bDay     = cleanInput(str_pad($_POST['day'], 2, "0", STR_PAD_LEFT));
-    $username = cleanInput($_POST['username']);
+    $fname    = mysql_real_escape_string($_POST['fname']);
+    $lname    = mysql_real_escape_string($_POST['lname']);
+    $email    = mysql_real_escape_string($_POST['email']);
+    $bYear    = (int)$_POST['year'];
+    $bMonth   = (int)$_POST['month'];
+    $bMonth   = str_pad($bMonth, 2, "0", STR_PAD_LEFT);
+    $bDay     = (int)$_POST['day'];
+    $bDay     = str_pad($bDay, 2, "0", STR_PAD_LEFT);
+    $username = mysql_real_escape_string($_POST['username']);
 
     installUsers($fname, $lname, $email, $bYear, $bMonth, $bDay, $username, $password);
     installCategory();

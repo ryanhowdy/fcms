@@ -32,7 +32,7 @@ class FamilyNews
         $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->currentUserId = (int)$currentUserId;
         $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
@@ -88,7 +88,7 @@ class FamilyNews
      */
     function displayUserFamilyNews ($user, $page = 1)
     {
-        $user = cleanInput($user, 'int');
+        $user = (int)$user;
         $from = (($page * 5) - 5); 
 
         // Get family news
@@ -98,7 +98,7 @@ class FamilyNews
                 WHERE n.`user` = '$user' 
                     AND n.`user` = u.`id` 
                 ORDER BY `updated` DESC 
-                LIMIT " . $from . ", 5";
+                LIMIT $from, 5";
 
         if (!$this->db->query($sql))
         {
@@ -140,8 +140,8 @@ class FamilyNews
      */
     function displayFamilyNews ($user, $id)
     {
-        $user = cleanInput($user, 'int');
-        $id   = cleanInput($id, 'int');
+        $user = (int)$user;
+        $id   = (int)$id;
 
         $sql = "SELECT n.`id`, n.`title`, n.`news`, n.`updated`, n.`created`,
                     n.`external_type`, n.`external_id`
@@ -171,7 +171,7 @@ class FamilyNews
                 <form method="post" action="familynews.php">
                     <div>
                         <input type="hidden" name="user" value="'.$user.'"/>
-                        <input type="hidden" name="id" value="'.cleanInput($row['id'], 'int').'"/>
+                        <input type="hidden" name="id" value="'.(int)$row['id'].'"/>
                         <input type="hidden" name="title" value="'.cleanOutput($row['title']).'"/>
                         <input type="hidden" name="news" value="'.cleanOutput($row['news']).'"/>
                         <input type="submit" name="editnews" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Family News').'"/>
@@ -182,7 +182,7 @@ class FamilyNews
                 <form class="delnews" method="post" action="familynews.php?getnews='.$user.'">
                     <div>
                         <input type="hidden" name="user" value="'.$user.'"/>
-                        <input type="hidden" name="id" value="'.cleanInput($row['id'], 'int').'"/>
+                        <input type="hidden" name="id" value="'.(int)$row['id'].'"/>
                         <input type="submit" name="delnews" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Family News').'"/>
                     </div>
                 </form>';
@@ -220,7 +220,7 @@ class FamilyNews
                     '.$newsSource.$news.'
                 </p>
                 <p class="news-comments">
-                    <a href="?getnews='.$user.'&amp;newsid='.cleanInput($row['id'], 'int').'#comments">'.T_('Comments').'</a> - 
+                    <a href="?getnews='.$user.'&amp;newsid='.(int)$row['id'].'#comments">'.T_('Comments').'</a> - 
                     '.getNewsComments($row['id']).'
                 </p>
             </div>
@@ -301,7 +301,7 @@ class FamilyNews
     function displayForm ($type, $user = 0, $newsid = 0, $title='error', $news = 'error')
     {
         echo '
-            <script type="text/javascript" src="inc/js/livevalidation.js"></script>';
+            <script type="text/javascript" src="ui/js/livevalidation.js"></script>';
 
         if ($type == 'edit')
         {
@@ -324,7 +324,7 @@ class FamilyNews
 
         if ($type == 'edit')
         {
-            echo ' value="'.$title.'"';
+            echo ' value="'.cleanOutput($title).'"';
         }
         echo ' tabindex="1" size="50"/>
                     </p>
@@ -339,7 +339,7 @@ class FamilyNews
 
         if ($type == 'edit')
         {
-            echo $news;
+            echo cleanOutput($news);
         }
         echo '</textarea></div>
                     <script type="text/javascript">bb.init(\'post\');</script>
@@ -409,7 +409,8 @@ class FamilyNews
      */
     function hasNews ($userid)
     {
-        $userid = cleanInput($userid, 'int');
+        $userid = (int)$userid;
+
         $sql = "SELECT `id` 
                 FROM `fcms_news` 
                 WHERE `user` = '$userid' 
@@ -561,7 +562,8 @@ class FamilyNews
                     <span style="background-color:#eee; color:#999; font-size:13px;">
                         '.sprintf(T_('Originally from %s, %s.'), $data['external_type'], $created).'
                     </span><br/>';
-            $news       = strip_tags($data['news']);
+
+            $news = strip_tags($data['news']);
         }
         // Family News
         else
@@ -573,8 +575,7 @@ class FamilyNews
         if (strlen($data['news']) > 300)
         {
             $news = substr($news, 0, 300);
-            $news .= '...<br/><br/><a href="?getnews='.$data['user'].'&amp;newsid='
-                        .cleanInput($data['id'], 'int').'">'.T_('Read More').'</a>';
+            $news .= '...<br/><br/><a href="?getnews='.$data['user'].'&amp;newsid='.(int)$data['id'].'">'.T_('Read More').'</a>';
         }
 
         if (empty($data['title']))
@@ -585,13 +586,12 @@ class FamilyNews
         echo '
             <div class="news-post">
                 <h2>
-                    <a href="?getnews='.$data['user'].'&amp;newsid='.cleanInput($data['id'], 'int').'">'
-                        .cleanOutput($data['title']).'</a>
+                    <a href="?getnews='.$data['user'].'&amp;newsid='.(int)$data['id'].'">'.cleanOutput($data['title']).'</a>
                 </h2>
                 <span class="date">'.$updated.' - '.$displayname.'</span>
                 <p>'.$newsSource.$news.'</p>
                 <p class="news-comments">
-                    <a href="?getnews='.$data['user'].'&amp;newsid='.cleanInput($data['id'], 'int').'#comments">'
+                    <a href="?getnews='.$data['user'].'&amp;newsid='.(int)$data['id'].'#comments">'
                         .T_('Comments').'</a> - '.getNewsComments($data['id']).'
                 </p>
             </div>';
@@ -711,7 +711,7 @@ class FamilyNews
         $importCount = 0;
         foreach ($xml->entry as $post)
         {
-            $bid = cleanInput("$post->id");
+            $bid = escape_string("$post->id");
 
             // skip ids that already exist
             if (isset($externalIds[$bid]))
@@ -719,9 +719,9 @@ class FamilyNews
                 continue;
             }
 
-            $title = cleanInput("$post->title");
-            $news  = cleanInput("$post->content");
-            $user  = cleanInput($userid, 'int');
+            $title = escape_string("$post->title");
+            $news  = escape_string("$post->content");
+            $user  = escape_string($userid, 'int');
             $date  = date('Y-m-d H:i:s', strtotime($post->published));
 
             $sql .= "('$title', '$news', '$user', '$date', NOW(), 'blogger', '$bid'), ";
@@ -810,7 +810,7 @@ class FamilyNews
                     $title = '';
                     if (isset($post->{'photo-caption'}))
                     {
-                        $title = cleanInput($post->{'photo-caption'});
+                        $title = escape_string($post->{'photo-caption'});
                     }
                     break;
 
@@ -890,7 +890,7 @@ class FamilyNews
         $importCount = 0;
         foreach($xml->channel->item as $post)
         {
-            $bid = cleanInput("$post->guid");
+            $bid = escape_string("$post->guid");
 
             // skip ids that already exist
             if (isset($external_ids[$bid]))
@@ -898,8 +898,8 @@ class FamilyNews
                 continue;
             }
 
-            $title = cleanInput("$post->title");
-            $news  = cleanInput("$post->description");
+            $title = escape_string("$post->title");
+            $news  = escape_string("$post->description");
             $user  = $userId;
             $date  = date('Y-m-d H:i:s', strtotime($post->pubDate));
 
@@ -991,7 +991,7 @@ class FamilyNews
         $importCount = 0;
         foreach($xml->post as $post)
         {
-            $bid = cleanInput($post->id, 'int');
+            $bid = escape_string($post->id);
 
             // skip ids that already exist
             if (isset($external_ids[$bid]))
@@ -999,8 +999,8 @@ class FamilyNews
                 continue;
             }
 
-            $title = cleanInput("$post->title");
-            $news  = cleanInput("$post->body");
+            $title = escape_string("$post->title");
+            $news  = escape_string("$post->body");
             $user  = $userId;
             $date  = date('Y-m-d H:i:s', strtotime($post->date));
 

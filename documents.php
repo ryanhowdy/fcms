@@ -22,7 +22,7 @@ load('documents');
 
 init();
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+$currentUserId = (int)$_SESSION['login_id'];
 $docs          = new Documents($currentUserId);
 
 // Download Document
@@ -30,7 +30,7 @@ if (isset($_GET['download']))
 {
     $show     = false;
     $filename = "uploads/documents/".basename($_GET['download']);
-    $mimetype = isset($_GET['mime']) ? cleanInput($_GET['mime']) : 'application/download';
+    $mimetype = isset($_GET['mime']) ? $_GET['mime'] : 'application/download';
 
     header("Cache-control: private");
     header("Pragma: public");
@@ -70,8 +70,8 @@ if (isset($_POST['submitadd']))
 {
     $doc  = $_FILES['doc']['name'];
     $doc  = cleanFilename($doc);
-    $desc = cleanInput($_POST['desc']);
-    $mime = cleanInput($_FILES['doc']['type']);
+    $desc = escape_string($_POST['desc']);
+    $mime = escape_string($_FILES['doc']['type']);
 
     if ($docs->uploadDocument($_FILES['doc'], $doc))
     {
@@ -139,7 +139,7 @@ if (isset($_POST['submitadd']))
 if (isset($_POST['deldoc']))
 {
     $sql = "DELETE FROM `fcms_documents` 
-            WHERE `id` = ".cleanInput($_POST['id'], 'int');
+            WHERE `id` = '".(int)$_POST['id']."'";
 
     if (!mysql_query($sql))
     {
@@ -174,10 +174,11 @@ if ($show)
             </div>';
     }
 
-    $page = isset($_GET['page']) ? cleanInput($_GET['page'], 'int') : 1;
+    $page = getPage();
 
     $docs->showDocuments($page);
 }
+
 echo '
         </div><!-- #documents .centercontent -->';
 

@@ -32,7 +32,7 @@ class FamilyTree
         $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
 
-        $this->currentUserId = cleanInput($currentUserId, 'int');
+        $this->currentUserId = (int)$currentUserId;
         $this->tzOffset      = getTimezone($this->currentUserId);
     }
 
@@ -52,7 +52,7 @@ class FamilyTree
      */
     function displayFamilyTree ($id, $type = 'tree')
     {
-        $id = cleanInput($id, 'int');
+        $id = (int)$id;
 
         $valid_types = array('tree', 'list', 'list_edit');
         if (!in_array($type, $valid_types))
@@ -360,6 +360,8 @@ class FamilyTree
         {
             foreach ($kids as $kid)
             {
+                $edit = '';
+
                 // If this is your kid, or the kid is a nonmember, you can edit
                 if ($kid['nonmember'] or $user['id'] == $this->currentUserId)
                 {
@@ -866,6 +868,8 @@ class FamilyTree
      */
     function displayCreateUserForm ($type, $id)
     {
+        $id = (int)$id;
+
         $displayname = getUserDisplayName($id, 2);
 
         switch ($type)
@@ -901,17 +905,17 @@ class FamilyTree
                 return;
         }
 
-        $day_list = array();
+        $dayList = array();
         $i = 1;
         while ($i <= 31) {
-            $day_list[$i] = $i;
+            $dayList[$i] = $i;
             $i++;
         }
 
-        $month_list = array();
+        $monthList = array();
         $i = 1;
         while ($i <= 12) {
-            $month_list[$i] = getMonthAbbr($i);
+            $monthList[$i] = getMonthAbbr($i);
             $i++;
         }
 
@@ -977,11 +981,11 @@ class FamilyTree
                         <label for="day"><b>'.T_('Birthday').'</b></label><br/>
                         <select id="bday" name="bday">
                             <option value="">'.T_('Day').'</option>
-                            '.buildHtmlSelectOptions($day_list, "").'
+                            '.buildHtmlSelectOptions($dayList, "").'
                         </select>
                         <select id="bmonth" name="bmonth">
                             <option value="">'.T_('Month').'</option>
-                            '.buildHtmlSelectOptions($month_list, "").'
+                            '.buildHtmlSelectOptions($monthList, "").'
                         </select>
                         <input class="frm_text" type="text" name="byear" id="byear" size="5" maxlength="4" placeholder="'.T_('Year').'"/>
                     </div>
@@ -989,11 +993,11 @@ class FamilyTree
                         <label for="day"><b>'.T_('Date Deceased').'</b></label><br/>
                         <select id="dday" name="dday">
                             <option value="">'.T_('Day').'</option>
-                            '.buildHtmlSelectOptions($day_list, "").'
+                            '.buildHtmlSelectOptions($dayList, "").'
                         </select>
                         <select id="dmonth" name="dmonth">
                             <option value="">'.T_('Month').'</option>
-                            '.buildHtmlSelectOptions($month_list, "").'
+                            '.buildHtmlSelectOptions($monthList, "").'
                         </select>
                         <input class="frm_text" type="text" name="dyear" id="dyear" size="5" maxlength="4" placeholder="'.T_('Year').'"/>
                     </div>
@@ -1012,7 +1016,7 @@ class FamilyTree
                     fdyear.add(Validate.Numericality, { minimum: 1000, maximum: 9999 } );
                 </script>
                 <p>
-                    <input type="hidden" id="id" name="id" value="'.cleanOutput($id).'"/>
+                    <input type="hidden" id="id" name="id" value="'.$id.'"/>
                     <input type="hidden" id="type" name="type" value="'.cleanOutput($type).'"/>
                     <input class="sub1" type="submit" id="add-user" name="add-user" value="'.T_('Add').'"/> &nbsp;
                     <a href="familytree.php">'.T_('Cancel').'</a>
@@ -1392,7 +1396,7 @@ class FamilyTree
         $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`, `dob_year`, `dob_month`, `dob_day`, 
                     `dod_year`, `dod_month`, `dod_day`, `sex`
                 FROM `fcms_users`
-                WHERE `id` = $userid";
+                WHERE `id` = '$userid'";
 
         if (!$this->db->query($sql))
         {
@@ -1402,19 +1406,20 @@ class FamilyTree
 
         $row = $this->db->get_row();
 
-        $day_list = array();
+        $dayList = array();
+        $monthList = array();
+
         $i = 1;
         while ($i <= 31)
         {
-            $day_list[$i] = $i;
+            $dayList[$i] = $i;
             $i++;
         }
 
-        $month_list = array();
         $i = 1;
         while ($i <= 12)
         {
-            $month_list[$i] = getMonthAbbr($i);
+            $monthList[$i] = getMonthAbbr($i);
             $i++;
         }
 
@@ -1432,6 +1437,7 @@ class FamilyTree
         <form action="familytree.php" method="post">
             <fieldset class="relationship-form">
                 <legend><span>'.T_('Edit').'</span></legend>
+                <div style="text-align:right"><a href="?avatar='.$userid.'">'.T_('Add Picture').'</a></div>
                 <div class="cols clearfix">
                     <div>
                         <label for="fname"><b>'.T_('First Name').'</b></label><br/>
@@ -1445,18 +1451,11 @@ class FamilyTree
                         <label for="lname"><b>'.T_('Last Name').'</b></label><br/>
                         <input class="frm_text" type="text" name="lname" id="lname" size="25" value="'.cleanOutput($row['lname']).'"/>
                     </div>
-                </div>';
-
-        if ($row['sex'] == 'F')
-        {
-            echo '
-                <p class="maiden-name">
+                </div>
+                <p id="maiden-name" class="maiden-name">
                     <label for="maiden"><b>'.T_('Maiden Name').'</b></label><br/>
                     <input class="frm_text" type="text" name="maiden" id="maiden" size="25" value="'.cleanOutput($row['maiden']).'"/>
-                </p>';
-        }
-
-        echo '
+                </p>
                 <p>
                     <label><b>'.T_('Sex').'</b></label><br/>
                     <select id="sex" name="sex">
@@ -1479,11 +1478,11 @@ class FamilyTree
                         <label for="day"><b>'.T_('Birthday').'</b></label><br/>
                         <select id="bday" name="bday">
                             <option value="">'.T_('Day').'</option>
-                            '.buildHtmlSelectOptions($day_list, $row['dob_day']).'
+                            '.buildHtmlSelectOptions($dayList, $row['dob_day']).'
                         </select>
                         <select id="bmonth" name="bmonth">
                             <option value="">'.T_('Month').'</option>
-                            '.buildHtmlSelectOptions($month_list, $row['dob_month']).'
+                            '.buildHtmlSelectOptions($monthList, $row['dob_month']).'
                         </select>
                         <input class="frm_text" type="text" name="byear" id="byear" size="5" maxlength="4" placeholder="'.T_('Year').'" value="'.$row['dob_year'].'"/>
                     </div>
@@ -1491,16 +1490,30 @@ class FamilyTree
                         <label for="day"><b>'.T_('Date Deceased').'</b></label><br/>
                         <select id="dday" name="dday">
                             <option value="">'.T_('Day').'</option>
-                            '.buildHtmlSelectOptions($day_list, $row['dod_day']).'
+                            '.buildHtmlSelectOptions($dayList, $row['dod_day']).'
                         </select>
                         <select id="dmonth" name="dmonth">
                             <option value="">'.T_('Month').'</option>
-                            '.buildHtmlSelectOptions($month_list, $row['dod_month']).'
+                            '.buildHtmlSelectOptions($monthList, $row['dod_month']).'
                         </select>
                         <input class="frm_text" type="text" name="dyear" id="dyear" size="5" maxlength="4" placeholder="'.T_('Year').'" value="'.$row['dod_year'].'"/>
                     </div>
                 </div>
                 <script type="text/javascript">
+                    if ($F("sex") == "M") {
+                        $("maiden-name").hide();
+                    } else {
+                        $("maiden-name").show();
+                    }
+
+                    $("sex").observe("change", function() {
+                        if ($F("sex") == "M") {
+                            $("maiden-name").hide();
+                        } else {
+                            $("maiden-name").show();
+                        }
+                    });
+
                     var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
                     ffname.add(Validate.Presence, {failureMessage: ""});
 
@@ -1523,6 +1536,111 @@ class FamilyTree
     }
 
     /**
+     * displayEditAvatarForm 
+     * 
+     * @param int $userid 
+     * 
+     * @return void
+     */
+    function displayEditAvatarForm ($userid)
+    {
+        // Get user info
+        $sql = "SELECT `id`, `fname`, `lname`, `maiden`, `avatar`, `gravatar`
+                FROM `fcms_users`
+                WHERE `id` = '$userid'";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        $row = $this->db->get_row();
+
+        $form   = '';
+        $input  = '';
+        $js     = '';
+        $submit = 'submit';
+
+        if (usingAdvancedUploader($this->currentUserId))
+        {
+            $form  = '<form id="frm" name="frm" method="post">';
+
+            $input = '<applet name="jumpLoaderApplet"
+                    code="jmaster.jumploader.app.JumpLoaderApplet.class"
+                    archive="inc/thirdparty/jumploader_z.jar"
+                    width="200"
+                    height="260"
+                    mayscript>
+                    <param name="uc_sendImageMetadata" value="true"/>
+                    <param name="uc_maxFiles" value="1"/>
+                    <param name="uc_uploadUrl" value="familytree.php?advanced_avatar='.$userid.'&orig='.$row['avatar'].'"/>
+                    <param name="vc_useThumbs" value="true"/>
+                    <param name="uc_uploadScaledImagesNoZip" value="true"/>
+                    <param name="uc_uploadScaledImages" value="true"/>
+                    <param name="uc_scaledInstanceNames" value="avatar"/>
+                    <param name="uc_scaledInstanceDimensions" value="80x80xcrop"/>
+                    <param name="uc_scaledInstanceQualityFactors" value="900"/>
+                    <param name="uc_uploadFormName" value="frm"/>
+                    <param name="vc_lookAndFeel" value="system"/>
+                    <param name="vc_uploadViewStartActionVisible" value="false"/>
+                    <param name="vc_uploadViewStopActionVisible" value="false"/>
+                    <param name="vc_uploadViewPasteActionVisible" value="false"/>
+                    <param name="vc_uploadViewRetryActionVisible" value="false"/>
+                    <param name="vc_uploadViewFilesSummaryBarVisible" value="false"/>
+                    <param name="vc_uiDefaults" value="Panel.background=#eff0f4; List.background=#eff0f4;"/> 
+                    <param name="ac_fireUploaderStatusChanged" value="true"/> 
+                </applet>
+                <br/>';
+
+            $js = '<script language="javascript">
+                Event.observe("submitUpload","click",function(){
+                    var uploader = document.jumpLoaderApplet.getUploader();
+                    uploader.startUpload();
+                });
+                function uploaderStatusChanged(uploader) {
+                    if (uploader.isReady() && uploader.getFileCountByStatus(3) == 0) { 
+                        window.location.href = "familytree.php";
+                    }
+                }
+                </script>';
+
+            $submit = 'button';
+        }
+        else
+        {
+            $form   = '<form id="frm" name="frm" enctype="multipart/form-data" action="?avatar='.$userid.'" method="post">';
+            $input  = '<input type="file" name="avatar" id="avatar" size="30" title="'.T_('Upload your personal image (Avatar)').'"/>';
+        }
+
+
+        echo '
+                '.$form.'
+                    <fieldset>
+                        <legend><span>'.T_('Picture').'</span></legend>
+                        <div class="field-row clearfix">
+                            <div class="field-label"><b>'.T_('Current Picture').'</b></div>
+                            <div class="field-widget">
+                                <img src="'.getCurrentAvatar($userid).'"/>
+                            </div>
+                        </div>
+                        <div class="field-row clearfix">
+                            <div class="field-label"><b>'.T_('Choose new Picture').'</b></div>
+                            <div class="field-widget">
+                                '.$input.'
+                            </div>
+                        </div>
+                        <p>
+                            <input type="hidden" name="avatar_orig" value="'.cleanOutput($row['avatar']).'"/>
+                            <input class="sub1" type="'.$submit.'" name="submitUpload" id="submitUpload" value="'.T_('Submit').'"/>
+                        </p>
+                    </fieldset>
+                </form>
+                '.$js.'
+            </div>';
+    }
+
+    /**
      * addSpouse 
      * 
      * @param int    $user 
@@ -1533,9 +1651,9 @@ class FamilyTree
      */
     function addSpouse ($user, $relationship, $rel_user)
     {
-        $user         = cleanInput($user, 'int');
-        $relationship = cleanInput($relationship);
-        $rel_user     = cleanInput($rel_user, 'int');
+        $user         = (int)$user;
+        $relationship = escape_string($relationship);
+        $rel_user     = (int)$rel_user;
 
         $opposite_relationship = ($relationship == 'WIFE') ? 'HUSB' : 'WIFE';
 
@@ -1576,9 +1694,9 @@ class FamilyTree
      */
     function addChild ($user, $relationship, $rel_user)
     {
-        $user         = cleanInput($user, 'int');
-        $relationship = cleanInput($relationship);
-        $rel_user     = cleanInput($rel_user, 'int');
+        $user         = (int)$user;
+        $relationship = escape_string($relationship);
+        $rel_user     = (int)$rel_user;
 
         // Insert child relationship
         $sql = "INSERT INTO `fcms_relationship` (

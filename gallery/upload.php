@@ -17,17 +17,25 @@ define('URL_PREFIX', '../');
 
 require URL_PREFIX.'fcms.php';
 
-$currentUserId = cleanInput($_SESSION['login_id'], 'int');
+load('gallery');
+
+$currentUserId = (int)$_SESSION['login_id'];
+$gallery       = new PhotoGallery($currentUserId);
 
 if ($currentUserId < 1)
 {
     echo "Current User Authorization Failure";
+    logError(__FILE__.' ['.__LINE__.'] - Unauthorized user attempted upload.');
     die();
 }
 
 $file_param_name[] = 'small';
 $file_param_name[] = 'medium';
-$file_param_name[] = 'full';
+
+if ($gallery->usingFullSizePhotos())
+{
+    $file_param_name[] = 'full';
+}
 
 $known_photo_types = array(
     'image/pjpeg'   => 'jpg', 
@@ -46,12 +54,11 @@ if (empty($_POST['category']))
         // Send error to the edit page
         $_SESSION['photos']['error'] = 'error';
         echo "Category Failure";
+        logError(__FILE__.' ['.__LINE__.'] - No category given.');
         die();
-
     }
     else
     {
-
         // If we are uploading multiple photos to a new category, only create 1 category
         if (isset($_SESSION['mass_photos_category']))
         {
@@ -59,10 +66,13 @@ if (empty($_POST['category']))
         }
         else
         {
+            $newCategory = strip_tags($_POST['new-category']);
+            $newCategory = escape_string($newCategory);
+
             // Create category
             $sql = "INSERT INTO `fcms_category`(`name`, `type`, `user`) 
                     VALUES (
-                        '".cleanInput($_POST['new-category'])."', 
+                        '$newCategory', 
                         'gallery', 
                         '$currentUserId'
                     )";
@@ -82,12 +92,13 @@ if (empty($_POST['category']))
 $sql = "INSERT INTO `fcms_gallery_photos` (`date`, `category`, `user`) 
         VALUES(
             NOW(), 
-            '".cleanInput($_POST['category'])."', 
+            '".(int)$_POST['category']."', 
             '$currentUserId'
         )";
 if (!mysql_query($sql))
 {
     echo "Insert New Photo Failure";
+    logError(__FILE__.' ['.__LINE__.'] - Insert new photo failure.');
     die();
 }
 
@@ -100,11 +111,12 @@ $extention = $known_photo_types[$filetype];
 $filename  = "$new_id.$extention";
 
 $sql = "UPDATE `fcms_gallery_photos` 
-        SET `filename` = '".cleanInput($filename)."' 
-        WHERE `id` = '".cleanInput($new_id)."'";
+        SET `filename` = '".escape_string($filename)."' 
+        WHERE `id` = '".(int)$new_id."'";
 if (!mysql_query($sql))
 {
     echo "Update Photo Failure";
+    logError(__FILE__.' ['.__LINE__.'] - Update photo failure.');
     die();
 }
 
@@ -125,10 +137,6 @@ foreach ($file_param_name AS $file)
     {
         $dest_path = "../uploads/photos/member$currentUserId/full_$filename";
     }
-    elseif ($file == 'full' && isset($_POST['full-sized-photos']))
-    {
-        $dest_path = "photos/member$currentUserId/full_$filename";
-    }
     else
     {
         $dest_path = "../uploads/photos/member$currentUserId/$filename";
@@ -143,13 +151,15 @@ foreach ($file_param_name AS $file)
             $_SESSION['photos'][] = array(
                 'id'       => $new_id,
                 'filename' => $filename,
-                'category' => $_POST['category']
+                'category' => (int)$_POST['category']
             );
         }
+
         echo "success";
     }
     else
     {
         echo "Move File Failure";
+        logError(__FILE__.' ['.__LINE__.'] - Move file failure.');
     }
 }
