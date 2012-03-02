@@ -41,6 +41,8 @@ require 'fcms.php';
 
 load('facebook', 'socialmedia');
 
+setLanguage();
+
 control();
 return;
 

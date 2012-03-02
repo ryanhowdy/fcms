@@ -408,7 +408,7 @@ class AddressBook
 
         $row = $this->db->get_row();
 
-        if (checkAccess($this->currentUserId) >= 2 && $this->currentUserId !== $row['uid'])
+        if (checkAccess($this->currentUserId) >= 2 && $this->currentUserId != $row['uid'])
         {
             echo '
                     <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';

@@ -983,12 +983,12 @@ function displayCommentSubmit ()
     {
         $sql = "INSERT INTO `fcms_video_comment` (
                     `video_id`, `comment`, `created`, `created_id`, `updated`, `updated_id`
-                )
-                VALUES _(
+                ) 
+                VALUES (
                     '$videoId', 
-                    '$comments',
+                    '$comments', 
                     NOW(), 
-                    '$currentUserId',
+                    '$currentUserId', 
                     NOW(), 
                     '$currentUserId'
                 )";

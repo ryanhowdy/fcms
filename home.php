@@ -525,8 +525,6 @@ function displayStatusUpdateSubmit ()
 {
     global $currentUserId;
 
-    $superCage = Inpekt::makeSuperCage();
-
     $status    = escape_string($_POST['status']);
     $parent    = 0;
 

@@ -1,11 +1,11 @@
 
-                             Family Connections 2.9
+                             Family Connections 2.9.1
 
 
   Installation
   ------------
 
-  1. Upload the entire contents of FCMS_2.9.zip to your web host.
+  1. Upload the entire contents of FCMS_2.9.1.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -17,7 +17,7 @@
 
 
 
-  Upgrading from 2.6+ to 2.9
+  Upgrading from 2.6+ to 2.9.1
   ---------------------------
 
   ** DO NOT DELETE THE FOLLOWING FILE **
@@ -42,24 +42,12 @@
   Change Log
   ----------
 
-  2.9
+  2.9.1
 
-    #378 - Change start day of calendar
-    #417 - Input filter/validation class
-    #432 - Rename 'Optional Sections' to Plugins
-    #443 - Can't delete photo gallery comments
-    #444 - Can't print calendar
-    #315 - Calendar Add not working in IE9
-    #350 - Allow user to add photo to Family Tree
-    #379 - Separate admin section
-    #402 - Can't add spouses father
-    #426 - Profile Redesign
-    #433 - Better file structure
-    #435 - Deceased members' birthdays should not show up
-    #438 - Notify users when they have been tagged
-    #428 - Show Checkin comment (if available)
-    #436 - Gender not taken into account on profile change (last 5 view)
-    #439 - Muitple XSS
+    #449 - Can't add status updates
+    #450 - Translation don't work on Login page
+    #451 - Member can't edit Address
+    #457 - Cannot add comment to video gallery
 
   For the full change log please refer to the included ChangeLog file.
 
