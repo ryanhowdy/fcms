@@ -1,3 +1,9 @@
+ 2.9.1
+    #449 - Can't add status updates
+    #450 - Translation don't work on Login page
+    #451 - Member can't edit Address
+    #457 - Cannot add comment to video gallery
+
  2.9
     #378 - Change start day of calendar
     #417 - Input filter/validation class

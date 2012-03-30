@@ -1,11 +1,11 @@
 
-                             Family Connections 2.9.1
+                             Family Connections 2.9.2
 
 
   Installation
   ------------
 
-  1. Upload the entire contents of FCMS_2.9.1.zip to your web host.
+  1. Upload the entire contents of FCMS_2.9.2.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -17,7 +17,7 @@
 
 
 
-  Upgrading from 2.6+ to 2.9.1
+  Upgrading from 2.6+ to 2.9.2
   ---------------------------
 
   ** DO NOT DELETE THE FOLLOWING FILE **
@@ -42,12 +42,9 @@
   Change Log
   ----------
 
-  2.9.1
+  2.9.2
 
-    #449 - Can't add status updates
-    #450 - Translation don't work on Login page
-    #451 - Member can't edit Address
-    #457 - Cannot add comment to video gallery
+    #475 - PHP Code execution vulnerability in install.php
 
   For the full change log please refer to the included ChangeLog file.
 

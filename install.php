@@ -294,9 +294,17 @@ function displayStepTwo ($error = '0')
         <p style="text-align:center">'.T_('Step 2 of 5').'</p>
         <div class="progress"><div style="width:40%"></div></div>';
 
+    $host = '';
+    $name = '';
+    $user = '';
+
     if ($error !== '0')
     {
         echo $error;
+
+        $host = htmlentities($_POST['dbhost'], ENT_COMPAT, 'UTF-8');
+        $name = htmlentities($_POST['dbname'], ENT_COMPAT, 'UTF-8');
+        $user = htmlentities($_POST['dbuser'], ENT_COMPAT, 'UTF-8');
     }
 
     echo '
@@ -304,7 +312,7 @@ function displayStepTwo ($error = '0')
         <div>
             <div class="field-label"><label for="dbhost"><b>'.T_('Database Host').'</b> <span class="req">*</span></label></div>
             <div class="field-widget">
-                <input type="text" name="dbhost" id="dbhost"/>
+                <input type="text" name="dbhost" id="dbhost" value="'.$host.'"/>
                 <div>'.T_('This is usually localhost or your database ip address.').'</div>
             </div>
         </div>
@@ -315,7 +323,7 @@ function displayStepTwo ($error = '0')
         <div>
             <div class="field-label"><label for="dbname"><b>'.T_('Database Name').'</b> <span class="req">*</span></label></div>
             <div class="field-widget">
-                <input type="text" name="dbname" id="dbname"/>
+                <input type="text" name="dbname" id="dbname" value="'.$name.'"/>
                 <div>'.sprintf(T_('The database name where you want to install %s.'), 'Family Connections').'</div>
             </div>
         </div>
@@ -326,7 +334,7 @@ function displayStepTwo ($error = '0')
         <div>
             <div class="field-label"><label for="dbuser"><b>'.T_('Database Username').'</b> <span class="req">*</span></label></div>
             <div class="field-widget">
-                <input type="text" name="dbuser" id="dbuser"/>
+                <input type="text" name="dbuser" id="dbuser" value="'.$user.'"/>
                 <div>'.T_('The username for the database specified above.').'</div>
             </div>
         </div>
@@ -380,34 +388,30 @@ function displayStepThree ()
         return;
     }
 
+    $connection = @mysql_connect($_POST['dbhost'], $_POST['dbuser'], $_POST['dbpass']);
+
+    if (!$connection)
+    {
+        displayStepTwo("<p class=\"error\">".T_('Could not connect to the database. Please try again.')."</p>");
+        return;
+    }
+
+    mysql_select_db($_POST['dbname']) or die("<h1>Error</h1><p><b>Connection made, but database could not be found!</b></p>".mysql_error());
+
     $file = fopen('inc/config_inc.php', 'w') or die("<h1>Error Creating Config File</h1>");
     $str  = "<?php \$cfg_mysql_host = '".$_POST['dbhost']."'; \$cfg_mysql_db = '".$_POST['dbname']."'; \$cfg_mysql_user = '".$_POST['dbuser']."'; \$cfg_mysql_pass = '".$_POST['dbpass']."'; ?".">";
 
     fwrite($file, $str) or die("<h1>Could not write to config.</h1>");
     fclose($file);
 
-    include_once 'inc/config_inc.php';
     include_once 'inc/install_inc.php';
-
     echo '
     <div id="column">
         <h1>'.T_('Install').'Family Connections</h1>
         <form class="nofields" action="install.php" method="post">
         <h2>'.T_('Checking Database Connection').'</h2>
         <p style="text-align:center">'.T_('Step 3 of 5').'</p>
-        <div class="progress"><div style="width:60%"></div></div>
-        <div>
-            '.sprintf(T_('Attempting to connect to database %s on %s using user %s.'), "<i>$cfg_mysql_db</i>", "<i>$cfg_mysql_host</i>", "<i>$cfg_mysql_user</i>").'
-        </div>';
-
-    $connection = @mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-
-    if (!$connection)
-    {
-        die('<h3 class="bad">'.T_('Uh-Oh!').'</h3><div>'.T_('A connection to the database could not be made.  Please shut down your browser and then re-run the installation.').'</div>');
-    }
-
-    mysql_select_db($cfg_mysql_db) or die("<h1>Error</h1><p><b>Connection made, but database could not be found!</b></p>".mysql_error());
+        <div class="progress"><div style="width:60%"></div></div>';
 
     dropTables();
 
@@ -513,7 +517,7 @@ function displayStepFive ($error = '0')
     $_POST['contact']  = mysql_real_escape_string($_POST['contact']);
 
     // Setup Config
-    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 2.9.1');
+    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 2.9.2');
 
     // Setup Navigation
     $order  = 0;
