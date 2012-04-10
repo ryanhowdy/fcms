@@ -79,7 +79,7 @@ Event.observe(window, \'load\', function() {
     include_once getTheme($currentUserId).'header.php';
 
     echo '
-        <div id="facebook" class="centercontent clearfix">';
+        <div id="facebook" class="centercontent">';
 }
 
 /**
@@ -156,11 +156,11 @@ function displayForm ($displayMessage = '')
         <form method="post" action="vimeo.php">
             <fieldset>
                 <legend><span>'.T_('Vimeo Application').'</span></legend>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label for="id"><b>'.T_('Consumer Key').'</b></label></div>
                     <div class="field-widget"><input class="frm_text" type="text" name="key" id="key" size="50" value="'.$key.'"/></div>
                 </div>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label for="secret"><b>'.T_('Consumer Secret').'</b></label></div>
                     <div class="field-widget"><input class="frm_text" type="text" name="secret" id="secret" size="50" value="'.$secret.'"/></div>
                 </div>

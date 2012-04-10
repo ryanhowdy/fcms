@@ -262,7 +262,7 @@ class FamilyNews
             if ($this->currentUserId == $row['user'] || checkAccess($this->currentUserId) < 2)
             {
                 echo '
-            <div class="comment_block clearfix">
+            <div class="comment_block">
                 <form class="delcom" action="?getnews='.$user.'&amp;newsid='.$id.'" method="post">
                     <input type="submit" name="delcom" id="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this comment').'"/>
                     <img class="avatar" alt="avatar" src="'.getCurrentAvatar($row['user']).'"/>
@@ -276,7 +276,7 @@ class FamilyNews
             else
             {
                 echo '
-            <div class="comment_block clearfix">
+            <div class="comment_block">
                     <img class="avatar" src="avatar/'.basename($row['avatar']).'">
                     <b>'.$displayname.'</b>
                     <span>'.$date.'</span>
@@ -787,7 +787,7 @@ class FamilyNews
 
         // Insert new external posts
         $sql = "INSERT INTO `fcms_news` (`title`, `news`, `user`, 
-                    `date`, `external_type`, `external_id`)
+                    `created`, `updated`, `external_type`, `external_id`)
                 VALUES ";
 
         $importCount = 0;
@@ -824,7 +824,7 @@ class FamilyNews
                     break;
             }
 
-            $sql .= "('$title', '$news', '$user', '$date', 'tumblr', '$id'), ";
+            $sql .= "('$title', '$news', '$user', '$date', NOW(), 'tumblr', '$id'), ";
 
             $importCount++;
         }
@@ -884,7 +884,7 @@ class FamilyNews
 
         // Insert new external posts
         $sql = "INSERT INTO `fcms_news` (`title`, `news`, `user`, 
-                    `date`, `external_type`, `external_id`)
+                    `created`, `updated`, `external_type`, `external_id`)
                 VALUES ";
 
         $importCount = 0;
@@ -903,7 +903,7 @@ class FamilyNews
             $user  = $userId;
             $date  = date('Y-m-d H:i:s', strtotime($post->pubDate));
 
-            $sql .= "('$title', '$news', '$user', '$date', 'wordpress', '$bid'), ";
+            $sql .= "('$title', '$news', '$user', '$date', NOW(), 'wordpress', '$bid'), ";
 
             $importCount++;
         }
@@ -985,7 +985,7 @@ class FamilyNews
 
         // Insert new external posts
         $sql = "INSERT INTO `fcms_news` (`title`, `news`, `user`, 
-                    `date`, `external_type`, `external_id`)
+                    `created`, `updated`, `external_type`, `external_id`)
                 VALUES ";
 
         $importCount = 0;
@@ -1004,7 +1004,7 @@ class FamilyNews
             $user  = $userId;
             $date  = date('Y-m-d H:i:s', strtotime($post->date));
 
-            $sql .= "('$title', '$news', '$user', '$date', 'posterous', '$bid'), ";
+            $sql .= "('$title', '$news', '$user', '$date', NOW(), 'posterous', '$bid'), ";
 
             $importCount++;
         }

@@ -114,7 +114,7 @@ Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$
     include_once getTheme($currentUserId).'header.php';
 
     echo '
-        <div id="home" class="centercontent clearfix">';
+        <div id="home" class="centercontent">';
 }
 
 /**
@@ -525,8 +525,8 @@ function displayStatusUpdateSubmit ()
 {
     global $currentUserId;
 
-    $status    = escape_string($_POST['status']);
-    $parent    = 0;
+    $status = escape_string($_POST['status']);
+    $parent = 0;
 
     // Submited blank form?
     if (empty($_POST['status']))
@@ -602,6 +602,49 @@ function displayStatusUpdateSubmit ()
                     printr($e);
                 }
             }
+        }
+    }
+
+    // Email members
+    $sql = "SELECT u.`email`, s.`user` 
+            FROM `fcms_user_settings` AS s, `fcms_users` AS u 
+            WHERE `email_updates` = '1'
+            AND u.`id` = s.`user`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        displayfooter();
+        return;
+    }
+
+    if (mysql_num_rows($result) > 0)
+    {
+        $url     = getDomainAndDir();
+        $headers = getEmailHeaders();
+        $name    = getUserDisplayName($currentUserId);
+
+        while ($r = mysql_fetch_array($result))
+        {
+            $to      = getUserDisplayName($r['user']);
+            $subject = sprintf(T_('%s added a new status update.'), $name);
+            $email   = $r['email'];
+
+            $msg = T_('Dear').' '.$to.',
+
+'.$subject.'
+
+'.$url.'home.php
+
+----
+'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
+
+'.$url.'settings.php
+
+';
+
+            mail($email, $subject, $msg, $headers);
         }
     }
 
@@ -1052,25 +1095,36 @@ function formatWhatsNewPhotoGallery ($whatsNewData, $tzOffset)
         {
             $limit = $row['id2'];
         }
-        $sql = "SELECT `id`, `user`, `category`, `filename`, `caption`
-                FROM `fcms_gallery_photos` 
-                WHERE `category` = '".(int)$row['id']."' 
-                AND DAYOFYEAR(`date`) = '".(int)$row['id3']."' 
-                ORDER BY `date` 
+        $sql = "SELECT p.`id`, p.`user`, p.`category`, p.`filename`, p.`caption`,
+                    p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
+                FROM `fcms_gallery_photos` AS p
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                WHERE p.`category` = '".(int)$row['id']."' 
+                AND DAYOFYEAR(p.`date`) = '".(int)$row['id3']."' 
+                ORDER BY p.`date` 
                 DESC LIMIT $limit";
 
         $result = mysql_query($sql);
         if (!$result)
         {
-            displaysqlerror('Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+            displaySqlError('Photos Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
             return;
         }
 
         while ($p = mysql_fetch_assoc($result))
         {
+            if ($p['filename'] == 'noimage.gif' && $p['external_id'] != null)
+            {
+                $photoSrc = $p['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = 'uploads/photos/member'.$p['user'].'/tb_'.basename($p['filename']);
+            }
+
             $return .= '
                             <a href="gallery/index.php?uid='.$p['user'].'&amp;cid='.$p['category'].'&amp;pid='.$p['id'].'">
-                                <img src="uploads/photos/member'.$p['user'].'/tb_'.basename($p['filename']).'" 
+                                <img src="'.$photoSrc.'" 
                                     style="height:50px; width:50px;" 
                                     alt="'.cleanOutput($p['caption'], 'html').'" 
                                     title="'.cleanOutput($p['caption'], 'html').'"/>
@@ -1180,7 +1234,7 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
     $count = 0;
 
     # Get each comment type from the $whatsNewData array, store it in a new array
-    $using = array('GALCOM', 'VIDEOCOM');
+    $using = array('GALCOM', 'GALCATCOM', 'VIDEOCOM');
     if (usingFamilyNews())
     {
         array_push($using, 'NEWSCOM');
@@ -1248,7 +1302,11 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
         {
             $url = 'video.php?u='.$row['userid'].'&amp;id='.$row['id'].'#comments';
         }
-        else
+        elseif ($row['type'] == 'GALCATCOM')
+        {
+            $url = 'gallery/index.php?uid='.$row['id2'].'&amp;cid='.$row['id3'];
+        }
+        elseif ($row['type'] == 'GALCOM')
         {
             $url = 'gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$row['id'];
         }

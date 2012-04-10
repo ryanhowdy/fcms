@@ -673,7 +673,7 @@ class FamilyTree
         <form action="familytree.php" method="post">
             <fieldset>
                 <legend><span>'.$legend.'</span></legend>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label for="user"><b>'.T_('Parent').'</b></label></div>
                     <div class="field-widget">
                         <select name="user">
@@ -759,7 +759,7 @@ class FamilyTree
         <form action="familytree.php" method="post">
             <fieldset>
                 <legend><span>'.T_('Add Spouse').'</span></legend>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label for="user"><b>'.T_('Spouse').'</b></label></div>
                     <div class="field-widget">
                         <select name="rel_user">
@@ -837,7 +837,7 @@ class FamilyTree
         <form action="familytree.php" method="post">
             <fieldset>
                 <legend><span>'.sprintf(T_('Add Child for %s'), $displayName).'</span></legend>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label for="rel_user"><b>'.T_('Child').'</b></label></div>
                     <div class="field-widget">
                         <select name="rel_user">
@@ -923,7 +923,7 @@ class FamilyTree
         <form action="familytree.php" method="post">
             <fieldset class="relationship-form">
                 <legend><span>'.$legend.'</span></legend>
-                <div class="cols clearfix">
+                <div class="cols">
                     <div>
                         <label for="fname"><b>'.T_('First Name').'</b></label><br/>
                         <input class="frm_text" type="text" name="fname" id="fname" size="25"/>
@@ -976,7 +976,7 @@ class FamilyTree
                         '.T_('Deceased').'
                     </label>
                 </p>
-                <div class="clearfix">
+                <div class="dob_dod">
                     <div class="half">
                         <label for="day"><b>'.T_('Birthday').'</b></label><br/>
                         <select id="bday" name="bday">
@@ -1438,7 +1438,7 @@ class FamilyTree
             <fieldset class="relationship-form">
                 <legend><span>'.T_('Edit').'</span></legend>
                 <div style="text-align:right"><a href="?avatar='.$userid.'">'.T_('Add Picture').'</a></div>
-                <div class="cols clearfix">
+                <div class="cols">
                     <div>
                         <label for="fname"><b>'.T_('First Name').'</b></label><br/>
                         <input class="frm_text" type="text" name="fname" id="fname" size="25" value="'.cleanOutput($row['fname']).'"/>
@@ -1473,7 +1473,7 @@ class FamilyTree
                         '.T_('Deceased').'
                     </label>
                 </p>
-                <div class="clearfix">
+                <div class="dob_dod">
                     <div class="half">
                         <label for="day"><b>'.T_('Birthday').'</b></label><br/>
                         <select id="bday" name="bday">
@@ -1618,13 +1618,13 @@ class FamilyTree
                 '.$form.'
                     <fieldset>
                         <legend><span>'.T_('Picture').'</span></legend>
-                        <div class="field-row clearfix">
+                        <div class="field-row">
                             <div class="field-label"><b>'.T_('Current Picture').'</b></div>
                             <div class="field-widget">
                                 <img src="'.getCurrentAvatar($userid).'"/>
                             </div>
                         </div>
-                        <div class="field-row clearfix">
+                        <div class="field-row">
                             <div class="field-label"><b>'.T_('Choose new Picture').'</b></div>
                             <div class="field-widget">
                                 '.$input.'

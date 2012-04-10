@@ -8,40 +8,41 @@ include_once 'thirdparty/gettext.inc';
  */
 function dropTables ()
 {
-    mysql_query("DROP TABLE IF EXISTS `fcms_config`")               or die("fcms_config<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_notification`")         or die("fcms_notification<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_video_comment`")        or die("fcms_video_comment<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_video`")                or die("fcms_video<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_changelog`")            or die("fcms_changelog<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_schedule`")             or die("fcms_schedule<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_status`")               or die("fcms_status<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_navigation`")           or die("fcms_navigation<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_chat_online`")          or die("fcms_chat_oneline<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_chat_messages`")        or die("fcms_chat_messages<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_address`")              or die("fcms_address<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_alerts`")               or die("fcms_alerts<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_privatemsg`")           or die("fcms_privatemsg<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_documents`")            or die("fcms_documents<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_calendar`")             or die("fcms_calendar<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_invitation`")           or die("fcms_invitation<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_gallery_comments`")     or die("fcms_gallery_comments<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photos_tags`")  or die("fcms_gallery_photos_tags<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photos`")       or die("fcms_gallery_photos<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_news_comments`")        or die("fcms_news_comments<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_news`")                 or die("fcms_news<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_poll_votes`")           or die("fcms_poll_votes<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_poll_options`")         or die("fcms_poll_options<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_polls`")                or die("fcms_polls<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_prayers`")              or die("fcms_prayers<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_board_posts`")          or die("fcms_board_posts<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_board_threads`")        or die("fcms_board_threads<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_recipes`")              or die("fcms_recipes<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_recipe_comment`")       or die("fcms_recipe_comment<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_category`")             or die("fcms_category<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_user_awards`")          or die("fcms_user_awards<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_user_settings`")        or die("fcms_user_settings<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_relationship`")         or die("fcms_relationship<br/>" . mysql_error());
-    mysql_query("DROP TABLE IF EXISTS `fcms_users`")                or die("fcms_users<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_config`")                   or die("fcms_config<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_notification`")             or die("fcms_notification<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_video_comment`")            or die("fcms_video_comment<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_video`")                    or die("fcms_video<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_changelog`")                or die("fcms_changelog<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_schedule`")                 or die("fcms_schedule<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_status`")                   or die("fcms_status<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_navigation`")               or die("fcms_navigation<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_chat_online`")              or die("fcms_chat_oneline<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_chat_messages`")            or die("fcms_chat_messages<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_address`")                  or die("fcms_address<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_alerts`")                   or die("fcms_alerts<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_privatemsg`")               or die("fcms_privatemsg<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_documents`")                or die("fcms_documents<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_calendar`")                 or die("fcms_calendar<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_invitation`")               or die("fcms_invitation<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photo_comment`")    or die("fcms_gallery_photo_comment<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_gallery_category_comment`") or die("fcms_gallery_category_comment<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photos_tags`")      or die("fcms_gallery_photos_tags<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photos`")           or die("fcms_gallery_photos<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_news_comments`")            or die("fcms_news_comments<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_news`")                     or die("fcms_news<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_poll_votes`")               or die("fcms_poll_votes<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_poll_options`")             or die("fcms_poll_options<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_polls`")                    or die("fcms_polls<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_prayers`")                  or die("fcms_prayers<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_board_posts`")              or die("fcms_board_posts<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_board_threads`")            or die("fcms_board_threads<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_recipes`")                  or die("fcms_recipes<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_recipe_comment`")           or die("fcms_recipe_comment<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_category`")                 or die("fcms_category<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_user_awards`")              or die("fcms_user_awards<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_user_settings`")            or die("fcms_user_settings<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_relationship`")             or die("fcms_relationship<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_users`")                    or die("fcms_users<br/>" . mysql_error());
 
     mysql_query("SET NAMES utf8") or die("Encoding<br/>" . mysql_error());
 }
@@ -84,7 +85,9 @@ function installConfig ($sitename, $contact, $version)
                 ('running_job', '0'),
                 ('start_week', '0'),
                 ('debug', '0'),
-                ('country', 'US')";
+                ('country', 'US'),
+                ('instagram_client_id', NULL),
+                ('instagram_client_secret', NULL)";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 }
 
@@ -126,10 +129,11 @@ function installNavigation ($sections)
                 ('admin_members', 6, 3, 1),
                 ('admin_photogallery', 6, 4, 1),
                 ('admin_polls', 6, 5, 1),
+                ('admin_scheduler', 6, 10, 1),
                 ('admin_facebook', 6, 6, 1),
                 ('admin_youtube', 6, 7, 1),
                 ('admin_foursquare', 6, 8, 1),
-                ('admin_scheduler', 6, 9, 1)";
+                ('admin_instagram', 6, 9, 1)";
     mysql_query($sql) or die("$sql<br/>".mysql_error());
 
     $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
@@ -220,7 +224,6 @@ function installUsers ($fname, $lname, $email, $dobYear, $dobMonth, $dobDay, $us
                 `user` INT(11) NOT NULL, 
                 `theme` VARCHAR(25) NOT NULL DEFAULT 'default', 
                 `boardsort` SET('ASC', 'DESC') NOT NULL DEFAULT 'ASC', 
-                `showavatar` TINYINT(1) NOT NULL DEFAULT '1', 
                 `displayname` SET('1','2','3') NOT NULL DEFAULT '1', 
                 `frontpage` SET('1','2') NOT NULL DEFAULT '1', 
                 `timezone` set('-12 hours', '-11 hours', '-10 hours', '-9 hours', '-8 hours', '-7 hours', '-6 hours', '-5 hours', '-4 hours', '-3 hours -30 minutes', '-3 hours', '-2 hours', '-1 hours', '-0 hours', '+1 hours', '+2 hours', '+3 hours', '+3 hours +30 minutes', '+4 hours', '+4 hours +30 minutes', '+5 hours', '+5 hours +30 minutes', '+6 hours', '+7 hours', '+8 hours', '+9 hours', '+9 hours +30 minutes', '+10 hours', '+11 hours', '+12 hours') NOT NULL DEFAULT '-5 hours', 
@@ -237,6 +240,7 @@ function installUsers ($fname, $lname, $email, $dobYear, $dobMonth, $dobDay, $us
                 `posterous` VARCHAR(255) NULL,
                 `fb_access_token` VARCHAR(255) NULL,
                 `youtube_session_token` VARCHAR(255) NULL,
+                `instagram_access_token` VARCHAR(255) NULL,
                 PRIMARY KEY (`id`), 
                 KEY `user_ind` (`user`)
             ) 
@@ -429,7 +433,8 @@ function installTables ()
             VALUES 
                 ('awards', 'daily'),
                 ('familynews', 'hourly'),
-                ('youtube', 'hourly')";
+                ('youtube', 'hourly'),
+                ('instagram', 'hourly')";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 
     // create changelog
@@ -465,6 +470,7 @@ function installTables ()
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
                 `filename` VARCHAR(25) NOT NULL DEFAULT 'noimage.gif', 
+                `external_id` INT(11) DEFAULT NULL, 
                 `caption` TEXT, 
                 `category` INT(11) NOT NULL DEFAULT '0', 
                 `user` INT(11) NOT NULL DEFAULT '0', 
@@ -490,8 +496,8 @@ function installTables ()
             ON DELETE CASCADE";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 
-    // create gallery_comments
-    $sql = "CREATE TABLE `fcms_gallery_comments` (
+    // create gallery_photo_comment
+    $sql = "CREATE TABLE `fcms_gallery_photo_comment` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `photo` INT(11) NOT NULL DEFAULT '0', 
                 `comment` TEXT NOT NULL, 
@@ -504,16 +510,28 @@ function installTables ()
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 
-    // alter gallery_comments
-    $sql = "ALTER TABLE `fcms_gallery_comments` 
-            ADD CONSTRAINT `fcms_gallery_comments_ibfk_1` 
+    // alter gallery_photo_comment
+    $sql = "ALTER TABLE `fcms_gallery_photo_comment` 
+            ADD CONSTRAINT `fcms_gallery_photo_comment_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
             ON DELETE CASCADE, 
-            ADD CONSTRAINT `fcms_gallery_comments_ibfk_2` 
+            ADD CONSTRAINT `fcms_gallery_photo_comment_ibfk_2` 
             FOREIGN KEY (`photo`) 
             REFERENCES `fcms_gallery_photos` (`id`) 
             ON DELETE CASCADE";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
+
+    // create gallery_category_comment
+    $sql = "CREATE TABLE `fcms_gallery_category_comment` (
+                `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                `category_id` INT(11) NOT NULL, 
+                `comment` TEXT NOT NULL, 
+                `created` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `created_id` INT(11) NOT NULL, 
+                PRIMARY KEY (`id`)
+            ) 
+            ENGINE=InnoDB DEFAULT CHARSET=utf8";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 
     // create gallery_photos_tags
@@ -538,6 +556,18 @@ function installTables ()
             FOREIGN KEY (`photo`) 
             REFERENCES `fcms_gallery_photos` (`id`) 
             ON DELETE CASCADE";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
+
+    // create gallery_external_photo
+    $sql = "CREATE TABLE `fcms_gallery_external_photo` (
+                `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                `source_id` VARCHAR(255) NOT NULL,
+                `thumbnail` VARCHAR(255) NOT NULL, 
+                `medium` VARCHAR(255) NOT NULL, 
+                `full` VARCHAR(255) NOT NULL, 
+                PRIMARY KEY (`id`)
+            ) 
+            ENGINE=InnoDB DEFAULT CHARSET=utf8";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 
     // create news

@@ -155,7 +155,7 @@ function displayNotifications ()
     }
 
     echo '
-        <div id="actions_menu" class="clearfix">
+        <div id="actions_menu">
             <ul>
                 <li><a href="notifications.php?markread=all">'.T_('Mark All Read').'</a></li>
             </ul>
@@ -295,7 +295,7 @@ function displayAllNotifications ()
     }
 
     echo '
-        <div id="sections_menu" class="clearfix">
+        <div id="sections_menu">
             <ul>
                 <li><a href="notifications.php">'.T_('Unread Notifications').'</a></li>
             </ul>

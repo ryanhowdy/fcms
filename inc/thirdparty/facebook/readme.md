@@ -1,13 +1,12 @@
-Facebook PHP SDK (v.3.0.0)
+We have created a new repository for this project: https://github.com/facebook/facebook-php-sdk.  Please update anything you have pointing at this repostory to this location before April 1, 2012.
+
+Facebook PHP SDK (v.3.1.1)
 ==========================
 
 The [Facebook Platform](http://developers.facebook.com/) is
-a set of APIs that make your application more social. Read more about
-[integrating Facebook with your web site](http://developers.facebook.com/docs/guides/web)
-on the Facebook developer site.
+a set of APIs that make your app more social
 
-This repository contains the open source PHP SDK that allows you to utilize the
-above on your website. Except as otherwise noted, the Facebook PHP SDK
+This repository contains the open source PHP SDK that allows you to access Facebook Platform from your PHP app. Except as otherwise noted, the Facebook PHP SDK
 is licensed under the Apache Licence, Version 2.0
 (http://www.apache.org/licenses/LICENSE-2.0.html)
 
@@ -18,7 +17,7 @@ Usage
 The [examples][examples] are a good place to start. The minimal you'll need to
 have is:
 
-    require './facebook.php';
+    require 'facebook-php-sdk/src/facebook.php';
 
     $facebook = new Facebook(array(
       'appId'  => 'YOUR_APP_ID',
@@ -48,25 +47,39 @@ Login or logout url will be needed depending on current user state.
       $loginUrl = $facebook->getLoginUrl();
     }
 
-[examples]: http://github.com/facebook/php-sdk/blob/master/examples/example.php
+[examples]: http://github.com/facebook/facebook-php-sdk/blob/master/examples/example.php
 [API]: http://developers.facebook.com/docs/api
-
-
-Feedback
---------
-
-File bugs or other issues [here].
-
-[here]: http://bugs.developers.facebook.net/
-
 
 
 Tests
 -----
 
 In order to keep us nimble and allow us to bring you new functionality, without
-compromising on stability, we have ensured full test coverage of the new SDK.
+compromising on stability, we have ensured full test coverage of the SDK.
 We are including this in the open source repository to assure you of our
 commitment to quality, but also with the hopes that you will contribute back to
 help keep it stable. The easiest way to do so is to file bugs and include a
 test case.
+
+The tests can be executed by using this command from the base directory:
+
+    phpunit --stderr --bootstrap tests/bootstrap.php tests/tests.php
+
+
+Contributing
+===========
+For us to accept contributions you will have to first have signed the [Contributor License Agreement](https://developers.facebook.com/opensource/cla).
+
+When commiting, keep all lines to less than 80 characters, and try to follow the existing style.
+
+Before creating a pull request, squash your commits into a single commit.
+
+Add the comments where needed, and provide ample explanation in the commit message.
+
+
+Report Issues/Bugs
+===============
+[Bugs](https://developers.facebook.com/bugs)
+
+[Questions](http://facebook.stackoverflow.com)
+

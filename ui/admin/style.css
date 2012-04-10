@@ -58,6 +58,9 @@ p, .alert-message p { margin-bottom: 18px; }
 .dashboard-links li.foursquare a {
     background: #eee url(../images/foursquare.png) center 35px no-repeat;
 }
+.dashboard-links li.instagram a {
+    background: #eee url(../images/instagram.png) center 35px no-repeat;
+}
 .dashboard-links li a:hover {
     background-color: #ddd;
     border-color: #ccc;

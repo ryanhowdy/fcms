@@ -176,9 +176,11 @@ function displayLatestCategoriesForm ()
 
     $sql = "SELECT * 
             FROM (
-                SELECT p.`id`, p.`date`, p.`filename`, c.`name`, p.`user`, p.`category`
-                FROM `fcms_gallery_photos` AS p, `fcms_category` AS c
-                WHERE p.`category` = c.`id`
+                SELECT p.`id`, p.`date`, p.`filename`, c.`name`, p.`user`, p.`category`,
+                    e.`thumbnail`, p.`external_id`
+                FROM `fcms_gallery_photos` AS p
+                LEFT JOIN `fcms_category` AS c               ON p.`category`    = c.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
                 ORDER BY `date` DESC
             ) AS sub
             GROUP BY `category`
@@ -222,13 +224,21 @@ function displayLatestCategoriesForm ()
     {
         $count = $gallery->getCategoryPhotoCount($row['category']);
 
+        if ($row['filename'] == 'noimage.gif' && $row['external_id'] != null)
+        {
+            $photoSrc = $row['thumbnail'];
+        }
+        else
+        {
+            $photoSrc = '../uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']);
+        }
+
         echo '
                     <li>
                         <label for="'.$row['category'].'">
                             <b>'.cleanOutput($row['name']).'</b><br/>
                             <i>'.sprintf(T_('%d photos'), $count).'</i><br/>
-                            <img src="../uploads/photos/member'.$row['user'].'/tb_'.basename($row['filename']).'" 
-                                alt="'.cleanOutput($row['name']).'"/><br/>
+                            <img src="'.$photoSrc.'" alt="'.cleanOutput($row['name']).'"/><br/>
                             <input type="checkbox" id="'.$row['category'].'" name="bulk_actions[]" value="'.$row['category'].'"/>
                         </label>
                         <p>
@@ -416,10 +426,12 @@ function displayEditCategoryForm ()
 
     $category = (int)$_GET['edit'];
 
-    $sql = "SELECT p.`id`, p.`date`, p.`filename`, c.`name` AS category, p.`user`, p.`caption`, p.`views`
-            FROM `fcms_gallery_photos` AS p, `fcms_category` AS c
-            WHERE p.`category` = '$category'
-            AND p.`category` = c.`id`";
+    $sql = "SELECT p.`id`, p.`date`, p.`filename`, c.`name` AS category, p.`user`, p.`caption`, p.`views`,
+                p.`external_id`, e.`thumbnail`
+            FROM `fcms_gallery_photos` AS p
+            LEFT JOIN `fcms_category` AS c               ON p.`category`    = c.`id`
+            LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+            WHERE p.`category` = '$category'";
 
     $result = mysql_query($sql);
     if (!$result)
@@ -457,11 +469,19 @@ function displayEditCategoryForm ()
 
     while ($row = mysql_fetch_assoc($result))
     {
+        if ($row['filename'] == 'noimage.gif' && $row['external_id'] != null)
+        {
+            $photoSrc = $row['thumbnail'];
+        }
+        else
+        {
+            $photoSrc = '../uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']);
+        }
+
         echo '
                     <li>
                         <label for="'.$row['id'].'">
-                            <img src="../uploads/photos/member'.$row['user'].'/tb_'.basename($row['filename']).'" 
-                                alt="'.cleanOutput($row['caption']).'"/><br/>
+                            <img src="'.$photoSrc.'" alt="'.cleanOutput($row['caption']).'"/><br/>
                             <input type="checkbox" id="'.$row['id'].'" name="bulk_actions[]" value="'.$row['id'].'"/>
                         </label>
                     </li>';

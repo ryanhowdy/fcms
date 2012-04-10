@@ -53,7 +53,7 @@ class Recipes
         if (checkAccess($this->currentUserId) <= 5)
         {
             echo '
-            <div id="actions_menu" class="clearfix">
+            <div id="actions_menu">
                 <ul><li><a class="add" href="?addrecipe=yes">'.T_('Add Recipe').'</a></li></ul>
             </div>';
         }
@@ -139,7 +139,7 @@ class Recipes
 
         // Display Menu
         echo '
-            <div id="sections_menu" class="clearfix">
+            <div id="sections_menu">
                 <ul>
                     <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>';
 
@@ -148,7 +148,7 @@ class Recipes
             echo '
                 </ul>
             </div>
-            <div id="actions_menu" class="clearfix">
+            <div id="actions_menu">
                 <ul>
                     <li><a href="?addrecipe=yes&amp;cat='.$cat.'">'.T_('Add Recipe').'</a></li>';
         }
@@ -256,14 +256,14 @@ class Recipes
 
         // Display Menu
         echo '
-            <div id="sections_menu" class="clearfix">
+            <div id="sections_menu">
                 <ul>
                     <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>';
         if (checkAccess($this->currentUserId) <= 5) {
             echo '
                 </ul>
             </div>
-            <div id="actions_menu" class="clearfix">
+            <div id="actions_menu">
                 <ul>
                     <li><a href="?addrecipe=yes&amp;cat='.$cat.'">'.T_('Add Recipe').'</a></li>';
         }
@@ -338,7 +338,7 @@ class Recipes
         }
         echo '
                 </span>
-                <div class="clearfix">
+                <div>
                     <div class="recipe-directions">
                         <b>'.T_('Directions').'</b>
                         '.nl2br_nospaces($cleanDirections).'
@@ -379,7 +379,7 @@ class Recipes
             <form method="post" id="addform" name="addform" enctype="multipart/form-data" action="recipes.php">
                 <fieldset>
                     <legend><span>'.T_('Add Recipe').'</span></legend>
-                    <div class="clearfix">
+                    <div>
                         <label for="name">'.T_('Name').'</label>
                         <input type="text" name="name" id="name"/>
                         <div id="name-info" class="info">
@@ -390,11 +390,11 @@ class Recipes
                             fname.add(Validate.Presence, {failureMessage: ""});
                         </script>
                     </div>
-                    <div class="clearfix">
+                    <div>
                         <label for="thumbnail">'.T_('Thumbnail').'</label>
                         <input type="file" name="thumbnail" id="thumbnail"/>
                     </div>
-                    <div class="clearfix">
+                    <div>
                         <label for="category">'.T_('Category').'</label>
                         <select name="category" id="category">
                             <option></option>
@@ -406,7 +406,7 @@ class Recipes
                             fcategory.add(Validate.Presence, {failureMessage: ""});
                         </script>
                     </div>
-                    <div class="clearfix">
+                    <div>
                         <label for="ingredients">'.T_('Ingredients').'</label>
                         <textarea name="ingredients" id="ingredients"></textarea>
                         <div id="ingredients-info" class="info">
@@ -417,7 +417,7 @@ class Recipes
                             fingredients.add(Validate.Presence, {failureMessage: ""});
                         </script>
                     </div>
-                    <div class="clearfix">
+                    <div>
                         <label for="directions">'.T_('Directions').'</label>
                         <textarea name="directions" id="directions"></textarea>
                         <script type="text/javascript">
@@ -666,7 +666,7 @@ class Recipes
                 }
 
                 echo '
-            <div class="comment_block clearfix">
+            <div class="comment_block>
                 <form class="delcom" action="?category='.$category.'&amp;id='.$id.'" method="post">
                     '.$del_comment.'
                     <img class="avatar" alt="avatar" src="'.getCurrentAvatar($r['user']).'"/>
@@ -706,7 +706,7 @@ class Recipes
         $categories = $this->getCategoryList();
 
         echo '
-            <div id="sections_menu" class="clearfix">
+            <div id="sections_menu">
                 <ul>
                     <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>
                 </ul>

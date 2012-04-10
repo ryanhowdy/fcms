@@ -14,6 +14,7 @@
 require_once 'utils.php';
 require_once 'image_class.php';
 require_once 'datetime.php';
+require_once 'socialmedia.php';
 
 /**
  * PhotoGallery 
@@ -100,8 +101,8 @@ class PhotoGallery
         }
 
         echo '
-            <div id="gallery_menu" class="clearfix">
-                <div id="sections_menu" class="clearfix">
+            <div id="gallery_menu">
+                <div id="sections_menu">
                     <ul>
                         <li><a class="'.$home.'" href="index.php">'.T_('Latest').'</a></li>
                         <li><a class="'.$member.'" href="?uid=0">'.T_('Members').'</a></li>
@@ -117,7 +118,7 @@ class PhotoGallery
         if ($access <= 3 or $access == NON_POSTER_USER or $access == PHOTOGRAPHER_USER)
         {
             echo '
-                <div id="actions_menu" class="clearfix">
+                <div id="actions_menu">
                     <ul>
                         <li><a class="upload" href="?action=upload">'.T_('Upload Photos').'</a></li>
                         <li><a class="manage_categories" href="?action=category">'.T_('Manage Categories').'</a></li>
@@ -161,7 +162,7 @@ class PhotoGallery
                 <fieldset>
                     <legend><span>'.T_('Search').'</span></legend>
                     <form action="index.php" method="get">
-                        <div class="field-row clearfix">
+                        <div class="field-row">
                             <div class="field-label"><b>'.T_('Photo Uploaded By').'</b></div>
                             <div class="field-widget">
                                 <select name="uid">
@@ -177,7 +178,7 @@ class PhotoGallery
                                 </select>
                             </div>
                         </div>
-                        <div class="field-row clearfix">
+                        <div class="field-row">
                             <div class="field-label"><b>'.T_('Members In Photo').'</b></div>
                             <div class="field-widget">
                                 <select name="cid">
@@ -209,13 +210,16 @@ class PhotoGallery
     {
         $sql = "SELECT * 
                 FROM (
-                    SELECT p.`id`, p.`date`, p.`filename`, c.`name`, p.`user`, p.`category`
-                    FROM `fcms_gallery_photos` AS p, `fcms_category` AS c
-                    WHERE p.`category` = c.`id`
+                    SELECT p.`id`, p.`date`, p.`filename`, c.`name`, p.`user`, p.`category`,
+                        p.`external_id`, e.`thumbnail`, u.`fname`, u.`lname`
+                    FROM `fcms_gallery_photos` AS p
+                    LEFT JOIN `fcms_category` AS c               ON p.`category`    = c.`id`
+                    LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                    LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`
                     ORDER BY `date` DESC
                 ) AS sub
                 GROUP BY `category`
-                ORDER BY `date` DESC LIMIT 6";
+                ORDER BY `date` DESC LIMIT 5";
 
         if (!$this->db->query($sql))
         {
@@ -235,28 +239,40 @@ class PhotoGallery
         }
 
         echo '
-                <ul class="categories clearfix">';
+                <div class="categories">';
 
         while ($row = $this->db->get_row())
         {
             $date = fixDate(T_('M. j, Y'), $this->tzOffset, $row['date']);
 
+            if ($row['filename'] == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']);
+            }
+
             echo '
-                    <li class="category">
+                    <div class="category">
                         <a href="?uid='.$row['user'].'&amp;cid='.$row['category'].'">
-                            <img class="photo" 
-                                src="../uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']).'" 
-                                alt="'.cleanOutput($row['name']).'"/>
+                            <div class="photo-title">
+                                <img class="photo" src="'.$photoSrc.'" alt="'.cleanOutput($row['name']).'"/>
+                                <div class="overlay">
+                                    <p>'.cleanOutput($row['name']).'</p>
+                                </div>
+                            </div><!--/photo-title-->
                         </a>
-                        <span>
-                            <strong>'.cleanOutput($row['name']).'</strong>
+                        <div class="footer">
+                            <b>'.cleanOutput($row['fname']).' '.cleanOutput($row['lname']).'</b>
                             <i>'.$date.'</i>
-                        </span>
-                    </li>';
+                        </div>
+                    </div><!--/category-->';
         }
 
         echo '
-                </ul>';
+                </div>';
 
         return true;
     }
@@ -295,7 +311,8 @@ class PhotoGallery
         // Save filenames in an array, so we can see next/prev, etc
         while ($row = $this->db2->get_row())
         {
-            $photo_arr[] = $row['filename'];
+            $photo_arr[]     = $row['filename'];
+            $photoIdLookup[] = $row['id'];
         }
 
         // No photos exist for the current view/category
@@ -316,10 +333,12 @@ class PhotoGallery
 
         // Select Current Photo to view
         $sql = "SELECT p.`user` AS uid, `filename`, `caption`, `category` AS cid, p.`date`, 
-                    `name` AS category_name, `views`, `votes`, `rating` 
-                FROM `fcms_gallery_photos` AS p, `fcms_category` AS c 
-                WHERE p.`id` = '$pid' 
-                AND p.`category` = c.`id`";
+                    `name` AS category_name, `views`, `votes`, `rating`,
+                    p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
+                FROM `fcms_gallery_photos` AS p
+                LEFT JOIN `fcms_category` AS c ON p.`category` = c.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                WHERE p.`id` = '$pid' ";
 
         if (!$this->db2->query($sql))
         {
@@ -352,30 +371,10 @@ class PhotoGallery
         $comments = $this->getPhotoComments($pid);
 
         $total   = count($photo_arr);
-        $current = array_search($r['filename'], $photo_arr);
-        $prev    = 0;
-        $next    = 0;
+        $current = array_search($pid, $photoIdLookup);
 
-        // Previous pid
-        if (isset($photo_arr[$current-1]))
-        {
-            // strip the extension off the filename to get the pid #s (ex: 453.gif)
-            $prev = substr($photo_arr[$current-1], 0, strpos($photo_arr[$current-1], '.'));
-        }
-        else
-        {
-            $prev = substr(end($photo_arr), 0, strpos(end($photo_arr), '.'));
-        }
-
-        // Next pid
-        if (isset($photo_arr[$current+1]))
-        {
-            $next = substr($photo_arr[$current+1], 0, strpos($photo_arr[$current+1], '.'));
-        }
-        else
-        {
-            $next = substr($photo_arr[0], 0, strpos($photo_arr[0], '.'));
-        }
+        $prev = $this->getPrevId($photo_arr, $photoIdLookup, $current);
+        $next = $this->getNextId($photo_arr, $photoIdLookup, $current);
 
         $photos_of = '<i>('.sprintf(T_('%d of %d'), $current+1, $total).')</i>';
 
@@ -384,7 +383,7 @@ class PhotoGallery
         if ($total > 1)
         {
             $prev_next .= '
-                <div class="prev_next clearfix">
+                <div class="prev_next">
                     <a class="previous" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$prev.'">'.T_('Previous').'</a>
                     <a class="next" href="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$next.'">'.T_('Next').'</a>
                 </div>
@@ -427,14 +426,24 @@ class PhotoGallery
         }
 
         // setup some vars to hold photo details
-        $photo_path        = $this->getPhotoPath($r['filename'], $r['uid']);
-        $photo_path_middle = $photo_path[0];
-        $photo_path_full   = $photo_path[1];
-        $caption           = cleanOutput($r['caption']);
-        $dimensions        = GetImageSize($photo_path_full);
-        $size              = filesize($photo_path_full);
-        $size              = formatSize($size);
-        $date_added        = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
+        if ($r['filename'] == 'noimage.gif' && $r['external_id'] != null)
+        {
+            $photo_path_middle = $r['medium'];
+            $photo_path_full   = $r['full'];
+            $size              = T_('Unknown');
+        }
+        else
+        {
+            $photo_path        = $this->getPhotoPath($r['filename'], $r['uid']);
+            $photo_path_middle = $photo_path[0];
+            $photo_path_full   = $photo_path[1];
+            $size              = filesize($photo_path_full);
+            $size              = formatSize($size);
+        }
+
+        $caption    = cleanOutput($r['caption']);
+        $dimensions = GetImageSize($photo_path_full);
+        $date_added = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
 
         // Calculate rating
         if ($r['votes'] <= 0)
@@ -492,7 +501,7 @@ class PhotoGallery
         
         // Display
         echo '
-            <div class="breadcrumbs clearfix">
+            <div class="breadcrumbs">
                 '.$breadcrumbs.'
                 '.$prev_next.'
             </div>
@@ -574,7 +583,7 @@ class PhotoGallery
                     }
 
                     echo '
-            <div id="comment'.$row['id'].'" class="comment_block clearfix">
+            <div id="comment'.$row['id'].'" class="comment_block">
                 <form action="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'" method="post">
                     '.$del_comment.'
                     <img class="avatar" alt="avatar" src="'.getCurrentAvatar($row['user'], true).'"/>
@@ -628,10 +637,10 @@ class PhotoGallery
             $urlcid = $category;
             $cid    = $urlcid;
 
-            $sql = "SELECT DISTINCT `filename` 
+            $sql = "SELECT DISTINCT `id`, `filename` 
                     FROM (
-                        SELECT p.`filename` 
-                        FROM `fcms_gallery_comments` AS c, `fcms_gallery_photos` AS p 
+                        SELECT p.`id`, p.`filename` 
+                        FROM `fcms_gallery_photo_comment` AS c, `fcms_gallery_photos` AS p 
                         WHERE c.`photo` = p.`id` ORDER BY c.`date` DESC
                     ) as z";
 
@@ -643,7 +652,7 @@ class PhotoGallery
             $urlcid = $category;
             $cid    = $urlcid;
 
-            $sql = "SELECT `filename` 
+            $sql = "SELECT `id`, `filename` 
                     FROM `fcms_gallery_photos` 
                     WHERE `votes` > 0 
                     ORDER BY `rating`/`votes` DESC";
@@ -656,7 +665,7 @@ class PhotoGallery
             $urlcid = $category;
             $cid    = $urlcid;
 
-            $sql = "SELECT `filename` 
+            $sql = "SELECT `id`, `filename` 
                     FROM `fcms_gallery_photos` 
                     WHERE `views` > 0";
             if ($user > 0)
@@ -677,7 +686,7 @@ class PhotoGallery
             $cid = substr($category, 6);
             $cid = (int)$cid;
 
-            $sql = "SELECT `filename` 
+            $sql = "SELECT p.`id`, p.`filename` 
                     FROM `fcms_gallery_photos` AS p, `fcms_gallery_photos_tags` AS t 
                     WHERE t.`user` = '$cid' 
                     AND t.`photo` = p.`id` 
@@ -692,7 +701,7 @@ class PhotoGallery
             $urlcid = $category;
             $cid    = $urlcid;
 
-            $sql = "SELECT `filename` 
+            $sql = "SELECT `id`, `filename` 
                     FROM `fcms_gallery_photos`
                     WHERE `user` = $user
                     ORDER BY `id` DESC";
@@ -706,7 +715,7 @@ class PhotoGallery
             $urlcid = (int)$category;
             $cid    = $urlcid;
 
-            $sql = "SELECT `filename` 
+            $sql = "SELECT `id`, `filename` 
                     FROM `fcms_gallery_photos` 
                     WHERE `category` = '$cid' 
                     ORDER BY `date`";
@@ -868,13 +877,14 @@ class PhotoGallery
         $perPage = 18;
         $from    = ($page * $perPage) - $perPage;
 
-        $sql = "SELECT p.`user` AS uid, p.`category` AS cid, c.`date` AS heading, p.`id` AS pid, p.`filename`, c.`comment`, 
-                    p.`caption`, c.`user` 
-                FROM `fcms_gallery_comments` AS c, `fcms_gallery_photos` AS p, 
-                    `fcms_category` AS cat, `fcms_users` AS u 
-                WHERE c.`photo` = p.`id` 
-                AND p.`category` = cat.`id` 
-                AND c.`user` = u.`id` 
+        $sql = "SELECT p.`user` AS uid, p.`category` AS cid, c.`date` AS heading, p.`id` AS pid, 
+                    p.`filename`, c.`comment`, p.`caption`, c.`user`, p.`external_id`,
+                    e.`thumbnail`
+                FROM `fcms_gallery_photo_comment` AS c
+                LEFT JOIN `fcms_gallery_photos` AS p         ON c.`photo`       = p.`id`
+                LEFT JOIN `fcms_category` AS cat             ON p.`category`    = cat.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`
                 ORDER BY c.`date` DESC";
 
         if ($page >= 0)
@@ -884,7 +894,7 @@ class PhotoGallery
         else
         {
             // Front page Latest Comments
-            $sql .= " LIMIT 6";
+            $sql .= " LIMIT 5";
         }
 
         if (!$this->db->query($sql))
@@ -910,14 +920,14 @@ class PhotoGallery
         {
             echo '
             <p class="breadcrumbs">'.T_('Latest Comments').'</p>
-            <ul class="categories clearfix">';
+            <ul class="categories">';
         }
         else
         {
             echo '
             <h3>'.T_('Latest Comments').'</h3>
             <a href="?uid=0&amp;cid=comments">('.T_('View All').')</a><br/>
-            <ul class="categories clearfix">';
+            <ul class="categories">';
         }
 
         while ($row = $this->db->get_row())
@@ -930,10 +940,19 @@ class PhotoGallery
             $pid         = (int)$row['pid'];
             $uid         = (int)$row['uid'];
 
+            if ($filename == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.$uid.'/tb_'.$filename;
+            }
+
             echo '
                 <li class="category">
                     <a href="index.php?uid=0&amp;cid=comments&amp;pid='.$pid.'">
-                        <img src="../uploads/photos/member'.$uid.'/tb_'.$filename.'" alt="'.$caption.'" title="'.$caption.'"/>
+                        <img src="'.$photoSrc.'" alt="'.$caption.'" title="'.$caption.'"/>
                     </a>
                     <span>
                         <strong>'.$date.'</strong>
@@ -967,16 +986,18 @@ class PhotoGallery
         $perPage = 18;
         $from    = ($page * $perPage) - $perPage;
 
-        $sql = "SELECT u.`id` AS uid, f.`filename`, COUNT(p.`id`) as c 
-                FROM `fcms_category` AS cat 
-                LEFT JOIN `fcms_gallery_photos` AS p 
-                ON p.`category` = cat.`id`, `fcms_users` AS u, (
+        $sql = "SELECT u.`id` AS uid, f.`filename`, COUNT(p.`id`) as c,
+                    e.`thumbnail`, p.`external_id`
+                FROM `fcms_category` AS cat
+                LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = cat.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`,
+                (
                     SELECT * 
                     FROM `fcms_gallery_photos` 
                     ORDER BY `date` DESC
-                ) AS f 
+                ) AS f
                 WHERE f.`id` = p.`id` 
-                AND u.`id` = p.`user` 
                 GROUP BY p.`user`
                 ORDER BY cat.`date` DESC
                 LIMIT $from, $perPage";
@@ -998,7 +1019,7 @@ class PhotoGallery
 
         echo '
             <p class="breadcrumbs">'.T_('Members').'</p>
-            <ul class="categories clearfix">';
+            <ul class="categories">';
 
         while ($row = $this->db->get_row())
         {
@@ -1011,10 +1032,19 @@ class PhotoGallery
             $title       = 'title="'.sprintf(T_('View Categories for %s'), $displayname).'"';
             $url         = '?uid='.$row['uid'];
 
+            if ($filename == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.$id.'/tb_'.$filename;
+            }
+
             echo '
                 <li class="category">
                     <a href="index.php'.$url.'">
-                        <img src="../uploads/photos/member'.$id.'/tb_'.$filename.'" '.$alt.' '.$title.'/>
+                        <img src="'.$photoSrc.'" '.$alt.' '.$title.'/>
                     </a>
                     <span>
                         <strong>'.$displayname.'</strong>
@@ -1046,16 +1076,18 @@ class PhotoGallery
         $perPage = 18;
         $from    = ($page * $perPage) - $perPage;
 
-        $sql = "SELECT u.`id` AS uid, cat.`name` AS category, cat.`id` AS cid, f.`filename`, COUNT(p.`id`) AS c
+        $sql = "SELECT u.`id` AS uid, cat.`name` AS category, cat.`id` AS cid, f.`filename`, COUNT(p.`id`) AS c,
+                    e.`thumbnail`, p.`external_id`
                 FROM `fcms_category` AS cat
-                LEFT JOIN `fcms_gallery_photos` AS p
-                ON p.`category` = cat.`id`, `fcms_users` AS u, (
+                LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = cat.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`,
+                (
                     SELECT *
                     FROM `fcms_gallery_photos`
                     ORDER BY `date` DESC
                 ) AS f
                 WHERE f.`id` = p.`id`
-                AND u.`id` = p.`user`
                 AND p.`user` = '$uid'
                 GROUP BY cat.`id` DESC
                 LIMIT $from, $perPage";
@@ -1079,7 +1111,7 @@ class PhotoGallery
             <p class="breadcrumbs">
                 <a href="?uid=0">'.T_('Members').'</a> &gt; '.getUserDisplayName($uid).'
             </p>
-            <ul class="categories clearfix">';
+            <ul class="categories">';
 
         while ($row = $this->db->get_row())
         {
@@ -1090,10 +1122,19 @@ class PhotoGallery
             $title    = 'title="'.sprintf(T_('View Photos in %s'), $category).'"';
             $count    = cleanOutput($row['c']);
 
+            if ($filename == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.$uid.'/tb_'.$filename;
+            }
+
             echo '
                 <li class="category">
                     <a href="index.php?uid='.$uid.'&amp;cid='.$cid.'">
-                        <img src="../uploads/photos/member'.$uid.'/tb_'.$filename.'" '.$alt.' '.$title.'/>
+                        <img src="'.$photoSrc.'" '.$alt.' '.$title.'/>
                     </a>
                     <span>
                         <strong>'.$category.'</strong>
@@ -1124,11 +1165,13 @@ class PhotoGallery
         $perPage = 40;
         $from    = ($page * $perPage) - $perPage;
 
-        $sql = "SELECT u.`id` AS uid, `category` AS cid, p.`id` AS pid, `caption`, c.`name` AS category, `filename`, c.`description`
-                FROM `fcms_category` AS c, `fcms_gallery_photos` AS p, `fcms_users` AS u
-                WHERE p.`user` = u.`id`
-                AND `category` = c.`id`
-                AND `category` = '$cid'
+        $sql = "SELECT u.`id` AS uid, `category` AS cid, p.`id` AS pid, `caption`, c.`name` AS category, 
+                    `filename`, c.`description`, p.`external_id`, e.`thumbnail`
+                FROM `fcms_category` AS c
+                LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = c.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`
+                WHERE p.`category` = '$cid'
                 LIMIT $from, $perPage";
 
         if (!$this->db->query($sql))
@@ -1161,10 +1204,19 @@ class PhotoGallery
             $alt         = 'alt="'.$caption.'"';
             $title       = 'title="'.$caption.'"';
 
+            if ($filename == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.$uid.'/tb_'.$filename;
+            }
+
             $photos .= '
                     <li class="photo">
                         <a href="index.php?uid='.$uid.'&amp;cid='.$cid.'&amp;pid='.$pid.'">
-                            <img class="photo" src="../uploads/photos/member'.$uid.'/tb_'.$filename.'" '.$alt.' '.$title.'/>
+                            <img class="photo" src="'.$photoSrc.'" '.$alt.' '.$title.'/>
                         </a>
                     </li>';
         }
@@ -1200,6 +1252,8 @@ class PhotoGallery
         // Members in category
         $membersInCategory = $this->getMembersInCategory($uid, $cid);
 
+        $url = '?uid='.$uid.'&amp;cid='.$cid;
+
         echo '
             <p class="breadcrumbs">
                 <a href="?uid=0">'.T_('Members').'</a> &gt; 
@@ -1207,8 +1261,67 @@ class PhotoGallery
                 '.$category.'
             </p>
             <div id="maincolumn">
-                <ul id="photos clearfix">'.$photos.'
-                </ul>
+                <ul id="photos">'.$photos.'
+                </ul>';
+
+        // Display Comments
+        if (   checkAccess($this->currentUserId) <= 8
+            && checkAccess($this->currentUserId) != 7
+            && checkAccess($this->currentUserId) != 4
+        )
+        {
+            $comments = $this->getCategoryComments($cid);
+
+            echo '
+                <h3 id="comments">'.T_('Comments').'</h3>';
+
+            if (count($comments) > 0)
+            { 
+                foreach ($comments as $row)
+                {
+                    // Setup some vars for each comment block
+                    $del_comment = '';
+                    $date        = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['created']);
+                    $displayname = $row['fname'].' '.$row['lname'];
+                    $comment     = $row['comment'];
+                    $avatarPath  = getAvatarPath($row['avatar'], $row['gravatar'], '../');
+
+                    if ($this->currentUserId == $row['created_id'] || checkAccess($this->currentUserId) < 2)
+                    {
+                        $del_comment .= '<input type="submit" name="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this Comment').'"/>';
+                    }
+
+                    echo '
+                <div id="comment'.$row['id'].'" class="comment_block">
+                    <form action="?uid='.$uid.'&amp;cid='.$cid.'" method="post">
+                        '.$del_comment.'
+                        <img class="avatar" alt="avatar" src="'.$avatarPath.'"/>
+                        <b>'.$displayname.'</b>
+                        <span>'.$date.'</span>
+                        <p>
+                            '.parse($comment, '../').'
+                        </p>
+                        <input type="hidden" name="uid" value="'.$uid.'"/>
+                        <input type="hidden" name="cid" value="'.$cid.'"/>
+                        <input type="hidden" name="id" value="'.$row['id'].'">
+                    </form>
+                </div>';
+                }
+            }
+
+            echo '
+                <div class="add_comment_block">
+                    <form action="?uid='.$uid.'&amp;cid='.$cid.'" method="post">
+                        '.T_('Add Comment').'<br/>
+                        <textarea class="frm_textarea" name="comment" id="comment" rows="3" cols="63"></textarea><br/>
+                        <input type="submit" name="addcatcom" id="addcatcom" value="'.T_('Add Comment').'" title="'.T_('Add Comment').'"/>
+                    </form>
+                </div>';
+        }
+
+        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+
+        echo '
             </div>
             <div id="leftcolumn">
                 <ul id="category-actions">
@@ -1220,10 +1333,6 @@ class PhotoGallery
                 <p><b>'.T_('Members In Category').'</b></p>
                 <p>'.$membersInCategory.'</p>
             </div>';
-
-        $url = '?uid='.$uid.'&amp;cid='.$cid;
-
-        $this->displayCategoryPagination($sql, $page, $perPage, $url);
     }
 
     /**
@@ -1245,8 +1354,11 @@ class PhotoGallery
             $where = " AND `user` = '$uid' ";
         }
 
-        $sql = "SELECT 'RATED' AS type, `user` AS uid, `filename`, `category`, `caption`, `id` AS pid, `rating`/`votes` AS 'r' 
-                FROM `fcms_gallery_photos` 
+        $sql = "SELECT p.`user` AS uid, p.`filename`, p.`category`, p.`caption`, 
+                    p.`id` AS pid, p.`rating`/p.`votes` AS 'r', p.`external_id`,
+                    e.`thumbnail`
+                FROM `fcms_gallery_photos` AS p
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
                 WHERE `votes` > 0 
                 $where
                 ORDER BY r DESC
@@ -1275,7 +1387,7 @@ class PhotoGallery
 
         echo '
             <p class="breadcrumbs">'.T_('Top Rated').$topRatedUser.'</p>
-            <ul class="categories clearfix">';
+            <ul class="categories">';
 
         while ($row = $this->db->get_row())
         {
@@ -1287,10 +1399,19 @@ class PhotoGallery
             $width    = ($row['r'] / 5) * 100;
             $caption  = cleanOutput($row['caption']);
 
+            if ($filename == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.$user.'/tb_'.$filename;
+            }
+
             echo '
                 <li class="category">
                     <a href="'.$url.'">
-                        <img src="../uploads/photos/member'.$user.'/tb_'.$filename.'" alt="'.$caption.'" title="'.$caption.'"/>
+                        <img src="'.$photoSrc.'" alt="'.$caption.'" title="'.$caption.'"/>
                     </a>
                     <span>
                         <i>
@@ -1334,9 +1455,10 @@ class PhotoGallery
             $where = " AND `user` = '$uid' ";
         }
 
-        $sql = "SELECT 'VIEWED' AS type, `user` AS uid, `filename`, `caption`, 
-                    `id` AS pid, `views` 
-                FROM `fcms_gallery_photos` 
+        $sql = "SELECT p.`user` AS uid, p.`filename`, p.`caption`, p.`id` AS pid, 
+                    p.`views`, p.`external_id`, e.`thumbnail`
+                FROM `fcms_gallery_photos` AS p
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
                 WHERE `views` > 0 
                 $where
                 ORDER BY VIEWS DESC
@@ -1365,7 +1487,7 @@ class PhotoGallery
 
         echo '
             <p class="breadcrumbs">'.T_('Most Viewed').$mostViewedUser.'</p>
-            <ul class="categories clearfix">';
+            <ul class="categories">';
 
         while ($row = $this->db->get_row())
         {
@@ -1375,10 +1497,19 @@ class PhotoGallery
             $caption  = cleanOutput($row['caption']);
             $views    = (int)$row['views'];
 
+            if ($filename == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.$user.'/tb_'.$filename;
+            }
+
             echo '
                 <li class="category">
                     <a href="?uid='.$user.'&amp;cid=mostviewed&amp;pid='.$pid.'">
-                        <img src="../uploads/photos/member'.$user.'/tb_'.$filename.'" alt="'.$caption.'" title="'.$caption.'"/>
+                        <img src="'.$photoSrc.'" alt="'.$caption.'" title="'.$caption.'"/>
                     </a>
                     <span>
                         <i><b>'.T_('Views').': </b>'.$views.'</i>
@@ -1407,10 +1538,12 @@ class PhotoGallery
         $perPage = 30;
         $from    = ($page * $perPage) - $perPage;
 
-        $sql = "SELECT t.`user`, p.`id` AS pid, p.`filename`, p.`caption`, p.`user` AS uid
-                FROM `fcms_gallery_photos` AS p, `fcms_gallery_photos_tags` AS t
+        $sql = "SELECT t.`user`, p.`id` AS pid, p.`filename`, p.`caption`, p.`user` AS uid,
+                    p.`external_id`, e.`thumbnail`
+                FROM `fcms_gallery_photos` AS p
+                LEFT JOIN `fcms_gallery_photos_tags` AS t    ON t.`photo`       = p.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
                 WHERE t.`user` = '$userId'
-                AND t.`photo` = p.`id`
                 LIMIT $from, $perPage";
 
         if (!$this->db->query($sql))
@@ -1432,7 +1565,7 @@ class PhotoGallery
 
         echo '
             <p class="breadcrumbs">'.sprintf(T_('Photos of %s'), $userName).'</p>
-            <ul class="photos clearfix">';
+            <ul class="photos">';
 
         while ($row = $this->db->get_row())
         {
@@ -1442,10 +1575,19 @@ class PhotoGallery
             $urlPage  = '?uid=0&amp;cid='.$userId;
             $caption  = cleanOutput($row['caption']);
 
+            if ($filename == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.$uid.'/tb_'.$filename;
+            }
+
             echo '
                 <li class="photo">
                     <a href="index.php?uid=0&amp;cid=tagged'.$userId.'&amp;pid='.$pid.'">
-                        <img class="photo" src="../uploads/photos/member'.$uid.'/tb_'.$filename.'" alt="'.$caption.'" title="'.$caption.'"/>
+                        <img class="photo" src="'.$photoSrc.'" alt="'.$caption.'" title="'.$caption.'"/>
                     </a>
                 </li>';
         }
@@ -1471,11 +1613,13 @@ class PhotoGallery
         $perPage = 30;
         $from    = ($page * $perPage) - $perPage;
 
-        $sql = "SELECT 'ALL' AS type, u.`id` AS uid, `category` AS cid, p.`id` AS pid, `caption`, c.`name` AS category, `filename` 
-                FROM `fcms_category` AS c, `fcms_gallery_photos` AS p, `fcms_users` AS u 
+        $sql = "SELECT u.`id` AS uid, p.`category` AS cid, p.`id` AS pid, p.`caption`, 
+                    c.`name` AS category, p.`filename`, p.`external_id`, e.`thumbnail`
+                FROM `fcms_category` AS c
+                LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = c.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`
                 WHERE p.`user` = '$userId' 
-                AND p.`user` = u.`id`
-                AND `category` = c.`id`
                 ORDER BY p.`id`
                 LIMIT $from, $perPage";
 
@@ -1500,7 +1644,7 @@ class PhotoGallery
 
         echo '
             <p class="breadcrumbs">'.sprintf(T_('Photos uploaded by %s'), $userName).'</p>
-            <ul class="photos clearfix">';
+            <ul class="photos">';
 
         while ($row = $this->db->get_row())
         {
@@ -1509,10 +1653,19 @@ class PhotoGallery
             $urlPage  = '?uid='.$userId.'&amp;cid=all';
             $caption  = cleanOutput($row['caption']);
 
+            if ($filename == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.$userId.'/tb_'.$filename;
+            }
+
             echo '
                 <li class="photo">
                     <a href="index.php?uid='.$userId.'&amp;cid=all&amp;pid='.$pid.'">
-                        <img class="photo" src="../uploads/photos/member'.$userId.'/tb_'.$filename.'" alt="'.$caption.'" title="'.$caption.'"/>
+                        <img class="photo" src="'.$photoSrc.'" alt="'.$caption.'" title="'.$caption.'"/>
                     </a>
                 </li>';
         }
@@ -1567,35 +1720,15 @@ class PhotoGallery
      */
     function displayUploadForm ($overrideMemoryLimit = false)
     {
-        $categories = $this->getUserCategories();
-
-        // We have existing categories
-        if (count($categories) > 0)
-        {
-            $category_options = '
-                            <input class="frm_text" type="text" id="new-category" name="new-category" size="35"/>
-                            <select id="existing-categories" name="category">
-                                <option value="0">&nbsp;</option>
-                                '.buildHtmlSelectOptions($categories, '').'
-                            </select>';
-        }
-        // No Categories (force creation of new one)
-        else
-        {
-            $category_options = '
-                            <input class="frm_text" type="text" name="new-category" size="50"/>';
-        }
-
-        $advanced_tagging = usingAdvancedTagging($this->currentUserId);
-
-        $members = array();
-
-        $autocomplete_selected  = '';
+        $categories = $this->getCategoryInputs();
 
         // Setup the photo tagging options (autocomplete or checkbox)
-        $tagging_options = '';
-        $users_list      = '';
-        $users_lkup      = '';
+        $advanced_tagging       = usingAdvancedTagging($this->currentUserId);
+        $members                = array();
+        $autocomplete_selected  = '';
+        $tagging_options        = '';
+        $users_list             = '';
+        $users_lkup             = '';
 
         // Setup the list of active members for possible tags
         $sql = "SELECT `id` 
@@ -1659,55 +1792,52 @@ class PhotoGallery
                     value="'.cleanOutput($key).'"/> '.$value.'</label>';
             }
             $tagging_options = '
-                            <div class="multi-checkbox" style="margin: 0 auto;">
+                            <div class="multi-checkbox">
                                 '.$tag_checkboxes.'
                             </div>';
         }
 
         // Display the form
         echo '
-            <fieldset>
-                <legend><span>'.T_('Upload Photos').'</span></legend>
-                <p class="alignright">
-                    <a class="help" href="../help.php#gallery-howworks">'.T_('Help').'</a>
-                </p>
-                <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
-                <form id="autocomplete_form" enctype="multipart/form-data" action="?action=upload" method="post">
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label><b>'.T_('Category').'</b></label></div>
-                        <div class="field-widget">
-                            '.$category_options.'
-                        </div>
-                    </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label><b>'.T_('Photo').'</b></label></div>
-                        <div class="field-widget">
+            <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
+            <form id="autocomplete_form" enctype="multipart/form-data" action="?action=upload" method="post" class="photo-uploader">
+                <div class="header">
+                    <label>'.T_('Category').'</label>
+                    '.$categories.'
+                </div>
+                <ul class="upload-types">
+                    '.$this->getUploadTypesNavigation('upload').'
+                </ul>
+                <div class="upload-area">
+                    <div class="basic">
+                        <p style="float:right">
+                            <a class="help" href="../help.php?topic=photo#gallery-howworks">'.T_('Help').'</a>
+                        </p>
+                        <p>
+                            <label><b>'.T_('Photo').'</b></label><br/>
                             <input name="photo_filename" type="file" size="50"/>
-                        </div>
-                    </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label><b>'.T_('Caption').'</b></label></div>
-                        <div class="field-widget">
+                        </p>
+                        <p>
+                            <label><b>'.T_('Caption').'</b></label><br/>
                             <input class="frm_text" type="text" name="photo_caption" size="50"/>
-                        </div>
-                    </div>
-                    <div id="atag-options" class="field-row clearfix">
-                        <div class="field-label"><label><b>'.T_('Who is in this Photo?').'</b></label></div>
-                        <div class="field-widget">
+                        </p>
+                        <div id="tag-options">
+                            <label><b>'.T_('Who is in this Photo?').'</b></label><br/>
                             '.$tagging_options.'
                         </div>
-                    </div>
-                    <div id="rotate-options">
-                        <div class="field-label"><label><b>'.T_('Rotate').'</b></label></div>
-                        <div class="field-widget">
+                        <p>
+                            <label><b>'.T_('Rotate').'</b></label><br/>
                             <input type="radio" id="left" name="rotate" value="left"/>
                             <label for="left" class="radio_label">'.T_('Left').'</label>&nbsp;&nbsp; 
                             <input type="radio" id="right" name="rotate" value="right"/>
                             <label for="right" class="radio_label">'.T_('Right').'</label>
-                        </div>
-                    </div>
+                        </p>
+                    </div><!--/basic-->
+                </div>
+                <div class="footer">
                     <input class="sub1" type="submit" id="addphoto" name="addphoto" value="'.T_('Submit').'"/>
-                </form>';
+                </div>
+            </form>';
 
     }
 
@@ -1721,49 +1851,14 @@ class PhotoGallery
      */
     function displayJavaUploadForm ()
     {
-        $categories = $this->getUserCategories();
+        $category_options = $this->getCategoryInputs();
 
-        // We have existing categories
-        if (count($categories) > 0)
-        {
-            $category_options = '
-                    <input class="frm_text" type="text" id="new-category" name="new-category" size="35""/>
-                    <select id="existing-categories" name="category">
-                        <option value="0">&nbsp;</option>';
-
-            foreach ($categories as $id => $name)
-            {
-                $category_options .= '
-                        <option value="'.$id.'">'.cleanOutput($name).'</option>';
-            }
-            $category_options .= '
-                    </select>';
-        }
-        // No Categories (force creation of new one)
-        else
-        {
-            $category_options = '
-                    <input class="frm_text" type="text" id="new-category" name="new-category" size="50""/>';
-        }
-
-        // TODO
-        // Are we using full sized photos?
-        $sql = "SELECT `value` AS 'full_size_photos'
-                FROM `fcms_config`
-                WHERE `name` = 'full_size_photos'";
-        if (!$this->db->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        $r = $this->db->get_row();
-
+        // Setup some applet params
         $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="small,medium"/>';
         $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit"/>';
         $fullSizedPhotos          = '';
 
-        if ($r['full_size_photos'] == 1)
+        if ($this->usingFullSizePhotos())
         {
             $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="small,medium,full"/>';
             $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit,1400x1400xfit"/>';
@@ -1780,7 +1875,7 @@ class PhotoGallery
         echo '
             <noscript>
                 <style type="text/css">
-                applet, .field-row {display: none;}
+                applet, .photo-uploader {display: none;}
                 #noscript {padding:1em;}
                 #noscript p {background-color:#ff9; padding:3em; font-size:130%; line-height:200%;}
                 #noscript p span {font-size:60%;}
@@ -1796,13 +1891,16 @@ class PhotoGallery
                 </p>
                 </div>
             </noscript>
-            <fieldset>
-                <legend><span>'.T_('Upload Photos').'</span></legend>
-                <form method="post" name="uploadForm">
-                    <label><b>'.T_('Category').'</b></label>
+
+            <form method="post" name="uploadForm" class="photo-uploader">
+                <div class="header">
+                    <label>'.T_('Category').'</label>
                     '.$category_options.'
-                    <br/>
-                    <br/>
+                </div>
+                <ul class="upload-types">
+                    '.$this->getUploadTypesNavigation('upload').'
+                </ul>
+                <div class="upload-area">
                     <applet name="jumpLoaderApplet"
                         code="jmaster.jumploader.app.JumpLoaderApplet.class"
                         archive="../inc/thirdparty/jumploader_z.jar"
@@ -1827,34 +1925,192 @@ class PhotoGallery
                         <param name="vc_uiDefaults" value="Panel.background=#eff0f4; List.background=#eff0f4;"/> 
                         <param name="ac_fireUploaderStatusChanged" value="true"/> 
                     </applet>
-                    <br/>
-                    <br/>
+                </div>
+                <div class="footer">
                     <input class="sub1" type="button" value="'.T_('Upload').'" id="start-upload" name="start-upload"/>
-                </form>
-                <script language="javascript">
-                Event.observe("start-upload","click",function(){
-                    var uploader = document.jumpLoaderApplet.getUploader();
-                    var attrSet = uploader.getAttributeSet();
+                </div>
+            </form>
+            <script language="javascript">
+            Event.observe("start-upload","click",function(){
 
-                    var newValue = $F("new-category");
-                    var newAttr  = attrSet.createStringAttribute("new-category", newValue);
-                    newAttr.setSendToServer(true);
-
-                    if ($("existing-categories")) {
-                        var value = $F("existing-categories");
-                        var attr  = attrSet.createStringAttribute("category", value);
-                        attr.setSendToServer(true);
-                    }
-
-                    uploader.startUpload();
-                });'.$fullSizedPhotos.'
-                function uploaderStatusChanged(uploader) {
-                    if (uploader.isReady() && uploader.getFileCountByStatus(3) == 0) { 
-                        window.location.href = "index.php?action=advanced";
-                    }
+                if ($F("new-category").empty() && $F("existing-categories") <= 0) {
+                    alert("'.T_('Please specify a category first.').'");
+                    return;
                 }
-                </script>
-            </fieldset>';
+
+                var uploader = document.jumpLoaderApplet.getUploader();
+                var attrSet  = uploader.getAttributeSet();
+
+                var newValue = $F("new-category");
+                var newAttr  = attrSet.createStringAttribute("new-category", newValue);
+                newAttr.setSendToServer(true);
+
+                if ($("existing-categories")) {
+                    var value = $F("existing-categories");
+                    var attr  = attrSet.createStringAttribute("category", value);
+                    attr.setSendToServer(true);
+                }
+
+                uploader.startUpload();
+            });'.$fullSizedPhotos.'
+            function uploaderStatusChanged(uploader) {
+                if (uploader.isReady() && uploader.getFileCountByStatus(3) == 0) { 
+                    window.location.href = "index.php?action=advanced";
+                }
+            }
+            </script>';
+    }
+
+    /**
+     * displayInstagramUploadForm 
+     *
+     * Displays the form for uploading photos from Instagram.
+     * 
+     * @return void
+     */
+    function displayInstagramUploadForm ()
+    {
+        if (isset($_SESSION['error']))
+        {
+            unset($_SESSION['error']);
+
+            echo '
+            <p class="error-alert">
+                '.T_('You must choose at least one photo, or choose to automatically import all.').'
+            </p>';
+        }
+
+        require_once INC.'socialmedia.php';
+        require_once THIRDPARTY.'Instagram.php';
+
+        // Get auto upload setting and access token
+        $sql = "SELECT `instagram_access_token`, `instagram_auto_upload`
+                FROM `fcms_user_settings`
+                WHERE `user` = '".$this->currentUserId."'
+                LIMIT 1";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() < 0)
+        {
+            echo '
+            <p class="error-alert">
+                '.T_('Could not get user data.').'
+            </p>';
+            return;
+        }
+
+        $r = $this->db->get_row();
+
+        $instagramInfo = '';
+
+        if (empty($r['instagram_access_token']))
+        {
+            $instagramInfo = '
+            <div class="info-alert">
+                <h2>'.T_('Not connected to Instagram.').'</h2>
+                <p>'.T_('You must connect your Family Connections account to Instagram before you can begin importing photos from Instagram.').'</p>
+                <p><a href="../settings.php?view=instagram">'.T_('Connect to Instagram').'</a></p>
+            </div>';
+        }
+        else
+        {
+            $config     = getInstagramConfigData();
+            $token      = $r['instagram_access_token'];
+            $automatic  = $r['instagram_auto_upload'] == 1 ? true : false;
+            $instagram  = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $token);
+
+            try
+            {
+                if (isset($_GET['show']) && $_GET['show'] == 'more')
+                {
+                    $feed = $instagram->get('users/self/media/recent/');
+                }
+                else
+                {
+                    $feed = $instagram->get('users/self/media/recent/', array('count' => 8));
+                }
+            }
+            catch (InstagramApiError $e)
+            {
+                echo '
+                <p class="error-alert">
+                    '.T_('Could not get Instagram data.').'
+                </p>';
+
+                logError(__FILE__.' ['.__LINE__.'] - Could not get user instagram data. - '.$e->getMessage());
+                return;
+            }
+
+            $photos          = '';
+            $automaticSelect = '';
+
+            if (!$automatic)
+            {
+                $photos .= '<h2>'.T_('Manual').'</h2>';
+                $photos .= '<p>'.T_('Choose photo to add.').'</p>';
+                $photos .= '<ul>';
+
+                $i = 1;
+                foreach ($feed->data as $photo)
+                {
+                    $sourceId  = $photo->id;
+                    $thumbnail = $photo->images->thumbnail->url;
+                    $medium    = $photo->images->low_resolution->url;
+                    $full      = $photo->images->standard_resolution->url;
+                    $caption   = sprintf(T_('Imported from Instagram.  Filter: %s.'), $photo->filter);
+                    $value     = "$sourceId|$thumbnail|$medium|$full|$caption";
+
+                    $photos .= '<li>';
+                    $photos .= '<label for="instagram'.$i.'">';
+                    $photos .= '<img src="'.$thumbnail.'" alt="'.$caption.'"/><br/>';
+                    $photos .= '<input type="checkbox" id="instagram'.$i.'" name="photos[]" value="'.$value.'"/>';
+                    $photos .= '</label>';
+                    $photos .= '</li>';
+
+                    $i++;
+                }
+
+                // They probably have more
+                if ($i == 8)
+                {
+                    $photos .= '<li><a href="index.php?action=upload&amp;type=instagram&amp;show=more">'.T_('See more').'</a></li>';
+                }
+
+                $photos .= '</ul>';
+            }
+
+            $instagramInfo = $photos.'
+                        <h2>'.T_('Automatic').'</h2>
+                        <label>
+                            <input type="checkbox" id="automatic" name="automatic" value="1" '.($automatic ? 'checked="checked"' : '').'/>
+                            '.T_('Have all photos automatically imported.').'
+                        </label>';
+        }
+
+        echo '
+            <form method="post" class="photo-uploader" action="index.php?action=upload&amp;type=instagram">
+                <div class="header">
+                    <label>'.T_('Category').'</label>
+                    '.$this->getCategoryInputs().'
+                </div>
+                <ul class="upload-types">
+                    <li><a href="?action=upload">'.T_('Upload').'</a></li>
+                    <li class="current"><a href="?action=upload&amp;type=instagram">Instagram</a></li>
+                </ul>
+                <div class="upload-area">
+                    <div class="instagram">
+                        '.$instagramInfo.'
+                    </div>
+                </div>
+                <div class="footer">
+                    <input class="sub1" type="submit" value="'.T_('Upload').'" id="instagram" name="instagram"/>
+                </div>
+            </form>';
     }
 
     /**
@@ -1870,10 +2126,12 @@ class PhotoGallery
     {
         $photo = (int)$photo;
 
-        $sql = "SELECT p.`user`, `filename`, `caption`, `name`, c.`id` AS category_id
-                FROM `fcms_gallery_photos` AS p, `fcms_category` AS c 
-                WHERE p.`id` = '$photo'
-                AND p.`category` = c.`id`";
+        $sql = "SELECT p.`user`, p.`filename`, p.`caption`, c.`name`, c.`id` AS category_id, p.`external_id`, e.`thumbnail`
+                FROM `fcms_gallery_photos` AS p
+                LEFT JOIN `fcms_category` AS c               ON p.`category`    = c.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                WHERE p.`id` = '$photo'";
+
         if (!$this->db->query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -1888,6 +2146,15 @@ class PhotoGallery
             $caption    = cleanOutput($row['caption']);
             $cat_name   = cleanOutput($row['name']);
             $cat_id     = cleanOutput($row['category_id']);
+
+            if ($filename == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.$photo_user.'/tb_'.$filename;
+            }
 
             $categories  = $this->getUserCategories($photo_user);
             $cat_options = buildHtmlSelectOptions($categories, $cat_id);
@@ -2009,9 +2276,9 @@ class PhotoGallery
                 <fieldset>
                     <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
                     <legend><span>'.T_('Edit Photo').'</span></legend>
-                    <img class="thumbnail" src="../uploads/photos/member'.$photo_user.'/tb_'.$filename.'"/>
+                    <img class="thumbnail" src="'.$photoSrc.'"/>
                     <form id="autocomplete_form" enctype="multipart/form-data" action="index.php?'.$url.'" method="post">
-                        <div class="field-row clearfix">
+                        <div class="field-row">
                             <div class="field-label"><label><b>'.T_('Change Category').'</b></label></div>
                             <div class="field-widget">
                                 <select class="frm_sel" name="category" tabindex="1">
@@ -2019,13 +2286,13 @@ class PhotoGallery
                                 </select>
                             </div>
                         </div>
-                        <div class="field-row clearfix">
+                        <div class="field-row">
                             <div class="field-label"><label><b>'.T_('Caption').'</b></label></div>
                             <div class="field-widget">
                                 <input class="frm_text" type="text" name="photo_caption" size="50" tabindex="2" value="'.$caption.'"/>
                             </div>
                         </div>
-                        <div class="field-row clearfix">
+                        <div class="field-row">
                             <div class="field-label"><label><b>'.T_('Who is in this Photo?').'</b></label></div>
                             <div class="field-widget">
                                 '.$tagging_options.'
@@ -2678,8 +2945,13 @@ class PhotoGallery
         asort($members);
 
         // Get photos in category
-        $sql = "SELECT u.`id` AS uid, `category` AS cid, p.`id` AS pid, `caption`, c.`name` AS category, `filename` 
-                FROM `fcms_category` AS c, `fcms_gallery_photos` AS p, `fcms_users` AS u 
+        $sql = "SELECT u.`id` AS uid, p.`category` AS cid, p.`id` AS pid, p.`caption`, 
+                    c.`name` AS category, p.`filename`, p.`external_id`, 
+                    e.`thumbnail`
+                FROM `fcms_category` AS c
+                LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = c.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`
                 WHERE p.`user` = '$user' 
                 AND `category` = '$category'
                 AND p.`user` = u.`id`
@@ -2800,8 +3072,18 @@ class PhotoGallery
                             </div>';
             }
 
+            // Instagram photo or regular?
+            if ($row['filename'] == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $photoSrc = $row['thumbnail'];
+            }
+            else
+            {
+                $photoSrc = '../uploads/photos/member'.$user.'/tb_'.basename($row['filename']);
+            }
+
             echo '
-                        <img style="float:right" src="../uploads/photos/member'.$user.'/tb_'.basename($row['filename']).'"/>
+                        <img style="float:right" src="'.$photoSrc.'"/>
                         <p>
                             '.T_('Caption').'<br/>
                             '.cleanOutput($row['caption']).'
@@ -2847,10 +3129,44 @@ class PhotoGallery
         $comments = array();
 
         $sql = "SELECT c.`id`, `comment`, `date`, `fname`, `lname`, `username`, `user`, `avatar` 
-                FROM `fcms_gallery_comments` AS c, `fcms_users` AS u 
+                FROM `fcms_gallery_photo_comment` AS c, `fcms_users` AS u 
                 WHERE `photo` = '$pid' 
                 AND c.`user` = u.`id` 
                 ORDER BY `date`";
+
+        if (!$this->db->query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return;
+        }
+
+        if ($this->db->count_rows() > 0)
+        { 
+            while ($row = $this->db->get_row())
+            {
+                $comments[] = $row;
+            }
+        }
+
+        return $comments;
+    }
+
+    /**
+     * getCategoryComments 
+     * 
+     * @param int $cid 
+     * 
+     * @return array
+     */
+    function getCategoryComments ($cid)
+    {
+        $comments = array();
+
+        $sql = "SELECT c.`id`, c.`comment`, c.`created`, u.`fname`, u.`lname`, u.`username`, c.`created_id`, u.`avatar`, u.`gravatar`
+                FROM `fcms_gallery_category_comment` AS c
+                LEFT JOIN `fcms_users` AS u ON c.`created_id` = u.`id`
+                WHERE `category_id` = '$cid' 
+                ORDER BY `created`";
 
         if (!$this->db->query($sql))
         {
@@ -2935,5 +3251,172 @@ class PhotoGallery
         }
 
         return $retVal;
+    }
+
+    /**
+     * getPrevId 
+     * 
+     * @param array $photos 
+     * @param array $photoIdLookup 
+     * @param int   $current
+     * 
+     * @return int
+     */
+    function getPrevId ($photos, $photoIdLookup, $current)
+    {
+        $total   = count($photos);
+        $prev    = 0;
+
+        // Is there a previous photo?
+        if (isset($photos[$current-1]))
+        {
+            // External image
+            if ($photos[$current-1]  == 'noimage.gif')
+            {
+                $prev = $photoIdLookup[$current-1];
+            }
+            // Real image
+            else
+            {
+                // strip the extension off the filename to get the pid #s (ex: 453.gif)
+                $prev = substr($photos[$current-1], 0, strpos($photos[$current-1], '.'));
+            }
+        }
+        // No, then go to last photo
+        else
+        {
+            // External image
+            if (end($photos)  == 'noimage.gif')
+            {
+                $prev = end($photoIdLookup);
+            }
+            // Real image
+            else
+            {
+                $prev = substr(end($photos), 0, strpos(end($photos), '.'));
+            }
+        }
+
+        return $prev;
+    }
+
+    /**
+     * getNextId 
+     * 
+     * @param array $photos 
+     * @param array $photoIdLookup 
+     * @param int   $current
+     * 
+     * @return int
+     */
+    function getNextId ($photos, $photoIdLookup, $current)
+    {
+        $total   = count($photos);
+        $next    = 0;
+
+        // Is there a next photo?
+        if (isset($photos[$current+1]))
+        {
+            // External image
+            if ($photos[$current+1]  == 'noimage.gif')
+            {
+                $next = $photoIdLookup[$current+1];
+            }
+            // Real image
+            else
+            {
+                // strip the extension off the filename to get the pid #s (ex: 453.gif)
+                $next = substr($photos[$current+1], 0, strpos($photos[$current+1], '.'));
+            }
+        }
+        // No, then go to first photo
+        else
+        {
+            // External image
+            if ($photos[0]  == 'noimage.gif')
+            {
+                $next = $photoIdLookup[0];
+            }
+            // Real image
+            else
+            {
+                $next = substr($photos[0], 0, strpos($photos[0], '.'));
+            }
+        }
+
+        return $next;
+    }
+
+    /**
+     * getCategoryInputs 
+     * 
+     * @return string
+     */
+    function getCategoryInputs ()
+    {
+        $categories = $this->getUserCategories();
+
+        // We have existing categories
+        if (count($categories) > 0)
+        {
+            return '
+                    <input class="frm_text" type="text" id="new-category" name="new-category" size="35""/>
+                    <select id="existing-categories" name="category">
+                        <option value="0">&nbsp;</option>
+                        '.buildHtmlSelectOptions($categories, '').'
+                    </select>';
+        }
+        // No Categories (force creation of new one)
+        else
+        {
+            return '
+                    <input class="frm_text" type="text" id="new-category" name="new-category" size="50""/>';
+        }
+    }
+
+    /**
+     * getUploadTypesNavigation 
+     * 
+     * @param string $currentType 
+     * 
+     * @return void
+     */
+    function getUploadTypesNavigation ($currentType)
+    {
+        $nav = '';
+
+        $types = array('upload', 'instagram');
+        foreach ($types as $type)
+        {
+            $url   = '';
+            $class = $currentType == $type ? 'current' : '';
+            $text  = '';
+
+            if ($type == 'upload')
+            {
+                $url   = '?action=upload';
+                $text  = T_('Upload');
+            }
+            elseif ($type == 'instagram')
+            {
+                $config  = getInstagramConfigData();
+                if (empty($config['instagram_client_id']) || empty($config['instagram_client_secret']))
+                {
+                    continue;
+                }
+
+                $url   = '?action=upload&amp;type=instagram';
+                $text  = 'Instagram';
+            }
+            else
+            {
+                die('Invalid upload type.');
+            }
+
+            $nav .= '
+                    <li class="'.$class.'"><a href="'.$url.'">'.$text.'</a></li>';
+        }
+
+        return $nav;
     }
 }

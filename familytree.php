@@ -119,7 +119,7 @@ elseif (!isset($_SESSION['view_tree_user']))
 }
 
 echo '
-        <div id="familytree-page" class="centercontent clearfix">';
+        <div id="familytree-page" class="centercontent">';
 
 //-------------------------------------
 // Add Relationship

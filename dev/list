@@ -5,6 +5,7 @@
 ./admin/foursquare.php
 ./admin/gallery.php
 ./admin/index.php
+./admin/instagram.php
 ./admin/members.php
 ./admin/polls.php
 ./admin/scheduler.php
@@ -48,7 +49,6 @@
 ./inc/gallery_class.php
 ./inc/image_class.php
 ./inc/install_inc.php
-./inc/KLogger.php
 ./inc/members_class.php
 ./inc/messageboard_class.php
 ./inc/phone.php

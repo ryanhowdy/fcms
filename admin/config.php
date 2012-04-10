@@ -574,10 +574,6 @@ function displayDefaultsForm ()
         {
             $default_theme = $drow['Default'];
         }
-        if ($drow['Field'] == 'showavatar')
-        {
-            $default_showavatar = $drow['Default'];
-        }
         if ($drow['Field'] == 'displayname')
         {
             $default_displayname = $drow['Default'];
@@ -615,13 +611,6 @@ function displayDefaultsForm ()
 
         $theme_options .= ">$file</option>";
     }
-
-    // Show Avatars
-    $avatars_list = array(
-        1 => T_('Yes'),
-        0 => T_('No')
-    );
-    $avatars_options = buildHtmlSelectOptions($avatars_list, $default_showavatar);
 
     // Display Name
     $displayname_list = array(
@@ -691,8 +680,20 @@ function displayDefaultsForm ()
 
     $boardsort_options = buildHtmlSelectOptions($boardsort_list, $default_boardsort);
     
+    $message = '';
+
+    if (isset($_SESSION['success']))
+    {
+        $message  = '<div class="alert-message success">';
+        $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
+        $message .= T_('Changes Updated Successfully').'</div>';
+
+        unset($_SESSION['success']);
+    }
+
     echo '
         <form action="config.php?view=defaults" method="post">
+        '.$message.'
         <fieldset>
             <legend>'.T_('New Member Default Settings').'</legend>
             <div class="clearfix">
@@ -700,14 +701,6 @@ function displayDefaultsForm ()
                 <div class="input">
                     <select name="theme" id="theme">
                         '.$theme_options.'
-                    </select>
-                </div>
-            </div>
-            <div class="clearfix">
-                <label for="showavatar">'.T_('Show Avatars').'</label>
-                <div class="input">
-                    <select name="showavatar" id="showavatar">
-                        '.$avatars_options.'
                     </select>
                 </div>
             </div>
@@ -793,28 +786,6 @@ function displayDefaultsFormSubmit ()
         return;
     }
 
-    $sql = "ALTER TABLE `fcms_user_settings` ALTER `showavatar` ";
-
-    if (isset($_POST['showavatar']))
-    {
-        if ($_POST['showavatar'] == 'yes')
-        {
-            $sql .= "SET DEFAULT '1'";
-        }
-        else
-        {
-            $sql .= "SET DEFAULT '0'";
-        }
-    }
-
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
     $sql = "ALTER TABLE `fcms_user_settings` 
             ALTER `displayname` 
             SET DEFAULT '".escape_string($_POST['displayname'])."'";
@@ -848,18 +819,8 @@ function displayDefaultsFormSubmit ()
         return;
     }
 
-    $sql = "ALTER TABLE `fcms_user_settings` ALTER `dst` ";
-    if (isset($_POST['dst']))
-    {
-        if ($_POST['dst'] == 'on')
-        {
-            $sql .= "SET DEFAULT '1'";
-        }
-        else
-        {
-            $sql .= "SET DEFAULT '0'";
-        }
-    }
+    $sql = "ALTER TABLE `fcms_user_settings` ALTER `dst`
+            SET DEFAULT '".escape_string($_POST['dst'])."'";
 
     if (!mysql_query($sql))
     {
@@ -888,34 +849,12 @@ function displayDefaultsFormSubmit ()
         $theme  = escape_string($theme);
 
         $sql = "UPDATE `fcms_user_settings` 
-                SET `theme` = '$theme', ";
-        if (isset($_POST['showavatar']))
-        {
-            if ($_POST['showavatar'] == 'yes')
-            {
-                $sql .= "`showavatar` = '1', ";
-            }
-            else
-            {
-                $sql .= "`showavatar` = '0', ";
-            }
-        }
-        $sql .= "`displayname`  = '".escape_string($_POST['displayname'])."', 
-                 `frontpage`    = '".escape_string($_POST['frontpage'])."', 
-                 `timezone`     = '".escape_string($_POST['timezone'])."', ";
-        if (isset($_POST['dst']))
-        {
-            if ($_POST['dst'] == 'on')
-            {
-                $sql .= "`dst` = '1', ";
-            }
-            else
-            {
-                $sql .= "`dst` = '0', ";
-            }
-        }
-
-        $sql .= "`boardsort` = '".escaep_string($_POST['boardsort'])."'";
+                SET `theme` = '$theme',
+                    `displayname`  = '".escape_string($_POST['displayname'])."', 
+                    `frontpage`    = '".escape_string($_POST['frontpage'])."', 
+                    `timezone`     = '".escape_string($_POST['timezone'])."',
+                    `dst`          = '".escape_string($_POST['dst'])."',
+                    `boardsort`    = '".escape_string($_POST['boardsort'])."'";
         if (!mysql_query($sql))
         {
             displayHeader();
@@ -925,7 +864,8 @@ function displayDefaultsFormSubmit ()
         }
     }
 
-    // TODO session
+    $_SESSION['success'] = 1;
+
     header("Location: config.php?view=defaults");
 }
 

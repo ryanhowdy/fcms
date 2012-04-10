@@ -87,7 +87,7 @@ Event.observe(window, \'load\', function() {
     include_once getTheme($currentUserId).'header.php';
 
     echo '
-        <div id="addressbook" class="centercontent clearfix">';
+        <div id="addressbook" class="centercontent">';
 }
 
 /**

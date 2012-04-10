@@ -186,7 +186,7 @@ function getVideoComments ($url, $params)
         }
 
         $comments .= '
-                <div class="comment clearfix">
+                <div class="comment">
                     <form class="delcom" action="'.$url.'" method="post">
                         '.$del_comment.'
                         <img class="avatar" alt="avatar" src="'.$avatarPath.'"/>

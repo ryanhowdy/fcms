@@ -77,7 +77,7 @@ function displayHeader ()
     include_once URL_PREFIX.'ui/admin/header.php';
 
     echo '
-        <div id="dashboard" class="centercontent clearfix">';
+        <div id="dashboard" class="centercontent">';
 }
 
 /**

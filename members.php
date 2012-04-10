@@ -67,7 +67,7 @@ Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$
     include_once getTheme($currentUserId).'header.php';
 
     echo '
-        <div id="members" class="centercontent clearfix">
+        <div id="members" class="centercontent">
             <div id="leftcolumn">
                 <h3>'.T_('Order Members By:').'</h3>
                 <ul class="menu">

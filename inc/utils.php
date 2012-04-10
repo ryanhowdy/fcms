@@ -453,10 +453,13 @@ function getPluginName ($section)
             return T_('Configuration');
             break;
         case 'admin_facebook':
-            return T_('Facebook');
+            return 'Facebook';
             break;
         case 'admin_foursquare':
-            return T_('Foursquare');
+            return 'Foursquare';
+            break;
+        case 'admin_instagram':
+            return 'Instagram';
             break;
         case 'admin_members':
             return T_('Members');
@@ -474,13 +477,13 @@ function getPluginName ($section)
             return T_('Upgrade');
             break;
         case 'admin_vimeo':
-            return T_('Vimeo');
+            return 'Vimeo';
             break;
         case 'admin_whereiseveryone':
-            return T_('Foursquare');
+            return 'Foursquare';
             break;
         case 'admin_youtube':
-            return T_('YouTube');
+            return 'YouTube';
             break;
         case 'addressbook':
             return T_('Address Book');
@@ -567,6 +570,9 @@ function getPluginUrl ($section)
             break;
         case 'admin_foursquare':
             return 'admin/foursquare.php';
+            break;
+        case 'admin_instagram':
+            return 'admin/instagram.php';
             break;
         case 'admin_members':
             return 'admin/members.php';
@@ -1382,7 +1388,7 @@ function getCommentsById ($user_id, $option = 'both')
     $user_id = (int)$user_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
-            FROM `fcms_gallery_comments`";
+            FROM `fcms_gallery_photo_comment`";
 
     $result = mysql_query($sql);
     if (!$result)
@@ -1395,7 +1401,7 @@ function getCommentsById ($user_id, $option = 'both')
     $total = $found['c'];
 
     $sql = "SELECT COUNT(`user`) AS c 
-            FROM `fcms_gallery_comments` 
+            FROM `fcms_gallery_photo_comment` 
             WHERE `user` = '$user_id'";
 
     $result = mysql_query($sql);
@@ -1899,7 +1905,7 @@ function getUserParticipationPoints ($id)
 
     $points = 0;
 
-    $commentTables = array('fcms_gallery_comments');
+    $commentTables = array('fcms_gallery_photo_comment');
 
     // Thread (5)
     $sql = "SELECT COUNT(`id`) AS thread
@@ -2508,7 +2514,7 @@ function displayPagination ($url, $cur_page, $total_pages)
     if ($total_pages > 1)
     {
         echo '
-            <div class="pagination pages clearfix">
+            <div class="pagination pages">
                 <ul>';
 
         // First / Previous
@@ -3299,11 +3305,13 @@ function displayWhatsNewAll ($userid)
             {
                 $limit = $r['id2'];
             }
-            $sql = "SELECT * 
-                    FROM `fcms_gallery_photos` 
-                    WHERE `category` = '".(int)$r['id']."' 
-                    AND DAYOFYEAR(`date`) = '".escape_string($r['id3'])."' 
-                    ORDER BY `date` 
+            $sql = "SELECT p.`id`, p.`user`, p.`category`, p.`filename`, p.`caption`,
+                        p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
+                    FROM `fcms_gallery_photos` AS p
+                    LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                    WHERE p.`category` = '".(int)$r['id']."' 
+                    AND DAYOFYEAR(p.`date`) = '".(int)$r['id3']."' 
+                    ORDER BY p.`date` 
                     DESC LIMIT $limit";
 
             $result = mysql_query($sql);
@@ -3315,9 +3323,18 @@ function displayWhatsNewAll ($userid)
 
             while ($p = mysql_fetch_assoc($result))
             {
+                if ($p['filename'] == 'noimage.gif' && $p['external_id'] != null)
+                {
+                    $photoSrc = $p['thumbnail'];
+                }
+                else
+                {
+                    $photoSrc = 'uploads/photos/member'.$r['userid'].'/tb_'.basename($p['filename']);
+                }
+
                 $photos .= '
                         <a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'&amp;pid='.$p['id'].'">
-                            <img src="uploads/photos/member'.$r['userid'].'/tb_'.basename($p['filename']).'" alt="'.cleanOutput($p['caption']).'"/>
+                            <img src="'.$photoSrc.'" alt="'.cleanOutput($p['caption']).'"/>
                         </a> &nbsp;';
             }
 
@@ -3350,6 +3367,31 @@ function displayWhatsNewAll ($userid)
         }
         elseif ($r['type'] == 'GALCOM')
         {
+            $photoSrc = 'uploads/photos/member'.$r['id2'].'/tb_'.basename($r['id3']);
+
+            if ($r['id3'] == 'noimage.gif')
+            {
+                $sql = "SELECT p.`filename`, p.`external_id`, e.`thumbnail`
+                        FROM `fcms_gallery_photos` AS p
+                        LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                        WHERE p.`id` = '".(int)$r['id']."'";
+
+                $result = mysql_query($sql);
+                if (!$result)
+                {
+                    displaySqlError($sql, mysql_error());
+                    return;
+                }
+
+                while ($p = mysql_fetch_assoc($result))
+                {
+                    if ($p['filename'] == 'noimage.gif' && $p['external_id'] != null)
+                    {
+                        $photoSrc = $p['thumbnail'];
+                    }
+                }
+            }
+
             echo '
                 <div class="new newcom">
                     <div class="avatar">'.$avatar.'</div>
@@ -3358,8 +3400,23 @@ function displayWhatsNewAll ($userid)
                         <p>
                             '.T_('Commented on the following photo:').'<br/>
                             <a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'">
-                                <img src="uploads/photos/member'.$r['id2'].'/tb_'.basename($r['id3']).'"/>
+                                <img src="'.$photoSrc.'"/>
                             </a>
+                        </p>
+                    </div>
+                </div>';
+        }
+        elseif ($r['type'] == 'GALCATCOM')
+        {
+            $category = '<a href="gallery/index.php?uid='.$r['id2'].'&amp;cid='.$r['id3'].'">'.cleanOutput($r['title']).'</a>';
+
+            echo '
+                <div class="new newcom">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Commented on %s.'), $category).'
                         </p>
                     </div>
                 </div>';
@@ -3611,14 +3668,20 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
              FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_category` AS c 
              WHERE p.`user` = u.`id` 
              AND p.`category` = c.`id` 
-             AND 'date' >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+             AND p.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              GROUP BY userid, title, id3
 
              UNION SELECT p.`id`, gc.`date`, `comment` AS title, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type 
-             FROM `fcms_gallery_comments` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p 
+             FROM `fcms_gallery_photo_comment` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p 
              WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              AND gc.`user` = u.`id` 
              AND gc.`photo` = p.`id` 
+
+             UNION SELECT g.`id`, g.`created`, c.`name` AS title, g.`created_id` AS userid, c.`user` AS id2, c.`id` AS id3, 'GALCATCOM' AS type 
+             FROM `fcms_gallery_category_comment` AS g
+             LEFT JOIN `fcms_users` AS u    ON g.`created_id`  = u.`id`
+             LEFT JOIN `fcms_category` AS c ON g.`category_id` = c.`id`
+             WHERE g.`created` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
              UNION SELECT c.`id`, c.`date_added` AS date, `title`, `created_by` AS userid, `date` AS id2, `category` AS id3, 'CALENDAR' AS type 
              FROM `fcms_calendar` AS c, `fcms_users` AS u 
@@ -4537,6 +4600,34 @@ function getExistingYouTubeIds ()
 }
 
 /**
+ * getExistingInstagramIds 
+ * 
+ * @return array
+ */
+function getExistingInstagramIds ()
+{
+    $ids = array();
+
+    $sql = "SELECT `source_id`
+            FROM `fcms_gallery_external_photo`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+
+        return $ids;
+    }
+
+    while ($row = mysql_fetch_assoc($result))
+    {
+        $ids[$row['source_id']] = 1;
+    }
+
+    return $ids;
+}
+
+/**
  * userConnectedSocialMedia 
  * 
  * @param int $userId 
@@ -4846,4 +4937,53 @@ function shortenString ($string, $maxLength = 100, $end = '')
     }
 
     return $string;
+}
+
+/**
+ * getUserInstagramCategory 
+ * 
+ * Will return the category id for the instagram category.
+ * If one doesn't exist yet, will create it and return the id.
+ * 
+ * @param int $userId 
+ * 
+ * @return void
+ */
+function getUserInstagramCategory ($userId)
+{
+    $userId = (int)$userId;
+
+    $sql = "SELECT `id`
+            FROM `fcms_category`
+            WHERE `name` = 'Instagram'
+            AND `user` = '$userId'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        // TODO
+        return;
+    }
+
+    if (mysql_num_rows($result) <= 0)
+    {
+        // Create a new one
+        $sql = "INSERT INTO `fcms_category`
+                    (`name`, `type`, `user`, `date`)
+                VALUES
+                    ('Instagram', 'gallery', '$userId', NOW())";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            // TODO
+            return;
+        }
+
+        return mysql_insert_id();
+    }
+
+    $r = mysql_fetch_array($result);
+
+    return $r['id'];
 }

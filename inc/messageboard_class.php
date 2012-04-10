@@ -229,7 +229,7 @@ class MessageBoard
             echo '
                 </tbody>
             </table>
-            <div class="top clearfix"><a href="#top">'.T_('Back to Top').'</a></div>';
+            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
             $this->displayPages($page);
         }
     }
@@ -268,7 +268,6 @@ class MessageBoard
         $this->displayPages($page, $thread_id);
 
         $sort = $this->getSortOrder($this->currentUserId);
-        $showavatar = $this->getShowAvatar($this->currentUserId);
 
         $sql = "SELECT p.`id`, `thread`, `post`, `subject`, p.`date`, `user`, `avatar` 
                 FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, 
@@ -341,11 +340,7 @@ class MessageBoard
             $level  = getUserParticipationLevel($points);
 
             // Avatar
-            $avatar = '';
-            if ($showavatar > 0)
-            {
-                $avatar = "<img src=\"".getCurrentAvatar($row['user'])."\" alt=\"$displayname\"/><br/><br/>";
-            }
+            $avatar = "<img src=\"".getCurrentAvatar($row['user'])."\" alt=\"$displayname\"/><br/><br/>";
 
             // Post Count
             $posts_count = $this->getUserPostCountById($row['user']);
@@ -392,7 +387,7 @@ class MessageBoard
                             <b>'.T_('Posts').'</b> '.$posts_count.'
                         </td>
                         <td class="posts">
-                            <div class="header clearfix">
+                            <div class="header">
                                 <div class="subject"><b>'.cleanOutput($subject, 'html').'</b> - '.$date.'</div>
                                 <div class="actions">
                                     '.$actions.'
@@ -452,29 +447,6 @@ class MessageBoard
         $row = $this->db2->get_row();
 
         return $row['boardsort'];
-    }
-
-    /**
-     * getShowAvatar 
-     * 
-     * @param   int $user_id 
-     * @return  int
-     */
-    function getShowAvatar ($user_id)
-    {
-        $user_id = (int)$user_id;
-
-        $sql = "SELECT `showavatar` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = '$user_id'";
-        if (!$this->db2->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        $row = $this->db2->get_row();
-        return (int)$row['showavatar'];
     }
 
     /**
@@ -782,7 +754,7 @@ class MessageBoard
         if ($thread_id == 0)
         {
             echo '
-            <div id="actions_menu" class="clearfix">
+            <div id="actions_menu">
                 <ul>
                     <li class="advanced_search"><a href="?search=advanced">'.T_('Advanced Search').'</a></li>
                     <li class="search">
@@ -798,7 +770,7 @@ class MessageBoard
         else
         {
             echo '
-            <div id="sections_menu" class="clearfix">
+            <div id="sections_menu">
                 <ul>
                     <li><a href="messageboard.php">'.T_('Message Board Home').'</a></li>
                 </ul>
@@ -807,7 +779,7 @@ class MessageBoard
             if (checkAccess($this->currentUserId) < 8 && checkAccess($this->currentUserId) != 5)
             {
                 echo '
-            <div id="actions_menu" class="clearfix">
+            <div id="actions_menu">
                 <ul>
                     <li><a class="action" href="messageboard.php?reply='.$thread_id.'">'.T_('Reply').'</a></li>
                 </ul>
@@ -844,7 +816,7 @@ class MessageBoard
             $select_options .= '<option value="delete">'.T_('Delete Thread').'</option>';
 
             echo '
-            <div id="admin_menu" class="clearfix">
+            <div id="admin_menu">
                 <form method="post" action="messageboard.php">
                     <b>'.T_('Administrate Thread').':</b> 
                     <select name="admin_option">

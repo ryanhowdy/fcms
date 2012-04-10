@@ -326,7 +326,7 @@ function displayConfirmDelete ()
     $id = (int)$_POST['id'];
 
     echo '
-            <div class="info-alert clearfix">
+            <div class="info-alert">
                 <form action="prayers.php" method="post">
                     <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                     <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
@@ -393,7 +393,7 @@ function displayPrayers ()
     if (checkAccess($currentUserId) <= 5)
     {
         echo '
-            <div id="actions_menu" class="clearfix">
+            <div id="actions_menu">
                 <ul><li><a class="action" href="?addconcern=yes">'.T_('Add a Prayer Concern').'</a></li></ul>
             </div>';
     }

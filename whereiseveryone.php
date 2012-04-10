@@ -42,7 +42,7 @@ $TMPL['javascript'] = '
 require_once getTheme($currentUserId).'header.php';
 
 echo '
-        <div id="whereiseveryone-page" class="centercontent clearfix">';
+        <div id="whereiseveryone-page" class="centercontent">';
 
 //-------------------------------------
 // Show Latest checkins

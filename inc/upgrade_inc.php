@@ -328,6 +328,11 @@ function upgrade ()
         return false;
     }
 
+    if (!upgrade300())
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -545,8 +550,7 @@ function upgrade260 ()
         }
     }
 
-    // YouTube (key)
-    // TODO or youtube_key exists as name/value pair
+    // YouTube (key) - Old config style
     $youtube_fixed = false;
 
     $sql = "SHOW COLUMNS FROM `fcms_config`";
@@ -565,6 +569,26 @@ function upgrade260 ()
             {
                 $youtube_fixed = true;
             }
+        }
+    }
+
+    // YouTube (key) - New config style
+    // We do this check, because the upgrade script may have already done added the youtube key,
+    // and then converted it to the new style.
+    // We want to check for that before we add the old style config.
+    if (!$youtube_fixed)
+    {
+        $sql = "SELECT `name` FROM `fcms_config` WHERE `name` = 'youtube_key'";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            return false;
+        }
+        if (mysql_num_rows($result) > 0)
+        {
+            $youtube_fixed = true;
         }
     }
 
@@ -1206,6 +1230,348 @@ function upgrade290 ()
             return false;
         }
     }
+
+    return true;
+}
+
+/**
+ * upgrade300
+ * 
+ * Upgrade database to version 3.0.
+ * 
+ * @return boolean
+ */
+function upgrade300 ()
+{
+    global $cfg_mysql_db;
+
+    // instagram client id
+    $instagram_client_id_fixed = false;
+
+    $sql = "SELECT `name` 
+            FROM `fcms_config` 
+            WHERE `name` = 'instagram_client_id'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        $instagram_client_id_fixed = true;
+    }
+
+    if (!$instagram_client_id_fixed)
+    {
+        $sql = "INSERT INTO `fcms_config` (`name`, `value`)
+                VALUES ('instagram_client_id', NULL)";
+        if (!mysql_query($sql))
+		{
+			displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // instagram client secret
+    $instagram_client_secret_fixed = false;
+
+    $sql = "SELECT `name` 
+            FROM `fcms_config` 
+            WHERE `name` = 'instagram_client_secret'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        $instagram_client_secret_fixed = true;
+    }
+
+    if (!$instagram_client_secret_fixed)
+    {
+        $sql = "INSERT INTO `fcms_config` (`name`, `value`)
+                VALUES ('instagram_client_secret', NULL)";
+        if (!mysql_query($sql))
+		{
+			displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // instagram admin nav
+    $instagram_admin_nav_fixed = false;
+
+    $sql = "SELECT `link`
+            FROM `fcms_navigation`
+            WHERE `link` = 'admin_instagram'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        $instagram_admin_nav_fixed = true;
+    }
+
+    if (!$instagram_admin_nav_fixed)
+    {
+        $adminOrder = getNextAdminNavigationOrder();
+        $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
+                VALUES ('admin_instagram', 6, $adminOrder, 1)";
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // instagram user access code
+    $instagram_user_fixed = false;
+
+    $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r['Field'] == 'instagram_access_token')
+            {
+                $instagram_user_fixed = true;
+            }
+        }
+    }
+
+    if (!$instagram_user_fixed)
+    {
+        $sql = "ALTER TABLE `fcms_user_settings` ADD `instagram_access_token` VARCHAR(255) NULL";
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // external
+    $external_fixed = false;
+
+    $sql = "SHOW COLUMNS FROM `fcms_gallery_photos`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r['Field'] == 'external_id')
+            {
+                $external_fixed = true;
+            }
+        }
+    }
+
+    if (!$external_fixed)
+    {
+        $sql = "ALTER TABLE `fcms_gallery_photos` ADD `external_id` INT(11) DEFAULT NULL AFTER `filename`";
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // external photos
+    $external_photos_fixed = false;
+
+    $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r[0] == 'fcms_gallery_external_photo')
+            {
+                $external_photos_fixed = true;
+            }
+        }
+    }
+
+    if (!$external_photos_fixed)
+    {
+        $sql = "CREATE TABLE `fcms_gallery_external_photo` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `source_id` VARCHAR(255) NOT NULL,
+                    `thumbnail` VARCHAR(255) NOT NULL, 
+                    `medium` VARCHAR(255) NOT NULL, 
+                    `full` VARCHAR(255) NOT NULL, 
+                    PRIMARY KEY (`id`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // Rename gallery photo comment
+    $photo_com_fixed = false;
+
+    $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r[0] == 'fcms_gallery_photo_comment')
+            {
+                $photo_com_fixed = true;
+            }
+        }
+    }
+
+    if (!$photo_com_fixed)
+    {
+        $sql = "RENAME TABLE `fcms_gallery_comments` TO `fcms_gallery_photo_comment`";
+
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // Gallery category comments
+    $cat_com_fixed = false;
+
+    $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r[0] == 'fcms_gallery_category_comment')
+            {
+                $cat_com_fixed = true;
+            }
+        }
+    }
+
+    if (!$cat_com_fixed)
+    {
+        $sql = "CREATE TABLE `fcms_gallery_category_comment` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `category_id` INT(11) NOT NULL, 
+                    `comment` TEXT NOT NULL, 
+                    `created` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    `created_id` INT(11) NOT NULL, 
+                    PRIMARY KEY (`id`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // instagram automatic
+    $instagram_auto_upload_fixed = false;
+
+    $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r['Field'] == 'instagram_auto_upload')
+            {
+                $instagram_auto_upload_fixed = true;
+            }
+        }
+    }
+
+    if (!$instagram_auto_upload_fixed)
+    {
+        $sql = "ALTER TABLE `fcms_user_settings` ADD `instagram_auto_upload` TINYINT(1) DEFAULT 0";
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
+    // instagram scheduler
+    $instagram_sched_fixed = false;
+
+    $sql = "SELECT `type`
+            FROM `fcms_schedule` 
+            WHERE `type` = 'instagram' 
+            LIMIT 1";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        $instagram_sched_fixed = true;
+    }
+
+    if (!$instagram_sched_fixed)
+    {
+        $sql = "INSERT INTO `fcms_schedule` (`type`, `repeat`)
+                VALUES ('instagram', 'hourly')";
+        if (!mysql_query($sql))
+		{
+			displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
+
 
     return true;
 }

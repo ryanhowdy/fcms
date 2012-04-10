@@ -80,6 +80,11 @@ switch ($jobType)
         runYouTubeJob();
         break;
 
+    case 'instagram':
+
+        runInstagramJob();
+        break;
+
     default:
 
         logError(__FILE__.' ['.__LINE__.'] - Invalid job type given ['.$jobType.'].');

@@ -119,7 +119,7 @@ Event.observe(window, \'load\', function() {
     echo '
         <div id="privatemsg" class="centercontent">
 
-            <div id="actions_menu" class="clearfix">
+            <div id="actions_menu">
                 <ul><li><a href="?compose=new">'.T_('New Message').'</a></li></ul>
             </div>
 
@@ -342,7 +342,7 @@ function displayConfirmDelete ()
     displayHeader();
 
     echo '
-                <div class="info-alert clearfix">
+                <div class="info-alert>
                     <form action="privatemsg.php" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
@@ -447,7 +447,7 @@ function displayPrivateMessage ()
 
     echo '
             <div id="pm_msg">
-                <div class="user clearfix">
+                <div class="user">
                     <img src="'.$avatarPath.'" alt="'.$from.'" title="'.$from.'"/>
                     <h3>'.cleanOutput($r['title']).'</h3>
                     <b>'.sprintf(T_('by %s'), $from).'</b>
@@ -509,7 +509,7 @@ function displaySentPrivateMessage ()
 
     echo '
             <div id="pm_msg">
-                <div class="user clearfix">
+                <div class="user">
                     <img src="'.$avatarPath.'" alt="'.$to.'" title="'.$to.'"/>
                     <h3>'.cleanOutput($r['title']).'</h3>
                     <b>'.sprintf(T_('to %s'), $to).'</b>

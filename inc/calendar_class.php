@@ -1042,7 +1042,6 @@ class Calendar
             }
         }
 
-
         $birthdayCategory = 1;
         $birthdayColor    = 'none';
 
@@ -1130,7 +1129,15 @@ class Calendar
                     // Show The Description
                     if ($showDesc)
                     {
-                        $id    = (int)$event['id'];
+                        if ($event['id'][0] == 'b')
+                        {
+                            $id = 'birthday'.(int)substr($event['id'], 8);
+                        }
+                        else
+                        {
+                            $id = (int)$event['id'];
+                        }
+
                         $color = cleanOutput($event['color']);
                         $title = cleanOutput($event['title']);
                         $desc  = cleanOutput($event['desc']);
@@ -1187,7 +1194,15 @@ class Calendar
                             $tooltipDetails .= '</span>';
                         }
 
-                        $id    = (int)$event['id'];
+                        if ($event['id'][0] == 'b')
+                        {
+                            $id = 'birthday'.(int)substr($event['id'], 8);
+                        }
+                        else
+                        {
+                            $id = (int)$event['id'];
+                        }
+
                         $color = cleanOutput($event['color']);
 
                         echo '
@@ -1288,7 +1303,7 @@ class Calendar
                     <legend><span>'.$dateTitle.'</span></legend>
 
                     <div id="main-cal-info">
-                        <div class="field-row clearfix">
+                        <div class="field-row">
                             <div class="field-label"><label for="title"><b>'.T_('Event').'</b></label></div>
                             <div class="field-widget">
                                 <input type="text" id="title" name="title" size="40">
@@ -1298,13 +1313,13 @@ class Calendar
                                 </script>
                             </div>
                         </div>
-                        <div class="field-row clearfix">
+                        <div class="field-row">
                             <div class="field-label"><label for="desc"><b>'.T_('Description').'</b></label></div>
                             <div class="field-widget">
                                 <input type="text" id="desc" name="desc" size="50">
                             </div>
                         </div>
-                        <div id="time" class="field-row clearfix">
+                        <div id="time" class="field-row">
                             <div class="field-label"><label for="sday"><b>'.T_('Time').'</b></label></div>
                             <div class="field-widget">
                                 <select id="timestart" name="timestart">
@@ -1323,7 +1338,7 @@ class Calendar
 
                     <div id="more-cal-info">
                         <div id="cal-details">
-                            <div class="field-row clearfix">
+                            <div class="field-row">
                                 <div class="field-label"><label for="category"><b>'.T_('Category').'</b></label></div>
                                 <div class="field-widget">
                                     <select id="category" name="category">
@@ -1332,19 +1347,19 @@ class Calendar
                                     </select>
                                 </div>
                             </div>
-                            <div class="field-row clearfix">
+                            <div class="field-row">
                                 <div class="field-widget">
                                     <input type="checkbox" name="repeat-yearly" id="repeat-yearly"/>
                                     <label for="repeat-yearly"><b>'.T_('Repeat (Yearly)').'</b></label>
                                 </div>
                             </div>
-                            <div class="field-row clearfix">
+                            <div class="field-row">
                                 <div class="field-widget">
                                     <input type="checkbox" name="private" id="private"/>
                                     <label for="private"><b>'.T_('Private?').'</b></label>
                                 </div>
                             </div>
-                            <div class="field-row clearfix">
+                            <div class="field-row">
                                 <div class="field-widget">
                                     <input type="checkbox" name="invite" id="invite"/>
                                     <label for="invite"><b>'.T_('Invite Guests?').'</b></label>
@@ -1444,7 +1459,7 @@ class Calendar
             <form id="frm" method="post" action="calendar.php">
                 <fieldset>
                     <legend><span>'.T_('Edit Event').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="title"><b>'.T_('Event').'</b></label></div>
                         <div class="field-widget">
                             <input type="text" id="title" name="title" size="40" value="'.$title.'"/>
@@ -1454,13 +1469,13 @@ class Calendar
                             </script>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="desc"><b>'.T_('Description').'</b></label></div>
                         <div class="field-widget">
                             <input type="text" id="desc" name="desc" size="50" value="'.$desc.'"/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="sday"><b>'.T_('Date').'</b></label></div>
                         <div class="field-widget">
                             <select id="sday" name="sday">
@@ -1474,7 +1489,7 @@ class Calendar
                             </select>
                         </div>
                     </div>
-                    <div id="time" class="field-row clearfix">
+                    <div id="time" class="field-row">
                         <div class="field-label"><label for="sday"><b>'.T_('Time').'</b></label></div>
                         <div class="field-widget">
                             <select id="timestart" name="timestart">
@@ -1491,7 +1506,7 @@ class Calendar
                             <label for="all-day">'.T_('All Day').'</label> 
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="category"><b>'.T_('Category').'</b></label></div>
                         <div class="field-widget">
                             <select id="category" name="category">
@@ -1500,19 +1515,19 @@ class Calendar
                             </select>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="repeat-yearly"><b>'.T_('Repeat (Yearly)').'</b></label></div>
                         <div class="field-widget">
                             <input type="checkbox" name="repeat-yearly" id="repeat-yearly" ' . $repeatChk . '/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="private"><b>'.T_('Private?').'</b></label></div>
                         <div class="field-widget">
                             <input type="checkbox" name="private" id="private" ' . $privateChk . '/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="invite"><b>'.T_('Invite Guests?').'</b></label></div>
                         <div class="field-widget">
                             <input type="checkbox" name="invite" id="invite" '.$inviteChk.'/>
@@ -1804,7 +1819,7 @@ class Calendar
             echo '
             <form action="calendar.php?event='.$id.'" method="post">
                 <h1 id="attending_header">'.T_('Are you attending?').'</h1>
-                <ul id="attending" class="clearfix">
+                <ul id="attending">
                     <li>
                         <label for="yes">
                             <img src="ui/images/attend_yes.png"/><br/>
@@ -1859,7 +1874,7 @@ class Calendar
                 $updated = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $response['updated']);
 
                 echo '
-                <div class="comment_block clearfix">
+                <div class="comment_block">
                     '.$response['img'].'
                     <b>'.$response['displayname'].'</b> <i>'.$updated.'</i>
                     <p>
@@ -1925,7 +1940,7 @@ class Calendar
             <form method="post" action="'.$url.'">
                 <fieldset>
                     <legend><span>'.cleanOutput($title).'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="name"><b>'.T_('Name').'</b></label></div>
                         <div class="field-widget">
                             <input type="text" id="name" name="name" size="40" value="'.cleanOutput($name).'">
@@ -1935,7 +1950,7 @@ class Calendar
                             </script>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="color"><b>'.T_('Color').'</b></label></div>
                         <div class="field-widget">
                             <label for="none" class="colors none"><input type="radio" '.$none.' name="colors" id="none" value="none"/>'.T_('None').'</label>

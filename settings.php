@@ -17,7 +17,7 @@ define('URL_PREFIX', '');
 
 require 'fcms.php';
 
-load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube');
+load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube', 'instagram');
 
 init();
 
@@ -125,23 +125,52 @@ function control ()
             displayEditMessageBoard();
         }
         // Facebook
-        elseif ($_GET['view'] == 'socialmedia' && isset($_GET['code']) && isset($_GET['state']))
+        elseif ($_GET['view'] == 'facebook')
         {
-            displayEditFacebookSubmit();
+            if (isset($_GET['code']) && isset($_GET['state']))
+            {
+                displayEditFacebookSubmit();
+            }
+            else
+            {
+                displayEditFacebook();
+            }
         }
         // Foursquare
-        elseif ($_GET['view'] == 'socialmedia' && isset($_GET['code']))
+        elseif ($_GET['view'] == 'foursquare')
         {
-            displayFoursquareSubmit();
+            if (isset($_GET['code']))
+            {
+                displayFoursquareSubmit();
+            }
+            else
+            {
+                displayEditFoursquare();
+            }
+        }
+        // Instagram
+        elseif ($_GET['view'] == 'instagram')
+        {
+            if (isset($_GET['code']))
+            {
+                displayEditInstagramSubmit();
+            }
+            else
+            {
+                displayEditInstagram();
+            }
         }
         // YouTube
-        elseif ($_GET['view'] == 'socialmedia' && isset($_GET['token']))
+        elseif ($_GET['view'] == 'youtube')
         {
-            displayEditYouTubeSubmit();
-        }
-        elseif ($_GET['view'] == 'socialmedia')
-        {
-            displayEditSocialMedia();
+            if (isset($_GET['token']))
+            {
+                displayEditYouTubeSubmit();
+            }
+            else
+            {
+                displayEditYouTube();
+            }
         }
         else
         {
@@ -158,6 +187,10 @@ function control ()
         elseif ($_GET['revoke'] == 'foursquare')
         {
             displayRevokeFoursquareAccess();
+        }
+        elseif ($_GET['revoke'] == 'instagram')
+        {
+            displayRevokeInstagramAccess();
         }
         elseif ($_GET['revoke'] == 'youtube')
         {
@@ -211,13 +244,58 @@ Event.observe(window, \'load\', function() {
                     <li><a href="?view=theme">'.T_('Theme').'</a></li>
                     <li><a href="?view=settings">'.T_('Settings').'</a></li>
                     <li><a href="?view=notifications">'.T_('Notifications').'</a></li>
-                    <li><a href="?view=socialmedia">'.T_('Social Media').'</a></li>
                 </ul>
                 <h3>'.T_('Plugin Settings').'</h3>
                 <ul class="menu">
                     <li><a href="?view=familynews">'.T_('Family News').'</a></li>
                     <li><a href="?view=messageboard">'.T_('Message Board').'</a></li>
-                </ul>
+                </ul>';
+
+    $facebookConfig   = getFacebookConfigData();
+    $foursquareConfig = getFoursquareConfigData();
+    $instagramConfig  = getInstagramConfigData();
+    $youtubeConfig    = getYouTubeConfigData();
+
+    $facebookLink   = '';
+    $foursquareLink = '';
+    $instagramLink  = '';
+    $youtubeLink    = '';
+
+    if (!empty($facebookConfig['fb_app_id']) && !empty($facebookConfig['fb_secret']))
+    {
+        $facebookLink = '<li><a href="?view=facebook">Facebook</a></li>';
+    }
+
+    if (!empty($foursquareConfig['fs_client_id']) && !empty($foursquareConfig['fs_client_secret']))
+    {
+        $foursquareLink = '<li><a href="?view=foursquare">Foursquare</a></li>';
+    }
+
+    if (!empty($instagramConfig['instagram_client_id']) && !empty($instagramConfig['instagram_client_secret']))
+    {
+        $instagramLink = '<li><a href="?view=instagram">Instagram</a></li>';
+    }
+
+    if (!empty($youtubeConfig['youtube_key']))
+    {
+        $youtubeLink = '<li><a href="?view=youtube">YouTube</a></li>';
+    }
+
+    $links = "$facebookLink$foursquareLink$instagramLink$youtubeLink";
+
+    if (!empty($links))
+    {
+        echo '
+                <h3>'.T_('Social Media').'</h3>
+                <ul class="menu">
+                    '.$facebookLink.'
+                    '.$foursquareLink.'
+                    '.$instagramLink.'
+                    '.$youtubeLink.'
+                </ul>';
+    }
+
+    echo '
             </div>
 
             <div id="maincolumn">';
@@ -691,14 +769,12 @@ function displayEditMessageBoardSubmit ()
 
     displayHeader();
 
-    if (isset($_POST['boardsort']) && isset($_POST['showavatar']))
+    if (isset($_POST['boardsort']))
     {
-        $showavatar = ($_POST['showavatar'] == 'yes') ? 1 : 0;
         $boardsort  = escape_string($_POST['boardsort']);
 
         $sql = "UPDATE `fcms_user_settings`
-                SET `boardsort` = '$boardsort',
-                    `showavatar` = '$showavatar'
+                SET `boardsort` = '$boardsort'
                 WHERE `user` = '$currentUserId'";
 
         if (!mysql_query($sql))
@@ -713,68 +789,6 @@ function displayEditMessageBoardSubmit ()
 
     $settingsObj->displayMessageBoard();
     displayFooter();
-}
-
-/**
- * displayFoursquareSubmit 
- * 
- * The submit screen for saving foursquare data.
- * 
- * @return void
- */
-function displayFoursquareSubmit ()
-{
-    global $currentUserId, $settingsObj;
-
-    $r = getFoursquareConfigData();
-
-    $id     = cleanOutput($r['fs_client_id']);
-    $secret = cleanOutput($r['fs_client_secret']);
-    $url    = cleanOutput($r['fs_callback_url']);
-
-    $fsObj = new EpiFoursquare($id, $secret);
-    $token = $fsObj->getAccessToken($_GET['code'], $url);
-
-    $fsObjAuth = new EpiFoursquare($id, $secret, $token->access_token);
-    $self      = $fsObjAuth->get('/users/self');
-
-    $sql = "UPDATE `fcms_user_settings`
-            SET `fs_user_id` = '".$self->response->user->id."',
-                `fs_access_token` = '".$token->access_token."'
-            WHERE `user` = '$currentUserId'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    header("Location: settings.php?view=socialmedia");
-}
-
-/**
- * displayRevokeFoursquareAccess 
- * 
- * @return void
- */
-function displayRevokeFoursquareAccess ()
-{
-    global $currentUserId;
-
-    $sql = "UPDATE `fcms_user_settings`
-            SET `fs_user_id` = NULL, `fs_access_token` = NULL
-            WHERE `user` = '$currentUserId'";
-
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    header("Location: settings.php?view=socialmedia");
 }
 
 /**
@@ -884,7 +898,7 @@ function displayDeleteThemeConfirmation ()
     displayHeader();
 
     echo '
-                <div class="info-alert clearfix">
+                <div class="info-alert">
                     <form action="?view=theme&amp;delete='.$theme.'&amp;confirmed=1" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
@@ -912,6 +926,77 @@ function displayInvalidAccessLevel ()
                 <b>'.T_('You do not have access to view this page.').'</b><br/>
                 <a href="contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
             </p>';
+
+    displayFooter();
+}
+
+/**
+ * displayEditFacebook 
+ * 
+ * @return void
+ */
+function displayEditFacebook ()
+{
+    global $currentUserId;
+
+    displayHeader();
+
+    $config      = getFacebookConfigData();
+    $accessToken = getUserFacebookAccessToken($currentUserId);
+
+    if (!empty($config['fb_app_id']) && !empty($config['fb_secret']))
+    {
+        // Setup url for callbacks
+        $callbackUrl  = getDomainAndDir();
+        $callbackUrl .= 'settings.php?view=facebook';
+
+        $facebook = new Facebook(array(
+            'appId'  => $config['fb_app_id'],
+            'secret' => $config['fb_secret'],
+        ));
+
+        $facebook->setAccessToken($accessToken);
+
+        // Check if the user is logged in and authed
+        $fbUser    = $facebook->getUser();
+        $fbProfile = '';
+
+        if ($fbUser)
+        {
+            try
+            {
+                $fbProfile = $facebook->api('/me');
+            }
+            catch (FacebookApiException $e)
+            {
+                $fbUser = null;
+            }
+        }
+
+        if ($fbUser)
+        {
+            $user    = '<a href="'.$fbProfile['link'].'">'.$fbProfile['email'].'</a>';
+            $status  = sprintf(T_('Currently connected as: %s'), $user);
+            $status .= '<br/><br/><img src="https://graph.facebook.com/'.$fbUser.'/picture" alt="Facebook">';
+            $link    = '<a class="disconnect" href="?revoke=facebook">'.T_('Disconnect').'</a>';
+        }
+        else
+        {
+            $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
+
+            $status = T_('Not Connected');
+            $link   = '<a href="'.$facebook->getLoginUrl($params).'">'.T_('Connect').'</a>';
+        }
+    }
+
+    echo '
+        <div class="social-media-connect">
+            <img class="icon" src="ui/images/facebook.png" alt="Facebook"/>
+            <h2>Facebook</h2>
+            <p>'.T_('Facebook helps you connect and share with the people in your life.').'</p>
+            <div class="status">'.$status.'</div>
+            <div class="action">'.$link.'</div>
+        </div>';
 
     displayFooter();
 }
@@ -962,7 +1047,7 @@ function displayEditFacebookSubmit ()
         displayFooter();
     }
 
-    header("Location: settings.php?view=socialmedia");
+    header("Location: settings.php?view=facebook");
 }
 
 /**
@@ -995,7 +1080,330 @@ function displayRevokeFacebookAccess ()
         }
     }
 
-    header("Location: settings.php?view=socialmedia");
+    header("Location: settings.php?view=facebook");
+}
+
+/**
+ * displayEditFoursquare 
+ * 
+ * @return void
+ */
+function displayEditFoursquare ()
+{
+    global $currentUserId;
+
+    displayHeader();
+
+    $config = getFoursquareConfigData();
+    $user   = getFoursquareUserData($currentUserId);
+
+    // Setup url for callbacks
+    $callbackUrl  = getDomainAndDir();
+    $callbackUrl .= 'settings.php?view=foursquare';
+
+    $fsObj = new EpiFoursquare($config['fs_client_id'], $config['fs_client_secret']);
+
+    if (!empty($user['fs_user_id']) && !empty($user['fs_access_token']))
+    {
+        $fsObjAuth = new EpiFoursquare(
+                        $config['fs_client_id'], 
+                        $config['fs_client_secret'], 
+                        $user['fs_access_token']
+        );
+
+        $self = $fsObjAuth->get('/users/self');
+
+        $user    = '<a href="http://foursquare.com/user/'.$self->response->user->id.'">'.$self->response->user->contact->email.'</a>';
+        $status  = sprintf(T_('Currently connected as: %s'), $user);
+        $status .= '<br/><br/><img src="'.$self->response->user->photo.'"/>';
+        $link    = '<a class="disconnect" href="?revoke=foursquare">'.T_('Disconnect').'</a>';
+    }
+    else
+    {
+        $status = '<span class="not_connected">'.T_('Not Connected').'</span>';
+        $link   = '<a href="'.$fsObj->getAuthorizeUrl($callbackUrl).'">'.T_('Connect').'</a>';
+    }
+
+    echo '
+        <div class="social-media-connect">
+            <img class="icon" src="ui/images/foursquare.png" alt="Foursquare"/>
+            <h2>Foursquare</h2>
+            <p>'.T_('A location-based social networking website for your phone.').'</p>
+            <div class="status">'.$status.'</div>
+            <div class="action">'.$link.'</div>
+        </div>';
+
+    displayFooter();
+}
+
+/**
+ * displayFoursquareSubmit 
+ * 
+ * The submit screen for saving foursquare data.
+ * 
+ * @return void
+ */
+function displayFoursquareSubmit ()
+{
+    global $currentUserId, $settingsObj;
+
+    $r = getFoursquareConfigData();
+
+    $id     = cleanOutput($r['fs_client_id']);
+    $secret = cleanOutput($r['fs_client_secret']);
+    $url    = cleanOutput($r['fs_callback_url']);
+
+    $fsObj = new EpiFoursquare($id, $secret);
+    $token = $fsObj->getAccessToken($_GET['code'], $url);
+
+    $fsObjAuth = new EpiFoursquare($id, $secret, $token->access_token);
+    $self      = $fsObjAuth->get('/users/self');
+
+    $sql = "UPDATE `fcms_user_settings`
+            SET `fs_user_id` = '".$self->response->user->id."',
+                `fs_access_token` = '".$token->access_token."'
+            WHERE `user` = '$currentUserId'";
+    if (!mysql_query($sql))
+    {
+        displayHeader();
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    header("Location: settings.php?view=foursquare");
+}
+
+/**
+ * displayRevokeFoursquareAccess 
+ * 
+ * @return void
+ */
+function displayRevokeFoursquareAccess ()
+{
+    global $currentUserId;
+
+    $sql = "UPDATE `fcms_user_settings`
+            SET `fs_user_id` = NULL, `fs_access_token` = NULL
+            WHERE `user` = '$currentUserId'";
+
+    if (!mysql_query($sql))
+    {
+        displayHeader();
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    header("Location: settings.php?view=foursquare");
+}
+
+
+/**
+ * displayEditInstagram 
+ * 
+ * @return void
+ */
+function displayEditInstagram ()
+{
+    global $currentUserId;
+
+    displayHeader();
+
+    $config = getInstagramConfigData();
+
+    $callbackUrl  = getDomainAndDir();
+    $callbackUrl .= 'settings.php?view=instagram';
+
+    $accessToken = getUserInstagramAccessToken($currentUserId);
+    $instagram   = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $accessToken);
+
+    if (!$accessToken)
+    {
+        $url = $instagram->authorizeUrl($callbackUrl, array('basic', 'comments', 'likes', 'relationships'));
+
+        $status = T_('Not Connected');
+        $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
+    }
+    else
+    {
+        try
+        {
+            $feed = $instagram->get('users/self');
+        }
+        catch (InstagramApiError $e)
+        {
+            die($e->getMessage());
+        }
+
+        $status = sprintf(T_('Currently connected as: %s'), $feed->data->username);
+        $status .= '<br/><br/><img src="'.$feed->data->profile_picture.'"/>';
+        $link   = '<a class="disconnect" href="?revoke=instagram">'.T_('Disconnect').'</a>';
+    }
+
+    echo '
+        <div class="social-media-connect">
+            <img class="icon" src="ui/images/instagram.png" alt="Instagram"/>
+            <h2>Instagram</h2>
+            <p>'.T_('Instagram is a photo sharing app for your phone.').'</p>
+            <div class="status">'.$status.'</div>
+            <div class="action">'.$link.'</div>
+        </div>';
+
+    displayFooter();
+}
+
+/**
+ * displayEditInstagramSubmit 
+ * 
+ * @return void
+ */
+function displayEditInstagramSubmit ()
+{
+    global $currentUserId;
+
+    $config = getInstagramConfigData();
+
+    if (!empty($config['instagram_client_id']) && !empty($config['instagram_client_secret']))
+    {
+        $callbackUrl  = getDomainAndDir();
+        $callbackUrl .= 'settings.php?view=instagram';
+
+        $instagram = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], null);
+
+        if (isset($_GET['error']) || isset($_GET['error_reason']) || isset($_GET['error_description']))
+        {
+            displayHeader();
+
+            echo '
+                <div class="error-alert">
+                    <p>'.$_GET['error'].'</p>
+                    <p>'.$_GET['error_reason'].'</p>
+                    <p>'.$_GET['error_description'].'</p>
+                </div>';
+
+            displayFooter();
+
+            return;
+        }
+
+        $response = $instagram->getAccessToken($_GET['code'], $callbackUrl);
+
+        $accessToken = $response->access_token;
+
+        $sql = "UPDATE `fcms_user_settings`
+                SET `instagram_access_token` = '$accessToken'
+                WHERE `user` = '$currentUserId'";
+
+        if (!mysql_query($sql))
+        {
+            displayHeader();
+            displaySqlError($sql, mysql_error());
+            displayFooter();
+            return;
+        }
+    }
+    // Instagram isn't configured
+    else
+    {
+        displayHeader();
+
+        echo '
+            <div class="info-alert">
+                <h2>'.T_('Instagram isn\'t Configured Yet.').'</h2>
+                <p>'.T_('Unfortunately, your website administrator has not set up Instagram yet.').'</p>
+            </div>';
+
+        displayFooter();
+        return;
+    }
+
+    header("Location: settings.php?view=instagram");
+}
+
+/**
+ * displayRevokeInstagramAccess 
+ * 
+ * @return void
+ */
+function displayRevokeInstagramAccess ()
+{
+    global $currentUserId;
+
+    $sql = "UPDATE `fcms_user_settings`
+            SET `instagram_access_token` = NULL
+            WHERE `user` = '$currentUserId'";
+
+    if (!mysql_query($sql))
+    {
+        displayHeader();
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    header("Location: settings.php?view=instagram");
+}
+
+/**
+ * displayEditYouTube 
+ * 
+ * @return void
+ */
+function displayEditYouTube ()
+{
+    global $currentUserId;
+
+    displayHeader();
+
+    $config = getYouTubeConfigData();
+    $user   = getYouTubeUserData($currentUserId);
+
+    // Setup url for callbacks
+    $callbackUrl  = getDomainAndDir();
+    $callbackUrl .= 'settings.php?view=youtube';
+
+    if (!empty($config['youtube_key']))
+    {
+        if (!empty($user['youtube_session_token']))
+        {
+            $httpClient = getAuthSubHttpClient($config['youtube_key'], $user['youtube_session_token']);
+
+            $youTubeService = new Zend_Gdata_YouTube($httpClient);
+
+            $feed = $youTubeService->getUserProfile('default');
+            if (!$feed instanceof Zend_Gdata_YouTube_UserProfileEntry)
+            {
+                print '
+            <div class="error-alert">'.T_('Could not get YouTube data for user.').'</div>';
+                return;
+            }
+
+            $username = $feed->getUsername();
+
+            $user    = '<a href="http://www.youtube.com/user/'.$username.'">'.$username.'</a>';
+            $status  = sprintf(T_('Currently connected as: %s'), $user);
+            $link    = '<a class="disconnect" href="?revoke=youtube">'.T_('Disconnect').'</a>';
+        }
+        else
+        {
+            $url = Zend_Gdata_AuthSub::getAuthSubTokenUri($callbackUrl, 'http://gdata.youtube.com', false, true);
+
+            $status = T_('Not Connected');
+            $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
+        }
+    }
+
+    echo '
+        <div class="social-media-connect">
+            <img class="icon" src="ui/images/youtube.png" alt="YouTube"/>
+            <h2>YouTube</h2>
+            <p>'.T_('YouTube allows users to discover, watch and share videos.').'</p>
+            <div class="status">'.$status.'</div>
+            <div class="action">'.$link.'</div>
+        </div>';
+
+    displayFooter();
 }
 
 /**
@@ -1057,7 +1465,7 @@ function displayEditYouTubeSubmit ()
         return;
     }
 
-    header("Location: settings.php?view=socialmedia");
+    header("Location: settings.php?view=youtube");
 }
 
 /**
@@ -1086,192 +1494,6 @@ function displayRevokeYouTubeAccess ()
         return;
     }
 
-    header("Location: settings.php?view=socialmedia");
-}
-
-/**
- * displayEditSocialMedia 
- * 
- * @return void
- */
-function displayEditSocialMedia ()
-{
-    global $currentUserId;
-
-    displayHeader();
-
-    // Get Data
-    $facebookConfig      = getFacebookConfigData();
-    $facebookAccessToken = getUserFacebookAccessToken($currentUserId);
-    $foursquareConfig    = getFoursquareConfigData();
-    $foursquareUser      = getFoursquareUserData($currentUserId);
-    $youtubeConfig       = getYouTubeConfigData();
-    $youtubeUser         = getYouTubeUserData($currentUserId);
-
-    // Setup url for callbacks
-    $callbackUrl  = getDomainAndDir();
-    $callbackUrl .= 'settings.php?view=socialmedia';
-
-    // Facebook
-    //------------------------------------------------------------------------------------
-    $facebookRow    = '';
-    $facebookStatus = '';
-    $facebookLink   = '';
-
-    if (!empty($facebookConfig['fb_app_id']) && !empty($facebookConfig['fb_secret']))
-    {
-        $facebook = new Facebook(array(
-            'appId'  => $facebookConfig['fb_app_id'],
-            'secret' => $facebookConfig['fb_secret'],
-        ));
-
-        $facebook->setAccessToken($facebookAccessToken);
-
-        // Check if the user is logged in and authed
-        $fbUser    = $facebook->getUser();
-        $fbProfile = '';
-        if ($fbUser)
-        {
-            try
-            {
-                $fbProfile = $facebook->api('/me');
-            }
-            catch (FacebookApiException $e)
-            {
-                $fbUser = null;
-            }
-        }
-
-        if ($fbUser)
-        {
-            $facebookStatus = '<a href="'.$fbProfile['link'].'">'.$fbProfile['email'].'</span>';
-            $facebookLink   = '<a class="disconnect" href="?revoke=facebook">'.T_('Disconnect').'</a>';
-        }
-        else
-        {
-            $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
-
-            $facebookStatus = '<span class="not_connected">'.T_('Not Connected').'</span>';
-            $facebookLink   = '<a href="'.$facebook->getLoginUrl($params).'">'.T_('Connect').'</a>';
-        }
-
-        $facebookRow = '
-                <tr>
-                    <td><img src="ui/images/facebook_24.png" alt="'.T_('Facebook').'"/></td>
-                    <td>'.T_('Facebook').'</td>
-                    <td>'.$facebookStatus.'</td>
-                    <td>'.$facebookLink.'</td>
-                </tr>';
-    }
-
-    // Foursquare
-    //------------------------------------------------------------------------------------
-    $foursquareRow    = '';
-    $foursquareStatus = '';
-    $foursquareLink   = '';
-
-    if (!empty($foursquareConfig['fs_client_id']) && !empty($foursquareConfig['fs_client_secret']))
-    {
-        $fsObj = new EpiFoursquare($foursquareConfig['fs_client_id'], $foursquareConfig['fs_client_secret']);
-
-        if (!empty($foursquareUser['fs_user_id']) && !empty($foursquareUser['fs_access_token']))
-        {
-            $fsObjAuth = new EpiFoursquare($foursquareConfig['fs_client_id'], $foursquareConfig['fs_client_secret'], $foursquareUser['fs_access_token']);
-            $self      = $fsObjAuth->get('/users/self');
-
-            $foursquareStatus = '<a href="http://foursquare.com/user/'.$self->response->user->id.'">'.$self->response->user->contact->email.'</a>';
-            $foursquareLink   = '<a class="disconnect" href="?revoke=foursquare">'.T_('Disconnect').'</a>';
-        }
-        else
-        {
-            $foursquareStatus = '<span class="not_connected">'.T_('Not Connected').'</span>';
-            $foursquareLink   = '<a href="'.$fsObj->getAuthorizeUrl($callbackUrl).'">'.T_('Connect').'</a>';
-        }
-
-        $foursquareRow = '
-                <tr>
-                    <td><img src="ui/images/foursquare_24.png" alt="'.T_('Foursquare').'"/></td>
-                    <td>'.T_('Foursquare').'</td>
-                    <td>'.$foursquareStatus.'</td>
-                    <td>'.$foursquareLink.'</td>
-                </tr>';
-    }
-
-    // YouTube
-    //------------------------------------------------------------------------------------
-    $youtubeRow        = '';
-    $youtubeRowPrivate = '';
-    $youtubeStatus     = '';
-    $youtubeLink       = '';
-
-    if (!empty($youtubeConfig['youtube_key']))
-    {
-        if (!empty($youtubeUser['youtube_session_token']))
-        {
-            $httpClient = getAuthSubHttpClient($youtubeConfig['youtube_key'], $youtubeUser['youtube_session_token']);
-
-            $youTubeService = new Zend_Gdata_YouTube($httpClient);
-
-            $feed = $youTubeService->getUserProfile('default');
-            if (!$feed instanceof Zend_Gdata_YouTube_UserProfileEntry)
-            {
-                print '
-            <div class="error-alert">'.T_('Could not get YouTube data for user.').'</div>';
-                return;
-            }
-
-            $username = $feed->getUsername();
-
-            $youtubeStatus = '<a href="http://www.youtube.com/user/'.$username.'">'.$username.'</a>';
-            $youtubeLink   = '<a class="disconnect" href="?revoke=youtube">'.T_('Disconnect').'</a>';
-        }
-        else
-        {
-            $url = Zend_Gdata_AuthSub::getAuthSubTokenUri($callbackUrl, 'http://gdata.youtube.com', false, true);
-
-            $youtubeStatus = '<span class="not_connected">'.T_('Not Connected').'</span>';
-            $youtubeLink   = '<a href="'.$url.'">'.T_('Connect').'</a>';
-        }
-
-        $youtubeRow = '
-                <tr>
-                    <td><img src="ui/images/youtube_24.png" alt="'.T_('YouTube').'"/></td>
-                    <td>'.T_('YouTube').'</td>
-                    <td>'.$youtubeStatus.'</td>
-                    <td>'.$youtubeLink.'</td>
-                </tr>';
-    }
-
-    // Blank state
-    if ($facebookRow == '' && $foursquareRow == '' && $youtubeRow == '')
-    {
-        echo '
-        <div class="info-alert">
-            <h2>'.T_('Bummer!').'</h2>
-            <p>'.T_('Your site is not configured to use any Social Media sites yet.').'</p>
-            <p>'.T_('Your site administrator must configure these before you can connect to them.').'</p>
-        </div>';
-        displayFooter();
-        return;
-    }
-
-    // Error code was given
-    if (isset($_GET['error']))
-    {
-        echo '
-        <div class="error-alert">
-            <h2>'.T_('Error connecting site.').'</h2>
-            <p>'.T_('Site returned error code:').'</p>
-            <p style="text-align:center"><i>'.cleanOutput($_GET['error']).'</i></p>
-        </div>';
-    }
-
-    echo '
-        <table id="socialmedia-connect">
-            <tbody>'.$facebookRow.$foursquareRow.$youtubeRow.'
-            </tbody>
-        </table><br/>';
-
-    displayFooter();
+    header("Location: settings.php?view=youtube");
 }
 

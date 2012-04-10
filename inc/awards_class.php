@@ -75,7 +75,7 @@ class Awards
         }
 
         echo '
-                <ul id="awards-list" class="clearfix">';
+                <ul id="awards-list">';
 
         if (count($awardList) <= 0)
         {
@@ -178,7 +178,7 @@ class Awards
         }
 
         echo '
-            <div id="current-award" class="clearfix">
+            <div id="current-award">
                 <div class="'.$currentAward['award'].'"></div>
                 <h1>'.$awardsInfo[$currentAward['award']]['name'].'</h1>
                 <h2>'.$awardsInfo[$currentAward['award']]['description'].'</h2>

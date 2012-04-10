@@ -1411,8 +1411,8 @@ class AdminMembers
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_documents').'<br/>';
 
-        // fcms_gallery_comments
-        $sql = "UPDATE `fcms_gallery_comments`
+        // fcms_gallery_photo_comments
+        $sql = "UPDATE `fcms_gallery_photo_comment`
                 SET `user` = '$id'
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
@@ -1420,7 +1420,7 @@ class AdminMembers
             displaySqlError($sql, mysql_error());
             die();
         }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_comments').'<br/>';
+        echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_photo_comment').'<br/>';
 
         // fcms_gallery_photos
         $sql = "UPDATE `fcms_gallery_photos`

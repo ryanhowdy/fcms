@@ -68,13 +68,13 @@ class Settings
                 <form id="frm" action="settings.php?view=account" method="post">
                 <fieldset>
                     <legend><span>'.T_('Account Information').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="uname"><b>'.T_('Username').'</b></label></div>
                         <div class="field-widget">
                             <input disabled="disabled" type="text" name="uname" size="50" id="uname" value="'.cleanOutput($row['username']).'"/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div>
                         <div class="field-widget">
                             <input type="text" name="email" size="50" id="email" value="'.cleanOutput($row['email']).'"/>
@@ -86,7 +86,7 @@ class Settings
                         femail.add(Validate.Email, {failureMessage: "'.T_('That\'s not a valid email address is it?').'" });
                         femail.add(Validate.Length, {minimum: 10});
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="pass"><b>'.T_('Change Password').'</b></label></div>
                         <div class="field-widget">
                             <input type="password" name="pass" size="50" id="pass"/><br/>
@@ -203,7 +203,7 @@ class Settings
     function displaySettings ()
     {
         $sql = "SELECT `displayname`, `advanced_upload`, `advanced_tagging`, `language`,
-                    `dst`, `timezone`, `boardsort`, `showavatar`, `frontpage`
+                    `dst`, `timezone`, `boardsort`, `frontpage`
                 FROM `fcms_user_settings`
                 WHERE `user` = '" . $this->currentUserId . "'";
         if (!$this->db->query($sql))
@@ -332,7 +332,7 @@ class Settings
                 <form id="frm" action="settings.php?view=settings" method="post">
                 <fieldset>
                     <legend><span>'.T_('Advanced Settings').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="advanced_upload"><b>'.T_('Advanced Uploader').'</b></label></div>
                         <div class="field-widget">
                             '.$advanced_upload_options.'<br/>
@@ -342,7 +342,7 @@ class Settings
                             </small>
                         </div>
                     </div>
-                    <div id="advanced_tagging_div" class="field-row clearfix" style="display:none">
+                    <div id="advanced_tagging_div" class="field-row" style="display:none">
                         <div class="field-label"><label for="advanced_tagging"><b>'.T_('Advanced Tagging').'</b></label></div>
                         <div class="field-widget">
                             '.$advanced_tagging_options.'<br/>
@@ -355,7 +355,7 @@ class Settings
                 </fieldset>
                 <fieldset>
                     <legend><span>'.T_('Langugage and Time').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="language"><b>'.T_('Language').'</b></label></div>
                         <div class="field-widget">
                             <select name="language" id="language" title="'.T_('What language do you speak?').'">
@@ -363,7 +363,7 @@ class Settings
                             </select>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="timezone"><b>'.T_('Timezone').'</b></label></div>
                         <div class="field-widget">
                             <select name="timezone" id="timezone" title="'.T_('What timezone do you live in?').'">
@@ -371,7 +371,7 @@ class Settings
                             </select>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="dst"><b>'.T_('Daylight Savings Time').'</b></label></div>
                         <div class="field-widget">
                             '.$dst_options.'<br/>
@@ -381,7 +381,7 @@ class Settings
                 </fieldset>
                 <fieldset>
                     <legend><span>'.T_('Preferences').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="displayname"><b>'.T_('Display Name').'</b></label></div>
                         <div class="field-widget">
                             <select name="displayname" id="displayname" title="'.T_('How do you want your name to display?').'">
@@ -389,7 +389,7 @@ class Settings
                             </select>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="frontpage"><b>'.T_('Frontpage').'</b></label></div>
                         <div class="field-widget">
                             <select name="frontpage" id="frontpage" title="'.T_('How do you want the latest information to display on the frontpage?').'">
@@ -436,7 +436,7 @@ class Settings
                 <form id="frm" action="settings.php?view=notifications" method="post">
                 <fieldset>
                     <legend><span>'.T_('Notifications').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="email_updates"><b>'.T_('Email Updates').'</b></label></div>
                         <div class="field-widget">
                             '.$email_updates_options.'
@@ -470,7 +470,7 @@ class Settings
                 <form id="frm" action="settings.php?view=familynews" method="post">
                 <fieldset>
                     <legend><span>'.T_('Import Blog Posts').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label">
                             <label for="blogger"><b>'.T_('Blogger').'</b></label>
                         </div>
@@ -481,7 +481,7 @@ class Settings
                             <p><a class="blogger" href="?view=familynews&amp;import=blogger">'.T_('Manually Import Posts').'</a></p>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label">
                             <label for="tumblr"><b>'.T_('Tumblr').'</b></label>
                         </div>
@@ -491,7 +491,7 @@ class Settings
                             <p><a class="tumblr" href="?view=familynews&amp;import=tumblr">'.T_('Manually Import Posts').'</a></p>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label">
                             <label for="wordpress"><b>'.T_('WordPress').'</b></label>
                         </div>
@@ -501,7 +501,7 @@ class Settings
                             <p><a class="wordpress" href="?view=familynews&amp;import=wordpress">'.T_('Manually Import Posts').'</a></p>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label">
                             <label for="posterous"><b>'.T_('Posterous').'</b></label>
                         </div>
@@ -524,7 +524,7 @@ class Settings
      */
     function displayMessageBoard ()
     {
-        $sql = "SELECT `boardsort`, `showavatar`
+        $sql = "SELECT `boardsort`
                 FROM `fcms_user_settings`
                 WHERE `user` = '".$this->currentUserId."'";
 
@@ -543,31 +543,17 @@ class Settings
         );
         $boardsort_options = buildHtmlSelectOptions($boardsort_list, $row['boardsort']);
 
-        // Show Avatars
-        $yc = $row['showavatar'] == 1 ? 'checked="checked"' : '';
-        $nc = $row['showavatar'] == 0 ? 'checked="checked"' : '';
-        $show_avatars_options  = '<input type="radio" name="showavatar" id="showavatar_yes" value="yes" '.$yc.'>';
-        $show_avatars_options .= '<label class="radio_label" for="showavatar_yes">'.T_('Yes').'</label>&nbsp;&nbsp; ';
-        $show_avatars_options .= '<input type="radio" name="showavatar" id="showavatar_no" value="no" '.$nc.'>';
-        $show_avatars_options .= '<label class="radio_label" for="showavatar_no">'.T_('No').'</label>';
-
         echo '
                 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
                 <form id="frm" action="settings.php?view=messageboard" method="post">
                 <fieldset>
                     <legend><span>'.T_('Message Board').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="boardsort"><b>'.T_('Sort Messages').'</b></label></div>
                         <div class="field-widget">
                             <select name="boardsort" id="boardsort" title="'.T_('What order do you want new messages to display?').'">
                                 '.$boardsort_options.'
                             </select>
-                        </div>
-                    </div>
-                    <div class="field-row clearfix">
-                        <div class="field-label"><label for="showavatar"><b>'.T_('Show Avatars').'</b></label></div>
-                        <div class="field-widget">
-                            '.$show_avatars_options.'
                         </div>
                     </div>
                     <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
@@ -629,7 +615,7 @@ class Settings
                 <form id="frm" action="settings.php?view=whereiseveryone" method="post">
                 <fieldset>
                     <legend><span>'.T_('Foursquare').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="id"><b>'.T_('Foursquare ID').'</b></label></div>
                         <div class="field-widget">
                             <input type="text" name="id" name="id" size="20" value="'.cleanOutput($row['fs_user_id']).'"/>

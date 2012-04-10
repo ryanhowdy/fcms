@@ -150,9 +150,9 @@ Event.observe(window, \'load\', function() {
     include_once getTheme($currentUserId).'header.php';
 
     echo '
-        <div id="video" class="centercontent clearfix">
+        <div id="video" class="centercontent">
 
-            <div id="actions_menu" class="clearfix">
+            <div id="actions_menu">
                 <ul>
                     <li><a href="?upload=youtube">'.T_('Upload to YouTube').'</a></li>
                 </ul>
@@ -266,24 +266,24 @@ function displayYouTubeUploadPage ()
         <form action="video.php?upload=youtube" method="post">
             <fieldset>
                 <legend><span>'.T_('Upload YouTube Video').'</span></legend>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label><b>'.T_('YouTube Account').'</b></label></div>
                     <div class="field-widget">'.$username.'
                     </div>
                 </div>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label><b>'.T_('Title').'</b></label></div>
                     <div class="field-widget">
                         <input type="text" name="title" size="50"/>
                     </div>
                 </div>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label><b>'.T_('Description').'</b></label></div>
                     <div class="field-widget">
                         <textarea cols="50" name="description"></textarea>
                     </div>
                 </div>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label><b>'.T_('Category').'</b></label></div>
                     <div class="field-widget">
                         <select name="category">
@@ -304,7 +304,7 @@ function displayYouTubeUploadPage ()
                         </select>
                     </div>
                 </div>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label for="unlisted"><b>'.T_('Unlisted').'</b></label></div>
                     <div class="field-widget">
                         <input type="checkbox" name="unlisted" id="unlisted_" value="yes" checked="checked"><br/>
@@ -438,11 +438,11 @@ function displayYouTubeUploadFilePage ()
         <form action="'.$postUrl.'?nexturl='.$nextUrl.'" method="post" enctype="multipart/form-data">
             <fieldset>
                 <legend><span>'.T_('Upload YouTube Video').'</span></legend>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label><b>'.T_('Title').'</b></label></div>
                     <div class="field-widget"><b>'.$videoTitle.'</b></div>
                 </div>
-                <div class="field-row clearfix">
+                <div class="field-row">
                     <div class="field-label"><label><b>'.T_('Video').'</b></label></div>
                     <div class="field-widget">
                         <input type="file" name="file" size="50"/>
@@ -613,7 +613,7 @@ function displayLatestPage ()
     echo '
         <div id="video_content">
             <h2>'.T_('Latest Videos').'<h2>
-            <ul class="categories clearfix">';
+            <ul class="categories">';
 
     while ($row = mysql_fetch_assoc($result))
     {
@@ -817,7 +817,7 @@ function displayYouTubeVideoPage ($video)
     displayVideoStartCode();
 
     echo '
-        <div id="sections_menu" class="clearfix">
+        <div id="sections_menu">
             <ul>
                 <li><a href="video.php">'.T_('Latest Videos').'</a></li>
                 <li><a href="video.php?u='.$video['created_id'].'">'.getUserDisplayName($video['created_id'], 2).'</a></li>
@@ -1067,7 +1067,7 @@ function displayMembersListPage ()
     }
 
     echo '
-        <div id="sections_menu" class="clearfix">
+        <div id="sections_menu">
             <ul>
                 <li><a href="video.php">Latest Videos</a></li>
             </ul>
@@ -1138,7 +1138,7 @@ function displayUserVideosPage ()
     $avatarPath = getAvatarPath($row['avatar'], $row['gravatar']);
 
     echo '
-        <div id="sections_menu" class="clearfix">
+        <div id="sections_menu">
             <ul>
                 <li><a href="video.php">Latest Videos</a></li>
                 <li><a href="video.php?members=all">Members</a></li>
@@ -1146,12 +1146,12 @@ function displayUserVideosPage ()
         </div>
 
         <div id="video_content">
-            <div id="member" class="clearfix">
+            <div id="member">
                 <img src="'.$avatarPath.'" titl="'.$name.'"/>
                 <span>'.T_('Videos For:').'</span>
                 <h2>'.$name.'</h2>
             </div>
-            <ul class="categories clearfix">';
+            <ul class="categories>';
 
     // Get videos
     $sql = "SELECT `id`, `source_id`, `title`, `active`, `created`, `created_id`

@@ -288,6 +288,123 @@ function runYouTubeJob ()
 }
 
 /**
+ * runInstagramJob 
+ * 
+ * @return void
+ */
+function runInstagramJob ()
+{
+    require_once 'inc/config_inc.php';
+    require_once 'inc/constants.php';
+    require_once 'inc/socialmedia.php';
+    require_once 'inc/utils.php';
+    require_once THIRDPARTY.'gettext.inc';
+    require_once THIRDPARTY.'Instagram.php';
+
+    global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+
+    $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
+    mysql_select_db($cfg_mysql_db);
+
+    if (!mysql_query("SET NAMES 'utf8'"))
+    {
+        logError(__FILE__.' ['.__LINE__.'] - Could not set names utf8.');
+        die();
+    }
+
+    // Get user's access tokens
+    $sql = "SELECT u.`id`, s.`instagram_access_token`
+            FROM `fcms_user_settings` AS s, `fcms_users` AS u
+            WHERE s.`user` = u.`id`
+            AND s.`instagram_auto_upload` = 1
+            AND s.`instagram_access_token` IS NOT NULL";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        logError(__FILE__.' ['.__LINE__.'] - Could not get instagram access tokens.');
+        die();
+    }
+
+    $accessTokens = array();
+
+    while ($row = mysql_fetch_assoc($result))
+    {
+        $accessTokens[$row['id']] = $row['instagram_access_token'];
+    }
+
+    $config      = getInstagramConfigData();
+    $existingIds = getExistingInstagramIds();
+
+    // Get pics for each user
+    foreach ($accessTokens as $userId => $token)
+    {
+        $categoryId = getUserInstagramCategory($userId);
+        $instagram  = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $token);
+
+        try
+        {
+            $feed = $instagram->get('users/self/media/recent');
+        }
+        catch (InstagramApiError $e)
+        {
+            logError(__FILE__.' ['.__LINE__.'] - Could not get user instagram data. - '.$e->getMessage());
+            die();
+        }
+
+        $sql = "INSERT INTO `fcms_gallery_photos`
+                    (`date`, `path`, `caption`, `category`, `user`)
+                VALUES ";
+
+        foreach ($feed->data as $photo)
+        {
+            $sourceId  = $photo->id;
+            $thumbnail = $photo->images->thumbnail->url;
+            $medium    = $photo->images->low_resolution->url;
+            $full      = $photo->images->standard_resolution->url;
+            $caption   = sprintf(T_('Imported from Instagram.  Filter: %s.'), $photo->filter);
+
+            // Skip existing photos
+            if (isset($existingIds[$sourceId]))
+            {
+                continue;
+            }
+
+            // Save external paths
+            $sql = "INSERT INTO `fcms_gallery_external_photo`
+                        (`source_id`, `thumbnail`, `medium`, `full`)
+                    VALUES
+                        ('$sourceId', '$thumbnail', '$medium', '$full')";
+
+            $result = mysql_query($sql);
+            if (!$result)
+            {
+                logError(__FILE__.' ['.__LINE__.'] - Could not save external photos.');
+                die();
+            }
+
+            $id = mysql_insert_id();
+
+            // Insert new photo
+            $sql = "INSERT INTO `fcms_gallery_photos`
+                        (`date`, `external_id`, `caption`, `category`, `user`)
+                    VALUES
+                        (NOW(), '$id', '$caption', '$categoryId', '$userId')";
+
+            $result = mysql_query($sql);
+            if (!$result)
+            {
+                logError(__FILE__.' ['.__LINE__.'] - Could not insert new photo.');
+                die();
+            }
+        }
+    }
+
+    // Update date we last ran this job
+    updateLastRun(date('Y-m-d H:i:s'), 'instagram');
+}
+
+/**
  * updateLastRun 
  * 
  * @param date   $now 

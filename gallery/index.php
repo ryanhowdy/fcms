@@ -121,6 +121,10 @@ function control ()
             {
                 displayUploadFormSubmit();
             }
+            elseif (isset($_POST['instagram']))
+            {
+                displayInstagramUploadFormSubmit();
+            }
             else
             {
                 displayUploadForm();
@@ -148,6 +152,10 @@ function control ()
                 displayEditCategoryForm();
             }
         }
+    }
+    elseif (isset($_POST['addcatcom']))
+    {
+        displayAddCategoryCommentSubmit();
     }
     elseif (isset($_POST['addcom']))
     {
@@ -425,7 +433,7 @@ function displayConfirmDeletePhotoForm ()
     displayHeader();
 
     echo '
-                <div class="info-alert clearfix">
+                <div class="info-alert">
                     <form action="index.php?confirmed=1" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this Photo?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
@@ -482,7 +490,7 @@ function displayDeletePhotoSubmit ()
     }
 
     // Remove any comments for this photo
-    $sql = "DELETE FROM `fcms_gallery_comments` 
+    $sql = "DELETE FROM `fcms_gallery_photo_comment` 
             WHERE `photo` = '$cleanPhotoId'";
     if (!mysql_query($sql))
     {
@@ -567,6 +575,17 @@ function displayUploadForm ()
         if (!mysql_query($sql))
         {
             displaySqlError($sql, mysql_error());
+        }
+    }
+
+    // Special upload type?
+    if (isset($_GET['type']))
+    {
+        if ($_GET['type'] == 'instagram')
+        {
+            $gallery->displayInstagramUploadForm();
+            displayFooter();
+            return;
         }
     }
 
@@ -736,6 +755,168 @@ function displayUploadFormSubmit ()
 }
 
 /**
+ * displayInstagramUploadFormSubmit 
+ * 
+ * @return void
+ */
+function displayInstagramUploadFormSubmit ()
+{
+    global $gallery, $currentUserId;
+
+    // Turn on auto upload for Instagram
+    if (isset($_POST['automatic']))
+    {
+        $sql = "UPDATE `fcms_user_settings`
+                SET `instagram_auto_upload` = '1'
+                WHERE `user` = '$currentUserId'";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displayHeader();
+            displaySqlError($sql, mysql_error());
+            displayFooter();
+            return;
+        }
+
+        displayHeader();
+        $gallery->displayGalleryMenu('none');
+
+        echo '
+            <div class="info-alert">
+                <p>'.T_('Your Instagram photos will be automatically imported into the site soon.').'</p>
+            </div>';
+
+        displayFooter();
+
+        return;
+    }
+    // Turn off auto upload for Instagram
+    elseif (!isset($_POST['photos']))
+    {
+        $sql = "UPDATE `fcms_user_settings`
+                SET `instagram_auto_upload` = '0'
+                WHERE `user` = '$currentUserId'";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displayHeader();
+            displaySqlError($sql, mysql_error());
+            displayFooter();
+            return;
+        }
+
+        displayHeader();
+        $gallery->displayGalleryMenu('none');
+
+        echo '
+            <div class="info-alert">
+                <p>'.T_('Your Instagram photos will no longer be automatically imported into the site soon.').'</p>
+            </div>';
+
+        displayFooter();
+
+        return;
+    }
+
+
+    // Upload individual photos
+    if (isset($_POST['photos']))
+    {
+        $categoryId  = getUserInstagramCategory($currentUserId);
+        $existingIds = getExistingInstagramIds();
+
+        foreach ($_POST['photos'] AS $data)
+        {
+            list($sourceId, $thumbnail, $medium, $full, $caption) = explode('|', $data);
+
+            // Skip existing photos
+            if (isset($existingIds[$sourceId]))
+            {
+                continue;
+            }
+
+            // Save external paths
+            $sql = "INSERT INTO `fcms_gallery_external_photo`
+                        (`source_id`, `thumbnail`, `medium`, `full`)
+                    VALUES
+                        ('$sourceId', '$thumbnail', '$medium', '$full')";
+
+            $result = mysql_query($sql);
+            if (!$result)
+            {
+                displayHeader();
+                displaySqlError($sql, mysql_error());
+                displayFooter();
+                return;
+            }
+
+            $id = mysql_insert_id();
+
+            // Insert new photo
+            $sql = "INSERT INTO `fcms_gallery_photos`
+                        (`date`, `external_id`, `caption`, `category`, `user`)
+                    VALUES
+                        (NOW(), '$id', '$caption', '$categoryId', '$currentUserId')";
+
+            $result = mysql_query($sql);
+            if (!$result)
+            {
+                displayHeader();
+                displaySqlError($sql, mysql_error());
+                displayFooter();
+                return;
+            }
+        }
+
+
+        // Email members
+        $sql = "SELECT u.`email`, s.`user` 
+                FROM `fcms_user_settings` AS s, `fcms_users` AS u 
+                WHERE `email_updates` = '1'
+                AND u.`id` = s.`user`";
+
+        $result = mysql_query($sql);
+        if (!$result)
+        {
+            displaySqlError($sql, mysql_error());
+            displayFooter();
+            return;
+        }
+
+        if (mysql_num_rows($result) > 0)
+        {
+            while ($r = mysql_fetch_array($result))
+            {
+                $name          = getUserDisplayName($currentUserId);
+                $to            = getUserDisplayName($r['user']);
+                $subject       = sprintf(T_('%s has added new photos.'), $name);
+                $email         = $r['email'];
+                $url           = getDomainAndDir();
+                $email_headers = getEmailHeaders();
+
+                $msg = T_('Dear').' '.$to.',
+
+'.$subject.'
+
+'.$url.'index.php?uid='.$currentUserId.'&cid='.$categoryId.'
+
+----
+'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
+
+'.$url.'settings.php
+
+';
+                mail($email, $subject, $msg, $email_headers);
+            }
+        }
+
+        header('Location: index.php?uid='.$currentUserId.'&cid='.$categoryId);
+    }
+}
+
+/**
  * displayUploadAdvancedForm 
  * 
  * @return void
@@ -766,6 +947,7 @@ function displayUploadAdvancedFormSubmit ()
 
     // Categories should all be the same
     $cleanCategory = (int)$_POST['category'][0];
+
     // Loop through each photo
     for ($i=0; $i < count($_POST['id']); $i++)
     {
@@ -873,7 +1055,7 @@ function displayConfirmDeleteCategoryForm ()
     displayHeader();
 
     echo '
-                <div class="info-alert clearfix">
+                <div class="info-alert">
                     <form action="index.php?confirmed=1" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this category?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
@@ -1095,6 +1277,46 @@ function displayUserCategory ()
 }
 
 /**
+ * displayAddCategoryCommentSubmit 
+ * 
+ * @return void
+ */
+function displayAddCategoryCommentSubmit ()
+{
+    global $currentUserId;
+
+    $uid      = (int)$_GET['uid'];
+    $cid      = (int)$_GET['cid'];
+    $com      = ltrim($_POST['comment']);
+    $com      = strip_tags($com);
+    $cleanCom = escape_string($com);
+
+    if (!empty($com))
+    {
+        $sql = "INSERT INTO `fcms_gallery_category_comment` (
+                    `category_id`, `comment`, `created`, `created_id`
+                ) VALUES (
+                    '$cid', 
+                    '$cleanCom', 
+                    NOW(), 
+                    '$currentUserId'
+                )";
+
+        if (!mysql_query($sql))
+        {
+            displayHeader();
+            displaySqlError($sql, mysql_error());
+            displayFooter();
+            return;
+        }
+    }
+
+    $commentId = mysql_insert_id();
+
+    header('Location: index.php?uid='.$uid.'&cid='.$cid.'#comment'.$commentId);
+}
+
+/**
  * displayAddPhotoCommentSubmit 
  * 
  * @return void
@@ -1112,7 +1334,7 @@ function displayAddPhotoCommentSubmit ()
 
     if (!empty($com))
     {
-        $sql = "INSERT INTO `fcms_gallery_comments` (
+        $sql = "INSERT INTO `fcms_gallery_photo_comment` (
                     `photo`, `comment`, `date`, `user`
                 ) VALUES (
                     '$pid', 
@@ -1174,7 +1396,7 @@ function displayDeleteCommentSubmit ()
     $pid = (int)$_POST['pid'];
     $id  = (int)$_POST['id'];
 
-    $sql = "DELETE FROM `fcms_gallery_comments` 
+    $sql = "DELETE FROM `fcms_gallery_photo_comment` 
             WHERE `id` = '$id'";
     if (!mysql_query($sql))
     {
@@ -1201,7 +1423,7 @@ function displayConfirmDeleteCommentForm ()
     displayHeader();
 
     echo '
-                <div class="info-alert clearfix">
+                <div class="info-alert">
                     <form action="index.php?confirmed=1" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this Comment?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
@@ -1313,7 +1535,7 @@ function displayEditDescriptionForm ()
             <fieldset>
                 <legend><span>'.T_('Category Description').'</span></legend>
                 <form action="index.php" method="post">
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"></div>
                         <div class="field-widget">
                             <textarea id="description" name="description" cols="63" rows="10">'.$row['description'].'</textarea>

@@ -370,3 +370,84 @@ function getAuthSubHttpClient($key, $token = '')
 
     return $httpClient;
 }
+
+/**
+ * getInstagramConfigData 
+ * 
+ * @return void
+ */
+function getInstagramConfigData ()
+{
+    if (   isset($_SESSION['instagram_client_id']) 
+        && isset($_SESSION['instagram_client_secret'])
+        && !empty($_SESSION['instagram_client_id'])
+        && !empty($_SESSION['instagram_client_secret']))
+    {
+        return array(
+            'instagram_client_id'     => $_SESSION['instagram_client_id'],
+            'instagram_client_secret' => $_SESSION['instagram_client_secret']
+        );
+    }
+
+    $sql = "SELECT `name`, `value`
+            FROM `fcms_config`
+            WHERE `name` = 'instagram_client_id'
+            OR `name` = 'instagram_client_secret'";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return;
+    }
+
+    if (mysql_num_rows($result) <= 0)
+    {
+        return;
+    }
+
+    $row = array();
+    while ($r = mysql_fetch_assoc($result))
+    {
+        $row[$r['name']]      = $r['value'];
+        $_SESSION[$r['name']] = $r['value'];
+    }
+
+    return $row;
+}
+
+/**
+ * getUserInstagramAccessToken
+ * 
+ * @param int $user 
+ * 
+ * @return void
+ */
+function getUserInstagramAccessToken ($user)
+{
+    $sql = "SELECT `instagram_access_token`
+            FROM `fcms_user_settings`
+            WHERE `user` = '$user'
+            LIMIT 1";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return null;
+    }
+
+    if (mysql_num_rows($result) <= 0)
+    {
+        return null;
+    }
+
+    $r = mysql_fetch_assoc($result);
+
+    if (empty($r['instagram_access_token']))
+    {
+        return null;
+    }
+
+    return $r['instagram_access_token'];
+}

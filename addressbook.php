@@ -223,7 +223,7 @@ Event.observe(window, \'load\', function() {
     include_once getTheme($currentUserId).'header.php';
 
     echo '
-        <div id="addressbook" class="centercontent clearfix">';
+        <div id="addressbook" class="centercontent">';
 }
 
 /**
@@ -543,7 +543,7 @@ function displayConfirmDeleteForm ()
     $cat = cleanOutput($_GET['cat']);
 
     echo '
-                <div class="info-alert clearfix">
+                <div class="info-alert">
                     <form action="addressbook.php?cat='.$cat.'&amp;delete='.$aid.'&amp;confirmed=1" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>

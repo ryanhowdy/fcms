@@ -194,7 +194,7 @@ Event.observe(window, \'load\', function() {
                     <h1>'.cleanOutput($row['fname']).' '.cleanOutput($row['lname']).'</h1>
                     <h2>'.cleanOutput($row['username']).'</h2>
                 </div>
-                <div id="sections_menu" class="clearfix">
+                <div id="sections_menu">
                     <ul>
                         <li><a href="?member='.$memberId.'">'.T_('Profile').'</a></li>
                         <li><a href="?member='.$memberId.'&amp;view=awards">'.T_('Awards').'</a></li>
@@ -366,7 +366,7 @@ function displayProfile ()
     }
 
     echo '
-            <ul id="profile-data" class="clearfix">
+            <ul id="profile-data">
                 <li>
                     <b>'.T_('Bio').'</b>
                     <div>'.cleanOutput($row['bio']).'</div>
@@ -517,8 +517,9 @@ function displayLatestPhotoGalleryPhotos ($memberId)
 {
     $memberId = (int)$memberId;
 
-    $sql = "SELECT `id`, `category`, `user`, `filename` 
-            FROM `fcms_gallery_photos` 
+    $sql = "SELECT p.`id`, p.`category`, p.`user`, p.`filename`, p.`external_id`, e.`thumbnail`
+            FROM `fcms_gallery_photos` AS p
+            LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
             WHERE user = '$memberId' 
             ORDER BY `date` DESC 
             LIMIT 5";
@@ -537,14 +538,25 @@ function displayLatestPhotoGalleryPhotos ($memberId)
 
     echo '
             <h2>'.T_('Latest Photos').'</h2>
-            <ul class="photos clearfix">';
+            <ul class="photos">';
 
     while ($row = mysql_fetch_assoc($result))
     {
+        $filename = basename($row['filename']);
+
+        if ($filename == 'noimage.gif' && $row['external_id'] != null)
+        {
+            $photoSrc = $row['thumbnail'];
+        }
+        else
+        {
+            $photoSrc = 'uploads/photos/member'.(int)$row['user'].'/tb_'.$filename;
+        }
+
         echo '
                 <li class="photo">
                     <a href="gallery/index.php?uid='.$memberId.'&amp;cid='.(int)$row['category'].'&amp;pid='.(int)$row['id'].'">
-                        <img class="photo" src="uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']).'" alt=""/>
+                        <img class="photo" src="'.$photoSrc.'" alt=""/>
                     </a>
                 </li>';
     }
@@ -571,13 +583,13 @@ function displayParticipation ()
     $level     = getUserParticipationLevel($points);
 
     echo '
-            <div class="clearfix">
+            <div>
                 <b>'.T_('Participation Points').'</b><br/>
                 <span style="float:left; padding-right: 10px;">'.$points.'</span>
                 '.$level.'
             </div><br/>
             <p><b>'.T_('Stats').'</b></p>
-            <div id="stats" class="clearfix">';
+            <div id="stats">';
 
     foreach ($statsData as $stats)
     {

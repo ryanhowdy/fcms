@@ -63,6 +63,10 @@ function load()
         {
             include_once THIRDPARTY.'facebook/src/facebook.php';
         }
+        elseif ($include == 'instagram')
+        {
+            include_once THIRDPARTY.'Instagram.php';
+        }
         elseif ($include == 'vimeo')
         {
             include_once THIRDPARTY.'vimeo/vimeo.php';

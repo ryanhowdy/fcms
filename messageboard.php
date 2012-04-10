@@ -619,7 +619,7 @@ function displayConfirmDelete ()
     displayHeader();
 
     echo '
-                <div class="info-alert clearfix">
+                <div class="info-alert">
                     <form action="messageboard.php?thread='.$threadId.'" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
@@ -944,7 +944,7 @@ function displaySearchSubmit ()
     displayHeader();
 
     echo '
-            <div id="sections_menu" class="clearfix">
+            <div id="sections_menu">
                 <ul>
                     <li><a href="messageboard.php">'.T_('Message Board Home').'</a></li>
                 </ul>
@@ -1069,7 +1069,7 @@ Event.observe(window, \'load\', function() {
     }
 
     echo '
-            <div id="sections_menu" class="clearfix">
+            <div id="sections_menu">
                 <ul>
                     <li><a href="messageboard.php">'.T_('Message Board Home').'</a></li>
                 </ul>
@@ -1128,7 +1128,7 @@ function displayAdvancedSearchSubmit ()
     displayHeader();
 
     echo '
-            <div id="sections_menu" class="clearfix">
+            <div id="sections_menu">
                 <ul>
                     <li><a href="messageboard.php">'.T_('Message Board Home').'</a></li>
                 </ul>

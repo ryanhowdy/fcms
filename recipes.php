@@ -246,7 +246,7 @@ if (isset($_POST['delrecipe']) && !isset($_POST['confirmed']))
     $show = false;
 
     echo '
-                <div class="info-alert clearfix">
+                <div class="info-alert">
                     <form action="recipes.php" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>

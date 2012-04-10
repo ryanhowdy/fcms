@@ -60,13 +60,13 @@ class Profile
                 </ul>
             </div>
             <div id="maincolumn">
-                <div id="actions_menu" class="clearfix">
+                <div id="actions_menu">
                     <ul>
                         <li><a href="?member='.$this->currentUserId.'">'.T_('View Profile').'</a></li>
                     </ul>
                 </div>
                 <h2>'.T_('Stats').'</h2>
-                <div id="stats" class="clearfix">';
+                <div id="stats">';
 
         foreach ($stats as $stat)
         {
@@ -140,7 +140,7 @@ class Profile
                 <form id="frm" action="profile.php?view=info" method="post">
                 <fieldset>
                     <legend><span>'.T_('Name').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="fname"><b>'.T_('First').'</b></label></div>
                         <div class="field-widget">
                             <input type="text" name="fname" size="50" id="fname" value="'.cleanOutput($row['fname']).'"/>
@@ -150,13 +150,13 @@ class Profile
                         var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
                         ffname.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label class="optional" for="mname"><b>'.T_('Middle').'</b></label></div>
                         <div class="field-widget">
                             <input type="text" name="mname" size="50" id="mname" value="'.cleanOutput($row['mname']).'"/>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="lname"><b>'.T_('Last').'</b></label></div>
                         <div class="field-widget">
                             <input type="text" name="lname" size="50" id="lname" value="'.cleanOutput($row['lname']).'"/>
@@ -166,7 +166,7 @@ class Profile
                         var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
                         flname.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label class="optional" for="maiden"><b>'.T_('Maiden').'</b></label></b></div>
                         <div class="field-widget">
                             <input type="text" name="maiden" size="50" id="maiden" value="'.cleanOutput($row['maiden']).'"/>
@@ -175,7 +175,7 @@ class Profile
                 </fieldset>
                 <fieldset>
                     <legend><span>'.T_('Bio').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label class="optional" for="bio"><b>'.T_('Bio').'</b></label></div>
                         <div class="field-widget">
                             <textarea name="bio" id="bio" cols="40" rows="5">'.$row['bio'].'</textarea>
@@ -184,7 +184,7 @@ class Profile
                 </fieldset>
                 <fieldset>
                     <legend><span>'.T_('Gender').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><b><label for="sex">'.T_('Gender').'</label></b></div>
                         <div class="field-widget">
                             <select id="sex" name="sex">
@@ -199,7 +199,7 @@ class Profile
                 </fieldset>
                 <fieldset>
                     <legend><span>'.T_('Birthday').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="sday"><b>'.T_('Birthday').'</b></label></div>
                         <div class="field-widget">
                             <select id="sday" name="sday">
@@ -327,7 +327,7 @@ class Profile
                     <fieldset>
                         <legend><span>'.T_('Profile Picture').'</span></legend>
 
-                        <div class="field-row clearfix">
+                        <div class="field-row">
                             <div class="field-label">
                                 <label for="avatar"><b>'.T_('Avatar').'</b></label>
                             </div>
@@ -338,7 +338,7 @@ class Profile
                             </div>
                         </div>
 
-                        <div id="fcms" class="field-row clearfix">
+                        <div id="fcms" class="field-row">
                             <div class="field-label">&nbsp;</div>
                             <div class="field-widget">
                                 '.$input.'
@@ -348,7 +348,7 @@ class Profile
                             <p><input class="sub1" type="'.$submit.'" name="submit" id="submitUpload" value="'.T_('Submit').'"/></p>
                         </div>
 
-                        <div id="gravatar" class="field-row clearfix">
+                        <div id="gravatar" class="field-row">
                             <div class="field-label">&nbsp;</div>
                             <div class="field-widget">
                                 <b>'.T_('Gravatar Email').'</b><br/>
@@ -358,7 +358,7 @@ class Profile
                             <p><input class="sub1" type="submit" name="submit" id="submitGravatar" value="'.T_('Submit').'"/></p>
                         </div>
 
-                        <div id="default" class="field-row clearfix">
+                        <div id="default" class="field-row">
                             <div class="field-label">&nbsp;</div>
                             <div class="field-widget">
                                 '.$currentAvatar.'

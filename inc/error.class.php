@@ -25,10 +25,18 @@ class FCMS_Error
 {
     /**
      * Stores the list of errors.
-     * 
-     * @var array
      */
-    var $errors = array();
+    private $errors = array();
+
+    /**
+     * Stores the list of errors, with additional debug info.
+     */
+    private $debug = array();
+
+    /**
+     * Is debug on.
+     */
+    private $debugOn = false;
 
     /**
      * Form Constructor
@@ -37,6 +45,7 @@ class FCMS_Error
      */
     public function __construct()
     {
+        $this->debugOn = debugOn();
     }
 
     /**
@@ -57,6 +66,24 @@ class FCMS_Error
     }
 
     /**
+     * getErrors 
+     * 
+     * @return array
+     */
+    public function getErrors ()
+    {
+        if ($this->debugOn)
+        {
+            return array(
+                'errors' => $this->errors,
+                'debug'  => $this->debug
+            );
+        }
+
+        return $this->errors;
+    }
+
+    /**
      * displayErrors 
      * 
      * Prints out all errors.
@@ -70,38 +97,76 @@ class FCMS_Error
             return;
         }
 
-        echo '
-        <div class="error-alert">';
+        echo '<div class="error-alert">';
 
-        foreach ($this->errors as $msg)
+        for ($i=0; $i < count($this->errors); $i++)
         {
-            echo '
-            <p>'.$msg.'</p>';
+            echo '<p><b>'.$this->errors[$i].'</b>';
+
+            if ($this->debugOn)
+            {
+                echo '<br/>'.$this->debug[$i];
+            }
+
+            echo '</p>';
         }
 
-        echo '
-        </div>';
-    }
-
-    /**
-     * getErrors 
-     * 
-     * @return array
-     */
-    public function getErrors ()
-    {
-        return $this->errors;
+        echo '</div>';
     }
 
     /**
      * add 
      * 
+     * Logs the error and keeps track of the error info.
+     * 
+     * Params:
+     *
+     *   message   - is a nice message to display to the user.
+     *
+     *   debugInfo - any error info that would be useful for debugging.
+     *               could be an array or string
+     *
+     * 
      * @param string $message 
+     * @param mixed  $debugInfo
      * 
      * @return void
      */
-    public function add ($message)
+    public function add ($message, $debugInfo = null)
     {
+        $backtrace = debug_backtrace(false);
+        $last      = $backtrace[1];
+        $file      = $last['file'];
+        $line      = $last['line'];
+        $debugInfo = "$file [$line]";
+        $log       = "$file [$line]";
+
+        // Save error
         $this->errors[] = $message;
+
+        // Get debug/log info
+        if (is_null($debugInfo))
+        {
+            $debugInfo .= " - $message";
+            $log       .= $message;
+        }
+        else
+        {
+            if (is_array($debugInfo) || is_object($debugInfo))
+            {
+                $debugInfo .= ' - '.print_r($debugInfo, true);
+                $log       .= $message."\n".$debugInfo;
+            }
+            else
+            {
+                $log = $message.' - '.$debugInfo;
+            }
+        }
+
+        // Save debug info
+        $this->debug[] = $debugInfo;
+
+        // Log error
+        logError("$log");
     }
 }

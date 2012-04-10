@@ -419,7 +419,7 @@ function displayHtmlForm ($error = '0')
         <form id="registerform" name="registerform" action="register.php" method="post">
             <div class="field-row">
                 <div class="field-label"><label for="username"><b>'.T_('Username').'</b> <span class="req">*</span></label></div>
-                <div class="field-widget clearfix">
+                <div class="field-widget">
                     <input type="text" name="username" id="username" title="'.T_('Used for logging into the site.').'" value="'.$user.'"/>
                 </div>
             </div>
@@ -429,7 +429,7 @@ function displayHtmlForm ($error = '0')
             </script>
             <div class="field-row">
                 <div class="field-label"><label for="password"><b>'.T_('Password').'</b> <span class="req">*</span></label></div>
-                <div class="field-widget clearfix">
+                <div class="field-widget">
                     <input type="password" name="password" id="password" title="'.T_('Used for loggin into the site.').'"/>
                 </div>
             </div>
@@ -439,7 +439,7 @@ function displayHtmlForm ($error = '0')
             </script>
             <div class="field-row">
                 <div class="field-label"><label for="fname"><b>'.T_('First Name').'</b> <span class="req">*</span></label></div>
-                <div class="field-widget clearfix">
+                <div class="field-widget">
                     <input type="text" name="fname" id="fname" title="'.T_('The name your mother gave you.').'" value="'.$first.'"/>
                 </div>
             </div>
@@ -449,7 +449,7 @@ function displayHtmlForm ($error = '0')
             </script>
             <div class="field-row">
                 <div class="field-label"><label for="lname"><b>'.T_('Last Name').'</b> <span class="req">*</span></label></div>
-                <div class="field-widget clearfix">
+                <div class="field-widget">
                     <input type="text" name="lname" id="lname" title="'.T_('Your family name.').'" value="'.$last.'"/>
                 </div>
             </div>
@@ -459,7 +459,7 @@ function displayHtmlForm ($error = '0')
             </script>
             <div class="field-row">
                 <div class="field-label"><label for="email"><b>'.T_('Email Address').'</b> <span class="req">*</span></label></div>
-                <div class="field-widget clearfix">
+                <div class="field-widget">
                     <input type="text" name="email" id="email" title="'.T_('Where can we send validation and updates?').'" value="'.$email.'"/>
                 </div>
             </div>

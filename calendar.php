@@ -214,7 +214,7 @@ Event.observe(window, \'load\', function() {
     include_once getTheme($currentUserId).'header.php';
 
     echo '
-        <div id="calendar-section" class="centercontent clearfix">';
+        <div id="calendar-section" class="centercontent">';
 }
 
 /**
@@ -578,7 +578,7 @@ function displayDeleteConfirmationForm ()
     displayHeader();
 
     echo '
-            <div class="info-alert clearfix">
+            <div class="info-alert">
                 <form action="calendar.php" method="post">
                     <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                     <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>

@@ -75,12 +75,12 @@ Event.observe(window, \'load\', function() {
 require_once getTheme($currentUserId).'header.php';
 
 echo '
-        <div id="familynews" class="centercontent clearfix">';
+        <div id="familynews" class="centercontent">';
 
 if (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9)
 {
     echo '
-            <div id="sections_menu" class="clearfix">
+            <div id="sections_menu">
                 <ul>
                     <li><a href="familynews.php">'.T_('Latest News').'</a></li>';
 
@@ -93,7 +93,7 @@ if (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9)
     echo '
                 </ul>
             </div>
-            <div id="actions_menu" class="clearfix">
+            <div id="actions_menu">
                 <ul>
                     <li><a href="?addnews=yes">'.T_('Add News').'</a></li>
                 </ul>
@@ -231,7 +231,7 @@ else if (isset($_POST['delnews']) && !isset($_POST['confirmed']))
 {
     $show_last5 = false;
     echo '
-                <div class="info-alert clearfix">
+                <div class="info-alert">
                     <form action="familynews.php?getnews='.(int)$_POST['user'].'" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
@@ -298,7 +298,7 @@ if (isset($_GET['getnews']))
     {
         $show_last5 = false;
         echo '
-                <div class="info-alert clearfix">
+                <div class="info-alert">
                     <form action="familynews.php?getnews='.(int)$_GET['getnews'].'" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone').'</i></b></p>

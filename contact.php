@@ -68,19 +68,19 @@ else
     echo '
             <fieldset>
                 <form method="post" class="contactform" action="contact.php">
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="email"><b>'.T_('Your Email').'</b></label></div>
                         <div class="field-widget"><input type="text" id="email" name="email" size="30" value="'.$email.'"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="name"><b>'.T_('Your Name').'</b></label></div>
                         <div class="field-widget"><input type="text" id="name" name="name" size="30" value="'.$name.'"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="subject"><b>'.T_('Subject').'</b></label></div>
                         <div class="field-widget"><input type="text" id="subject" name="subject" size="30" value="'.$subject.'"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="msg"><b>'.T_('Message').'</b></label></div>
                         <div class="field-widget"><textarea name="msg" rows="10" cols="40">'.$msg.'</textarea></div>
                     </div>

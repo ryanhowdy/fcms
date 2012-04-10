@@ -169,7 +169,7 @@ if ($show)
     if (checkAccess($currentUserId) <= 5)
     {
         echo '
-            <div id="actions_menu" class="clearfix">
+            <div id="actions_menu">
                 <ul><li><a href="?adddoc=yes">'.T_('Add Document').'</a></li></ul>
             </div>';
     }

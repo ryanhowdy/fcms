@@ -79,8 +79,9 @@ if (!isset($_GET['category']))
 
 $cid = (int)$_GET['category'];
 
-$sql = "SELECT `caption`, `filename`, `user` 
-        FROM `fcms_gallery_photos` 
+$sql = "SELECT p.`caption`, p.`filename`, p.`user`, p.`external_id`, e.`medium`
+        FROM `fcms_gallery_photos` AS p
+        LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
         WHERE `category` = '$cid'";
 
 $result = mysql_query($sql);
@@ -105,9 +106,18 @@ if (mysql_num_rows($result) > 0)
         $filename = basename($r['filename']);
         $caption  = cleanOutput($r['caption']);
 
+        if ($r['filename'] == 'noimage.gif' && $r['external_id'] != null)
+        {
+            $photoSrc = $r['medium'];
+        }
+        else
+        {
+            $photoSrc = '../uploads/photos/member'.$user.'/'.$filename;
+        }
+
         echo '
     <div id="img'.$i.'" style="display:none; color:#fff;">
-        <img src="../uploads/photos/member'.$user.'/'.$filename.'" alt="'.$caption.'"/><br/>
+        <img src="'.$photoSrc.'" alt="'.$caption.'"/><br/>
         '.$caption.'
     </div>';
 

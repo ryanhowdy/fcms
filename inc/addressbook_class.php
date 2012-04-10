@@ -149,23 +149,23 @@ class AddressBook
                         <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/>
                         <b class="name">'.cleanOutput($r['fname']).' '.cleanOutput($r['lname']).'</b>
                     </p>
-                    <p class="clearfix">
+                    <p>
                         <b class="label">'.T_('Address').':</b>
                         <span class="data">'.$address.' '.$map_link.'</span>
                     </p>
-                    <p class="clearfix">
+                    <p>
                         <b class="label">'.T_('Email').':</b>
                         <span class="data">'.$email.'</span>
                     </p>
-                    <p class="clearfix">
+                    <p>
                         <b class="label">'.T_pgettext('The dwelling where you live.', 'Home').':</b>
                         <span class="data">'.$home.'</span>
                     </p>
-                    <p class="clearfix">
+                    <p>
                         <b class="label">'.T_('Work').':</b>
                         <span class="data">'.$work.'</span>
                     </p>
-                    <p class="clearfix">
+                    <p>
                         <b class="label">'.T_('Mobile').':</b>
                         <span class="data">'.$cell.'</span>
                     </p>
@@ -434,7 +434,7 @@ class AddressBook
             <form id="addressbook_form" action="'.$submit.'" method="post">
                 <fieldset>
                     <legend><span>'.T_('Edit Address').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="email" id="email" size="50" value="'.$email.'"/></div>
                     </div>
@@ -442,7 +442,7 @@ class AddressBook
                         var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
                         femail.add( Validate.Email, { failureMessage: "'.T_('That\'s not a valid email, is it?').'"});
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="country"><b>'.T_('Country').'</b></label></div>
                         <div class="field-widget">
                             <select name="country" id="country">
@@ -453,23 +453,23 @@ class AddressBook
                             </select>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="address"><b>'.T_('Street Address').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="address" id="address" size="25" value="'.$address.'"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="city"><b>'.T_('City').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="city" id="city" size="50" value="'.$city.'"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="state"><b>'.T_('State').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="state" id="state" size="50" value="'.$state.'"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="zip"><b>'.T_('Zip Code').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="zip" id="zip" size="10" value="'.$zip.'"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="home"><b>'.T_('Home Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="home" id="home" size="20" value="'.$home.'"/></div>
                     </div>
@@ -477,7 +477,7 @@ class AddressBook
                         var fhome = new LiveValidation(\'home\', { onlyOnSubmit: true });
                         fhome.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="work"><b>'.T_('Work Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="work" id="work" size="20" value="'.$work.'"/></div>
                     </div>
@@ -485,7 +485,7 @@ class AddressBook
                         var fwork = new LiveValidation(\'work\', { onlyOnSubmit: true });
                         fwork.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="cell"><b>'.T_('Cell Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="cell" id="cell" size="20" value="'.$cell.'"/></div>
                     </div>
@@ -537,7 +537,7 @@ class AddressBook
                 </p>
                 <fieldset>
                     <legend><span>'.T_('Add Address').'</span></legend>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="fname"><b>'.T_('First Name').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="fname" id="fname" size="25"/></div>
                     </div>
@@ -545,7 +545,7 @@ class AddressBook
                         var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
                         ffname.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="lname"><b>'.T_('Last Name').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="lname" id="lname" size="25"/></div>
                     </div>
@@ -553,7 +553,7 @@ class AddressBook
                         var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
                         flname.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="email" id="email" size="50"/></div>
                     </div>
@@ -561,7 +561,7 @@ class AddressBook
                         var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
                         femail.add( Validate.Email, { failureMessage: "'.T_('That\'s not a valid email, is it?').'"});
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="country"><b>'.T_('Country').'</b></label></div>
                         <div class="field-widget">
                             <select name="country" id="country">
@@ -572,23 +572,23 @@ class AddressBook
                             </select>
                         </div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="address"><b>'.T_('Street Address').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="address" id="address" size="25"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="city"><b>'.T_('City').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="city" id="city" size="50"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="state"><b>'.T_('State').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="state" id="state" size="50"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="zip"><b>'.T_('Zip Code').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="zip" id="zip" size="10"/></div>
                     </div>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="home"><b>'.T_('Home Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="home" id="home" size="20"/></div>
                     </div>
@@ -596,7 +596,7 @@ class AddressBook
                         var fhome = new LiveValidation(\'home\', { onlyOnSubmit: true });
                         fhome.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="work"><b>'.T_('Work Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="work" id="work" size="20"/></div>
                     </div>
@@ -604,7 +604,7 @@ class AddressBook
                         var fwork = new LiveValidation(\'work\', { onlyOnSubmit: true });
                         fwork.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="cell"><b>'.T_('Cell Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="cell" id="cell" size="20"/></div>
                     </div>
@@ -612,7 +612,7 @@ class AddressBook
                         var fcell = new LiveValidation(\'cell\', { onlyOnSubmit: true });
                         fcell.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="private"><b>'.T_('Private').'</b></label></div>
                         <div class="field-widget"><input type="checkbox" name="private" id="private"/></div>
                     </div>
@@ -687,7 +687,7 @@ class AddressBook
             <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form method="post" class="contactform" action="addressbook.php">
                 <fieldset>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="email"><b>'.T_('Your Email').'</b></label></div>
                         <div class="field-widget">
                             <input class="frm_text" value="'.cleanOutput($email).'" type="text" name="email" id="email" size="30"/>
@@ -698,7 +698,7 @@ class AddressBook
                         var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
                         femail.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="name"><b>'.T_('Your Name').'</b></label></div>
                         <div class="field-widget">
                             <input class="frm_text" value="'.cleanOutput($name).'" type="text" name="name" id="name" size="30"/>
@@ -709,7 +709,7 @@ class AddressBook
                         var fname = new LiveValidation(\'name\', { onlyOnSubmit: true });
                         fname.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="subject"><b>'.T_('Subject').'</b></label></div>
                         <div class="field-widget">
                             <input class="frm_text" value="'.cleanOutput($subject).'" type="text" name="subject" id="subject" size="30"/>
@@ -720,7 +720,7 @@ class AddressBook
                         var fsub = new LiveValidation(\'subject\', { onlyOnSubmit: true });
                         fsub.add(Validate.Presence, {failureMessage: ""});
                     </script>
-                    <div class="field-row clearfix">
+                    <div class="field-row">
                         <div class="field-label"><label for="msg"><b>'.T_('Message').'</b></label></div>
                         <div class="field-widget">
                             <textarea name="msg" id="msg" rows="10" cols="40"/>'.cleanOutput($message, 'html').'</textarea>
