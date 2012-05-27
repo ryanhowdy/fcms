@@ -14,15 +14,16 @@
 session_start();
 
 define('URL_PREFIX', '../');
+define('GALLERY_PREFIX', '');
 
 require URL_PREFIX.'fcms.php';
 
 load('gallery');
 
-$currentUserId = (int)$_SESSION['login_id'];
-$gallery       = new PhotoGallery($currentUserId);
+// Gallery
+$gallery = new PhotoGallery($fcmsUser->id);
 
-if ($currentUserId < 1)
+if ($fcmsUser->id < 1)
 {
     echo "Current User Authorization Failure";
     logError(__FILE__.' ['.__LINE__.'] - Unauthorized user attempted upload.');
@@ -74,7 +75,7 @@ if (empty($_POST['category']))
                     VALUES (
                         '$newCategory', 
                         'gallery', 
-                        '$currentUserId'
+                        '$fcmsUser->id'
                     )";
             if (!mysql_query($sql))
             {
@@ -93,7 +94,7 @@ $sql = "INSERT INTO `fcms_gallery_photos` (`date`, `category`, `user`)
         VALUES(
             NOW(), 
             '".(int)$_POST['category']."', 
-            '$currentUserId'
+            '$fcmsUser->id'
         )";
 if (!mysql_query($sql))
 {
@@ -105,10 +106,11 @@ if (!mysql_query($sql))
 // Update the filename and update the photo record in DB
 // We insert above and update below so we can make sure that the filename of
 // the photo is the same as the photo id
-$new_id    = mysql_insert_id();
-$filetype  = $_FILES['medium']['type'];
-$extention = $known_photo_types[$filetype];
-$filename  = "$new_id.$extention";
+$new_id      = mysql_insert_id();
+$filetype    = $_FILES['medium']['type'];
+$extention   = $known_photo_types[$filetype];
+$filename    = $new_id.'.'.$extention;
+$uploadsPath = getUploadsAbsolutePath();
 
 $sql = "UPDATE `fcms_gallery_photos` 
         SET `filename` = '".escape_string($filename)."' 
@@ -124,22 +126,22 @@ if (!mysql_query($sql))
 foreach ($file_param_name AS $file)
 {
     // Create new member directory if needed
-    if (!file_exists("../uploads/photos/member$currentUserId"))
+    if (!file_exists($uploadsPath.'photos/member'.$fcmsUser->id))
     {
-        mkdir("../uploads/photos/member$currentUserId");
+        mkdir($uploadsPath.'photos/member'.$fcmsUser->id);
     }
 
     if ($file == 'small')
     {
-        $dest_path = "../uploads/photos/member$currentUserId/tb_$filename";
+        $dest_path = $uploadsPath.'photos/member'.$fcmsUser->id.'/tb_'.$filename;
     }
     elseif ($file == 'full' && isset($_POST['full-sized-photos']))
     {
-        $dest_path = "../uploads/photos/member$currentUserId/full_$filename";
+        $dest_path = $uploadsPath.'photos/member'.$fcmsUser->id.'/full_'.$filename;
     }
     else
     {
-        $dest_path = "../uploads/photos/member$currentUserId/$filename";
+        $dest_path = $uploadsPath.'photos/member'.$fcmsUser->id.'/'.$filename;
     }
 
     if (move_uploaded_file($_FILES[$file]['tmp_name'], $dest_path))

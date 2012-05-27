@@ -15,6 +15,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -22,15 +23,13 @@ load('datetime', 'socialmedia', 'youtube', 'comments');
 
 init();
 
-// Globals
-$currentUserId = (int)$_SESSION['login_id'];
-
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Video Gallery'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -48,14 +47,14 @@ exit();
  */
 function control ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     // AJAX
     if (isset($_GET['check_status']))
     {
         if (isset($_SESSION['source_id']))
         {
-            $sessionToken  = getSessionToken($currentUserId);
+            $sessionToken  = getSessionToken($fcmsUser->id);
             echo getUploadStatus($_SESSION['source_id'], $sessionToken);
             return;
         }
@@ -134,7 +133,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script type="text/javascript">
@@ -147,7 +146,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    include_once getTheme($currentUserId).'header.php';
+    include_once getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="video" class="centercontent">
@@ -166,12 +165,12 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!-- /centercontent -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -185,12 +184,12 @@ function displayFooter ()
  */
 function checkUserAuthedYouTube ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     // Get session token
     $sql = "SELECT `youtube_session_token`
             FROM `fcms_user_settings`
-            WHERE `user` = '$currentUserId'
+            WHERE `user` = '$fcmsUser->id'
             AND `youtube_session_token` IS NOT NULL
             AND `youtube_session_token` != ''";
 
@@ -330,7 +329,7 @@ function displayYouTubeUploadPage ()
  */
 function displayYouTubeUploadFilePage ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
@@ -371,9 +370,9 @@ function displayYouTubeUploadFilePage ()
                 '$cleanVideoDescription',
                 'youtube',
                 NOW(),
-                '$currentUserId',
+                '$fcmsUser->id',
                 NOW(),
-                '$currentUserId'
+                '$fcmsUser->id'
             )";
     if (!mysql_query($sql))
     {
@@ -385,7 +384,7 @@ function displayYouTubeUploadFilePage ()
     // Save fcms video id
     $_SESSION['fcmsVideoId'] = mysql_insert_id();
 
-    $sessionToken  = getSessionToken($currentUserId);
+    $sessionToken  = getSessionToken($fcmsUser->id);
     $youtubeConfig = getYouTubeConfigData();
     $httpClient    = getAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
 
@@ -463,7 +462,7 @@ function displayYouTubeUploadFilePage ()
  */
 function displayYouTubeUploadStatusPage ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $sourceId = $_GET['id'];
     $status   = $_GET['status'];
@@ -517,7 +516,7 @@ function displayYouTubeUploadStatusPage ()
             }
 
             // Create fcms video
-            header("Location: video.php?u=$currentUserId&id=$videoId");
+            header("Location: video.php?u=$fcmsUser->id&id=$videoId");
 
             break;
 
@@ -556,7 +555,7 @@ function displayVimeoUploadPage ()
  */
 function displayLatestPage ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
@@ -716,7 +715,7 @@ function displayVideoPage ()
  */
 function displayYouTubeVideoPage ($video)
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     // Save video id for ajax call
     $_SESSION['source_id'] = $video['source_id'];
@@ -825,7 +824,7 @@ function displayYouTubeVideoPage ($video)
         </div>';
 
     // Can you edit/delete this video?
-    if ($video['created_id'] == $currentUserId || checkAccess($currentUserId) == 1)
+    if ($video['created_id'] == $fcmsUser->id || checkAccess($fcmsUser->id) == 1)
     {
         echo '
         <div id="video_edit">
@@ -869,7 +868,7 @@ function displayYouTubeVideoPage ($video)
     echo '<p>'.T_('Views').': '.$videoEntry->getVideoViewCount().'</p>';
 
     $params = array(
-        'currentUserId' => $currentUserId,
+        'currentUserId' => $fcmsUser->id,
         'id'            => $video['id']
     );
     displayComments($url, 'video', $params);
@@ -972,7 +971,7 @@ function getUploadStatus ($videoId, $sessionToken = false)
  */
 function displayCommentSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $userId   = (int)$_GET['u'];
     $videoId  = escape_string($_GET['id']);
@@ -988,9 +987,9 @@ function displayCommentSubmit ()
                     '$videoId', 
                     '$comments', 
                     NOW(), 
-                    '$currentUserId', 
+                    '$fcmsUser->id', 
                     NOW(), 
-                    '$currentUserId'
+                    '$fcmsUser->id'
                 )";
 
         if (!mysql_query($sql))
@@ -1101,7 +1100,7 @@ function displayMembersListPage ()
  */
 function displayUserVideosPage ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
@@ -1180,7 +1179,7 @@ function displayUserVideosPage ()
 
         if ($row['active'] == '0')
         {
-            if ($row['created_id'] != $currentUserId)
+            if ($row['created_id'] != $fcmsUser->id)
             {
                 continue;
             }
@@ -1188,7 +1187,7 @@ function displayUserVideosPage ()
             $class = 'removed';
         }
 
-        $date = fixDate('Y-m-d', '', $row['created'], $currentUserId);
+        $date = fixDate('Y-m-d', '', $row['created'], $fcmsUser->id);
 
         echo '
                 <li class="category '.$class.'">
@@ -1216,7 +1215,7 @@ function displayUserVideosPage ()
  */
 function displayRemoveVideoSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     if (!isset($_POST['id']) || !isset($_POST['source_id']))
     {
@@ -1233,7 +1232,7 @@ function displayRemoveVideoSubmit ()
     $sql = "UPDATE `fcms_video`
             SET `active` = 0,
             `updated` = NOW(),
-            `updated_id` = '$currentUserId'
+            `updated_id` = '$fcmsUser->id'
             WHERE `id` = '$id'";
  
     if (!mysql_query($sql))
@@ -1246,7 +1245,7 @@ function displayRemoveVideoSubmit ()
 
     if (isset($_POST['delete_youtube']))
     {
-        $sessionToken  = getSessionToken($currentUserId);
+        $sessionToken  = getSessionToken($fcmsUser->id);
         $youtubeConfig = getYouTubeConfigData();
         $httpClient    = getAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
 
@@ -1286,7 +1285,7 @@ function displayRemoveVideoSubmit ()
  */
 function displayDeleteVideoSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     if (!isset($_POST['id']) || !isset($_POST['source_id']))
     {

@@ -46,6 +46,9 @@ if (get_magic_quotes_gpc())
     $_COOKIE  = array_map('stripslashes', $_COOKIE);
 }
 
+define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
+
 main();
 return;
 
@@ -181,6 +184,8 @@ function displayStepOne ()
     $curl   = "<span class=\"bad\">".T_('BAD')."</span>";
     $php    = "<span class=\"bad\">".T_('BAD')."</span>";
 
+    $uploadsPath = getUploadsAbsolutePath();
+
     // Check inc
     $check_inc = false;
     if (isWritable('inc/'))
@@ -191,7 +196,7 @@ function displayStepOne ()
 
     // Check avatar
     $check_avatar = false;
-    if (isWritable('uploads/avatar/'))
+    if (isWritable($uploadsPath.'avatar/'))
     {
         $check_avatar = true;
         $avatar       = "<span class=\"ok\">".T_('OK')."</span>";
@@ -199,7 +204,7 @@ function displayStepOne ()
 
     // Check documents
     $check_docs = false;
-    if (isWritable('uploads/documents/'))
+    if (isWritable($uploadsPath.'documents/'))
     {
         $check_docs = true;
         $docs       = "<span class=\"ok\">".T_('OK')."</span>";
@@ -207,7 +212,7 @@ function displayStepOne ()
 
     // Check photos
     $check_photos = false;
-    if (isWritable('uploads/photos/'))
+    if (isWritable($uploadsPath.'photos/'))
     {
         $check_photos = true;
         $photos       = "<span class=\"ok\">".T_('OK')."</span>";
@@ -215,7 +220,7 @@ function displayStepOne ()
 
     // Check upimages
     $check_up = false;
-    if (isWritable('uploads/upimages/'))
+    if (isWritable($uploadsPath.'upimages/'))
     {
         $check_up = true;
         $up       = "<span class=\"ok\">".T_('OK')."</span>";
@@ -251,13 +256,13 @@ function displayStepOne ()
             <div><b>'.T_('Checking Folder Permissions').'</b></div>
             <div><div class="dir">inc/</div> <div class="status">'.$inc.'</div></div>
             <div style="clear:both;"></div>
-            <div><div class="dir">uploads/avatar/</div> <div class="status">'.$avatar.'</div></div>
+            <div><div class="dir">'.$uploadsPath.'avatar/</div> <div class="status">'.$avatar.'</div></div>
             <div style="clear:both;"></div>
-            <div><div class="dir">uploads/documents/</div> <div class="status">'.$docs.'</div></div>
+            <div><div class="dir">'.$uploadsPath.'documents/</div> <div class="status">'.$docs.'</div></div>
             <div style="clear:both;"></div>
-            <div><div class="dir">uploads/photos/</div> <div class="status">'.$photos.'</div></div>
+            <div><div class="dir">'.$uploadsPath.'photos/</div> <div class="status">'.$photos.'</div></div>
             <div style="clear:both;"></div>
-            <div><div class="dir">uploads/upimages/</div> <div class="status">'.$up.'</div></div>
+            <div><div class="dir">'.$uploadsPath.'upimages/</div> <div class="status">'.$up.'</div></div>
             <div style="clear:both;"></div>';
 
     if ($check_inc && $check_avatar && $check_docs && $check_photos && $check_up && $check_curl && $check_php)

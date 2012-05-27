@@ -15,6 +15,7 @@
 session_start();
 
 define('URL_PREFIX', '../');
+define('GALLERY_PREFIX', '../gallery/');
 
 require URL_PREFIX.'fcms.php';
 
@@ -22,16 +23,12 @@ load('socialmedia');
 
 init('admin/');
 
-// Globals
-$currentUserId = (int)$_SESSION['login_id'];
-
-// Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: Foursquare'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -68,7 +65,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>';
@@ -86,7 +83,7 @@ function displayHeader ()
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!-- /foursquare -->';
@@ -101,9 +98,9 @@ function displayFooter ()
  */
 function checkPermissions ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
-    if (checkAccess($currentUserId) > 2)
+    if (checkAccess($fcmsUser->id) > 2)
     {
         echo '
                 <p class="error-alert">

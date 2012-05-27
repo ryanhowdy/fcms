@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '../');
+define('GALLERY_PREFIX', '');
 
 require URL_PREFIX.'fcms.php';
 
@@ -22,15 +23,15 @@ load('gallery');
 init('gallery/');
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
-$gallery       = new PhotoGallery($currentUserId);
+$gallery = new PhotoGallery($fcmsUser->id);
 
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Photo Gallery'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -202,7 +203,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script type="text/javascript">
@@ -223,7 +224,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    include_once getTheme($currentUserId, $TMPL['path']).'header.php';
+    include_once getTheme($fcmsUser->id, $TMPL['path']).'header.php';
 
     echo '
         <div id="gallery" class="centercontent">';
@@ -236,12 +237,12 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!-- #gallery .centercontent -->';
 
-    include_once getTheme($currentUserId, $TMPL['path']).'footer.php';
+    include_once getTheme($fcmsUser->id, $TMPL['path']).'footer.php';
 }
 
 /**
@@ -457,6 +458,7 @@ function displayDeletePhotoSubmit ()
     global $gallery;
 
     $cleanPhotoId = (int)$_POST['photo'];
+    $uploadsPath  = getUploadsAbsolutePath();
 
     // Get photo info
     $sql = "SELECT `user`, `category`, `filename` 
@@ -501,12 +503,12 @@ function displayDeletePhotoSubmit ()
     }
     
     // Remove the Photo from the server
-    unlink(ROOT."uploads/photos/member$photoUserId/".basename($photoFilename));
-    unlink(ROOT."uploads/photos/member$photoUserId/tb_".basename($photoFilename));
+    unlink($uploadsPath.'photos/member'.$photoUserId.'/'.basename($photoFilename));
+    unlink($uploadsPath.'photos/member'.$photoUserId.'/tb_'.basename($photoFilename));
 
     if ($gallery->usingFullSizePhotos())
     {
-        unlink(ROOT."uploads/photos/member$photoUserId/full_".basename($photoFilename));
+        unlink($uploadsPath.'photos/member'.$photoUserId.'/full_'.basename($photoFilename));
     }
 
     $_SESSION['message'] = 1;
@@ -521,9 +523,9 @@ function displayDeletePhotoSubmit ()
  */
 function checkActionPermissions ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
-    $access = checkAccess($currentUserId);
+    $access = checkAccess($fcmsUser->id);
 
     // Catch users who can't upload photos, create categories, etc.
     if (   $access == NON_POSTER_USER
@@ -550,7 +552,7 @@ function checkActionPermissions ()
  */
 function displayUploadForm ()
 {
-    global $currentUserId, $gallery;
+    global $fcmsUser, $gallery;
 
     displayHeader();
 
@@ -571,7 +573,7 @@ function displayUploadForm ()
     {
         $sql = "UPDATE `fcms_user_settings`
                 SET `advanced_upload` = '1'
-                WHERE `user` = '$currentUserId'";
+                WHERE `user` = '$fcmsUser->id'";
         if (!mysql_query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -590,7 +592,7 @@ function displayUploadForm ()
     }
 
     // Advanced Uploader
-    if (usingAdvancedUploader($currentUserId))
+    if (usingAdvancedUploader($fcmsUser->id))
     {
         $gallery->displayJavaUploadForm();
     }
@@ -612,7 +614,7 @@ function displayUploadForm ()
  */
 function displayUploadFormSubmit ()
 {
-    global $gallery, $currentUserId;
+    global $gallery, $fcmsUser;
 
     // Catch photos that are too large
     if ($_FILES['photo_filename']['error'] == 1)
@@ -655,7 +657,7 @@ function displayUploadFormSubmit ()
                 VALUES (
                     '$newCategory', 
                     'gallery', 
-                    '$currentUserId'
+                    '$fcmsUser->id'
                 )";
 
         if (!mysql_query($sql))
@@ -728,7 +730,7 @@ function displayUploadFormSubmit ()
     {
         while ($r = mysql_fetch_array($result))
         {
-            $name          = getUserDisplayName($currentUserId);
+            $name          = getUserDisplayName($fcmsUser->id);
             $to            = getUserDisplayName($r['user']);
             $subject       = sprintf(T_('%s has added a new photo.'), $name);
             $email         = $r['email'];
@@ -739,7 +741,7 @@ function displayUploadFormSubmit ()
 
 '.$subject.'
 
-'.$url.'index.php?uid='.$currentUserId.'&cid='.$cleanCategory.'
+'.$url.'index.php?uid='.$fcmsUser->id.'&cid='.$cleanCategory.'
 
 ----
 '.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
@@ -761,14 +763,14 @@ function displayUploadFormSubmit ()
  */
 function displayInstagramUploadFormSubmit ()
 {
-    global $gallery, $currentUserId;
+    global $gallery, $fcmsUser;
 
     // Turn on auto upload for Instagram
     if (isset($_POST['automatic']))
     {
         $sql = "UPDATE `fcms_user_settings`
                 SET `instagram_auto_upload` = '1'
-                WHERE `user` = '$currentUserId'";
+                WHERE `user` = '$fcmsUser->id'";
 
         $result = mysql_query($sql);
         if (!$result)
@@ -796,7 +798,7 @@ function displayInstagramUploadFormSubmit ()
     {
         $sql = "UPDATE `fcms_user_settings`
                 SET `instagram_auto_upload` = '0'
-                WHERE `user` = '$currentUserId'";
+                WHERE `user` = '$fcmsUser->id'";
 
         $result = mysql_query($sql);
         if (!$result)
@@ -824,7 +826,7 @@ function displayInstagramUploadFormSubmit ()
     // Upload individual photos
     if (isset($_POST['photos']))
     {
-        $categoryId  = getUserInstagramCategory($currentUserId);
+        $categoryId  = getUserInstagramCategory($fcmsUser->id);
         $existingIds = getExistingInstagramIds();
 
         foreach ($_POST['photos'] AS $data)
@@ -858,7 +860,7 @@ function displayInstagramUploadFormSubmit ()
             $sql = "INSERT INTO `fcms_gallery_photos`
                         (`date`, `external_id`, `caption`, `category`, `user`)
                     VALUES
-                        (NOW(), '$id', '$caption', '$categoryId', '$currentUserId')";
+                        (NOW(), '$id', '$caption', '$categoryId', '$fcmsUser->id')";
 
             $result = mysql_query($sql);
             if (!$result)
@@ -889,7 +891,7 @@ function displayInstagramUploadFormSubmit ()
         {
             while ($r = mysql_fetch_array($result))
             {
-                $name          = getUserDisplayName($currentUserId);
+                $name          = getUserDisplayName($fcmsUser->id);
                 $to            = getUserDisplayName($r['user']);
                 $subject       = sprintf(T_('%s has added new photos.'), $name);
                 $email         = $r['email'];
@@ -900,7 +902,7 @@ function displayInstagramUploadFormSubmit ()
 
 '.$subject.'
 
-'.$url.'index.php?uid='.$currentUserId.'&cid='.$categoryId.'
+'.$url.'index.php?uid='.$fcmsUser->id.'&cid='.$categoryId.'
 
 ----
 '.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
@@ -912,7 +914,7 @@ function displayInstagramUploadFormSubmit ()
             }
         }
 
-        header('Location: index.php?uid='.$currentUserId.'&cid='.$categoryId);
+        header('Location: index.php?uid='.$fcmsUser->id.'&cid='.$categoryId);
     }
 }
 
@@ -943,7 +945,7 @@ function displayUploadAdvancedForm ()
  */
 function displayUploadAdvancedFormSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     // Categories should all be the same
     $cleanCategory = (int)$_POST['category'][0];
@@ -982,7 +984,7 @@ function displayUploadAdvancedFormSubmit ()
         }
     }
 
-    header("Location: index.php?uid=$currentUserId&cid=$cleanCategory");
+    header("Location: index.php?uid=$fcmsUser->id&cid=$cleanCategory");
 }
 
 /**
@@ -1077,7 +1079,7 @@ function displayConfirmDeleteCategoryForm ()
  */
 function displayDeleteCategorySubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $cid = 0;
 
@@ -1115,7 +1117,7 @@ function displayDeleteCategorySubmit ()
     $row = mysql_fetch_array($result);
 
     // Do you permission to delete?
-    if ($currentUserId != $row['user'])
+    if ($fcmsUser->id != $row['user'])
     {
         displayHeader();
         echo '<p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
@@ -1125,7 +1127,7 @@ function displayDeleteCategorySubmit ()
 
     $sql = "DELETE FROM fcms_category 
             WHERE `id` = '$cid'
-            AND `user` = '$currentUserId'";
+            AND `user` = '$fcmsUser->id'";
 
     if (!mysql_query($sql))
     {
@@ -1283,7 +1285,7 @@ function displayUserCategory ()
  */
 function displayAddCategoryCommentSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $uid      = (int)$_GET['uid'];
     $cid      = (int)$_GET['cid'];
@@ -1299,7 +1301,7 @@ function displayAddCategoryCommentSubmit ()
                     '$cid', 
                     '$cleanCom', 
                     NOW(), 
-                    '$currentUserId'
+                    '$fcmsUser->id'
                 )";
 
         if (!mysql_query($sql))
@@ -1323,7 +1325,7 @@ function displayAddCategoryCommentSubmit ()
  */
 function displayAddPhotoCommentSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $uid      = (int)$_GET['uid'];
     $cid      = $_GET['cid']; // not always an #
@@ -1340,7 +1342,7 @@ function displayAddPhotoCommentSubmit ()
                     '$pid', 
                     '$cleanCom', 
                     NOW(), 
-                    '$currentUserId'
+                    '$fcmsUser->id'
                 )";
 
         if (!mysql_query($sql))

@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -22,15 +23,15 @@ load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube', 'instagram'
 init();
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
-$settingsObj   = new Settings($currentUserId);
+$settingsObj = new Settings($fcmsUser->id);
 
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Settings'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -48,9 +49,9 @@ exit();
  */
 function control ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
-    if (checkAccess($currentUserId) == 11)
+    if (checkAccess($fcmsUser->id) == 11)
     {
         displayInvalidAccessLevel();
         return;
@@ -214,7 +215,7 @@ function control ()
  */
 function displayHeader ($js = '')
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = $js;
 
@@ -232,7 +233,7 @@ Event.observe(window, \'load\', function() {
 </script>';
     }
 
-    include_once getTheme($currentUserId).'header.php';
+    include_once getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="settings" class="centercontent">
@@ -308,14 +309,14 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
             </div>
             <div style="clear:both"></div>
         </div><!-- #settings .centercontent -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -325,7 +326,7 @@ function displayFooter()
  */
 function displayEditAccount ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
     $settingsObj->displayAccountInformation();
@@ -341,7 +342,7 @@ function displayEditAccount ()
  */
 function displayEditAccountSubmit ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     $email      = strip_tags($_POST['email']);
     $cleanEmail = escape_string($email);
@@ -393,7 +394,7 @@ function displayEditAccountSubmit ()
     }
 
     $sql .= "`email` = '$cleanEmail'
-            WHERE id = '$currentUserId'";
+            WHERE id = '$fcmsUser->id'";
     if (!mysql_query($sql))
     {
         displayHeader();
@@ -443,7 +444,7 @@ a:hover { background-color: #6cd163; }
  */
 function displayEditTheme ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     $js = '
 <script type="text/javascript">
@@ -468,14 +469,14 @@ Event.observe(window, \'load\', function() {
  */
 function displayEditThemeSubmit ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     $theme = basename($_GET['use']);
     $theme = escape_string($theme);
 
     $sql = "UPDATE `fcms_user_settings`
             SET `theme` = '$theme'
-            WHERE `user` = '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'";
     if (!mysql_query($sql))
     {
         displayHeader();
@@ -499,7 +500,7 @@ function displayEditThemeSubmit ()
  */
 function displayDeleteThemeSubmit ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
 
@@ -544,7 +545,7 @@ function displayDeleteThemeSubmit ()
  */
 function displayEditSettings ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
     $settingsObj->displaySettings();
@@ -560,7 +561,7 @@ function displayEditSettings ()
  */
 function displayEditSettingsSubmit ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
 
@@ -617,7 +618,7 @@ function displayEditSettingsSubmit ()
     }
 
     $sql  = substr($sql, 0, -2); // remove the extra comma space at the end
-    $sql .= " WHERE `user` = '$currentUserId'";
+    $sql .= " WHERE `user` = '$fcmsUser->id'";
 
     if (strlen($sql) > 50)
     {
@@ -642,7 +643,7 @@ function displayEditSettingsSubmit ()
  */
 function displayEditNotifications ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
     $settingsObj->displayNotifications();
@@ -658,7 +659,7 @@ function displayEditNotifications ()
  */
 function displayEditNotificationsSubmit ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
 
@@ -674,7 +675,7 @@ function displayEditNotificationsSubmit ()
         }
         $sql = "UPDATE `fcms_user_settings`
                 SET `email_updates` = '$email_updates'
-                WHERE `user` = '$currentUserId'";
+                WHERE `user` = '$fcmsUser->id'";
 
         if (!mysql_query($sql))
         {
@@ -697,7 +698,7 @@ function displayEditNotificationsSubmit ()
  */
 function displayEditFamilyNews ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
     $settingsObj->displayFamilyNews();
@@ -713,7 +714,7 @@ function displayEditFamilyNews ()
  */
 function displayEditFamilyNewsSubmit ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
 
@@ -727,7 +728,7 @@ function displayEditFamilyNewsSubmit ()
             `tumblr` = '$tumblr',
             `wordpress` = '$wordpress',
             `posterous` = '$posterous'
-            WHERE `user` = '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'";
 
     if (!mysql_query($sql))
     {
@@ -749,7 +750,7 @@ function displayEditFamilyNewsSubmit ()
  */
 function displayEditMessageBoard ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
     $settingsObj->displayMessageBoard();
@@ -765,7 +766,7 @@ function displayEditMessageBoard ()
  */
 function displayEditMessageBoardSubmit ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
 
@@ -775,7 +776,7 @@ function displayEditMessageBoardSubmit ()
 
         $sql = "UPDATE `fcms_user_settings`
                 SET `boardsort` = '$boardsort'
-                WHERE `user` = '$currentUserId'";
+                WHERE `user` = '$fcmsUser->id'";
 
         if (!mysql_query($sql))
         {
@@ -798,13 +799,13 @@ function displayEditMessageBoardSubmit ()
  */
 function displayImportBlogPosts ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     displayHeader();
 
     // setup familynew obj
     include_once 'inc/familynews_class.php';
-    $newsObj = new FamilyNews($currentUserId);
+    $newsObj = new FamilyNews($fcmsUser->id);
 
     // get external ids
     $external_ids = $newsObj->getExternalPostIds();
@@ -812,7 +813,7 @@ function displayImportBlogPosts ()
     // Get import blog settings
     $sql = "SELECT `user`, `blogger`, `tumblr`, `wordpress`, `posterous`
             FROM `fcms_user_settings`
-            WHERE `user` = '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'";
 
     $result = mysql_query($sql);
     if (!$result)
@@ -836,7 +837,7 @@ function displayImportBlogPosts ()
     switch ($_GET['import'])
     {
         case 'blogger':
-            $count = $newsObj->importBloggerPosts($r['blogger'], $currentUserId, '', $external_ids);
+            $count = $newsObj->importBloggerPosts($r['blogger'], $fcmsUser->id, '', $external_ids);
             if ($count === false)
             {
                 $settingsObj->displayFamilyNews();
@@ -846,7 +847,7 @@ function displayImportBlogPosts ()
             break;
 
         case 'tumblr':
-            $count = $newsObj->importTumblrPosts($r['tumblr'], $currentUserId, '', $external_ids);
+            $count = $newsObj->importTumblrPosts($r['tumblr'], $fcmsUser->id, '', $external_ids);
             if ($count === false)
             {
                 $settingsObj->displayFamilyNews();
@@ -856,7 +857,7 @@ function displayImportBlogPosts ()
             break;
 
         case 'wordpress':
-            $count = $newsObj->importWordpressPosts($r['wordpress'], $currentUserId, '', $external_ids);
+            $count = $newsObj->importWordpressPosts($r['wordpress'], $fcmsUser->id, '', $external_ids);
             if ($count === false)
             {
                 $settingsObj->displayFamilyNews();
@@ -866,7 +867,7 @@ function displayImportBlogPosts ()
             break;
 
         case 'posterous':
-            $count = $newsObj->importPosterousPosts($r['posterous'], $currentUserId, '', $external_ids);
+            $count = $newsObj->importPosterousPosts($r['posterous'], $fcmsUser->id, '', $external_ids);
             if ($count === false)
             {
                 $settingsObj->displayFamilyNews();
@@ -937,12 +938,12 @@ function displayInvalidAccessLevel ()
  */
 function displayEditFacebook ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
     $config      = getFacebookConfigData();
-    $accessToken = getUserFacebookAccessToken($currentUserId);
+    $accessToken = getUserFacebookAccessToken($fcmsUser->id);
 
     if (!empty($config['fb_app_id']) && !empty($config['fb_secret']))
     {
@@ -1008,7 +1009,7 @@ function displayEditFacebook ()
  */
 function displayEditFacebookSubmit ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     $data = getFacebookConfigData();
 
@@ -1023,7 +1024,7 @@ function displayEditFacebookSubmit ()
 
         $sql = "UPDATE `fcms_user_settings`
                 SET `fb_access_token` = '$accessToken'
-                WHERE `user` = '$currentUserId'";
+                WHERE `user` = '$fcmsUser->id'";
         if (!mysql_query($sql))
         {
             displayHeader();
@@ -1057,11 +1058,11 @@ function displayEditFacebookSubmit ()
  */
 function displayRevokeFacebookAccess ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $sql = "UPDATE `fcms_user_settings`
             SET `fb_access_token` = NULL
-            WHERE `user` = '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'";
 
     if (!mysql_query($sql))
     {
@@ -1090,12 +1091,12 @@ function displayRevokeFacebookAccess ()
  */
 function displayEditFoursquare ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
     $config = getFoursquareConfigData();
-    $user   = getFoursquareUserData($currentUserId);
+    $user   = getFoursquareUserData($fcmsUser->id);
 
     // Setup url for callbacks
     $callbackUrl  = getDomainAndDir();
@@ -1145,7 +1146,7 @@ function displayEditFoursquare ()
  */
 function displayFoursquareSubmit ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     $r = getFoursquareConfigData();
 
@@ -1162,7 +1163,7 @@ function displayFoursquareSubmit ()
     $sql = "UPDATE `fcms_user_settings`
             SET `fs_user_id` = '".$self->response->user->id."',
                 `fs_access_token` = '".$token->access_token."'
-            WHERE `user` = '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'";
     if (!mysql_query($sql))
     {
         displayHeader();
@@ -1181,11 +1182,11 @@ function displayFoursquareSubmit ()
  */
 function displayRevokeFoursquareAccess ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $sql = "UPDATE `fcms_user_settings`
             SET `fs_user_id` = NULL, `fs_access_token` = NULL
-            WHERE `user` = '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'";
 
     if (!mysql_query($sql))
     {
@@ -1206,7 +1207,7 @@ function displayRevokeFoursquareAccess ()
  */
 function displayEditInstagram ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
@@ -1215,7 +1216,7 @@ function displayEditInstagram ()
     $callbackUrl  = getDomainAndDir();
     $callbackUrl .= 'settings.php?view=instagram';
 
-    $accessToken = getUserInstagramAccessToken($currentUserId);
+    $accessToken = getUserInstagramAccessToken($fcmsUser->id);
     $instagram   = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $accessToken);
 
     if (!$accessToken)
@@ -1260,7 +1261,7 @@ function displayEditInstagram ()
  */
 function displayEditInstagramSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $config = getInstagramConfigData();
 
@@ -1293,7 +1294,7 @@ function displayEditInstagramSubmit ()
 
         $sql = "UPDATE `fcms_user_settings`
                 SET `instagram_access_token` = '$accessToken'
-                WHERE `user` = '$currentUserId'";
+                WHERE `user` = '$fcmsUser->id'";
 
         if (!mysql_query($sql))
         {
@@ -1328,11 +1329,11 @@ function displayEditInstagramSubmit ()
  */
 function displayRevokeInstagramAccess ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $sql = "UPDATE `fcms_user_settings`
             SET `instagram_access_token` = NULL
-            WHERE `user` = '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'";
 
     if (!mysql_query($sql))
     {
@@ -1352,12 +1353,12 @@ function displayRevokeInstagramAccess ()
  */
 function displayEditYouTube ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
     $config = getYouTubeConfigData();
-    $user   = getYouTubeUserData($currentUserId);
+    $user   = getYouTubeUserData($fcmsUser->id);
 
     // Setup url for callbacks
     $callbackUrl  = getDomainAndDir();
@@ -1413,7 +1414,7 @@ function displayEditYouTube ()
  */
 function displayEditYouTubeSubmit ()
 {
-    global $currentUserId, $settingsObj;
+    global $fcmsUser, $settingsObj;
 
     $data = getYouTubeConfigData();
 
@@ -1439,7 +1440,7 @@ function displayEditYouTubeSubmit ()
 
         $sql = "UPDATE `fcms_user_settings`
                 SET `youtube_session_token` = '$sessionToken'
-                WHERE `user` = '$currentUserId'";
+                WHERE `user` = '$fcmsUser->id'";
 
         if (!mysql_query($sql))
         {
@@ -1475,7 +1476,7 @@ function displayEditYouTubeSubmit ()
  */
 function displayRevokeYouTubeAccess ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     if (isset($_SESSION['sessionToken']))
     {
@@ -1484,7 +1485,7 @@ function displayRevokeYouTubeAccess ()
 
     $sql = "UPDATE `fcms_user_settings`
             SET `youtube_session_token` = NULL
-            WHERE `user` = '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'";
 
     if (!mysql_query($sql))
     {

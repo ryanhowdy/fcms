@@ -15,6 +15,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -22,17 +23,17 @@ load('familytree', 'image');
 
 init();
 
-$currentUserId = (int)$_SESSION['login_id'];
-$ftree         = new FamilyTree($currentUserId);
-$img           = new Image($currentUserId);
+$ftree = new FamilyTree($fcmsUser->id);
+$img   = new Image($fcmsUser->id);
 
 // Setup the Template variables;
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Family Tree'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -69,10 +70,11 @@ if (isset($_GET['advanced_avatar']))
         'image/png'     => 'png'
     );
 
-    $type      = $_FILES['avatar']['type'];
-    $extention = $filetypes[$type];
-    $id        = uniqid("");
-    $name      = $id.".".$extention;
+    $type        = $_FILES['avatar']['type'];
+    $extention   = $filetypes[$type];
+    $id          = uniqid("");
+    $name        = $id.".".$extention;
+    $uploadsPath = getUploadsAbsolutePath();
 
     $sql = "UPDATE `fcms_users`
             SET `avatar` = '".$name."'
@@ -83,7 +85,7 @@ if (isset($_GET['advanced_avatar']))
         exit();
     }
 
-    if (move_uploaded_file($_FILES['avatar']['tmp_name'], 'uploads/avatar/'.$name))
+    if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadsPath.'avatar/'.$name))
     {
         echo "success";
     }
@@ -95,16 +97,16 @@ if (isset($_GET['advanced_avatar']))
 
     if ($_GET['orig'] != 'no_avatar.jpg' && $_GET['orig'] != 'gravatar')
     {
-        if (file_exists("uploads/avatar/".basename($_GET['orig'])))
+        if (file_exists($uploadsPath.'avatar/'.basename($_GET['orig'])))
         {
-            unlink("uploads/avatar/".basename($_GET['orig']));
+            unlink($uploadsPath.'avatar/'.basename($_GET['orig']));
         }
     }
 
     exit();
 }
 // Show Header
-require_once getTheme($currentUserId).'header.php';
+require_once getTheme($fcmsUser->id).'header.php';
 
 $show_tree = true;
 
@@ -115,7 +117,7 @@ if (isset($_GET['tree']))
 }
 elseif (!isset($_SESSION['view_tree_user']))
 {
-    $_SESSION['view_tree_user'] = $currentUserId;
+    $_SESSION['view_tree_user'] = $fcmsUser->id;
 }
 
 echo '
@@ -255,7 +257,7 @@ if (isset($_POST['add-user']))
 
     // Create empty address
     $sql = "INSERT INTO `fcms_address`(`user`, `created_id`, `created`, `updated_id`, `updated`) 
-            VALUES ('$lastid', '$currentUserId', NOW(), '$currentUserId', NOW())";
+            VALUES ('$lastid', '$fcmsUser->id', NOW(), '$fcmsUser->id', NOW())";
     if (!mysql_query($sql))
     {
         displaySqlError($sql, mysql_error());
@@ -437,7 +439,8 @@ if (isset($_GET['avatar']))
     //-------------------------------------
     if (isset($_POST['submitUpload']))
     {
-        $img->destination  = 'uploads/avatar/';
+        $uploadsPath       = getUploadsAbsolutePath();
+        $img->destination  = $uploadsPath.'avatar/';
         $img->resizeSquare = true;
         $img->uniqueName   = true;
 
@@ -479,7 +482,7 @@ if (isset($_GET['avatar']))
 
         if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
         {
-            unlink("uploads/avatar/".basename($_POST['avatar_orig']));
+            unlink($uploadsPath.'avatar/'.basename($_POST['avatar_orig']));
         }
     }
     //-------------------------------------
@@ -537,4 +540,4 @@ echo '
         </div><!-- #familytree-page .centercontent -->';
 
 // Show Footer
-require_once getTheme($currentUserId).'footer.php';
+require_once getTheme($fcmsUser->id).'footer.php';

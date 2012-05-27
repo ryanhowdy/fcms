@@ -21,9 +21,6 @@ require '../inc/upgrade_inc.php';
 connectDB();
 checkLoginAndPermission();
 
-// Globals
-$currentUserId = (int)$_SESSION['login_id'];
-
 define('ROOT', dirname(dirname(__FILE__)) . '/');
 define('INC', ROOT.'inc/');
 define('THIRDPARTY', INC.'/thirdparty/');

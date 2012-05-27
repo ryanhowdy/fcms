@@ -17,13 +17,14 @@ if (!isset($_SESSION))
 }
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
 load(
     'datetime', 
     'calendar', 
-    'poll', 
+    'Poll', 
     'database', 
     'alerts',
     'socialmedia',
@@ -33,17 +34,17 @@ load(
 init();
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
-$calendar      = new Calendar($currentUserId);
-$poll          = new Poll($currentUserId);
-$alertObj      = new Alerts($currentUserId);
+$calendar = new Calendar($fcmsUser->id);
+$poll     = new Poll($fcmsUser, $fcmsError);
+$alertObj = new Alerts($fcmsUser->id);
 
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_pgettext('The beginning or starting place.', 'Home'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -61,35 +62,14 @@ exit();
  */
 function control ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     // Update activity
-    mysql_query("UPDATE `fcms_users` SET `activity`=NOW() WHERE `id` = '$currentUserId'");
+    mysql_query("UPDATE `fcms_users` SET `activity`=NOW() WHERE `id` = '$fcmsUser->id'");
 
-    // previous poll
-    if (isset($_GET['poll_id']) && !isset($_GET['action']) && !isset($_GET['vote']))
-    {
-        displayPoll();
-    }
-    // vote
-    elseif (isset($_POST['vote']) && isset($_POST['option_id']))
-    {
-        displayVoteSubmit();
-    }
-    elseif (isset($_POST['status_submit']))
+    if (isset($_POST['status_submit']))
     {
         displayStatusUpdateSubmit();
-    }
-    elseif (isset($_GET['action']))
-    {
-        if ($_GET['action'] == "results")
-        {
-            displayPollResults();
-        }
-        else
-        {
-            displayPastPolls();
-        }
     }
     else
     {
@@ -104,14 +84,40 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script type="text/javascript">
-Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });
+Event.observe(window, "load", function()
+{
+    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+
+    document.onkeydown = keyHandler;
+});
+var position = 0;
+function keyHandler(e)
+{
+    if (!e) { e = window.event; }
+
+    var jDown = 74;
+    var kUp   = 75;
+
+    switch (e.keyCode)
+    {
+        case jDown:
+            position++;
+            document.location.href = "#"+position;
+        break;
+
+        case kUp:
+            if (position > 1) { position--; }
+            document.location.href = "#"+position;
+        break;
+    }
+}
 </script>';
 
-    include_once getTheme($currentUserId).'header.php';
+    include_once getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="home" class="centercontent">';
@@ -124,13 +130,13 @@ Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
             </div><!--/maincolumn-->
         </div><!--/centercontent -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -157,10 +163,7 @@ function displayLeftColumn ()
 
     $calendar->displayMonthEvents($month, $year);
 
-    if (canDisplaySmallPoll())
-    {
-        $poll->displayPoll('0', false);
-    }
+    displayPoll();
 
     echo '
                 <h2 class="membermenu">'.T_('Members Online').'</h2>
@@ -176,140 +179,13 @@ function displayLeftColumn ()
 }
 
 /**
- * canDisplaySmallPoll 
- *
- * 1. not voting                       - no POST[vote] or no POST[option_id]
- * 2. not looking at prev poll results - no GET[poll_id]
- * 3. not looking at prev poll list    - no GET[action]
- * 
- * @return void
- */
-function canDisplaySmallPoll ()
-{
-    // Not if we are voting
-    if (isset($_POST['vote']))
-    {
-        return false;
-    }
-    // Not if we are viewing a past poll
-    elseif (isset($_GET['poll_Id']))
-    {
-        return false;
-    }
-    // Not if we are viewing past polls
-    if (isset($_GET['action']))
-    {
-        return false;
-    }
-
-    return true;
-}
-
-/**
- * displayPoll 
- * 
- * @return void
- */
-function displayPoll ()
-{
-    global $poll;
-
-    displayHeader();
-    displayLeftColumn();
-
-    $id = (int)$_GET['poll_id'];
-
-    $poll->displayPoll($id);
-
-    displayFooter();
-}
-
-/**
- * displayVoteSubmit 
- * 
- * @return void
- */
-function displayVoteSubmit ()
-{
-    global $currentUserId, $poll;
-
-    displayHeader();
-    displayLeftColumn();
-
-    $option = (int)$_POST['option_id'];
-
-    // Get
-    if (isset($_GET['poll_id']))
-    {
-        $id = (int)$_GET['poll_id'];
-    }
-    // Post
-    else
-    {
-        $id = (int)$_POST['poll_id'];
-    }
-
-    $poll->placeVote($currentUserId, $option, $id);
-    $poll->displayResults($id);
-
-    displayFooter();
-}
-
-/**
- * displayPollResults 
- * 
- * @return void
- */
-function displayPollResults ()
-{
-    global $poll;
-
-    displayHeader();
-    displayLeftColumn();
-
-    // Get
-    if (isset($_GET['poll_id']))
-    {
-        $id = (int)$_GET['poll_id'];
-    }
-    // Post
-    else
-    {
-        $id = (int)$_POST['poll_id'];
-    }
-
-    $poll->displayResults($id);
-
-    displayFooter();
-}
-
-/**
- * displayPastPolls 
- * 
- * @return void
- */
-function displayPastPolls ()
-{
-    global $poll;
-
-    displayHeader();
-    displayLeftColumn();
-
-    $page = getPage();
-
-    $poll->displayPastPolls($page);
-
-    displayFooter();
-}
-
-/**
  * displayWhatsNew 
  * 
  * @return void
  */
 function displayWhatsNew ()
 {
-    global $currentUserId, $poll, $alertObj, $calendar;
+    global $fcmsUser, $poll, $alertObj, $calendar;
 
     displayHeader();
     displayLeftColumn();
@@ -322,7 +198,7 @@ function displayWhatsNew ()
         $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
                 VALUES (
                     '$alert', 
-                    '$currentUserId'
+                    '$fcmsUser->id'
                 )";
         if (!mysql_query($sql))
         {
@@ -332,7 +208,7 @@ function displayWhatsNew ()
     }
 
     // Show Alerts
-    $alertShown = $alertObj->displayNewUserHome($currentUserId);
+    $alertShown = $alertObj->displayNewUserHome($fcmsUser->id);
 
     list($db_year, $db_month, $db_day) = explode('-', date('Y-m-d'));
 
@@ -348,7 +224,7 @@ function displayWhatsNew ()
 
     $sql = "SELECT `frontpage` 
             FROM `fcms_user_settings` 
-            WHERE `user` = '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'";
 
     $result = mysql_query($sql);
     if (!$result)
@@ -364,14 +240,14 @@ function displayWhatsNew ()
     // All by date
     if ($r['frontpage'] < 2)
     {
-        displayWhatsNewAll($currentUserId);
+        displayWhatsNewAll($fcmsUser->id);
 
     }
     // Last 5 by category
     else
     {
-        $whatsNewData = getWhatsNewData($currentUserId, 30, true);
-        $tzOffset     = getTimezone($currentUserId);
+        $whatsNewData = getWhatsNewData($fcmsUser->id, 30, true);
+        $tzOffset     = getTimezone($fcmsUser->id);
 
         $messageboard    = formatWhatsNewMessageBoard($whatsNewData, $tzOffset);
         $familynews      = formatWhatsNewFamilyNews($whatsNewData, $tzOffset);
@@ -449,13 +325,13 @@ function displayWhatsNew ()
  */
 function displayStatusUpdateForm ($parent = 0)
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     // Facebook option is only good for first status update field, not reply
     if ($parent == 0)
     {
         $data        = getFacebookConfigData();
-        $accessToken = getUserFacebookAccessToken($currentUserId);
+        $accessToken = getUserFacebookAccessToken($fcmsUser->id);
         $user        = null;
 
         if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
@@ -523,7 +399,7 @@ function displayStatusUpdateForm ($parent = 0)
  */
 function displayStatusUpdateSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $status = escape_string($_POST['status']);
     $parent = 0;
@@ -543,7 +419,7 @@ function displayStatusUpdateSubmit ()
     // Insert new status
     $sql = "INSERT INTO `fcms_status` (`user`, `status`, `parent`, `created`, `updated`)
             VALUES (
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 '$status', 
                 '$parent',
                 NOW(), 
@@ -577,7 +453,7 @@ function displayStatusUpdateSubmit ()
     if (isset($_POST['update_fb']))
     {
         $data        = getFacebookConfigData();
-        $accessToken = getUserFacebookAccessToken($currentUserId);
+        $accessToken = getUserFacebookAccessToken($fcmsUser->id);
 
         // Send status to facebook
         if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
@@ -623,7 +499,7 @@ function displayStatusUpdateSubmit ()
     {
         $url     = getDomainAndDir();
         $headers = getEmailHeaders();
-        $name    = getUserDisplayName($currentUserId);
+        $name    = getUserDisplayName($fcmsUser->id);
 
         while ($r = mysql_fetch_array($result))
         {
@@ -1041,6 +917,12 @@ function formatWhatsNewPrayers ($whatsNewData, $tzOffset)
  */
 function formatWhatsNewPhotoGallery ($whatsNewData, $tzOffset)
 {
+    global $fcmsUser;
+
+    load('gallery');
+
+    $galleryObj = new PhotoGallery($fcmsUser->id);
+
     $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
     $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
 
@@ -1113,14 +995,7 @@ function formatWhatsNewPhotoGallery ($whatsNewData, $tzOffset)
 
         while ($p = mysql_fetch_assoc($result))
         {
-            if ($p['filename'] == 'noimage.gif' && $p['external_id'] != null)
-            {
-                $photoSrc = $p['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = 'uploads/photos/member'.$p['user'].'/tb_'.basename($p['filename']);
-            }
+            $photoSrc = $galleryObj->getPhotoSource($p);
 
             $return .= '
                             <a href="gallery/index.php?uid='.$p['user'].'&amp;cid='.$p['category'].'&amp;pid='.$p['id'].'">
@@ -1226,7 +1101,12 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
             <h3>'.T_('Comments').'</h3>
             <ul>';
 
-    if (!isset($whatsNewData['GALCOM']) && !isset($whatsNewData['NEWSCOM']) && !isset($whatsNewData['RECIPESCOM']) && !isset($whatsNewData['VIDEOCOM']))
+    if (   !isset($whatsNewData['GALCOM']) 
+        && !isset($whatsNewData['NEWSCOM']) 
+        && !isset($whatsNewData['RECIPESCOM']) 
+        && !isset($whatsNewData['VIDEOCOM']) 
+        && !isset($whatsNewData['POLLCOM'])
+    )
     {
         return $return.'<i>'.T_('Nothing new').'</i></ul>';
     }
@@ -1234,7 +1114,7 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
     $count = 0;
 
     # Get each comment type from the $whatsNewData array, store it in a new array
-    $using = array('GALCOM', 'GALCATCOM', 'VIDEOCOM');
+    $using = array('GALCOM', 'GALCATCOM', 'VIDEOCOM', 'POLLCOM');
     if (usingFamilyNews())
     {
         array_push($using, 'NEWSCOM');
@@ -1309,6 +1189,11 @@ function formatWhatsNewComments ($whatsNewData, $tzOffset)
         elseif ($row['type'] == 'GALCOM')
         {
             $url = 'gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$row['id'];
+        }
+        elseif ($row['type'] == 'POLLCOM')
+        {
+            $comment = '['.T_('Poll').'] '.$comment;
+            $url     = 'polls.php?id='.$row['id'].'"#comments';
         }
 
         $return .= '
@@ -1692,7 +1577,7 @@ function formatWhatsNewMisc ($whatsNewData, $tzOffset)
 
         if ($r['type'] == 'POLL')
         {
-            $poll  = '<a href="home.php?poll_id='.$r['id'].'">'.cleanOutput($r['title'], 'html').'</a>';
+            $poll  = '<a href="poll.php?id='.$r['id'].'">'.cleanOutput($r['title'], 'html').'</a>';
             $title = sprintf(T_('A new Poll (%s) has been added.'), $poll);
         }
         elseif ($r['type'] == 'ADDRESSADD')
@@ -1729,4 +1614,72 @@ function formatWhatsNewMisc ($whatsNewData, $tzOffset)
             </ul>';
 
     return $return;
+}
+
+/**
+ * displayPoll 
+ * 
+ * @return void
+ */
+function displayPoll ()
+{
+    global $fcmsUser, $fcmsError, $poll;
+
+    $pollData = $poll->getLatestPollData();
+    if ($pollData === false)
+    {
+        $fcmsError->displayErrors();
+        displayFooter();
+        return;
+    }
+
+    $pollId = key($pollData);
+
+    $pollOptions = '';
+    $input       = '';
+    $results     = '';
+
+    // Show results - user already voted
+    if (isset($pollData['users_who_voted'][$fcmsUser->id]))
+    {
+        $submitValue = T_('Already Voted');
+        $class       = 'disabled';
+        $disabled    = 'disabled="disabled"';
+
+        $pollOptions = $poll->formatPollResults($pollData);
+        if ($pollOptions === false)
+        {
+            $fcmsError->displayErrors();
+            displayFooter();
+            return;
+        }
+    }
+    // Show options
+    else
+    {
+        foreach ($pollData[$pollId]['options'] as $optionId => $optionData)
+        {
+            $pollOptions .= '
+                    <p>
+                        <label class="radio_label">
+                            <input type="radio" name="option" value="'.$optionId.'"/>
+                            '.cleanOutput($optionData['option'], 'html').'
+                        </label>
+                    </p>';
+        }
+
+        $input   = '<input type="submit" id="vote" name="vote" value="'.T_('Vote').'"/>';
+        $results = '<a href="polls.php?id='.$pollId.'&amp;results=1">'.T_('Results').'</a> | ';
+    }
+
+    echo '
+            <h2 class="pollmenu">'.T_('Polls').'</h2>
+            <form class="poll-small" method="post" action="polls.php">
+                <h3>'.cleanOutput($pollData[$pollId]['question'], 'html').'</h3>
+                '.$pollOptions.'
+                <input type="hidden" id="id" name="id" value="'.$pollId.'"/>
+                <p>'.$input.'</p>
+                '.$results.'
+                <a href="polls.php?action=pastpolls">'.T_('Past Polls').'</a>
+            </form>';
 }

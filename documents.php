@@ -15,6 +15,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -22,14 +23,104 @@ load('documents');
 
 init();
 
-$currentUserId = (int)$_SESSION['login_id'];
-$docs          = new Documents($currentUserId);
+// Globals
+$docs = new Documents($fcmsUser->id);
 
-// Download Document
-if (isset($_GET['download']))
+$TMPL = array(
+    'currentUserId' => $fcmsUser->id,
+    'sitename'      => getSiteName(),
+    'nav-link'      => getNavLinks(),
+    'pagetitle'     => T_('Documents'),
+    'path'          => URL_PREFIX,
+    'displayname'   => $fcmsUser->displayName,
+    'version'       => getCurrentVersion(),
+    'year'          => date('Y')
+);
+
+control();
+exit();
+
+
+/**
+ * control 
+ * 
+ * The controlling structure for this script.
+ * 
+ * @return void
+ */
+function control ()
 {
-    $show     = false;
-    $filename = "uploads/documents/".basename($_GET['download']);
+    if (isset($_GET['download']))
+    {
+        displayDownloadDocument();
+    }
+    elseif (isset($_GET['adddoc']))
+    {
+        displayAddDocumentForm();
+    }
+    elseif (isset($_POST['submitadd']))
+    {
+        displayAddDocumentSubmit();
+    }
+    elseif (isset($_POST['deldoc']))
+    {
+        displayDeleteDocumentSubmit();
+    }
+    else
+    {
+        displayDocuments();
+    }
+}
+
+/**
+ * displayHeader 
+ * 
+ * @return void
+ */
+function displayHeader ()
+{
+    global $fcmsUser, $TMPL;
+
+    $TMPL['javascript'] = '
+<script type="text/javascript">
+Event.observe(window, \'load\', function() {
+    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+});
+</script>';
+
+    include_once getTheme($fcmsUser->id).'header.php';
+
+    echo '
+        <div id="documents" class="centercontent">';
+}
+
+/**
+ * displayFooter 
+ * 
+ * @return void
+ */
+function displayFooter()
+{
+    global $fcmsUser, $TMPL;
+
+    echo '
+        </div><!--/documents-->';
+
+    include_once getTheme($fcmsUser->id).'footer.php';
+}
+
+/**
+ * displayDownloadDocument 
+ * 
+ * Download a document.
+ * 
+ * @return void
+ */
+function displayDownloadDocument ()
+{
+    $uploadsPath = getUploadsAbsolutePath();
+
+    $filename = $uploadsPath.'documents/'.basename($_GET['download']);
     $mimetype = isset($_GET['mime']) ? $_GET['mime'] : 'application/download';
 
     header("Cache-control: private");
@@ -44,77 +135,83 @@ if (isset($_GET['download']))
     exit(0);
 }
 
-// Setup the Template variables;
-$TMPL = array(
-    'sitename'    => getSiteName(),
-    'nav-link'    => getNavLinks(),
-    'pagetitle'   => T_('Documents'),
-    'path'        => URL_PREFIX,
-    'displayname' => getUserDisplayName($currentUserId),
-    'version'     => getCurrentVersion(),
-    'year'        => date('Y')
-);
-$TMPL['javascript'] = '
-<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
-
-// Show Header
-require_once getTheme($currentUserId).'header.php';
-
-echo '
-        <div id="documents" class="centercontent">';
-
-$show = true;
-
-// Add new document
-if (isset($_POST['submitadd']))
+/**
+ * displayAddDocumentForm 
+ * 
+ * @return void
+ */
+function displayAddDocumentForm ()
 {
+    global $docs;
+
+    displayHeader();
+    $docs->displayForm();
+    displayFooter();
+}
+
+/**
+ * displayAddDocumentSubmit 
+ * 
+ * @return void
+ */
+function displayAddDocumentSubmit ()
+{
+    global $docs, $fcmsUser;
+
     $doc  = $_FILES['doc']['name'];
     $doc  = cleanFilename($doc);
     $desc = escape_string($_POST['desc']);
     $mime = escape_string($_FILES['doc']['type']);
 
-    if ($docs->uploadDocument($_FILES['doc'], $doc))
+    $result = $docs->uploadDocument($_FILES['doc'], $doc);
+    if ($result === false)
     {
-        $sql = "INSERT INTO `fcms_documents` (
-                    `name`, `description`, `mime`, `user`, `date`
-                ) VALUES(
-                    '$doc', '$desc', '$mime', '$currentUserId', NOW()
-                )";
+        displayHeader();
+        displayFooter();
+        return;
+    }
 
-        if (!mysql_query($sql))
+    $sql = "INSERT INTO `fcms_documents` (
+                `name`, `description`, `mime`, `user`, `date`
+            ) VALUES(
+                '$doc', '$desc', '$mime', '$fcmsUser->id', NOW()
+            )";
+
+    if (!mysql_query($sql))
+    {
+        displayHeader();
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    // Email members
+    $sql = "SELECT u.`email`, s.`user` 
+            FROM `fcms_user_settings` AS s, `fcms_users` AS u 
+            WHERE `email_updates` = '1'
+            AND u.`id` = s.`user`";
+
+    $result = mysql_query($sql);
+
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        displayFooter();
+        return;
+    }
+
+    if (mysql_num_rows($result) > 0)
+    {
+        while ($r = mysql_fetch_array($result))
         {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
+            $name          = getUserDisplayName($fcmsUser->id);
+            $to            = getUserDisplayName($r['user']);
+            $subject       = sprintf(T_('%s has added a new document (%s).'), $name, $doc);
+            $email         = $r['email'];
+            $url           = getDomainAndDir();
+            $email_headers = getEmailHeaders();
 
-        displayOkMessage();
-
-        // Email members
-        $sql = "SELECT u.`email`, s.`user` 
-                FROM `fcms_user_settings` AS s, `fcms_users` AS u 
-                WHERE `email_updates` = '1'
-                AND u.`id` = s.`user`";
-
-        $result = mysql_query($sql);
-
-        if (!$result)
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        if (mysql_num_rows($result) > 0)
-        {
-            while ($r = mysql_fetch_array($result))
-            {
-                $name          = getUserDisplayName($currentUserId);
-                $to            = getUserDisplayName($r['user']);
-                $subject       = sprintf(T_('%s has added a new document (%s).'), $name, $doc);
-                $email         = $r['email'];
-                $url           = getDomainAndDir();
-                $email_headers = getEmailHeaders();
-
-                $msg = T_('Dear').' '.$to.',
+            $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
@@ -129,44 +226,58 @@ if (isset($_POST['submitadd']))
 ';
 
 
-                mail($email, $subject, $msg, $email_headers);
-            }
+            mail($email, $subject, $msg, $email_headers);
         }
     }
-} 
 
-// Delete document
-if (isset($_POST['deldoc']))
+    $_SESSION['ok'] = 1;
+
+    header("Location: documents.php");
+}
+
+/**
+ * displayDeleteDocumentSubmit 
+ * 
+ * @return void
+ */
+function displayDeleteDocumentSubmit ()
 {
     $sql = "DELETE FROM `fcms_documents` 
             WHERE `id` = '".(int)$_POST['id']."'";
 
     if (!mysql_query($sql))
     {
+        displayHeader();
         displaySqlError($sql, mysql_error());
+        displayFooter();
         return;
     }
 
-    if (!unlink("uploads/documents/".basename($_POST['name'])))
+    $uploadsPath = getUploadsAbsolutePath();
+
+    if (!unlink($uploadsPath.'documents/'.basename($_POST['name'])))
     {
+        displayHeader();
         echo '<p class="error-alert">'.T_('Document could not be deleted from the server.').'</p>';
+        displayFooter();
         return;
     }
 
-    displayOkMessage(T_('Document Deleted Successfully'));
+    header("Location: documents.php");
 }
 
-// Show add document form
-if (isset($_GET['adddoc']) && checkAccess($currentUserId) <= 5)
+/**
+ * displayDocuments 
+ * 
+ * @return void
+ */
+function displayDocuments ()
 {
-    $show = false;
-    $docs->displayForm();
-}
+    global $fcmsUser, $docs;
 
-// Show list of documents
-if ($show)
-{
-    if (checkAccess($currentUserId) <= 5)
+    displayHeader();
+
+    if (checkAccess($fcmsUser->id) <= 5)
     {
         echo '
             <div id="actions_menu">
@@ -174,13 +285,14 @@ if ($show)
             </div>';
     }
 
+    if (isset($_SESSION['ok']))
+    {
+        displayOkMessage();
+    }
+
     $page = getPage();
 
     $docs->showDocuments($page);
+
+    displayFooter();
 }
-
-echo '
-        </div><!-- #documents .centercontent -->';
-
-// Show Footer
-require_once getTheme($currentUserId).'footer.php';

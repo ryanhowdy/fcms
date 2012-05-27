@@ -6,18 +6,6 @@
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>ui/favicon.ico"/>
 <link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/style.css"/>
-<!--[if IE 5.5]>
-<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/ie55.css"/>
-<![endif]-->
-<!--[if IE 6]>
-<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/ie6.css"/>
-<![endif]-->
-<!--[if IE 7]>
-<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/ie7.css"/>
-<![endif]-->
-<!--[if IE 8]>
-<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/ie8.css"/>
-<![endif]-->
 <script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/prototype.js"></script>
 <script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
@@ -31,7 +19,7 @@
             </a>
         </div>
         <p>
-            <?php echo T_('Welcome'); ?> <a href="<?php echo $TMPL['path'] . "profile.php"; ?>"><?php echo $TMPL['displayname']; ?></a> <?php displayNewPM($currentUserId, $TMPL['path']); ?> | 
+            <?php echo T_('Welcome'); ?> <a href="<?php echo $TMPL['path'] . "profile.php"; ?>"><?php echo $TMPL['displayname']; ?></a> <?php displayNewPM($TMPL['currentUserId'], $TMPL['path']); ?> | 
             <a href="<?php echo $TMPL['path'] . "settings.php";?>"><?php echo T_('My Settings'); ?></a> | 
             <a href="<?php echo $TMPL['path'] . "logout.php"; ?>"><?php echo T_('Logout'); ?></a>
         </p>

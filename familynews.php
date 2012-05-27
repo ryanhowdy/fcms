@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -21,16 +22,16 @@ load('familynews');
 
 init();
 
-$currentUserId = (int)$_SESSION['login_id'];
-$fnews         = new FamilyNews($currentUserId);
+$fnews = new FamilyNews($fcmsUser->id);
 
 // Setup the Template variables;
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Family News'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => getUserDisplayName($fcmsUser->id),
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -72,22 +73,22 @@ Event.observe(window, \'load\', function() {
 </script>';
 
 // Show Header
-require_once getTheme($currentUserId).'header.php';
+require_once getTheme($fcmsUser->id).'header.php';
 
 echo '
         <div id="familynews" class="centercontent">';
 
-if (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9)
+if (checkAccess($fcmsUser->id) < 6 || checkAccess($fcmsUser->id) == 9)
 {
     echo '
             <div id="sections_menu">
                 <ul>
                     <li><a href="familynews.php">'.T_('Latest News').'</a></li>';
 
-    if ($fnews->hasNews($currentUserId))
+    if ($fnews->hasNews($fcmsUser->id))
     {
         echo '
-                    <li><a href="?getnews='.$currentUserId.'">'.T_('My News').'</a></li>';
+                    <li><a href="?getnews='.$fcmsUser->id.'">'.T_('My News').'</a></li>';
     }
 
     echo '
@@ -123,7 +124,7 @@ if (isset($_POST['submitadd']))
             ) VALUES (
                 '$title', 
                 '$news', 
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 NOW(),
                 NOW()
             )";
@@ -153,7 +154,7 @@ if (isset($_POST['submitadd']))
     {
         while ($r = mysql_fetch_array($result))
         {
-            $name          = getUserDisplayName($currentUserId);
+            $name          = getUserDisplayName($fcmsUser->id);
             $to            = getUserDisplayName($r['user']);
             $subject       = sprintf(T_('%s has added %s to his/her Family News'), $name, $_POST['title']);
             $email         = $r['email'];
@@ -164,7 +165,7 @@ if (isset($_POST['submitadd']))
 
 '.$subject.'
 
-'.$url.'familynews.php?getnews='.$currentUserId.'
+'.$url.'familynews.php?getnews='.$fcmsUser->id.'
 
 ----
 '.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
@@ -210,10 +211,10 @@ elseif (isset($_POST['submitedit']))
 //-------------------------------------
 // Add news form
 //-------------------------------------
-if (isset($_GET['addnews']) && (checkAccess($currentUserId) < 6 || checkAccess($currentUserId) == 9))
+if (isset($_GET['addnews']) && (checkAccess($fcmsUser->id) < 6 || checkAccess($fcmsUser->id) == 9))
 { 
     $show_last5 = false;
-    $fnews->displayForm('add', $currentUserId);
+    $fnews->displayForm('add', $fcmsUser->id);
 }
 //-------------------------------------
 // Edit news form
@@ -284,7 +285,7 @@ if (isset($_GET['getnews']))
             $sql = "INSERT INTO `fcms_news_comments` (
                         `news`, `comment`, `date`, `user`
                     ) VALUES (
-                        '$nid', '$com', NOW(), $currentUserId
+                        '$nid', '$com', NOW(), $fcmsUser->id
                     )";
             if (!mysql_query($sql))
             {
@@ -345,4 +346,4 @@ echo '
         </div><!-- #familynews .centercontent -->';
 
 // Show Footer
-require_once getTheme($currentUserId).'footer.php';
+require_once getTheme($fcmsUser->id).'footer.php';

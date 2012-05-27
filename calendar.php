@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -22,15 +23,15 @@ load('datetime', 'calendar');
 init();
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
-$calendar      = new Calendar($currentUserId);
+$calendar = new Calendar($fcmsUser->id);
 
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Calendar'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -174,7 +175,7 @@ function displayExportSubmit ()
  */
 function displayHeader ()
 {
-    global $TMPL, $currentUserId;
+    global $TMPL, $fcmsUser;
 
     $TMPL['javascript'] = '
 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
@@ -211,7 +212,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    include_once getTheme($currentUserId).'header.php';
+    include_once getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="calendar-section" class="centercontent">';
@@ -224,12 +225,12 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $TMPL, $currentUserId;
+    global $TMPL, $fcmsUser;
 
     echo '
         </div><!-- /calendar-section -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -239,11 +240,11 @@ function displayFooter ()
  */
 function displayAddForm ()
 {
-    global $currentUserId, $calendar;
+    global $fcmsUser, $calendar;
 
     displayHeader();
 
-    if (checkAccess($currentUserId) > 5)
+    if (checkAccess($fcmsUser->id) > 5)
     {
         $calendar->displayCalendarMonth();
         displayFooter();
@@ -263,7 +264,7 @@ function displayAddForm ()
  */
 function displayAddSubmit ()
 {
-    global $calendar, $currentUserId;
+    global $calendar, $fcmsUser;
 
     $timeStart = "NULL";
     if (isset($_POST['timestart']) and !isset($_POST['all-day']))
@@ -315,7 +316,7 @@ function displayAddSubmit ()
                 NOW(),
                 '".escape_string($_POST['title'])."', 
                 '".escape_string($_POST['desc'])."', 
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 '".escape_string($_POST['category'])."', 
                 $repeat, 
                 '$private', 
@@ -368,11 +369,11 @@ function displayAddSubmit ()
  */
 function displayEditForm ()
 {
-    global $currentUserId, $calendar;
+    global $fcmsUser, $calendar;
 
     displayHeader();
 
-    if (checkAccess($currentUserId) > 5)
+    if (checkAccess($fcmsUser->id) > 5)
     {
         $calendar->displayCalendarMonth();
         displayFooter();
@@ -501,11 +502,11 @@ function displayEditSubmit ()
  */
 function displayEvent ()
 {
-    global $currentUserId, $calendar;
+    global $fcmsUser, $calendar;
 
     displayHeader();
 
-    if (checkAccess($currentUserId) > 5)
+    if (checkAccess($fcmsUser->id) > 5)
     {
         $calendar->displayCalendarMonth();
         displayFooter();
@@ -640,7 +641,7 @@ function displayAddCategoryForm ()
  */
 function displayAddCategorySubmit ()
 {
-    global $calendar, $currentUserId;
+    global $calendar, $fcmsUser;
 
     displayHeader();
 
@@ -657,7 +658,7 @@ function displayAddCategorySubmit ()
             VALUES (
                 '$name', 
                 'calendar',
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 NOW(),
                 '$colors'
             )";
@@ -816,7 +817,7 @@ function displayCalendar ()
  */
 function displayInvitationForm ($calendarId = 0, $errors = 0)
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
@@ -851,7 +852,7 @@ function displayInvitationForm ($calendarId = 0, $errors = 0)
     $event = mysql_fetch_array($result);
 
     // only creator, or admin can edit this invitation
-    if ($event['created_by'] != $currentUserId && getAccessLevel($currentUserId) > 1)
+    if ($event['created_by'] != $fcmsUser->id && getAccessLevel($fcmsUser->id) > 1)
     {
         echo '<p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
         displayFooter();
@@ -883,7 +884,7 @@ function displayInvitationForm ($calendarId = 0, $errors = 0)
     $rows = '';
     foreach ($members as $id => $arr)
     {
-        if ($id == $currentUserId)
+        if ($id == $fcmsUser->id)
         {
             continue;
         }
@@ -941,7 +942,7 @@ function displayInvitationForm ($calendarId = 0, $errors = 0)
  */
 function displayInvitationSubmit ()
 {
-    global $currentUserId, $calendar;
+    global $fcmsUser, $calendar;
 
     displayHeader();
 
@@ -967,7 +968,7 @@ function displayInvitationSubmit ()
     {
         // add the current user (host) to the invite as attending
         $sql = "INSERT INTO `fcms_invitation` (`event_id`, `user`, `created`, `updated`, `attending`)
-                VALUES ('$calendarId', '$currentUserId', NOW(), NOW(), 1)";
+                VALUES ('$calendarId', '$fcmsUser->id', NOW(), NOW(), 1)";
         if (!mysql_query($sql))
         {
             displaySqlError($sql, mysql_error());
@@ -1007,7 +1008,7 @@ function displayInvitationSubmit ()
                 FROM `fcms_users` 
                 WHERE `activated` > 0
                 AND `password` != 'NONMEMBER'
-                AND `id` != $currentUserId";
+                AND `id` != $fcmsUser->id";
 
         $result = mysql_query($sql);
         if (!$result)
@@ -1047,7 +1048,7 @@ function displayInvitationSubmit ()
         $email    = '';
         $toEmail  = '';
         $toName   = '';
-        $fromName = getUserDisplayName($currentUserId);
+        $fromName = getUserDisplayName($fcmsUser->id);
         $url      = getDomainAndDir();
 
         // member
@@ -1121,7 +1122,7 @@ function displayInvitationSubmit ()
  */
 function displayAttendSubmit ()
 {
-    global $currentUserId, $calendar;
+    global $fcmsUser, $calendar;
 
     displayHeader();
 
@@ -1161,7 +1162,7 @@ function displayAttendSubmit ()
  */
 function getInvitations ($eventId, $keyByEmail = false)
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $sql = "SELECT i.`id`, i.`user`, i.`email`, i.`attending`, i.`response`, i.`updated`,
                 u.`email` AS user_email
@@ -1182,7 +1183,7 @@ function getInvitations ($eventId, $keyByEmail = false)
 
     while ($r = mysql_fetch_assoc($result))
     {
-        if ($currentUserId == $r['user'])
+        if ($fcmsUser->id == $r['user'])
         {
             $data['_current_user'] = $r;
         }

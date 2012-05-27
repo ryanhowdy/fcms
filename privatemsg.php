@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -21,15 +22,13 @@ load('database', 'datetime');
 
 init();
 
-// Globals
-$currentUserId = (int)$_SESSION['login_id'];
-
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Private Messages'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -86,7 +85,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $TMPL, $currentUserId;
+    global $TMPL, $fcmsUser;
 
     $TMPL['javascript'] = '
 <script type="text/javascript">
@@ -107,7 +106,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    require_once getTheme($currentUserId).'header.php';
+    require_once getTheme($fcmsUser->id).'header.php';
 
     $link = T_('Inbox');
 
@@ -140,13 +139,13 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
             </div>
         </div><!-- #profile .centercontent -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -156,7 +155,7 @@ function displayFooter ()
  */
 function displayComposeForm ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
@@ -245,7 +244,7 @@ function displayComposeForm ()
  */
 function displayComposeFormSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $to    = (int)$_POST['to']; 
     $title = strip_tags($_POST['title']);
@@ -265,7 +264,7 @@ function displayComposeFormSubmit ()
                 (`to`, `from`, `date`, `title`, `msg`) 
             VALUES (
                 '$to', 
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 NOW(), 
                 '$cleanTitle', 
                 '$cleanMsg'
@@ -293,8 +292,8 @@ function displayComposeFormSubmit ()
 
     $r = mysql_fetch_array($result);
 
-    $from     = getUserDisplayName($currentUserId);
-    $reply    = getUserEmail($currentUserId);
+    $from     = getUserDisplayName($fcmsUser->id);
+    $reply    = getUserEmail($fcmsUser->id);
     $toName   = getUserDisplayName($to);
     $sitename = getSiteName();
     $sitename = html_entity_decode($sitename);
@@ -396,7 +395,7 @@ function displayDeleteSubmit ()
  */
 function displayPrivateMessage ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $id = (int)$_GET['pm'];
 
@@ -406,7 +405,7 @@ function displayPrivateMessage ()
             FROM `fcms_privatemsg` AS p
             LEFT JOIN `fcms_users` AS u ON p.`from` = u.`id`
             WHERE p.`id` = '$id' 
-            AND `to` = '$currentUserId'";
+            AND `to` = '$fcmsUser->id'";
 
     $result = mysql_query($sql);
     if (!$result)
@@ -440,7 +439,7 @@ function displayPrivateMessage ()
         return;
     }
 
-    $tzOffset   = getTimezone($currentUserId);
+    $tzOffset   = getTimezone($fcmsUser->id);
     $date       = fixDate(T_('n/j/Y g:i a'), $tzOffset, $r['date']);
     $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
     $from       = getUserDisplayName($r['from']);
@@ -469,7 +468,7 @@ function displayPrivateMessage ()
  */
 function displaySentPrivateMessage ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $id = (int)$_GET['sent'];
 
@@ -479,7 +478,7 @@ function displaySentPrivateMessage ()
             FROM `fcms_privatemsg` AS p
             LEFT JOIN `fcms_users` AS u ON p.`to` = u.`id`
             WHERE p.`id` = '$id' 
-            AND `from` = '$currentUserId'";
+            AND `from` = '$fcmsUser->id'";
 
     $result = mysql_query($sql);
     if (!$result)
@@ -502,7 +501,7 @@ function displaySentPrivateMessage ()
 
     $r = mysql_fetch_assoc($result);
 
-    $tzOffset   = getTimezone($currentUserId);
+    $tzOffset   = getTimezone($fcmsUser->id);
     $date       = fixDate(T_('n/j/Y g:i a'), $tzOffset, $r['date']);
     $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
     $to         = getUserDisplayName($r['to']);
@@ -530,7 +529,7 @@ function displaySentPrivateMessage ()
  */
 function displaySentFolder ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
@@ -543,7 +542,7 @@ function displaySentFolder ()
     $sql = "SELECT p.`id`, `to`, `from`, `title`, `date`, `read`, u.`avatar`, u.`gravatar`
             FROM `fcms_privatemsg` AS p
             LEFT JOIN `fcms_users` AS u ON p.`to` = u.`id`
-            WHERE `from` = '$currentUserId'
+            WHERE `from` = '$fcmsUser->id'
             ORDER BY `date` DESC";
 
     $result = mysql_query($sql);
@@ -554,7 +553,7 @@ function displaySentFolder ()
         return;
     }
 
-    $tzOffset = getTimezone($currentUserId);
+    $tzOffset = getTimezone($fcmsUser->id);
 
     while ($r = mysql_fetch_assoc($result))
     {
@@ -587,7 +586,7 @@ function displaySentFolder ()
  */
 function displayIndbox ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
@@ -614,7 +613,7 @@ function displayIndbox ()
     $sql = "SELECT p.`id`, `to`, `from`, `title`, `date`, `read`, u.`avatar`, u.`gravatar`
             FROM `fcms_privatemsg` AS p
             LEFT JOIN `fcms_users` AS u ON p.`from` = u.`id`
-            WHERE `to` = '$currentUserId'
+            WHERE `to` = '$fcmsUser->id'
             ORDER BY `date` DESC";
 
     $result = mysql_query($sql);
@@ -625,11 +624,9 @@ function displayIndbox ()
         return;
     }
 
-    $tzOffset = getTimezone($currentUserId);
-
     while ($r = mysql_fetch_assoc($result))
     {
-        $date       = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
+        $date       = fixDate(T_('M. j, Y, g:i a'), $fcmsUser->tzOffset, $r['date']);
         $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
         $from       = getUserDisplayName($r['from']);
         $rowClass   = '';

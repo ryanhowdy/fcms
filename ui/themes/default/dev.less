@@ -72,6 +72,13 @@
             border-bottom-right-radius: @radius;
 }
 
+// Drop shadows
+.box-shadow(@shadow) {
+    -webkit-box-shadow: @shadow;
+       -moz-box-shadow: @shadow;
+            box-shadow: @shadow;
+}
+
 // Opacity
 .opacity(@opacity: 100) {
     opacity: @opacity / 100;
@@ -848,7 +855,7 @@ fieldset input.mouseover {
     color: #333;
     font: bold 16px/25px @baseFontFamily;
 }
-ul.poll li {
+/*ul.poll li {
     background-color: #d8e9f8;
     display: block;
     margin: 5px 0;
@@ -885,7 +892,7 @@ ul.poll .index {
 p.poll {
     text-align: center;
     font: italic 12px @baseFontFamily;
-}
+}*/
 ul.whovoted { margin: 0 0 20px 0; }
 ul.whovoted li {
     list-style-type: none;
@@ -2689,27 +2696,40 @@ a.spouse:hover, a.child:hover, a.unknown:hover { background-color: #ccc; }
     font-size: 10px;
     padding: 0 0 0 10px;
 }
-#recipe-list { padding: 20px 0; }
-#recipe-list li {
-    border-top: 1px solid #ddd;
-    list-style-type: none;
-}
-#recipe-list li a {
-    color: #333;
-    display: block;
-    font: normal 16px/25px @baseFontFamily;
-    padding: 10px;
-}
-#recipe-list li a span {
-    color: #fff;
-    font: bold 12px/20px @baseFontFamily;
-    float: right;
-}
-#recipe-list li a b, #recipe-page h4 {
-    color: @linkColor;
-    display: block;
-    font: bold 24px/36px @baseFontFamily;
-    padding: 5px 0 15px 0;
+#recipe-list {
+    padding: 20px 0;
+    li {
+        .clearfix();
+        border-top: 1px solid #ddd;
+        list-style-type: none;
+        a {
+            color: #333;
+            display: block;
+            font: normal 16px/25px @baseFontFamily;
+            padding: 10px;
+        }
+        span {
+            color: #fff;
+            font: bold 12px/20px @baseFontFamily;
+            float: right;
+        }
+        img {
+            float: left;
+            height: 60px;
+            margin-right: 15px;
+            width: 60px;
+        }
+        b, h4 {
+            color: @linkColor;
+            display: block;
+            font: bold 24px/36px @baseFontFamily;
+        }
+        i {
+            color: #aaa;
+            font-size: 13px;
+            font-style: normal;
+        }
+    }
 }
 #recipe-list li a:hover { background-color: @hoverColor; }
 #recipe-list li a:hover span { color: @linkColor; }
@@ -2743,13 +2763,16 @@ a.spouse:hover, a.child:hover, a.unknown:hover { background-color: #ccc; }
 }
 .recipe-thumbnail { float: left; }
 h4.recipe-name {
-    margin: 0 0 0 130px;
+    margin: 0 0 0 130px !important;
     padding: 0 0 15px 0 !important;
 }
 #recipe-page span.date {
     display: block;
     margin: 0 0 0 130px;
     padding: 0 0 50px 0;
+}
+.recipe-container {
+   .clearfix(); 
 }
 .recipe-directions {
     float: left;
@@ -3288,6 +3311,95 @@ a.merge { float: right; }
     padding: 10px;
     width: 900px;
     white-space: pre-line;
+}
+
+
+/* =POLLS
+------------------------------------------------*/
+form.poll {
+    border: 1px solid #eee;
+    margin: 20px;
+    padding: 30px;
+    p.actions {
+        .clearfix();
+        a {
+            font-size: 14px;
+            font-weight: normal;
+        }
+    }
+    .sub1 {
+        border: 1px solid #357b2c;
+        .border-radius(0);
+        color: #333;
+        .gradient(#A6F09C, #7dcd73);
+        float: right;
+        padding: 10px 20px;
+    }
+    .disabled {
+        background-color: #ddd;
+        border: 1px solid #ccc;
+        .box-shadow(inset 0 1px 2px rgba(0,0,0,.1));
+        float: right;
+        padding: 10px 20px;
+    }
+}
+form.poll-small {
+    h3 {
+        font-size: 13px;
+    }
+    ul.poll-results {
+        line-height: 20px;
+        b {
+            font-size: 13px;
+            font-weight: normal;
+        }
+        span {
+            display: none;
+        }
+        .progress {
+            height: 12px;
+        }
+    }
+}
+ul.poll-results {
+    margin: 0;
+    padding: 0;
+    li {
+        list-style-type: none;
+        span {
+            color: #666;
+            font-size: 13px;
+            float: right;
+        }
+        .who-voted {
+            margin: -10px 0 20px 0;
+        }
+    }
+    .avatar-member-list-small li {
+        font-size: 13px;
+    }
+}
+.progress {
+    background-color: #d8e9f8;
+    .box-shadow(inset 0 1px 2px rgba(0,0,0,.1));
+    .border-radius(4px);
+    display: block;
+    height: 20px;
+    margin: 0 0 16px 0;
+    position: relative;
+    width: 100%;
+}
+.progress .bar {
+    .gradient(#9ccef0, #61b1e7);
+    .border-radius(4px);
+    display: block;
+    height: 100%;
+    left: 0;
+    line-height: 20px;
+    overflow: hidden;
+    position: absolute;
+    text-indent: -9999px;
+    top: 0;
 }
 
 

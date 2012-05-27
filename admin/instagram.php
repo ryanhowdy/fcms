@@ -15,6 +15,7 @@
 session_start();
 
 define('URL_PREFIX', '../');
+define('GALLERY_PREFIX', '../gallery/');
 
 require '../fcms.php';
 
@@ -22,15 +23,12 @@ load('socialmedia');
 
 init('admin/');
 
-// Globals
-$currentUserId = (int)$_SESSION['login_id'];
-
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: Instagram'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -65,7 +63,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>';
@@ -83,7 +81,7 @@ function displayHeader ()
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!--/instagram-->';
@@ -100,7 +98,7 @@ function displayFooter ()
  */
 function displayFormPage ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 

@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -21,15 +22,13 @@ load('members', 'database');
 
 init();
 
-// Globals
-$currentUserId = (int)$_SESSION['login_id'];
-
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Members'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -57,14 +56,14 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script type="text/javascript">
 Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });
 </script>';
 
-    include_once getTheme($currentUserId).'header.php';
+    include_once getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="members" class="centercontent">
@@ -88,13 +87,13 @@ Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
             </div><!-- /maincolumn -->
         </div><!-- /members -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -104,13 +103,13 @@ function displayFooter ()
  */
 function displayMembers ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
     $order = isset($_GET['order']) ? $_GET['order'] : 'alphabetical';
 
-    $tzOffset = getTimezone($currentUserId);
+    $tzOffset = getTimezone($fcmsUser->id);
 
     $validOrderTypes = array(
         'alphabetical'  => 'ORDER BY u.`fname`',

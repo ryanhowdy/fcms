@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '../');
+define('GALLERY_PREFIX', '../gallery/');
 
 require URL_PREFIX.'fcms.php';
 
@@ -22,15 +23,14 @@ load('gallery', 'database');
 init('admin/');
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
-$gallery       = new PhotoGallery($currentUserId);
+$gallery = new PhotoGallery($fcmsUser->id);
 
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: Photo Gallery'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -48,9 +48,9 @@ exit();
  */
 function control ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
-    if (checkAccess($currentUserId) > 2)
+    if (checkAccess($fcmsUser->id) > 2)
     {
         displayInvalidAccessLevel();
         return;
@@ -96,7 +96,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>
@@ -132,7 +132,7 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!-- /admin-gallery -->';
@@ -224,14 +224,7 @@ function displayLatestCategoriesForm ()
     {
         $count = $gallery->getCategoryPhotoCount($row['category']);
 
-        if ($row['filename'] == 'noimage.gif' && $row['external_id'] != null)
-        {
-            $photoSrc = $row['thumbnail'];
-        }
-        else
-        {
-            $photoSrc = '../uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']);
-        }
+        $photoSrc = $gallery->getPhotoSource($row);
 
         echo '
                     <li>
@@ -318,6 +311,7 @@ function displayDeleteAllCategoriesSubmit ()
     {
         $category = (int)$category;
 
+        // Delete all photos in category
         $sql = "DELETE FROM `fcms_gallery_photos`
                 WHERE `category` = '$category'";
 
@@ -329,6 +323,18 @@ function displayDeleteAllCategoriesSubmit ()
             return;
         }
 
+        // Delete all category comments
+        $sql = "DELETE FROM `fcms_gallery_category_comment`
+                WHERE `category_id` = '$category'";
+        if (!mysql_query($sql))
+        {
+            displayHeader();
+            displaySqlError($sql, mysql_error());
+            displayFooter();
+            return;
+        }
+
+        // Delete category
         $sql = "DELETE FROM `fcms_category`
                 WHERE `id` = '$category'";
         if (!mysql_query($sql))
@@ -338,6 +344,7 @@ function displayDeleteAllCategoriesSubmit ()
             displayFooter();
             return;
         }
+
     }
 
     $_SESSION['success'] = 1;
@@ -469,14 +476,7 @@ function displayEditCategoryForm ()
 
     while ($row = mysql_fetch_assoc($result))
     {
-        if ($row['filename'] == 'noimage.gif' && $row['external_id'] != null)
-        {
-            $photoSrc = $row['thumbnail'];
-        }
-        else
-        {
-            $photoSrc = '../uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']);
-        }
+        $photoSrc = $gallery->getPhotoSource($row);
 
         echo '
                     <li>

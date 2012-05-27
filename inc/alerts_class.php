@@ -77,7 +77,7 @@ class Alerts
         $profilePicture = '<span>'.T_('Add a Profile Picture').'</span>';
         $complete++;
         $avatar = getCurrentAvatar($userid);
-        if ($avatar == 'uploads/avatar/no_avatar.jpg')
+        if ($avatar == getUploadsAbsolutePath().'avatar/no_avatar.jpg')
         {
             $profilePicture = '<a href="profile.php?view=picture">'.T_('Add a Profile Picture').'</a>';
             $complete--;

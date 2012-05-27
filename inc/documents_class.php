@@ -250,8 +250,10 @@ class Documents
 
         $filename = basename($filename); // just the filename, no paths
 
+        $uploadsPath = getUploadsAbsolutePath();
+
         // Check if a file with that name exists already
-        if (file_exists("uploads/documents/$filename"))
+        if (file_exists($uploadsPath.'documents/'.$filename))
         {
             echo '
             <p class="error-alert">
@@ -261,7 +263,7 @@ class Documents
         }
 
         // Upload the file
-        copy($filetmpname, "uploads/documents/$filename");
+        copy($filetmpname, $uploadsPath.'documents/'.$filename);
         return true;
     }
 }

@@ -17,7 +17,8 @@ require_once 'inc/config_inc.php';
 require_once 'inc/thirdparty/gettext.inc';
 require_once 'inc/utils.php';
 require_once 'inc/constants.php';
-require_once 'inc/error.class.php';
+require_once 'inc/Error.php';
+require_once 'inc/User.php';
 
 set_error_handler("fcmsErrorHandler");
 
@@ -27,7 +28,14 @@ connectDatabase();
 
 checkSiteStatus();
 
-$_error    = new FCMS_Error();
+$fcmsError = new FCMS_Error();
+$fcmsUser  = new User($fcmsError);
+
+if ($fcmsError->hasErrors())
+{
+    $fcmsError->displayErrors();
+    return;
+}
 
 /**
  * load 
@@ -240,7 +248,6 @@ function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
     if (debugOn())
     {
         $debugInfo = '
-        <p><b>'.$errstr.'</b></p>
         <p><b>Where:</b> on line '.$errline.' in '.$errfile.'</p>
         <p><b>Environment:</b> PHP '.PHP_VERSION.' ('.PHP_OS.')</p>';
     }
@@ -272,7 +279,8 @@ function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
 
     echo '
     <div class="error-alert">
-        <p><b>Error</b></p>
+        <p><b>'.$errno.'</b></p>
+        <p><b>'.$errstr.'</b></p>
         '.$debugInfo.'
     </div>';
 
@@ -363,15 +371,9 @@ function checkScheduler ($subdir = '')
  * it just returns, if not, it redirects to login screen.
  * returns  boolean
  */
-function isLoggedIn ($directory = '')
+function isLoggedIn ()
 {
-    $up = '';
-
-    // We have are looking for a sub directory, then index is up a level
-    if ($directory != '')
-    {
-        $up = '../';
-    }
+    global $fcmsUser, $fcmsError;
 
     // User has a session
     if (isset($_SESSION['login_id']))
@@ -395,7 +397,7 @@ function isLoggedIn ($directory = '')
     else
     {
         $url = basename($_SERVER["REQUEST_URI"]);
-        header("Location: {$up}index.php?err=login&url=$directory$url");
+        header('Location: '.URL_PREFIX.'index.php?err=login&url='.URL_PREFIX.$url);
         exit();
     }
 
@@ -403,7 +405,7 @@ function isLoggedIn ($directory = '')
     if (!is_numeric($id))
     {
         $url = basename($_SERVER["REQUEST_URI"]);
-        header("Location: {$up}index.php?err=login&url=$directory$url");
+        header('Location: '.URL_PREFIX.'index.php?err=login&url='.URL_PREFIX.$url);
         exit();
     }
 
@@ -433,12 +435,13 @@ function isLoggedIn ($directory = '')
         // Site is off and your not an admin
         if ($r2['site_off'] == 1 && $r1['access'] > 1)
         {
-            header("Location: {$up}index.php?err=off");
+            header('Location: '.URL_PREFIX.'index.php?err=off');
             exit();
         }
         // Good login, you may proceed
         else
         {
+            $fcmsUser = new User($fcmsError);
             return;
         }
     }
@@ -455,7 +458,7 @@ function isLoggedIn ($directory = '')
             setcookie('fcms_login_uname', '', time() - 3600, '/');
             setcookie('fcms_login_pw', '', time() - 3600, '/');
         }
-        header("Location: {$up}index.php?err=login");
+        header('Location: '.URL_PREFIX.'index.php?err=login');
         exit();
     }
 }

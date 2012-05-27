@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '../');
+define('GALLERY_PREFIX', '../gallery/');
 
 require URL_PREFIX.'fcms.php';
 
@@ -22,15 +23,14 @@ load('alerts');
 init('admin/');
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
-$alert         = new Alerts($currentUserId);
+$alert = new Alerts($fcmsUser->id);
 
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: Polls'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -48,9 +48,9 @@ exit();
  */
 function control ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
-    if (checkAccess($currentUserId) > 2)
+    if (checkAccess($fcmsUser->id) > 2)
     {
         displayInvalidAccessLevel();
         return;
@@ -101,7 +101,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>
@@ -128,7 +128,7 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!--/centercontent-->';
@@ -162,12 +162,12 @@ function displayInvalidAccessLevel ()
  */
 function displayRemoveAlertSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
             VALUES (
                 '".escape_string($_GET['alert'])."', 
-                '$currentUserId'
+                '$fcmsUser->id'
             )";
     if (!mysql_query($sql))
     {
@@ -187,11 +187,11 @@ function displayRemoveAlertSubmit ()
  */
 function displayPolls ()
 {
-    global $currentUserId, $alert;
+    global $fcmsUser, $alert;
 
     displayHeader();
 
-    $alert->displayPoll($currentUserId);
+    $alert->displayPoll($fcmsUser->id);
 
     $page = getPage();
     $from = (($page * 10) - 10);

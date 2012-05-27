@@ -3025,15 +3025,44 @@ function debugOn ()
 /**
  * displayWhatsNewAll 
  * 
- * @param   int     $userid 
- * @return  void
+ * Displays the following types of new data from the site:
+ *
+ *  ADDRESSADD      Add address of non-member
+ *  ADDRESSEDIT     Edit own address
+ *  AVATAR          Change avatar
+ *  BOARD           Message board post
+ *  CALENDAR        Add date to calendar
+ *  DOCS            Added document
+ *  GALCATCOM       Commented on category of photos
+ *  GALCOM          Commented on photo
+ *  GALLERY         Added photo
+ *  JOINED          Joined the site (became active)
+ *  NEWS            Added family news
+ *  NEWSCOM         Commented on family news
+ *  POLL            Added poll
+ *  POLLCOM         Commented on poll
+ *  PRAYERS         Added prayer concern
+ *  RECIPES         Added recipe
+ *  RECIPECOM       Commented on recipe
+ *  STATUS          Added status update
+ *  VIDEO           Added video
+ *  VIDEOCOM        Commented on video
+ *  WHEREISEVERYONE Checked in on foursquare
+ *
+ * @param int $userid 
+ *
+ * @return void
  */
 function displayWhatsNewAll ($userid)
 {
     global $cfg_mysql_host, $cfg_use_news, $cfg_use_prayers;
 
+    load('gallery');
+
     $userid    = (int)$userid;
     $tz_offset = getTimezone($userid);
+
+    $galleryObj = new PhotoGallery($userid);
 
     $lastday = '0-0';
 
@@ -3052,6 +3081,8 @@ function displayWhatsNewAll ($userid)
     }
 
     $cachedUserData = array();
+
+    $position = 1;
 
     // Loop through data
     foreach ($whatsNewData as $r)
@@ -3096,62 +3127,21 @@ function displayWhatsNewAll ($userid)
             $cachedUserData[$r['userid']]['displayname'] = $displayname;
         }
 
-        if ($r['type'] == 'BOARD')
+        if ($r['type'] == 'ADDRESSADD')
         {
-            $sql = "SELECT MIN(`id`) AS 'id' 
-                    FROM `fcms_board_posts` 
-                    WHERE `thread` = '".$r['id2']."'";
-
-            $result = mysql_query($sql);
-            if (!$result)
-            {
-                displaySqlError($sql, mysql_error());
-                return;
-            }
-            $minpost = mysql_fetch_array($result);
-
-            $subject  = $r['title'];
-
-            $pos = strpos($subject, '#ANOUNCE#');
-            if ($pos !== false)
-            {
-                $subject = substr($subject, 9, strlen($subject)-9);
-            }
-
-            $title   = cleanOutput($subject);
-            $subject = cleanOutput($subject);
-            $subject = '<a href="messageboard.php?thread='.$r['id2'].'" title="'.$title.'">'.$subject.'</a>';
-
-            if ($r['id'] == $minpost['id'])
-            {
-                $class = 'newthread';
-                $text = sprintf(T_('Started the new thread %s.'), $subject);
-            }
-            else
-            {
-                $class = 'newpost';
-                $text = sprintf(T_('Replied to %s.'), $subject);
-            }
+            $displayname = getUserDisplayName($r['id2']);
+            $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
+            $avatar      = '<img src="'.getCurrentAvatar($r['id2']).'" alt="'.cleanOutput($displayname).'"/>';
+            $for         = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
 
             echo '
-                <div class="new '.$class.'">
+                <div id="'.$position.'" class="new newaddress">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
                         <p>
-                            '.$text.'
+                            '.sprintf(T_('Added address information for %s.'), $for).'
                         </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'JOINED')
-        {
-            echo '
-                <div class="new newmember">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>'.T_('Joined the website.').'</p>
                     </div>
                 </div>';
         }
@@ -3206,7 +3196,7 @@ function displayWhatsNewAll ($userid)
             }
 
             echo '
-                <div class="new newaddress">
+                <div id="'.$position.'" class="new newaddress">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$editor.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
@@ -3216,66 +3206,84 @@ function displayWhatsNewAll ($userid)
                     </div>
                 </div>';
         }
-        elseif ($r['type'] == 'ADDRESSADD')
+        elseif ($r['type'] == 'AVATAR')
         {
-            $displayname = getUserDisplayName($r['id2']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
-            $avatar      = '<img src="'.getCurrentAvatar($r['id2']).'" alt="'.cleanOutput($displayname).'"/>';
-            $for         = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
+            $text = T_('Changed his profile picture.');
+
+            if ($r['id3'] == 'F')
+            {
+                $text = T_('Changed her profile picture.');
+            }
 
             echo '
-                <div class="new newaddress">
+                <div id="'.$position.'" class="new newavatar">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>'.$text.'</p>
+                    </div>
+                </div>';
+        }
+        elseif ($r['type'] == 'BOARD')
+        {
+            $sql = "SELECT MIN(`id`) AS 'id' 
+                    FROM `fcms_board_posts` 
+                    WHERE `thread` = '".$r['id2']."'";
+
+            $result = mysql_query($sql);
+            if (!$result)
+            {
+                displaySqlError($sql, mysql_error());
+                return;
+            }
+            $minpost = mysql_fetch_array($result);
+
+            $subject  = $r['title'];
+
+            $pos = strpos($subject, '#ANOUNCE#');
+            if ($pos !== false)
+            {
+                $subject = substr($subject, 9, strlen($subject)-9);
+            }
+
+            $title   = cleanOutput($subject);
+            $subject = cleanOutput($subject);
+            $subject = '<a href="messageboard.php?thread='.$r['id2'].'" title="'.$title.'">'.$subject.'</a>';
+
+            if ($r['id'] == $minpost['id'])
+            {
+                $class = 'newthread';
+                $text = sprintf(T_('Started the new thread %s.'), $subject);
+            }
+            else
+            {
+                $class = 'newpost';
+                $text = sprintf(T_('Replied to %s.'), $subject);
+            }
+
+            echo '
+                <div id="'.$position.'" class="new '.$class.'">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
                         <p>
-                            '.sprintf(T_('Added address information for %s.'), $for).'
+                            '.$text.'
                         </p>
                     </div>
                 </div>';
         }
-        elseif ($r['type'] == 'NEWS')
+        elseif ($r['type'] == 'CALENDAR')
         {
-            $title = !empty($r['title']) ? cleanOutput($r['title']) : T_('untitled');
-            $news  = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$title.'</a>'; 
+            $date_date = date('F j, Y', strtotime($r['id2']));
+            $for       = '<a href="calendar.php?event='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
 
             echo '
-                <div class="new newnews">
+                <div id="'.$position.'" class="new newcal">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
                         <p>
-                            '.sprintf(T_('Added %s to his/her Family News.'), $news).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'PRAYERS')
-        {
-            $for = '<a href="prayers.php">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div class="new newprayer">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Added a Prayer Concern for %s.'), $for).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'RECIPES')
-        {
-            $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div class="new newrecipe">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Added the %s recipe.'), $rec).'
+                            '.$for.' - '.$date_date.'
                         </p>
                     </div>
                 </div>';
@@ -3285,12 +3293,73 @@ function displayWhatsNewAll ($userid)
             $doc = '<a href="documents.php">'.cleanOutput($r['title']).'</a>';
 
             echo '
-                <div class="new newdocument">
+                <div id="'.$position.'" class="new newdocument">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
                         <p>
                             '.sprintf(T_('Added a new Document (%s).'), $doc).'
+                        </p>
+                    </div>
+                </div>';
+        }
+        elseif ($r['type'] == 'GALCATCOM')
+        {
+            $category = '<a href="gallery/index.php?uid='.$r['id2'].'&amp;cid='.$r['id3'].'">'.cleanOutput($r['title']).'</a>';
+
+            echo '
+                <div id="'.$position.'" class="new newcom">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Commented on %s.'), $category).'
+                        </p>
+                    </div>
+                </div>';
+        }
+        elseif ($r['type'] == 'GALCOM')
+        {
+            $data = array(
+                'id'          => $r['id'],
+                'user'        => $r['id2'],
+                'filename'    => $r['id3'],
+                'external_id' => null,
+                'thumbnail'   => null
+            );
+
+            if ($r['id3'] == 'noimage.gif')
+            {
+                $sql = "SELECT p.`id`, p.`filename`, p.`external_id`, e.`thumbnail`
+                        FROM `fcms_gallery_photos` AS p
+                        LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                        WHERE p.`id` = '".(int)$r['id']."'";
+
+                $result = mysql_query($sql);
+                if (!$result)
+                {
+                    displaySqlError($sql, mysql_error());
+                    return;
+                }
+
+                $p = mysql_fetch_assoc($result);
+
+                $data['external_id'] = $p['external_id'];
+                $data['thumbnail']   = $p['thumbnail'];
+            }
+
+            $photoSrc = $galleryObj->getPhotoSource($data);
+
+            echo '
+                <div id="'.$position.'" class="new newcom">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.T_('Commented on the following photo:').'<br/>
+                            <a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'">
+                                <img src="'.$photoSrc.'"/>
+                            </a>
                         </p>
                     </div>
                 </div>';
@@ -3323,14 +3392,7 @@ function displayWhatsNewAll ($userid)
 
             while ($p = mysql_fetch_assoc($result))
             {
-                if ($p['filename'] == 'noimage.gif' && $p['external_id'] != null)
-                {
-                    $photoSrc = $p['thumbnail'];
-                }
-                else
-                {
-                    $photoSrc = 'uploads/photos/member'.$r['userid'].'/tb_'.basename($p['filename']);
-                }
+                $photoSrc = $galleryObj->getPhotoSource($p);
 
                 $photos .= '
                         <a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'&amp;pid='.$p['id'].'">
@@ -3339,7 +3401,7 @@ function displayWhatsNewAll ($userid)
             }
 
             echo '
-                <div class="new newphoto">
+                <div id="'.$position.'" class="new newphoto">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
@@ -3350,12 +3412,39 @@ function displayWhatsNewAll ($userid)
                     </div>
                 </div>';
         }
+        elseif ($r['type'] == 'JOINED')
+        {
+            echo '
+                <div id="'.$position.'" class="new newmember">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>'.T_('Joined the website.').'</p>
+                    </div>
+                </div>';
+        }
+        elseif ($r['type'] == 'NEWS')
+        {
+            $title = !empty($r['title']) ? cleanOutput($r['title']) : T_('untitled');
+            $news  = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$title.'</a>'; 
+
+            echo '
+                <div id="'.$position.'" class="new newnews">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Added %s to his/her Family News.'), $news).'
+                        </p>
+                    </div>
+                </div>';
+        }
         elseif ($r['type'] == 'NEWSCOM')
         {
             $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
 
             echo '
-                <div class="new newcom">
+                <div id="'.$position.'" class="new newcom">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
@@ -3365,58 +3454,54 @@ function displayWhatsNewAll ($userid)
                     </div>
                 </div>';
         }
-        elseif ($r['type'] == 'GALCOM')
+        elseif ($r['type'] == 'POLL')
         {
-            $photoSrc = 'uploads/photos/member'.$r['id2'].'/tb_'.basename($r['id3']);
-
-            if ($r['id3'] == 'noimage.gif')
-            {
-                $sql = "SELECT p.`filename`, p.`external_id`, e.`thumbnail`
-                        FROM `fcms_gallery_photos` AS p
-                        LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                        WHERE p.`id` = '".(int)$r['id']."'";
-
-                $result = mysql_query($sql);
-                if (!$result)
-                {
-                    displaySqlError($sql, mysql_error());
-                    return;
-                }
-
-                while ($p = mysql_fetch_assoc($result))
-                {
-                    if ($p['filename'] == 'noimage.gif' && $p['external_id'] != null)
-                    {
-                        $photoSrc = $p['thumbnail'];
-                    }
-                }
-            }
+            $poll = '<a href="polls.php?id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
 
             echo '
-                <div class="new newcom">
+                <p class="new newpoll">'.sprintf(T_('A new Poll (%s) has been added.'), $poll).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
+        }
+        elseif ($r['type'] == 'POLLCOM')
+        {
+            $poll = '<a href="polls.php?id='.$r['id'].'"#comments>'.cleanOutput($r['title']).'</a>';
+
+            echo '
+                <div id="'.$position.'" class="new pollcom">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
                         <p>
-                            '.T_('Commented on the following photo:').'<br/>
-                            <a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'">
-                                <img src="'.$photoSrc.'"/>
-                            </a>
+                            '.sprintf(T_('Commented on Poll %s.'), $poll).'
                         </p>
                     </div>
                 </div>';
         }
-        elseif ($r['type'] == 'GALCATCOM')
+        elseif ($r['type'] == 'PRAYERS')
         {
-            $category = '<a href="gallery/index.php?uid='.$r['id2'].'&amp;cid='.$r['id3'].'">'.cleanOutput($r['title']).'</a>';
+            $for = '<a href="prayers.php">'.cleanOutput($r['title']).'</a>';
 
             echo '
-                <div class="new newcom">
+                <div id="'.$position.'" class="new newprayer">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
                         <p>
-                            '.sprintf(T_('Commented on %s.'), $category).'
+                            '.sprintf(T_('Added a Prayer Concern for %s.'), $for).'
+                        </p>
+                    </div>
+                </div>';
+        }
+        elseif ($r['type'] == 'RECIPES')
+        {
+            $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
+            echo '
+                <div id="'.$position.'" class="new newrecipe">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Added the %s recipe.'), $rec).'
                         </p>
                     </div>
                 </div>';
@@ -3426,50 +3511,13 @@ function displayWhatsNewAll ($userid)
             $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
 
             echo '
-                <div class="new newcom">
+                <div id="'.$position.'" class="new newcom">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
                         <p>
                             '.sprintf(T_('Commented on Recipe %s.'), $rec).'
                         </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'CALENDAR')
-        {
-            $date_date = date('F j, Y', strtotime($r['id2']));
-            $for       = '<a href="calendar.php?event='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div class="new newcal">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.$for.' - '.$date_date.'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'POLL')
-        {
-            $poll = '<a href="home.php?poll_id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <p class="new newpoll">'.sprintf(T_('A new Poll (%s) has been added.'), $poll).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
-        }
-        elseif ($r['type'] == 'WHEREISEVERYONE')
-        {
-            echo '
-                <div class="new newwhere">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Visited %s.'), $r['title']).'
-                        </p>
-                        '.(!empty($r['id2']) ? '<blockquote>'.cleanOutput($r['id2']).'</blockquote>' : '').'
                     </div>
                 </div>';
         }
@@ -3518,7 +3566,7 @@ function displayWhatsNewAll ($userid)
             }
 
             echo '
-                <div class="new newstatus">
+                <div id="'.$position.'" class="new newstatus">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince(strtotime($r['id3'])).'</i></small>
@@ -3532,28 +3580,10 @@ function displayWhatsNewAll ($userid)
                     </div>
                 </div>';
         }
-        elseif ($r['type'] == 'AVATAR')
-        {
-            $text = T_('Changed his profile picture.');
-
-            if ($r['id3'] == 'F')
-            {
-                $text = T_('Changed her profile picture.');
-            }
-
-            echo '
-                <div class="new newavatar">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>'.$text.'</p>
-                    </div>
-                </div>';
-        }
         elseif ($r['type'] == 'VIDEO')
         {
             echo '
-                <div class="new newvideo">
+                <div id="'.$position.'" class="new newvideo">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
@@ -3567,7 +3597,7 @@ function displayWhatsNewAll ($userid)
         elseif ($r['type'] == 'VIDEOCOM')
         {
             echo '
-                <div class="new newcom">
+                <div id="'.$position.'" class="new newcom">
                     <div class="avatar">'.$avatar.'</div>
                     <div class="info">
                         '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
@@ -3578,7 +3608,22 @@ function displayWhatsNewAll ($userid)
                     </div>
                 </div>';
         }
+        elseif ($r['type'] == 'WHEREISEVERYONE')
+        {
+            echo '
+                <div id="'.$position.'" class="new newwhere">
+                    <div class="avatar">'.$avatar.'</div>
+                    <div class="info">
+                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
+                        <p>
+                            '.sprintf(T_('Visited %s.'), $r['title']).'
+                        </p>
+                        '.(!empty($r['id2']) ? '<blockquote>'.cleanOutput($r['id2']).'</blockquote>' : '').'
+                    </div>
+                </div>';
+        }
 
+        $position++;
 
         $lastday = $updated;
     }
@@ -3589,6 +3634,30 @@ function displayWhatsNewAll ($userid)
  * 
  * Get the latest information in the site, including any external data.
  * Defaults to the last 30 days.
+ * 
+ * Types of data:
+ * 
+ *  ADDRESSADD      Add address of non-member
+ *  ADDRESSEDIT     Edit own address
+ *  AVATAR          Change avatar
+ *  BOARD           Message board post
+ *  CALENDAR        Add date to calendar
+ *  DOCS            Added document
+ *  GALCATCOM       Commented on category of photos
+ *  GALCOM          Commented on photo
+ *  GALLERY         Added photo
+ *  JOINED          Joined the site (became active)
+ *  NEWS            Added family news
+ *  NEWSCOM         Commented on family news
+ *  POLL            Added poll
+ *  POLLCOM         Commented on poll
+ *  PRAYERS         Added prayer concern
+ *  RECIPES         Added recipe
+ *  RECIPECOM       Commented on recipe
+ *  STATUS          Added status update
+ *  VIDEO           Added video
+ *  VIDEOCOM        Commented on video
+ *  WHEREISEVERYONE Checked in on foursquare
  * 
  * @param int    $userid
  * @param int    $days 
@@ -3691,6 +3760,11 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
              UNION SELECT `id`, `started` AS date, `question`, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type 
              FROM `fcms_polls` 
              WHERE `started` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+
+             UNION SELECT p.`id`, c.`created` AS date, p.`question` AS title, c.`created_id` AS userid, 'na' AS id2, 'na' AS id3, 'POLLCOM' AS type 
+             FROM `fcms_poll_comment` AS c
+             LEFT JOIN `fcms_polls` AS p ON c.`poll_id` = p.`id`
+             WHERE `created` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
              UNION SELECT `id`, `updated` AS date, `status` AS title, `user` AS userid, `parent` AS id2, `created` AS id3, 'STATUS' AS type 
              FROM `fcms_status` 
@@ -4217,12 +4291,11 @@ function getCalendarCategory ($cat, $caseSensitive = false)
 /**
  * getCurrentAvatar 
  * 
- * @param int     $id 
- * @param boolean $gallery 
+ * @param int $id User id
  * 
  * @return string
  */
-function getCurrentAvatar ($id, $gallery = false)
+function getCurrentAvatar ($id)
 {
     $id = (int)$id;
 
@@ -4234,21 +4307,18 @@ function getCurrentAvatar ($id, $gallery = false)
     if (!$result)
     {
         displaySqlError($sql, mysql_error());
-        return 'uploads/avatar/no_avatar.jpg';
+        return getAvatarPath('no_avatar.jpg', NULL);
     }
 
     // No Avatar set
     if (mysql_num_rows($result) <= 0)
     {
-        return 'uploads/avatar/no_avatar.jpg';
+        return getAvatarPath('no_avatar.jpg', NULL);
     }
 
     $r = mysql_fetch_array($result);
 
-    // Do we need to back out of the gallery/ sub directory?
-    $url = $gallery ? '../' : '';
-
-    return getAvatarPath($r['avatar'], $r['gravatar'], $url);
+    return getAvatarPath($r['avatar'], $r['gravatar']);
 }
 
 /**
@@ -4256,21 +4326,44 @@ function getCurrentAvatar ($id, $gallery = false)
  * 
  * @param string $avatar   no_avatar.jpg | gravatar | <filename>
  * @param string $gravatar email address for gravatar or ''
- * @param string $url      defaults to ''
  * 
  * @return string
  */
-function getAvatarPath ($avatar, $gravatar, $url = '')
+function getAvatarPath ($avatar, $gravatar)
 {
+    // Protected uploads
+    if (defined('UPLOADS'))
+    {
+        switch ($avatar)
+        {
+            case 'no_avatar.jpg':
+                return URL_PREFIX.'file.php?a=no_avatar.jpg';
+                break;
+
+            case 'gravatar':
+                return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80'; 
+                break;
+
+            default:
+                return URL_PREFIX.'file.php?a='.basename($avatar);
+                break;
+        }
+    }
+
+    // Unprotected uploads
     switch ($avatar)
     {
         case 'no_avatar.jpg':
-            return $url.'uploads/avatar/no_avatar.jpg';
+            return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
             break;
+
         case 'gravatar':
             return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80'; 
+            break;
+
         default:
-            return $url.'uploads/avatar/'.basename($avatar);
+            return URL_PREFIX.'uploads/avatar/'.basename($avatar);
+            break;
     }
 }
 
@@ -4986,4 +5079,21 @@ function getUserInstagramCategory ($userId)
     $r = mysql_fetch_array($result);
 
     return $r['id'];
+}
+
+/**
+ * getUploadsAbsolutePath 
+ * 
+ * Returns the absolute path to the uploads directory.
+ * 
+ * @return string
+ */
+function getUploadsAbsolutePath ()
+{
+    if (defined('UPLOADS'))
+    {
+        return UPLOADS;
+    }
+
+    return ROOT.'uploads/';
 }

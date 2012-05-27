@@ -118,7 +118,7 @@ class Awards
      */
     function displayAward ($userid, $type)
     {
-        global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
+        global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass, $gallery;
 
         $mb       = new MessageBoard($this->currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
         $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
@@ -235,13 +235,14 @@ class Awards
 
                 case 'shutterbug':
 
-                    $id      = (int)$r['item_id'];
-                    $photo   = $g->getPhotoInfo($id);
-                    $views   = sprintf(T_pgettext('Ex: 210 views', '%d views'), $r['count']);
+                    $id       = (int)$r['item_id'];
+                    $photo    = $g->getPhotoInfo($id);
+                    $views    = sprintf(T_pgettext('Ex: 210 views', '%d views'), $r['count']);
+                    $photoSrc = $g->getPhotoSource($photo);
 
                     $details  = $date.' - '.$views.'<br/>';
                     $details .= '<a href="gallery/index.php?uid='.$photo['user'].'&amp;cid='.$photo['category'].'&amp;pid='.$photo['id'].'">';
-                    $details .= '<img src="uploads/photos/member'.$photo['user'].'/tb_'.basename($photo['filename']).'"/>';
+                    $details .= '<img src="'.$photoSrc.'"/>';
                     $details .= '</a>';
                     break;
 

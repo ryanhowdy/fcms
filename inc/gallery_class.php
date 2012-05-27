@@ -243,16 +243,16 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
-            $date = fixDate(T_('M. j, Y'), $this->tzOffset, $row['date']);
+            $_SESSION['photo-path-data'][$row['id']] = array(
+                'id'          => $row['id'],
+                'user'        => $row['user'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
 
-            if ($row['filename'] == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.(int)$row['user'].'/tb_'.basename($row['filename']);
-            }
+            $date     = fixDate(T_('M. j, Y'), $this->tzOffset, $row['date']);
+            $photoSrc = $this->getPhotoSource($row);
 
             echo '
                     <div class="category">
@@ -332,9 +332,9 @@ class PhotoGallery
         }
 
         // Select Current Photo to view
-        $sql = "SELECT p.`user` AS uid, `filename`, `caption`, `category` AS cid, p.`date`, 
-                    `name` AS category_name, `views`, `votes`, `rating`,
-                    p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
+        $sql = "SELECT p.`id`, p.`user` AS uid, `filename`, `caption`, `category` AS cid, p.`date`, 
+                    `name` AS category_name, `views`, `votes`, `rating`, p.`external_id`, 
+                    e.`thumbnail`, e.`medium`, e.`full`
                 FROM `fcms_gallery_photos` AS p
                 LEFT JOIN `fcms_category` AS c ON p.`category` = c.`id`
                 LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
@@ -355,6 +355,17 @@ class PhotoGallery
             
         // Save info about current photo
         $r = $this->db2->get_row();
+
+        $_SESSION['photo-path-data'][$r['id']] = array(
+            'id'          => $r['id'],
+            'user'        => $r['uid'],
+            'filename'    => $r['filename'],
+            'external_id' => $r['external_id'],
+            'thumbnail'   => $r['thumbnail'],
+            'medium'      => $r['medium'],
+            'full'        => $r['full']
+        );
+
         $displayname = getUserDisplayName($r['uid']);
                 
         // Update View count
@@ -431,6 +442,7 @@ class PhotoGallery
             $photo_path_middle = $r['medium'];
             $photo_path_full   = $r['full'];
             $size              = T_('Unknown');
+
         }
         else
         {
@@ -441,6 +453,10 @@ class PhotoGallery
             $size              = formatSize($size);
         }
 
+        $r['user']  = $r['uid'];
+
+        $mediumSrc  = $this->getPhotoSource($r, 'medium');
+        $fullSrc    = $this->getPhotoSource($r, 'full');
         $caption    = cleanOutput($r['caption']);
         $dimensions = GetImageSize($photo_path_full);
         $date_added = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
@@ -506,7 +522,7 @@ class PhotoGallery
                 '.$prev_next.'
             </div>
             <div id="photo">
-                <a href="'.$photo_path_full.'"><img class="photo" src="'.$photo_path_middle.'" alt="'.$caption.'" title="'.$caption.'"/></a>
+                <a href="'.$fullSrc.'"><img class="photo" src="'.$mediumSrc.'" alt="'.$caption.'" title="'.$caption.'"/></a>
             </div>
 
             <div id="photo_details">
@@ -766,16 +782,18 @@ class PhotoGallery
             $full_size_photos = $row['full_size_photos'] == 1 ? true : false;
         }
 
-        $photo_path[0] = "../uploads/photos/member$uid/$filename";
-        $photo_path[1] = "../uploads/photos/member$uid/$filename";
+        $uploads_path = getUploadsAbsolutePath();
+
+        $photo_path[0] = $uploads_path."photos/member$uid/$filename";
+        $photo_path[1] = $uploads_path."photos/member$uid/$filename";
 
         if ($full_size_photos)
         {
             // If you are using full sized but a photo was uploaded prior to that change, 
             // no full sized photo will be available, so don't link to it
-            if (file_exists("../uploads/photos/member$uid/full_$filename"))
+            if (file_exists($uploads_path."photos/member$uid/full_$filename"))
             {
-                $photo_path[1] = "../uploads/photos/member$uid/full_$filename";
+                $photo_path[1] = $uploads_path."photos/member$uid/full_$filename";
             }
         }
 
@@ -932,6 +950,14 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
+            $_SESSION['photo-path-data'][$row['pid']] = array(
+                'id'          => $row['pid'],
+                'user'        => $row['user'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
+
             $date        = fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $row['heading']);
             $displayname = getUserDisplayName($row['user']);
             $filename    = basename($row['filename']);
@@ -939,15 +965,9 @@ class PhotoGallery
             $comment     = cleanOutput($row['comment']);
             $pid         = (int)$row['pid'];
             $uid         = (int)$row['uid'];
-
-            if ($filename == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.$uid.'/tb_'.$filename;
-            }
+            $row['id']   = $row['pid'];
+            $row['user'] = $row['uid'];
+            $photoSrc    = $this->getPhotoSource($row);
 
             echo '
                 <li class="category">
@@ -986,16 +1006,16 @@ class PhotoGallery
         $perPage = 18;
         $from    = ($page * $perPage) - $perPage;
 
-        $sql = "SELECT u.`id` AS uid, f.`filename`, COUNT(p.`id`) as c,
-                    e.`thumbnail`, p.`external_id`
+        $sql = "SELECT f.`id`, u.`id` AS uid, f.`filename`, COUNT(p.`id`) as c,
+                    e.`thumbnail`, f.`external_id`
                 FROM `fcms_category` AS cat
                 LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = cat.`id`
                 LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
                 LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`,
                 (
-                    SELECT * 
+                    SELECT `id`, `filename`, `external_id`
                     FROM `fcms_gallery_photos` 
-                    ORDER BY `date` DESC
+                    ORDER BY `id` DESC
                 ) AS f
                 WHERE f.`id` = p.`id` 
                 GROUP BY p.`user`
@@ -1023,23 +1043,23 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
+            $_SESSION['photo-path-data'][$row['id']] = array(
+                'id'          => $row['id'],
+                'user'        => $row['uid'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
+
             $displayname = getUserDisplayName($row['uid']);
             $displayname = cleanOutput($displayname);
-            $id          = $row['uid'];
             $filename    = basename($row['filename']);
             $count       = cleanOutput($row['c']);
             $alt         = 'alt="'.sprintf(T_('View Categories for %s'), $displayname).'"';
             $title       = 'title="'.sprintf(T_('View Categories for %s'), $displayname).'"';
             $url         = '?uid='.$row['uid'];
-
-            if ($filename == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.$id.'/tb_'.$filename;
-            }
+            $row['user'] = $row['uid'];
+            $photoSrc    = $this->getPhotoSource($row);
 
             echo '
                 <li class="category">
@@ -1076,7 +1096,7 @@ class PhotoGallery
         $perPage = 18;
         $from    = ($page * $perPage) - $perPage;
 
-        $sql = "SELECT u.`id` AS uid, cat.`name` AS category, cat.`id` AS cid, f.`filename`, COUNT(p.`id`) AS c,
+        $sql = "SELECT p.`id`, u.`id` AS uid, cat.`name` AS category, cat.`id` AS cid, f.`filename`, COUNT(p.`id`) AS c,
                     e.`thumbnail`, p.`external_id`
                 FROM `fcms_category` AS cat
                 LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = cat.`id`
@@ -1115,21 +1135,22 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
-            $category = cleanOutput($row['category']);
-            $cid      = (int)$row['cid'];
-            $filename = basename($row['filename']);
-            $alt      = 'alt="'.sprintf(T_('View Photos in %s'), $category).'"';
-            $title    = 'title="'.sprintf(T_('View Photos in %s'), $category).'"';
-            $count    = cleanOutput($row['c']);
+            $_SESSION['photo-path-data'][$row['id']] = array(
+                'id'          => $row['id'],
+                'user'        => $row['uid'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
 
-            if ($filename == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.$uid.'/tb_'.$filename;
-            }
+            $category    = cleanOutput($row['category']);
+            $cid         = (int)$row['cid'];
+            $filename    = basename($row['filename']);
+            $alt         = 'alt="'.sprintf(T_('View Photos in %s'), $category).'"';
+            $title       = 'title="'.sprintf(T_('View Photos in %s'), $category).'"';
+            $count       = cleanOutput($row['c']);
+            $row['user'] = $row['uid'];
+            $photoSrc    = $this->getPhotoSource($row);
 
             echo '
                 <li class="category">
@@ -1196,6 +1217,14 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
+            $_SESSION['photo-path-data'][$row['pid']] = array(
+                'id'          => $row['pid'],
+                'user'        => $row['uid'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
+
             $category    = cleanOutput($row['category']);
             $filename    = basename($row['filename']);
             $description = cleanOutput($row['description']);
@@ -1203,15 +1232,9 @@ class PhotoGallery
             $pid         = (int)$row['pid'];
             $alt         = 'alt="'.$caption.'"';
             $title       = 'title="'.$caption.'"';
-
-            if ($filename == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.$uid.'/tb_'.$filename;
-            }
+            $row['id']   = $row['pid'];
+            $row['user'] = $row['uid'];
+            $photoSrc    = $this->getPhotoSource($row);
 
             $photos .= '
                     <li class="photo">
@@ -1391,22 +1414,23 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
-            $filename = basename($row['filename']);
-            $user     = (int)$row['uid'];
-            $cid      = (int)$row['category'];
-            $pid      = (int)$row['pid'];
-            $url      = 'index.php?uid='.$uid.'&amp;cid=toprated'.$cid.'&amp;pid='.$pid;
-            $width    = ($row['r'] / 5) * 100;
-            $caption  = cleanOutput($row['caption']);
+            $_SESSION['photo-path-data'][$row['pid']] = array(
+                'id'          => $row['pid'],
+                'user'        => $row['uid'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
 
-            if ($filename == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.$user.'/tb_'.$filename;
-            }
+            $filename  = basename($row['filename']);
+            $user      = (int)$row['uid'];
+            $cid       = (int)$row['category'];
+            $pid       = (int)$row['pid'];
+            $url       = 'index.php?uid='.$uid.'&amp;cid=toprated'.$cid.'&amp;pid='.$pid;
+            $width     = ($row['r'] / 5) * 100;
+            $caption   = cleanOutput($row['caption']);
+            $row['id'] = $row['pid'];
+            $photoSrc  = $this->getPhotoSource($row);
 
             echo '
                 <li class="category">
@@ -1491,20 +1515,21 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
-            $filename = basename($row['filename']);
-            $user     = (int)$row['uid'];
-            $pid      = (int)$row['pid'];
-            $caption  = cleanOutput($row['caption']);
-            $views    = (int)$row['views'];
+            $_SESSION['photo-path-data'][$row['pid']] = array(
+                'id'          => $row['pid'],
+                'user'        => $row['uid'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
 
-            if ($filename == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.$user.'/tb_'.$filename;
-            }
+            $filename  = basename($row['filename']);
+            $user      = (int)$row['uid'];
+            $pid       = (int)$row['pid'];
+            $caption   = cleanOutput($row['caption']);
+            $views     = (int)$row['views'];
+            $row['id'] = $row['pid'];
+            $photoSrc  = $this->getPhotoSource($row);
 
             echo '
                 <li class="category">
@@ -1569,20 +1594,21 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
-            $filename = basename($row['filename']);
-            $uid      = (int)$row['uid'];
-            $pid      = (int)$row['pid'];
-            $urlPage  = '?uid=0&amp;cid='.$userId;
-            $caption  = cleanOutput($row['caption']);
+            $_SESSION['photo-path-data'][$row['pid']] = array(
+                'id'          => $row['pid'],
+                'user'        => $row['uid'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
 
-            if ($filename == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.$uid.'/tb_'.$filename;
-            }
+            $filename  = basename($row['filename']);
+            $uid       = (int)$row['uid'];
+            $pid       = (int)$row['pid'];
+            $urlPage   = '?uid=0&amp;cid='.$userId;
+            $caption   = cleanOutput($row['caption']);
+            $row['id'] = $row['pid'];
+            $photoSrc  = $this->getPhotoSource($row);
 
             echo '
                 <li class="photo">
@@ -1648,19 +1674,20 @@ class PhotoGallery
 
         while ($row = $this->db->get_row())
         {
-            $filename = basename($row['filename']);
-            $pid      = (int)$row['pid'];
-            $urlPage  = '?uid='.$userId.'&amp;cid=all';
-            $caption  = cleanOutput($row['caption']);
+            $_SESSION['photo-path-data'][$row['pid']] = array(
+                'id'          => $row['pid'],
+                'user'        => $row['uid'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
 
-            if ($filename == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.$userId.'/tb_'.$filename;
-            }
+            $filename  = basename($row['filename']);
+            $pid       = (int)$row['pid'];
+            $urlPage   = '?uid='.$userId.'&amp;cid=all';
+            $caption   = cleanOutput($row['caption']);
+            $row['id'] = $row['pid'];
+            $photoSrc  = $this->getPhotoSource($row);
 
             echo '
                 <li class="photo">
@@ -2126,7 +2153,7 @@ class PhotoGallery
     {
         $photo = (int)$photo;
 
-        $sql = "SELECT p.`user`, p.`filename`, p.`caption`, c.`name`, c.`id` AS category_id, p.`external_id`, e.`thumbnail`
+        $sql = "SELECT p.`id`, p.`user`, p.`filename`, p.`caption`, c.`name`, c.`id` AS category_id, p.`external_id`, e.`thumbnail`
                 FROM `fcms_gallery_photos` AS p
                 LEFT JOIN `fcms_category` AS c               ON p.`category`    = c.`id`
                 LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
@@ -2140,21 +2167,22 @@ class PhotoGallery
 
         if ($this->db->count_rows() > 0)
         {
-            $row        = $this->db->get_row();
+            $row = $this->db->get_row();
+
+            $_SESSION['photo-path-data'][$row['id']] = array(
+                'id'          => $row['id'],
+                'user'        => $row['user'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
+
             $photo_user = (int)$row['user'];
             $filename   = basename($row['filename']);
             $caption    = cleanOutput($row['caption']);
             $cat_name   = cleanOutput($row['name']);
             $cat_id     = cleanOutput($row['category_id']);
-
-            if ($filename == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.$photo_user.'/tb_'.$filename;
-            }
+            $photoSrc   = $this->getPhotoSource($row);
 
             $categories  = $this->getUserCategories($photo_user);
             $cat_options = buildHtmlSelectOptions($categories, $cat_id);
@@ -2428,8 +2456,18 @@ class PhotoGallery
                             </div>';
             }
 
+            // Get photo source
+            if (defined('UPLOADS'))
+            {
+                $photoSrc = GALLERY_PREFIX.'photo.php?id='.$photo['id'].'&amp;size=thumbnail';
+            }
+            else
+            {
+                $photoSrc = URL_PREFIX.'uploads/photos/member'.$this->currentUserId.'/tb_'.basename($photo['filename']);
+            }
+
             echo '
-                        <img style="float:right" src="../uploads/photos/member'.$this->currentUserId.'/tb_'.basename($photo['filename']).'"/>
+                        <img style="float:right" src="'.$photoSrc.'"/>
                         <p>
                             '.T_('Caption').'<br/>
                             <input type="text" class="frm_text" name="caption[]" width="50"/>
@@ -2504,10 +2542,12 @@ class PhotoGallery
             return false;
         }
 
+        $uploadsPath = getUploadsAbsolutePath();
+
         // Create new directory if needed
-        if (!file_exists(ROOT.'uploads/photos/member'.$this->currentUserId))
+        if (!file_exists($uploadsPath.'photos/member'.$this->currentUserId))
         {
-            mkdir(ROOT.'uploads/photos/member'.$this->currentUserId);
+            mkdir($uploadsPath.'photos/member'.$this->currentUserId);
         }
 
         // Insert new photo record
@@ -2567,7 +2607,7 @@ class PhotoGallery
 
             // Setup image upload settings
             $this->img->name          = $prefix.$id.'.'.$this->img->extension;
-            $this->img->destination   = '../uploads/photos/member'.$this->currentUserId.'/';
+            $this->img->destination   = $uploadsPath.'photos/member'.$this->currentUserId.'/';
             $this->img->resizeSquare  = $key == 'thumb' ? true : false;
 
             if ($key == 'main')
@@ -2620,10 +2660,20 @@ class PhotoGallery
             }
         }
 
+        // Get photo source
+        if (defined('UPLOADS'))
+        {
+            $photoSrc = GALLERY_PREFIX.'photo.php?id='.$id.'&amp;size=thumbnail';
+        }
+        else
+        {
+            $photoSrc = URL_PREFIX.'uploads/photos/member'.$this->currentUserId.'/'.$this->img->name;
+        }
+
         echo '
             <p class="ok-alert">
                 <b>'.T_('The following photo was added successfully.').'</b><br/><br/>
-                <img src="../uploads/photos/member'.$this->currentUserId.'/'.$this->img->name.'" alt="'.cleanOutput($caption).'"/>
+                <img src="'.$photoSrc.'" alt="'.cleanOutput($caption).'"/>
             </p>';
 
         return $id;
@@ -3000,6 +3050,14 @@ class PhotoGallery
         $i = 1;
         while ($row = $this->db->get_row())
         {
+            $_SESSION['photo-path-data'][$row['pid']] = array(
+                'id'          => $row['pid'],
+                'user'        => $row['user'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
+
             $prev_tagged         = array();
             $prev_tagged_options = '';
 
@@ -3072,15 +3130,7 @@ class PhotoGallery
                             </div>';
             }
 
-            // Instagram photo or regular?
-            if ($row['filename'] == 'noimage.gif' && $row['external_id'] != null)
-            {
-                $photoSrc = $row['thumbnail'];
-            }
-            else
-            {
-                $photoSrc = '../uploads/photos/member'.$user.'/tb_'.basename($row['filename']);
-            }
+            $photoSrc = $this->getPhotoSource($row);
 
             echo '
                         <img style="float:right" src="'.$photoSrc.'"/>
@@ -3418,5 +3468,52 @@ class PhotoGallery
         }
 
         return $nav;
+    }
+
+    /**
+     * getPhotoSource 
+     * 
+     * @param array $data 
+     * 
+     * @return string
+     */
+    function getPhotoSource ($data, $size = 'thumbnail')
+    {
+        if ($size !== 'thumbnail' && $size !== 'medium' && $size !== 'full')
+        {
+            die("Invalid Photo Source Size");
+        }
+
+        // External
+        if ($data['filename'] == 'noimage.gif' && $data['external_id'] != null)
+        {
+            return $data[$size]; 
+        }
+
+        // Protected
+        if (defined('UPLOADS'))
+        {
+            // Gallery Prefix should be defined on each page
+            return GALLERY_PREFIX.'photo.php?id='.(int)$data['id'].'&amp;size='.$size;
+        }
+
+        // Unprotected - Local
+        if ($size == 'thumbnail')
+        {
+            $prefix = 'tb_';
+        }
+        elseif ($size == 'full')
+        {
+            $prefix = 'full_';
+        }
+        else
+        {
+            $prefix = '';
+        }
+
+        // URL Prefix should be defined on each page
+        $photoSrc = URL_PREFIX.'uploads/photos/member'.(int)$data['user'].'/'.$prefix.basename($data['filename']);
+
+        return $photoSrc;
     }
 }

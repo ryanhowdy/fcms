@@ -13,6 +13,21 @@
  */
 require 'fcms.php';
 
+// Overwrite language
+$lang = 'en_US';
+
+// Language
+if (isset($_GET['lang']))
+{
+    $lang = $_GET['lang'];
+}
+
+// Setup php-gettext
+T_setlocale(LC_MESSAGES, $lang);
+T_bindtextdomain('messages', './language');
+T_bind_textdomain_codeset('messages', 'UTF-8');
+T_textdomain('messages');
+
 if (isset($_GET['feed']))
 {
     if ($_GET['feed'] == 'all')
@@ -40,6 +55,28 @@ else
  * displayFeedAll 
  *
  * Displays RSS 2.0 feed for all updates to the site
+ * 
+ *  ADDRESSADD      Add address of non-member
+ *  ADDRESSEDIT     Edit own address
+ *  AVATAR          Change avatar
+ *  BOARD           Message board post
+ *  CALENDAR        Add date to calendar
+ *  DOCS            Added document
+ *  GALCATCOM       Commented on category of photos
+ *  GALCOM          Commented on photo
+ *  GALLERY         Added photo
+ *  JOINED          Joined the site (became active)
+ *  NEWS            Added family news
+ *  NEWSCOM         Commented on family news
+ *  POLL            Added poll
+ *  POLLCOM         Commented on poll
+ *  PRAYERS         Added prayer concern
+ *  RECIPES         Added recipe
+ *  RECIPECOM       Commented on recipe
+ *  STATUS          Added status update
+ *  VIDEO           Added video
+ *  VIDEOCOM        Commented on video
+ *  WHEREISEVERYONE Checked in on foursquare
  * 
  * @author: choc
  * @author: Ryan Haudenschilt <r.haudenschilt@gmail.com>
@@ -90,8 +127,30 @@ function displayFeedAll ()
         $cUserid = (int)$line['userid'];
         $cTitle  = html_convert_entities($line['title']);
         
+        // Add Address
+        if ($line['type'] == 'ADDRESSADD')
+        {
+            $displayname = getUserDisplayName($cId2);
+            $for         = getUserDisplayName($cUserid, 2, false);
+            $link        = 'addressbook.php?address='.$cId;
+            $title       = sprintf(T_('%s has added address information for %s.'), $displayname, $for);
+        }
+        // Edit Address
+        elseif ($line['type'] == 'ADDRESSEDIT')
+        {
+            $displayname = getUserDisplayName($cId2);
+            $link        = 'addressbook.php?address='.$cId;
+            $title       = sprintf(T_('%s has updated his/her address.'), $displayname);
+        }
+        // Avatar
+        elseif ($line['type'] == 'AVATAR')
+        {
+            $displayname = getUserDisplayName($cUserid);
+            $link        = 'profile.php?member='.$cUserid;
+            $title       = sprintf(T_('%s has changed his/her picture.'), $displayname);
+        }
         // Message Board
-        if ($line['type'] == 'BOARD')
+        elseif ($line['type'] == 'BOARD')
         {
             $sql = "SELECT min(`id`) AS id 
                     FROM `fcms_board_posts` 
@@ -123,6 +182,45 @@ function displayFeedAll ()
                 $title = sprintf(T_('%s replied to %s.'), $userName, $subject);
             }
         }
+        // Calendar
+        elseif ($line['type'] == 'CALENDAR')
+        {
+            // TODO
+            // copy from calendar_class
+            $displayname = getUserDisplayName($cUserid);
+            $date_date   = gmdate(T_('m-d-y'), strtotime($cId2));
+            $date_date2  = gmdate(T_('F j, Y'), strtotime($cId2));
+            $link        = 'calendar.php?year='.gmdate('Y', strtotime($date_date2)).'&amp;month='.gmdate('m', strtotime($date_date2)).'&amp;day='.gmdate('d', strtotime($date_date2));
+            $title       = sprintf(T_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $cTitle);
+        }
+        // Documents
+        elseif ($line['type'] == 'DOCS')
+        {
+            $displayname = getUserDisplayName($cUserid);
+            $link        = 'documents.php';
+            $title       = sprintf(T_('%s has added a new document (%s).'), $displayname, $cTitle);
+        }
+        // Comment - Photo Gallery Category
+        elseif ($line['type'] == 'GALCATCOM')
+        {
+            $displayname = getUserDisplayName($cUserid);
+            $link        = 'gallery/index.php?uid'.$cId2.'&amp;cid='.(int)$line['id3'];
+            $title       = sprintf(T_('%s commented on (%s).'), $displayname, $cTitle);
+        }
+        // Comment - Photo Gallery
+        elseif ($line['type'] == 'GALCOM')
+        {
+            $displayname = getUserDisplayName($cUserid);
+            $link        = 'gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$cId;
+            $title       = sprintf(T_('%s commented on the following photo:'), $displayname);
+        }
+        // Photo Gallery
+        elseif ($line['type'] == 'GALLERY')
+        {
+            $displayname = getUserDisplayName($cUserid);
+            $link        = 'gallery/index.php?uid='.$cUserid.'&amp;cid='.$cId;
+            $title       = sprintf(T_('%s has added %d new photos to the %s category.'), $displayname, $cId2, $cTitle);
+        }
         // New Members
         elseif ($line['type'] == 'JOINED')
         { 
@@ -130,27 +228,32 @@ function displayFeedAll ()
             $link        = "profile.php?member=".$cUserid; 
             $title       = sprintf(T_('%s has joined the website.'), $displayname);
         }
-        // Edit Address
-        elseif ($line['type'] == 'ADDRESSEDIT')
-        {
-            $displayname = getUserDisplayName($cId2);
-            $link        = 'addressbook.php?address='.$cId;
-            $title       = sprintf(T_('%s has updated his/her address.'), $displayname);
-        }
-        // Add Address
-        elseif ($line['type'] == 'ADDRESSADD')
-        {
-            $displayname = getUserDisplayName($cId2);
-            $for         = getUserDisplayName($cUserid, 2, false);
-            $link        = 'addressbook.php?address='.$cId;
-            $title       = sprintf(T_('%s has added address information for %s.'), $displayname, $for);
-        }
         // Family News
         elseif ($line['type'] == 'NEWS')
         {
             $displayname = getUserDisplayName($cUserid);
             $link        = 'familynews.php?getnews='.$cUserid.'&amp;newsid='.$cId; 
             $title       = sprintf(T_('%s has added %s to his/her Family News.'), $displayname, $cTitle);
+        }
+        // Comment - Family News
+        elseif ($line['type'] == 'NEWSCOM')
+        {
+            $displayname = getUserDisplayName($cUserid);
+            $link        = 'familynews.php?getnews='.$cUserid.'&amp;newsid='.$cId;
+            $title       = sprintf(T_('%s commented on Family News %s.'), $displayname, $cTitle);
+        }
+        // Poll
+        elseif ($line['type'] == 'POLL')
+        {
+            $link  = 'polls.php?id='.$cId;
+            $title = sprintf(T_('A new Poll (%s) has been added.'), $cTitle);
+        }
+        // Comment - Poll
+        elseif ($line['type'] == 'POLLCOM')
+        {
+            $displayname = getUserDisplayName($cUserid);
+            $link        = 'polls.php?id='.$cId;
+            $title       = sprintf(T_('%s commented on Poll %s.'), $displayname, $cTitle);
         }
         // Prayer Concerns
         elseif ($line['type'] == 'PRAYERS')
@@ -166,50 +269,40 @@ function displayFeedAll ()
             $link        = 'recipes.php?category='.$cId2.'&amp;id='.$cId;
             $title       = sprintf(T_('%s has added the recipe %s.'), $displayname, $cTitle);
         }
-        // Documents
-        elseif ($line['type'] == 'DOCS')
+        // Comment - Recipe
+        elseif ($line['type'] == 'RECIPECOM')
         {
             $displayname = getUserDisplayName($cUserid);
-            $link        = 'documents.php';
-            $title       = sprintf(T_('%s has added a new document (%s).'), $displayname, $cTitle);
+            $link        = 'recipes.php?category='.$cId2.'&amp;id='.$cId;
+            $title       = sprintf(T_('%s commented on Recipe %s.'), $displayname, $cTitle);
         }
-        // Photo Gallery
-        elseif ($line['type'] == 'GALLERY')
+        // Status Update
+        elseif ($line['type'] == 'STATUS')
+        { 
+            $displayname = getUserDisplayName($cUserid);
+            $link        = 'home.php';
+            $title       = $displayname.': '.$cTitle;
+        }
+        // Video
+        elseif ($line['type'] == 'VIDEO')
+        { 
+            $displayname = getUserDisplayName($cUserid);
+            $link        = 'video.php?u='.$cUserid.'&amp;id='.$cId;
+            $title       = sprintf(T_('%s has added a the video %s.'), $displayname, $cTitle);
+        }
+        // Comment - Video
+        elseif ($line['type'] == 'VIDEOCOM')
         {
             $displayname = getUserDisplayName($cUserid);
-            $link        = 'gallery/index.php?uid='.$cUserid.'&amp;cid='.$cId;
-            $title       = sprintf(T_('%s has added %d new photos to the %s category.'), $displayname, $cId2, $cTitle);
+            $link        = 'video.php?u='.$cUserid.'&amp;id='.$cId;
+            $title       = sprintf(T_('%s commented on the video %s.'), $displayname, $cTitle);
         }
-        // Comment - Family News
-        elseif ($line['type'] == 'NEWSCOM')
-        {
+        // Where Is Everyone
+        elseif ($line['type'] == 'WHEREISEVERYONE')
+        { 
             $displayname = getUserDisplayName($cUserid);
-            $link        = 'familynews.php?getnews='.$cUserid.'&amp;newsid='.$cId;
-            $title       = sprintf(T_('%s commented on Family News %s.'), $displayname, $cTitle);
-        }
-        // Comment - Photo Gallery
-        elseif ($line['type'] == 'GALCOM')
-        {
-            $displayname = getUserDisplayName($cUserid);
-            $link        = 'gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$cId;
-            $title       = sprintf(T_('%s commented on the following photo:'), $displayname);
-        }
-        // Calendar
-        elseif ($line['type'] == 'CALENDAR')
-        {
-            // TODO
-            // copy from calendar_class
-            $displayname = getUserDisplayName($cUserid);
-            $date_date   = gmdate(T_('m-d-y'), strtotime($cId2));
-            $date_date2  = gmdate(T_('F j, Y'), strtotime($cId2));
-            $link        = 'calendar.php?year='.gmdate('Y', strtotime($date_date2)).'&amp;month='.gmdate('m', strtotime($date_date2)).'&amp;day='.gmdate('d', strtotime($date_date2));
-            $title       = sprintf(T_('%s has added a new Calendar entry on %s for %s.'), $displayname, $date_date, $cTitle);
-        }
-        // Poll
-        elseif ($line['type'] == 'POLL')
-        {
-            $link  = 'home.php?poll_id='.$cId;
-            $title = sprintf(T_('A new Poll (%s) has been added.'), $cTitle);
+            $link        = 'whereiseveryone.php';
+            $title       = sprintf(T_('%s visited %s.'), $displayname, $cTitle);
         }
         
         $output .= "

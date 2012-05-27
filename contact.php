@@ -14,21 +14,20 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
 init();
 
-// Globals
-$currentUserId = (int)$_SESSION['login_id'];
-
 // Setup the Template variables;
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Contact'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -36,7 +35,7 @@ $TMPL['javascript'] = '
 <script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
 
 // Show Header
-require_once getTheme($currentUserId).'header.php';
+require_once getTheme($fcmsUser->id).'header.php';
 
 echo '
         <div id="contact" class="centercontent">';
@@ -93,4 +92,4 @@ echo '
         </div><!-- #contact .centercontent -->';
 
 // Show Footer
-require_once getTheme($currentUserId).'footer.php';
+require_once getTheme($fcmsUser->id).'footer.php';

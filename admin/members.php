@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '../');
+define('GALLERY_PREFIX', '../gallery/');
 
 require URL_PREFIX.'fcms.php';
 
@@ -22,15 +23,14 @@ load('admin_members', 'database');
 init('admin/');
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
-$memberObj     = new AdminMembers();
+$memberObj = new AdminMembers();
 
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: Members'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -48,9 +48,9 @@ exit();
  */
 function control ()
 {
-    global $currentUserId, $memberObj;
+    global $fcmsUser, $memberObj;
 
-    if (checkAccess($currentUserId) > 1)
+    if (checkAccess($fcmsUser->id) > 1)
     {
         displayInvalidAccessLevel();
         return;
@@ -163,7 +163,7 @@ function control ()
  */
 function displayHeader ($js = '')
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = $js;
 
@@ -224,7 +224,7 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!-- /admin-members -->';
@@ -341,7 +341,7 @@ function displayMergeSubmit ()
  */
 function displayCreateSubmit ()
 {
-    global $currentUserId, $memberObj;
+    global $fcmsUser, $memberObj;
 
     displayHeader();
 
@@ -455,7 +455,7 @@ function displayCreateSubmit ()
 
     // Create member's address
     $sql = "INSERT INTO `fcms_address`(`user`, `created_id`, `created`, `updated_id`, `updated`)
-            VALUES ($lastid, '$currentUserId', NOW(), '$currentUserId', NOW())";
+            VALUES ($lastid, '$fcmsUser->id', NOW(), '$fcmsUser->id', NOW())";
     if (!mysql_query($sql))
     {
         displaySqlError($sql, mysql_error());
@@ -475,7 +475,7 @@ function displayCreateSubmit ()
     // Email member
     if (isset($_POST['invite']))
     {
-        $from     = getUserDisplayName($currentUserId, 2);
+        $from     = getUserDisplayName($fcmsUser->id, 2);
         $sitename = getSiteName();
         $subject  = sprintf(T_('Invitation to %s'), $sitename);
 

@@ -14,20 +14,19 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
 init();
 
-// Globals
-$currentUserId = (int)$_SESSION['login_id'];
-
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Help'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -86,14 +85,14 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script type="text/javascript">
 Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });
 </script>';
 
-    include_once getTheme($currentUserId).'header.php';
+    include_once getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="help" class="centercontent">
@@ -119,14 +118,14 @@ Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
             </div><!--/maincolumn-->
 
         </div><!--/centercontent-->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 function displayHome ()
@@ -334,10 +333,14 @@ function displayAdministration ()
     displayHeader();
     echo '
             <h4>'.T_('Administration').'</h4>
+
             <p><a href="#adm-access">'.T_('Member Access Levels').'</a></p>
             <p><a href="#adm-sections-add">'.T_('How do I add an optional section?').'</a></p>
             <p><a href="#adm-sections-nav">'.T_('How do I change the site navigation?').'</a></p>
+            <p><a href="#adm-protect-photos">'.T_('How do I protect my photos from un-authorized users?').'</a></p>
+
             <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
+
             <p><a name="adm-access">&nbsp;</a></p>
             <p>&nbsp;</p>
             <p><b>'.T_('Member Access Levels').'</b></p>
@@ -463,7 +466,9 @@ function displayAdministration ()
             <p>* '.T_('Can add/edit/delete all members information').'<br/>^ '.T_('Has limited access to Administration').'</p>
             <p>&nbsp;</p>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>
+
             <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
+
             <p><a name="adm-sections-add">&nbsp;</a></p>
             <p>&nbsp;</p>
             <p><b>'.T_('How do I add an optional section?').'</b></p>
@@ -477,11 +482,30 @@ function displayAdministration ()
             <p>'.T_('Note: If a section has been previously added it will say "Already Added" beside the section.').'</p>
             <p>&nbsp;</p>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>
+
             <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
+
             <p><a name="adm-sections-nav">&nbsp;</a></p>
             <p>&nbsp;</p>
             <p><b>'.T_('How do I change the site navigation?').'</b></p>
             <p>'.T_('You can only change the navigation position of a few of the sections.  They are:  Family News, Prayer Concerns, Recipes and Calendar.  The navigation is broken down into two parts, (1) the Top Navigation and the (2) the Side Navigation.  The Top Navigation can hold links for up to 6 sections.').'</p>
+            <p>&nbsp;</p>
+            <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>
+
+            <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
+
+            <p><a name="adm-protect-photos">&nbsp;</a></p>
+            <p>&nbsp;</p>
+            <p><b>'.T_('How do I protect my photos from un-authorized users?').'</b></p>
+            <p>'.T_('In all versions of Family Connections prior to 3.0, the photos in the Photo Gallery are viewable to users outside of your website, without being logged in. A non-authorized user would have to guess the location of these photos, but they still could see them, if they guessed correctly.').'</p>
+            <p>'.T_('To fix this, FCMS 3.0 added a way to hide the photos from outside users.  To do this:').'</p>
+            <ol>
+                <li>
+                    '.T_('Edit the inc/config_inc.php file on your server. Add the following line just below the MySQL database information, but above the ?>:').'
+                    <br/><br/>
+                    <code>define(\'UPLOADS\', \'/path/outside/of/www/uploads/\');</code>
+                </li>
+                <li>'.T_('Move the uploads directoy to the path you specified in step 1.').'</li>
             <p>&nbsp;</p>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
     displayFooter();

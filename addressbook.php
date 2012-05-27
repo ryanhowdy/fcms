@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -22,16 +23,16 @@ load('datetime', 'addressbook', 'database', 'alerts', 'phone', 'address');
 init();
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
-$book          = new AddressBook($currentUserId);
-$alertObj      = new Alerts($currentUserId);
+$book     = new AddressBook($fcmsUser->id);
+$alertObj = new Alerts($fcmsUser->id);
 
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Address Book'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -165,13 +166,13 @@ function displayExportSubmit ()
  */
 function displayMassEmailForm ()
 {
-    global $currentUserId, $book;
+    global $fcmsUser, $book;
 
     $massEmails = $_POST['massemail'];
 
     displayHeader();
 
-    if (checkAccess($currentUserId) > 3)
+    if (checkAccess($fcmsUser->id) > 3)
     {
         echo '
                 <p class="error-alert">
@@ -205,7 +206,7 @@ function displayMassEmailForm ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script type="text/javascript" src="ui/js/tablesort.js"></script>
@@ -220,7 +221,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    include_once getTheme($currentUserId).'header.php';
+    include_once getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="addressbook" class="centercontent">';
@@ -233,12 +234,12 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!-- /centercontent -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -298,7 +299,7 @@ function displayMassEmailSubmit ()
  */
 function displayEditSubmit ()
 {
-    global $book, $currentUserId;
+    global $book, $fcmsUser;
 
     displayHeader();
 
@@ -379,7 +380,7 @@ function displayEditSubmit ()
     // Save Address
     $sql = "UPDATE `fcms_address` 
             SET `updated`    = NOW(), 
-                `updated_id` = '$currentUserId',
+                `updated_id` = '$fcmsUser->id',
                 `country`    = '$country', 
                 `address`    = '$address', 
                 `city`       = '$city', 
@@ -439,7 +440,7 @@ function displayEditSubmit ()
  */
 function displayAddSubmit ()
 {
-    global $currentUserId, $book;
+    global $fcmsUser, $book;
 
     displayHeader();
 
@@ -502,9 +503,9 @@ function displayAddSubmit ()
                 `country`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`
             ) VALUES (
                 '$id', 
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 NOW(), 
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 NOW(), 
                 '$country', 
                 '$address', 
@@ -535,7 +536,7 @@ function displayAddSubmit ()
  */
 function displayConfirmDeleteForm ()
 {
-    global $currentUserId, $book;
+    global $fcmsUser, $book;
 
     displayHeader();
 
@@ -566,12 +567,12 @@ function displayConfirmDeleteForm ()
  */
 function displayDeleteSubmit ()
 {
-    global $currentUserId, $book;
+    global $fcmsUser, $book;
 
     $aid = (int)$_GET['delete'];
     $cat = $_GET['cat'];
 
-    if (checkAccess($currentUserId) >= 2)
+    if (checkAccess($fcmsUser->id) >= 2)
     {
         displayHeader();
 
@@ -662,11 +663,11 @@ function displayEditForm ()
  */
 function displayAddForm ()
 {
-    global $currentUserId, $book;
+    global $fcmsUser, $book;
 
     displayHeader();
 
-    if (checkAccess($currentUserId) > 5)
+    if (checkAccess($fcmsUser->id) > 5)
     {
         echo '
             <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
@@ -709,14 +710,14 @@ function displayAddress ()
  */
 function removeAlert ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
-    $alert = (int)$_GET['alert'];
+    $alert = $_GET['alert'];
 
     $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
             VALUES (
                 '$alert', 
-                '$currentUserId'
+                '$fcmsUser->id'
             )";
 
     if (!mysql_query($sql))
@@ -735,7 +736,7 @@ function removeAlert ()
  */
 function displayAddressList ()
 {
-    global $alertObj, $book, $currentUserId;
+    global $alertObj, $book, $fcmsUser;
 
     displayHeader();
 
@@ -746,10 +747,10 @@ function displayAddressList ()
         $cat = $_GET['cat'];
     }
 
-    if (!$book->userHasAddress($currentUserId))
+    if (!$book->userHasAddress($fcmsUser->id))
     {
         // Show Alerts
-        $alertObj->displayAddress($currentUserId);
+        $alertObj->displayAddress($fcmsUser->id);
     }
 
     $book->displayAddressList($cat);

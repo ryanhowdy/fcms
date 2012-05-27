@@ -15,6 +15,7 @@
 session_start();
 
 define('URL_PREFIX', '../');
+define('GALLERY_PREFIX', '../gallery/');
 
 require URL_PREFIX.'fcms.php';
 
@@ -23,16 +24,14 @@ load('datetime', 'alerts');
 init('admin/');
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
-$alert         = new Alerts($currentUserId);
+$alert = new Alerts($fcmsUser->id);
 
-// Setup the Template variables;
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: Scheduler'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -81,7 +80,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>';
@@ -99,7 +98,7 @@ function displayHeader ()
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!-- /scheduler -->';
@@ -114,9 +113,9 @@ function displayFooter ()
  */
 function checkPermissions ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
-    if (checkAccess($currentUserId) > 2)
+    if (checkAccess($fcmsUser->id) > 2)
     {
         displayHeader();
 
@@ -139,7 +138,7 @@ function checkPermissions ()
  */
 function displaySchedulerPage ()
 {
-    global $currentUserId, $alert;
+    global $fcmsUser, $alert;
 
     displayHeader();
 
@@ -149,7 +148,7 @@ function displaySchedulerPage ()
         unset($_SESSION['schedule_edit']);
     }
 
-    $alert->displayScheduler($currentUserId);
+    $alert->displayScheduler($fcmsUser->id);
 
     // Check job running status
     $sql = "SELECT `value` AS 'running_job'
@@ -260,7 +259,7 @@ function displaySchedulerPage ()
         }
         else
         {
-            $tzOffset = getTimezone($currentUserId);
+            $tzOffset = getTimezone($fcmsUser->id);
             $lastrun  = fixDate('Y-m-d h:i:s', $tzOffset, $lastrun);
         }
 
@@ -376,7 +375,7 @@ function displayEditScheduleSubmitPage ()
  */
 function removeAlert ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     if ($_GET['alert'] !== 'alert_scheduler')
     {
@@ -386,7 +385,7 @@ function removeAlert ()
     $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
             VALUES (
                 '".escape_string($_GET['alert'])."', 
-                '$currentUserId'
+                '$fcmsUser->id'
             )";
     if (!mysql_query($sql))
     {

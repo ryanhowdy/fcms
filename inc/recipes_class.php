@@ -75,7 +75,7 @@ class Recipes
             <div id="maincolumn">';
 
         // Display last 5 added recipes
-        $sql = "SELECT `id`, `name`, `category`
+        $sql = "SELECT `id`, `name`, `category`, `thumbnail`, `date`
                 FROM `fcms_recipes` 
                 ORDER BY `date` DESC 
                 LIMIT $from, 5";
@@ -86,6 +86,13 @@ class Recipes
             return;
         }
 
+        $path = 'uploads/upimages/';
+
+        if (defined('UPLOADS'))
+        {
+            $path = 'file.php?u=';
+        }
+
         if ($this->db->count_rows() > 0)
         {
             echo '
@@ -94,11 +101,15 @@ class Recipes
 
             while ($r = $this->db->get_row())
             {
+                $since = getHumanTimeSince(strtotime($r['date']));
+
                 echo '
                     <li>
                         <a href="?category=' . (int)$r['category'] . '&amp;id=' . (int)$r['id'] . '">
                             <span>' . T_('Click to view recipe') . '</span>
+                            <img src="'.URL_PREFIX.$path.basename($r['thumbnail']).'"/>
                             <b>'.cleanOutput($r['name']).'</b>
+                            <i>'.$since.'</i>
                         </a>
                     </li>';
             }
@@ -165,8 +176,7 @@ class Recipes
 
 
         // Get Recipes for this category
-        $sql = "SELECT r.`id`, r.`name`, r.`category`, 
-                    c.`name` AS category_name, r.`user`, r.`date`
+        $sql = "SELECT r.`id`, r.`name`, r.`category`, r.`thumbnail`, c.`name` AS category_name, r.`user`, r.`date`
                 FROM `fcms_recipes` AS r, `fcms_category` AS c
                 WHERE `category` = '$cat'
                 AND r.`category` = c.`id` 
@@ -185,6 +195,13 @@ class Recipes
         {
             $displayed_category = false;
 
+            $path = 'uploads/upimages/';
+
+            if (defined('UPLOADS'))
+            {
+                $path = 'file.php?u=';
+            }
+
             while($r = $this->db->get_row())
             {
                 // Category
@@ -198,11 +215,15 @@ class Recipes
             <ul id="recipe-list">';
                 }
 
+                $since = getHumanTimeSince(strtotime($r['date']));
+
                 echo '
                 <li>
-                    <a href="?category=' . $cat . '&amp;id=' . (int)$r['id'] . '">
-                        <span>' . T_('Click to view recipe') . '</span>
-                        <b>' . cleanOutput($r['name']) . '</b>
+                    <a href="?category='.$cat.'&amp;id='.(int)$r['id'].'">
+                        <span>'.T_('Click to view recipe').'</span>
+                        <img src="'.URL_PREFIX.$path.basename($r['thumbnail']).'"/>
+                        <b>'.cleanOutput($r['name']).'</b>
+                        <i>'.$since.'</i>
                     </a>
                 </li>';
             }
@@ -308,10 +329,17 @@ class Recipes
         $cleanIngredients = cleanOutput($r['ingredients']);
         $cleanDirections  = cleanOutput($r['directions']);
 
+        $path = 'uploads/upimages/';
+
+        if (defined('UPLOADS'))
+        {
+            $path = 'file.php?u=';
+        }
+
         // Display Recipe
         echo '
             <div id="maincolumn">
-                <div class="recipe-thumbnail"><img src="uploads/upimages/'.$cleanThumb.'"/></div>
+                <div class="recipe-thumbnail"><img src="'.$path.$cleanThumb.'"/></div>
                 <h4 class="recipe-name">'.$cleanName.'</h4>
                 <span class="date">
                     '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date);
@@ -323,6 +351,7 @@ class Recipes
                         <div>
                             <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
                             <input type="hidden" name="name" value="'.$cleanName.'"/>
+                            <input type="hidden" name="thumbnail" value="'.$cleanThumb.'"/>
                             <input type="hidden" name="category" value="'.$cleanCategory.'"/>
                             <input type="hidden" name="ingredients" value="'.$cleanIngredients.'"/>
                             <input type="hidden" name="directions" value="'.$cleanDirections.'"/>
@@ -338,7 +367,7 @@ class Recipes
         }
         echo '
                 </span>
-                <div>
+                <div class="recipe-container">
                     <div class="recipe-directions">
                         <b>'.T_('Directions').'</b>
                         '.nl2br_nospaces($cleanDirections).'
@@ -438,16 +467,25 @@ class Recipes
      * 
      * Displays the form for editing a recipe.
      *
-     * @param   int     $id 
-     * @param   string  $name 
-     * @param   string  $category 
-     * @param   string  $ingredients 
-     * @param   string  $directions
+     * @param int    $id 
+     * @param string $name 
+     * @param string $thumbnail
+     * @param string $category 
+     * @param string $ingredients 
+     * @param string $directions
+     *
      * @return  void
      */
-    function displayEditRecipeForm ($id, $name, $category, $ingredients, $directions)
+    function displayEditRecipeForm ($id, $name, $thumbnail, $category, $ingredients, $directions)
     {
         $categories = $this->getCategoryList();
+
+        $path = 'uploads/upimages/';
+
+        if (defined('UPLOADS'))
+        {
+            $path = 'file.php?u=';
+        }
 
         echo '
             <script type="text/javascript" src="inc/livevalidation.js"></script>
@@ -461,6 +499,11 @@ class Recipes
                             var fname = new LiveValidation(\'name\', { onlyOnSubmit: true });
                             fname.add(Validate.Presence, {failureMessage: ""});
                         </script>
+                    </div>
+                    <div>
+                        <label for="thumbnail">'.T_('Thumbnail').'</label>
+                        <img src="'.$path.$thumbnail.'"/>
+                        <a href="recipes.php?category='.$category.'&amp;thumbnail='.$id.'">'.T_('Change').'</a>
                     </div>
                     <div>
                         <label for="category">'.T_('Category').'</label>
@@ -666,7 +709,7 @@ class Recipes
                 }
 
                 echo '
-            <div class="comment_block>
+            <div id="comment'.$id.'" class="comment_block">
                 <form class="delcom" action="?category='.$category.'&amp;id='.$id.'" method="post">
                     '.$del_comment.'
                     <img class="avatar" alt="avatar" src="'.getCurrentAvatar($r['user']).'"/>

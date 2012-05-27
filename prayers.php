@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -21,15 +22,13 @@ load('datetime');
 
 init();
 
-// Globals
-$currentUserId = (int)$_SESSION['login_id'];
-
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Prayer Concerns'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -45,9 +44,9 @@ exit();
  */
 function control ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
-    if (isset($_GET['addconcern']) && checkAccess($currentUserId) <= 5)
+    if (isset($_GET['addconcern']) && checkAccess($fcmsUser->id) <= 5)
     {
         displayAddForm();
     }
@@ -84,7 +83,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $TMPL, $currentUserId;
+    global $TMPL, $fcmsUser;
 
     $TMPL['javascript'] = '
 <script type="text/javascript">
@@ -105,7 +104,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    require_once getTheme($currentUserId).'header.php';
+    require_once getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="prayers" class="centercontent">';
@@ -118,12 +117,12 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!-- #prayers .centercontent -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -172,7 +171,7 @@ function displayAddForm ()
  */
 function displayAddFormSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $for       = strip_tags($_POST['for']);
     $cleanFor  = escape_string($for);
@@ -183,7 +182,7 @@ function displayAddFormSubmit ()
             VALUES(
                 '$cleanFor', 
                 '$cleanDesc', 
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 NOW()
             )";
     if (!mysql_query($sql))
@@ -213,7 +212,7 @@ function displayAddFormSubmit ()
     {
         while ($r = mysql_fetch_array($result))
         {
-            $name          = getUserDisplayName($currentUserId);
+            $name          = getUserDisplayName($fcmsUser->id);
             $to            = getUserDisplayName($r['user']);
             $subject       = sprintf(T_('%s added a new Prayer Concern for %s'), $name, $for);
             $email         = $r['email'];
@@ -372,7 +371,7 @@ function displayDeleteSubmit ()
  */
 function displayPrayers ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
@@ -390,7 +389,7 @@ function displayPrayers ()
         unset($_SESSION['delete_success']);
     }
 
-    if (checkAccess($currentUserId) <= 5)
+    if (checkAccess($fcmsUser->id) <= 5)
     {
         echo '
             <div id="actions_menu">
@@ -429,11 +428,9 @@ function displayPrayers ()
         exit();
     }
 
-    $tzOffset = getTimezone($currentUserId);
-
     while ($r = mysql_fetch_assoc($result))
     {
-        $date        = fixDate(T_('F j, Y, g:i a'), $tzOffset, $r['date']);
+        $date        = fixDate(T_('F j, Y, g:i a'), $fcmsUser->tzOffset, $r['date']);
         $displayname = getUserDisplayName($r['user']);
 
         echo '
@@ -442,7 +439,7 @@ function displayPrayers ()
             <div class="edit_delete">';
 
         // Edit
-        if ($currentUserId == $r['user'] || checkAccess($currentUserId) < 2)
+        if ($fcmsUser->id == $r['user'] || checkAccess($fcmsUser->id) < 2)
         {
             echo '
             <form method="post" action="prayers.php">
@@ -454,7 +451,7 @@ function displayPrayers ()
         }
 
         // Delete
-        if (checkAccess($currentUserId) < 2)
+        if (checkAccess($fcmsUser->id) < 2)
         {
             echo '
             <form class="delform" method="post" action="prayers.php">

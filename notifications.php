@@ -14,22 +14,24 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('profile', 'image', 'address', 'phone');
+load('profile', 'image', 'address', 'phone', 'gallery');
 
 init();
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
+$gallery = new PhotoGallery($fcmsUser->id);
 
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Notifications'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -74,7 +76,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script type="text/javascript">
@@ -85,7 +87,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    require_once getTheme($currentUserId).'header.php';
+    require_once getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="notifications" class="centercontent">';
@@ -98,12 +100,12 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!-- /profile -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -113,7 +115,7 @@ function displayFooter ()
  */
 function displayNotifications ()
 {
-    global $currentUserId;
+    global $fcmsUser, $gallery;
 
     displayHeader();
 
@@ -126,9 +128,9 @@ function displayNotifications ()
 
     $sql = "SELECT `id`, `user`, `created_id`, `notification`, `data`, `created`, `updated`
             FROM `fcms_notification`
-            WHERE `user` = '$currentUserId'
+            WHERE `user` = '$fcmsUser->id'
             AND `read` = 0
-            AND `created_id` != '$currentUserId'";
+            AND `created_id` != '$fcmsUser->id'";
 
     $result = mysql_query($sql);
     if (!$result)
@@ -175,9 +177,18 @@ function displayNotifications ()
 
             list($uid, $cid, $pid, $filename) = explode(':', $r['data']);
 
+            $data = array(
+                'id'          => $pid,
+                'external_id' => null,
+                'filename'    => $filename,
+                'user'        => $uid,
+            );
+            $photoSrc = $gallery->getPhotoSource($data);
+
             $info  = sprintf(T_('%s has added a photo of you.'), $displayName).$date;
             $info .= '<br/><a href="gallery/index.php?uid='.$uid.'&amp;cid='.$cid.'&amp;pid='.$pid.'">';
-            $info .= '<img src="uploads/photos/member'.$uid.'/tb_'.basename($filename).'"/></a>';
+            $info .= '<img src="'.$photoSrc.'"/></a>';
+            //$info .= '<img src="uploads/photos/member'.$uid.'/tb_'.basename($filename).'"/></a>';
         }
 
         echo '
@@ -232,11 +243,11 @@ function displayMarkReadSubmit ()
  */
 function displayMarkAllReadSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $sql = "UPDATE `fcms_notification`
             SET `read` = 1
-            WHERE `user` = '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'";
 
     if (!mysql_query($sql))
     {
@@ -264,14 +275,14 @@ function displayMarkAllReadSubmit ()
  */
 function displayAllNotifications ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     displayHeader();
 
     $sql = "SELECT `id`, `user`, `created_id`, `notification`, `data`, `created`, `updated`
             FROM `fcms_notification`
-            WHERE `user` = '$currentUserId'
-            AND `created_id` != '$currentUserId'";
+            WHERE `user` = '$fcmsUser->id'
+            AND `created_id` != '$fcmsUser->id'";
 
     $result = mysql_query($sql);
     if (!$result)

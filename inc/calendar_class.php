@@ -805,6 +805,11 @@ class Calendar
             }
         }
 
+        if (count($events) <= 0)
+        {
+            return;
+        }
+
         // show the next 5
         $count = 0;
 

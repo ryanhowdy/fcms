@@ -333,6 +333,11 @@ function upgrade ()
         return false;
     }
 
+    if (!upgrade310())
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -1572,6 +1577,59 @@ function upgrade300 ()
         }
     }
 
+    return true;
+}
+
+/**
+ * upgrade310
+ * 
+ * Upgrade database to version 3.1.
+ * 
+ * @return boolean
+ */
+function upgrade310 ()
+{
+    global $cfg_mysql_db;
+
+    // Poll comments
+    $poll_com_fixed = false;
+
+    $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
+
+    $result = mysql_query($sql);
+    if (!$result)
+    {
+        displaySqlError($sql, mysql_error());
+        return false;
+    }
+    if (mysql_num_rows($result) > 0)
+    {
+        while($r = mysql_fetch_array($result))
+        {
+            if ($r[0] == 'fcms_poll_comment')
+            {
+                $poll_com_fixed = true;
+            }
+        }
+    }
+
+    if (!$poll_com_fixed)
+    {
+        $sql = "CREATE TABLE `fcms_poll_comment` (
+                    `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                    `poll_id` INT(11) NOT NULL, 
+                    `comment` TEXT NOT NULL, 
+                    `created` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                    `created_id` INT(11) NOT NULL, 
+                    PRIMARY KEY (`id`)
+                ) 
+                ENGINE=InnoDB DEFAULT CHARSET=utf8";
+        if (!mysql_query($sql))
+        {
+            displaySqlError($sql, mysql_error());
+            return false;
+        }
+    }
 
     return true;
 }

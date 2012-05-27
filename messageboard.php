@@ -14,6 +14,7 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
@@ -22,17 +23,17 @@ load('datetime', 'messageboard');
 init();
 
 // Setup some globals
-$currentUserId = (int)$_SESSION['login_id'];
-$currentAccess = checkAccess($currentUserId);
-$msgBoardObj   = new MessageBoard($currentUserId);
+$currentAccess = checkAccess($fcmsUser->id);
+$msgBoardObj   = new MessageBoard($fcmsUser->id);
 
 // Setup the Template variables;
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Message Board'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -120,7 +121,7 @@ function control ()
  */
 function displayHeader ($js = '')
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = $js;
 
@@ -156,7 +157,7 @@ Event.observe(window, \'load\', function() {
 </script>';
     }
 
-    include getTheme($currentUserId).'header.php';
+    include getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="messageboard" class="centercontent">';
@@ -169,12 +170,12 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!-- #messageboard .centercontent -->';
 
-    include getTheme($currentUserId).'footer.php';
+    include getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -238,7 +239,7 @@ function displayThread ()
  */
 function displayNewThreadSubmit ()
 {
-    global $currentUserId, $TMPL, $msgBoardObj;
+    global $fcmsUser, $TMPL, $msgBoardObj;
 
     $rawPost    = $_POST['post'];
     $rawSubject = $_POST['subject'];
@@ -257,9 +258,9 @@ function displayNewThreadSubmit ()
                 (`subject`, `started_by`, `updated`, `updated_by`) 
             VALUES (
                 '$subject', 
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 NOW(), 
-                '$currentUserId'
+                '$fcmsUser->id'
             )";
 
     if (!mysql_query($sql))
@@ -276,7 +277,7 @@ function displayNewThreadSubmit ()
             VALUES (
                 NOW(), 
                 '$newThreadId', 
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 '$post'
             )";
     if (!mysql_query($sql))
@@ -302,7 +303,7 @@ function displayNewThreadSubmit ()
     {
         while ($r = mysql_fetch_array($result))
         {
-            $name = getUserDisplayName($currentUserId);
+            $name = getUserDisplayName($fcmsUser->id);
             $to   = getUserDisplayName($r['user']);
 
             // Email is sent as plain text
@@ -340,7 +341,7 @@ function displayNewThreadSubmit ()
  */
 function displayNewPostSubmit ()
 {
-    global $currentUserId, $TMPL, $msgBoardObj;
+    global $fcmsUser, $TMPL, $msgBoardObj;
 
     displayHeader();
 
@@ -350,7 +351,7 @@ function displayNewPostSubmit ()
 
     // Update Thread info
     $sql = "UPDATE `fcms_board_threads` 
-            SET `updated` = NOW(), `updated_by` = '$currentUserId' 
+            SET `updated` = NOW(), `updated_by` = '$fcmsUser->id' 
             WHERE `id` = $threadId";
     if (!mysql_query($sql))
     {
@@ -363,7 +364,7 @@ function displayNewPostSubmit ()
             VALUES (
                 NOW(), 
                 '$threadId', 
-                '$currentUserId', 
+                '$fcmsUser->id', 
                 '$post'
             )";
     if (!mysql_query($sql))
@@ -388,7 +389,7 @@ function displayNewPostSubmit ()
     {
         while ($r = mysql_fetch_array($result))
         {
-            $name = getUserDisplayName($currentUserId);
+            $name = getUserDisplayName($fcmsUser->id);
 
             $sql = "SELECT `subject` 
                     FROM `fcms_board_threads` 
@@ -447,7 +448,7 @@ function displayNewPostSubmit ()
  */
 function displayNewPostForm ()
 {
-    global $currentUserId, $TMPL, $currentAccess, $msgBoardObj;
+    global $fcmsUser, $TMPL, $currentAccess, $msgBoardObj;
 
     displayHeader();
 

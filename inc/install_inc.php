@@ -30,6 +30,7 @@ function dropTables ()
     mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photos`")           or die("fcms_gallery_photos<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_news_comments`")            or die("fcms_news_comments<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_news`")                     or die("fcms_news<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_poll_comment`")             or die("fcms_poll_comment<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_poll_votes`")               or die("fcms_poll_votes<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_poll_options`")             or die("fcms_poll_options<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_polls`")                    or die("fcms_polls<br/>" . mysql_error());
@@ -691,6 +692,18 @@ function installTables ()
             FOREIGN KEY (`poll_id`) 
             REFERENCES `fcms_polls` (`id`) 
             ON DELETE CASCADE";
+    mysql_query($sql) or die($sql . '<br/>' . mysql_error());
+
+    // create poll_comment
+    $sql = "CREATE TABLE `fcms_poll_comment` (
+                `id` INT(11) NOT NULL AUTO_INCREMENT, 
+                `poll_id` INT(11) NOT NULL, 
+                `comment` TEXT NOT NULL, 
+                `created` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `created_id` INT(11) NOT NULL, 
+                PRIMARY KEY (`id`)
+            ) 
+            ENGINE=InnoDB DEFAULT CHARSET=utf8";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 
     // create prayers

@@ -14,19 +14,20 @@
 session_start();
 
 define('URL_PREFIX', '../');
+define('GALLERY_PREFIX', '../gallery/');
 
 require URL_PREFIX.'fcms.php';
 
 init('admin/');
 
-$currentUserId = (int)$_SESSION['login_id'];
+$fcmsUser->id = (int)$_SESSION['login_id'];
 
 $TMPL = array(
     'sitename'      => getSiteName(),
     'nav-link'      => getAdminNavLinks(),
     'pagetitle'     => T_('Administration: Configuration'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -43,9 +44,9 @@ exit();
  */
 function control ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
-    if (checkAccess($currentUserId) > 2)
+    if (checkAccess($fcmsUser->id) > 2)
     {
         displayInvalidAccessLevel();
         return;
@@ -132,7 +133,7 @@ function control ()
  */
 function displayHeader ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>
@@ -194,7 +195,7 @@ function displayHeader ()
  */
 function displayFooter ()
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     echo '
         </div><!--/config-->';
@@ -308,7 +309,7 @@ function displayGeneralForm ()
     echo '
         <form action="config.php?view=general" method="post">
         <fieldset>
-            <legend>'.T_('Website Information').'</legend>
+            <legend>'.T_('General Configuration').'</legend>
             '.$message.'
             <div class="clearfix">
                 <label for="sitename">'.T_('Site Name').'</label>
@@ -1388,6 +1389,18 @@ function displayPhotoGalleryForm ()
     );
 
     $full_size_options = buildHtmlSelectOptions($full_size_list, $row['full_size_photos']);
+
+    if (defined('UPLOADS'))
+    {
+        $protected = '<span class="label success">'.T_('Protected').'</span>';
+    }
+    else
+    {
+        $protected  = '<span class="label warning">'.T_('Un-protected').'</span><br/><br/>';
+        $protected .= '<p><b>'.T_('Your photos can be viewed from non-authorized users.').'</b></p>';
+        $protected .= '<p>'.T_('In order to protect your photos so only logged in users can view them, please refer to the help document below.').'</p>';
+        $protected .= '<p><a href="'.URL_PREFIX.'help.php?topic=admin#adm-protect-photos">'.T_('Help Me Protect My Photos').'</a></p>';
+    }
     
     $message = '';
 
@@ -1405,15 +1418,21 @@ function displayPhotoGalleryForm ()
         <fieldset>
             <legend>'.T_('Photo Gallery').'</legend>
             '.$message.'
-            <div class="alert-message block-message info">
-                '.T_('By default, Full Sized Photos is turned off to save on storage space and bandwidth.  Turning this feature on can eat up significant space and bandwith.').'
-            </div>
             <div class="clearfix">
                 <label for="full_size_photos">'.T_('Full Size Photos').'</label>
                 <div class="input">
                     <select name="full_size_photos">
                         '.$full_size_options.'
-                    </select>
+                    </select><br/><br/>
+                    <span class="help-block">
+                        '.T_('By default, Full Sized Photos is turned off to save on storage space and bandwidth.  Turning this feature on can eat up significant space and bandwith.').'
+                    </span>
+                </div>
+            </div>
+            <div class="clearfix">
+                <label for="protected">'.T_('Protected Photos').'</label>
+                <div class="input">
+                    '.$protected.'
                 </div>
             </div>
             <div class="actions"><input type="submit" class="btn primary" id="submit-gallery" name="submit-gallery" value="'.T_('Save').'"/></div>

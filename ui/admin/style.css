@@ -147,4 +147,4 @@ li.sortable {
 }
 #check_all_form label.active:hover { border: 1px solid #000; }
 #scheduler-frm td i { color: #aaa; }
-.label { padding: 1px 6px 3px; }
+.label { padding: 3px 6px; }

@@ -14,25 +14,27 @@
 session_start();
 
 define('URL_PREFIX', '');
+define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('profile', 'image', 'address', 'phone');
+load('profile', 'image', 'address', 'phone', 'gallery');
 
 init();
 
 // Globals
-$currentUserId = (int)$_SESSION['login_id'];
-$profile       = new Profile($currentUserId);
-$awards        = new Awards($currentUserId);
-$img           = new Image($currentUserId);
+$profile = new Profile($fcmsUser->id);
+$awards  = new Awards($fcmsUser->id);
+$img     = new Image($fcmsUser->id);
+$gallery = new PhotoGallery($fcmsUser->id);
 
 $TMPL = array(
+    'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Profile'),
     'path'          => URL_PREFIX,
-    'displayname'   => getUserDisplayName($currentUserId),
+    'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
@@ -49,9 +51,9 @@ exit();
  */
 function control ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
-    if (checkAccess($currentUserId) == 11)
+    if (checkAccess($fcmsUser->id) == 11)
     {
         displayInvalidPermission();
     }
@@ -143,7 +145,7 @@ function control ()
  */
 function displayHeader ($memberId = 0)
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     $TMPL['javascript'] = '
 <script type="text/javascript">
@@ -155,7 +157,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    require_once getTheme($currentUserId).'header.php';
+    require_once getTheme($fcmsUser->id).'header.php';
 
     echo '
         <div id="profile" class="centercontent">';
@@ -212,7 +214,7 @@ Event.observe(window, \'load\', function() {
  */
 function displayFooter ($memberId = 0)
 {
-    global $currentUserId, $TMPL;
+    global $fcmsUser, $TMPL;
 
     if ($memberId > 0)
     {
@@ -223,7 +225,7 @@ function displayFooter ($memberId = 0)
     echo '
         </div><!-- /profile -->';
 
-    include_once getTheme($currentUserId).'footer.php';
+    include_once getTheme($fcmsUser->id).'footer.php';
 }
 
 /**
@@ -233,7 +235,7 @@ function displayFooter ($memberId = 0)
  */
 function displayAdvancedAvatarUploadSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $filetypes = array(
         'image/pjpeg'   => 'jpg', 
@@ -244,14 +246,15 @@ function displayAdvancedAvatarUploadSubmit ()
         'image/png'     => 'png'
     );
 
-    $type      = $_FILES['avatar']['type'];
-    $extention = $filetypes[$type];
-    $id        = uniqid("");
-    $name      = $id.".".$extention;
+    $type        = $_FILES['avatar']['type'];
+    $extention   = $filetypes[$type];
+    $id          = uniqid("");
+    $name        = $id.".".$extention;
+    $uploadsPath = getUploadsAbsolutePath();
 
     $sql = "UPDATE `fcms_users`
             SET `avatar` = '".$name."'
-            WHERE `id` = '$currentUserId'";
+            WHERE `id` = '$fcmsUser->id'";
     if (!mysql_query($sql))
     {
         logError(__FILE__.' ['.__LINE__.'] - Could not update db with new avatar.');
@@ -260,7 +263,7 @@ function displayAdvancedAvatarUploadSubmit ()
     }
 
     $sql = "INSERT INTO `fcms_changelog` (`user`, `table`, `column`, `created`)
-            VALUES ('$currentUserId', 'users', 'avatar', NOW())";
+            VALUES ('$fcmsUser->id', 'users', 'avatar', NOW())";
     if (!mysql_query($sql))
     {
         logError(__FILE__.' ['.__LINE__.'] - Could not update db with changelog details.');
@@ -268,7 +271,7 @@ function displayAdvancedAvatarUploadSubmit ()
         exit();
     }
 
-    if (move_uploaded_file($_FILES['avatar']['tmp_name'], 'uploads/avatar/'.$name))
+    if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadsPath.'avatar/'.$name))
     {
         echo "success";
     }
@@ -281,9 +284,9 @@ function displayAdvancedAvatarUploadSubmit ()
 
     if ($_GET['orig'] != 'no_avatar.jpg' && $_GET['orig'] != 'gravatar')
     {
-        if (file_exists("uploads/avatar/".basename($_GET['orig'])))
+        if (file_exists($uploadsPath.'avatar/'.basename($_GET['orig'])))
         {
-            unlink("uploads/avatar/".basename($_GET['orig']));
+            unlink($uploadsPath.'avatar/'.basename($_GET['orig']));
         }
     }
 
@@ -515,6 +518,8 @@ function displayLatestMessageBoardPosts ($memberId)
  */
 function displayLatestPhotoGalleryPhotos ($memberId)
 {
+    global $gallery;
+
     $memberId = (int)$memberId;
 
     $sql = "SELECT p.`id`, p.`category`, p.`user`, p.`filename`, p.`external_id`, e.`thumbnail`
@@ -544,14 +549,7 @@ function displayLatestPhotoGalleryPhotos ($memberId)
     {
         $filename = basename($row['filename']);
 
-        if ($filename == 'noimage.gif' && $row['external_id'] != null)
-        {
-            $photoSrc = $row['thumbnail'];
-        }
-        else
-        {
-            $photoSrc = 'uploads/photos/member'.(int)$row['user'].'/tb_'.$filename;
-        }
+        $photoSrc = $gallery->getPhotoSource($row);
 
         echo '
                 <li class="photo">
@@ -647,7 +645,7 @@ function displayEditProfileInfoForm ()
  */
 function displayEditProfileInfoFormSubmit ()
 {
-    global $currentUserId;
+    global $fcmsUser;
 
     $fname = strip_tags($_POST['fname']);
     $lname = strip_tags($_POST['lname']);
@@ -692,7 +690,7 @@ function displayEditProfileInfoFormSubmit ()
     $sql .= "`dob_year` = '$year',
              `dob_month` = '$month',
              `dob_day` = '$day'
-            WHERE id = '$currentUserId'";
+            WHERE id = '$fcmsUser->id'";
 
     if (!mysql_query($sql))
     {
@@ -736,16 +734,18 @@ function displayEditProfilePictureForm ()
  */
 function displayEditProfilePictureFormSubmit ()
 {
-    global $currentUserId, $img;
+    global $fcmsUser, $img;
 
     $sql = "UPDATE `fcms_users` SET ";
+
+    $uploadsPath = getUploadsAbsolutePath();
 
     // Avatar uploads
     if ($_POST['avatar_type'] == 'fcms')
     {
         if ($_FILES['avatar']['error'] < 1)
         {
-            $img->destination  = 'uploads/avatar/';
+            $img->destination  = $uploadsPath.'avatar/';
             $img->resizeSquare = true;
             $img->uniqueName   = true;
 
@@ -783,7 +783,10 @@ function displayEditProfilePictureFormSubmit ()
 
             if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
             {
-                unlink("uploads/avatar/".basename($_POST['avatar_orig']));
+                if (file_exists($uploadsPath.'avatar/'.basename($_POST['avatar_orig'])))
+                {
+                    unlink($uploadsPath.'avatar/'.basename($_POST['avatar_orig']));
+                }
             }
 
         }
@@ -799,7 +802,10 @@ function displayEditProfilePictureFormSubmit ()
 
         if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
         {
-            unlink("uploads/avatar/".basename($_POST['avatar_orig']));
+            if (file_exists($uploadsPath.'avatar/'.basename($_POST['avatar_orig'])))
+            {
+                unlink($uploadsPath.'avatar/'.basename($_POST['avatar_orig']));
+            }
         }
     }
     // Avatar default
@@ -808,7 +814,7 @@ function displayEditProfilePictureFormSubmit ()
         $sql .= "`avatar` = 'no_avatar.jpg'";
     }
 
-    $sql .= "WHERE `id` = '$currentUserId'";
+    $sql .= "WHERE `id` = '$fcmsUser->id'";
     if (!mysql_query($sql))
     {
         displayHeader();
@@ -818,7 +824,7 @@ function displayEditProfilePictureFormSubmit ()
     }
 
     $sql = "INSERT INTO `fcms_changelog` (`user`, `table`, `column`, `created`)
-            VALUES ('$currentUserId', 'users', 'avatar', NOW())";
+            VALUES ('$fcmsUser->id', 'users', 'avatar', NOW())";
     if (!mysql_query($sql))
     {
         displayHeader();

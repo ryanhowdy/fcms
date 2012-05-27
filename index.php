@@ -208,12 +208,10 @@ function displayLoginSubmit ()
             setcookie('fcms_login_uname', $row['username'], time() + (30*(24*3600)), '/');  // 30 days
             setcookie('fcms_login_pw', $row['password'], time() + (30*(24*3600)), '/');  // 30 days
         }
-        else
-        {
-            $_SESSION['login_id']    = $row['id'];
-            $_SESSION['login_uname'] = $row['username'];
-            $_SESSION['login_pw']    = $row['password'];
-        }
+
+        $_SESSION['login_id']    = $row['id'];
+        $_SESSION['login_uname'] = $row['username'];
+        $_SESSION['login_pw']    = $row['password'];
 
         // Update activity
         $sql = "UPDATE `fcms_users` 
@@ -261,12 +259,10 @@ function displayLoginSubmit ()
                 setcookie('fcms_login_uname', $row['username'], time() + (30*(24*3600)), '/');  // 30 days
                 setcookie('fcms_login_pw', $row['password'], time() + (30*(24*3600)), '/');  // 30 days
             }
-            else
-            {
-                $_SESSION['login_id']    = $row['id'];
-                $_SESSION['login_uname'] = $row['username'];
-                $_SESSION['login_pw']    = $row['password'];
-            }
+
+            $_SESSION['login_id']    = $row['id'];
+            $_SESSION['login_uname'] = $row['username'];
+            $_SESSION['login_pw']    = $row['password'];
 
             // Update activity
             $sql = "UPDATE `fcms_users` 
