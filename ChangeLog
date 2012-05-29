@@ -1,3 +1,15 @@
+  3.0
+    #413 - Illegal mix of collations (utf8_general_ci,COERCIBLE) and (latin1_swedish_ci,NUMERIC) for operation '>='
+    #470 - Birthday links not working
+    #369 - Import Instagram photos
+    #462 - Cannot import family news.
+    #463 - Status Updates need to send email notifications
+    #465 - Administration Configuration - Can't save settings
+    #466 - Can't change "Show Avatar" setting
+    #476 - Multiple upload sources to Photo Gallery Uploader
+    #266 - Photo Gallery Comment on Category
+    #453 - Autocomplete page scrolls when using up/down arrow
+
  2.9.2
     #475 - PHP Code execution vulnerability in install.php
 

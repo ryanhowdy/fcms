@@ -79,6 +79,10 @@ class Alerts
         $avatar = getCurrentAvatar($userid);
         if ($avatar == getUploadsAbsolutePath().'avatar/no_avatar.jpg')
         {
+            $checkUploadsPath = 'file.php?a=no_avatar.jpg';
+        }
+        if ($avatar == $checkUploadsPath)
+        {
             $profilePicture = '<a href="profile.php?view=picture">'.T_('Add a Profile Picture').'</a>';
             $complete--;
         }

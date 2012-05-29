@@ -1,11 +1,11 @@
 
-                             Family Connections 3.0
+                             Family Connections 3.1
 
 
   Installation
   ------------
 
-  1. Upload the entire contents of FCMS_3.0.zip to your web host.
+  1. Upload the entire contents of FCMS_3.1.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -17,7 +17,7 @@
 
 
 
-  Upgrading from 2.6+ to 3.0
+  Upgrading from 2.6+ to 3.1
   ---------------------------
 
   ** DO NOT DELETE THE FOLLOWING FILE **
@@ -42,18 +42,15 @@
   Change Log
   ----------
 
-  3.0
+  3.1
 
-    #413 - Illegal mix of collations (utf8_general_ci,COERCIBLE) and (latin1_swedish_ci,NUMERIC) for operation '>='
-    #470 - Birthday links not working
-    #369 - Import Instagram photos
-    #462 - Cannot import family news.
-    #463 - Status Updates need to send email notifications
-    #465 - Administration Configuration - Can't save settings
-    #466 - Can't change "Show Avatar" setting
-    #476 - Multiple upload sources to Photo Gallery Uploader
-    #266 - Photo Gallery Comment on Category
-    #453 - Autocomplete page scrolls when using up/down arrow
+    #418 - Error Class
+    #425 - Can't edit recipe thumbnail
+    #481 - Protect uploads from unauthorized users
+    #307 - Polls section
+    #405 - RSS Feed not translated
+    #423 - User Class
+    #483 - Allow comments on Polls.
 
 
   For the full change log please refer to the included ChangeLog file.
