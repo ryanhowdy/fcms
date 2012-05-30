@@ -77,7 +77,9 @@ class Alerts
         $profilePicture = '<span>'.T_('Add a Profile Picture').'</span>';
         $complete++;
         $avatar = getCurrentAvatar($userid);
-        if ($avatar == getUploadsAbsolutePath().'avatar/no_avatar.jpg')
+
+        $checkUploadsPath = 'uploads/avatar/no_avatar.jpg';
+        if (defined('UPLOADS'))
         {
             $checkUploadsPath = 'file.php?a=no_avatar.jpg';
         }
