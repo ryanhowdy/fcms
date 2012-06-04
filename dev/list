@@ -21,7 +21,9 @@
 ./familynews.php
 ./familytree.php
 ./fcms.php
+./file.php
 ./gallery/index.php
+./gallery/photo.php
 ./gallery/slideshow.php
 ./gallery/upload.php
 ./help.php
@@ -43,7 +45,7 @@
 ./inc/database_class.php
 ./inc/datetime.php
 ./inc/documents_class.php
-./inc/error.class.php
+./inc/Error.php
 ./inc/familynews_class.php
 ./inc/familytree_class.php
 ./inc/gallery_class.php
@@ -52,7 +54,7 @@
 ./inc/members_class.php
 ./inc/messageboard_class.php
 ./inc/phone.php
-./inc/poll_class.php
+./inc/Poll.php
 ./inc/profile_class.php
 ./inc/recipes_class.php
 ./inc/settings_class.php
@@ -60,6 +62,7 @@
 ./inc/socialmedia.php
 ./inc/upgrade_inc.php
 ./inc/upimages.php
+./inc/User.php
 ./inc/utils.php
 ./index.php
 ./install.php
@@ -69,6 +72,7 @@
 ./members.php
 ./messageboard.php
 ./notifications.php
+./polls.php
 ./prayers.php
 ./privatemsg.php
 ./profile.php
