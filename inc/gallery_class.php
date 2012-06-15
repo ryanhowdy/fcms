@@ -3410,7 +3410,7 @@ class PhotoGallery
         if (count($categories) > 0)
         {
             return '
-                    <input class="frm_text" type="text" id="new-category" name="new-category" size="35""/>
+                    <input class="frm_text" type="text" id="new-category" name="new-category" size="35"/>
                     <select id="existing-categories" name="category">
                         <option value="0">&nbsp;</option>
                         '.buildHtmlSelectOptions($categories, '').'
@@ -3420,7 +3420,7 @@ class PhotoGallery
         else
         {
             return '
-                    <input class="frm_text" type="text" id="new-category" name="new-category" size="50""/>';
+                    <input class="frm_text" type="text" id="new-category" name="new-category" size="50"/>';
         }
     }
 

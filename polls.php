@@ -163,6 +163,12 @@ function displayLatestPoll ()
         return;
     }
 
+    if (count($data) <= 0)
+    {
+        # we have no polls
+        return;
+    }
+
     $pollId = key($data);
 
     // Get comments

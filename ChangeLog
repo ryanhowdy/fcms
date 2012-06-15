@@ -1,3 +1,9 @@
+  3.1
+    #307 - Polls section
+    #405 - RSS Feed not translated
+    #423 - User Class
+    #483 - Allow comments on Polls.
+
   3.0
     #413 - Illegal mix of collations (utf8_general_ci,COERCIBLE) and (latin1_swedish_ci,NUMERIC) for operation '>='
     #470 - Birthday links not working

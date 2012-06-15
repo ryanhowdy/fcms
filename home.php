@@ -1633,6 +1633,12 @@ function displayPoll ()
         return;
     }
 
+    if (count($pollData) <= 0)
+    {
+        # we have no polls
+        return;
+    }
+
     $pollId = key($pollData);
 
     $pollOptions = '';
