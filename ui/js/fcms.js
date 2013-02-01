@@ -1,3 +1,9 @@
+Event.observe(window, "load", function() {
+    $("mobile-topmenu").observe('change', function(event) {
+        window.location = $F("mobile-topmenu");
+    });
+    $("top").scrollTo();
+});
 /* =GENERAL =GLOBAL
 ------------------------------------------------*/
 function addLoadEvent(func) {   
@@ -260,7 +266,7 @@ function initChatBar(txt, path)
     footer.insert({'before':chatLink});
 
     new Ajax.PeriodicalUpdater('chat_link', path + 'inc/chat/whoisonline.php', {
-        method: 'get', frequency: 2, decay: 1
+        method: 'get', frequency: 2, decay: 1.2
     });
 }
 function showTooltip (obj)
@@ -564,6 +570,164 @@ function clickMassTagMember (event)
         this.up().removeClassName('tag_photo_checked');
     }
 }
+function loadPicasaPhotoEvents (token, errorMessage)
+{
+    $$(".picasa ul").invoke("observe", "mouseover", function(event) {
+        var mousedList = event.findElement("li");
+        if (mousedList) {
+            mousedList.down("span").show();
+        }
+    });
+    $$(".picasa ul").invoke("observe", "mouseout", function(event) {
+        var mousedList = event.findElement("li");
+        if (mousedList && !mousedList.hasClassName("selected")) {
+            mousedList.down("span").hide();
+        }
+    });
+    $$(".picasa ul").invoke("observe", "click", function(event) {
+        var clickedList = event.findElement("li");
+        if (clickedList) {
+            var chk = clickedList.down("input");
+            if (chk.checked) {
+                clickedList.addClassName("selected");
+                clickedList.down("span").show();
+                clickedList.down("img").setStyle({ opacity: 0.4 });
+            }
+            else {
+                clickedList.removeClassName("selected");
+                clickedList.down("span").hide();
+                clickedList.down("img").setStyle({ opacity: 1 });
+            }
+        }
+    });
+
+    if (!$('albums')) { return; }
+
+    Event.observe($("albums"), "change", function() {
+        $$("#photo_list li").each(function (item) {
+            item.remove();
+        });
+        loadPicasaPhotos(token, errorMessage);
+    });
+}
+
+function loadPicasaPhotos (token, errorMessage)
+{
+    var albumId = $F("albums");
+
+    var img = document.createElement("img");
+    img.setAttribute("src", "../ui/images/ajax-bar.gif");
+    img.setAttribute("id", "ajax-loader");
+    $("photo_list").insert({"before":img});
+
+    new Ajax.Request("index.php", {
+        method: "post",
+        parameters: {
+            ajax                 : "picasa_photos",
+            picasa_session_token : token,
+            albumId              : albumId,
+        },
+        onSuccess: function(transport) {
+            var response = transport.responseText;
+            loadPicasaPhotoEvents(token, errorMessage);
+            $("photo_list").insert({"bottom":response});
+            $("ajax-loader").remove();
+        },
+        onFailure: function() {
+            var para = document.createElement("p");
+            para.setAttribute("class", "error-alert");
+            para.appendChild(document.createTextNode(errorMessage));
+            $("ajax-loader").insert({"before":para});
+            $("ajax-loader").remove();
+        }
+    });
+}
+function loadMorePicasaPhotos (startIndex, token, errorMessage)
+{
+    var albumId = $F("albums");
+
+    var img = document.createElement("img");
+    var li  = document.createElement("li");
+    img.setAttribute("src", "../ui/images/ajax-bar.gif");
+    img.setAttribute("id", "ajax-loader");
+    li.appendChild(img);
+    $("photo_list").insert({"bottom":li});
+
+
+    new Ajax.Request("index.php", {
+        method: "post",
+        parameters: {
+            ajax                 : "more_picasa_photos",
+            picasa_session_token : token,
+            albumId              : albumId,
+            start_index          : startIndex,
+        },
+        onSuccess: function(transport) {
+            var response = transport.responseText;
+            loadPicasaPhotoEvents(token, errorMessage);
+            $("ajax-loader").remove();
+            $("photo_list").insert({"bottom":response});
+        },
+        onFailure: function() {
+            var para = document.createElement("p");
+            para.setAttribute("class", "error-alert");
+            para.appendChild(document.createTextNode(errorMessage));
+            $("ajax-loader").insert({"before":para});
+            $("ajax-loader").remove();
+        }
+    });
+}
+function loadPicasaAlbums (token, errorMessage)
+{
+    var img = document.createElement("img");
+    img.setAttribute("src", "../ui/images/ajax-bar.gif");
+    img.setAttribute("id", "ajax-loader");
+
+    $$(".picasa").each(function (item) {
+        item.insert({"top":img});
+    });
+
+    new Ajax.Request("index.php", {
+        method: "post",
+        parameters: {
+            ajax                 : "picasa_albums",
+            picasa_session_token : token,
+        },
+        onSuccess: function(transport) {
+            var response = transport.responseText;
+            $("ajax-loader").insert({"before":response});
+            $("ajax-loader").remove();
+        },
+        onFailure: function() {
+            var para = document.createElement("p");
+            para.setAttribute("class", "error-alert");
+            para.appendChild(document.createTextNode(errorMessage));
+            $("ajax-loader").insert({"before":para});
+            $("ajax-loader").remove();
+        }
+    });
+}
+function picasaSelectAll ()
+{
+    $$('.picasa input[type=checkbox]').each(function(item) {
+        item.checked = true;
+        var li = item.up('li');
+        li.addClassName("selected");
+        li.down("span").show();
+        li.down("img").setStyle({ opacity: 0.4 });
+    });
+}
+function picasaSelectNone ()
+{
+    $$('.picasa input[type=checkbox]').each(function(item) {
+        item.checked = false;
+        var li = item.up('li');
+        li.removeClassName("selected");
+        li.down("span").hide();
+        li.down("img").setStyle({ opacity: 1 });
+    });
+}
+
 
 /* =CALENDAR
 ------------------------------------------------*/

@@ -20,44 +20,66 @@ require 'fcms.php';
 
 load('datetime', 'calendar');
 
-$calendar = new Calendar(1);
+$calendar   = new Calendar($fcmsError, $fcmsDatabase, $fcmsUser);
+$page       = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $calendar);
 
-main();
 exit();
 
-
-/**
- * main 
- * 
- * @return void
- */
-function main ()
+class Page
 {
-    if (!isset($_GET['code']) or !isset($_GET['event']))
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsCalendar;
+
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsCalendar)
     {
-        echo '<p><b>'.T_('Invalid URL').'</b></p>';
-        displayFooter();
-        exit();
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsCalendar = $fcmsCalendar;
+
+        $this->control();
     }
 
-    if (isset($_POST['attend_submit']))
+    /**
+     * control 
+     * 
+     * @return void
+     */
+    function control ()
     {
-        displayAttendSubmit();
-    }
-    else
-    {
-        displayAttendForm();
-    }
-}
+        if (!isset($_GET['code']) or !isset($_GET['event']))
+        {
+            $this->displayHeader();
+            echo '<p><b>'.T_('Invalid URL').'</b></p>';
+            $this->displayFooter();
+            exit();
+        }
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    echo '
+        if (isset($_POST['attend_submit']))
+        {
+            $this->displayAttendSubmit();
+        }
+        else
+        {
+            $this->displayAttendForm();
+        }
+    }
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
@@ -74,113 +96,112 @@ Event.observe(window, \'load\', function() {
 </head>
 <body id="invitation" class="clearfix">
     <img id="logo" src="ui/images/logo.gif" alt="'.getSiteName().'"/>';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    echo '
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        echo '
 </body>
 </html>';
-}
-
-/**
- * displayAttendForm 
- * 
- * @return void
- */
-function displayAttendForm ()
-{
-    global $calendar;
-
-    displayHeader();
-
-    $id   = (int)$_GET['event'];
-    $code = escape_string($_GET['code']);
-
-    $sql = "SELECT `id`, `event_id`, `user`, `created`, `updated`, `attending`, `code`, `response`
-            FROM `fcms_invitation` 
-            WHERE `event_id` = '$id'
-            AND `code` = '$code'";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        exit();
     }
 
-    $invitation = mysql_fetch_array($result);
-    if (!$invitation)
+    /**
+     * displayAttendForm 
+     * 
+     * @return void
+     */
+    function displayAttendForm ()
     {
-        echo '
-        <p><b>'.T_('Invalid Invitation Code!').'</b></p>';
-        displayFooter();
-        exit();
-    }
+        $this->displayHeader();
 
-    $sql = "SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, 
-                c.`title`, c.`desc`, c.`created_by`, cat.`name` AS category, c.`repeat`, c.`private`
-            FROM `fcms_calendar` AS c, `fcms_category` AS cat 
-            WHERE c.`id` = '$id' 
-                AND c.`category` = cat.`id` 
-            LIMIT 1";
+        $id   = (int)$_GET['event'];
+        $code = $_GET['code'];
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        exit();
-    }
+        $sql = "SELECT `id`, `event_id`, `user`, `created`, `updated`, `attending`, `code`, `response`
+                FROM `fcms_invitation` 
+                WHERE `event_id` = ?
+                AND `code` = ?";
 
-    $event = mysql_fetch_array($result);
+        $params = array($id, $code);
 
-    if (!$event)
-    {
-        echo '
-        <p><b>'.T_('Invalid Event!').'</b></p>';
-        displayFooter();
-        exit();
-    }
-
-    $times = $calendar->getTimesList();
-    $date  = formatDate(T_('F j, Y'), $event['date']);
-    $title = cleanOutput($event['title']);
-    $host  = getUserDisplayname($event['created_by'], 2);
-
-    $time = '';
-    $cat  = '';
-    $desc = '';
-
-    list($year, $month, $day) = explode('-', $event['date']);
-
-    // handle time
-    if (isset($times[$event['time_start']]))
-    {
-        // one moment in time
-        if ($event['time_start'] == $event['time_end'])
+        $invitation = $this->fcmsDatabase->getRow($sql, $params);
+        if ($invitation === false)
         {
-            $time = '<br/>'.sprintf(T_('beginning at %s'), $times[$event['time_start']]);
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
         }
-        // start and end
-        else
+
+        if (count($invitation) <= 0)
         {
-            $time = '<br/>'.sprintf(T_('between %s and %s'), $times[$event['time_start']], $times[$event['time_end']]);
+            echo '<p><b>'.T_('Invalid Invitation Code!').'</b></p>';
+            $this->displayFooter();
+
+            return;
         }
-    }
 
-    if (!empty($event['desc']))
-    {
-        $desc = '<br/>'.cleanOutput($event['desc']);
-    }
+        $sql = "SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, 
+                    c.`title`, c.`desc`, c.`created_by`, cat.`name` AS category, c.`repeat`, c.`private`
+                FROM `fcms_calendar` AS c, `fcms_category` AS cat 
+                WHERE c.`id` = ?
+                    AND c.`category` = cat.`id` 
+                LIMIT 1";
 
-    echo '
+        $event = $this->fcmsDatabase->getRow($sql, $id);
+        if ($event === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (count($event) <= 0)
+        {
+            echo '<p><b>'.T_('Invalid Event!').'</b></p>';
+            $this->displayFooter();
+
+            return;
+        }
+
+        $times = $this->fcmsCalendar->getTimesList();
+        $date  = formatDate(T_('F j, Y'), $event['date']);
+        $title = cleanOutput($event['title']);
+        $host  = getUserDisplayname($event['created_by'], 2);
+
+        $time = '';
+        $cat  = '';
+        $desc = '';
+
+        list($year, $month, $day) = explode('-', $event['date']);
+
+        // handle time
+        if (isset($times[$event['time_start']]))
+        {
+            // one moment in time
+            if ($event['time_start'] == $event['time_end'])
+            {
+                $time = '<br/>'.sprintf(T_('beginning at %s'), $times[$event['time_start']]);
+            }
+            // start and end
+            else
+            {
+                $time = '<br/>'.sprintf(T_('between %s and %s'), $times[$event['time_start']], $times[$event['time_end']]);
+            }
+        }
+
+        if (!empty($event['desc']))
+        {
+            $desc = '<br/>'.cleanOutput($event['desc']);
+        }
+
+        echo '
     <div id="event_details">
         <h1>'.$title.'</h1>
         <p id="desc">'.$desc.'</p>
@@ -192,9 +213,9 @@ function displayAttendForm ()
         </div>
     </div>';
 
-    if ($invitation['attending'] === null)
-    {
-        echo '
+        if ($invitation['attending'] === null)
+        {
+            echo '
     <form action="invitation.php?event='.$id.'&amp;code='.$code.'" method="post">
         <h1 id="attending_header">'.T_('Are you attending?').'</h1>
         <ul id="attending" class="clearfix">
@@ -226,69 +247,70 @@ function displayAttendForm ()
             </li>
         </ul>
     </form>';
-    }
-
-    // Get info on who's coming
-    $sql = "SELECT `user`, `email`, `attending`, `response`, `updated`
-            FROM `fcms_invitation`
-            WHERE `event_id` = '$id'";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        exit();
-    }
-
-    $yesCount       = 0;
-    $noCount        = 0;
-    $maybeCount     = 0;
-    $undecidedCount = 0;
-    $responses      = array();
-
-    while ($r = mysql_fetch_array($result))
-    {
-        $img = '';
-
-        if ($r['attending'] === null)
-        {
-            $undecidedCount++;
-            $img = T_('Undecided');
-        }
-        elseif ($r['attending'] == 0)
-        {
-            $noCount++;
-            $img = '<img src="ui/images/attend_no.png" alt="'.T_('No').'"/>';
-        }
-        elseif ($r['attending'] == 1)
-        {
-            $yesCount++;
-            $img = '<img src="ui/images/attend_yes.png" alt="'.T_('Yes').'"/>';
-        }
-        elseif ($r['attending'] > 1)
-        {
-            $maybeCount++;
-            $img = '<img src="ui/images/attend_maybe.png" alt="'.T_('Maybe').'"/>';
         }
 
-        $displayname = cleanOutput($r['email']);
-        if ($r['user'] != 0)
+        // Get info on who's coming
+        $sql = "SELECT `user`, `email`, `attending`, `response`, `updated`
+                FROM `fcms_invitation`
+                WHERE `event_id` = '$id'";
+
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            $displayname = getUserDisplayName($r['user'], 2);
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
         }
 
-        $responses[] = array(
-            'user'        => $r['user'],
-            'updated'     => $r['updated'],
-            'displayname' => $displayname,
-            'response'    => $r['response'],
-            'attending'   => $r['attending'],
-            'img'         => $img
-        );
-    }
+        $yesCount       = 0;
+        $noCount        = 0;
+        $maybeCount     = 0;
+        $undecidedCount = 0;
+        $responses      = array();
 
-    echo '
+        foreach ($rows as $r)
+        {
+            $img = '';
+
+            if ($r['attending'] === null)
+            {
+                $undecidedCount++;
+                $img = T_('Undecided');
+            }
+            elseif ($r['attending'] == 0)
+            {
+                $noCount++;
+                $img = '<img src="ui/images/attend_no.png" alt="'.T_('No').'"/>';
+            }
+            elseif ($r['attending'] == 1)
+            {
+                $yesCount++;
+                $img = '<img src="ui/images/attend_yes.png" alt="'.T_('Yes').'"/>';
+            }
+            elseif ($r['attending'] > 1)
+            {
+                $maybeCount++;
+                $img = '<img src="ui/images/attend_maybe.png" alt="'.T_('Maybe').'"/>';
+            }
+
+            $displayname = cleanOutput($r['email']);
+            if ($r['user'] != 0)
+            {
+                $displayname = getUserDisplayName($r['user'], 2);
+            }
+
+            $responses[] = array(
+                'user'        => $r['user'],
+                'updated'     => $r['updated'],
+                'displayname' => $displayname,
+                'response'    => $r['response'],
+                'attending'   => $r['attending'],
+                'img'         => $img
+            );
+        }
+
+        echo '
     <div id="leftcolumn">
         <h3>'.T_('Who\'s Coming').'</h3>
         <h3 class="coming"><img src="ui/themes/default/images/ok.gif"> '.T_('Yes').' ('.$yesCount.')</h3>
@@ -299,11 +321,11 @@ function displayAttendForm ()
 
     <div id="maincolumn">';
 
-    foreach ($responses as $response)
-    {
-        if (isset($response['attending']))
+        foreach ($responses as $response)
         {
-            echo '
+            if (isset($response['attending']))
+            {
+                echo '
         <div class="comment_block clearfix">
             '.$response['img'].'
             <b>'.$response['displayname'].'</b> <i>'.$response['updated'].'</i>
@@ -311,36 +333,43 @@ function displayAttendForm ()
                 '.cleanOutput($response['response']).'
             </p>
         </div>';
+            }
         }
-    }
 
-    echo '
+        echo '
     </div>';
 
-    displayFooter();
-}
-
-/**
- * displayAttendSubmit 
- * 
- * @return void
- */
-function displayAttendSubmit ()
-{
-    $id        = (int)$_POST['id'];
-    $attending = isset($_POST['attending']) ? (int)$_POST['attending'] : "NULL";
-    $response  = escape_string($_POST['response']);
-
-    $sql = "UPDATE `fcms_invitation`
-            SET `response` = '$response',
-                `attending` = $attending
-            WHERE `id` = '$id'";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        exit();
+        $this->displayFooter();
     }
 
-    displayAttendForm();
+    /**
+     * displayAttendSubmit 
+     * 
+     * @return void
+     */
+    function displayAttendSubmit ()
+    {
+        $attending = isset($_POST['attending']) ? (int)$_POST['attending'] : "NULL";
+
+        $sql = "UPDATE `fcms_invitation`
+                SET `response`  = ?,
+                    `attending` = ?
+                WHERE `id` = ?";
+
+        $params = array(
+            $_POST['response'],
+            $attending,
+            $_POST['id']
+        );
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $this->displayAttendForm();
+    }
 }

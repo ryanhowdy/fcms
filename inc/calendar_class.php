@@ -1,8 +1,4 @@
 <?php
-include_once('database_class.php');
-include_once('utils.php');
-include_once('datetime.php');
-
 /**
  * Calendar 
  * 
@@ -13,26 +9,25 @@ include_once('datetime.php');
  */
 class Calendar
 {
-    var $db;
-    var $currentUserId;
-    var $tzOffset;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
     var $weekStartOffset;
 
     /**
      * Calendar 
      * 
-     * @param  int      $currentUserId 
-     *
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
+     * 
      * @return void
      */
-    function Calendar ($currentUserId)
+    function Calendar ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId   = (int)$currentUserId;
-        $this->tzOffset        = getTimezone($this->currentUserId);
+        $this->fcmsError       = $fcmsError;
+        $this->fcmsDatabase    = $fcmsDatabase;
+        $this->fcmsUser        = $fcmsUser;
         $this->weekStartOffset = getCalendarWeekStart();
     }
 
@@ -63,20 +58,21 @@ class Calendar
                 OR (`date` LIKE '%%%%-$month-%%' AND `repeat` = 'yearly') 
                 ORDER BY day";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return $days;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 if ($r['private'] == 1)
                 {
                     // only the user who created the private event can see it
-                    if ($r['created_by'] == $this->currentUserId)
+                    if ($r['created_by'] == $this->fcmsUser->id)
                     {
                         $days[] = $r['day'];
                     }
@@ -94,15 +90,16 @@ class Calendar
                 WHERE `dob_month` = '$month' 
                 ORDER BY `dob_day`";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return $days;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 $days[] = $r['dob_day'];
             }
@@ -128,9 +125,9 @@ class Calendar
     {
         if ($month == 0)
         {
-            $year  = fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-            $month = fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-            $day   = fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+            $year  = fixDate('Y', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+            $month = fixDate('m', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+            $day   = fixDate('d', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
         }
 
         $year  = (int)$year;
@@ -166,9 +163,9 @@ class Calendar
         list($pYear, $pMonth) = explode('-', date('Y-m', $prevTS));
 
         // Today links
-        $tYear  = fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tMonth = fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tDay   = fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tYear  = fixDate('Y', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tMonth = fixDate('m', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tDay   = fixDate('d', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
 
         // Next month links
         $nextTS = strtotime("$year-$month-01 +1 month");
@@ -238,7 +235,7 @@ class Calendar
                 }
 
                 // add the add cal date link
-                if (checkAccess($this->currentUserId) <= 5)
+                if ($this->fcmsUser->access <= 5)
                 {
                     echo '<a class="add" href="?add='.$year.'-'.$month.'-'.$d.'">'.T_('Add').'</a>';
                 }
@@ -288,7 +285,7 @@ class Calendar
                     <td colspan="4">
                         '.T_('Actions').': 
                         <a class="print" href="#" 
-                            onclick="window.open(\'inc/calendar_print.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'\',
+                            onclick="window.open(\'calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;print=1\',
                             \'name\',\'width=700,height=400,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no\'); 
                             return false;">'.T_('Print').'</a> | 
                         <a href="?import=true">'.T_('Import').'</a> | 
@@ -325,9 +322,9 @@ class Calendar
         list($pYear, $pMonth, $pDay) = explode('-', date('Y-m-d', $prevTS));
 
         // Today links
-        $tYear   = fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tMonth  = fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tDay    = fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tYear   = fixDate('Y', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tMonth  = fixDate('m', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tDay    = fixDate('d', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
         $isToday = false;
         $header  = formatDate(T_('l, F j, Y'), "$year-$month-$day");
 
@@ -375,15 +372,16 @@ class Calendar
                     AND c.`category` = ca.`id`
                 ORDER BY c.`time_start`";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($row = $this->db->get_row())
+            foreach ($rows as $row)
             {
                 if (empty($row['time_start']))
                 {
@@ -420,16 +418,15 @@ class Calendar
                 WHERE `name` = 'Birthday'
                 LIMIT 1";
 
-        if (!$this->db->query($sql))
+        $r = $this->fcmsDatabase->getRow($sql);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($r) > 0)
         {
-            $r = $this->db->get_row();
-
             $birthdayCategory = $r['id'];
             $birthdayColor    = $r['color'];
         }
@@ -438,17 +435,18 @@ class Calendar
         $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`,
                     `dod_year`, `dod_month`, `dod_day`
                 FROM `fcms_users` 
-                WHERE `dob_month` = '$month'";
+                WHERE `dob_month` = ?";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $month);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($row = $this->db->get_row())
+            foreach ($rows as $row)
             {
                 if (!empty($row['dod_year']) || !empty($row['dod_month']) || !empty($row['dod_day']))
                 {
@@ -491,7 +489,7 @@ class Calendar
 
         // Time Specific Events
         $times   = $this->getTimesList();
-        $curTime = fixDate('Hi', $this->tzOffset, date('Y-m-d H:i:s'))."00";
+        $curTime = fixDate('Hi', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s'))."00";
         
         foreach($times AS $key => $val)
         {
@@ -617,9 +615,9 @@ class Calendar
         list($pYear, $pMonth) = explode('-', date('Y-m', $prevTS));
 
         // Today links
-        $tYear  = fixDate('Y', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tMonth = fixDate('m', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $tDay   = fixDate('d', $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tYear  = fixDate('Y', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tMonth = fixDate('m', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+        $tDay   = fixDate('d', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
 
         // Next month links
         $nextTS = strtotime("$year-$month-01 +1 month");
@@ -735,10 +733,10 @@ class Calendar
         $year  = (int)$year;
 
         $gm_next   = gmdate('Y-m-d H:i:s', gmmktime(gmdate('h'), gmdate('i'), gmdate('s'), $month+1, 1, $year));
-        $nextMonth = fixDate('m', $this->tzOffset, $gm_next);
+        $nextMonth = fixDate('m', $this->fcmsUser->tzOffset, $gm_next);
 
-        $today      = fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s'));
-        $today_year = fixDate('Y',   $this->tzOffset, gmdate('Y-m-d H:i:s'));
+        $today      = fixDate('Ymd', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+        $today_year = fixDate('Y',   $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
 
         $sql = "SELECT `id`, DATE_FORMAT(`date`, '%m%d') as day, `title`, `desc`, 
                     `date`, `private`, `created_by`, `repeat`
@@ -748,17 +746,19 @@ class Calendar
                 OR (`date` LIKE '%%%%-$month-%%' AND `repeat` = 'yearly') 
                 OR (`date` LIKE '%%%%-$nextMonth-%%' AND `repeat` = 'yearly') 
                 ORDER BY day";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
         $events = array();
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($row = $this->db->get_row())
+            foreach ($rows as $row)
             {
                 $events[] = $row;
             }
@@ -768,17 +768,18 @@ class Calendar
         $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`, 
                     `dod_year`, `dod_month`, `dod_day` 
                 FROM `fcms_users` 
-                WHERE `dob_month` = '$month'";
+                WHERE `dob_month` = ?";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $month);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
                 {
@@ -845,7 +846,7 @@ class Calendar
             }
             else
             {
-                if ($row['created_by'] == $this->currentUserId)
+                if ($row['created_by'] == $this->fcmsUser->id)
                 {
                     $show = true;
                 }
@@ -891,17 +892,19 @@ class Calendar
                 FROM fcms_calendar 
                 WHERE (`date` LIKE '$year-$month-$day') 
                 OR (`date` LIKE '%%%%-$month-$day' AND `repeat` = 'yearly')";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
         $events = array();
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($row = $this->db->get_row())
+            foreach ($rows as $row)
             {
                 $events[] = $row;
             }
@@ -911,18 +914,19 @@ class Calendar
         $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`,
                     `dod_year`, `dod_month`, `dod_day` 
                 FROM `fcms_users` 
-                WHERE `dob_month` = '$month'
-                AND `dob_day` = '$day'";
+                WHERE `dob_month` = ?
+                AND `dob_day` = ?";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, array($month, $day));
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
                 {
@@ -957,7 +961,7 @@ class Calendar
                 }
                 else
                 {
-                    if ($row['created_by'] == $this->currentUserId)
+                    if ($row['created_by'] == $this->fcmsUser->id)
                     {
                         $show = true;
                     }
@@ -1031,17 +1035,18 @@ class Calendar
                     AND c.`category` = ca.`id`
                 ORDER BY c.`time_start`";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
         $events = array();
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($row = $this->db->get_row())
+            foreach ($rows as $row)
             {
                 $events[] = $row;
             }
@@ -1056,16 +1061,15 @@ class Calendar
                 WHERE `name` = 'Birthday'
                 LIMIT 1";
 
-        if (!$this->db->query($sql))
+        $r = $this->fcmsDatabase->getRow($sql);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($r) > 0)
         {
-            $r = $this->db->get_row();
-
             $birthdayCategory = $r['id'];
             $birthdayColor    = $r['color'];
         }
@@ -1074,18 +1078,19 @@ class Calendar
         $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`, 
                     `dod_year`, `dod_month`, `dod_day`
                 FROM `fcms_users` 
-                WHERE `dob_month` = '$month'
-                AND `dob_day` = '$day'";
+                WHERE `dob_month` = ?
+                AND `dob_day` = ?";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, array($month, $day));
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
                 {
@@ -1124,7 +1129,7 @@ class Calendar
                     $show = true;
                 }
                 // show private events to the user who created it
-                elseif ($event['created_by'] == $this->currentUserId)
+                elseif ($event['created_by'] == $this->fcmsUser->id)
                 {
                     $show = true;
                 }
@@ -1234,7 +1239,7 @@ class Calendar
     function displayAddForm ($addDate)
     {
         // Check Access
-        if (checkAccess($this->currentUserId) > 3)
+        if ($this->fcmsUser->access > 3)
         {
             echo '
             <div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
@@ -1266,7 +1271,7 @@ class Calendar
         }
 
         // Setup time fields
-        $defaultTimeStart = fixDate('H:i', $this->tzOffset, date('Y-m-d H:i:s'));
+        $defaultTimeStart = fixDate('H:i', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s'));
         list($hour, $min) = explode(':', $defaultTimeStart);
         if ($min > 30)
         {
@@ -1281,15 +1286,20 @@ class Calendar
         $times = $this->getTimesList();
 
         // Setup category field
-        $sql = "SELECT * FROM `fcms_category` WHERE `type` = 'calendar'";
-        if (!$this->db->query($sql))
+        $sql = "SELECT * 
+                FROM `fcms_category` 
+                WHERE `type` = 'calendar'";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySwlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
         $choose = '';
-        while($r = $this->db->get_row())
+
+        foreach ($rows as $r)
         {
             if ($r['name'] == '')
             {
@@ -1398,19 +1408,18 @@ class Calendar
         $sql = "SELECT `id`, `date`, `time_start`, `time_end`, `date_added`, 
                     `title`, `desc`, `created_by`, `category`, `repeat`, `private`, `invite`
                 FROM `fcms_calendar` 
-                WHERE `id` = '$id' 
+                WHERE `id` = ?
                 LIMIT 1";
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql, $id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        $row = $this->db->get_row();
-
         // Make sure then can edit this event
-        if (checkAccess($this->currentUserId) > 1 and $row['created_by'] != $this->currentUserId)
+        if ($this->fcmsUser->access > 1 and $row['created_by'] != $this->fcmsUser->id)
         {
             echo '
             <div class="error-alert">'.T_('You do not have permission to perform this task.') .'</div>';
@@ -1436,14 +1445,20 @@ class Calendar
         $allDayChk = empty($row['time_start']) ? 'checked="checked"' : '';
 
         // Setup category field
-        $sql = "SELECT * FROM `fcms_category` WHERE `type` = 'calendar'";
-        if (!$this->db->query($sql))
+        $sql = "SELECT *
+                FROM `fcms_category` 
+                WHERE `type` = 'calendar'";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
+
         $choose = '';
-        while($r = $this->db->get_row())
+
+        foreach ($rows as $r)
         {
             if ($r['name'] == '')
             {
@@ -1567,24 +1582,23 @@ class Calendar
                     c.`desc`, c.`created_by`, cat.`name` AS category, c.`repeat`, c.`private`,
                     c.`invite`
                 FROM `fcms_calendar` AS c, `fcms_category` AS cat 
-                WHERE c.`id` = '$id' 
+                WHERE c.`id` = ?
                 AND c.`category` = cat.`id` 
                 LIMIT 1";
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql, $id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($row) <= 0)
         {
             echo '<div class="info-alert"><h2>'.T_('I can\'t seem to find that calendar event.').'</h2>';
             echo '<p>'.T_('Please double check and try again.').'</p></div>';
             return;
         }
-
-        $row = $this->db->get_row();
 
         $times = $this->getTimesList();
         $date  = formatDate(T_('F j, Y'), $row['date']);
@@ -1635,7 +1649,7 @@ class Calendar
         }
 
         $edit = '';
-        if (checkAccess($this->currentUserId) == 1 || $row['created_by'] == $this->currentUserId)
+        if ($this->fcmsUser->access == 1 || $row['created_by'] == $this->fcmsUser->id)
         {
             $edit = '<span><a href="?edit='.$id.'" class="edit_event">'.T_('Edit').'</a></span>';
         }
@@ -1681,22 +1695,21 @@ class Calendar
 
         $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`
                 FROM `fcms_users`
-                WHERE `id` = '$id'";
+                WHERE `id` = ?";
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($row) <= 0)
         {
             echo '<div class="info-alert"><h2>'.T_('I can\'t seem to find that calendar event.').'</h2>';
             echo '<p>'.T_('Please double check and try again.').'</p></div>';
             return;
         }
-
-        $row = $this->db->get_row();
 
         $year  = $row['dob_year'];
         $month = $row['dob_month'];
@@ -1711,12 +1724,12 @@ class Calendar
         $edit = '';
 
         // If this bday is the current user's, edit sends them to their profile
-        if ($id == $this->currentUserId)
+        if ($id == $this->fcmsUser->id)
         {
             $edit = '<span><a href="profile.php?view=info" class="edit_event">'.T_('Edit').'</a></span>';
         }
         // If current user is admin, edit sends them to the admin member's page
-        elseif (checkAccess($this->currentUserId) == 1)
+        elseif ($this->fcmsUser->access == 1)
         {
             $edit = '<span><a href="admin/members.php?edit='.$id.'" class="edit_event">'.T_('Edit').'</a></span>';
         }
@@ -1749,12 +1762,13 @@ class Calendar
         // Get info on who's coming
         $sql = "SELECT `id`, `user`, `email`, `attending`, `response`, `updated`
                 FROM `fcms_invitation`
-                WHERE `event_id` = '$id'
+                WHERE `event_id` = ?
                 ORDER BY `updated` DESC";
-        $result = mysql_query($sql);
-        if (!$result)
+
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             displayFooter();
             exit();
         }
@@ -1770,7 +1784,7 @@ class Calendar
         $responses       = array();
         $usersLkup       = array();
 
-        while ($r = mysql_fetch_array($result))
+        foreach ($rows as $r)
         {
             $usersLkup[$r['user']] = array(
                 'attending' => $r['attending'],
@@ -1785,7 +1799,7 @@ class Calendar
                 $displayname = getUserDisplayName($r['user'], 2);
             }
 
-            if ($r['attending'] === NULL)
+            if ($r['attending'] === null)
             {
                 $undecidedCount++;
                 $comingUndecided .= "<p>$displayname</p>";
@@ -1819,7 +1833,7 @@ class Calendar
             );
         }
 
-        if (isset($usersLkup[$this->currentUserId]) && $usersLkup[$this->currentUserId]['attending'] === NULL)
+        if (isset($usersLkup[$this->fcmsUser->id]) && $usersLkup[$this->fcmsUser->id]['attending'] === null)
         {
             echo '
             <form action="calendar.php?event='.$id.'" method="post">
@@ -1848,7 +1862,7 @@ class Calendar
                     </li>
                     <li class="submit">
                         <textarea id="response" name="response" cols="50" rows="10"></textarea>
-                        <input type="hidden" id="id" name="id" value="'.$usersLkup[$this->currentUserId]['id'].'"/>
+                        <input type="hidden" id="id" name="id" value="'.$usersLkup[$this->fcmsUser->id]['id'].'"/>
                         <input type="submit" id="attend_submit" name="attend_submit" value="'.T_('Submit').'"/>
                     </li>
                 </ul>
@@ -1876,7 +1890,7 @@ class Calendar
         {
             if (isset($response['attending']))
             {
-                $updated = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $response['updated']);
+                $updated = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $response['updated']);
 
                 echo '
                 <div class="comment_block">
@@ -1924,15 +1938,15 @@ class Calendar
         {
             $sql = "SELECT `name`, `color` 
                     FROM `fcms_category` 
-                    WHERE `id` = '$id' 
+                    WHERE `id` = ?
                     LIMIT 1";
-            if (!$this->db->query($sql))
+
+            $row = $this->fcmsDatabase->getRow($sql, $id);
+            if ($row === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
                 return;
             }
-
-            $row = $this->db->get_row();
 
             $title = T_('Edit Category');
             $url   = '?category=edit&amp;id='.$id;
@@ -2007,19 +2021,22 @@ class Calendar
         $categories = $this->getCategoryList();
 
         $cal = "BEGIN:VCALENDAR\r\nPRODID:-//Family Connections//EN\r\nVERSION:2.0\r\n";
+
         $sql = "SELECT `date`, `date_added`, `title`, `desc`, `repeat`, c.`category`, 
                     CONCAT(`fname`, ' ', `lname`) AS 'organizer', `private`
                 FROM `fcms_calendar` AS c, `fcms_users` AS u 
                 WHERE c.`created_by` = u.`id";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 $cal .= "BEGIN:VEVENT\r\n";
                 // datetime must be 20080609T152552Z format
@@ -2041,7 +2058,7 @@ class Calendar
                 if ($r['repeat'] == 'yearly') {
                     $cal .= "RRULE:FREQ=YEARLY\r\n";
                 }
-                $cal .= "ORGANIZER;CN=".$r['organizer']."\r\n";
+                $cal .= "ORGANIZER:CN=".$r['organizer']."\r\n";
                 $cal .= "END:VEVENT\r\n";
             }
         } else {
@@ -2071,17 +2088,28 @@ class Calendar
         $i = 0;
         foreach ($row as $r)
         {
+            // Find Beginning
             $pos = strpos($r, "BEGIN:VEVENT");
             if ($pos !== false)
             {
                 $foundEvent = true;
             }
+
             if ($foundEvent === true)
             {
                 $tag = strpos($r, ":");
+                if ($tag === false)
+                {
+                    // Found badly formatted line in ICS file
+                    continue;
+                }
+
                 $name = substr($r, 0, $tag);
+
                 $events[$i][$name] = substr($r, $tag+1);
             }
+
+            // Find End
             $pos = strpos($r, "END:VEVENT");
             if ($pos !== false)
             {
@@ -2094,82 +2122,83 @@ class Calendar
         // Loop through the multidimensional array and insert valid event data into db
         foreach ($events as $event)
         {
-            $sql = "INSERT INTO `fcms_calendar` (
-                        `date`, `date_added`, `title`, `desc`, `created_by`, `category`, `private`
-                    ) 
-                    VALUES (";
+            $sql = "INSERT INTO `fcms_calendar`
+                        (`date`, `date_added`, `title`, `desc`, `created_by`, `category`, `private`) 
+                    VALUES
+                        (?, ?, ?, ?, ?, ?, ?)";
+
+            $params = array();
+
             // date
             if (isset($event['DTSTART;VALUE=DATE']))
             {
-                $sql .= "'".date('Y-m-d', strtotime($event['DTSTART;VALUE=DATE']))."', ";
+                $params[] = date('Y-m-d', strtotime($event['DTSTART;VALUE=DATE']));
             }
             elseif (isset($event['DTSTART']))
             {
-                $sql .= "'".date('Y-m-d', strtotime($event['DTSTART']))."', ";
+                $params[] = date('Y-m-d', strtotime($event['DTSTART']));
             }
             else
             {
-                $sql .= "'0000-00-00', ";
+                $params[] = '0000-00-00';
             }
 
             // date_added
             if (isset($event['CREATED']))
             {
-                $sql .= "'".date('Y-m-d H:i:s', strtotime($event['CREATED']))."', ";
+                $params[] = date('Y-m-d H:i:s', strtotime($event['CREATED']));
             }
             else
             {
-                $sql .= "NOW(), ";
+                $params[] = date('Y-m-d H:i:s');
             }
 
             // title
-            $sql .= "'".escape_string($event['SUMMARY'])."', ";
+            $params[] = $event['SUMMARY'];
 
             // description
             if (isset($event['DESCRIPTION']))
             {
-                $sql .= "'".escape_string($event['DESCRIPTION'])."', ";
+                $params[] = strip_tags($event['DESCRIPTION']);
             }
             else
             {
-                $sql .= "NULL, ";
+                $params[] = null;
             }
 
             // created_by
-            $sql .= "'".$this->currentUserId."', ";
+            $params[] = $this->fcmsUser->id;
 
             // category
             if (isset($event['CATEGORIES']))
             {
-                $sql .= "'".getCalendarCategory(trim($event['CATEGORIES']))."', ";
+                $params[] = getCalendarCategory(trim($event['CATEGORIES']));
             }
             else
             {
-                $sql .= "1, ";
+                $params[] = 1;
             }
 
             // private
             if (isset($event['CLASS']))
             {
-                if ($event['CLASS'] == 'PRIVATE')
+                if (trim($event['CLASS']) == 'PRIVATE')
                 {
-                    $sql .= "'1'";
+                    $params[] = 1;
                 }
                 else
                 {
-                    $sql .= "'0'";
+                    $params[] = 0;
                 }
             }
             else
             {
-                $sql .= "'0'";
+                $params[] = 0;
             }
 
-            $sql .= ")";
-
-            if (!$this->db->query($sql))
+            if (!$this->fcmsDatabase->insert($sql, $params))
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
                 return false;
             }
         }
@@ -2215,15 +2244,17 @@ class Calendar
                 FROM `fcms_category` 
                 WHERE `type` = 'calendar'
                 AND `name` != ''";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return $cats;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 $cats[$r['id']] = $r['name'];
             }
@@ -2247,15 +2278,17 @@ class Calendar
                 FROM `fcms_category` 
                 WHERE `type` = 'calendar'
                 AND `name` != ''";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return $ret;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 $ret .= '
                             <li class="cat '.cleanOutput($r['color']).'">
@@ -2286,7 +2319,7 @@ class Calendar
 
         if (isset($timeEvents[$hour]))
         {
-            if (is_array($timeEvents[$hour][0]))
+            if (isset($timeEvents[$hour][0]))
             {
                 foreach($timeEvents[$hour] AS $event)
                 {

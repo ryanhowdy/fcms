@@ -19,7 +19,7 @@ echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
-<title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
+<title>'.cleanOutput(getSiteName()).' - '.T_('powered by').' '.getCurrentVersion().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="ui/favicon.ico"/>
@@ -30,29 +30,22 @@ echo '
 // Resset PW
 if (isset($_POST['email']))
 {
-    $email = escape_string($_POST['email']);
-    $link  = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-
-    mysql_select_db($cfg_mysql_db, $link);
-
     $sql = "SELECT `id` 
             FROM `fcms_users` 
             WHERE `email` = '$email'";
 
-    $sql_check = mysql_query($sql);
-    if (!$sql_check)
+    $row = $fcmsDatabase->getRow($sql, $_POST['email']);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         displayForm();
         echo '</body></html>';
 
         return;
     }
 
-    $sql_check_num = mysql_num_rows($sql_check);
-
     // Invalid email
-    if ($sql_check_num == 0)
+    if (empty($row))
     { 
         echo '
     <div class="err-msg">
@@ -82,11 +75,11 @@ if (isset($_POST['email']))
 
         // Set new PW
         $sql = "UPDATE `fcms_users` 
-                SET `password` = '$new_pass' 
-                WHERE `email` = '$email'";
-        if (!mysql_query($sql))
+                SET `password` = ? 
+                WHERE `email` = ?";
+        if (!$fcmsDatabase->update($sql, array($new_pass, $email)))
         {
-            displaySqlError($sql, mysql_error());
+            $fcmsError->displayError();
             displayForm();
             echo '</body></html>';
 

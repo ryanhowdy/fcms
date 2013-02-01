@@ -1,7 +1,4 @@
 <?php
-include_once 'utils.php';
-include_once 'database_class.php';
-
 /**
  * Image
  * 
@@ -47,10 +44,6 @@ class Image
      */
     function Image ($currentUserId)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
         $this->currentUserId    = (int)$currentUserId;
         $this->tzOffset         = getTimezone($this->currentUserId);
         $this->error            = 0;
@@ -292,6 +285,7 @@ class Image
                 break;
 
             case 'wbmp':
+            case 'bmp':
 
                 $identifier = @imagecreatefrombmp($this->destination.$this->name);
 
@@ -370,7 +364,7 @@ class Image
 
                 break;
 
-            case 'PNG':
+            case 'png':
 
                 if (!function_exists('imagepng'))
                 {

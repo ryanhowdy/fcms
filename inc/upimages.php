@@ -110,7 +110,7 @@ function displayDeleteSubmit ()
 {
     global $fcmsUser;
 
-    if (checkAccess($fcmsUser->id) >= 2)
+    if ($fcmsUser->access >= 2)
     {
         displayHeader();
         echo '<p class="error-alert">'.T_('You do not have access to delete this image.').'</p>';
@@ -268,7 +268,7 @@ function displayImages ()
             </td>
             <td>';
 
-        if (checkAccess($fcmsUser->id) < 2)
+        if ($fcmsUser->access < 2)
         {
             echo '
                 <form method="post" action="upimages.php">

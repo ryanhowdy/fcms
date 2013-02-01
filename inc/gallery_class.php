@@ -11,11 +11,6 @@
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
  * @link      http://www.familycms.com/wiki/
  */
-require_once 'utils.php';
-require_once 'image_class.php';
-require_once 'datetime.php';
-require_once 'socialmedia.php';
-
 /**
  * PhotoGallery 
  * 
@@ -28,30 +23,29 @@ require_once 'socialmedia.php';
  */
 class PhotoGallery
 {
-    var $db;
-    var $db2;
-    var $tzOffset;
-    var $currentUserId;
-    var $img;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
+    var $fcmsImage;
 
     /**
      * PhotoGallery 
      * 
-     * @param int $currentUserId Id of authed user
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
+     * @param object $fcmsImage
      * 
      * @return void
      */
-    function PhotoGallery ($currentUserId)
+    function PhotoGallery ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsImage = null)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsImage    = $fcmsImage;
 
-        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = $currentUserId;
-        $this->img           = new Image($this->currentUserId);
-        $this->tzOffset      = getTimezone($this->currentUserId);
-
+        // TODO - this could be fixed by using ROOT
         T_bindtextdomain('messages', '.././language');
     }
 
@@ -95,7 +89,7 @@ class PhotoGallery
             $viewed = ' selected';
         }
 
-        if ($uid == $this->currentUserId && $cid == '')
+        if ($uid == $this->fcmsUser->id && $cid == '')
         {
             $my = ' selected';
         }
@@ -108,12 +102,12 @@ class PhotoGallery
                         <li><a class="'.$member.'" href="?uid=0">'.T_('Members').'</a></li>
                         <li><a class="'.$rated.'" href="?uid='.$uid.'&amp;cid=toprated">'.T_('Top Rated').'</a></li>
                         <li><a class="'.$viewed.'" href="?uid='.$uid.'&amp;cid=mostviewed">'.T_('Most Viewed').'</a></li>
-                        <li><a class="'.$my.'" href="?uid='.$this->currentUserId.'">'.T_('My Photos').'</a></li>
+                        <li><a class="'.$my.'" href="?uid='.$this->fcmsUser->id.'">'.T_('My Photos').'</a></li>
                         <li><a class="'.$search.'" href="?search=form">'.T_('Search').'</a></li>
                     </ul>
                 </div>';
 
-        $access = checkAccess($this->currentUserId);
+        $access = $this->fcmsUser->access;
 
         if ($access <= 3 or $access == NON_POSTER_USER or $access == PHOTOGRAPHER_USER)
         {
@@ -142,15 +136,17 @@ class PhotoGallery
         $sql = "SELECT `id` 
                 FROM `fcms_users` 
                 WHERE `activated` > 0";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($row = $this->db->get_row())
+            foreach ($rows as $row)
             {
                 $displayNameArr[$row['id']] = getUserDisplayName($row['id'], 2);
             }
@@ -221,13 +217,14 @@ class PhotoGallery
                 GROUP BY `category`
                 ORDER BY `date` DESC LIMIT 5";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             echo '
                 <div class="blank-state">
@@ -235,13 +232,14 @@ class PhotoGallery
                     <h3>'.T_('Currently no one has added any photos').'</h3>
                     <h3><a href="?action=upload">'.T_('Why don\'t you upload some photos now?').'</a></h3>
                 </div>';
+
             return false;
         }
 
         echo '
                 <div class="categories">';
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $_SESSION['photo-path-data'][$row['id']] = array(
                 'id'          => $row['id'],
@@ -251,7 +249,7 @@ class PhotoGallery
                 'thumbnail'   => $row['thumbnail']
             );
 
-            $date     = fixDate(T_('M. j, Y'), $this->tzOffset, $row['date']);
+            $date     = fixDate(T_('M. j, Y'), $this->fcmsUser->tzOffset, $row['date']);
             $photoSrc = $this->getPhotoSource($row);
 
             echo '
@@ -302,14 +300,15 @@ class PhotoGallery
 
         list($breadcrumbs, $cid, $urlcid, $sql) = $this->getShowPhotoParams($uid, $cid);
 
-        if (!$this->db2->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
         // Save filenames in an array, so we can see next/prev, etc
-        while ($row = $this->db2->get_row())
+        foreach ($rows as $row)
         {
             $photo_arr[]     = $row['filename'];
             $photoIdLookup[] = $row['id'];
@@ -318,7 +317,7 @@ class PhotoGallery
         // No photos exist for the current view/category
         // Even though we are in photo view, bump them back to the category view
         // and let the user know that this category is now empty
-        if ($this->db2->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             $this->displayGalleryMenu($uid, $cid);
 
@@ -338,24 +337,23 @@ class PhotoGallery
                 FROM `fcms_gallery_photos` AS p
                 LEFT JOIN `fcms_category` AS c ON p.`category` = c.`id`
                 LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                WHERE p.`id` = '$pid' ";
+                WHERE p.`id` = ?";
 
-        if (!$this->db2->query($sql))
+        $r = $this->fcmsDatabase->getRow($sql, $pid);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db2->count_rows() <= 0)
+        if (empty($r))
         {
             echo '
             <p class="error-alert">'.T_('The Photo you are trying to view can not be found.').'</p>';
             return;
         }
-            
-        // Save info about current photo
-        $r = $this->db2->get_row();
 
+        // Save info about current photo
         $_SESSION['photo-path-data'][$r['id']] = array(
             'id'          => $r['id'],
             'user'        => $r['uid'],
@@ -371,11 +369,12 @@ class PhotoGallery
         // Update View count
         $sql = "UPDATE `fcms_gallery_photos` 
                 SET `views` = `views`+1 
-                WHERE `id` = '$pid'";
-        if (!$this->db->query($sql))
+                WHERE `id` = ?";
+
+        if (!$this->fcmsDatabase->update($sql, $pid))
         {
             // Just show error and continue
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
         }
 
         // Get photo comments
@@ -459,7 +458,7 @@ class PhotoGallery
         $fullSrc    = $this->getPhotoSource($r, 'full');
         $caption    = cleanOutput($r['caption']);
         $dimensions = GetImageSize($photo_path_full);
-        $date_added = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
+        $date_added = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $r['date']);
 
         // Calculate rating
         if ($r['votes'] <= 0)
@@ -481,19 +480,20 @@ class PhotoGallery
                 AND t.`user` = u.`id`
                 ORDER BY u.`lname`";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $pid);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
         $tagged_mem_list = '<li>'.T_('none').'</li>';
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
             $tagged_mem_list = '';
 
-            while ($t = $this->db->get_row())
+            foreach ($rows as $t)
             {
                 $taggedName = cleanOutput($t['fname']).' '.cleanOutput($t['lname']);
 
@@ -504,7 +504,7 @@ class PhotoGallery
 
         // Edit / Delete Photo options
         $edit_del_options = '';
-        if ($this->currentUserId == $r['uid'] || checkAccess($this->currentUserId) < 2)
+        if ($this->fcmsUser->id == $r['uid'] || $this->fcmsUser->access < 2)
         {
             $edit_del_options = '
                             <li>
@@ -574,9 +574,9 @@ class PhotoGallery
             </div>';
                 
         // Display Comments
-        if (   checkAccess($this->currentUserId) <= 8
-            && checkAccess($this->currentUserId) != 7
-            && checkAccess($this->currentUserId) != 4
+        if (   $this->fcmsUser->access <= 8
+            && $this->fcmsUser->access != 7
+            && $this->fcmsUser->access != 4
         )
         {
 
@@ -589,11 +589,11 @@ class PhotoGallery
                 {
                     // Setup some vars for each comment block
                     $del_comment = '';
-                    $date        = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['date']);
+                    $date        = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['date']);
                     $displayname = getUserDisplayName($row['user']);
                     $comment     = $row['comment'];
 
-                    if ($this->currentUserId == $row['user'] || checkAccess($this->currentUserId) < 2)
+                    if ($this->fcmsUser->id == $row['user'] || $this->fcmsUser->access < 2)
                     {
                         $del_comment .= '<input type="submit" name="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this Comment').'"/>';
                     }
@@ -739,6 +739,7 @@ class PhotoGallery
             $breadcrumbs = '';
         }
 
+        # TODO - add params
         return array(
             0 => $breadcrumbs,
             1 => $cid,
@@ -771,14 +772,14 @@ class PhotoGallery
 
         $full_size_photos = false; 
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql);
+        if ($row === false)
         {
             // If we can't figure out full sized, we will default to no and continue on
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
         }
         else
         {
-            $row = $this->db->get_row();
             $full_size_photos = $row['full_size_photos'] == 1 ? true : false;
         }
 
@@ -915,13 +916,14 @@ class PhotoGallery
             $sql .= " LIMIT 5";
         }
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             if ($page >= 0)
             {
@@ -948,7 +950,7 @@ class PhotoGallery
             <ul class="categories">';
         }
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $_SESSION['photo-path-data'][$row['pid']] = array(
                 'id'          => $row['pid'],
@@ -958,7 +960,7 @@ class PhotoGallery
                 'thumbnail'   => $row['thumbnail']
             );
 
-            $date        = fixDate(T_('M. j, Y g:i a'), $this->tzOffset, $row['heading']);
+            $date        = fixDate(T_('M. j, Y g:i a'), $this->fcmsUser->tzOffset, $row['heading']);
             $displayname = getUserDisplayName($row['user']);
             $filename    = basename($row['filename']);
             $caption     = cleanOutput($row['caption']);
@@ -1022,13 +1024,14 @@ class PhotoGallery
                 ORDER BY cat.`date` DESC
                 LIMIT $from, $perPage";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             echo '
             <div class="info-alert">
@@ -1041,7 +1044,7 @@ class PhotoGallery
             <p class="breadcrumbs">'.T_('Members').'</p>
             <ul class="categories">';
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $_SESSION['photo-path-data'][$row['id']] = array(
                 'id'          => $row['id'],
@@ -1108,17 +1111,18 @@ class PhotoGallery
                     ORDER BY `date` DESC
                 ) AS f
                 WHERE f.`id` = p.`id`
-                AND p.`user` = '$uid'
+                AND p.`user` = ?
                 GROUP BY cat.`id` DESC
                 LIMIT $from, $perPage";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $uid);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             echo '
             <div class="info-alert">
@@ -1133,7 +1137,7 @@ class PhotoGallery
             </p>
             <ul class="categories">';
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $_SESSION['photo-path-data'][$row['id']] = array(
                 'id'          => $row['id'],
@@ -1169,7 +1173,7 @@ class PhotoGallery
 
         $url = '?uid='.$uid;
 
-        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+        $this->displayCategoryPagination($sql, $page, $perPage, $url, $uid);
     }
 
     /**
@@ -1192,30 +1196,32 @@ class PhotoGallery
                 LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = c.`id`
                 LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
                 LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`
-                WHERE p.`category` = '$cid'
+                WHERE p.`category` = ?
                 LIMIT $from, $perPage";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $cid);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             echo '
             <div class="info-alert">
                 <h2>'.T_('Oops!').'</h2>
                 <p>'.T_('The Category you are trying to view is Empty.').'</p>
             </div>';
+
+            return;
         }
 
         $photos   = '';
         $admin    = '';
         $descInfo = '';
-        $access   = checkAccess($this->currentUserId);
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $_SESSION['photo-path-data'][$row['pid']] = array(
                 'id'          => $row['pid'],
@@ -1244,16 +1250,21 @@ class PhotoGallery
                     </li>';
         }
 
-        // Administrate link
-        if ($access < 2)
+        // Action links
+        $categoryActions = '';
+        if ($uid == $this->fcmsUser->id)
         {
-            $admin = '<li class="administrate"><a href="../admin/gallery.php?edit='.$cid.'">'.T_('Administrate').'</a></li>';
+            $categoryActions .= '<li><a href="index.php?edit-category='.$cid.'&amp;user='.$uid.'">'.T_('Edit').'</a></li>';
+        }
+        if ($this->fcmsUser->access < 2)
+        {
+            $categoryActions .= '<li><a href="../admin/gallery.php?edit='.$cid.'">'.T_('Administrate').'</a></li>';
         }
 
         // Description
         if (empty($description))
         {
-            if ($uid == $this->currentUserId)
+            if ($uid == $this->fcmsUser->id)
             {
                 $descInfo = '<a href="?description='.$cid.'&amp;user='.$uid.'">'.T_('Add Description').'</a>';
             }
@@ -1265,11 +1276,6 @@ class PhotoGallery
         else
         {
             $descInfo .= $description;
-
-            if ($uid == $this->currentUserId)
-            {
-                $descInfo .= '<br/><a href="?description='.$cid.'&amp;user='.$uid.'">'.T_('Edit Description').'</a>';
-            }
         }
 
         // Members in category
@@ -1288,9 +1294,9 @@ class PhotoGallery
                 </ul>';
 
         // Display Comments
-        if (   checkAccess($this->currentUserId) <= 8
-            && checkAccess($this->currentUserId) != 7
-            && checkAccess($this->currentUserId) != 4
+        if (   $this->fcmsUser->access <= 8
+            && $this->fcmsUser->access != 7
+            && $this->fcmsUser->access != 4
         )
         {
             $comments = $this->getCategoryComments($cid);
@@ -1304,12 +1310,12 @@ class PhotoGallery
                 {
                     // Setup some vars for each comment block
                     $del_comment = '';
-                    $date        = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['created']);
+                    $date        = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['created']);
                     $displayname = $row['fname'].' '.$row['lname'];
                     $comment     = $row['comment'];
                     $avatarPath  = getAvatarPath($row['avatar'], $row['gravatar'], '../');
 
-                    if ($this->currentUserId == $row['created_id'] || checkAccess($this->currentUserId) < 2)
+                    if ($this->fcmsUser->id == $row['created_id'] || $this->fcmsUser->access < 2)
                     {
                         $del_comment .= '<input type="submit" name="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this Comment').'"/>';
                     }
@@ -1342,19 +1348,20 @@ class PhotoGallery
                 </div>';
         }
 
-        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+        $this->displayCategoryPagination($sql, $page, $perPage, $url, $cid);
 
         echo '
             </div>
             <div id="leftcolumn">
-                <ul id="category-actions">
-                    <li class="slideshow"><a class="new_window" href="slideshow.php?category='.$cid.'">'.T_('View Slideshow').'</a></li>
-                    '.$admin.'
-                </ul>
+                <p class="slideshow"><a class="new_window" href="slideshow.php?category='.$cid.'">'.T_('View Slideshow').'</a></p>
                 <p><b>'.T_('Description').'</b></p>
                 <p>'.$descInfo.'</p>
                 <p><b>'.T_('Members In Category').'</b></p>
                 <p>'.$membersInCategory.'</p>
+                <p><b>'.T_('Actions').'</b></p>
+                <ul id="category-actions">
+                    '.$categoryActions.'
+                </ul>
             </div>';
     }
 
@@ -1371,10 +1378,12 @@ class PhotoGallery
         $perPage = 18;
         $from    = ($page * $perPage) - $perPage;
         $where   = '';
+        $params  = array();
 
         if ($uid > 0)
         {
-            $where = " AND `user` = '$uid' ";
+            $where    = " AND `user` = ? ";
+            $params[] = $uid;
         }
 
         $sql = "SELECT p.`user` AS uid, p.`filename`, p.`category`, p.`caption`, 
@@ -1387,13 +1396,14 @@ class PhotoGallery
                 ORDER BY r DESC
                 LIMIT $from, $perPage";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $params);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             echo '
             <div class="info-alert">
@@ -1412,7 +1422,7 @@ class PhotoGallery
             <p class="breadcrumbs">'.T_('Top Rated').$topRatedUser.'</p>
             <ul class="categories">';
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $_SESSION['photo-path-data'][$row['pid']] = array(
                 'id'          => $row['pid'],
@@ -1422,15 +1432,15 @@ class PhotoGallery
                 'thumbnail'   => $row['thumbnail']
             );
 
-            $filename  = basename($row['filename']);
-            $user      = (int)$row['uid'];
-            $cid       = (int)$row['category'];
-            $pid       = (int)$row['pid'];
-            $url       = 'index.php?uid='.$uid.'&amp;cid=toprated'.$cid.'&amp;pid='.$pid;
-            $width     = ($row['r'] / 5) * 100;
-            $caption   = cleanOutput($row['caption']);
-            $row['id'] = $row['pid'];
-            $photoSrc  = $this->getPhotoSource($row);
+            $filename    = basename($row['filename']);
+            $cid         = (int)$row['category'];
+            $pid         = (int)$row['pid'];
+            $url         = 'index.php?uid='.$uid.'&amp;cid=toprated'.$cid.'&amp;pid='.$pid;
+            $width       = ($row['r'] / 5) * 100;
+            $caption     = cleanOutput($row['caption']);
+            $row['id']   = $row['pid'];
+            $row['user'] = $row['uid'];
+            $photoSrc    = $this->getPhotoSource($row);
 
             echo '
                 <li class="category">
@@ -1457,7 +1467,14 @@ class PhotoGallery
 
         $url = '?uid='.$uid.'&amp;cid=toprated';
 
-        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+        if ($uid > 0)
+        {
+            $this->displayCategoryPagination($sql, $page, $perPage, $url, $uid);
+        }
+        else
+        {
+            $this->displayCategoryPagination($sql, $page, $perPage, $url);
+        }
     }
 
     /**
@@ -1473,10 +1490,12 @@ class PhotoGallery
         $perPage = 18;
         $from    = ($page * $perPage) - $perPage;
         $where   = '';
+        $params  = array();
 
         if ($uid > 0)
         {
-            $where = " AND `user` = '$uid' ";
+            $where    = " AND `user` = ? ";
+            $params[] = $uid;
         }
 
         $sql = "SELECT p.`user` AS uid, p.`filename`, p.`caption`, p.`id` AS pid, 
@@ -1488,13 +1507,14 @@ class PhotoGallery
                 ORDER BY VIEWS DESC
                 LIMIT $from, $perPage";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $params);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             echo '
             <div class="info-alert">
@@ -1513,7 +1533,7 @@ class PhotoGallery
             <p class="breadcrumbs">'.T_('Most Viewed').$mostViewedUser.'</p>
             <ul class="categories">';
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $_SESSION['photo-path-data'][$row['pid']] = array(
                 'id'          => $row['pid'],
@@ -1523,13 +1543,14 @@ class PhotoGallery
                 'thumbnail'   => $row['thumbnail']
             );
 
-            $filename  = basename($row['filename']);
-            $user      = (int)$row['uid'];
-            $pid       = (int)$row['pid'];
-            $caption   = cleanOutput($row['caption']);
-            $views     = (int)$row['views'];
-            $row['id'] = $row['pid'];
-            $photoSrc  = $this->getPhotoSource($row);
+            $filename    = basename($row['filename']);
+            $user        = (int)$row['uid'];
+            $pid         = (int)$row['pid'];
+            $caption     = cleanOutput($row['caption']);
+            $views       = (int)$row['views'];
+            $row['id']   = $row['pid'];
+            $row['user'] = $row['uid'];
+            $photoSrc    = $this->getPhotoSource($row);
 
             echo '
                 <li class="category">
@@ -1547,7 +1568,14 @@ class PhotoGallery
 
         $url = '?uid='.$uid.'&amp;cid=mostviewed';
 
-        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+        if ($uid > 0)
+        {
+            $this->displayCategoryPagination($sql, $page, $perPage, $url, $uid);
+        }
+        else
+        {
+            $this->displayCategoryPagination($sql, $page, $perPage, $url);
+        }
     }
 
     /**
@@ -1568,16 +1596,17 @@ class PhotoGallery
                 FROM `fcms_gallery_photos` AS p
                 LEFT JOIN `fcms_gallery_photos_tags` AS t    ON t.`photo`       = p.`id`
                 LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                WHERE t.`user` = '$userId'
+                WHERE t.`user` = ?
                 LIMIT $from, $perPage";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $userId);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             echo '
             <div class="info-alert">
@@ -1592,7 +1621,7 @@ class PhotoGallery
             <p class="breadcrumbs">'.sprintf(T_('Photos of %s'), $userName).'</p>
             <ul class="photos">';
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $_SESSION['photo-path-data'][$row['pid']] = array(
                 'id'          => $row['pid'],
@@ -1623,7 +1652,7 @@ class PhotoGallery
 
         $url = '?uid=0&amp;cid='.$userId;
 
-        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+        $this->displayCategoryPagination($sql, $page, $perPage, $url, $userId);
     }
 
     /**
@@ -1645,17 +1674,18 @@ class PhotoGallery
                 LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = c.`id`
                 LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
                 LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`
-                WHERE p.`user` = '$userId' 
+                WHERE p.`user` = ?
                 ORDER BY p.`id`
                 LIMIT $from, $perPage";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $userId);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             echo '
             <div class="info-alert">
@@ -1672,7 +1702,7 @@ class PhotoGallery
             <p class="breadcrumbs">'.sprintf(T_('Photos uploaded by %s'), $userName).'</p>
             <ul class="photos">';
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $_SESSION['photo-path-data'][$row['pid']] = array(
                 'id'          => $row['pid'],
@@ -1682,12 +1712,13 @@ class PhotoGallery
                 'thumbnail'   => $row['thumbnail']
             );
 
-            $filename  = basename($row['filename']);
-            $pid       = (int)$row['pid'];
-            $urlPage   = '?uid='.$userId.'&amp;cid=all';
-            $caption   = cleanOutput($row['caption']);
-            $row['id'] = $row['pid'];
-            $photoSrc  = $this->getPhotoSource($row);
+            $filename    = basename($row['filename']);
+            $pid         = (int)$row['pid'];
+            $urlPage     = '?uid='.$userId.'&amp;cid=all';
+            $caption     = cleanOutput($row['caption']);
+            $row['id']   = $row['pid'];
+            $row['user'] = $row['uid'];
+            $photoSrc    = $this->getPhotoSource($row);
 
             echo '
                 <li class="photo">
@@ -1702,7 +1733,7 @@ class PhotoGallery
 
         $url = '?uid='.$userId.'&amp;cid=all';
 
-        $this->displayCategoryPagination($sql, $page, $perPage, $url);
+        $this->displayCategoryPagination($sql, $page, $perPage, $url, $userId);
     }
 
     /**
@@ -1712,10 +1743,11 @@ class PhotoGallery
      * @param int    $page 
      * @param int    $perPage 
      * @param string $url 
+     * @param mixed  $params
      * 
      * @return void
      */
-    function displayCategoryPagination ($sql, $page, $perPage, $url)
+    function displayCategoryPagination ($sql, $page, $perPage, $url, $params = null)
     {
         // Remove the LIMIT from the $sql statement 
         $findLimit = strpos($sql, 'LIMIT');
@@ -1724,13 +1756,22 @@ class PhotoGallery
             $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
         }
 
-        if (!$this->db->query($sql))
+        if (is_null($params))
         {
-            displaySqlError($sql, mysql_error());
+            $rows = $this->fcmsDatabase->getRows($sql);
+        }
+        else
+        {
+            $rows = $this->fcmsDatabase->getRows($sql, $params);
+        }
+
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
             return;
         }
 
-        $count = $this->db->count_rows();
+        $count = count($rows);
         $total = ceil($count / $perPage); 
 
         displayPages("index.php$url", $page, $total);
@@ -1747,10 +1788,8 @@ class PhotoGallery
      */
     function displayUploadForm ($overrideMemoryLimit = false)
     {
-        $categories = $this->getCategoryInputs();
-
         // Setup the photo tagging options (autocomplete or checkbox)
-        $advanced_tagging       = usingAdvancedTagging($this->currentUserId);
+        $advanced_tagging       = usingAdvancedTagging($this->fcmsUser->id);
         $members                = array();
         $autocomplete_selected  = '';
         $tagging_options        = '';
@@ -1761,12 +1800,15 @@ class PhotoGallery
         $sql = "SELECT `id` 
                 FROM `fcms_users` 
                 WHERE `activated` > 0";
-        if (!$this->db2->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
-        while ($r = $this->db2->get_row())
+
+        foreach ($rows as $r)
         {
             $members[$r['id']] = getUserDisplayName($r['id'], 2);
         }
@@ -1830,7 +1872,7 @@ class PhotoGallery
             <form id="autocomplete_form" enctype="multipart/form-data" action="?action=upload" method="post" class="photo-uploader">
                 <div class="header">
                     <label>'.T_('Category').'</label>
-                    '.$categories.'
+                    '.$this->getCategoryInputs().'
                 </div>
                 <ul class="upload-types">
                     '.$this->getUploadTypesNavigation('upload').'
@@ -1852,7 +1894,7 @@ class PhotoGallery
                             <label><b>'.T_('Who is in this Photo?').'</b></label><br/>
                             '.$tagging_options.'
                         </div>
-                        <p>
+                        <p class="rotate-options">
                             <label><b>'.T_('Rotate').'</b></label><br/>
                             <input type="radio" id="left" name="rotate" value="left"/>
                             <label for="left" class="radio_label">'.T_('Left').'</label>&nbsp;&nbsp; 
@@ -1862,9 +1904,14 @@ class PhotoGallery
                     </div><!--/basic-->
                 </div>
                 <div class="footer">
-                    <input class="sub1" type="submit" id="addphoto" name="addphoto" value="'.T_('Submit').'"/>
+                    <input class="sub1" type="submit" id="submit-photos" name="addphoto" value="'.T_('Submit').'"/>
                 </div>
-            </form>';
+            </form>
+            <script type="text/javascript">
+            Event.observe("submit-photos","click",function(e){
+            '.$this->getJsUploadValidation().'
+            });
+            </script>';
 
     }
 
@@ -1878,8 +1925,6 @@ class PhotoGallery
      */
     function displayJavaUploadForm ()
     {
-        $category_options = $this->getCategoryInputs();
-
         // Setup some applet params
         $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="small,medium"/>';
         $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit"/>';
@@ -1919,16 +1964,17 @@ class PhotoGallery
                 </div>
             </noscript>
 
-            <form method="post" name="uploadForm" class="photo-uploader">
+            <div id="loading">'.T_('Loading Advanced Uploader...').'</div>
+            <form method="post" id="uploadForm" name="uploadForm" class="photo-uploader" style="visibility:hidden">
                 <div class="header">
                     <label>'.T_('Category').'</label>
-                    '.$category_options.'
+                    '.$this->getCategoryInputs().'
                 </div>
                 <ul class="upload-types">
                     '.$this->getUploadTypesNavigation('upload').'
                 </ul>
                 <div class="upload-area">
-                    <applet name="jumpLoaderApplet"
+                    <applet id="jumpLoaderApplet" name="jumpLoaderApplet"
                         code="jmaster.jumploader.app.JumpLoaderApplet.class"
                         archive="../inc/thirdparty/jumploader_z.jar"
                         width="540"
@@ -1950,20 +1996,19 @@ class PhotoGallery
                         <param name="vc_uploadViewRetryActionVisible" value="false"/>
                         <param name="vc_uploadViewFilesSummaryBarVisible" value="false"/>
                         <param name="vc_uiDefaults" value="Panel.background=#eff0f4; List.background=#eff0f4;"/> 
+                        <param name="ac_fireAppletInitialized" value="true"/>
                         <param name="ac_fireUploaderStatusChanged" value="true"/> 
+                        <param name="ac_fireUploaderFileStatusChanged" value="true"/>
                     </applet>
                 </div>
                 <div class="footer">
                     <input class="sub1" type="button" value="'.T_('Upload').'" id="start-upload" name="start-upload"/>
                 </div>
             </form>
-            <script language="javascript">
-            Event.observe("start-upload","click",function(){
+            <script type="text/javascript">
+            Event.observe("start-upload","click",function(e){
 
-                if ($F("new-category").empty() && $F("existing-categories") <= 0) {
-                    alert("'.T_('Please specify a category first.').'");
-                    return;
-                }
+                '.$this->getJsUploadValidation().'
 
                 var uploader = document.jumpLoaderApplet.getUploader();
                 var attrSet  = uploader.getAttributeSet();
@@ -1981,9 +2026,13 @@ class PhotoGallery
                 uploader.startUpload();
             });'.$fullSizedPhotos.'
             function uploaderStatusChanged(uploader) {
-                if (uploader.isReady() && uploader.getFileCountByStatus(3) == 0) { 
+                if (uploader.getStatus() == 0) {
                     window.location.href = "index.php?action=advanced";
                 }
+            }
+            function appletInitialized(applet) {
+                $("uploadForm").setStyle({visibility:"visible"});
+                $("loading").hide();
             }
             </script>';
     }
@@ -2007,22 +2056,22 @@ class PhotoGallery
             </p>';
         }
 
-        require_once INC.'socialmedia.php';
         require_once THIRDPARTY.'Instagram.php';
 
         // Get auto upload setting and access token
         $sql = "SELECT `instagram_access_token`, `instagram_auto_upload`
                 FROM `fcms_user_settings`
-                WHERE `user` = '".$this->currentUserId."'
+                WHERE `user` = ?
                 LIMIT 1";
 
-        if (!$this->db->query($sql))
+        $r = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() < 0)
+        if (empty($r))
         {
             echo '
             <p class="error-alert">
@@ -2030,8 +2079,6 @@ class PhotoGallery
             </p>';
             return;
         }
-
-        $r = $this->db->get_row();
 
         $instagramInfo = '';
 
@@ -2122,12 +2169,9 @@ class PhotoGallery
         echo '
             <form method="post" class="photo-uploader" action="index.php?action=upload&amp;type=instagram">
                 <div class="header">
-                    <label>'.T_('Category').'</label>
-                    '.$this->getCategoryInputs().'
                 </div>
                 <ul class="upload-types">
-                    <li><a href="?action=upload">'.T_('Upload').'</a></li>
-                    <li class="current"><a href="?action=upload&amp;type=instagram">Instagram</a></li>
+                    '.$this->getUploadTypesNavigation('instagram').'
                 </ul>
                 <div class="upload-area">
                     <div class="instagram">
@@ -2138,6 +2182,116 @@ class PhotoGallery
                     <input class="sub1" type="submit" value="'.T_('Upload').'" id="instagram" name="instagram"/>
                 </div>
             </form>';
+    }
+
+    /**
+     * displayPicasaUploadForm 
+     *
+     * Displays the form for uploading photos from Picasa Web Albums.
+     * 
+     * @return void
+     */
+    function displayPicasaUploadForm ()
+    {
+        if (isset($_SESSION['error']))
+        {
+            unset($_SESSION['error']);
+
+            echo '
+            <p class="error-alert">
+                '.T_('You must choose at least one photo, or choose to automatically import all.').'
+            </p>';
+        }
+
+        // Get session token
+        $sql = "SELECT `picasa_session_token`
+                FROM `fcms_user_settings`
+                WHERE `user` = ?
+                LIMIT 1";
+
+        $r = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($r === false)
+        {
+            $this->fcmsError->displayError();
+            return;
+        }
+
+        if (empty($r))
+        {
+            echo '
+            <p class="error-alert">
+                '.T_('Could not get user data.').'
+            </p>';
+            return;
+        }
+
+        $picasaInfo = '';
+        $token      = '';
+        $js         = '';
+
+        if (empty($r['picasa_session_token']))
+        {
+            $picasaInfo = '
+            <div class="info-alert">
+                <h2>'.T_('Not connected to Picasa.').'</h2>
+                <p>'.T_('You must connect your Family Connections account to Picasa before you can begin importing photos from Picasa.').'</p>
+                <p><a href="../settings.php?view=picasa">'.T_('Connect to Picasa').'</a></p>
+            </div>';
+        }
+        else
+        {
+            $token      = $r['picasa_session_token'];
+            $picasaInfo = '<p></p>';
+            $js         = 'loadPicasaAlbums("'.$token.'", "'.T_('Could not get albums.').'");';
+        }
+
+        echo '
+            <form method="post" class="photo-uploader" action="index.php?action=upload&amp;type=picasa">
+                <div class="header">
+                    <label>'.T_('Category').'</label>
+                    '.$this->getCategoryInputs().'
+                </div>
+                <ul class="upload-types">
+                    '.$this->getUploadTypesNavigation('picasa').'
+                </ul>
+                <div class="upload-area">
+                    <div class="picasa">
+                        '.$picasaInfo.'
+                    </div>
+                </div>
+                <div class="footer">
+                    <input class="sub1" type="submit" value="'.T_('Upload').'" id="submit-photos" name="picasa"/>
+                </div>
+            </form>
+            <script type="text/javascript">
+            '.$js.'
+            Event.observe("submit-photos","click",function(e){
+            '.$this->getJsUploadValidation().'
+            });
+            </script>';
+    }
+
+    /**
+     * getJsUploadValidation 
+     * 
+     * @return string
+     */
+    function getJsUploadValidation ()
+    {
+        return '
+                if ($("new-category").visible() && $F("new-category").empty()) {
+                    Event.stop(e);
+                    $("new-category").addClassName("LV_invalid_field");
+                    $("new-category").focus();
+                    return;
+                }
+                else if ($("existing-categories") != undefined && $("existing-categories").visible() && $F("existing-categories") <= 0)
+                {
+                    Event.stop(e);
+                    $("existing-categories").addClassName("LV_invalid_field");
+                    $("existing-categories").focus();
+                    return;
+                }';
     }
 
     /**
@@ -2157,18 +2311,17 @@ class PhotoGallery
                 FROM `fcms_gallery_photos` AS p
                 LEFT JOIN `fcms_category` AS c               ON p.`category`    = c.`id`
                 LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                WHERE p.`id` = '$photo'";
+                WHERE p.`id` = ?";
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql, $photo);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (!empty($row))
         {
-            $row = $this->db->get_row();
-
             $_SESSION['photo-path-data'][$row['id']] = array(
                 'id'          => $row['id'],
                 'user'        => $row['user'],
@@ -2203,13 +2356,16 @@ class PhotoGallery
             // Setup the list of users already tagged
             $sql = "SELECT `id`, `user` 
                     FROM `fcms_gallery_photos_tags` 
-                    WHERE `photo` = '$photo'";
-            if (!$this->db2->query($sql))
+                    WHERE `photo` = ?";
+
+            $rows = $this->fcmsDatabase->getRows($sql, $photo);
+            if ($rows === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
                 return;
             }
-            while ($r = $this->db2->get_row())
+
+            foreach ($rows as $r)
             {
                 $prev_tagged[$r['user']] = 1;
             }
@@ -2218,12 +2374,15 @@ class PhotoGallery
             $sql = "SELECT `id` 
                     FROM `fcms_users` 
                     WHERE `activated` > 0";
-            if (!$this->db2->query($sql))
+
+            $rows = $this->fcmsDatabase->getRows($sql, $photo);
+            if ($rows === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
                 return;
             }
-            while ($r = $this->db2->get_row())
+
+            foreach ($rows as $r)
             {
                 $members[$r['id']] = getUserDisplayName($r['id'], 2);
             }
@@ -2341,165 +2500,234 @@ class PhotoGallery
     }
 
     /**
-     * displayAdvancedUploadEditForm 
+     * displayEditCategoryForm 
      * 
-     * Displays a form for editing photos that were uploaded using the advanced uploader.
+     * Displays a form for editing a category of photos.
+     * 
+     * Allows user to mass tag photos, add captions, and
+     * edit description of the category.
+     * 
+     * @param int   $category 
+     * @param int   $user 
+     * @param array $turnOff
      * 
      * @return void
      */
-    function displayAdvancedUploadEditForm ()
+    function displayEditCategoryForm ($category, $user, $turnOff = array())
     {
-        // Do we have a valid category?
-        if (isset($_SESSION['photos']['error']))
+        $category = (int)$category;
+        $user     = (int)$user;
+
+        $displayDescription = isset($turnOff['description']) ? false : true;
+        $displayCaption     = isset($turnOff['caption'])     ? false : true;
+        $displayTag         = isset($turnOff['tag'])         ? false : true;
+
+        $members = getActiveMemberIdNameLookup();
+        if ($members === false)
         {
-            // clear the photos in the session
-            unset($_SESSION['photos']);
-            echo '<div class="error-alert">'.T_('You must create a new category, or select an existing category.').'</div>';
-            $this->displayJavaUploadForm('');
+            $this->fcmsError->displayError();
             return;
         }
 
-        $advanced_tagging = usingAdvancedTagging($this->currentUserId);
+        // Get photos in category
+        $sql = "SELECT u.`id` AS uid, p.`category` AS cid, p.`id` AS pid, p.`caption`, 
+                    c.`name` AS category, c.`description`, p.`filename`, p.`external_id`, 
+                    e.`thumbnail`
+                FROM `fcms_category` AS c
+                LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = c.`id`
+                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`
+                WHERE p.`user` = ?
+                AND `category` = ?
+                AND p.`user` = u.`id`
+                AND `category` = c.`id`
+                ORDER BY p.`id`";
 
-        $members = array();
+        $params = array(
+            $user,
+            $category
+        );
 
-        $autocomplete_selected  = '';
-
-        // Setup the photo tagging options (autocomplete or checkbox)
-        $tagging_options    = '';
-        $users_list         = '';
-        $users_lkup         = '';
-        $js                 = '';
-        $js_list            = '';
-        $js_autocompleter   = '';
-
-        // Setup the list of active members for possible tags
-        $sql = "SELECT `id` 
-                FROM `fcms_users` 
-                WHERE `activated` > 0";
-        if (!$this->db2->query($sql))
+        $photos = $this->fcmsDatabase->getRows($sql, $params);
+        if ($photos === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
-        while ($r = $this->db2->get_row())
-        {
-            $members[$r['id']] = getUserDisplayName($r['id'], 2);
-        }
-        asort($members);
 
-        // Advanced (autocomplete)
-        if ($advanced_tagging)
+        if (count($photos) < 0)
         {
-            foreach ($members as $key => $value)
+            echo '<p class="error">'.T_('No photos found in this category.').'</p>';
+            return;
+        }
+
+        // Get photo ids
+        $in = '';
+        foreach ($photos as $photo)
+        {
+            $in .= (int)$photo['pid'].',';
+        }
+        $in = substr($in, 0, -1);
+
+        // Get list of users already tagged in photos
+        $sql = "SELECT p.`id` AS 'pid', t.`user` 
+                FROM `fcms_gallery_photos_tags` AS t
+                LEFT JOIN `fcms_gallery_photos` AS p ON t.`photo` = p.`id`
+                WHERE t.`photo` IN ($in)";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            return;
+        }
+
+        $previouslyTaggedMembers = array();
+        foreach ($rows as $r)
+        {
+            if (!isset($previouslyTaggedMembers[$r['pid']]))
             {
-                $users_list .= '"'.$key.': '.cleanOutput($value).'", ';
-                $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
+                $previouslyTaggedMembers[$r['pid']] = array();
             }
 
-            $users_list = substr($users_list, 0, -2); // remove the extra comma space at the end
-
-            $js_list = '
-                <script type="text/javascript">
-                //<![CDATA[
-                Event.observe(window, "load", function() {
-                    var users_list = [ '.$users_list.' ];
-                    var users_lkup = new Array();
-                    '.$users_lkup;
+            $previouslyTaggedMembers[$r['pid']][$r['user']] = 1;
         }
+
+        // Setup some vars for js tagging
+        $usersList = '';
+        $usersLkup = '';
+        foreach ($members as $key => $value)
+        {
+            $usersList .= '"'.$key.': '.cleanOutput($value).'", ';
+            $usersLkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
+        }
+
+        $usersList = substr($usersList, 0, -2); // remove the extra comma space at the end
+
+        $tabIndex        = 1;
+        $jsAutocompleter = '';
 
         // Display the form
         echo '
                 <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
-                <form id="autocomplete_form" action="index.php?action=advanced" method="post">
+                <form id="autocomplete_form" class="edit-category-form" action="index.php?uid='.$user.'&amp;cid='.$category.'" method="post">
                     <fieldset>
-                        <legend><span>'.T_('Edit Photos').'</span></legend>';
+                        <legend><span>'.$photos[0]['category'].'</span></legend>';
+
+        if ($displayDescription)
+        {
+            echo '
+                        <p>
+                            '.T_('Description').'<br/>
+                            <textarea id="description" name="description" tabindex="'.$tabIndex.'">'.$photos[0]['description'].'</textarea>
+                        </p>';
+            $tabIndex++;
+        }
 
         // Loop over each photo
-        $i=0;
-        foreach ($_SESSION['photos'] AS $photo)
+        foreach ($photos as $row)
         {
-            // Advanced (autocomplete)
-            if ($advanced_tagging)
+            $_SESSION['photo-path-data'][$row['pid']] = array(
+                'id'          => $row['pid'],
+                'user'        => $row['uid'],
+                'filename'    => $row['filename'],
+                'external_id' => $row['external_id'],
+                'thumbnail'   => $row['thumbnail']
+            );
+
+            $row['user'] = $row['uid'];
+
+            $photoSrc = $this->getPhotoSource($row);
+
+            if ($displayCaption || $displayTag)
             {
-                $tagging_options = '
-                            <input type="text" id="autocomplete_input_'.$i.'" class="frm_text autocomplete_input" 
-                                autocomplete="off" size="50" tabindex="3"/>
-                            <div id="autocomplete_instructions_'.$i.'" class="autocomplete_instructions">
+                echo '
+                        <div class="photo_edit_area">
+                            <img class="thumbnail" src="'.$photoSrc.'"/>';
+            }
+
+            if ($displayCaption)
+            {
+                echo '
+                            <p>
+                                '.T_('Caption').'<br/>
+                                <input type="text" name="caption['.$row['pid'].']" tabindex="'.$tabIndex.'" class="frm_text" value="'.cleanOutput($row['caption']).'"/>
+                            </p>';
+                $tabIndex++;
+            }
+
+            $previouslyTaggedOptions = '';
+            $taggingOptions          = '';
+
+            if ($displayTag)
+            {
+                if (isset($previouslyTaggedMembers[$row['pid']]))
+                {
+                    foreach ($previouslyTaggedMembers[$row['pid']] as $id)
+                    {
+                        $previouslyTaggedOptions .= '<input type="hidden" name="prev_tagged_users['.$row['pid'].'][]" value="'.$id.'"/>';
+                        $previouslyTaggedOptions .= '<input type="hidden" id="tagged_'.$row['pid'].'" name="tagged['.$row['pid'].'][]" class="tagged" value="'.$id.'"/>';
+                    }
+                }
+
+                $taggingOptions .= '
+                            <input type="text" id="autocomplete_input_'.$row['pid'].'" class="frm_text autocomplete_input" 
+                                autocomplete="off" tabindex="'.$tabIndex.'" size="50"/>
+                            <div id="autocomplete_instructions_'.$row['pid'].'" class="autocomplete_instructions">
                                 '.T_('Type name of person...').'
                             </div>
-                            <ul id="autocomplete_selected_'.$i.'" class="autocomplete_selected"></ul>
-                            <div id="autocomplete_search_'.$i.'" class="autocomplete_search" style="display:none"></div>';
-
-                $js_autocompleter .= '
+                            <ul id="autocomplete_selected_'.$row['pid'].'" class="autocomplete_selected"></ul>
+                            <div id="autocomplete_search_'.$row['pid'].'" class="autocomplete_search" style="display:none"></div>';
+                $jsAutocompleter .= '
                     new Autocompleter.Local(
-                        "autocomplete_input_'.$i.'", "autocomplete_search_'.$i.'", users_list, {
+                        "autocomplete_input_'.$row['pid'].'", "autocomplete_search_'.$row['pid'].'", users_list, {
                             fullSearch: true,
                             partialChars: 1,
                             updateElement: newMultiUpdateElement
                         }
-                    );';
-            }
-            // Basic (checkbox)
-            else
-            {
-                $tag_checkboxes = '';
-                foreach ($members as $key => $value)
-                {
-                    $tag_checkboxes .= '<label for="'.$key.$i.'">';
-                    $tag_checkboxes .= '<input type="checkbox" id="'.$key.$i.'" name="tagged['.$i.'][]" 
-                        value="'.cleanOutput($key).'"/> '.$value.'</label>';
-                }
-                $tagging_options = '
-                            <div class="multi-checkbox">
-                                '.$tag_checkboxes.'
-                            </div>';
+                    );
+                    initMultiPreviouslyTagged('.$row['pid'].', users_lkup);';
+
+                $tabIndex++;
+
+                echo '
+                            <div>
+                                '.T_('Who is in this Photo?').'<br/>
+                                '.$taggingOptions.'
+                                '.$previouslyTaggedOptions.'
+                            </div><br/>';
             }
 
-            // Get photo source
-            if (defined('UPLOADS'))
+            if ($displayCaption || $displayTag)
             {
-                $photoSrc = GALLERY_PREFIX.'photo.php?id='.$photo['id'].'&amp;size=thumbnail';
+                echo '
+                        </div>';
             }
-            else
-            {
-                $photoSrc = URL_PREFIX.'uploads/photos/member'.$this->currentUserId.'/tb_'.basename($photo['filename']);
-            }
-
-            echo '
-                        <img style="float:right" src="'.$photoSrc.'"/>
-                        <p>
-                            '.T_('Caption').'<br/>
-                            <input type="text" class="frm_text" name="caption[]" width="50"/>
-                            <input type="hidden" name="id[]" value="'.(int)$photo['id'].'"/>
-                            <input type="hidden" name="category[]" value="'.(int)$photo['category'].'"/>
-                        </p>
-                        <div>
-                            '.T_('Who is in this Photo?').'<br/>
-                            '.$tagging_options.'
-                        </div><br/>
-                        <hr/>';
-            $i++;
         }
 
-        if ($advanced_tagging)
+        echo '
+                        <p>
+                            <input class="sub1" type="submit" name="save-edit-category" id="save-edit-category" tabindex="'.$tabIndex.'" value="'.T_('Save').'"/> 
+                            '.T_('or').' 
+                            <a href="index.php?uid='.$user.'&amp;cid='.$category.'">'.T_('Cancel').'</a>
+                        </p>
+                    </fieldset>
+                </form>';
+
+        if ($displayTag)
         {
-            $js = $js_list.$js_autocompleter.'
+            echo '
+                <script type="text/javascript">
+                //<![CDATA[
+                Event.observe(window, "load", function() {
+                    var users_list = [ '.$usersList.' ];
+                    var users_lkup = new Array();
+                    '.$usersLkup.'
+                    '.$jsAutocompleter.'
                 });
                 //]]>
                 </script>';
         }
-
-        echo '
-                        <br/>
-                        <p>
-                            <input class="sub1" type="submit" name="submit_advanced_edit" id="submit_advanced_edit" value="'.T_('Save').'"/> 
-                            '.T_('or').' 
-                            <a href="index.php?action=upload">'.T_('Cancel').'</a>
-                        </p>
-                    </fieldset>
-                </form>
-                '.$js;
     }
 
     /**
@@ -2545,31 +2773,33 @@ class PhotoGallery
         $uploadsPath = getUploadsAbsolutePath();
 
         // Create new directory if needed
-        if (!file_exists($uploadsPath.'photos/member'.$this->currentUserId))
+        if (!file_exists($uploadsPath.'photos/member'.$this->fcmsUser->id))
         {
-            mkdir($uploadsPath.'photos/member'.$this->currentUserId);
+            mkdir($uploadsPath.'photos/member'.$this->fcmsUser->id);
         }
 
         // Insert new photo record
         $sql = "INSERT INTO `fcms_gallery_photos`
                     (`date`, `caption`, `category`, `user`)
-                VALUES(
-                    NOW(), 
-                    '$caption', 
-                    '$category', 
-                    '".$this->currentUserId."'
-                )";
-        if (!$this->db->query($sql))
+                VALUES
+                    (NOW(), ?, ?, ?)";
+
+        $params = array(
+            $caption,
+            $category,
+            $this->fcmsUser->id
+        );
+
+        $id =$this->fcmsDatabase->insert($sql, $params);
+        if ($id === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
-        $id = mysql_insert_id();
-
         // Temporarily set name so we can get extension, then change name below
-        $this->img->name = $photo['name'];
-        $this->img->getExtension();
+        $this->fcmsImage->name = $photo['name'];
+        $this->fcmsImage->getExtension();
 
         // Setup the array of photos that need uploaded
         $upload_photos = array(
@@ -2606,31 +2836,32 @@ class PhotoGallery
             $height = $upload_photos[$key]['height'];
 
             // Setup image upload settings
-            $this->img->name          = $prefix.$id.'.'.$this->img->extension;
-            $this->img->destination   = $uploadsPath.'photos/member'.$this->currentUserId.'/';
-            $this->img->resizeSquare  = $key == 'thumb' ? true : false;
+            $this->fcmsImage->name          = $prefix.$id.'.'.$this->fcmsImage->extension;
+            $this->fcmsImage->destination   = $uploadsPath.'photos/member'.$this->fcmsUser->id.'/';
+            $this->fcmsImage->resizeSquare  = $key == 'thumb' ? true : false;
 
             if ($key == 'main')
             {
                 // Update photo record
                 $sql = "UPDATE `fcms_gallery_photos` 
-                        SET `filename` = '".$this->img->name."' 
-                        WHERE `id` = $id";
-                if (!$this->db->query($sql))
+                        SET `filename` = ?
+                        WHERE `id` = ?";
+
+                if (!$this->fcmsDatabase->update($sql, array($this->fcmsImage->name, $id)))
                 {
-                    displaySqlError($sql, mysql_error());
+                    $this->fcmsError->displayError();
                     return false;
                 }
             }
 
             // Upload photo
-            $this->img->upload($photo);
+            $this->fcmsImage->upload($photo);
 
-            if ($this->img->error == 1)
+            if ($this->fcmsImage->error == 1)
             {
                 echo '
                 <p class="error-alert">
-                    '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->img->name).'
+                    '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->fcmsImage->name).'
                 </p>';
 
                 return false;
@@ -2639,21 +2870,21 @@ class PhotoGallery
             // Rotate
             if ($rotateoptions == 'left')
             {
-                $this->img->rotate(90);
+                $this->fcmsImage->rotate(90);
             }
             elseif ($rotateoptions == 'right')
             {
-                $this->img->rotate(270);
+                $this->fcmsImage->rotate(270);
             }
 
             // Resize
             if ($resize)
             {
-                $this->img->resize($width, $height);
+                $this->fcmsImage->resize($width, $height);
             }
 
             // Errors?
-            if ($this->img->error > 0)
+            if ($this->fcmsImage->error > 0)
             {
                 $this->handleImageErrors($id);
                 return false;
@@ -2667,7 +2898,7 @@ class PhotoGallery
         }
         else
         {
-            $photoSrc = URL_PREFIX.'uploads/photos/member'.$this->currentUserId.'/'.$this->img->name;
+            $photoSrc = URL_PREFIX.'uploads/photos/member'.$this->fcmsUser->id.'/'.$this->fcmsImage->name;
         }
 
         echo '
@@ -2692,19 +2923,21 @@ class PhotoGallery
         
         // Setup the list of categories for edit/delete
         $sql = "SELECT * FROM `fcms_category` 
-                WHERE `user` = '".$this->currentUserId."'
+                WHERE `user` = '".$this->fcmsUser->id."'
                 AND `type` = 'gallery'";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
         $categories = '';
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while ($row = $this->db->get_row())
+            foreach ($rows as $row)
             {
                 $id    = cleanOutput($row['id']);
                 $name  = cleanOutput($row['name']);
@@ -2715,7 +2948,7 @@ class PhotoGallery
                         <td>
                             <form class="frm_line" action="index.php?action=category" method="post">
                                 <input type="hidden" name="cid" id="cid" value="'.$id.'"/>
-                                <input class="frm_text" type="text" name="cat_name" id="cat_name" size="60" value="'.$name.'"/>
+                                <input class="frm_text" type="text" name="cat_name" id="cat_name" value="'.$name.'"/>
                                 <input type="submit" name="editcat" class="editbtn" value="'.T_('Edit').'" title="'.T_('Edit Category').'"/>
                             </form>
                         </td>
@@ -2759,22 +2992,24 @@ class PhotoGallery
     {
         if ($userid == 0)
         {
-            $userid = $this->currentUserId;
+            $userid = $this->fcmsUser->id;
         }
 
         $sql = "SELECT `id`, `name` FROM `fcms_category` 
-                WHERE `user` = '".(int)$userid."'
+                WHERE `user` = ?
                 AND `type` = 'gallery'
                 ORDER BY `id` DESC";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, $userid);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
         $categories = array();
 
-        while($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $categories[$row['id']] = $row['name'];
         }
@@ -2815,12 +3050,15 @@ class PhotoGallery
 
         $sql = "SELECT COUNT(`id`) AS count
                 FROM `fcms_gallery_photos`
-                WHERE `category` = '$id'
+                WHERE `category` = ?
                 LIMIT 1";
-        if (!$result = mysql_query($sql)) {
+
+        $r = $this->fcmsDatabase->getRow($sql, $id);
+        if (empty($r))
+        {
             return 0;
         }
-        $r = mysql_fetch_array($result);
+
         return $r['count'];
     }
 
@@ -2837,14 +3075,17 @@ class PhotoGallery
 
         $sql = "SELECT *
                 FROM `fcms_gallery_photos`
-                WHERE `id` = '$id'
+                WHERE `id` = ?
                 LIMIT 1";
-        if (!$this->db->query($sql))
+
+        $row = $this->fcmsDatabase->getRow($sql, $id);
+        if (empty($row))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
-        return $this->db->get_row();
+
+        return $row;
     }
 
     /**
@@ -2857,13 +3098,12 @@ class PhotoGallery
         $sql = "SELECT `value` AS 'full_size_photos'
                 FROM `fcms_config`
                 WHERE `name` = 'full_size_photos'";
-        if (!$this->db->query($sql))
+
+        $r = $this->fcmsDatabase->getRow($sql);
+        if (empty($r))
         {
-            displaySqlError($sql, mysql_error());
             return false;
         }
-
-        $r = $this->db->get_row();
 
         if ($r['full_size_photos'] == 1)
         {
@@ -2887,7 +3127,7 @@ class PhotoGallery
      */
     function handleImageErrors ($id)
     {
-        switch ($this->img->error)
+        switch ($this->fcmsImage->error)
         {
             case 2:
 
@@ -2911,15 +3151,20 @@ class PhotoGallery
 
                 // Remove the photo from the DB
                 $sql = "DELETE FROM `fcms_gallery_photos` 
-                        WHERE `id` = '$id'";
-                if (!mysql_query($sql))
+                        WHERE `id` = ?";
+
+                if (!$this->fcmsDatabase->delete($sql, $id))
                 {
-                    displaySqlError($sql, mysql_error());
+                    $this->fcmsError->displayError();
                     // continue
                 }
                 
                 // Remove the Photo from the server
-                unlink("photos/member".$this->currentUserId."/".$this->img->name);
+                $path = "photos/member".$this->fcmsUser->id."/".$this->fcmsImage->name;
+                if (file_exists($path))
+                {
+                    unlink($path);
+                }
 
                 echo '
             <div class="info-alert">
@@ -2927,7 +3172,7 @@ class PhotoGallery
                 <p>
                     '.T_('The photo you are trying to upload is quite large and the server might run out of memory if you continue.').' 
                     '.T_('It is recommended that you try to upload this photo using the "Advanced Uploader" instead.').'
-                    <small>('.number_format($this->img->memoryNeeded).' / '.number_format($this->img->memoryAvailable).')</small>
+                    <small>('.number_format($this->fcmsImage->memoryNeeded).' / '.number_format($this->fcmsImage->memoryAvailable).')</small>
                 </p>
                 <h3>'.T_('What do you want to do?').'</h3>
                 <p>
@@ -2948,226 +3193,6 @@ class PhotoGallery
     }
 
     /**
-     * displayMassTagCategory 
-     * 
-     * Displays the form for tagging users in multiple categories.
-     * 
-     * @param int $category 
-     * @param int $user 
-     * 
-     * @return void
-     */
-    function displayMassTagCategory ($category, $user)
-    {
-        $advanced_tagging = usingAdvancedTagging($this->currentUserId);
-        $members          = array();
-        $tagging_options  = '';
-        $users_list       = '';
-        $users_lkup       = '';
-        $js               = '';
-        $js_list          = '';
-        $js_autocompleter = '';
-
-        // Setup the list of active members for possible tags
-        $sql = "SELECT `id` 
-                FROM `fcms_users` 
-                WHERE `activated` > 0";
-
-        if (!$this->db->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        if ($this->db->count_rows() < 0)
-        {
-            echo '<p class="error">'.T_('No members found.').'</p>';
-            return;
-        }
-
-        $members = array();
-
-        while ($r = $this->db->get_row())
-        {
-            $members[$r['id']] = getUserDisplayName($r['id'], 2);
-        }
-
-        asort($members);
-
-        // Get photos in category
-        $sql = "SELECT u.`id` AS uid, p.`category` AS cid, p.`id` AS pid, p.`caption`, 
-                    c.`name` AS category, p.`filename`, p.`external_id`, 
-                    e.`thumbnail`
-                FROM `fcms_category` AS c
-                LEFT JOIN `fcms_gallery_photos` AS p         ON p.`category`    = c.`id`
-                LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                LEFT JOIN `fcms_users` AS u                  ON p.`user`        = u.`id`
-                WHERE p.`user` = '$user' 
-                AND `category` = '$category'
-                AND p.`user` = u.`id`
-                AND `category` = c.`id`
-                ORDER BY p.`id`";
-        if (!$this->db->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            return;
-        }
-
-        if ($this->db->count_rows() < 0)
-        {
-            echo '<p class="error">'.T_('No photos found in this category.').'</p>';
-            return;
-        }
-
-        // Advanced (autocomplete)
-        if ($advanced_tagging)
-        {
-            foreach ($members as $key => $value)
-            {
-                $users_list .= '"'.$key.': '.cleanOutput($value).'", ';
-                $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
-            }
-
-            $users_list = substr($users_list, 0, -2); // remove the extra comma space at the end
-
-            $js_list = '
-                <script type="text/javascript">
-                //<![CDATA[
-                Event.observe(window, "load", function() {
-                    var users_list = [ '.$users_list.' ];
-                    var users_lkup = new Array();
-                    '.$users_lkup;
-        }
-
-        // Display the form
-        echo '
-                <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
-                <form id="autocomplete_form" action="index.php?uid='.$user.'&amp;cid='.$category.'" method="post">
-                    <fieldset>
-                        <legend><span>'.T_('Tag Members In Photos').'</span></legend>';
-
-        // Loop over each photo
-        $i = 1;
-        while ($row = $this->db->get_row())
-        {
-            $_SESSION['photo-path-data'][$row['pid']] = array(
-                'id'          => $row['pid'],
-                'user'        => $row['user'],
-                'filename'    => $row['filename'],
-                'external_id' => $row['external_id'],
-                'thumbnail'   => $row['thumbnail']
-            );
-
-            $prev_tagged         = array();
-            $prev_tagged_options = '';
-
-            // Setup the list of users already tagged
-            $sql = "SELECT `id`, `user` 
-                    FROM `fcms_gallery_photos_tags` 
-                    WHERE `photo` = '".$row['pid']."'";
-
-            if (!$this->db2->query($sql))
-            {
-                displaySqlError($sql, mysql_error());
-                return;
-            }
-
-            while ($r = $this->db2->get_row())
-            {
-                $prev_tagged[$r['user']] = 1;
-            }
-
-            // handle previously tagged members
-            if (count($prev_tagged) > 0)
-            {
-                foreach ($prev_tagged as $id => $name)
-                {
-                    $prev_tagged_options .= '<input type="hidden" name="prev_tagged_users['.$row['pid'].'][]" value="'.$id.'"/>';
-                    if ($advanced_tagging)
-                    {
-                        $prev_tagged_options .= '<input type="hidden" id="tagged_'.$row['pid'].'" name="tagged['.$row['pid'].'][]" class="tagged" value="'.$id.'"/>';
-                    }
-                }
-            }
-
-            // Advanced (autocomplete)
-            if ($advanced_tagging)
-            {
-                $tagging_options = '
-                            <input type="text" id="autocomplete_input_'.$row['pid'].'" class="frm_text autocomplete_input" 
-                                autocomplete="off" size="50" tabindex="'.$i.'"/>
-                            <div id="autocomplete_instructions_'.$row['pid'].'" class="autocomplete_instructions">
-                                '.T_('Type name of person...').'
-                            </div>
-                            <ul id="autocomplete_selected_'.$row['pid'].'" class="autocomplete_selected"></ul>
-                            <div id="autocomplete_search_'.$row['pid'].'" class="autocomplete_search" style="display:none"></div>';
-
-                $js_autocompleter .= '
-                    new Autocompleter.Local(
-                        "autocomplete_input_'.$row['pid'].'", "autocomplete_search_'.$row['pid'].'", users_list, {
-                            fullSearch: true,
-                            partialChars: 1,
-                            updateElement: newMultiUpdateElement
-                        }
-                    );
-                    initMultiPreviouslyTagged('.$row['pid'].', users_lkup);';
-            }
-            // Basic (checkbox)
-            else
-            {
-                $tag_checkboxes = '';
-                foreach ($members as $key => $value)
-                {
-                    $check = isset($prev_tagged[$key]) ? 'checked="checked"' : '';
-
-                    $tag_checkboxes .= '<label for="'.$key.$i.'">';
-                    $tag_checkboxes .= '<input type="checkbox" id="'.$key.$i.'" name="tagged['.$row['pid'].'][]" 
-                        value="'.cleanOutput($key).'" '.$check.'/> '.$value.'</label>';
-                }
-                $tagging_options = '
-                            <div class="multi-checkbox">
-                                '.$tag_checkboxes.'
-                            </div>';
-            }
-
-            $photoSrc = $this->getPhotoSource($row);
-
-            echo '
-                        <img style="float:right" src="'.$photoSrc.'"/>
-                        <p>
-                            '.T_('Caption').'<br/>
-                            '.cleanOutput($row['caption']).'
-                        </p>
-                        <div>
-                            '.T_('Who is in this Photo?').'<br/>
-                            '.$tagging_options.'
-                            '.$prev_tagged_options.'
-                        </div><br/>
-                        <hr/>';
-            $i++;
-        }
-
-        if ($advanced_tagging)
-        {
-            $js = $js_list.$js_autocompleter.'
-                });
-                //]]>
-                </script>';
-        }
-
-        echo '
-                        <br/>
-                        <p>
-                            <input class="sub1" type="submit" name="submit_mass_tag" id="submit_mass_tag" value="'.T_('Save').'"/> 
-                            '.T_('or').' 
-                            <a href="index.php?uid='.$user.'&amp;cid='.$category.'">'.T_('Cancel').'</a>
-                        </p>
-                    </fieldset>
-                </form>
-                '.$js;
-    }
-
-    /**
      * getPhotoComments 
      * 
      * @param int $pid 
@@ -3184,21 +3209,14 @@ class PhotoGallery
                 AND c.`user` = u.`id` 
                 ORDER BY `date`";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $pid);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
-        { 
-            while ($row = $this->db->get_row())
-            {
-                $comments[] = $row;
-            }
-        }
-
-        return $comments;
+        return $rows;
     }
 
     /**
@@ -3215,18 +3233,19 @@ class PhotoGallery
         $sql = "SELECT c.`id`, c.`comment`, c.`created`, u.`fname`, u.`lname`, u.`username`, c.`created_id`, u.`avatar`, u.`gravatar`
                 FROM `fcms_gallery_category_comment` AS c
                 LEFT JOIN `fcms_users` AS u ON c.`created_id` = u.`id`
-                WHERE `category_id` = '$cid' 
+                WHERE `category_id` = ?
                 ORDER BY `created`";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $cid);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         { 
-            while ($row = $this->db->get_row())
+            foreach ($rows as $row)
             {
                 $comments[] = $row;
             }
@@ -3251,19 +3270,20 @@ class PhotoGallery
                 LEFT JOIN `fcms_gallery_photos` AS p ON t.`photo` = p.`id`
                 LEFT JOIN `fcms_category` AS c ON p.`category` = c.`id`
                 LEFT JOIN `fcms_users` AS u ON t.`user` = u.`id`
-                WHERE p.`category` = '$cid'
-                AND p.`user` = '$uid'
+                WHERE p.`category` = ?
+                AND p.`user` = ?
                 GROUP BY u.`id`";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, array($cid, $uid));
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return $retVal;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
-            if ($uid == $this->currentUserId || checkAccess($this->currentUserId) < 2)
+            if ($uid == $this->fcmsUser->id || $this->fcmsUser->access < 2)
             {
                 $retVal .= '<a href="?tag='.$cid.'&amp;user='.$uid.'">'.T_('Tag Members In Photos').'</a>';
             }
@@ -3273,7 +3293,7 @@ class PhotoGallery
         $retVal .= '
             <ul class="avatar-member-list-small">';
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $id          = (int)$row['id'];
             $displayname = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
@@ -3294,11 +3314,6 @@ class PhotoGallery
 
         $retVal .= '
             </ul>';
-
-        if ($uid == $this->currentUserId || checkAccess($this->currentUserId) < 2)
-        {
-            $retVal .= '<a href="?tag='.$cid.'&amp;user='.$uid.'">'.T_('Tag Members In Photos').'</a>';
-        }
 
         return $retVal;
     }
@@ -3435,7 +3450,7 @@ class PhotoGallery
     {
         $nav = '';
 
-        $types = array('upload', 'instagram');
+        $types = array('upload', 'instagram', 'picasa');
         foreach ($types as $type)
         {
             $url   = '';
@@ -3445,7 +3460,7 @@ class PhotoGallery
             if ($type == 'upload')
             {
                 $url   = '?action=upload';
-                $text  = T_('Upload');
+                $text  = T_('Computer');
             }
             elseif ($type == 'instagram')
             {
@@ -3457,6 +3472,11 @@ class PhotoGallery
 
                 $url   = '?action=upload&amp;type=instagram';
                 $text  = 'Instagram';
+            }
+            elseif ($type == 'picasa')
+            {
+                $url   = '?action=upload&amp;type=picasa';
+                $text  = 'Picasa';
             }
             else
             {
@@ -3502,7 +3522,7 @@ class PhotoGallery
         {
             $prefix = 'tb_';
         }
-        elseif ($size == 'full')
+        elseif ($size == 'full' && $this->usingFullSizePhotos())
         {
             $prefix = 'full_';
         }
@@ -3514,6 +3534,43 @@ class PhotoGallery
         // URL Prefix should be defined on each page
         $photoSrc = URL_PREFIX.'uploads/photos/member'.(int)$data['user'].'/'.$prefix.basename($data['filename']);
 
+        // XXX: we may have uploaded this photo before we 
+        // starting using full sized photos, so this full
+        // sized photo may not exist.
+        // Give them main size instead
+        if ($size == 'full' && !file_exists($photoSrc))
+        {
+            $photoSrc = URL_PREFIX.'uploads/photos/member'.(int)$data['user'].'/'.basename($data['filename']);
+        }
+
         return $photoSrc;
+    }
+
+    /**
+     * savePhotoFromSource 
+     * 
+     * @param string $source
+     * @param string $filename
+     * 
+     * @return void
+     */
+    function savePhotoFromSource ($source, $filename)
+    {
+        $uploadsPath = getUploadsAbsolutePath();
+
+        // Create new member directory if needed
+        if (!file_exists($uploadsPath.'photos/member'.$this->fcmsUser->id))
+        {
+            mkdir($uploadsPath.'photos/member'.$this->fcmsUser->id);
+        }
+
+        $destination = $uploadsPath.'photos/member'.$this->fcmsUser->id.'/'.$filename;
+
+        $ch = curl_init($source);
+        $fh = fopen($destination, 'w');
+
+        curl_setopt($ch, CURLOPT_FILE, $fh);
+        curl_exec($ch);
+        curl_close($ch);
     }
 }

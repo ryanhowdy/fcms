@@ -82,6 +82,7 @@ function control ()
  */
 function displayNoConfig ()
 {
+    include_once 'inc/constants.php';
     include_once 'inc/thirdparty/gettext.inc';
 
     // Setup php-gettext
@@ -163,8 +164,12 @@ function displayLoginError ()
  */
 function displayLoginSubmit ()
 {
-    $user     = escape_string($_POST['user']);
-    $pass     = escape_string($_POST['pass']);
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    $user     = $_POST['user'];
+    $pass     = $_POST['pass'];
     $redirect = 'home.php';
     $rem      = 0;
 
@@ -177,22 +182,18 @@ function displayLoginSubmit ()
 
     $sql = "SELECT `id`, `username`, `password`, `activated`, `locked` 
             FROM `fcms_users` 
-            WHERE `username` = '$user' 
-            AND `password` = '$pass'";
+            WHERE `username` = ? 
+            AND `password` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, array($user, $pass));
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return;
     }
 
-    $login_check = mysql_num_rows($result);
-
-    $row = mysql_fetch_array($result);
-
     // Wrong username and/or password
-    if ($login_check <= 0)
+    if (count($row) <= 0)
     {
         handleBadLogin($user);
         return;
@@ -216,22 +217,16 @@ function displayLoginSubmit ()
         // Update activity
         $sql = "UPDATE `fcms_users` 
                 SET `activity` = NOW() 
-                WHERE `id` = ".$row['id'];
-        if (!mysql_query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            // We can continue on this error
-        }
+                WHERE `id` = ?";
+
+        $fcmsDatabase->update($sql, $row['id']);
 
         // Reset invalid login attempts
         $sql = "UPDATE `fcms_users` 
                 SET `login_attempts` = '0' 
                 WHERE `id` = ".$row['id'];
-        if (!mysql_query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            // We can continue on this error
-        }
+
+        $fcmsDatabase->update($sql, $row['id']);
 
         // Redirect to desired page
         header("Location: $redirect");
@@ -245,10 +240,10 @@ function displayLoginSubmit ()
             // Set user as active
             $sql = "UPDATE `fcms_users` 
                     SET `activated` = '1' 
-                    WHERE `id` = ".$row['id'];
-            if (!mysql_query($sql))
+                    WHERE `id` = ?";
+            if (!$fcmsDatabase->update($sql, $row['id']))
             {
-                displaySqlError($sql, mysql_error());
+                $fcmsError->displayError();
                 die();
             }
 
@@ -267,20 +262,20 @@ function displayLoginSubmit ()
             // Update activity
             $sql = "UPDATE `fcms_users` 
                     SET `activity` = NOW() 
-                    WHERE `id` = ".$row['id'];
-            if (!mysql_query($sql))
+                    WHERE `id` = ?";
+            if (!$fcmsDatabase->update($sql, $row['id']))
             {
-                displaySqlError($sql, mysql_error());
+                $fcmsError->displayError();
                 // We can continue on this error
             }
 
             // Reset invalid login attempts
             $sql = "UPDATE `fcms_users` 
                     SET `login_attempts` = '0' 
-                    WHERE `id` = ".$row['id'];
-            if (!mysql_query($sql))
+                    WHERE `id` = ?";
+            if (!$fcmsDatabase->update($sql, $row['id']))
             {
-                displaySqlError($sql, mysql_error());
+                $fcmsError->displayError();
                 // We can continue on this error
             }
 
@@ -309,30 +304,38 @@ function displayLoginSubmit ()
  */
 function displayAlreadyLoggedIn ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
     if (isset($_COOKIE['fcms_login_id']))
     {
         $_SESSION['login_id']    = (int)$_COOKIE['fcms_login_id'];
-        $_SESSION['login_uname'] = escape_string($_COOKIE['fcms_login_uname']);
-        $_SESSION['login_pw']    = escape_string($_COOKIE['fcms_login_pw']);
+        $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
+        $_SESSION['login_pw']    = $_COOKIE['fcms_login_pw'];
     }
 
     // Update activity
     $sql = "UPDATE `fcms_users` 
             SET `activity` = NOW() 
-            WHERE `id` = '".(int)$_SESSION['login_id']."'";
-    if (!mysql_query($sql))
+            WHERE `id` = ?";
+
+    $r = $fcmsDatabase->update($sql, $_SESSION['login_id']);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         // We can continue on this error
     }
 
     // Reset invalid login attempts
     $sql = "UPDATE `fcms_users` 
             SET `login_attempts` = '0' 
-            WHERE `id` = '".(int)$_SESSION['login_id']."'";
-    if (!mysql_query($sql))
+            WHERE `id` = ?";
+
+    $r = $fcmsDatabase->update($sql, $_SESSION['login_id']);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         // We can continue on this error
     }
 
@@ -517,35 +520,37 @@ function displayLogin()
  */
 function handleBadLogin ($user)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
     $sql = "SELECT `id`, `login_attempts` 
             FROM `fcms_users` 
-            WHERE `username` = '$user'";
+            WHERE `username` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $user);    
+    if ($row == false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
+
         return;
     }
 
-    $valid_username = mysql_num_rows($result);
-
     // valid username, wrong password
-    if ($valid_username > 0)
+    if (count($row) > 0)
     {
-        $r = mysql_fetch_array($result);
-
         // user exceeded max login attempts
-        if ($r['login_attempts'] > 4)
+        if ($row['login_attempts'] > 4)
         {
             // Lock users account
             $sql = "UPDATE `fcms_users` 
                     SET `activated` = '-1', `locked` = DATE_ADD(NOW(), INTERVAL 1 HOUR) 
-                    WHERE `id` = ".$r['id'];
+                    WHERE `id` = ?";
 
-            if (!mysql_query($sql))
+            if (!$fcmsDatabase->update($sql, $row['id']))
             {
-                displaySqlError($sql, mysql_error());
+                $fcmsError->displayError();
+
                 return;
             }
 
@@ -556,11 +561,12 @@ function handleBadLogin ($user)
         // Increase login attempts
         $sql = "UPDATE `fcms_users` 
                 SET `login_attempts` = `login_attempts`+1 
-                WHERE `id` = ".$r['id'];
+                WHERE `id` = ?";
 
-        if (!mysql_query($sql))
+        if (!$fcmsDatabase->update($sql, $row['id']))
         {
-            displaySqlError($sql, mysql_error());
+            $fcmsError->displayError();
+
             return;
         }
     }
@@ -623,18 +629,23 @@ function handleFacebookLogin ()
             FROM `fcms_users` AS u, `fcms_user_settings` AS s
             WHERE s.`user` = u.`id`
             AND (
-                u.`username` = '".$fbProfile['email']."'
-                OR s.`fb_access_token` = '$accessToken'
+                u.`username` = ?
+                OR s.`fb_access_token` = ?
             )";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $params = array(
+        $fbProfile['email'],
+        $accessToken
+    );
+
+    $row = $fcmsDatabase->getRow($sql, $params);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return;
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (empty($row))
     {
         echo '
     <div class="err-msg">
@@ -644,8 +655,6 @@ function handleFacebookLogin ()
 
         return;
     }
-
-    $row = mysql_fetch_array($result);
 
     // Check account is active
     if ($row['activated'] == 0)
@@ -659,10 +668,10 @@ function handleFacebookLogin ()
     // Update activity
     $sql = "UPDATE `fcms_users` 
             SET `activity` = NOW() 
-            WHERE `id` = ".$row['id'];
-    if (!mysql_query($sql))
+            WHERE `id` = ?";
+    if (!$fcmsDatabase->update($sql, $row['id']))
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return;
     }
 

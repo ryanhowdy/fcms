@@ -9,30 +9,28 @@
  */
 function getFacebookConfigData ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `name`, `value`
             FROM `fcms_config`
             WHERE `name` = 'fb_app_id'
             OR `name` = 'fb_secret'";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return false;
-    }
-
-    if (mysql_num_rows($result) <= 0)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
         return false;
     }
 
-    $row = array();
-    while ($r = mysql_fetch_assoc($result))
+    $data = array();
+
+    foreach ($rows as $r)
     {
-        $row[$r['name']] = $r['value'];
+        $data[$r['name']] = $r['value'];
     }
 
-    return $row;
+    return $data;
 }
 
 /**
@@ -46,24 +44,24 @@ function getFacebookConfigData ()
  */
 function getUserFacebookAccessToken ($user)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `fb_access_token`
             FROM `fcms_user_settings`
-            WHERE `user` = '$user'
+            WHERE `user` = ?
             LIMIT 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return;
-    }
-
-    if (mysql_num_rows($result) <= 0)
+    $r = $fcmsDatabase->getRow($sql, $user);
+    if ($r === false)
     {
         return;
     }
 
-    $r = mysql_fetch_assoc($result);
+    if (count($r) <= 0)
+    {
+        return;
+    }
 
     return $r['fb_access_token'];
 }
@@ -77,30 +75,32 @@ function getUserFacebookAccessToken ($user)
  */
 function getVimeoConfigData ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `name`, `value`
             FROM `fcms_config`
             WHERE `name` = 'vimeo_key'
             OR `name` = 'vimeo_secret'";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return false;
-    }
-
-    if (mysql_num_rows($result) <= 0)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
         return false;
     }
 
-    $row = array();
-    while ($r = mysql_fetch_assoc($result))
+    if (count($rows) <= 0)
     {
-        $row[$r['name']] = $r['value'];
+        return false;
     }
 
-    return $row;
+    $data = array();
+    foreach ($rows as $r)
+    {
+        $data[$r['name']] = $r['value'];
+    }
+
+    return $data;
 }
 
 /**
@@ -112,24 +112,24 @@ function getVimeoConfigData ()
  */
 function getVimeoUserData ($user)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `vimeo_access_token`, `vimeo_access_token_secret`
             FROM `fcms_user_settings`
-            WHERE `user` = '$user'
+            WHERE `user` = ?
             LIMIT 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $user);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
-        return;
+        return false;
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (empty($r))
     {
-        return;
+        return false;
     }
-
-    $r = mysql_fetch_assoc($result);
 
     return $r;
 }
@@ -141,31 +141,34 @@ function getVimeoUserData ($user)
  */
 function getFoursquareConfigData ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `name`, `value`
             FROM `fcms_config`
             WHERE `name` = 'fs_client_id'
             OR `name` = 'fs_client_secret'
             OR `name` = 'fs_callback_url'";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
-        return;
+        return false;
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (count($rows) <= 0)
     {
-        return;
+        return false;
     }
 
-    $row = array();
-    while ($r = mysql_fetch_assoc($result))
+    $data = array();
+
+    foreach ($rows as $r)
     {
-        $row[$r['name']] = $r['value'];
+        $data[$r['name']] = $r['value'];
     }
 
-    return $row;
+    return $data;
 }
 
 /**
@@ -177,24 +180,24 @@ function getFoursquareConfigData ()
  */
 function getFoursquareUserData ($user)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `fs_user_id`, `fs_access_token`
             FROM `fcms_user_settings`
-            WHERE `user` = '$user'
+            WHERE `user` = ?
             LIMIT 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $user);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
-        return;
+        return false;
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (empty($r))
     {
-        return;
+        return false;
     }
-
-    $r = mysql_fetch_assoc($result);
 
     return $r;
 }
@@ -218,26 +221,29 @@ function getFoursquareUserData ($user)
  */
 function getFoursquareUsersData ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `user` AS 'userid', `fs_user_id`, `fs_access_token`, `fname`, `lname`, 
                 `avatar`, `gravatar`, `timezone`
             FROM `fcms_user_settings` AS s, `fcms_users` AS u
             WHERE `fs_user_id` IS NOT NULL
             AND s.`user` = u.`id`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
-        return;
+        return false;
     }
-    if (mysql_num_rows($result) <= 0)
+    if (count($rows) <= 0)
     {
         $users[0] = array();
         return $users;
     }
 
     $i = 0;
-    while($row = mysql_fetch_assoc($result))
+
+    foreach ($rows as $row)
     {
         $users[$i] = array(
             'fcms_user_id' => $row['userid'],
@@ -261,6 +267,9 @@ function getFoursquareUsersData ()
  */
 function getYouTubeConfigData ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     if (isset($_SESSION['youtube_key']) && !empty($_SESSION['youtube_key']))
     {
         return array('youtube_key' => $_SESSION['youtube_key']);
@@ -270,27 +279,23 @@ function getYouTubeConfigData ()
             FROM `fcms_config`
             WHERE `name` = 'youtube_key'";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return;
-    }
-
-    if (mysql_num_rows($result) <= 0)
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
         return;
     }
 
-    $r = mysql_fetch_assoc($result);
+    if (empty($r))
+    {
+        return;
+    }
 
-    $row = array();
+    $data = array();
 
     $_SESSION['youtube_key'] = $r['value'];
+    $data[$r['name']]        = $_SESSION['youtube_key'];
 
-    $row[$r['name']] = $_SESSION['youtube_key'];
-
-    return $row;
+    return $data;
 }
 
 /**
@@ -302,37 +307,37 @@ function getYouTubeConfigData ()
  */
 function getYouTubeUserData ($user)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `youtube_session_token`
             FROM `fcms_user_settings`
-            WHERE `user` = '$user'
+            WHERE `user` = ?
             LIMIT 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return;
-    }
-
-    if (mysql_num_rows($result) <= 0)
+    $r = $fcmsDatabase->getRow($sql, $user);
+    if ($r === false)
     {
         return;
     }
 
-    $r = mysql_fetch_assoc($result);
+    if (count($r) <= 0)
+    {
+        return;
+    }
 
     return $r;
 }
 
 /**
- * getAuthSubHttpClient 
+ * getYouTubeAuthSubHttpClient 
  * 
  * @param string $key   the developer key
  * @param string $token optional user's authenticated session token 
  * 
  * @return Zend_Http_Client An authenticated client.
  */
-function getAuthSubHttpClient($key, $token = '')
+function getYouTubeAuthSubHttpClient($key, $token = '')
 {
     if ($token == '')
     {
@@ -378,6 +383,9 @@ function getAuthSubHttpClient($key, $token = '')
  */
 function getInstagramConfigData ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     if (   isset($_SESSION['instagram_client_id']) 
         && isset($_SESSION['instagram_client_secret'])
         && !empty($_SESSION['instagram_client_id'])
@@ -394,26 +402,26 @@ function getInstagramConfigData ()
             WHERE `name` = 'instagram_client_id'
             OR `name` = 'instagram_client_secret'";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return;
-    }
-
-    if (mysql_num_rows($result) <= 0)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
         return;
     }
 
-    $row = array();
-    while ($r = mysql_fetch_assoc($result))
+    if (count($rows) <= 0)
     {
-        $row[$r['name']]      = $r['value'];
+        return;
+    }
+
+    $data = array();
+
+    foreach ($rows as $r)
+    {
+        $data[$r['name']]     = $r['value'];
         $_SESSION[$r['name']] = $r['value'];
     }
 
-    return $row;
+    return $data;
 }
 
 /**
@@ -425,24 +433,24 @@ function getInstagramConfigData ()
  */
 function getUserInstagramAccessToken ($user)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `instagram_access_token`
             FROM `fcms_user_settings`
-            WHERE `user` = '$user'
+            WHERE `user` = ?
             LIMIT 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return null;
-    }
-
-    if (mysql_num_rows($result) <= 0)
+    $r = $fcmsDatabase->getRow($sql, $user);
+    if ($r === false)
     {
         return null;
     }
 
-    $r = mysql_fetch_assoc($result);
+    if (empty($r))
+    {
+        return null;
+    }
 
     if (empty($r['instagram_access_token']))
     {
@@ -450,4 +458,35 @@ function getUserInstagramAccessToken ($user)
     }
 
     return $r['instagram_access_token'];
+}
+
+/**
+ * getUserPicasaSessionToken
+ * 
+ * @param int $user 
+ * 
+ * @return void
+ */
+function getUserPicasaSessionToken ($user)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
+    $sql = "SELECT `picasa_session_token`
+            FROM `fcms_user_settings`
+            WHERE `user` = ?
+            LIMIT 1";
+
+    $r = $fcmsDatabase->getRow($sql, $user);
+    if ($r === false)
+    {
+        return null;
+    }
+
+    if (empty($r))
+    {
+        return null;
+    }
+
+    return $r['picasa_session_token'];
 }

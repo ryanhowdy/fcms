@@ -43,6 +43,9 @@ function getEmailHeaders ($name = '', $email = '')
  */
 function getTheme ($userid = 0)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     if (empty($userid))
     {
         return UI."themes/default/";
@@ -53,16 +56,13 @@ function getTheme ($userid = 0)
 
         $sql = "SELECT `theme` 
                 FROM `fcms_user_settings` 
-                WHERE `user` = '$userid'";
+                WHERE `user` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $r = $fcmsDatabase->getRow($sql, $userid);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
             return UI."themes/default/";
         }
-
-        $r = mysql_fetch_array($result);
 
         // old versions of fcms may still list .css in theme name
         $pos = strpos($r['theme'], '.css');
@@ -125,37 +125,48 @@ function getThemeList ()
  * Gets the user's name, displayed how they set in there settings, unless display option is set
  * which will overwrite the user's settings.
  * 
- * @param   int     $userid 
- * @param   int     $display 
- * @param   boolean $isMember 
- * @return  string
+ * @param int     $userid 
+ * @param int     $display 
+ * @param boolean $isMember 
+ * 
+ * @return string
  */
 function getUserDisplayName ($userid, $display = 0, $isMember = true)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $userid = (int)$userid;
+
+    if ($userid <= 0)
+    {
+        return 'unknown';
+    }
 
     if ($isMember)
     {
         $sql = "SELECT u.`fname`, u.`lname`, u.`username`, s.`displayname` 
                 FROM `fcms_users` AS u, `fcms_user_settings` AS s 
-                WHERE u.`id` = '$userid' 
+                WHERE u.`id` = ?
                 AND u.`id` = s.`user`";
     }
     else
     {
         $sql = "SELECT `fname`, `lname`, `username` 
                 FROM `fcms_users` 
-                WHERE `id` = '$userid' ";
+                WHERE `id` = ?";
     }
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $userid);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
-        return '';
+        return 'unknown';
     }
 
-    $r = mysql_fetch_assoc($result);
+    if (empty($r))
+    {
+        return 'unknown';
+    }
 
     // Do we want user's settings or overriding it?
     if ($display < 1)
@@ -200,6 +211,10 @@ function getUserDisplayName ($userid, $display = 0, $isMember = true)
  */
 function getPMCount ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
     // Count was calculated during getUserNotifications()
     if (isset($_SESSION['private_messages']))
     {
@@ -209,16 +224,15 @@ function getPMCount ()
     {
         $sql = "SELECT * FROM `fcms_privatemsg` 
                 WHERE `read` < 1 
-                AND `to` = '".(int)$_SESSION['login_id']."'";
+                AND `to` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $fcmsDatabase->getRows($sql, $fcmsUser->id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
             return '';
         }
 
-        $count = mysql_num_rows($result);
+        $count = count($rows);
     }
 
     if ($count > 0)
@@ -238,6 +252,10 @@ function getPMCount ()
  */
 function getNotificationCount ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
     // Count was calculated during getUserNotifications()
     if (isset($_SESSION['notifications']))
     {
@@ -247,17 +265,16 @@ function getNotificationCount ()
     {
         $sql = "SELECT `id` FROM `fcms_notification` 
                 WHERE `read` < 1 
-                AND `user` = '".(int)$_SESSION['login_id']."'
-                AND `created_id` != '".(int)$_SESSION['login_id']."'";
+                AND `user` = ?
+                AND `created_id` != ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $fcmsDatabase->getRows($sql, array($fcmsUser->id, $fcmsUser->id));
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
             return '';
         }
 
-        $count = mysql_num_rows($result);
+        $count = count($rows);
     }
 
     if ($count > 0)
@@ -276,20 +293,18 @@ function getNotificationCount ()
  */
 function getUserEmail ($userid)
 {
-    $userid = (int)$userid;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT `email`
             FROM `fcms_users`
-            WHERE `id` = '$userid'";
+            WHERE `id` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $userid);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return 'nothing@mail.com';
     }
-
-    $r = mysql_fetch_assoc($result);
 
     return $r['email'];
 }
@@ -303,19 +318,19 @@ function getUserEmail ($userid)
  */
 function getDefaultNavUrl ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `link` 
             FROM `fcms_navigation` 
             WHERE `col` = 4 
             AND `order` = 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return 'gallery/index.php';
     }
-
-    $r = mysql_fetch_assoc($result);
 
     return getPluginUrl($r['link']);
 }
@@ -357,6 +372,10 @@ function getDefaultNavUrl ()
  */
 function getNavLinks ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
     $ret = array();
 
     $sql = "SELECT `link`, `col`
@@ -365,22 +384,19 @@ function getNavLinks ()
             AND `col` != 6
             ORDER BY `col`, `order`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
         return $ret;
     }
 
-    $currentUserId = (int)$_SESSION['login_id'];
-
     // Add links
-    while ($r = mysql_fetch_array($result))
+    foreach ($rows as $r)
     {
         $ret['my-stuff'] = T_('My Stuff');
 
         // Notifications
-        $notifications = getUserNotifications($currentUserId);
+        $notifications = getUserNotifications($fcmsUser->id);
         if ($notifications > 0)
         {
             $ret['my-stuff'] = '<b>'.$notifications.'</b>'.$ret['my-stuff'];
@@ -393,7 +409,7 @@ function getNavLinks ()
     }
 
     // Add admin
-    if (checkAccess($currentUserId) <= 2)
+    if ($fcmsUser->access <= 2)
     {
         $ret[6][] = array(
             'url'   => 'index.php',
@@ -411,20 +427,23 @@ function getNavLinks ()
  */
 function getAdminNavLinks ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $ret = array();
 
     $sql = "SELECT `link`, `col`
             FROM `fcms_navigation` 
             WHERE `col` = 6
             ORDER BY `order`";
-    $result = mysql_query($sql);
-    if (!$result)
+
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
         return $ret;
     }
 
-    while ($r = mysql_fetch_array($result))
+    foreach ($rows as $r)
     {
         $ret[$r['link']] = array(
             'url'   => getPluginUrl($r['link']),
@@ -777,6 +796,9 @@ function getPluginDescription ($plugin)
  */
 function getUserNotifications ($userId)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $notifications = 0;
 
     $_SESSION['private_messages'] = $notifications;
@@ -786,16 +808,15 @@ function getUserNotifications ($userId)
             WHERE `read` < 1 
             AND `to` = '$userId'";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql, $userId);
+    if ($rows === false)
     {
-        logError(__FILE__.' ['.__LINE__.'] Could not get pm notifications.');
         return false;
     }
 
-    if (mysql_num_rows($result) > 0)
+    if (count($rows) > 0)
     {
-        $notifications += mysql_num_rows($result);
+        $notifications += count($rows);
 
         $_SESSION['private_messages'] = $notifications;
     }
@@ -806,16 +827,15 @@ function getUserNotifications ($userId)
             AND `user` = '$userId'
             AND `created_id` != '$userId'";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql, array($userId, $userId));
+    if ($rows === false)
     {
-        logError(__FILE__.' ['.__LINE__.'] Could not get tagged notifications.');
         return false;
     }
 
-    if (mysql_num_rows($result) > 0)
+    if (count($rows) > 0)
     {
-        $tagged = mysql_num_rows($result);
+        $tagged = count($rows);
 
         $notifications += $tagged;
 
@@ -834,20 +854,23 @@ function getUserNotifications ($userId)
  */
 function displayNewPM ($userid)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $userid = (int)$userid;
 
     $sql = "SELECT `id` 
             FROM `fcms_privatemsg` 
-            WHERE `to` = '$userid' AND `read` < 1";
+            WHERE `to` = ?
+            AND `read` < 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql, $userid);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
         return ' ';
     }
 
-    if (mysql_num_rows($result) > 0)
+    if (count($rows) > 0)
     {
         echo '<a href="'.URL_PREFIX.'privatemsg.php" class="new_pm">'.T_('New PM').'</a> ';
     }
@@ -855,38 +878,6 @@ function displayNewPM ($userid)
     {
         echo ' ';
     }
-}
-
-/**
- * checkAccess 
- *
- * Returns the access level as a number for the given user.
- * 
- * @param   int     $userid 
- * @return  int
- */
-function checkAccess ($userid)
-{
-    $userid = (int)$userid;
-
-    $sql = "SELECT `access` 
-            FROM `fcms_users` 
-            WHERE `id` = '$userid'";
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return '10';
-    }
-
-    if (mysql_num_rows($result) <= 0)
-    {
-        return '10'; // guest
-    }
-
-    $r = mysql_fetch_array($result);
-
-    return $r['access'];
 }
 
 /**
@@ -899,11 +890,13 @@ function checkAccess ($userid)
  */
 function getAccessLevel ($userid)
 {
-    $access = checkAccess($userid);
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
 
     $accessLevel = T_('Member');
 
-    switch ($access) {
+    switch ($fcmsUser->access) {
         case 1:
             $accessLevel = T_('Admin');
             break;
@@ -1150,21 +1143,6 @@ function displaySmileys ()
 }
 
 /**
- * escape_string 
- * 
- * @param   string  $string 
- * @return  string
- */
-function escape_string ($string)
-{
-    if (version_compare(phpversion(), "4.3.0") == "-1") {
-        return mysql_escape_string($string);
-    } else {
-        return mysql_real_escape_string($string);
-    }
-}
-
-/**
  * cleanOutput 
  *
  * Cleans output from the db or from the user so it can be displayed.
@@ -1237,38 +1215,37 @@ function unhtmlentities($string)
  */
 function getPostsById ($user_id, $option = 'both')
 {
-    $user_id = (int)$user_id;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_board_posts`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_array($result);
-    $total = $found['c'];
+    $total = isset($row['c']) ? $row['c'] : 0;
 
     $sql = "SELECT COUNT(`user`) AS c 
             FROM `fcms_board_posts` 
-            WHERE `user` = '$user_id'";
+            WHERE `user` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $user_id);
+    if ($row == false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_array($result);
-    $count = $found['c'];
+    $count = isset($row['c']) ? $row['c'] : 0;
 
     if ($total < 1 || $count < 1)
     {
-        $count = '0';
+        $count   = '0';
         $percent = '0%';
     }
     else
@@ -1311,34 +1288,33 @@ function getPostsById ($user_id, $option = 'both')
  */
 function getPhotosById ($user_id, $option = 'both')
 {
-    $user_id = (int)$user_id;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_gallery_photos`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $total = $found['c'];
+    $total = isset($row['c']) ? $row['c'] : 0;
 
     $sql = "SELECT COUNT(`user`) AS c 
             FROM `fcms_gallery_photos` 
-            WHERE `user` = '$user_id'";
+            WHERE `user` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $user_id);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $count = $found['c'];
+    $count = isset($row['c']) ? $row['c'] : 0;
 
     if ($total < 1 || $count < 1)
     {
@@ -1385,34 +1361,33 @@ function getPhotosById ($user_id, $option = 'both')
  */
 function getCommentsById ($user_id, $option = 'both')
 {
-    $user_id = (int)$user_id;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_gallery_photo_comment`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $total = $found['c'];
+    $total = isset($row['c']) ? $row['c'] : 0;
 
     $sql = "SELECT COUNT(`user`) AS c 
             FROM `fcms_gallery_photo_comment` 
-            WHERE `user` = '$user_id'";
+            WHERE `user` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $user_id);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $count = $found['c'];
+    $count = isset($row['c']) ? $row['c'] : 0;
 
     // Check Family News if applicable
     if (usingFamilyNews())
@@ -1420,29 +1395,27 @@ function getCommentsById ($user_id, $option = 'both')
         $sql = "SELECT COUNT(`id`) AS c 
                 FROM `fcms_news_comments`";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $row = $fcmsDatabase->getRow($sql);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $fcmsError->displayError();
             return '0';
         }
 
-        $found = mysql_fetch_assoc($result);
-        $total = $total + $found['c'];
+        $total = $total + isset($row['c']) ? $row['c'] : 0;
 
         $sql = "SELECT COUNT(`user`) AS c 
                 FROM `fcms_news_comments` 
-                WHERE `user` = '$user_id'";
+                WHERE `user` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $row = $fcmsDatabase->getRow($sql, $user_id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $fcmsError->displayError();
             return '0';
         }
 
-        $found = mysql_fetch_assoc($result);
-        $count = $count + $found['c'];
+        $count = $count + isset($row['c']) ? $row['c'] : 0;
     }
 
     if ($total < 1 || $count < 1)
@@ -1490,34 +1463,33 @@ function getCommentsById ($user_id, $option = 'both')
  */
 function getCalendarEntriesById ($user_id, $option = 'both')
 {
-    $user_id = (int)$user_id;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_calendar`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $total = $found['c'];
+    $total = isset($row['c']) ? $row['c'] : 0;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_calendar` 
-            WHERE `created_by` = '$user_id'";
+            WHERE `created_by` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $user_id);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $count = $found['c'];
+    $count = isset($row['c']) ? $row['c'] : 0;
 
     if ($total < 1 || $count < 1)
     {
@@ -1564,39 +1536,38 @@ function getCalendarEntriesById ($user_id, $option = 'both')
  */
 function getFamilyNewsById ($user_id, $option = 'both')
 {
-    $user_id = (int)$user_id;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_news`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $total = $found['c'];
+    $total = isset($row['c']) ? $row['c'] : 0;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_news` 
-            WHERE `user` = '$user_id' 
+            WHERE `user` = ?
             GROUP BY `user`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $user_id);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_array($result);
-    $count = $found['c'];
+    $count = isset($row['c']) ? $row['c'] : 0;
 
     if ($total < 1 || $count < 1)
     {
-        $count = '0';
+        $count   = '0';
         $percent = '0%';
     }
     else
@@ -1639,39 +1610,38 @@ function getFamilyNewsById ($user_id, $option = 'both')
  */
 function getRecipesById ($user_id, $option = 'both')
 {
-    $user_id = (int)$user_id;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_recipes`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $total = $found['c'];
+    $total = isset($row['c']) ? $row['c'] : 0;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_recipes` 
-            WHERE `user` = '$user_id' 
+            WHERE `user` = ?
             GROUP BY `user`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $user_id);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $count = $found['c'];
+    $count = isset($row['c']) ? $row['c'] : 0;
 
     if ($total < 1 || $count < 1)
     {
-        $count = '0';
+        $count   = '0';
         $percent = '0%';
     }
     else
@@ -1714,39 +1684,38 @@ function getRecipesById ($user_id, $option = 'both')
  */
 function getDocumentsById ($user_id, $option = 'both')
 {
-    $user_id = (int)$user_id;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_documents`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $total = $found['c'];
+    $total = isset($row['c']) ? $row['c'] : 0;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_documents` 
-            WHERE `user` = '$user_id' 
+            WHERE `user` = ?
             GROUP BY `user`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $user_id);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_assoc($result);
-    $count = $found['c'];
+    $count = isset($row['c']) ? $row['c'] : 0;
 
     if ($total < 1 || $count < 1)
     {
-        $count = '0';
+        $count   = '0';
         $percent = '0%';
     }
     else
@@ -1789,39 +1758,38 @@ function getDocumentsById ($user_id, $option = 'both')
  */
 function getPrayersById ($user_id, $option = 'both')
 {
-    $user_id = (int)$user_id;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_prayers`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $user_id);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_array($result);
-    $total = $found['c'];
+    $total = isset($row['c']) ? $row['c'] : 0;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_prayers` 
-            WHERE `user` = '$user_id' 
+            WHERE `user` = ?
             GROUP BY `user`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $user_id);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return '0';
     }
 
-    $found = mysql_fetch_array($result);
-    $count = $found['c'];
+    $count = isset($row['c']) ? $row['c'] : 0;
 
     if ($total < 1 || $count < 1)
     {
-        $count = '0';
+        $count   = '0';
         $percent = '0%';
     }
     else
@@ -1858,22 +1826,22 @@ function getPrayersById ($user_id, $option = 'both')
  */
 function getNewsComments ($news_id)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $news_id = (int)$news_id;
 
     $sql = "SELECT COUNT(`id`) AS c 
             FROM `fcms_news_comments` 
             WHERE `news` = '$news_id'";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
-        return 0;
+        return false;
     }
 
-    $found = mysql_fetch_array($result);
-
-    return $found['c'] ? $found['c'] : 0;
+    return $r['c'] ? $r['c'] : 0;
 }
 
 /**
@@ -1901,8 +1869,10 @@ function getNewsComments ($news_id)
  */
 function getUserParticipationPoints ($id)
 {
-    $id = (int)$id;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
+    $id     = (int)$id;
     $points = 0;
 
     $commentTables = array('fcms_gallery_photo_comment');
@@ -1910,32 +1880,26 @@ function getUserParticipationPoints ($id)
     // Thread (5)
     $sql = "SELECT COUNT(`id`) AS thread
             FROM `fcms_board_threads`
-            WHERE `started_by` = '$id'";
+            WHERE `started_by` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $id);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return 0;
     }
-
-    $r = mysql_fetch_array($result);
 
     $points += $r['thread'] * 5;
 
     // Photo (3)
     $sql = "SELECT COUNT(`id`) AS photo 
             FROM `fcms_gallery_photos` 
-            WHERE `user` = '$id'";
+            WHERE `user` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $id);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return 0;
     }
-
-    $r = mysql_fetch_array($result);
 
     $points += $r['photo'] * 3;
 
@@ -1946,16 +1910,13 @@ function getUserParticipationPoints ($id)
 
         $sql = "SELECT COUNT(`id`) AS news 
                 FROM `fcms_news` 
-                WHERE `user` = '$id'";
+                WHERE `user` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $r = $fcmsDatabase->getRow($sql, $id);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
             return 0;
         }
-
-        $r = mysql_fetch_array($result);
 
         $points += $r['news'] * 3;
     }
@@ -1967,16 +1928,13 @@ function getUserParticipationPoints ($id)
 
         $sql = "SELECT COUNT(`id`) AS recipe 
                 FROM `fcms_recipes` 
-                WHERE `user` = '$id'";
+                WHERE `user` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $r = $fcmsDatabase->getRow($sql, $id);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
             return 0;
         }
-
-        $r = mysql_fetch_array($result);
 
         $points += $r['recipe'] * 2;
     }
@@ -1986,16 +1944,13 @@ function getUserParticipationPoints ($id)
     {
         $sql = "SELECT COUNT(`id`) AS doc 
                 FROM `fcms_documents` 
-                WHERE `user` = '$id'";
+                WHERE `user` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $r = $fcmsDatabase->getRow($sql, $id);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
             return 0;
         }
-
-        $r = mysql_fetch_array($result);
 
         $points += $r['doc'] * 2;
     }
@@ -2005,16 +1960,13 @@ function getUserParticipationPoints ($id)
     {
         $sql = "SELECT COUNT(`id`) AS prayer 
                 FROM `fcms_prayers` 
-                WHERE `user` = '$id'";
+                WHERE `user` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $r = $fcmsDatabase->getRow($sql, $id);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
             return 0;
         }
-
-        $r = mysql_fetch_array($result);
 
         $points += $r['prayer'] * 2;
     }
@@ -2022,16 +1974,13 @@ function getUserParticipationPoints ($id)
     // Post (2)
     $sql = "SELECT COUNT(`id`) AS post 
             FROM `fcms_board_posts` 
-            WHERE `user` = '$id'";
+            WHERE `user` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $id);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return 0;
     }
-
-    $r = mysql_fetch_array($result);
 
     $points += $r['post'] * 2;
 
@@ -2043,30 +1992,24 @@ function getUserParticipationPoints ($id)
             FROM `$from` 
             WHERE `$where`.`user` = '$id'";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $id);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return 0;
     }
-
-    $r = mysql_fetch_array($result);
 
     $points += $r['comment'] * 2;
 
     // Address/Phone (1)
     $sql = "SELECT `address`, `city`, `state`, `home`, `work`, `cell` 
             FROM `fcms_address` 
-            WHERE `user` = '$id'";
+            WHERE `user` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $id);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return 0;
     }
-
-    $r = mysql_fetch_array($result);
 
     if (!empty($r['address']) && !empty($r['city']) && !empty($r['state']))
     {
@@ -2088,32 +2031,26 @@ function getUserParticipationPoints ($id)
     // Date/Event
     $sql = "SELECT COUNT(`id`) AS event 
             FROM `fcms_calendar` 
-            WHERE `created_by` = '$id'";
+            WHERE `created_by` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $id);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return 0;
     }
-
-    $r = mysql_fetch_array($result);
 
     $points += $r['event'];
 
     // Vote
     $sql = "SELECT COUNT(`id`) AS vote 
             FROM `fcms_poll_votes` 
-            WHERE `user` = '$id'";
+            WHERE `user` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $id);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return 0;
     }
-
-    $r = mysql_fetch_array($result);
 
     $points += $r['vote'];
 
@@ -2180,16 +2117,18 @@ function getUserParticipationLevel ($points)
  */
 function getContactEmail ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `value` 
             FROM `fcms_config`
             WHERE `name` = 'contact'";
-    $result = mysql_query($sql);
-    if (!$result)
+
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
         return 'ERROR-contact';
     }
-
-    $r = mysql_fetch_array($result);
 
     return $r['value'];
 }
@@ -2201,19 +2140,20 @@ function getContactEmail ()
  */
 function getSiteName()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `value`
             FROM `fcms_config`
             WHERE `name` = 'sitename'";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
         return 'ERROR-sitename';
     }
 
-    $r = mysql_fetch_array($result);
-
-    return cleanOutput($r['value']);
+    return $r['value'];
 }
 
 /**
@@ -2223,17 +2163,18 @@ function getSiteName()
  */
 function getCurrentVersion()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `value`
             FROM `fcms_config`
             WHERE `name` = 'current_version'";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
         return 'ERROR-current_version';
     }
-
-    $r = mysql_fetch_array($result);
 
     return $r['value'];
 }
@@ -2376,15 +2317,21 @@ function displayOkMessage ($msg = '', $timeout = 0)
  */
 function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h, $max_w, $unique = false, $show = true, $square = false)
 {
-    global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
+
+    if ($fcmsError->hasError())
+    {
+        $fcmsError->displayError();
+        return;
+    }
 
     include_once('gallery_class.php');
-    include_once('database_class.php');
 
     $currentUserId = (int)$_SESSION['login_id'];
 
-    $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-    $gallery  = new PhotoGallery($currentUserId, $database);
+    $gallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
 
     $known_photo_types = array(
         'image/pjpeg' => 'jpeg', 
@@ -2621,16 +2568,20 @@ function formatSize($file_size)
  */
 function displayMembersOnline ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $last24hours = time() - (60 * 60 * 24);
 
     $sql = "SELECT * 
             FROM fcms_users 
             WHERE UNIX_TIMESTAMP(`activity`) >= $last24hours 
             ORDER BY `activity` DESC";
-    $result = mysql_query($sql);
-    if (!$result)
+
+    $rows = $fcmsDatabase->getRows($sql, $last24hours);    
+    if ($rows === false)
     {
-        displaySqlError('Online Error', __FILE__.' ['.__LINE__.']', $sql, mysql_error());
+        $fcmsError->displayError();
         return;
     }
 
@@ -2638,7 +2589,7 @@ function displayMembersOnline ()
             <h3>'.T_('Last Seen').':</h3>
             <ul class="avatar-member-list">';
 
-    while ($r = mysql_fetch_assoc($result))
+    foreach ($rows as $r)
     {
         $displayname = getUserDisplayName($r['id']);
         $tz_offset   = getTimezone($r['id']);
@@ -2673,26 +2624,26 @@ function displayMembersOnline ()
  */
 function checkLoginInfo ($userid, $username, $password)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $userid = (int)$userid;
 
     $sql = "SELECT `username`, `password` 
             FROM `fcms_users` 
-            WHERE `id` = '$userid' 
+            WHERE `id` = ? 
             LIMIT 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return false;
-    }
-
-    if (mysql_num_rows($result) <= 0)
+    $r = $fcmsDatabase->getRow($sql, $userid);
+    if ($r === false)
     {
         return false;
     }
 
-    $r = mysql_fetch_array($result);
+    if (count($r) <= 0)
+    {
+        return false;
+    }
 
     if ($r['username'] !== $username)
     {
@@ -2822,47 +2773,26 @@ function usingFacebook()
  */
 function usingPlugin ($section)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `id`, `link`, `order`
             FROM `fcms_navigation` 
-            WHERE `link` = '".escape_string($section)."'
+            WHERE `link` = ?
             LIMIT 1";
-    
-    $result = mysql_query($sql);
-    if (!$result)
+
+    $r = $fcmsDatabase->getRow($sql, $section); 
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return false;
     }
 
-    if (mysql_num_rows($result) > 0)
+    if ($r['order'] > 0)
     {
-        $r = mysql_fetch_assoc($result);
-        if ($r['order'] > 0)
-        {
-            return true;
-        }
+        return true;
     }
+
     return false;
-}
-
-/**
- * tableExists 
- * 
- * @param   string  $tbl 
- * @return  boolean
- */
-function tableExists ($tbl)
-{
-    global $cfg_mysql_db;
-
-    $tbl = escape_string($tbl);
-
-    $table = mysql_query("SHOW TABLES FROM `$cfg_mysql_db` LIKE '$tbl'");
-    if (mysql_fetch_row($table) === false) {
-        return false;
-    } else {
-        return true ;
-    }
 }
 
 /**
@@ -2913,70 +2843,27 @@ function getDomainAndDir ()
  */
 function displaySqlError ($sql, $error)
 {
-    $backtrace = debug_backtrace(false);
-    $last      = $backtrace[1];
-    $file      = $last['file'];
-    $line      = $last['line'];
-    $debugInfo = '';
+    $trace = array_reverse(debug_backtrace());
 
-    if (debugOn())
+    $stack = '';
+
+    for ($i = 0; $i < count($trace); $i++)
     {
-        $debugInfo = '
-        <p><b>File:</b> '.$file.'</p>
-        <p><b>Statement:</b> '.$sql.'</p>
-        <p><b>Error:</b> '.$error.'</p>
-        <p><b>MySQL Version:</b> '.mysql_get_server_info().'</p>
-        <p><b>PHP Version:</b> '.phpversion().'</p>';
+        $stack .= '#'.$i.' '.$trace[$i]['function'].' called at ['.$trace[$i]['file'].':'.$trace[$i]['line'].']<br/>';
     }
 
     echo '
-    <div class="error-alert">
-        <p><b>'.T_('There was a problem communicating with the database.').'</b></p>
-        '.$debugInfo.'
-    </div>';
-
-    // Remove newlines, tabs, spaces from sql
-    $sql = str_replace(array("\n", "\r", "  ", "\t"), '', $sql);
-
-    logError($file.' ['.$line.'] - '.$error.' - '.$sql);
-}
-
-/**
- * displayError 
- * 
- * @param string  $error 
- * 
- * @return void
- */
-function displayError ($error)
-{
-    // Get file and line
-    $backtrace = debug_backtrace(false);
-    $last      = $backtrace[1];
-    $file      = $last['file'];
-    $line      = $last['line'];
-    $debugInfo = '';
-
-    if (debugOn())
-    {
-        $debugInfo = '
-        <p><b>File:</b> '.$file.'</p>
-        <p><b>Line:</b> '.$line.'</p>
-        <p><b>MySQL Version:</b> '.mysql_get_server_info().'</p>
-        <p><b>PHP Version:</b> '.phpversion().'</p>';
-    }
-
-    echo '
-    <div class="error-alert">
-        '.$error.'
-        '.$debugInfo.'
-    </div>';
-
-    logError($file.' ['.$line.'] - '.$error);
+        <div class="error-alert">
+            <p><b>Deprecated: displaySqlError()</b></p>
+            <p><b>Stack</b>:<br/><small>'.$stack.'</small></p>
+        </div>';
 }
 
 /**
  * logError 
+ * 
+ * @todo  this should be moved to Error class
+ *        and shouldn't be called direcly
  * 
  * @param string $string The full error string
  * 
@@ -2998,24 +2885,24 @@ function logError ($string)
  */
 function debugOn ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `value`
             FROM `fcms_config`
             WHERE `name` = 'debug'
             LIMIT 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return false;
-    }
-
-    if (mysql_num_rows($result) <= 0)
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
         return false;
     }
 
-    $r = mysql_fetch_assoc($result);
+    if (count($r) <= 0)
+    {
+        return false;
+    }
 
     $on = $r['value'] == 1 ? true : false;
 
@@ -3049,32 +2936,35 @@ function debugOn ()
  *  VIDEOCOM        Commented on video
  *  WHEREISEVERYONE Checked in on foursquare
  *
- * @param int $userid 
- *
  * @return void
  */
-function displayWhatsNewAll ($userid)
+function displayWhatsNewAll ()
 {
-    global $cfg_mysql_host, $cfg_use_news, $cfg_use_prayers;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
+
+    if ($fcmsError->hasError())
+    {
+        $fcmsError->displayError();
+        return;
+    }
 
     load('gallery');
 
-    $userid    = (int)$userid;
-    $tz_offset = getTimezone($userid);
-
-    $galleryObj = new PhotoGallery($userid);
+    $galleryObj = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
 
     $lastday = '0-0';
 
-    $today_start = fixDate('Ymd', $tz_offset, date('Y-m-d H:i:s')) . '000000';
-    $today_end   = fixDate('Ymd', $tz_offset, date('Y-m-d H:i:s')) . '235959';
+    $today_start = fixDate('Ymd', $fcmsUser->tzOffset, date('Y-m-d H:i:s')) . '000000';
+    $today_end   = fixDate('Ymd', $fcmsUser->tzOffset, date('Y-m-d H:i:s')) . '235959';
 
     $time            = mktime(0, 0, 0, date('m')  , date('d')-1, date('Y'));
-    $yesterday_start = fixDate('Ymd', $tz_offset, date('Y-m-d H:i:s', $time)) . '000000';
-    $yesterday_end   = fixDate('Ymd', $tz_offset, date('Y-m-d H:i:s', $time)) . '235959';
+    $yesterday_start = fixDate('Ymd', $fcmsUser->tzOffset, date('Y-m-d H:i:s', $time)) . '000000';
+    $yesterday_end   = fixDate('Ymd', $fcmsUser->tzOffset, date('Y-m-d H:i:s', $time)) . '235959';
 
     // Get data
-    $whatsNewData = getWhatsNewData($userid, 30);
+    $whatsNewData = getWhatsNewData(30);
     if ($whatsNewData === false)
     {
         return;
@@ -3087,8 +2977,8 @@ function displayWhatsNewAll ($userid)
     // Loop through data
     foreach ($whatsNewData as $r)
     {
-        $updated     = fixDate('Ymd',    $tz_offset, $r['date']);
-        $updatedFull = fixDate('YmdHis', $tz_offset, $r['date']);
+        $updated     = fixDate('Ymd',    $fcmsUser->tzOffset, $r['date']);
+        $updatedFull = fixDate('YmdHis', $fcmsUser->tzOffset, $r['date']);
 
         // Print date header
         if ($updated != $lastday)
@@ -3108,6 +2998,9 @@ function displayWhatsNewAll ($userid)
         }
 
         $rtime = strtotime($r['date']);
+
+        $displayname = '';
+        $avatar      = '';
 
         // Use cached data
         if (isset($cachedUserData[$r['userid']]))
@@ -3228,15 +3121,14 @@ function displayWhatsNewAll ($userid)
         {
             $sql = "SELECT MIN(`id`) AS 'id' 
                     FROM `fcms_board_posts` 
-                    WHERE `thread` = '".$r['id2']."'";
+                    WHERE `thread` = ?";
 
-            $result = mysql_query($sql);
-            if (!$result)
+            $minpost = $fcmsDatabase->getRow($sql, $r['id2']);
+            if ($minpost === false)
             {
-                displaySqlError($sql, mysql_error());
+                $fcmsError->displayError();
                 return;
             }
-            $minpost = mysql_fetch_array($result);
 
             $subject  = $r['title'];
 
@@ -3335,14 +3227,12 @@ function displayWhatsNewAll ($userid)
                         LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
                         WHERE p.`id` = '".(int)$r['id']."'";
 
-                $result = mysql_query($sql);
-                if (!$result)
+                $p = $fcmsDatabase->getRow($sql, $r['id']);
+                if ($p === false)
                 {
-                    displaySqlError($sql, mysql_error());
+                    $fcmsError->displayError();
                     return;
                 }
-
-                $p = mysql_fetch_assoc($result);
 
                 $data['external_id'] = $p['external_id'];
                 $data['thumbnail']   = $p['thumbnail'];
@@ -3383,14 +3273,14 @@ function displayWhatsNewAll ($userid)
                     ORDER BY p.`date` 
                     DESC LIMIT $limit";
 
-            $result = mysql_query($sql);
-            if (!$result)
+            $photo_rows = $fcmsDatabase->getRows($sql, array($r['id'], $r['id3']));
+            if ($photo_rows === false)
             {
-                displaySqlError($sql, mysql_error());
+                $fcmsError->displayError();
                 return;
             }
 
-            while ($p = mysql_fetch_assoc($result))
+            foreach ($photo_rows as $p)
             {
                 $photoSrc = $galleryObj->getPhotoSource($p);
 
@@ -3529,20 +3419,21 @@ function displayWhatsNewAll ($userid)
             // Get any replies to this status update
             $sql = "SELECT `id`, `user`, `status`, `parent`, `updated`, `created` 
                     FROM `fcms_status` 
-                    WHERE `parent` = '".(int)$r['id']."' 
+                    WHERE `parent` = ?
                     ORDER BY `id`";
-            $result = mysql_query($sql);
-            if (!$result)
+
+            $rows = $fcmsDatabase->getRows($sql, $r['id']);
+            if ($rows === false)
             {
-                displaySqlError($sql, mysql_error());
+                $fcmsError->displayError();
                 return;
             }
 
             $statuses = '';
 
-            if (mysql_num_rows($result) > 0)
+            if (count($rows) > 0)
             {
-                while ($s = mysql_fetch_assoc($result))
+                foreach ($rows as $s)
                 {
                     $name = getUserDisplayName($s['user']);
                     $name = '<a class="u" href="profile.php?member='.$s['user'].'">'.$name.'</a>';
@@ -3659,17 +3550,20 @@ function displayWhatsNewAll ($userid)
  *  VIDEOCOM        Commented on video
  *  WHEREISEVERYONE Checked in on foursquare
  * 
- * @param int    $userid
  * @param int    $days 
  * @param string $groupByType 
  * 
  * @return void
  */
-function getWhatsNewData ($userid, $days = 30, $groupByType = false)
+function getWhatsNewData ($days = 30, $groupByType = false)
 {
-    $currentUserId = (int)$userid;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
 
-    $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type 
+    $whatsNewData = array();
+
+    $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
             FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
             WHERE p.`thread` = t.`id` 
             AND p.`user` = u.`id` 
@@ -3692,7 +3586,6 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
             UNION SELECT `id`, `joindate` AS date, 0 AS title, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
             FROM `fcms_users` 
             WHERE `password` != 'NONMEMBER' 
-            AND `activated` > 0 
             AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
     if (usingFamilyNews())
     {
@@ -3790,16 +3683,14 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
 
              ORDER BY date DESC LIMIT 0, 35";
 
-    $result = mysql_query($sql);
-
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
         return false;
     }
 
     // Save data
-    while ($r = mysql_fetch_assoc($result))
+    foreach ($rows as $r)
     {
         if ($groupByType)
         {
@@ -3828,12 +3719,14 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
         if (empty($config['fs_client_id']) or empty($config['fs_client_secret']))
         {
             // If admin is viewing, alert them that the config is missing/messed up
-            if (checkAccess($currentUserId) < 2)
+            if ($fcmsUser->access < 2)
             {
                 echo '
                     <div class="info-alert">
                         <h2>'.T_('Foursquare is not configured correctly.').'</h2>
                         <p>'.T_('The "Where Is Everyone" feature cannot work without Foursquare.  Please configure Foursquare or turn off "Where Is Everyone".').'</p>
+                        <p><a href="admin/foursquare.php">'.T_('Configure Foursquare').'</a></p>
+                        <p><a href="admin/config.php?view=plugins">'.T_('Turn Off "Where is Everyone"').'</a></p>
                     </div>';
             }
 
@@ -3939,7 +3832,92 @@ function getWhatsNewData ($userid, $days = 30, $groupByType = false)
     }
 
     return $whatsNewData;
+} 
+
+/**
+ * displayStatusUpdateForm 
+ * 
+ * @param int $parent the id of the parent status update, or 0 if none
+ * 
+ * @return void
+ */
+function displayStatusUpdateForm ($parent = 0)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
+
+    if ($fcmsError->hasError())
+    {
+        $fcmsError->displayError();
+        return;
+    }
+
+    // Facebook option is only good for first status update field, not reply
+    if ($parent == 0)
+    {
+        $data        = getFacebookConfigData();
+        $accessToken = getUserFacebookAccessToken($fcmsUser->id);
+        $user        = null;
+
+        if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
+        {
+            $facebook = new Facebook(array(
+              'appId'  => $data['fb_app_id'],
+              'secret' => $data['fb_secret'],
+            ));
+
+            $facebook = $facebook->setAccessToken($accessToken);
+
+            // Check if the user is logged in and authed
+            $user = $facebook->getUser();
+            if ($user)
+            {
+                try
+                {
+                    $user_profile = $facebook->api('/me');
+                }
+                catch (FacebookApiException $e)
+                {
+                    $user = null;
+                }
+            }
+        }
+
+        $fb = '';
+        if ($user)
+        {
+            $fb  = '<input type="checkbox" id="update_fb" name="update_fb"/>';
+            $fb .= '<label for="update_fb">'.T_('Update Facebook?').'</label>';
+        }
+    }
+
+    $id    = 'status_update';
+    $value = T_('Submit');
+    $ph    = T_('Share');
+    $title = T_('Share something with everyone.');
+    $input = '';
+
+    if (ctype_digit($parent) && $parent > 0)
+    {
+        $id    = 'status_reply';
+        $fb    = '';
+        $value = T_('Reply');
+        $ph    = T_('Reply');
+        $title = T_('Reply');
+        $input = '<input type="hidden" id="parent" name="parent" value="'.$parent.'"/>';
+    }
+
+    echo '
+        <div id="'.$id.'">
+            <form method="post" action="home.php">
+                <textarea id="status" name="status" placeholder="'.$ph.'" title="'.$title.'"></textarea>
+                <small>'.$fb.'</small>'.$input.'
+                <input type="submit" id="status_submit" name="status_submit" value="'.$value.'"/>
+            </form>
+        </div>';
 }
+
 
 /**
  * ImageCreateFromBMP 
@@ -4032,20 +4010,18 @@ function ImageCreateFromBMP ($filename)
  */
 function usingAdvancedUploader ($userid)
 {
-    $userid = (int)$userid;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT `advanced_upload` 
             FROM `fcms_user_settings` 
-            WHERE `user` = '$userid'";
+            WHERE `user` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $userid);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return true;
     }
-
-    $r = mysql_fetch_array($result);
 
     if ($r['advanced_upload'] != 1)
     {
@@ -4063,20 +4039,18 @@ function usingAdvancedUploader ($userid)
  */
 function usingAdvancedTagging ($userid)
 {
-    $userid = (int)$userid;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "SELECT `advanced_tagging`
             FROM `fcms_user_settings` 
-            WHERE `user` = '$userid'";
+            WHERE `user` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $userid);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return true;
     }
-
-    $r = mysql_fetch_array($result);
 
     if ($r['advanced_tagging'] == 1)
     {
@@ -4214,22 +4188,22 @@ function printr ($var)
  */
 function getBirthdayCategory ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `id` 
             FROM `fcms_category` 
             WHERE `type` = 'calendar' 
                 AND `name` like 'Birthday'";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return 1;
     }
 
-    if (mysql_num_rows($result) > 0)
+    if (!empty($r))
     {
-        $r = mysql_fetch_array($result);
-
         return $r['id'];
     }
     else
@@ -4249,12 +4223,20 @@ function getBirthdayCategory ()
  */
 function getCalendarCategory ($cat, $caseSensitive = false)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
+    $sql    = '';
+    $params = array();
+
     if ($caseSensitive)
     {
         $sql = "SELECT `id` 
                 FROM `fcms_category` 
                 WHERE `type` = 'calendar' 
-                    AND `name` like '$cat'";
+                    AND `name` LIKE ?";
+
+        $params = array($cat);
     }
     else
     {
@@ -4262,30 +4244,34 @@ function getCalendarCategory ($cat, $caseSensitive = false)
                 FROM `fcms_category` 
                 WHERE `type` = 'calendar' 
                     AND (
-                        `name` like '".ucfirst($cat)."' OR
-                        `name` like '".strtoupper($cat)."' OR
-                        `name` like '".strtolower($cat)."' OR
-                        `name` like '$cat'
+                        `name` LIKE ? OR
+                        `name` LIKE ? OR
+                        `name` LIKE ? OR
+                        `name` LIKE ?
                     )";
+
+        $params = array(
+            ucfirst($cat),
+            strtoupper($cat),
+            strtolower($cat),
+            $cat
+        );
     }
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $params);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
+
         return;
     }
 
-    if (mysql_num_rows($result) > 0)
+    if (count($r) > 0)
     {
-        $r = mysql_fetch_assoc($result);
-
         return $r['id'];
     }
-    else
-    {
-        return 1;
-    }
+
+    return 1;
 }
 
 /**
@@ -4297,26 +4283,26 @@ function getCalendarCategory ($cat, $caseSensitive = false)
  */
 function getCurrentAvatar ($id)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $id = (int)$id;
 
     $sql = "SELECT `avatar`, `gravatar`
             FROM `fcms_users`
-            WHERE `id` = '$id'";
+            WHERE `id` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $id);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return getAvatarPath('no_avatar.jpg', NULL);
     }
 
     // No Avatar set
-    if (mysql_num_rows($result) <= 0)
+    if (count($r) <= 0)
     {
         return getAvatarPath('no_avatar.jpg', NULL);
     }
-
-    $r = mysql_fetch_array($result);
 
     return getAvatarPath($r['avatar'], $r['gravatar']);
 }
@@ -4376,25 +4362,23 @@ function getAvatarPath ($avatar, $gravatar)
  */
 function getTimezone ($user_id)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `timezone` 
             FROM `fcms_user_settings` 
             WHERE `user` = '$user_id'";
 
-    $result = mysql_query($sql);
-
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $user_id);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
-        die();
+        return '-3 hours';
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (count($r) <= 0)
     {
-        displaySqlError($sql, mysql_error());
-        die();
+        return '-3 hours';
     }
-
-    $r = mysql_fetch_array($result);
 
     return $r['timezone'];
 }
@@ -4435,17 +4419,19 @@ function subval_sort ($a, $subkey)
  */
 function isRegistrationOn ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `value` AS 'registration'
             FROM `fcms_config`
             WHERE `name` = 'registration'
             LIMIT 1";
-    $result = mysql_query($sql);
-    if (!$result)
+
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
         return false;
     }
-    $r = mysql_fetch_array($result);
 
     $on = $r['registration'] == 1 ? true : false;
 
@@ -4487,24 +4473,27 @@ function getNextAdminNavigationOrder ()
  */
 function getNextNavigationOrder ($col)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT MAX(`order`) AS 'order'
             FROM `fcms_navigation`
-            WHERE `col` = $col";
+            WHERE `col` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $col);
+    if ($r === false)
     {
-        displaySqlError($sql, mysql_error());
-        return false;
-    }
-
-    if (mysql_num_rows($result) <= 0)
-    {
-        trigger_error('Navigation Order Missing or Corrupt');
+        $fcmsError->setMessage('Navigation Order Missing or Corrupt');
+        $fcmsError->displayError();
         die();
     }
 
-    $r = mysql_fetch_assoc($result);
+    if (empty($r))
+    {
+        $fcmsError->setMessage('Navigation Order Missing or Corrupt');
+        $fcmsError->displayError();
+        die();
+    }
 
     $next = $r['order'] + 1;
 
@@ -4519,20 +4508,20 @@ function getNextNavigationOrder ($col)
  */
 function getNumberOfPosts ($thread_id)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT count(*) AS c 
             FROM `fcms_board_posts` 
-            WHERE `thread` = '".(int)$thread_id."'";
+            WHERE `thread` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $row = $fcmsDatabase->getRow($sql, $thread_id);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
-        return;
+        return 0;
     }
 
-    $row = mysql_fetch_assoc($result);
-
-    return (int)$row['c'];
+    return isset($row['c']) ? $row['c'] : 0;
 }
 
 /**
@@ -4588,18 +4577,22 @@ function postAsync ($url, $params)
  */
 function runningJob ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `value`
             FROM `fcms_config`
             WHERE `name` = 'running_job'
             AND `value` = '1'";
-    $result = mysql_query($sql);
-    if (!$result)
+
+    $row = $fcmsDatabase->getRow($sql);
+    if ($row === false)
     {
         // Lets be safe and say a job is being run
         return true;
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (!empty($row))
     {
         return false;
     }
@@ -4616,20 +4609,24 @@ function runningJob ()
  */
 function runJob ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "UPDATE `fcms_config`
             SET `value` = '1'
             WHERE `name` = 'running_job'";
-    if (!mysql_query($sql))
+
+    if (!$fcmsDatabase->update($sql))
     {
         return false;
     }
 
     // running_job config was missing, add it
-    if (mysql_affected_rows() <= 0)
+    if ($fcmsDatabase->getRowCount() <= 0)
     {
         $sql = "INSERT INTO `fcms_config` (`name`, `value`)
                 VALUES ('running_job', '1')";
-        if (!mysql_query($sql))
+        if (!$fcmsDatabase->insert($sql))
         {
             return false;
         }
@@ -4647,15 +4644,19 @@ function runJob ()
  */
 function stopJob ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "UPDATE `fcms_config`
             SET `value` = '0'
             WHERE `name` = 'running_job'";
-    if (!mysql_query($sql))
+
+    if (!$fcmsDatabase->update($sql))
     {
         return false;
     }
 
-    if (mysql_affected_rows() <= 0)
+    if ($fcmsDatabase->getRowCount() <= 0)
     {
         return false;
     }
@@ -4670,21 +4671,22 @@ function stopJob ()
  */
 function getExistingYouTubeIds ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $ids = array();
 
     $sql = "SELECT `source_id`
             FROM `fcms_video`
             WHERE `source` = 'youtube'";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
-
         return $ids;
     }
 
-    while ($row = mysql_fetch_assoc($result))
+    foreach ($rows as $row)
     {
         $ids[$row['source_id']] = 1;
     }
@@ -4699,20 +4701,21 @@ function getExistingYouTubeIds ()
  */
 function getExistingInstagramIds ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $ids = array();
 
     $sql = "SELECT `source_id`
             FROM `fcms_gallery_external_photo`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
-
         return $ids;
     }
 
-    while ($row = mysql_fetch_assoc($result))
+    foreach ($rows as $row)
     {
         $ids[$row['source_id']] = 1;
     }
@@ -4854,16 +4857,18 @@ function buildCountryList ()
  */
 function getDefaultCountry ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `value` 
             FROM `fcms_config`
             WHERE `name` = 'country'";
-    $result = mysql_query($sql);
-    if (!$result)
+
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
         return 'US';
     }
-
-    $r = mysql_fetch_array($result);
 
     return $r['value'];
 }
@@ -4934,6 +4939,9 @@ function getAddRemoveTaggedMembers ($tagged = null, $prev = null)
  */
 function getMembersNeedingActivation ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $members = array();
 
     $sql = "SELECT `id`, `fname`, `lname`
@@ -4942,14 +4950,13 @@ function getMembersNeedingActivation ()
             AND `password` != 'NONMEMBER'
             ORDER BY `joindate` DESC";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
         return false;
     }
 
-    while ($r = mysql_fetch_assoc($result))
+    foreach ($rows as $r)
     {
         $members[$r['id']] = $r['fname'].' '.$r['lname'];
     }
@@ -4968,23 +4975,25 @@ function getMembersNeedingActivation ()
  */
 function getCalendarWeekStart ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $sql = "SELECT `value` 
             FROM `fcms_config`
             WHERE `name` = 'start_week'";
-    $result = mysql_query($sql);
-    if (!$result)
+
+    $row = $fcmsDatabase->getRow($sql);
+    if ($row === false)
     {
         return '0';
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (count($row) <= 0)
     {
         return '0';
     }
 
-    $r = mysql_fetch_array($result);
-
-    return (int)$r['value'];
+    return (int)$row['value'];
 }
 
 /**
@@ -5044,39 +5053,40 @@ function shortenString ($string, $maxLength = 100, $end = '')
  */
 function getUserInstagramCategory ($userId)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $userId = (int)$userId;
 
     $sql = "SELECT `id`
             FROM `fcms_category`
             WHERE `name` = 'Instagram'
-            AND `user` = '$userId'";
+            AND `user` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $userId);
+    if ($r === false)
     {
         // TODO
         return;
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (empty($r))
     {
         // Create a new one
         $sql = "INSERT INTO `fcms_category`
                     (`name`, `type`, `user`, `date`)
                 VALUES
-                    ('Instagram', 'gallery', '$userId', NOW())";
+                    ('Instagram', 'gallery', ?, NOW())";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $id = $fcmsDatabase->insert($sql, $userId);
+        if ($id === false)
         {
             // TODO
             return;
         }
 
-        return mysql_insert_id();
+        return $id;
     }
-
-    $r = mysql_fetch_array($result);
 
     return $r['id'];
 }
@@ -5096,4 +5106,142 @@ function getUploadsAbsolutePath ()
     }
 
     return ROOT.'uploads/';
+}
+
+/**
+ * formatYMD 
+ * 
+ * @param string $year 
+ * @param string $month 
+ * @param string $day 
+ * 
+ * @return array
+ */
+function formatYMD ($year, $month, $day)
+{
+    $retYear  = '';
+    $retMonth = '';
+    $retDay   = '';
+
+    if (!empty($year))
+    {
+        $retYear = (int)$year;
+    }
+    if (!empty($month))
+    {
+        $retMonth = (int)$month;
+        $retMonth = str_pad($retMonth, 2, "0", STR_PAD_LEFT);
+    }
+    if (!empty($day))
+    {
+        $retDay = (int)$day;
+        $retDay = str_pad($retDay, 2, "0", STR_PAD_LEFT);
+    }
+
+    return array($retYear, $retMonth, $retDay);
+}
+
+/**
+ * highlight 
+ * 
+ * Will wrap <b> tags around the needle.
+ * Does not alter capitilization of needle.
+ * 
+ * @param string $needle 
+ * @param string $haystack 
+ * 
+ * @return string
+ */
+function highlight ($needle, $haystack)
+{
+    $highlighted = $haystack;
+
+    $ind = stripos($haystack, $needle); 
+    $len = strlen($needle); 
+
+    if ($ind !== false)
+    { 
+        $highlighted  = substr($haystack, 0, $ind);
+        $highlighted .= '<b>' . substr($haystack, $ind, $len) . '</b>';
+        $highlighted .= highlight($needle, substr($haystack, $ind + $len));
+
+    }
+
+    return $highlighted;
+} 
+
+/**
+ * getTimezoneList 
+ * 
+ * @return void
+ */
+function getTimezoneList ()
+{
+    return array(
+        '-12 hours'             => T_('(GMT -12:00) Eniwetok, Kwajalein'),
+        '-11 hours'             => T_('(GMT -11:00) Midway Island, Samoa'),
+        '-10 hours'             => T_('(GMT -10:00) Hawaii'),
+        '-9 hours'              => T_('(GMT -9:00) Alaska'),
+        '-8 hours'              => T_('(GMT -8:00) Pacific Time (US & Canada)'),
+        '-7 hours'              => T_('(GMT -7:00) Mountain Time (US & Canada)'),
+        '-6 hours'              => T_('(GMT -6:00) Central Time (US & Canada), Mexico City'),
+        '-5 hours'              => T_('(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima'),
+        '-4 hours'              => T_('(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz'),
+        '-3 hours -30 minutes'  => T_('(GMT -3:30) Newfoundland'),
+        '-3 hours'              => T_('(GMT -3:00) Brazil, Buenos Aires, Georgetown'),
+        '-2 hours'              => T_('(GMT -2:00) Mid-Atlantic'),
+        '-1 hours'              => T_('(GMT -1:00) Azores, Cape Verde Islands'),
+        '-0 hours'              => T_('(GMT) Western Europe Time, London, Lisbon, Casablanca'),
+        '+1 hours'              => T_('(GMT +1:00) Brussels, Copenhagen, Madrid, Paris'),
+        '+2 hours'              => T_('(GMT +2:00) Kaliningrad, South Africa'),
+        '+3 hours'              => T_('(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh'),
+        '+3 hours 30 minutes'   => T_('(GMT +3:30) Tehran'),
+        '+4 hours'              => T_('(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi'),
+        '+4 hours 30 minutes'   => T_('(GMT +4:30) Kabul'),
+        '+5 hours'              => T_('(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent'),
+        '+5 hours 30 minutes'   => T_('(GMT +5:30) Bombay, Calcutta, Madras, New Delhi'),
+        '+6 hours'              => T_('(GMT +6:00) Almaty, Dhaka, Colombo'),
+        '+7 hours'              => T_('(GMT +7:00) Bangkok, Hanoi, Jakarta'),
+        '+8 hours'              => T_('(GMT +8:00) Beijing, Perth, Singapore, Hong Kong'),
+        '+9 hours'              => T_('(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk'),
+        '+9 hours 30 minutes'   => T_('(GMT +9:30) Adeliaide, Darwin'),
+        '+10 hours'             => T_('(GMT +10:00) Eastern Australia, Guam, Vladivostok'),
+        '+11 hours'             => T_('(GMT +11:00) Magadan, Solomon Islands, New Caledonia'),
+        '+12 hours'             => T_('(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka')
+    );
+}
+
+/**
+ * getActiveMemberIdNameLookup 
+ * 
+ * Returns an array of id to name lookup for all
+ * active members.
+ * 
+ * @return array
+ */
+function getActiveMemberIdNameLookup ()
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
+    $sql = "SELECT `id`, `fname`, `lname`
+            FROM `fcms_users` 
+            WHERE `activated` > 0";
+
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
+    {
+        return false;
+    }
+
+    $members = array();
+
+    foreach ($rows as $r)
+    {
+        $members[$r['id']] = cleanOutput($r['fname']).' '.cleanOutput($r['lname']);
+    }
+
+    asort($members);
+
+    return $members;
 }

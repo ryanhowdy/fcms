@@ -26,18 +26,24 @@ require_once 'datetime.php';
  */
 class AdminMembers
 {
-    var $db;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
 
     /**
      * AdminMembers 
      * 
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
+     * 
      * @return  void
      */
-    function AdminMembers ()
+    function AdminMembers ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
 
         T_bindtextdomain('messages', '.././language');
     }
@@ -51,15 +57,16 @@ class AdminMembers
      */
     function getUsersEmail ($id)
     {
-        $sql = "SELECT `email` FROM `fcms_users` WHERE `id` = $id";
+        $sql = "SELECT `email`
+                FROM `fcms_users`
+                WHERE `id` = ?";
 
-        if (!$this->db->query($sql))
+        $r = $this->fcmsDatabase->getRow($sql, $id);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
             return '';
         }
 
-        $r = $this->db->get_row();
         return $r['email'];
     }
     
@@ -213,15 +220,16 @@ class AdminMembers
                     `email`, `dob_year`, `dob_month`, `dob_day`, `dod_year`, `dod_month`,
                     `dod_day`, `access` 
                 FROM `fcms_users` 
-                WHERE `id` = '$member'";
-        if (!$this->db->query($sql))
+                WHERE `id` = ?";
+
+        $r = $this->fcmsDatabase->getRow($sql, $member);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
-        $r = $this->db->get_row();
 
-        if ($this->db->count_rows() <= 0)
+        if (empty($r))
         {
             echo '
             <p class="error-alert">'.T_('Could not find member.').'</p>';
@@ -478,10 +486,6 @@ class AdminMembers
      */
     function displayMergeMemberForm ($id)
     {
-        global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
-
-        $db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
         $id = (int)$id;
 
         // Get current member info
@@ -489,26 +493,31 @@ class AdminMembers
                     u.`dob_year`, u.`dob_month`, u.`dob_day`,
                     a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`bio`
                 FROM `fcms_users` AS u, `fcms_address` AS a
-                WHERE u.`id` = '$id'
+                WHERE u.`id` = ?
                 AND u.`id` = a.`user`";
-        if (!$this->db->query($sql))
+
+        $r = $this->fcmsDatabase->getRow($sql, $id);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
-        $r = $this->db->get_row();
 
         // Get member list
         $sql = "SELECT `id`, `username`, `password`,`fname`, `lname`
                 FROM `fcms_users` 
-                WHERE `id` != '$id'";
-        if (!$db2->query($sql))
+                WHERE `id` != ?";
+
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
+
         $members = array();
-        while ($row = $db2->get_row())
+
+        foreach ($rows as $row)
         {
             if ($row['password'] == 'NONMEMBER')
             {
@@ -518,6 +527,7 @@ class AdminMembers
 
             $members[$row['id']] = $row['lname'].', '.$row['fname'].' ('.$row['username'].')';
         }
+
         asort($members);
 
         // Display the form
@@ -624,7 +634,7 @@ class AdminMembers
                 AND u.`id` = a.`user`";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
         while ($r = $this->db->get_row())
@@ -1163,6 +1173,8 @@ class AdminMembers
             }
         }
 
+        $params = array();
+
         $sql = "SELECT *
                 FROM `fcms_users` ";
 
@@ -1181,34 +1193,41 @@ class AdminMembers
         {
             if (strlen($fname) > 0)
             {
-                $sql .= "AND `fname` LIKE '".escape_string($fname)."' ";
+                $sql     .= "AND `fname` LIKE ? ";
+                $params[] = $fname;
             }
             if (strlen($lname) > 0)
             {
-                $sql .= "AND `lname` LIKE '".escape_string($lname)."' ";
+                $sql     .= "AND `lname` LIKE ? ";
+                $params[] = $lname;
             }
             if (strlen($uname) > 0)
             {
-                $sql .= "AND `username` LIKE '".escape_string($uname)."' ";
+                $sql     .= "AND `username` LIKE ? ";
+                $params[] = $uname;
             }
+
             $sql .= "ORDER BY `id` LIMIT $from, $perPage";
+
+            $rows = $this->fcmsDatabase->getRows($sql, $params);
         }
         // Display All - one of more blank or invalid search parameters
         else
         {
             $sql .= "ORDER BY `id`
                      LIMIT $from, $perPage";
+
+            $rows = $this->fcmsDatabase->getRows($sql);
         }
 
-        $result = mysql_query($sql);
-        if (!$result)
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
         
         // Display the member list
-        while ($r = mysql_fetch_array($result))
+        foreach ($rows as $r)
         {
             $member = ($r['password'] == 'NONMEMBER') ? T_('No') : T_('Yes');
             $active = ($r['activated'] <= 0)          ? T_('No') : T_('Yes');
@@ -1253,13 +1272,23 @@ class AdminMembers
         // Remove the LIMIT from the $sql statement 
         // used above, so we can get the total count
         $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
-        if (!$this->db->query($sql))
+
+        if ($valid_search < 1)
         {
-            displaySqlError($sql, mysql_error());
+            $mrows = $this->fcmsDatabase->getRows($sql, $params);
+        }
+        else
+        {
+            $mrows = $this->fcmsDatabase->getRows($sql);
+        }
+
+        if ($mrows === false)
+        {
+            $this->fcmsError->displayError();
             return;
         }
 
-        $count       = $this->db->count_rows();
+        $count       = count($mrows);
         $total_pages = ceil($count / $perPage); 
 
         displayPages("members.php?view=$view", $page, $total_pages);
@@ -1337,7 +1366,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_alerts').'<br/>';
@@ -1348,7 +1377,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_board_posts').'<br/>';
@@ -1359,7 +1388,7 @@ class AdminMembers
                 WHERE `started_by` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         $sql = "UPDATE `fcms_board_threads`
@@ -1367,7 +1396,7 @@ class AdminMembers
                 WHERE `updated_by` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_board_threads').'<br/>';
@@ -1378,7 +1407,7 @@ class AdminMembers
                 WHERE `created_by` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_calendar').'<br/>';
@@ -1389,7 +1418,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_category').'<br/>';
@@ -1406,7 +1435,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_documents').'<br/>';
@@ -1417,7 +1446,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_photo_comment').'<br/>';
@@ -1428,7 +1457,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_photos').'<br/>';
@@ -1439,7 +1468,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_photos_tags').'<br/>';
@@ -1452,7 +1481,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_news').'<br/>';
@@ -1463,7 +1492,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_news_comments').'<br/>';
@@ -1478,7 +1507,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_poll_votes').'<br/>';
@@ -1489,7 +1518,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_prayers').'<br/>';
@@ -1500,7 +1529,7 @@ class AdminMembers
                 WHERE `to` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         $sql = "UPDATE `fcms_privatemsg`
@@ -1508,7 +1537,7 @@ class AdminMembers
                 WHERE `from` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_privatemsg').'<br/>';
@@ -1519,7 +1548,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_recipes').'<br/>';
@@ -1530,7 +1559,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_recipe_comment').'<br/>';
@@ -1541,7 +1570,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         $sql = "UPDATE `fcms_relationship`
@@ -1549,7 +1578,7 @@ class AdminMembers
                 WHERE `rel_user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_relationship').'<br/>';
@@ -1562,7 +1591,7 @@ class AdminMembers
                 WHERE `user` = '$merge'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             die();
         }
         echo sprintf(T_('Merge [%s] complete.'), 'fcms_user_awards').'<br/>';

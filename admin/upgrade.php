@@ -13,19 +13,23 @@
  */
 session_start();
 
-require '../inc/config_inc.php';
-require '../inc/thirdparty/gettext.inc';
-require '../inc/utils.php';
-require '../inc/upgrade_inc.php';
-
-connectDB();
-checkLoginAndPermission();
+error_reporting(-1);
+ini_set('log_errors', 0);
 
 define('ROOT', dirname(dirname(__FILE__)) . '/');
 define('INC', ROOT.'inc/');
 define('THIRDPARTY', INC.'/thirdparty/');
 define('LATEST_VERSION_URL', 'http://www.familycms.com/latest/version.php');
 define('LATEST_FILE_URL',    'http://www.familycms.com/latest/latest.zip');
+
+require_once INC.'config_inc.php';
+require_once INC.'thirdparty/gettext.inc';
+require_once INC.'utils.php';
+require_once INC.'upgrade_inc.php';
+require_once INC.'Error.php';
+require_once INC.'Database.php';
+
+checkLoginAndPermission();
 
 control();
 exit();
@@ -170,25 +174,15 @@ function displayFooter ()
 }
 
 /**
- * connectDB 
- * 
- * @return void
- */
-function connectDB ()
-{
-    global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-    $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-    mysql_select_db($cfg_mysql_db);
-}
-
-/**
  * checkLoginAndPermission 
  * 
  * @return void
  */
 function checkLoginAndPermission ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     if (isset($_COOKIE['fcms_login_id']))
     {
         $_SESSION['login_id']    = $_COOKIE['fcms_login_id'];
@@ -217,28 +211,26 @@ function checkLoginAndPermission ()
 
     $sql = "SELECT `username`, `password`, `access`
             FROM `fcms_users` 
-            WHERE `id` = '$id' 
+            WHERE `id` = ?
             LIMIT 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql, $id);
+    if ($r === false)
     {
         displayHeader();
         echo '<h1>'.T_('Invalid request.').'</h1>';
-        echo '<p>'.$sql.'</p>';
+        $fcmsError->displayError();
         displayFooter();
         die();
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (empty($r))
     {
         displayHeader();
         echo '<h1>'.T_('User not found.').'</h1>';
         displayFooter();
         die();
     }
-
-    $r = mysql_fetch_array($result);
 
     if ($r['username'] !== $username || $r['password'] !== $password)
     {
@@ -400,10 +392,14 @@ function versionUpToDate ($current, $latest)
  */
 function displayStepOne ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+
     displayHeader();
     displaySteps(1);
 
-    if (disableSite())
+    if ($fcmsUpgrade->disableSite())
     {
         echo '<meta http-equiv="refresh" content="0; url=upgrade.php?auto=2">';
     }
@@ -416,10 +412,14 @@ function displayStepOne ()
  */
 function displayStepTwo ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+
     displayHeader();
     displaySteps(2);
 
-    downloadLatestVersion();
+    $fcmsUpgrade->downloadLatestVersion();
 
     echo '<meta http-equiv="refresh" content="0; url=upgrade.php?auto=3">';
 }
@@ -431,12 +431,15 @@ function displayStepTwo ()
  */
 function displayStepThree ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
 
     displayHeader();
     displaySteps(3);
 
     // Unzip
-    if (unzipFile())
+    if ($fcmsUpgrade->unzipFile())
     {
         echo '<meta http-equiv="refresh" content="0; url=upgrade.php?auto=4">';
     }
@@ -450,11 +453,15 @@ function displayStepThree ()
  */
 function displayStepFour ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+
     displayHeader();
     displaySteps(4);
 
     // Install
-    if (install())
+    if ($fcmsUpgrade->install())
     {
         echo '<meta http-equiv="refresh" content="0; url=upgrade.php?auto=5">';
     }
@@ -467,10 +474,14 @@ function displayStepFour ()
  */
 function displayStepFive ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+
     displayHeader();
     displaySteps(5);
 
-    if (upgrade())
+    if ($fcmsUpgrade->upgrade())
     {
         echo '<meta http-equiv="refresh" content="0; url=upgrade.php?auto=6">';
     }
@@ -483,17 +494,20 @@ function displayStepFive ()
  */
 function displayStepSix ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+
     displayHeader();
     displaySteps(6);
 
     $latestVersion = $_SESSION['latestVersion'];
 
     // Upgrade Current Version
-    if (updateCurrentVersion($latestVersion))
+    if ($fcmsUpgrade->updateCurrentVersion($latestVersion))
     {
         echo '<meta http-equiv="refresh" content="0; url=upgrade.php?auto=7">';
     }
-
 }
 
 /**
@@ -503,11 +517,15 @@ function displayStepSix ()
  */
 function displayStepSeven ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+
     displayHeader();
     displaySteps(7);
 
     // Turn on site
-    if (enableSite())
+    if ($fcmsUpgrade->enableSite())
     {
         unset($_SESSION['latestVersion']);
 
@@ -593,10 +611,14 @@ function displayManualUpgrade ()
  */
 function displayUpgradeSiteStatus ($status)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+
     // Turn On
     if ($status == 'on')
     {
-        if (!enableSite())
+        if (!$fcmsUpgrade->enableSite())
         {
             displayHeader();
             echo '<p>'.T_('Could not turn on site').'</p>';
@@ -612,7 +634,7 @@ function displayUpgradeSiteStatus ($status)
     // Turn Off
     else
     {
-        if (!disableSite())
+        if (!$fcmsUpgrade->disableSite())
         {
             displayHeader();
             echo '<p>'.T_('Could not turn off site').'</p>';
@@ -632,23 +654,27 @@ function displayUpgradeSiteStatus ($status)
  */
 function displayUpgradeDatabase ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+
     $latestVersion = $_SESSION['latestVersion'];
 
-    if (!upgrade())
+    if (!$fcmsUpgrade->upgrade())
     {
         // Jacked html, but should work
         displayHeader();
-        echo '<p>'.T_('Could not upgrade database').'</p>';
+        $fcmsError->displayError();
         displayFooter();
 
         return;
     }
 
-    if (!updateCurrentVersion($latestVersion))
+    if (!$fcmsUpgrade->updateCurrentVersion($latestVersion))
     {
         // Jacked html, but should work
         displayHeader();
-        echo '<p>'.T_('Could not update version').'</p>';
+        $fcmsError->displayError();
         displayFooter();
 
         return;

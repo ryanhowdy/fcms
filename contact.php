@@ -20,51 +20,138 @@ require 'fcms.php';
 
 init();
 
-// Setup the Template variables;
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Contact'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
-$TMPL['javascript'] = '
-<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
-// Show Header
-require_once getTheme($fcmsUser->id).'header.php';
+exit();
 
-echo '
+class Page
+{
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
+
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    {
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
+
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Contact'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if (!empty($_POST['subject']) && !empty($_POST['email']) && !empty($_POST['name']) && !empty($_POST['msg']))
+        {
+            $this->displayContactFormSubmit();
+        }
+        else
+        {
+            $this->displayContactForm();
+        }
+    }
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
+
+        $TMPL['javascript'] = '
+<script type="text/javascript">
+Event.observe(window, "load", function()
+{
+    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+});
+</script>';
+
+        include_once getTheme($this->fcmsUser->id).'header.php';
+
+        echo '
         <div id="contact" class="centercontent">';
+    }
 
-// Send mail
-if (!empty($_POST['subject']) && !empty($_POST['email']) && !empty($_POST['name']) && !empty($_POST['msg']))
-{
-    $subject       = $_POST['subject'];
-    $email         = $_POST['email'];
-    $name          = $_POST['name'];
-    $msg           = $_POST['msg'];
-    $email_headers = getEmailHeaders($name, $email);
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    mail(getContactEmail(), $subject, "$msg\r\n-$name", $email_headers);
+        echo '
+        </div><!--/contact-->';
 
-    echo '
-            <p>'.T_('The following message has been sent to the Administrator:').'</p>
-            <p>'.$msg.'<br/>- '.$name.'</p>';
+        include_once getTheme($this->fcmsUser->id).'footer.php';
+    }
 
-}
-// Show form
-else
-{
-    $email   = isset($_POST['email'])   ? cleanOutput($_POST['email'])       : '';
-    $name    = isset($_POST['name'])    ? cleanOutput($_POST['name'])        : '';
-    $subject = isset($_POST['subject']) ? cleanOutput($_POST['subject'])     : '';
-    $msg     = isset($_POST['msg'])     ? cleanOutput($_POST['msg'], 'html') : '';
 
-    echo '
+    function displayContactFormSubmit ()
+    {
+        $subject       = $_POST['subject'];
+        $email         = $_POST['email'];
+        $name          = $_POST['name'];
+        $msg           = $_POST['msg'];
+        $email_headers = getEmailHeaders($name, $email);
+
+        if (!mail(getContactEmail(), $subject, "$msg\r\n-$name", $email_headers))
+        {
+            $this->displayHeader();
+            $this->displayFooter();
+        }
+
+        $_SESSION['ok'] = '<p>'.cleanOutput($msg).'<br/>- '.cleanOutput($name).'</p>';
+
+        header("Location: contact.php");
+    }
+
+    function displayContactForm ()
+    {
+        $this->displayHeader();
+
+        $email   = isset($_POST['email'])   ? cleanOutput($_POST['email'])       : '';
+        $name    = isset($_POST['name'])    ? cleanOutput($_POST['name'])        : '';
+        $subject = isset($_POST['subject']) ? cleanOutput($_POST['subject'])     : '';
+        $msg     = isset($_POST['msg'])     ? cleanOutput($_POST['msg'], 'html') : '';
+
+        if (isset($_SESSION['ok']))
+        {
+            $okMessage = '<p>'.T_('The following message has been sent to the Administrator:').'</p>'.$_SESSION['ok'];
+
+            displayOkMessage($okMessage);
+
+            unset($_SESSION['ok']);
+        }
+
+        echo '
             <fieldset>
                 <form method="post" class="contactform" action="contact.php">
                     <div class="field-row">
@@ -86,10 +173,7 @@ else
                     <p><input type="submit" name="submit" value="'.T_('Submit').'"/></p>
                 </form>
             </fieldset>';
+
+        $this->displayFooter();
+    }
 }
-
-echo '
-        </div><!-- #contact .centercontent -->';
-
-// Show Footer
-require_once getTheme($fcmsUser->id).'footer.php';

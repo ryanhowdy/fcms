@@ -1,3 +1,8 @@
+  3.1.1
+    #501 - Cannot remove polls
+    #502 - Extra quote in photo gallery caused Advanced Uploader to break
+    #503 - Who's Online missing required constants
+
   3.1
     #307 - Polls section
     #405 - RSS Feed not translated

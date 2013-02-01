@@ -182,7 +182,11 @@ function getMeridiem ($a)
  */
 function fixDate ($dateFormat, $tzOffset = '', $date = '', $userid = '')
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $fixedDate = $date;
+    $dst       = '';
 
     if ($userid == '')
     {
@@ -192,17 +196,16 @@ function fixDate ($dateFormat, $tzOffset = '', $date = '', $userid = '')
     // Get DST
     $sql = "SELECT `dst` 
             FROM `fcms_user_settings` 
-            WHERE `user` = '$userid'";
-    $result = mysql_query($sql);
-    if (!$result)
+            WHERE `user` = ?";
+
+    $row = $fcmsDatabase->getRow($sql, $userid);
+    if ($row === false)
     {
-        displaySqlError($sql, mysql_error());
-        return;
+        return $fixedDate;
     }
 
-    $r = mysql_fetch_array($result);
-    $dst = '';
-    if ($r['dst'] > 0) {
+    if ($row['dst'] > 0)
+    {
         $dst = " +1 hours";
     }
 

@@ -23,102 +23,121 @@ load('socialmedia');
 
 init('admin/');
 
-$TMPL = array(
-    'sitename'      => getSiteName(),
-    'nav-link'      => getAdminNavLinks(),
-    'pagetitle'     => T_('Facebook'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
-control();
 exit();
 
-
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    if (isset($_POST['submit']))
-    {
-        displayFormSubmit();
-    }
-    else
-    {
-        displayForm();
-    }
-}
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    {
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
 
-    $TMPL['javascript'] = '
+        $this->fcmsTemplate = array(
+            'sitename'      => cleanOutput(getSiteName()),
+            'nav-link'      => getAdminNavLinks(),
+            'pagetitle'     => T_('Facebook'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if (isset($_POST['submit']))
+        {
+            $this->displayFormSubmit();
+        }
+        else
+        {
+            $this->displayForm();
+        }
+    }
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
+
+        $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>';
 
-    include_once URL_PREFIX.'ui/admin/header.php';
+        include_once URL_PREFIX.'ui/admin/header.php';
 
-    echo '
+        echo '
         <div id="facebook">';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
+        echo '
         </div><!-- /facebook -->';
 
-    include_once URL_PREFIX.'ui/admin/footer.php';
-}
+        include_once URL_PREFIX.'ui/admin/footer.php';
+    }
 
-/**
- * displayForm 
- * 
- * Displays the form for configuring a facebook app.
- * 
- * @return void
- */
-function displayForm ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    if (isset($_SESSION['success']))
+    /**
+     * displayForm 
+     * 
+     * Displays the form for configuring a facebook app.
+     * 
+     * @return void
+     */
+    function displayForm ()
     {
-        echo '
+        $this->displayHeader();
+
+        if (isset($_SESSION['success']))
+        {
+            echo '
         <div class="alert-message success">
             <a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>
             '.T_('Changes Updated Successfully').'
         </div>';
 
-        unset($_SESSION['success']);
-    }
+            unset($_SESSION['success']);
+        }
 
-    $r = getFacebookConfigData();
+        $r = getFacebookConfigData();
 
-    $id     = isset($r['fb_app_id']) ? $r['fb_app_id'] : '';
-    $secret = isset($r['fb_secret']) ? $r['fb_secret'] : '';
+        $id     = isset($r['fb_app_id']) ? $r['fb_app_id'] : '';
+        $secret = isset($r['fb_secret']) ? $r['fb_secret'] : '';
 
-    echo '
+        echo '
         <div class="alert-message block-message info">
             <h1>'.T_('Facebook Integration').'</h1>
             <p>
@@ -126,9 +145,9 @@ function displayForm ()
             </p>
         </div>';
 
-    if (empty($id) || empty($secret))
-    {
-        echo '
+        if (empty($id) || empty($secret))
+        {
+            echo '
         <div class="row">
             <div class="span4">
                 <h2>'.T_('Step 1').'</h2>
@@ -156,9 +175,9 @@ function displayForm ()
                 </p>
             </div>
             <div class="span12">';
-    }
+        }
 
-    echo '
+        echo '
             <form method="post" action="facebook.php">
                 <fieldset>
                     <legend>'.T_('Facebook Application').'</legend>
@@ -180,51 +199,52 @@ function displayForm ()
                 </fieldset>
             </form>';
 
-    if (empty($id) || empty($secret))
-    {
-        echo '
+        if (empty($id) || empty($secret))
+        {
+            echo '
             </div><!-- /span12 -->
         </div><!-- /row -->';
+        }
+
+        $this->displayFooter();
     }
 
-    displayFooter();
-}
-
-/**
- * displayFormSubmit 
- * 
- * @return void
- */
-function displayFormSubmit ()
-{
-    $id     = isset($_POST['id'])     ? escape_string($_POST['id'])     : '';
-    $secret = isset($_POST['secret']) ? escape_string($_POST['secret']) : '';
-
-    $sql = "UPDATE `fcms_config`
-            SET `value` = '$id'
-            WHERE `name` = 'fb_app_id'";
-    
-    if (!mysql_query($sql))
+    /**
+     * displayFormSubmit 
+     * 
+     * @return void
+     */
+    function displayFormSubmit ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $id     = isset($_POST['id'])     ? $_POST['id']     : '';
+        $secret = isset($_POST['secret']) ? $_POST['secret'] : '';
+
+        $sql = "UPDATE `fcms_config`
+                SET `value` = ?
+                WHERE `name` = 'fb_app_id'";
+
+        if (!$this->fcmsDatabase->update($sql, $id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "UPDATE `fcms_config`
+                SET `value` = ?
+                WHERE `name` = 'fb_secret'";
+        
+        if (!$this->fcmsDatabase->update($sql, $secret))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: facebook.php");
     }
-
-    $sql = "UPDATE `fcms_config`
-            SET `value` = '$secret'
-            WHERE `name` = 'fb_secret'";
-    
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    $_SESSION['success'] = 1;
-
-    header("Location: facebook.php");
 }

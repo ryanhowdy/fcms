@@ -1,8 +1,4 @@
 <?php
-include_once('database_class.php');
-include_once('utils.php');
-include_once('datetime.php');
-
 /**
  * FamilyNews 
  * 
@@ -13,27 +9,24 @@ include_once('datetime.php');
  */
 class FamilyNews
 {
-    var $db;
-    var $db2;
-    var $tzOffset;
-    var $currentUserId;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
 
     /**
      * FamilyNews 
      * 
-     * @param int $currentUserId 
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
      *
      * @return void
      */
-    function FamilyNews ($currentUserId)
+    function FamilyNews ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = (int)$currentUserId;
-        $this->tzOffset      = getTimezone($this->currentUserId);
+        $this->fcmsError       = $fcmsError;
+        $this->fcmsDatabase    = $fcmsDatabase;
+        $this->fcmsUser        = $fcmsUser;
     }
 
     /**
@@ -50,22 +43,24 @@ class FamilyNews
                 WHERE u.`id` = n.`user` 
                 AND u.`id` = s.`user` GROUP BY id ORDER BY d DESC";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
             echo '
             <div id="news-list">
                 <h2>'.T_('Family News').'</h2>
                 <ul>';
 
-            while ($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
-                $date = fixDate(T_('M. j'), $this->tzOffset, $r['d']);
+                $date = fixDate(T_('M. j'), $this->fcmsUser->tzOffset, $r['d']);
                 $displayname = getUserDisplayName($r['id']);
                 echo '
                     <li><a href="familynews.php?getnews='.(int)$r['id'].'">'.$displayname.'</a> &nbsp;<small>'.$date.'</small></li>';
@@ -95,18 +90,36 @@ class FamilyNews
         $sql = "SELECT n.`id`, n.`user`, n.`title`, n.`news`, n.`updated`, n.`created`, 
                     n.`external_type`, n.`external_id`
                 FROM `fcms_news` AS n, `fcms_users` AS u
-                WHERE n.`user` = '$user' 
+                WHERE n.`user` = ? 
                     AND n.`user` = u.`id` 
                 ORDER BY `updated` DESC 
                 LIMIT $from, 5";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $user);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
-        while ($row = $this->db->get_row())
+        if (count($rows) <= 0)
+        {
+            echo '
+            <div class="blank-state">
+                <h2>'.T_('Nothing to see here').'</h2>
+                <h3>'.T_('Currently no one has added any news').'</h3>
+                <h3>'.T_('Why don\'t you be the first to add news?').'</a></h3>
+                <ol>
+                    <li><a href="?addnews=yes">'.T_('Add Family News').'</a></li>
+                    <li><a href="settings.php?view=familynews">'.T_('Import News from existing blog').'</a></li>
+                </ol>
+            </div>';
+
+            return;
+        }
+
+        foreach ($rows as $row)
         {
             $this->displayNews($row);
         }
@@ -114,16 +127,17 @@ class FamilyNews
         // Display Pagination
         $sql = "SELECT COUNT(`id`) AS c 
                 FROM `fcms_news` 
-                WHERE `user` = '$user'";
+                WHERE `user` = ?";
 
-        if (!$this->db2->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql, $user);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
-        $r = $this->db2->get_row();
-        $newscount = $r['c'];
+        $newscount = $row['c'];
         $total_pages = ceil($newscount / 5);
         displayPagination('familynews.php?getnews='.$user, $page, $total_pages);
     }
@@ -146,26 +160,24 @@ class FamilyNews
         $sql = "SELECT n.`id`, n.`title`, n.`news`, n.`updated`, n.`created`,
                     n.`external_type`, n.`external_id`
                 FROM `fcms_news` AS n, `fcms_users` AS u 
-                WHERE n.`id` = '$id' 
+                WHERE n.`id` = ? 
                     AND `user` = u.`id`";
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql, $id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
             return;
         }
 
-        $row = $this->db->get_row();
-
-        $updated = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['updated']);
-        $created = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['created']);
+        $updated = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['updated']);
+        $created = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['created']);
 
         $displayname = getUserDisplayName($user);
 
         $edit = '';
         $del  = '';
 
-        if ($this->currentUserId == $user || checkAccess($this->currentUserId) < 2)
+        if ($this->fcmsUser->id == $user || $this->fcmsUser->access < 2)
         {
             $edit = ' &nbsp;
                 <form method="post" action="familynews.php">
@@ -237,29 +249,32 @@ class FamilyNews
         // Comments
         $sql = "SELECT c.id, comment, `date`, fname, lname, username, user, avatar  
                 FROM fcms_news_comments AS c, fcms_users AS u 
-                WHERE news = $id 
+                WHERE news = ?
                 AND c.user = u.id 
                 ORDER BY `date`";
 
-        if (!$this->db2->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         { 
             echo '
             <p class="center">'.T_('no comments').'</p>';
+
             return;
         }
 
-        while($row = $this->db2->get_row())
+        foreach ($rows as $row)
         {
             $displayname = getUserDisplayName($row['user']);
-            $date        = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $row['date']);
+            $date        = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['date']);
 
-            if ($this->currentUserId == $row['user'] || checkAccess($this->currentUserId) < 2)
+            if ($this->fcmsUser->id == $row['user'] || $this->fcmsUser->access < 2)
             {
                 echo '
             <div class="comment_block">
@@ -373,13 +388,14 @@ class FamilyNews
                 ORDER BY `updated` DESC 
                 LIMIT 5";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsDatabase->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             echo '
             <div class="blank-state">
@@ -395,7 +411,7 @@ class FamilyNews
             return;
         }
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $this->displayNews($row);
         }
@@ -413,14 +429,17 @@ class FamilyNews
 
         $sql = "SELECT `id` 
                 FROM `fcms_news` 
-                WHERE `user` = '$userid' 
+                WHERE `user` = ?
                 LIMIT 1";
-        if (!$this->db->query($sql))
+
+        $row = $this->fcmsDatabase->getRow($sql, $userid);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-        if ($this->db->count_rows() > 0)
+        if (count($row) > 0)
         {
             return true;
         }
@@ -445,12 +464,14 @@ class FamilyNews
                 FROM `fcms_config`
                 WHERE `name` = 'external_news_date'
                 LIMIT 1";
-        if (!$this->db->query($sql))
+
+        $r = $this->fcmsDatabase->getRow($sql);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-        $r = $this->db->get_row();
 
         $last_checked = strtotime($r['external_news_date']);
 
@@ -470,19 +491,22 @@ class FamilyNews
         // Get import blog settings
         $sql = "SELECT `user`, `blogger`, `tumblr`, `wordpress`, `posterous`
                 FROM `fcms_user_settings`";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             return;
         }
 
         $external_ids = $this->getExternalPostIds();
 
-        while ($r = $this->db->get_row())
+        foreach ($rows as $r)
         {
             // Blogger
             if (!empty($r['blogger']))
@@ -528,11 +552,14 @@ class FamilyNews
         // Update date we last checked for external ids
         $now = gmdate('Y-m-d H:i:s');
         $sql = "UPDATE `fcms_config`
-                SET `value` = '$now'
+                SET `value` = ?
                 WHERE `name` = 'external_news_date'";
-        if (!$this->db->query($sql))
+
+        if (!$this->fcmsDatabase->update($sql, $now))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
+            return;
         }
     }
 
@@ -550,8 +577,8 @@ class FamilyNews
     {
         $displayname = getUserDisplayName($data['user']);
 
-        $updated = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $data['updated']);
-        $created = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $data['created']);
+        $updated = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $data['updated']);
+        $created = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $data['created']);
 
         $newsSource = '';
 
@@ -613,14 +640,15 @@ class FamilyNews
                 FROM `fcms_news`
                 WHERE `external_id` IS NOT NULL";
 
-        if (!$this->db2->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
 
             return $external_ids;
         }
 
-        while ($row = $this->db2->get_row())
+        foreach ($rows as $row)
         {
             $external_ids[$row['external_id']] = $row['external_type'];
         }
@@ -704,14 +732,16 @@ class FamilyNews
         }
 
         // Insert new external posts
-        $sql = "INSERT INTO `fcms_news` (`title`, `news`, `user`, 
-                    `created`, `updated`, `external_type`, `external_id`)
+        $sql = "INSERT INTO `fcms_news`
+                    (`title`, `news`, `user`, `created`, `updated`, `external_type`, `external_id`)
                 VALUES ";
+
+        $allParams = array();
 
         $importCount = 0;
         foreach ($xml->entry as $post)
         {
-            $bid = escape_string("$post->id");
+            $bid = "$post->id";
 
             // skip ids that already exist
             if (isset($externalIds[$bid]))
@@ -719,12 +749,16 @@ class FamilyNews
                 continue;
             }
 
-            $title = escape_string("$post->title");
-            $news  = escape_string("$post->content");
-            $user  = escape_string($userid, 'int');
-            $date  = date('Y-m-d H:i:s', strtotime($post->published));
+            $sql .= "(?, ?, ?, ?, NOW(), 'blogger', ?), ";
+            $params = array(
+                "$post->title",
+                "$post->content",
+                $userid,
+                date('Y-m-d H:i:s', strtotime($post->published)),
+                $bid
+            );
 
-            $sql .= "('$title', '$news', '$user', '$date', NOW(), 'blogger', '$bid'), ";
+            $allParams = array_merge($allParams, $params);
 
             $importCount++;
         }
@@ -740,9 +774,10 @@ class FamilyNews
             // remove extra comma and space
             $sql = substr($sql, 0, -2);
 
-            if (!$this->db2->query($sql))
+            if (!$this->fcmsDatabase->insert($sql, $allParams))
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return false;
             }
         }
@@ -790,12 +825,12 @@ class FamilyNews
                     `created`, `updated`, `external_type`, `external_id`)
                 VALUES ";
 
+        $allParams = array();
+
         $importCount = 0;
         foreach($xml->posts->post as $post)
         {
-            $id   = (float)$post->attributes()->id;
-            $date = date('Y-m-d H:i:s', strtotime($post->attributes()->date));
-            $user = $userid;
+            $id = (float)$post->attributes()->id;
 
             // skip ids that already exist
             if (isset($externalIds["$id"]))
@@ -810,7 +845,7 @@ class FamilyNews
                     $title = '';
                     if (isset($post->{'photo-caption'}))
                     {
-                        $title = escape_string($post->{'photo-caption'});
+                        $title = $post->{'photo-caption'};
                     }
                     break;
 
@@ -824,7 +859,17 @@ class FamilyNews
                     break;
             }
 
-            $sql .= "('$title', '$news', '$user', '$date', NOW(), 'tumblr', '$id'), ";
+            $sql .= "(?, ?, ?, ?, NOW(), 'tumblr', ?), ";
+
+            $params = array(
+                $title,
+                $news,
+                $userid,
+                date('Y-m-d H:i:s', strtotime($post->attributes()->date)),
+                $id
+            );
+
+            $allParams = array_merge($allParams, $params);
 
             $importCount++;
         }
@@ -840,9 +885,10 @@ class FamilyNews
             // remove extra comma and space
             $sql = substr($sql, 0, -2);
 
-            if (!$this->db2->query($sql))
+            if (!$this->fcmsDatabase->insert($sql, $allParams))
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return false;
             }
         }
@@ -887,10 +933,12 @@ class FamilyNews
                     `created`, `updated`, `external_type`, `external_id`)
                 VALUES ";
 
+        $allParams = array();
+
         $importCount = 0;
         foreach($xml->channel->item as $post)
         {
-            $bid = escape_string("$post->guid");
+            $bid = "$post->guid";
 
             // skip ids that already exist
             if (isset($external_ids[$bid]))
@@ -898,12 +946,17 @@ class FamilyNews
                 continue;
             }
 
-            $title = escape_string("$post->title");
-            $news  = escape_string("$post->description");
-            $user  = $userId;
-            $date  = date('Y-m-d H:i:s', strtotime($post->pubDate));
+            $sql .= "(?, ?, ?, ?, NOW(), 'wordpress', ?), ";
 
-            $sql .= "('$title', '$news', '$user', '$date', NOW(), 'wordpress', '$bid'), ";
+            $params = array(
+                "$post->title",
+                "$post->description",
+                $userId,
+                date('Y-m-d H:i:s', strtotime($post->pubDate)),
+                $bid
+            );
+
+            $allParams = array_merge($allParams, $params);
 
             $importCount++;
         }
@@ -919,9 +972,10 @@ class FamilyNews
             // remove extra comma and space
             $sql = substr($sql, 0, -2);
 
-            if (!$this->db2->query($sql))
+            if (!$this->fcmsDatabase->insert($sql, $allParams))
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return false;
             }
         }
@@ -988,10 +1042,12 @@ class FamilyNews
                     `created`, `updated`, `external_type`, `external_id`)
                 VALUES ";
 
+        $allParams = array();
+
         $importCount = 0;
         foreach($xml->post as $post)
         {
-            $bid = escape_string($post->id);
+            $bid = "$post->id";
 
             // skip ids that already exist
             if (isset($external_ids[$bid]))
@@ -999,12 +1055,17 @@ class FamilyNews
                 continue;
             }
 
-            $title = escape_string("$post->title");
-            $news  = escape_string("$post->body");
-            $user  = $userId;
-            $date  = date('Y-m-d H:i:s', strtotime($post->date));
+            $sql .= "(?, ?, ?, ?, NOW(), 'posterous', ?), ";
 
-            $sql .= "('$title', '$news', '$user', '$date', NOW(), 'posterous', '$bid'), ";
+            $params = array(
+                "$post->title",
+                "$post->body",
+                $userId,
+                date('Y-m-d H:i:s', strtotime($post->date)),
+                $bid
+            );
+
+            $allParams = array_merge($allParams, $params);
 
             $importCount++;
         }
@@ -1020,9 +1081,10 @@ class FamilyNews
             // remove extra comma and space
             $sql = substr($sql, 0, -2);
 
-            if (!$this->db2->query($sql))
+            if (!$this->fcmsDatabase->insert($sql, $allParams))
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return false;
             }
         }

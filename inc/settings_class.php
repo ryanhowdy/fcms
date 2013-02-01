@@ -1,7 +1,4 @@
 <?php
-include_once('database_class.php');
-include_once('utils.php');
-
 /**
  * Settings 
  * 
@@ -12,38 +9,24 @@ include_once('utils.php');
  */
 class Settings
 {
-    var $db;
-    var $currentUserId;
-    var $currentUserEmail;
-    var $tzOffset;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
 
     /**
      * Settings 
      * 
-     * @param   int     $currentUserId 
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
      *
      * @return  void
      */
-    function Settings ($currentUserId)
+    function Settings ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = (int)$currentUserId;
-        $this->tzOffset      = getTimezone($this->currentUserId);
-
-        $sql = "SELECT `email` 
-                FROM `fcms_users` 
-                WHERE `id` = '$currentUserId'";
-        if (!$this->db->query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            die();
-        }
-
-        $row = $this->db->get_row();
-        $this->currentUserEmail = $row['email'];
+        $this->fcmsError       = $fcmsError;
+        $this->fcmsDatabase    = $fcmsDatabase;
+        $this->fcmsUser        = $fcmsUser;
     }
 
     /**
@@ -55,13 +38,15 @@ class Settings
     {
         $sql = "SELECT `username`, `email`, `password`
                 FROM `fcms_users`
-                WHERE `id` = '" . $this->currentUserId . "'";
-        if (!$this->db->query($sql))
+                WHERE `id` = ?";
+
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-        $row = $this->db->get_row();
 
         echo '
                 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
@@ -107,14 +92,15 @@ class Settings
     {
         $sql = "SELECT `theme`
                 FROM `fcms_user_settings`
-                WHERE `user` = '" . $this->currentUserId . "'";
-        if (!$this->db->query($sql))
+                WHERE `user` = ?";
+
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-
-        $row = $this->db->get_row();
 
         // Theme
         $themes    = array();
@@ -122,7 +108,7 @@ class Settings
 
         foreach($themeList as $file)
         {
-            $themeData = $this->getThemeData($file);
+            $themeData      = $this->getThemeData($file);
             $themes[$file]  = $themeData;
         }
 
@@ -153,7 +139,7 @@ class Settings
                 <h3>'.T_('Themes').'</h3>';
 
         $canDelete = false;
-        if (checkAccess($this->currentUserId) == 1)
+        if ($this->fcmsUser->access == 1)
         {
             $canDelete = true;
         }
@@ -205,15 +191,15 @@ class Settings
         $sql = "SELECT `displayname`, `advanced_upload`, `advanced_tagging`, `language`,
                     `dst`, `timezone`, `boardsort`, `frontpage`
                 FROM `fcms_user_settings`
-                WHERE `user` = '" . $this->currentUserId . "'";
-        if (!$this->db->query($sql))
+                WHERE `user` = '" . $this->fcmsUser->id . "'";
+
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-
-        $row = $this->db->get_row();
-
 
         // Display Name
         $displayname_list = array(
@@ -226,6 +212,7 @@ class Settings
         // Advanced Upload
         $yc = $row['advanced_upload'] == 1 ? 'checked="checked"' : '';
         $nc = $row['advanced_upload'] == 0 ? 'checked="checked"' : '';
+
         $advanced_upload_options  = '<input type="radio" name="advanced_upload" id="advanced_upload_yes" value="yes" '.$yc.'>';
         $advanced_upload_options .= '<label class="radio_label" for="advanced_upload_yes">'.T_('Yes').'</label>&nbsp;&nbsp; ';
         $advanced_upload_options .= '<input type="radio" name="advanced_upload" id="advanced_upload_no" value="no" '.$nc.'>';
@@ -234,14 +221,16 @@ class Settings
         // Advanced Tagging
         $yc = $row['advanced_tagging'] == 1 ? 'checked="checked"' : '';
         $nc = $row['advanced_tagging'] == 0 ? 'checked="checked"' : '';
+
         $advanced_tagging_options  = '<input type="radio" name="advanced_tagging" id="advanced_tagging_yes" value="yes" '.$yc.'>';
         $advanced_tagging_options .= '<label class="radio_label" for="advanced_tagging_yes">'.T_('Yes').'</label>&nbsp;&nbsp; ';
         $advanced_tagging_options .= '<input type="radio" name="advanced_tagging" id="advanced_tagging_no" value="no" '.$nc.'>';
         $advanced_tagging_options .= '<label class="radio_label" for="advanced_tagging_no">'.T_('No').'</label>';
 
         // Language
-        $lang_dir = "language/";
+        $lang_dir     = "language/";
         $lang_options = '';
+
         if (is_dir($lang_dir))
         {
             if ($dh = opendir($lang_dir))
@@ -278,38 +267,7 @@ class Settings
         }
 
         // Timezone
-        $tz_list = array(
-            "-12 hours"             => T_('(GMT -12:00) Eniwetok, Kwajalein'),
-            "-11 hours"             => T_('(GMT -11:00) Midway Island, Samoa'),
-            "-10 hours"             => T_('(GMT -10:00) Hawaii'),
-            "-9 hours"              => T_('(GMT -9:00) Alaska'),
-            "-8 hours"              => T_('(GMT -8:00) Pacific Time (US & Canada)'),
-            "-7 hours"              => T_('(GMT -7:00) Mountain Time (US & Canada)'),
-            "-6 hours"              => T_('(GMT -6:00) Central Time (US & Canada), Mexico City'),
-            "-5 hours"              => T_('(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima'),
-            "-4 hours"              => T_('(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz'),
-            "-3 hours -30 minutes"  => T_('(GMT -3:30) Newfoundland'),
-            "-3 hours"              => T_('(GMT -3:00) Brazil, Buenos Aires, Georgetown'),
-            "-2 hours"              => T_('(GMT -2:00) Mid-Atlantic'),
-            "-1 hours"              => T_('(GMT -1:00) Azores, Cape Verde Islands'),
-            "-0 hours"              => T_('(GMT) Western Europe Time, London, Lisbon, Casablanca'),
-            "+1 hours"              => T_('(GMT +1:00) Brussels, Copenhagen, Madrid, Paris'),
-            "+2 hours"              => T_('(GMT +2:00) Kaliningrad, South Africa'),
-            "+3 hours"              => T_('(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh'),
-            "+3 hours 30 minutes"   => T_('(GMT +3:30) Tehran'),
-            "+4 hours"              => T_('(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi'),
-            "+4 hours 30 minutes"   => T_('(GMT +4:30) Kabul'),
-            "+5 hours"              => T_('(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent'),
-            "+5 hours 30 minutes"   => T_('(GMT +5:30) Bombay, Calcutta, Madras, New Delhi'),
-            "+6 hours"              => T_('(GMT +6:00) Almaty, Dhaka, Colombo'),
-            "+7 hours"              => T_('(GMT +7:00) Bangkok, Hanoi, Jakarta'),
-            "+8 hours"              => T_('(GMT +8:00) Beijing, Perth, Singapore, Hong Kong'),
-            "+9 hours"              => T_('(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk'),
-            "+9 hours 30 minutes"   => T_('(GMT +9:30) Adeliaide, Darwin'),
-            "+10 hours"             => T_('(GMT +10:00) Eastern Australia, Guam, Vladivostok'),
-            "+11 hours"             => T_('(GMT +11:00) Magadan, Solomon Islands, New Caledonia'),
-            "+12 hours"             => T_('(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka')
-        );
+        $tz_list    = getTimezoneList();
         $tz_options = buildHtmlSelectOptions($tz_list, $row['timezone']);
 
         // DST
@@ -411,14 +369,15 @@ class Settings
     {
         $sql = "SELECT `email_updates` 
                 FROM `fcms_user_settings`
-                WHERE `user` = '" . $this->currentUserId . "'";
-        if (!$this->db->query($sql))
+                WHERE `user` = '" . $this->fcmsUser->id . "'";
+
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-
-        $row = $this->db->get_row();
 
         // Email Options
         $email_updates_options = '<input type="radio" name="email_updates" id="email_updates_yes" '
@@ -456,14 +415,28 @@ class Settings
     {
         $sql = "SELECT `blogger`, `tumblr`, `wordpress`, `posterous`
                 FROM `fcms_user_settings`
-                WHERE `user` = '" . $this->currentUserId . "'";
+                WHERE `user` = '" . $this->fcmsUser->id . "'";
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
+            return;
         }
 
-        $row = $this->db->get_row();
+        $bloggerManualImport    = empty($row['blogger']) 
+                                ? '' 
+                                : '<p><a class="blogger" href="?view=familynews&amp;import=blogger">'.T_('Manually Import Posts').'</a></p>';
+        $tumblrManualImport     = empty($row['tumblr'])
+                                ? '' 
+                                : '<p><a class="tumblr" href="?view=familynews&amp;import=tumblr">'.T_('Manually Import Posts').'</a></p>';
+        $wordpressManualImport  = empty($row['wordpress'])
+                                ? '' 
+                                : '<p><a class="wordpress" href="?view=familynews&amp;import=wordpress">'.T_('Manually Import Posts').'</a></p>';
+        $posterousManualImport  = empty($row['posterous'])
+                                ? '' 
+                                : '<p><a class="posterous" href="?view=familynews&amp;import=posterous">'.T_('Manually Import Posts').'</a></p>';
 
         echo '
                 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
@@ -478,7 +451,7 @@ class Settings
                             <input type="text" name="blogger" name="blogger" size="50" value="'.cleanOutput($row['blogger']).'"/><br/>
                             '.T_('Enter your blogger id.').'
                             <a href="http://www.google.com/support/blogger/bin/answer.py?answer=42191">'.T_('More Info').'</a>
-                            <p><a class="blogger" href="?view=familynews&amp;import=blogger">'.T_('Manually Import Posts').'</a></p>
+                            '.$bloggerManualImport.'
                         </div>
                     </div>
                     <div class="field-row">
@@ -488,7 +461,7 @@ class Settings
                         <div class="field-widget">
                             <input type="text" name="tumblr" name="tumblr" size="50" value="'.cleanOutput($row['tumblr']).'"/><br/>
                             '.T_('Enter the url to your blog.').'
-                            <p><a class="tumblr" href="?view=familynews&amp;import=tumblr">'.T_('Manually Import Posts').'</a></p>
+                            '.$tumblrManualImport.'
                         </div>
                     </div>
                     <div class="field-row">
@@ -498,7 +471,7 @@ class Settings
                         <div class="field-widget">
                             <input type="text" name="wordpress" name="wordpress" size="50" value="'.cleanOutput($row['wordpress']).'"/><br/>
                             '.T_('Enter the url to the wordpress rss feed.').'
-                            <p><a class="wordpress" href="?view=familynews&amp;import=wordpress">'.T_('Manually Import Posts').'</a></p>
+                            '.$wordpressManualImport.'
                         </div>
                     </div>
                     <div class="field-row">
@@ -509,7 +482,7 @@ class Settings
                             <input type="text" name="posterous" name="posterous" size="50" value="'.cleanOutput($row['posterous']).'"/><br/>
                             '.T_('Enter the account name for your blog.').'<br/>
                             Ex: bob123.posterous.com use bob123'.'
-                            <p><a class="posterous" href="?view=familynews&amp;import=posterous">'.T_('Manually Import Posts').'</a></p>
+                            '.$posterousManualImport.'
                         </div>
                     </div>
                     <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
@@ -526,19 +499,19 @@ class Settings
     {
         $sql = "SELECT `boardsort`
                 FROM `fcms_user_settings`
-                WHERE `user` = '".$this->currentUserId."'";
+                WHERE `user` = '".$this->fcmsUser->id."'";
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
-        $row = $this->db->get_row();
-
         // Messageboard Sort
         $boardsort_list = array(
-            "ASC" => T_('New Messages at Bottom'),
+            "ASC"  => T_('New Messages at Bottom'),
             "DESC" => T_('New Messages at Top')
         );
         $boardsort_options = buildHtmlSelectOptions($boardsort_list, $row['boardsort']);
@@ -572,10 +545,10 @@ class Settings
     {
         $sql = "SELECT `fs_user_id`, `fs_access_token`
                 FROM `fcms_user_settings`
-                WHERE `user` = '" . $this->currentUserId . "'";
+                WHERE `user` = '" . $this->fcmsUser->id . "'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
@@ -587,21 +560,20 @@ class Settings
             $sql = "SELECT `fs_client_id`, `fs_client_secret`, `fs_callback_url`
                     FROM `fcms_config`
                     LIMIT 1";
-            $result = mysql_query($sql);
-            if (!$result)
+
+            $r = $this->fcmsDatabase->getRow($sql);
+            if ($r === false)
             {
-                displaySqlError($sql, mysql_error());
-                displayFooter();
+                $this->fcmsError->displayError();
                 return;
             }
-            if (mysql_num_rows($result) <= 0)
+
+            if (empty($r))
             {
                 echo '
                     <p class="error-alert">'.T_('No configuration data found.').'</p>';
-                displayFooter();
                 return;
             }
-            $r = mysql_fetch_assoc($result);
 
             $id     = cleanOutput($r['fs_client_id']);
             $secret = cleanOutput($r['fs_client_secret']);

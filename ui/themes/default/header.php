@@ -1,13 +1,15 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo T_('lang'); ?>" lang="<?php echo T_('lang'); ?>">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo T_pgettext('Language Code for this translation', 'lang'); ?>" lang="<?php echo T_('Language Code for this translation', 'lang'); ?>">
 <head>
 <title><?php echo $TMPL['sitename'] . " - " . T_('powered by') . " " . $TMPL['version']; ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="author" content="Ryan Haudenschilt" />
+<meta name="viewport" content="width=device-width" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>ui/favicon.ico"/>
 <link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/style.css"/>
+<link rel="stylesheet" type="text/css" media="only screen and (max-width: 480px)" href="<?php echo $TMPL["path"]; ?>ui/themes/default/mobile.css"/>
 <script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/prototype.js"></script>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js?version=320"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
 </head>
 <body id="top">

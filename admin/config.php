@@ -20,163 +20,181 @@ require URL_PREFIX.'fcms.php';
 
 init('admin/');
 
-$fcmsUser->id = (int)$_SESSION['login_id'];
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
-$TMPL = array(
-    'sitename'      => getSiteName(),
-    'nav-link'      => getAdminNavLinks(),
-    'pagetitle'     => T_('Administration: Configuration'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
-
-control();
 exit();
 
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    global $fcmsUser;
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
 
-    if (checkAccess($fcmsUser->id) > 2)
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        displayInvalidAccessLevel();
-        return;
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
+
+        $this->fcmsTemplate = array(
+            'sitename'      => getSiteName(),
+            'nav-link'      => getAdminNavLinks(),
+            'pagetitle'     => T_('Administration: Configuration'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
     }
-    elseif (isset($_GET['view']))
-    {
-        $view = $_GET['view'];
 
-        if ($view == 'general')
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if ($this->fcmsUser->access > 2)
         {
-            if (isset($_POST['submit-sitename']))
+            $this->displayInvalidAccessLevel();
+            return;
+        }
+        elseif (isset($_GET['view']))
+        {
+            $view = $_GET['view'];
+
+            if ($view == 'general')
             {
-                displayGeneralFormSubmit();
+                if (isset($_POST['submit-sitename']))
+                {
+                    $this->displayGeneralFormSubmit();
+                }
+                else
+                {
+                    $this->displayGeneralForm();
+                }
+            }
+            elseif ($view == 'defaults')
+            {
+                if (isset($_POST['submit-defaults']))
+                {
+                    $this->displayDefaultsFormSubmit();
+                }
+                else
+                {
+                    $this->displayDefaultsForm();
+                }
+            }
+            elseif ($view == 'plugins')
+            {
+                if (isset($_POST['submit-plugins']))
+                {
+                    $this->displayPluginsFormSubmit();
+                }
+                else
+                {
+                    $this->displayPluginsForm();
+                }
+            }
+            elseif ($view == 'navigation')
+            {
+                if (isset($_POST['submit-navigation']))
+                {
+                    $this->displayNavigationFormSubmit();
+                }
+                else
+                {
+                    $this->displayNavigationForm();
+                }
+            }
+            // TODO move out of here
+            elseif ($view == 'gallery')
+            {
+                if (isset($_POST['submit-gallery']))
+                {
+                    $this->displayPhotoGalleryFormSubmit();
+                }
+                else
+                {
+                    $this->displayPhotoGalleryForm();
+                }
             }
             else
             {
-                displayGeneralForm();
+                $this->displayGeneralForm();
             }
         }
-        elseif ($view == 'defaults')
+        elseif (isset($_POST['submit-ajax-navigation']))
         {
-            if (isset($_POST['submit-defaults']))
-            {
-                displayDefaultsFormSubmit();
-            }
-            else
-            {
-                displayDefaultsForm();
-            }
-        }
-        elseif ($view == 'plugins')
-        {
-            if (isset($_POST['submit-plugins']))
-            {
-                displayPluginsFormSubmit();
-            }
-            else
-            {
-                displayPluginsForm();
-            }
-        }
-        elseif ($view == 'navigation')
-        {
-            if (isset($_POST['submit-navigation']))
-            {
-                displayNavigationFormSubmit();
-            }
-            else
-            {
-                displayNavigationForm();
-            }
-        }
-        // TODO move out of here
-        elseif ($view == 'gallery')
-        {
-            if (isset($_POST['submit-gallery']))
-            {
-                displayPhotoGalleryFormSubmit();
-            }
-            else
-            {
-                displayPhotoGalleryForm();
-            }
+            $this->displayNavigationFormSubmit(true);
         }
         else
         {
-            displayGeneralForm();
+            $this->displayGeneralForm();
         }
     }
-    elseif (isset($_POST['submit-ajax-navigation']))
-    {
-        displayNavigationFormSubmit(true);
-    }
-    else
-    {
-        displayGeneralForm();
-    }
-}
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    $TMPL['javascript'] = '
+        $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>
 <script src="'.URL_PREFIX.'ui/js/scriptaculous.js" type="text/javascript"></script>
 <script src="'.URL_PREFIX.'ui/js/admin.js" type="text/javascript"></script>
 <script src="'.URL_PREFIX.'ui/js/livevalidation.js" type="text/javascript"></script>';
 
-    include_once URL_PREFIX.'ui/admin/header.php';
+        include_once URL_PREFIX.'ui/admin/header.php';
 
-    $general    = '';
-    $defaults   = '';
-    $plugins    = '';
-    $navigation = '';
-    $gallery    = '';
+        $general    = '';
+        $defaults   = '';
+        $plugins    = '';
+        $navigation = '';
+        $gallery    = '';
 
-    if (!isset($_GET['view']))
-    {
-        $general = 'active';
-    }
-    else
-    {
-        switch ($_GET['view'])
+        if (!isset($_GET['view']))
         {
-            case 'general':
-            default:
-                $general = 'active';
-                break;
-            case 'defaults':
-                $defaults = 'active';
-                break;
-            case 'plugins':
-                $plugins = 'active';
-                break;
-            case 'navigation':
-                $navigation = 'active';
-                break;
-            case 'gallery':
-                $gallery = 'active';
-                break;
+            $general = 'active';
         }
-    }
+        else
+        {
+            switch ($_GET['view'])
+            {
+                case 'general':
+                default:
+                    $general = 'active';
+                    break;
+                case 'defaults':
+                    $defaults = 'active';
+                    break;
+                case 'plugins':
+                    $plugins = 'active';
+                    break;
+                case 'navigation':
+                    $navigation = 'active';
+                    break;
+                case 'gallery':
+                    $gallery = 'active';
+                    break;
+            }
+        }
 
-    echo '
+        echo '
         <div id="config" style="position:relative;">
 
             <ul class="tabs">
@@ -186,127 +204,127 @@ function displayHeader ()
                 <li class="'.$navigation.'"><a href="?view=navigation">'.T_('Navigation').'</a></li>
                 <li class="'.$gallery.'"><a href="?view=gallery">'.T_('Photo Gallery').'</a></li>
             </ul>';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
+        echo '
         </div><!--/config-->';
 
-    include_once URL_PREFIX.'ui/admin/footer.php';
-}
+        include_once URL_PREFIX.'ui/admin/footer.php';
+    }
 
-/**
- * displayInvalidAccessLevel 
- * 
- * @return void
- */
-function displayInvalidAccessLevel ()
-{
-    displayHeader();
+    /**
+     * displayInvalidAccessLevel 
+     * 
+     * @return void
+     */
+    function displayInvalidAccessLevel ()
+    {
+        $this->displayHeader();
 
-    echo '
+        echo '
             <p class="error-alert">
                 <b>'.T_('You do not have access to view this page.').'</b><br/>
                 '.T_('This page requires an access level 1 (Admin).').' 
                 <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
             </p>';
 
-    displayFooter();
-}
-
-/**
- * displayGeneralForm 
- * 
- * @return void
- */
-function displayGeneralForm ()
-{
-    displayHeader();
-
-    $sql = "SELECT `name`, `value`
-            FROM `fcms_config`";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    $row = array();
-
-    while ($r = mysql_fetch_assoc($result))
+    /**
+     * displayGeneralForm 
+     * 
+     * @return void
+     */
+    function displayGeneralForm ()
     {
-        $row[$r['name']] = $r['value'];
-    }
-    
-    // Activate Options
-    $activateList = array (
-        '0' => T_('Admin Activation'),
-        '1' => T_('Auto Activation')
-    );
+        $this->displayHeader();
 
-    $activateOptions = buildHtmlSelectOptions($activateList, $row['auto_activate']);
-    
-    // Register Options
-    $registerList = array (
-        '0' => T_('Off'),
-        '1' => T_('On')
-    );
+        $sql = "SELECT `name`, `value`
+                FROM `fcms_config`";
 
-    $registerOptions = buildHtmlSelectOptions($registerList, $row['registration']);
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
 
-    // Start of week
-    $startSun = ($row['start_week'] == 0) ? 'checked' : '';;
-    $startMon = ($row['start_week'] == 1) ? 'checked' : '';
-    $startTue = ($row['start_week'] == 2) ? 'checked' : '';
-    $startWed = ($row['start_week'] == 3) ? 'checked' : '';
-    $startThr = ($row['start_week'] == 4) ? 'checked' : '';
-    $startFri = ($row['start_week'] == 5) ? 'checked' : '';
-    $startSat = ($row['start_week'] == 6) ? 'checked' : '';
+        $row = array();
 
-    // Site Off Options
-    // TODO - config table or file?
-    $siteOffYes = '';
-    $siteOffNo  = '';
-    if ($row['site_off'] == 1)
-    {
-        $siteOffYes = 'checked';
-    }
-    else
-    {
-        $siteOffNo = 'checked';
-    }
+        foreach ($rows as $r)
+        {
+            $row[$r['name']] = $r['value'];
+        }
+        
+        // Activate Options
+        $activateList = array (
+            '0' => T_('Admin Activation'),
+            '1' => T_('Auto Activation')
+        );
 
-    // Debug
-    $debugList = array(
-        '0' => T_('Off'),
-        '1' => T_('On')
-    );
+        $activateOptions = buildHtmlSelectOptions($activateList, $row['auto_activate']);
+        
+        // Register Options
+        $registerList = array (
+            '0' => T_('Off'),
+            '1' => T_('On')
+        );
 
-    $debugOptions = buildHtmlSelectOptions($debugList, $row['debug']);
+        $registerOptions = buildHtmlSelectOptions($registerList, $row['registration']);
 
-    $message = '';
+        // Start of week
+        $startSun = ($row['start_week'] == 0) ? 'checked' : '';;
+        $startMon = ($row['start_week'] == 1) ? 'checked' : '';
+        $startTue = ($row['start_week'] == 2) ? 'checked' : '';
+        $startWed = ($row['start_week'] == 3) ? 'checked' : '';
+        $startThr = ($row['start_week'] == 4) ? 'checked' : '';
+        $startFri = ($row['start_week'] == 5) ? 'checked' : '';
+        $startSat = ($row['start_week'] == 6) ? 'checked' : '';
 
-    if (isset($_SESSION['success']))
-    {
-        $message  = '<div class="alert-message success">';
-        $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
-        $message .= T_('Changes Updated Successfully').'</div>';
+        // Site Off Options
+        // TODO - config table or file?
+        $siteOffYes = '';
+        $siteOffNo  = '';
+        if ($row['site_off'] == 1)
+        {
+            $siteOffYes = 'checked';
+        }
+        else
+        {
+            $siteOffNo = 'checked';
+        }
 
-        unset($_SESSION['success']);
-    }
+        // Debug
+        $debugList = array(
+            '0' => T_('Off'),
+            '1' => T_('On')
+        );
 
-    echo '
+        $debugOptions = buildHtmlSelectOptions($debugList, $row['debug']);
+
+        $message = '';
+
+        if (isset($_SESSION['success']))
+        {
+            $message  = '<div class="alert-message success">';
+            $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
+            $message .= T_('Changes Updated Successfully').'</div>';
+
+            unset($_SESSION['success']);
+        }
+
+        echo '
         <form action="config.php?view=general" method="post">
         <fieldset>
             <legend>'.T_('General Configuration').'</legend>
@@ -426,273 +444,244 @@ function displayGeneralForm ()
         </fieldset>
         </form>';
 
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-/**
- * displayGeneralFormSubmit 
- * 
- * @return void
- */
-function displayGeneralFormSubmit ()
-{
-    if (isset($_POST['sitename']))
+    /**
+     * displayGeneralFormSubmit 
+     * 
+     * @return void
+     */
+    function displayGeneralFormSubmit ()
     {
-        $sitename = strip_tags($_POST['sitename']);
-        $sitename = escape_string($sitename);
-
-        $sql = "UPDATE `fcms_config` 
-                SET `value` = '$sitename'
-                WHERE `name` = 'sitename'";
-        if (!mysql_query($sql))
+        if (isset($_POST['sitename']))
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $sitename = strip_tags($_POST['sitename']);
+
+            $sql = "UPDATE `fcms_config` 
+                    SET `value` = ?
+                    WHERE `name` = 'sitename'";
+
+            if (!$this->fcmsDatabase->update($sql, $sitename))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        if (isset($_POST['contact']))
+        {
+            $contact = strip_tags($_POST['contact']);
+
+            $sql = "UPDATE `fcms_config` 
+                    SET `value` = ?
+                    WHERE `name` = 'contact'";
+
+            if (!$this->fcmsDatabase->update($sql, $contact))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        if (isset($_POST['activation']))
+        {
+            $sql = "UPDATE `fcms_config` 
+                    SET `value` = ?
+                    WHERE `name` = 'auto_activate'";
+
+            if (!$this->fcmsDatabase->update($sql, $_POST['activation']))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        if (isset($_POST['registration']))
+        {
+            $sql = "UPDATE `fcms_config` 
+                    SET `value` = ?
+                    WHERE `name` = 'registration'";
+
+            if (!$this->fcmsDatabase->update($sql, $_POST['registration']))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        if (isset($_POST['start_week']))
+        {
+            $sql = "UPDATE `fcms_config` 
+                    SET `value` = ?
+                    WHERE `name` = 'start_week'";
+
+            if (!$this->fcmsDatabase->update($sql, $_POST['start_week']))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        if (isset($_POST['site_off']))
+        {
+            $val = $_POST['site_off'] == 'yes' ? '1' : '0';
+
+            $sql = "UPDATE `fcms_config` 
+                    SET `value` = ?
+                    WHERE `name` = 'site_off'";
+
+            if (!$this->fcmsDatabase->update($sql, $val))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        if (isset($_POST['debug']))
+        {
+            $sql = "UPDATE `fcms_config` 
+                    SET `value` = ?
+                    WHERE `name` = 'debug'";
+
+            if (!$this->fcmsDatabase->update($sql, $_POST['debug']))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: config.php?view=general");
+    }
+
+    /**
+     * displayDefaultsForm
+     * 
+     * @return void
+     */
+    function displayDefaultsForm ()
+    {
+        $this->displayHeader();
+
+        // Defaults Config
+        $sql = "DESCRIBE `fcms_user_settings`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
             return;
         }
-    }
 
-    if (isset($_POST['contact']))
-    {
-        $contact = strip_tags($_POST['contact']);
-        $contact = escape_string($contact);
-
-        $sql = "UPDATE `fcms_config` 
-                SET `value` = '$contact'
-                WHERE `name` = 'contact'";
-        if (!mysql_query($sql))
+        foreach ($rows as $drow)
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-    }
-
-    if (isset($_POST['activation']))
-    {
-        $sql = "UPDATE `fcms_config` 
-                SET `value` = '".escape_string($_POST['activation'])."'
-                WHERE `name` = 'auto_activate'";
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-    }
-
-    if (isset($_POST['registration']))
-    {
-        $sql = "UPDATE `fcms_config` 
-                SET `value` = '".escape_string($_POST['registration'])."'
-                WHERE `name` = 'registration'";
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-    }
-
-    if (isset($_POST['start_week']))
-    {
-        $sql = "UPDATE `fcms_config` 
-                SET `value` = '".(int)$_POST['start_week']."'
-                WHERE `name` = 'start_week'";
-
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-    }
-
-    if (isset($_POST['site_off']))
-    {
-        $val = $_POST['site_off'] == 'yes' ? '1' : '0';
-
-        $sql = "UPDATE `fcms_config` 
-                SET `value` = '".($_POST['site_off'] == 'yes' ? '1' : '0')."'
-                WHERE `name` = 'site_off'";
-
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-    }
-
-    if (isset($_POST['debug']))
-    {
-        $sql = "UPDATE `fcms_config` 
-                SET `value` = '".escape_string($_POST['debug'])."'
-                WHERE `name` = 'debug'";
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-    }
-
-    $_SESSION['success'] = 1;
-
-    header("Location: config.php?view=general");
-}
-
-/**
- * displayDefaultsForm
- * 
- * @return void
- */
-function displayDefaultsForm ()
-{
-    displayHeader();
-
-    // Defaults Config
-    $sql = "DESCRIBE `fcms_user_settings`";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    while ($drow = mysql_fetch_assoc($result))
-    {
-        if ($drow['Field'] == 'theme')
-        {
-            $default_theme = $drow['Default'];
-        }
-        if ($drow['Field'] == 'displayname')
-        {
-            $default_displayname = $drow['Default'];
-        }
-        if ($drow['Field'] == 'frontpage')
-        {
-            $default_frontpage = $drow['Default'];
-        }
-        if ($drow['Field'] == 'timezone')
-        {
-            $default_tz = $drow['Default'];
-        }
-        if ($drow['Field'] == 'dst')
-        {
-            $default_dst = $drow['Default'];
-        }
-        if ($drow['Field'] == 'boardsort')
-        {
-            $default_boardsort = $drow['Default'];
-        }
-    }
-
-    // Themes
-    $themes        = getThemeList();
-    $theme_options = '';
-
-    foreach($themes as $file)
-    {
-        $theme_options .= '<option value="'.$file.'"';
-
-        if ($default_theme == $file)
-        {
-            $theme_options .= ' selected="selected"';
+            if ($drow['Field'] == 'theme')
+            {
+                $default_theme = $drow['Default'];
+            }
+            if ($drow['Field'] == 'displayname')
+            {
+                $default_displayname = $drow['Default'];
+            }
+            if ($drow['Field'] == 'frontpage')
+            {
+                $default_frontpage = $drow['Default'];
+            }
+            if ($drow['Field'] == 'timezone')
+            {
+                $default_tz = $drow['Default'];
+            }
+            if ($drow['Field'] == 'dst')
+            {
+                $default_dst = $drow['Default'];
+            }
+            if ($drow['Field'] == 'boardsort')
+            {
+                $default_boardsort = $drow['Default'];
+            }
         }
 
-        $theme_options .= ">$file</option>";
-    }
+        // Themes
+        $themes        = getThemeList();
+        $theme_options = '';
 
-    // Display Name
-    $displayname_list = array(
-        "1" => T_('First Name'),
-        "2" => T_('First & Last Name'),
-        "3" => T_('Username')
-    );
+        foreach ($themes as $file)
+        {
+            $theme_options .= '<option value="'.$file.'"';
 
-    $displayname_options = buildHtmlSelectOptions($displayname_list, $default_displayname);
+            if ($default_theme == $file)
+            {
+                $theme_options .= ' selected="selected"';
+            }
 
-    // Frontpage
-    $frontpage_list = array(
-        "1" => T_('All (by date)'),
-        "2" => T_('Last 5 (by plugin)')
-    );
+            $theme_options .= ">$file</option>";
+        }
 
-    $frontpage_options = buildHtmlSelectOptions($frontpage_list, $default_frontpage);
+        // Display Name
+        $displayname_list = array(
+            "1" => T_('First Name'),
+            "2" => T_('First & Last Name'),
+            "3" => T_('Username')
+        );
 
-    // Timezone
-    $tz_list = array(
-        "-12 hours"            => T_('(GMT -12:00) Eniwetok, Kwajalein'),
-        "-11 hours"            => T_('(GMT -11:00) Midway Island, Samoa'),
-        "-10 hours"            => T_('(GMT -10:00) Hawaii'),
-        "-9 hours"             => T_('(GMT -9:00) Alaska'),
-        "-8 hours"             => T_('(GMT -8:00) Pacific Time (US & Canada)'),
-        "-7 hours"             => T_('(GMT -7:00) Mountain Time (US & Canada)'),
-        "-6 hours"             => T_('(GMT -6:00) Central Time (US & Canada), Mexico City'),
-        "-5 hours"             => T_('(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima'),
-        "-4 hours"             => T_('(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz'),
-        "-3 hours -30 minutes" => T_('(GMT -3:30) Newfoundland'),
-        "-3 hours"             => T_('(GMT -3:00) Brazil, Buenos Aires, Georgetown'),
-        "-2 hours"             => T_('(GMT -2:00) Mid-Atlantic'),
-        "-1 hours"             => T_('(GMT -1:00) Azores, Cape Verde Islands'),
-        "-0 hours"             => T_('(GMT) Western Europe Time, London, Lisbon, Casablanca'),
-        "+1 hours"             => T_('(GMT +1:00) Brussels, Copenhagen, Madrid, Paris'),
-        "+2 hours"             => T_('(GMT +2:00) Kaliningrad, South Africa'),
-        "+3 hours"             => T_('(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh'),
-        "+3 hours 30 minutes"  => T_('(GMT +3:30) Tehran'),
-        "+4 hours"             => T_('(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi'),
-        "+4 hours 30 minutes"  => T_('(GMT +4:30) Kabul'),
-        "+5 hours"             => T_('(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent'),
-        "+5 hours 30 minutes"  => T_('(GMT +5:30) Bombay, Calcutta, Madras, New Delhi'),
-        "+6 hours"             => T_('(GMT +6:00) Almaty, Dhaka, Colombo'),
-        "+7 hours"             => T_('(GMT +7:00) Bangkok, Hanoi, Jakarta'),
-        "+8 hours"             => T_('(GMT +8:00) Beijing, Perth, Singapore, Hong Kong'),
-        "+9 hours"             => T_('(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk'),
-        "+9 hours 30 minutes"  => T_('(GMT +9:30) Adeliaide, Darwin'),
-        "+10 hours"            => T_('(GMT +10:00) Eastern Australia, Guam, Vladivostok'),
-        "+11 hours"            => T_('(GMT +11:00) Magadan, Solomon Islands, New Caledonia'),
-        "+12 hours"            => T_('(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka')
-    );
+        $displayname_options = buildHtmlSelectOptions($displayname_list, $default_displayname);
 
-    $tz_options = buildHtmlSelectOptions($tz_list, $default_tz);
+        // Frontpage
+        $frontpage_list = array(
+            "1" => T_('All (by date)'),
+            "2" => T_('Last 5 (by plugin)')
+        );
 
-    // DST
-    $dst_list = array(
-        1 => T_('On'),
-        0 => T_('Off')
-    );
-    $dst_options = buildHtmlSelectOptions($dst_list, $default_dst);
+        $frontpage_options = buildHtmlSelectOptions($frontpage_list, $default_frontpage);
 
-    // Board Sort
-    $boardsort_list = array(
-        "ASC" => T_('New Messages at Bottom'),
-        "DESC" => T_('New Messages at Top')
-    );
+        // Timezone
+        $tz_list    = getTimezoneList();
+        $tz_options = buildHtmlSelectOptions($tz_list, $default_tz);
 
-    $boardsort_options = buildHtmlSelectOptions($boardsort_list, $default_boardsort);
-    
-    $message = '';
+        // DST
+        $dst_list = array(
+            1 => T_('On'),
+            0 => T_('Off')
+        );
+        $dst_options = buildHtmlSelectOptions($dst_list, $default_dst);
 
-    if (isset($_SESSION['success']))
-    {
-        $message  = '<div class="alert-message success">';
-        $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
-        $message .= T_('Changes Updated Successfully').'</div>';
+        // Board Sort
+        $boardsort_list = array(
+            "ASC" => T_('New Messages at Bottom'),
+            "DESC" => T_('New Messages at Top')
+        );
 
-        unset($_SESSION['success']);
-    }
+        $boardsort_options = buildHtmlSelectOptions($boardsort_list, $default_boardsort);
+        
+        $message = '';
 
-    echo '
+        if (isset($_SESSION['success']))
+        {
+            $message  = '<div class="alert-message success">';
+            $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
+            $message .= T_('Changes Updated Successfully').'</div>';
+
+            unset($_SESSION['success']);
+        }
+
+        echo '
         <form action="config.php?view=defaults" method="post">
         '.$message.'
         <fieldset>
@@ -764,157 +753,170 @@ function displayDefaultsForm ()
         </fieldset>
         </form>';
 
-    displayFooter();
-}
-
-/**
- * displayDefaultsFormSubmit 
- * 
- * @return void
- */
-function displayDefaultsFormSubmit ()
-{
-    $theme = basename($_POST['theme']);
-    $theme = escape_string($theme);
-
-    $sql = "ALTER TABLE `fcms_user_settings` 
-            ALTER `theme` SET DEFAULT '$theme'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    $sql = "ALTER TABLE `fcms_user_settings` 
-            ALTER `displayname` 
-            SET DEFAULT '".escape_string($_POST['displayname'])."'";
-    if (!mysql_query($sql))
+    /**
+     * displayDefaultsFormSubmit 
+     * 
+     * @return void
+     */
+    function displayDefaultsFormSubmit ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $theme = basename($_POST['theme']);
 
-    $sql = "ALTER TABLE `fcms_user_settings` 
-            ALTER `frontpage` 
-            SET DEFAULT '".escape_string($_POST['frontpage'])."'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $sql = "ALTER TABLE `fcms_user_settings` 
+                ALTER `theme` SET DEFAULT ?";
 
-    $sql = "ALTER TABLE `fcms_user_settings` 
-            ALTER `timezone` 
-            SET DEFAULT '".escape_string($_POST['timezone'])."'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    $sql = "ALTER TABLE `fcms_user_settings` ALTER `dst`
-            SET DEFAULT '".escape_string($_POST['dst'])."'";
-
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    $sql = "ALTER TABLE `fcms_user_settings` 
-            ALTER `boardsort` 
-            SET DEFAULT '".escape_string($_POST['boardsort'])."'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    // Update existing users
-    if (isset($_POST['changeAll']))
-    {
-        $avatar = isset($upfile) ? $upfile : 'no_avatar.jpg';
-        $theme  = basename($_POST['theme']);
-        $theme  = escape_string($theme);
-
-        $sql = "UPDATE `fcms_user_settings` 
-                SET `theme` = '$theme',
-                    `displayname`  = '".escape_string($_POST['displayname'])."', 
-                    `frontpage`    = '".escape_string($_POST['frontpage'])."', 
-                    `timezone`     = '".escape_string($_POST['timezone'])."',
-                    `dst`          = '".escape_string($_POST['dst'])."',
-                    `boardsort`    = '".escape_string($_POST['boardsort'])."'";
-        if (!mysql_query($sql))
+        if (!$this->fcmsDatabase->alter($sql, $theme))
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
             return;
         }
+
+        $sql = "ALTER TABLE `fcms_user_settings` 
+                ALTER `displayname` 
+                SET DEFAULT ?";
+
+        if (!$this->fcmsDatabase->alter($sql, $_POST['displayname']))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "ALTER TABLE `fcms_user_settings` 
+                ALTER `frontpage` 
+                SET DEFAULT ?";
+
+        if (!$this->fcmsDatabase->alter($sql, $_POST['frontpage']))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "ALTER TABLE `fcms_user_settings` 
+                ALTER `timezone` 
+                SET DEFAULT ?";
+
+        if (!$this->fcmsDatabase->alter($sql, $_POST['timezone']))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "ALTER TABLE `fcms_user_settings` ALTER `dst`
+                SET DEFAULT ?";
+
+        if (!$this->fcmsDatabase->alter($sql, $_POST['dst']))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "ALTER TABLE `fcms_user_settings` 
+                ALTER `boardsort` 
+                SET DEFAULT ?";
+
+        if (!$this->fcmsDatabase->alter($sql, $_POST['boardsort']))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        // Update existing users
+        if (isset($_POST['changeAll']))
+        {
+            $avatar = isset($upfile) ? $upfile : 'no_avatar.jpg';
+            $theme  = basename($_POST['theme']);
+
+            $sql = "UPDATE `fcms_user_settings` 
+                    SET `theme`       = ?,
+                        `displayname` = ?,
+                        `frontpage`   = ?,
+                        `timezone`    = ?,
+                        `dst`         = ?,
+                        `boardsort`   = ?";
+
+            $params = array(
+                $theme,
+                $_POST['displayname'],
+                $_POST['frontpage'], 
+                $_POST['timezone'],
+                $_POST['dst'],
+                $_POST['boardsort']
+            );
+
+            if (!$this->fcmsDatabase->update($sql, $params))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: config.php?view=defaults");
     }
 
-    $_SESSION['success'] = 1;
-
-    header("Location: config.php?view=defaults");
-}
-
-/**
- * displayPluginsForm
- * 
- * @return void
- */
-function displayPluginsForm ()
-{
-    displayHeader();
-
-    // Get Plugin Data
-    $plugins = array();
-
-    $sql = "SELECT `id`, `link`, `col`, `order`, `req`
-            FROM `fcms_navigation` 
-            WHERE `col` = 3 
-            OR `col` = 4
-            ORDER BY `order`";
-
-    $result = mysql_query($sql);
-    if (!$result)
+    /**
+     * displayPluginsForm
+     * 
+     * @return void
+     */
+    function displayPluginsForm ()
     {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $this->displayHeader();
 
-    while ($r = mysql_fetch_assoc($result))
-    {
-        $plugins[getPluginName($r['link'])] = $r;
-    }
+        // Get Plugin Data
+        $plugins = array();
 
-    ksort($plugins);
+        $sql = "SELECT `id`, `link`, `col`, `order`, `req`
+                FROM `fcms_navigation` 
+                WHERE `col` = 3 
+                OR `col` = 4
+                ORDER BY `order`";
 
-    $message = '';
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
 
-    if (isset($_SESSION['success']))
-    {
-        $message  = '<div class="alert-message success">';
-        $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
-        $message .= T_('Changes Updated Successfully').'</div>';
+        foreach ($rows as $r)
+        {
+            $plugins[getPluginName($r['link'])] = $r;
+        }
 
-        unset($_SESSION['success']);
-    }
+        ksort($plugins);
 
-    echo '
+        $message = '';
+
+        if (isset($_SESSION['success']))
+        {
+            $message  = '<div class="alert-message success">';
+            $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
+            $message .= T_('Changes Updated Successfully').'</div>';
+
+            unset($_SESSION['success']);
+        }
+
+        echo '
             <h2>'.T_('Plugins').'</h2>
             '.$message.'
             <form action="config.php?view=plugins" method="post">
@@ -924,178 +926,180 @@ function displayPluginsForm ()
                     </thead>
                     <tbody>';
 
-    foreach ($plugins AS $name => $plugin)
-    {
-        $checked  = $plugin['order'] == 0 ? '' : ' checked="checked"';
-        $disabled = $plugin['req']   == 0 ? '' : ' disabled="disabled"';
+        foreach ($plugins AS $name => $plugin)
+        {
+            $checked  = $plugin['order'] == 0 ? '' : ' checked="checked"';
+            $disabled = $plugin['req']   == 0 ? '' : ' disabled="disabled"';
 
-        echo '
+            echo '
                         <tr>
                             <td class="check"><input type="checkbox" id="'.$plugin['link'].'" name="'.$plugin['link'].'" '.$checked.$disabled.'/></td>
                             <td><b>'.$name.'</b></td>
                             <td>'.getPluginDescription($plugin['link']).'</td>
                         </tr>';
-    }
+        }
 
-    echo '
+        echo '
                     </tbody>
                 </table>
                 <p><input type="submit" class="btn primary" id="submit-plugins" name="submit-plugins" value="'.T_('Save').'"/></p>
             </form>';
 
-    displayFooter();
-}
-
-/**
- * displayPluginsFormSubmit
- * 
- * @return void
- */
-function displayPluginsFormSubmit ()
-{
-    $on  = array();
-    $off = array();
-
-    // Get Plugin Data
-    $sql = "SELECT `id`, `link`, `col`, `order`, `req`
-            FROM `fcms_navigation` 
-            WHERE (
-                `col` = 3 
-                OR `col` = 4
-            )
-            AND `req` = 0
-            ORDER BY `order`";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    while ($r = mysql_fetch_assoc($result))
+    /**
+     * displayPluginsFormSubmit
+     * 
+     * @return void
+     */
+    function displayPluginsFormSubmit ()
     {
-        // Turn on
-        if (isset($_POST[$r['link']]))
+        $on  = array();
+        $off = array();
+
+        // Get Plugin Data
+        $sql = "SELECT `id`, `link`, `col`, `order`, `req`
+                FROM `fcms_navigation` 
+                WHERE (
+                    `col` = 3 
+                    OR `col` = 4
+                )
+                AND `req` = 0
+                ORDER BY `order`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            if ($r['order'] == 0)
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        foreach ($rows as $r)
+        {
+            // Turn on
+            if (isset($_POST[$r['link']]))
             {
-                $on[] = $r;
+                if ($r['order'] == 0)
+                {
+                    $on[] = $r;
+                }
+            }
+            // Turn off
+            else
+            {
+                $off[] = $r['id'];
             }
         }
-        // Turn off
-        else
+
+        // Turn off all that need turned off
+        if (count($off) > 0)
         {
-            $off[] = $r['id'];
+            $offIds = implode(',', $off);
+
+            $sql = "UPDATE `fcms_navigation` 
+                    SET `order` = 0 
+                    WHERE `id` IN ($offIds)";
+
+            if (!$this->fcmsDatabase->update($sql))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
         }
+
+        // Turn on all that need turned on
+        $communicateOrder = getNextNavigationOrder(3);
+        $shareOrder       = getNextNavigationOrder(4);
+
+        foreach ($on as $plugin)
+        {
+            if ($plugin['col'] == 3)
+            {
+                $order = $communicateOrder;
+                $communicateOrder++;
+            }
+            elseif ($plugin['col'] == 4)
+            {
+                $order = $shareOrder;
+                $shareOrder++;
+            }
+
+            $id = (int)$plugin['id'];
+
+            $sql = "UPDATE `fcms_navigation` 
+                    SET `order` = ?
+                    WHERE `id` = ?";
+
+            if (!$this->fcmsDatabase->update($sql, array($order, $id)))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: config.php?view=plugins");
     }
 
-    // Turn off all that need turned off
-    if (count($off) > 0)
+    /**
+     * displayNavigationForm 
+     * 
+     * @return void
+     */
+    function displayNavigationForm ()
     {
-        $offIds = implode(',', $off);
+        $this->displayHeader();
 
-        $sql = "UPDATE `fcms_navigation` 
-                SET `order` = 0 
-                WHERE `id` IN ($offIds)";
-        if (!mysql_query($sql))
+        // Get Plugin Data
+        $communicateNav = array();
+        $shareNav       = array();
+
+        $sql = "SELECT `id`, `link`, `col`, `order`, `req`
+                FROM `fcms_navigation` 
+                WHERE `col` = 3 
+                OR `col` = 4
+                AND `order` > 0
+                ORDER BY `order`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
             return;
         }
-    }
 
-    // Turn on all that need turned on
-    $communicateOrder = getNextNavigationOrder(3);
-    $shareOrder       = getNextNavigationOrder(4);
-
-    foreach ($on as $plugin)
-    {
-        if ($plugin['col'] == 3)
+        foreach ($rows as $r)
         {
-            $order = $communicateOrder;
-            $communicateOrder++;
-        }
-        elseif ($plugin['col'] == 4)
-        {
-            $order = $shareOrder;
-            $shareOrder++;
+            if ($r['col'] == 3)
+            {
+                $communicateNav[] = $r;
+            }
+            else
+            {
+                $shareNav[] = $r;
+            }
         }
 
-        $id = (int)$plugin['id'];
+        $message = '';
 
-        $sql = "UPDATE `fcms_navigation` 
-                SET `order` = '$order' 
-                WHERE `id` = '$id'";
-        if (!mysql_query($sql))
+        if (isset($_SESSION['success']))
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
+            $message  = '<div class="alert-message success">';
+            $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
+            $message .= T_('Changes Updated Successfully').'</div>';
+
+            unset($_SESSION['success']);
         }
-    }
 
-    $_SESSION['success'] = 1;
-
-    header("Location: config.php?view=plugins");
-}
-
-/**
- * displayNavigationForm 
- * 
- * @return void
- */
-function displayNavigationForm ()
-{
-    displayHeader();
-
-    // Get Plugin Data
-    $communicateNavj  = array();
-    $shareNav = array();
-
-    $sql = "SELECT `id`, `link`, `col`, `order`, `req`
-            FROM `fcms_navigation` 
-            WHERE `col` = 3 
-            OR `col` = 4
-            AND `order` > 0
-            ORDER BY `order`";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    while ($r = mysql_fetch_assoc($result))
-    {
-        if ($r['col'] == 3)
-        {
-            $communicateNav[] = $r;
-        }
-        else
-        {
-            $shareNav[] = $r;
-        }
-    }
-
-    $message = '';
-
-    if (isset($_SESSION['success']))
-    {
-        $message  = '<div class="alert-message success">';
-        $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
-        $message .= T_('Changes Updated Successfully').'</div>';
-
-        unset($_SESSION['success']);
-    }
-
-    echo '
+        echo '
             <h2 id="navigation-heading">'.T_('Navigation').'</h2>
             '.$message.'
             <form action="config.php?view=navigation" method="post">
@@ -1106,20 +1110,20 @@ function displayNavigationForm ()
                         <h3>'.T_('Communicate').'</h3>
                         <ol id="com_order" class="unstyled">';
 
-    $communicateTotal = count($communicateNav);
+        $communicateTotal = count($communicateNav);
 
-    $i = 1;
-    foreach ($communicateNav as $r)
-    {
-        echo '
+        $i = 1;
+        foreach ($communicateNav as $r)
+        {
+            echo '
                             <li id="com_'.$r['id'].'">
-                                <span class="order">'.getOrderSelectBox('com', $r['id'], $communicateTotal, $r['order'], $i).'</span>
+                                <span class="order">'.$this->getOrderSelectBox('com', $r['id'], $communicateTotal, $r['order'], $i).'</span>
                                 <b>'.getPluginName($r['link']).'</b>
                             </li>';
-        $i++;
-    }
+            $i++;
+        }
 
-    echo '
+        echo '
                         </ol>
                     </div><!-- /span8 -->
 
@@ -1127,20 +1131,20 @@ function displayNavigationForm ()
                         <h3>'.T_('Share').'</h3>
                         <ol id="share_order" class="unstyled">';
 
-    $shareTotal = count($shareNav);
+        $shareTotal = count($shareNav);
 
-    $i = 1;
-    foreach ($shareNav as $r)
-    {
-        echo '
+        $i = 1;
+        foreach ($shareNav as $r)
+        {
+            echo '
                             <li id="share_'.$r['id'].'">
-                                <span class="order">'.getOrderSelectBox('share', $r['id'], $shareTotal, $r['order'], $i).'</span>
+                                <span class="order">'.$this->getOrderSelectBox('share', $r['id'], $shareTotal, $r['order'], $i).'</span>
                                 <b>'.getPluginName($r['link']).'</b>
                             </li>';
-        $i++;
-    }
+            $i++;
+        }
 
-    echo '
+        echo '
                         </ol>
                     </div><!-- /span8 -->
 
@@ -1199,54 +1203,54 @@ function displayNavigationForm ()
             });
             </script>';
 
-    displayFooter();
-}
-
-/**
- * displayNavigationFormSubmit 
- * 
- * Handles the submit form for both ajax and regular form.
- * 
- * @param boolean $ajax 
- * 
- * @return void
- */
-function displayNavigationFormSubmit ($ajax = false)
-{
-    $communicateOrder = array();
-    $shareOrder       = array();
-
-    // Fix the data (Ajax)
-    if (isset($_POST['data']))
-    {
-        parse_str($_POST['data']);
-
-        if (isset($share_order))
-        {
-            $shareOrder = $share_order;
-        }
-
-        if (isset($com_order))
-        {
-            $communicateOrder = $com_order;
-        }
+        $this->displayFooter();
     }
-    // Fix the data (Form)
-    else
+
+    /**
+     * displayNavigationFormSubmit 
+     * 
+     * Handles the submit form for both ajax and regular form.
+     * 
+     * @param boolean $ajax 
+     * 
+     * @return void
+     */
+    function displayNavigationFormSubmit ($ajax = false)
     {
-        // Communciate
-        $i = 1;
-        while (isset($_POST['com-order_'.$i]))
+        $communicateOrder = array();
+        $shareOrder       = array();
+
+        // Fix the data (Ajax)
+        if (isset($_POST['data']))
         {
-            $arr   = explode(':', $_POST['com-order_'.$i]);
-            $id    = $arr[0];
-            $order = $arr[1];
+            parse_str($_POST['data']);
 
-            if (isset($communicateOrder[$order]))
+            if (isset($share_order))
             {
-                displayHeader();
+                $shareOrder = $share_order;
+            }
 
-                echo '
+            if (isset($com_order))
+            {
+                $communicateOrder = $com_order;
+            }
+        }
+        // Fix the data (Form)
+        else
+        {
+            // Communciate
+            $i = 1;
+            while (isset($_POST['com-order_'.$i]))
+            {
+                $arr   = explode(':', $_POST['com-order_'.$i]);
+                $id    = $arr[0];
+                $order = $arr[1];
+
+                if (isset($communicateOrder[$order]))
+                {
+                    $this->displayHeader();
+
+                    echo '
                     <div class="alert-message block-message error">
                         <p><b>'.T_('Can\'t have two items with the same order.').'</b></p>
                         <div class="alert-actions">
@@ -1254,166 +1258,168 @@ function displayNavigationFormSubmit ($ajax = false)
                         </div>
                     </div>';
 
-                displayFooter();
-                return;
+                    $this->displayFooter();
+                    return;
+                }
+                $communicateOrder[$order] = $id;
+
+                $i++;
             }
-            $communicateOrder[$order] = $id;
 
-            $i++;
-        }
-
-        // Share
-        $i = 1;
-        while (isset($_POST['share-order_'.$i]))
-        {
-            $arr   = explode(':', $_POST['share-order_'.$i]);
-            $id    = $arr[0];
-            $order = $arr[1];
-
-            if (isset($shareOrder[$order]))
+            // Share
+            $i = 1;
+            while (isset($_POST['share-order_'.$i]))
             {
-                displayHeader();
-                echo '
+                $arr   = explode(':', $_POST['share-order_'.$i]);
+                $id    = $arr[0];
+                $order = $arr[1];
+
+                if (isset($shareOrder[$order]))
+                {
+                    $this->displayHeader();
+                    echo '
                     <div class="alert-message block-message error">
                         <p><b>'.T_('Can\'t have two items with the same order.').'</b></p>
                         <div class="alert-actions">
                             <a class="btn" href="config.php?view=navigation">'.T_('Please try again').'</a>
                         </div>
                     </div>';
-                displayFooter();
+                    $this->displayFooter();
+                    return;
+                }
+                $shareOrder[$order] = $id;
+
+                $i++;
+            }
+        }
+
+        // Update the order of Share column
+        foreach ($shareOrder as $order => $id)
+        {
+            $id    = (int)$id;
+            $order = (int)$order;
+
+            if ($ajax)
+            {
+                $order++;
+            }
+
+            $sql = "UPDATE `fcms_navigation` 
+                    SET `order` = ?
+                    WHERE `id` = ?";
+
+            if (!$this->fcmsDatabase->update($sql, array($order, $id)))
+            {
+                if ($ajax)
+                {
+                    echo 'error';
+                    exit();
+                }
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
                 return;
             }
-            $shareOrder[$order] = $id;
-
-            $i++;
         }
-    }
 
-    // Update the order of Share column
-    foreach ($shareOrder as $order => $id)
-    {
-        $id    = (int)$id;
-        $order = (int)$order;
+        // Update the order of Communication column
+        foreach ($communicateOrder as $order => $id)
+        {
+            $id    = (int)$id;
+            $order = (int)$order;
+
+            if ($ajax)
+            {
+                $order++;
+            }
+
+            $sql = "UPDATE `fcms_navigation` 
+                    SET `order` = ?
+                    WHERE `id` = ?";
+
+            if (!$this->fcmsDatabase->update($sql, array($order, $id)))
+            {
+                if ($ajax)
+                {
+                    echo 'error';
+                    exit();
+                }
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
 
         if ($ajax)
         {
-            $order++;
+            echo 'success';
+            exit();
         }
 
-        $sql = "UPDATE `fcms_navigation` 
-                SET `order` = '$order' 
-                WHERE `id` = '$id'";
-        if (!mysql_query($sql))
+        $_SESSION['success'] = 1;
+
+        header("Location: config.php?view=navigation");
+    }
+
+    /**
+     * displayPhotoGalleryForm 
+     * 
+     * @return void
+     */
+    function displayPhotoGalleryForm ()
+    {
+        $this->displayHeader();
+
+        $sql = "SELECT `name`, `value`
+                FROM `fcms_config`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            if ($ajax)
-            {
-                echo 'error';
-                exit();
-            }
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
             return;
         }
-    }
 
-    // Update the order of Communication column
-    foreach ($communicateOrder as $order => $id)
-    {
-        $id    = (int)$id;
-        $order = (int)$order;
+        $row = array();
 
-        if ($ajax)
+        foreach ($rows as $r)
         {
-            $order++;
+            $row[$r['name']] = $r['value'];
+        }
+        
+        $full_size_list = array(
+            '0' => T_('Off (2 photos)'),
+            '1' => T_('On (3 photos)')
+        );
+
+        $full_size_options = buildHtmlSelectOptions($full_size_list, $row['full_size_photos']);
+
+        if (defined('UPLOADS'))
+        {
+            $protected = '<span class="label success">'.T_('Protected').'</span>';
+        }
+        else
+        {
+            $protected  = '<span class="label warning">'.T_('Un-protected').'</span><br/><br/>';
+            $protected .= '<p><b>'.T_('Your photos can be viewed from non-authorized users.').'</b></p>';
+            $protected .= '<p>'.T_('In order to protect your photos so only logged in users can view them, please refer to the help document below.').'</p>';
+            $protected .= '<p><a href="'.URL_PREFIX.'help.php?topic=admin#adm-protect-photos">'.T_('Help Me Protect My Photos').'</a></p>';
+        }
+        
+        $message = '';
+
+        if (isset($_SESSION['success']))
+        {
+            $message  = '<div class="alert-message success">';
+            $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
+            $message .= T_('Changes Updated Successfully').'</div>';
+
+            unset($_SESSION['success']);
         }
 
-        $sql = "UPDATE `fcms_navigation` 
-                SET `order` = '$order' 
-                WHERE `id` = '$id'";
-        if (!mysql_query($sql))
-        {
-            if ($ajax)
-            {
-                echo 'error';
-                exit();
-            }
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-    }
-
-    if ($ajax)
-    {
-        echo 'success';
-        exit();
-    }
-
-    $_SESSION['success'] = 1;
-
-    header("Location: config.php?view=navigation");
-}
-
-/**
- * displayPhotoGalleryForm 
- * 
- * @return void
- */
-function displayPhotoGalleryForm ()
-{
-    displayHeader();
-
-    $sql = "SELECT `name`, `value`
-            FROM `fcms_config`";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-
-    $row = array();
-    while ($r = mysql_fetch_assoc($result))
-    {
-        $row[$r['name']] = $r['value'];
-    }
-    
-    $full_size_list = array(
-        "0" => T_('Off (2 photos)'),
-        "1" => T_('On (3 photos)')
-    );
-
-    $full_size_options = buildHtmlSelectOptions($full_size_list, $row['full_size_photos']);
-
-    if (defined('UPLOADS'))
-    {
-        $protected = '<span class="label success">'.T_('Protected').'</span>';
-    }
-    else
-    {
-        $protected  = '<span class="label warning">'.T_('Un-protected').'</span><br/><br/>';
-        $protected .= '<p><b>'.T_('Your photos can be viewed from non-authorized users.').'</b></p>';
-        $protected .= '<p>'.T_('In order to protect your photos so only logged in users can view them, please refer to the help document below.').'</p>';
-        $protected .= '<p><a href="'.URL_PREFIX.'help.php?topic=admin#adm-protect-photos">'.T_('Help Me Protect My Photos').'</a></p>';
-    }
-    
-    $message = '';
-
-    if (isset($_SESSION['success']))
-    {
-        $message  = '<div class="alert-message success">';
-        $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
-        $message .= T_('Changes Updated Successfully').'</div>';
-
-        unset($_SESSION['success']);
-    }
-
-    echo '
+        echo '
         <form action="config.php?view=gallery" method="post">
         <fieldset>
             <legend>'.T_('Photo Gallery').'</legend>
@@ -1440,60 +1446,62 @@ function displayPhotoGalleryForm ()
         </fieldset>
         </form>';
 
-    displayFooter();
-}
-
-/**
- * displayPhotoGalleryFormSubmit 
- * 
- * @return void
- */
-function displayPhotoGalleryFormSubmit ()
-{
-    $sql = "UPDATE `fcms_config` 
-            SET `value` = '".escape_string($_POST['full_size_photos'])."'
-            WHERE `name` = 'full_size_photos'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    $_SESSION['success'] = 1;
-
-    header("Location: config.php?view=gallery");
-}
-
-/**
- * getOrderSelectBox 
- * 
- * @param int $name     The name of the select box (comm|share)
- * @param int $id       The order number of the spot we are talking about
- * @param int $total    The total number of options for the select box
- * @param int $selected Which order is currently selected
- * @param int $number   The number of select box on screen.
- * 
- * @return void
- */
-function getOrderSelectBox ($name, $id, $total, $selected, $number)
-{
-    $order_options = '<select class="span1" name="'.$name.'-order_'.$number.'">';
-
-    for ($i = 1; $i <= $total; $i++)
+    /**
+     * displayPhotoGalleryFormSubmit 
+     * 
+     * @return void
+     */
+    function displayPhotoGalleryFormSubmit ()
     {
-        $order_options .= '<option value="'.$id.':'.$i.'"';
+        $sql = "UPDATE `fcms_config` 
+                SET `value` = ?
+                WHERE `name` = 'full_size_photos'";
 
-        if ($i == $selected)
+        if (!$this->fcmsDatabase->update($sql, $_POST['full_size_photos']))
         {
-            $order_options .= ' selected="selected"';
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
         }
 
-        $order_options .= '>'.$i.'</option>';
+        $_SESSION['success'] = 1;
+
+        header("Location: config.php?view=gallery");
     }
 
-    $order_options .= '</select>';
+    /**
+     * getOrderSelectBox 
+     * 
+     * @param int $name     The name of the select box (comm|share)
+     * @param int $id       The order number of the spot we are talking about
+     * @param int $total    The total number of options for the select box
+     * @param int $selected Which order is currently selected
+     * @param int $number   The number of select box on screen.
+     * 
+     * @return void
+     */
+    function getOrderSelectBox ($name, $id, $total, $selected, $number)
+    {
+        $order_options = '<select class="span1" name="'.$name.'-order_'.$number.'">';
 
-    return $order_options;
+        for ($i = 1; $i <= $total; $i++)
+        {
+            $order_options .= '<option value="'.$id.':'.$i.'"';
+
+            if ($i == $selected)
+            {
+                $order_options .= ' selected="selected"';
+            }
+
+            $order_options .= '>'.$i.'</option>';
+        }
+
+        $order_options .= '</select>';
+
+        return $order_options;
+    }
 }

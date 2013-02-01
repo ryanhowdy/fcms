@@ -22,113 +22,138 @@ load('datetime', 'messageboard');
 
 init();
 
-// Setup some globals
-$currentAccess = checkAccess($fcmsUser->id);
-$msgBoardObj   = new MessageBoard($fcmsUser->id);
+$mBoard = new MessageBoard($fcmsError, $fcmsDatabase, $fcmsUser);
+$page   = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $mBoard);
 
-// Setup the Template variables;
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Message Board'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
-
-control();
 exit();
 
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    global $currentAccess;
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsMessageBoard;
+    private $fcmsTemplate;
 
-    // New Post
-    if (isset($_GET['reply']))
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsMessageBoard)
     {
-        displayNewPostForm();
-    }
-    elseif (isset($_POST['reply_submit']))
-    {
-        displayNewPostSubmit();
-    }
-    elseif (isset($_POST['post_submit']))
-    {
-        displayNewThreadSubmit();
-    }
-    // Edit Post
-    elseif (isset($_POST['editpost']))
-    {
-        displayEditPostForm();
-    }
-    elseif (isset($_POST['edit_submit']))
-    {
-        displayEditPostSubmit();
-    }
-    // Delete
-    elseif (isset($_POST['delpost']) && !isset($_POST['confirmed']))
-    {
-        displayConfirmDelete();
-    }
-    elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
-    {
-        displayDeletePostSubmit();
-    }
-    // Administrate Thread
-    elseif (isset($_POST['submit_admin']) && $currentAccess < 2)
-    {
-        displayAdministrateThreadSubmit();
-    }
-    // Admin Edit Subject
-    elseif (isset($_POST['edit_admin_submit']))
-    {
-        displayAdminEditSubjectSubmit();
-    }
-    // Search results
-    elseif (isset($_POST['search']))
-    {
-        displaySearchSubmit();
-    }
-    elseif (isset($_GET['search']))
-    {
-        displayAdvancedSearchForm();
-    }
-    elseif (isset($_GET['thread']))
-    {
-        displayThread();
-    }
-    else
-    {
-        displayThreads();
-    }
-}
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsMessageBoard = $fcmsMessageBoard;
 
-/**
- * displayHeader 
- * 
- * @param string $js Javascript to overwrite the default
- * 
- * @return void
- */
-function displayHeader ($js = '')
-{
-    global $fcmsUser, $TMPL;
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Message Board'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-    $TMPL['javascript'] = $js;
+        $this->control();
+    }
 
-    // Default js
-    if ($js == '')
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
     {
-        $TMPL['javascript'] = '
+        // New Post
+        if (isset($_GET['reply']))
+        {
+            $this->displayNewPostForm();
+        }
+        elseif (isset($_POST['reply_submit']))
+        {
+            $this->displayNewPostSubmit();
+        }
+        elseif (isset($_POST['post_submit']))
+        {
+            $this->displayNewThreadSubmit();
+        }
+        // Edit Post
+        elseif (isset($_POST['editpost']))
+        {
+            $this->displayEditPostForm();
+        }
+        elseif (isset($_POST['edit_submit']))
+        {
+            $this->displayEditPostSubmit();
+        }
+        // Delete
+        elseif (isset($_POST['delpost']) && !isset($_POST['confirmed']))
+        {
+            $this->displayConfirmDelete();
+        }
+        elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
+        {
+            $this->displayDeletePostSubmit();
+        }
+        // Administrate Thread
+        elseif (isset($_POST['submit_admin']) && $this->fcmsUser->access < 2)
+        {
+            $this->displayAdministrateThreadSubmit();
+        }
+        // Admin Edit Subject
+        elseif (isset($_POST['edit_admin_submit']))
+        {
+            $this->displayAdminEditSubjectSubmit();
+        }
+        // Search results
+        elseif (isset($_POST['search']))
+        {
+            if (isset($_POST['advanced']))
+            {
+                $this->displayAdvancedSearchSubmit();
+            }
+            else
+            {
+                $this->displaySearchSubmit();
+            }
+        }
+        elseif (isset($_GET['search']))
+        {
+            $this->displayAdvancedSearchForm();
+        }
+        elseif (isset($_GET['thread']))
+        {
+            $this->displayThread();
+        }
+        else
+        {
+            $this->displayThreads();
+        }
+    }
+
+    /**
+     * displayHeader 
+     * 
+     * @param string $js Javascript to overwrite the default
+     * 
+     * @return void
+     */
+    function displayHeader ($js = '')
+    {
+        $TMPL = $this->fcmsTemplate;
+
+        $TMPL['javascript'] = $js;
+
+        // Default js
+        if ($js == '')
+        {
+            $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
@@ -155,164 +180,167 @@ Event.observe(window, \'load\', function() {
 });
 //]]>
 </script>';
+        }
+
+        include getTheme($this->fcmsUser->id).'header.php';
+
+        echo '
+        <div id="messageboard" class="centercontent">';
     }
 
-    include getTheme($fcmsUser->id).'header.php';
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
-        <div id="messageboard" class="centercontent">';
-}
-
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
-
-    echo '
+        echo '
         </div><!-- #messageboard .centercontent -->';
 
-    include getTheme($fcmsUser->id).'footer.php';
-}
-
-/**
- * displayThreads 
- * 
- * @return void
- */
-function displayThreads ()
-{
-    global $msgBoardObj;
-
-    $page = getPage();
-
-    displayHeader();
-
-    if (isset($_SESSION['success']))
-    {
-        displayOkMessage();
-
-        unset($_SESSION['success']);
+        include getTheme($this->fcmsUser->id).'footer.php';
     }
 
-    $msgBoardObj->showThreads('announcement');
-    $msgBoardObj->showThreads('thread', $page);
-
-    displayFooter();
-}
-
-/**
- * displayThread 
- * 
- * Displays the posts for a specific thread.
- * 
- * @return void
- */
-function displayThread ()
-{
-    global $msgBoardObj;
-
-    displayHeader();
-
-    $threadId = (int)$_GET['thread'];
-    $page     = getPage();
-
-    if (isset($_SESSION['success']))
+    /**
+     * displayThreads 
+     * 
+     * @return void
+     */
+    function displayThreads ()
     {
-        displayOkMessage();
+        $page = getPage();
 
-        unset($_SESSION['success']);
-    }
+        $this->displayHeader();
 
-    $msgBoardObj->showPosts($threadId, $page);
-
-    displayFooter();
-}
-
-/**
- * displayNewThreadSubmit 
- * 
- * @return void
- */
-function displayNewThreadSubmit ()
-{
-    global $fcmsUser, $TMPL, $msgBoardObj;
-
-    $rawPost    = $_POST['post'];
-    $rawSubject = $_POST['subject'];
-    $post       = escape_string($_POST['post']);
-    $subject    = escape_string($_POST['subject']);
-
-    displayHeader();
-
-    if (isset($_POST['sticky']))
-    {
-        $subject = "#ANOUNCE#".$subject;
-    }
-
-    // Create new thread
-    $sql = "INSERT INTO `fcms_board_threads` 
-                (`subject`, `started_by`, `updated`, `updated_by`) 
-            VALUES (
-                '$subject', 
-                '$fcmsUser->id', 
-                NOW(), 
-                '$fcmsUser->id'
-            )";
-
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    $newThreadId = mysql_insert_id();
-
-    // Create new post
-    $sql = "INSERT INTO `fcms_board_posts`(`date`, `thread`, `user`, `post`) 
-            VALUES (
-                NOW(), 
-                '$newThreadId', 
-                '$fcmsUser->id', 
-                '$post'
-            )";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    // Email members
-    $sql = "SELECT u.`email`, s.`user` 
-            FROM `fcms_user_settings` AS s, `fcms_users` AS u 
-            WHERE `email_updates` = '1'
-            AND u.`id` = s.`user`";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-    }
-
-    if (mysql_num_rows($result) > 0)
-    {
-        while ($r = mysql_fetch_array($result))
+        if (isset($_SESSION['success']))
         {
-            $name = getUserDisplayName($fcmsUser->id);
-            $to   = getUserDisplayName($r['user']);
+            displayOkMessage();
 
-            // Email is sent as plain text
-            $emailHeaders  = getEmailHeaders();
-            $emailSubject  = sprintf(T_('%s started the new thread %s.'), $name, $rawSubject);
-            $email         = $r['email'];
-            $url           = getDomainAndDir();
+            unset($_SESSION['success']);
+        }
 
-            $msg = T_('Dear').' '.$to.',
+        $this->fcmsMessageBoard->showThreads('announcement');
+        $this->fcmsMessageBoard->showThreads('thread', $page);
+
+        $this->displayFooter();
+    }
+
+    /**
+     * displayThread 
+     * 
+     * Displays the posts for a specific thread.
+     * 
+     * @return void
+     */
+    function displayThread ()
+    {
+        $this->displayHeader();
+
+        $threadId = (int)$_GET['thread'];
+        $page     = getPage();
+
+        if (isset($_SESSION['success']))
+        {
+            displayOkMessage();
+
+            unset($_SESSION['success']);
+        }
+
+        $this->fcmsMessageBoard->showPosts($threadId, $page);
+
+        $this->displayFooter();
+    }
+
+    /**
+     * displayNewThreadSubmit 
+     * 
+     * @return void
+     */
+    function displayNewThreadSubmit ()
+    {
+        $post       = $_POST['post'];
+        $subject    = $_POST['subject'];
+
+        if (isset($_POST['sticky']))
+        {
+            $subject = "#ANOUNCE#".$subject;
+        }
+
+        // Create new thread
+        $sql = "INSERT INTO `fcms_board_threads` 
+                    (`subject`, `started_by`, `updated`, `updated_by`) 
+                VALUES
+                    (?, ?, NOW(), ?)";
+
+        $params = array(
+            $subject,
+            $this->fcmsUser->id,
+            $this->fcmsUser->id
+        );
+
+        $newThreadId = $this->fcmsDatabase->insert($sql, $params);
+        if ($newThreadId === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        // Create new post
+        $sql = "INSERT INTO `fcms_board_posts`
+                    (`date`, `thread`, `user`, `post`) 
+                VALUES 
+                    (NOW(), ?, ?, ?)";
+
+        $params = array(
+            $newThreadId,
+            $this->fcmsUser->id,
+            $post
+        );
+
+        if (!$this->fcmsDatabase->insert($sql, $params))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        // Email members
+        $sql = "SELECT u.`email`, s.`user` 
+                FROM `fcms_user_settings` AS s, `fcms_users` AS u 
+                WHERE `email_updates` = '1'
+                AND u.`id` = s.`user`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (count($rows) > 0)
+        {
+            foreach ($rows as $r)
+            {
+                $name = getUserDisplayName($this->fcmsUser->id);
+                $to   = getUserDisplayName($r['user']);
+
+                // Email is sent as plain text
+                $emailHeaders  = getEmailHeaders();
+                $emailSubject  = sprintf(T_('%s started the new thread %s.'), $name, $subject);
+                $email         = $r['email'];
+                $url           = getDomainAndDir();
+
+                $msg = T_('Dear').' '.$to.',
 
 '.$emailSubject.'
 
@@ -325,86 +353,87 @@ function displayNewThreadSubmit ()
 
 ';
 
-            mail($email, $rawSubject, $msg, $emailHeaders);
+                mail($email, $subject, $msg, $emailHeaders);
+            }
         }
+
+        // Display the new thread
+        header("Location: messageboard.php?thread=$newThreadId");
     }
 
-    // Display the new thread
-    $msgBoardObj->showPosts($newThreadId, 1);
-    displayFooter();
-}
-
-/**
- * displayNewPostSubmit 
- * 
- * @return void
- */
-function displayNewPostSubmit ()
-{
-    global $fcmsUser, $TMPL, $msgBoardObj;
-
-    displayHeader();
-
-    $rawPost    = $_POST['post'];
-    $post       = escape_string($rawPost);
-    $threadId   = (int)$_POST['thread_id'];
-
-    // Update Thread info
-    $sql = "UPDATE `fcms_board_threads` 
-            SET `updated` = NOW(), `updated_by` = '$fcmsUser->id' 
-            WHERE `id` = $threadId";
-    if (!mysql_query($sql))
+    /**
+     * displayNewPostSubmit 
+     * 
+     * @return void
+     */
+    function displayNewPostSubmit ()
     {
-        displaySqlError($sql, mysql_error());
-        return;
-    }
+        $post     = $_POST['post'];
+        $threadId = (int)$_POST['thread_id'];
 
-    // Insert new Post
-    $sql = "INSERT INTO `fcms_board_posts` (`date`, `thread`, `user`, `post`) 
-            VALUES (
-                NOW(), 
-                '$threadId', 
-                '$fcmsUser->id', 
-                '$post'
-            )";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        return;
-    }
+        // Update Thread info
+        $sql = "UPDATE `fcms_board_threads` 
+                SET `updated` = NOW(), 
+                    `updated_by` = ?
+                WHERE `id` = ?";
 
-    // Email members
-    $sql = "SELECT u.`email`, s.`user` 
-            FROM `fcms_user_settings` AS s, `fcms_users` AS u 
-            WHERE `email_updates` = '1'
-            AND u.`id` = s.`user`";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-    }
-
-    if (mysql_num_rows($result) > 0)
-    {
-        while ($r = mysql_fetch_array($result))
+        if (!$this->fcmsDatabase->update($sql, array($this->fcmsUser->id, $threadId)))
         {
-            $name = getUserDisplayName($fcmsUser->id);
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        // Insert new Post
+        $sql = "INSERT INTO `fcms_board_posts`
+                    (`date`, `thread`, `user`, `post`)
+                VALUES
+                    (NOW(), ?, ?, ?)";
+
+        $params = array(
+            $threadId, 
+            $this->fcmsUser->id, 
+            $post
+        );
+
+        if (!$this->fcmsDatabase->insert($sql, $params))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        // Email members
+        $sql = "SELECT u.`email`, s.`user` 
+                FROM `fcms_user_settings` AS s, `fcms_users` AS u 
+                WHERE `email_updates` = '1'
+                AND u.`id` = s.`user`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+
+        if (count($rows) > 0)
+        {
+            $name = getUserDisplayName($this->fcmsUser->id);
 
             $sql = "SELECT `subject` 
                     FROM `fcms_board_threads` 
-                    WHERE `id` = $threadId";
+                    WHERE `id` = ?";
 
-            $subject_result = mysql_query($sql);
-            if (!$subject_result)
+            $threadInfo = $this->fcmsDatabase->getRow($sql, $threadId);
+            if ($threadInfo === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
                 return;
             }
 
-            $row = mysql_fetch_array($subject_result);
-
-            $threadSubject = $row['subject'];
+            $threadSubject = $threadInfo['subject'];
 
             $pos = strpos($threadSubject, '#ANOUNCE#'); 
             if ($pos !== false)
@@ -412,14 +441,16 @@ function displayNewPostSubmit ()
                 $threadSubject = substr($threadSubject, 9, strlen($threadSubject)-9);
             } 
 
-            // Emails sent as plain text
             $emailHeaders  = getEmailHeaders();
             $subject       = sprintf(T_('%s has replied to the thread: %s'), $name, $threadSubject);
-            $email         = $r['email'];
-            $to            = getUserDisplayName($r['user']);
             $url           = getDomainAndDir();
 
-            $msg = T_('Dear').' '.$to.',
+            foreach ($rows as $r)
+            {
+                $email  = $r['email'];
+                $to     = getUserDisplayName($r['user']);
+
+                $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
@@ -431,195 +462,181 @@ function displayNewPostSubmit ()
 '.$url.'settings.php
 
 ';
-            mail($email, $subject, $msg, $emailHeaders);
+                mail($email, $subject, $msg, $emailHeaders);
+            }
         }
+
+        header("Location: messageboard.php?thread=$threadId");
     }
 
-    $msgBoardObj->showPosts($threadId, 1);
-    displayFooter();
-}
-
-/**
- * displayNewPostForm 
- * 
- * Used to create new posts.  Used when creating a new thread also.
- * 
- * @return void
- */
-function displayNewPostForm ()
-{
-    global $fcmsUser, $TMPL, $currentAccess, $msgBoardObj;
-
-    displayHeader();
-
-    if ($currentAccess >= 8 && $currentAccess == 5)
+    /**
+     * displayNewPostForm 
+     * 
+     * Used to create new posts.  Used when creating a new thread also.
+     * 
+     * @return void
+     */
+    function displayNewPostForm ()
     {
-        echo '
-            <p class="error-alert">'.T_('You do not have access to view this page.').'</p>';
-        displayFooter();
-        return;
-    }
+        $this->displayHeader();
 
-    if ($_GET['reply'] == 'new')
-    {
-        $msgBoardObj->displayForm('new');
-    }
-    else
-    {
-        $reply = (int)$_GET['reply'];
-
-        if (isset($_POST['quotepost']))
+        if ($this->fcmsUser->access >= 8 && $this->fcmsUser->access == 5)
         {
-            $id = (int)$_POST['id'];
+            echo '
+            <p class="error-alert">'.T_('You do not have access to view this page.').'</p>';
+            $this->displayFooter();
+            return;
+        }
 
-            $msgBoardObj->displayForm('reply', $reply, $id);
+        if ($_GET['reply'] == 'new')
+        {
+            $this->fcmsMessageBoard->displayForm('new');
         }
         else
         {
-            $msgBoardObj->displayForm('reply', $reply);
+            $reply = (int)$_GET['reply'];
+
+            if (isset($_POST['quotepost']))
+            {
+                $id = (int)$_POST['id'];
+
+                $this->fcmsMessageBoard->displayForm('reply', $reply, $id);
+            }
+            else
+            {
+                $this->fcmsMessageBoard->displayForm('reply', $reply);
+            }
         }
+
+        $this->displayFooter();
     }
 
-    displayFooter();
-}
-
-/**
- * displayEditPostForm 
- * 
- * Displays the form for editing a post.
- * 
- * @return void
- */
-function displayEditPostForm ()
-{
-    global $msgBoardObj;
-
-    displayHeader();
-
-    $id = (int)$_POST['id'];
-
-    $sql = "SELECT `post`, `thread`
-            FROM `fcms_board_posts` 
-            WHERE `id` = '$id'
-            LIMIT 1";
-
-    $result = mysql_query($sql);
-    if (!$result)
+    /**
+     * displayEditPostForm 
+     * 
+     * Displays the form for editing a post.
+     * 
+     * @return void
+     */
+    function displayEditPostForm ()
     {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayHeader();
+
+        $id = (int)$_POST['id'];
+
+        $sql = "SELECT `post`, `thread`
+                FROM `fcms_board_posts` 
+                WHERE `id` = ?
+                LIMIT 1";
+
+        $row = $this->fcmsDatabase->getRow($sql, $id);
+        if ($row === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $this->fcmsMessageBoard->displayForm('edit', $row['thread'], $id, $row['post']);
+
+        $this->displayFooter();
     }
 
-    $r = mysql_fetch_array($result);
-
-    $msgBoardObj->displayForm('edit', $r['thread'], $id, $r['post']);
-
-    displayFooter();
-}
-
-/**
- * displayEditPostSubmit 
- * 
- * TODO - see below
- * 
- * @return void
- */
-function displayEditPostSubmit ()
-{
-    global $msgBoardObj;
-
-    $id       = (int)$_POST['id'];
-    $threadId = (int)$_POST['thread_id'];
-    $post     = escape_string($_POST['post']);
-
-    displayHeader();
-
-    // TODO
-    // Need to find a better way to add the edited by text
-    // this method could mess up if the site changes languages at some point
-    $pos = strpos($post, "\n\n[size=small][i]".T_('Edited'));
-    if ($pos === false)
+    /**
+     * displayEditPostSubmit 
+     * 
+     * TODO - see below
+     * 
+     * @return void
+     */
+    function displayEditPostSubmit ()
     {
-        $post = $post."\n\n[size=small][i]".T_('Edited')." ".fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset)."[/i][/size]";
+        $id       = (int)$_POST['id'];
+        $threadId = (int)$_POST['thread_id'];
+        $post     = $_POST['post'];
+
+        // TODO
+        // Need to find a better way to add the edited by text
+        // this method could mess up if the site changes languages at some point
+        $pos = strpos($post, "\n\n[size=small][i]".T_('Edited'));
+        if ($pos === false)
+        {
+            $post = $post."\n\n[size=small][i]".T_('Edited')." ".fixDate('n/d/Y g:ia', $this->fcmsUser->tzOffset)."[/i][/size]";
+        }
+        else
+        {
+            $post = substr($post, 0, $pos);
+            $post = $post."[size=small][i]".T_('Edited')." ".fixDate('n/d/Y g:ia', $this->fcmsUser->tzOffset)."[/i][/size]";
+        }
+
+        // Update Post
+        $sql = "UPDATE `fcms_board_posts` 
+                SET `post` = ?
+                WHERE `id` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($post, $id)))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        header("Location: messageboard.php?thread=$threadId");
     }
-    else
+
+    /**
+     * displayAdminEditSubjectSubmit 
+     * 
+     * The submit screen for editing the subject of a thread.
+     * 
+     * @return void
+     */
+    function displayAdminEditSubjectSubmit ()
     {
-        $post = substr($post, 0, $pos);
-        $post = $post."[size=small][i]".T_('Edited')." ".fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset)."[/i][/size]";
+        $threadId = (int)$_POST['thread'];
+
+        if (isset($_POST['sticky']))
+        {
+            $subject = "#ANOUNCE#".$_POST['subject'];
+        }
+        else
+        {
+            $subject = $_POST['subject'];
+        }
+
+        $sql = "UPDATE `fcms_board_threads` 
+                SET `subject` = ?
+                WHERE `id` = ?";
+
+        if (!$this->fcmsDatabase->update($sql, array($subject, $threadId)))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        header("Location: messageboard.php?thread=$threadId");
     }
 
-    // Update Post
-    $sql = "UPDATE `fcms_board_posts` 
-            SET `post` = '$post' 
-            WHERE `id` = '$id'";
-    if (!mysql_query($sql))
+    /**
+     * displayConfirmDelete 
+     * 
+     * The delete post confirmation screen, used when user doesn't have js turned on.
+     * 
+     * @return void
+     */
+    function displayConfirmDelete ()
     {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $threadId = (int)$_POST['thread'];
+        $id       = (int)$_POST['id'];
 
-    $msgBoardObj->showPosts($threadId, 1);
-    displayFooter();
-}
+        $this->displayHeader();
 
-/**
- * displayAdminEditSubjectSubmit 
- * 
- * The submit screen for editing the subject of a thread.
- * 
- * @return void
- */
-function displayAdminEditSubjectSubmit ()
-{
-    global $msgBoardObj;
-
-    $threadId = (int)$_POST['thread'];
-
-    displayHeader();
-
-    if (isset($_POST['sticky']))
-    {
-        $subject = "#ANOUNCE#".$_POST->escMySQL('subject');
-    }
-    else
-    {
-        $subject = $_POST->escMySQL('subject');
-    }
-
-    $sql = "UPDATE `fcms_board_threads` 
-            SET `subject` = '$subject' 
-            WHERE `id` = '$threadId'";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    displayOkMessage();
-
-    $msgBoardObj->showPosts($threadId, 1);
-
-    displayFooter();
-}
-
-/**
- * displayConfirmDelete 
- * 
- * The delete post confirmation screen, used when user doesn't have js turned on.
- * 
- * @return void
- */
-function displayConfirmDelete ()
-{
-    $threadId = (int)$_POST['thread'];
-    $id       = (int)$_POST['id'];
-
-    displayHeader();
-
-    echo '
+        echo '
                 <div class="info-alert">
                     <form action="messageboard.php?thread='.$threadId.'" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
@@ -632,319 +649,330 @@ function displayConfirmDelete ()
                         </div>
                     </form>
                 </div>';
-    displayFooter();
-}
-
-/**
- * displayDeletePostSubmit 
- * 
- * The submit screen for deleting a post.
- * 
- * @return void
- */
-function displayDeletePostSubmit ()
-{
-    global $msgBoardObj;
-
-    $id       = (int)$_POST['id'];
-    $threadId = (int)$_POST['thread'];
-
-    // Get id of last post in the current thread
-    $sql = "SELECT MAX(`id`) AS max 
-            FROM `fcms_board_posts` 
-            WHERE `thread` = '$threadId'";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    $r   = mysql_fetch_array($result);
-    $max = $r['max'];
-
-    // Get total post count for this thread
-    $sql = "SELECT `id` 
-            FROM `fcms_board_posts` 
-            WHERE `thread` = '$threadId'";
-
-    $result = mysql_query($sql);
-    if (!$result)
+    /**
+     * displayDeletePostSubmit 
+     * 
+     * The submit screen for deleting a post.
+     * 
+     * @return void
+     */
+    function displayDeletePostSubmit ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $id       = (int)$_POST['id'];
+        $threadId = (int)$_POST['thread'];
 
-    $total = mysql_num_rows($result);
-
-    // If this thread only has one post
-    if ($total == 1)
-    {
-        // Delete the entire thread
-        $sql = "DELETE FROM `fcms_board_threads` 
-                WHERE `id` = '$threadId'";
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-
-        $_SESSION['success'] = 1;
-
-        header("Location: messageboard.php?thread=$threadId");
-
-        return;
-    }
-    // If we are deleting the last post in the thread
-    elseif ($id == $max)
-    {
-        // Delete post
-        $sql = "DELETE FROM `fcms_board_posts`  
-                WHERE `id` = '$id'";
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-
-        // Get new last post in the thread
+        // Get id of last post in the current thread
         $sql = "SELECT MAX(`id`) AS max 
                 FROM `fcms_board_posts` 
-                WHERE `thread` = '$threadId'";
+                WHERE `thread` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $row = $this->fcmsDatabase->getRow($sql, $threadId);
+        if ($row === false)
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
             return;
         }
 
-        $row    = mysql_fetch_array($result);
-        $newmax = $row['max'];
+        $max = $row['max'];
 
-        // Get info from new last post
-        $sql = "SELECT `date`, `user` 
+        // Get total post count for this thread
+        $sql = "SELECT `id` 
                 FROM `fcms_board_posts` 
-                WHERE `id` = '$newmax'";
+                WHERE `thread` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql, $threadId);
+        if ($rows === false)
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
             return;
         }
 
-        $r = mysql_fetch_array($result);
+        $total = count($rows);
 
-        // Update the thread with last post info
-        $sql = "UPDATE `fcms_board_threads` 
-                SET `updated` = '".$r['date']."', `updated_by` = ".$r['user']." 
-                WHERE `id` = '$threadId'";
-        if (!mysql_query($sql))
+        // If this thread only has one post
+        if ($total == 1)
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            // Delete the entire thread
+            $sql = "DELETE FROM `fcms_board_threads` 
+                    WHERE `id` = ?";
+
+            if (!$this->fcmsDatabase->delete($sql, $threadId))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+
+            $_SESSION['success'] = 1;
+
+            header("Location: messageboard.php");
+
             return;
         }
-    }
-    // We are deleting a post in the middle of the thread
-    else
-    {
-        $sql = "DELETE FROM `fcms_board_posts`  
-                WHERE `id` = '$id'";
-        if (!mysql_query($sql))
+        // If we are deleting the last post in the thread
+        elseif ($id == $max)
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
+            // Delete post
+            $sql = "DELETE FROM `fcms_board_posts`  
+                    WHERE `id` = ?";
+
+            if (!$this->fcmsDatabase->delete($sql, $id))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+
+            // Get new last post in the thread
+            $sql = "SELECT MAX(`id`) AS max 
+                    FROM `fcms_board_posts` 
+                    WHERE `thread` = ?";
+
+            $row = $this->fcmsDatabase->getRow($sql, $threadId);
+            if ($row === false)
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+
+            $newmax = $row['max'];
+
+            // Get info from new last post
+            $sql = "SELECT `date`, `user` 
+                    FROM `fcms_board_posts` 
+                    WHERE `id` = ?";
+
+            $r = $this->fcmsDatabase->getRow($sql, $newmax);
+            if ($r === false)
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+
+            // Update the thread with last post info
+            $sql = "UPDATE `fcms_board_threads` 
+                    SET `updated` = ?,
+                        `updated_by` = ?
+                    WHERE `id` = ?";
+
+            $params = array($r['date'], $r['user'], $threadId);
+
+            if (!$this->fcmsDatabase->update($sql, $params))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
         }
-    }
-
-    $_SESSION['success'] = 1;
-
-    header("Location: messageboard.php?thread=$threadId");
-}
-
-/**
- * displayAdministrateThreadSubmit 
- * 
- * The submit screen for administering a thread.
- * 
- * @return void
- */
-function displayAdministrateThreadSubmit ()
-{
-    global $msgBoardObj;
-
-    $threadId    = (int)$_POST['thread'];
-    $adminOption = $_POST['admin_option'];
-
-    // Did they submit a blank form?
-    if (empty($adminOption))
-    {
-        header("Location: messageboard.php?thread=$threadId");
-        return;
-    }
-
-    // Changing Thread type
-    if ($adminOption == 'normal' || $adminOption == 'announcement')
-    {
-        $sql = "SELECT `subject`
-                FROM `fcms_board_threads`
-                WHERE `id` = '$threadId'
-                LIMIT 1";
-
-        $result = mysql_query($sql);
-        if (!$result)
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-
-        if (mysql_num_rows($result) < 1)
-        {
-            displayHeader();
-            echo '<p class="error-alert">'.T_('Thread does not exist.').'</p>';
-            displayFooter();
-            return;
-        }
-
-        $row = mysql_fetch_array($result);
-
-        // Normal Thread
-        if ($adminOption == 'normal')
-        {
-            $subject = $msgBoardObj->fixSubject($row['subject']);
-        }
-        // Announcement
+        // We are deleting a post in the middle of the thread
         else
         {
-            $subject = '#ANOUNCE#'.$row['subject'];
-        }
+            $sql = "DELETE FROM `fcms_board_posts`  
+                    WHERE `id` = ?";
 
-        $sql = "UPDATE `fcms_board_threads` 
-                SET `subject` = '$mysqlSubject' 
-                WHERE `id` = '$threadId'";
+            if (!$this->fcmsDatabase->delete($sql, $id))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
 
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
+                return;
+            }
         }
 
         $_SESSION['success'] = 1;
 
         header("Location: messageboard.php?thread=$threadId");
-        return;
-    } 
-
-    // Edit Thread Subject
-    if ($adminOption == 'subject')
-    {
-        displayHeader();
-        $msgBoardObj->displayAdminEditSubjectForm($threadId);
-        displayFooter();
-        return;
     }
 
-    // Delete thread
-    if ($adminOption == 'delete')
+    /**
+     * displayAdministrateThreadSubmit 
+     * 
+     * The submit screen for administering a thread.
+     * 
+     * @return void
+     */
+    function displayAdministrateThreadSubmit ()
     {
-        $sql = "DELETE FROM `fcms_board_posts` 
-                WHERE `thread` = '$threadId'";
-        if (!mysql_query($sql))
+        $threadId    = (int)$_POST['thread'];
+        $adminOption = $_POST['admin_option'];
+
+        // Did they submit a blank form?
+        if (empty($adminOption))
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            header("Location: messageboard.php?thread=$threadId");
             return;
         }
 
-        $sql = "DELETE FROM `fcms_board_threads` 
-                WHERE `id` = '$threadId'";
-        if (!mysql_query($sql))
+        // Changing Thread type
+        if ($adminOption == 'normal' || $adminOption == 'announcement')
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $sql = "SELECT `subject`
+                    FROM `fcms_board_threads`
+                    WHERE `id` = ?";
+
+            $row = $this->fcmsDatabase->getRow($sql, $threadId);
+            if ($row === false)
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+
+            if (count($row) < 1)
+            {
+                $this->displayHeader();
+                echo '<p class="error-alert">'.T_('Thread does not exist.').'</p>';
+                $this->displayFooter();
+
+                return;
+            }
+
+            // Normal Thread
+            if ($adminOption == 'normal')
+            {
+                $subject = $this->fcmsMessageBoard->fixSubject($row['subject']);
+            }
+            // Announcement
+            else
+            {
+                $subject = '#ANOUNCE#'.$row['subject'];
+            }
+
+            $sql = "UPDATE `fcms_board_threads` 
+                    SET `subject` = ? 
+                    WHERE `id` = ?";
+
+            if (!$this->fcmsDatabase->update($sql, array($subject, $threadId)))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+
+            $_SESSION['success'] = 1;
+
+            header("Location: messageboard.php?thread=$threadId");
+            return;
+        } 
+
+        // Edit Thread Subject
+        if ($adminOption == 'subject')
+        {
+            $this->displayHeader();
+            $this->fcmsMessageBoard->displayAdminEditSubjectForm($threadId);
+            $this->displayFooter();
             return;
         }
 
-        $_SESSION['success'] = 1;
+        // Delete thread
+        if ($adminOption == 'delete')
+        {
+            $sql = "DELETE FROM `fcms_board_posts` 
+                    WHERE `thread` = ?";
+
+            if (!$this->fcmsDatabase->delete($sql, $threadId))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+
+            $sql = "DELETE FROM `fcms_board_threads` 
+                    WHERE `id` = ?";
+
+            if (!$this->fcmsDatabase->delete($sql, $threadId))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+
+            $_SESSION['success'] = 1;
+        }
+
+        header("Location: messageboard.php");
     }
 
-    header("Location: messageboard.php");
-}
-
-/**
- * displaySearchSubmit 
- * 
- * Display the results for the search query.
- * 
- * @return void
- */
-function displaySearchSubmit ()
-{
-    global $msgBoardObj;
-
-    $search = $_POST['search'];
-
-    $advanced = false;
-
-    // validate start date
-    if (isset($_POST['start']))
+    /**
+     * displaySearchSubmit 
+     * 
+     * Display the results for the search query.
+     * 
+     * @return void
+     */
+    function displaySearchSubmit ()
     {
-        $start = $_POST['start'];
-        $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $start);
+        $search = trim($_POST['search']);
 
-        if ($found === false || $found < 1)
+        $advanced = false;
+
+        // validate start date
+        if (isset($_POST['start']))
         {
-            $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($start));
-            displayAdvancedSearchForm($error);
-            return;
+            $start = $_POST['start'];
+            $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $start);
+
+            if ($found === false || $found < 1)
+            {
+                $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($start));
+                $this->displayAdvancedSearchForm($error);
+
+                return;
+            }
+
+            $advanced = true;
         }
 
-        $advanced = true;
-    }
-
-    // validate end date
-    if (isset($_POST['end']))
-    {
-        $end   = $_POST['end'];
-        $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $end);
-
-        if ($found === false || $found < 1)
+        // validate end date
+        if (isset($_POST['end']))
         {
-            $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($end));
-            displayAdvancedSearchForm($error);
-            return;
+            $end   = $_POST['end'];
+            $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $end);
+
+            if ($found === false || $found < 1)
+            {
+                $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($end));
+                $this->displayAdvancedSearchForm($error);
+
+                return;
+            }
+
+            $advanced = true;
         }
 
-        $advanced = true;
-    }
+        $this->displayHeader();
 
-    displayHeader();
-
-    echo '
+        echo '
             <div id="sections_menu">
                 <ul>
                     <li><a href="messageboard.php">'.T_('Message Board Home').'</a></li>
@@ -958,92 +986,101 @@ function displaySearchSubmit ()
                 </p>
             </form>';
 
-    $mysqlSearch = escape_string($_POST['search']);
+        // Thread subject
+        $sql = "SELECT t.`id`, t.`subject`, t.`started_by`, p.`date`, p.`post`
+                FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t
+                WHERE p.`thread` = t.`id`
+                AND `subject` LIKE ?";
 
-    // Thread subject
-    $sql = "SELECT t.`id`, t.`subject`, t.`started_by`, p.`date`, p.`post`
-            FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t
-            WHERE p.`thread` = t.`id`
-            AND `subject` LIKE '%$mysqlSearch%'";
-    if ($advanced)
-    {
+        $params = array("%$search%");
+
+        if ($advanced)
+        {
+            $sql .= "
+                AND p.`date` >= ?
+                AND p.`date` <= ?";
+
+            $params[] = $start;
+            $params[] = $end;
+        }
+
+        // Post body
         $sql .= "
-            AND p.`date` >= '$start'
-            AND p.`date` <= '$end'";
-    }
+                GROUP BY p.`thread`
+                UNION
+                SELECT t.`id`, t.`subject`, t.`started_by`, p.`date`, p.`post`
+                FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t
+                WHERE p.`thread` = t.`id`
+                AND `post` LIKE ?";
 
-    // Post body
-    $sql .= "
-            GROUP BY p.`thread`
-            UNION
-            SELECT t.`id`, t.`subject`, t.`started_by`, p.`date`, p.`post`
-            FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t
-            WHERE p.`thread` = t.`id`
-            AND `post` LIKE '%$mysqlSearch%'";
-    if ($advanced)
-    {
-        $sql .= "
-            AND p.`date` >= '$start'
-            AND p.`date` <= '$end'";
-    }
+        $params[] = "%$search%";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        if ($advanced)
+        {
+            $sql .= "
+                AND p.`date` >= ?
+                AND p.`date` <= ?";
 
-    if (mysql_num_rows($result) <= 0)
-    {
-        echo '
+            $params[] = $start;
+            $params[] = $end;
+        }
+
+        $rows = $this->fcmsDatabase->getRows($sql, $params);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (count($rows) <= 0)
+        {
+            echo '
             <div class="search_result">
                 <p>'.T_('Could not find anything matching your search.').'</p>
             </div>';
         
+        }
+
+        foreach ($rows as $r)
+        {
+            // Remove #ANNOUNCE#
+            $subject = $this->fcmsMessageBoard->fixSubject($r['subject']);
+            // Clean html
+            $subject = cleanOutput($subject, 'html');
+            // Put in our html (should be the only html rendered)
+            $subject = highlight($search, $subject);
+
+            // Remove orig bbcode
+            $post = removeBBCode($r['post']);
+            // Clean html
+            $post = cleanOutput($post, 'html');
+            // Put in our html (should be the only html rendered)
+            $post = highlight($search, $post);
+            $date = fixDate('n/d/Y g:ia', $this->fcmsUser->tzOffset, $r['date']);
+
+            echo '
+                <div class="search_result">
+                    <a href="?thread='.$r['id'].'">'.$subject.'</a>
+                    <p>'.$post.'</p>
+                    <span>'.$date.'</span>
+                </div>';
+        }
+
+        $this->displayFooter();
     }
 
-    while ($r = mysql_fetch_assoc($result))
+    /**
+     * displayAdvancedSearchForm 
+     * 
+     * @param string $error Any previous error for this form.
+     * 
+     * @return void
+     */
+    function displayAdvancedSearchForm ($error = '', $search = '', $start = null, $end = null, $footer = true)
     {
-        // Remove #ANNOUNCE#
-        $subject = $msgBoardObj->fixSubject($r['subject']);
-        // Clean html
-        $subject = cleanOutput($subject, 'html');
-        // Put in our html (should be the only html rendered)
-        $subject = str_ireplace($search, '<b>'.$search.'</b>', $subject);
-
-        // Remove orig bbcode
-        $post = removeBBCode($r['post']);
-        // Clean html
-        $post = cleanOutput($post, 'html');
-        // Put in our html (should be the only html rendered)
-        $post = str_ireplace($search, '<b>'.$search.'</b>', $post);
-        $date = fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset, $r['date']);
-
-        echo '
-            <div class="search_result">
-                <a href="?thread='.$r['id'].'">'.$subject.'</a>
-                <p>'.$post.'</p>
-                <span>'.$date.'</span>
-            </div>';
-    }
-
-    displayFooter();
-}
-
-/**
- * displayAdvancedSearchForm 
- * 
- * @param string $error Any previous error for this form.
- * 
- * @return void
- */
-function displayAdvancedSearchForm ($error = '')
-{
-    global $tzOffset;
-
-    $js = '
+        $js = '
 <link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>
 <script type="text/javascript" src="ui/js/datechooser.js"></script>
 <script type="text/javascript">
@@ -1059,17 +1096,24 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    displayHeader($js);
+        $this->displayHeader($js);
 
-    $end   = fixDate('Y-m-d', $tzOffset, gmdate('Y-m-d H:i:s'));
-    $start = date('Y-m-d', strtotime("$end -30 day"));
+        if (empty($end))
+        {
+            $end   = fixDate('Y-m-d', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+        }
 
-    if ($error != '')
-    {
-        $error = '<div class="error-alert">'.$error.'</div>';
-    }
+        if (empty($start))
+        {
+            $start = date('Y-m-d', strtotime("$end -30 day"));
+        }
 
-    echo '
+        if ($error != '')
+        {
+            $error = '<div class="error-alert">'.$error.'</div>';
+        }
+
+        echo '
             <div id="sections_menu">
                 <ul>
                     <li><a href="messageboard.php">'.T_('Message Board Home').'</a></li>
@@ -1081,7 +1125,7 @@ Event.observe(window, \'load\', function() {
                     <legend><span>'.T_('Advanced Search').'</span></legend>
                     <div>
                         <label for="search">'.T_('Search For').'</label><br/>
-                        <input type="text" id="search" name="search"/>
+                        <input type="text" id="search" name="search" value="'.$search.'"/>
                     </div><br/>
                     <div>
                         <label for="date">'.T_('Date').'</label><br/> 
@@ -1094,126 +1138,121 @@ Event.observe(window, \'load\', function() {
                 </fieldset>
             </form>';
 
-    displayFooter();
-}
-
-/**
- * displayAdvancedSearchSubmit 
- * 
- * @return void
- */
-function displayAdvancedSearchSubmit ()
-{
-    global $msgBoardObj;
-
-    $start  = $_POST['start'];
-    $end    = $_POST['end'];
-    $search = $_POST['advanced-search'];
-
-    // validate dates
-    $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $start);
-    if ($found === false || $found < 1)
-    {
-        $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($start));
-        displayAdvancedSearchForm($error);
-        return;
-    }
-    $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $end);
-    if ($found === false || $found < 1)
-    {
-        $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($end));
-        displayAdvancedSearchForm($error);
-        return;
+        if ($footer)
+        {
+            $this->displayFooter();
+        }
     }
 
-    displayHeader();
-
-    echo '
-            <div id="sections_menu">
-                <ul>
-                    <li><a href="messageboard.php">'.T_('Message Board Home').'</a></li>
-                </ul>
-            </div>
-            <form method="post" action="messageboard.php">
-                <p id="big_search">
-                    <input type="text" id="search" name="search" value="'.cleanOutput($search, 'html').'"/>
-                    <input type="submit" value="'.T_('Search').'"/><br/>
-                    <a href="?search=advanced">'.T_('Advanced Search').'</a>
-                </p>
-            </form>';
-
-    $mysqlSearch = $_POST->escMySQL($search);
-
-    $sql = "SELECT t.`id`, t.`subject`, t.`started_by`, t.`updated`, p.`post`,
-                'thread' AS type
-            FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p
-            WHERE p.`thread` = t.`id`
-            AND `subject` LIKE '%$mysqlSearch%'
-            UNION
-            SELECT t.`id`, t.`subject`, t.`started_by`, p.`date` AS updated, p.`post`,
-                'post' AS type
-            FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p
-            WHERE p.`thread` = t.`id`
-            AND `post` LIKE '%$mysqlSearch%'
-            AND `date` >= '$start'
-            AND `date` <= '$end'";
-
-    $result = mysql_query($sql);
-    if (!$result)
+    /**
+     * displayAdvancedSearchSubmit 
+     * 
+     * @return void
+     */
+    function displayAdvancedSearchSubmit ()
     {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $start  = $_POST['start'];
+        $end    = $_POST['end'];
+        $search = $_POST['search'];
 
-    if (mysql_num_rows($result) <= 0)
-    {
-        echo '
+        // validate dates
+        $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $start);
+        if ($found === false || $found < 1)
+        {
+            $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($start));
+            $this->displayAdvancedSearchForm($error);
+            return;
+        }
+        $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $end);
+        if ($found === false || $found < 1)
+        {
+            $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($end));
+            $this->displayAdvancedSearchForm($error);
+            return;
+        }
+
+        // header is displayed by displayAdvancedSearchForm()
+        $this->displayAdvancedSearchForm('', $search, $start, $end, false);
+
+        $sql = "SELECT t.`id`, t.`subject`, t.`started_by`, t.`updated`, p.`post`,
+                    'thread' AS type
+                FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p
+                WHERE p.`thread` = t.`id`
+                AND `subject` LIKE ?
+                UNION
+                SELECT t.`id`, t.`subject`, t.`started_by`, p.`date` AS updated, p.`post`,
+                    'post' AS type
+                FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p
+                WHERE p.`thread` = t.`id`
+                AND `post` LIKE ?
+                AND `date` >= ?
+                AND `date` <= ?";
+
+        $params = array(
+            "%$search%",
+            "%$search%",
+            "$start 00:00:00",
+            "$end 24:59:59"
+        );
+
+        $rows = $this->fcmsDatabase->getRows($sql, $params);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (count($rows) <= 0)
+        {
+            echo '
             <div class="search_result">
                 <p>'.T_('Could not find anything matching your search.').'</p>
             </div>';
         
-    }
-
-    $threadsFound = array();
-
-    while ($r = mysql_fetch_assoc($result))
-    {
-        // if the search is found both in the subject and post
-        // skip the post, so we don't show doubles
-        if ($r['type'] == 'post')
-        {
-            if (isset($threadsFound[$r['id']]))
-            {
-                continue;
-            }
         }
 
-        $threadsFound[$r['id']] = 1;
+        $threadsFound = array();
 
-        // Remove #ANNOUNCE#
-        $subject = $msgBoardObj->fixSubject($r['subject']);
-        // Clean html
-        $subject = cleanOutput($subject, 'html');
-        // Put in our html (should be the only html rendered)
-        $subject = str_ireplace($search, '<b>'.$search.'</b>', $subject);
+        foreach ($rows as $r)
+        {
+            // if the search is found both in the subject and post
+            // skip the post, so we don't show doubles
+            if ($r['type'] == 'post')
+            {
+                if (isset($threadsFound[$r['id']]))
+                {
+                    continue;
+                }
+            }
 
-        // Remove orig bbcode
-        $post = removeBBCode($r['post']);
-        // Clean html
-        $post = cleanOutput($post, 'html');
-        // Put in our html (should be the only html rendered)
-        $post = str_ireplace($search, '<b>'.$search.'</b>', $post);
+            $threadsFound[$r['id']] = 1;
 
-        $date = fixDate('n/d/Y g:ia', $msgBoardObj->tzOffset, $r['updated']);
+            // Remove #ANNOUNCE#
+            $subject = $this->fcmsMessageBoard->fixSubject($r['subject']);
+            // Clean html
+            $subject = cleanOutput($subject, 'html');
+            // Put in our html (should be the only html rendered)
+            $subject = highlight($search, $subject);
 
-        echo '
+            // Remove orig bbcode
+            $post = removeBBCode($r['post']);
+            // Clean html
+            $post = cleanOutput($post, 'html');
+            // Put in our html (should be the only html rendered)
+            $post = highlight($search, $post);
+
+            $date = fixDate('n/d/Y g:ia', $this->fcmsUser->tzOffset, $r['updated']);
+
+            echo '
             <div class="search_result">
                 <a href="?thread='.$r['id'].'">'.$subject.'</a>
                 <p>'.$post.'</p>
                 <span>'.$date.'</span>
             </div>';
-    }
+        }
 
-    displayFooter();
+        $this->displayFooter();
+    }
 }

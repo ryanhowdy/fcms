@@ -1,7 +1,4 @@
 <?php
-include_once('utils.php');
-include_once('database_class.php');
-
 /**
  * Alerts 
  * 
@@ -12,23 +9,24 @@ include_once('database_class.php');
  */
 class Alerts
 {
-    var $db;
-    var $currentUserId;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
 
     /**
      * Alerts 
      * 
-     * @param string $id 
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
      *
      * @return void
      */
-    function Alerts ($id)
+    function Alerts ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = (int)$id;
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
     }
     
     /**
@@ -41,22 +39,24 @@ class Alerts
     function displayNewUserHome ($userid)
     {
         include_once 'addressbook_class.php';
-        $addressObj = new AddressBook($userid);
+        $addressObj = new AddressBook($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
 
         $userid = (int)$userid;
 
         $sql = "SELECT `id`
                 FROM `fcms_alerts` 
                 WHERE `alert` = 'alert_new_user_home'
-                AND `user` = '$userid' 
+                AND `user` = ? 
                 AND `hide` = 1";
-        if (!$this->db->query($sql))
+
+        $row = $this->fcmsDatabase->getRow($sql, $userid);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
-        if ($this->db->count_rows() >= 1)
+        if (count($row) >= 1)
         {
             return false;
         }
@@ -101,30 +101,29 @@ class Alerts
         $sql = "SELECT MAX(`id`) AS 'max'
                 FROM `fcms_polls`";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $r = $this->fcmsDatabase->getRow($sql);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
-        $r = mysql_fetch_array($result);
+
         $currentPoll = $r['max'];
 
         $sql = "SELECT `id`
                 FROM `fcms_poll_votes`
-                WHERE `user` = '$userid'
-                AND `poll_id` = '$currentPoll'";
+                WHERE `user` = ?
+                AND `poll_id` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql, array($userid, $currentPoll));
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
-        $rows = mysql_num_rows($result);
 
-        $poll = '<a href="?poll_id='.$currentPoll.'">'.T_('Vote on the Poll').'</a>';
-        if ($rows > 0)
+        $poll = '<a href="polls.php">'.T_('Vote on the Poll').'</a>';
+        if (count($rows) > 0)
         {
             $poll = '<span>'.T_('Vote on the Poll').'</span>';
             $complete++;
@@ -163,15 +162,17 @@ class Alerts
         $sql = "SELECT * 
                 FROM `fcms_alerts` 
                 WHERE `alert` = 'alert_poll'
-                AND `user` = '$userid' 
+                AND `user` = ? 
                 AND `hide` = 1";
-        if (!$this->db->query($sql))
+
+        $row = $this->fcmsDatabase->getRow($sql, $userid);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() < 1)
+        if (count($row) < 1)
         {
             echo '
             <div id="alert_poll" class="alert-message block-message info">
@@ -201,21 +202,23 @@ class Alerts
         $sql = "SELECT * 
                 FROM `fcms_alerts` 
                 WHERE `alert` = 'alert_address'
-                AND `user` = '$userid' 
+                AND `user` = ?
                 AND `hide` = 1";
-        if (!$this->db->query($sql))
+
+        $row = $this->fcmsDatabase->getRow($sql, $userid);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() < 1)
+        if (count($row) < 1)
         {
             echo '
             <div id="alert_address" class="info-alert">
                 <h3>'.T_('It looks like your address is incomplete.').'</h3>
                 <p>'.T_('The other website members would appreciate it if you would complete your address information.  This will help them stay in touch.').'</p>
-                <p><a href="?address='.$this->currentUserId.'">'.T_('Complete Address Now').'</a></p>
+                <p><a href="?address='.$this->fcmsUser->id.'">'.T_('Complete Address Now').'</a></p>
                 <div class="close-alert"><a id="new_address" href="?alert=alert_address">'.T_('Delete This Alert').'</a></div>
             </div>';
         }
@@ -234,22 +237,27 @@ class Alerts
         $sql = "SELECT * 
                 FROM `fcms_alerts` 
                 WHERE `alert` = 'alert_scheduler'
-                AND `user` = '$userid' 
+                AND `user` = ?
                 AND `hide` = 1";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, $userid);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() < 1)
+        if (count($rows) < 1)
         {
             echo '
-            <div id="alert_scheduler" class="info-alert">
+            <div id="alert_scheduler" class="alert-message block-message info">
+                <a class="close" href="?alert=alert_scheduler">&times;</a>
                 <h3>'.T_('Important info about FCMS Scheduler.').'</h3>
                 <p>'.T_('FCMS Scheduler is a replacement for cron.  If your host supports cron, you should disable the FCMS Scheduler and use cron instead.').'</p>
                 <p>'.T_('FCMS Scheduler can NOT guarantee that the scheduled tasks will complete on the desired intervals.').'</p>
-                <div class="close-alert"><a id="del_scheduler_alert" href="?alert=alert_scheduler">'.T_('Delete This Alert').'</a></div>
+                <div class="alert-actions">
+                    <a class="btn small" href="?alert=alert_scheduler">'.T_('Delete This Alert').'</a>
+                </div>
             </div>';
         }
     }

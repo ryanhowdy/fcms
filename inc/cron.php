@@ -56,19 +56,21 @@ function runFamilyNewsJob ()
 
     $newsObj = new FamilyNews(1);
 
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     // Get date we last checked for external news
     $sql = "SELECT `value` AS 'external_news_date'
             FROM `fcms_config`
             WHERE `name` = 'external_news_date'
             LIMIT 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $r = $fcmsDatabase->getRow($sql);
+    if ($r === false)
     {
         logError(__FILE__.' ['.__LINE__.'] - Could not get external_news_date.');
         die();
     }
-    $r = mysql_fetch_assoc($result);
 
     $last_checked = strtotime($r['external_news_date']);
 
@@ -83,13 +85,14 @@ function runFamilyNewsJob ()
     $sql = "SELECT `user`, `blogger`, `tumblr`, `wordpress`, `posterous`
             FROM `fcms_user_settings`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
         logError(__FILE__.' ['.__LINE__.'] - Could not get blog settings.');
         die();
     }
-    if (mysql_num_rows($result) <= 0)
+
+    if (count($rows) <= 0)
     {
         if (debugOn())
         {
@@ -102,7 +105,7 @@ function runFamilyNewsJob ()
 
     $external_ids = $newsObj->getExternalPostIds();
 
-    while ($r = mysql_fetch_assoc($result))
+    foreach ($rows as $r)
     {
         // Blogger
         if (!empty($r['blogger']))
@@ -166,7 +169,8 @@ function runFamilyNewsJob ()
     $sql = "UPDATE `fcms_config`
             SET `value` = '$now'
             WHERE `name` = 'external_news_date'";
-    if (!mysql_query($sql))
+
+    if (!$fcmsDatabase->update($sql))
     {
         logError(__FILE__.' ['.__LINE__.'] - Could not update last imported news date.');
         die();
@@ -187,15 +191,18 @@ function runYouTubeJob ()
 {
     global $file;
 
-    require_once "constants.php";
-    require_once "socialmedia.php";
-    require_once "datetime.php";
-    require_once THIRDPARTY."gettext.inc";
+    require_once 'constants.php';
+    require_once 'socialmedia.php';
+    require_once 'datetime.php';
+    require_once THIRDPARTY.'gettext.inc';
     set_include_path(THIRDPARTY);
     require_once 'Zend/Loader.php';
     Zend_Loader::loadClass('Zend_Gdata_YouTube');
     Zend_Loader::loadClass('Zend_Gdata_AuthSub');
     Zend_Loader::loadClass('Zend_Gdata_App_Exception');
+
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     $existingIds = getExistingYouTubeIds();
 
@@ -205,8 +212,8 @@ function runYouTubeJob ()
             WHERE s.`user` = u.`id`
             AND s.`youtube_session_token` IS NOT NULL";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
         logError(__FILE__.' ['.__LINE__.'] - Could not get youtube tokens.');
         die();
@@ -214,7 +221,7 @@ function runYouTubeJob ()
 
     $sessionTokens = array();
 
-    while ($row = mysql_fetch_assoc($result))
+    foreach ($rows as $row)
     {
         $sessionTokens[$row['id']] = $row['youtube_session_token'];
     }
@@ -225,13 +232,14 @@ function runYouTubeJob ()
     foreach ($sessionTokens as $userId => $token)
     {
         // Setup youtube api
-        $httpClient     = getAuthSubHttpClient($youtubeConfig['youtube_key'], $token);
+        $httpClient     = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $token);
         $youTubeService = new Zend_Gdata_YouTube($httpClient);
 
         $feed = $youTubeService->getUserUploads('default');
 
         $values     = '';
         $videoCount = 0;
+        $params     = array();
 
         foreach ($feed as $entry)
         {
@@ -261,10 +269,16 @@ function runYouTubeJob ()
                 $width  = $thumbs[0]['width'];
             }
 
-            $title       = escape_string($title);
-            $description = escape_string($description);
+            $values .= "(?, ?, ?, 'youtube', ?, ?, ?, ?, NOW(), ?),";
 
-            $values .= "('$id', '$title', '$description', 'youtube', '$height', '$width', '$created', '$userId', NOW(), '$userId'),";
+            $params[] = $id;
+            $params[] = $title;
+            $params[] = $description;
+            $params[] = $height;
+            $params[] = $width;
+            $params[] = $created;
+            $params[] = $userId;
+            $params[] = $userId;
 
             $videoCount++;
         }
@@ -273,9 +287,11 @@ function runYouTubeJob ()
         {
             $values = substr($values, 0, -1); // remove comma
 
-            $sql = "INSERT INTO `fcms_video` (`source_id`, `title`, `description`, `source`, `height`, `width`, `created`, `created_id`, `updated`, `updated_id`)
+            $sql = "INSERT INTO `fcms_video`
+                        (`source_id`, `title`, `description`, `source`, `height`, `width`, `created`, `created_id`, `updated`, `updated_id`)
                     VALUES $values";
-            if (!mysql_query($sql))
+
+            if (!$fcmsDatabase->insert($sql, $params))
             {
                 logError(__FILE__.' ['.__LINE__.'] - Could not insert new video to db.');
                 die();
@@ -301,16 +317,8 @@ function runInstagramJob ()
     require_once THIRDPARTY.'gettext.inc';
     require_once THIRDPARTY.'Instagram.php';
 
-    global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-    $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-    mysql_select_db($cfg_mysql_db);
-
-    if (!mysql_query("SET NAMES 'utf8'"))
-    {
-        logError(__FILE__.' ['.__LINE__.'] - Could not set names utf8.');
-        die();
-    }
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     // Get user's access tokens
     $sql = "SELECT u.`id`, s.`instagram_access_token`
@@ -319,8 +327,8 @@ function runInstagramJob ()
             AND s.`instagram_auto_upload` = 1
             AND s.`instagram_access_token` IS NOT NULL";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
         logError(__FILE__.' ['.__LINE__.'] - Could not get instagram access tokens.');
         die();
@@ -328,7 +336,7 @@ function runInstagramJob ()
 
     $accessTokens = array();
 
-    while ($row = mysql_fetch_assoc($result))
+    foreach ($rows as $row)
     {
         $accessTokens[$row['id']] = $row['instagram_access_token'];
     }
@@ -374,25 +382,36 @@ function runInstagramJob ()
             $sql = "INSERT INTO `fcms_gallery_external_photo`
                         (`source_id`, `thumbnail`, `medium`, `full`)
                     VALUES
-                        ('$sourceId', '$thumbnail', '$medium', '$full')";
+                        (?, ?, ?, ?)";
 
-            $result = mysql_query($sql);
-            if (!$result)
+            $params = array(
+                $sourceId,
+                $thumbnail,
+                $medium,
+                $full
+            );
+
+            $id = $fcmsDatabase->insert($sql, $params);
+            if ($id === false)
             {
                 logError(__FILE__.' ['.__LINE__.'] - Could not save external photos.');
                 die();
             }
 
-            $id = mysql_insert_id();
-
             // Insert new photo
             $sql = "INSERT INTO `fcms_gallery_photos`
                         (`date`, `external_id`, `caption`, `category`, `user`)
                     VALUES
-                        (NOW(), '$id', '$caption', '$categoryId', '$userId')";
+                        (NOW(), ?, ?, ?, ?)";
 
-            $result = mysql_query($sql);
-            if (!$result)
+            $params = array(
+                $id,
+                $caption,
+                $categoryId,
+                $userId
+            );
+
+            if (!$fcmsDatabase->insert($sql, $params))
             {
                 logError(__FILE__.' ['.__LINE__.'] - Could not insert new photo.');
                 die();
@@ -414,11 +433,15 @@ function runInstagramJob ()
  */
 function updateLastRun ($now, $type)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     // Update date we last ran this job
     $sql = "UPDATE `fcms_schedule`
             SET `lastrun` = '$now'
             WHERE `type` = '$type'";
-    if (!mysql_query($sql))
+
+    if (!$fcmsDatabase->update($sql, array($now, $type)))
     {
         logError(__FILE__.' ['.__LINE__.'] - Could not update last run date for '.$type.' job.');
         die();

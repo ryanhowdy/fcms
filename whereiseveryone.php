@@ -62,7 +62,7 @@ if (count($users[0]) <= 0)
 if (empty($config['fs_client_id']) or empty($config['fs_client_secret']))
 {
     // If admin is viewing, alert them that the config is missing/messed up
-    if (checkAccess($fcmsUser->id) < 2)
+    if ($fcmsUser->access < 2)
     {
         echo '
             <div class="info-alert">

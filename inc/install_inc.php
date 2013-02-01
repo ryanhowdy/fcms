@@ -27,6 +27,7 @@ function dropTables ()
     mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photo_comment`")    or die("fcms_gallery_photo_comment<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_gallery_category_comment`") or die("fcms_gallery_category_comment<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photos_tags`")      or die("fcms_gallery_photos_tags<br/>" . mysql_error());
+    mysql_query("DROP TABLE IF EXISTS `fcms_gallery_external_photo`")   or die("fcms_gallery_external_photo<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_gallery_photos`")           or die("fcms_gallery_photos<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_news_comments`")            or die("fcms_news_comments<br/>" . mysql_error());
     mysql_query("DROP TABLE IF EXISTS `fcms_news`")                     or die("fcms_news<br/>" . mysql_error());
@@ -172,7 +173,7 @@ function installUsers ($fname, $lname, $email, $dobYear, $dobMonth, $dobDay, $us
                 `id` INT(25) NOT NULL AUTO_INCREMENT, 
                 `access` TINYINT(1) NOT NULL DEFAULT '3', 
                 `activity` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
-                `joindate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+                `joindate` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
                 `fname` VARCHAR(25) NOT NULL DEFAULT 'fname', 
                 `mname` VARCHAR(25) NULL,
                 `lname` VARCHAR(25) NOT NULL DEFAULT 'lname', 
@@ -242,6 +243,8 @@ function installUsers ($fname, $lname, $email, $dobYear, $dobMonth, $dobDay, $us
                 `fb_access_token` VARCHAR(255) NULL,
                 `youtube_session_token` VARCHAR(255) NULL,
                 `instagram_access_token` VARCHAR(255) NULL,
+                `instagram_auto_upload` TINYINT(1) DEFAULT 0,
+                `picasa_session_token` VARCHAR(255) NULL,
                 PRIMARY KEY (`id`), 
                 KEY `user_ind` (`user`)
             ) 

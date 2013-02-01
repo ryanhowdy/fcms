@@ -1,10 +1,4 @@
 <?php
-include_once('database_class.php');
-include_once('utils.php');
-include_once('datetime.php');
-include_once('familytree_class.php');
-include_once('awards_class.php');
-
 /**
  * Profile 
  * 
@@ -15,31 +9,33 @@ include_once('awards_class.php');
  */
 class Profile
 {
-    var $db;
-    var $db2;
-    var $treeObj;
-    var $awardObj;
-    var $tzOffset;
-    var $currentUserId;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
+    var $fcmsFamilyTree;
+    var $fcmsAward;
+    var $fcmsAddressBook;
 
     /**
      * Profile 
      * 
-     * @param int $currentUserId 
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
+     * @param object $fcmsFamilyTree
+     * @param object $fcmsAward
+     * @param object $fcmsAddressBook
      *
      * @return  void
      */
-    function Profile ($currentUserId)
+    function Profile ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsFamilyTree, $fcmsAward, $fcmsAddressBook = null)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = (int)$currentUserId;
-        $this->tzOffset      = getTimezone($this->currentUserId);
-        $this->awardObj      = new Awards($this->currentUserId);
-        $this->treeObj       = new FamilyTree($this->currentUserId);
+        $this->fcmsError       = $fcmsError;
+        $this->fcmsDatabase    = $fcmsDatabase;
+        $this->fcmsUser        = $fcmsUser;
+        $this->fcmsFamilyTree  = $fcmsFamilyTree;
+        $this->fcmsAward       = $fcmsAward;
+        $this->fcmsAddressBook = $fcmsAddressBook;
     }
 
     /**
@@ -49,7 +45,7 @@ class Profile
      */
     function displayEditProfile ()
     {
-        $stats = $this->getStats($this->currentUserId);
+        $stats = $this->getStats($this->fcmsUser->id);
 
         echo '
             <div id="leftcolumn">
@@ -62,7 +58,7 @@ class Profile
             <div id="maincolumn">
                 <div id="actions_menu">
                     <ul>
-                        <li><a href="?member='.$this->currentUserId.'">'.T_('View Profile').'</a></li>
+                        <li><a href="?member='.$this->fcmsUser->id.'">'.T_('View Profile').'</a></li>
                     </ul>
                 </div>
                 <h2>'.T_('Stats').'</h2>
@@ -88,14 +84,14 @@ class Profile
         $sql = "SELECT `fname`, `mname`, `lname`, `maiden`, `bio`, `sex`, 
                     `dob_year`, `dob_month`, `dob_day`
                 FROM `fcms_users`
-                WHERE `id` = '".$this->currentUserId."'";
-        if (!$this->db->query($sql))
+                WHERE `id` = '".$this->fcmsUser->id."'";
+
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+           $this->fcmsError->displayError();
             return;
         }
-
-        $row = $this->db->get_row();
 
         // Gender
         $gender_options = buildHtmlSelectOptions(array('M' => T_('Male'), 'F' => T_('Female')), $row['sex']);
@@ -109,6 +105,7 @@ class Profile
             $i++;
         }
         $day_options = buildHtmlSelectOptions($day_list, $row['dob_day']);
+
         $month_list = array();
         $i = 1;
         while ($i <= 12)
@@ -117,9 +114,10 @@ class Profile
             $i++;
         }
         $month_options = buildHtmlSelectOptions($month_list, $row['dob_month']);
+
         $year_list = array();
         $i = 1900;
-        $year_end = fixDate('Y', $this->tzOffset);
+        $year_end = fixDate('Y', $this->fcmsUser->tzOffset);
         while ($i <= $year_end)
         {
             $year_list[$i] = $i;
@@ -231,14 +229,15 @@ class Profile
     {
         $sql = "SELECT `avatar`, `gravatar` 
                 FROM `fcms_users`
-                WHERE `id` = '" . $this->currentUserId . "'";
-        if (!$this->db->query($sql))
+                WHERE `id` = ?";
+
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+           $this->fcmsError->displayError();
+
             return;
         }
-
-        $row = $this->db->get_row();
 
         // Avatar
         $current_avatar_type = 'fcms';
@@ -259,7 +258,7 @@ class Profile
         $js     = '';
         $submit = 'submit';
 
-        if (usingAdvancedUploader($this->currentUserId))
+        if (usingAdvancedUploader($this->fcmsUser->id))
         {
             $submit = 'button';
             $form   = '<form id="frm" name="frm" method="post">';
@@ -312,7 +311,7 @@ class Profile
             $input = '<input type="file" name="avatar" id="avatar" size="30" title="'.T_('Upload your personal image (Avatar)').'"/>';
         }
 
-        $currentAvatar = '<img id="current-avatar" src="'.getCurrentAvatar($this->currentUserId).'" alt="'.T_('This is your current avatar.').'"/>';
+        $currentAvatar = '<img id="current-avatar" src="'.getCurrentAvatar($this->fcmsUser->id).'" alt="'.T_('This is your current avatar.').'"/>';
 
         echo '
             <div id="leftcolumn">
@@ -379,23 +378,17 @@ class Profile
      */
     function displayEditAddress ()
     {
-        require_once 'inc/addressbook_class.php';
-
-        global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
-
-        $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $book = new AddressBook($this->currentUserId, $database);
-
         $sql = "SELECT `id`
                 FROM `fcms_address`
-                WHERE `user` = '".$this->currentUserId."'";
-        if (!$this->db->query($sql))
+                WHERE `user` = '".$this->fcmsUser->id."'";
+
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-
-        $row = $this->db->get_row();
 
         $address_id = $row['id'];
 
@@ -409,7 +402,7 @@ class Profile
             </div>
             <div id="maincolumn">';
 
-        $book->displayEditForm($address_id, '', 'profile.php?view=address');
+        $this->fcmsAddressBook->displayEditForm($address_id, '', 'profile.php?view=address');
 
         echo '
             </div>';

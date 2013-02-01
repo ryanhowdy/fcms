@@ -1,8 +1,4 @@
 <?php
-include_once('database_class.php');
-include_once('utils.php');
-include_once('datetime.php');
-
 /**
  * Documents 
  * 
@@ -13,27 +9,24 @@ include_once('datetime.php');
  */
 class Documents
 {
-    var $db;
-    var $db2;
-    var $tzOffset;
-    var $currentUserId;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
 
     /**
      * Documents 
      * 
-     * @param  int      $currentUserId 
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
      *
      * @return void
      */
-    function Documents ($currentUserId)
+    function Documents ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = (int)$currentUserId;
-        $this->tzOffset      = getTimezone($this->currentUserId);
+        $this->fcmsError       = $fcmsError;
+        $this->fcmsDatabase    = $fcmsDatabase;
+        $this->fcmsUser        = $fcmsUser;
     }
 
     /**
@@ -51,13 +44,14 @@ class Documents
                 ORDER BY `date` DESC 
                 LIMIT $from, 25";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
             echo '
             <script type="text/javascript" src="ui/js/tablesort.js"></script>
@@ -72,16 +66,16 @@ class Documents
                 </thead>
                 <tbody>';
 
-            while ($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
-                $date = fixDate(T_('m/d/Y h:ia'), $this->tzOffset, $r['date']);
+                $date = fixDate(T_('m/d/Y h:ia'), $this->fcmsUser->tzOffset, $r['date']);
 
                 echo '
                     <tr>
                         <td>
                             <a href="?download='.cleanOutput($r['name']).'">'.cleanOutput($r['name']).'</a>';
 
-                if (checkAccess($this->currentUserId) < 3 || $this->currentUserId == $r['user'])
+                if ($this->fcmsUser->access < 3 || $this->fcmsUser->id == $r['user'])
                 {
                     echo '&nbsp;
                             <form method="post" action="documents.php">
@@ -106,18 +100,19 @@ class Documents
             </table>';
 
             // Pages
-            $sql = "SELECT count(`id`) AS c FROM `fcms_documents`";
-            if (!$this->db2->query($sql))
+            $sql = "SELECT count(`id`) AS c 
+                    FROM `fcms_documents`";
+
+            $row = $this->fcmsDatabase->getRow($sql);
+            if ($row === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
                 return;
             }
 
-            while ($r = $this->db2->get_row())
-            {
-                $docscount = $r['c'];
-            }
+            $docscount   = isset($row['c']) ? $row['c'] : 0;
             $total_pages = ceil($docscount / 25); 
+
             displayPages('documents.php', $page, $total_pages);
         }
         // No docs to show
@@ -229,22 +224,22 @@ class Documents
         // Check max file size
         if ($error == 1)
         {
-            echo '
-            <p class="error-alert">
-                '.sprintf(T_('Document %s exceeds the maximum file size allowed by your PHP settings.'), $filename).'
-            </p>';
+            $this->fcmsError->add(array(
+                'message' => T_('Document too large.'),
+                'details' => '<p>'.sprintf(T_('Document %s exceeds the maximum file size allowed by your PHP settings.'), $filename).'</p>',
+            ));
+
             return false;
         }
 
         // Check allowable file type
         if (!array_key_exists($filetype, $valid_docs) || !in_array($ext, $valid_docs))
         {
-            echo '
-            <div class="error-alert">
-                <h2>'.T_('Invalid Document').'</h2>
-                '.$filename.' &nbsp;<small><i>('.$filetype.')</i></small><br/><br/>
-                '.T_('Documents must be of type (.doc, .txt, .xsl, .zip, .rtf, .ppt, .pdf).').'
-            </div>';
+            $this->fcmsError->add(array(
+                'message' => T_('Invalid Document'),
+                'details' => '<p>'.$filename.' &nbsp;<small><i>('.$filetype.')</i></small></p><p>'.T_('Documents must be of type (.doc, .txt, .xsl, .zip, .rtf, .ppt, .pdf).').'</p>',
+            ));
+
             return false;
         }
 
@@ -255,10 +250,12 @@ class Documents
         // Check if a file with that name exists already
         if (file_exists($uploadsPath.'documents/'.$filename))
         {
-            echo '
-            <p class="error-alert">
-                '.sprintf(T_('Document %s already exists!  Please change the filename and try again.'), $filename).'
-            </p>';
+            $this->fcmsError->add(array(
+                'message' => sprintf(T_('Document %s already exists!  Please change the filename and try again.'), $filename),
+                'file'    => __FILE__,
+                'line'    => __LINE__,
+            ));
+
             return false;
         }
 

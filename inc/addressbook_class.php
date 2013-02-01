@@ -11,7 +11,6 @@
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
  * @link      http://www.familycms.com/wiki/
  */
-require_once 'utils.php';
 
 /**
  * AddressBook 
@@ -25,25 +24,24 @@ require_once 'utils.php';
  */
 class AddressBook
 {
-    var $db;
-    var $currentUserId;
-    var $tzOffset;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
 
     /**
      * AddressBook 
      * 
-     * @param int $currentUserId Id of the current user
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
      * 
      * @return void
      */
-    function AddressBook ($currentUserId)
+    function AddressBook ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = (int)$currentUserId;
-        $this->tzOffset      = getTimezone($this->currentUserId);
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
     }
 
     /**
@@ -65,15 +63,16 @@ class AddressBook
                     `zip`, `home`, `work`, `cell`, `email`, `password` 
                 FROM `fcms_address` AS a, `fcms_users` AS u 
                 WHERE a.`user` = u.`id` 
-                AND a.`id` = '$aid'";
+                AND a.`id` = ?";
 
-        if (!$this->db->query($sql))
+        $r = $this->fcmsDatabase->getRow($sql, $aid);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($r) <= 0)
         {
             echo '
             <p class="error-alert">'.sprintf(T_('Could not find address (%s)'), $aid).'</p>';
@@ -81,12 +80,10 @@ class AddressBook
             return;
         }
 
-        $r = $this->db->get_row();
-
         // Edit / Delete links
         $edit_del = '';
 
-        if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2)
+        if ($this->fcmsUser->id == $r['user'] || $this->fcmsUser->access < 2)
         {
             $edit_del = '<li id="edit"><a href="?cat='.$cat.'&amp;edit='.$r['id'].'">'.T_('Edit').'</a></li>';
 
@@ -220,7 +217,7 @@ class AddressBook
                     </tbody>
                 </table>';
 
-        if (checkAccess($this->currentUserId) <= 3)
+        if ($this->fcmsUser->access <= 3)
         {
             echo '
                 <p class="alignright"><input class="sub1" type="submit" name="emailsubmit" value="'.T_('Email Selected').'"/></p>';
@@ -291,7 +288,7 @@ class AddressBook
                 AND (
                     `password` != 'PRIVATE' 
                     OR (
-                        a.`created_id` = ".$this->currentUserId." 
+                        a.`created_id` = ".$this->fcmsUser->id." 
                         AND `password` = 'PRIVATE' 
                     )
                 )
@@ -326,19 +323,19 @@ class AddressBook
                         `country`, `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
-                    AND a.`created_id` = ".$this->currentUserId." 
+                    AND a.`created_id` = ".$this->fcmsUser->id." 
                     AND `password` = 'PRIVATE' 
                     ORDER BY `lname`";
         }
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        while ($r = mysql_fetch_array($result))
+        foreach ($rows as $r)
         {
             $email = '';
 
@@ -400,15 +397,15 @@ class AddressBook
                 WHERE a.`id` = '$addressid' 
                 AND a.`user` = u.`id`";
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql);
+        if ($row == false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
-        $row = $this->db->get_row();
-
-        if (checkAccess($this->currentUserId) >= 2 && $this->currentUserId != $row['uid'])
+        if ($this->fcmsUser->access >= 2 && $this->fcmsUser->id != $row['uid'])
         {
             echo '
                     <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
@@ -762,17 +759,17 @@ class AddressBook
     {
         $sql = "SELECT `state`, `home`, `work`, `cell`
                 FROM `fcms_address` 
-                WHERE `user` = $id";
-        if (!$this->db->query($sql))
+                WHERE `user` = ?";
+
+        $r = $this->fcmsDatabase->getRow($sql, $id);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
-        if ($this->db->count_rows() == 1)
+        if (count($r) >= 1)
         {
-            $r = $this->db->get_row();
-
             // Must fill in at least state and one phone number to be
             // considered having address info filled out
             if (!empty($r['state']) && (!empty($r['home']) || !empty($r['work']) || !empty($r['cell'])))
@@ -783,10 +780,6 @@ class AddressBook
             {
                 return false;
             }
-        }
-        elseif ($this->db->count_rows() > 1)
-        {
-            die("Multiple Addresses found!");
         }
         else
         {
@@ -1154,46 +1147,48 @@ class AddressBook
                 $pw = 'PRIVATE';
             }
 
-            $sql = "INSERT INTO `fcms_users` (
-                        `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`
-                    ) VALUES (
-                        3, 
-                        NOW(), 
-                        '".escape_string($fname)."', 
-                        '".escape_string($lname)."', 
-                        '".escape_string($email)."', 
-                        'NONMEMBER-$uniq', 
-                        '$pw'
-                    )";
-            if (!mysql_query($sql))
+            $sql = "INSERT INTO `fcms_users`
+                        (`access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`)
+                    VALUES (3, NOW(), ?, ?, ?, 'NONMEMBER-$uniq', ?)";
+
+            $params = array(
+                $fname, 
+                $lname, 
+                $email, 
+                $pw
+            );
+
+            $id = $this->fcmsDatabase->insert($sql, $params);
+            if ($id === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return;
             }
 
-            $id = mysql_insert_id();
-
             // Create address for non-member
-            $sql = "INSERT INTO `fcms_address`(
-                        `user`, `created_id`, `created`, `updated_id`, `updated`, `address`, `city`, `state`, 
-                        `zip`, `home`, `work`, `cell`
-                    ) VALUES (
-                        '$id', 
-                        '".$this->currentUserId."', 
-                        NOW(), 
-                        '".$this->currentUserId."', 
-                        NOW(), 
-                        '".escape_string($street)."', 
-                        '".escape_string($city)."', 
-                        '".escape_string($state)."', 
-                        '".escape_string($zip)."', 
-                        '".escape_string($home)."', 
-                        '".escape_string($work)."', 
-                        '".escape_string($cell)."'
-                    )";
-            if (!mysql_query($sql))
+            $sql = "INSERT INTO `fcms_address`
+                        (`user`, `created_id`, `created`, `updated_id`, `updated`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`)
+                    VALUES
+                        (?, ?, NOW(), ?, NOW(), ?, ?, ?, ?, ?, ?, ?)";
+
+            $params = array(
+                $id, 
+                $this->fcmsUser->id, 
+                $this->fcmsUser->id, 
+                $street, 
+                $city, 
+                $state, 
+                $zip, 
+                $home, 
+                $work, 
+                $cell
+            );
+
+            if ($this->fcmsDatabase->insert($sql, $params))
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return;
             }
 

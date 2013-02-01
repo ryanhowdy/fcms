@@ -18,133 +18,155 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('recipes', 'image');
+load('recipes', 'image', 'datetime');
 
 init();
 
-$rec = new Recipes($fcmsUser->id, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-$img = new Image($fcmsUser->id);
+$rec  = new Recipes($fcmsError, $fcmsDatabase, $fcmsUser);
+$img  = new Image($fcmsUser->id);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $rec, $img);
 
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Recipes'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
-
-control();
 exit();
 
-
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    if (isset($_GET['addrecipe']))
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
+
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsRecipe, $fcmsImage)
     {
-        displayAddRecipeForm();
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsRecipe       = $fcmsRecipe;
+        $this->fcmsImage        = $fcmsImage;
+
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Recipes'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
     }
-    elseif (isset($_POST['submitadd']))
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
     {
-        displayAddRecipeSubmit();
-    }
-    elseif (isset($_POST['editrecipe']))
-    {
-        displayEditRecipeForm();
-    }
-    elseif (isset($_POST['submitedit']))
-    {
-        displayEditRecipeSubmit();
-    }
-    elseif (isset($_GET['thumbnail']))
-    {
-        displayEditThumbnailForm();
-    }
-    elseif (isset($_POST['changethumbnail']))
-    {
-        displayEditThumbnailSubmit();
-    }
-    elseif (isset($_GET['add']))
-    {
-        displayAddCategoryForm();
-    }
-    elseif (isset($_POST['submit-category']))
-    {
-        displayAddCategorySubmit();
-    }
-    elseif (isset($_POST['delrecipe']))
-    {
-        if (isset($_POST['confirmed']))
+        if (isset($_GET['addrecipe']))
         {
-            displayDeleteRecipeConfirmationSubmit();
+            $this->displayAddRecipeForm();
         }
-        else
+        elseif (isset($_POST['submitadd']))
         {
-            displayDeleteRecipeConfirmationForm();
+            $this->displayAddRecipeSubmit();
         }
-    }
-    elseif (isset($_GET['categoryedit']))
-    {
-        displayEditCategoryForm();
-    }
-    elseif (isset($_POST['submit_cat_edit']))
-    {
-        if (isset($_POST['delete']))
+        elseif (isset($_POST['editrecipe']))
         {
-            displayDeleteCategorySubmit();
+            $this->displayEditRecipeForm();
         }
-        else
+        elseif (isset($_POST['submitedit']))
         {
-            displayEditCategorySubmit();
+            $this->displayEditRecipeSubmit();
         }
-    }
-    elseif (isset($_GET['category']))
-    {
-        if (isset($_GET['id']))
+        elseif (isset($_GET['thumbnail']))
         {
-            if (isset($_POST['addcom']))
+            $this->displayEditThumbnailForm();
+        }
+        elseif (isset($_POST['changethumbnail']))
+        {
+            $this->displayEditThumbnailSubmit();
+        }
+        elseif (isset($_GET['add']))
+        {
+            $this->displayAddCategoryForm();
+        }
+        elseif (isset($_POST['submit-category']))
+        {
+            $this->displayAddCategorySubmit();
+        }
+        elseif (isset($_POST['delrecipe']))
+        {
+            if (isset($_POST['confirmed']))
             {
-                displayAddCommentSubmit();
-            }
-            elseif (isset($_POST['delcom']))
-            {
-                displayDeleteCommentSubmit();
+                $this->displayDeleteRecipeConfirmationSubmit();
             }
             else
             {
-                displayRecipe();
+                $this->displayDeleteRecipeConfirmationForm();
+            }
+        }
+        elseif (isset($_GET['categoryedit']))
+        {
+            $this->displayEditCategoryForm();
+        }
+        elseif (isset($_POST['submit_cat_edit']))
+        {
+            if (isset($_POST['delete']))
+            {
+                $this->displayDeleteCategorySubmit();
+            }
+            else
+            {
+                $this->displayEditCategorySubmit();
+            }
+        }
+        elseif (isset($_GET['category']))
+        {
+            if (isset($_GET['id']))
+            {
+                if (isset($_POST['addcom']))
+                {
+                    $this->displayAddCommentSubmit();
+                }
+                elseif (isset($_POST['delcom']))
+                {
+                    $this->displayDeleteCommentSubmit();
+                }
+                else
+                {
+                    $this->displayRecipe();
+                }
+            }
+            else
+            {
+                $this->displayCategory();
             }
         }
         else
         {
-            displayCategory();
+            $this->displayLatestRecipes();
         }
     }
-    else
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
     {
-        displayLatestRecipes();
-    }
-}
+        $TMPL = $this->fcmsTemplate;
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
-
-    $TMPL['javascript'] = '
+        $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
@@ -173,132 +195,130 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    include_once getTheme($fcmsUser->id).'header.php';
+        include_once getTheme($this->fcmsUser->id).'header.php';
 
-    echo '
+        echo '
         <div id="recipe-page" class="centercontent">';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
+        echo '
         </div><!-- #recipe-page .centercontent -->';
 
 
-    include_once getTheme($fcmsUser->id).'footer.php';
-}
+        include_once getTheme($this->fcmsUser->id).'footer.php';
+    }
 
-/**
- * displayAddRecipeSubmit 
- * 
- * @return void
- */
-function displayAddRecipeSubmit ()
-{
-    global $img, $fcmsUser;
-
-    $name        = strip_tags($_POST['name']);
-    $category    = (int)$_POST['category'];
-    $ingredients = strip_tags($_POST['ingredients']);
-    $directions  = strip_tags($_POST['directions']);
-
-    $cleanName        = escape_string($name);
-    $cleanIngredients = escape_string($ingredients);
-    $cleanDirections  = escape_string($directions);
-    $thumbnail        = 'no_recipe.jpg';
-
-    $uploadsPath = getUploadsAbsolutePath();
-
-    // Upload Recipe Image
-    if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['name'] && $_FILES['thumbnail']['error'] < 1)
+    /**
+     * displayAddRecipeSubmit 
+     * 
+     * @return void
+     */
+    function displayAddRecipeSubmit ()
     {
-        $img->destination = $uploadsPath.'upimages/';
-        $img->uniqueName  = true;
+        $name        = strip_tags($_POST['name']);
+        $category    = (int)$_POST['category'];
+        $ingredients = strip_tags($_POST['ingredients']);
+        $directions  = strip_tags($_POST['directions']);
+        $thumbnail   = 'no_recipe.jpg';
 
-        $thumbnail = $img->upload($_FILES['thumbnail']);
+        $uploadsPath = getUploadsAbsolutePath();
 
-        if ($img->error == 1)
+        // Upload Recipe Image
+        if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['name'] && $_FILES['thumbnail']['error'] < 1)
         {
-            displayHeader();
+            $this->fcmsImage->destination = $uploadsPath.'upimages/';
+            $this->fcmsImage->uniqueName  = true;
 
-            echo '
+            $thumbnail = $this->fcmsImage->upload($_FILES['thumbnail']);
+
+            if ($this->fcmsImage->error == 1)
+            {
+                $this->displayHeader();
+
+                echo '
     <p class="error-alert">
         '.sprintf(T_('Thumbnail [%s] is not a supported type. Thumbnails must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->img->name).'
     </p>';
-            displayFooter();
-            return;
-        }
+                $this->displayFooter();
+                return;
+            }
 
-        $img->resize(100, 100);
+            $this->fcmsImage->resize(100, 100);
 
-        if ($img->error > 0)
-        {
-            displayHeader();
+            if ($this->fcmsImage->error > 0)
+            {
+                $this->displayHeader();
 
-            echo '
+                echo '
     <p class="error-alert">
         '.T_('There was an error uploading your thumbnail.').'
     </p>';
-            displayFooter();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        $sql = "INSERT INTO `fcms_recipes` 
+                    (`name`, `thumbnail`, `category`, `ingredients`, `directions`, `user`, `date`) 
+                VALUES
+                    (?, ?, ?, ?, ?, ?, NOW())";
+
+        $params = array(
+            $name, 
+            $thumbnail,
+            $category,
+            $ingredients, 
+            $directions, 
+            $this->fcmsUser->id
+        );
+
+        $rec_id = $this->fcmsDatabase->insert($sql, $params);
+        if ($rec_id === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
             return;
         }
-    }
 
-    $sql = "INSERT INTO `fcms_recipes` 
-                (`name`, `thumbnail`, `category`, `ingredients`, `directions`, `user`, `date`) 
-            VALUES(
-                '$cleanName', 
-                '$thumbnail',
-                '$category',
-                '$cleanIngredients', 
-                '$cleanDirections', 
-                '$fcmsUser->id', 
-                NOW()
-            )";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        // Email members
+        $sql = "SELECT u.`email`, s.`user` 
+                FROM `fcms_user_settings` AS s, `fcms_users` AS u 
+                WHERE `email_updates` = '1'
+                AND u.`id` = s.`user`";
 
-    $rec_id = mysql_insert_id();
-
-    // Email members
-    $sql = "SELECT u.`email`, s.`user` 
-            FROM `fcms_user_settings` AS s, `fcms_users` AS u 
-            WHERE `email_updates` = '1'
-            AND u.`id` = s.`user`";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    if (mysql_num_rows($result) > 0)
-    {
-        while ($r = mysql_fetch_array($result))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            $recipeUser    = getUserDisplayName($fcmsUser->id);
-            $to            = getUserDisplayName($r['user']);
-            $subject       = sprintf(T_('%s has added the recipe: %s'), $recipeUser, $name);
-            $email         = $r['email'];
-            $url           = getDomainAndDir();
-            $email_headers = getEmailHeaders();
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-            $msg = T_('Dear').' '.$to.',
+            return;
+        }
+
+        if (count($rows) > 0)
+        {
+            foreach ($rows as $r)
+            {
+                $recipeUser    = getUserDisplayName($this->fcmsUser->id);
+                $to            = getUserDisplayName($r['user']);
+                $subject       = sprintf(T_('%s has added the recipe: %s'), $recipeUser, $name);
+                $email         = $r['email'];
+                $url           = getDomainAndDir();
+                $email_headers = getEmailHeaders();
+
+                $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
@@ -310,92 +330,97 @@ function displayAddRecipeSubmit ()
 '.$url.'settings.php
 
 ';
-            mail($email, $subject, $msg, $email_headers);
+                mail($email, $subject, $msg, $email_headers);
+            }
         }
+
+        header("Location: recipes.php?category=$category&id=$rec_id");
     }
 
-    header("Location: recipes.php?category=$category&id=$rec_id");
-}
-
-/**
- * displayEditRecipeSubmit 
- * 
- * @return void
- */
-function displayEditRecipeSubmit ()
-{
-    $id       = (int)$_POST['id'];
-    $category = (int)$_POST['category'];
-
-    $name        = strip_tags($_POST['name']);
-    $ingredients = strip_tags($_POST['ingredients']);
-    $directions  = strip_tags($_POST['directions']);
-
-    $name        = escape_string($name);
-    $ingredients = escape_string($ingredients);
-    $directions  = escape_string($directions);
-
-    $sql = "UPDATE `fcms_recipes` 
-            SET `name`          = '$name', 
-                `category`      = '$category', 
-                `ingredients`   = '$ingredients',
-                `directions`    = '$directions' 
-            WHERE `id` = '$id'";
-
-    if(!mysql_query($sql))
+    /**
+     * displayEditRecipeSubmit 
+     * 
+     * @return void
+     */
+    function displayEditRecipeSubmit ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $id       = (int)$_POST['id'];
+        $category = (int)$_POST['category'];
+
+        $name        = strip_tags($_POST['name']);
+        $ingredients = strip_tags($_POST['ingredients']);
+        $directions  = strip_tags($_POST['directions']);
+
+        $sql = "UPDATE `fcms_recipes` 
+                SET `name`          = ?, 
+                    `category`      = ?, 
+                    `ingredients`   = ?,
+                    `directions`    = ? 
+                WHERE `id`          = ?";
+
+        $params = array(
+            $name, 
+            $category, 
+            $ingredients,
+            $directions, 
+            $id
+        );
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        header("Location: recipes.php?category=$category&id=$id");
     }
 
-    header("Location: recipes.php?category=$category&id=$id");
-}
-
-/**
- * displayAddCategorySubmit 
- * 
- * @return void
- */
-function displayAddCategorySubmit ()
-{
-    global $fcmsUser, $rec;
-
-    displayHeader();
-
-    $name = strip_tags($_POST['name']);
-    $name = escape_string($name);
-
-    $sql  = "INSERT INTO `fcms_category` (`name`, `type`, `user`)
-            VALUES (
-                '$name',
-                'recipe', 
-                '$fcmsUser->id'
-            )";
-    if (!mysql_query($sql))
+    /**
+     * displayAddCategorySubmit 
+     * 
+     * @return void
+     */
+    function displayAddCategorySubmit ()
     {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayHeader();
+
+        $name = strip_tags($_POST['name']);
+
+        $sql = "INSERT INTO `fcms_category`
+                    (`name`, `type`, `user`)
+                VALUES
+                    (?, 'recipe', ?)";
+
+        $params = array(
+            $name,
+            $this->fcmsUser->id
+        );
+
+        $cat = $this->fcmsDatabase->insert($sql, $params);
+        if ($cat === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $this->fcmsRecipe->displayAddRecipeForm($cat);
+        $this->displayFooter();
     }
 
-    $cat = mysql_insert_id();
+    /**
+     * displayDeleteRecipeConfirmationForm 
+     * 
+     * @return void
+     */
+    function displayDeleteRecipeConfirmationForm ()
+    {
+        $this->displayHeader();
 
-    $rec->displayAddRecipeForm($cat);
-    displayFooter();
-}
-
-/**
- * displayDeleteRecipeConfirmationForm 
- * 
- * @return void
- */
-function displayDeleteRecipeConfirmationForm ()
-{
-    displayHeader();
-
-    echo '
+        echo '
                 <div class="info-alert">
                     <form action="recipes.php" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
@@ -409,143 +434,134 @@ function displayDeleteRecipeConfirmationForm ()
                     </form>
                 </div>';
 
-    displayFooter();
-}
-
-/**
- * displayDeleteRecipeConfirmationSubmit 
- * 
- * @return void
- */
-function displayDeleteRecipeConfirmationSubmit ()
-{
-    global $fcmsUser;
-
-    $id = (int)$_POST['id'];
-
-    // Get recipe info
-    $sql = "SELECT `user`, `category`
-            FROM `fcms_recipes`
-            WHERE `id` = '$id'";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    $row = mysql_fetch_assoc($result);
-
-    $category = $row['category'];
-
-    // Only creator and admin can delete
-    if ($row['user'] != $fcmsUser->id && checkAccess($fcmsUser->id) <= 1)
+    /**
+     * displayDeleteRecipeConfirmationSubmit 
+     * 
+     * @return void
+     */
+    function displayDeleteRecipeConfirmationSubmit ()
     {
-        displayHeader();
+        $id = (int)$_POST['id'];
 
-        echo '
+        // Get recipe info
+        $sql = "SELECT `user`, `category`
+                FROM `fcms_recipes`
+                WHERE `id` = ?";
+
+        $row = $this->fcmsDatabase->getRow($sql, $id);
+        if ($row === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $category = $row['category'];
+
+        // Only creator and admin can delete
+        if ($row['user'] != $this->fcmsUser->id && $this->fcmsUser->access <= 1)
+        {
+            $this->displayHeader();
+
+            echo '
             <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
 
-        displayFooter();
-        return;
+            $this->displayFooter();
+            return;
+        }
+
+        // Delete
+        $sql = "DELETE FROM `fcms_recipes` 
+                WHERE `id` = ?";
+
+        if (!$this->fcmsDatabase->delete($sql, $id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        header("Location: recipes.php?category=$category");
     }
 
-    // Delete
-    $sql = "DELETE FROM `fcms_recipes` 
-            WHERE `id` = '$id'";
-    if (!mysql_query($sql))
+    /**
+     * displayAddRecipeForm 
+     * 
+     * @return void
+     */
+    function displayAddRecipeForm ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $this->displayHeader();
 
-    header("Location: recipes.php?category=$category");
-}
+        $cat  = isset($_GET['cat']) ? (int)$_GET['cat'] : 0;
 
-/**
- * displayAddRecipeForm 
- * 
- * @return void
- */
-function displayAddRecipeForm ()
-{
-    global $rec, $fcmsUser;
-
-    displayHeader();
-
-    $cat  = isset($_GET['cat']) ? (int)$_GET['cat'] : 0;
-
-    if (checkAccess($fcmsUser->id) > 5)
-    {
-        echo '
+        if ($this->fcmsUser->access > 5)
+        {
+            echo '
             <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
 
-        displayFooter();
-        return;
+            $this->displayFooter();
+            return;
+        }
+
+        $this->fcmsRecipe->displayAddRecipeForm($cat);
+        $this->displayFooter();
     }
 
-    $rec->displayAddRecipeForm($cat);
-    displayFooter();
-}
+    /**
+     * displayLatestRecipes 
+     * 
+     * @return void
+     */
+    function displayLatestRecipes ()
+    {
+        $this->displayHeader();
 
-/**
- * displayLatestRecipes 
- * 
- * @return void
- */
-function displayLatestRecipes ()
-{
-    global $rec;
+        $page = getPage();
 
-    displayHeader();
+        $this->fcmsRecipe->showRecipes($page);
+        $this->displayFooter();
+    }
 
-    $page = getPage();
-    $rec->showRecipes($page);
-    displayFooter();
-}
+    /**
+     * displayEditRecipeForm 
+     * 
+     * @return void
+     */
+    function displayEditRecipeForm ()
+    {
+        $this->displayHeader();
 
-/**
- * displayEditRecipeForm 
- * 
- * @return void
- */
-function displayEditRecipeForm ()
-{
-    global $rec;
+        $id          = (int)$_POST['id'];
+        $name        = $_POST['name'];
+        $thumbnail   = $_POST['thumbnail'];
+        $category    = $_POST['category'];
+        $ingredients = $_POST['ingredients'];
+        $directions  = $_POST['directions'];
 
-    displayHeader();
+        $this->fcmsRecipe->displayEditRecipeForm($id, $name, $thumbnail, $category, $ingredients, $directions);
+        $this->displayFooter();
+    }
 
-    $id          = (int)$_POST['id'];
-    $name        = $_POST['name'];
-    $thumbnail   = $_POST['thumbnail'];
-    $category    = $_POST['category'];
-    $ingredients = $_POST['ingredients'];
-    $directions  = $_POST['directions'];
+    /**
+     * displayEditThumbnailForm 
+     * 
+     * @return void
+     */
+    function displayEditThumbnailForm ()
+    {
+        $this->displayHeader();
 
-    $rec->displayEditRecipeForm($id, $name, $thumbnail, $category, $ingredients, $directions);
-    displayFooter();
-}
+        $id       = (int)$_GET['thumbnail'];
+        $category = (int)$_GET['category'];
 
-/**
- * displayEditThumbnailForm 
- * 
- * @return void
- */
-function displayEditThumbnailForm ()
-{
-    global $rec;
-
-    displayHeader();
-
-    $id       = (int)$_GET['thumbnail'];
-    $category = (int)$_GET['category'];
-
-    echo '
+        echo '
             <form method="post" enctype="multipart/form-data" action="recipes.php">
                 <fieldset>
                     <legend><span>'.T_('Change Thumbnail').'</span></legend>
@@ -562,323 +578,318 @@ function displayEditThumbnailForm ()
                 </fieldset>
             </form>';
 
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-/**
- * displayEditThumbnailSubmit 
- * 
- * @return void
- */
-function displayEditThumbnailSubmit ()
-{
-    global $img;
-
-    $id        = (int)$_POST['id'];
-    $category  = (int)$_POST['category'];
-    $thumbnail = 'no_recipe.jpg';
-
-    $uploadsPath = getUploadsAbsolutePath();
-
-    // Upload Recipe Image
-    if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['name'] && $_FILES['thumbnail']['error'] < 1)
+    /**
+     * displayEditThumbnailSubmit 
+     * 
+     * @return void
+     */
+    function displayEditThumbnailSubmit ()
     {
-        $img->destination = $uploadsPath.'upimages/';
-        $img->uniqueName  = true;
+        $id        = (int)$_POST['id'];
+        $category  = (int)$_POST['category'];
+        $thumbnail = 'no_recipe.jpg';
 
-        $thumbnail = $img->upload($_FILES['thumbnail']);
+        $uploadsPath = getUploadsAbsolutePath();
 
-        if ($img->error == 1)
+        // Upload Recipe Image
+        if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['name'] && $_FILES['thumbnail']['error'] < 1)
         {
-            displayHeader();
+            $this->fcmsImage->destination = $uploadsPath.'upimages/';
+            $this->fcmsImage->uniqueName  = true;
 
-            echo '
+            $thumbnail = $this->fcmsImage->upload($_FILES['thumbnail']);
+
+            if ($this->fcmsImage->error == 1)
+            {
+                $this->displayHeader();
+
+                echo '
     <p class="error-alert">
         '.sprintf(T_('Thumbnail [%s] is not a supported type. Thumbnails must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->img->name).'
     </p>';
-            displayFooter();
-            return;
-        }
+                $this->displayFooter();
+                return;
+            }
 
-        $img->resize(100, 100);
+            $this->fcmsImage->resize(100, 100);
 
-        if ($img->error > 0)
-        {
-            displayHeader();
+            if ($this->fcmsImage->error > 0)
+            {
+                $this->displayHeader();
 
-            echo '
+                echo '
     <p class="error-alert">
         '.T_('There was an error uploading your thumbnail.').'
     </p>';
-            displayFooter();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        $sql = "UPDATE `fcms_recipes` 
+                SET `thumbnail` = ?
+                WHERE `id` = ?";
+
+        $params = array($thumbnail, $id);
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
             return;
         }
+
+        header("Location: recipes.php?category=$category&id=$id");
     }
 
-    $sql = "UPDATE `fcms_recipes` 
-            SET `thumbnail` = '$thumbnail'
-            WHERE `id` = '$id'";
-    if (!mysql_query($sql))
+    /**
+     * displayAddCategoryForm 
+     * 
+     * @return void
+     */
+    function displayAddCategoryForm ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $this->displayHeader();
 
-    header("Location: recipes.php?category=$category&id=$id");
-}
-
-/**
- * displayAddCategoryForm 
- * 
- * @return void
- */
-function displayAddCategoryForm ()
-{
-    global $rec, $fcmsUser;
-
-    displayHeader();
-
-    if (checkAccess($fcmsUser->id) > 5)
-    {
-        echo '
+        if ($this->fcmsUser->access > 5)
+        {
+            echo '
             <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
 
-        displayFooter();
-        return;
-    }
-
-    $rec->displayAddCategoryForm();
-    displayFooter();
-}
-
-/**
- * displayAddCommentSubmit 
- * 
- * @return void
- */
-function displayAddCommentSubmit ()
-{
-    global $fcmsUser;
-
-    $categoryId = (int)$_GET['category'];
-    $recipeId   = (int)$_POST['recipe'];
-    $comment    = strip_tags($_POST['comment']);
-    $comment    = escape_string($comment);
-
-    $sql = "INSERT INTO `fcms_recipe_comment` (`recipe`, `comment`, `user`, `date`)
-            VALUES (
-                '$recipeId',
-                '$comment',
-                '$fcmsUser->id',
-                NOW()
-            )";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    $comId = mysql_insert_id();
-
-    header("Location: recipes.php?category=$categoryId&id=$recipeId#comment$comId");
-}
-
-/**
- * displayDeleteCommentSubmit 
- * 
- * @return void
- */
-function displayDeleteCommentSubmit ()
-{
-    $categoryId = (int)$_GET['category'];
-    $recipeId   = (int)$_POST['id'];
-
-    if ($fcmsUser->id != $_POST['user'] && checkAccess($fcmsUser->id) > 2)
-    {
-        displayHeader();
-
-        echo '
-        <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
-
-        displayFooter();
-        return;
-    }
-
-    $sql = "DELETE FROM `fcms_recipe_comment`
-            WHERE `id` = '$recipeId'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    header("Location: recipes.php?category=$categoryId&id=$recipeId");
-}
-
-/**
- * displayEditCategoryForm 
- * 
- * @return void
- */
-function displayEditCategoryForm ()
-{
-    global $fcmsUser, $rec;
-
-    displayHeader();
-
-    if (checkAccess($fcmsUser->id) > 2)
-    {
-        echo '
-        <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
-
-        displayFooter();
-        return;
-    }
-
-    if (isset($_SESSION['ok']))
-    {
-        unset($_SESSION['ok']);
-
-        displayOkMessage();
-    }
-
-    $rec->displayEditCategoryForm();
-    displayFooter();
-}
-
-/**
- * displayEditCategorySubmit 
- * 
- * @return void
- */
-function displayEditCategorySubmit ()
-{
-    global $fcmsUser;
-
-    if (checkAccess($fcmsUser->id) > 2)
-    {
-        displayHeader();
-
-        echo '
-        <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
-
-        displayFooter();
-        return;
-    }
-
-    $ids = $_POST['id'];
-
-    foreach ($_POST['category'] as $key => $category)
-    {
-        $id       = (int)$ids[$key];
-        $category = strip_tags($category);
-        $category = escape_string($category);
-
-        $sql = "UPDATE `fcms_category` 
-                SET `name` = '$category' 
-                WHERE `id` = '$id'";
-        if (!mysql_query($sql))
-        {
-            dislayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-    }
-
-    $_SESSION['ok'] = 1;
-
-    header("Location: recipes.php?categoryedit=1");
-}
-
-/**
- * displayDeleteCategorySubmit 
- * 
- * @return void
- */
-function displayDeleteCategorySubmit ()
-{
-    global $fcmsUser;
-
-    if (checkAccess($fcmsUser->id) > 2)
-    {
-        displayHeader();
-
-        echo '
-        <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
-
-        displayFooter();
-        return;
-    }
-
-    foreach ($_POST['delete'] as $id)
-    {
-        // Delete recipes
-        $sql = "DELETE FROM `fcms_recipes` 
-                WHERE `category` = '".(int)$id."'";
-
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $this->displayFooter();
             return;
         }
 
-        // Delete category
-        $sql = "DELETE FROM `fcms_category` 
-                WHERE `id` = '".(int)$id."'";
-
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
+        $this->fcmsRecipe->displayAddCategoryForm();
+        $this->displayFooter();
     }
 
-    $_SESSION['ok'] = 1;
+    /**
+     * displayAddCommentSubmit 
+     * 
+     * @return void
+     */
+    function displayAddCommentSubmit ()
+    {
+        $categoryId = (int)$_GET['category'];
+        $recipeId   = (int)$_POST['recipe'];
+        $comment    = strip_tags($_POST['comment']);
 
-    header("Location: recipes.php?categoryedit=1");
-}
+        $sql = "INSERT INTO `fcms_recipe_comment`
+                    (`recipe`, `comment`, `user`, `date`)
+                VALUES
+                    (?, ?, ?, NOW())";
 
-/**
- * displayCategory 
- * 
- * @return void
- */
-function displayCategory ()
-{
-    global $rec;
+        $params = array(
+            $recipeId,
+            $comment,
+            $this->fcmsUser->id
+        );
 
-    $page     = getPage();
-    $category = (int)$_GET['category'];
+        $comId = $this->fcmsDatabase->insert($sql, $params);
+        if ($comId === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    displayHeader();
-    $rec->showRecipeInCategory($category, $page);
-    displayFooter();
-}
+            return;
+        }
 
-/**
- * displayRecipe 
- * 
- * @return void
- */
-function displayRecipe ()
-{
-    global $rec;
+        header("Location: recipes.php?category=$categoryId&id=$recipeId#comment$comId");
+    }
 
-    $id       = (int)$_GET['id'];
-    $category = (int)$_GET['category'];
+    /**
+     * displayDeleteCommentSubmit 
+     * 
+     * @return void
+     */
+    function displayDeleteCommentSubmit ()
+    {
+        $categoryId = (int)$_GET['category'];
+        $recipeId   = (int)$_POST['id'];
 
-    displayHeader();
-    $rec->showRecipe($category, $id);
-    displayFooter();
+        if ($this->fcmsUser->id != $_POST['user'] && $this->fcmsUser->access > 2)
+        {
+            $this->displayHeader();
+
+            echo '
+        <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
+
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "DELETE FROM `fcms_recipe_comment`
+                WHERE `id` = ?";
+
+        if (!$this->fcmsDatabase->delete($sql, $recipeId))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        header("Location: recipes.php?category=$categoryId&id=$recipeId");
+    }
+
+    /**
+     * displayEditCategoryForm 
+     * 
+     * @return void
+     */
+    function displayEditCategoryForm ()
+    {
+        $this->displayHeader();
+
+        if ($this->fcmsUser->access > 2)
+        {
+            echo '
+        <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
+
+            $this->displayFooter();
+            return;
+        }
+
+        if (isset($_SESSION['ok']))
+        {
+            unset($_SESSION['ok']);
+
+            displayOkMessage();
+        }
+
+        $this->fcmsRecipe->displayEditCategoryForm();
+        $this->displayFooter();
+    }
+
+    /**
+     * displayEditCategorySubmit 
+     * 
+     * @return void
+     */
+    function displayEditCategorySubmit ()
+    {
+        if ($this->fcmsUser->access > 2)
+        {
+            $this->displayHeader();
+
+            echo '
+        <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
+
+            $this->displayFooter();
+            return;
+        }
+
+        $ids = $_POST['id'];
+
+        foreach ($_POST['category'] as $key => $category)
+        {
+            $id       = (int)$ids[$key];
+            $category = strip_tags($category);
+
+            $sql = "UPDATE `fcms_category` 
+                    SET `name` = ? 
+                    WHERE `id` = ?";
+
+            if (!$this->fcmsDatabase->update($sql, array($category, $id)))
+            {
+                dislayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        $_SESSION['ok'] = 1;
+
+        header("Location: recipes.php?categoryedit=1");
+    }
+
+    /**
+     * displayDeleteCategorySubmit 
+     * 
+     * @return void
+     */
+    function displayDeleteCategorySubmit ()
+    {
+        if ($this->fcmsUser->access > 2)
+        {
+            $this->displayHeader();
+
+            echo '
+        <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
+
+            $this->displayFooter();
+            return;
+        }
+
+        foreach ($_POST['delete'] as $id)
+        {
+            // Delete recipes
+            $sql = "DELETE FROM `fcms_recipes` 
+                    WHERE `category` = ?";
+
+            if (!$this->fcmsDatabase->delete($sql, $id))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+
+            // Delete category
+            $sql = "DELETE FROM `fcms_category` 
+                    WHERE `id` = ?";
+
+            if (!$this->fcmsDatabase->delete($sql, $id))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+        }
+
+        $_SESSION['ok'] = 1;
+
+        header("Location: recipes.php?categoryedit=1");
+    }
+
+    /**
+     * displayCategory 
+     * 
+     * @return void
+     */
+    function displayCategory ()
+    {
+        $page     = getPage();
+        $category = (int)$_GET['category'];
+
+        $this->displayHeader();
+        $this->fcmsRecipe->showRecipeInCategory($category, $page);
+        $this->displayFooter();
+    }
+
+    /**
+     * displayRecipe 
+     * 
+     * @return void
+     */
+    function displayRecipe ()
+    {
+        $id       = (int)$_GET['id'];
+        $category = (int)$_GET['category'];
+
+        $this->displayHeader();
+        $this->fcmsRecipe->showRecipe($category, $id);
+        $this->displayFooter();
+    }
 }

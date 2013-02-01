@@ -140,16 +140,18 @@ function getAddCommentsForm ($url, $params = null)
  */
 function getVideoComments ($url, $params)
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
+
     $comments = '';
 
-    if (!isset($params['id']) || !isset($params['currentUserId']))
+    if (!isset($params['id']))
     {
-        printr(debug_backtrace());
         die("Missing Video ID or User ID for getVideoComments");
     }
 
-    $currentUserId = $params['currentUserId'];
-    $id            = $params['id'];
+    $id = $params['id'];
 
     $sql = "SELECT c.`id`, c.`comment`, c.`created`, c.`updated`, u.`fname`, u.`lname`, c.`created_id`, u.`avatar`, u.`gravatar`, s.`timezone`
             FROM `fcms_video_comment` AS c
@@ -158,19 +160,14 @@ function getVideoComments ($url, $params)
             WHERE `video_id` = '$id' 
             ORDER BY `updated`";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql, $id);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
-        return $comments;
+        $fcmsError->displayError();
+        return;
     }
 
-    if (mysql_num_rows($result) <= 0)
-    { 
-        return $comments;
-    }
-
-    while ($row = mysql_fetch_assoc($result))
+    foreach ($rows as $row)
     {
         $del_comment = '';
         $date        = fixDate(T_('F j, Y g:i a'), $row['timezone'], $row['updated']);
@@ -178,7 +175,7 @@ function getVideoComments ($url, $params)
         $comment     = $row['comment'];
         $avatarPath  = getAvatarPath($row['avatar'], $row['gravatar']);
 
-        if ($currentUserId == $row['created'] || checkAccess($currentUserId) < 2)
+        if ($fcmsUser->id == $row['created'] || $fcmsUser->access < 2)
         {
             $del_comment .= '<input type="submit" name="delcom" id="delcom" '
                 . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'

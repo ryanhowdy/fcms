@@ -17,46 +17,69 @@ require 'fcms.php';
 
 load('facebook', 'socialmedia');
 
-control();
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
+
 exit();
 
-/**
- * control 
- * 
- * The controlling structure for this page.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    if (!isRegistrationOn())
-    {
-        displayClosed();
-    }
-    elseif (isset($_GET['ajax'])) {
-        checkUsername();
-    }
-    elseif (isset($_GET['facebook'])) {
-        handleFacebookRegister();
-    }
-    elseif (isset($_POST['submit']))
-    {
-        displaySubmit();
-    }
-    else
-    {
-        displayForm();
-    }
-}
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    print '
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    {
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsTemplate     = array();
+
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this page.
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if (!isRegistrationOn())
+        {
+            $this->displayClosed();
+        }
+        elseif (isset($_GET['ajax'])) {
+            $this->checkUsername();
+        }
+        elseif (isset($_GET['facebook'])) {
+            $this->handleFacebookRegister();
+        }
+        elseif (isset($_POST['submit']))
+        {
+            $this->displaySubmit();
+        }
+        else
+        {
+            $this->displayForm();
+        }
+    }
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        print '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
 <head>
@@ -106,191 +129,216 @@ function process(transport) {
 </script>
 </head>
 <body>';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    echo '
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        echo '
 </body>
 </html>';
-}
+    }
 
-/**
- * displayClosed 
- * 
- * @return void
- */
-function displayClosed ()
-{
-    displayHeader();
+    /**
+     * displayClosed 
+     * 
+     * @return void
+     */
+    function displayClosed ()
+    {
+        $this->displayHeader();
 
-    echo '
+        echo '
     <div id="column"><p class="error-alert">'.T_('Registration is closed.').'</p></div>';
 
-    displayFooter();
-    die();
-}
-
-/**
- * displaySubmit 
- * 
- * @param string $params The params that have been submitted to the form.
- * 
- * @return void
- */
-function displaySubmit ($params = '')
-{
-    displayHeader();
-
-    if ($params == '')
-    {
-        $formData = $_POST;
-    }
-    else
-    {
-        $formData = $params;
+        $this->displayFooter();
+        die();
     }
 
-    // Make sure they filled out all required fields
-    $required_fields = array('username', 'password', 'fname', 'lname', 'email');
-    foreach ($required_fields as $f)
+    /**
+     * displaySubmit 
+     * 
+     * @param string $formParams The params that have been submitted to the form.
+     * 
+     * @return void
+     */
+    function displaySubmit ($formParams = '')
     {
-        if (strlen($formData[$f]) < 1)
+        $this->displayHeader();
+
+        if ($formParams == '')
         {
-            displayHtmlForm('<p class="error">'.T_('You forgot to fill out a required field.').'</p>');
-            displayFooter();
+            $formData = $_POST;
+        }
+        else
+        {
+            $formData = $formParams;
+        }
+
+        // Make sure they filled out all required fields
+        $required_fields = array('username', 'password', 'fname', 'lname', 'email');
+        foreach ($required_fields as $f)
+        {
+            if (strlen($formData[$f]) < 1)
+            {
+                $this->displayHtmlForm('<p class="error">'.T_('You forgot to fill out a required field.').'</p>');
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        $email    = strip_tags($formData['email']);
+        $username = strip_tags($formData['username']);
+        $fname    = strip_tags($formData['fname']);
+        $lname    = strip_tags($formData['lname']);
+        $password = $formData['password'];
+
+        if ($formParams == '')
+        {
+            $password = md5($password);
+        }
+
+        // Is email available?
+        $sql = "SELECT `email` 
+                FROM `fcms_users` 
+                WHERE `email` = ?";
+
+        $rows = $this->fcmsDatabase->getRows($sql, $email);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
             return;
         }
-    }
 
-    $email    = strip_tags($formData['email']);
-    $username = strip_tags($formData['username']);
-    $fname    = strip_tags($formData['fname']);
-    $lname    = strip_tags($formData['lname']);
+        if (count($rows) > 0)
+        {
+            $this->displayHtmlForm(
+                '<p class="error">'.T_('The email you have choosen is already in use.  Please choose a different email.').' <a href="lostpw.php">'.T_('If you have forgotten your password please reset it').'</a></p>'
+            );
+            $this->displayFooter();
 
-    $cleanEmail    = escape_string($email);
-    $cleanUsername = escape_string($username);
-    $cleanFname    = escape_string($fname);
-    $cleanLname    = escape_string($lname);
+            return;
+        }
 
-    $password = $formData['password'];
+        // Is username availabel?
+        $sql = "SELECT `username` 
+                FROM `fcms_users` 
+                WHERE `username` = ?";
 
-    if ($params == '')
-    {
-        $password = md5($password);
-    }
+        $rows = $this->fcmsDatabase->getRows($sql, $username);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    // Is email available?
-    $result      = mysql_query("SELECT `email` FROM `fcms_users` WHERE `email` = '$cleanEmail'"); 
-    $email_check = mysql_num_rows($result);
+            return;
+        }
 
-    if ($email_check > 0)
-    {
-        displayHtmlForm(
-            '<p class="error">'.T_('The email you have choosen is already in use.  Please choose a different email.').' <a href="lostpw.php">'.T_('If you have forgotten your password please reset it').'</a></p>'
+        if (count($rows) > 0)
+        {
+            $this->displayHtmlForm(
+                '<p class="error">'.T_('Sorry, but that username is already taken.  Please choose another username.').'</p>'
+            );
+            $this->displayFooter();
+
+            return;
+        }
+
+        $sex = 'M';
+
+        if (isset($formData['sex']))
+        {
+            $sex = $formData['sex'] == 'F' ? 'F' : 'M';
+        }
+
+        // Create new user
+        $sql = "INSERT INTO `fcms_users`
+                    (`access`, `joindate`, `fname`, `lname`, `sex`, `email`, `username`, `password`) 
+                VALUES 
+                    (3, NOW(), ?, ?, ?, ?, ?, ?)";
+
+        $params = array(
+            $fname, 
+            $lname, 
+            $sex, 
+            $email, 
+            $username, 
+            $password
         );
-        displayFooter();
-        return;
-    }
 
-    // Is username availabel?
-    $result         = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '$cleanUsername'"); 
-    $username_check = mysql_num_rows($result);
+        $lastid = $this->fcmsDatabase->insert($sql, $params);
+        if ($lastid === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    if ($username_check > 0)
-    {
-        displayHtmlForm(
-            '<p class="error">'.T_('Sorry, but that username is already taken.  Please choose another username.').'</p>'
-        );
-        displayFooter();
-        return;
-    }
+            return;
+        }
 
-    $sex = 'M';
+        $fbAccessToken = isset($formData['accessToken']) ? $formData['accessToken'] : '';
 
-    if (isset($formData['sex']))
-    {
-        $sex = $formData['sex'] == 'F' ? 'F' : 'M';
-    }
+        // Create user's settings
+        $sql = "INSERT INTO `fcms_user_settings`
+                    (`user`, `fb_access_token`)
+                VALUES 
+                    (?, ?)";
 
-    // Create new user
-    $sql = "INSERT INTO `fcms_users`
-                (`access`, `joindate`, `fname`, `lname`, `sex`, `email`, `username`, `password`) 
-            VALUES (
-                3, 
-                NOW(), 
-                '$cleanFname', 
-                '$cleanLname', 
-                '$sex', 
-                '$cleanEmail', 
-                '$cleanUsername', 
-                '$password'
-            )";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        if (!$this->fcmsDatabase->insert($sql, array($lastid, $fbAccessToken)))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    $lastid = mysql_insert_id();
+            return;
+        }
 
-    $fbAccessToken = isset($formData['accessToken']) ? $formData['accessToken'] : '';
+        // Create user's address
+        $sql = "INSERT INTO `fcms_address`
+                    (`user`, `updated`) 
+                VALUES 
+                    (?, NOW())";
 
-    // Create user's settings
-    $sql = "INSERT INTO `fcms_user_settings`(`user`, `fb_access_token`)
-            VALUES ($lastid, '$fbAccessToken')";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        if (!$this->fcmsDatabase->insert($sql, array($lastid)))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    // Create user's address
-    $sql = "INSERT INTO `fcms_address`(`user`, `updated`) 
-            VALUES ($lastid, NOW())";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+            return;
+        }
 
-    // Setup some stuff for sending email
-    $sitename = getSiteName();
-    $now      = gmdate('F j, Y, g:i a'); // TODO: use admin's tz?
-    $subject  = $sitename.' '.T_('Membership');
-    $message  = '';
+        // Setup some stuff for sending email
+        $sitename = getSiteName();
+        $now      = gmdate('F j, Y, g:i a'); // TODO: use admin's tz?
+        $subject  = $sitename.' '.T_('Membership');
+        $message  = '';
 
-    // Which activation method?
-    $sql = "SELECT `value` AS 'auto_activate'
-            FROM `fcms_config`
-            WHERE `name` = 'auto_activate'";
+        // Which activation method?
+        $sql = "SELECT `value` AS 'auto_activate'
+                FROM `fcms_config`
+                WHERE `name` = 'auto_activate'";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $row = $this->fcmsDatabase->getRow($sql);
+        if ($row === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    $row = mysql_fetch_assoc($result);
+            return;
+        }
 
-    // Auto activation
-    if ($row['auto_activate'] == 1)
-    {
-        handleAutoActivation($email, $subject, $lastid, $sitename);
-    }
-    elseif ($row['auto_activate'] == 0)
-    {
-        $message = T_('Dear').' '.$fname.' '.$lname.', 
+        // Auto activation
+        if ($row['auto_activate'] == 1)
+        {
+            handleAutoActivation($email, $subject, $lastid, $sitename);
+        }
+        else
+        {
+            $message = T_('Dear').' '.$fname.' '.$lname.', 
 
 '.sprintf(T_('Thank you for registering at %s'), $sitename).'
 
@@ -304,7 +352,7 @@ function displaySubmit ($params = '')
 
 '.T_('This is an automated response, please do not reply.');
 
-        echo '
+            echo '
             <div id="msg">
                 <h1>'.T_('Congratulations and Welcome').'</h1>
                 <p>
@@ -315,107 +363,106 @@ function displaySubmit ($params = '')
                 <p>'.T_('Unfortunately your account must be activated before you can  <a href="index.php">login</a> and begin using the site.').'</p>
             </div>';
 
-        mail($email, $subject, $message, getEmailHeaders());
-    }
+            mail($email, $subject, $message, getEmailHeaders());
+        }
 
-    // Email the admin
-    $admin_subject = sprintf(T_('New User Registration at %s'), $sitename);
-    $admin_message = sprintf(T_('A new user has registered at %s'), $sitename).':
+        // Email the admin
+        $admin_subject = sprintf(T_('New User Registration at %s'), $sitename);
+        $admin_message = sprintf(T_('A new user has registered at %s'), $sitename).':
 
 '.T_('Time of Registration').': '.$now.'
 
 '.T_('Username').': '.$username.'
 '.T_('Name').': '.$fname.' '.$lname;
 
-    mail(getContactEmail(), $admin_subject, $admin_message, getEmailHeaders());
-}
+        mail(getContactEmail(), $admin_subject, $admin_message, getEmailHeaders());
+    }
 
-/**
- * displayForm 
- * 
- * @return void
- */
-function displayForm ()
-{
-    displayHeader();
-    displayHtmlForm();
-    displayFooter();
-}
+    /**
+     * displayForm 
+     * 
+     * @return void
+     */
+    function displayForm ()
+    {
+        $this->displayHeader();
+        $this->displayHtmlForm();
+        $this->displayFooter();
+    }
 
-/**
- * displayHtmlForm 
- * 
- * @param string $error Any errors from the previous form
- * 
- * @return void
- */
-function displayHtmlForm ($error = '0')
-{
-    $user  = isset($_POST['username']) ? cleanOutput($_POST['username'])   : '';
-    $first = isset($_POST['fname'])    ? cleanOutput($_POST['fname'])      : '';
-    $last  = isset($_POST['lname'])    ? cleanOutput($_POST['lname'])      : '';
-    $email = isset($_POST['email'])    ? cleanOutput($_POST['email'])      : '';
+    /**
+     * displayHtmlForm 
+     * 
+     * @param string $error Any errors from the previous form
+     * 
+     * @return void
+     */
+    function displayHtmlForm ($error = '0')
+    {
+        $user  = isset($_POST['username']) ? cleanOutput($_POST['username'])   : '';
+        $first = isset($_POST['fname'])    ? cleanOutput($_POST['fname'])      : '';
+        $last  = isset($_POST['lname'])    ? cleanOutput($_POST['lname'])      : '';
+        $email = isset($_POST['email'])    ? cleanOutput($_POST['email'])      : '';
 
-    $fbData = getFacebookConfigData();
+        $fbData = getFacebookConfigData();
 
-    $fbUser   = null;
-    $facebook = null;
+        $fbUser   = null;
+        $facebook = null;
 
-    echo '
+        echo '
     <div id="column">
         <h1>'.T_('Register').'</h1>';
 
-    if ($error !== '0')
-    {
-        echo $error;
-    }
-
-    // Print the facebook register button
-    if (!empty($fbData['fb_app_id']) && !empty($fbData['fb_secret']))
-    {
-        $facebook = new Facebook(array(
-            'appId'  => $fbData['fb_app_id'],
-            'secret' => $fbData['fb_secret'],
-        ));
-
-        // Check if the user is logged in and authed
-        $fbUser = $facebook->getUser();
-        if ($fbUser)
+        if ($error !== '0')
         {
-            try
+            echo $error;
+        }
+
+        // Print the facebook register button
+        if (!empty($fbData['fb_app_id']) && !empty($fbData['fb_secret']))
+        {
+            $facebook = new Facebook(array(
+                'appId'  => $fbData['fb_app_id'],
+                'secret' => $fbData['fb_secret'],
+            ));
+
+            // Check if the user is logged in and authed
+            $fbUser = $facebook->getUser();
+            if ($fbUser)
             {
-                $fbProfile = $facebook->api('/me');
-            }
-            catch (FacebookApiException $e)
-            {
-                $fbUser = null;
+                try
+                {
+                    $fbProfile = $facebook->api('/me');
+                }
+                catch (FacebookApiException $e)
+                {
+                    $fbUser = null;
+                }
             }
         }
-    }
 
-    if ($fbUser && !isset($_GET['normal']))
-    {
-        echo '
+        if ($fbUser && !isset($_GET['normal']))
+        {
+            echo '
         <p style="text-align:center; padding: 20px 0">
             <a class="fbbutton" href="?facebook=1">'.T_('Register with Facebook').'</a><br/><br/><br/>
             <small><a style="text-decoration:none" href="register.php?normal=1">'.T_('Cancel').'</a></small>
         </p>';
-    }
+        }
 
-    if (!$fbUser && $facebook)
-    {
-        $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
+        if (!$fbUser && $facebook)
+        {
+            $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
 
-        echo '
+            echo '
         <p style="text-align:right">
             <a class="fbbutton" href="'.$facebook->getLoginUrl($params).'">'.T_('Connect with Facebook').'</a>
         </p>';
-    }
+        }
 
-    if (!$fbUser || isset($_GET['normal']))
-    {
-
-        echo '
+        if (!$fbUser || isset($_GET['normal']))
+        {
+            echo '
         <form id="registerform" name="registerform" action="register.php" method="post">
             <div class="field-row">
                 <div class="field-label"><label for="username"><b>'.T_('Username').'</b> <span class="req">*</span></label></div>
@@ -476,39 +523,39 @@ function displayHtmlForm ($error = '0')
             <div class="clear"></div>
         </form>
     </div>';
+        }
     }
-}
 
-/**
- * handleAutoActivation 
- * 
- * @param string $email    email address to send email to
- * @param string $subject  subject of email
- * @param int    $id       id of user being activated
- * @param string $sitename sitename
- * 
- * @return void
- */
-function handleAutoActivation ($email, $subject, $id, $sitename)
-{
-    $code = uniqid(''); //bug in some versions of php, needs some value here
-
-    $sql = "UPDATE `fcms_users` 
-            SET `activate_code` = '$code' 
-            WHERE `id` = '$id'";
-
-    if (!mysql_query($sql))
+    /**
+     * handleAutoActivation 
+     * 
+     * @param string $email    email address to send email to
+     * @param string $subject  subject of email
+     * @param int    $id       id of user being activated
+     * @param string $sitename sitename
+     * 
+     * @return void
+     */
+    function handleAutoActivation ($email, $subject, $id, $sitename)
     {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        die();
-    }
+        $code = uniqid(''); //bug in some versions of php, needs some value here
 
-    $message = T_('Please click the following link to activate your account').':
+        $sql = "UPDATE `fcms_users` 
+                SET `activate_code` = ?
+                WHERE `id` = ?";
+
+        if (!$this->fcmsDatabase->update($sql, array($code, $id)))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            die();
+        }
+
+        $message = T_('Please click the following link to activate your account').':
 
 '.getDomainAndDir().'activate.php?uid='.$id.'&code='.$code;
 
-        echo '
+            echo '
             <div id="msg">
                 <h1>'.T_('Congratulations and Welcome').'</h1>
                 <p>
@@ -519,89 +566,91 @@ function handleAutoActivation ($email, $subject, $id, $sitename)
                 <p>'.T_('Unfortunately you must activate your account before you can <a href="index.php">login</a> and begin using the site').'</p>
             </div>';
 
-    mail($email, $subject, $message, getEmailHeaders());
-}
-
-/**
- * checkUsername 
- * 
- * @return void
- */
-function checkUsername ()
-{
-    $username = strip_tags($_GET['username']); 
-    $username = escape_string($username); 
-
-    $result = mysql_query("SELECT `username` FROM `fcms_users` WHERE `username` = '$username'"); 
-
-    $username_check = mysql_num_rows($result);
-
-    if ($username_check > 0)
-    {
-        echo 'unavailable';
-    }
-    else
-    {
-        echo 'available';
-    }
-}
-
-/**
- * displayFacebookRegister 
- * 
- * @return void
- */
-function handleFacebookRegister ()
-{
-    $fbData    = getFacebookConfigData();
-    $fbProfile = '';
-
-    if (empty($fbData['fb_app_id']) && empty($fbData['fb_secret']))
-    {
-        displayHeader();
-        displayHtmlForm(T_('Facebook isn\'t Configured Yet.'));
-        displayFooter();
-        return;
+        mail($email, $subject, $message, getEmailHeaders());
     }
 
-    $facebook = new Facebook(array(
-        'appId'  => $fbData['fb_app_id'],
-        'secret' => $fbData['fb_secret'],
-    ));
-
-    // Check if the user is logged in and authed
-    $fbUser = $facebook->getUser();
-    if ($fbUser)
+    /**
+     * checkUsername 
+     * 
+     * @return void
+     */
+    function checkUsername ()
     {
-        try
+        $username = strip_tags($_GET['username']); 
+
+        $sql = "SELECT `username` 
+                FROM `fcms_users` 
+                WHERE `username` = ?"; 
+
+        $row = $this->fcmsDatabase->getRow($sql, $username);
+
+        if (empty($row))
         {
-            $fbProfile = $facebook->api('/me');
+            echo 'available';
         }
-        catch (FacebookApiException $e)
+        else
         {
-            $fbUser = null;
+            echo 'unavailable';
         }
     }
 
-    // the user's auth went away or logged out of fb, send them back to register form
-    if (!$fbUser)
+    /**
+     * displayFacebookRegister 
+     * 
+     * @return void
+     */
+    function handleFacebookRegister ()
     {
-        displayForm();
-        return;
+        $fbData    = getFacebookConfigData();
+        $fbProfile = '';
+
+        if (empty($fbData['fb_app_id']) && empty($fbData['fb_secret']))
+        {
+            $this->displayHeader();
+            $this->displayHtmlForm(T_('Facebook isn\'t Configured Yet.'));
+            $this->displayFooter();
+            return;
+        }
+
+        $facebook = new Facebook(array(
+            'appId'  => $fbData['fb_app_id'],
+            'secret' => $fbData['fb_secret'],
+        ));
+
+        // Check if the user is logged in and authed
+        $fbUser = $facebook->getUser();
+        if ($fbUser)
+        {
+            try
+            {
+                $fbProfile = $facebook->api('/me');
+            }
+            catch (FacebookApiException $e)
+            {
+                $fbUser = null;
+            }
+        }
+
+        // the user's auth went away or logged out of fb, send them back to register form
+        if (!$fbUser)
+        {
+            displayForm();
+            return;
+        }
+
+        // Register new user
+        $accessToken = $facebook->getAccessToken();
+
+        $params = array(
+            'fname'       => $fbProfile['first_name'],
+            'lname'       => $fbProfile['last_name'],
+            'email'       => $fbProfile['email'],
+            'sex'         => $fbProfile['gender'] == 'male' ? 'M' : 'F',
+            'username'    => $fbProfile['email'],
+            'password'    => 'FACEBOOK',
+            'accessToken' => $accessToken
+        );
+
+        displaySubmit($params);
     }
-
-    // Register new user
-    $accessToken = $facebook->getAccessToken();
-
-    $params = array(
-        'fname'       => $fbProfile['first_name'],
-        'lname'       => $fbProfile['last_name'],
-        'email'       => $fbProfile['email'],
-        'sex'         => $fbProfile['gender'] == 'male' ? 'M' : 'F',
-        'username'    => $fbProfile['email'],
-        'password'    => 'FACEBOOK',
-        'accessToken' => $accessToken
-    );
-
-    displaySubmit($params);
 }

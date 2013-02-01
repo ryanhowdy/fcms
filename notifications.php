@@ -22,63 +22,85 @@ load('profile', 'image', 'address', 'phone', 'gallery');
 
 init();
 
-// Globals
-$gallery = new PhotoGallery($fcmsUser->id);
+$gallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
+$page    = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $gallery);
 
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Notifications'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
-
-control();
 exit();
 
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    if (isset($_GET['markread']))
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsMessageBoard;
+    private $fcmsTemplate;
+
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsPhotoGallery)
     {
-        if ($_GET['markread'] == 'all')
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsPhotoGallery = $fcmsPhotoGallery;
+
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Notifications'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if (isset($_GET['markread']))
         {
-            displayMarkAllReadSubmit();
+            if ($_GET['markread'] == 'all')
+            {
+                $this->displayMarkAllReadSubmit();
+            }
+            else
+            {
+                $this->displayMarkReadSubmit();
+            }
+        }
+        elseif (isset($_GET['view']))
+        {
+            $this->displayAllNotifications();
         }
         else
         {
-            displayMarkReadSubmit();
+            $this->displayNotifications();
         }
     }
-    elseif (isset($_GET['view']))
-    {
-        displayAllNotifications();
-    }
-    else
-    {
-        displayNotifications();
-    }
-}
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    $TMPL['javascript'] = '
+        $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
@@ -87,76 +109,80 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    require_once getTheme($fcmsUser->id).'header.php';
-
-    echo '
-        <div id="notifications" class="centercontent">';
-}
-
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
-
-    echo '
-        </div><!-- /profile -->';
-
-    include_once getTheme($fcmsUser->id).'footer.php';
-}
-
-/**
- * displayNotifications 
- * 
- * @return void
- */
-function displayNotifications ()
-{
-    global $fcmsUser, $gallery;
-
-    displayHeader();
-
-    if (isset($_SESSION['success']))
-    {
-        displayOKMessage();
-
-        unset($_SESSION['success']);
-    }
-
-    $sql = "SELECT `id`, `user`, `created_id`, `notification`, `data`, `created`, `updated`
-            FROM `fcms_notification`
-            WHERE `user` = '$fcmsUser->id'
-            AND `read` = 0
-            AND `created_id` != '$fcmsUser->id'";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    if (mysql_num_rows($result) <= 0)
-    {
-        if (isset($_SESSION['notifications']))
-        {
-            unset($_SESSION['notifications']);
-        }
+        require_once getTheme($this->fcmsUser->id).'header.php';
 
         echo '
+        <div id="notifications" class="centercontent">';
+    }
+
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
+
+        echo '
+        </div><!--/notifications-->';
+
+        include_once getTheme($this->fcmsUser->id).'footer.php';
+    }
+
+    /**
+     * displayNotifications 
+     * 
+     * @return void
+     */
+    function displayNotifications ()
+    {
+        $this->displayHeader();
+
+        if (isset($_SESSION['success']))
+        {
+            displayOKMessage();
+
+            unset($_SESSION['success']);
+        }
+
+        $sql = "SELECT `id`, `user`, `created_id`, `notification`, `data`, `created`, `updated`
+                FROM `fcms_notification`
+                WHERE `user` = ?
+                AND `read` = 0
+                AND `created_id` != ?";
+
+        $params = array(
+            $this->fcmsUser->id,
+            $this->fcmsUser->id
+        );
+
+        $rows = $this->fcmsDatabase->getRows($sql, $params);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (count($rows) <= 0)
+        {
+            if (isset($_SESSION['notifications']))
+            {
+                unset($_SESSION['notifications']);
+            }
+
+            echo '
             <p class="info-alert">'.T_('You do not have any notifications.').'</p>
             <p style="text-align:center">
                 <small><a class="u" href="notifications.php?view=all">'.T_('View past notifications').'</a></small>
             </p>';
 
-        return;
-    }
+            return;
+        }
 
-    echo '
+        echo '
         <div id="actions_menu">
             <ul>
                 <li><a href="notifications.php?markread=all">'.T_('Mark All Read').'</a></li>
@@ -164,148 +190,155 @@ function displayNotifications ()
         </div>
         <div id="notifications-list">';
 
-    while ($r = mysql_fetch_assoc($result))
-    {
-        $date   = getHumanTimeSince(strtotime($r['created']));
-        $date   = ' <span class="date">'.$date.'</span>';
-        $info   = '';
-        $action = '<a class="read" href="?markread='.$r['id'].'">'.T_('Mark Read').'</a>';
-
-        if ($r['notification'] == 'tagged_photo')
+        foreach ($rows as $r)
         {
-            $displayName = getUserDisplayName($r['created_id']);
+            $date   = getHumanTimeSince(strtotime($r['created']));
+            $date   = ' <span class="date">'.$date.'</span>';
+            $info   = '';
+            $action = '<a class="read" href="?markread='.$r['id'].'">'.T_('Mark Read').'</a>';
 
-            list($uid, $cid, $pid, $filename) = explode(':', $r['data']);
+            if ($r['notification'] == 'tagged_photo')
+            {
+                $displayName = getUserDisplayName($r['created_id']);
 
-            $data = array(
-                'id'          => $pid,
-                'external_id' => null,
-                'filename'    => $filename,
-                'user'        => $uid,
-            );
-            $photoSrc = $gallery->getPhotoSource($data);
+                list($uid, $cid, $pid, $filename) = explode(':', $r['data']);
 
-            $info  = sprintf(T_('%s has added a photo of you.'), $displayName).$date;
-            $info .= '<br/><a href="gallery/index.php?uid='.$uid.'&amp;cid='.$cid.'&amp;pid='.$pid.'">';
-            $info .= '<img src="'.$photoSrc.'"/></a>';
-            //$info .= '<img src="uploads/photos/member'.$uid.'/tb_'.basename($filename).'"/></a>';
-        }
+                $data = array(
+                    'id'          => $pid,
+                    'external_id' => null,
+                    'filename'    => $filename,
+                    'user'        => $uid,
+                );
+                $photoSrc = $this->fcmsPhotoGallery->getPhotoSource($data);
 
-        echo '
+                $info  = sprintf(T_('%s has added a photo of you.'), $displayName).$date;
+                $info .= '<br/><a href="gallery/index.php?uid='.$uid.'&amp;cid='.$cid.'&amp;pid='.$pid.'">';
+                $info .= '<img src="'.$photoSrc.'"/></a>';
+            }
+
+            echo '
                 <p>
                     '.$action.'
                     '.$info.'
                 </p>';
-    }
+        }
 
-    echo '
+        echo '
         </div>';
 
-    displayFooter();
-}
-
-/**
- * displayMarkReadSubmit 
- * 
- * @return void
- */
-function displayMarkReadSubmit ()
-{
-    $id = (int)$_GET['markread'];
-
-    $sql = "UPDATE `fcms_notification`
-            SET `read` = 1
-            WHERE `id` = '$id'";
-
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    // Need to recalculate notification count
-    if (isset($_SESSION['notifications']))
+    /**
+     * displayMarkReadSubmit 
+     * 
+     * @return void
+     */
+    function displayMarkReadSubmit ()
     {
-        unset($_SESSION['notifications']);
-    }
+        $id = (int)$_GET['markread'];
 
-    $_SESSION['success'] = 1;
+        $sql = "UPDATE `fcms_notification`
+                SET `read` = 1
+                WHERE `id` = ?";
 
-    header("Location: notifications.php");
-}
+        if (!$this->fcmsDatabase->update($sql, $id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-/**
- * displayMarkAllReadSubmit 
- * 
- * @return void
- */
-function displayMarkAllReadSubmit ()
-{
-    global $fcmsUser;
+            return;
+        }
 
-    $sql = "UPDATE `fcms_notification`
-            SET `read` = 1
-            WHERE `user` = '$fcmsUser->id'";
-
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    // Need to recalculate notification count
-    if (isset($_SESSION['notifications']))
-    {
-        unset($_SESSION['notifications']);
-    }
-
-    $_SESSION['success'] = 1;
-
-    header("Location: notifications.php");
-}
-
-/**
- * displayAllNotifications 
- * 
- * @return void
- */
-function displayAllNotifications ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    $sql = "SELECT `id`, `user`, `created_id`, `notification`, `data`, `created`, `updated`
-            FROM `fcms_notification`
-            WHERE `user` = '$fcmsUser->id'
-            AND `created_id` != '$fcmsUser->id'";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    if (mysql_num_rows($result) <= 0)
-    {
+        // Need to recalculate notification count
         if (isset($_SESSION['notifications']))
         {
             unset($_SESSION['notifications']);
         }
 
-        echo '
-            <p class="info-alert">'.T_('You do not have any notifications.').'</p>';
+        $_SESSION['success'] = 1;
 
-        return;
+        header("Location: notifications.php");
     }
 
-    echo '
+    /**
+     * displayMarkAllReadSubmit 
+     * 
+     * @return void
+     */
+    function displayMarkAllReadSubmit ()
+    {
+        global $fcmsUser;
+
+        $sql = "UPDATE `fcms_notification`
+                SET `read` = 1
+                WHERE `user` = ?";
+
+        if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        // Need to recalculate notification count
+        if (isset($_SESSION['notifications']))
+        {
+            unset($_SESSION['notifications']);
+        }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: notifications.php");
+    }
+
+    /**
+     * displayAllNotifications 
+     * 
+     * @return void
+     */
+    function displayAllNotifications ()
+    {
+        global $fcmsUser;
+
+        $this->displayHeader();
+
+        $sql = "SELECT `id`, `user`, `created_id`, `notification`, `data`, `created`, `updated`
+                FROM `fcms_notification`
+                WHERE `user` = ?
+                AND `created_id` != ?";
+
+        $params = array(
+            $this->fcmsUser->id,
+            $this->fcmsUser->id
+        );
+
+        $rows = $this->fcmsDatabase->getRows($sql, $params);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (count($rows) <= 0)
+        {
+            if (isset($_SESSION['notifications']))
+            {
+                unset($_SESSION['notifications']);
+            }
+
+            echo '
+            <p class="info-alert">'.T_('You do not have any notifications.').'</p>';
+
+            return;
+        }
+
+        echo '
         <div id="sections_menu">
             <ul>
                 <li><a href="notifications.php">'.T_('Unread Notifications').'</a></li>
@@ -313,31 +346,32 @@ function displayAllNotifications ()
         </div>
         <div id="notifications-list">';
 
-    while ($r = mysql_fetch_assoc($result))
-    {
-        $date   = getHumanTimeSince(strtotime($r['created']));
-        $date   = ' <span class="date">'.$date.'</span>';
-        $info   = '';
-
-        if ($r['notification'] == 'tagged_photo')
+        foreach ($rows as $r)
         {
-            $displayName = getUserDisplayName($r['created_id']);
+            $date   = getHumanTimeSince(strtotime($r['created']));
+            $date   = ' <span class="date">'.$date.'</span>';
+            $info   = '';
 
-            list($uid, $cid, $pid, $filename) = explode(':', $r['data']);
+            if ($r['notification'] == 'tagged_photo')
+            {
+                $displayName = getUserDisplayName($r['created_id']);
 
-            $info  = sprintf(T_('%s has added a photo of you.'), $displayName).$date;
-            $info .= '<br/><a href="gallery/index.php?uid='.$uid.'&amp;cid='.$cid.'&amp;pid='.$pid.'">';
-            $info .= '<img src="uploads/photos/member'.$uid.'/tb_'.basename($filename).'"/></a>';
-        }
+                list($uid, $cid, $pid, $filename) = explode(':', $r['data']);
 
-        echo '
+                $info  = sprintf(T_('%s has added a photo of you.'), $displayName).$date;
+                $info .= '<br/><a href="gallery/index.php?uid='.$uid.'&amp;cid='.$cid.'&amp;pid='.$pid.'">';
+                $info .= '<img src="uploads/photos/member'.$uid.'/tb_'.basename($filename).'"/></a>';
+            }
+
+            echo '
                 <p>
                     '.$info.'
                 </p>';
-    }
+        }
 
-    echo '
+        echo '
         </div>';
 
-    displayFooter();
+        $this->displayFooter();
+    }
 }

@@ -9,21 +9,24 @@
  */
 class Poll
 {
-    private $user;
-    private $error;
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
 
     /**
      * __construct 
      * 
-     * @param string  $user 
-     * @param string  $error 
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
      *
      * @return void
      */
-    public function __construct ($user, $error)
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->user  = $user;
-        $this->error = $error;
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
     }
 
     /**
@@ -41,19 +44,15 @@ class Poll
         $sql = "SELECT MAX(`id`) AS max 
                 FROM `fcms_polls`";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $row = $this->fcmsDatabase->getRow($sql);
+        if ($row === false)
         {
-            $msg       = T_('Could not get latest poll information.');
-            $debugInfo = $sql."\n".mysql_error();
+            $this->fcmsError->setMessage(T_('Could not get latest poll information.'));
 
-            $this->error->add($msg, $debugInfo);
             return false;
         }
 
-        $r = mysql_fetch_assoc($result);
-
-        $pollId = $r['max'];
+        $pollId = $row['max'];
 
         // No polls exist
         if (is_null($pollId))
@@ -130,19 +129,17 @@ class Poll
         $sql = "SELECT p.`id`, `question`, o.`id` AS option_id, `option` 
                 FROM `fcms_polls` AS p
                 LEFT JOIN `fcms_poll_options` AS o ON p.`id` = o.`poll_id`
-                WHERE p.`id` = '$id'";
+                WHERE p.`id` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            $msg       = T_('Could not get poll information.');
-            $debugInfo = $sql."\n".mysql_error();
+            $this->fcmsError->setMessage(T_('Could not get poll information.'));
 
-            $this->error->add($msg, $debugInfo);
             return false;
         }
 
-        while ($r = mysql_fetch_assoc($result))
+        foreach ($rows as $r)
         {
             $data[$r['id']]['question']    = $r['question'];
             $data[$r['id']]['total_votes'] = 0;
@@ -159,19 +156,17 @@ class Poll
         // Get votes
         $sql = "SELECT `id`, `user`, `option`, `poll_id`
                 FROM `fcms_poll_votes` 
-                WHERE `poll_id` = '$id'";
+                WHERE `poll_id` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            $msg       = T_('Could not get poll information.');
-            $debugInfo = $sql."\n".mysql_error();
+            $this->fcmsError->setMessage(T_('Could not get poll information.'));
 
-            $this->error->add($msg, $debugInfo);
             return false;
         }
 
-        while ($r = mysql_fetch_assoc($result))
+        foreach ($rows as $r)
         {
             $data[$r['poll_id']]['total_votes']++;
             $data[$r['poll_id']]['options'][$r['option']]['votes']['total']++;
@@ -197,12 +192,12 @@ class Poll
     {
         $pollId     = key($pollData);
         $totalVotes = $pollData[$pollId]['total_votes'];
-        $usersLkup  = array();
+        $fcmsUsersLkup  = array();
 
         if (isset($pollData['users_who_voted']))
         {
-            $usersLkup = $this->getUsersAvatarName($pollData['users_who_voted']);
-            if ($usersLkup === false)
+            $fcmsUsersLkup = $this->getUsersAvatarName($pollData['users_who_voted']);
+            if ($fcmsUsersLkup === false)
             {
                 // Errors already set
                 return false;
@@ -216,7 +211,7 @@ class Poll
         foreach ($pollData[$pollId]['options'] as $optionId => $optionData)
         {
             $votes   = $optionData['votes']['total'];
-            $users   = null;
+            $fcmsUsers   = null;
             $percent = 0;
             $width   = 0;
 
@@ -227,15 +222,15 @@ class Poll
                 $percent = round((($votes/$totalVotes) * 100), 0);
             }
 
-            foreach ($optionData['votes']['users'] as $userId => $val)
+            foreach ($optionData['votes']['users'] as $fcmsUserId => $val)
             {
-                $users .= '<li><div onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">';
-                $users .= '<img src="'.$usersLkup[$userId]['avatar'].'"/></div><div class="tooltip" style="display:none;">';
-                $users .= '<h5>'.$usersLkup[$userId]['name'].'</h5></div></li>';
+                $fcmsUsers .= '<li><div onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">';
+                $fcmsUsers .= '<img src="'.$fcmsUsersLkup[$fcmsUserId]['avatar'].'"/></div><div class="tooltip" style="display:none;">';
+                $fcmsUsers .= '<h5>'.$fcmsUsersLkup[$fcmsUserId]['name'].'</h5></div></li>';
             }
-            if (is_null($users))
+            if (is_null($fcmsUsers))
             {
-                 $users = '<li>'.T_('None').'</li>';
+                 $fcmsUsers = '<li>'.T_('None').'</li>';
             }
 
             $pollOptions .= '
@@ -247,7 +242,7 @@ class Poll
                         </a>
                         <div id="who'.$i.'" class="who-voted" style="display:none">
                             <ul class="avatar-member-list-small">
-                                '.$users.'
+                                '.$fcmsUsers.'
                             </ul>
                         </div>
                     </li>';
@@ -278,17 +273,15 @@ class Poll
                 ORDER BY started DESC 
                 LIMIT $from, 25";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            $msg       = T_('Could not get polls information.');
-            $debugInfo = $sql."\n".mysql_error();
+            $this->fcmsError->setMessage(T_('Could not get poll information.'));
 
-            $this->error->add($msg, $debugInfo);
             return false;
         }
 
-        while ($r = mysql_fetch_assoc($result))
+        foreach ($rows as $r)
         {
             $polls[] = $r;
 
@@ -313,47 +306,54 @@ class Poll
 
         $sql = "SELECT `user` 
                 FROM `fcms_poll_votes` 
-                WHERE `user` = '".$this->user->id."'
-                AND `poll_id` = '$pollId'";
+                WHERE `user` = ?
+                AND `poll_id` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $params = array(
+            $this->fcmsUser->id,
+            $pollId
+        );
+
+        $row = $this->fcmsDatabase->getRow($sql, $params);
+        if ($row === false)
         {
-            $msg       = T_('Could not get poll information.');
-            $debugInfo = $sql."\n".mysql_error();
+            $this->fcmsError->setMessage(T_('Could not get poll information.'));
 
-            $this->error->add($msg, $debugInfo);
             return false;
         }
 
-        if (mysql_num_rows($result) > 0)
+        // query will only return results if voted previously
+        if (!empty($row))
         {
             return false;
         }
 
         $sql = "UPDATE `fcms_poll_options` 
                 SET `votes` = `votes`+1 
-                WHERE `id` = '$optionId'";
+                WHERE `id` = ?";
 
-        if (!mysql_query($sql))
+        if (!$this->fcmsDatabase->update($sql, $optionId))
         {
-            $msg       = T_('Could not update poll.');
-            $debugInfo = $sql."\n".mysql_error();
+            $this->fcmsError->setMessage(T_('Could not update poll.'));
 
-            $this->error->add($msg, $debugInfo);
             return false;
         }
 
+        $sql = "INSERT INTO `fcms_poll_votes`
+                    (`user`, `option`, `poll_id`) 
+                VALUES 
+                    (?, ?, ?)";
 
-        $sql = "INSERT INTO `fcms_poll_votes`(`user`, `option`, `poll_id`) 
-                VALUES ('".$this->user->id."', '$optionId', '$pollId')";
+        $params = array(
+            $this->fcmsUser->id,
+            $optionId,
+            $pollId
+        );
 
-        if (!mysql_query($sql))
+        if (!$this->fcmsDatabase->insert($sql, $params))
         {
-            $msg       = T_('Could not add vote.');
-            $debugInfo = $sql."\n".mysql_error();
+            $this->fcmsError->setMessage(T_('Could not add vote.'));
 
-            $this->error->add($msg, $debugInfo);
             return false;
         }
 
@@ -381,17 +381,15 @@ class Poll
                 WHERE p.`id` IN ($ids)
                 GROUP BY `id`";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            $msg       = T_('Could not get polls votes.');
-            $debugInfo = $sql."\n".mysql_error();
+            $this->fcmsError->setMessage(T_('Could not get polls votes.'));
 
-            $this->error->add($msg, $debugInfo);
             return false;
         }
 
-        while ($r = mysql_fetch_assoc($result))
+        foreach ($rows as $r)
         {
             $data[$r['id']] = $r['total'];
         }
@@ -413,19 +411,17 @@ class Poll
         $sql = "SELECT c.`id`, c.`comment`, c.`created`, c.`created_id`, u.`fname`, u.`lname`, u.`avatar`, u.`gravatar`
                 FROM `fcms_poll_comment` AS c
                 LEFT JOIN `fcms_users` AS u ON c.`created_id` = u.`id`
-                WHERE `poll_id` = '$id'";
+                WHERE `poll_id` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            $msg       = T_('Could not get poll comments.');
-            $debugInfo = $sql."\n".mysql_error();
+            $this->fcmsError->setMessage(T_('Could not get poll comments.'));
 
-            $this->error->add($msg, $debugInfo);
             return false;
         }
 
-        while ($r = mysql_fetch_assoc($result))
+        foreach ($rows as $r)
         {
             $comments[] = $r;
 
@@ -454,17 +450,15 @@ class Poll
                 FROM `fcms_users`
                 WHERE `id` IN ($ids)";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            $msg       = T_('Could not get member information.');
-            $debugInfo = $sql."\n".mysql_error();
+            $this->fcmsError->setMessage(T_('Could not get member information.'));
 
-            $this->error->add($msg, $debugInfo);
             return false;
         }
 
-        while ($r = mysql_fetch_assoc($result))
+        foreach ($rows as $r)
         {
             $avatars[$r['id']]['avatar'] = getAvatarPath($r['avatar'], $r['gravatar']);
             $avatars[$r['id']]['name']   = $r['fname'].' '.$r['lname'];

@@ -20,81 +20,102 @@ require 'fcms.php';
 
 init();
 
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Help'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
+$page  = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
-control();
 exit();
 
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    if (isset($_GET['topic']))
-    {
-        $topic = $_GET['topic'];
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
 
-        if ($topic == 'photo')
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    {
+        $this->fcmsError         = $fcmsError;
+        $this->fcmsDatabase      = $fcmsDatabase;
+        $this->fcmsUser          = $fcmsUser;
+
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Help'),
+            'path'          => URL_PREFIX,
+            'displayname'   => getUserDisplayName($this->fcmsUser->id),
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if (isset($_GET['topic']))
         {
-            displayPhotoGallery();
-        }
-        elseif ($topic == 'video')
-        {
-            displayVideoGallery();
-        }
-        elseif ($topic == 'settings')
-        {
-            displaySettings();
-        }
-        elseif ($topic == 'address')
-        {
-            displayAddressBook();
-        }
-        elseif ($topic == 'admin')
-        {
-            displayAdministration();
+            $topic = $_GET['topic'];
+
+            if ($topic == 'photo')
+            {
+                $this->displayPhotoGallery();
+            }
+            elseif ($topic == 'video')
+            {
+                $this->displayVideoGallery();
+            }
+            elseif ($topic == 'settings')
+            {
+                $this->displaySettings();
+            }
+            elseif ($topic == 'address')
+            {
+                $this->displayAddressBook();
+            }
+            elseif ($topic == 'admin')
+            {
+                $this->displayAdministration();
+            }
+            else
+            {
+                $this->displayHome();
+            }
         }
         else
         {
-            displayHome();
+            $this->displayHome();
         }
     }
-    else
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
     {
-        displayHome();
-    }
-}
+        $TMPL = $this->fcmsTemplate;
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
-
-    $TMPL['javascript'] = '
+        $TMPL['javascript'] = '
 <script type="text/javascript">
 Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });
 </script>';
 
-    include_once getTheme($fcmsUser->id).'header.php';
+        require_once getTheme($this->fcmsUser->id).'header.php';
 
-    echo '
+        echo '
         <div id="help" class="centercontent">
 
             <div id="leftcolumn">
@@ -109,42 +130,52 @@ Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''
             </div>
 
             <div id="maincolumn">';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
+        echo '
             </div><!--/maincolumn-->
 
         </div><!--/centercontent-->';
 
-    include_once getTheme($fcmsUser->id).'footer.php';
-}
+        require_once getTheme($this->fcmsUser->id).'footer.php';
+    }
 
-function displayHome ()
-{
-    displayHeader();
-    echo '
+    /**
+     * displayHome 
+     * 
+     * @return void
+     */
+    function displayHome ()
+    {
+        $this->displayHeader();
+        echo '
                 <h2>'.T_('Welcome to the Help section.').'</h2>
                 <p>'.T_('Browse the topics to the left to find help on the most frequently asked topics.').'</p>
                 <p>&nbsp;</p>
                 <h3>'.T_('Need more help?').'</h3>
                 <p>'.T_('Check out the support forum for more help.').'</p>
                 <p><a href="http://familycms.tenderapp.com/discussions">'.T_('Support Forum').'</a></p>';
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-function displayPhotoGallery ()
-{
-    displayHeader();
-    echo '
+    /**
+     * displayPhotoGallery 
+     * 
+     * @return void
+     */
+    function displayPhotoGallery ()
+    {
+        $this->displayHeader();
+        echo '
             <h4>'.T_('Photo Gallery').'</h4>
             <p><a href="#gallery-howworks">'.T_('How does the Photo Gallery work?').'</a></p>
             <p><a href="#gallery-addphoto">'.T_('How do I add a photo?').'</a></p>
@@ -241,13 +272,18 @@ function displayPhotoGallery ()
             </ol>
             <p>&nbsp;</p>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-function displayVideoGallery ()
-{
-    displayHeader();
-    echo '
+    /**
+     * displayVideoGallery 
+     * 
+     * @return void
+     */
+    function displayVideoGallery ()
+    {
+        $this->displayHeader();
+        echo '
             <h4>'.T_('Video Gallery').'</h4>
             <p><a href="#video-youtube-private">'.T_('YouTube Private Videos.').'</a></p>
             <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
@@ -259,13 +295,18 @@ function displayVideoGallery ()
             <p>'.T_('In order to keep your videos private on YouTube, but public to the members of your family site, Family Connections will use your unique token to let other members view your private videos.').'</p>
             <p>&nbsp;</p>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-function displaySettings ()
-{
-    displayHeader();
-    echo '
+    /**
+     * displaySettings 
+     * 
+     * @return void
+     */
+    function displaySettings ()
+    {
+        $this->displayHeader();
+        echo '
             <h4>'.T_('Personal Settings').'</h4>
             <p><a href="#settings-avatar">'.T_('How do I add/change my avatar?').'</a></p>
             <p><a href="#settings-theme">'.T_('How do I change my theme?').'</a></p>
@@ -305,13 +346,18 @@ function displaySettings ()
             </ol>
             <p>&nbsp;</p>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-function displayAddressBook ()
-{
-    displayHeader();
-    echo '
+    /**
+     * displayAddressBook 
+     * 
+     * @return void
+     */
+    function displayAddressBook ()
+    {
+        $this->displayHeader();
+        echo '
             <h4>'.T_('Address Book').'</h4>
             <p><a href="#address-massemail">'.T_('How do I email multiple people (Mass Email)?').'</a></p>
             <p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p><hr/><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p>
@@ -325,13 +371,18 @@ function displayAddressBook ()
             </ol>
             <p>&nbsp;</p>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-function displayAdministration ()
-{
-    displayHeader();
-    echo '
+    /**
+     * displayAdministration 
+     * 
+     * @return void
+     */
+    function displayAdministration ()
+    {
+        $this->displayHeader();
+        echo '
             <h4>'.T_('Administration').'</h4>
 
             <p><a href="#adm-access">'.T_('Member Access Levels').'</a></p>
@@ -508,5 +559,6 @@ function displayAdministration ()
                 <li>'.T_('Move the uploads directoy to the path you specified in step 1.').'</li>
             <p>&nbsp;</p>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
-    displayFooter();
+        $this->displayFooter();
+    }
 }

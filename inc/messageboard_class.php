@@ -1,8 +1,4 @@
 <?php
-include_once('database_class.php');
-include_once('utils.php');
-include_once('datetime.php');
-
 /**
  * MessageBoard 
  * 
@@ -13,27 +9,24 @@ include_once('datetime.php');
  */
 class MessageBoard
 {
-    var $db;
-    var $db2;
-    var $tzOffset;
-    var $currentUserId;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
 
     /**
      * MessageBoard 
      * 
-     * @param   int     $currentUserId 
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
      * 
      * @return  void
      */
-    function MessageBoard ($currentUserId)
+    function MessageBoard ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = (int)$currentUserId;
-        $this->tzOffset      = getTimezone($this->currentUserId);
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
     }
 
     /**
@@ -56,7 +49,7 @@ class MessageBoard
         // Announcements
         if ($type == 'announcement')
         {
-            if (checkAccess($this->currentUserId) < 8 && checkAccess($this->currentUserId) != 5)
+            if ($this->fcmsUser->access < 8 && $this->fcmsUser->access != 5)
             {
                 $this->displayMessageBoardMenu();
             }
@@ -83,9 +76,12 @@ class MessageBoard
                     AND `subject` LIKE '#ANOUNCE#%' 
                     GROUP BY t.`id` 
                     ORDER BY `updated` DESC";
-            if (!$this->db->query($sql))
+
+            $rows = $this->fcmsDatabase->getRows($sql);
+            if ($rows === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return;
             }
         }
@@ -100,9 +96,12 @@ class MessageBoard
                     GROUP BY t.`id` 
                     ORDER BY `updated` DESC 
                     LIMIT $from, 30";
-            if (!$this->db->query($sql))
+
+            $rows = $this->fcmsDatabase->getRows($sql);
+            if ($rows === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return;
             }
         }
@@ -110,16 +109,16 @@ class MessageBoard
         $alt = 0;
 
         // Setup today and yesterday dates
-        $today_start = fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
+        $today_start = fixDate('Ymd', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
+        $today_end   = fixDate('Ymd', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
 
         $time = gmmktime(0, 0, 0, gmdate('m')  , gmdate('d')-1, gmdate('Y'));
 
-        $yesterday_start = fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s', $time)) . '000000';
-        $yesterday_end   = fixDate('Ymd', $this->tzOffset, gmdate('Y-m-d H:i:s', $time)) . '235959';
+        $yesterday_start = fixDate('Ymd', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s', $time)) . '000000';
+        $yesterday_end   = fixDate('Ymd', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s', $time)) . '235959';
 
         // Loop through threads/annoucements
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             $numberOfPosts   = $this->getNumberOfPosts($row['id']);
             $numberOfReplies = $numberOfPosts - 1;
@@ -141,7 +140,7 @@ class MessageBoard
                 if ($alt % 2 !== 0) { $tr_class = 'alt'; }
             }
 
-            $updated = fixDate('YmdHis', $this->tzOffset, $row['updated']);
+            $updated = fixDate('YmdHis', $this->fcmsUser->tzOffset, $row['updated']);
 
             // Updated Today
             if ($updated >= $today_start && $updated <= $today_end)
@@ -151,7 +150,7 @@ class MessageBoard
                 {
                     $img_class = 'announcement_' . $img_class;
                 }
-                $date = fixDate(T_('h:ia'), $this->tzOffset, $row['updated']);
+                $date = fixDate(T_('h:ia'), $this->fcmsUser->tzOffset, $row['updated']);
                 $last_updated = sprintf(T_('Today at %s'), $date).'<br/>'
                     .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.(int)$row['updated_by'].'">'.$updated_by.'</a>');
             }
@@ -163,7 +162,7 @@ class MessageBoard
                 {
                     $img_class = 'announcement_' . $img_class;
                 }
-                $date = fixDate(T_('h:ia'), $this->tzOffset, $row['updated']);
+                $date = fixDate(T_('h:ia'), $this->fcmsUser->tzOffset, $row['updated']);
                 $last_updated = sprintf(T_('Yesterday at %s'), $date).'<br/>'
                     .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.(int)$row['updated_by'].'">'.$updated_by.'</a>');
             }
@@ -175,7 +174,7 @@ class MessageBoard
                 {
                     $img_class = 'announcement';
                 }
-                $last_updated = fixDate(T_('m/d/Y h:ia'), $this->tzOffset, $row['updated']) . '<br/>'
+                $last_updated = fixDate(T_('m/d/Y h:ia'), $this->fcmsUser->tzOffset, $row['updated']) . '<br/>'
                     .sprintf(T_('by %s'), ' <a class="u" href="profile.php?member='.(int)$row['updated_by'].'">'.$updated_by.'</a>');
             }
 
@@ -257,36 +256,41 @@ class MessageBoard
 
         $sql = "UPDATE `fcms_board_threads` 
                 SET `views` = (`views` + 1) 
-                WHERE `id` = '$thread_id'";
-        if (!$this->db->query($sql))
+                WHERE `id` = ?";
+
+        if (!$this->fcmsDatabase->update($sql, $thread_id))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
         $this->displayMessageBoardMenu($thread_id);
         $this->displayPages($page, $thread_id);
 
-        $sort = $this->getSortOrder($this->currentUserId);
+        $sort = $this->getSortOrder($this->fcmsUser->id);
 
         $sql = "SELECT p.`id`, `thread`, `post`, `subject`, p.`date`, `user`, `avatar` 
                 FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, 
                     `fcms_users` AS u 
-                WHERE `thread` = '$thread_id'
+                WHERE `thread` = ?
                 AND t.`id` = `thread` 
                 AND `user` = u.`id` 
-                ORDER BY p.`id` ".escape_string($sort)."
+                ORDER BY p.`id` $sort
                 LIMIT $from, 15";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, $thread_id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
         $alt   = 0;
         $first = true;
 
-        while ($row = $this->db->get_row())
+        foreach ($rows as $row)
         {
             // display the table header
             if ($first)
@@ -324,7 +328,7 @@ class MessageBoard
             }
 
             $displayname = getUserDisplayName($row['user']);
-            $date        = fixDate(T_('n/d/y g:ia'), $this->tzOffset, $row['date']);
+            $date        = fixDate(T_('n/d/y g:ia'), $this->fcmsUser->tzOffset, $row['date']);
 
             if ($alt % 2 == 0)
             {
@@ -347,7 +351,7 @@ class MessageBoard
 
             $actions = '';
             // quote
-            if (checkAccess($this->currentUserId) < 8 && checkAccess($this->currentUserId) != 5) {
+            if ($this->fcmsUser->access < 8 && $this->fcmsUser->access != 5) {
                 $actions .= '<form method="post" action="messageboard.php?reply='.$thread_id.'">
                                         <div>
                                             <input type="hidden" name="id" value="'.(int)$row['id'].'"/>
@@ -356,7 +360,7 @@ class MessageBoard
                                     </form>';
             }
             // edit
-            if ($this->currentUserId == $row['user'] || checkAccess($this->currentUserId) < 3) {
+            if ($this->fcmsUser->id == $row['user'] || $this->fcmsUser->access < 3) {
                 $actions .= ' &nbsp;
                                     <form method="post" action="messageboard.php">
                                         <div>
@@ -366,7 +370,7 @@ class MessageBoard
                                     </form>';
             }
             // delete
-            if (checkAccess($this->currentUserId) < 2) {
+            if ($this->fcmsUser->access < 2) {
                 $actions .= ' &nbsp;
                                     <form class="delpost" method="post" action="messageboard.php">
                                         <div>
@@ -422,6 +426,7 @@ class MessageBoard
      */
     function getNumberOfPosts ($thread_id)
     {
+        // This was moved to inc/utils.php
         return getNumberOfPosts($thread_id);
     }
 
@@ -438,13 +443,19 @@ class MessageBoard
         $sql = "SELECT `boardsort` 
                 FROM `fcms_user_settings` 
                 WHERE `user` = '$user_id'";
-        if (!$this->db2->query($sql))
+
+        $row = $this->fcmsDatabase->getRow($sql, $user_id);
+        if ($row == false)
         {
-            displaySqlError($sql, mysql_error());
-            return;
+            return 'DESC';
         }
 
-        $row = $this->db2->get_row();
+        $validSort = array('ASC', 'DESC');
+
+        if (!in_array($row['boardsort'], $validSort))
+        {
+            return 'DESC';
+        }
 
         return $row['boardsort'];
     }
@@ -464,24 +475,25 @@ class MessageBoard
 
         $sql = "SELECT `id`
                 FROM `fcms_board_posts`";
-        if (!$this->db2->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
             return 0;
         }
 
-        $total = $this->db2->count_rows();
+        $total = count($rows);
 
         $sql = "SELECT count(`user`) AS c 
                 FROM `fcms_board_posts` 
-                WHERE `user` = '$user_id'";
-        if (!$this->db2->query($sql))
+                WHERE `user` = ?";
+
+        $row = $this->fcmsDatabase->getRow($sql, $user_id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
             return 0;
         }
 
-        $row   = $this->db2->get_row();
         $count = (int)$row['c'];
 
         if ($total < 1)
@@ -510,32 +522,36 @@ class MessageBoard
         {
             $sql = "SELECT count(`id`) AS c 
                     FROM `fcms_board_threads`";
-            if (!$this->db2->query($sql))
+
+            $row = $this->fcmsDatabase->getRow($sql);
+            if ($row === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return;
-            }
-            $row = $this->db2->get_row();
+ 
+           }
             $total_pages = ceil($row['c'] / 25);
-            $url = 'messageboard.php';
+            $url         = 'messageboard.php';
         }
         else
         {
             $sql = "SELECT count(`id`) AS c 
                     FROM `fcms_board_posts` 
-                    WHERE `thread` = '$thread_id'";
-            if (!$this->db2->query($sql))
+                    WHERE `thread` = ?";
+
+            $row = $this->fcmsDatabase->getRow($sql, $thread_id);
+            if ($row === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return;
             }
 
-            $row = $this->db2->get_row();
-
             $total_pages = ceil($row['c'] / 15);
-
-            $url = 'messageboard.php?thread='.$thread_id;
+            $url         = 'messageboard.php?thread='.$thread_id;
         }
+
         displayPagination ($url, $page, $total_pages);
     }
 
@@ -575,7 +591,7 @@ class MessageBoard
                 </script>';
             $tab++;
 
-            if (checkAccess($this->currentUserId) <= 2)
+            if ($this->fcmsUser->access <= 2)
             {
                 $sticky = '
                 <p>
@@ -591,7 +607,7 @@ class MessageBoard
                 </script>';
 
             $hidden_submit = '
-                <div><input type="hidden" name="name" id="name" value="'.$this->currentUserId.'"/></div>
+                <div><input type="hidden" name="name" id="name" value="'.$this->fcmsUser->id.'"/></div>
                 <p>
                     <input class="sub1" type="submit" name="post_submit" id="post_submit" tabindex="'.($tab+1).'" value="'.T_('Submit').'"/>
                     &nbsp; <a href="messageboard.php">'.T_('Cancel').'</a>
@@ -608,16 +624,17 @@ class MessageBoard
             // Get last post in the thread to display above reply
             $sql = "SELECT `post`, `user` 
                     FROM `fcms_board_posts` 
-                    WHERE `thread` = '$thread_id'
+                    WHERE `thread` = ?
                     ORDER BY `date` DESC 
                     LIMIT 1";
-            if (!$this->db->query($sql))
+
+            $row = $this->fcmsDatabase->getRow($sql, $thread_id);
+            if ($row === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return;
             }
-
-            $row = $this->db->get_row();
 
             $displayname = getUserDisplayName($row['user']);
 
@@ -635,13 +652,15 @@ class MessageBoard
                         FROM `fcms_board_posts` 
                         WHERE `id` = '$post_id'
                         LIMIT 1";
-                if (!$this->db->query($sql))
+
+                $qrow = $this->fcmsDatabase->getRow($sql, $post_id);
+                if ($qrow == false)
                 {
-                    displaySqlError($sql, mysql_error());
+                    $this->fcmsError->displayError();
+
                     return;
                 }
 
-                $qrow = $this->db->get_row();
                 $post = '[SPAN=q]'.T_('Quoting').': '.getUserDisplayName($qrow['user']).'[/SPAN][QUOTE]'.cleanOutput($qrow['post']).'[/QUOTE]';
             }
             else
@@ -650,7 +669,7 @@ class MessageBoard
             }
             
             $hidden_submit = '
-                <div><input type="hidden" name="name" id="name" value="'.$this->currentUserId.'"/></div>
+                <div><input type="hidden" name="name" id="name" value="'.$this->fcmsUser->id.'"/></div>
                 <div><input type="hidden" name="thread_id" value="'.$thread_id.'"/></div>
                 <p>
                     <input class="sub1" type="submit" name="reply_submit" id="reply_submit" tabindex="'.($tab+1).'" value="'.T_('Reply').'"/>
@@ -692,7 +711,7 @@ class MessageBoard
                     '.$subject.'
                     <div>
                         <label for="showname">'.T_('Name').'</label>: 
-                        <input type="text" disabled="disabled" name="showname" id="showname" value="'.getUserDisplayName($this->currentUserId).'" size="50"/>
+                        <input type="text" disabled="disabled" name="showname" id="showname" value="'.getUserDisplayName($this->fcmsUser->id).'" size="50"/>
                     </div>
                     '.$sticky.'
                     <script type="text/javascript">var bb = new BBCode();</script>';
@@ -726,7 +745,7 @@ class MessageBoard
                 AND `count` > 0";
         if (!$this->db2->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
@@ -776,7 +795,7 @@ class MessageBoard
                 </ul>
             </div>';
 
-            if (checkAccess($this->currentUserId) < 8 && checkAccess($this->currentUserId) != 5)
+            if ($this->fcmsUser->access < 8 && $this->fcmsUser->access != 5)
             {
                 echo '
             <div id="actions_menu">
@@ -799,7 +818,7 @@ class MessageBoard
     {
         $thread = (int)$thread;
 
-        if (checkAccess($this->currentUserId) <= 2)
+        if ($this->fcmsUser->access <= 2)
         {
             $select_options = '<option value=""></option>';
 
@@ -842,16 +861,17 @@ class MessageBoard
 
         $sql = "SELECT t.`id`, p.`user`, `subject`, `started_by`, `post` 
                 FROM `fcms_board_threads` AS t, `fcms_board_posts` AS p 
-                WHERE t.`id` = '$thread' 
+                WHERE t.`id` = ?
                 AND p.`thread` = t.`id`
                 LIMIT 1";
-        if (!$this->db->query($sql))
+
+        $row = $this->fcmsDatabase->getRow($sql, $thread);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        $row     = $this->db->get_row();
         $pos     = strpos($row['subject'], '#ANOUNCE#');
         $subject = $row['subject'];
         $sticky  = '';
@@ -901,14 +921,15 @@ class MessageBoard
 
         $sql = "SELECT `subject`
                 FROM `fcms_board_threads`
-                WHERE `id` = '$id'";
-        if (!$this->db->query($sql))
+                WHERE `id` = ?";
+
+        $row = $this->fcmsDatabase->getRow($sql, $id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        $row = $this->db->get_row();
         return $row['subject'];
     }
 

@@ -18,76 +18,97 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('database', 'datetime');
+load('datetime');
 
 init();
 
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Private Messages'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
-control();
 exit();
 
-
-/**
- * control 
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    if (isset($_GET['compose']))
-    {
-        displayComposeForm();
-    }
-    elseif (isset($_POST['submit']))
-    {
-        displayComposeFormSubmit();
-    }
-    elseif (isset($_POST['delete']) && !isset($_POST['confirmed']))
-    {
-        displayConfirmDelete();
-    }
-    elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
-    {
-        displayDeleteSubmit();
-    }
-    elseif (isset($_GET['pm']))
-    {
-        displayPrivateMessage();
-    }
-    elseif (isset($_GET['sent']))
-    {
-        displaySentPrivateMessage();
-    }
-    elseif (isset($_GET['folder']))
-    {
-        displaySentFolder();
-    }
-    else
-    {
-        displayIndbox();
-    }
-}
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $TMPL, $fcmsUser;
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    {
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
 
-    $TMPL['javascript'] = '
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Private Messages'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if (isset($_GET['compose']))
+        {
+            $this->displayComposeForm();
+        }
+        elseif (isset($_POST['submit']))
+        {
+            $this->displayComposeFormSubmit();
+        }
+        elseif (isset($_POST['delete']) && !isset($_POST['confirmed']))
+        {
+            $this->displayConfirmDelete();
+        }
+        elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
+        {
+            $this->displayDeleteSubmit();
+        }
+        elseif (isset($_GET['pm']))
+        {
+            $this->displayPrivateMessage();
+        }
+        elseif (isset($_GET['sent']))
+        {
+            $this->displaySentPrivateMessage();
+        }
+        elseif (isset($_GET['folder']))
+        {
+            $this->displaySentFolder();
+        }
+        else
+        {
+            $this->displayInbox();
+        }
+    }
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
+
+        $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
@@ -106,16 +127,16 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    require_once getTheme($fcmsUser->id).'header.php';
+        require_once getTheme($this->fcmsUser->id).'header.php';
 
-    $link = T_('Inbox');
+        $link = T_('Inbox');
 
-    if (isset($_SESSION['private_messages']) && $_SESSION['private_messages'] > 0)
-    {
-        $link = sprintf(T_('Inbox (%d)'), $_SESSION['private_messages']);
-    }
+        if (isset($_SESSION['private_messages']) && $_SESSION['private_messages'] > 0)
+        {
+            $link = sprintf(T_('Inbox (%d)'), $_SESSION['private_messages']);
+        }
 
-    echo '
+        echo '
         <div id="privatemsg" class="centercontent">
 
             <div id="actions_menu">
@@ -130,72 +151,72 @@ Event.observe(window, \'load\', function() {
             </div>
 
             <div id="maincolumn">';
-}
-
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
-
-    echo '
-            </div>
-        </div><!-- #profile .centercontent -->';
-
-    include_once getTheme($fcmsUser->id).'footer.php';
-}
-
-/**
- * displayComposeForm 
- * 
- * @return void
- */
-function displayComposeForm ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    $id    = '';
-    $title = '';
-
-    if (isset($_GET['id']))
-    {
-        $id = (int)$_GET['id'];
     }
 
-    if (isset($_GET['title']))
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
     {
-        $title = strip_tags($_GET['title']);
-        $title = 'RE: '.cleanOutput($title);
+        $TMPL = $this->fcmsTemplate;
+
+        echo '
+            </div><!--/maincolumn-->
+        </div><!--/profile-->';
+
+        include_once getTheme($this->fcmsUser->id).'footer.php';
     }
 
-    $sql = "SELECT `id`
-            FROM `fcms_users` 
-            WHERE `activated` > 0
-            AND `password` != 'NONMEMBER'";
-
-    $result = mysql_query($sql);
-    if (!$result)
+    /**
+     * displayComposeForm 
+     * 
+     * @return void
+     */
+    function displayComposeForm ()
     {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $this->displayHeader();
 
-    while ($r = mysql_fetch_assoc($result))
-    {
-        $displayNameList[$r['id']] = getUserDisplayName($r['id'], 2);
-    }
+        $id    = '';
+        $title = '';
 
-    asort($displayNameList);
+        if (isset($_GET['id']))
+        {
+            $id = (int)$_GET['id'];
+        }
 
-    $user_options = buildHtmlSelectOptions($displayNameList, $id);
+        if (isset($_GET['title']))
+        {
+            $title = strip_tags($_GET['title']);
+            $title = 'RE: '.cleanOutput($title);
+        }
 
-    echo '
+        $sql = "SELECT `id`
+                FROM `fcms_users` 
+                WHERE `activated` > 0
+                AND `password` != 'NONMEMBER'";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        // TODO - optimize sql query above to get display name info instead
+        foreach ($rows as $r)
+        {
+            $displayNameList[$r['id']] = getUserDisplayName($r['id'], 2);
+        }
+
+        asort($displayNameList);
+
+        $user_options = buildHtmlSelectOptions($displayNameList, $id);
+
+        echo '
             <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form method="post" id="newpmform" action="privatemsg.php">
                 <fieldset>
@@ -216,9 +237,9 @@ function displayComposeForm ()
                     </div><br/>
                     <script type="text/javascript">var bb = new BBCode();</script>';
 
-    displayBBCodeToolbar();
+        displayBBCodeToolbar();
 
-    echo '
+        echo '
                     <div><textarea name="post" id="post" rows="10" cols="63"></textarea></div>
                     <script type="text/javascript">bb.init(\'post\');</script>
                     <script type="text/javascript">
@@ -233,81 +254,78 @@ function displayComposeForm ()
             </form>
             <p>&nbsp;</p>';
 
-
-    displayFooter();
-}
-
-/**
- * displayComposeFormSubmit 
- * 
- * @return void
- */
-function displayComposeFormSubmit ()
-{
-    global $fcmsUser;
-
-    $to    = (int)$_POST['to']; 
-    $title = strip_tags($_POST['title']);
-    $msg   = strip_tags($_POST['post']);
-
-    $cleanTitle = escape_string($_POST['title']);
-    $cleanMsg   = escape_string($_POST['post']);
-
-    if (strlen($title) <= 0 || strlen($msg) <= 0)
-    {
-        header("Location: privatemsg.php");
-        return;
+        $this->displayFooter();
     }
 
-    // Insert the PM into the DB
-    $sql = "INSERT INTO `fcms_privatemsg` 
-                (`to`, `from`, `date`, `title`, `msg`) 
-            VALUES (
-                '$to', 
-                '$fcmsUser->id', 
-                NOW(), 
-                '$cleanTitle', 
-                '$cleanMsg'
-            )";
-    if (!mysql_query($sql))
+    /**
+     * displayComposeFormSubmit 
+     * 
+     * @return void
+     */
+    function displayComposeFormSubmit ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $to    = (int)$_POST['to']; 
+        $title = strip_tags($_POST['title']);
+        $msg   = strip_tags($_POST['post']);
 
-    // Email the PM to the user
-    $sql = "SELECT `email` FROM `fcms_users` 
-            WHERE `id` = '$to'";
+        if (strlen($title) <= 0 || strlen($msg) <= 0)
+        {
+            header("Location: privatemsg.php");
+            return;
+        }
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        // Insert the PM into the DB
+        $sql = "INSERT INTO `fcms_privatemsg` 
+                    (`to`, `from`, `date`, `title`, `msg`) 
+                VALUES
+                    (?, ?, NOW(), ?, ?)";
 
-    $r = mysql_fetch_array($result);
+        $params = array(
+            $to, 
+            $this->fcmsUser->id, 
+            $title, 
+            $msg
+        );
 
-    $from     = getUserDisplayName($fcmsUser->id);
-    $reply    = getUserEmail($fcmsUser->id);
-    $toName   = getUserDisplayName($to);
-    $sitename = getSiteName();
-    $sitename = html_entity_decode($sitename);
-    $subject  = sprintf(T_('A new Private Message at %s'), $sitename);
-    $email    = $r['email'];
-    $url      = getDomainAndDir();
+        if (!$this->fcmsDatabase->insert($sql, $params))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    $email_headers  = 'From: '.$sitename.' <'.getContactEmail().'>'."\r\n";
-    $email_headers .= 'Reply-To: '.$reply."\r\n";
-    $email_headers .= 'Content-Type: text/plain; charset=UTF-8;'."\r\n";
-    $email_headers .= 'MIME-Version: 1.0'."\r\n";
-    $email_headers .= 'X-Mailer: PHP/'.phpversion();
+            return;
+        }
 
-    $email_msg = T_('Dear').' '.$toName.',
+        // Email the PM to the user
+        $sql = "SELECT `email` FROM `fcms_users` 
+                WHERE `id` = ?";
+
+        $r = $this->fcmsDatabase->getRow($sql, $to);
+        if ($r === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $from     = $this->fcmsUser->displayName;
+        $reply    = $this->fcmsUser->email;
+        $toName   = getUserDisplayName($to);
+        $sitename = getSiteName();
+        $sitename = html_entity_decode($sitename);
+        $subject  = sprintf(T_('A new Private Message at %s'), $sitename);
+        $email    = $r['email'];
+        $url      = getDomainAndDir();
+
+        $email_headers  = 'From: '.$sitename.' <'.getContactEmail().'>'."\r\n";
+        $email_headers .= 'Reply-To: '.$reply."\r\n";
+        $email_headers .= 'Content-Type: text/plain; charset=UTF-8;'."\r\n";
+        $email_headers .= 'MIME-Version: 1.0'."\r\n";
+        $email_headers .= 'X-Mailer: PHP/'.phpversion();
+
+        $email_msg = T_('Dear').' '.$toName.',
 
 '.sprintf(T_('%s has sent you a new Private Message at %s'), $from, $sitename).'
 
@@ -324,127 +342,126 @@ function displayComposeFormSubmit ()
 
 ';
 
-    mail($email, $subject, $email_msg, $email_headers);
+        mail($email, $subject, $email_msg, $email_headers);
 
-    $_SESSION['success'] = 1;
+        $_SESSION['success'] = 1;
 
-    header("Location: privatemsg.php");
-}
+        header("Location: privatemsg.php");
+    }
 
-/**
- * displayConfirmDelete 
- * 
- * @return void
- */
-function displayConfirmDelete ()
-{
-    displayHeader();
+    /**
+     * displayConfirmDelete 
+     * 
+     * @return void
+     */
+    function displayConfirmDelete ()
+    {
+        $this->displayHeader();
 
-    echo '
+        echo '
                 <div class="info-alert>
                     <form action="privatemsg.php" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>';
 
-    foreach ($_POST['del'] as $id)
-    {
-        echo '
+        foreach ($_POST['del'] as $id)
+        {
+            echo '
                             <input type="hidden" name="del[]" value="'.(int)$id.'"/>';
-    }
+        }
 
-    echo '
+        echo '
                             <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
                             <a style="float:right;" href="privatemsg.php">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
 
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-/**
- * displayDeleteSubmit 
- * 
- * @return void
- */
-function displayDeleteSubmit ()
-{
-    foreach ($_POST['del'] as $id)
+    /**
+     * displayDeleteSubmit 
+     * 
+     * @return void
+     */
+    function displayDeleteSubmit ()
     {
-        $sql = "DELETE FROM `fcms_privatemsg` 
-                WHERE `id` = '".(int)$id."'";
-        if (!mysql_query($sql))
+        foreach ($_POST['del'] as $id)
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $sql = "DELETE FROM `fcms_privatemsg` 
+                    WHERE `id` = ?";
+
+            if (!$this->fcmsDatabase->delete($sql, $id))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+        }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: privatemsg.php");
+    }
+
+    /**
+     * displayPrivateMessage 
+     * 
+     * @return void
+     */
+    function displayPrivateMessage ()
+    {
+        $id = (int)$_GET['pm'];
+
+        $this->displayHeader();
+
+        $sql = "SELECT p.`id`, `to`, `from`, `title`, `msg`, `date`, `read`, u.`avatar`, u.`gravatar`
+                FROM `fcms_privatemsg` AS p
+                LEFT JOIN `fcms_users` AS u ON p.`from` = u.`id`
+                WHERE p.`id` = ?
+                AND `to` = ?";
+
+        $r = $this->fcmsDatabase->getRow($sql, array($id, $this->fcmsUser->id));
+        if ($r === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
             return;
         }
-    }
 
-    $_SESSION['success'] = 1;
-
-    header("Location: privatemsg.php");
-}
-
-/**
- * displayPrivateMessage 
- * 
- * @return void
- */
-function displayPrivateMessage ()
-{
-    global $fcmsUser;
-
-    $id = (int)$_GET['pm'];
-
-    displayHeader();
-
-    $sql = "SELECT p.`id`, `to`, `from`, `title`, `msg`, `date`, `read`, u.`avatar`, u.`gravatar`
-            FROM `fcms_privatemsg` AS p
-            LEFT JOIN `fcms_users` AS u ON p.`from` = u.`id`
-            WHERE p.`id` = '$id' 
-            AND `to` = '$fcmsUser->id'";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    if (mysql_num_rows($result) <= 0)
-    {
-        echo '
+        if (empty($r))
+        {
+            echo '
             <p class="error-alert">
                 '.T_('The PM you are trying to view either doesn\'t exist or you don\'t have permission to view it.').'
             </p>';
 
-        return;
-    }
+            return;
+        }
 
-    $r = mysql_fetch_assoc($result);
+        $sql = "UPDATE `fcms_privatemsg` 
+                SET `read` = '1' 
+                WHERE `id` = ?";
 
-    $sql = "UPDATE `fcms_privatemsg` 
-            SET `read` = '1' 
-            WHERE `id` = '$id'";
+        if (!$this->fcmsDatabase->update($sql, $id))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+            return;
+        }
 
-    $tzOffset   = getTimezone($fcmsUser->id);
-    $date       = fixDate(T_('n/j/Y g:i a'), $tzOffset, $r['date']);
-    $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
-    $from       = getUserDisplayName($r['from']);
+        $tzOffset   = getTimezone($this->fcmsUser->id);
+        $date       = fixDate(T_('n/j/Y g:i a'), $tzOffset, $r['date']);
+        $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
+        $from       = getUserDisplayName($r['from']);
 
-    echo '
+        echo '
             <div id="pm_msg">
                 <div class="user">
                     <img src="'.$avatarPath.'" alt="'.$from.'" title="'.$from.'"/>
@@ -458,55 +475,53 @@ function displayPrivateMessage ()
                 <a href="?compose=new&amp;id='.(int)$r['from'].'&amp;title='.cleanOutput($r['title']).'">'.T_('Reply').'
             </div>';
 
-    displayFooter();
-}
-
-/**
- * displaySentPrivateMessage ()
- * 
- * @return void
- */
-function displaySentPrivateMessage ()
-{
-    global $fcmsUser;
-
-    $id = (int)$_GET['sent'];
-
-    displayHeader();
-
-    $sql = "SELECT p.`id`, `to`, `from`, `title`, `msg`, `date`, `read`, u.`avatar`, u.`gravatar`
-            FROM `fcms_privatemsg` AS p
-            LEFT JOIN `fcms_users` AS u ON p.`to` = u.`id`
-            WHERE p.`id` = '$id' 
-            AND `from` = '$fcmsUser->id'";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    if (mysql_num_rows($result) <= 0)
+    /**
+     * displaySentPrivateMessage ()
+     * 
+     * @return void
+     */
+    function displaySentPrivateMessage ()
     {
-        echo '
+        $id = (int)$_GET['sent'];
+
+        $this->displayHeader();
+
+        $sql = "SELECT p.`id`, `to`, `from`, `title`, `msg`, `date`, `read`, u.`avatar`, u.`gravatar`
+                FROM `fcms_privatemsg` AS p
+                LEFT JOIN `fcms_users` AS u ON p.`to` = u.`id`
+                WHERE p.`id` = '$id' 
+                AND `from` = '$this->fcmsUser->id'";
+
+        $r = $this->fcmsDatabase->getRow($sql, array($id, $this->fcmsUser->id));
+        if ($r === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (empty($r))
+        {
+            echo '
             <p class="error-alert">
                 '.T_('The PM you are trying to view either doesn\'t exist or you don\'t have permission to view it.').'
             </p>';
 
-        displayFooter();
-        return;
-    }
+            $this->displayFooter();
 
-    $r = mysql_fetch_assoc($result);
+            return;
+        }
 
-    $tzOffset   = getTimezone($fcmsUser->id);
-    $date       = fixDate(T_('n/j/Y g:i a'), $tzOffset, $r['date']);
-    $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
-    $to         = getUserDisplayName($r['to']);
+        $tzOffset   = getTimezone($this->fcmsUser->id);
+        $date       = fixDate(T_('n/j/Y g:i a'), $tzOffset, $r['date']);
+        $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
+        $to         = getUserDisplayName($r['to']);
 
-    echo '
+        echo '
             <div id="pm_msg">
                 <div class="user">
                     <img src="'.$avatarPath.'" alt="'.$to.'" title="'.$to.'"/>
@@ -519,49 +534,45 @@ function displaySentPrivateMessage ()
                 </p>
             </div>';
 
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-/**
- * displaySentFolder 
- * 
- * @return void
- */
-function displaySentFolder ()
-{
-    global $fcmsUser;
+    /**
+     * displaySentFolder 
+     * 
+     * @return void
+     */
+    function displaySentFolder ()
+    {
+        $this->displayHeader();
 
-    displayHeader();
-
-    echo '
+        echo '
                 <table id="pm" cellpadding="0" cellspacing="0">
                     <tr>
                         <th colspan="5" class="pm_header">'.T_('Sent Messages').'</th>
                     </tr>';
 
-    $sql = "SELECT p.`id`, `to`, `from`, `title`, `date`, `read`, u.`avatar`, u.`gravatar`
-            FROM `fcms_privatemsg` AS p
-            LEFT JOIN `fcms_users` AS u ON p.`to` = u.`id`
-            WHERE `from` = '$fcmsUser->id'
-            ORDER BY `date` DESC";
+        $sql = "SELECT p.`id`, `to`, `from`, `title`, `date`, `read`, u.`avatar`, u.`gravatar`
+                FROM `fcms_privatemsg` AS p
+                LEFT JOIN `fcms_users` AS u ON p.`to` = u.`id`
+                WHERE `from` = ?
+                ORDER BY `date` DESC";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
 
-    $tzOffset = getTimezone($fcmsUser->id);
+        foreach ($rows as $r)
+        {
+            $date       = fixDate(T_('M. j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
+            $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
+            $to         = getUserDisplayName($r['to']);
 
-    while ($r = mysql_fetch_assoc($result))
-    {
-        $date       = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-        $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
-        $to         = getUserDisplayName($r['to']);
-
-        echo '
+            echo '
                     <tr>
                         <td>
                             <div class="user">
@@ -571,74 +582,74 @@ function displaySentFolder ()
                             <span>'.$date.'</span>
                         </td>
                     </tr>';
-    }
-    echo '
+        }
+
+        echo '
                     <tr><th colspan="5" class="pm_footer">&nbsp;</th></tr>
                 </table>';
 
-    displayFooter();
-}
-
-/**
- * displayIndbox 
- * 
- * @return void
- */
-function displayIndbox ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    if (isset($_SESSION['success']))
-    {
-        displayOkMessage();
-        unset($_SESSION['success']);
+        $this->displayFooter();
     }
 
-    $header = T_('Inbox');
-
-    if (isset($_SESSION['private_messages']) && $_SESSION['private_messages'] > 0)
+    /**
+     * displayInbox 
+     * 
+     * @return void
+     */
+    function displayInbox ()
     {
-        $header = sprintf(T_('Inbox (%d)'), $_SESSION['private_messages']);
-    }
-        
-    echo '
+        $this->displayHeader();
+
+        if (isset($_SESSION['success']))
+        {
+            displayOkMessage();
+            unset($_SESSION['success']);
+        }
+
+        $header = T_('Inbox');
+
+        if (isset($_SESSION['private_messages']) && $_SESSION['private_messages'] > 0)
+        {
+            $header = sprintf(T_('Inbox (%d)'), $_SESSION['private_messages']);
+        }
+            
+        echo '
             <form method="post" action="privatemsg.php">
                 <table id="pm" cellpadding="0" cellspacing="0">
                     <tr>
                         <th colspan="3" class="pm_header">'.$header.'</th>
                     </tr>';
 
-    $sql = "SELECT p.`id`, `to`, `from`, `title`, `date`, `read`, u.`avatar`, u.`gravatar`
-            FROM `fcms_privatemsg` AS p
-            LEFT JOIN `fcms_users` AS u ON p.`from` = u.`id`
-            WHERE `to` = '$fcmsUser->id'
-            ORDER BY `date` DESC";
+        $sql = "SELECT p.`id`, `to`, `from`, `title`, `date`, `read`, u.`avatar`, u.`gravatar`
+                FROM `fcms_privatemsg` AS p
+                LEFT JOIN `fcms_users` AS u ON p.`from` = u.`id`
+                WHERE `to` = ?
+                ORDER BY `date` DESC";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    while ($r = mysql_fetch_assoc($result))
-    {
-        $date       = fixDate(T_('M. j, Y, g:i a'), $fcmsUser->tzOffset, $r['date']);
-        $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
-        $from       = getUserDisplayName($r['from']);
-        $rowClass   = '';
-        $linkClass  = 'read';
-
-        if ($r['read'] < 1)
+        $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);
+        if ($rows === false)
         {
-            $rowClass  = 'new';
-            $linkClass = '';
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
         }
 
-        echo '
+        foreach ($rows as $r)
+        {
+            $date       = fixDate(T_('M. j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
+            $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
+            $from       = getUserDisplayName($r['from']);
+            $rowClass   = '';
+            $linkClass  = 'read';
+
+            if ($r['read'] < 1)
+            {
+                $rowClass  = 'new';
+                $linkClass = '';
+            }
+
+            echo '
                     <tr class="'.$rowClass.'">
                         <td class="img"></td>
                         <td>
@@ -650,9 +661,9 @@ function displayIndbox ()
                         </td>
                         <td class="check"><input type="checkbox" name="del[]" value="'.(int)$r['id'].'"/></td>
                     </tr>';
-    }
+        }
 
-    echo '
+        echo '
                     <tr>
                         <th colspan="3" class="pm_footer">
                             <input class="sub1" type="submit" name="delete" value="'.T_('Delete Selected').'"/>
@@ -661,5 +672,6 @@ function displayIndbox ()
                 </table>
             </form>';
 
-    displayFooter();
+        $this->displayFooter();
+    }
 }

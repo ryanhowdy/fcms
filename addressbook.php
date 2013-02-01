@@ -18,197 +18,140 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('datetime', 'addressbook', 'database', 'alerts', 'phone', 'address');
+load('datetime', 'addressbook', 'alerts', 'phone', 'address');
 
 init();
 
-// Globals
-$book     = new AddressBook($fcmsUser->id);
-$alertObj = new Alerts($fcmsUser->id);
+$book  = new AddressBook($fcmsError, $fcmsDatabase, $fcmsUser);
+$alert = new Alerts($fcmsError, $fcmsDatabase, $fcmsUser);
+$page  = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $book, $alert);
 
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Address Book'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
-
-control();
 exit();
 
-
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    global $book;
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsBook;
+    private $fcmsAlert;
+    private $fcmsTemplate;
 
-    if (isset($_GET['alert']))
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsBook, $fcmsAlert)
     {
-        removeAlert();
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsBook     = $fcmsBook;
+        $this->fcmsAlert    = $fcmsAlert;
+
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Address Book'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
     }
 
-    if (isset($_GET['csv']))
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
     {
-        if ($_GET['csv'] == 'export')
+        if (isset($_GET['alert']))
         {
-            displayExportSubmit();
+            $this->removeAlert();
         }
-        elseif (isset($_POST['import']))
+
+        if (isset($_GET['csv']))
         {
-            displayHeader();
-            $book->importAddressCsv($_FILES['csv']);
-            displayFooter();
+            if ($_GET['csv'] == 'export')
+            {
+                $this->displayExportSubmit();
+            }
+            elseif (isset($_POST['import']))
+            {
+                $this->displayHeader();
+                $this->fcmsBook->importAddressCsv($_FILES['csv']);
+                $this->displayFooter();
+            }
+            else
+            {
+                $this->displayHeader();
+                $this->fcmsBook->displayImportForm();
+                $this->displayFooter();
+            }
+        }
+        elseif (isset($_POST['emailsubmit']))
+        {
+            $this->displayMassEmailForm();
+        }
+        elseif (isset($_POST['sendemailsubmit']))
+        {
+            $this->displayMassEmailSubmit();
+        }
+        elseif (isset($_GET['delete']))
+        {
+            if (!isset($_GET['confirmed']))
+            {
+                $this->displayConfirmDeleteForm();
+            }
+            elseif (isset($_POST['delconfirm']) || isset($_GET['confirmed']))
+            {
+                $this->displayDeleteSubmit();
+            }
+        }
+        elseif (isset($_GET['edit']))
+        {
+            $this->displayEditForm();
+        }
+        elseif (isset($_POST['editsubmit']))
+        {
+            $this->displayEditSubmit();
+        }
+        elseif (isset($_GET['add']))
+        {
+            $this->displayAddForm();
+        }
+        elseif (isset($_POST['addsubmit']))
+        {
+            $this->displayAddSubmit();
+        }
+        elseif (isset($_GET['address']))
+        {
+            $this->displayAddress();
         }
         else
         {
-            displayHeader();
-            $book->displayImportForm();
-            displayFooter();
+            $this->displayAddressList();
         }
     }
-    elseif (isset($_POST['emailsubmit']))
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
     {
-        displayMassEmailForm();
-    }
-    elseif (isset($_POST['sendemailsubmit']))
-    {
-        displayMassEmailSubmit();
-    }
-    elseif (isset($_GET['delete']))
-    {
-        if (!isset($_GET['confirmed']))
-        {
-            displayConfirmDeleteForm();
-        }
-        elseif (isset($_POST['delconfirm']) || isset($_GET['confirmed']))
-        {
-            displayDeleteSubmit();
-        }
-    }
-    elseif (isset($_GET['edit']))
-    {
-        displayEditForm();
-    }
-    elseif (isset($_POST['editsubmit']))
-    {
-        displayEditSubmit();
-    }
-    elseif (isset($_GET['add']))
-    {
-        displayAddForm();
-    }
-    elseif (isset($_POST['addsubmit']))
-    {
-        displayAddSubmit();
-    }
-    elseif (isset($_GET['address']))
-    {
-        displayAddress();
-    }
-    else
-    {
-        displayAddressList();
-    }
-}
+        $TMPL = $this->fcmsTemplate;
 
-/**
- * displayExportSubmit 
- * 
- * @return void
- */
-function displayExportSubmit ()
-{
-    global $book;
-
-    $sql = "SELECT `lname`, `fname`, `address`, `city`, `state`, `zip`, `email`, `home`, `work`, `cell` 
-            FROM `fcms_address` AS a, `fcms_users` AS u 
-            WHERE a.`user` = u.`id` 
-            ORDER BY `lname`, `fname`";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    $csv = "lname, fname, address, city, state, zip, email, home, work, cell\015\012";
-
-    while ($row = mysql_fetch_assoc($result))
-    {
-        $csv .= '"'.join('","', str_replace('"', '""', $row))."\"\015\012";
-    }
-
-    $date = fixDate('Y-m-d', $book->tzOffset);
-
-    header("Content-type: text/plain");
-    header("Content-disposition: csv; filename=FCMS_Addresses_$date.csv; size=".strlen($csv));
-
-    echo $csv;
-}
-
-/**
- * displayMassEmailForm
- * 
- * @return void
- */
-function displayMassEmailForm ()
-{
-    global $fcmsUser, $book;
-
-    $massEmails = $_POST['massemail'];
-
-    displayHeader();
-
-    if (checkAccess($fcmsUser->id) > 3)
-    {
-        echo '
-                <p class="error-alert">
-                    '.T_('You do not have permission to perform this task.  You must have an access level of 3 (Member) or higher.').'
-                </p>';
-
-        displayFooter();
-        return;
-    }
-
-    if (empty($massEmails))
-    {
-        echo '
-            <p class="error-alert">
-                '.T_('You must choose at least one member to email.').' 
-                <a href="help.php#address-massemail">'.T_('Get more help on sending mass emails.').'</a>
-            </p>';
-
-        displayFooter();
-        return;
-    }
-
-    $book->displayMassEmailForm($massEmails);
-    displayFooter();
-}
-
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
-
-    $TMPL['javascript'] = '
+        $TMPL['javascript'] = '
 <script type="text/javascript" src="ui/js/tablesort.js"></script>
 <script type="text/javascript">
 //<![CDATA[
@@ -221,329 +164,384 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    include_once getTheme($fcmsUser->id).'header.php';
+        include_once getTheme($this->fcmsUser->id).'header.php';
 
-    echo '
+        echo '
         <div id="addressbook" class="centercontent">';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
+        echo '
         </div><!-- /centercontent -->';
 
-    include_once getTheme($fcmsUser->id).'footer.php';
-}
+        include_once getTheme($this->fcmsUser->id).'footer.php';
+    }
 
-/**
- * displayMassEmailSubmit 
- * 
- * @return void
- */
-function displayMassEmailSubmit ()
-{
-    global $book;
-
-    displayHeader();
-
-    $requiredFields = array('subject', 'email', 'name', 'msg');
-
-    $missingRequired = false;
-
-    foreach ($requiredFields as $field)
+    /**
+     * displayExportSubmit 
+     * 
+     * @return void
+     */
+    function displayExportSubmit ()
     {
-        if (!isset($_POST[$field]))
+        $sql = "SELECT `lname`, `fname`, `address`, `city`, `state`, `zip`, `email`, `home`, `work`, `cell` 
+                FROM `fcms_address` AS a, `fcms_users` AS u 
+                WHERE a.`user` = u.`id` 
+                ORDER BY `lname`, `fname`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            $missingRequired = true;
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
         }
-    }
 
-    if ($missingRequired)
-    {
-        $book->displayMassEmailForm(
-            $_POST['emailaddress'], 
-            $_POST['email'], 
-            $_POST['name'], 
-            $_POST['subject'], 
-            $_POST['msg'], 
-            'Yes'
-        );
-        displayFooter();
-        return;
-    }
+        $csv = "lname, fname, address, city, state, zip, email, home, work, cell\015\012";
 
-    $emailHeaders = getEmailHeaders($_POST['name'], $_POST['email']);
-
-    foreach ($_POST['emailaddress'] as $email)
-    {
-        mail($email, $_POST['subject'], $_POST['msg']."\r\n-".$_POST['name'], $emailHeaders);
-    }
-
-    displayOkMessage(T_('Email has been sent.'));
-    $book->displayAddressList('members');
-
-    displayFooter();
-}
-
-/**
- * displayEditSubmit 
- * 
- * @return void
- */
-function displayEditSubmit ()
-{
-    global $book, $fcmsUser;
-
-    displayHeader();
-
-    $aid = (int)$_POST['aid'];
-    $uid = (int)$_POST['uid'];
-    $cat = $_POST['cat'];
-
-    $address = strip_tags($_POST['address']);
-    $city    = strip_tags($_POST['city']);
-    $state   = strip_tags($_POST['state']);
-    $zip     = strip_tags($_POST['zip']);
-    $home    = strip_tags($_POST['home']);
-    $work    = strip_tags($_POST['work']);
-    $cell    = strip_tags($_POST['cell']);
-    $email   = strip_tags($_POST['email']);
-
-    $country = escape_string($_POST['country']);
-    $address = escape_string($address);
-    $city    = escape_string($city);
-    $state   = escape_string($state);
-    $zip     = escape_string($zip);
-    $home    = escape_string($home);
-    $work    = escape_string($work);
-    $cell    = escape_string($cell);
-    $email   = escape_string($email);
-
-    // Get current address and email
-    $sql = "SELECT a.`country`, a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`email`
-            FROM `fcms_address` AS a
-            LEFT JOIN `fcms_users` AS u ON a.`user` = u.`id`
-            WHERE a.`id` = '$aid'
-            AND a.`user` = '$uid'";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    $row = mysql_fetch_assoc($result);
-
-    $changes = array();
-    $columns = array(
-        'country' => 'address', 
-        'address' => 'address', 
-        'city'    => 'address', 
-        'state'   => 'address', 
-        'zip'     => 'address', 
-        'home'    => 'home', 
-        'work'    => 'work', 
-        'cell'    => 'cell', 
-        'email'   => 'email'
-    );
-
-    // See what changed
-    foreach ($columns as $column => $type)
-    {
-        // if db is null, then the column must be non empty to be considered changed
-        if (is_null($row[$column]))
+        foreach ($rows as $row)
         {
-            if (!empty($$column))
+            $csv .= '"'.join('","', str_replace('"', '""', $row))."\"\015\012";
+        }
+
+        $date = fixDate('Y-m-d', $this->fcmsUser->tzOffset);
+
+        header("Content-type: text/plain");
+        header("Content-disposition: csv; filename=FCMS_Addresses_$date.csv; size=".strlen($csv));
+
+        echo $csv;
+    }
+
+    /**
+     * displayMassEmailForm
+     * 
+     * @return void
+     */
+    function displayMassEmailForm ()
+    {
+        $massEmails = $_POST['massemail'];
+
+        $this->displayHeader();
+
+        if ($this->fcmsUser->access > 3)
+        {
+            echo '
+                <p class="error-alert">
+                    '.T_('You do not have permission to perform this task.  You must have an access level of 3 (Member) or higher.').'
+                </p>';
+
+            $this->displayFooter();
+            return;
+        }
+
+        if (empty($massEmails))
+        {
+            echo '
+            <p class="error-alert">
+                '.T_('You must choose at least one member to email.').' 
+                <a href="help.php#address-massemail">'.T_('Get more help on sending mass emails.').'</a>
+            </p>';
+
+            $this->displayFooter();
+            return;
+        }
+
+        $this->fcmsBook->displayMassEmailForm($massEmails);
+        $this->displayFooter();
+    }
+
+    /**
+     * displayMassEmailSubmit 
+     * 
+     * @return void
+     */
+    function displayMassEmailSubmit ()
+    {
+        $this->displayHeader();
+
+        $requiredFields = array('subject', 'email', 'name', 'msg');
+
+        $missingRequired = false;
+
+        foreach ($requiredFields as $field)
+        {
+            if (!isset($_POST[$field]))
+            {
+                $missingRequired = true;
+            }
+        }
+
+        if ($missingRequired)
+        {
+            $this->fcmsBook->displayMassEmailForm(
+                $_POST['emailaddress'], 
+                $_POST['email'], 
+                $_POST['name'], 
+                $_POST['subject'], 
+                $_POST['msg'], 
+                'Yes'
+            );
+            $this->displayFooter();
+
+            return;
+        }
+
+        $emailHeaders = getEmailHeaders($_POST['name'], $_POST['email']);
+
+        foreach ($_POST['emailaddress'] as $email)
+        {
+            mail($email, $_POST['subject'], $_POST['msg']."\r\n-".$_POST['name'], $emailHeaders);
+        }
+
+        displayOkMessage(T_('Email has been sent.'));
+        $this->fcmsBook->displayAddressList('members');
+
+        $this->displayFooter();
+    }
+
+    /**
+     * displayEditSubmit 
+     * 
+     * @return void
+     */
+    function displayEditSubmit ()
+    {
+        $this->displayHeader();
+
+        $aid = (int)$_POST['aid'];
+        $uid = (int)$_POST['uid'];
+        $cat = $_POST['cat'];
+
+        $country = strip_tags($_POST['country']);
+        $address = strip_tags($_POST['address']);
+        $city    = strip_tags($_POST['city']);
+        $state   = strip_tags($_POST['state']);
+        $zip     = strip_tags($_POST['zip']);
+        $home    = strip_tags($_POST['home']);
+        $work    = strip_tags($_POST['work']);
+        $cell    = strip_tags($_POST['cell']);
+        $email   = strip_tags($_POST['email']);
+
+        // Get current address and email
+        $sql = "SELECT a.`country`, a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`email`
+                FROM `fcms_address` AS a
+                LEFT JOIN `fcms_users` AS u ON a.`user` = u.`id`
+                WHERE a.`id` = ? 
+                AND a.`user` = ?";
+
+        $row = $this->fcmsDatabase->getRow($sql, array($aid, $uid));
+        if ($row === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $changes = array();
+        $columns = array(
+            'country' => 'address', 
+            'address' => 'address', 
+            'city'    => 'address', 
+            'state'   => 'address', 
+            'zip'     => 'address', 
+            'home'    => 'home', 
+            'work'    => 'work', 
+            'cell'    => 'cell', 
+            'email'   => 'email'
+        );
+
+        // See what changed
+        foreach ($columns as $column => $type)
+        {
+            // if db is null, then the column must be non empty to be considered changed
+            if (is_null($row[$column]))
+            {
+                if (!empty($$column))
+                {
+                    $changes[] = $type;
+                }
+            }
+            // db doesn't match post data
+            elseif ($row[$column] !== $$column)
             {
                 $changes[] = $type;
             }
         }
-        // db doesn't match post data
-        elseif ($row[$column] !== $$column)
+
+        // We could have duplicate 'address' changes, lets only save once
+        $changes = array_unique($changes);
+
+        // Save Address
+        $sql = "UPDATE `fcms_address` 
+                SET `updated`    = NOW(), 
+                    `updated_id` = ?,
+                    `country`    = ?,
+                    `address`    = ?,
+                    `city`       = ?,
+                    `state`      = ?,
+                    `zip`        = ?,
+                    `home`       = ?,
+                    `work`       = ?,
+                    `cell`       = ?
+                WHERE `id` = ?";
+
+        $params = array($this->fcmsUser->id, $country, $address, $city, $state, $zip, $home, $work, $cell, $aid);
+
+        if (!$this->fcmsDatabase->update($sql, $params))
         {
-            $changes[] = $type;
-        }
-    }
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    // We could have duplicate 'address' changes, lets only save once
-    $changes = array_unique($changes);
-
-    // Save Address
-    $sql = "UPDATE `fcms_address` 
-            SET `updated`    = NOW(), 
-                `updated_id` = '$fcmsUser->id',
-                `country`    = '$country', 
-                `address`    = '$address', 
-                `city`       = '$city', 
-                `state`      = '$state', 
-                `zip`        = '$zip', 
-                `home`       = '$home', 
-                `work`       = '$work', 
-                `cell`       = '$cell' 
-            WHERE `id` = '$aid'";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    // Save Email
-    $sql = "UPDATE `fcms_users` 
-            SET `email`='$email' 
-            WHERE `id` = '$uid'";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    // Update changelog
-    $sql = "INSERT INTO `fcms_changelog` (`user`, `table`, `column`, `created`)
-            VALUES ";
-
-    foreach ($changes as $column)
-    {
-        $sql .= "('$uid', 'address', '$column', NOW()),";
-    }
-    $sql = substr($sql, 0, -1); // remove extra comma
-
-    if (count($changes) > 0)
-    {
-        if (!mysql_query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            displayFooter();
             return;
         }
+
+        // Save Email
+        $sql = "UPDATE `fcms_users` 
+                SET `email` = ?
+                WHERE `id` = ?";
+
+        if (!$this->fcmsDatabase->update($sql, array($email, $uid)))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        // Update changelog
+        $sql = "INSERT INTO `fcms_changelog` (`user`, `table`, `column`, `created`)
+                VALUES ";
+
+        $params = array();
+
+        foreach ($changes as $column)
+        {
+            $sql .= "(?, 'address', ?, NOW()),";
+
+            array_push($params, $uid, $column);
+        }
+        $sql = substr($sql, 0, -1); // remove extra comma
+
+        if (count($changes) > 0)
+        {
+            if (!$this->fcmsDatabase->insert($sql, $params))
+            {
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+        }
+
+        displayOkMessage();
+        $this->fcmsBook->displayAddress($aid, $cat);
+        $this->displayFooter();
     }
 
-    displayOkMessage();
-    $book->displayAddress($aid, $cat);
-    displayFooter();
-}
-
-/**
- * displayAddSubmit 
- * 
- * @return void
- */
-function displayAddSubmit ()
-{
-    global $fcmsUser, $book;
-
-    displayHeader();
-
-    $uniq    = uniqid("");
-
-    $fname   = strip_tags($_POST['fname']);
-    $lname   = strip_tags($_POST['lname']);
-    $email   = strip_tags($_POST['email']);
-    $country = strip_tags($_POST['country']);
-    $address = strip_tags($_POST['address']);
-    $city    = strip_tags($_POST['city']);
-    $state   = strip_tags($_POST['state']);
-    $zip     = strip_tags($_POST['zip']);
-    $home    = strip_tags($_POST['home']);
-    $work    = strip_tags($_POST['work']);
-    $cell    = strip_tags($_POST['cell']);
-
-    $fname   = escape_string($fname);
-    $lname   = escape_string($lname);
-    $email   = escape_string($email);
-    $country = escape_string($country);
-    $address = escape_string($address);
-    $city    = escape_string($city);
-    $state   = escape_string($state);
-    $zip     = escape_string($zip);
-    $home    = escape_string($home);
-    $work    = escape_string($work);
-    $cell    = escape_string($cell);
-
-    $pw = 'NONMEMBER';
-
-    if (isset($_POST['private']))
+    /**
+     * displayAddSubmit 
+     * 
+     * @return void
+     */
+    function displayAddSubmit ()
     {
-        $pw = 'PRIVATE';
+        $this->displayHeader();
+
+        $uniq    = uniqid("");
+
+        $fname   = strip_tags($_POST['fname']);
+        $lname   = strip_tags($_POST['lname']);
+        $email   = strip_tags($_POST['email']);
+        $country = strip_tags($_POST['country']);
+        $address = strip_tags($_POST['address']);
+        $city    = strip_tags($_POST['city']);
+        $state   = strip_tags($_POST['state']);
+        $zip     = strip_tags($_POST['zip']);
+        $home    = strip_tags($_POST['home']);
+        $work    = strip_tags($_POST['work']);
+        $cell    = strip_tags($_POST['cell']);
+
+        $pw = 'NONMEMBER';
+
+        if (isset($_POST['private']))
+        {
+            $pw = 'PRIVATE';
+        }
+
+        $sql = "INSERT INTO `fcms_users` (
+                    `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`
+                ) VALUES (
+                    ?, '0000-00-00 00:00:00', ?, ?, ?, ?, ?
+                )";
+
+        $id = $this->fcmsDatabase->insert($sql, array('10', $fname, $lname, $email, 'NONMEMBER-'.$uniq, $pw));
+
+        if ($id === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $sql = "INSERT INTO `fcms_address`(
+                    `user`, `created_id`, `created`, `updated_id`, `updated`, 
+                    `country`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`
+                ) VALUES (
+                    ?, ?, NOW(), ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?
+                )";
+
+        $params = array(
+            $id, 
+            $this->fcmsUser->id, 
+            $this->fcmsUser->id, 
+            $country, 
+            $address, 
+            $city, 
+            $state, 
+            $zip, 
+            $home, 
+            $work, 
+            $cell
+        );
+
+        if (!$this->fcmsDatabase->insert($sql, $params))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        displayOkMessage();
+        $this->fcmsBook->displayAddressList('non');
+        $this->displayFooter();
     }
 
-    $sql = "INSERT INTO `fcms_users` (
-                `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`
-            ) VALUES (
-                10, 
-                NOW(), 
-                '$fname', 
-                '$lname', 
-                '$email', 
-                'NONMEMBER-$uniq', 
-                '$pw'
-            )";
-
-    if (!mysql_query($sql))
+    /**
+     * displayConfirmDeleteForm 
+     * 
+     * @return void
+     */
+    function displayConfirmDeleteForm ()
     {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $this->displayHeader();
 
-    $id = mysql_insert_id();
+        $aid = (int)$_GET['delete'];
+        $cat = cleanOutput($_GET['cat']);
 
-    $sql = "INSERT INTO `fcms_address`(
-                `user`, `created_id`, `created`, `updated_id`, `updated`, 
-                `country`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`
-            ) VALUES (
-                '$id', 
-                '$fcmsUser->id', 
-                NOW(), 
-                '$fcmsUser->id', 
-                NOW(), 
-                '$country', 
-                '$address', 
-                '$city', 
-                '$state', 
-                '$zip', 
-                '$home', 
-                '$work', 
-                '$cell'
-            )";
-
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    displayOkMessage();
-    $book->displayAddressList('non');
-    displayFooter();
-}
-
-/**
- * displayConfirmDeleteForm 
- * 
- * @return void
- */
-function displayConfirmDeleteForm ()
-{
-    global $fcmsUser, $book;
-
-    displayHeader();
-
-    $aid = (int)$_GET['delete'];
-    $cat = cleanOutput($_GET['cat']);
-
-    echo '
+        echo '
                 <div class="info-alert">
                     <form action="addressbook.php?cat='.$cat.'&amp;delete='.$aid.'&amp;confirmed=1" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
@@ -557,203 +555,191 @@ function displayConfirmDeleteForm ()
                     </form>
                 </div>';
 
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-/**
- * displayDeleteSubmit 
- * 
- * @return void
- */
-function displayDeleteSubmit ()
-{
-    global $fcmsUser, $book;
-
-    $aid = (int)$_GET['delete'];
-    $cat = $_GET['cat'];
-
-    if (checkAccess($fcmsUser->id) >= 2)
+    /**
+     * displayDeleteSubmit 
+     * 
+     * @return void
+     */
+    function displayDeleteSubmit ()
     {
-        displayHeader();
+        $aid = (int)$_GET['delete'];
+        $cat = $_GET['cat'];
 
-        echo '
+        if ($this->fcmsUser->access >= 2)
+        {
+            $this->displayHeader();
+
+            echo '
             <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
 
-        $book->displayAddressList($cat);
-        displayFooter();
-        return;
-    }
+            $this->fcmsBook->displayAddressList($cat);
+            $this->displayFooter();
+            return;
+        }
 
-    $sql = "SELECT a.`user`, u.`password`
-            FROM `fcms_address` AS a, `fcms_users` AS u
-            WHERE a.`id` = '$aid'
-            AND a.`user` = u.`id`";
+        $sql = "SELECT a.`user`, u.`password`
+                FROM `fcms_address` AS a, `fcms_users` AS u
+                WHERE a.`id` = ?
+                AND a.`user` = u.`id`";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $r = $this->fcmsDatabase->getRow($sql, $aid);
+        if ($r === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    $r = mysql_fetch_assoc($result);
+            return;
+        }
 
-    $user = $r['user'];
-    $pass = $r['password'];
+        $user = $r['user'];
+        $pass = $r['password'];
 
-    if ($r['password'] !== 'NONMEMBER' && $r['password'] !== 'PRIVATE')
-    {
-        displayHeader();
+        if ($r['password'] !== 'NONMEMBER' && $r['password'] !== 'PRIVATE')
+        {
+            $this->displayHeader();
 
-        echo '
+            echo '
             <p class="error-alert">'.T_('You cannot delete the address of a member.').'</p>';
 
-        $book->displayAddressList($cat);
-        displayFooter();
-        return;
+            $this->fcmsBook->displayAddressList($cat);
+            $this->displayFooter();
+
+            return;
+        }
+
+        $sql = "DELETE FROM `fcms_users` 
+                WHERE `id` = ?";
+        if (!$this->fcmsDatabase->delete($sql, $user))
+        {
+            $this->displayHeader();
+            $this->fcmsDatabase->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $sql = "DELETE FROM fcms_address 
+                WHERE id = ?";
+        if (!$this->fcmsDatabase->delete($sql, $aid))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $this->displayAddressList();
+        displayOkMessage(T_('Address Deleted Successfully.'));
+        $this->displayFooter();
     }
 
-    $sql = "DELETE FROM `fcms_users` WHERE `id` = '$user'";
-    if (!mysql_query($sql))
+    /**
+     * displayEditForm 
+     * 
+     * @return void
+     */
+    function displayEditForm ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayHeader();
+
+        $id  = (int)$_GET['edit'];
+        $cat = cleanOutput($_GET['cat']);
+
+        $this->fcmsBook->displayEditForm($id, 'addressbook.php?cat='.$cat.'&amp;address='.$id);
+        $this->displayFooter();
     }
 
-    $sql = "DELETE FROM fcms_address WHERE id = '$aid'";
-    if (!mysql_query($sql))
+    /**
+     * displayAddForm 
+     * 
+     * @return void
+     */
+    function displayAddForm ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $this->displayHeader();
 
-    displayAddressList();
-    displayOkMessage(T_('Address Deleted Successfully.'));
-    displayFooter();
-}
-
-/**
- * displayEditForm 
- * 
- * @return void
- */
-function displayEditForm ()
-{
-    global $book;
-
-    displayHeader();
-
-    $id  = (int)$_GET['edit'];
-    $cat = cleanOutput($_GET['cat']);
-
-    $book->displayEditForm($id, 'addressbook.php?cat='.$cat.'&amp;address='.$id);
-    displayFooter();
-}
-
-/**
- * displayAddForm 
- * 
- * @return void
- */
-function displayAddForm ()
-{
-    global $fcmsUser, $book;
-
-    displayHeader();
-
-    if (checkAccess($fcmsUser->id) > 5)
-    {
-        echo '
+        if ($this->fcmsUser->access > 5)
+        {
+            echo '
             <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
 
-        displayFooter();
-        return;
+            $this->displayFooter();
+            return;
+        }
+
+        $this->fcmsBook->displayAddForm();
+        $this->displayFooter();
     }
 
-    $book->displayAddForm();
-    displayFooter();
-}
-
-/**
- * displayAddress 
- * 
- * @return void
- */
-function displayAddress ()
-{
-    global $book;
-
-    displayHeader();
-
-    $address = (int)$_GET['address'];
-    $cat     = 'all';
-
-    if (isset($_GET['cat']))
+    /**
+     * displayAddress 
+     * 
+     * @return void
+     */
+    function displayAddress ()
     {
-        $cat = $_GET['cat'];
+        $this->displayHeader();
+
+        $address = (int)$_GET['address'];
+        $cat     = 'all';
+
+        if (isset($_GET['cat']))
+        {
+            $cat = $_GET['cat'];
+        }
+
+        $this->fcmsBook->displayAddress($address, $cat);
+        $this->displayFooter();
     }
 
-    $book->displayAddress($address, $cat);
-    displayFooter();
-}
-
-/**
- * removeAlert 
- * 
- * @return void
- */
-function removeAlert ()
-{
-    global $fcmsUser;
-
-    $alert = $_GET['alert'];
-
-    $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
-            VALUES (
-                '$alert', 
-                '$fcmsUser->id'
-            )";
-
-    if (!mysql_query($sql))
+    /**
+     * removeAlert 
+     * 
+     * @return void
+     */
+    function removeAlert ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        exit();
+        $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
+                VALUES (?, ?)";
+
+        if (!$this->fcmsDatabase->insert($sql, array($_GET['alert'], $this->fcmsUser->id)))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            exit();
+        }
     }
-}
 
-/**
- * displayAddressList 
- * 
- * @return void
- */
-function displayAddressList ()
-{
-    global $alertObj, $book, $fcmsUser;
-
-    displayHeader();
-
-    $cat = 'members';
-
-    if (isset($_GET['cat']))
+    /**
+     * displayAddressList 
+     * 
+     * @return void
+     */
+    function displayAddressList ()
     {
-        $cat = $_GET['cat'];
+        $this->displayHeader();
+
+        $cat = 'members';
+
+        if (isset($_GET['cat']))
+        {
+            $cat = $_GET['cat'];
+        }
+
+        if (!$this->fcmsBook->userHasAddress($this->fcmsUser->id))
+        {
+            // Show Alerts
+            $this->fcmsAlert->displayAddress($this->fcmsUser->id);
+        }
+
+        $this->fcmsBook->displayAddressList($cat);
+
+        $this->displayFooter();
     }
-
-    if (!$book->userHasAddress($fcmsUser->id))
-    {
-        // Show Alerts
-        $alertObj->displayAddress($fcmsUser->id);
-    }
-
-    $book->displayAddressList($cat);
-
-    displayFooter();
 }

@@ -42,3 +42,20 @@
 <?php endif; ?>
         </ul>
     </div>
+
+    <select id="mobile-topmenu">
+        <option><?php echo T_('Navigation');?></option>
+        <option value="<?php echo $TMPL['path'].'index.php';?>"><?php echo T_pgettext('The beginning or starting place.', 'Home');?></option>
+<?php foreach($TMPL['nav-link'][2] as $nav): ?>
+        <option value="<?php echo $TMPL['path'].$nav['url'];?>"><?php echo $nav['text'];?></option>
+<?php endforeach; ?>
+<?php foreach($TMPL['nav-link'][3] AS $nav): ?>
+        <option value="<?php echo $TMPL['path'].$nav['url'];?>"><?php echo $nav['text'];?></option>
+<?php endforeach; ?>
+<?php foreach($TMPL['nav-link'][4] AS $nav): ?>
+        <option value="<?php echo $TMPL['path'].$nav['url'];?>"><?php echo $nav['text'];?></option>
+<?php endforeach; ?>
+<?php foreach($TMPL['nav-link'][5] AS $nav): ?>
+        <option value="<?php echo $TMPL['path'].$nav['url'];?>"><?php echo $nav['text'];?></option>
+<?php endforeach; ?>
+    </select>

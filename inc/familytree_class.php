@@ -1,8 +1,4 @@
 <?php
-include_once('database_class.php');
-include_once('utils.php');
-include_once('datetime.php');
-
 /**
  * FamilyTree 
  * 
@@ -13,27 +9,24 @@ include_once('datetime.php');
  */
 class FamilyTree
 {
-    var $db;
-    var $db2;
-    var $tzOffset;
-    var $currentUserId;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
 
     /**
-     * FamilyTree 
+     * FamilyTree
      * 
-     * @param   int     $currentUserId 
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
      *
-     * @return  void
+     * @return void
      */
-    function FamilyTree ($currentUserId)
+    function FamilyTree ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = (int)$currentUserId;
-        $this->tzOffset      = getTimezone($this->currentUserId);
+        $this->fcmsError       = $fcmsError;
+        $this->fcmsDatabase    = $fcmsDatabase;
+        $this->fcmsUser        = $fcmsUser;
     }
 
     /**
@@ -67,23 +60,22 @@ class FamilyTree
         $sql = "SELECT `id`, `fname`, `mname`, `lname`, `sex`, `avatar`, `dob_year`, `dob_month`, `dob_day`,
                     `dod_year`, `dod_month`, `dod_day`, `password`
                 FROM `fcms_users` 
-                WHERE `id` = '$id'
+                WHERE `id` = ?
                 LIMIT 1";
 
-        $result = $this->db->query($sql);
-        if (!$result)
+        $user = $this->fcmsDatabase->getRow($sql, $id);
+        if ($user === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
-        if ($this->db->count_rows() < 1)
+        if (count($user) <= 0)
         {
             echo '<div class="error-alert">'.T_('Could not find user.').'</div>';
             return;
         }
-
-        $user = $this->db->get_row();
 
         $user['fname'] = cleanOutput($user['fname']);
         $user['mname'] = cleanOutput($user['mname']);
@@ -94,20 +86,21 @@ class FamilyTree
         // Get spouse and kids for user
         $sql = "SELECT u.`id`, u.`fname`, u.`mname`, u.`lname`, u.`avatar`, r.`relationship`, r.`rel_user`, u.`password`
                 FROM `fcms_relationship` AS r, `fcms_users` AS u 
-                WHERE `user` = '$id' 
+                WHERE `user` = ? 
                 AND r.`rel_user` = u.`id`";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
         $spouse = array();
         $kids   = array();
 
-        while ($row = mysql_fetch_assoc($result))
+        foreach ($rows as $row)
         {
             if ($row['relationship'] == 'WIFE' or $row['relationship'] == 'HUSB')
             {
@@ -138,15 +131,16 @@ class FamilyTree
         $sql = "SELECT u.`id`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`avatar`, r.`relationship`, r.`rel_user`, 
                     u.`dob_year`, u.`dob_month`, u.`dob_day`, u.`dod_year`, u.`dod_month`, u.`dod_day`, u.`sex`, u.`password`
                 FROM `fcms_relationship` AS r, `fcms_users` AS u 
-                WHERE `rel_user` = '$id' 
+                WHERE `rel_user` = ? 
                 AND r.`user` = u.`id`
                 AND r.`relationship` = 'CHIL'
                 LIMIT 2";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
@@ -154,9 +148,9 @@ class FamilyTree
         $dad = '';
         $mom = '';
 
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
-            while($row = mysql_fetch_assoc($result))
+            foreach ($rows as $row)
             {
                 $tmp = array(
                     'id'        => $row['id'], 
@@ -198,32 +192,39 @@ class FamilyTree
                         u.`dob_year`, u.`dob_month`, u.`dob_day`, u.`dod_year`, u.`dod_month`, u.`dod_day`, u.`sex`, u.`password`
                     FROM `fcms_relationship` AS r, `fcms_users` AS u ";
 
+            $params = array();
+
             if ($dad > 0 and $mom > 0)
             {
-                $sql .= "WHERE (`rel_user` = $dad OR `rel_user` = $mom) ";
+                $sql     .= "WHERE (`rel_user` = ? OR `rel_user` = ?) ";
+                $params[] = $dad;
+                $params[] = $mom;
             }
             elseif ($dad > 0)
             {
-                $sql .= "WHERE `rel_user` = $dad ";
+                $sql     .= "WHERE `rel_user` = ? ";
+                $params[] = $dad;
             }
             elseif ($mom > 0)
             {
-                $sql .= "WHERE `rel_user` = $mom ";
+                $sql     .= "WHERE `rel_user` = ? ";
+                $params[] = $mom;
             }
 
             $sql .="AND r.`user` = u.`id`
                     AND r.`relationship` = 'CHIL'";
 
-            $result = mysql_query($sql);
-            if (!$result)
+            $rows = $this->fcmsDatabase->getRows($sql, $params);
+            if ($rows === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return;
             }
 
-            if ($this->db->count_rows() > 0)
+            if (count($rows) > 0)
             {
-                while ($row = mysql_fetch_assoc($result))
+                foreach ($rows as $row)
                 {
                     $tmp = array(
                         'id'        => $row['id'], 
@@ -333,7 +334,7 @@ class FamilyTree
             $edit = '';
 
             // If this is your spouse, or the spouse is a nonmember, you can edit
-            if ($spouse['nonmember'] or $user['id'] == $this->currentUserId)
+            if ($spouse['nonmember'] or $user['id'] == $this->fcmsUser->id)
             {
                 $edit = '<a href="?edit='.$spouse['id'].'" class="edit">'.T_('Edit').'</a>';
             }
@@ -363,7 +364,7 @@ class FamilyTree
                 $edit = '';
 
                 // If this is your kid, or the kid is a nonmember, you can edit
-                if ($kid['nonmember'] or $user['id'] == $this->currentUserId)
+                if ($kid['nonmember'] or $user['id'] == $this->fcmsUser->id)
                 {
                     $edit = '<a href="?edit='.$kid['id'].'" class="edit">'.T_('Edit').'</a>';
                 }
@@ -600,11 +601,11 @@ class FamilyTree
         // Get list of possible users
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users` 
-                WHERE `id` != '$userid'
+                WHERE `id` != ?
                 AND `id` NOT IN (
                     SELECT `user`
                     FROM `fcms_relationship`
-                    WHERE `rel_user` = '$userid'
+                    WHERE `rel_user` = ?
                 )
                 AND `id` NOT IN (
                     SELECT `user`
@@ -612,21 +613,23 @@ class FamilyTree
                     WHERE `rel_user` IN (
                         SELECT `user`
                         FROM `fcms_relationship`
-                        WHERE `rel_user` = '$userid'
+                        WHERE `rel_user` = ?
                   )
                 )
                 ORDER BY `lname`, `fname`";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, array($userid, $userid, $userid));
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
         // we have at least one possible parent
-        if ($this->db->count_rows() >= 1)
+        if (count($rows) >= 1)
         {
-            while($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 $possibleParents[$r['id']] = $r['fname'].' '.$r['lname'];
             }
@@ -704,7 +707,8 @@ class FamilyTree
     function displayAddSpouseForm ($type, $id)
     {
         // Can only add a wife or husb
-        if ($type !== 'wife' and $type !== 'husb') {
+        if ($type !== 'wife' and $type !== 'husb')
+        {
             echo '<div class="error-alert">'.T_('Invalid spouse type.').'</div>';
             return;
         }
@@ -712,17 +716,17 @@ class FamilyTree
         // Get list of available users
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users` 
-                WHERE `id` != $id
+                WHERE `id` != ?
                 AND `id` NOT IN (
                   SELECT `rel_user`
                   FROM `fcms_relationship`
-                  WHERE `user` = '$id'
+                  WHERE `user` = ?
                   AND `relationship` = 'CHIL'
                 )
                 AND `id` NOT IN (
                   SELECT `user`
                   FROM `fcms_relationship`
-                  WHERE `rel_user` = '$id'
+                  WHERE `rel_user` = ?
                 )
                 AND `id` NOT IN (
                   SELECT `user`
@@ -730,16 +734,20 @@ class FamilyTree
                   WHERE `rel_user` IN (
                     SELECT `user`
                     FROM `fcms_relationship`
-                    WHERE `rel_user` = '$id'
+                    WHERE `rel_user` = ?
                   )
                 )
                 ORDER BY `lname`, `fname`";
-        if (!$this->db->query($sql))
+
+        $params = array($id, $id, $id, $id);
+
+        $rows = $this->fcmsDatabase->getRows($sql, $params);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
         }
 
-        if ($this->db->count_rows() < 1)
+        if (count($rows) < 1)
         {
             echo '
         <fieldset>
@@ -750,7 +758,7 @@ class FamilyTree
         }
         else
         {
-            while($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 $spouse[$r['id']] = $r['fname'].' '.$r['lname'];
             }
@@ -796,11 +804,11 @@ class FamilyTree
         // -- users who are not already a child of someone
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users`
-                WHERE `id` != '$userId'
+                WHERE `id` != ?
                 AND `id` NOT IN (
                     SELECT `rel_user` 
                     FROM `fcms_relationship` 
-                    WHERE `rel_user` = '$userId'
+                    WHERE `rel_user` = ?
                 )
                 AND `id` NOT IN (
                   SELECT `rel_user`
@@ -808,17 +816,22 @@ class FamilyTree
                   WHERE `rel_user` IN (
                     SELECT `user`
                     FROM `fcms_relationship`
-                    WHERE `rel_user` = '$userId'
+                    WHERE `rel_user` = ?
                   )
                 )
                 ORDER BY `lname`, `fname`";
-        if (!$this->db->query($sql))
+
+        $params = array($userId, $userId, $userId);
+
+        $rows = $this->fcmsDatabase->getRows($sql, $params);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
-        if ($this->db->count_rows() < 1)
+        if (count($rows) < 1)
         {
             echo '
         <fieldset>
@@ -828,7 +841,7 @@ class FamilyTree
             return;
         }
 
-        while($r = $this->db->get_row())
+        foreach ($rows as $r)
         {
             $children[$r['id']] = $r['fname'].' '.$r['lname'];
         }
@@ -1037,15 +1050,18 @@ class FamilyTree
         // Get list of available users
         $sql = "SELECT `id`, `fname`, `lname`
                 FROM `fcms_users`
-                WHERE `id` != '".$this->currentUserId."'
+                WHERE `id` != ?
                 ORDER BY `lname`, `fname`";
-        $result = $this->db->query($sql);
-        if (!$result)
+
+        $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-        if ($this->db->count_rows() < 1)
+
+        if (count($rows) < 1)
         {
             return;
         }
@@ -1054,9 +1070,10 @@ class FamilyTree
         <form action="familytree.php" method="get" id="view_tree_form">
             <p>
                 <select name="tree">
-                    <option value="'.$this->currentUserId.'">'.T_('View Family Tree for...').'</option>';
+                    <option value="'.$this->fcmsUser->id.'">'.T_('View Family Tree for...').'</option>';
 
-        while($r = $this->db->get_row()) {
+        foreach ($rows as $r)
+        {
             echo '
                     <option value="'.$r['id'].'">'.cleanOutput($r['fname']).' '.cleanOutput($r['lname']).'</option>';
         }
@@ -1169,7 +1186,8 @@ class FamilyTree
     function displayFamilyTreeEditList ($id, $spouse, $kids, $parents, $dadParents, $momParents)
     {
         // Must have admin rights or edit your own tree
-        if (checkAccess($this->currentUserId) > 2 && $id != $this->currentUserId) {
+        if ($this->fcmsUser->access > 2 && $id != $this->fcmsUser->id)
+        {
             echo '
                 <div class="error-alert">'.T_('You do NOT have access to perform this action.').'</div>';
             return;
@@ -1206,14 +1224,18 @@ class FamilyTree
                 FROM `fcms_relationship`
                 WHERE `user` IN ('".implode("','", $ids)."')
                 OR `rel_user` IN ('".implode("','", $ids)."')";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
         $delete = array();
-        while ($r = $this->db->get_row())
+
+        foreach ($rows as $r)
         {
             if ($r['relationship'] == 'WIFE' || $r['relationship'] == 'HUSB')
             {
@@ -1380,7 +1402,10 @@ class FamilyTree
 
         echo '
                     </tbody>
-                </table>';
+                </table>
+                <div id="tree_toolbar">
+                    <a href="familytree.php">'.T_('Cancel').'</a>
+                </div>';
     }
 
     /**
@@ -1393,20 +1418,19 @@ class FamilyTree
     function displayEditForm ($userid)
     {
         // Get user info
-        $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`, `dob_year`, `dob_month`, `dob_day`, 
-                    `dod_year`, `dod_month`, `dod_day`, `sex`
+        $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`, `dob_year`, `dob_month`, `dob_day`, `dod_year`, `dod_month`, `dod_day`, `sex`
                 FROM `fcms_users`
-                WHERE `id` = '$userid'";
+                WHERE `id` = ?";
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql, $userid);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
-        $row = $this->db->get_row();
-
-        $dayList = array();
+        $dayList   = array();
         $monthList = array();
 
         $i = 1;
@@ -1547,22 +1571,22 @@ class FamilyTree
         // Get user info
         $sql = "SELECT `id`, `fname`, `lname`, `maiden`, `avatar`, `gravatar`
                 FROM `fcms_users`
-                WHERE `id` = '$userid'";
+                WHERE `id` = ?";
 
-        if (!$this->db->query($sql))
+        $row = $this->fcmsDatabase->getRow($sql, $userid);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-
-        $row = $this->db->get_row();
 
         $form   = '';
         $input  = '';
         $js     = '';
         $submit = 'submit';
 
-        if (usingAdvancedUploader($this->currentUserId))
+        if (usingAdvancedUploader($this->fcmsUser->id))
         {
             $form  = '<form id="frm" name="frm" method="post">';
 
@@ -1633,6 +1657,7 @@ class FamilyTree
                         <p>
                             <input type="hidden" name="avatar_orig" value="'.cleanOutput($row['avatar']).'"/>
                             <input class="sub1" type="'.$submit.'" name="submitUpload" id="submitUpload" value="'.T_('Submit').'"/>
+                            &nbsp; <a href="familytree.php">'.T_('Cancel').'</a>
                         </p>
                     </fieldset>
                 </form>
@@ -1652,7 +1677,6 @@ class FamilyTree
     function addSpouse ($user, $relationship, $rel_user)
     {
         $user         = (int)$user;
-        $relationship = escape_string($relationship);
         $rel_user     = (int)$rel_user;
 
         $opposite_relationship = ($relationship == 'WIFE') ? 'HUSB' : 'WIFE';
@@ -1662,11 +1686,18 @@ class FamilyTree
                     `user`, `relationship`, `rel_user`
                 ) 
                 VALUES 
-                    ('$user', '$relationship', '$rel_user'),
-                    ('$rel_user', '$opposite_relationship', '$user')";
-        if (!mysql_query($sql))
+                    (?, ?, ?),
+                    (?, ?, ?)";
+
+        $params = array(
+            $user, $relationship, $rel_user,
+            $rel_user, $opposite_relationship, $user
+        );
+
+        if (!$this->fcmsDatabase->insert($sql, $params))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return false;
         }
     }
@@ -1694,46 +1725,63 @@ class FamilyTree
      */
     function addChild ($user, $relationship, $rel_user)
     {
-        $user         = (int)$user;
-        $relationship = escape_string($relationship);
-        $rel_user     = (int)$rel_user;
+        $user       = (int)$user;
+        $rel_user   = (int)$rel_user;
 
         // Insert child relationship
-        $sql = "INSERT INTO `fcms_relationship` (
-                    `user`, `relationship`, `rel_user`
-                ) 
-                VALUES (
-                    '$user', '$relationship', '$rel_user'
-                )";
-        if (!$this->db->query($sql))
+        $sql = "INSERT INTO `fcms_relationship`
+                    (`user`, `relationship`, `rel_user`) 
+                VALUES
+                    (?, ?, ?)";
+
+        $params = array(
+            $user, 
+            $relationship, 
+            $rel_user
+        );
+
+        if (!$this->fcmsDatabase->insert($sql, $params))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return false;
         }
 
         // Get wife/husb of user
         $sql = "SELECT r.`rel_user`, u.`sex`
                 FROM `fcms_relationship` AS r, `fcms_users` AS u
-                WHERE r.`user` = '$user'
+                WHERE r.`user` = ?
                 AND r.`relationship` IN ('WIFE', 'HUSB')
                 AND r.`rel_user` = u.`id`";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, $user);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return false;
         }
+
         // Make a child relationship with the users husb/wife
-        if ($this->db->count_rows() == 1) {
-            $row = $this->db->get_row();
-            $sql = "INSERT INTO `fcms_relationship` (
-                        `user`, `relationship`, `rel_user`
-                    ) 
-                    VALUES (
-                        '".$row['rel_user']."', '$relationship', '$rel_user'
-                    )";
-            if (!$this->db->query($sql))
+        if (count($rows) == 1)
+        {
+            $row = $rows[0];
+
+            $sql = "INSERT INTO `fcms_relationship`
+                        (`user`, `relationship`, `rel_user`) 
+                    VALUES
+                        (?, ?, ?)";
+
+            $params = array(
+                $row['rel_user'],
+                $relationship,
+                $rel_user
+            );
+
+            if (!$this->fcmsDatabase->insert($sql, $params))
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return false;
             }
         }
@@ -1744,22 +1792,27 @@ class FamilyTree
                 WHERE `user` = (
                     SELECT `user`
                     FROM `fcms_relationship`
-                    WHERE `rel_user` = '$rel_user'
-                    AND `user` != '$user'
+                    WHERE `rel_user` = ?
+                    AND `user` != ?
                     AND `relationship` = 'CHIL'
                 )
                 AND r.`user` = u.`id`";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, array($rel_user, $user));
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return false;
         }
 
         // If user has another parent already, make them HUSB/WIFE
-        if ($this->db->count_rows() == 1)
+        if (count($rows) == 1)
         {
-            $row = $this->db->get_row();
+            $row = $rows[0];
+
             $spouse_relationship = ($row['sex'] == 'M') ? 'WIFE' : 'HUSB';
+
             $this->addSpouse($row['user'], $spouse_relationship, $user);
         }
 
@@ -1796,7 +1849,7 @@ class FamilyTree
 
             $details  = '<span>'.$byear.$dyear.'</span>';
 
-            if ($nonmember or $id == $this->currentUserId)
+            if ($nonmember or $id == $this->fcmsUser->id)
             {
                 $edit = '<a href="?edit='.$id.'" class="edit">'.T_('Edit').'</a>';
             }
@@ -1855,17 +1908,19 @@ class FamilyTree
 
         $sql = "SELECT `rel_user` AS id, `fname`, `lname`
                 FROM `fcms_relationship` AS r, `fcms_users` AS u
-                WHERE r.`user` = $id
+                WHERE r.`user` = ?
                 AND `rel_user` = u.`id`
                 ORDER BY `lname`, `fname`";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return false;
         }
 
-        while($r = $this->db->get_row())
+        foreach ($rows as $r)
         {
             $children[$r['id']] = $r['fname'].' '.$r['lname'];
         }

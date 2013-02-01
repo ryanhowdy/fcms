@@ -23,119 +23,138 @@ load('datetime', 'socialmedia', 'youtube', 'comments');
 
 init();
 
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Video Gallery'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
-control();
 exit();
 
-
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    global $fcmsUser;
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
 
-    // AJAX
-    if (isset($_GET['check_status']))
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        if (isset($_SESSION['source_id']))
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
+
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Video Gallery'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        // AJAX
+        if (isset($_GET['check_status']))
         {
-            $sessionToken  = getSessionToken($fcmsUser->id);
-            echo getUploadStatus($_SESSION['source_id'], $sessionToken);
+            if (isset($_SESSION['source_id']))
+            {
+                $sessionToken  = getSessionToken($this->fcmsUser->id);
+                echo $this->getUploadStatus($_SESSION['source_id'], $sessionToken);
+                return;
+            }
+
+            echo 'n/a';
             return;
         }
 
-        echo 'n/a';
-        return;
-    }
-
-    if (isset($_GET['upload']))
-    {
-        // YouTube
-        if ($_GET['upload'] == 'youtube')
+        if (isset($_GET['upload']))
         {
-            // Step 3 - YouTube Response
-            if (isset($_GET['status']) && isset($_GET['id']))
+            // YouTube
+            if ($_GET['upload'] == 'youtube')
             {
-                displayYouTubeUploadStatusPage();
+                // Step 3 - YouTube Response
+                if (isset($_GET['status']) && isset($_GET['id']))
+                {
+                    $this->displayYouTubeUploadStatusPage();
+                }
+                // Step 2 - Video
+                elseif (isset($_POST['upload_data']))
+                {
+                    $this->displayYouTubeUploadFilePage();
+                }
+                // Step 1 - Title/Desc
+                else
+                {
+                    $this->displayYouTubeUploadPage();
+                }
             }
-            // Step 2 - Video
-            elseif (isset($_POST['upload_data']))
-            {
-                displayYouTubeUploadFilePage();
-            }
-            // Step 1 - Title/Desc
+            // Vimeo
             else
             {
-                displayYouTubeUploadPage();
+                $this->displayVimeoUploadPage();
             }
         }
-        // Vimeo
-        else
+        elseif (isset($_GET['u']))
         {
-            displayVimeoUploadPage();
-        }
-    }
-    elseif (isset($_GET['u']))
-    {
-        if (isset($_GET['id']))
-        {
-            if (isset($_POST['addcomment']))
+            if (isset($_GET['id']))
             {
-                displayCommentSubmit();
-            }
-            elseif (isset($_POST['remove_video']))
-            {
-                displayRemoveVideoSubmit();
-            }
-            elseif (isset($_POST['delete_video']))
-            {
-                displayDeleteVideoSubmit();
+                if (isset($_POST['addcomment']))
+                {
+                    $this->displayCommentSubmit();
+                }
+                elseif (isset($_POST['remove_video']))
+                {
+                    $this->displayRemoveVideoSubmit();
+                }
+                elseif (isset($_POST['delete_video']))
+                {
+                    $this->displayDeleteVideoSubmit();
+                }
+                else
+                {
+                    $this->displayVideoPage();
+                }
             }
             else
             {
-                displayVideoPage();
+                $this->displayUserVideosPage();
             }
+        }
+        elseif (isset($_GET['members']))
+        {
+            $this->displayMembersListPage();
         }
         else
         {
-            displayUserVideosPage();
+            $this->displayLatestPage();
         }
     }
-    elseif (isset($_GET['members']))
-    {
-        displayMembersListPage();
-    }
-    else
-    {
-        displayLatestPage();
-    }
-}
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    $TMPL['javascript'] = '
+        $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
@@ -146,9 +165,9 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    include_once getTheme($fcmsUser->id).'header.php';
+        include_once getTheme($this->fcmsUser->id).'header.php';
 
-    echo '
+        echo '
         <div id="video" class="centercontent">
 
             <div id="actions_menu">
@@ -156,112 +175,113 @@ Event.observe(window, \'load\', function() {
                     <li><a href="?upload=youtube">'.T_('Upload to YouTube').'</a></li>
                 </ul>
             </div>';
-}
-
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
-
-    echo '
-        </div><!-- /centercontent -->';
-
-    include_once getTheme($fcmsUser->id).'footer.php';
-}
-
-/**
- * checkUserAuthedYouTube 
- * 
- * Check to make sure the user is connected and authed at YouTube.
- * 
- * Assumed displayHeader() already sent
- * 
- * @return void
- */
-function checkUserAuthedYouTube ()
-{
-    global $fcmsUser;
-
-    // Get session token
-    $sql = "SELECT `youtube_session_token`
-            FROM `fcms_user_settings`
-            WHERE `user` = '$fcmsUser->id'
-            AND `youtube_session_token` IS NOT NULL
-            AND `youtube_session_token` != ''";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
     }
 
-    if (mysql_num_rows($result) <= 0)
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
     {
+        $TMPL = $this->fcmsTemplate;
+
         echo '
+        </div><!-- /centercontent -->';
+
+        include_once getTheme($this->fcmsUser->id).'footer.php';
+    }
+
+    /**
+     * checkUserAuthedYouTube 
+     * 
+     * Check to make sure the user is connected and authed at YouTube.
+     * 
+     * Assumed $this->displayHeader() already sent
+     * 
+     * @return void
+     */
+    function checkUserAuthedYouTube ()
+    {
+        // Get session token
+        $sql = "SELECT `youtube_session_token`
+                FROM `fcms_user_settings`
+                WHERE `user` = ?
+                AND `youtube_session_token` IS NOT NULL
+                AND `youtube_session_token` != ''";
+
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (empty($row))
+        {
+            // TODO
+            // Check that admin has setup youtube first.
+            echo '
             <div class="info-alert">
                 <h2>'.T_('Not connected to YouTube.').'</h2>
                 <p>'.T_('The video gallery relies on YouTube.  You must create a YouTube account and connect it with your Family Connections account.').'</p>
                 <p><a href="settings.php?view=socialmedia">'.T_('Connect to YouTube').'</a></p>
             </div>';
-        displayFooter();
-        die();
+
+            $this->displayFooter();
+            die();
+        }
+
+        $_SESSION['youtube_session_token'] = $row['youtube_session_token'];
+
+        $youtubeConfig = getYouTubeConfigData();
+        $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $row['youtube_session_token']);
+
+        if ($httpClient === false)
+        {
+            // Error message was already displayed by getYouTubeAuthSubHttpClient()
+            $this->displayFooter();
+            die();
+        }
     }
 
-    $row = mysql_fetch_assoc($result);
-
-    $_SESSION['youtube_session_token'] = $row['youtube_session_token'];
-
-    $youtubeConfig = getYouTubeConfigData();
-    $httpClient    = getAuthSubHttpClient($youtubeConfig['youtube_key'], $row['youtube_session_token']);
-
-    if ($httpClient === false)
+    /**
+     * displayYouTubeUploadPage
+     * 
+     * @return void
+     */
+    function displayYouTubeUploadPage ()
     {
-        // Error message was already displayed by getAuthSubHttpClient()
-        displayFooter();
-        die();
-    }
-}
+        $this->displayHeader();
 
-/**
- * displayYouTubeUploadPage
- * 
- * @return void
- */
-function displayYouTubeUploadPage ()
-{
-    displayHeader();
+        $this->checkUserAuthedYouTube();
 
-    checkUserAuthedYouTube();
+        $youtubeConfig = getYouTubeConfigData();
+        $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key']);
 
-    $youtubeConfig = getYouTubeConfigData();
-    $httpClient    = getAuthSubHttpClient($youtubeConfig['youtube_key']);
+        if ($httpClient === false)
+        {
+            // Error message was already displayed by getYouTubeAuthSubHttpClient()
+            $this->displayFooter();
+            die();
+        }
 
-    if ($httpClient === false)
-    {
-        // Error message was already displayed by getAuthSubHttpClient()
-        displayFooter();
-        die();
-    }
+        $youTubeService = new Zend_Gdata_YouTube($httpClient);
 
-    $youTubeService = new Zend_Gdata_YouTube($httpClient);
-
-    $feed = $youTubeService->getUserProfile('default');
-    if (!$feed instanceof Zend_Gdata_YouTube_UserProfileEntry)
-    {
-        print '
+        $feed = $youTubeService->getUserProfile('default');
+        if (!$feed instanceof Zend_Gdata_YouTube_UserProfileEntry)
+        {
+            print '
             <div class="error-alert">'.T_('Could not get YouTube data for user.').'</div>';
-        return;
-    }
 
-    $username = $feed->getUsername();
+            return;
+        }
 
-    echo '
+        $username = $feed->getUsername();
+
+        echo '
         <form action="video.php?upload=youtube" method="post">
             <fieldset>
                 <legend><span>'.T_('Upload YouTube Video').'</span></legend>
@@ -316,124 +336,120 @@ function displayYouTubeUploadPage ()
             </fieldset>
         </form>';
 
-    displayFooter();
-}
-
-/**
- * displayYouTubeUploadFilePage 
- * 
- * Takes the post data from the previous form, sends to youtube, creates new entry,
- * and prints the video file upload form.
- * 
- * @return void
- */
-function displayYouTubeUploadFilePage ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    $videoTitle            = '';
-    $videoDescription      = '';
-    $cleanVideoTitle       = '';
-    $cleanVideoDescription = '';
-
-    if (isset($_POST['title']))
-    {
-        $videoTitle      = strip_tags($_POST['title']);
-        $cleanVideoTitle = escape_string($videoTitle);
+        $this->displayFooter();
     }
 
-    if (isset($_POST['description']))
+    /**
+     * displayYouTubeUploadFilePage 
+     * 
+     * Takes the post data from the previous form, sends to youtube, creates new entry,
+     * and prints the video file upload form.
+     * 
+     * @return void
+     */
+    function displayYouTubeUploadFilePage ()
     {
-        $videoDescription      = strip_tags($_POST['description']);
-        $cleanVideoDescription = escape_string($videoDescription);
-    }
+        $this->displayHeader();
 
-    $videoCategory = isset($_POST['category']) ? escape_string($_POST['category']) : '';
-    $videoUnlisted = isset($_POST['unlisted']) ? true                              : false;
+        $videoTitle         = '';
+        $videoDescription   = '';
 
-    // Create fcms video - we update after the youtube video is created
-    $sql = "INSERT INTO `fcms_video` (
-                `source_id`, 
-                `title`, 
-                `description`, 
-                `source`, 
-                `created`, 
-                `created_id`, 
-                `updated`, 
-                `updated_id`
-            )
-            VALUES (
-                '0',
-                '$cleanVideoTitle',
-                '$cleanVideoDescription',
-                'youtube',
-                NOW(),
-                '$fcmsUser->id',
-                NOW(),
-                '$fcmsUser->id'
-            )";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        if (isset($_POST['title']))
+        {
+            $videoTitle = strip_tags($_POST['title']);
+        }
 
-    // Save fcms video id
-    $_SESSION['fcmsVideoId'] = mysql_insert_id();
+        if (isset($_POST['description']))
+        {
+            $videoDescription = strip_tags($_POST['description']);
+        }
 
-    $sessionToken  = getSessionToken($fcmsUser->id);
-    $youtubeConfig = getYouTubeConfigData();
-    $httpClient    = getAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
+        $videoCategory = isset($_POST['category']) ? $_POST['category'] : '';
+        $videoUnlisted = isset($_POST['unlisted']) ? true               : false;
 
-    if ($httpClient === false)
-    {
-        // Error message was already displayed by getAuthSubHttpClient()
-        displayFooter();
-        die();
-    }
+        // Create fcms video - we update after the youtube video is created
+        $sql = "INSERT INTO `fcms_video` (
+                    `source_id`, 
+                    `title`, 
+                    `description`, 
+                    `source`, 
+                    `created`, 
+                    `created_id`, 
+                    `updated`, 
+                    `updated_id`
+                )
+                VALUES
+                    ('0', ?, ?, 'youtube', NOW(), ?, NOW(), ?)";
 
-    $youTubeService = new Zend_Gdata_YouTube($httpClient);
-    $newVideoEntry  = new Zend_Gdata_YouTube_VideoEntry();
+        $params = array(
+            $videoTitle,
+            $videoDescription,
+            $this->fcmsUser->id,
+            $this->fcmsUser->id
+        );
 
-    $newVideoEntry->setVideoTitle($videoTitle);
-    $newVideoEntry->setVideoDescription($videoDescription);
-    $newVideoEntry->setVideoCategory($videoCategory);
+        $lastId = $this->fcmsDatabase->insert($sql, $params);
+        if ($lastId === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
 
-    // make video unlisted
-    if ($videoUnlisted)
-    {
-        $unlisted = new Zend_Gdata_App_Extension_Element('yt:accessControl', 'yt', 'http://gdata.youtube.com/schemas/2007', '');
-        $unlisted->setExtensionAttributes(array(
-            array('namespaceUri' => '', 'name' => 'action', 'value' => 'list'),
-            array('namespaceUri' => '', 'name' => 'permission', 'value' => 'denied')
-        ));
-        $newVideoEntry->setExtensionElements(array($unlisted));
-    }
+        // Save fcms video id
+        $_SESSION['fcmsVideoId'] = $lastId;
 
-    try
-    {
-        $tokenArray = $youTubeService->getFormUploadToken($newVideoEntry, 'http://gdata.youtube.com/action/GetUploadToken');
-    }
-    catch (Exception $e)
-    {
-        echo '
+        $sessionToken  = getSessionToken($this->fcmsUser->id);
+        $youtubeConfig = getYouTubeConfigData();
+        $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
+
+        if ($httpClient === false)
+        {
+            // Error message was already displayed by getYouTubeAuthSubHttpClient()
+            $this->displayFooter();
+            die();
+        }
+
+        $youTubeService = new Zend_Gdata_YouTube($httpClient);
+        $newVideoEntry  = new Zend_Gdata_YouTube_VideoEntry();
+
+        $newVideoEntry->setVideoTitle($videoTitle);
+        $newVideoEntry->setVideoDescription($videoDescription);
+        $newVideoEntry->setVideoCategory($videoCategory);
+
+        // make video unlisted
+        if ($videoUnlisted)
+        {
+            $unlisted = new Zend_Gdata_App_Extension_Element('yt:accessControl', 'yt', 'http://gdata.youtube.com/schemas/2007', '');
+            $unlisted->setExtensionAttributes(array(
+                array('namespaceUri' => '', 'name' => 'action', 'value' => 'list'),
+                array('namespaceUri' => '', 'name' => 'permission', 'value' => 'denied')
+            ));
+            $newVideoEntry->setExtensionElements(array($unlisted));
+        }
+
+        try
+        {
+            $tokenArray = $youTubeService->getFormUploadToken($newVideoEntry, 'http://gdata.youtube.com/action/GetUploadToken');
+        }
+        catch (Exception $e)
+        {
+            echo '
             <div class="error-alert">
                 <p>'.T('Could not retrieve token for syndicated upload.').'</p>
                 <p>'.$e->getMessage().'</p>
             </div>';
-        displayFooter();
-        return;
-    }
+
+            $this->displayFooter();
+            return;
+        }
 
 
-    $tokenValue = $tokenArray['token'];
-    $postUrl    = $tokenArray['url'];
-    $nextUrl    = getDomainAndDir().'video.php?upload=youtube';
- 
-    echo '
+        $tokenValue = $tokenArray['token'];
+        $postUrl    = $tokenArray['url'];
+        $nextUrl    = getDomainAndDir().'video.php?upload=youtube';
+     
+        echo '
         <form action="'.$postUrl.'?nexturl='.$nextUrl.'" method="post" enctype="multipart/form-data">
             <fieldset>
                 <legend><span>'.T_('Upload YouTube Video').'</span></legend>
@@ -452,135 +468,141 @@ function displayYouTubeUploadFilePage ()
             </fieldset>
         </form>';
 
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-/**
- * displayYouTubeUploadStatusPage 
- * 
- * @return void
- */
-function displayYouTubeUploadStatusPage ()
-{
-    global $fcmsUser;
-
-    $sourceId = $_GET['id'];
-    $status   = $_GET['status'];
-    $videoId  = (int)$_SESSION['fcmsVideoId'];
-
-    unset($_SESSION['fcmsVideoId']);
-
-    switch ($status)
+    /**
+     * displayYouTubeUploadStatusPage 
+     * 
+     * @return void
+     */
+    function displayYouTubeUploadStatusPage ()
     {
-        case $status < 400:
- 
-            // Connect to YouTube and get more info about this video
-            $youtubeConfig  = getYouTubeConfigData();
-            $httpClient     = getAuthSubHttpClient($youtubeConfig['youtube_key']);
+        $sourceId = $_GET['id'];
+        $status   = $_GET['status'];
+        $videoId  = (int)$_SESSION['fcmsVideoId'];
 
-            if ($httpClient === false)
-            {
-                // Error message was already displayed by getAuthSubHttpClient()
-                displayFooter();
-                die();
-            }
+        unset($_SESSION['fcmsVideoId']);
 
-            $youTubeService = new Zend_Gdata_YouTube($httpClient);
-            $videoEntry     = $youTubeService->getVideoEntry($sourceId);
+        switch ($status)
+        {
+            case $status < 400:
+     
+                // Connect to YouTube and get more info about this video
+                $youtubeConfig  = getYouTubeConfigData();
+                $httpClient     = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key']);
 
-            $duration = $videoEntry->getVideoDuration();
-            $thumbs   = $videoEntry->getVideoThumbnails();
+                if ($httpClient === false)
+                {
+                    // Error message was already displayed by getYouTubeAuthSubHttpClient()
+                    $this->displayFooter();
+                    die();
+                }
 
-            $height = '420';
-            $width  = '780';
+                $youTubeService = new Zend_Gdata_YouTube($httpClient);
+                $videoEntry     = $youTubeService->getVideoEntry($sourceId);
 
-            if (count($thumbs) > 0)
-            {
-                $height = escape_string($thumbs[0]['height']);
-                $width  = escape_string($thumbs[0]['width']);
-            }
+                $duration = $videoEntry->getVideoDuration();
+                $thumbs   = $videoEntry->getVideoThumbnails();
 
-            // Update fcms video
-            $sql = "UPDATE `fcms_video`
-                    SET `source_id` = '".escape_string($sourceId)."',
-                        `height` = '$height',
-                        `width` = '$width',
-                        `updated` = NOW()
-                    WHERE `id` = '$videoId'";
-            if (!mysql_query($sql))
-            {
-                displayHeader();
-                displaySqlError($sql, mysql_error());
-                displayFooter();
-                return;
-            }
+                $height = '420';
+                $width  = '780';
 
-            // Create fcms video
-            header("Location: video.php?u=$fcmsUser->id&id=$videoId");
+                if (count($thumbs) > 0)
+                {
+                    $height = $thumbs[0]['height'];
+                    $width  = $thumbs[0]['width'];
+                }
 
-            break;
+                // Update fcms video
+                $sql = "UPDATE `fcms_video`
+                        SET `source_id` = ?,
+                            `height` = ?,
+                            `width` = ?,
+                            `updated` = NOW()
+                        WHERE `id` = ?";
 
-        default:
+                $params = array(
+                    $sourceId,
+                    $height,
+                    $width,
+                    $videoId
+                );
 
-            displayHeader();
+                if (!$this->fcmsDatabase->update($sql, $params))
+                {
+                    $this->displayHeader();
+                    $this->fcmsError->displayError();
+                    $this->displayFooter();
 
-            echo '
+                    return;
+                }
+
+                // Create fcms video
+                header("Location: video.php?u=$this->fcmsUser->id&id=$videoId");
+
+                break;
+
+            default:
+
+                $this->displayHeader();
+
+                echo '
             <div class="error-alert">
                 <p>'.T_('An error occurred with you video upload.').'</p>
-                <p>'.getUploadStatus($videoId).'</p>
+                <p>'.$this->getUploadStatus($videoId).'</p>
             </div>';
 
-            displayFooter();
+                $this->displayFooter();
 
-            break;
-    }
-}
-
-/**
- * displayVimeoUploadPage
- * 
- * @return void
- */
-function displayVimeoUploadPage ()
-{
-    displayHeader();
-    echo 'Vimeo not implemented yet';
-    displayFooter();
-}
-
-/**
- * displayLatestPage
- * 
- * @return void
- */
-function displayLatestPage ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    // Get Last 6 videos
-    $sql = "SELECT v.`id`, v.`source_id`, v.`title`, v.`created`, v.`created_id`, u.`id` AS user_id, u.`fname`, u.`lname`
-            FROM `fcms_video` AS v
-            LEFT JOIN `fcms_users` AS u ON v.`created_id` = u.`id`
-            WHERE `active` = 1
-            ORDER BY v.`updated` DESC
-            LIMIT 6";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+                break;
+        }
     }
 
-    displayVideoStartCode();
-
-    if (mysql_num_rows($result) <= 0)
+    /**
+     * displayVimeoUploadPage
+     * 
+     * @return void
+     */
+    function displayVimeoUploadPage ()
     {
-        // TODO move js
-        echo '
+        $this->displayHeader();
+        echo 'Vimeo not implemented yet';
+        $this->displayFooter();
+    }
+
+    /**
+     * displayLatestPage
+     * 
+     * @return void
+     */
+    function displayLatestPage ()
+    {
+        $this->displayHeader();
+
+        // Get Last 6 videos
+        $sql = "SELECT v.`id`, v.`source_id`, v.`title`, v.`created`, v.`created_id`, u.`id` AS user_id, u.`fname`, u.`lname`
+                FROM `fcms_video` AS v
+                LEFT JOIN `fcms_users` AS u ON v.`created_id` = u.`id`
+                WHERE `active` = 1
+                ORDER BY v.`updated` DESC
+                LIMIT 6";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $this->displayVideoStartCode();
+
+        if (count($rows) <= 0)
+        {
+            // TODO move js
+            echo '
         <div class="info-alert">
             <h2>'.T_('No Videos').'</h2>
             <p>'.T_('Unfortunately no videos have been added yet.').'</p>
@@ -605,21 +627,21 @@ function displayLatestPage ()
         }
         </script>';
 
-        displayFooter();
-        return;
-    }
+            $this->displayFooter();
+            return;
+        }
 
-    echo '
+        echo '
         <div id="video_content">
             <h2>'.T_('Latest Videos').'<h2>
             <ul class="categories">';
 
-    while ($row = mysql_fetch_assoc($result))
-    {
-        $name = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
-        $date = fixDate('Y-m-d', '', $row['created'], $row['created_id']);
+        foreach ($rows as $row)
+        {
+            $name = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
+            $date = fixDate('Y-m-d', '', $row['created'], $row['created_id']);
 
-        echo '
+            echo '
                 <li class="category">
                     <a href="?u='.$row['user_id'].'&amp;id='.$row['id'].'"><img src="http://i.ytimg.com/vi/'.$row['source_id'].'/default.jpg"/></a>
                     <span>
@@ -628,174 +650,171 @@ function displayLatestPage ()
                         <i>'.sprintf(T_pgettext('%s is a date', 'on %s'), $date).'</i>
                     </span>
                 </li>';
-    }
+        }
 
-    echo '
+        echo '
             </ul>';
 
-    // Get Last 8 users
-    $sql = "SELECT v.`id`, COUNT(*) AS 'count', v.`created_id` AS 'user_id', u.`fname`, u.`lname`, u.`avatar`, u.`gravatar`
-            FROM `fcms_video` AS v
-            LEFT JOIN `fcms_users` AS u ON v.`created_id` = u.`id`
-            WHERE `active` = 1
-            GROUP BY v.`created_id`
-            ORDER BY v.`updated` DESC
-            LIMIT 8";
+        // Get Last 8 users
+        $sql = "SELECT v.`id`, COUNT(*) AS 'count', v.`created_id` AS 'user_id', u.`fname`, u.`lname`, u.`avatar`, u.`gravatar`
+                FROM `fcms_video` AS v
+                LEFT JOIN `fcms_users` AS u ON v.`created_id` = u.`id`
+                WHERE `active` = 1
+                GROUP BY v.`created_id`
+                ORDER BY v.`updated` DESC
+                LIMIT 8";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    echo '
+            return;
+        }
+
+        echo '
             <div><a href="?members=all">'.T_('Members').'</a></div>
             <ul id="small_video_users">';
 
-    while ($row = mysql_fetch_assoc($result))
-    {
-        $name       = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
-        $avatarPath = getAvatarPath($row['avatar'], $row['gravatar']);
+        foreach ($rows as $row)
+        {
+            $name       = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
+            $avatarPath = getAvatarPath($row['avatar'], $row['gravatar']);
 
-        echo '
+            echo '
                 <li>
                     <a href="?u='.$row['user_id'].'"><img src="'.$avatarPath.'" alt="'.$name.'"/></a>
                     <a href="?u='.$row['user_id'].'">'.$name.'</a>
                     <span>'.sprintf(T_ngettext('%d video', '%d videos', $row['count']), $row['count']).'</span>
                 </li>';
-    }
+        }
 
-    echo '
+        echo '
                 <li>
                     <a href="?members=all">'.T_('See all members.').'</a>
                 </li>
             </ul>
         </div>';
 
-    displayFooter();
-}
-
-/**
- * displayVideoPage
- * 
- * @return void
- */
-function displayVideoPage ()
-{
-    $id = (int)$_GET['id'];
-
-    $sql = "SELECT `id`, `source_id`, `title`, `description`, `height`, `width`, `created`, `created_id`
-            FROM `fcms_video`
-            WHERE `id` = '$id'
-            AND `active` = 1";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    $video = mysql_fetch_assoc($result);
-
-    // YouTube or Vimeo
-    displayYouTubeVideoPage($video);
-}
-
-/**
- * displayYouTubeVideoPage 
- * 
- * @param array $video 
- * 
- * @return void
- */
-function displayYouTubeVideoPage ($video)
-{
-    global $fcmsUser;
-
-    // Save video id for ajax call
-    $_SESSION['source_id'] = $video['source_id'];
-
-    displayHeader();
-
-    // Video not found in db
-    if (!is_array($video))
+    /**
+     * displayVideoPage
+     * 
+     * @return void
+     */
+    function displayVideoPage ()
     {
-        echo '
+        $id = (int)$_GET['id'];
+
+        $sql = "SELECT `id`, `source_id`, `title`, `description`, `height`, `width`, `created`, `created_id`
+                FROM `fcms_video`
+                WHERE `id` = ?
+                AND `active` = 1";
+
+        $video = $this->fcmsDatabase->getRow($sql, $id);
+        if ($video === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        // YouTube or Vimeo
+        $this->displayYouTubeVideoPage($video);
+    }
+
+    /**
+     * displayYouTubeVideoPage 
+     * 
+     * @param array $video 
+     * 
+     * @return void
+     */
+    function displayYouTubeVideoPage ($video)
+    {
+        // Save video id for ajax call
+        $_SESSION['source_id'] = $video['source_id'];
+
+        $this->displayHeader();
+
+        // Video not found in db
+        if (!is_array($video))
+        {
+            echo '
         <div class="info-alert">
             <h2>'.T_('Missing or Invalid Video.').'</h2>
             <p>'.T_('This video cannot be found.  Are you sure you typed in URL correctly?').'</p>
         </div>';
 
-        displayFooter();
-        return;
-    }
-    // Video upload failed
-    elseif ($video['source_id'] == '0')
-    {
-        displayVideoNotFound($video, 'YouTube');
-        return;
-    }
-
-    $youTubeService = new Zend_Gdata_YouTube();
-    $status         = null;
-
-    // Get video entry
-    try 
-    {
-        $videoEntry = $youTubeService->getVideoEntry($video['source_id']);
-    }
-    catch (Exception $e)
-    {
-        $response = $e->getRawResponseBody();
-        $private  = stripos($response, 'Private video');
-        $notFound = stripos($response, 'Video not found');
-
-        // Video not found at YouTube
-        if ($notFound !== false)
-        {
-            displayVideoNotFound($video, 'YouTube');
+            $this->displayFooter();
             return;
         }
-        // Video is private
-        elseif ($private !== false)
+        // Video upload failed
+        elseif ($video['source_id'] == '0')
         {
-            echo '
+            $this->displayVideoNotFound($video, 'YouTube');
+            return;
+        }
+
+        $youTubeService = new Zend_Gdata_YouTube();
+        $status         = null;
+
+        // Get video entry
+        try 
+        {
+            $videoEntry = $youTubeService->getVideoEntry($video['source_id']);
+        }
+        catch (Exception $e)
+        {
+            $response = $e->getRawResponseBody();
+            $private  = stripos($response, 'Private video');
+            $notFound = stripos($response, 'Video not found');
+
+            // Video not found at YouTube
+            if ($notFound !== false)
+            {
+                $this->displayVideoNotFound($video, 'YouTube');
+                return;
+            }
+            // Video is private
+            elseif ($private !== false)
+            {
+                echo '
             <div class="error-alert">
                 <p>'.T_('Sorry, this video is private.').'</p>
                 <p>'.$e->getMessage().'</p>
             </div>';
-            displayFooter();
-            return;
-        }
-        else
-        {
-            echo '
+                $this->displayFooter();
+                return;
+            }
+            else
+            {
+                echo '
             <div class="error-alert">
                 <p>'.T_('Could not get video information.').'</p>
                 <p>'.$e->getMessage().'</p>
             </div>';
-            displayFooter();
-            return;
+                $this->displayFooter();
+                return;
+            }
         }
-    }
 
-    // Video is public/unlisted
-    if ($status == null)
-    {
-        $status = getUploadStatus($video['source_id']);
-    }
+        // Video is public/unlisted
+        if ($status == null)
+        {
+            $status = $this->getUploadStatus($video['source_id']);
+        }
 
-    $url = 'video.php?u='.$video['created_id'].'&amp;id='.$video['id'];
+        $url = 'video.php?u='.$video['created_id'].'&amp;id='.$video['id'];
 
-    // Is youtube processing finished?
-    if ($status !== 'Finished')
-    {
-        echo '
+        // Is youtube processing finished?
+        if ($status !== 'Finished')
+        {
+            echo '
             <div class="ok-alert">
                 <p><b>'.T_('Your video was uploaded to YouTube successfully.').'</b></p>
                 <p>'.T_('However it may take a few moments before you video is viewable. Please check back later.').'</p>
@@ -804,18 +823,18 @@ function displayYouTubeVideoPage ($video)
                 <p id="refresh"><a href="'.$url.'">'.T_('Refresh').'</a></p>
             </div>';
 
-        displayFooter();
-        return;
-    }
+            $this->displayFooter();
+            return;
+        }
 
-    // Ajax is done at this point, we don't need the id anymore
-    unset($_SESSION['source_id']);
+        // Ajax is done at this point, we don't need the id anymore
+        unset($_SESSION['source_id']);
 
-    $videoUrl = 'http://www.youtube.com/e/'.$video['source_id'].'?version=3&enablejsapi=1&rel=0&wmode=transparent';
+        $videoUrl = 'http://www.youtube.com/e/'.$video['source_id'].'?version=3&enablejsapi=1&rel=0&wmode=transparent';
 
-    displayVideoStartCode();
+        $this->displayVideoStartCode();
 
-    echo '
+        echo '
         <div id="sections_menu">
             <ul>
                 <li><a href="video.php">'.T_('Latest Videos').'</a></li>
@@ -823,10 +842,10 @@ function displayYouTubeVideoPage ($video)
             </ul>
         </div>';
 
-    // Can you edit/delete this video?
-    if ($video['created_id'] == $fcmsUser->id || checkAccess($fcmsUser->id) == 1)
-    {
-        echo '
+        // Can you edit/delete this video?
+        if ($video['created_id'] == $this->fcmsUser->id || $this->fcmsUser->access == 1)
+        {
+            echo '
         <div id="video_edit">
             <form action="'.$url.'" method="post">
                 <div id="delete">
@@ -838,9 +857,9 @@ function displayYouTubeVideoPage ($video)
                 </div>
             </form>
         </div>';
-    }
+        }
 
-    echo '
+        echo '
         <div id="video_desc">
             <img src="'.getCurrentAvatar($video['created_id']).'"/>
             <h2>'.cleanOutput($video['title']).'</h2>
@@ -865,25 +884,24 @@ function displayYouTubeVideoPage ($video)
             </object>
         </div>';
 
-    echo '<p>'.T_('Views').': '.$videoEntry->getVideoViewCount().'</p>';
+        echo '<p>'.T_('Views').': '.$videoEntry->getVideoViewCount().'</p>';
 
-    $params = array(
-        'currentUserId' => $fcmsUser->id,
-        'id'            => $video['id']
-    );
-    displayComments($url, 'video', $params);
+        $params = array(
+            'id' => $video['id']
+        );
+        displayComments($url, 'video', $params);
 
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-/**
- * displayVideoStartCode 
- * 
- * @return void
- */
-function displayVideoStartCode ()
-{
-    echo '
+    /**
+     * displayVideoStartCode 
+     * 
+     * @return void
+     */
+    function displayVideoStartCode ()
+    {
+        echo '
         <noscript>
             <style type="text/css">
             #video_content {display: none;}
@@ -900,172 +918,171 @@ function displayVideoStartCode ()
             </div>
         </noscript>
         <script type="text/javascript" src="ttp://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>';
-}
+    }
 
-/**
- * getUploadStatus
- * 
- * Check the upload status of a video.  If the session token is provided 
- * it's because the video is private and we need to auth to get the
- * status of the video.
- * 
- * @param string $videoId 
- * @param string $sessionToken
- * 
- * @return string
- */
-function getUploadStatus ($videoId, $sessionToken = false)
-{
-    $youtubeConfig  = getYouTubeConfigData();
-    $youTubeService = new Zend_Gdata_YouTube();
-
-    if ($sessionToken !== false)
+    /**
+     * getUploadStatus
+     * 
+     * Check the upload status of a video.  If the session token is provided 
+     * it's because the video is private and we need to auth to get the
+     * status of the video.
+     * 
+     * @param string $videoId 
+     * @param string $sessionToken
+     * 
+     * @return string
+     */
+    function getUploadStatus ($videoId, $sessionToken = false)
     {
-        $httpClient     = getAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
-        $youTubeService = new Zend_Gdata_YouTube($httpClient);
+        $youtubeConfig  = getYouTubeConfigData();
+        $youTubeService = new Zend_Gdata_YouTube();
 
-        if ($httpClient === false)
+        if ($sessionToken !== false)
         {
-            // Error message was already displayed by getAuthSubHttpClient()
-            die();
-        }
-    }
+            $httpClient     = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
+            $youTubeService = new Zend_Gdata_YouTube($httpClient);
 
-    $videoEntry = $youTubeService->getVideoEntry($videoId);
-
-    try
-    {
-        $control = $videoEntry->getControl();
-    }
-    catch (Exception $e)
-    {
-        return T_('Could not retrieve video status: ').$e->getMessage();
-    }
-
-    $message = 'Finished';
-
-    if ($control instanceof Zend_Gdata_App_Extension_Control)
-    {
-        if (($control->getDraft() != null) && ($control->getDraft()->getText() == 'yes'))
-        {
-            $state = $videoEntry->getVideoState();
-
-            if ($state instanceof Zend_Gdata_YouTube_Extension_State)
+            if ($httpClient === false)
             {
-                $message = $state->getName().' '.$state->getText();
-            }
-            else
-            {
-                return $message;
+                // Error message was already displayed by getYouTubeAuthSubHttpClient()
+                die();
             }
         }
+
+        $videoEntry = $youTubeService->getVideoEntry($videoId);
+
+        try
+        {
+            $control = $videoEntry->getControl();
+        }
+        catch (Exception $e)
+        {
+            return T_('Could not retrieve video status: ').$e->getMessage();
+        }
+
+        $message = 'Finished';
+
+        if ($control instanceof Zend_Gdata_App_Extension_Control)
+        {
+            if (($control->getDraft() != null) && ($control->getDraft()->getText() == 'yes'))
+            {
+                $state = $videoEntry->getVideoState();
+
+                if ($state instanceof Zend_Gdata_YouTube_Extension_State)
+                {
+                    $message = $state->getName().' '.$state->getText();
+                }
+                else
+                {
+                    return $message;
+                }
+            }
+        }
+
+        return $message;
     }
 
-    return $message;
-}
-
-/**
- * displayCommentSubmit 
- * 
- * @return void
- */
-function displayCommentSubmit ()
-{
-    global $fcmsUser;
-
-    $userId   = (int)$_GET['u'];
-    $videoId  = escape_string($_GET['id']);
-    $comments = strip_tags($_POST['comments']);
-    $comments = escape_string($comments);
-
-    if (!empty($comments))
+    /**
+     * displayCommentSubmit 
+     * 
+     * @return void
+     */
+    function displayCommentSubmit ()
     {
-        $sql = "INSERT INTO `fcms_video_comment` (
-                    `video_id`, `comment`, `created`, `created_id`, `updated`, `updated_id`
-                ) 
-                VALUES (
-                    '$videoId', 
-                    '$comments', 
-                    NOW(), 
-                    '$fcmsUser->id', 
-                    NOW(), 
-                    '$fcmsUser->id'
-                )";
+        $userId   = (int)$_GET['u'];
+        $videoId  = $_GET['id'];
+        $comments = strip_tags($_POST['comments']);
 
-        if (!mysql_query($sql))
+        if (!empty($comments))
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $sql = "INSERT INTO `fcms_video_comment`
+                        (`video_id`, `comment`, `created`, `created_id`, `updated`, `updated_id`) 
+                    VALUES
+                        (?, ?, NOW(), ?, NOW(), ?)";
+
+            $params = array(
+                $videoId, 
+                $comments, 
+                $this->fcmsUser->id, 
+                $this->fcmsUser->id
+            );
+
+            if (!$this->fcmsDatabase->insert($sql, $params))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+        }
+
+        header("Location: video.php?u=$userId&id=$videoId#comments");
+    }
+
+    /**
+     * getSessionToken
+     * 
+     * Will return the session token for the given user.
+     * 
+     * @param int userId
+     * 
+     * @return string | false
+     */
+    function getSessionToken ($userId)
+    {
+        $userId = (int)$userId;
+
+        $sql = "SELECT `youtube_session_token`
+                FROM `fcms_user_settings`
+                WHERE `user` = '$userId'
+                AND `youtube_session_token` IS NOT NULL
+                AND `youtube_session_token` != ''";
+
+        $row = $this->fcmsDatabase->getRow($sql, $userId);
+        if ($row === false)
+        {
+            $this->fcmsError->displayError();
+
+            return false;
+        }
+
+        if (empty($row))
+        {
+            echo '<p class="error-alert">'.T_('Could not find session token for user.').'</p>';
+
+            return false;
+        }
+
+        return $row['youtube_session_token'];
+    }
+
+    /**
+     * displayMembersListPage 
+     * 
+     * @return void
+     */
+    function displayMembersListPage ()
+    {
+        $this->displayHeader();
+
+        $sql = "SELECT v.`id`, COUNT(*) AS 'count', v.`created_id` AS 'user_id', u.`fname`, u.`lname`, u.`avatar`, u.`gravatar`
+                FROM `fcms_video` AS v
+                LEFT JOIN `fcms_users` AS u ON v.`created_id` = u.`id`
+                WHERE `active` = 1
+                GROUP BY v.`created_id`
+                ORDER BY v.`updated` DESC";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
             return;
         }
-    }
 
-    header("Location: video.php?u=$userId&id=$videoId#comments");
-}
-
-/**
- * getSessionToken
- * 
- * Will return the session token for the given user.
- * 
- * @param int userId
- * 
- * @return string | false
- */
-function getSessionToken ($userId)
-{
-    $userId = (int)$userId;
-
-    $sql = "SELECT `youtube_session_token`
-            FROM `fcms_user_settings`
-            WHERE `user` = '$userId'
-            AND `youtube_session_token` IS NOT NULL
-            AND `youtube_session_token` != ''";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        return false;
-    }
-
-    if (mysql_num_rows($result) <= 0)
-    {
-        echo '<p class="error-alert">'.T_('Could not find session token for user.').'</p>';
-        return false;
-    }
-
-    $row = mysql_fetch_assoc($result);
-
-    return $row['youtube_session_token'];
-}
-
-/**
- * displayMembersListPage 
- * 
- * @return void
- */
-function displayMembersListPage ()
-{
-    displayHeader();
-
-    $sql = "SELECT v.`id`, COUNT(*) AS 'count', v.`created_id` AS 'user_id', u.`fname`, u.`lname`, u.`avatar`, u.`gravatar`
-            FROM `fcms_video` AS v
-            LEFT JOIN `fcms_users` AS u ON v.`created_id` = u.`id`
-            WHERE `active` = 1
-            GROUP BY v.`created_id`
-            ORDER BY v.`updated` DESC";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    echo '
+        echo '
         <div id="sections_menu">
             <ul>
                 <li><a href="video.php">Latest Videos</a></li>
@@ -1073,70 +1090,68 @@ function displayMembersListPage ()
         </div>
         <ul id="large_video_users">';
 
-    while ($row = mysql_fetch_assoc($result))
-    {
-        $name       = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
-        $avatarPath = getAvatarPath($row['avatar'], $row['gravatar']);
+        foreach ($rows as $row)
+        {
+            $name       = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
+            $avatarPath = getAvatarPath($row['avatar'], $row['gravatar']);
 
-        echo '
+            echo '
             <li>
                 <a href="?u='.$row['user_id'].'"><img src="'.$avatarPath.'" alt="'.$name.'"/></a><br/>
                 <a href="?u='.$row['user_id'].'">'.$name.'</a>
                 <span>'.sprintf(T_ngettext('%d video', '%d videos', $row['count']), $row['count']).'</span>
             </li>';
-    }
+        }
 
-    echo '
+        echo '
         </ul>
     </div>';
 
-    displayFooter();
-}
-
-/**
- * displayUserVideosPage 
- * 
- * @return void
- */
-function displayUserVideosPage ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    $userId = (int)$_GET['u'];
-
-    if (isset($_SESSION['message']))
-    {
-        displayMessage($_SESSION['message']);
+        $this->displayFooter();
     }
 
-    // Get user info
-    $sql = "SELECT 'id', `fname`, `lname`, `avatar`, `gravatar`
-            FROM `fcms_users`
-            WHERE `id` = '$userId'";
-
-    $result = mysql_query($sql);
-    if (!$result)
+    /**
+     * displayUserVideosPage 
+     * 
+     * @return void
+     */
+    function displayUserVideosPage ()
     {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $this->displayHeader();
 
-    if (mysql_num_rows($result) <= 0)
-    {
-        echo '<div class="error-alert">'.T_('Member not found.').'</div>';
-        displayFooter();
-        return;
-    }
+        $userId = (int)$_GET['u'];
 
-    $row = mysql_fetch_assoc($result);
+        if (isset($_SESSION['message']))
+        {
+            $this->displayMessage($_SESSION['message']);
+        }
 
-    $name       = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
-    $avatarPath = getAvatarPath($row['avatar'], $row['gravatar']);
+        // Get user info
+        $sql = "SELECT 'id', `fname`, `lname`, `avatar`, `gravatar`
+                FROM `fcms_users`
+                WHERE `id` = ?";
 
-    echo '
+        $row = $this->fcmsDatabase->getRow($sql, $userId);
+        if ($row === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (empty($row))
+        {
+            echo '<div class="error-alert">'.T_('Member not found.').'</div>';
+            $this->displayFooter();
+
+            return;
+        }
+
+        $name       = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
+        $avatarPath = getAvatarPath($row['avatar'], $row['gravatar']);
+
+        echo '
         <div id="sections_menu">
             <ul>
                 <li><a href="video.php">Latest Videos</a></li>
@@ -1152,44 +1167,46 @@ function displayUserVideosPage ()
             </div>
             <ul class="categories>';
 
-    // Get videos
-    $sql = "SELECT `id`, `source_id`, `title`, `active`, `created`, `created_id`
-            FROM `fcms_video`
-            WHERE `created_id` = '$userId'
-            ORDER BY `updated` DESC";
+        // Get videos
+        $sql = "SELECT `id`, `source_id`, `title`, `active`, `created`, `created_id`
+                FROM `fcms_video`
+                WHERE `created_id` = ?
+                ORDER BY `updated` DESC";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    if (mysql_num_rows($result) <= 0)
-    {
-        echo '<div class="error-alert">'.T_('No videos found.').'</div>';
-        displayFooter();
-        return;
-    }
-
-    while ($row = mysql_fetch_assoc($result))
-    {
-        $class = '';
-
-        if ($row['active'] == '0')
+        $rows = $this->fcmsDatabase->getRows($sql, $userId);
+        if ($rows === false)
         {
-            if ($row['created_id'] != $fcmsUser->id)
-            {
-                continue;
-            }
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-            $class = 'removed';
+            return;
         }
 
-        $date = fixDate('Y-m-d', '', $row['created'], $fcmsUser->id);
+        if (count($rows) <= 0)
+        {
+            echo '<div class="error-alert">'.T_('No videos found.').'</div>';
+            $this->displayFooter();
 
-        echo '
+            return;
+        }
+
+        foreach ($rows as $row)
+        {
+            $class = '';
+
+            if ($row['active'] == '0')
+            {
+                if ($row['created_id'] != $this->fcmsUser->id)
+                {
+                    continue;
+                }
+
+                $class = 'removed';
+            }
+
+            $date = fixDate('Y-m-d', '', $row['created'], $this->fcmsUser->id);
+
+            echo '
                 <li class="category '.$class.'">
                     <a href="?u='.$userId.'&amp;id='.$row['id'].'"><img src="http://i.ytimg.com/vi/'.$row['source_id'].'/default.jpg"/></a>
                     <span>
@@ -1197,182 +1214,180 @@ function displayUserVideosPage ()
                         <i>'.sprintf(T_pgettext('%s is a date', 'on %s'), $date).'</i>
                     </span>
                 </li>';
+        }
+
+        $this->displayFooter();
     }
 
-    displayFooter();
-}
-
-/**
- * displayRemoveVideoSubmit 
- * 
- * Remove video doesn't actually physically delete the video from FCMS, it 
- * just sets the video to in-active in the DB, which removes it from view.
- * 
- * We don't want to delete these entries from the db, because the cron importer
- * will just continue to import them.
- * 
- * @return void
- */
-function displayRemoveVideoSubmit ()
-{
-    global $fcmsUser;
-
-    if (!isset($_POST['id']) || !isset($_POST['source_id']))
+    /**
+     * displayRemoveVideoSubmit 
+     * 
+     * Remove video doesn't actually physically delete the video from FCMS, it 
+     * just sets the video to in-active in the DB, which removes it from view.
+     * 
+     * We don't want to delete these entries from the db, because the cron importer
+     * will just continue to import them.
+     * 
+     * @return void
+     */
+    function displayRemoveVideoSubmit ()
     {
-        displayHeader();
-        echo '<div class="error_alert">'.T_('Can\'t remove video.  Missing video id.').'</div>';
-        displayFooter();
-        return;
-    }
-
-    $userId   = (int)$_GET['u'];
-    $id       = (int)$_POST['id'];
-    $sourceId = $_POST['source_id'];
-
-    $sql = "UPDATE `fcms_video`
-            SET `active` = 0,
-            `updated` = NOW(),
-            `updated_id` = '$fcmsUser->id'
-            WHERE `id` = '$id'";
- 
-    if (!mysql_query($sql))
-    {
-        displayFooter();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    if (isset($_POST['delete_youtube']))
-    {
-        $sessionToken  = getSessionToken($fcmsUser->id);
-        $youtubeConfig = getYouTubeConfigData();
-        $httpClient    = getAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
-
-        if ($httpClient === false)
-         {
-            // Error message was already displayed by getAuthSubHttpClient()
-            displayFooter();
+        if (!isset($_POST['id']) || !isset($_POST['source_id']))
+        {
+            $this->displayHeader();
+            echo '<div class="error_alert">'.T_('Can\'t remove video.  Missing video id.').'</div>';
+            $this->displayFooter();
             return;
         }
 
-        $youTubeService = new Zend_Gdata_YouTube($httpClient);
-        $videoEntry     = $youTubeService->getVideoEntry($sourceId);
+        $userId   = (int)$_GET['u'];
+        $id       = (int)$_POST['id'];
+        $sourceId = $_POST['source_id'];
+
+        $sql = "UPDATE `fcms_video`
+                SET `active` = 0,
+                    `updated` = NOW(),
+                    `updated_id` = ?
+                WHERE `id` = ?";
+    
+        if (!$this->fcmsDatabase->update($sql, array($this->fcmsUser->id, $id)))
+        {
+            $this->displayFooter();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (isset($_POST['delete_youtube']))
+        {
+            $sessionToken  = getSessionToken($this->fcmsUser->id);
+            $youtubeConfig = getYouTubeConfigData();
+            $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
+
+            if ($httpClient === false)
+             {
+                // Error message was already displayed by getYouTubeAuthSubHttpClient()
+                $this->displayFooter();
+                return;
+            }
+
+            $youTubeService = new Zend_Gdata_YouTube($httpClient);
+            $videoEntry     = $youTubeService->getVideoEntry($sourceId);
+
+            // Set message
+            $_SESSION['message'] = 'delete_video_youtube';
+
+            $youTubeService->delete($videoEntry);
+        }
 
         // Set message
-        $_SESSION['message'] = 'delete_video_youtube';
+        if (!isset($_SESSION['message']))
+        {
+            $_SESSION['message'] = 'remove_video';
+        }
 
-        $youTubeService->delete($videoEntry);
+        // Send back to user's video listing
+        header("Location: video.php?u=$userId");
     }
 
-    // Set message
-    if (!isset($_SESSION['message']))
+    /**
+     * displayDeleteVideoSubmit 
+     * 
+     * Will delete the video entry from the FCMS db.  This is done when the video
+     * at YouTube or Vimeo has been removed.
+     * 
+     * @return void
+     */
+    function displayDeleteVideoSubmit ()
     {
-        $_SESSION['message'] = 'remove_video';
+        if (!isset($_POST['id']) || !isset($_POST['source_id']))
+        {
+            $this->displayHeader();
+            echo '<div class="error_alert">'.T_('Can\'t delete video.  Missing video id.').'</div>';
+            $this->displayFooter();
+            return;
+        }
+
+        $userId   = (int)$_GET['u'];
+        $id       = (int)$_POST['id'];
+        $sourceId = $_POST['source_id'];
+
+        $sql = "DELETE FROM `fcms_video_comment`
+                WHERE `video_id` = ?";
+
+        if (!$this->fcmsDatabase->delete($sql, $id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $sql = "DELETE FROM `fcms_video`
+                WHERE `id` = ?";
+
+        if (!$this->fcmsDatabase->delete($sql, $id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        // Set message
+        $_SESSION['message'] = 'delete_video';
+
+        // Send back to user's video listing
+        header("Location: video.php?u=$userId");
     }
 
-    // Send back to user's video listing
-    header("Location: video.php?u=$userId");
-}
-
-/**
- * displayDeleteVideoSubmit 
- * 
- * Will delete the video entry from the FCMS db.  This is done when the video
- * at YouTube or Vimeo has been removed.
- * 
- * @return void
- */
-function displayDeleteVideoSubmit ()
-{
-    global $fcmsUser;
-
-    if (!isset($_POST['id']) || !isset($_POST['source_id']))
+    /**
+     * displayMessage 
+     * 
+     * @param string  $message 
+     * 
+     * @return void
+     */
+    function displayMessage ($message)
     {
-        displayHeader();
-        echo '<div class="error_alert">'.T_('Can\'t delete video.  Missing video id.').'</div>';
-        displayFooter();
-        return;
+        unset($_SESSION['message']);
+
+        switch ($message)
+        {
+            case 'remove_video':
+
+                displayOkMessage(T_('Video removed successfully.'));
+                break;
+
+            case 'delete_video':
+
+                displayOkMessage(T_('Video deleted successfully.'));
+                break;
+
+            case 'delete_video_youtube':
+
+                displayOkMessage(T_('Video removed and deleted from YouTube successfully.'), '5000');
+        }
     }
 
-    $userId   = (int)$_GET['u'];
-    $id       = (int)$_POST['id'];
-    $sourceId = $_POST['source_id'];
-
-    $sql = "DELETE FROM `fcms_video_comment`
-            WHERE `video_id` = '$id'";
-
-    if (!mysql_query($sql))
+    /**
+     * displayVideoNotFound 
+     * 
+     * @param array  $video 
+     * @param string $source 
+     * 
+     * @return void
+     */
+    function displayVideoNotFound ($video, $source)
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $userId  = (int)$_GET['u'];
+        $videoId = (int)$video['id'];
 
-    $sql = "DELETE FROM `fcms_video`
-            WHERE `id` = '$id'";
+        $url = 'video.php?u='.$userId.'&amp;id='.$videoId;
 
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    // Set message
-    $_SESSION['message'] = 'delete_video';
-
-    // Send back to user's video listing
-    header("Location: video.php?u=$userId");
-}
-
-/**
- * displayMessage 
- * 
- * @param string  $message 
- * 
- * @return void
- */
-function displayMessage ($message)
-{
-    unset($_SESSION['message']);
-
-    switch ($message)
-    {
-        case 'remove_video':
-
-            displayOkMessage(T_('Video removed successfully.'));
-            break;
-
-        case 'delete_video':
-
-            displayOkMessage(T_('Video deleted successfully.'));
-            break;
-
-        case 'delete_video_youtube':
-
-            displayOkMessage(T_('Video removed and deleted from YouTube successfully.'), '5000');
-    }
-}
-
-/**
- * displayVideoNotFound 
- * 
- * @param array  $video 
- * @param string $source 
- * 
- * @return void
- */
-function displayVideoNotFound ($video, $source)
-{
-    $userId  = (int)$_GET['u'];
-    $videoId = (int)$video['id'];
-
-    $url = 'video.php?u='.$userId.'&amp;id='.$videoId;
-
-    echo '
+        echo '
             <div class="info-alert">
                 <h2>'.T_('Source Video cannot be found.').'</h2><br/>
                 <p>'.sprintf(T_('The video file for this video could not be found at %s.'), $source).'</p>
@@ -1385,4 +1400,5 @@ function displayVideoNotFound ($video, $source)
                     <a href="video.php">'.T_('No').'</a>
                 </form>
             </div>';
+    }
 }

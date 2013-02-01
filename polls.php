@@ -23,81 +23,102 @@ load('Poll', 'datetime', 'comments');
 
 init();
 
-// Globals
-$pollObj = new Poll($fcmsUser, $fcmsError);
+$poll = new Poll($fcmsError, $fcmsDatabase, $fcmsUser);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $poll);
 
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Polls'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
-
-control();
 exit();
 
-
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    if (isset($_GET['action']))
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsMessageBoard;
+    private $fcmsTemplate;
+
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsPoll)
     {
-        if ($_GET['action'] == 'pastpolls')
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsPoll     = $fcmsPoll;
+
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Polls'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if (isset($_GET['action']))
         {
-            displayPolls();
+            if ($_GET['action'] == 'pastpolls')
+            {
+                $this->displayPolls();
+            }
+            else
+            {
+                $this->displayLatestPoll();
+            }
+        }
+        elseif (isset($_GET['id']))
+        {
+            if (isset($_POST['addcomment']))
+            {
+                $this->displayAddCommentSubmit();
+            }
+            elseif (isset($_GET['results']))
+            {
+                $this->displayPoll(true);
+            }
+            else
+            {
+                $this->displayPoll();
+            }
+        }
+        elseif (isset($_POST['vote']) && isset($_POST['option']))
+        {
+            $this->displayVoteSubmit();
         }
         else
         {
-            displayLatestPoll();
+            $this->displayLatestPoll();
         }
     }
-    elseif (isset($_GET['id']))
-    {
-        if (isset($_POST['addcomment']))
-        {
-            displayAddCommentSubmit();
-        }
-        elseif (isset($_GET['results']))
-        {
-            displayPoll(true);
-        }
-        else
-        {
-            displayPoll();
-        }
-    }
-    elseif (isset($_POST['vote']) && isset($_POST['option']))
-    {
-        displayVoteSubmit();
-    }
-    else
-    {
-        displayLatestPoll();
-    }
-}
 
-/**
- * displayHeader 
- * 
- * Displays the header of the page, including the leftcolumn navigation.
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayHeader 
+     * 
+     * Displays the header of the page, including the leftcolumn navigation.
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    $TMPL['javascript'] = '
+        $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[ 
 Event.observe(window, \'load\', function() {
@@ -106,9 +127,9 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    include_once getTheme($fcmsUser->id).'header.php';
+        include_once getTheme($this->fcmsUser->id).'header.php';
 
-    echo '
+        echo '
         <div id="poll" class="centercontent">
             <div id="sections_menu">
                 <ul>
@@ -117,108 +138,106 @@ Event.observe(window, \'load\', function() {
                 </ul>
             </div>';
 
-    if (checkAccess($fcmsUser->id) < 2)
-    {
-        echo '
+        if ($this->fcmsUser->access < 2)
+        {
+            echo '
             <div id="actions_menu">
                 <ul>
                     <li><a href="admin/polls.php">'.T_('Administrate').'</a></li>
                 </ul>
             </div>';
-    }
-}
-
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter()
-{
-    global $fcmsUser, $TMPL;
-
-    echo '
-        </div><!--/poll-->';
-
-    include_once getTheme($fcmsUser->id).'footer.php';
-}
-
-/**
- * displayLatestPoll 
- * 
- * @return void
- */
-function displayLatestPoll ()
-{
-    global $fcmsUser, $fcmsError, $pollObj;
-
-    displayHeader();
-
-    // Get poll info
-    $data = $pollObj->getLatestPollData();
-    if ($data === false)
-    {
-        $fcmsError->displayErrors();
-        displayFooter();
-        return;
-    }
-
-    if (count($data) <= 0)
-    {
-        # we have no polls
-        return;
-    }
-
-    $pollId = key($data);
-
-    // Get comments
-    $comments = $pollObj->getPollCommentsData($pollId);
-    if ($comments === false)
-    {
-        $fcmsError->displayErrors();
-        displayFooter();
-        return;
-    }
-
-    $commentsTotal = $comments['total'];
-    unset($comments['total']);
-
-    $pollOptions = '';
-    $class       = 'sub1';
-    $disabled    = '';
-    $submitValue = T_('Vote');
-
-    // Show results - user already voted
-    if (isset($data['users_who_voted'][$fcmsUser->id]))
-    {
-        $submitValue = T_('Already Voted');
-        $class       = 'disabled';
-        $disabled    = 'disabled="disabled"';
-
-        $pollOptions = $pollObj->formatPollResults($data);
-        if ($pollOptions === false)
-        {
-            $fcmsError->displayErrors();
-            displayFooter();
-            return;
         }
     }
-    // Show options
-    else
+
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter()
     {
-        foreach ($data[$pollId]['options'] as $optionId => $optionData)
+        $TMPL = $this->fcmsTemplate;
+
+        echo '
+        </div><!--/poll-->';
+
+        include_once getTheme($this->fcmsUser->id).'footer.php';
+    }
+
+    /**
+     * displayLatestPoll 
+     * 
+     * @return void
+     */
+    function displayLatestPoll ()
+    {
+        $this->displayHeader();
+
+        // Get poll info
+        $data = $this->fcmsPoll->getLatestPollData();
+        if ($data === false)
         {
-            $pollOptions .= '
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        if (count($data) <= 0)
+        {
+            # we have no polls
+            return;
+        }
+
+        $pollId = key($data);
+
+        // Get comments
+        $comments = $this->fcmsPoll->getPollCommentsData($pollId);
+        if ($comments === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $commentsTotal = $comments['total'];
+        unset($comments['total']);
+
+        $pollOptions = '';
+        $class       = 'sub1';
+        $disabled    = '';
+        $submitValue = T_('Vote');
+
+        // Show results - user already voted
+        if (isset($data['users_who_voted'][$this->fcmsUser->id]))
+        {
+            $submitValue = T_('Already Voted');
+            $class       = 'disabled';
+            $disabled    = 'disabled="disabled"';
+
+            $pollOptions = $this->fcmsPoll->formatPollResults($data);
+            if ($pollOptions === false)
+            {
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+        // Show options
+        else
+        {
+            foreach ($data[$pollId]['options'] as $optionId => $optionData)
+            {
+                $pollOptions .= '
                     <p>
                         <label class="radio_label">
                             <input type="radio" name="option" value="'.$optionId.'"/>
                             '.cleanOutput($optionData['option'], 'html').'
                         </label>
                     </p>';
+            }
         }
-    }
 
-    echo '
+        echo '
             <h2>'.T_('Latest Poll').'</h2>
             <form class="poll" method="post" action="polls.php">
                 <h3>'.cleanOutput($data[$pollId]['question'], 'html').'</h3>
@@ -230,26 +249,26 @@ function displayLatestPoll ()
                 </p>
             </form>';
 
-    // Comments
-    echo '
+        // Comments
+        echo '
         <div id="comments">';
 
-    foreach ($comments as $row)
-    {
-        $delete      = '';
-        $date        = fixDate(T_('F j, Y g:i a'), $fcmsUser->tzOffset, $row['created']);
-        $displayname = $row['fname'].' '.$row['lname'];
-        $comment     = $row['comment'];
-        $avatarPath  = getAvatarPath($row['avatar'], $row['gravatar']);
-
-        if ($fcmsUser->id == $row['created'] || checkAccess($fcmsUser->id) < 2)
+        foreach ($comments as $row)
         {
-            $delete .= '<input type="submit" name="delcom" id="delcom" '
-                . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
-                . T_('Delete this Comment') . '"/>';
-        }
+            $delete      = '';
+            $date        = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['created']);
+            $displayname = $row['fname'].' '.$row['lname'];
+            $comment     = $row['comment'];
+            $avatarPath  = getAvatarPath($row['avatar'], $row['gravatar']);
 
-        echo '
+            if ($this->fcmsUser->id == $row['created'] || $this->fcmsUser->access < 2)
+            {
+                $delete .= '<input type="submit" name="delcom" id="delcom" '
+                    . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
+                    . T_('Delete this Comment') . '"/>';
+            }
+
+            echo '
             <div class="comment">
                 <form class="delcom" action="polls.php?id='.$pollId.'" method="post">
                     '.$delete.'
@@ -262,48 +281,46 @@ function displayLatestPoll ()
                     <input type="hidden" name="id" value="'.$row['id'].'">
                 </form>
             </div>';
-    }
+        }
 
-    echo '
+        echo '
             '.getAddCommentsForm('polls.php?id='.$pollId).'
         </div>';
 
-    displayFooter();
-}
-
-/**
- * displayPolls 
- * 
- * @return void
- */
-function displayPolls ()
-{
-    global $fcmsUser, $fcmsError, $pollObj;
-
-    displayHeader();
-
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-
-    $pollsData = $pollObj->getPolls($page);
-    if ($pollsData === false)
-    {
-        $fcmsError->displayErrors();
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    $ids = $pollsData['ids'];
-    unset($pollsData['ids']);
-
-    $votesLkup = $pollObj->getPollsTotalVotes($ids);
-    if ($votesLkup === false)
+    /**
+     * displayPolls 
+     * 
+     * @return void
+     */
+    function displayPolls ()
     {
-        $fcmsError->displayErrors();
-        displayFooter();
-        return;
-    }
+        $this->displayHeader();
 
-    echo '
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+
+        $pollsData = $this->fcmsPoll->getPolls($page);
+        if ($pollsData === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $ids = $pollsData['ids'];
+        unset($pollsData['ids']);
+
+        $votesLkup = $this->fcmsPoll->getPollsTotalVotes($ids);
+        if ($votesLkup === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        echo '
             <h2>'.T_('Past Polls').'</h2>
             <table class="sortable">
                 <thead>
@@ -315,98 +332,96 @@ function displayPolls ()
                 </thead>
                 <tbody>';
 
-    foreach ($pollsData as $row)
-    {
-        $date = fixDate(T_('M. j, Y, g:i a'), $fcmsUser->tzOffset, $row['started']);
+        foreach ($pollsData as $row)
+        {
+            $date = fixDate(T_('M. j, Y, g:i a'), $this->fcmsUser->tzOffset, $row['started']);
 
-        echo '
+            echo '
                     <tr>
                         <td><a href="?id='.$row['id'].'">'.cleanOutput($row['question'], 'html').'</a></td>
                         <td>'.$date.'</td></td>
                         <td>'.$votesLkup[$row['id']].'</td>
                     </tr>';
-    }
+        }
 
-    echo '
+        echo '
                 </tbody>
             </table>';
 
-    displayFooter();
-}
-
-/**
- * displayPoll 
- * 
- * @param boolean $displayResults 
- * 
- * @return void
- */
-function displayPoll ($displayResults = false)
-{
-    global $fcmsUser, $fcmsError, $pollObj;
-
-    displayHeader();
-
-    $id = (int)$_GET['id'];
-
-    $pollData = $pollObj->getPollData($id);
-    if ($pollData === false)
-    {
-        $fcmsError->displayErrors();
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    $pollId = key($pollData);
-
-    // Get comments
-    $comments = $pollObj->getPollCommentsData($pollId);
-    if ($comments === false)
+    /**
+     * displayPoll 
+     * 
+     * @param boolean $displayResults 
+     * 
+     * @return void
+     */
+    function displayPoll ($displayResults = false)
     {
-        $fcmsError->displayErrors();
-        displayFooter();
-        return;
-    }
+        $this->displayHeader();
 
-    $commentsTotal = $comments['total'];
-    unset($comments['total']);
+        $id = (int)$_GET['id'];
 
-    $pollOptions = '';
-    $class       = 'sub1';
-    $disabled    = '';
-    $submitValue = T_('Vote');
-
-    // Show results - user already voted
-    if (isset($pollData['users_who_voted'][$fcmsUser->id]) || $displayResults)
-    {
-        $submitValue = T_('Already Voted');
-        $class       = 'disabled';
-        $disabled    = 'disabled="disabled"';
-
-        $pollOptions = $pollObj->formatPollResults($pollData);
-        if ($pollOptions === false)
+        $pollData = $this->fcmsPoll->getPollData($id);
+        if ($pollData === false)
         {
-            $fcmsError->displayErrors();
-            displayFooter();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
             return;
         }
-    }
-    // Show options
-    else
-    {
-        foreach ($pollData[$pollId]['options'] as $optionId => $optionData)
+
+        $pollId = key($pollData);
+
+        // Get comments
+        $comments = $this->fcmsPoll->getPollCommentsData($pollId);
+        if ($comments === false)
         {
-            $pollOptions .= '
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $commentsTotal = $comments['total'];
+        unset($comments['total']);
+
+        $pollOptions = '';
+        $class       = 'sub1';
+        $disabled    = '';
+        $submitValue = T_('Vote');
+
+        // Show results - user already voted
+        if (isset($pollData['users_who_voted'][$this->fcmsUser->id]) || $displayResults)
+        {
+            $submitValue = T_('Already Voted');
+            $class       = 'disabled';
+            $disabled    = 'disabled="disabled"';
+
+            $pollOptions = $this->fcmsPoll->formatPollResults($pollData);
+            if ($pollOptions === false)
+            {
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+        // Show options
+        else
+        {
+            foreach ($pollData[$pollId]['options'] as $optionId => $optionData)
+            {
+                $pollOptions .= '
                     <p>
                         <label class="radio_label">
                             <input type="radio" name="option" value="'.$optionId.'"/>
                             '.cleanOutput($optionData['option'], 'html').'
                         </label>
                     </p>';
+            }
         }
-    }
 
-    echo '
+        echo '
             <form class="poll" method="post" action="polls.php">
                 <h3>'.cleanOutput($pollData[$pollId]['question'], 'html').'</h3>
                 '.$pollOptions.'
@@ -417,26 +432,26 @@ function displayPoll ($displayResults = false)
                 </p>
             </form>';
 
-    // Comments
-    echo '
+        // Comments
+        echo '
         <div id="comments">';
 
-    foreach ($comments as $row)
-    {
-        $delete      = '';
-        $date        = fixDate(T_('F j, Y g:i a'), $fcmsUser->tzOffset, $row['created']);
-        $displayname = $row['fname'].' '.$row['lname'];
-        $comment     = $row['comment'];
-        $avatarPath  = getAvatarPath($row['avatar'], $row['gravatar']);
-
-        if ($fcmsUser->id == $row['created'] || checkAccess($fcmsUser->id) < 2)
+        foreach ($comments as $row)
         {
-            $delete .= '<input type="submit" name="delcom" id="delcom" '
-                . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
-                . T_('Delete this Comment') . '"/>';
-        }
+            $delete      = '';
+            $date        = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['created']);
+            $displayname = $row['fname'].' '.$row['lname'];
+            $comment     = $row['comment'];
+            $avatarPath  = getAvatarPath($row['avatar'], $row['gravatar']);
 
-        echo '
+            if ($this->fcmsUser->id == $row['created'] || $this->fcmsUser->access < 2)
+            {
+                $delete .= '<input type="submit" name="delcom" id="delcom" '
+                    . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
+                    . T_('Delete this Comment') . '"/>';
+            }
+
+            echo '
             <div class="comment">
                 <form class="delcom" action="polls.php?id='.$pollId.'" method="post">
                     '.$delete.'
@@ -449,90 +464,89 @@ function displayPoll ($displayResults = false)
                     <input type="hidden" name="id" value="'.$row['id'].'">
                 </form>
             </div>';
-    }
+        }
 
-    echo '
+        echo '
             '.getAddCommentsForm('polls.php?id='.$pollId).'
         </div>';
 
-    displayFooter();
-}
-
-/**
- * displayVoteSubmit 
- * 
- * @return void
- */
-function displayVoteSubmit ()
-{
-    global $fcmsUser, $fcmsError, $pollObj;
-
-    $optionId = (int)$_POST['option'];
-    $pollId   = (int)$_POST['id'];
-
-    $result = $pollObj->placeVote($optionId, $pollId);
-    if ($result === false)
-    {
-        if ($fcmsError->hasErrors())
-        {
-            displayHeader();
-            $fcmsError->displayErrors();
-            displayFooter();
-            return;
-        }
-        else
-        {
-            // TODO
-            // Use session redirect to form
-            echo '<p class="info-alert">'.T_('You have already voted.').'</p>';
-            return;
-        }
+        $this->displayFooter();
     }
 
-    header("Location: polls.php?id=$pollId");
-}
-
-/**
- * displayAddCommentSubmit 
- * 
- * @return void
- */
-function displayAddCommentSubmit ()
-{
-    global $fcmsUser, $fcmsError;
-
-    $pollId   = (int)$_GET['id'];
-    $comments = strip_tags($_POST['comments']);
-    $comments = escape_string($comments);
-
-    if (empty($comments))
+    /**
+     * displayVoteSubmit 
+     * 
+     * @return void
+     */
+    function displayVoteSubmit ()
     {
+        $optionId = (int)$_POST['option'];
+        $pollId   = (int)$_POST['id'];
+
+        $result = $this->fcmsPoll->placeVote($optionId, $pollId);
+        if ($result === false)
+        {
+            if ($this->fcmsError->hasError())
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+
+                return;
+            }
+            else
+            {
+                // TODO
+                // Use session redirect to form
+                $this->displayHeader();
+                echo '<p class="info-alert">'.T_('You have already voted.').'</p>';
+                $this->displayFooter();
+
+                return;
+            }
+        }
+
         header("Location: polls.php?id=$pollId");
     }
 
-    $sql = "INSERT INTO `fcms_poll_comment` (
-                `poll_id`, `comment`, `created`, `created_id`
-            ) 
-            VALUES (
-                '$pollId', 
-                '$comments', 
-                NOW(), 
-                '$fcmsUser->id'
-            )";
-
-    if (!mysql_query($sql))
+    /**
+     * displayAddCommentSubmit 
+     * 
+     * @return void
+     */
+    function displayAddCommentSubmit ()
     {
-        displayHeader();
+        $pollId   = (int)$_GET['id'];
+        $comments = strip_tags($_POST['comments']);
 
-        $msg       = T_('Could not add comment.');
-        $debugInfo = $sql."\n".mysql_error();
+        if (empty($comments))
+        {
+            header("Location: polls.php?id=$pollId");
+        }
 
-        $fcmsError->add($msg, $debugInfo);
-        $fcmsError->displayErrors();
+        $sql = "INSERT INTO `fcms_poll_comment`
+                    (`poll_id`, `comment`, `created`, `created_id`) 
+                VALUES
+                    (?, ?, NOW(), ?)";
 
-        displayFooter();
-        return;
+        $params = array(
+            $pollId, 
+            $comments, 
+            $this->fcmsUser->id
+        );
+
+        if (!$this->fcmsDatabase->insert($sql, $params))
+        {
+            $this->displayHeader();
+
+            $this->fcmsError->setMessage(T_('Could not add comment.'));
+            $this->fcmsError->displayError();
+
+            $this->displayFooter();
+
+            return;
+        }
+
+        header("Location: polls.php?id=$pollId");
     }
-
-    header("Location: polls.php?id=$pollId");
 }

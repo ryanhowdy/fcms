@@ -1,8 +1,4 @@
 <?php
-include_once('database_class.php');
-include_once('utils.php');
-include_once('datetime.php');
-
 /**
  * Recipes 
  * 
@@ -13,27 +9,24 @@ include_once('datetime.php');
  */
 class Recipes
 {
-    var $db;
-    var $db2;
-    var $tzOffset;
-    var $currentUserId;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
 
     /**
-     * Recipes 
+     * Recipes
      * 
-     * @param   int     $currentUserId 
-     *
-     * @return  void
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
+     * 
+     * @return void
      */
-    function Recipes ($currentUserId)
+    function Recipes ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = (int)$currentUserId;
-        $this->tzOffset      = getTimezone($this->currentUserId);
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
     }
 
     /**
@@ -50,7 +43,7 @@ class Recipes
         $page = (int)$page;
         $from = (($page * 5) - 5);
 
-        if (checkAccess($this->currentUserId) <= 5)
+        if ($this->fcmsUser->access <= 5)
         {
             echo '
             <div id="actions_menu">
@@ -80,9 +73,22 @@ class Recipes
                 ORDER BY `date` DESC 
                 LIMIT $from, 5";
 
-        if (!$this->db->query($sql))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
+            return;
+        }
+
+        if (count($rows) <= 0)
+        {
+            echo '
+            <div class="info-alert">
+                <p><i>'.T_('Currently no one has added any recipes.').'</i></p>
+                <p><a href="?addrecipe=yes">'.T_('Add a Recipe').'</a></p>
+            </div>';
+
             return;
         }
 
@@ -93,17 +99,15 @@ class Recipes
             $path = 'file.php?u=';
         }
 
-        if ($this->db->count_rows() > 0)
-        {
-            echo '
+        echo '
                 <h2>'.T_('Latest Recipes').'</h2>
                 <ul id="recipe-list">';
 
-            while ($r = $this->db->get_row())
-            {
-                $since = getHumanTimeSince(strtotime($r['date']));
+        foreach ($rows as $r)
+        {
+            $since = getHumanTimeSince(strtotime($r['date']));
 
-                echo '
+            echo '
                     <li>
                         <a href="?category=' . (int)$r['category'] . '&amp;id=' . (int)$r['id'] . '">
                             <span>' . T_('Click to view recipe') . '</span>
@@ -112,7 +116,6 @@ class Recipes
                             <i>'.$since.'</i>
                         </a>
                     </li>';
-            }
         }
 
         // Close maincolumn and recipe-list
@@ -121,15 +124,20 @@ class Recipes
             </div>';
 
         // Display Pagination
-        $sql = "SELECT count(`id`) AS c FROM `fcms_recipes`";
-        if (!$this->db->query($sql))
+        $sql = "SELECT count(`id`) AS c 
+                FROM `fcms_recipes`";
+
+        $r = $this->fcmsDatabase->getRow($sql);
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
-        $r = $this->db->get_row();
+
         $recipecount = $r['c'];
         $total_pages = ceil($recipecount / 5);
+
         displayPagination('recipes.php', $page, $total_pages);
     }
 
@@ -154,7 +162,7 @@ class Recipes
                 <ul>
                     <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>';
 
-        if (checkAccess($this->currentUserId) <= 5)
+        if ($this->fcmsUser->access <= 5)
         {
             echo '
                 </ul>
@@ -178,20 +186,23 @@ class Recipes
         // Get Recipes for this category
         $sql = "SELECT r.`id`, r.`name`, r.`category`, r.`thumbnail`, c.`name` AS category_name, r.`user`, r.`date`
                 FROM `fcms_recipes` AS r, `fcms_category` AS c
-                WHERE `category` = '$cat'
+                WHERE `category` = ?
                 AND r.`category` = c.`id` 
                 ORDER BY `date` DESC 
                 LIMIT $from, 5";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, $cat);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
         $categoryName = '';
 
         // Display Recipes
-        if ($this->db->count_rows() > 0)
+        if (count($rows) > 0)
         {
             $displayed_category = false;
 
@@ -202,7 +213,7 @@ class Recipes
                 $path = 'file.php?u=';
             }
 
-            while($r = $this->db->get_row())
+            foreach ($rows as $r)
             {
                 // Category
                 if (!$displayed_category)
@@ -234,15 +245,19 @@ class Recipes
             // Display Pagination
             $sql = "SELECT count(`id`) AS c 
                     FROM `fcms_recipes` 
-                    WHERE `category` = '$cat'";
-            if (!$this->db2->query($sql))
+                    WHERE `category` = ?";
+
+            $r = $this->fcmsDatabase->getRow($sql, $cat);
+            if ($r === false)
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
+
                 return;
             }
-            $r = $this->db2->get_row();
+
             $recipecount = $r['c'];
             $total_pages = ceil($recipecount / 5);
+
             displayPagination('recipes.php?category='.$cat, $page, $total_pages);
 
         // No recipes for this category
@@ -280,7 +295,7 @@ class Recipes
             <div id="sections_menu">
                 <ul>
                     <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>';
-        if (checkAccess($this->currentUserId) <= 5) {
+        if ($this->fcmsUser->access <= 5) {
             echo '
                 </ul>
             </div>
@@ -304,24 +319,26 @@ class Recipes
                 AND r.`category` = '$cat'
                 AND r.`category` = c.`id`
                 LIMIT 1";
-        if (!$this->db->query($sql))
+
+        $r = $this->fcmsDatabase->getRow($sql, array($id, $cat));
+        if ($r === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
         // Invalid id/category
-        if ($this->db->count_rows() < 1) {
+        if (empty($r)) {
             echo '
             <div class="error-alert">' . T_('Recipe does not exist.') . '</div>';
+
             return;
         }
 
-        $r = $this->db->get_row();
-
         $displayname = getUserDisplayName($r['user']);
         $displayname = '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>';
-        $date = fixDate(T_('F j, Y, g:i a'), $this->tzOffset, $r['date']);
+        $date        = fixDate(T_('F j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
 
         $cleanName        = cleanOutput($r['name']);
         $cleanCategory    = (int)$r['category'];
@@ -344,7 +361,7 @@ class Recipes
                 <span class="date">
                     '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date);
 
-        if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2)
+        if ($this->fcmsUser->id == $r['user'] || $this->fcmsUser->access < 2)
         {
             echo ' &nbsp;
                     <form method="post" action="recipes.php">
@@ -377,7 +394,9 @@ class Recipes
                         '.nl2br_nospaces($cleanIngredients).'
                     </div>
                 </div>';
+
         $this->showComments($id, $cat);
+
         echo '
             </div>';
     }
@@ -580,13 +599,15 @@ class Recipes
                 FROM `fcms_category` 
                 WHERE `type` = 'recipe' 
                 ORDER BY `name`"; 
-        if (!$this->db2->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return $categories;
         }
 
-        while ($r = $this->db2->get_row())
+        foreach ($rows as $r)
         {
             $categories[$r['id']] = cleanOutput($r['name']);
         }
@@ -613,13 +634,16 @@ class Recipes
                 WHERE c.`type` = 'recipe'
                 GROUP by c.`id`
                 ORDER BY `name`";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            displaysqlerror('Category Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return false;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             return false;
         }
@@ -627,7 +651,7 @@ class Recipes
         $categories = array();
         $counts     = array();
 
-        while ($r = $this->db->get_row())
+        foreach ($rows as $r)
         {
             if ($r['type'] == 'cat')
             {
@@ -654,7 +678,7 @@ class Recipes
         echo '
                 </ul>';
 
-        if (checkAccess($this->currentUserId) <= 2)
+        if ($this->fcmsUser->access <= 2)
         {
             echo '<br/>
                 <h3>' . T_('Admin Options') . '</h3>
@@ -688,21 +712,25 @@ class Recipes
                 WHERE `recipe` = '$id' 
                 AND rc.`user` = u.`id` 
                 ORDER BY `date`";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
         // Display current comments
-        if ($this->db->count_rows() >= 0) {
-            while ($r = $this->db->get_row()) {
-
+        if (count($rows) >= 0)
+        {
+            foreach ($rows as $r)
+            {
                 $del_comment = '';
-                $date = fixDate(T_('F j, Y g:i a'), $this->tzOffset, $r['date']);
+                $date = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $r['date']);
                 $displayname = getUserDisplayName($r['user']);
                 $comment = $r['comment'];
-                if ($this->currentUserId == $r['user'] || checkAccess($this->currentUserId) < 2) {
+                if ($this->fcmsUser->id == $r['user'] || $this->fcmsUser->access < 2) {
                     $del_comment .= '<input type="submit" name="delcom" id="delcom" '
                         . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
                         . T_('Delete this Comment') . '"/>';

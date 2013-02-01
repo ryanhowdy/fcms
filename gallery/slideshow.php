@@ -23,7 +23,7 @@ load('gallery');
 init('gallery/');
 
 // Globals
-$gallery = new PhotoGallery($fcmsUser->id);
+$fcmsGallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
 
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -82,12 +82,12 @@ $cid = (int)$_GET['category'];
 $sql = "SELECT p.`id`, p.`caption`, p.`filename`, p.`user`, p.`external_id`, e.`medium`
         FROM `fcms_gallery_photos` AS p
         LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-        WHERE `category` = '$cid'";
+        WHERE `category` = ?";
 
-$result = mysql_query($sql);
-if (!$result)
+$rows = $fcmsDatabase->getRows($sql, $cid);
+if ($rows === false)
 {
-    displaySqlError($sql, mysql_error());
+    $fcmsError->displayError();
     echo '
 </div>
 </body>
@@ -95,10 +95,10 @@ if (!$result)
     die();
 }
 
-if (mysql_num_rows($result) > 0)
+if (count($rows) > 0)
 {
     $i = 0;
-    while ($r = mysql_fetch_array($result))
+    foreach ($rows as $r)
     {
         $i++;
 
@@ -106,7 +106,7 @@ if (mysql_num_rows($result) > 0)
         $filename = basename($r['filename']);
         $caption  = cleanOutput($r['caption']);
 
-        $photoSrc = $gallery->getPhotoSource($r, 'medium');
+        $photoSrc = $fcmsGallery->getPhotoSource($r, 'medium');
 
         echo '
     <div id="img'.$i.'" style="display:none; color:#fff;">

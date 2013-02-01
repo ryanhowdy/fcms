@@ -23,101 +23,122 @@ load('socialmedia');
 
 init('admin/');
 
-$TMPL = array(
-    'sitename'      => getSiteName(),
-    'nav-link'      => getAdminNavLinks(),
-    'pagetitle'     => T_('Administration: YouTube'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
-control();
 exit();
 
-
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    if (isset($_POST['submit']))
-    {
-        displayFormSubmitPage();
-    }
-    else
-    {
-        displayFormPage();
-    }
-}
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    {
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
 
-    $TMPL['javascript'] = '
+        $this->fcmsTemplate = array(
+            'sitename'      => cleanOutput(getSiteName()),
+            'nav-link'      => getAdminNavLinks(),
+            'pagetitle'     => T_('Administration: YouTube'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if (isset($_POST['submit']))
+        {
+            $this->displayFormSubmitPage();
+        }
+        else
+        {
+            $this->displayFormPage();
+        }
+    }
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
+
+        $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>';
 
-    include_once URL_PREFIX.'ui/admin/header.php';
+        include_once URL_PREFIX.'ui/admin/header.php';
 
-    echo '
+        echo '
         <div id="youtube">';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
+        echo '
         </div><!-- /youtube -->';
 
-    include_once URL_PREFIX.'ui/admin/footer.php';
-}
+        include_once URL_PREFIX.'ui/admin/footer.php';
+    }
 
-/**
- * displayFormPage
- * 
- * Displays the form for configuring a youtube app.
- * 
- * @return void
- */
-function displayFormPage ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    if (isset($_SESSION['success']))
+    /**
+     * displayFormPage
+     * 
+     * Displays the form for configuring a youtube app.
+     * 
+     * @return void
+     */
+    function displayFormPage ()
     {
-        echo '
+        global $fcmsUser;
+
+        $this->displayHeader();
+
+        if (isset($_SESSION['success']))
+        {
+            echo '
         <div class="alert-message success">
             <a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>
             '.T_('Changes Updated Successfully').'
         </div>';
 
-        unset($_SESSION['success']);
-    }
+            unset($_SESSION['success']);
+        }
 
-    $r = getYouTubeConfigData();
+        $r = getYouTubeConfigData();
 
-    $key = isset($r['youtube_key']) ? cleanOutput($r['youtube_key']) : '';
+        $key = isset($r['youtube_key']) ? cleanOutput($r['youtube_key']) : '';
 
-    echo '
+        echo '
         <div class="alert-message block-message info">
             <h1>'.T_('YouTube Integration').'</h1>
             <p>
@@ -125,9 +146,9 @@ function displayFormPage ()
             </p>
         </div>';
 
-    if (empty($key))
-    {
-        echo '
+        if (empty($key))
+        {
+            echo '
         <div class="row">
             <div class="span4">
                 <h2>'.T_('Step 1').'</h2>
@@ -154,9 +175,9 @@ function displayFormPage ()
                 </p>
             </div>
             <div class="span12">';
-    }
+        }
 
-    echo '
+        echo '
                 <form method="post" action="youtube.php">
                     <fieldset>
                         <legend>'.T_('YouTube').'</legend>
@@ -172,43 +193,44 @@ function displayFormPage ()
                     </fieldset>
                 </form>';
 
-    if (empty($key))
-    {
-        echo '
+        if (empty($key))
+        {
+            echo '
             </div><!-- /span12 -->
         </div><!-- /row -->';
+        }
+
+        $this->displayFooter();
     }
 
-    displayFooter();
-}
-
-/**
- * displayFormSubmitPage
- * 
- * @return void
- */
-function displayFormSubmitPage ()
-{
-    if (isset($_SESSION['youtube_key']))
+    /**
+     * displayFormSubmitPage
+     * 
+     * @return void
+     */
+    function displayFormSubmitPage ()
     {
-        unset($_SESSION['youtube_key']);
+        if (isset($_SESSION['youtube_key']))
+        {
+            unset($_SESSION['youtube_key']);
+        }
+
+        $key = isset($_POST['key']) ? $_POST['key'] : '';
+
+        $sql = "UPDATE `fcms_config` 
+                SET `value` = ?
+                WHERE `name` = 'youtube_key'";
+
+        if (!$this->fcmsDatabase->update($sql, $key))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: youtube.php");
     }
-
-    $key = isset($_POST['key']) ? escape_string($_POST['key']) : '';
-
-    $sql = "UPDATE `fcms_config` 
-            SET `value` = '$key'
-            WHERE `name` = 'youtube_key'";
-    
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    $_SESSION['success'] = 1;
-
-    header("Location: youtube.php");
 }

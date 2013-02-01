@@ -39,17 +39,15 @@ if (isset($_GET['uid']))
 
         $sql = "SELECT `activate_code` 
                 FROM `fcms_users` 
-                WHERE `id` = '$uid'";
+                WHERE `id` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $row = $fcmsDatabase->getRow($sql, $uid);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $fcmsError->displayError();
             echo '</body></html>';
             exit();
         }
-
-        $row = mysql_fetch_array($result);
 
         // User supplied an activation code
         if (isset($_GET['code']))
@@ -59,11 +57,11 @@ if (isset($_GET['uid']))
             {
                 $sql = "UPDATE `fcms_users` 
                         SET `activated` = 1, `joindate` = NOW() 
-                        WHERE `id` = '$uid'";
+                        WHERE `id` = ?";
 
-                if (!mysql_query($sql))
+                if (!$fcmsDatabase->update($sql, $uid))
                 {
-                    displaySqlError($sql, mysql_error());
+                    $fcmsError->displayError();
                     echo '</body></html>';
                     exit();
                 }

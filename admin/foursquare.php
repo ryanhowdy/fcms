@@ -23,175 +23,206 @@ load('socialmedia');
 
 init('admin/');
 
-$TMPL = array(
-    'sitename'      => getSiteName(),
-    'nav-link'      => getAdminNavLinks(),
-    'pagetitle'     => T_('Administration: Foursquare'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
-control();
 exit();
 
-
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    checkPermissions();
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
 
-    if (isset($_POST['submit']))
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        displayFormSubmitPage();
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
+
+        $this->fcmsTemplate = array(
+            'sitename'      => cleanOutput(getSiteName()),
+            'nav-link'      => getAdminNavLinks(),
+            'pagetitle'     => T_('Administration: Foursquare'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->checkPermissions();
+
+        $this->control();
     }
-    else
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
     {
-        displayFormPage();
+        if (isset($_POST['submit']))
+        {
+            $this->displayFormSubmitPage();
+        }
+        else
+        {
+            $this->displayFormPage();
+        }
     }
-}
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    $TMPL['javascript'] = '
+        $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>';
 
-    include_once URL_PREFIX.'ui/admin/header.php';
+        include_once URL_PREFIX.'ui/admin/header.php';
 
-    echo '
+        echo '
         <div id="foursquare">';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
+        echo '
         </div><!-- /foursquare -->';
 
-    include_once URL_PREFIX.'ui/admin/footer.php';
-}
+        include_once URL_PREFIX.'ui/admin/footer.php';
+    }
 
-/**
- * checkPermissions 
- * 
- * @return void
- */
-function checkPermissions ()
-{
-    global $fcmsUser;
-
-    if (checkAccess($fcmsUser->id) > 2)
+    /**
+     * checkPermissions 
+     * 
+     * @return void
+     */
+    function checkPermissions ()
     {
-        echo '
+        if ($this->fcmsUser->access > 2)
+        {
+            $this->displayHeader();
+
+            echo '
                 <p class="error-alert">
                     <b>'.T_('You do not have access to view this page.').'</b><br/>
                     '.T_('This page requires an access level 2 (Helper) or better.').' 
                     <a href="../contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
                 </p>';
-        displayFooter();
-        die();
-    }
-}
 
-/**
- * displayFormSubmitPage 
- * 
- * @return void
- */
-function displayFormSubmitPage ()
-{
-    $id     = isset($_POST['id'])     ? escape_string($_POST['id'])     : '';
-    $secret = isset($_POST['secret']) ? escape_string($_POST['secret']) : '';
-    $url    = isset($_POST['url'])    ? escape_string($_POST['url'])    : '';
-
-    $sql = "DELETE FROM `fcms_config`
-            WHERE `name` = 'fs_client_id'
-            OR `name` = 'fs_client_secret'
-            OR `name` = 'fs_callback_url'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+            $this->displayFooter();
+            die();
+        }
     }
 
-    $sql = "INSERT INTO `fcms_config` (`name`, `value`)
-            VALUES
-                ('fs_client_id', '$id'),
-                ('fs_client_secret', '$secret'), 
-                ('fs_callback_url', '$url')";
-    if (!mysql_query($sql))
+    /**
+     * displayFormSubmitPage 
+     * 
+     * @return void
+     */
+    function displayFormSubmitPage ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $id     = isset($_POST['id'])     ? $_POST['id']     : '';
+        $secret = isset($_POST['secret']) ? $_POST['secret'] : '';
+        $url    = isset($_POST['url'])    ? $_POST['url']    : '';
+
+        $sql = "DELETE FROM `fcms_config`
+                WHERE `name` = 'fs_client_id'
+                OR `name` = 'fs_client_secret'
+                OR `name` = 'fs_callback_url'";
+
+        if (!$this->fcmsDatabase->delete($sql))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "INSERT INTO `fcms_config` (`name`, `value`)
+                VALUES
+                    ('fs_client_id', ?),
+                    ('fs_client_secret', ?), 
+                    ('fs_callback_url', ?)";
+
+        $params = array(
+            $id,
+            $secret, 
+            $url
+        );
+
+        $result = $this->fcmsDatabase->insert($sql, $params);
+        if ($result === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: foursquare.php");
     }
 
-    $_SESSION['success'] = 1;
-
-    header("Location: foursquare.php");
-}
-
-/**
- * displayFormPage 
- * 
- * @param string $displayMessage 
- * 
- * @return void
- */
-function displayFormPage ($displayMessage = '')
-{
-    displayHeader();
-
-    if (isset($_SESSION['success']))
+    /**
+     * displayFormPage 
+     * 
+     * @param string $displayMessage 
+     * 
+     * @return void
+     */
+    function displayFormPage ($displayMessage = '')
     {
-        echo '
+        $this->displayHeader();
+
+        if (isset($_SESSION['success']))
+        {
+            echo '
         <div class="alert-message success">
             <a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>
             '.T_('Changes Updated Successfully').'
         </div>';
 
-        unset($_SESSION['success']);
-    }
+            unset($_SESSION['success']);
+        }
 
-    $r = getFoursquareConfigData();
+        $r = getFoursquareConfigData();
 
-    $id     = isset($r['fs_client_id'])     ? cleanOutput($r['fs_client_id'])     : '';
-    $secret = isset($r['fs_client_secret']) ? cleanOutput($r['fs_client_secret']) : '';
-    $url    = isset($r['fs_callback_url'])  ? cleanOutput($r['fs_callback_url'])  : '';
+        $id     = isset($r['fs_client_id'])     ? cleanOutput($r['fs_client_id'])     : '';
+        $secret = isset($r['fs_client_secret']) ? cleanOutput($r['fs_client_secret']) : '';
+        $url    = isset($r['fs_callback_url'])  ? cleanOutput($r['fs_callback_url'])  : '';
 
-    if (empty($id) || empty($secret) || empty($url))
-    {
-        echo '
+        if (empty($id) || empty($secret) || empty($url))
+        {
+            echo '
         <div class="row">
             <div class="span4">
                 <h2>'.T_('Step 1').'</h2>
-                <p>'.T_('Go to Foursquare and register a new OAuth Consumer.').'</p>
+                <p>'.T_('Go to Foursquare and register a new app.').'</p>
             </div>
             <div class="span12">
-                <h3><a href="https://foursquare.com/oauth/register">'.T_('Register a new foursquare OAuth Consumer.').'</a></h3>
+                <h3><a href="https://foursquare.com/developers/register">'.T_('Register a new foursquare app.').'</a></h3>
                 <p>
                     '.T_('Be sure to include settings.php as part of your callback url.  For example: if your site is located at http://www.my-awesome-site.com/fcms/index.php then your callback url should be http://www.my-awesome-site.com/fcms/settings.php').'
                 </p>
@@ -208,9 +239,9 @@ function displayFormPage ($displayMessage = '')
                 <p>'.T_('Fill out the form below with the information you provided in Step 1.').'</p>
             </div>
             <div class="span12">';
-    }
+        }
 
-    echo '
+        echo '
                 <form action="foursquare.php" method="post">
                     <fieldset>
                         <legend>'.T_('Foursquare Confirguration').'</legend>
@@ -238,12 +269,13 @@ function displayFormPage ($displayMessage = '')
                     </fieldset>
                 </form>';
 
-    if (empty($id) || empty($secret) || empty($url))
-    {
-        echo '
+        if (empty($id) || empty($secret) || empty($url))
+        {
+            echo '
             </div><!-- /span12 -->
         </div><!-- /row -->';
-    }
+        }
 
-    displayFooter();
+        $this->displayFooter();
+    }
 }

@@ -13,10 +13,10 @@
  */
 require 'fcms.php';
 
-// Overwrite language
+// Language
 $lang = 'en_US';
 
-// Language
+// Overwrite language
 if (isset($_GET['lang']))
 {
     $lang = $_GET['lang'];
@@ -85,6 +85,9 @@ else
  */
 function displayFeedAll ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $url     = "http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']; 
     $urlRoot = $url; 
 
@@ -99,7 +102,7 @@ function displayFeedAll ()
     } 
 
     // Get data
-    $whatsNewData = getWhatsNewData(1, 30); // Use userid 1
+    $whatsNewData = getWhatsNewData(30);
     if ($whatsNewData === false)
     {
         return;
@@ -154,15 +157,15 @@ function displayFeedAll ()
         {
             $sql = "SELECT min(`id`) AS id 
                     FROM `fcms_board_posts` 
-                    WHERE `thread` = ".$cId2;
+                    WHERE `thread` = ?";
 
-            $result = mysql_query($sql);
-            if (!$result)
+            $minpost = $fcmsDatabase->getRow($sql, $cId2);
+            if ($minpost === false)
             {
-                 continue;
+                // error will be logged, but not displayed
+                continue;
             }
 
-            $minpost  = mysql_fetch_array($result);
             $userName = getUserDisplayName($cUserid);
             $subject  = $cTitle;
             $link     = "messageboard.php?thread=".$cId2;
@@ -328,6 +331,9 @@ function displayFeedAll ()
  */
 function displayFeedPhotoGallery () 
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     $url     = "http://".$_SERVER['SERVER_NAME'].$_SERVER['PHP_SELF']; 
     $urlroot = $url; 
 
@@ -347,20 +353,15 @@ function displayFeedPhotoGallery ()
     $sql = "SELECT `caption`, p.`user`, `filename`, p.`date`, `name` 
             FROM `fcms_gallery_photos` AS p, `fcms_category` As c
             WHERE p.`category` = c.`id` 
-            AND UNIX_TIMESTAMP(p.`date`) >= $lastday 
+            AND UNIX_TIMESTAMP(p.`date`) >= ?
             ORDER BY p.`date`"; 
-    $result = mysql_query($sql);
-    if (!$result)
+
+    $rows = $fcmsDatabase->getRows($sql, $lastday);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
+        print "Error getting data.";
+
         return;
-    }
-
-    $return = array();
-
-    while ($line = mysql_fetch_assoc($result))
-    { 
-        $return[] = $line; 
     }
 
     $output = "<?xml version=\"1.0\"?" . "> 
@@ -373,12 +374,13 @@ function displayFeedPhotoGallery ()
 <managingEditor>" . getContactEmail() . "</managingEditor> 
 ";
 
-    if (count($return) > 0)
+    if (count($rows) > 0)
     {
-        foreach ($return as $line)
+        foreach ($rows as $line)
         {
             $title = htmlentities($line['caption']);
-            if ($title == "") {
+            if ($title == "")
+            {
                 $title = htmlentities($line['name']);
             }
             $output .= "<item><title><![CDATA[$title]]></title> 

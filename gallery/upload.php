@@ -21,7 +21,7 @@ require URL_PREFIX.'fcms.php';
 load('gallery');
 
 // Gallery
-$gallery = new PhotoGallery($fcmsUser->id);
+$fcmsPhotoGallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
 
 if ($fcmsUser->id < 1)
 {
@@ -33,7 +33,7 @@ if ($fcmsUser->id < 1)
 $file_param_name[] = 'small';
 $file_param_name[] = 'medium';
 
-if ($gallery->usingFullSizePhotos())
+if ($fcmsPhotoGallery->usingFullSizePhotos())
 {
     $file_param_name[] = 'full';
 }
@@ -68,22 +68,24 @@ if (empty($_POST['category']))
         else
         {
             $newCategory = strip_tags($_POST['new-category']);
-            $newCategory = escape_string($newCategory);
 
             // Create category
             $sql = "INSERT INTO `fcms_category`(`name`, `type`, `user`) 
-                    VALUES (
-                        '$newCategory', 
-                        'gallery', 
-                        '$fcmsUser->id'
-                    )";
-            if (!mysql_query($sql))
+                    VALUES (?, 'gallery', ?)";
+
+            $params = array(
+                $newCategory, 
+                $fcmsUser->id
+            );
+
+            $categoryId = $fcmsDatabase->insert($sql, $params);
+            if ($categoryId === false)
             {
-                displaySqlError($sql, mysql_error());
+                echo "Create Category Failure";
                 die();
             }
 
-            $_POST['category']                = mysql_insert_id();
+            $_POST['category']                = $categoryId;
             $_SESSION['mass_photos_category'] = $_POST['category'];
         }
     }
@@ -91,34 +93,40 @@ if (empty($_POST['category']))
 
 // Create a new photo record in DB
 $sql = "INSERT INTO `fcms_gallery_photos` (`date`, `category`, `user`) 
-        VALUES(
-            NOW(), 
-            '".(int)$_POST['category']."', 
-            '$fcmsUser->id'
-        )";
-if (!mysql_query($sql))
+        VALUES(NOW(), ?, ?)";
+
+$params = array(
+    $_POST['category'],
+    $fcmsUser->id
+);
+
+$new_id = $fcmsDatabase->insert($sql, $params);
+if ($new_id === false)
 {
     echo "Insert New Photo Failure";
-    logError(__FILE__.' ['.__LINE__.'] - Insert new photo failure.');
     die();
 }
 
 // Update the filename and update the photo record in DB
 // We insert above and update below so we can make sure that the filename of
 // the photo is the same as the photo id
-$new_id      = mysql_insert_id();
 $filetype    = $_FILES['medium']['type'];
 $extention   = $known_photo_types[$filetype];
 $filename    = $new_id.'.'.$extention;
 $uploadsPath = getUploadsAbsolutePath();
 
 $sql = "UPDATE `fcms_gallery_photos` 
-        SET `filename` = '".escape_string($filename)."' 
-        WHERE `id` = '".(int)$new_id."'";
-if (!mysql_query($sql))
+        SET `filename` = ?
+        WHERE `id` = ?";
+
+$params = array(
+    $filename,
+    $new_id
+);
+
+if (!$fcmsDatabase->update($sql, $params))
 {
     echo "Update Photo Failure";
-    logError(__FILE__.' ['.__LINE__.'] - Update photo failure.');
     die();
 }
 

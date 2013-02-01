@@ -19,21 +19,28 @@ require_once 'inc/utils.php';
 require_once 'inc/constants.php';
 require_once 'inc/Error.php';
 require_once 'inc/User.php';
+require_once 'inc/Database.php';
 
+error_reporting(-1);
+ini_set('log_errors', 0);
 set_error_handler("fcmsErrorHandler");
 
 fixMagicQuotes();
 
-connectDatabase();
-
 checkSiteStatus();
 
-$fcmsError = new FCMS_Error();
-$fcmsUser  = new User($fcmsError);
-
-if ($fcmsError->hasErrors())
+$fcmsError    = FCMS_Error::getInstance();
+$fcmsDatabase = Database::getInstance($fcmsError);
+if ($fcmsError->hasError())
 {
-    $fcmsError->displayErrors();
+    $fcmsError->displayError();
+    return;
+}
+
+$fcmsUser = new User($fcmsError, $fcmsDatabase);
+if ($fcmsError->hasError())
+{
+    $fcmsError->displayError();
     return;
 }
 
@@ -87,6 +94,16 @@ function load()
             Zend_Loader::loadClass('Zend_Gdata_YouTube');
             Zend_Loader::loadClass('Zend_Gdata_AuthSub');
             Zend_Loader::loadClass('Zend_Gdata_App_Exception');
+        }
+        elseif ($include == 'picasa')
+        {
+            set_include_path(THIRDPARTY);
+
+            require_once 'Zend/Loader.php';
+            Zend_Loader::loadClass('Zend_Gdata_Photos');
+            Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
+            Zend_Loader::loadClass('Zend_Gdata_AuthSub');
+            Zend_Loader::loadClass('Zend_Gdata_Photos_AlbumQuery');
         }
         else
         {
@@ -171,26 +188,6 @@ function setLanguage ()
 }
 
 /**
- * connectDatabase 
- * 
- * Connects to the mysql db.
- * 
- * @return void
- */
-function connectDatabase ()
-{
-    global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
-    $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-    mysql_select_db($cfg_mysql_db);
-
-    if (!mysql_query("SET NAMES 'utf8'"))
-    {
-        displaySqlError($sql, mysql_error());
-    }
-}
-
-/**
  * getLanguage 
  * 
  * Gets the users default language.  Defaults to en_us.
@@ -199,24 +196,24 @@ function connectDatabase ()
  */
 function getLanguage ()
 {
+    global $fcmsDatabase, $fcmsError;
+
     if (isset($_SESSION['login_id']))
     {
-        $user = (int)$_SESSION['login_id'];
+        $id = (int)$_SESSION['login_id'];
 
         $sql = "SELECT `language` 
                 FROM `fcms_user_settings` 
-                WHERE `id` = '$user'";
+                WHERE `id` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $row = $fcmsDatabase->getRow($sql, $id);
+        if ($row === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        $row = mysql_fetch_array($result);
-
-        if (mysql_num_rows($result) > 0)
+        if (count($row) > 0)
         {
             return $row['language'];
         }
@@ -237,19 +234,26 @@ function getLanguage ()
  */
 function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
 {
-    $debugInfo = '';
+    $trace = array_reverse(debug_backtrace());
 
-    $pos = strpos($errstr, "It is not safe to rely on the system's timezone settings");
-    if ($pos !== false)
-    {
-        return true;
-    }
+    $stack    = '';
+    $logStack = '';
 
-    if (debugOn())
+    for ($i = 0; $i < count($trace); $i++)
     {
-        $debugInfo = '
-        <p><b>Where:</b> on line '.$errline.' in '.$errfile.'</p>
-        <p><b>Environment:</b> PHP '.PHP_VERSION.' ('.PHP_OS.')</p>';
+        $function = '???';
+        $file     = '???';
+        $line     = '???';
+
+        if (isset($trace[$i]))
+        {
+            $function = isset($trace[$i]['function']) ? $trace[$i]['function'] : $function;
+            $file     = isset($trace[$i]['file'])     ? $trace[$i]['file']     : $file;
+            $line     = isset($trace[$i]['line'])     ? $trace[$i]['line']     : $line;
+        }
+
+        $stack    .= '#'.$i.' '.$function.' called at ['.$file.':'.$line.']<br/>';
+        $logStack .= '    #'.$i.' '.$function.' called at ['.$file.':'.$line."]\n";
     }
 
     switch ($errno)
@@ -258,7 +262,10 @@ function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
             echo '
             <div class="error-alert">
                 <p><b>Fatal Error</b></p>
-                '.$debugInfo.'
+                <p><b>File</b>: '.$errfile.'</p>
+                <p><b>Line</b>: '.$errline.'</p>
+                <p><b>Stack</b>:<br/><small>'.$stack.'</small></p>
+                <p><b>PHP</b>: '.PHP_VERSION.' ('.PHP_OS.')</p>
             </div>';
 
             exit(1);
@@ -277,14 +284,24 @@ function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
             break;
     }
 
-    echo '
-    <div class="error-alert">
-        <p><b>'.$errno.'</b></p>
-        <p><b>'.$errstr.'</b></p>
-        '.$debugInfo.'
-    </div>';
+    echo '<div class="error-alert"><p><b>'.$errno.'</b></p><p><b>'.$errstr.'</b></p>';
 
-    logError($errfile.' ['.$errline.'] - '.$errstr);
+    if (debugOn())
+    {
+        echo '<p><b>File</b>: '.$errfile.'</p>';
+        echo '<p><b>Line</b>: '.$errline.'</p>';
+        echo '<p><b>Stack</b>:<br/><small>'.$stack.'</small></p>';
+        echo '<p><b>PHP</b>: '.PHP_VERSION.' ('.PHP_OS.')</p>';
+    }
+
+    echo '</div>';
+
+    $log  = $errstr."\n";
+    $log .= '  FILE  - '.$errfile.' ['.$errline."]\n";
+    $log .= '  PHP   - '.PHP_VERSION.' ('.PHP_OS.")\n";
+    $log .= "  STACK\n".$logStack."\n";
+
+    logError($log);
 
     // Don't execute PHP internal error handler
     return true;
@@ -301,31 +318,33 @@ function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
  */
 function checkScheduler ($subdir = '')
 {
+    global $fcmsDatabase, $fcmsError;
+
     $sql = "SELECT `id`, `type`, `repeat`, `lastrun`
             FROM `fcms_schedule`
             WHERE `status` = 1";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
-        displaySqlError($sql, mysql_error());
+        $fcmsError->displayError();
         return;
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (count($rows) <= 0)
     {
         return;
     }
 
     $url = getDomainAndDir();
 
-    // Remove subdirectory from end (admi/ or gallery/)
+    // Remove subdirectory from end (admin/ or gallery/)
     if (!empty($subdir))
     {
         $url = str_replace($subdir, "", $url);
     }
 
-    while ($row = mysql_fetch_assoc($result))
+    foreach ($rows as $row)
     {
         $runJob  = false;
         $hourAgo = strtotime('-1 hours');
@@ -373,21 +392,21 @@ function checkScheduler ($subdir = '')
  */
 function isLoggedIn ()
 {
-    global $fcmsUser, $fcmsError;
+    global $fcmsDatabase, $fcmsError;
 
     // User has a session
     if (isset($_SESSION['login_id']))
     {
         $id   = (int)$_SESSION['login_id'];
-        $user = escape_string($_SESSION['login_uname']);
-        $pass = escape_string($_SESSION['login_pw']);
+        $user = $_SESSION['login_uname'];
+        $pass = $_SESSION['login_pw'];
     }
     // User has a cookie
     elseif (isset($_COOKIE['fcms_login_id']))
     {
         $_SESSION['login_id']    = (int)$_COOKIE['fcms_login_id'];
-        $_SESSION['login_uname'] = escape_string($_COOKIE['fcms_login_uname']);
-        $_SESSION['login_pw']    = escape_string($_COOKIE['fcms_login_pw']);
+        $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
+        $_SESSION['login_pw']    = $_COOKIE['fcms_login_pw'];
 
         $id   = $_SESSION['login_id'];
         $user = $_SESSION['login_uname'];
@@ -412,28 +431,26 @@ function isLoggedIn ()
     // User's session/cookie credentials are good
     if (checkLoginInfo($id, $user, $pass))
     {
-        $sql = "SELECT `access`
+        $sql = "SELECT `access` AS 'val'
                 FROM `fcms_users`
-                WHERE `id` = '$id'
-                LIMIT 1
+                WHERE `id` = ?
                 UNION
-                SELECT `value`
+                SELECT `value` AS 'val'
                 FROM `fcms_config`
-                WHERE `name` = 'site_off'
-                LIMIT 1";
+                WHERE `name` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $rows = $fcmsDatabase->getRows($sql, array($id, 'site_off'));
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
-            die();
+            $error->displayError();
+            return;
         }
 
-        $r1 = mysql_fetch_assoc($result);
-        $r2 = mysql_fetch_assoc($result);
+        $site_off = $rows[0]['val'];
+        $access   = $rows[1]['val'];
 
         // Site is off and your not an admin
-        if ($r2['site_off'] == 1 && $r1['access'] > 1)
+        if ($site_off == 1 && $access > 1)
         {
             header('Location: '.URL_PREFIX.'index.php?err=off');
             exit();
@@ -441,7 +458,6 @@ function isLoggedIn ()
         // Good login, you may proceed
         else
         {
-            $fcmsUser = new User($fcmsError);
             return;
         }
     }

@@ -17,108 +17,129 @@ session_start();
 define('URL_PREFIX', '../');
 define('GALLERY_PREFIX', '../gallery/');
 
-require '../fcms.php';
+require URL_PREFIX.'fcms.php';
 
 load('socialmedia');
 
 init('admin/');
 
-$TMPL = array(
-    'sitename'      => getSiteName(),
-    'nav-link'      => getAdminNavLinks(),
-    'pagetitle'     => T_('Administration: Instagram'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
-control();
 exit();
 
-
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    if (isset($_POST['submit']))
-    {
-        displayFormSubmitPage();
-    }
-    else
-    {
-        displayFormPage();
-    }
-}
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    {
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
 
-    $TMPL['javascript'] = '
+        $this->fcmsTemplate = array(
+            'sitename'      => cleanOutput(getSiteName()),
+            'nav-link'      => getAdminNavLinks(),
+            'pagetitle'     => T_('Administration: Instagram'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if (isset($_POST['submit']))
+        {
+            $this->displayFormSubmitPage();
+        }
+        else
+        {
+            $this->displayFormPage();
+        }
+    }
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
+
+        $TMPL['javascript'] = '
 <script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>';
 
-    include_once URL_PREFIX.'ui/admin/header.php';
+        include_once URL_PREFIX.'ui/admin/header.php';
 
-    echo '
+        echo '
         <div id="instagram">';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
+        echo '
         </div><!--/instagram-->';
 
-    include_once URL_PREFIX.'ui/admin/footer.php';
-}
+        include_once URL_PREFIX.'ui/admin/footer.php';
+    }
 
-/**
- * displayFormPage
- * 
- * Displays the form for configuring a instagram app.
- * 
- * @return void
- */
-function displayFormPage ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    if (isset($_SESSION['success']))
+    /**
+     * displayFormPage
+     * 
+     * Displays the form for configuring a instagram app.
+     * 
+     * @return void
+     */
+    function displayFormPage ()
     {
-        echo '
+        global $fcmsUser;
+
+        $this->displayHeader();
+
+        if (isset($_SESSION['success']))
+        {
+            echo '
         <div class="alert-message success">
             <a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>
             '.T_('Changes Updated Successfully').'
         </div>';
 
-        unset($_SESSION['success']);
-    }
+            unset($_SESSION['success']);
+        }
 
-    $r = getInstagramConfigData();
+        $r = getInstagramConfigData();
 
-    $client_id     = isset($r['instagram_client_id'])     ? cleanOutput($r['instagram_client_id'])     : '';
-    $client_secret = isset($r['instagram_client_secret']) ? cleanOutput($r['instagram_client_secret']) : '';
+        $client_id     = isset($r['instagram_client_id'])     ? cleanOutput($r['instagram_client_id'])     : '';
+        $client_secret = isset($r['instagram_client_secret']) ? cleanOutput($r['instagram_client_secret']) : '';
 
-    echo '
+        echo '
         <div class="alert-message block-message info">
             <h1>'.T_('Instagram Integration').'</h1>
             <p>
@@ -126,9 +147,9 @@ function displayFormPage ()
             </p>
         </div>';
 
-    if (empty($client_id) || empty($client_secret))
-    {
-        echo '
+        if (empty($client_id) || empty($client_secret))
+        {
+            echo '
         <div class="row">
             <div class="span4">
                 <h2>'.T_('Step 1').'</h2>
@@ -138,7 +159,7 @@ function displayFormPage ()
             </div>
             <div class="span12">
                 <h3>
-                    <a href="http://instagram.com/developer/manage/">'.T_('Register new Instagram Client').'</a><br/>
+                    <a href="http://instagram.com/developer/clients/manage/">'.T_('Register new Instagram Client').'</a><br/>
                 </h3>
                 <p>
                     '.T_('Make sure you add <code>settings.php?view=instagram</code> to your Callback URL.').'
@@ -158,9 +179,9 @@ function displayFormPage ()
                 </p>
             </div>
             <div class="span12">';
-    }
+        }
 
-    echo '
+        echo '
                 <form method="post" action="instagram.php">
                     <fieldset>
                         <legend>Instagram</legend>
@@ -182,61 +203,62 @@ function displayFormPage ()
                     </fieldset>
                 </form>';
 
-    if (empty($client_id) || empty($client_secret))
-    {
-        echo '
+        if (empty($client_id) || empty($client_secret))
+        {
+            echo '
             </div><!-- /span12 -->
         </div><!-- /row -->';
+        }
+
+        $this->displayFooter();
     }
 
-    displayFooter();
-}
-
-/**
- * displayFormSubmitPage
- * 
- * @return void
- */
-function displayFormSubmitPage ()
-{
-    if (isset($_SESSION['instagram_client_id']))
+    /**
+     * displayFormSubmitPage
+     * 
+     * @return void
+     */
+    function displayFormSubmitPage ()
     {
-        unset($_SESSION['instagram_client_id']);
+        if (isset($_SESSION['instagram_client_id']))
+        {
+            unset($_SESSION['instagram_client_id']);
+        }
+
+        if (isset($_SESSION['instagram_client_secret']))
+        {
+            unset($_SESSION['instagram_client_secret']);
+        }
+
+        $id     = isset($_POST['id'])     ? $_POST['id']     : '';
+        $secret = isset($_POST['secret']) ? $_POST['secret'] : '';
+
+        $sql = "UPDATE `fcms_config` 
+                SET `value` = ?
+                WHERE `name` = 'instagram_client_id'";
+        
+        if (!$this->fcmsDatabase->update($sql, $id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "UPDATE `fcms_config` 
+                SET `value` = ?
+                WHERE `name` = 'instagram_client_secret'";
+        
+        if (!$this->fcmsDatabase->update($sql, $secret))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: instagram.php");
     }
-
-    if (isset($_SESSION['instagram_client_secret']))
-    {
-        unset($_SESSION['instagram_client_secret']);
-    }
-
-    $id     = isset($_POST['id'])     ? escape_string($_POST['id'])     : '';
-    $secret = isset($_POST['secret']) ? escape_string($_POST['secret']) : '';
-
-    $sql = "UPDATE `fcms_config` 
-            SET `value` = '$id'
-            WHERE `name` = 'instagram_client_id'";
-    
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    $sql = "UPDATE `fcms_config` 
-            SET `value` = '$secret'
-            WHERE `name` = 'instagram_client_secret'";
-    
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    $_SESSION['success'] = 1;
-
-    header("Location: instagram.php");
 }

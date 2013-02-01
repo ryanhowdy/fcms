@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo T_('lang'); ?>" lang="<?php echo T_('lang'); ?>">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo T_pgettext('Language Code for this translation', 'lang'); ?>" lang="<?php echo T_('Language Code for this translation', 'lang'); ?>">
 <head>
 <title><?php echo $TMPL['sitename'] . " - " . T_('powered by') . " " . $TMPL['version']; ?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>

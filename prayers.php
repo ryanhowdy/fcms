@@ -22,70 +22,89 @@ load('datetime');
 
 init();
 
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Prayer Concerns'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
-control();
 exit();
 
-
-/**
- * control 
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    global $fcmsUser;
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsTemplate;
 
-    if (isset($_GET['addconcern']) && checkAccess($fcmsUser->id) <= 5)
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        displayAddForm();
-    }
-    elseif (isset($_POST['submitadd']))
-    {
-        displayAddFormSubmit();
-    }
-    elseif (isset($_POST['editprayer']))
-    {
-        displayEditForm();
-    }
-    elseif (isset($_POST['submitedit']))
-    {
-        displayEditFormSubmit();
-    }
-    elseif (isset($_POST['delprayer']) && !isset($_POST['confirmed']))
-    {
-        displayConfirmDelete();
-    }
-    elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
-    {
-        displayDeleteSubmit();
-    }
-    else
-    {
-        displayPrayers();
-    }
-}
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
 
-/**
- * displayHeader 
- * 
- * @return void
- */
-function displayHeader ()
-{
-    global $TMPL, $fcmsUser;
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Prayer Concerns'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-    $TMPL['javascript'] = '
+        $this->control();
+    }
+
+    /**
+     * control 
+     * 
+     * @return void
+     */
+    function control ()
+    {
+        if (isset($_GET['addconcern']) && $this->fcmsUser->access <= 5)
+        {
+            $this->displayAddForm();
+        }
+        elseif (isset($_POST['submitadd']))
+        {
+            $this->displayAddFormSubmit();
+        }
+        elseif (isset($_POST['editprayer']))
+        {
+            $this->displayEditForm();
+        }
+        elseif (isset($_POST['submitedit']))
+        {
+            $this->displayEditFormSubmit();
+        }
+        elseif (isset($_POST['delprayer']) && !isset($_POST['confirmed']))
+        {
+            $this->displayConfirmDelete();
+        }
+        elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
+        {
+            $this->displayDeleteSubmit();
+        }
+        else
+        {
+            $this->displayPrayers();
+        }
+    }
+
+    /**
+     * displayHeader 
+     * 
+     * @return void
+     */
+    function displayHeader ()
+    {
+        $TMPL = $this->fcmsTemplate;
+
+        $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
@@ -104,37 +123,37 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-    require_once getTheme($fcmsUser->id).'header.php';
+        require_once getTheme($this->fcmsUser->id).'header.php';
 
-    echo '
+        echo '
         <div id="prayers" class="centercontent">';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter ()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter ()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
-        </div><!-- #prayers .centercontent -->';
+        echo '
+        </div><!--/prayers-->';
 
-    include_once getTheme($fcmsUser->id).'footer.php';
-}
+        include_once getTheme($this->fcmsUser->id).'footer.php';
+    }
 
-/**
- * displayAddForm 
- * 
- * @return void
- */
-function displayAddForm ()
-{
-    displayHeader();
+    /**
+     * displayAddForm 
+     * 
+     * @return void
+     */
+    function displayAddForm ()
+    {
+        $this->displayHeader();
 
-    echo '
+        echo '
             <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form method="post" name="addform" action="prayers.php">
                 <fieldset>
@@ -161,65 +180,67 @@ function displayAddForm ()
                 </fieldset>
             </form>';
 
-    displayFooter();
-}
-
-/**
- * displayAddFormSubmit 
- * 
- * @return void
- */
-function displayAddFormSubmit ()
-{
-    global $fcmsUser;
-
-    $for       = strip_tags($_POST['for']);
-    $cleanFor  = escape_string($for);
-    $desc      = strip_tags($_POST['desc']);
-    $cleanDesc = escape_string($desc);
-
-    $sql = "INSERT INTO `fcms_prayers`(`for`, `desc`, `user`, `date`) 
-            VALUES(
-                '$cleanFor', 
-                '$cleanDesc', 
-                '$fcmsUser->id', 
-                NOW()
-            )";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    // Email members
-    $sql = "SELECT u.`email`, s.`user`
-            FROM `fcms_user_settings` AS s, `fcms_users` AS u 
-            WHERE `email_updates` = '1'
-            AND u.`id` = s.`user`";
-
-    $result = mysql_query($sql);
-    if (!$result)
+    /**
+     * displayAddFormSubmit 
+     * 
+     * @return void
+     */
+    function displayAddFormSubmit ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $for  = strip_tags($_POST['for']);
+        $desc = strip_tags($_POST['desc']);
 
-    if (mysql_num_rows($result) > 0)
-    {
-        while ($r = mysql_fetch_array($result))
+        $sql = "INSERT INTO `fcms_prayers`
+                    (`for`, `desc`, `user`, `date`) 
+                VALUES
+                    (?, ?, ?, NOW())";
+
+        $params = array(
+            $for, 
+            $desc, 
+            $this->fcmsUser->id
+        );
+
+        if (!$this->fcmsDatabase->insert($sql, $params))
         {
-            $name          = getUserDisplayName($fcmsUser->id);
-            $to            = getUserDisplayName($r['user']);
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        // Email members
+        $sql = "SELECT u.`email`, s.`user`
+                FROM `fcms_user_settings` AS s, `fcms_users` AS u 
+                WHERE `email_updates` = '1'
+                AND u.`id` = s.`user`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (count($rows) > 0)
+        {
+            $name          = getUserDisplayName($this->fcmsUser->id);
             $subject       = sprintf(T_('%s added a new Prayer Concern for %s'), $name, $for);
-            $email         = $r['email'];
             $url           = getDomainAndDir();
             $email_headers = getEmailHeaders();
 
-            $msg = T_('Dear').' '.$to.',
+            foreach ($rows as $r)
+            {
+                $to    = getUserDisplayName($r['user']);
+                $email = $r['email'];
+                $msg   = T_('Dear').' '.$to.',
 
 '.$subject.'
 
@@ -231,29 +252,29 @@ function displayAddFormSubmit ()
 '.$url.'settings.php
 
 ';
-            mail($email, $subject, $msg, $email_headers);
+                mail($email, $subject, $msg, $email_headers);
+            }
         }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: prayers.php");
     }
 
-    $_SESSION['success'] = 1;
+    /**
+     * displayEditForm 
+     * 
+     * @return void
+     */
+    function displayEditForm ()
+    {
+        $this->displayHeader();
 
-    header("Location: prayers.php");
-}
+        $id   = (int)$_POST['id'];
+        $for  = cleanOutput($_POST['for']);
+        $desc = $_POST['desc'];
 
-/**
- * displayEditForm 
- * 
- * @return void
- */
-function displayEditForm ()
-{
-    displayHeader();
-
-    $id   = (int)$_POST['id'];
-    $for  = cleanOutput($_POST['for']);
-    $desc = $_POST['desc'];
-
-    echo '
+        echo '
             <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form method="post" name="editform" action="prayers.php">
                 <fieldset>
@@ -281,50 +302,57 @@ function displayEditForm ()
                 </fieldset>
             </form>';
 
-    displayFooter();
-}
-
-/**
- * displayEditFormSubmit 
- * 
- * @return void
- */
-function displayEditFormSubmit ()
-{
-    $id   = (int)$_POST['id'];
-    $for  = strip_tags($_POST['for']);
-    $for  = escape_string($for);
-    $desc = strip_tags($_POST['desc']);
-    $desc = escape_string($desc);
-
-    $sql = "UPDATE `fcms_prayers` 
-            SET `for` = '$for', 
-                `desc` = '$desc' 
-            WHERE `id` = '$id'";
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        exit();
+        $this->displayFooter();
     }
 
-    $_SESSION['success'] = 1;
+    /**
+     * displayEditFormSubmit 
+     * 
+     * @return void
+     */
+    function displayEditFormSubmit ()
+    {
+        $id   = (int)$_POST['id'];
+        $for  = strip_tags($_POST['for']);
+        $desc = strip_tags($_POST['desc']);
 
-    header("Location: prayers.php");
-}
+        $sql = "UPDATE `fcms_prayers` 
+                SET `for` = ?, 
+                    `desc` = ?
+                WHERE `id` = ?";
 
-/**
- * displayConfirmDelete 
- * 
- * @return void
- */
-function displayConfirmDelete ()
-{
-    displayHeader();
+        $params = array(
+            $for, 
+            $desc,
+            $id
+        );
 
-    $id = (int)$_POST['id'];
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            $this->displayHeaders();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    echo '
+            return;
+        }
+
+        $_SESSION['success'] = 1;
+
+        header("Location: prayers.php");
+    }
+
+    /**
+     * displayConfirmDelete 
+     * 
+     * @return void
+     */
+    function displayConfirmDelete ()
+    {
+        $this->displayHeader();
+
+        $id = (int)$_POST['id'];
+
+        echo '
             <div class="info-alert">
                 <form action="prayers.php" method="post">
                     <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
@@ -337,130 +365,132 @@ function displayConfirmDelete ()
                 </form>
             </div>';
 
-    displayFooter();
-}
-
-/**
- * displayDeleteSubmit 
- * 
- * @return void
- */
-function displayDeleteSubmit ()
-{
-    $id = (int)$_POST['id'];
-
-    $sql = "DELETE FROM `fcms_prayers` 
-            WHERE `id` = '$id'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        exit();
+        $this->displayFooter();
     }
 
-    $_SESSION['delete_success'] = 1;
-
-    header("Location: prayers.php");
-}
-
-/**
- * displayPrayers 
- * 
- * @return void
- */
-function displayPrayers ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    if (isset($_SESSION['success']))
+    /**
+     * displayDeleteSubmit 
+     * 
+     * @return void
+     */
+    function displayDeleteSubmit ()
     {
-        displayOkMessage();
+        $id = (int)$_POST['id'];
 
-        unset($_SESSION['success']);
+        $sql = "DELETE FROM `fcms_prayers` 
+                WHERE `id` = ?";
+
+        if (!$this->fcmsDatabase->delete($sql, $id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $_SESSION['delete_success'] = 1;
+
+        header("Location: prayers.php");
     }
 
-    if (isset($_SESSION['delete_success']))
+    /**
+     * displayPrayers 
+     * 
+     * @return void
+     */
+    function displayPrayers ()
     {
-        displayOkMessage(T_('Prayer Concern Deleted Successfully'));
+        $this->displayHeader();
 
-        unset($_SESSION['delete_success']);
-    }
+        if (isset($_SESSION['success']))
+        {
+            displayOkMessage();
 
-    if (checkAccess($fcmsUser->id) <= 5)
-    {
-        echo '
+            unset($_SESSION['success']);
+        }
+
+        if (isset($_SESSION['delete_success']))
+        {
+            displayOkMessage(T_('Prayer Concern Deleted Successfully'));
+
+            unset($_SESSION['delete_success']);
+        }
+
+        if ($this->fcmsUser->access <= 5)
+        {
+            echo '
             <div id="actions_menu">
                 <ul><li><a class="action" href="?addconcern=yes">'.T_('Add a Prayer Concern').'</a></li></ul>
             </div>';
-    }
+        }
 
-    $page = getPage();
+        $page = getPage();
 
-    $from = (($page * 5) - 5); 
+        $from = (($page * 5) - 5); 
 
-    $sql = "SELECT p.`id`, `for`, `desc`, `user`, `date` 
-            FROM `fcms_prayers` AS p, `fcms_users` AS u 
-            WHERE u.`id` = p.`user` 
-            ORDER BY `date` DESC 
-            LIMIT $from, 5";
+        $sql = "SELECT p.`id`, `for`, `desc`, `user`, `date` 
+                FROM `fcms_prayers` AS p, `fcms_users` AS u 
+                WHERE u.`id` = p.`user` 
+                ORDER BY `date` DESC 
+                LIMIT $from, 5";
 
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        exit();
-    }
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
 
-    if (mysql_num_rows($result) <= 0)
-    {
-        echo '
+            return;
+        }
+
+        if (count($rows) <= 0)
+        {
+            echo '
             <div class="blank-state">
                 <h2>'.T_('Nothing to see here').'</h2>
                 <h3>'.T_('Currently no one has added any Prayer Concerns.').'</h3>
                 <h3><a href="?addconcern=yes">'.T_('Why don\'t you add a new Prayer Concern now?').'</a></h3>
             </div>';
 
-        displayFooter();
-        exit();
-    }
+            $this->displayFooter();
 
-    while ($r = mysql_fetch_assoc($result))
-    {
-        $date        = fixDate(T_('F j, Y, g:i a'), $fcmsUser->tzOffset, $r['date']);
-        $displayname = getUserDisplayName($r['user']);
+            return;
+        }
 
-        echo '
+        foreach ($rows as $r)
+        {
+            $date        = fixDate(T_('F j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
+            $displayname = getUserDisplayName($r['user']);
+
+            echo '
             <hr/>
             <h4>'.$date.'</h4>
             <div class="edit_delete">';
 
-        // Edit
-        if ($fcmsUser->id == $r['user'] || checkAccess($fcmsUser->id) < 2)
-        {
-            echo '
+            // Edit
+            if ($this->fcmsUser->id == $r['user'] || $this->fcmsUser->access < 2)
+            {
+                echo '
             <form method="post" action="prayers.php">
                 <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
                 <input type="hidden" name="for" value="'.cleanOutput($r['for']).'"/>
                 <input type="hidden" name="desc" value="'.cleanOutput($r['desc']).'"/>
                 <input type="submit" name="editprayer" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Prayer Concern').'"/>
             </form>';
-        }
+            }
 
-        // Delete
-        if (checkAccess($fcmsUser->id) < 2)
-        {
-            echo '
+            // Delete
+            if ($this->fcmsUser->access < 2)
+            {
+                echo '
             <form class="delform" method="post" action="prayers.php">
                 <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
                 <input type="submit" name="delprayer" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Prayer Concern').'"/>
             </form>';
-        }
+            }
 
-        echo '
+            echo '
             </div>
             <div class="for">
                 <b>'.sprintf(T_('%s asks that you please pray for...'), '<a href="profile.php?member='.(int)$r['user'].'">'.$displayname.'</a>').'</b>
@@ -471,26 +501,26 @@ function displayPrayers ()
                 <div>'.parse($r['desc']).'</div>
             </div>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';
+        }
+
+        // Display Pagination
+        $sql = "SELECT count(`id`) AS c 
+                FROM `fcms_prayers`";
+
+        $r = $this->fcmsDatabase->getRow($sql);
+        if ($r === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $prayercount = (int)$r['c'];
+        $total_pages = ceil($prayercount / 5); 
+
+        displayPagination('prayers.php', $page, $total_pages);
+
+        $this->displayFooter();
     }
-
-    // Display Pagination
-    $sql = "SELECT count(`id`) AS c 
-            FROM `fcms_prayers`";
-
-    $result = mysql_query($sql);
-    if (!$result)
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        exit();
-    }
-
-    $r = mysql_fetch_assoc($result);
-
-    $prayercount = (int)$r['c'];
-    $total_pages = ceil($prayercount / 5); 
-
-    displayPagination ('prayers.php', $page, $total_pages);
-
-    displayFooter();
 }

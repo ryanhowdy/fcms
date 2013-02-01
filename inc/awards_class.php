@@ -15,26 +15,30 @@ require_once 'gallery_class.php';
  */
 class Awards
 {
-
-    var $db;
-    var $db2;
-    var $currentUserId;
+    var $fcmsError;
+    var $fcmsDatabase;
+    var $fcmsUser;
+    var $fcmsMessagBoard;
+    var $fcmsPhotoGallery;
 
     /**
      * Awards 
      * 
-     * @param int $id
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase
+     * @param object $fcmsUser 
+     * @param object $fcmsMessageBoard
+     * @param object $fcmsPhotoGallery
      * 
      * @return void
      */
-    function Awards ($id)
+    function Awards ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsMessageBoard = null, $fcmsPhotoGallery = null)
     {
-        global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass;
-
-        $this->db  = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $this->db2 = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-
-        $this->currentUserId = (int)$id;
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsMessageBoard = $fcmsMessageBoard;
+        $this->fcmsPhotoGallery = $fcmsPhotoGallery;
     }
 
     /**
@@ -50,14 +54,17 @@ class Awards
 
         $sql = "SELECT `award`
                 FROM `fcms_user_awards`
-                WHERE `user` = '$userid'";
-        if (!$this->db->query($sql))
+                WHERE `user` = ?";
+
+        $rows = $this->fcmsDatabase->getRows($sql, $userid);
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
+
             return;
         }
 
-        if ($this->db->count_rows() < 0)
+        if (count($rows) < 0)
         {
             echo '
                 <p>'.T_('none').'</p>';
@@ -69,7 +76,7 @@ class Awards
 
         $awardList = array();
 
-        while ($r = $this->db->get_row())
+        foreach ($rows as $r)
         {
             $awardList[$r['award']][] = $r;
         }
@@ -80,7 +87,7 @@ class Awards
         if (count($awardList) <= 0)
         {
             echo '
-                    <li>'.T_('This user has no awards yet.').'</li>';
+                    <li style="width:auto;">'.T_('This user has no awards yet.').'</li>';
             return;
         }
 
@@ -118,14 +125,7 @@ class Awards
      */
     function displayAward ($userid, $type)
     {
-        global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass, $gallery;
-
-        $mb       = new MessageBoard($this->currentUserId, 'mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $database = new database('mysql', $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user, $cfg_mysql_pass);
-        $g        = new PhotoGallery($this->currentUserId, $database);
-
         $userid = (int)$userid;
-        $type   = escape_string($type);
 
         $sql = "SELECT a.`id`, a.`user`, a.`award`, a.`month`, a.`date`, a.`item_id`, a.`count`, u.`fname`
                 FROM `fcms_user_awards` AS a,
@@ -133,13 +133,15 @@ class Awards
                 WHERE a.`user` = '$userid'
                 AND a.`award` = '$type'
                 AND a.`user` = u.`id`";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, array($userid, $type));
+        if ($rows === false)
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return;
         }
 
-        if ($this->db->count_rows() <= 0)
+        if (count($rows) <= 0)
         {
             echo '
             <p class="error-alert">'.T_('Invalid Member/Award.').'</p>';
@@ -149,7 +151,7 @@ class Awards
 
         $awardList = array();
 
-        while ($r = $this->db->get_row())
+        foreach ($rows as $r)
         {
             $awardList[] = $r;
             $fname       = $r['fname'];
@@ -230,15 +232,15 @@ class Awards
                     $thread  = (int)$r['item_id'];
                     $replies = sprintf(T_pgettext('Ex: 21 replies', '%d replies'), $r['count']);
 
-                    $details = $date.' - <a href="messageboard.php?thread='.$thread.'">'.$mb->getThreadSubject($thread).'</a> - '.$replies;
+                    $details = $date.' - <a href="messageboard.php?thread='.$thread.'">'.$this->fcmsMessageBoard->getThreadSubject($thread).'</a> - '.$replies;
                     break;
 
                 case 'shutterbug':
 
                     $id       = (int)$r['item_id'];
-                    $photo    = $g->getPhotoInfo($id);
+                    $photo    = $this->fcmsPhotoGallery->getPhotoInfo($id);
                     $views    = sprintf(T_pgettext('Ex: 210 views', '%d views'), $r['count']);
-                    $photoSrc = $g->getPhotoSource($photo);
+                    $photoSrc = $this->fcmsPhotoGallery->getPhotoSource($photo);
 
                     $details  = $date.' - '.$views.'<br/>';
                     $details .= '<a href="gallery/index.php?uid='.$photo['user'].'&amp;cid='.$photo['category'].'&amp;pid='.$photo['id'].'">';
@@ -255,15 +257,12 @@ class Awards
                             FROM `fcms_news`
                             WHERE `id` = '$id'";
 
-                    $result = mysql_query($sql);
-                    if (!$result)
+                    $news = $this->fcmsDatabase->getRow($sql, $id);
+                    if ($news === false)
                     {
-                        displaySqlError($sql, mysql_error());
-                        displayFooter();
+                        $this->fcmsError->displayError();
                         return;
                     }
-
-                    $news = mysql_fetch_assoc($result);
 
                     $title = cleanOutput($news['title']);
 
@@ -378,7 +377,7 @@ class Awards
                 WHERE `month` = '$lastMonth'";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
@@ -405,7 +404,7 @@ class Awards
         $params['table'] = 'fcms_gallery_photos';
         if (!$this->calculateAward($params))
         {
-            return fa;se;
+            return false;
         }
 
         // Family News
@@ -413,7 +412,7 @@ class Awards
         $params['table'] = 'fcms_news';
         if (!$this->calculateAward($params))
         {
-            return fa;se;
+            return false;
         }
 
         // Recipes
@@ -421,7 +420,7 @@ class Awards
         $params['table'] = 'fcms_recipes';
         if (!$this->calculateAward($params))
         {
-            return fa;se;
+            return false;
         }
 
         // Documents
@@ -429,7 +428,7 @@ class Awards
         $params['table'] = 'fcms_documents';
         if (!$this->calculateAward($params))
         {
-            return fa;se;
+            return false;
         }
 
         return true;
@@ -468,7 +467,7 @@ class Awards
                 LIMIT 1";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
@@ -487,7 +486,7 @@ class Awards
                     )";
             if (!$this->db->query($sql))
             {
-                displaySqlError($sql, mysql_error());
+                $this->fcmsError->displayError();
                 return false;
             }
         }
@@ -570,7 +569,7 @@ class Awards
                 WHERE `award` IN ('icebreaker', 'shutterbug', 'interesting', 'secretive', 'planner', 'boring', 'photogenic')";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
@@ -607,7 +606,7 @@ class Awards
                 HAVING ct >= 21";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
@@ -635,7 +634,7 @@ class Awards
                         )";
                 if (!$this->db2->query($sql))
                 {
-                    displaySqlError($sql, mysql_error());
+                    $this->fcmsError->displayError();
                     return false;
                 }
             }
@@ -660,7 +659,7 @@ class Awards
                 WHERE `views` >= 100";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
@@ -686,7 +685,7 @@ class Awards
                         )";
                 if (!$this->db2->query($sql))
                 {
-                    displaySqlError($sql, mysql_error());
+                    $this->fcmsError->displayError();
                     return false;
                 }
             }
@@ -713,7 +712,7 @@ class Awards
                 HAVING ct >= 20";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
@@ -741,7 +740,7 @@ class Awards
                         )";
                 if (!$this->db2->query($sql))
                 {
-                    displaySqlError($sql, mysql_error());
+                    $this->fcmsError->displayError();
                     return false;
                 }
             }
@@ -767,7 +766,7 @@ class Awards
                 HAVING ct >= 100";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
@@ -793,7 +792,7 @@ class Awards
                         )";
                 if (!$this->db2->query($sql))
                 {
-                    displaySqlError($sql, mysql_error());
+                    $this->fcmsError->displayError();
                     return false;
                 }
             }
@@ -819,7 +818,7 @@ class Awards
                 HAVING ct >= 50";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
@@ -845,7 +844,7 @@ class Awards
                         )";
                 if (!$this->db2->query($sql))
                 {
-                    displaySqlError($sql, mysql_error());
+                    $this->fcmsError->displayError();
                     return false;
                 }
             }
@@ -871,7 +870,7 @@ class Awards
                 HAVING ct >= 50";
         if (!$this->db->query($sql))
         {
-            displaySqlError($sql, mysql_error());
+            $this->fcmsError->displayError();
             return false;
         }
 
@@ -894,7 +893,7 @@ class Awards
                         )";
                 if (!$this->db2->query($sql))
                 {
-                    displaySqlError($sql, mysql_error());
+                    $this->fcmsError->displayError();
                     return false;
                 }
             }

@@ -18,211 +18,247 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube', 'instagram');
+load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube', 'instagram', 'familynews', 'picasa');
 
 init();
 
 // Globals
-$settingsObj = new Settings($fcmsUser->id);
+$settings   = new Settings($fcmsError, $fcmsDatabase, $fcmsUser);
+$page       = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $settings);
 
-$TMPL = array(
-    'currentUserId' => $fcmsUser->id,
-    'sitename'      => getSiteName(),
-    'nav-link'      => getNavLinks(),
-    'pagetitle'     => T_('Settings'),
-    'path'          => URL_PREFIX,
-    'displayname'   => $fcmsUser->displayName,
-    'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
-
-control();
 exit();
 
-
-/**
- * control 
- * 
- * The controlling structure for this script.
- * 
- * @return void
- */
-function control ()
+class Page
 {
-    global $fcmsUser;
+    private $fcmsError;
+    private $fcmsDatabase;
+    private $fcmsUser;
+    private $fcmsSettings;
+    private $fcmsTemplate;
 
-    if (checkAccess($fcmsUser->id) == 11)
+    /**
+     * Constructor
+     * 
+     * @return void
+     */
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsSettings)
     {
-        displayInvalidAccessLevel();
-        return;
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsSettings     = $fcmsSettings;
+
+        $this->fcmsTemplate = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => cleanOutput(getSiteName()),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Settings'),
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
+
+        $this->control();
     }
-    // Saving changes
-    elseif (isset($_POST['submit']))
+
+    /**
+     * control 
+     * 
+     * The controlling structure for this script.
+     * 
+     * @return void
+     */
+    function control ()
     {
-        if ($_GET['view'] == 'account')
+        if ($this->fcmsUser->access == 11)
         {
-            displayEditAccountSubmit();
+            $this->displayInvalidAccessLevel();
+            return;
         }
-        elseif ($_GET['view'] == 'settings')
+        // Saving changes
+        elseif (isset($_POST['submit']))
         {
-            displayEditSettingsSubmit();
-        }
-        elseif ($_GET['view'] == 'notifications')
-        {
-            displayEditNotificationsSubmit();
-        }
-        elseif ($_GET['view'] == 'familynews')
-        {
-            displayEditFamilyNewsSubmit();
-        }
-        elseif ($_GET['view'] == 'messageboard')
-        {
-            displayEditMessageBoardSubmit();
-        }
-    }
-    // Theme
-    elseif (isset($_GET['use']) && $_GET['view'] == 'theme')
-    {
-        displayEditThemeSubmit();
-    }
-    elseif (isset($_GET['delete']) && $_GET['view'] == 'theme' && !isset($_GET['confirmed']))
-    {
-        displayDeleteThemeConfirmation();
-    }
-    elseif (isset($_POST['delconfirm']) || (isset($_GET['delete']) && isset($_GET['confirmed'])))
-    {
-        displayDeleteThemeSubmit();
-    }
-    // Import
-    elseif (isset($_GET['import']) && isset($_GET['view']))
-    {
-        displayImportBlogPosts();
-    }
-    // Edit
-    elseif (isset($_GET['view']))
-    {
-        if ($_GET['view'] == 'account')
-        {
-            displayEditAccount();
-        }
-        elseif ($_GET['view'] == 'theme')
-        {
-            displayEditTheme();
-        }
-        elseif ($_GET['view'] == 'settings')
-        {
-            displayEditSettings();
-        }
-        elseif ($_GET['view'] == 'notifications')
-        {
-            displayEditNotifications();
-        }
-        elseif ($_GET['view'] == 'familynews')
-        {
-            displayEditFamilyNews();
-        }
-        elseif ($_GET['view'] == 'messageboard')
-        {
-            displayEditMessageBoard();
-        }
-        // Facebook
-        elseif ($_GET['view'] == 'facebook')
-        {
-            if (isset($_GET['code']) && isset($_GET['state']))
+            if ($_GET['view'] == 'account')
             {
-                displayEditFacebookSubmit();
+                $this->displayEditAccountSubmit();
+            }
+            elseif ($_GET['view'] == 'settings')
+            {
+                $this->displayEditSettingsSubmit();
+            }
+            elseif ($_GET['view'] == 'notifications')
+            {
+                $this->displayEditNotificationsSubmit();
+            }
+            elseif ($_GET['view'] == 'familynews')
+            {
+                $this->displayEditFamilyNewsSubmit();
+            }
+            elseif ($_GET['view'] == 'messageboard')
+            {
+                $this->displayEditMessageBoardSubmit();
+            }
+        }
+        // Theme
+        elseif (isset($_GET['use']) && $_GET['view'] == 'theme')
+        {
+            $this->displayEditThemeSubmit();
+        }
+        elseif (isset($_GET['delete']) && $_GET['view'] == 'theme' && !isset($_GET['confirmed']))
+        {
+            $this->displayDeleteThemeConfirmation();
+        }
+        elseif (isset($_POST['delconfirm']) || (isset($_GET['delete']) && isset($_GET['confirmed'])))
+        {
+            $this->displayDeleteThemeSubmit();
+        }
+        // Import
+        elseif (isset($_GET['import']) && isset($_GET['view']))
+        {
+            $this->displayImportBlogPosts();
+        }
+        // Edit
+        elseif (isset($_GET['view']))
+        {
+            if ($_GET['view'] == 'account')
+            {
+                $this->displayEditAccount();
+            }
+            elseif ($_GET['view'] == 'theme')
+            {
+                $this->displayEditTheme();
+            }
+            elseif ($_GET['view'] == 'settings')
+            {
+                $this->displayEditSettings();
+            }
+            elseif ($_GET['view'] == 'notifications')
+            {
+                $this->displayEditNotifications();
+            }
+            elseif ($_GET['view'] == 'familynews')
+            {
+                $this->displayEditFamilyNews();
+            }
+            elseif ($_GET['view'] == 'messageboard')
+            {
+                $this->displayEditMessageBoard();
+            }
+            // Facebook
+            elseif ($_GET['view'] == 'facebook')
+            {
+                if (isset($_GET['code']) && isset($_GET['state']))
+                {
+                    $this->displayEditFacebookSubmit();
+                }
+                else
+                {
+                    $this->displayEditFacebook();
+                }
+            }
+            // Foursquare
+            elseif ($_GET['view'] == 'foursquare')
+            {
+                if (isset($_GET['code']))
+                {
+                    $this->displayFoursquareSubmit();
+                }
+                else
+                {
+                    $this->displayEditFoursquare();
+                }
+            }
+            // Instagram
+            elseif ($_GET['view'] == 'instagram')
+            {
+                if (isset($_GET['code']))
+                {
+                    $this->displayEditInstagramSubmit();
+                }
+                else
+                {
+                    $this->displayEditInstagram();
+                }
+            }
+            // YouTube
+            elseif ($_GET['view'] == 'youtube')
+            {
+                if (isset($_GET['token']))
+                {
+                    $this->displayEditYouTubeSubmit();
+                }
+                else
+                {
+                    $this->displayEditYouTube();
+                }
+            }
+            // Picasa
+            elseif ($_GET['view'] == 'picasa')
+            {
+                if (isset($_GET['token']))
+                {
+                    $this->displayEditPicasaSubmit();
+                }
+                else
+                {
+                    $this->displayEditPicasa();
+                }
             }
             else
             {
-                displayEditFacebook();
+                $this->displayEditAccount();
             }
         }
-        // Foursquare
-        elseif ($_GET['view'] == 'foursquare')
+        // Revoke app access
+        elseif (isset($_GET['revoke']))
         {
-            if (isset($_GET['code']))
+            if ($_GET['revoke'] == 'facebook')
             {
-                displayFoursquareSubmit();
+                $this->displayRevokeFacebookAccess();
             }
-            else
+            elseif ($_GET['revoke'] == 'foursquare')
             {
-                displayEditFoursquare();
+                $this->displayRevokeFoursquareAccess();
             }
-        }
-        // Instagram
-        elseif ($_GET['view'] == 'instagram')
-        {
-            if (isset($_GET['code']))
+            elseif ($_GET['revoke'] == 'instagram')
             {
-                displayEditInstagramSubmit();
+                $this->displayRevokeInstagramAccess();
             }
-            else
+            elseif ($_GET['revoke'] == 'youtube')
             {
-                displayEditInstagram();
+                $this->displayRevokeYouTubeAccess();
             }
-        }
-        // YouTube
-        elseif ($_GET['view'] == 'youtube')
-        {
-            if (isset($_GET['token']))
+            elseif ($_GET['revoke'] == 'picasa')
             {
-                displayEditYouTubeSubmit();
-            }
-            else
-            {
-                displayEditYouTube();
+                $this->displayRevokePicasaAccess();
             }
         }
         else
         {
-            displayEditAccount();
+            $this->displayEditAccount();
         }
     }
-    // Revoke app access
-    elseif (isset($_GET['revoke']))
-    {
-        if ($_GET['revoke'] == 'facebook')
-        {
-            displayRevokeFacebookAccess();
-        }
-        elseif ($_GET['revoke'] == 'foursquare')
-        {
-            displayRevokeFoursquareAccess();
-        }
-        elseif ($_GET['revoke'] == 'instagram')
-        {
-            displayRevokeInstagramAccess();
-        }
-        elseif ($_GET['revoke'] == 'youtube')
-        {
-            displayRevokeYouTubeAccess();
-        }
-    }
-    else
-    {
-        displayEditAccount();
-    }
-}
 
-/**
- * displayHeader 
- * 
- * Displays the header of the page, including the leftcolumn navigation.
- * 
- * @param string $js Allows you to overwrite the javascript that is included in the header.
- * 
- * @return void
- */
-function displayHeader ($js = '')
-{
-    global $fcmsUser, $TMPL;
-
-    $TMPL['javascript'] = $js;
-
-    // Default js
-    if ($js == '')
+    /**
+     * displayHeader 
+     * 
+     * Displays the header of the page, including the leftcolumn navigation.
+     * 
+     * @param string $js Allows you to overwrite the javascript that is included in the header.
+     * 
+     * @return void
+     */
+    function displayHeader ($js = '')
     {
-        $TMPL['javascript'] = '
+        $TMPL = $this->fcmsTemplate;
+
+        $TMPL['javascript'] = $js;
+
+        // Default js
+        if ($js == '')
+        {
+            $TMPL['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[ 
 Event.observe(window, \'load\', function() {
@@ -231,11 +267,11 @@ Event.observe(window, \'load\', function() {
 });
 //]]>
 </script>';
-    }
+        }
 
-    include_once getTheme($fcmsUser->id).'header.php';
+        include_once getTheme($this->fcmsUser->id).'header.php';
 
-    echo '
+        echo '
         <div id="settings" class="centercontent">
 
             <div id="leftcolumn">
@@ -252,160 +288,163 @@ Event.observe(window, \'load\', function() {
                     <li><a href="?view=messageboard">'.T_('Message Board').'</a></li>
                 </ul>';
 
-    $facebookConfig   = getFacebookConfigData();
-    $foursquareConfig = getFoursquareConfigData();
-    $instagramConfig  = getInstagramConfigData();
-    $youtubeConfig    = getYouTubeConfigData();
+        $facebookConfig   = getFacebookConfigData();
+        $foursquareConfig = getFoursquareConfigData();
+        $instagramConfig  = getInstagramConfigData();
+        $youtubeConfig    = getYouTubeConfigData();
 
-    $facebookLink   = '';
-    $foursquareLink = '';
-    $instagramLink  = '';
-    $youtubeLink    = '';
+        $facebookLink   = '';
+        $foursquareLink = '';
+        $instagramLink  = '';
+        $youtubeLink    = '';
 
-    if (!empty($facebookConfig['fb_app_id']) && !empty($facebookConfig['fb_secret']))
-    {
-        $facebookLink = '<li><a href="?view=facebook">Facebook</a></li>';
-    }
+        if (!empty($facebookConfig['fb_app_id']) && !empty($facebookConfig['fb_secret']))
+        {
+            $facebookLink = '<li><a href="?view=facebook">Facebook</a></li>';
+        }
 
-    if (!empty($foursquareConfig['fs_client_id']) && !empty($foursquareConfig['fs_client_secret']))
-    {
-        $foursquareLink = '<li><a href="?view=foursquare">Foursquare</a></li>';
-    }
+        if (!empty($foursquareConfig['fs_client_id']) && !empty($foursquareConfig['fs_client_secret']))
+        {
+            $foursquareLink = '<li><a href="?view=foursquare">Foursquare</a></li>';
+        }
 
-    if (!empty($instagramConfig['instagram_client_id']) && !empty($instagramConfig['instagram_client_secret']))
-    {
-        $instagramLink = '<li><a href="?view=instagram">Instagram</a></li>';
-    }
+        if (!empty($instagramConfig['instagram_client_id']) && !empty($instagramConfig['instagram_client_secret']))
+        {
+            $instagramLink = '<li><a href="?view=instagram">Instagram</a></li>';
+        }
 
-    if (!empty($youtubeConfig['youtube_key']))
-    {
-        $youtubeLink = '<li><a href="?view=youtube">YouTube</a></li>';
-    }
+        if (!empty($youtubeConfig['youtube_key']))
+        {
+            $youtubeLink = '<li><a href="?view=youtube">YouTube</a></li>';
+        }
 
-    $links = "$facebookLink$foursquareLink$instagramLink$youtubeLink";
+        $picasaLink = '<li><a href="?view=picasa">Picasa</a></li>';
 
-    if (!empty($links))
-    {
-        echo '
+        $links = "$facebookLink$foursquareLink$instagramLink$youtubeLink$picasaLink";
+
+        if (!empty($links))
+        {
+            echo '
                 <h3>'.T_('Social Media').'</h3>
                 <ul class="menu">
                     '.$facebookLink.'
                     '.$foursquareLink.'
                     '.$instagramLink.'
                     '.$youtubeLink.'
+                    '.$picasaLink.'
                 </ul>';
-    }
+        }
 
-    echo '
+        echo '
             </div>
 
             <div id="maincolumn">';
-}
+    }
 
-/**
- * displayFooter 
- * 
- * @return void
- */
-function displayFooter()
-{
-    global $fcmsUser, $TMPL;
+    /**
+     * displayFooter 
+     * 
+     * @return void
+     */
+    function displayFooter()
+    {
+        $TMPL = $this->fcmsTemplate;
 
-    echo '
+        echo '
             </div>
             <div style="clear:both"></div>
         </div><!-- #settings .centercontent -->';
 
-    include_once getTheme($fcmsUser->id).'footer.php';
-}
+        include_once getTheme($this->fcmsUser->id).'footer.php';
+    }
 
-/**
- * displayEditAccount 
- * 
- * @return void
- */
-function displayEditAccount ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-    $settingsObj->displayAccountInformation();
-    displayFooter();
-
-    return;
-}
-
-/**
- * displayEditAccountSubmit 
- * 
- * @return void
- */
-function displayEditAccountSubmit ()
-{
-    global $fcmsUser, $settingsObj;
-
-    $email      = strip_tags($_POST['email']);
-    $cleanEmail = escape_string($email);
-    $emailstart = $settingsObj->currentUserEmail;
-
-    // Check email
-    if ($_POST['email'] != $emailstart)
+    /**
+     * displayEditAccount 
+     * 
+     * @return void
+     */
+    function displayEditAccount ()
     {
-        $sql2 = "SELECT `email` FROM `fcms_users` 
-                 WHERE email='$cleanEmail'";
+        $this->displayHeader();
+        $this->fcmsSettings->displayAccountInformation();
+        $this->displayFooter();
 
-        $result = mysql_query($sql2);
-        if (!$result)
+        return;
+    }
+
+    /**
+     * displayEditAccountSubmit 
+     * 
+     * @return void
+     */
+    function displayEditAccountSubmit ()
+    {
+        $email      = strip_tags($_POST['email']);
+        $emailStart = $this->fcmsUser->email;
+
+        // Check email
+        if ($_POST['email'] != $emailStart)
         {
-            displayHeader();
-            displaySqlError($sql2, mysql_error());
-            displayFooter();
-            return;
-        }
+            $sql = "SELECT `email`
+                    FROM `fcms_users` 
+                    WHERE email = ?";
 
-        $email_check = mysql_num_rows($result);
+            $row = $this->fcmsDatabase->getRow($sql, $email);
+            if ($row === false)
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
 
-        if ($email_check > 0)
-        {
-            displayHeader();
-            echo '
+                return;
+            }
+
+            if (!empty($row))
+            {
+                $this->displayHeader();
+
+                echo '
             <p class="error-alert">
                 '.sprintf(T_('The email address %s is already in use.  Please choose a different email.'), $email).'
             </p>';
 
-            $settingsObj->displayAccountInformation();
-            displayFooter();
-            return;
+                $this->fcmsSettings->displayAccountInformation();
+                $this->displayFooter();
+
+                return;
+            }
         }
-    }
 
-    $sql = "UPDATE `fcms_users` SET ";
+        $sql    = "UPDATE `fcms_users` SET ";
+        $params = array();
 
-    if (isset($_POST['pass']))
-    {
-        $orig_pass = $_SESSION['login_pw'];
-
-        if (!empty($_POST['pass']))
+        if (isset($_POST['pass']) && !empty($_POST['pass']))
         {
-            $sql .= "password = '".md5($_POST['pass'])."', ";
+            $sql      .= "password = ?, ";
+            $params[]  = md5($_POST['pass']);
 
+            $orig_pass            = $_SESSION['login_pw'];
             $_SESSION['login_pw'] = md5($_POST['pass']);
         }
-    }
 
-    $sql .= "`email` = '$cleanEmail'
-            WHERE id = '$fcmsUser->id'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $sql .= "`email` = ?
+                WHERE id = ?";
 
-    if (isset($orig_pass))
-    {
-        echo '
+        $params[] = $email;
+        $params[] = $this->fcmsUser->id;
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (isset($orig_pass))
+        {
+            echo '
 <html>
 <head>
 <title>'.T_('Password Change').'</title>
@@ -428,477 +467,450 @@ a:hover { background-color: #6cd163; }
 </body>
 </html>';
 
-        return;
+            return;
+        }
+
+        $this->displayHeader();
+        displayOkMessage();
+        $this->fcmsSettings->displayAccountInformation();
+        $this->displayFooter();
     }
 
-    displayHeader();
-    displayOkMessage();
-    $settingsObj->displayAccountInformation();
-    displayFooter();
-}
-
-/**
- * displayEditTheme 
- * 
- * @return void
- */
-function displayEditTheme ()
-{
-    global $fcmsUser, $settingsObj;
-
-    $js = '
+    /**
+     * displayEditTheme 
+     * 
+     * @return void
+     */
+    function displayEditTheme ()
+    {
+        $js = '
 <script type="text/javascript">
 Event.observe(window, \'load\', function() {
     deleteConfirmationLinks("del_theme", "'.T_('Are you sure you want to DELETE this theme?').'");
 });
 </script>';
 
-    displayHeader($js);
-    $settingsObj->displayTheme();
-    displayFooter();
+        $this->displayHeader($js);
+        $this->fcmsSettings->displayTheme();
+        $this->displayFooter();
 
-    return;
-}
-
-/**
- * displayEditThemeSubmit 
- * 
- * Changes the theme.
- * 
- * @return void
- */
-function displayEditThemeSubmit ()
-{
-    global $fcmsUser, $settingsObj;
-
-    $theme = basename($_GET['use']);
-    $theme = escape_string($theme);
-
-    $sql = "UPDATE `fcms_user_settings`
-            SET `theme` = '$theme'
-            WHERE `user` = '$fcmsUser->id'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
         return;
     }
 
-    displayHeader();
-    displayOkMessage();
-
-    $settingsObj->displayTheme();
-
-    displayFooter();
-}
-
-/**
- * displayDeleteThemeSubmit 
- * 
- * @return void
- */
-function displayDeleteThemeSubmit ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-
-    $theme = basename($_GET['delete']);
-
-    if (!file_exists(THEMES.$theme))
+    /**
+     * displayEditThemeSubmit 
+     * 
+     * Changes the theme.
+     * 
+     * @return void
+     */
+    function displayEditThemeSubmit ()
     {
-        echo '
+        $theme = basename($_GET['use']);
+
+        $sql = "UPDATE `fcms_user_settings`
+                SET `theme` = ?
+                WHERE `user` = ?";
+
+        $params = array($theme, $this->fcmsUser->id);
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $this->displayHeader();
+        displayOkMessage();
+
+        $this->fcmsSettings->displayTheme();
+
+        $this->displayFooter();
+    }
+
+    /**
+     * displayDeleteThemeSubmit 
+     * 
+     * @return void
+     */
+    function displayDeleteThemeSubmit ()
+    {
+        $this->displayHeader();
+
+        $theme = basename($_GET['delete']);
+
+        if (!file_exists(THEMES.$theme))
+        {
+            echo '
                 <p class="error-alert">'.sprintf(T_('Theme [%s] not found.'), $theme).'</p>';
-        $settingsObj->displayTheme();
-        displayFooter();
-        return;
-    }
+            $this->fcmsSettings->displayTheme();
+            $this->displayFooter();
+            return;
+        }
 
-    if (!is_dir(THEMES.$theme))
-    {
-        echo '
+        if (!is_dir(THEMES.$theme))
+        {
+            echo '
                 <p class="error-alert">'.sprintf(T_('[%s] is not a directory.'), $theme).'</p>';
-        $settingsObj->displayTheme();
-        displayFooter();
-        return;
-    }
+            $this->fcmsSettings->displayTheme();
+            $this->displayFooter();
+            return;
+        }
 
-    if (!deleteDirectory(THEMES.$theme))
-    {
-        echo '
+        if (!deleteDirectory(THEMES.$theme))
+        {
+            echo '
                 <p class="error-alert">'.sprintf(T_('Could not delete theme [%s].'), $theme).'</p>';
-        $settingsObj->displayTheme();
-        displayFooter();
-        return;
-    }
-
-    displayOkMessage();
-    $settingsObj->displayTheme();
-    displayFooter();
-}
-
-/**
- * displayEditSettings 
- * 
- * @return void
- */
-function displayEditSettings ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-    $settingsObj->displaySettings();
-    displayFooter();
-
-    return;
-}
-
-/**
- * displayEditSettingsSubmit 
- * 
- * @return void
- */
-function displayEditSettingsSubmit ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-
-    $sql = "UPDATE `fcms_user_settings` SET ";
-
-    if ($_POST['advanced_upload'])
-    {
-        if ($_POST['advanced_upload'] == 'yes')
-        {
-            $sql .= "`advanced_upload` = '1', ";
-        }
-        else
-        {
-            $sql .= "`advanced_upload` = '0', ";
-        }
-    }
-    if ($_POST['advanced_tagging'])
-    {
-        if ($_POST['advanced_tagging'] == 'yes')
-        {
-            $sql .= "`advanced_tagging` = '1', ";
-        }
-        else
-        {
-            $sql .= "`advanced_tagging` = '0', ";
-        }
-    }
-    if ($_POST['language'])
-    {
-        $sql .= "`language` = '".escape_string($_POST['language'])."', ";
-    }
-    if ($_POST['timezone'])
-    {
-        $sql .= "`timezone` = '".escape_string($_POST['timezone'])."', ";
-    }
-    if ($_POST['dst'])
-    {
-        if ($_POST['dst'] == 'on')
-        {
-            $sql .= "`dst` = '1', ";
-        }
-        else
-        {
-            $sql .= "`dst` = '0', ";
-        }
-    }
-    if ($_POST['displayname'])
-    {
-        $sql .= "`displayname` = '".(int)$_POST['displayname']."', ";
-    }
-    if ($_POST['frontpage'])
-    {
-        $sql .= "`frontpage` = '".escape_string($_POST['frontpage'])."', ";
-    }
-
-    $sql  = substr($sql, 0, -2); // remove the extra comma space at the end
-    $sql .= " WHERE `user` = '$fcmsUser->id'";
-
-    if (strlen($sql) > 50)
-    {
-        if (!mysql_query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $this->fcmsSettings->displayTheme();
+            $this->displayFooter();
             return;
         }
 
         displayOkMessage();
+        $this->fcmsSettings->displayTheme();
+        $this->displayFooter();
     }
 
-    $settingsObj->displaySettings();
-    displayFooter();
-}
-
-/**
- * displayEditNotifications 
- * 
- * @return void
- */
-function displayEditNotifications ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-    $settingsObj->displayNotifications();
-    displayFooter();
-
-    return;
-}
-
-/**
- * displayEditNotificationsSubmit 
- * 
- * @return void
- */
-function displayEditNotificationsSubmit ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-
-    if ($_POST['email_updates'])
+    /**
+     * displayEditSettings 
+     * 
+     * @return void
+     */
+    function displayEditSettings ()
     {
-        if ($_POST['email_updates'] == 'yes')
-        {
-            $email_updates = '1';
-        }
-        else
-        {
-            $email_updates = '0';
-        }
-        $sql = "UPDATE `fcms_user_settings`
-                SET `email_updates` = '$email_updates'
-                WHERE `user` = '$fcmsUser->id'";
+        $this->displayHeader();
+        $this->fcmsSettings->displaySettings();
+        $this->displayFooter();
 
-        if (!mysql_query($sql))
-        {
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-
-        displayOkMessage();
-    }
-
-    $settingsObj->displayNotifications();
-    displayFooter();
-}
-
-/**
- * displayEditFamilyNews 
- * 
- * @return void
- */
-function displayEditFamilyNews ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-    $settingsObj->displayFamilyNews();
-    displayFooter();
-
-    return;
-}
-
-/**
- * displayEditFamilyNewsSubmit 
- * 
- * @return void
- */
-function displayEditFamilyNewsSubmit ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-
-    $blogger   = isset($_POST['blogger'])   ? escape_string($_POST['blogger'])   : '';
-    $tumblr    = isset($_POST['tumblr'])    ? escape_string($_POST['tumblr'])    : '';
-    $wordpress = isset($_POST['wordpress']) ? escape_string($_POST['wordpress']) : '';
-    $posterous = isset($_POST['posterous']) ? escape_string($_POST['posterous']) : '';
-
-    $sql = "UPDATE `fcms_user_settings`
-            SET `blogger` = '$blogger',
-            `tumblr` = '$tumblr',
-            `wordpress` = '$wordpress',
-            `posterous` = '$posterous'
-            WHERE `user` = '$fcmsUser->id'";
-
-    if (!mysql_query($sql))
-    {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
         return;
     }
 
-    displayOkMessage();
-
-    $settingsObj->displayFamilyNews();
-    displayFooter();
-}
-
-/**
- * displayEditMessageBoard 
- * 
- * @return void
- */
-function displayEditMessageBoard ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-    $settingsObj->displayMessageBoard();
-    displayFooter();
-
-    return;
-}
-
-/**
- * displayEditMessageBoardSubmit
- * 
- * @return void
- */
-function displayEditMessageBoardSubmit ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-
-    if (isset($_POST['boardsort']))
+    /**
+     * displayEditSettingsSubmit 
+     * 
+     * @return void
+     */
+    function displayEditSettingsSubmit ()
     {
-        $boardsort  = escape_string($_POST['boardsort']);
+        $this->displayHeader();
+
+        $sql = "UPDATE `fcms_user_settings` SET ";
+
+        $params = array();
+
+        if ($_POST['advanced_upload'])
+        {
+            $sql     .= "`advanced_upload` = ?, ";
+            $params[] = $_POST['advanced_upload'] == 'yes' ? 1 : 0;
+        }
+        if ($_POST['advanced_tagging'])
+        {
+            $sql     .= "`advanced_tagging` = ?, ";
+            $params[] = $_POST['advanced_tagging'] == 'yes' ? 1 : 0;
+        }
+        if ($_POST['language'])
+        {
+            $sql     .= "`language` = ?, ";
+            $params[] = $_POST['language'];
+        }
+        if ($_POST['timezone'])
+        {
+            $sql     .= "`timezone` = ?, ";
+            $params[] = $_POST['timezone'];
+        }
+        if ($_POST['dst'])
+        {
+            $sql     .= "`dst` = ?, ";
+            $params[] = $_POST['dst'] == 'on' ? 1 : 0;
+        }
+        if ($_POST['displayname'])
+        {
+            $sql     .= "`displayname` = ?, ";
+            $params[] = $_POST['displayname'];
+        }
+        if ($_POST['frontpage'])
+        {
+            $sql     .= "`frontpage` = ?, ";
+            $params[] = $_POST['frontpage'];
+        }
+
+        $sql  = substr($sql, 0, -2); // remove the extra comma space at the end
+        $sql .= " WHERE `user` = ?";
+
+        $params[] = $this->fcmsUser->id;
+
+        if (strlen($sql) > 50)
+        {
+            if (!$this->fcmsDatabase->update($sql, $params))
+            {
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+
+            displayOkMessage();
+        }
+
+        $this->fcmsSettings->displaySettings();
+        $this->displayFooter();
+    }
+
+    /**
+     * displayEditNotifications 
+     * 
+     * @return void
+     */
+    function displayEditNotifications ()
+    {
+        $this->displayHeader();
+        $this->fcmsSettings->displayNotifications();
+        $this->displayFooter();
+
+        return;
+    }
+
+    /**
+     * displayEditNotificationsSubmit 
+     * 
+     * @return void
+     */
+    function displayEditNotificationsSubmit ()
+    {
+        $this->displayHeader();
+
+        $params = array();
+
+        if ($_POST['email_updates'])
+        {
+            $params[] = $_POST['email_updates'] == 'yes' ? 1 : 0;
+            $params[] = $this->fcmsUser->id;
+
+            $sql = "UPDATE `fcms_user_settings`
+                    SET `email_updates` = ?
+                    WHERE `user` = ?";
+
+            if (!$this->fcmsDatabase->update($sql, $params))
+            {
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+
+            displayOkMessage();
+        }
+
+        $this->fcmsSettings->displayNotifications();
+        $this->displayFooter();
+    }
+
+    /**
+     * displayEditFamilyNews 
+     * 
+     * @return void
+     */
+    function displayEditFamilyNews ()
+    {
+        $this->displayHeader();
+        $this->fcmsSettings->displayFamilyNews();
+        $this->displayFooter();
+
+        return;
+    }
+
+    /**
+     * displayEditFamilyNewsSubmit 
+     * 
+     * @return void
+     */
+    function displayEditFamilyNewsSubmit ()
+    {
+        $this->displayHeader();
+
+        $params = array();
+
+        $params[] = isset($_POST['blogger'])   ? $_POST['blogger']   : '';
+        $params[] = isset($_POST['tumblr'])    ? $_POST['tumblr']    : '';
+        $params[] = isset($_POST['wordpress']) ? $_POST['wordpress'] : '';
+        $params[] = isset($_POST['posterous']) ? $_POST['posterous'] : '';
+        $params[] = $this->fcmsUser->id;
 
         $sql = "UPDATE `fcms_user_settings`
-                SET `boardsort` = '$boardsort'
-                WHERE `user` = '$fcmsUser->id'";
+                SET `blogger` = ?,
+                    `tumblr` = ?,
+                    `wordpress` = ?,
+                    `posterous` = ?
+                WHERE `user` = ?";
 
-        if (!mysql_query($sql))
+        if (!$this->fcmsDatabase->update($sql, $params))
         {
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
             return;
         }
 
         displayOkMessage();
+
+        $this->fcmsSettings->displayFamilyNews();
+        $this->displayFooter();
     }
 
-    $settingsObj->displayMessageBoard();
-    displayFooter();
-}
-
-/**
- * displayImportBlogPosts 
- * 
- * @return void
- */
-function displayImportBlogPosts ()
-{
-    global $fcmsUser, $settingsObj;
-
-    displayHeader();
-
-    // setup familynew obj
-    include_once 'inc/familynews_class.php';
-    $newsObj = new FamilyNews($fcmsUser->id);
-
-    // get external ids
-    $external_ids = $newsObj->getExternalPostIds();
-
-    // Get import blog settings
-    $sql = "SELECT `user`, `blogger`, `tumblr`, `wordpress`, `posterous`
-            FROM `fcms_user_settings`
-            WHERE `user` = '$fcmsUser->id'";
-
-    $result = mysql_query($sql);
-    if (!$result)
+    /**
+     * displayEditMessageBoard 
+     * 
+     * @return void
+     */
+    function displayEditMessageBoard ()
     {
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-    if (mysql_num_rows($result) <= 0)
-    {
-        echo '<div class="error-alert">'.T_('Nothing to import.').'</div>';
-        $settingsObj->displayFamilyNews();
-        displayFooter();
+        $this->displayHeader();
+        $this->fcmsSettings->displayMessageBoard();
+        $this->displayFooter();
+
         return;
     }
 
-    $r = mysql_fetch_assoc($result);
-
-    $count = 0;
-
-    switch ($_GET['import'])
+    /**
+     * displayEditMessageBoardSubmit
+     * 
+     * @return void
+     */
+    function displayEditMessageBoardSubmit ()
     {
-        case 'blogger':
-            $count = $newsObj->importBloggerPosts($r['blogger'], $fcmsUser->id, '', $external_ids);
-            if ($count === false)
-            {
-                $settingsObj->displayFamilyNews();
-                displayFooter();
-                return;
-            }
-            break;
+        $this->displayHeader();
 
-        case 'tumblr':
-            $count = $newsObj->importTumblrPosts($r['tumblr'], $fcmsUser->id, '', $external_ids);
-            if ($count === false)
-            {
-                $settingsObj->displayFamilyNews();
-                displayFooter();
-                return;
-            }
-            break;
 
-        case 'wordpress':
-            $count = $newsObj->importWordpressPosts($r['wordpress'], $fcmsUser->id, '', $external_ids);
-            if ($count === false)
-            {
-                $settingsObj->displayFamilyNews();
-                displayFooter();
-                return;
-            }
-            break;
+        if (isset($_POST['boardsort']))
+        {
+            $params = array(
+                $_POST['boardsort'],
+                $this->fcmsUser->id
+            );
 
-        case 'posterous':
-            $count = $newsObj->importPosterousPosts($r['posterous'], $fcmsUser->id, '', $external_ids);
-            if ($count === false)
+            $sql = "UPDATE `fcms_user_settings`
+                    SET `boardsort` = ?
+                    WHERE `user` = ?";
+
+            if (!$this->fcmsDatabase->update($sql, $params))
             {
-                $settingsObj->displayFamilyNews();
-                displayFooter();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
                 return;
             }
-            break;
+
+            displayOkMessage();
+        }
+
+        $this->fcmsSettings->displayMessageBoard();
+        $this->displayFooter();
     }
 
-    displayOkMessage(sprintf(T_ngettext('%d post has been imported.', '%d posts have been imported.', $count), $count));
-    $settingsObj->displayFamilyNews();
-    displayFooter();
+    /**
+     * displayImportBlogPosts 
+     * 
+     * @return void
+     */
+    function displayImportBlogPosts ()
+    {
+        $this->displayHeader();
 
-    return;
-}
+        // setup familynew obj
+        $newsObj = new FamilyNews($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
 
-/**
- * displayDeleteThemeConfirmation 
- * 
- * The confirmation screen that is shown when trying to delete a theme with js turned off.
- * 
- * @return void
- */
-function displayDeleteThemeConfirmation ()
-{
-    $theme = basename($_GET['delete']);
-    $theme = cleanOutput($theme);
+        // get external ids
+        $external_ids = $newsObj->getExternalPostIds();
 
-    displayHeader();
+        // Get import blog settings
+        $sql = "SELECT `user`, `blogger`, `tumblr`, `wordpress`, `posterous`
+                FROM `fcms_user_settings`
+                WHERE `user` = ?";
 
-    echo '
+        $r = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($r === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if (empty($r))
+        {
+            echo '<div class="error-alert">'.T_('Nothing to import.').'</div>';
+            $this->fcmsSettings->displayFamilyNews();
+            $this->displayFooter();
+
+            return;
+        }
+
+        $count = 0;
+
+        switch ($_GET['import'])
+        {
+            case 'blogger':
+                $count = $newsObj->importBloggerPosts($r['blogger'], $this->fcmsUser->id, '', $external_ids);
+                if ($count === false)
+                {
+                    $this->fcmsSettings->displayFamilyNews();
+                    $this->displayFooter();
+                    return;
+                }
+                break;
+
+            case 'tumblr':
+                $count = $newsObj->importTumblrPosts($r['tumblr'], $this->fcmsUser->id, '', $external_ids);
+                if ($count === false)
+                {
+                    $this->fcmsSettings->displayFamilyNews();
+                    $this->displayFooter();
+                    return;
+                }
+                break;
+
+            case 'wordpress':
+                $count = $newsObj->importWordpressPosts($r['wordpress'], $this->fcmsUser->id, '', $external_ids);
+                if ($count === false)
+                {
+                    $this->fcmsSettings->displayFamilyNews();
+                    $this->displayFooter();
+                    return;
+                }
+                break;
+
+            case 'posterous':
+                $count = $newsObj->importPosterousPosts($r['posterous'], $this->fcmsUser->id, '', $external_ids);
+                if ($count === false)
+                {
+                    $this->fcmsSettings->displayFamilyNews();
+                    $this->displayFooter();
+                    return;
+                }
+                break;
+        }
+
+        displayOkMessage(sprintf(T_ngettext('%d post has been imported.', '%d posts have been imported.', $count), $count));
+        $this->fcmsSettings->displayFamilyNews();
+        $this->displayFooter();
+
+        return;
+    }
+
+    /**
+     * displayDeleteThemeConfirmation 
+     * 
+     * The confirmation screen that is shown when trying to delete a theme with js turned off.
+     * 
+     * @return void
+     */
+    function displayDeleteThemeConfirmation ()
+    {
+        $theme = basename($_GET['delete']);
+        $theme = cleanOutput($theme);
+
+        $this->displayHeader();
+
+        echo '
                 <div class="info-alert">
                     <form action="?view=theme&amp;delete='.$theme.'&amp;confirmed=1" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
@@ -910,87 +922,85 @@ function displayDeleteThemeConfirmation ()
                     </form>
                 </div>';
 
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-/**
- * displayInvalidAccessLevel 
- * 
- * @return void
- */
-function displayInvalidAccessLevel ()
-{
-    displayHeader();
+    /**
+     * displayInvalidAccessLevel 
+     * 
+     * @return void
+     */
+    function displayInvalidAccessLevel ()
+    {
+        $this->displayHeader();
 
-    echo '
+        echo '
             <p class="error-alert">
                 <b>'.T_('You do not have access to view this page.').'</b><br/>
                 <a href="contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
             </p>';
 
-    displayFooter();
-}
-
-/**
- * displayEditFacebook 
- * 
- * @return void
- */
-function displayEditFacebook ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    $config      = getFacebookConfigData();
-    $accessToken = getUserFacebookAccessToken($fcmsUser->id);
-
-    if (!empty($config['fb_app_id']) && !empty($config['fb_secret']))
-    {
-        // Setup url for callbacks
-        $callbackUrl  = getDomainAndDir();
-        $callbackUrl .= 'settings.php?view=facebook';
-
-        $facebook = new Facebook(array(
-            'appId'  => $config['fb_app_id'],
-            'secret' => $config['fb_secret'],
-        ));
-
-        $facebook->setAccessToken($accessToken);
-
-        // Check if the user is logged in and authed
-        $fbUser    = $facebook->getUser();
-        $fbProfile = '';
-
-        if ($fbUser)
-        {
-            try
-            {
-                $fbProfile = $facebook->api('/me');
-            }
-            catch (FacebookApiException $e)
-            {
-                $fbUser = null;
-            }
-        }
-
-        if ($fbUser)
-        {
-            $user    = '<a href="'.$fbProfile['link'].'">'.$fbProfile['email'].'</a>';
-            $status  = sprintf(T_('Currently connected as: %s'), $user);
-            $status .= '<br/><br/><img src="https://graph.facebook.com/'.$fbUser.'/picture" alt="Facebook">';
-            $link    = '<a class="disconnect" href="?revoke=facebook">'.T_('Disconnect').'</a>';
-        }
-        else
-        {
-            $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
-
-            $status = T_('Not Connected');
-            $link   = '<a href="'.$facebook->getLoginUrl($params).'">'.T_('Connect').'</a>';
-        }
+        $this->displayFooter();
     }
 
-    echo '
+    /**
+     * displayEditFacebook 
+     * 
+     * @return void
+     */
+    function displayEditFacebook ()
+    {
+        $this->displayHeader();
+
+        $config      = getFacebookConfigData();
+        $accessToken = getUserFacebookAccessToken($this->fcmsUser->id);
+
+        if (!empty($config['fb_app_id']) && !empty($config['fb_secret']))
+        {
+            // Setup url for callbacks
+            $callbackUrl  = getDomainAndDir();
+            $callbackUrl .= 'settings.php?view=facebook';
+
+            $facebook = new Facebook(array(
+                'appId'  => $config['fb_app_id'],
+                'secret' => $config['fb_secret'],
+            ));
+
+            $facebook->setAccessToken($accessToken);
+
+            // Check if the user is logged in and authed
+            $fbUser    = $facebook->getUser();
+            $fbProfile = '';
+
+            if ($fbUser)
+            {
+                try
+                {
+                    $fbProfile = $facebook->api('/me');
+                }
+                catch (FacebookApiException $e)
+                {
+                    $fbUser = null;
+                }
+            }
+
+            if ($fbUser)
+            {
+                $user    = '<a href="'.$fbProfile['link'].'">'.$fbProfile['email'].'</a>';
+                $status  = sprintf(T_('Currently connected as: %s'), $user);
+                $status .= '<br/><br/><img src="https://graph.facebook.com/'.$fbUser.'/picture" alt="Facebook">';
+                $link    = '<a class="disconnect" href="?revoke=facebook">'.T_('Disconnect').'</a>';
+            }
+            else
+            {
+                $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
+
+                $status = T_('Not Connected');
+                $link   = '<a href="'.$facebook->getLoginUrl($params).'">'.T_('Connect').'</a>';
+            }
+        }
+
+        echo '
         <div class="social-media-connect">
             <img class="icon" src="ui/images/facebook.png" alt="Facebook"/>
             <h2>Facebook</h2>
@@ -999,133 +1009,133 @@ function displayEditFacebook ()
             <div class="action">'.$link.'</div>
         </div>';
 
-    displayFooter();
-}
-
-/**
- * displayEditFacebookSubmit 
- * 
- * @return void
- */
-function displayEditFacebookSubmit ()
-{
-    global $fcmsUser, $settingsObj;
-
-    $data = getFacebookConfigData();
-
-    if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
-    {
-        $facebook = new Facebook(array(
-          'appId'  => $data['fb_app_id'],
-          'secret' => $data['fb_secret'],
-        ));
-
-        $accessToken = $facebook->getAccessToken();
-
-        $sql = "UPDATE `fcms_user_settings`
-                SET `fb_access_token` = '$accessToken'
-                WHERE `user` = '$fcmsUser->id'";
-        if (!mysql_query($sql))
-        {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
+        $this->displayFooter();
     }
 
-    // Facebook isn't configured
-    else
+    /**
+     * displayEditFacebookSubmit 
+     * 
+     * @return void
+     */
+    function displayEditFacebookSubmit ()
     {
-        displayHeader();
+        $data = getFacebookConfigData();
 
-        echo '
+        if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
+        {
+            $facebook = new Facebook(array(
+              'appId'  => $data['fb_app_id'],
+              'secret' => $data['fb_secret'],
+            ));
+
+            $accessToken = $facebook->getAccessToken();
+
+            $sql = "UPDATE `fcms_user_settings`
+                    SET `fb_access_token` = ?
+                    WHERE `user` = ?";
+
+            $params = array(
+                $accessToken,
+                $this->fcmsUser->id
+            );
+
+            if (!$this->fcmsDatabase->update($sql, $params))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        // Facebook isn't configured
+        else
+        {
+            $this->displayHeader();
+
+            echo '
             <div class="info-alert">
                 <h2>'.T_('Facebook isn\'t Configured Yet.').'</h2>
                 <p>'.T_('Unfortunately, your website administrator has not set up Facebook yet.').'</p>
             </div>';
 
-        displayFooter();
-    }
-
-    header("Location: settings.php?view=facebook");
-}
-
-/**
- * displayRevokeFacebookAccess 
- * 
- * @return void
- */
-function displayRevokeFacebookAccess ()
-{
-    global $fcmsUser;
-
-    $sql = "UPDATE `fcms_user_settings`
-            SET `fb_access_token` = NULL
-            WHERE `user` = '$fcmsUser->id'";
-
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    // remove any facebook session vars
-    foreach ($_SESSION as $key => $val)
-    {
-        if (substr($key, 0, 3) == 'fb_')
-        {
-            unset($_SESSION[$key]);
+            $this->displayFooter();
         }
+
+        header("Location: settings.php?view=facebook");
     }
 
-    header("Location: settings.php?view=facebook");
-}
-
-/**
- * displayEditFoursquare 
- * 
- * @return void
- */
-function displayEditFoursquare ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    $config = getFoursquareConfigData();
-    $user   = getFoursquareUserData($fcmsUser->id);
-
-    // Setup url for callbacks
-    $callbackUrl  = getDomainAndDir();
-    $callbackUrl .= 'settings.php?view=foursquare';
-
-    $fsObj = new EpiFoursquare($config['fs_client_id'], $config['fs_client_secret']);
-
-    if (!empty($user['fs_user_id']) && !empty($user['fs_access_token']))
+    /**
+     * displayRevokeFacebookAccess 
+     * 
+     * @return void
+     */
+    function displayRevokeFacebookAccess ()
     {
-        $fsObjAuth = new EpiFoursquare(
-                        $config['fs_client_id'], 
-                        $config['fs_client_secret'], 
-                        $user['fs_access_token']
-        );
+        $sql = "UPDATE `fcms_user_settings`
+                SET `fb_access_token` = NULL
+                WHERE `user` = ?";
 
-        $self = $fsObjAuth->get('/users/self');
+        if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
 
-        $user    = '<a href="http://foursquare.com/user/'.$self->response->user->id.'">'.$self->response->user->contact->email.'</a>';
-        $status  = sprintf(T_('Currently connected as: %s'), $user);
-        $status .= '<br/><br/><img src="'.$self->response->user->photo.'"/>';
-        $link    = '<a class="disconnect" href="?revoke=foursquare">'.T_('Disconnect').'</a>';
+        // remove any facebook session vars
+        foreach ($_SESSION as $key => $val)
+        {
+            if (substr($key, 0, 3) == 'fb_')
+            {
+                unset($_SESSION[$key]);
+            }
+        }
+
+        header("Location: settings.php?view=facebook");
     }
-    else
+
+    /**
+     * displayEditFoursquare 
+     * 
+     * @return void
+     */
+    function displayEditFoursquare ()
     {
-        $status = '<span class="not_connected">'.T_('Not Connected').'</span>';
-        $link   = '<a href="'.$fsObj->getAuthorizeUrl($callbackUrl).'">'.T_('Connect').'</a>';
-    }
+        $this->displayHeader();
 
-    echo '
+        $config = getFoursquareConfigData();
+        $user   = getFoursquareUserData($this->fcmsUser->id);
+
+        // Setup url for callbacks
+        $callbackUrl  = getDomainAndDir();
+        $callbackUrl .= 'settings.php?view=foursquare';
+
+        $fsObj = new EpiFoursquare($config['fs_client_id'], $config['fs_client_secret']);
+
+        if (!empty($user['fs_user_id']) && !empty($user['fs_access_token']))
+        {
+            $fsObjAuth = new EpiFoursquare(
+                            $config['fs_client_id'], 
+                            $config['fs_client_secret'], 
+                            $user['fs_access_token']
+            );
+
+            $self = $fsObjAuth->get('/users/self');
+
+            $user    = '<a href="http://foursquare.com/user/'.$self->response->user->id.'">'.$self->response->user->contact->email.'</a>';
+            $status  = sprintf(T_('Currently connected as: %s'), $user);
+            $status .= '<br/><br/><img src="'.$self->response->user->photo.'"/>';
+            $link    = '<a class="disconnect" href="?revoke=foursquare">'.T_('Disconnect').'</a>';
+        }
+        else
+        {
+            $status = '<span class="not_connected">'.T_('Not Connected').'</span>';
+            $link   = '<a href="'.$fsObj->getAuthorizeUrl($callbackUrl).'">'.T_('Connect').'</a>';
+        }
+
+        echo '
         <div class="social-media-connect">
             <img class="icon" src="ui/images/foursquare.png" alt="Foursquare"/>
             <h2>Foursquare</h2>
@@ -1134,115 +1144,116 @@ function displayEditFoursquare ()
             <div class="action">'.$link.'</div>
         </div>';
 
-    displayFooter();
-}
-
-/**
- * displayFoursquareSubmit 
- * 
- * The submit screen for saving foursquare data.
- * 
- * @return void
- */
-function displayFoursquareSubmit ()
-{
-    global $fcmsUser, $settingsObj;
-
-    $r = getFoursquareConfigData();
-
-    $id     = cleanOutput($r['fs_client_id']);
-    $secret = cleanOutput($r['fs_client_secret']);
-    $url    = cleanOutput($r['fs_callback_url']);
-
-    $fsObj = new EpiFoursquare($id, $secret);
-    $token = $fsObj->getAccessToken($_GET['code'], $url);
-
-    $fsObjAuth = new EpiFoursquare($id, $secret, $token->access_token);
-    $self      = $fsObjAuth->get('/users/self');
-
-    $sql = "UPDATE `fcms_user_settings`
-            SET `fs_user_id` = '".$self->response->user->id."',
-                `fs_access_token` = '".$token->access_token."'
-            WHERE `user` = '$fcmsUser->id'";
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
+        $this->displayFooter();
     }
 
-    header("Location: settings.php?view=foursquare");
-}
-
-/**
- * displayRevokeFoursquareAccess 
- * 
- * @return void
- */
-function displayRevokeFoursquareAccess ()
-{
-    global $fcmsUser;
-
-    $sql = "UPDATE `fcms_user_settings`
-            SET `fs_user_id` = NULL, `fs_access_token` = NULL
-            WHERE `user` = '$fcmsUser->id'";
-
-    if (!mysql_query($sql))
+    /**
+     * displayFoursquareSubmit 
+     * 
+     * The submit screen for saving foursquare data.
+     * 
+     * @return void
+     */
+    function displayFoursquareSubmit ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $r = getFoursquareConfigData();
 
-    header("Location: settings.php?view=foursquare");
-}
+        $id     = cleanOutput($r['fs_client_id']);
+        $secret = cleanOutput($r['fs_client_secret']);
+        $url    = cleanOutput($r['fs_callback_url']);
 
+        $fsObj = new EpiFoursquare($id, $secret);
+        $token = $fsObj->getAccessToken($_GET['code'], $url);
 
-/**
- * displayEditInstagram 
- * 
- * @return void
- */
-function displayEditInstagram ()
-{
-    global $fcmsUser;
+        $fsObjAuth = new EpiFoursquare($id, $secret, $token->access_token);
+        $self      = $fsObjAuth->get('/users/self');
 
-    displayHeader();
+        $sql = "UPDATE `fcms_user_settings`
+                SET `fs_user_id` = ?,
+                    `fs_access_token` = ?
+                WHERE `user` = ?";
 
-    $config = getInstagramConfigData();
+        $params = array(
+            $self->response->user->id,
+            $token->access_token,
+            $this->fcmsUser->id
+        );
 
-    $callbackUrl  = getDomainAndDir();
-    $callbackUrl .= 'settings.php?view=instagram';
-
-    $accessToken = getUserInstagramAccessToken($fcmsUser->id);
-    $instagram   = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $accessToken);
-
-    if (!$accessToken)
-    {
-        $url = $instagram->authorizeUrl($callbackUrl, array('basic', 'comments', 'likes', 'relationships'));
-
-        $status = T_('Not Connected');
-        $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
-    }
-    else
-    {
-        try
+        if (!$this->fcmsDatabase->update($sql, $params))
         {
-            $feed = $instagram->get('users/self');
-        }
-        catch (InstagramApiError $e)
-        {
-            die($e->getMessage());
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
         }
 
-        $status = sprintf(T_('Currently connected as: %s'), $feed->data->username);
-        $status .= '<br/><br/><img src="'.$feed->data->profile_picture.'"/>';
-        $link   = '<a class="disconnect" href="?revoke=instagram">'.T_('Disconnect').'</a>';
+        header("Location: settings.php?view=foursquare");
     }
 
-    echo '
+    /**
+     * displayRevokeFoursquareAccess 
+     * 
+     * @return void
+     */
+    function displayRevokeFoursquareAccess ()
+    {
+        $sql = "UPDATE `fcms_user_settings`
+                SET `fs_user_id` = NULL, `fs_access_token` = NULL
+                WHERE `user` = ?";
+
+        if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        header("Location: settings.php?view=foursquare");
+    }
+
+
+    /**
+     * displayEditInstagram 
+     * 
+     * @return void
+     */
+    function displayEditInstagram ()
+    {
+        $this->displayHeader();
+
+        $config = getInstagramConfigData();
+
+        $callbackUrl  = getDomainAndDir();
+        $callbackUrl .= 'settings.php?view=instagram';
+
+        $accessToken = getUserInstagramAccessToken($this->fcmsUser->id);
+        $instagram   = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $accessToken);
+
+        if (!$accessToken)
+        {
+            $url = $instagram->authorizeUrl($callbackUrl, array('basic', 'comments', 'likes', 'relationships'));
+
+            $status = T_('Not Connected');
+            $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
+        }
+        else
+        {
+            try
+            {
+                $feed = $instagram->get('users/self');
+            }
+            catch (InstagramApiError $e)
+            {
+                die($e->getMessage());
+            }
+
+            $status = sprintf(T_('Currently connected as: %s'), $feed->data->username);
+            $status .= '<br/><br/><img src="'.$feed->data->profile_picture.'"/>';
+            $link   = '<a class="disconnect" href="?revoke=instagram">'.T_('Disconnect').'</a>';
+        }
+
+        echo '
         <div class="social-media-connect">
             <img class="icon" src="ui/images/instagram.png" alt="Instagram"/>
             <h2>Instagram</h2>
@@ -1251,151 +1262,150 @@ function displayEditInstagram ()
             <div class="action">'.$link.'</div>
         </div>';
 
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-/**
- * displayEditInstagramSubmit 
- * 
- * @return void
- */
-function displayEditInstagramSubmit ()
-{
-    global $fcmsUser;
-
-    $config = getInstagramConfigData();
-
-    if (!empty($config['instagram_client_id']) && !empty($config['instagram_client_secret']))
+    /**
+     * displayEditInstagramSubmit 
+     * 
+     * @return void
+     */
+    function displayEditInstagramSubmit ()
     {
-        $callbackUrl  = getDomainAndDir();
-        $callbackUrl .= 'settings.php?view=instagram';
+        $config = getInstagramConfigData();
 
-        $instagram = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], null);
-
-        if (isset($_GET['error']) || isset($_GET['error_reason']) || isset($_GET['error_description']))
+        if (!empty($config['instagram_client_id']) && !empty($config['instagram_client_secret']))
         {
-            displayHeader();
+            $callbackUrl  = getDomainAndDir();
+            $callbackUrl .= 'settings.php?view=instagram';
 
-            echo '
+            $instagram = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], null);
+
+            if (isset($_GET['error']) || isset($_GET['error_reason']) || isset($_GET['error_description']))
+            {
+                $this->displayHeader();
+
+                echo '
                 <div class="error-alert">
                     <p>'.$_GET['error'].'</p>
                     <p>'.$_GET['error_reason'].'</p>
                     <p>'.$_GET['error_description'].'</p>
                 </div>';
 
-            displayFooter();
+                $this->displayFooter();
 
-            return;
+                return;
+            }
+
+            $response = $instagram->getAccessToken($_GET['code'], $callbackUrl);
+
+            $accessToken = $response->access_token;
+
+            $sql = "UPDATE `fcms_user_settings`
+                    SET `instagram_access_token` = ?
+                    WHERE `user` = ?";
+
+            $params = array(
+                $accessToken,
+                $this->fcmsUser->id
+            );
+
+            if (!$this->fcmsDatabase->update($sql, $params))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
         }
-
-        $response = $instagram->getAccessToken($_GET['code'], $callbackUrl);
-
-        $accessToken = $response->access_token;
-
-        $sql = "UPDATE `fcms_user_settings`
-                SET `instagram_access_token` = '$accessToken'
-                WHERE `user` = '$fcmsUser->id'";
-
-        if (!mysql_query($sql))
+        // Instagram isn't configured
+        else
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
-            return;
-        }
-    }
-    // Instagram isn't configured
-    else
-    {
-        displayHeader();
+            $this->displayHeader();
 
-        echo '
+            echo '
             <div class="info-alert">
                 <h2>'.T_('Instagram isn\'t Configured Yet.').'</h2>
                 <p>'.T_('Unfortunately, your website administrator has not set up Instagram yet.').'</p>
             </div>';
 
-        displayFooter();
-        return;
+            $this->displayFooter();
+            return;
+        }
+
+        header("Location: settings.php?view=instagram");
     }
 
-    header("Location: settings.php?view=instagram");
-}
-
-/**
- * displayRevokeInstagramAccess 
- * 
- * @return void
- */
-function displayRevokeInstagramAccess ()
-{
-    global $fcmsUser;
-
-    $sql = "UPDATE `fcms_user_settings`
-            SET `instagram_access_token` = NULL
-            WHERE `user` = '$fcmsUser->id'";
-
-    if (!mysql_query($sql))
+    /**
+     * displayRevokeInstagramAccess 
+     * 
+     * @return void
+     */
+    function displayRevokeInstagramAccess ()
     {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
+        $sql = "UPDATE `fcms_user_settings`
+                SET `instagram_access_token` = NULL
+                WHERE `user` = ?";
 
-    header("Location: settings.php?view=instagram");
-}
-
-/**
- * displayEditYouTube 
- * 
- * @return void
- */
-function displayEditYouTube ()
-{
-    global $fcmsUser;
-
-    displayHeader();
-
-    $config = getYouTubeConfigData();
-    $user   = getYouTubeUserData($fcmsUser->id);
-
-    // Setup url for callbacks
-    $callbackUrl  = getDomainAndDir();
-    $callbackUrl .= 'settings.php?view=youtube';
-
-    if (!empty($config['youtube_key']))
-    {
-        if (!empty($user['youtube_session_token']))
+        if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
         {
-            $httpClient = getAuthSubHttpClient($config['youtube_key'], $user['youtube_session_token']);
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
 
-            $youTubeService = new Zend_Gdata_YouTube($httpClient);
+        header("Location: settings.php?view=instagram");
+    }
 
-            $feed = $youTubeService->getUserProfile('default');
-            if (!$feed instanceof Zend_Gdata_YouTube_UserProfileEntry)
+    /**
+     * displayEditYouTube 
+     * 
+     * @return void
+     */
+    function displayEditYouTube ()
+    {
+        $this->displayHeader();
+
+        $config = getYouTubeConfigData();
+        $user   = getYouTubeUserData($this->fcmsUser->id);
+
+        // Setup url for callbacks
+        $callbackUrl  = getDomainAndDir();
+        $callbackUrl .= 'settings.php?view=youtube';
+
+        if (!empty($config['youtube_key']))
+        {
+            if (!empty($user['youtube_session_token']))
             {
-                print '
+                $httpClient = getYouTubeAuthSubHttpClient($config['youtube_key'], $user['youtube_session_token']);
+
+                $youTubeService = new Zend_Gdata_YouTube($httpClient);
+
+                $feed = $youTubeService->getUserProfile('default');
+                if (!$feed instanceof Zend_Gdata_YouTube_UserProfileEntry)
+                {
+                    print '
             <div class="error-alert">'.T_('Could not get YouTube data for user.').'</div>';
-                return;
+                    return;
+                }
+
+                $username = $feed->getUsername();
+
+                $user    = '<a href="http://www.youtube.com/user/'.$username.'">'.$username.'</a>';
+                $status  = sprintf(T_('Currently connected as: %s'), $user);
+                $link    = '<a class="disconnect" href="?revoke=youtube">'.T_('Disconnect').'</a>';
             }
+            else
+            {
+                $url = Zend_Gdata_AuthSub::getAuthSubTokenUri($callbackUrl, 'http://gdata.youtube.com', false, true);
 
-            $username = $feed->getUsername();
-
-            $user    = '<a href="http://www.youtube.com/user/'.$username.'">'.$username.'</a>';
-            $status  = sprintf(T_('Currently connected as: %s'), $user);
-            $link    = '<a class="disconnect" href="?revoke=youtube">'.T_('Disconnect').'</a>';
+                $status = T_('Not Connected');
+                $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
+            }
         }
-        else
-        {
-            $url = Zend_Gdata_AuthSub::getAuthSubTokenUri($callbackUrl, 'http://gdata.youtube.com', false, true);
 
-            $status = T_('Not Connected');
-            $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
-        }
-    }
-
-    echo '
+        echo '
         <div class="social-media-connect">
             <img class="icon" src="ui/images/youtube.png" alt="YouTube"/>
             <h2>YouTube</h2>
@@ -1404,24 +1414,167 @@ function displayEditYouTube ()
             <div class="action">'.$link.'</div>
         </div>';
 
-    displayFooter();
-}
+        $this->displayFooter();
+    }
 
-/**
- * displayEditYouTubeSubmit
- * 
- * @return void
- */
-function displayEditYouTubeSubmit ()
-{
-    global $fcmsUser, $settingsObj;
-
-    $data = getYouTubeConfigData();
-
-    $singleUseToken = $_GET['token'];
-
-    if (!empty($data['youtube_key']))
+    /**
+     * displayEditYouTubeSubmit
+     * 
+     * @return void
+     */
+    function displayEditYouTubeSubmit ()
     {
+        $data = getYouTubeConfigData();
+
+        $singleUseToken = $_GET['token'];
+
+        if (!empty($data['youtube_key']))
+        {
+            // Exchange single use token for a session token
+            try
+            {
+                $sessionToken = Zend_Gdata_AuthSub::getAuthSubSessionToken($singleUseToken);
+            }
+            catch (Zend_Gdata_App_Exception $e)
+            {
+                $this->displayHeader();
+                echo '
+            <div class="error-alert">ERROR - Token upgrade for ['.$singleUseToken.'] failed: '.$e->getMessage();
+                $this->displayFooter();
+                return;
+            }
+
+            $_SESSION['sessionToken'] = $sessionToken;
+
+            $sql = "UPDATE `fcms_user_settings`
+                    SET `youtube_session_token` = ?
+                    WHERE `user` = ?";
+
+            $params = array(
+                $sessionToken,
+                $this->fcmsUser->id
+            );
+
+            if (!$this->fcmsDatabase->update($sql, $params))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+        }
+
+        // YouTube isn't configured
+        else
+        {
+            $this->displayHeader();
+
+            echo '
+            <div class="info-alert">
+                <h2>'.T_('YouTube isn\'t Configured Yet.').'</h2>
+                <p>'.T_('Unfortunately, your website administrator has not set up YouTube yet.').'</p>
+            </div>';
+
+            $this->displayFooter();
+            return;
+        }
+
+        header("Location: settings.php?view=youtube");
+    }
+
+    /**
+     * displayRevokeYouTubeAccess 
+     * 
+     * @return void
+     */
+    function displayRevokeYouTubeAccess ()
+    {
+        if (isset($_SESSION['sessionToken']))
+        {
+            unset($_SESSION['sessionToken']);
+        }
+
+        $sql = "UPDATE `fcms_user_settings`
+                SET `youtube_session_token` = NULL
+                WHERE `user` = ?";
+
+        if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        header("Location: settings.php?view=youtube");
+    }
+
+    /**
+     * displayEditPicasa
+     * 
+     * @return void
+     */
+    function displayEditPicasa ()
+    {
+        $this->displayHeader();
+
+        $token = getUserPicasaSessionToken($this->fcmsUser->id);
+
+        // Setup url for callbacks
+        $callbackUrl  = getDomainAndDir();
+        $callbackUrl .= 'settings.php?view=picasa';
+
+        if (!is_null($token))
+        {
+            $httpClient = Zend_Gdata_AuthSub::getHttpClient($token);
+
+            $picasaService = new Zend_Gdata_Photos($httpClient, "Google-DevelopersGuide-1.0");
+
+            try
+            {
+                $feed = $picasaService->getUserFeed("default");
+            }
+            catch (Zend_Gdata_App_Exception $e)
+            {
+                print '<div class="error-alert">'.T_('Could not get Picasa session token.').'</div>';
+                return;
+            }
+
+            $username = $feed->getTitle();
+
+            $user    = '<a href="http://picasaweb.google.com/'.$username.'">'.$username.'</a>';
+            $status  = sprintf(T_('Currently connected as: %s'), $user);
+            $link    = '<a class="disconnect" href="?revoke=picasa">'.T_('Disconnect').'</a>';
+        }
+        else
+        {
+            $url = Zend_Gdata_AuthSub::getAuthSubTokenUri($callbackUrl, 'https://picasaweb.google.com/data', false, true);
+
+            $status = T_('Not Connected');
+            $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
+        }
+
+        echo '
+        <div class="social-media-connect">
+            <img class="icon" src="ui/images/picasa.png" alt="Picasa"/>
+            <h2>Picasa Web</h2>
+            <p>'.T_('Picasa Web allows users to share photos with friends and family.').'</p>
+            <div class="status">'.$status.'</div>
+            <div class="action">'.$link.'</div>
+        </div>';
+
+        $this->displayFooter();
+    }
+
+    /**
+     * displayEditPicasaSubmit
+     * 
+     * @return void
+     */
+    function displayEditPicasaSubmit ()
+    {
+        $singleUseToken = $_GET['token'];
+
         // Exchange single use token for a session token
         try
         {
@@ -1429,72 +1582,56 @@ function displayEditYouTubeSubmit ()
         }
         catch (Zend_Gdata_App_Exception $e)
         {
-            displayHeader();
-            echo '
-            <div class="error-alert">ERROR - Token upgrade for ['.$singleUseToken.'] failed: '.$e->getMessage();
-            displayFooter();
+            $this->displayHeader();
+            echo '<div class="error-alert">ERROR - Token upgrade for ['.$singleUseToken.'] failed: '.$e->getMessage();
+            $this->displayFooter();
             return;
         }
-
-        $_SESSION['sessionToken'] = $sessionToken;
 
         $sql = "UPDATE `fcms_user_settings`
-                SET `youtube_session_token` = '$sessionToken'
-                WHERE `user` = '$fcmsUser->id'";
+                SET `picasa_session_token` = ?
+                WHERE `user` = ?";
 
-        if (!mysql_query($sql))
+        $params = array(
+            $sessionToken,
+            $this->fcmsUser->id
+        );
+
+        if (!$this->fcmsDatabase->update($sql, $params))
         {
-            displayHeader();
-            displaySqlError($sql, mysql_error());
-            displayFooter();
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
             return;
         }
+
+        header("Location: settings.php?view=picasa");
     }
 
-    // YouTube isn't configured
-    else
+    /**
+     * displayRevokePicasaAccess 
+     * 
+     * @return void
+     */
+    function displayRevokePicasaAccess ()
     {
-        displayHeader();
+        if (isset($_SESSION['sessionToken']))
+        {
+            unset($_SESSION['sessionToken']);
+        }
 
-        echo '
-            <div class="info-alert">
-                <h2>'.T_('YouTube isn\'t Configured Yet.').'</h2>
-                <p>'.T_('Unfortunately, your website administrator has not set up YouTube yet.').'</p>
-            </div>';
+        $sql = "UPDATE `fcms_user_settings`
+                SET `picasa_session_token` = NULL
+                WHERE `user` = ?";
 
-        displayFooter();
-        return;
+        if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        header("Location: settings.php?view=picasa");
     }
-
-    header("Location: settings.php?view=youtube");
 }
-
-/**
- * displayRevokeYouTubeAccess 
- * 
- * @return void
- */
-function displayRevokeYouTubeAccess ()
-{
-    global $fcmsUser;
-
-    if (isset($_SESSION['sessionToken']))
-    {
-        unset($_SESSION['sessionToken']);
-    }
-
-    $sql = "UPDATE `fcms_user_settings`
-            SET `youtube_session_token` = NULL
-            WHERE `user` = '$fcmsUser->id'";
-
-    if (!mysql_query($sql))
-    {
-        displayHeader();
-        displaySqlError($sql, mysql_error());
-        displayFooter();
-        return;
-    }
-
-    header("Location: settings.php?view=youtube");
-}
-

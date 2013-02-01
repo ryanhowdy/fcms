@@ -5,9 +5,13 @@ class User
     public $id;
     public $tzOffset;
     public $displayName;
+    public $email;
 
     private $error;
+    private $db;
     
+    public static $instance = null;
+
     /**
      * __construct 
      * 
@@ -15,37 +19,56 @@ class User
      * 
      * @return void
      */
-    public function __construct ($error)
+    public function __construct ($error, $db)
     {
         if (!isset($_SESSION['login_id']))
         {
+            $this->displayName = 'unknown-user';
+            $this->email       = 'unknow-email';
+            $this->tzOffset    = '';
+            $this->access      = 10;
             return;
         }
 
-        $this->id    = (int)$_SESSION['login_id'];
         $this->error = $error;
+        $this->db    = $db;
+
+        $this->id = (int)$_SESSION['login_id'];
 
         // Get User info
-        $sql = "SELECT u.`fname`, u.`lname`, u.`username`, s.`displayname` 
-                FROM `fcms_users` AS u, `fcms_user_settings` AS s 
-                WHERE u.`id` = '$this->id' 
-                AND u.`id` = s.`user`";
+        $sql = "SELECT u.`fname`, u.`lname`, u.`username`, s.`displayname`, u.`email`, s.`timezone`, u.`access`
+                FROM `fcms_users` AS u
+                LEFT JOIN `fcms_user_settings` AS s ON u.`id` = s.`user`
+                WHERE u.`id` = ?";
 
-        $result = mysql_query($sql);
-        if (!$result)
+        $userInfo = $this->db->getRow($sql, $this->id);
+        if ($userInfo === false)
         {
-            $msg       = sprintf(T_('Could not get information for user [%s].'), $this->id);
-            $debugInfo = $sql."\n".mysql_error();
-
-            $this->error->add($msg,  $debugInfo);
+            $this->error->setMessage(sprintf(T_('Could not get information for user [%s].'), $this->id));
             return;
         }
 
-        $data = mysql_fetch_assoc($result);
-
-        $this->displayName = $this->getDisplayNameFromData($data);
+        $this->displayName = $this->getDisplayNameFromData($userInfo);
+        $this->email       = $userInfo['email'];
+        $this->tzOffset    = $userInfo['timezone'];
+        $this->access      = $userInfo['access'];
 
         return;
+    }
+
+    /**
+     * getInstance 
+     * 
+     * @return object
+     */
+    public static function getInstance ($error, $db)
+    {
+        if (!isset(self::$instance))
+        {
+            self::$instance = new User($error, $db);
+        }
+
+        return self::$instance;
     }
 
     /**

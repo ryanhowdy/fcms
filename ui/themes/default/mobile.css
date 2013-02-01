@@ -1,0 +1,290 @@
+@media only screen and (max-width: 480px) {
+
+html {
+    background: #FFF;
+}
+body {
+    font-size: medium;
+    width: 480px;
+}
+#header,
+#header #logo {
+    float: none;
+}
+#header p {
+    font-size: medium;
+    float: none;
+    padding: 5px;
+    width: auto;
+}
+#mobile-topmenu {
+    display: block;
+    margin: 10px;
+    width: 460px;
+}
+#topmenu {
+    display: none;
+}
+#navigation {
+    background: #1A7AB0;
+    float: none;
+    position: static;
+    margin: 10px;
+    width: auto;
+}
+#navigation li {
+    float: none;
+}
+#navigation li ul {
+    display: block;
+    position: static;
+}
+#navigation li:hover {
+    position: static;
+}
+#navigation li.dropdown > a {
+    display: none;
+}
+#navigation a,
+#navigation li:hover a {
+    font-size: medium;
+}
+#content {
+    width: auto;
+}
+#leftcolumn {
+    display: none;
+}
+#maincolumn {
+    float: none;
+    width: auto;
+}
+#status_update {
+    padding: 10px;
+}
+#status_update #status {
+    margin: 0 0 6px 0;
+    width: 416px;
+}
+#status_reply #status {
+    width: 250px;
+}
+#chat_link {
+    display: none;
+}
+h1, h2 {
+    font-size: large;
+}
+h3, h4, h5 {
+    font-size: medium;
+}
+fieldset {
+    font-size: medium;
+    margin: 0;
+}
+fieldset .field-label {
+    float: none;
+    text-align: left;
+    width: auto;
+}
+fieldset .field-widget {
+    float: none;
+    width: auto;
+}
+fieldset label {
+    display: block;
+}
+fieldset #post {
+    width: 460px;
+}
+.toolbar {
+    width: 464px;
+}
+.blank-state {
+    padding: 30px;
+    margin: 10px 0 40px 0;
+}
+#sections_menu {
+    width: auto;
+}
+#actions_menu ul {
+    font-size: medium;
+}
+#maincolumn #stats .stat {
+    width: 200px;
+    font-size: medium;
+}
+#pm .img,
+#pm .check,
+#pm .pm_footer {
+    display: none;
+}
+#threadlist th.images,
+#threadlist td.images,
+#threadlist th.info,
+#threadlist td.info,
+#threadlist th.replies,
+#threadlist td.replies,
+#threadlist th.views,
+#threadlist td.views {
+    display: none;
+}
+#messageboard #actions_menu ul {
+    float: none;
+    padding: 0;
+    margin: 10px 0;
+}
+#messageboard #actions_menu ul li {
+    float: none;
+    text-align: right;
+}
+#messageboard #actions_menu ul li.advanced_search,
+#messageboard #actions_menu ul li.search {
+    text-align: left;
+    padding: 5px 0;
+}
+#familynews {
+    padding: 10px 10px 50px 10px;
+}
+#news-list {
+    float: none;
+    width: auto;
+    margin-bottom: 20px;
+}
+.news-post {
+    float: none;
+    width: auto;
+}
+#gallery_menu {
+    padding-bottom: 20px;
+}
+#gallery_menu #sections_menu,
+#gallery_menu #actions_menu {
+    float: none;
+    overflow: hidden;
+    width: auto;
+    height: auto;
+}
+#gallery_menu #sections_menu ul {
+    margin-bottom: 15px;
+}
+#gallery_menu #sections_menu li {
+    border: none;
+    padding: 0 2px;
+}
+#gallery_menu #actions_menu .upload {
+    display: none;
+}
+#gallery #photos {
+    width: 480px;
+}
+#gallery #maincolumn {
+    width: auto;
+}
+#gallery textarea {
+    max-width: 480px;
+}
+.breadcrumbs {
+    font-size: medium;
+    width: 480px;
+}
+.prev_next {
+    float: none;
+    margin: 10px 0 15px;
+}
+.prev_next a {
+    font-size: large;
+    padding: 10px;
+    background-color: #eee;
+    float: left;
+}
+.prev_next a.next {
+    float: right;
+}
+#gallery #photo {
+    width: auto;
+    float: none;
+}
+#gallery #photo_details {
+    display: none;
+}
+#gallery #photo img.photo {
+    max-width: 480px;
+}
+div.categories div.category,
+ul.categories li.category {
+    float: none;
+    width: auto;
+    margin: 0;
+    height: auto;
+    position: relative;
+}
+div.categories div.category .overlay,
+ul.categories li.category span {
+    background-image: -webkit-linear-gradient(top, #fdfdfd, #eee);
+    border-bottom: 1px solid #bbb;
+    top: 0;
+    position: absolute;
+    left: 150px;
+    width: 390px;
+}
+ul.categories li.category span {
+    height: 150px;
+    width: 310px;
+}
+ul.categories li.category span strong,
+ul.categories li.category span i {
+    padding: 10px;
+}
+div.categories div.category .overlay p {
+    color: #444;
+}
+div.categories div.category:hover .overlay {
+    background-image: -webkit-linear-gradient(top, #eee, #ccc);
+}
+div.categories div.category .footer {
+    position: absolute;
+    top: 50px;
+    left: 150px;
+    color: #444;
+    padding: 10px;
+}
+#address-options ul {
+    width: 460px;
+}
+#address-details b.label,
+#address-details span.data {
+    float: none;
+    text-align: left;
+}
+#big-calendar,
+#big-calendar h3,
+#big-calendar td,
+#day-calendar,
+#day-calendar td.time,
+#day-calendar .navigation,
+#day-calendar .views,
+.event a {
+    width: auto;
+}
+#day-calendar h3 {
+    width: 240px;
+}
+#name-info,
+#ingredients-info {
+    display: none;
+}
+#recipe-page #comment {
+    width: 480px;
+}
+.recipe-directions,
+.recipe-ingredients {
+    width: 215px;
+}
+.column {
+    width: 150px;
+}
+.leaf img {
+    height: 25px;
+    width: 25px;
+}
