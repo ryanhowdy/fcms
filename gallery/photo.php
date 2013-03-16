@@ -28,7 +28,7 @@ require URL_PREFIX.'fcms.php';
 load('gallery');
 
 // Globals
-$galleryObj = new PhotoGallery($fcmsUser->id);
+$galleryObj = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
 
 $id   = (int)$_GET['id'];
 $size = 'thumbnail';
