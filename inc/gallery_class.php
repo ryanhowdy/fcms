@@ -2635,6 +2635,7 @@ class PhotoGallery
                 'thumbnail'   => $row['thumbnail']
             );
 
+            $row['id']   = $row['pid'];
             $row['user'] = $row['uid'];
 
             $photoSrc = $this->getPhotoSource($row);
