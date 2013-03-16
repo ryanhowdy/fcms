@@ -1697,14 +1697,14 @@ class Calendar
                 FROM `fcms_users`
                 WHERE `id` = ?";
 
-        $row = $this->fcmsDatabase->getRows($sql, $id);
+        $row = $this->fcmsDatabase->getRow($sql, $id);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
             return;
         }
 
-        if (count($row) <= 0)
+        if (empty($row))
         {
             echo '<div class="info-alert"><h2>'.T_('I can\'t seem to find that calendar event.').'</h2>';
             echo '<p>'.T_('Please double check and try again.').'</p></div>';
@@ -1719,7 +1719,7 @@ class Calendar
         $date = sprintf(T_('Every year on %s, since %s.'), $date, $year);
 
         // Figure out age
-        $age = getAge($year, $month, $day);
+        $age = getAge($year, $month, $day, date('Y')."-$month-$day");
 
         $edit = '';
 
