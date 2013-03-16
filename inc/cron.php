@@ -54,10 +54,10 @@ function runFamilyNewsJob ()
 {
     include_once 'familynews_class.php';
 
-    $newsObj = new FamilyNews(1);
-
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
+
+    $newsObj = new FamilyNews($fcmsError, $fcmsDatabase, 1);
 
     // Get date we last checked for external news
     $sql = "SELECT `value` AS 'external_news_date'
