@@ -1,3 +1,18 @@
+  3.2
+    #485 - "Member has joined" is broken
+    #500 - New Database class
+    #513 - OOP page flow control
+    #372 - Picasa Web Integration
+    #474 - Use Dependancy Injection in classes
+    #511 - Undefined index: user in Most Viewed & Top Rated views
+    #512 - Delete not working with full sized photos.
+    #515 - Typo in source code of /gallery/index.php in displayEditCategoryFormSubmit() at line 998
+    #535 - Full size photo errors
+    #550 - Photo Gallery - Mass Edit
+    #537 - Undefined constant ROOT Error on displayNoConfig() page
+    #539 - Can't save maiden name on family tree edit
+    #547 - Various problems 3.1.1
+
   3.1.1
     #501 - Cannot remove polls
     #502 - Extra quote in photo gallery caused Advanced Uploader to break

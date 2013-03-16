@@ -274,19 +274,19 @@ function keyHandler(e)
             $whatsNewData = getWhatsNewData(30, true);
             $tzOffset     = getTimezone($this->fcmsUser->id);
 
-            $messageboard    = formatWhatsNewMessageBoard($whatsNewData, $tzOffset);
-            $familynews      = formatWhatsNewFamilyNews($whatsNewData, $tzOffset);
-            $addressbook     = formatWhatsNewAddressBook($whatsNewData, $tzOffset);
-            $recipes         = formatWhatsNewRecipes($whatsNewData, $tzOffset);
-            $prayers         = formatWhatsNewPrayers($whatsNewData, $tzOffset);
-            $photogallery    = formatWhatsNewPhotoGallery($whatsNewData, $tzOffset);
-            $videogallery    = formatWhatsNewVideoGallery($whatsNewData, $tzOffset);
-            $comments        = formatWhatsNewComments($whatsNewData, $tzOffset);
-            $statusupdates   = formatWhatsNewStatusUpdates($whatsNewData, $tzOffset);
-            $calendar        = formatWhatsNewCalendar($whatsNewData, $tzOffset);
-            $documents       = formatWhatsNewDocuments($whatsNewData, $tzOffset);
-            $whereiseveryone = formatWhatsNewWhereIsEveryone($whatsNewData, $tzOffset);
-            $misc            = formatWhatsNewMisc($whatsNewData, $tzOffset);
+            $messageboard    = $this->formatWhatsNewMessageBoard($whatsNewData, $tzOffset);
+            $familynews      = $this->formatWhatsNewFamilyNews($whatsNewData, $tzOffset);
+            $addressbook     = $this->formatWhatsNewAddressBook($whatsNewData, $tzOffset);
+            $recipes         = $this->formatWhatsNewRecipes($whatsNewData, $tzOffset);
+            $prayers         = $this->formatWhatsNewPrayers($whatsNewData, $tzOffset);
+            $photogallery    = $this->formatWhatsNewPhotoGallery($whatsNewData, $tzOffset);
+            $videogallery    = $this->formatWhatsNewVideoGallery($whatsNewData, $tzOffset);
+            $comments        = $this->formatWhatsNewComments($whatsNewData, $tzOffset);
+            $statusupdates   = $this->formatWhatsNewStatusUpdates($whatsNewData, $tzOffset);
+            $calendar        = $this->formatWhatsNewCalendar($whatsNewData, $tzOffset);
+            $documents       = $this->formatWhatsNewDocuments($whatsNewData, $tzOffset);
+            $whereiseveryone = $this->formatWhatsNewWhereIsEveryone($whatsNewData, $tzOffset);
+            $misc            = $this->formatWhatsNewMisc($whatsNewData, $tzOffset);
 
             // Set the order of the sections
             $sections = array(
@@ -875,7 +875,7 @@ function keyHandler(e)
     {
         load('gallery');
 
-        $galleryObj = new PhotoGallery($this->fcmsUser->id);
+        $galleryObj = new PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
 
         $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
         $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
