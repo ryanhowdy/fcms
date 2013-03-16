@@ -4119,6 +4119,9 @@ function getLangName ($code)
         case 'fr_FR':
             return T_('French (France)');
             break;
+        case 'it_IT':
+            return T_('Italian (Italy)');
+            break;
         case 'lv':
             return T_('Latvian');
             break;
