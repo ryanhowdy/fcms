@@ -18,7 +18,7 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('profile', 'image', 'address', 'phone', 'gallery');
+load('datetime', 'profile', 'image', 'address', 'phone', 'gallery');
 
 init();
 
