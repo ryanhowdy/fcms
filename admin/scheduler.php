@@ -430,7 +430,7 @@ class Page
     function displayTurnOffRunningJobPage ()
     {
         $sql = "UPDATE `fcms_config`
-                SET `value` = '0'
+                SET `value` = NULL
                 WHERE `name` = 'running_job'";
 
         if (!$this->fcmsDatabase->update($sql))

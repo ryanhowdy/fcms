@@ -195,7 +195,14 @@ class Database
             return false;
         }
 
-        return $result->fetch($this->fetchType);
+        $row = $result->fetch($this->fetchType);
+
+        if ($row === false)
+        {
+            return array();
+        }
+
+        return $row;
     }
 
     /**

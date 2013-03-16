@@ -4592,7 +4592,7 @@ function runningJob ()
         return true;
     }
 
-    if (!empty($row))
+    if (empty($row))
     {
         return false;
     }
@@ -4612,21 +4612,37 @@ function runJob ()
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
-    $sql = "UPDATE `fcms_config`
-            SET `value` = '1'
+    $sql = "SELECT `name`
+            FROM `fcms_config`
             WHERE `name` = 'running_job'";
 
-    if (!$fcmsDatabase->update($sql))
+    $row = $fcmsDatabase->getRow($sql);
+    if ($row === false)
     {
+        // error logged by db obj
         return false;
     }
 
-    // running_job config was missing, add it
-    if ($fcmsDatabase->getRowCount() <= 0)
+    if (!empty($row))
     {
+        $sql = "UPDATE `fcms_config`
+                SET `value` = NOW()
+                WHERE `name` = 'running_job'";
+
+        if (!$fcmsDatabase->update($sql))
+        {
+            return false;
+        }
+    }
+    // running_job config was missing, add it
+    else
+    {
+        $date = date('Y-m-d H:I:S');
+
         $sql = "INSERT INTO `fcms_config` (`name`, `value`)
-                VALUES ('running_job', '1')";
-        if (!$fcmsDatabase->insert($sql))
+                VALUES ('running_job', ?)";
+
+        if (!$fcmsDatabase->insert($sql, $date))
         {
             return false;
         }
@@ -4648,7 +4664,7 @@ function stopJob ()
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     $sql = "UPDATE `fcms_config`
-            SET `value` = '0'
+            SET `value` = NULL
             WHERE `name` = 'running_job'";
 
     if (!$fcmsDatabase->update($sql))

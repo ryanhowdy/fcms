@@ -94,11 +94,7 @@ function runFamilyNewsJob ()
 
     if (count($rows) <= 0)
     {
-        if (debugOn())
-        {
-            logError(__FILE__.' ['.__LINE__.'] - No blog settings found.');
-        }
-
+        logError(__FILE__.' ['.__LINE__.'] - No blog settings found.');
         updateLastRun(date('Y-m-d H:i:s'), 'familynews');
         die();
     }
@@ -113,10 +109,7 @@ function runFamilyNewsJob ()
             $ret = $newsObj->importBloggerPosts($r['blogger'], $r['user'], $atomDate, $external_ids);
             if ($ret === false)
             {
-                if (debugOn())
-                {
-                    logError(__FILE__.' ['.__LINE__.'] - No posts to import from blogger for user ['.$r['user'].'].');
-                }
+                logError(__FILE__.' ['.__LINE__.'] - No posts to import from blogger for user ['.$r['user'].'].');
                 continue;
             }
         }
@@ -127,10 +120,7 @@ function runFamilyNewsJob ()
             $ret = $newsObj->importTumblrPosts($r['tumblr'], $r['user'], $atomDate, $external_ids);
             if ($ret === false)
             {
-                if (debugOn())
-                {
-                    logError(__FILE__.' ['.__LINE__.'] - No posts to import from tumblr for user ['.$r['user'].'].');
-                }
+                logError(__FILE__.' ['.__LINE__.'] - No posts to import from tumblr for user ['.$r['user'].'].');
                 continue;
             }
         }
@@ -141,10 +131,7 @@ function runFamilyNewsJob ()
             $ret = $newsObj->importWordpressPosts($r['wordpress'], $r['user'], $atomDate, $external_ids);
             if ($ret === false)
             {
-                if (debugOn())
-                {
-                    logError(__FILE__.' ['.__LINE__.'] - No posts to import from wordpress for user ['.$r['user'].'].');
-                }
+                logError(__FILE__.' ['.__LINE__.'] - No posts to import from wordpress for user ['.$r['user'].'].');
                 continue;
             }
         }
@@ -155,10 +142,7 @@ function runFamilyNewsJob ()
             $ret = $newsObj->importPosterousPosts($r['posterous'], $r['user'], $atomDate, $external_ids);
             if ($ret === false)
             {
-                if (debugOn())
-                {
-                    logError(__FILE__.' ['.__LINE__.'] - No posts to import from posterous for user ['.$r['user'].'].');
-                }
+                logError(__FILE__.' ['.__LINE__.'] - No posts to import from posterous for user ['.$r['user'].'].');
                 continue;
             }
         }
@@ -247,10 +231,6 @@ function runYouTubeJob ()
 
             if (isset($existingIds[$id]))
             {
-                if (debugOn())
-                {
-                    logError(__FILE__.' ['.__LINE__.'] - Video ['.$id.'] for user ['.$userId.'] already imported.');
-                }
                 continue;
             }
 
@@ -370,7 +350,8 @@ function runInstagramJob ()
             $thumbnail = $photo->images->thumbnail->url;
             $medium    = $photo->images->low_resolution->url;
             $full      = $photo->images->standard_resolution->url;
-            $caption   = sprintf(T_('Imported from Instagram.  Filter: %s.'), $photo->filter);
+            $caption   = $photo->caption->text;
+            $caption  .= ' ['.sprintf(T_('Filter: %s.'), $photo->filter).']';
 
             // Skip existing photos
             if (isset($existingIds[$sourceId]))

@@ -18,23 +18,9 @@
  * @since     2.6
  */
 
-require_once "inc/config_inc.php";
+require 'fcms.php';
 
-$connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-if (!$connection)
-{
-    logError(__FILE__.' ['.__LINE__.'] - Could not connect to db.');
-    die();
-}
-if (!mysql_select_db($cfg_mysql_db))
-{
-    logError(__FILE__.' ['.__LINE__.'] - Could not select db.');
-    die();
-}
-
-require_once 'inc/constants.php';
-require_once 'inc/utils.php';
-require_once 'inc/cron.php';
+load('cron');
 
 if (isset($_POST['job_type']))
 {
@@ -47,17 +33,14 @@ elseif (isset($argv[1]) && substr($argv[1], 0, 8) == 'job_type')
 else
 {
     logError(__FILE__.' ['.__LINE__.'] - No job type given.');
-    die();
+    die('No job type given');
 }
 
 // Stop, if we are currently running a job
 if (runningJob() or defined('RUNNING_JOB'))
 {
-    if (debugOn())
-    {
-        logError(__FILE__.' ['.__LINE__.'] - Cron Job already running.');
-    }
-    die();
+    logError(__FILE__.' ['.__LINE__.'] - Cron Job already running.');
+    die('Cron Job already running');
 }
 
 define('RUNNING_JOB', true);
@@ -93,4 +76,4 @@ switch ($jobType)
 
 stopJob();
 
-die();
+die('Done');
