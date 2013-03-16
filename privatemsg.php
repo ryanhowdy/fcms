@@ -492,8 +492,8 @@ Event.observe(window, \'load\', function() {
         $sql = "SELECT p.`id`, `to`, `from`, `title`, `msg`, `date`, `read`, u.`avatar`, u.`gravatar`
                 FROM `fcms_privatemsg` AS p
                 LEFT JOIN `fcms_users` AS u ON p.`to` = u.`id`
-                WHERE p.`id` = '$id' 
-                AND `from` = '$this->fcmsUser->id'";
+                WHERE p.`id` = ?
+                AND `from` = ?";
 
         $r = $this->fcmsDatabase->getRow($sql, array($id, $this->fcmsUser->id));
         if ($r === false)
