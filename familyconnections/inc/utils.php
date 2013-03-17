@@ -5314,3 +5314,25 @@ function getActiveMemberIdNameLookup ()
 
     return $members;
 }
+
+/**
+ * displayErrors 
+ * 
+ * @param array $errors 
+ * 
+ * @return void
+ */
+function displayErrors ($errors)
+{
+    echo '
+            <div class="error-alert">
+                <h2>'.T_('Oops, there was an error:').'</h2>';
+
+    foreach ($errors as $error)
+    {
+        echo '<p>'.$error.'</p>';
+    }
+
+    echo '
+            </div>';
+}

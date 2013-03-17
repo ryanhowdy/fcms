@@ -18,7 +18,7 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('datetime', 'addressbook', 'alerts', 'phone', 'address');
+load('datetime', 'addressbook', 'alerts', 'phone', 'address', 'FormValidator');
 
 init();
 
@@ -472,6 +472,17 @@ Event.observe(window, \'load\', function() {
         $work    = strip_tags($_POST['work']);
         $cell    = strip_tags($_POST['cell']);
 
+        $validator = new FormValidator();
+
+        $errors = $validator->validate($_POST, $this->fcmsBook->getProfile('add'));
+        if ($errors !== true)
+        {
+            displayErrors($errors);
+            $this->fcmsBook->displayAddForm();
+            $this->displayFooter();
+            return;
+        }
+
         $pw = 'NONMEMBER';
 
         if (isset($_POST['private']))
@@ -565,8 +576,10 @@ Event.observe(window, \'load\', function() {
      */
     function displayDeleteSubmit ()
     {
-        $aid = (int)$_GET['delete'];
+        $aid = $_GET['delete'];
         $cat = $_GET['cat'];
+
+        $validator = new FormValidator();
 
         if ($this->fcmsUser->access >= 2)
         {
@@ -575,6 +588,16 @@ Event.observe(window, \'load\', function() {
             echo '
             <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
 
+            $this->fcmsBook->displayAddressList($cat);
+            $this->displayFooter();
+            return;
+        }
+
+        $errors = $validator->validate($_GET, $this->fcmsBook->getProfile('delete'));
+        if ($errors !== true)
+        {
+            $this->displayHeader();
+            displayErrors($errors);
             $this->fcmsBook->displayAddressList($cat);
             $this->displayFooter();
             return;
