@@ -689,8 +689,12 @@ function setupDatabase ()
     include_once 'inc/config_inc.php';
     include_once 'inc/install_inc.php';
     include_once 'inc/utils.php';
+    include_once 'inc/thirdparty/phpass/PasswordHash.php';
 
-    $password   = md5($_POST['password']);
+    // Hash the pw
+    $hasher   = new PasswordHash(8, FALSE);
+    $password = $hasher->HashPassword($_POST['password']);
+
     $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 
     if (!$connection)

@@ -21,7 +21,7 @@ class User
      */
     public function __construct ($error, $db)
     {
-        if (!isset($_SESSION['login_id']))
+        if (!isset($_SESSION['fcms_id']))
         {
             $this->displayName = 'unknown-user';
             $this->email       = 'unknow-email';
@@ -33,7 +33,7 @@ class User
         $this->error = $error;
         $this->db    = $db;
 
-        $this->id = (int)$_SESSION['login_id'];
+        $this->id = (int)$_SESSION['fcms_id'];
 
         // Get User info
         $sql = "SELECT u.`fname`, u.`lname`, u.`username`, s.`displayname`, u.`email`, s.`timezone`, u.`access`

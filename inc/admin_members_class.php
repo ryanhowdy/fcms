@@ -504,7 +504,7 @@ class AdminMembers
         }
 
         // Get member list
-        $sql = "SELECT `id`, `username`, `password`,`fname`, `lname`
+        $sql = "SELECT `id`, `username`, `phpass`,`fname`, `lname`
                 FROM `fcms_users` 
                 WHERE `id` != ?";
 
@@ -519,7 +519,7 @@ class AdminMembers
 
         foreach ($rows as $row)
         {
-            if ($row['password'] == 'NONMEMBER')
+            if ($row['phpass'] == 'NONMEMBER')
             {
                 $members[$row['id']] = $row['lname'].', '.$row['fname'].' ('.T_('Non-member').')';
                 continue;
@@ -1180,12 +1180,12 @@ class AdminMembers
 
         if ($view == 'members')
         {
-            $sql .= "WHERE `password` != 'NONMEMBER'
-                     AND `password` != 'PRIVATE' ";
+            $sql .= "WHERE `phpass` != 'NONMEMBER'
+                     AND `phpass` != 'PRIVATE' ";
         }
         elseif ($view == 'non')
         {
-            $sql .= "WHERE `password` = 'NONMEMBER' ";
+            $sql .= "WHERE `phpass` = 'NONMEMBER' ";
         }
         
         // Search - one or valid search parameters
@@ -1229,8 +1229,8 @@ class AdminMembers
         // Display the member list
         foreach ($rows as $r)
         {
-            $member = ($r['password'] == 'NONMEMBER') ? T_('No') : T_('Yes');
-            $active = ($r['activated'] <= 0)          ? T_('No') : T_('Yes');
+            $member = ($r['phpass'] == 'NONMEMBER') ? T_('No') : T_('Yes');
+            $active = ($r['activated'] <= 0)        ? T_('No') : T_('Yes');
 
             if ($r['id'] > 1)
             {

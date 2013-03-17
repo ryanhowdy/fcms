@@ -15,7 +15,7 @@ session_start();
 
 require 'fcms.php';
 
-load('facebook', 'socialmedia');
+load('facebook', 'socialmedia', 'phpass');
 
 $page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
@@ -199,7 +199,8 @@ function process(transport) {
 
         if ($formParams == '')
         {
-            $password = md5($password);
+            $hasher   = new PasswordHash(8, FALSE);
+            $password = $hasher->HashPassword($password);
         }
 
         // Is email available?
@@ -259,7 +260,7 @@ function process(transport) {
 
         // Create new user
         $sql = "INSERT INTO `fcms_users`
-                    (`access`, `joindate`, `fname`, `lname`, `sex`, `email`, `username`, `password`) 
+                    (`access`, `joindate`, `fname`, `lname`, `sex`, `email`, `username`, `phpass`) 
                 VALUES 
                     (3, NOW(), ?, ?, ?, ?, ?, ?)";
 

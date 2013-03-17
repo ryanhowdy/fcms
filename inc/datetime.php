@@ -190,7 +190,7 @@ function fixDate ($dateFormat, $tzOffset = '', $date = '', $userid = '')
 
     if ($userid == '')
     {
-        $userid = (int)$_SESSION['login_id'];
+        $userid = (int)$_SESSION['fcms_id'];
     }
 
     // Get DST

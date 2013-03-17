@@ -13,12 +13,12 @@ class CustomAJAXChat extends AJAXChat
 	// Returns null if login is invalid
 	function getValidLoginUserData()
     {
-        if (!isset($_SESSION['login_id']))
+        if (!isset($_SESSION['fcms_id']))
         {
             die('NOT LOGGED IN');
         }
 
-        $currentUserId = (int)$_SESSION['login_id'];
+        $currentUserId = (int)$_SESSION['fcms_id'];
         $displayName   = $this->getUserDisplayName($currentUserId);
         $currentAccess = $this->checkAccess($currentUserId);
 

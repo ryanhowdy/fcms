@@ -1840,4 +1840,50 @@ class Upgrade
 
         return true;
     }
+
+    /**
+     * upgrade330
+     * 
+     * Upgrade database to version 3.3.
+     * 
+     * @return boolean
+     */
+    function upgrade330 ()
+    {
+        $errorMessage = sprintf(T_('Could not upgrade database to version %s.'), '3.3');
+
+        // password
+        $pw_fixed = false;
+
+        $sql = "SHOW COLUMNS FROM `fcms_users`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->setMessage($errorMessage);
+            return false;
+        }
+
+        foreach ($rows as $r)
+        {
+            if ($r['Field'] == 'phpass')
+            {
+                $pw_fixed = true;
+            }
+        }
+
+        if (!$pw_fixed)
+        {
+            $sql = "ALTER TABLE `fcms_users`
+                    ADD COLUMN `phpass` VARCHAR(255) NULL AFTER `password`";
+
+            if (!$this->fcmsDatabase->alter($sql))
+            {
+                $this->fcmsError->setMessage($errorMessage);
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

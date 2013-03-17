@@ -2329,7 +2329,7 @@ function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h,
 
     include_once('gallery_class.php');
 
-    $currentUserId = (int)$_SESSION['login_id'];
+    $currentUserId = (int)$_SESSION['fcms_id'];
 
     $gallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
 
@@ -2613,23 +2613,23 @@ function displayMembersOnline ()
 }
 
 /**
- * checkLoginInfo
+ * isValidLoginToken
  * 
- * Checks the user's username/pw combo
+ * Checks the user's token against the db.
  *
- * @param   $userid     the id of the user you want to check
- * @param   $username   the username of the user
- * @param   $password   the password of the user
- * returns  boolean
+ * @param $userid
+ * @param $token
+ *
+ * @return boolean
  */
-function checkLoginInfo ($userid, $username, $password)
+function isValidLoginToken ($userid, $token)
 {
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     $userid = (int)$userid;
 
-    $sql = "SELECT `username`, `password` 
+    $sql = "SELECT `token`
             FROM `fcms_users` 
             WHERE `id` = ? 
             LIMIT 1";
@@ -2640,23 +2640,65 @@ function checkLoginInfo ($userid, $username, $password)
         return false;
     }
 
-    if (count($r) <= 0)
+    if (empty($r))
     {
         return false;
     }
 
-    if ($r['username'] !== $username)
-    {
-        return false;
-    }
-    elseif ($r['password'] !== $password)
-    {
-        return false;
-    }
-    else
+    if ($r['token'] == $token)
     {
         return true;
     }
+
+    return false;
+}
+
+/**
+ * loginUser 
+ * 
+ * Generate token.
+ * Save token in db/session/cookie.
+ * Update user activity.
+ * Reset invalid login attempts
+ * 
+ * @param $userId   int     Id of user logging in.
+ * @param $remember boolean Whether to save token in cookie.
+ * 
+ * @return boolean
+ */
+function loginUser ($userId, $remember)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
+    $token = uniqid('');
+
+    $sql = "UPDATE `fcms_users` 
+            SET `activity` = NOW(),
+                `login_attempts` = '0',
+                `token` = ?
+            WHERE `id` = ?";
+
+    if (!$fcmsDatabase->update($sql, array($token, $userId)))
+    {
+        $fcmsError->setMessage(T_('Could not complete login.'));
+        return false;
+    }
+
+    // Setup Cookie/Session
+    if ($remember >= 1)
+    {
+        setcookie('fcms_cookie_id', $userId, time() + (30*(24*3600)), '/');   // 30 days
+        setcookie('fcms_cookie_token', $token, time() + (30*(24*3600)), '/'); // 30 days
+    }
+
+    $_SESSION['fcms_id']    = $userId;
+    $_SESSION['fcms_token'] = $token;
+
+    // Load up all the good user data
+    $fcmsUser = new User($fcmsError, $fcmsDatabase);
+
+    return true;
 }
 
 /**
@@ -3563,6 +3605,12 @@ function getWhatsNewData ($days = 30, $groupByType = false)
 
     $whatsNewData = array();
 
+    $sql2 = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
+            FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
+            WHERE p.`thread` = t.`id` 
+            AND p.`user` = u.`id` 
+            AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY)";
+
     $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
             FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
             WHERE p.`thread` = t.`id` 
@@ -3579,13 +3627,13 @@ function getWhatsNewData ($days = 30, $groupByType = false)
             UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.`created_id` AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
             FROM fcms_address AS a, fcms_users AS u
             WHERE a.user = u.id
-            AND u.`password` = 'NONMEMBER' 
+            AND u.`phpass` = 'NONMEMBER' 
             AND u.`activated` < 1 
             AND a.updated >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
 
             UNION SELECT `id`, `joindate` AS date, 0 AS title, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
             FROM `fcms_users` 
-            WHERE `password` != 'NONMEMBER' 
+            WHERE `phpass` != 'NONMEMBER' 
             AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
     if (usingFamilyNews())
     {
@@ -3594,7 +3642,7 @@ function getWhatsNewData ($days = 30, $groupByType = false)
                  WHERE u.`id` = n.`user` 
                  AND n.`updated` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
                  AND `username` != 'SITENEWS' 
-                 AND `password` != 'SITENEWS'
+                 AND `phpass` != 'SITENEWS'
 
                  UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
                  FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u 
@@ -3686,6 +3734,8 @@ function getWhatsNewData ($days = 30, $groupByType = false)
     $rows = $fcmsDatabase->getRows($sql);
     if ($rows === false)
     {
+        $fcmsError->setMessage(T_('Could not get what\'s new information.'));
+        $fcmsError->displayError();
         return false;
     }
 
@@ -4966,7 +5016,7 @@ function getMembersNeedingActivation ()
     $sql = "SELECT `id`, `fname`, `lname`
             FROM `fcms_users`
             WHERE `activated` != 1
-            AND `password` != 'NONMEMBER'
+            AND `phpass` != 'NONMEMBER'
             ORDER BY `joindate` DESC";
 
     $rows = $fcmsDatabase->getRows($sql);

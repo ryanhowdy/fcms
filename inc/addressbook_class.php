@@ -60,7 +60,7 @@ class AddressBook
         $cat = cleanOutput($cat);
 
         $sql = "SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `country`, `address`, `city`, `state`, 
-                    `zip`, `home`, `work`, `cell`, `email`, `password` 
+                    `zip`, `home`, `work`, `cell`, `email`, `phpass` 
                 FROM `fcms_address` AS a, `fcms_users` AS u 
                 WHERE a.`user` = u.`id` 
                 AND a.`id` = ?";
@@ -87,7 +87,7 @@ class AddressBook
         {
             $edit_del = '<li id="edit"><a href="?cat='.$cat.'&amp;edit='.$r['id'].'">'.T_('Edit').'</a></li>';
 
-            if ($r['password'] == 'NONMEMBER' || $r['password'] == 'PRIVATE')
+            if ($r['phpass'] == 'NONMEMBER' || $r['phpass'] == 'PRIVATE')
             {
                 $edit_del .='
                         <li id="delete"><a id="del_address" href="?cat='.$cat.'&amp;delete='.$r['id'].'">'.T_('Delete').'</a></li>';
@@ -286,10 +286,10 @@ class AddressBook
                 FROM `fcms_users` AS u, `fcms_address` as a 
                 WHERE u.`id` = a.`user` 
                 AND (
-                    `password` != 'PRIVATE' 
+                    `phpass` != 'PRIVATE' 
                     OR (
                         a.`created_id` = ".$this->fcmsUser->id." 
-                        AND `password` = 'PRIVATE' 
+                        AND `phpass` = 'PRIVATE' 
                     )
                 )
                 ORDER BY `lname`";
@@ -302,8 +302,8 @@ class AddressBook
                         `country`, `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
-                    AND `password` != 'NONMEMBER' 
-                    AND `password` != 'PRIVATE' 
+                    AND `phpass` != 'NONMEMBER' 
+                    AND `phpass` != 'PRIVATE' 
                     ORDER BY `lname`";
         }
         else if ($category == 'non')
@@ -313,7 +313,7 @@ class AddressBook
                         `country`, `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
-                    AND `password` = 'NONMEMBER' 
+                    AND `phpass` = 'NONMEMBER' 
                     ORDER BY `lname`";
         }
         else if ($category == 'my')
@@ -324,7 +324,7 @@ class AddressBook
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
                     AND a.`created_id` = ".$this->fcmsUser->id." 
-                    AND `password` = 'PRIVATE' 
+                    AND `phpass` = 'PRIVATE' 
                     ORDER BY `lname`";
         }
 
@@ -1148,7 +1148,7 @@ class AddressBook
             }
 
             $sql = "INSERT INTO `fcms_users`
-                        (`access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`)
+                        (`access`, `joindate`, `fname`, `lname`, `email`, `username`, `phpass`)
                     VALUES (3, NOW(), ?, ?, ?, 'NONMEMBER-$uniq', ?)";
 
             $params = array(

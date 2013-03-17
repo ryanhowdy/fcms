@@ -480,7 +480,7 @@ Event.observe(window, \'load\', function() {
         }
 
         $sql = "INSERT INTO `fcms_users` (
-                    `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`
+                    `access`, `joindate`, `fname`, `lname`, `email`, `username`, `phpass`
                 ) VALUES (
                     ?, '0000-00-00 00:00:00', ?, ?, ?, ?, ?
                 )";
@@ -580,7 +580,7 @@ Event.observe(window, \'load\', function() {
             return;
         }
 
-        $sql = "SELECT a.`user`, u.`password`
+        $sql = "SELECT a.`user`, u.`phpass`
                 FROM `fcms_address` AS a, `fcms_users` AS u
                 WHERE a.`id` = ?
                 AND a.`user` = u.`id`";
@@ -596,9 +596,9 @@ Event.observe(window, \'load\', function() {
         }
 
         $user = $r['user'];
-        $pass = $r['password'];
+        $pass = $r['phpass'];
 
-        if ($r['password'] !== 'NONMEMBER' && $r['password'] !== 'PRIVATE')
+        if ($r['phpass'] !== 'NONMEMBER' && $r['phpass'] !== 'PRIVATE')
         {
             $this->displayHeader();
 

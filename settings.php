@@ -420,11 +420,12 @@ Event.observe(window, \'load\', function() {
 
         if (isset($_POST['pass']) && !empty($_POST['pass']))
         {
-            $sql      .= "password = ?, ";
-            $params[]  = md5($_POST['pass']);
+            $sql .= "phpass = ?, ";
 
-            $orig_pass            = $_SESSION['login_pw'];
-            $_SESSION['login_pw'] = md5($_POST['pass']);
+            $hasher   = new PasswordHash(8, FALSE);
+            $params[] = $hasher->HashPassword($_POST['pass']);
+
+            $orig_pass = $_SESSION['login_pw'];
         }
 
         $sql .= "`email` = ?

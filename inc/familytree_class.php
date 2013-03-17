@@ -58,7 +58,7 @@ class FamilyTree
 
         // Get info for user
         $sql = "SELECT `id`, `fname`, `mname`, `lname`, `sex`, `avatar`, `dob_year`, `dob_month`, `dob_day`,
-                    `dod_year`, `dod_month`, `dod_day`, `password`
+                    `dod_year`, `dod_month`, `dod_day`, `phpass`
                 FROM `fcms_users` 
                 WHERE `id` = ?
                 LIMIT 1";
@@ -81,10 +81,10 @@ class FamilyTree
         $user['mname'] = cleanOutput($user['mname']);
         $user['lname'] = cleanOutput($user['lname']);
 
-        $user['nonmember'] = ($user['password'] == 'NONMEMBER' ? true : false);
+        $user['nonmember'] = ($user['phpass'] == 'NONMEMBER' ? true : false);
 
         // Get spouse and kids for user
-        $sql = "SELECT u.`id`, u.`fname`, u.`mname`, u.`lname`, u.`avatar`, r.`relationship`, r.`rel_user`, u.`password`
+        $sql = "SELECT u.`id`, u.`fname`, u.`mname`, u.`lname`, u.`avatar`, r.`relationship`, r.`rel_user`, u.`phpass`
                 FROM `fcms_relationship` AS r, `fcms_users` AS u 
                 WHERE `user` = ? 
                 AND r.`rel_user` = u.`id`";
@@ -110,7 +110,7 @@ class FamilyTree
                     'mname'     => cleanOutput($row['mname']), 
                     'lname'     => cleanOutput($row['lname']), 
                     'avatar'    => $row['avatar'],
-                    'nonmember' => ($row['password'] == 'NONMEMBER' ? true : false)
+                    'nonmember' => ($row['phpass'] == 'NONMEMBER' ? true : false)
                 );
             }
             if ($row['relationship'] == 'CHIL')
@@ -121,7 +121,7 @@ class FamilyTree
                     'mname'     => cleanOutput($row['mname']), 
                     'lname'     => cleanOutput($row['lname']), 
                     'avatar'    => $row['avatar'],
-                    'nonmember' => ($row['password'] == 'NONMEMBER' ? true : false)
+                    'nonmember' => ($row['phpass'] == 'NONMEMBER' ? true : false)
                 );
                 array_push($kids, $tmp);
             }
@@ -129,7 +129,7 @@ class FamilyTree
 
         // Get user's parents
         $sql = "SELECT u.`id`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`avatar`, r.`relationship`, r.`rel_user`, 
-                    u.`dob_year`, u.`dob_month`, u.`dob_day`, u.`dod_year`, u.`dod_month`, u.`dod_day`, u.`sex`, u.`password`
+                    u.`dob_year`, u.`dob_month`, u.`dob_day`, u.`dod_year`, u.`dod_month`, u.`dod_day`, u.`sex`, u.`phpass`
                 FROM `fcms_relationship` AS r, `fcms_users` AS u 
                 WHERE `rel_user` = ? 
                 AND r.`user` = u.`id`
@@ -164,7 +164,7 @@ class FamilyTree
                     'dod_year'  => $row['dod_year'],
                     'dod_month' => $row['dod_month'],
                     'dod_day'   => $row['dod_day'],
-                    'nonmember' => ($row['password'] == 'NONMEMBER' ? true : false)
+                    'nonmember' => ($row['phpass'] == 'NONMEMBER' ? true : false)
                 );
 
                 // dad
@@ -189,7 +189,7 @@ class FamilyTree
         if (!empty($dad) or !empty($mom))
         {
             $sql = "SELECT u.`id`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`avatar`, r.`relationship`, r.`rel_user`, 
-                        u.`dob_year`, u.`dob_month`, u.`dob_day`, u.`dod_year`, u.`dod_month`, u.`dod_day`, u.`sex`, u.`password`
+                        u.`dob_year`, u.`dob_month`, u.`dob_day`, u.`dod_year`, u.`dod_month`, u.`dod_day`, u.`sex`, u.`phpass`
                     FROM `fcms_relationship` AS r, `fcms_users` AS u ";
 
             $params = array();
@@ -238,7 +238,7 @@ class FamilyTree
                         'dod_year'  => $row['dod_year'],
                         'dod_month' => $row['dod_month'],
                         'dod_day'   => $row['dod_day'],
-                        'nonmember' => ($row['password'] == 'NONMEMBER' ? true : false)
+                        'nonmember' => ($row['phpass'] == 'NONMEMBER' ? true : false)
                     );
 
                     // dad's parents

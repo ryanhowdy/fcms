@@ -18,7 +18,7 @@ define('GALLERY_PREFIX', '../gallery/');
 
 require URL_PREFIX.'fcms.php';
 
-load('admin_members');
+load('admin_members', 'phpass');
 
 init('admin/');
 
@@ -385,7 +385,7 @@ Event.observe(window, \'load\', function() {
         $this->displayHeader();
 
         // Check Required Fields
-        $requiredFields  = array('username', 'password', 'fname', 'lname', 'sex', 'email');
+        $requiredFields  = array('username', 'phpass', 'fname', 'lname', 'sex', 'email');
         $missingRequired = false;
 
         foreach ($requiredFields as $field)
@@ -451,12 +451,14 @@ Event.observe(window, \'load\', function() {
         $sex      = strip_tags($_POST['sex']);
         $email    = strip_tags($_POST['email']);
         $username = strip_tags($_POST['username']);
-        $md5pass  = md5($_POST['password']);
+
+        $hasher       = new PasswordHash(8, FALSE);
+        $hashPassword = $hasher->HashPassword($_POST['password']);
 
         // Create new member
         $sql = "INSERT INTO `fcms_users`
                     (`access`, `joindate`, `fname`, `mname`, `lname`, `maiden`, `sex`, `email`, `dob_year`, `dob_month`, `dob_day`,
-                        `username`, `password`, `activated`)
+                        `username`, `phpass`, `activated`)
                 VALUES
                     (3, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
 
@@ -672,8 +674,10 @@ Event.observe(window, \'load\', function() {
 
         if ($_POST['password'])
         {
+            $hasher       = new PasswordHash(8, FALSE);
+
             $sql     .= "`password` = ?, ";
-            $params[] = md5($_POST['password']);
+            $params[] = $hasher->HashPassword($_POST['password']);
 
             $sitename = getSiteName();
             $subject  = getSiteName().': '.T_('Password Change');

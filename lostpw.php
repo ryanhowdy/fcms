@@ -15,6 +15,8 @@ session_start();
 
 require 'fcms.php';
 
+load('phpass');
+
 echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
@@ -71,11 +73,12 @@ if (isset($_POST['email']))
             $i++;
         }
 
-        $new_pass = md5($pass);
+        $hasher   = new PasswordHash(8, FALSE);
+        $new_pass = $hasher->HashPassword($pass);
 
         // Set new PW
         $sql = "UPDATE `fcms_users` 
-                SET `password` = ? 
+                SET `phpass` = ? 
                 WHERE `email` = ?";
         if (!$fcmsDatabase->update($sql, array($new_pass, $email)))
         {

@@ -39,7 +39,7 @@ if (!file_exists('inc/config_inc.php'))
 
 require 'fcms.php';
 
-load('facebook', 'socialmedia');
+load('facebook', 'socialmedia', 'phpass');
 
 setLanguage();
 
@@ -61,7 +61,7 @@ function control ()
     {
         displayLoginError();
     }
-    elseif (isset($_SESSION['login_id']) || isset($_COOKIE['fcms_login_id']))
+    elseif (isset($_SESSION['fcms_id']) || isset($_COOKIE['fcms_cookie_id']))
     {
         displayAlreadyLoggedIn();
     }
@@ -178,22 +178,28 @@ function displayLoginSubmit ()
         $rem = 1;
     }
 
-    $pass = md5($pass);
-
-    $sql = "SELECT `id`, `username`, `password`, `activated`, `locked` 
+    $sql = "SELECT `id`, `username`, `phpass`, `activated`, `locked` 
             FROM `fcms_users` 
-            WHERE `username` = ? 
-            AND `password` = ?";
+            WHERE `username` = ?";
 
-    $row = $fcmsDatabase->getRow($sql, array($user, $pass));
+    $row = $fcmsDatabase->getRow($sql, $user);
     if ($row === false)
     {
         $fcmsError->displayError();
         return;
     }
 
-    // Wrong username and/or password
+    // Can't find username
     if (count($row) <= 0)
+    {
+        handleBadLogin($user);
+        return;
+    }
+
+    $hasher = new PasswordHash(8, FALSE);
+
+    // Does the pw supplied match the db?
+    if (!$hasher->CheckPassword($pass, $row['phpass']))
     {
         handleBadLogin($user);
         return;
@@ -202,31 +208,12 @@ function displayLoginSubmit ()
     // User is active
     if ($row['activated'] > 0)
     {
-        // Setup Cookie/Session
-        if ($rem >= 1)
+        // Login the user
+        if (!loginUser($row['id'], $rem))
         {
-            setcookie('fcms_login_id', $row['id'], time() + (30*(24*3600)), '/');  // 30 days
-            setcookie('fcms_login_uname', $row['username'], time() + (30*(24*3600)), '/');  // 30 days
-            setcookie('fcms_login_pw', $row['password'], time() + (30*(24*3600)), '/');  // 30 days
+            $fcmsError->displayError();
+            return;
         }
-
-        $_SESSION['login_id']    = $row['id'];
-        $_SESSION['login_uname'] = $row['username'];
-        $_SESSION['login_pw']    = $row['password'];
-
-        // Update activity
-        $sql = "UPDATE `fcms_users` 
-                SET `activity` = NOW() 
-                WHERE `id` = ?";
-
-        $fcmsDatabase->update($sql, $row['id']);
-
-        // Reset invalid login attempts
-        $sql = "UPDATE `fcms_users` 
-                SET `login_attempts` = '0' 
-                WHERE `id` = ".$row['id'];
-
-        $fcmsDatabase->update($sql, $row['id']);
 
         // Redirect to desired page
         header("Location: $redirect");
@@ -241,42 +228,18 @@ function displayLoginSubmit ()
             $sql = "UPDATE `fcms_users` 
                     SET `activated` = '1' 
                     WHERE `id` = ?";
+
             if (!$fcmsDatabase->update($sql, $row['id']))
             {
                 $fcmsError->displayError();
-                die();
+                return;
             }
 
-            // Setup Cookie/Session
-            if ($rem >= 1)
-            {
-                setcookie('fcms_login_id', $row['id'], time() + (30*(24*3600)), '/');  // 30 days
-                setcookie('fcms_login_uname', $row['username'], time() + (30*(24*3600)), '/');  // 30 days
-                setcookie('fcms_login_pw', $row['password'], time() + (30*(24*3600)), '/');  // 30 days
-            }
-
-            $_SESSION['login_id']    = $row['id'];
-            $_SESSION['login_uname'] = $row['username'];
-            $_SESSION['login_pw']    = $row['password'];
-
-            // Update activity
-            $sql = "UPDATE `fcms_users` 
-                    SET `activity` = NOW() 
-                    WHERE `id` = ?";
-            if (!$fcmsDatabase->update($sql, $row['id']))
+            // Login the user
+            if (!loginUser($row['id'], $rem))
             {
                 $fcmsError->displayError();
-                // We can continue on this error
-            }
-
-            // Reset invalid login attempts
-            $sql = "UPDATE `fcms_users` 
-                    SET `login_attempts` = '0' 
-                    WHERE `id` = ?";
-            if (!$fcmsDatabase->update($sql, $row['id']))
-            {
-                $fcmsError->displayError();
-                // We can continue on this error
+                return;
             }
 
             // Redirect to desired page
@@ -308,35 +271,10 @@ function displayAlreadyLoggedIn ()
     $fcmsDatabase = Database::getInstance($fcmsError);
     $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
 
-    if (isset($_COOKIE['fcms_login_id']))
+    if (isset($_COOKIE['fcms_cookie_id']))
     {
-        $_SESSION['login_id']    = (int)$_COOKIE['fcms_login_id'];
-        $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-        $_SESSION['login_pw']    = $_COOKIE['fcms_login_pw'];
-    }
-
-    // Update activity
-    $sql = "UPDATE `fcms_users` 
-            SET `activity` = NOW() 
-            WHERE `id` = ?";
-
-    $r = $fcmsDatabase->update($sql, $_SESSION['login_id']);
-    if ($r === false)
-    {
-        $fcmsError->displayError();
-        // We can continue on this error
-    }
-
-    // Reset invalid login attempts
-    $sql = "UPDATE `fcms_users` 
-            SET `login_attempts` = '0' 
-            WHERE `id` = ?";
-
-    $r = $fcmsDatabase->update($sql, $_SESSION['login_id']);
-    if ($r === false)
-    {
-        $fcmsError->displayError();
-        // We can continue on this error
+        $_SESSION['fcms_id']    = (int)$_COOKIE['fcms_cookie_id'];
+        $_SESSION['fcms_token'] = $_COOKIE['fcms_cookie_token'];
     }
 
     // Redirect to desired page
@@ -537,7 +475,7 @@ function handleBadLogin ($user)
     }
 
     // valid username, wrong password
-    if (count($row) > 0)
+    if (!empty($row))
     {
         // user exceeded max login attempts
         if ($row['login_attempts'] > 4)
@@ -625,7 +563,7 @@ function handleFacebookLogin ()
 
     $accessToken = $facebook->getAccessToken();
 
-    $sql = "SELECT u.`id`, u.`username`, u.`password`, u.`activated`, u.`locked`
+    $sql = "SELECT u.`id`, u.`username`, u.`phpass`, u.`activated`, u.`locked`
             FROM `fcms_users` AS u, `fcms_user_settings` AS s
             WHERE s.`user` = u.`id`
             AND (
@@ -664,21 +602,11 @@ function handleFacebookLogin ()
     }
 
     // We made it past all the checks, then the user can be logged in
-
-    // Update activity
-    $sql = "UPDATE `fcms_users` 
-            SET `activity` = NOW() 
-            WHERE `id` = ?";
-    if (!$fcmsDatabase->update($sql, $row['id']))
+    if (!loginUser($row['id'], 0))
     {
         $fcmsError->displayError();
         return;
     }
-
-    // Login the user
-    $_SESSION['login_id']    = $row['id'];
-    $_SESSION['login_uname'] = $row['username'];
-    $_SESSION['login_pw']    = $row['password'];
 
     header("Location: home.php");
 }

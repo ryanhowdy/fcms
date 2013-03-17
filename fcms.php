@@ -105,6 +105,10 @@ function load()
             Zend_Loader::loadClass('Zend_Gdata_AuthSub');
             Zend_Loader::loadClass('Zend_Gdata_Photos_AlbumQuery');
         }
+        elseif ($include == 'phpass')
+        {
+            include_once THIRDPARTY.'phpass/PasswordHash.php';
+        }
         else
         {
             printr(debug_backtrace());
@@ -198,9 +202,9 @@ function getLanguage ()
 {
     global $fcmsDatabase, $fcmsError;
 
-    if (isset($_SESSION['login_id']))
+    if (isset($_SESSION['fcms_id']))
     {
-        $id = (int)$_SESSION['login_id'];
+        $id = (int)$_SESSION['fcms_id'];
 
         $sql = "SELECT `language` 
                 FROM `fcms_user_settings` 
@@ -392,25 +396,23 @@ function checkScheduler ($subdir = '')
  */
 function isLoggedIn ()
 {
-    global $fcmsDatabase, $fcmsError;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     // User has a session
-    if (isset($_SESSION['login_id']))
+    if (isset($_SESSION['fcms_id']))
     {
-        $id   = (int)$_SESSION['login_id'];
-        $user = $_SESSION['login_uname'];
-        $pass = $_SESSION['login_pw'];
+        $id    = (int)$_SESSION['fcms_id'];
+        $token = $_SESSION['fcms_token'];
     }
     // User has a cookie
-    elseif (isset($_COOKIE['fcms_login_id']))
+    elseif (isset($_COOKIE['fcms_cookie_id']))
     {
-        $_SESSION['login_id']    = (int)$_COOKIE['fcms_login_id'];
-        $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-        $_SESSION['login_pw']    = $_COOKIE['fcms_login_pw'];
+        $_SESSION['fcms_id']    = (int)$_COOKIE['fcms_cookie_id'];
+        $_SESSION['fcms_token'] = $_COOKIE['fcms_cookie_token'];
 
-        $id   = $_SESSION['login_id'];
-        $user = $_SESSION['login_uname'];
-        $pass = $_SESSION['login_pw'];
+        $id    = $_SESSION['fcms_id'];
+        $token = $_SESSION['fcms_token'];
     }
     // User has nothing
     else
@@ -428,8 +430,8 @@ function isLoggedIn ()
         exit();
     }
 
-    // User's session/cookie credentials are good
-    if (checkLoginInfo($id, $user, $pass))
+    // Verify the token is good
+    if (isValidLoginToken($id, $token))
     {
         $sql = "SELECT `access` AS 'val'
                 FROM `fcms_users`
@@ -464,15 +466,13 @@ function isLoggedIn ()
     // The user's session/cookie credentials are bad
     else
     {
-        unset($_SESSION['login_id']);
-        unset($_SESSION['login_uname']);
-        unset($_SESSION['login_pw']);
+        unset($_SESSION['fcms_id']);
+        unset($_SESSION['fcms_token']);
 
-        if (isset($_COOKIE['fcms_login_id']))
+        if (isset($_COOKIE['fcms_cookie_id']))
         {
-            setcookie('fcms_login_id', '', time() - 3600, '/');
-            setcookie('fcms_login_uname', '', time() - 3600, '/');
-            setcookie('fcms_login_pw', '', time() - 3600, '/');
+            setcookie('fcms_cookie_id', '', time() - 3600, '/');
+            setcookie('fcms_cookie_token', '', time() - 3600, '/');
         }
         header('Location: '.URL_PREFIX.'index.php?err=login');
         exit();

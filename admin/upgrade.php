@@ -183,13 +183,12 @@ function checkLoginAndPermission ()
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
-    if (isset($_COOKIE['fcms_login_id']))
+    if (isset($_COOKIE['fcms_cookie_id']))
     {
-        $_SESSION['login_id']    = $_COOKIE['fcms_login_id'];
-        $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-        $_SESSION['login_pw']    = $_COOKIE['fcms_login_pw'];
+        $_SESSION['fcms_id']    = $_COOKIE['fcms_cookie_id'];
+        $_SESSION['fcms_token'] = $_COOKIE['fcms_fcms_token'];
     }
-    elseif (!isset($_SESSION['login_id']))
+    elseif (!isset($_SESSION['fcms_id']))
     {
         displayHeader();
         echo '<h1>'.T_('You must be logged in to view this page.').'</h1>';
@@ -197,9 +196,8 @@ function checkLoginAndPermission ()
         die();
     }
 
-    $id       = $_SESSION['login_id'];
-    $username = $_SESSION['login_uname'];
-    $password = $_SESSION['login_pw'];
+    $id    = $_SESSION['fcms_id'];
+    $token = $_SESSION['fcms_token'];
 
     if (!ctype_digit($id))
     {
@@ -209,9 +207,9 @@ function checkLoginAndPermission ()
         die();
     }
 
-    $sql = "SELECT `username`, `password`, `access`
+    $sql = "SELECT `access`, `token`
             FROM `fcms_users` 
-            WHERE `id` = ?
+            WHERE `id` = ? 
             LIMIT 1";
 
     $r = $fcmsDatabase->getRow($sql, $id);
@@ -232,7 +230,7 @@ function checkLoginAndPermission ()
         die();
     }
 
-    if ($r['username'] !== $username || $r['password'] !== $password)
+    if ($r['token'] !== $token)
     {
         displayHeader();
         echo '<h1>'.T_('Invalid login credentials.').'</h1>';

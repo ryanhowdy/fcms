@@ -923,7 +923,7 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
         $sql = "SELECT `id`, `email` 
                 FROM `fcms_users` 
                 WHERE `activated` > 0
-                AND `password` != 'NONMEMBER'";
+                AND `phpass` != 'NONMEMBER'";
 
         $rs = $this->fcmsDatabase->getRows($sql);
         if ($rs === false)
@@ -1076,7 +1076,7 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
             $sql = "SELECT `id`, `email` 
                     FROM `fcms_users` 
                     WHERE `activated` > 0
-                    AND `password` != 'NONMEMBER'
+                    AND `phpass` != 'NONMEMBER'
                     AND `id` != ?";
 
             $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);
