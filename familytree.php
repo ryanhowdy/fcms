@@ -332,7 +332,7 @@ Event.observe(window, \'load\', function() {
         $mname  = strip_tags($_POST['mname']);
         $lname  = strip_tags($_POST['lname']);
         $sex    = $_POST['sex'];
-        $maiden = $_POST['maiden'];
+        $maiden = isset($_POST['maiden']) ? strip_tags($_POST['maiden']) : '';
 
         // Insert new user
         $sql = "INSERT INTO `fcms_users`
