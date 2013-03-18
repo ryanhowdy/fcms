@@ -5,13 +5,11 @@
   Installation
   ------------
 
-  1. Upload the entire contents of FCMS_3.2.2.zip to your web host.
+  1. Upload the familyconnections/ directory in FCMS_3.2.2.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
-     If you installed Family Connections in a directory called fcms/ and your 
-     domain is yourdomain.com, then you would type in the url 
-     http://www.yourdomain.com/fcms/ into your browser.
+     http://www.yourdomain.com/path/to/install.php
 
   3. It is recommended that you delete the install.php file after installation.
 
