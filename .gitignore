@@ -1,0 +1,17 @@
+# ignore logs
+familyconnections/logs/*.txt
+
+# ignore everything in uploads subdirectories
+familyconnections/uploads/photos/*
+familyconnections/uploads/avatar/*
+familyconnections/uploads/documents/*
+familyconnections/uploads/photos/*
+familyconnections/uploads/upimages/*
+
+# except for index.htm
+!familyconnections/uploads/photos/index.htm
+!familyconnections/uploads/avatar/index.htm
+!familyconnections/uploads/documents/index.htm
+!familyconnections/uploads/photos/index.htm
+!familyconnections/uploads/upimages/index.htm
+
