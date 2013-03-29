@@ -91,18 +91,52 @@ class FCMS_Error
     /**
      * hasError
      * 
-     * Checks whether any error has occured.
+     * Checks whether non user error has occured.
      * 
      * @return boolean
      */
     public function hasError ()
     {
-        if (is_null($this->message))
+        if (!is_null($this->message) && $this->type != 'user')
         {
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
+    }
+
+    /**
+     * hasAnyError
+     * 
+     * Checks whether any error has occured.
+     * 
+     * @return boolean
+     */
+    public function hasAnyError ()
+    {
+        if (!is_null($this->message))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * hasUserError
+     * 
+     * Checks whether any user error has occured.
+     * 
+     * @return boolean
+     */
+    public function hasUserError ()
+    {
+        if (!is_null($this->message) && $this->type == 'user')
+        {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -120,7 +154,6 @@ class FCMS_Error
             'file'          => $this->file,
             'stack'         => $this->stack,
             'php_version'   => PHP_VERSION,
-            //'mysql_version' => mysql_get_server_info(),
             'os'            => PHP_OS,
             'sql'           => $this->sql
         );
@@ -135,7 +168,7 @@ class FCMS_Error
      */
     public function displayError ()
     {
-        if (!$this->hasError())
+        if (!$this->hasAnyError())
         {
             return;
         }
@@ -166,12 +199,6 @@ class FCMS_Error
 
             echo '<p><b>Stack</b>:<br/><small>'.$this->stack.'</small></p>';
             echo '<p><b>PHP</b>: '.PHP_VERSION.' ('.PHP_OS.')</p>';
-
-            // Sql error?
-            //if (!is_null($this->sql))
-            //{
-            //    echo '<p><b>MySQL</b>: '.mysql_get_server_info().'</p>';
-            //}
         }
 
         echo '</div>';
