@@ -1,14 +1,20 @@
 <?php
-
+/**
+ * Handler 
+ * 
+ * @package Family Connections
+ * @copyright 2013 Haudenschilt LLC
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class Handler
 {
-    private $tmpPhoto;
+    private $formData;
     private $fileName;
+    private $newPhotoId;
+    private $newCategoryId;
     private $extension;
-    private $mimeType;
-
     private $usingFullSizePhotos;
-    private $rotate;
 
     private $thumbMaxWidth  = 150;
     private $thumbMaxHeight = 150;
@@ -52,16 +58,56 @@ class Handler
     }
 
     /**
-     * validate 
+     * upload
      * 
-     * @param array $formData 
+     * @param array $formData
      * 
      * @return boolean
      */
-    public function validate ($formData)
+    public function upload ($formData)
+    {
+        // Save necessary form data
+        $this->setFormData($formData);
+
+        // Validate
+        if (!$this->validate())
+        {
+            return false;
+        }
+
+        // Insert new category
+        if (!$this->insertCategory())
+        {
+            return false;
+        }
+
+        // Create new directory
+        $this->destinationType->createDirectory();
+
+        // Save photo to db
+        if (!$this->insertPhoto())
+        {
+            return false;
+        }
+
+        // Save file, rotate and resize
+        if (!$this->savePhoto())
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * validate 
+     * 
+     * @return boolean
+     */
+    public function validate ()
     {
         // Catch photos that are too large
-        if ($formData['photo']['error'] == 1)
+        if ($this->formData['photo']['error'] == 1)
         {
             $max  = ini_get('upload_max_filesize');
             $link = 'index.php?action=upload&amp;advanced=1';
@@ -76,7 +122,7 @@ class Handler
         }
 
         // Make sure we have a photo
-        if ($formData['photo']['error'] == 4)
+        if ($this->formData['photo']['error'] == 4)
         {
             $this->fcmsError->add(array(
                 'message' => T_('Upload Error'),
@@ -87,7 +133,7 @@ class Handler
         }
 
         // Another check that we have a photo
-        if ($formData['photo']['size'] <= 0)
+        if ($this->formData['photo']['size'] <= 0)
         {
             $this->fcmsError->add(array(
                 'message' => T_('Upload Error'),
@@ -98,7 +144,7 @@ class Handler
         }
 
         // Validate mimetype/extension for real photo
-        if (!isset($this->validMimeTypes[$this->mimeType]) || !isset($this->validExtensions[$this->extension]))
+        if (!isset($this->validMimeTypes[ $this->formData['photo']['type'] ]) || !isset($this->validExtensions[$this->extension]))
         {
             $this->fcmsError->add(array(
                 'message' => T_('Upload Error'),
@@ -109,9 +155,9 @@ class Handler
         }
 
         // Make sure we have a valid rotate type
-        if (!is_null($this->rotate))
+        if (!is_null($this->formData['rotate']))
         {
-            if ($this->rotate !== 'left' || $this->rotate !== 'right')
+            if ($this->formData['rotate'] !== 'left' && $this->formData['rotate'] !== 'right')
             {
                 $this->fcmsError->add(array(
                     'message' => T_('Upload Error'),
@@ -126,25 +172,92 @@ class Handler
     }
 
     /**
-     * createDirectory 
-     * 
-     * Creates a new directory to save upload to, if needed.
+     * insertCategory 
      * 
      * @return void
      */
-    public function createDirectory ()
+    private function insertCategory ()
     {
-        $this->destinationType->createDirectory();
+        // Create a new category
+        if (strlen($this->formData['newCategory']) > 0)
+        {
+            $sql = "INSERT INTO `fcms_category`
+                        (`name`, `type`, `user`) 
+                    VALUES
+                        (?, 'gallery', ?)";
+
+            $params = array(
+                $this->formData['newCategory'],
+                $this->fcmsUser->id
+            );
+
+            $this->newCategoryId = $this->fcmsDatabase->insert($sql, $params);
+            if ($this->newCategoryId === false)
+            {
+                return false;
+            }
+        }
+        // Set the supplied category id
+        else
+        {
+            $this->newCategoryId = $this->formData['category'];
+        }
+
+        return true;
     }
 
     /**
-     * upload
+     * insertPhoto
      * 
-     * @param int $newPhotoId 
+     * Inserts new photo record in db, and save photo id.
      * 
      * @return boolean
      */
-    public function upload ($newPhotoId)
+    private function insertPhoto ()
+    {
+        $sql = "INSERT INTO `fcms_gallery_photos`
+                    (`date`, `caption`, `category`, `user`)
+                VALUES
+                    (NOW(), ?, ?, ?)";
+
+        $params = array(
+            $this->formData['caption'],
+            $this->newCategoryId,
+            $this->fcmsUser->id
+        );
+
+        $this->newPhotoId = $this->fcmsDatabase->insert($sql, $params);
+        if ($this->newPhotoId === false)
+        {
+            return false;
+        }
+
+        $this->fileName = $this->newPhotoId.'.'.$this->extension;
+
+        // Update photo record
+        $sql = "UPDATE `fcms_gallery_photos` 
+                SET `filename` = ?
+                WHERE `id` = ?";
+
+        $params = array(
+            $this->fileName,
+            $this->newPhotoId
+        );
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * savePhoto 
+     * 
+     * @return boolean
+     */
+    function savePhoto ()
     {
         // Setup the array of photos that need uploaded
         $uploadPhotos = array(
@@ -185,23 +298,23 @@ class Handler
             $height = $uploadPhotos[$key]['height'];
 
             // Reset the filename for each photo
-            $this->fileName = $prefix.$newPhotoId.'.'.$this->extension;
+            $this->fileName = $prefix.$this->newPhotoId.'.'.$this->extension;
 
             // Copy temp photo to destination
-            $this->destinationType->copy($this->tmpPhoto, $this->fileName);
+            $this->destinationType->copy($this->formData['photo']['tmp_name'], $this->fileName);
 
             // Do we have enough memory
-            if (!$this->haveEnoughMemory($newPhotoId))
+            if (!$this->haveEnoughMemory())
             {
                 return false;
             }
 
             // Rotate
-            if ($this->rotate == 'left')
+            if ($this->formData['rotate'] == 'left')
             {
                 $this->rotate(90);
             }
-            elseif ($this->rotate == 'right')
+            elseif ($this->formData['rotate'] == 'right')
             {
                 $this->rotate(270);
             }
@@ -227,19 +340,10 @@ class Handler
      */
     public function setFormData ($formData)
     {
-        // Save photo data from $_FILES
-        $this->tmpPhoto = $formData['photo']['tmp_name'];
+        $this->formData = $formData;
+
         $this->fileName = cleanFilename($formData['photo']['name']);
-        $this->mimeType = $formData['photo']['type'];
-
         $this->setExtension();
-
-        // Set optional form params
-        $this->rotate = $formData['rotate'];
-//        $this->photo       = isset($formData['photo'])       ? $formData['photo']                   : null;
-//        $this->newCategory = isset($formData['newCategory']) ? strip_tags($formData['newCategory']) : null; 
-//        $this->category    = isset($formData['category'])    ? $formData['category']                : null; 
-//        $this->caption     = isset($formData['caption'])     ? strip_tags($formData['caption'])     : null; 
     }
 
     /**
@@ -259,28 +363,6 @@ class Handler
             $this->extension = end($arr);
             $this->extension = strtolower($this->extension);
         }
-    }
-
-    /**
-     * getExtension 
-     * 
-     * @return void
-     */
-    public function getExtension ()
-    {
-        return $this->extension;
-    }
-
-    /**
-     * setFileName 
-     * 
-     * @param string $fileName 
-     * 
-     * @return void
-     */
-    public function setFileName ($fileName)
-    {
-        $this->fileName = $fileName;
     }
 
     /**
@@ -306,6 +388,36 @@ class Handler
         }
 
         return false;
+    }
+
+    /**
+     * getLastPhotoId 
+     * 
+     * @return int
+     */
+    public function getLastPhotoId ()
+    {
+        return $this->newPhotoId;
+    }
+
+    /**
+     * getLastPhotoIds
+     * 
+     * @return array
+     */
+    public function getLastPhotoIds ()
+    {
+        return array( $this->newPhotoId );
+    }
+
+    /**
+     * getLastCategoryId 
+     * 
+     * @return int
+     */
+    public function getLastCategoryId ()
+    {
+        return $this->newCategoryId;
     }
 
     /**
@@ -536,11 +648,9 @@ class Handler
      * 
      * Calculates whether the given image can be resized with the current available memory.
      * 
-     * @param int $newPhotoId 
-     * 
      * @return boolean
      */
-    private function haveEnoughMemory ($newPhotoId)
+    private function haveEnoughMemory ()
     {
         $this->memoryAvailable = ini_get('memory_limit');
         $this->memoryAvailable = substr($this->memoryAvailable, 0, -1);
@@ -563,7 +673,7 @@ class Handler
             // Try to delete from db
             $sql = "DELETE FROM `fcms_gallery_photos` 
                     WHERE `id` = ?";
-            $this->fcmsDatabase->delete($sql, $newPhotoId);
+            $this->fcmsDatabase->delete($sql, $this->newPhotoId);
             
             // Try to delete from server
             $this->destinationType->deleteFile($this->fileName);

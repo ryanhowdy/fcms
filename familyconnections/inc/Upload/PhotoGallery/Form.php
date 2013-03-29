@@ -1,5 +1,12 @@
 <?php
-
+/**
+ * FormUpload 
+ * 
+ * @package Family Connections
+ * @copyright 2013 Haudenschilt LLC
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class FormUpload
 {
     public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)

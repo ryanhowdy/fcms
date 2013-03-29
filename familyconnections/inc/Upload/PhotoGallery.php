@@ -1,7 +1,13 @@
 <?php
-require_once INC.'Upload.php';
-
-class Upload_PhotoGallery implements Upload
+/**
+ * Upload_PhotoGallery 
+ * 
+ * @package Family Connections
+ * @copyright 2013 Haudenschilt LLC
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @license http://www.gnu.org/licenses/gpl-2.0.html
+ */
+class Upload_PhotoGallery
 {
     private $fcmsError;
     private $fcmsDatabase;
@@ -10,10 +16,6 @@ class Upload_PhotoGallery implements Upload
     private $formType;
     private $handlerType;
     private $destinationType;
-
-    private $formData;
-    private $lastPhotoId;
-    private $lastCategoryId;
 
     /**
      * __construct 
@@ -106,50 +108,13 @@ class Upload_PhotoGallery implements Upload
     /**
      * upload 
      * 
-     * Saves data in the db about the photo (category, photo, etc.).
-     * Then uses appropriate FileHandler Object to save photo.
-     * 
-     * If returns false, either $_SESSION['error_message'] or 
-     * $fcmsError will have an error message set.
+     * Calls the appropriate Handler Object's upload function.
      * 
      * @return boolean
      */
     public function upload ($formData)
     {
-        $this->formData = $formData;
-
-        // Save form data in handler
-        $this->handlerType->setFormData($formData);
-
-        // Validate
-        if (!$this->validate())
-        {
-            return false;
-        }
-
-        // Insert new category
-        if (!$this->insertCategory())
-        {
-            return false;
-        }
-
-        // Create new directory
-        $this->handlerType->createDirectory();
-
-        // Save photo to db and set $this->newPhotoId
-        if (!$this->insertPhoto())
-        {
-            return false;
-        }
-
-        // Update filename to match newPhotoId
-        if (!$this->updateFilename())
-        {
-            return false;
-        }
-
-        // Upload the photo
-        if (!$this->handlerType->upload($this->lastPhotoId))
+        if (!$this->handlerType->upload($formData))
         {
             return false;
         }
@@ -159,6 +124,9 @@ class Upload_PhotoGallery implements Upload
 
     /**
      * validate 
+     * 
+     * Validates we have a valid category (all photo gallery uploads should have this)
+     * and then calls the appropriate Handler Object's validate function.
      * 
      * @return boolean
      */
@@ -189,7 +157,17 @@ class Upload_PhotoGallery implements Upload
      */
     public function getLastPhotoId ()
     {
-        return $this->lastPhotoId;
+        return $this->handlerType->getLastPhotoId();
+    }
+
+    /**
+     * getLastPhotoIds
+     * 
+     * @return array
+     */
+    public function getLastPhotoIds ()
+    {
+        return $this->handlerType->getLastPhotoIds();
     }
 
     /**
@@ -199,101 +177,6 @@ class Upload_PhotoGallery implements Upload
      */
     public function getLastCategoryId ()
     {
-        return $this->lastCategoryId;
-    }
-
-    /**
-     * insertCategory 
-     * 
-     * @return void
-     */
-    private function insertCategory ()
-    {
-        // Create a new category
-        if (strlen($this->formData['newCategory']) > 0)
-        {
-            $sql = "INSERT INTO `fcms_category`
-                        (`name`, `type`, `user`) 
-                    VALUES
-                        (?, 'gallery', ?)";
-
-            $params = array(
-                $this->formData['newCategory'],
-                $this->fcmsUser->id
-            );
-
-            $this->lastCategoryId = $this->fcmsDatabase->insert($sql, $params);
-            if ($this->lastCategoryId === false)
-            {
-                return false;
-            }
-        }
-        // Set the supplied category id
-        else
-        {
-            $this->lastCategoryId = $this->formData['category'];
-        }
-
-        return true;
-    }
-
-    /**
-     * insertPhoto
-     * 
-     * Inserts new photo record in db, and save photo id.
-     * 
-     * @return boolean
-     */
-    private function insertPhoto ()
-    {
-        $sql = "INSERT INTO `fcms_gallery_photos`
-                    (`date`, `caption`, `category`, `user`)
-                VALUES
-                    (NOW(), ?, ?, ?)";
-
-        $params = array(
-            $this->formData['caption'],
-            $this->lastCategoryId,
-            $this->fcmsUser->id
-        );
-
-        $this->lastPhotoId = $this->fcmsDatabase->insert($sql, $params);
-        if ($this->lastPhotoId === false)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * updateFilename
-     * 
-     * @return boolean
-     */
-    private function updateFilename ()
-    {
-        $ext = $this->handlerType->getExtension();
-
-        $fileName = $this->lastPhotoId.'.'.$ext;
-
-        // Update photo record
-        $sql = "UPDATE `fcms_gallery_photos` 
-                SET `filename` = ?
-                WHERE `id` = ?";
-
-        $params = array(
-            $fileName,
-            $this->lastPhotoId
-        );
-
-        if (!$this->fcmsDatabase->update($sql, $params))
-        {
-            return false;
-        }
-
-        $this->handlerType->setFileName($fileName);
-
-        return true;
+        return $this->handlerType->getLastCategoryId();
     }
 }
