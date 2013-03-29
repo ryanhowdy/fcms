@@ -7,17 +7,13 @@ class Upload_PhotoGallery implements Upload
     private $fcmsDatabase;
     private $fcmsUser;
 
-    private $photo;
-    private $newPhotoId;
-
     private $formType;
     private $handlerType;
     private $destinationType;
 
-    // Form Data
-    private $newCategory;
-    private $category;
-    private $caption;
+    private $formData;
+    private $lastPhotoId;
+    private $lastCategoryId;
 
     /**
      * __construct 
@@ -118,24 +114,18 @@ class Upload_PhotoGallery implements Upload
      * 
      * @return boolean
      */
-    public function upload ($photo, $formData)
+    public function upload ($formData)
     {
-        $this->photo       = $photo;
-        $this->newCategory = isset($formData['newCategory']) ? strip_tags($formData['newCategory']) : null; 
-        $this->category    = isset($formData['category'])    ? $formData['category']                : null; 
-        $this->caption     = isset($formData['caption'])     ? strip_tags($formData['caption'])     : null; 
+        $this->formData = $formData;
 
-        // Save photo data in handler
-        $this->handlerType->setPhotoData($photo);
+        // Save form data in handler
+        $this->handlerType->setFormData($formData);
 
         // Validate
-        if (!$this->validate($formData))
+        if (!$this->validate())
         {
             return false;
         }
-
-        // Set rotate options in handler
-        $this->handlerType->setRotate($formData['rotate']);
 
         // Insert new category
         if (!$this->insertCategory())
@@ -159,7 +149,7 @@ class Upload_PhotoGallery implements Upload
         }
 
         // Upload the photo
-        if (!$this->handlerType->upload($this->newPhotoId))
+        if (!$this->handlerType->upload($this->lastPhotoId))
         {
             return false;
         }
@@ -175,9 +165,9 @@ class Upload_PhotoGallery implements Upload
     private function validate ()
     {
         // Make sure we have a category
-        if (strlen($this->newCategory) <= 0)
+        if (strlen($this->formData['newCategory']) <= 0)
         {
-            if (empty($this->category) && !ctype_digit($this->category))
+            if (empty($this->formData['category']) && !ctype_digit($this->formData['category']))
             {
                 $this->fcmsError->add(array(
                     'message' => T_('Upload Error'),
@@ -188,45 +178,8 @@ class Upload_PhotoGallery implements Upload
             }
         }
 
-        // Catch photos that are too large
-        if ($this->photo['error'] == 1)
-        {
-            $max  = ini_get('upload_max_filesize');
-            $link = 'index.php?action=upload&amp;advanced=1';
-
-            $this->fcmsError->add(array(
-                'message' => T_('Upload Error'),
-                'details' => '<p>'.sprintf(T_('Your photo exceeds the maximum size allowed by your PHP settings [%s].'), $max).'</p>'
-                            .'<p>'.sprintf(T_('Would you like to use the <a href="%s">Advanced Photo Uploader</a> instead?.'), $link).'</p>'
-            ));
-
-            return false;
-        }
-
-        // Make sure we have a photo
-        if ($this->photo['error'] == 4)
-        {
-            $this->fcmsError->add(array(
-                'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('You must choose a photo first.').'</p>'
-            ));
-
-            return false;
-        }
-
-        // Another check that we have a photo
-        if ($this->photo['size'] <= 0)
-        {
-            $this->fcmsError->add(array(
-                'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('Photo is corrupt or missing.').'</p>'
-            ));
-
-            return false;
-        }
-
         // Do file handler specific validation
-        return $this->handlerType->validate();
+        return $this->handlerType->validate($this->formData);
     }
 
     /**
@@ -236,7 +189,17 @@ class Upload_PhotoGallery implements Upload
      */
     public function getLastPhotoId ()
     {
-        return $this->newPhotoId;
+        return $this->lastPhotoId;
+    }
+
+    /**
+     * getLastCategoryId 
+     * 
+     * @return int
+     */
+    public function getLastCategoryId ()
+    {
+        return $this->lastCategoryId;
     }
 
     /**
@@ -247,7 +210,7 @@ class Upload_PhotoGallery implements Upload
     private function insertCategory ()
     {
         // Create a new category
-        if (strlen($this->newCategory) > 0)
+        if (strlen($this->formData['newCategory']) > 0)
         {
             $sql = "INSERT INTO `fcms_category`
                         (`name`, `type`, `user`) 
@@ -255,15 +218,20 @@ class Upload_PhotoGallery implements Upload
                         (?, 'gallery', ?)";
 
             $params = array(
-                $this->newCategory,
+                $this->formData['newCategory'],
                 $this->fcmsUser->id
             );
 
-            $this->category = $this->fcmsDatabase->insert($sql, $params);
-            if ($this->category === false)
+            $this->lastCategoryId = $this->fcmsDatabase->insert($sql, $params);
+            if ($this->lastCategoryId === false)
             {
                 return false;
             }
+        }
+        // Set the supplied category id
+        else
+        {
+            $this->lastCategoryId = $this->formData['category'];
         }
 
         return true;
@@ -284,13 +252,13 @@ class Upload_PhotoGallery implements Upload
                     (NOW(), ?, ?, ?)";
 
         $params = array(
-            $this->caption,
-            $this->category,
+            $this->formData['caption'],
+            $this->lastCategoryId,
             $this->fcmsUser->id
         );
 
-        $this->newPhotoId = $this->fcmsDatabase->insert($sql, $params);
-        if ($this->newPhotoId === false)
+        $this->lastPhotoId = $this->fcmsDatabase->insert($sql, $params);
+        if ($this->lastPhotoId === false)
         {
             return false;
         }
@@ -307,7 +275,7 @@ class Upload_PhotoGallery implements Upload
     {
         $ext = $this->handlerType->getExtension();
 
-        $fileName = $this->newPhotoId.'.'.$ext;
+        $fileName = $this->lastPhotoId.'.'.$ext;
 
         // Update photo record
         $sql = "UPDATE `fcms_gallery_photos` 
@@ -316,7 +284,7 @@ class Upload_PhotoGallery implements Upload
 
         $params = array(
             $fileName,
-            $this->newPhotoId
+            $this->lastPhotoId
         );
 
         if (!$this->fcmsDatabase->update($sql, $params))

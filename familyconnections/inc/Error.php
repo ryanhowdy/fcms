@@ -63,9 +63,9 @@ class FCMS_Error
      */
     private function __construct ()
     {
-        $this->type    = null;
-        $this->message = null;
-        $this->details = null;
+        $this->type    = isset($_SESSION['user_error']) ? 'user'                             : null;
+        $this->message = isset($_SESSION['user_error']) ? $_SESSION['user_error']['message'] : null;
+        $this->details = isset($_SESSION['user_error']) ? $_SESSION['user_error']['details'] : null;
         $this->error   = null;
         $this->line    = null;
         $this->file    = null;
@@ -142,6 +142,11 @@ class FCMS_Error
 
         if ($this->type == 'user')
         {
+            if (isset($_SESSION['user_error']))
+            {
+                unset($_SESSION['user_error']);
+            }
+
             $this->displayUserError();
             return;
         }
@@ -265,7 +270,7 @@ class FCMS_Error
         $this->stack   = $stack;
         $this->sql     = $sql;
 
-        // Log error
+        // Log Operation errors
         if ($this->type == 'operation')
         {
             $log  = $this->error."\n";
@@ -281,6 +286,14 @@ class FCMS_Error
             $log .= "  STACK\n".$logStack."\n";
 
             logError($log);
+        }
+        // Save User errors in session
+        else 
+        {
+            $_SESSION['user_error'] = array(
+                'message' => $this->message,
+                'details' => $this->details
+            );
         }
     }
 }

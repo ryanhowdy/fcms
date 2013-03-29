@@ -113,7 +113,7 @@ class FormUpload
      * 
      * @return string
      */
-    private function getCategoryInputs ()
+    protected function getCategoryInputs ()
     {
         $categories = $this->getUserCategories();
 
@@ -142,7 +142,7 @@ class FormUpload
      * 
      * @return void
      */
-    private function getUploadTypesNavigation ($currentType)
+    protected function getUploadTypesNavigation ($currentType)
     {
         $nav = '';
 
@@ -191,7 +191,7 @@ class FormUpload
      * 
      * @return string
      */
-    private function getJsUploadValidation ()
+    protected function getJsUploadValidation ()
     {
         return '
                 if ($("new-category").visible() && $F("new-category").empty()) {
@@ -217,7 +217,7 @@ class FormUpload
      * @param   int     $userid 
      * @return  array
      */
-    private function getUserCategories ($userid = 0)
+    protected function getUserCategories ($userid = 0)
     {
         if ($userid == 0)
         {

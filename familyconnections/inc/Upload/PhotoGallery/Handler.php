@@ -54,10 +54,49 @@ class Handler
     /**
      * validate 
      * 
+     * @param array $formData 
+     * 
      * @return boolean
      */
-    public function validate ()
+    public function validate ($formData)
     {
+        // Catch photos that are too large
+        if ($formData['photo']['error'] == 1)
+        {
+            $max  = ini_get('upload_max_filesize');
+            $link = 'index.php?action=upload&amp;advanced=1';
+
+            $this->fcmsError->add(array(
+                'message' => T_('Upload Error'),
+                'details' => '<p>'.sprintf(T_('Your photo exceeds the maximum size allowed by your PHP settings [%s].'), $max).'</p>'
+                            .'<p>'.sprintf(T_('Would you like to use the <a href="%s">Advanced Photo Uploader</a> instead?.'), $link).'</p>'
+            ));
+
+            return false;
+        }
+
+        // Make sure we have a photo
+        if ($formData['photo']['error'] == 4)
+        {
+            $this->fcmsError->add(array(
+                'message' => T_('Upload Error'),
+                'details' => '<p>'.T_('You must choose a photo first.').'</p>'
+            ));
+
+            return false;
+        }
+
+        // Another check that we have a photo
+        if ($formData['photo']['size'] <= 0)
+        {
+            $this->fcmsError->add(array(
+                'message' => T_('Upload Error'),
+                'details' => '<p>'.T_('Photo is corrupt or missing.').'</p>'
+            ));
+
+            return false;
+        }
+
         // Validate mimetype/extension for real photo
         if (!isset($this->validMimeTypes[$this->mimeType]) || !isset($this->validExtensions[$this->extension]))
         {
@@ -178,25 +217,29 @@ class Handler
     }
 
     /**
-     * setPhotoData 
+     * setFormData 
      * 
-     * Given the $_FILES object, sets:
-     *   tmpPhoto  - $_FILES['tmp_name']
-     *   filename  - $_FILES['name']
-     *   mimetype  - $_FILES['type']
-     *   extension
+     * Saves all the data passed in from the form upload.
      * 
-     * @param object $photo 
+     * @param array $formData
      * 
      * @return void
      */
-    public function setPhotoData ($photo)
+    public function setFormData ($formData)
     {
-        $this->tmpPhoto = $photo['tmp_name'];
-        $this->fileName = cleanFilename($photo['name']);
-        $this->mimeType = $photo['type'];
+        // Save photo data from $_FILES
+        $this->tmpPhoto = $formData['photo']['tmp_name'];
+        $this->fileName = cleanFilename($formData['photo']['name']);
+        $this->mimeType = $formData['photo']['type'];
 
         $this->setExtension();
+
+        // Set optional form params
+        $this->rotate = $formData['rotate'];
+//        $this->photo       = isset($formData['photo'])       ? $formData['photo']                   : null;
+//        $this->newCategory = isset($formData['newCategory']) ? strip_tags($formData['newCategory']) : null; 
+//        $this->category    = isset($formData['category'])    ? $formData['category']                : null; 
+//        $this->caption     = isset($formData['caption'])     ? strip_tags($formData['caption'])     : null; 
     }
 
     /**
@@ -238,18 +281,6 @@ class Handler
     public function setFileName ($fileName)
     {
         $this->fileName = $fileName;
-    }
-
-    /**
-     * setRotate 
-     * 
-     * @param string $rotate 
-     * 
-     * @return void
-     */
-    public function setRotate ($rotate)
-    {
-        $this->rotate = $rotate;
     }
 
     /**
