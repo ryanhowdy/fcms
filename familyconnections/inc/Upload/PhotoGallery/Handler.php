@@ -9,12 +9,17 @@
  */
 class Handler
 {
-    private $formData;
+    protected $fcmsError;
+    protected $fcmsDatabase;
+    protected $fcmsUser;
+    protected $destinationType;
+    protected $formData;
+    protected $newCategoryId;
+    protected $usingFullSizePhotos;
+
     private $fileName;
     private $newPhotoId;
-    private $newCategoryId;
     private $extension;
-    private $usingFullSizePhotos;
 
     private $thumbMaxWidth  = 150;
     private $thumbMaxHeight = 150;
@@ -176,7 +181,7 @@ class Handler
      * 
      * @return void
      */
-    private function insertCategory ()
+    public function insertCategory ()
     {
         // Create a new category
         if (strlen($this->formData['newCategory']) > 0)
@@ -347,22 +352,35 @@ class Handler
     }
 
     /**
+     * getFileExtension 
+     * 
+     * @param string $file 
+     * 
+     * @return string
+     */
+    public function getFileExtension ($file)
+    {
+        $ext = '';
+        $arr = explode('.', $file);
+
+        // If arr doesn't have atleast 2 elements, then the file didn't have an extension
+        if (count($arr) >= 2)
+        {
+            $ext = end($arr);
+            $ext = strtolower($ext);
+        }
+
+        return $ext;
+    }
+
+    /**
      * setExtension 
      * 
      * @return void
      */
     private function setExtension ()
     {
-        $arr = explode('.', $this->fileName);
-
-        $this->extension = '';
-
-        // If arr doesn't have atleast 2 elements, then the file didn't have an extension
-        if (count($arr) >= 2)
-        {
-            $this->extension = end($arr);
-            $this->extension = strtolower($this->extension);
-        }
+        $this->fileName = $this->getFileExtension;
     }
 
     /**
@@ -370,7 +388,7 @@ class Handler
      * 
      * @return boolean
      */
-    private function getUsingFullSizePhotos ()
+    public function getUsingFullSizePhotos ()
     {
         $sql = "SELECT `value` AS 'full_size_photos'
                 FROM `fcms_config`

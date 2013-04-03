@@ -109,6 +109,11 @@ function load()
         {
             include_once THIRDPARTY.'phpass/PasswordHash.php';
         }
+        elseif (substr($include, 0, 7) == 'Upload_')
+        {
+            $path = str_replace('_', '/', $include);
+            require_once INC.$path.'.php';
+        }
         else
         {
             printr(debug_backtrace());

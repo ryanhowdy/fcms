@@ -18,6 +18,8 @@ class FormUpload
 
     public function display ()
     {
+        $_SESSION['fcms_uploader_type'] = 'basic';
+
         // Setup the list of active members for possible tags
         $sql = "SELECT `id` 
                 FROM `fcms_users` 
@@ -162,7 +164,7 @@ class FormUpload
 
             if ($type == 'upload')
             {
-                $url   = '?action=upload';
+                $url   = '?action=upload&amp;type=basic';
                 $text  = T_('Computer');
             }
             elseif ($type == 'instagram')
