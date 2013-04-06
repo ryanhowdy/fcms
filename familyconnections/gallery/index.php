@@ -524,7 +524,7 @@ Event.observe(window, \'load\', function() {
         $uploadsPath = getUploadsAbsolutePath();
 
         // Get photo info
-        $sql = "SELECT `user`, `category`, `filename` 
+        $sql = "SELECT `user`, `category`, `filename`, `external_id`
                 FROM `fcms_gallery_photos` 
                 WHERE `id` = ?";
 
@@ -537,9 +537,10 @@ Event.observe(window, \'load\', function() {
             return;
         }
 
-        $photoFilename = $filerow['filename'];
-        $photoUserId   = $filerow['user'];
-        $photoCategory = $filerow['category'];
+        $photoFilename   = $filerow['filename'];
+        $photoUserId     = $filerow['user'];
+        $photoCategory   = $filerow['category'];
+        $photoExternalId = $filerow['external_id'];
         
         // Remove the photo from the DB
         $sql = "DELETE FROM `fcms_gallery_photos` 
@@ -563,9 +564,20 @@ Event.observe(window, \'load\', function() {
             return;
         }
 
+        // Remove any external photos for this photo
+        $sql = "DELETE FROM `fcms_gallery_external_photo`
+                WHERE `id` = ?";
+        if (!$this->fcmsDatabase->delete($sql, $photoExternalId))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
         $filePath  = $uploadsPath.'photos/member'.$photoUserId.'/'.basename($photoFilename);
         $thumbPath = $uploadsPath.'photos/member'.$photoUserId.'/tb_'.basename($photoFilename);
-        $fullPath = $uploadsPath.'photos/member'.$photoUserId.'/full_'.basename($photoFilename);
+        $fullPath  = $uploadsPath.'photos/member'.$photoUserId.'/full_'.basename($photoFilename);
 
         // Remove the Photo from the server
         if (file_exists($filePath))
@@ -768,110 +780,21 @@ Event.observe(window, \'load\', function() {
 
 
         // Upload individual photos
-        if (isset($_POST['photos']))
+        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'instagram');
+
+        $formData = array(
+            'photos' => $_POST['photos'],
+        );
+
+        if (!$this->Uploader->upload($formData))
         {
-            $categoryId  = getUserInstagramCategory($this->fcmsUser->id);
-            $existingIds = getExistingInstagramIds();
-
-            foreach ($_POST['photos'] AS $data)
-            {
-                list($sourceId, $thumbnail, $medium, $full, $caption) = explode('|', $data);
-
-                // Skip existing photos
-                if (isset($existingIds[$sourceId]))
-                {
-                    continue;
-                }
-
-                // Save external paths
-                $sql = "INSERT INTO `fcms_gallery_external_photo`
-                            (`source_id`, `thumbnail`, `medium`, `full`)
-                        VALUES
-                            (?, ?, ?, ?)";
-
-                $params = array(
-                    $sourceId,
-                    $thumbnail,
-                    $medium,
-                    $full
-                );
-
-                $id = $this->fcmsDatabase->insert($sql, $params);
-
-                if ($id === false)
-                {
-                    $this->displayHeader();
-                    $this->fcmsError->displayError();
-                    $this->displayFooter();
-                    return;
-                }
-
-                // Insert new photo
-                $sql = "INSERT INTO `fcms_gallery_photos`
-                            (`date`, `external_id`, `caption`, `category`, `user`)
-                        VALUES
-                            (NOW(), ?, ?, ?, ?)";
-
-                $params = array(
-                    $id,
-                    $caption,
-                    $categoryId,
-                    $this->fcmsUser->id
-                );
-
-                if (!$this->fcmsDatabase->insert($sql, $params))
-                {
-                    $this->displayHeader();
-                    $this->fcmsError->displayError();
-                    $this->displayFooter();
-                    return;
-                }
-            }
-
-
-            // Email members
-            $sql = "SELECT u.`email`, s.`user` 
-                    FROM `fcms_user_settings` AS s, `fcms_users` AS u 
-                    WHERE `email_updates` = '1'
-                    AND u.`id` = s.`user`";
-
-            $rows = $this->fcmsDatabase->getRows($sql);
-            if ($rows === false)
-            {
-                $this->fcmsError->displayError();
-                $this->displayFooter();
-                return;
-            }
-
-            if (count($rows) > 0)
-            {
-                foreach ($rows as $r)
-                {
-                    $name          = getUserDisplayName($this->fcmsUser->id);
-                    $to            = getUserDisplayName($r['user']);
-                    $subject       = sprintf(T_('%s has added new photos.'), $name);
-                    $email         = $r['email'];
-                    $url           = getDomainAndDir();
-                    $email_headers = getEmailHeaders();
-
-                    $msg = T_('Dear').' '.$to.',
-
-'.$subject.'
-
-'.$url.'index.php?uid='.$this->fcmsUser->id.'&cid='.$categoryId.'
-
-----
-'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
-
-'.$url.'settings.php
-
-';
-                    mail($email, $subject, $msg, $email_headers);
-                }
-            }
-
-            header('Location: index.php?uid='.$this->fcmsUser->id.'&cid='.$categoryId);
+            header('Location: index.php?action=upload&type=instagram');
+            return;
         }
+
+        $categoryId = $this->Uploader->getLastCategoryId();
+
+        header("Location: index.php?uid=".$this->fcmsUser->id."&cid=$categoryId");
     }
 
     /**
