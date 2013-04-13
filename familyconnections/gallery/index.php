@@ -648,17 +648,25 @@ Event.observe(window, \'load\', function() {
 
         // Figure out the upload type
         $type = null;
-        if (isset($_GET['type']) && $_GET['type'] != 'upload')
+
+        // Get selected type (user clicked on type from menu)
+        if (isset($_GET['type']))
         {
             $type = $_GET['type'];
+
+            if ($_GET['type'] == 'upload')
+            {
+                $type = null;
+                if (usingAdvancedUploader($this->fcmsUser->id))
+                {
+                    $type = 'java';
+                }
+            }
         }
+        // Use last upload type (user clicked on 'Upload Photos' button
         elseif (isset($_SESSION['fcms_uploader_type']))
         {
             $type = $_SESSION['fcms_uploader_type'];
-        }
-        elseif (usingAdvancedUploader($this->fcmsUser->id))
-        {
-            $type = 'java';
         }
 
         // Turn on advanced uploader
