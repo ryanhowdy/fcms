@@ -652,13 +652,13 @@ Event.observe(window, \'load\', function() {
         {
             $type = $_GET['type'];
         }
-        elseif (usingAdvancedUploader($this->fcmsUser->id))
-        {
-            $type = 'java';
-        }
         elseif (isset($_SESSION['fcms_uploader_type']))
         {
             $type = $_SESSION['fcms_uploader_type'];
+        }
+        elseif (usingAdvancedUploader($this->fcmsUser->id))
+        {
+            $type = 'java';
         }
 
         // Turn on advanced uploader
