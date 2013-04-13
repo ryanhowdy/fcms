@@ -2,13 +2,23 @@
 /**
  * FormUpload 
  * 
- * @package Family Connections
+ * @package Upload_PhotoGallery
+ * @subpackage Form
  * @copyright 2013 Haudenschilt LLC
  * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class FormUpload
 {
+    /**
+     * __construct 
+     * 
+     * @param object $fcmsError 
+     * @param object $fcmsDatabase 
+     * @param object $fcmsUser 
+     * 
+     * @return void
+     */
     public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
         $this->fcmsError    = $fcmsError;
@@ -16,6 +26,11 @@ class FormUpload
         $this->fcmsUser     = $fcmsUser;
     }
 
+    /**
+     * display 
+     * 
+     * @return void
+     */
     public function display ()
     {
         $_SESSION['fcms_uploader_type'] = 'basic';
@@ -149,7 +164,7 @@ class FormUpload
      * 
      * @param string $currentType 
      * 
-     * @return void
+     * @return string
      */
     protected function getUploadTypesNavigation ($currentType)
     {
@@ -164,7 +179,7 @@ class FormUpload
 
             if ($type == 'upload')
             {
-                $url   = '?action=upload&amp;type=basic';
+                $url   = '?action=upload&amp;type=upload';
                 $text  = T_('Computer');
             }
             elseif ($type == 'instagram')
@@ -223,7 +238,8 @@ class FormUpload
      * 
      * Returns an array of the categories for the given user.
      *
-     * @param   int     $userid 
+     * @param int $userid 
+     *
      * @return  array
      */
     protected function getUserCategories ($userid = 0)

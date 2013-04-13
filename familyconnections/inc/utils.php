@@ -5368,3 +5368,31 @@ function savePhotoFromSource ($source, $filename)
     curl_exec($ch);
     curl_close($ch);
 }
+
+/**
+ * usingFullSizePhotos 
+ * 
+ * @return boolean
+ */
+function usingFullSizePhotos ()
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
+    $sql = "SELECT `value` AS 'full_size_photos'
+            FROM `fcms_config`
+            WHERE `name` = 'full_size_photos'";
+
+    $r = $fcmsDatabase->getRow($sql);
+    if (empty($r))
+    {
+        return false;
+    }
+
+    if ($r['full_size_photos'] == 1)
+    {
+        return true;
+    }
+
+    return false;
+}

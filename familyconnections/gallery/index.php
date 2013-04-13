@@ -203,6 +203,10 @@ class Page
                 }
             }
         }
+        elseif (isset($_POST['javaUpload']))
+        {
+            $this->displayJavaUploadFormSubmit();
+        }
         elseif (isset($_POST['addcatcom']))
         {
             $this->displayAddCategoryCommentSubmit();
@@ -643,8 +647,19 @@ Event.observe(window, \'load\', function() {
         }
 
         // Figure out the upload type
-        $type = isset($_GET['type'])                    ? $_GET['type']                   :
-                (isset($_SESSION['fcms_uploader_type']) ? $_SESSION['fcms_uploader_type'] : null);
+        $type = null;
+        if (isset($_GET['type']) && $_GET['type'] != 'upload')
+        {
+            $type = $_GET['type'];
+        }
+        elseif (usingAdvancedUploader($this->fcmsUser->id))
+        {
+            $type = 'java';
+        }
+        elseif (isset($_SESSION['fcms_uploader_type']))
+        {
+            $type = $_SESSION['fcms_uploader_type'];
+        }
 
         // Turn on advanced uploader
         if (isset($_GET['advanced']))
@@ -714,6 +729,33 @@ Event.observe(window, \'load\', function() {
         // Redirect to new photo
         header('Location: index.php?uid='.$this->fcmsUser->id.'&cid='.$categoryId.'&pid='.$photoId);
         return;
+    }
+
+    /**
+     * displayJavaUploadFormSubmit 
+     * 
+     * @return void
+     */
+    function displayJavaUploadFormSubmit ()
+    {
+        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'java');
+
+        $formData = array(
+            'thumb'       => $_FILES['thumb'],
+            'main'        => $_FILES['main'],
+            'newCategory' => $_POST['new-category'],
+        );
+
+        $formData['full']     = isset($_FILES['full'])    ? $_FILES['full']    : null;
+        $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
+
+        if (!$this->Uploader->upload($formData))
+        {
+            echo "Upload Failure";
+            return;
+        }
+
+        echo "Success";
     }
 
     /**

@@ -653,7 +653,6 @@ function loadMorePicasaPhotos (startIndex, token, errorMessage)
     li.appendChild(img);
     $("photo_list").insert({"bottom":li});
 
-
     new Ajax.Request("index.php", {
         method: "post",
         parameters: {

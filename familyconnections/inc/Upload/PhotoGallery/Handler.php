@@ -13,20 +13,19 @@ class Handler
     protected $fcmsDatabase;
     protected $fcmsUser;
     protected $destinationType;
+    protected $usingFullSizePhotos;
     protected $formData;
     protected $newCategoryId;
-    protected $usingFullSizePhotos;
-
-    private $fileName;
-    private $newPhotoId;
-    private $extension;
+    protected $newPhotoId;
+    protected $fileName;
+    protected $extension;
 
     private $thumbMaxWidth  = 150;
     private $thumbMaxHeight = 150;
     private $mainMaxWidth   = 600;
     private $mainMaxHeight  = 600;
 
-    private $validMimeTypes = array(
+    protected $validMimeTypes = array(
         'image/pjpeg'   => 1,
         'image/jpeg'    => 1, 
         'image/gif'     => 1, 
@@ -34,7 +33,7 @@ class Handler
         'image/x-png'   => 1, 
         'image/png'     => 1
     );
-    private $validExtensions = array(
+    protected $validExtensions = array(
         'jpeg'  => 1,
         'jpg'   => 1,
         'gif'   => 1,
@@ -59,7 +58,7 @@ class Handler
         $this->fcmsUser        = $fcmsUser;
         $this->destinationType = $destinationType;
 
-        $this->usingFullSizePhotos = $this->getUsingFullSizePhotos();
+        $this->usingFullSizePhotos = usingFullSizePhotos();
     }
 
     /**
@@ -218,7 +217,7 @@ class Handler
      * 
      * @return boolean
      */
-    private function insertPhoto ()
+    protected function insertPhoto ()
     {
         $sql = "INSERT INTO `fcms_gallery_photos`
                     (`date`, `caption`, `category`, `user`)
@@ -378,34 +377,9 @@ class Handler
      * 
      * @return void
      */
-    private function setExtension ()
+    public function setExtension ()
     {
-        $this->fileName = $this->getFileExtension;
-    }
-
-    /**
-     * getUsingFullSizePhotos 
-     * 
-     * @return boolean
-     */
-    public function getUsingFullSizePhotos ()
-    {
-        $sql = "SELECT `value` AS 'full_size_photos'
-                FROM `fcms_config`
-                WHERE `name` = 'full_size_photos'";
-
-        $r = $this->fcmsDatabase->getRow($sql);
-        if (empty($r))
-        {
-            return false;
-        }
-
-        if ($r['full_size_photos'] == 1)
-        {
-            return true;
-        }
-
-        return false;
+        $this->extension = $this->getFileExtension($this->fileName);
     }
 
     /**
