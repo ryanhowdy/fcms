@@ -73,7 +73,7 @@ class Page
         {
             if (isset($_SESSION['source_id']))
             {
-                $sessionToken  = getSessionToken($this->fcmsUser->id);
+                $sessionToken  = $this->getSessionToken($this->fcmsUser->id);
                 echo $this->getUploadStatus($_SESSION['source_id'], $sessionToken);
                 return;
             }
@@ -227,7 +227,7 @@ Event.observe(window, \'load\', function() {
             <div class="info-alert">
                 <h2>'.T_('Not connected to YouTube.').'</h2>
                 <p>'.T_('The video gallery relies on YouTube.  You must create a YouTube account and connect it with your Family Connections account.').'</p>
-                <p><a href="settings.php?view=socialmedia">'.T_('Connect to YouTube').'</a></p>
+                <p><a href="settings.php?view=youtube">'.T_('Connect to YouTube').'</a></p>
             </div>';
 
             $this->displayFooter();
@@ -399,7 +399,7 @@ Event.observe(window, \'load\', function() {
         // Save fcms video id
         $_SESSION['fcmsVideoId'] = $lastId;
 
-        $sessionToken  = getSessionToken($this->fcmsUser->id);
+        $sessionToken  = $this->getSessionToken($this->fcmsUser->id);
         $youtubeConfig = getYouTubeConfigData();
         $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
 
@@ -1261,7 +1261,7 @@ Event.observe(window, \'load\', function() {
 
         if (isset($_POST['delete_youtube']))
         {
-            $sessionToken  = getSessionToken($this->fcmsUser->id);
+            $sessionToken  = $this->getSessionToken($this->fcmsUser->id);
             $youtubeConfig = getYouTubeConfigData();
             $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
 
