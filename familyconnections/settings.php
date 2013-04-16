@@ -601,10 +601,14 @@ Event.observe(window, \'load\', function() {
 
         $params = array();
 
+        $changedAdvancedUploader = false;
+
         if ($_POST['advanced_upload'])
         {
             $sql     .= "`advanced_upload` = ?, ";
             $params[] = $_POST['advanced_upload'] == 'yes' ? 1 : 0;
+
+            $changedAdvancedUploader = true;
         }
         if ($_POST['advanced_tagging'])
         {
@@ -652,6 +656,14 @@ Event.observe(window, \'load\', function() {
             }
 
             displayOkMessage();
+        }
+
+        // We may need to reset the fcms_uploader_type
+        // If we were using advanced, then turned it off
+        // we don't want to display the advanced next time
+        if ($changedAdvancedUploader && isset($_SESSION['fcms_uploader_type']))
+        {
+            unset($_SESSION['fcms_uploader_type']);
         }
 
         $this->fcmsSettings->displaySettings();
