@@ -1631,13 +1631,14 @@ class PhotoGallery
                 'thumbnail'   => $row['thumbnail']
             );
 
-            $filename  = basename($row['filename']);
-            $uid       = (int)$row['uid'];
-            $pid       = (int)$row['pid'];
-            $urlPage   = '?uid=0&amp;cid='.$userId;
-            $caption   = cleanOutput($row['caption']);
-            $row['id'] = $row['pid'];
-            $photoSrc  = $this->getPhotoSource($row);
+            $filename    = basename($row['filename']);
+            $uid         = (int)$row['uid'];
+            $pid         = (int)$row['pid'];
+            $urlPage     = '?uid=0&amp;cid='.$userId;
+            $caption     = cleanOutput($row['caption']);
+            $row['id']   = $row['pid'];
+            $row['user'] = $row['uid'];
+            $photoSrc    = $this->getPhotoSource($row);
 
             echo '
                 <li class="photo">
