@@ -3,9 +3,10 @@
 /**
  * Destination 
  * 
- * Saves uploads to the local uploads/photos/* directory.
+ * Saves uploads to the local uploads/photos/memberXX/* directory.
  * 
- * @package Family Connections
+ * @package Upload_PhotoGallery
+ * @subpackage Destination
  * @copyright 2013 Haudenschilt LLC
  * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license http://www.gnu.org/licenses/gpl-2.0.html
