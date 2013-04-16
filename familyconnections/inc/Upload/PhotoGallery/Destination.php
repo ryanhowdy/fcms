@@ -42,11 +42,9 @@ class Destination
      */
     public function createDirectory ()
     {
-        $path = ROOT.'uploads/photos/member'.$this->fcmsUser->id;
-
-        if (!file_exists($path))
+        if (!file_exists($this->destinationPath))
         {
-            mkdir($path) or trigger_error("Could not create path: $path");
+            mkdir($this->destinationPath) or trigger_error("Could not create path: ".$this->destinationPath);
         }
     }
 

@@ -42,12 +42,14 @@ class Upload_PhotoGallery
             require_once INC.'Upload/PhotoGallery/Destination/Protected.php';
             $this->destinationType = new ProtectedDestination($fcmsError, $fcmsDatabase, $fcmsUser);
         }
-        // Save to Amazon S3
-        elseif (defined('S3'))
-        {
-            require_once INC.'Upload/PhotoGallery/Destination/S3.php';
-            $this->destinationType = new S3Destination($fcmsError, $fcmsDatabase, $fcmsUser);
-        }
+        // TODO 
+        //
+        //// Save to Amazon S3
+        //elseif (defined('S3'))
+        //{
+        //    require_once INC.'Upload/PhotoGallery/Destination/S3.php';
+        //    $this->destinationType = new S3Destination($fcmsError, $fcmsDatabase, $fcmsUser);
+        //}
         // Save in uploads/photos/*
         else
         {
