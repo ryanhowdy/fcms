@@ -451,7 +451,7 @@ Event.observe(window, \'load\', function() {
 
         $this->displayHeader($memberId);
 
-        $awards->displayAward($memberId, $type);
+        $this->fcmsAward->displayAward($memberId, $type);
 
         $this->displayFooter($memberId);
     }
