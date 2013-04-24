@@ -528,6 +528,10 @@ function handleBadLogin ($user)
  */
 function handleFacebookLogin ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
     $fbData = getFacebookConfigData();
 
     if (empty($fbData['fb_app_id']) || empty($fbData['fb_secret']))
