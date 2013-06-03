@@ -1698,7 +1698,7 @@ class Calendar
                 WHERE `id` = ?";
 
         $row = $this->fcmsDatabase->getRow($sql, $id);
-        if ($rows === false)
+        if ($row === false)
         {
             $this->fcmsError->displayError();
             return;
