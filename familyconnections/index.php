@@ -467,7 +467,7 @@ function handleBadLogin ($user)
             WHERE `username` = ?";
 
     $row = $fcmsDatabase->getRow($sql, $user);    
-    if ($row == false)
+    if ($row === false)
     {
         $fcmsError->displayError();
 
