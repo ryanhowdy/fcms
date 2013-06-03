@@ -539,7 +539,7 @@ Event.observe(window, \'load\', function() {
                 }
 
                 // Create fcms video
-                header("Location: video.php?u=$this->fcmsUser->id&id=$videoId");
+                header("Location: video.php?u=".$this->fcmsUser->id."&id=$videoId");
 
                 break;
 
