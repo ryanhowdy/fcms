@@ -53,6 +53,20 @@ class FormValidator
         $this->invalid = array();
         $this->missing = array();
         $errors        = array();
+        $missingLkup   = array();
+
+        // Go through just the required fields
+        if (isset($profile['required']))
+        {
+            foreach ($profile['required'] as $fieldName)
+            {
+                if (!isset($input[$fieldName]) || strlen($input[$fieldName]) == 0)
+                {
+                    $this->missing[]         = $fieldName;
+                    $missingLkup[$fieldName] = 1;
+                }
+            }
+        }
 
         // Get constraints
         $constraints = isset($profile['constraints']) ? $profile['constraints'] : $profile;
@@ -131,7 +145,9 @@ class FormValidator
                 }
             }
 
-            if (!$bad)
+            // If this field hasn't been set to 'bad'
+            // and it wasn't a required field, then its valid
+            if (!$bad && !isset($missingLkup[$fieldName]))
             {
                 $this->valid[] = $fieldName;
             }
@@ -139,25 +155,45 @@ class FormValidator
 
         $errors = array();
 
-        if (count($this->missing) > 0)
-        {
-// TODO - do this smarter
-            $this->updateNames($profile);
+        $missingCount = count($this->missing);
+        $invalidCount = count($this->invalid);
 
+        if ($missingCount > 0 || $invalidCount > 0)
+        {
+            $this->updateNames($profile);
+        }
+
+        if ($missingCount > 0)
+        {
             foreach ($this->missing as $field)
             {
-                $errors[] = sprintf(T_('%s is missing.'), $field);
+                $message = $this->getConstraintMessage($profile, $field, 'required');
+
+                if ($message === false)
+                {
+                    $errors[] = sprintf(T_('%s is missing.'), $field);
+                }
+                else
+                {
+                    $errors[] = $message;
+                }
             }
         }
 
-        if (count($this->invalid) > 0)
+        if ($invalidCount > 0)
         {
-// TODO - do this smarter
-            $this->updateNames($profile);
-
             foreach ($this->invalid as $field)
             {
-                $errors[] = sprintf(T_('%s is invalid.'), $field);
+                $message = $this->getConstraintMessage($profile, $field, 'required');
+
+                if ($message === false)
+                {
+                    $errors[] = sprintf(T_('%s is invalid.'), $field);
+                }
+                else
+                {
+                    $errors[] = $message;
+                }
             }
         }
 
