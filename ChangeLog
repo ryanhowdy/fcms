@@ -1,3 +1,13 @@
+  3.2.2
+    #350 - Viewing sent PM fails with PHP error
+    #351 - Family New scheduler not working
+    #353 - Italian is displayed as "it_IT" in language list on the login page Translations
+    #346 - Gallery images missing if uploads directory is secured Photo Gallery
+    #347 - Display Birthday Event not calculating age Calendar
+    #348 - Images not displayed after upload. Photo Gallery
+    #349 - Notifications not displayed Notifications
+    #345 - Undefined index: maiden - Family Tree add new member Family Tree
+
   3.2.1
     #554 - Undefined function formatWhatsNewMessageboard()
     #560 - Cron not working

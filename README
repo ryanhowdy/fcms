@@ -1,11 +1,11 @@
 
-                             Family Connections 3.2.2
+                             Family Connections 3.2.3
 
 
   Installation
   ------------
 
-  1. Upload the familyconnections/ directory in FCMS_3.2.2.zip to your web host.
+  1. Upload the familyconnections/ directory in FCMS_3.2.3.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -15,7 +15,7 @@
 
 
 
-  Upgrading from 2.6+ to 3.2.2
+  Upgrading from 2.6+ to 3.2.3
   ---------------------------
 
   ** DO NOT DELETE THE FOLLOWING FILE **
@@ -40,16 +40,9 @@
   Change Log
   ----------
 
-  3.2.2
+  3.2.3
 
-    #350 - Viewing sent PM fails with PHP error
-    #351 - Family New scheduler not working
-    #353 - Italian is displayed as "it_IT" in language list on the login page Translations
-    #346 - Gallery images missing if uploads directory is secured Photo Gallery
-    #347 - Display Birthday Event not calculating age Calendar
-    #348 - Images not displayed after upload. Photo Gallery
-    #349 - Notifications not displayed Notifications
-    #345 - Undefined index: maiden - Family Tree add new member Family Tree
+    #358 - Youtube uploader - blank page, step 2
 
 
   For the full change log please refer to the included ChangeLog file.

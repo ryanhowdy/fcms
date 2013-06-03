@@ -73,7 +73,7 @@ class Page
         {
             if (isset($_SESSION['source_id']))
             {
-                $sessionToken  = getSessionToken($this->fcmsUser->id);
+                $sessionToken  = $this->getSessionToken($this->fcmsUser->id);
                 echo $this->getUploadStatus($_SESSION['source_id'], $sessionToken);
                 return;
             }
@@ -399,7 +399,7 @@ Event.observe(window, \'load\', function() {
         // Save fcms video id
         $_SESSION['fcmsVideoId'] = $lastId;
 
-        $sessionToken  = getSessionToken($this->fcmsUser->id);
+        $sessionToken  = $this->getSessionToken($this->fcmsUser->id);
         $youtubeConfig = getYouTubeConfigData();
         $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
 
@@ -539,7 +539,7 @@ Event.observe(window, \'load\', function() {
                 }
 
                 // Create fcms video
-                header("Location: video.php?u=$this->fcmsUser->id&id=$videoId");
+                header("Location: video.php?u=".$this->fcmsUser->id."&id=$videoId");
 
                 break;
 
@@ -1261,7 +1261,7 @@ Event.observe(window, \'load\', function() {
 
         if (isset($_POST['delete_youtube']))
         {
-            $sessionToken  = getSessionToken($this->fcmsUser->id);
+            $sessionToken  = $this->getSessionToken($this->fcmsUser->id);
             $youtubeConfig = getYouTubeConfigData();
             $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
 
