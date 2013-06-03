@@ -2607,123 +2607,309 @@ fieldset #msg {
 
 /* =FAMILY =TREE
 ------------------------------------------------*/
-#tree {
+.tree * {
+    margin: 0;
+    padding: 0;
+}
+.tree {
     border: 1px solid #ddd;
-    height: 450px;
+    overflow: auto;
+    padding: 0 25px 25px 25px;
+    white-space: nowrap;
 }
-.column {
-    float: left;
-    width: 319px;
+.tree ul {
+    padding-top: 5px; position: relative;
+    display: table;
+    margin: 0 auto;
+    font-size: 0;
+    transition: all 0.5s;
+    -webkit-transition: all 0.5s;
+    -moz-transition: all 0.5s;
 }
-.leaf {
-    background-color: #d8e9f8;
-    border: 1px solid #3e8abd;
-    .border-radius(5px);
-    color: #000;
-    display: block;
-    font: 12px/16px Arial, Verdana, sans-serif;
-    height: 50px;
-    margin: 10px;
-    overflow: hidden;
-    padding: 5px;
+.tree li {
+    display: inline-block;
+    text-align: center;
+    list-style-type: none;
     position: relative;
+    padding: 20px 5px 0 5px;
+    font-size: 12px;
+    line-height: normal;
+    transition: all 0.5s;
+    -webkit-transition: all 0.5s;
+    -moz-transition: all 0.5s;
 }
-.leaf img {
-    float: left;
-    height: 50px;
-    margin: 0 10px 0 0;
-    width: 50px;
+/*We will use ::before and ::after to draw the connectors*/
+.tree li::before, .tree li::after{
+    content: '';
+    position: absolute; top: 0; right: 50%;
+    border-top: 1px solid #3e8abd;
+    width: 50%; height: 20px;
 }
-.leaf span {
-    display: block;
-    font: normal 10px/15px Arial, Verdana, sans-serif;
+.tree li::after{
+    right: auto; left: 50%;
+    border-left: 1px solid #3e8abd;
 }
-.leaf a { color: #000; }
-.leaf a:hover { text-decoration: underline; }
-.leaf a.edit {
-    bottom: 5px;
-    font: normal 10px/15px Arial, Verdana, sans-serif;
-    position: absolute;
+
+/*We need to remove left-right connectors from elements without any siblings*/
+.tree li:only-child::after {
+    display: none;
+}
+.tree li:first-child::before, .tree li:last-child::after{
+    border: 0 none;
+}
+/*Adding back the vertical connector to the last nodes*/
+.tree li li:last-child::before {
+    border-right: 1px solid #3e8abd;
+    border-radius: 0 5px 0 0;
+    -webkit-border-radius: 0 5px 0 0;
+    -moz-border-radius: 0 5px 0 0;
+}
+.tree li:first-child::after {
+    border-radius: 5px 0 0 0;
+    -webkit-border-radius: 5px 0 0 0;
+    -moz-border-radius: 5px 0 0 0;
+}
+.tree li li:only-child::before {
+    right: auto; left: 50%;
+    border-left: 1px solid #3e8abd;
+    border-right:none;
+}
+.tree ul.p>li::before {
+    border:none;
+    content: '&';
+    left:0;
+    width:100%; 
+    display:block;
+}
+.tree ul.p>li::after {
+    content: '';
+    position: absolute; top: 0; right: 50%;
+    border-top: none;
+    width: 50%; height: 20px;
+}
+.tree ul.p>li::after {
+    border-left: none;
+}
+.p1 {
+    display:table;
+    margin:0px auto;
+}
+.p1::before {
+    border:none;
+    content: '&';
+    left:0;
+    width:100%; 
+    display:block;
+    margin:5px 0px;
+}
+/*Time to add downward connectors from parents*/
+.tree ul.c {
+    padding-top: 20px; 
+}
+.tree ul ul.c::before {
+    content: '';
+    position: absolute; top: 0; left: 50%;
+    border-left: 1px solid #3e8abd;
+    width: 0; height: 20px;
+}
+.tree li div.person{
+    border: 1px solid #3e8abd;
+    font: 12px/16px Arial;
+    padding: 4px;
+    text-decoration: none;
+    display: inline-block;
+    min-width: 110px;
+    position: relative;
+    .border-radius(5px);
+}
+.tree li div.person.f {
+    border-color: #df7daf;
+}
+.tree li div.person p {
+    font-size: 10px;
+}
+.tree li div.person a {
+    color: #000;
+}
+.tree li div.person a.view,
+.tree li div.person a.edit,
+.tree li div.person a.add {
+    border: 0;
+    cursor: pointer;
+    cursor: hand;
+    font-size: 0px;
+    height: 16px;
     right: 5px;
+    line-height: 0px;
+    overflow: hidden;
+    position: absolute;
+    padding: 0;
+    text-indent: -9999px;
+    vertical-align: middle;
+    width: 16px;
 }
-.spouse, .child {
-    background-color: #efefef;
-    border: 1px solid #ddd;
-    color: #999;
-    height: auto;
-    margin: 0 10px;
+.tree li div.person a.view {
+    top: 5px;
+    left: 5px;
+    background: transparent url(images/view.png) top left no-repeat;
 }
-.child {
-    background-color: #fff;
-    margin: 0 10px 0 30px;
+.tree li div.person a.edit {
+    top: 5px;
+    background: transparent url(images/edit.gif) top left no-repeat;
 }
-.spouse img, .child img {
-    height: 20px;
-    width: 20px;
+.tree li div.person a.add {
+    top: 25px;
+    background: transparent url(images/add.gif) top left no-repeat;
 }
-.mom, .grandma {
+.tree li div.person a:hover {
+    text-decoration: underline;
+}
+
+.tree li div.person .tools {
+    display: none;
+}
+.tree li div.person:hover .tools {
+    display: block;
+}
+/*Time for some hover effects*/
+/*We will apply the hover effect the the lineage of the element also*/
+.tree li a.m:hover,
+.tree li a:hover+ul li a.m,
+.tree li a:hover+.p1 a.m { background: #a4cdef; color: #000; }   
+.tree li a.f:hover,
+.tree li a:hover+ul li a.f,
+.tree li a:hover+.p1 a.f { background: #fac8e2; color: #000; }   
+.tree .tree-thumbnail {
+    display:block;
+    vertical-align:text-top;
+    margin:0px auto 4px auto;
+    width:50px;
+    height:50px;
+}
+.tree div.person.m {
+    background-color: #d8e9f8;
+}
+.tree div.person.f {
     background-color: #ffdcee;
-    border: 1px solid #df7daf;
 }
-a.spouse:hover, a.child:hover, a.unknown:hover { background-color: #ccc; }
-.spouse b, .child b { font-weight: normal; }
-.unknown {
-    background-color: #eee;
-    border: 1px solid #ddd;
-    margin: 10px;
+.tree-detail {
+    display:inline-block; 
+    vertical-align:text-top; 
 }
-#tree .me {
-    background-color: #a4cdef;
-    margin: 195px 10px 0 10px;
+
+
+#familytree-page {
+    /* Person Details */
+    h1 {
+        margin-bottom: 10px;
+    }
+    h3 {
+        border-bottom: 1px solid #ddd;
+        padding: 20px 0 10px 0;
+        margin: 0 0 15px 0;
+    }
+    .member_status {
+        color: #999;
+        clear: none;
+    }
+    .person-details {
+        overflow: hidden;
+
+        img.avatar {
+            float: left;
+            margin: 0 15px 25px 0;
+        }
+    }
+    #immediate-family {
+        list-style-type: none;
+        margin: 0;
+        overflow: hidden;
+
+        li {
+            float: left;
+            width: 450px;
+            overflow: hidden;
+
+            img.small-avatar {
+                float: left;
+                height: 50px;
+                margin: 0 10px 15px 0;
+                width: 50px;
+            }
+            p {
+                margin: 0;
+            }
+            i {
+                display: block;
+                font-style: normal;
+                color: #999;
+            }
+        }
+        p.add_relative {
+            text-align: right;
+
+            a {
+                color: #000;
+                background: transparent url(images/add.gif) no-repeat center left;
+                font-size: 13px;
+                font-weight: normal;
+                padding-left: 20px;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    /* Add Relative Form */
+    #types {
+        list-style-type: none;
+        margin: 0;
+        overflow: hidden;
+        width: 440px;
+
+        li {
+            float: left;
+            margin: 10px;
+            width: 200px;
+
+            a {
+                background-color: @baseColor;
+                border: 1px solid @baseColorDark;
+                display: block;
+                padding: 5px 0;
+                text-align: center;
+            }
+            a:hover {
+                background-color: @baseColorDark;
+                color: #fff;
+            }
+        }
+    }
 }
-.dad { margin-top: 95px; }
-.mom { margin-top: 130px; }
-.grandpa, .grandma { margin-top: 25px; }
-#tree .first {
-    height: 450px;
-    background: #fff url(images/two-split.png) center right no-repeat;
-}
-.second {
-    height: 450px;
-    background: #fff url(images/four-split.png) center right no-repeat;
-}
-#tree .first .leaf, #tree #tree .first .me {
-    margin-right: 20px;
-}
-.second .leaf {
-    margin-left: 0;
-    margin-right: 20px;
-}
-.third { margin: 25px 0 0 0; }
-.third .leaf { margin-left: 0; }
-#tree_toolbar {
-    font: 12px/20px @baseFontFamily;
-    padding: 20px;
-    text-align: right;
-}
-#view_tree_form input { padding: 0px; }
-#relationship_list p {
-    display: block;
-    margin: 8px 0;
-    padding: 0 0 0 120px;
-}
-#relationship_list b {
-    display: block;
-    float: left;
-    margin-left: -120px;
-}
-.relationship-form .cols {
-    .clearfix();
-    padding: 5px 0 5px 20px;
-}
-.relationship-form .cols div {
-    float: left;
-    width: 220px;
-}
-.relationship-form p { padding: 5px 0 5px 20px; }
-#content .relationship-form .half {
-    width: 300px;
-    margin: 5px 0 20px 20px;
+
+/* Edit Person Form */
+#content .relationship-form {
+    .cols {
+        .clearfix();
+        padding: 5px 0 5px 20px;
+
+        div {
+            float: left;
+            width: 220px;
+        }
+    }
+    p {
+        padding: 5px 0 5px 20px;
+    }
+    textarea {
+        width: 590px;
+        height: 100px;
+    }
+    .half {
+        width: 300px;
+        margin: 5px 0 20px 20px;
+    }
 }
 
 

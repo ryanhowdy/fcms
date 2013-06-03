@@ -19,13 +19,13 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('familytree', 'image', 'datetime');
+load('FamilyTree', 'FormValidator', 'image', 'datetime');
 
 init();
 
-$ftree = new FamilyTree($fcmsError, $fcmsDatabase, $fcmsUser);
-$img   = new Image($fcmsUser->id);
-$page  = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $ftree, $img);
+$tree = new FamilyTree($fcmsError, $fcmsDatabase, $fcmsUser);
+$img  = new Image($fcmsUser->id);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $tree, $img);
 
 exit();
 
@@ -35,6 +35,7 @@ class Page
     private $fcmsDatabase;
     private $fcmsUser;
     private $fcmsFamilyTree;
+    private $fcmsImage;
     private $fcmsTemplate;
 
     /**
@@ -44,11 +45,11 @@ class Page
      */
     public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsFamilyTree, $fcmsImage)
     {
-        $this->fcmsError         = $fcmsError;
-        $this->fcmsDatabase      = $fcmsDatabase;
-        $this->fcmsUser          = $fcmsUser;
-        $this->fcmsFamilyTree    = $fcmsFamilyTree;
-        $this->fcmsImage         = $fcmsImage;
+        $this->fcmsError      = $fcmsError;
+        $this->fcmsDatabase   = $fcmsDatabase;
+        $this->fcmsUser       = $fcmsUser;
+        $this->fcmsFamilyTree = $fcmsFamilyTree;
+        $this->fcmsImage      = $fcmsImage;
 
         $this->fcmsTemplate = array(
             'currentUserId' => $this->fcmsUser->id,
@@ -60,22 +61,6 @@ class Page
             'version'       => getCurrentVersion(),
             'year'          => date('Y')
         );
-
-        // Set the user's tree we are currently viewing
-        if (isset($_GET['tree']))
-        {
-            $this->currentTreeUserId = (int)$_GET['tree'];
-        }
-        elseif (isset($_SESSION['currentTreeUserId']))
-        {
-            $this->currentTreeUserId = $_SESSION['currentTreeUserId'];
-        }
-        else
-        {
-            $this->currentTreeUserId = $this->fcmsUser->id;
-        }
-
-        $_SESSION['currentTreeUserId'] = $this->currentTreeUserId;
 
         $this->control();
     }
@@ -89,54 +74,53 @@ class Page
      */
     function control ()
     {
-        if (isset($_GET['advanced_avatar']))
+        if (isset($_POST['ajax']))
         {
-            $this->uploadAdvancedAvatar();
+            $ajax = $_POST['ajax'];
+
+            if ($ajax == 'family_member_list')
+            {
+                $this->getAjaxFamilyMemberList();
+                return;
+            }
+
+            header("HTTP/1.0 500 Internal Server Error");
         }
-        elseif (isset($_POST['add-leaf']))
+        elseif (isset($_GET['details']))
         {
-            $this->displayAddRelationshipSubmit();
+            $this->displayDetails();
         }
-        elseif (isset($_GET['add']) && isset($_GET['user']))
+        elseif (isset($_GET['add']))
         {
-            $this->displayAddRelationshipForm();
-        }
-        elseif (isset($_POST['add-user']))
-        {
-            $this->displayAddNewUserSubmit();
-        }
-        elseif (isset($_GET['create']) && isset($_GET['type']) && isset($_GET['id']))
-        {
-            $this->displayAddNewUserForm();
+            if (isset($_POST['submit']))
+            {
+                $this->displayAddRelativeFormSubmit();
+            }
+            else
+            {
+                $this->displayAddRelativeForm();
+            }
         }
         elseif (isset($_GET['edit']))
         {
-            $this->displayEditUserForm();
-        }
-        elseif (isset($_POST['edit-user']))
-        {
-            $this->displayEditUserSubmit();
-        }
-        elseif (isset($_GET['avatar']))
-        {
-            if (isset($_POST['submitUpload']))
+            if (isset($_POST['submit']))
             {
-                $this->displayUploadAvatarSubmit();
+                $this->displayEditPersonFormSubmit();
             }
             else
             {
-                $this->displayUploadAvatarForm();
+                $this->displayEditPersonForm();
             }
         }
-        elseif (isset($_GET['remove']))
+        elseif (isset($_GET['create']))
         {
-            if ($_GET['remove'] == 'user')
+            if (isset($_POST['submit']))
             {
-                $this->displayRemoveFamilyTreeForm();
+                $this->displayCreateUserFormSubmit();
             }
             else
             {
-                $this->displayRemoveFamilyTreeSubmit();
+                $this->displayCreateUserForm();
             }
         }
         else
@@ -195,98 +179,129 @@ Event.observe(window, \'load\', function() {
         require_once getTheme($this->fcmsUser->id).'footer.php';
     }
 
-
     /**
-     * uploadAdvancedAvatar 
+     * displayEditPersonForm 
      * 
      * @return void
      */
-    function uploadAdvancedAvatar ()
+    function displayEditPersonForm ()
     {
-        $userid = (int)$_GET['advanced_avatar'];
+        $this->displayHeader();
 
-        $filetypes = array(
-            'image/pjpeg'   => 'jpg', 
-            'image/jpeg'    => 'jpg', 
-            'image/gif'     => 'gif', 
-            'image/bmp'     => 'bmp', 
-            'image/x-png'   => 'png', 
-            'image/png'     => 'png'
-        );
+        $id = (int)$_GET['edit'];
 
-        $type        = $_FILES['avatar']['type'];
-        $extention   = $filetypes[$type];
-        $id          = uniqid("");
-        $name        = $id.".".$extention;
-        $uploadsPath = getUploadsAbsolutePath();
-
-        $sql = "UPDATE `fcms_users`
-                SET `avatar` = '".$name."'
-                WHERE `id` = '$userid'";
-
-        if (!$this->fcmsDatabase->update($sql, array($name, $userid)))
+        $sql = "SELECT *
+                FROM `fcms_users`
+                WHERE `id` = ?";
+        $user = $this->fcmsDatabase->getRow($sql, $id);
+        if ($user === false)
         {
-            echo "FAILURE: Could not update db with new avatar.\n";
-            exit();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
         }
 
-        if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadsPath.'avatar/'.$name))
+        // If this is a real user, and you are not an admin, you can't edit it
+        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1)
         {
-            echo "success";
-        }
-        else
-        {
-            $this->fcmsError->add(array(
-                'type'    => 'operation',
-                'message' => T_('Could not move avatar file.'),
-                'line'    => __LINE__,
-                'file'    => __FILE__,
-            ));
-
-            echo "FAILURE: Could not move avatar file.\n";
-            exit();
+            echo '<div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
+            $this->displayFooter();
+            return;
         }
 
-        if ($_GET['orig'] != 'no_avatar.jpg' && $_GET['orig'] != 'gravatar')
-        {
-            if (file_exists($uploadsPath.'avatar/'.basename($_GET['orig'])))
-            {
-                unlink($uploadsPath.'avatar/'.basename($_GET['orig']));
-            }
-        }
+        $this->fcmsFamilyTree->displayEditPersonForm($id);
 
-        exit();
+        $this->displayFooter();
     }
 
     /**
-     * displayAddRelationshipSubmit 
-     * 
-     * TODO - fix error handling
+     * displayEditPersonFormSubmit 
      * 
      * @return void
      */
-    function displayAddRelationshipSubmit ()
+    function displayEditPersonFormSubmit ()
     {
-        $user         = (int)$_POST['user'];
-        $relationship = $_POST['relationship'];
-        $rel_user     = (int)$_POST['rel_user'];
+        $id = (int)$_GET['edit'];
 
-        // Spouse
-        if ($relationship == 'WIFE' || $relationship == 'HUSB')
+        $sql = "SELECT *
+                FROM `fcms_users`
+                WHERE `id` = ?";
+        $user = $this->fcmsDatabase->getRow($sql, $id);
+        if ($user === false)
         {
-            $worked = $this->fcmsFamilyTree->addSpouse($user, $relationship, $rel_user);
-        }
-     
-        // Child
-        if ($relationship == 'CHIL')
-        {
-            $worked = $this->fcmsFamilyTree->addChild($user, $relationship, $rel_user);
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
         }
 
-        if ($worked === false)
+        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1)
         {
-            // error has already been displayed
-            // TODO - it shouldn't
+            $this->displayHeader();
+            echo '<div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
+            $this->displayFooter();
+            return;
+        }
+
+        $validator = new FormValidator();
+
+        $errors = $validator->validate($_POST, $this->fcmsFamilyTree->getProfile('edit'));
+        if ($errors !== true)
+        {
+            $this->displayHeader();
+            displayErrors($errors);
+            $this->displayFooter();
+            return;
+        }
+
+        // birthday
+        list($bYear, $bMonth, $bDay) = formatYMD($_POST['byear'], $_POST['bmonth'], $_POST['bday']);
+
+        // death
+        list($dYear, $dMonth, $dDay) = formatYMD($_POST['dyear'], $_POST['dmonth'], $_POST['dday']);
+
+        $fname  = strip_tags($_POST['fname']);
+        $mname  = strip_tags($_POST['mname']);
+        $lname  = strip_tags($_POST['lname']);
+        $bio    = strip_tags($_POST['bio']);
+
+        $sql = "UPDATE `fcms_users`
+                SET `fname`     = ?,
+                    `mname`     = ?, 
+                    `lname`     = ?, 
+                    `maiden`    = ?,
+                    `bio`       = ?,
+                    `dob_year`  = ?, 
+                    `dob_month` = ?,
+                    `dob_day`   = ?,
+                    `dod_year`  = ?, 
+                    `dod_month` = ?,
+                    `dod_day`   = ?,
+                    `sex`       = ?
+                WHERE `id`      = ?";
+
+        $params = array(
+            $fname,
+            $mname, 
+            $lname, 
+            $_POST['maiden'],
+            $bio,
+            $bYear, 
+            $bMonth,
+            $bDay,
+            $dYear, 
+            $dMonth,
+            $dDay,
+            $_POST['sex'],
+            $_POST['id']
+        );
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
             return;
         }
 
@@ -296,27 +311,443 @@ Event.observe(window, \'load\', function() {
     }
 
     /**
-     * displayAddNewUserSubmit 
-     * 
-     * TODO - error handling
+     * displayDetails
      * 
      * @return void
      */
-    function displayAddNewUserSubmit ()
+    function displayDetails ()
+    {
+        $this->displayHeader();
+
+        $id = (int)$_GET['details'];
+
+        $sql = "SELECT *
+                FROM `fcms_users`
+                WHERE `id` = ?";
+        $user = $this->fcmsDatabase->getRow($sql, $id);
+        if ($user === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $canEdit = false;
+        if ($user['phpass'] == 'NONMEMBER' || $this->fcmsUser->access == 1)
+        {
+            $canEdit  = true;
+            $editLink = '<li><a href="?edit='.$id.'">'.T_('Edit This Person').'</a></li>';
+        }
+
+        $avatarPath = getAvatarPath($user['avatar'], $user['gravatar']);
+
+        $status = $user['phpass'] == 'NONMEMBER' ? T_('Non-member')  : T_('Member');
+
+        // Bio
+        if (strlen($user['bio']) > 0)
+        {
+            $bio = cleanOutput($user['bio']);
+        }
+        elseif ($canEdit)
+        {
+            $bio = '<a href="?edit='.$id.'">'.T_('Share some information about this person.').'</a>';
+        }
+        else
+        {
+            $bio = T_('This user does not have a bio.');
+        }
+
+        // Get Parents
+        $parents = $this->fcmsFamilyTree->getParentsOfUsers(array($user['id']));
+        if ($parents === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $father = array();
+        $mother = array();
+        foreach ($parents as $parent)
+        {
+            if ($parent['sex'] == 'M')
+            {
+                $father[] = $parent;
+            }
+            else
+            {
+                $mother[] = $parent;
+            }
+        }
+
+        // Get spouse
+        $spouse = $this->fcmsFamilyTree->getSpousesOfUsers(array($user['id']));
+        if ($spouse === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        // Get children
+        $children = $this->fcmsFamilyTree->getChildrenOfUsers($spouse);
+        if ($children === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        list($bday, $death) = $this->fcmsFamilyTree->getFormattedBirthdayAndDeath($user);
+
+        echo '
+        <div id="sections_menu">
+            <ul>
+                <li><a href="?view='.$id.'">'.T_('View Family Tree').'</a></li>
+            </ul>
+        </div>
+        <div id="actions_menu">
+            <ul>
+                '.$editLink.'
+                <li><a href="?add='.$id.'">'.T_('Add Family Member').'</a></li>
+            </ul>
+        </div>
+        <div class="person-details">
+            <img class="avatar" src="'.$avatarPath.'"/>
+            <h1>'.$user['fname'].' '.$user['lname'].'</h1>
+            <p class="member_status">'.$status.'</p>
+        </div>
+        <p>
+            '.$bday.'<br/>
+            '.$death.'
+        </p>
+        <h3>'.T_('Bio').'</h3>
+        <p>'.$bio.'</p>
+        <h3>'.T_('Immediate Family').'</h3>
+        <ul id="immediate-family">';
+
+        // Print parents, spouses, and children
+        $types = array(
+            'father' => array(
+                'M' => T_('Father'),
+            ),
+            'mother' => array(
+                'F' => T_('Mother'),
+            ),
+            'spouse' => array(
+                'M' => T_('Spouse'),
+                'F' => T_('Spouse'),
+            ),
+            'children' => array(
+                'M' => T_('Son'),
+                'F' => T_('Daughter'),
+            )
+        );
+
+        foreach ($types as $type => $i18n)
+        {
+            foreach (${$type} as $relative)
+            {
+                if (!empty($relative))
+                {
+                    $relAvatarPath = getAvatarPath($relative['avatar'], $relative['gravatar']);
+
+                    $maiden = strlen($relative['maiden']) > 0 ? '('.$relative['maiden'].')' : '';
+
+                    echo '
+        <li>
+            <img class="small-avatar" src="'.$relAvatarPath.'"/>
+            <p>
+                <a href="?details='.$relative['id'].'">
+                    '.$relative['fname'].' '.$relative['mname'].' '.$relative['lname'].' '.$maiden.'
+                </a>
+                <i>'.$i18n[$relative['sex']].'</i>
+            </p>
+        </li>';
+                }
+            }
+        }
+
+        $this->displayFooter();
+    }
+
+    /**
+     * displayAddRelativeForm 
+     * 
+     * @return void
+     */
+    function displayAddRelativeForm ()
+    {
+        $this->displayHeader();
+
+        $id = (int)$_GET['add'];
+
+        $sql = "SELECT *
+                FROM `fcms_users`
+                WHERE `id` = ?";
+        $user = $this->fcmsDatabase->getRow($sql, $id);
+        if ($user === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        // If this is a real user, and you are not an admin, you can't edit it
+        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1)
+        {
+            echo '<div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
+            $this->displayFooter();
+            return;
+        }
+
+        $this->fcmsFamilyTree->displayAddRelativeForm($id);
+        $this->displayFooter();
+    }
+
+    /**
+     * displayAddRelativeFormSubmit 
+     * 
+     * @return void
+     */
+    function displayAddRelativeFormSubmit ()
+    {
+        $id        = (int)$_GET['add'];
+        $relUserId = (int)$_POST['rel_user'];
+
+        $validator = new FormValidator();
+
+        $errors = $validator->validate($_POST, $this->fcmsFamilyTree->getProfile('add'));
+        if ($errors !== true)
+        {
+            $this->displayHeader();
+            displayErrors($errors);
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "SELECT *
+                FROM `fcms_users`
+                WHERE `id` = ?
+                UNION
+                SELECT *
+                FROM `fcms_users`
+                WHERE `id` = ?";
+        $users = $this->fcmsDatabase->getRows($sql, array($id, $relUserId));
+        if ($users === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $user    = $users[0];
+        $relUser = $users[1];
+
+        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1)
+        {
+            $this->displayHeader();
+            echo '<div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
+            $this->displayFooter();
+            return;
+        }
+
+        if ($_POST['type'] == 'father' || $_POST['type'] == 'mother')
+        {
+            $worked = $this->fcmsFamilyTree->addParent($id, $_POST['type'], $relUserId);
+        }
+        elseif ($_POST['type'] == 'brother' || $_POST['type'] == 'sister')
+        {
+            $worked = $this->fcmsFamilyTree->addSibling($id, $relUserId);
+        }
+        elseif ($_POST['type'] == 'spouse')
+        {
+            $relationship = $relUser['sex'] == 'M' ? 'HUSB' : 'WIFE';
+            $worked       = $this->fcmsFamilyTree->addSpouse($id, $relationship, $relUserId, $user['sex'], $relUser['sex']);
+        }
+        elseif ($_POST['type'] == 'child')
+        {
+            $worked = $this->fcmsFamilyTree->addChild($id, $relUserId);
+        }
+
+        if ($worked === false)
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $_SESSION['ok'] = 1;
+
+        header("Location: familytree.php?view=".$this->fcmsFamilyTree->currentTreeUserId);
+    }
+
+    /**
+     * displayFamilyTree 
+     * 
+     * @return void
+     */
+    function displayFamilyTree ()
+    {
+        $this->displayHeader();
+
+        if (isset($_SESSION['ok']))
+        {
+            unset($_SESSION['ok']);
+            displayOkMessage();
+        }
+
+        $oldestId = $this->fcmsFamilyTree->getOldestRelativeId($this->fcmsFamilyTree->currentTreeUserId);
+
+        // Get oldest relative user info
+        $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`, `dob_year`, `dob_month`, `dob_day`, `dod_year`, `dod_month`, `dod_day`, 
+                    `avatar`, `gravatar`, `sex`, `phpass`
+                FROM `fcms_users`
+                WHERE `id` = ?";
+        $user = $this->fcmsDatabase->getRow($sql, $oldestId);
+        if ($user === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $descendants = $this->fcmsFamilyTree->getDescendantsAndSpouses(array($oldestId));
+
+        echo '
+        <div class="tree">
+            <ul>
+                <li>';
+
+        $this->fcmsFamilyTree->displayPerson($user);
+        $this->fcmsFamilyTree->displaySpousesAndKids($user, $descendants);
+
+        echo '
+                </li>
+            </ul>
+        </div>';
+
+        $this->displayFooter();
+    }
+
+    /**
+     * getAjaxFamilyMemberList 
+     * 
+     * @return void
+     */
+    function getAjaxFamilyMemberList ()
+    {
+        if (!isset($_POST['type']))
+        {
+            $this->error->add(array(
+                'type'    => 'operation',
+                'message' => T_('getAjaxFamilyMemberList() called without [type].'),
+                'error'   => $_POST,
+                'file'    => __FILE__,
+                'line'    => __LINE__,
+            ));
+            header("HTTP/1.0 500 Internal Server Error");
+            return;
+        }
+
+        if (!isset($_POST['user']))
+        {
+            $this->error->add(array(
+                'type'    => 'operation',
+                'message' => T_('getAjaxFamilyMemberList() called without [user].'),
+                'error'   => $_POST,
+                'file'    => __FILE__,
+                'line'    => __LINE__,
+            ));
+            header("HTTP/1.0 500 Internal Server Error");
+            return;
+        }
+
+        $userId = (int)$_POST['user'];
+
+        $members = '';
+
+        switch ($_POST['type'])
+        {
+            case 'father':
+                $members = $this->fcmsFamilyTree->getPossibleFatherList($userId);
+                break;
+
+            case 'mother':
+                $members = $this->fcmsFamilyTree->getPossibleMotherList($userId);
+                break;
+
+            case 'brother':
+                $members = $this->fcmsFamilyTree->getPossibleBrotherList($userId);
+                break;
+
+            case 'sister':
+                $members = $this->fcmsFamilyTree->getPossibleSisterList($userId);
+                break;
+
+            case 'spouse':
+                $members = $this->fcmsFamilyTree->getPossibleSpouseList($userId);
+                break;
+
+            case 'child':
+                $members = $this->fcmsFamilyTree->getPossibleChildList($userId);
+                break;
+
+            default:
+                $this->error->add(array(
+                    'type'    => 'operation',
+                    'message' => T_('getAjaxFamilyMemberList() called with incorrect [type].'),
+                    'error'   => $_POST,
+                    'file'    => __FILE__,
+                    'line'    => __LINE__,
+                ));
+                header("HTTP/1.0 500 Internal Server Error");
+                return;
+                break;
+        }
+
+        echo $members;
+    }
+    
+    /**
+     * displayCreateUserForm 
+     * 
+     * @return void
+     */
+    function displayCreateUserForm ()
+    {
+        if (!isset($_GET['user']) || empty($_GET['user']))
+        {
+            header("Location: familytree.php");
+        }
+
+        $user = (int)$_GET['user'];
+
+        $this->displayHeader();
+        $this->fcmsFamilyTree->displayCreateUserForm($_GET['create'], $user);
+        $this->displayFooter();
+    }
+
+    /**
+     * displayCreateUserFormSubmit 
+     * 
+     * @return void
+     */
+    function displayCreateUserFormSubmit ()
     {
         $type = $_POST['type'];
         $id   = (int)$_POST['id'];
 
-        // Missing req field
-        if (!isset($_POST['fname']) or !isset($_POST['lname']) or !isset($_POST['sex']))
+        $validator = new FormValidator();
+
+        $errors = $validator->validate($_POST, $this->fcmsFamilyTree->getProfile('create'));
+        if ($errors !== true)
         {
             $this->displayHeader();
-
-            echo '<p class="error-alert">'.T_('Missing Required Field').'</p>';
-
-            $this->fcmsFamilyTree->displayCreateUserForm($type, $id);
+            displayErrors($errors);
             $this->displayFooter();
-
             return;
         }
 
@@ -398,305 +829,41 @@ Event.observe(window, \'load\', function() {
         }
 
         // Add this new user as a relationship
-        if ($type == 'wife' || $type == 'husb')
+        switch ($type)
         {
-            $rel    = strtoupper($type);
-            $worked = $this->fcmsFamilyTree->addSpouse($lastId, $rel, $id);
-        }
-        if ($type == 'mom' || $type == 'dad')
-        {
-            $worked = $this->fcmsFamilyTree->addChild($lastId, 'CHIL', $id);
-        }
-        if ($type == 'child')
-        {
-            $worked = $this->fcmsFamilyTree->addChild($id, 'CHIL', $lastId);
+            case 'father':
+            case 'mother':
+                $worked = $this->fcmsFamilyTree->addParent($id, $type, $lastId);
+                break;
+
+            case 'brother':
+            case 'sister':
+                $worked = $this->fcmsFamilyTree->addSibling($id, $lastId);
+                break;
+
+            case 'spouse':
+                $relationship = $sex == 'M' ? 'HUSB' : 'WIFE';
+                $worked       = $this->fcmsFamilyTree->addSpouse($id, $relationship, $lastId);
+
+                break;
+
+            case 'child':
+                $worked = $this->fcmsFamilyTree->addChild($id, $lastId);
+                break;
         }
 
         if ($worked === false)
         {
-            // error has already been displayed
-            // TODO - it shouldn't
-            return;
-        }
-
-        $_SESSION['ok'] = 1;
-
-        header("Location: familytree.php");
-    }
-
-    /**
-     * displayEditUserSubmit 
-     * 
-     * @return void
-     */
-    function displayEditUserSubmit ()
-    {
-        // birthday
-        list($bYear, $bMonth, $bDay) = formatYMD($_POST['byear'], $_POST['bmonth'], $_POST['bday']);
-
-        // death
-        list($dYear, $dMonth, $dDay) = formatYMD($_POST['dyear'], $_POST['dmonth'], $_POST['dday']);
-
-        $fname  = strip_tags($_POST['fname']);
-        $mname  = strip_tags($_POST['mname']);
-        $lname  = strip_tags($_POST['lname']);
-
-        $sql = "UPDATE `fcms_users`
-                SET `fname`     = ?,
-                    `mname`     = ?, 
-                    `lname`     = ?, 
-                    `maiden`    = ?,
-                    `dob_year`  = ?, 
-                    `dob_month` = ?,
-                    `dob_day`   = ?,
-                    `dod_year`  = ?, 
-                    `dod_month` = ?,
-                    `dod_day`   = ?,
-                    `sex`       = ?
-                WHERE `id`      = ?";
-
-        $params = array(
-            $fname,
-            $mname, 
-            $lname, 
-            $_POST['maiden'],
-            $bYear, 
-            $bMonth,
-            $bDay,
-            $dYear, 
-            $dMonth,
-            $dDay,
-            $_POST['sex'],
-            $_POST['id']
-        );
-
-        if (!$this->fcmsDatabase->update($sql, $params))
-        {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
-
             return;
         }
 
         $_SESSION['ok'] = 1;
 
-        header("Location: familytree.php");
+        header("Location: familytree.php?view=".$this->fcmsFamilyTree->currentTreeUserId);
     }
 
-    /**
-     * displayAddRelationshipForm 
-     * 
-     * @return void
-     */
-    function displayAddRelationshipForm ()
-    {
-        $this->displayHeader();
 
-        $add  = $_GET['add'];
-        $user = (int)$_GET['user'];
-
-        // Children
-        if ($add == 'child')
-        {
-            $this->fcmsFamilyTree->displayAddChildForm($user);
-        }
-        // Spouse
-        elseif ($add == 'wife' || $add == 'husb')
-        {
-            $this->fcmsFamilyTree->displayAddSpouseForm($add, $user);
-        }
-        // Parents
-        else
-        {
-            $this->fcmsFamilyTree->displayAddParentForm($add, $user);
-        }
-
-        $this->displayFooter();
-    }
-
-    /**
-     * displayAddNewUserForm 
-     * 
-     * @return void
-     */
-    function displayAddNewUserForm ()
-    {
-        $valid_types = array('dad', 'mom', 'child', 'wife', 'husb');
-
-        $type = $_GET['type'];
-        $id   = (int)$_GET['id'];
-
-        if (!in_array($type, $valid_types))
-        {
-            header("Location: familytree.php");
-            return;
-        }
-
-        $this->displayHeader();
-        $this->fcmsFamilyTree->displayCreateUserForm($type, $id);
-        $this->displayFooter();
-    }
-
-    /**
-     * displayEditUserForm 
-     * 
-     * @return void
-     */
-    function displayEditUserForm ()
-    {
-        $this->displayHeader();
-
-        $id = (int)$_GET['edit'];
-
-        $this->fcmsFamilyTree->displayEditForm($id);
-        $this->displayFooter();
-    }
-
-    /**
-     * displayUploadAvatarForm 
-     * 
-     * @return void
-     */
-    function displayUploadAvatarForm ()
-    {
-        $this->displayHeader();
-
-        $id = (int)$_GET['avatar'];
-
-        $this->fcmsFamilyTree->displayEditAvatarForm($id);
-        $this->displayFooter();
-    }
-
-    /**
-     * displayUploadAvatarSubmit 
-     * 
-     * TODO
-     * 
-     * @return void
-     */
-    function displayUploadAvatarSubmit ()
-    {
-        $uploadsPath = getUploadsAbsolutePath();
-
-        $this->fcmsImage->destination  = $uploadsPath.'avatar/';
-        $this->fcmsImage->resizeSquare = true;
-        $this->fcmsImage->uniqueName   = true;
-
-        $this->fcmsImage->upload($_FILES['avatar']);
-
-        if ($this->fcmsImage->error == 1)
-        {
-            $this->displayHeader();
-            echo '
-            <p class="error-alert">
-                '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->fcmsImage->name).'
-            </p>';
-
-            $this->displayFooter();
-
-            return;
-        }
-
-        $this->fcmsImage->resize(80, 80);
-
-        if ($this->fcmsImage->error > 0)
-        {
-            $this->displayHeader();
-            echo '
-            <p class="error-alert">
-                '.T_('There was an error uploading your avatar.').'
-            </p>';
-
-            $this->displayFooter();
-
-            return;
-        }
-
-        $sql = "UPDATE `fcms_users`
-                SET `avatar` = ?
-                WHERE `id`   = ?";
-
-        $params = array(
-            $this->fcmsImage->name,
-            $_GET['avatar']
-        );
-
-        if (!$this->fcmsDatabase->update($sql, $params))
-        {
-            $this->displayHeader();
-            $this->fcmsError->displayError();
-            $this->displayFooter();
-
-            return;
-        }
-
-        if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
-        {
-            unlink($uploadsPath.'avatar/'.basename($_POST['avatar_orig']));
-        }
-
-        $_SESSION['ok'] = 1;
-
-        header("Location: familytree.php");
-    }
-
-    /**
-     * displayRemoveFamilyTreeForm 
-     * 
-     * @return void
-     */
-    function displayRemoveFamilyTreeForm ()
-    {
-        $this->displayHeader();
-
-        $id = (int)$_GET['id'];
-
-        $this->fcmsFamilyTree->displayFamilyTree($id, 'list_edit');
-        $this->displayFooter();
-    }
-
-    /**
-     * displayRemoveFamilyTreeSubmit 
-     * 
-     * @return void
-     */
-    function displayRemoveFamilyTreeSubmit ()
-    {
-        $id = (int)$_GET['remove'];
-
-        $sql = "DELETE FROM `fcms_relationship`
-                WHERE `user` = '$id'
-                OR `rel_user` = '$id'";
-
-        if (!$this->fcmsDatabase->delete($sql, array($id, $id)))
-        {
-            $this->fcmsError->displayError();
-
-            return;
-        }
-
-        $_SESSION['ok'] = 1;
-
-        header("Location: familytree.php");
-    }
-
-    /**
-     * displayFamilyTree 
-     * 
-     * @return void
-     */
-    function displayFamilyTree ()
-    {
-        $this->displayHeader();
-
-        if (isset($_SESSION['ok']))
-        {
-            unset($_SESSION['ok']);
-            displayOkMessage();
-        }
-
-        $this->fcmsFamilyTree->displayFamilyTree($this->currentTreeUserId);
-        $this->displayFooter();
-    }
 }
