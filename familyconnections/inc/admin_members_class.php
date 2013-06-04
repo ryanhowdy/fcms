@@ -630,14 +630,17 @@ class AdminMembers
                     u.`dob_year`, u.`dob_month`, u.`dob_day`, 
                     a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`bio`
                 FROM `fcms_users` AS u, `fcms_address` AS a
-                WHERE u.`id` IN ('$id', '$merge') 
+                WHERE u.`id` IN (?, ?) 
                 AND u.`id` = a.`user`";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, array($id, $merge));
+        if ($rows === false)
         {
             $this->fcmsError->displayError();
             return;
         }
-        while ($r = $this->db->get_row())
+
+        foreach ($rows as $r)
         {
             $members[$r['id']] = $r;
         }
@@ -1363,8 +1366,8 @@ class AdminMembers
 
         // fcms_alerts
         $sql = "DELETE FROM `fcms_alerts`
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->delete($sql, $merge))
         {
             $this->fcmsError->displayError();
             die();
@@ -1373,9 +1376,9 @@ class AdminMembers
 
         // fcms_board_posts
         $sql = "UPDATE `fcms_board_posts`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1384,17 +1387,17 @@ class AdminMembers
 
         // fcms_board_thread
         $sql = "UPDATE `fcms_board_threads`
-                SET `started_by` = '$id'
-                WHERE `started_by` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `started_by` = ?
+                WHERE `started_by` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
         }
         $sql = "UPDATE `fcms_board_threads`
-                SET `updated_by` = '$id'
-                WHERE `updated_by` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `updated_by` = ?
+                WHERE `updated_by` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1403,9 +1406,9 @@ class AdminMembers
 
         // fcms_calendar
         $sql = "UPDATE `fcms_calendar`
-                SET `created_by` = '$id'
-                WHERE `created_by` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `created_by` = ?
+                WHERE `created_by` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1414,9 +1417,9 @@ class AdminMembers
 
         // fcms_category
         $sql = "UPDATE `fcms_category`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1431,9 +1434,9 @@ class AdminMembers
 
         // fcms_documents
         $sql = "UPDATE `fcms_documents`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1442,9 +1445,9 @@ class AdminMembers
 
         // fcms_gallery_photo_comments
         $sql = "UPDATE `fcms_gallery_photo_comment`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1453,9 +1456,9 @@ class AdminMembers
 
         // fcms_gallery_photos
         $sql = "UPDATE `fcms_gallery_photos`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1464,9 +1467,9 @@ class AdminMembers
 
         // fcms_gallery_photos_tags
         $sql = "UPDATE `fcms_gallery_photos_tags`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1477,9 +1480,9 @@ class AdminMembers
 
         // fcms_news
         $sql = "UPDATE `fcms_news`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1488,9 +1491,9 @@ class AdminMembers
 
         // fcms_news_comments
         $sql = "UPDATE `fcms_news_comments`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1503,9 +1506,9 @@ class AdminMembers
 
         // fcms_poll_votes
         $sql = "UPDATE `fcms_poll_votes`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1514,9 +1517,9 @@ class AdminMembers
 
         // fcms_prayers
         $sql = "UPDATE `fcms_prayers`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1525,17 +1528,17 @@ class AdminMembers
 
         // fcms_privatemsg
         $sql = "UPDATE `fcms_privatemsg`
-                SET `to` = '$id'
-                WHERE `to` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `to` = ?
+                WHERE `to` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
         }
         $sql = "UPDATE `fcms_privatemsg`
-                SET `from` = '$id'
-                WHERE `from` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `from` = ?
+                WHERE `from` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1544,9 +1547,9 @@ class AdminMembers
 
         // fcms_recipes
         $sql = "UPDATE `fcms_recipes`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1555,9 +1558,9 @@ class AdminMembers
 
         // fcms_recipe_comment
         $sql = "UPDATE `fcms_recipe_comment`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1566,17 +1569,17 @@ class AdminMembers
 
         // fcms_relationship
         $sql = "UPDATE `fcms_relationship`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
         }
         $sql = "UPDATE `fcms_relationship`
-                SET `rel_user` = '$id'
-                WHERE `rel_user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `rel_user` = ?
+                WHERE `rel_user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
@@ -1587,9 +1590,9 @@ class AdminMembers
 
         // fcms_user_awards
         $sql = "UPDATE `fcms_user_awards`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+                SET `user` = ?
+                WHERE `user` = ?";
+        if (!$this->fcmsDatabase->update($sql, array($id, $merge)))
         {
             $this->fcmsError->displayError();
             die();
