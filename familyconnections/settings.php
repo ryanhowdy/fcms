@@ -18,7 +18,7 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube', 'instagram', 'familynews', 'picasa');
+load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube', 'instagram', 'familynews', 'picasa', 'phpass');
 
 init();
 
@@ -425,7 +425,7 @@ Event.observe(window, \'load\', function() {
             $hasher   = new PasswordHash(8, FALSE);
             $params[] = $hasher->HashPassword($_POST['pass']);
 
-            $orig_pass = $_SESSION['login_pw'];
+            $orig_pass = 1;
         }
 
         $sql .= "`email` = ?

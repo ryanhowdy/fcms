@@ -34,7 +34,7 @@ if (isset($_POST['email']))
 {
     $sql = "SELECT `id` 
             FROM `fcms_users` 
-            WHERE `email` = '$email'";
+            WHERE `email` = ?";
 
     $row = $fcmsDatabase->getRow($sql, $_POST['email']);
     if ($row === false)
@@ -80,7 +80,7 @@ if (isset($_POST['email']))
         $sql = "UPDATE `fcms_users` 
                 SET `phpass` = ? 
                 WHERE `email` = ?";
-        if (!$fcmsDatabase->update($sql, array($new_pass, $email)))
+        if (!$fcmsDatabase->update($sql, array($new_pass, $_POST['email'])))
         {
             $fcmsError->displayError();
             displayForm();
@@ -103,7 +103,7 @@ if (isset($_POST['email']))
 
 ".T_('This is an automated message, please do not reply.');
 
-        mail($email, $subject, $message, $email_headers);
+        mail($_POST['email'], $subject, $message, $email_headers);
 
         echo '
     <div class="err-msg">
