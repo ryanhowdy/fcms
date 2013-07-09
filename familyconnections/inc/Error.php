@@ -300,7 +300,8 @@ class FCMS_Error
         // Log Operation errors
         if ($this->type == 'operation')
         {
-            $log  = $this->error."\n";
+            $log  = $this->message." - ";
+            $log .= $this->error."\n";
             $log .= '  FILE  - '.$this->file.' ['.$this->line."]\n";
             $log .= '  PHP   - '.PHP_VERSION.' ('.PHP_OS.")\n";
 
