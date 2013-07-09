@@ -140,6 +140,13 @@ function getUserDisplayName ($userid, $display = 0, $isMember = true)
 
     if ($userid <= 0)
     {
+        $fcmsError->add(array(
+            'type'    => 'operation',
+            'message' => 'Invalid user id.',
+            'error'   => $userid,
+            'file'    => __FILE__,
+            'line'    => __LINE__,
+        ));
         return 'unknown';
     }
 
@@ -165,6 +172,13 @@ function getUserDisplayName ($userid, $display = 0, $isMember = true)
 
     if (empty($r))
     {
+        $fcmsError->add(array(
+            'type'    => 'operation',
+            'message' => 'Cannot find user ['.$userid.'].',
+            'error'   => $r,
+            'file'    => __FILE__,
+            'line'    => __LINE__,
+        ));
         return 'unknown';
     }
 
@@ -5395,4 +5409,86 @@ function usingFullSizePhotos ()
     }
 
     return false;
+}
+
+/**
+ * displayPageHeader 
+ * 
+ * @param int   $id 
+ * @param array $TMPL
+ * @param array $options 
+ * 
+ * @return void
+ */
+function displayPageHeader ($id, $TMPL, $options = null)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    $js       = isset($options['js'])       ? $options['js']       : '';
+    $jsOnload = isset($options['jsOnload']) ? $options['jsOnload'] : '';
+
+    $TMPL['javascript'] = '';
+
+    // Load any js modules
+    if (isset($options['modules']))
+    {
+        $list = getModuleList();
+        foreach ($options['modules'] as $module)
+        {
+            $TMPL['javascript'] .= $list[$module]."\n";
+        }
+    }
+
+    // Set page specific javascript
+    $TMPL['javascript'] .= $js;
+
+    // Set onload javascript
+    $TMPL['javascript'] .= '
+    <script type="text/javascript">
+    Event.observe(window, "load", function() {
+        initChatBar("'.T_('Chat').'", "'.$TMPL['path'].'");
+        '.$jsOnload.'
+    });
+    </script>';
+
+    // Display the theme header
+    require_once getTheme($fcmsUser->id).'header.php';
+
+    echo '
+        <div id="'.$id.'" class="centercontent">';
+}
+
+/**
+ * displayPageFooter 
+ * 
+ * @param array $TMPL
+ * 
+ * @return void
+ */
+function displayPageFooter($TMPL)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    echo '
+        </div><!--/centercontent-->';
+
+    require_once getTheme($fcmsUser->id).'footer.php';
+}
+
+/**
+ * getModuleList 
+ * 
+ * @return array
+ */
+function getModuleList ()
+{
+    return array(
+        'livevalidation'    => '<script type="text/javascript" src="ui/js/livevalidation.js"></script>',
+        'datechooser'       => '<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>'
+                              .'<script type="text/javascript" src="ui/js/datechooser.js"></script>',
+    );
 }
