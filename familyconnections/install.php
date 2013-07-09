@@ -297,7 +297,7 @@ function displayStepTwo ($error = '0')
         <p style="text-align:center">'.T_('Step 2 of 5').'</p>
         <div class="progress"><div style="width:40%"></div></div>';
 
-    $host = '';
+    $host = 'localhost';
     $name = '';
     $user = '';
 
