@@ -12,6 +12,8 @@
  * @link      http://www.familycms.com/wiki/
  * @since     3.3
  */
+require_once 'validation.php';
+
 /**
  * FormValidator
  * 
@@ -28,14 +30,7 @@ class FormValidator
     public $invalid = array();
     public $missing = array();
 
-    /**
-     * __construct 
-     * 
-     * @return void
-     */
-    public function __construct ()
-    {
-    }
+    private $messagesLkup;
 
     /**
      * validate 
@@ -55,12 +50,30 @@ class FormValidator
         $errors        = array();
         $missingLkup   = array();
 
+        $this->validateProfile($profile);
+        $this->setMessagesLookup($profile);
+
         // Go through just the required fields
         if (isset($profile['required']))
         {
             foreach ($profile['required'] as $fieldName)
             {
-                if (!isset($input[$fieldName]) || strlen($input[$fieldName]) == 0)
+                if (!isset($input[$fieldName]))
+                {
+                    $this->missing[]         = $fieldName;
+                    $missingLkup[$fieldName] = 1;
+                    continue;
+                }
+
+                if (is_array($input[$fieldName]))
+                {
+                    if (empty($input[$fieldName]))
+                    {
+                        $this->missing[]         = $fieldName;
+                        $missingLkup[$fieldName] = 1;
+                    }
+                }
+                elseif (strlen($input[$fieldName]) == 0)
                 {
                     $this->missing[]         = $fieldName;
                     $missingLkup[$fieldName] = 1;
@@ -69,7 +82,7 @@ class FormValidator
         }
 
         // Get constraints
-        $constraints = isset($profile['constraints']) ? $profile['constraints'] : $profile;
+        $constraints = $profile['constraints'];
 
         // Loop through constraint fields in profile
         foreach ($constraints as $fieldName => $options)
@@ -98,35 +111,29 @@ class FormValidator
             // Regex / Format
             if (isset($options['format']))
             {
-                if (strlen($value) > 0)
+                if (!$this->isValidFormat($value, $options))
                 {
-                    if (preg_match($options['format'], $value) === 0)
-                    {
-                        $this->invalid[] = $fieldName;
-                        $bad = true;
-                        continue;
-                    }
+                    $this->invalid[] = $fieldName;
+                    $bad = true;
+                    continue;
                 }
             }
 
             // Integers
             if (isset($options['integer']))
             {
-                if (strlen($value) > 0)
+                if (!$this->isValidInteger($value, $options))
                 {
-                    if (!is_int($value) && !ctype_digit($value))
-                    {
-                        $this->invalid[] = $fieldName;
-                        $bad = true;
-                        continue;
-                    }
+                    $this->invalid[] = $fieldName;
+                    $bad = true;
+                    continue;
                 }
             }
 
             // Length
             if (isset($options['length']))
             {
-                if (strlen($value) > $options['length'])
+                if (!$this->isValidLength($value, $options))
                 {
                     $this->invalid[] = $fieldName;
                     $bad = true;
@@ -153,49 +160,30 @@ class FormValidator
             }
         }
 
-        $errors = array();
-
-        $missingCount = count($this->missing);
-        $invalidCount = count($this->invalid);
-
-        if ($missingCount > 0 || $invalidCount > 0)
+        // Loop through fields with constraint functions in profile
+        if (isset($profile['constraint_functions']))
         {
-            $this->updateNames($profile);
-        }
-
-        if ($missingCount > 0)
-        {
-            foreach ($this->missing as $field)
+            foreach ($profile['constraint_functions'] as $fieldName => $function)
             {
-                $message = $this->getConstraintMessage($profile, $field, 'required');
+                $constraintName = $fieldName;
+                $functionCall   = $function;
 
-                if ($message === false)
+                if (is_array($function))
                 {
-                    $errors[] = sprintf(T_('%s is missing.'), $field);
+                    $constraintName = $function['name'];
+                    $functionCall   = $function['function'];
                 }
-                else
+
+                // Call the function
+                if (!$functionCall($input))
                 {
-                    $errors[] = $message;
+                    $this->invalid[] = $constraintName;
                 }
             }
         }
 
-        if ($invalidCount > 0)
-        {
-            foreach ($this->invalid as $field)
-            {
-                $message = $this->getConstraintMessage($profile, $field, 'required');
-
-                if ($message === false)
-                {
-                    $errors[] = sprintf(T_('%s is invalid.'), $field);
-                }
-                else
-                {
-                    $errors[] = $message;
-                }
-            }
-        }
+        // Setup an array of nice error messages
+        $errors = $this->getErrors($profile);
 
         if (count($errors) > 0)
         {
@@ -219,7 +207,7 @@ class FormValidator
         $js .= '<script type="text/javascript">';
 
         // Get constraints
-        $constraints = isset($profile['constraints']) ? $profile['constraints'] : $profile;
+        $constraints = $profile['constraints'];
 
         foreach ($constraints as $fieldName => $options)
         {
@@ -229,7 +217,7 @@ class FormValidator
             // Required
             if (isset($options['required']))
             {
-                $message = $this->getConstraintMessage($profile, $fieldName, 'required');
+                $message = $this->getConstraintMessage($profile, $fieldName, 'missing');
 
                 if ($message === false)
                 {
@@ -245,7 +233,7 @@ class FormValidator
             // Regex / Format
             if (isset($options['format']))
             {
-                $message = $this->getConstraintMessage($profile, $fieldName, 'format');
+                $message = $this->getConstraintMessage($profile, $fieldName, 'invalid');
 
                 if ($message === false)
                 {
@@ -261,7 +249,7 @@ class FormValidator
             // Integers
             if (isset($options['integer']))
             {
-                $message = $this->getConstraintMessage($profile, $fieldName, 'integer');
+                $message = $this->getConstraintMessage($profile, $fieldName, 'invalid');
 
                 if ($message === false)
                 {
@@ -278,7 +266,7 @@ class FormValidator
             // Length
             if (isset($options['length']))
             {
-                $message = $this->getConstraintMessage($profile, $fieldName, 'length');
+                $message = $this->getConstraintMessage($profile, $fieldName, 'invalid');
 
                 if ($message === false)
                 {
@@ -294,7 +282,7 @@ class FormValidator
             // Acceptance
             if (isset($options['acceptance']))
             {
-                $message = $this->getConstraintMessage($profile, $fieldName, 'acceptance');
+                $message = $this->getConstraintMessage($profile, $fieldName, 'invalid');
 
                 if ($message === false)
                 {
@@ -314,30 +302,292 @@ class FormValidator
     }
 
     /**
+     * validateProfile 
+     * 
+     * Validates the profile. Will die if profile is invalid.
+     * 
+     * @param array $profile 
+     * 
+     * @return void
+     */
+    private function validateProfile ($profile)
+    {
+        $constraintNames = array();
+
+        // List of valid options
+        $validOptions = array(
+            'required'             => 1, 
+            'constraints'          => array(
+                'acceptance' => 1,
+                'array'      => 1,
+                'format'     => 1,
+                'integer'    => 1,
+                'length'     => 1,
+                'name'       => 1,
+                'required'   => 1
+            ),
+            'constraint_functions' => array(
+                'function' => 1,
+                'name'     => 1
+             ),
+            'messages'             => array(
+                'constraints'          => 1,
+                'constraint_functions' => 1,
+                'names'                => 1
+            )
+        );
+
+        // Validate the sections
+        foreach ($profile as $section => $value)
+        {
+            if (!isset($validOptions[$section]))
+            {
+                die('Invalid profile: uknown key ['.$section.'].');
+            }
+        }
+
+        // Validate constraints
+        foreach ($profile['constraints'] as $fieldName => $options)
+        {
+            $constraintName = $fieldName;
+
+            // validate the options for this field
+            foreach ($options as $optionName => $optionValue)
+            {
+                if ($optionName == 'name')
+                {
+                    $constraintName = $optionValue;
+                }
+
+                if (!isset($validOptions['constraints'][$optionName]))
+                {
+                    die('Invalid Profile: invalid key for \'constraints\': [\''.$optionName.'\'].');
+                }
+            }
+
+            // validate constraint name
+            if (isset($constraintNames[$constraintName]))
+            {
+                die('Invalid profile: duplicate constraint name found ['.$constraintName.'].');
+            }
+
+            $constraintNames[$constraintName] = 1;
+        }
+
+        // Validate constraint functions
+        if (isset($profile['constraint_functions']))
+        {
+            foreach ($profile['constraint_functions'] as $fieldName => $options)
+            {
+                $constraintName = $fieldName;
+
+                if (is_array($options))
+                {
+                    if (!isset($options['name']))
+                    {
+                        die('Invalid Profile: $profile[\'constraint_functions\'][\''.$fieldName.'\'] found without a constraint name.');
+                    }
+                    if (!isset($options['function']))
+                    {
+                        die('Invalid Profile: $profile[\'constraint_functions\'][\''.$fieldName.'\'] found without a function.');
+                    }
+
+                    $constraintName = $options['name'];
+                }
+
+                // validate constraint name
+                if (isset($constraintNames[$constraintName]))
+                {
+                    die('Invalid profile: duplicate constraint name found ['.$constraintName.'].');
+                }
+
+                $constraintNames[$constraintName] = 1;
+            }
+        }
+
+        // Validate messages
+        if (isset($profile['messages']))
+        {
+            foreach ($profile['messages'] as $msgType => $options)
+            {
+                if (!isset($validOptions['messages'][$msgType]))
+                {
+                    die('Invalid profile: uknown messages key ['.$msgType.']');
+                }
+            }
+        }
+    }
+
+    /**
+     * setMessageLookup 
+     * 
+     * Creates an array for looking up messages by constraint name.
+     *
+     * Sets the $messagesLkup object variable. 
+     * Will die if profile is invalid.
+     * 
+     * @param array $profile 
+     *
+     * @return void
+     */
+    private function setMessagesLookup ($profile)
+    {
+        $this->messagesLkup = array();
+
+        if (!isset($profile['messages']))
+        {
+            return;
+        }
+
+        $messages = $profile['messages'];
+
+        // go through each type of messages
+        foreach (array('constraint_functions', 'constraints') as $type)
+        {
+            if (isset($messages[$type]))
+            {
+                // 'messages' => array(
+                //     'constraints' => array(
+                //         'fieldOne' => T_('Field one is wrong.'),
+                //     )
+                //     'constraint_functions' => array(
+                //         'fieldTwo' => T_('Field two is wrong.'),
+                //     )
+                // )
+                // 'messages' => array(
+                //     'constraint' => array(
+                //         'fieldOne' => T_('Field one is wrong.'),
+                //     ),
+                //     'constraint_functions' => array(
+                //         'fieldOne' => array(
+                //             'name'    => 'field_one_function',
+                //             'message' => T_('Field one is wrong.'),
+                //         )
+                //     )
+                // )
+                foreach ($messages[$type] as $fieldName => $value)
+                {
+                    $name    = $fieldName;
+                    $message = $value;
+
+                    // constraint name is given
+                    if (is_array($value))
+                    {
+                        if (!isset($value['name']))
+                        {
+                            die('Invalid Profile: $profile[\'messages\'][\''.$type.'\'] found without a constraint name.');
+                        }
+                        if (!isset($value['message']))
+                        {
+                            die('Invalid Profile: $profile[\'messages\'][\''.$type.'\'] found without a constraint message.');
+                        }
+
+                        $name    = $value['name'];
+                        $message = $value['message'];
+                    }
+
+                    // make sure the name is unique
+                    if (isset($this->messagesLkup[$name]))
+                    {
+                        die('Invalid Profile: duplicate constraint name found ['.$fieldName.'].');
+                    }
+
+                    $this->messagesLkup[$name] = $message;
+                }
+            }
+        }
+    }
+
+    /**
+     * getErrors 
+     * 
+     * Returns an array of nicely formatted error messages for
+     * each failed constraint.
+     * 
+     * @param array $profile 
+     * 
+     * @return array
+     */
+    private function getErrors ($profile)
+    {
+        $errors = array();
+
+        // Missing
+        if (count($this->missing))
+        {
+            // loop through the list of failed constraints
+            foreach ($this->missing as $constraintName)
+            {
+                if (isset($this->messagesLkup[$constraintName]))
+                {
+                    $errors[] = cleanOutput($this->messagesLkup[$constraintName]);
+                }
+                else
+                {
+                    // see if we have an updated constraintName
+                    $name = isset($profile['messages']['names'][$constraintName])
+                          ? $profile['messages']['names'][$constraintName]
+                          : $constraintName;
+
+                    $errors[] = sprintf(T_('%s is missing.'), $name);
+                }
+            }
+        }
+
+        // Invalid
+        if (count($this->invalid))
+        {
+            // loop through the list of failed constraints
+            foreach ($this->invalid as $constraintName)
+            {
+                if (isset($this->messagesLkup[$constraintName]))
+                {
+                    $errors[] = cleanOutput($this->messagesLkup[$constraintName]);
+                }
+                else
+                {
+                    // see if we have an updated constraintName
+                    $name = isset($profile['messages']['names'][$constraintName])
+                          ? $profile['messages']['names'][$constraintName]
+                          : $constraintName;
+
+                    $errors[] = sprintf(T_('%s is invalid.'), $name);
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
      * getConstraintMessage 
      * 
-     * Will return the constraint message for the given constraint name,
-     * or false if no message is found.
+     * Used with the js validation, will return any message for
+     * the given constraint name.
      * 
      * @param array  $profile 
-     * @param string  $fieldName 
-     * @param string $option 
+     * @param string $constraintName
+     * @param string $type           - missing|invalid
      * 
      * @return boolean/string
      */
-    private function getConstraintMessage ($profile, $fieldName, $constraintName)
+    private function getConstraintMessage ($profile, $constraintName, $type)
     {
-        // Overriding the failure message?
-        if (isset($profile['messages']) && isset($profile['messages']['constraints'][$fieldName]))
+        if (isset($this->messagesLkup[$constraintName]))
         {
-            $constraintMessages = $profile['messages']['constraints'][$fieldName];
+            return cleanOutput($this->messagesLkup[$constraintName]);
+        }
+        elseif (isset($profile['messages']['names'][$constraintName]))
+        {
+            // see if we have an updated constraintName
+            $name = $profile['messages']['names'][$constraintName];
 
-            // Message could be specific to a constraint or global to all
-            $message = (is_array($constraintMessages) && isset($constraintMessages[$contraintName]))
-                     ? $constraintMessages[$contraintName] 
-                     : $constraintMessages;
+            if ($type == 'missing')
+            {
+                return sprintf(T_('%s is missing.'), $name);
+            }
 
-            return cleanOutput($message);
+            return sprintf(T_('%s is invalid.'), $name);
         }
 
         return false;
@@ -370,4 +620,116 @@ class FormValidator
             }
         }
     }
+
+    /**
+     * isValidFormat 
+     * 
+     * @param mixed $value   - form data array or string
+     * @param array $options
+     * 
+     * @return boolean
+     */
+    function isValidFormat ($value, $options)
+    {
+        // array
+        if (is_array($value))
+        {
+            if (!isset($options['array']))
+            {
+                return false;
+            }
+
+            foreach ($value as $v)
+            {
+                if (preg_match($options['format'], $v) === 0)
+                {
+                    return false;
+                }
+            }
+        }
+        // string
+        elseif (strlen($value) > 0)
+        {
+            if (preg_match($options['format'], $value) === 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * isValidInteger 
+     * 
+     * @param mixed $value   - form data array or string
+     * @param array $options
+     * 
+     * @return boolean
+     */
+    function isValidInteger ($value, $options)
+    {
+        // array
+        if (is_array($value))
+        {
+            if (!isset($options['array']))
+            {
+                return false;
+            }
+
+            foreach ($value as $v)
+            {
+                if (!is_int($v) && !ctype_digit($v))
+                {
+                    return false;
+                }
+            }
+        }
+        // string
+        elseif (strlen($value) > 0)
+        {
+            if (!is_int($value) && !ctype_digit($value))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * isValidLength 
+     * 
+     * @param mixed $value   - form data array or string
+     * @param array $options
+     * 
+     * @return boolean
+     */
+    function isValidLength ($value, $options)
+    {
+        // array
+        if (is_array($value))
+        {
+            if (!isset($options['array']))
+            {
+                return false;
+            }
+
+            foreach ($value as $v)
+            {
+                if (strlen($value) > $options['length'])
+                {
+                    return false;
+                }
+            }
+        }
+        // string
+        elseif (strlen($value) > $options['length'])
+        {
+            return false;
+        }
+
+        return true;
+    }
+
 }
