@@ -2790,6 +2790,7 @@ fieldset #msg {
     color: #000;
 }
 .tree li div.person a.view,
+.tree li div.person a.delete,
 .tree li div.person a.edit,
 .tree li div.person a.add {
     border: 0;
@@ -2811,12 +2812,16 @@ fieldset #msg {
     left: 5px;
     background: transparent url(images/view.png) top left no-repeat;
 }
-.tree li div.person a.edit {
+.tree li div.person a.delete {
     top: 5px;
+    background: transparent url(images/delete.gif) top left no-repeat;
+}
+.tree li div.person a.edit {
+    top: 25px;
     background: transparent url(images/edit.gif) top left no-repeat;
 }
 .tree li div.person a.add {
-    top: 25px;
+    top: 45px;
     background: transparent url(images/add.gif) top left no-repeat;
 }
 .tree li div.person a:hover {
@@ -2918,30 +2923,61 @@ fieldset #msg {
             }
         }
     }
+}
+#add_relative_menu {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    .box-shadow(5px 5px 10px rgba(0,0,0,.1));
+    height: 200px;
+    left: 50%;
+    list-style-type: none;
+    margin: -100px 0 0 -179px;
+    overflow: auto;
+    padding: 10px;
+    position: absolute;
+    top: 40%;
+    width: 358px;
+    z-index: 999;
 
-    /* Add Relative Form */
-    #types {
-        list-style-type: none;
-        margin: 0;
-        overflow: hidden;
-        width: 440px;
+    li {
+        float: left;
+        margin: 10px;
+        width: 150px;
 
-        li {
-            float: left;
-            margin: 10px;
-            width: 200px;
+        &.close {
+            float: none;
+            font-size: 12px;
+            line-height: 12px;
+            padding: 2px;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: auto;
 
-            a {
-                background-color: @baseColor;
-                border: 1px solid @baseColorDark;
-                display: block;
-                padding: 5px 0;
-                text-align: center;
-            }
-            a:hover {
-                background-color: @baseColorDark;
+            &:hover {
                 color: #fff;
+                cursor: pointer;
+                cursor: hand;
+                background-color: red;
             }
+        }
+        &.header {
+            float: none;
+            font-size: 12px;
+            font-weight: bold;
+            width: auto;
+        }
+        a {
+            background-color: @baseColor;
+            border: 1px solid @baseColorDark;
+            display: block;
+            font-size: 12px;
+            padding: 5px 0;
+            text-align: center;
+        }
+        a:hover {
+            background-color: @baseColorDark;
+            color: #fff;
         }
     }
 }
@@ -2968,6 +3004,9 @@ fieldset #msg {
         width: 300px;
         margin: 5px 0 20px 20px;
     }
+}
+#familytree-page label.no-check {
+    margin-left: 19px;
 }
 
 

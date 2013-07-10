@@ -4,6 +4,7 @@ Event.observe(window, "load", function() {
     });
     $("top").scrollTo();
 });
+
 /* =GENERAL =GLOBAL
 ------------------------------------------------*/
 function addLoadEvent(func) {   
@@ -930,6 +931,41 @@ function initLivingDeceased()
     {
         $('deceased').show();
     }
+}
+function initAddRelative()
+{
+    $$('.tools a.add').each(function(anchor) {
+        anchor.observe("click", function(e) {
+            e.preventDefault();
+
+            var tools = anchor.up();
+            var href = anchor.readAttribute("href");
+            var id = href.substring(1);
+
+            var img = document.createElement("img");
+            img.setAttribute("src", "ui/images/ajax-bar.gif");
+            img.setAttribute("id", "ajax-loader");
+            img.setAttribute("style", "float:right; margin:20px;");
+            $('content').insert({"top":img});
+
+            new Ajax.Request("familytree.php", {
+                method: "post",
+                parameters: {
+                    ajax : "add_relative_menu",
+                    id   : id,
+                },
+                onSuccess: function(transport) {
+                    var response = transport.responseText;
+                    $('content').insert({"bottom":response});
+
+                    $("ajax-loader").remove();
+                },
+                onFailure: function(transport) {
+alert('oops');
+                }
+            });
+        });
+    });
 }
 
 // TODO - move these out of here 

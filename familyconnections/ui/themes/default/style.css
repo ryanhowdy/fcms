@@ -1,3 +1,11 @@
+/*
+ * Theme Name: Default
+ * Description: The default theme for Family Connections. Fixed 980px Centered Layout. Now with mobile support.
+ * Screen Size: 1024x768+
+ * FCMS Compatible: 3.2
+ * Updated: July 10, 2013
+ * Author: Ryan Haudenschilt
+ * ------------------------------------------------*/
 article,
 aside,
 details,
@@ -3480,6 +3488,7 @@ fieldset #msg {
   color: #000;
 }
 .tree li div.person a.view,
+.tree li div.person a.delete,
 .tree li div.person a.edit,
 .tree li div.person a.add {
   border: 0;
@@ -3501,12 +3510,16 @@ fieldset #msg {
   left: 5px;
   background: transparent url(images/view.png) top left no-repeat;
 }
-.tree li div.person a.edit {
+.tree li div.person a.delete {
   top: 5px;
+  background: transparent url(images/delete.gif) top left no-repeat;
+}
+.tree li div.person a.edit {
+  top: 25px;
   background: transparent url(images/edit.gif) top left no-repeat;
 }
 .tree li div.person a.add {
-  top: 25px;
+  top: 45px;
   background: transparent url(images/add.gif) top left no-repeat;
 }
 .tree li div.person a:hover {
@@ -3551,8 +3564,6 @@ fieldset #msg {
 }
 #familytree-page {
   /* Person Details */
-
-  /* Add Relative Form */
 
 }
 #familytree-page h1 {
@@ -3611,25 +3622,59 @@ fieldset #msg {
 #familytree-page #immediate-family p.add_relative a:hover {
   text-decoration: underline;
 }
-#familytree-page #types {
+#add_relative_menu {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  -webkit-box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+  height: 200px;
+  left: 50%;
   list-style-type: none;
-  margin: 0;
-  overflow: hidden;
-  width: 440px;
+  margin: -100px 0 0 -179px;
+  overflow: auto;
+  padding: 10px;
+  position: absolute;
+  top: 40%;
+  width: 358px;
+  z-index: 999;
 }
-#familytree-page #types li {
+#add_relative_menu li {
   float: left;
   margin: 10px;
-  width: 200px;
+  width: 150px;
 }
-#familytree-page #types li a {
+#add_relative_menu li.close {
+  float: none;
+  font-size: 12px;
+  line-height: 12px;
+  padding: 2px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: auto;
+}
+#add_relative_menu li.close:hover {
+  color: #fff;
+  cursor: pointer;
+  cursor: hand;
+  background-color: red;
+}
+#add_relative_menu li.header {
+  float: none;
+  font-size: 12px;
+  font-weight: bold;
+  width: auto;
+}
+#add_relative_menu li a {
   background-color: #9ccef0;
   border: 1px solid #3e8ec1;
   display: block;
+  font-size: 12px;
   padding: 5px 0;
   text-align: center;
 }
-#familytree-page #types li a:hover {
+#add_relative_menu li a:hover {
   background-color: #3e8ec1;
   color: #fff;
 }
@@ -3660,6 +3705,9 @@ fieldset #msg {
 #content .relationship-form .half {
   width: 300px;
   margin: 5px 0 20px 20px;
+}
+#familytree-page label.no-check {
+  margin-left: 19px;
 }
 /* =RECIPES
 ------------------------------------------------*/
