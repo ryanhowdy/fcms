@@ -227,7 +227,7 @@ class Profile
      */
     function displayEditProfilePicture ()
     {
-        $sql = "SELECT `avatar`, `gravatar` 
+        $sql = "SELECT `avatar`, `gravatar`, `email`
                 FROM `fcms_users`
                 WHERE `id` = ?";
 
@@ -237,6 +237,12 @@ class Profile
            $this->fcmsError->displayError();
 
             return;
+        }
+
+        // Default the Gravatar email to user's current email
+        if (empty($row['gravatar']))
+        {
+            $row['gravatar'] = $row['email'];
         }
 
         // Avatar
