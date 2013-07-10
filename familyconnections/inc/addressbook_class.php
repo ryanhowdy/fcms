@@ -1233,13 +1233,15 @@ class AddressBook
                 )
             ),
             'delete' => array(
-                'delete' => array(
-                    'required' => 1,
-                    'integer'  => 1,
-                ),
-                'cat'   => array(
-                    'required' => 1,
-                    'format'   => '/(all|my|members|non)/',
+                'constraints' => array(
+                    'delete' => array(
+                        'required' => 1,
+                        'integer'  => 1,
+                    ),
+                    'cat'   => array(
+                        'required' => 1,
+                        'format'   => '/(all|my|members|non)/',
+                    )
                 )
             )
         );
