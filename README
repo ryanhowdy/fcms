@@ -47,6 +47,7 @@
     #373 - Cannot change timezone
     #374 - Upload Profilepicture without Java-Uploader
     #382 - Create new address does not create user_settings entry
+    #383 - Via Tender: video.php - line ~1205 missing quote
 
 
   For the full change log please refer to the included ChangeLog file.

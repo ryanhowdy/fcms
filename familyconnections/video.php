@@ -1165,7 +1165,7 @@ Event.observe(window, \'load\', function() {
                 <span>'.T_('Videos For:').'</span>
                 <h2>'.$name.'</h2>
             </div>
-            <ul class="categories>';
+            <ul class="categories">';
 
         // Get videos
         $sql = "SELECT `id`, `source_id`, `title`, `active`, `created`, `created_id`
