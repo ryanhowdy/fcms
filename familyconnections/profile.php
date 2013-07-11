@@ -763,28 +763,28 @@ Event.observe(window, \'load\', function() {
         {
             if ($_FILES['avatar']['error'] < 1)
             {
-                $img->destination  = $uploadsPath.'avatar/';
-                $img->resizeSquare = true;
-                $img->uniqueName   = true;
+                $this->fcmsImage->destination  = $uploadsPath.'avatar/';
+                $this->fcmsImage->resizeSquare = true;
+                $this->fcmsImage->uniqueName   = true;
 
-                $img->upload($_FILES['avatar']);
+                $this->fcmsImage->upload($_FILES['avatar']);
 
-                if ($img->error == 1)
+                if ($this->fcmsImage->error == 1)
                 {
                     $this->displayHeader();
 
                     echo '
                 <p class="error-alert">
-                    '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $img->name).'
+                    '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->fcmsImage->name).'
                 </p>';
 
                     $this->displayFooter();
                     return;
                 }
 
-                $img->resize(80, 80);
+                $this->fcmsImage->resize(80, 80);
 
-                if ($img->error > 0)
+                if ($this->fcmsImage->error > 0)
                 {
                     $this->displayHeader();
 
@@ -797,7 +797,7 @@ Event.observe(window, \'load\', function() {
                     return;
                 }
 
-                $sql .= "`avatar` = '".$img->name."'";
+                $sql .= "`avatar` = '".$this->fcmsImage->name."'";
 
                 if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
                 {
