@@ -535,6 +535,17 @@ Event.observe(window, \'load\', function() {
             return;
         }
 
+        $sql = "INSERT INTO `fcms_user_settings` (`user`)
+                VALUES (?)";
+
+        if (!$this->fcmsDatabase->insert($sql, $id))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
         displayOkMessage();
         $this->fcmsBook->displayAddressList('non');
         $this->displayFooter();
