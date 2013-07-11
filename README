@@ -48,6 +48,7 @@
     #374 - Upload Profilepicture without Java-Uploader
     #382 - Create new address does not create user_settings entry
     #383 - Via Tender: video.php - line ~1205 missing quote
+    #386 - Via Tender: Auto Registration Error in line 337
 
 
   For the full change log please refer to the included ChangeLog file.
