@@ -335,7 +335,7 @@ function process(transport) {
         // Auto activation
         if ($row['auto_activate'] == 1)
         {
-            handleAutoActivation($email, $subject, $lastid, $sitename);
+            $this->handleAutoActivation($email, $subject, $lastid, $sitename);
         }
         else
         {
