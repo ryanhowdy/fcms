@@ -49,6 +49,7 @@
     #382 - Create new address does not create user_settings entry
     #383 - Via Tender: video.php - line ~1205 missing quote
     #386 - Via Tender: Auto Registration Error in line 337
+    #387 - Undefined variable when uploading photo with basic uploader
 
 
   For the full change log please refer to the included ChangeLog file.

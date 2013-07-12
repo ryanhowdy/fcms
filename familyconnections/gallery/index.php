@@ -797,7 +797,7 @@ Event.observe(window, \'load\', function() {
 
 '.$subject.'
 
-'.$url.'index.php?uid='.$this->fcmsUser->id.'&cid='.$category.'
+'.$url.'index.php?uid='.$this->fcmsUser->id.'&cid='.$categoryId.'
 
 ----
 '.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
