@@ -215,6 +215,14 @@ class Upgrade
         // Everything copied over fine, delete the upgrade directory
         $this->deleteDirectory(INC."upgrade");
 
+        // Since 3.3 changed the way login works
+        // We need to login the user again using the new security features
+        if (!loginUser((int)$_SESSION['login_id'], 0))
+        {
+            $this->fcmsError->setMessage(T_('You could not be logged in using enhanced security.');
+            return false;
+        }
+
         return true;
     }
 
@@ -1882,13 +1890,6 @@ class Upgrade
                 $this->fcmsError->setMessage($errorMessage);
                 return false;
             }
-        }
-
-        // login upgrade user using new security login features
-        if (!loginUser((int)$_SESSION['login_id'], 0))
-        {
-            $this->fcmsError->setMessage(T_('You could not be logged in using enhanced security.');
-            return false;
         }
 
         return true;
