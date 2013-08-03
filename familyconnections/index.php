@@ -178,7 +178,7 @@ function displayLoginSubmit ()
         $rem = 1;
     }
 
-    $sql = "SELECT `id`, `username`, `phpass`, `activated`, `locked` 
+    $sql = "SELECT `id`, `username`, `password`, `phpass`, `activated`, `locked` 
             FROM `fcms_users` 
             WHERE `username` = ?";
 
@@ -196,13 +196,37 @@ function displayLoginSubmit ()
         return;
     }
 
-    $hasher = new PasswordHash(8, FALSE);
-
-    // Does the pw supplied match the db?
-    if (!$hasher->CheckPassword($pass, $row['phpass']))
+    // New password style
+    if ($row['password'] == 0)
     {
-        handleBadLogin($user);
-        return;
+        $hasher = new PasswordHash(8, FALSE);
+
+        // Does the pw supplied match the db?
+        if (!$hasher->CheckPassword($pass, $row['phpass']))
+        {
+            handleBadLogin($user);
+            return;
+        }
+    }
+    // Old password style
+    else
+    {
+        if (md5($pass) !== $row['password'])
+        {
+            handleBadLogin($user);
+            return;
+        }
+
+        // Lets update the user's old pw to the new style
+        if (!upgradeNewPassword($row['id'], $pass))
+        {
+            displayHeader();
+            echo '<div class="err-msg">';
+            $fcmsError->displayError();
+            echo '</div>';
+            displayLogin();
+            return;
+        }
     }
 
     // User is active
@@ -211,7 +235,11 @@ function displayLoginSubmit ()
         // Login the user
         if (!loginUser($row['id'], $rem))
         {
+            displayHeader();
+            echo '<div class="err-msg">';
             $fcmsError->displayError();
+            echo '</div>';
+            displayLogin();
             return;
         }
 
@@ -231,14 +259,22 @@ function displayLoginSubmit ()
 
             if (!$fcmsDatabase->update($sql, $row['id']))
             {
+                displayHeader();
+                echo '<div class="err-msg">';
                 $fcmsError->displayError();
+                echo '</div>';
+                displayLogin();
                 return;
             }
 
             // Login the user
             if (!loginUser($row['id'], $rem))
             {
+                displayHeader();
+                echo '<div class="err-msg">';
                 $fcmsError->displayError();
+                echo '</div>';
+                displayLogin();
                 return;
             }
 
@@ -650,4 +686,38 @@ function displayLockedOut ()
     </div>';
 
     displayLogin();
+}
+
+/**
+ * upgradeNewPassword 
+ * 
+ * Saves the password in the new format, deletes old pw.
+ * 
+ * @param int    $userId
+ * @param string $password 
+ * 
+ * @return boolean
+ */
+function upgradeNewPassword($userId, $password)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
+    // Hash the pw
+    $hasher         = new PasswordHash(8, FALSE);
+    $hashedPassword = $hasher->HashPassword($password);
+
+    $sql = "UPDATE `fcms_users`
+            SET `password` = '0',
+                `phpass` = ?
+            WHERE `id` = ?";
+
+    $params = array($hashedPassword, $userId);
+
+    if (!$fcmsDatabase->update($sql, $params))
+    {
+        return false;
+    }
+
+    return true;
 }

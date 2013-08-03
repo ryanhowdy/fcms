@@ -187,6 +187,7 @@ function installUsers ($fname, $lname, $email, $dobYear, $dobMonth, $dobDay, $us
                 `dod_month` CHAR(2),
                 `dod_day` CHAR(2),
                 `username` VARCHAR(25) NOT NULL DEFAULT '0', 
+                `password` VARCHAR(255) NOT NULL DEFAULT '0', 
                 `phpass` VARCHAR(255) NOT NULL DEFAULT '0', 
                 `token` VARCHAR(255) NULL,
                 `avatar` VARCHAR(25) NOT NULL DEFAULT 'no_avatar.jpg', 

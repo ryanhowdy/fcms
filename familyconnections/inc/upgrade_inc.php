@@ -1852,7 +1852,7 @@ class Upgrade
     {
         $errorMessage = sprintf(T_('Could not upgrade database to version %s.'), '3.3');
 
-        // password
+        // new phpass password style
         $pw_fixed = false;
 
         $sql = "SHOW COLUMNS FROM `fcms_users`";
@@ -1882,6 +1882,13 @@ class Upgrade
                 $this->fcmsError->setMessage($errorMessage);
                 return false;
             }
+        }
+
+        // login upgrade user using new security login features
+        if (!loginUser((int)$_SESSION['login_id'], 0))
+        {
+            $this->fcmsError->setMessage(T_('You could not be logged in using enhanced security.');
+            return false;
         }
 
         return true;
