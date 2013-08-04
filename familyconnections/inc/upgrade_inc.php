@@ -1884,6 +1884,38 @@ class Upgrade
             }
         }
 
+        // new login token
+        $token_fixed = false;
+
+        $sql = "SHOW COLUMNS FROM `fcms_users`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->setMessage($errorMessage);
+            return false;
+        }
+
+        foreach ($rows as $r)
+        {
+            if ($r['Field'] == 'token')
+            {
+                $token_fixed = true;
+            }
+        }
+
+        if (!$token_fixed)
+        {
+            $sql = "ALTER TABLE `fcms_users`
+                    ADD COLUMN `token` VARCHAR(255) NULL AFTER `phpass`";
+
+            if (!$this->fcmsDatabase->alter($sql))
+            {
+                $this->fcmsError->setMessage($errorMessage);
+                return false;
+            }
+        }
+
         // We need to login the user again using the new security features
         if (!loginUser((int)$_SESSION['login_id'], 0))
         {
