@@ -377,6 +377,10 @@ class Upgrade
         {
             return false;
         }
+        if (!$this->upgrade330())
+        {
+            return false;
+        }
 
         return true;
     }
