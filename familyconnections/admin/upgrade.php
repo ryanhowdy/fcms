@@ -206,11 +206,9 @@ function checkLoginAndPermission ()
             die();
         }
 
-        $fcmsCurrentVersion = substr($fcmsCurrentVersion, 19);
-
         // if we are upgrading from a version prior to 3.3
         // and only prior to 3.3, so we keep the added security
-        if (!versionUpToDate($fcmsCurrentVersion, '3.3.0')
+        if (!versionUpToDate($fcmsCurrentVersion, 'Family Connections 3.3.0'))
         {
             $checkLoginToken = false;
 
@@ -288,6 +286,9 @@ function checkLoginAndPermission ()
  */
 function checkOldLoginAndPermission ()
 {
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
     if (isset($_COOKIE['fcms_login_id']))
     {
         $_SESSION['login_id']    = $_COOKIE['fcms_login_id'];

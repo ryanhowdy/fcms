@@ -1887,7 +1887,7 @@ class Upgrade
         // We need to login the user again using the new security features
         if (!loginUser((int)$_SESSION['login_id'], 0))
         {
-            $this->fcmsError->setMessage(T_('You could not be logged in using enhanced security.');
+            $this->fcmsError->setMessage(T_('You could not be logged in using enhanced security.'));
             return false;
         }
 
