@@ -230,7 +230,7 @@ function checkLoginAndPermission ()
     $id    = $_SESSION['fcms_id'];
     $token = $_SESSION['fcms_token'];
 
-    if (!ctype_digit($id))
+    if (!ctype_digit("$id"))
     {
         displayHeader();
         echo '<h1>'.T_('Invalid login id.').'</h1>';
