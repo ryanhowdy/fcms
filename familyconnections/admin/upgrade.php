@@ -188,7 +188,7 @@ function checkLoginAndPermission ()
     if (isset($_COOKIE['fcms_cookie_id']))
     {
         $_SESSION['fcms_id']    = $_COOKIE['fcms_cookie_id'];
-        $_SESSION['fcms_token'] = $_COOKIE['fcms_fcms_token'];
+        $_SESSION['fcms_token'] = $_COOKIE['fcms_cookie_token'];
     }
     elseif (isset($_SESSION['fcms_id']))
     {

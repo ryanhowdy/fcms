@@ -1944,12 +1944,12 @@ class Upgrade
         }
 
         // Now, lets delete the old style login info
-        @unset($_SESSION['login_id']);
-        @unset($_SESSION['login_uname']);
-        @unset($_SESSION['login_pw']);
-        @setcookie('fcms_login_id', '', time() - 3600, '/');
-        @setcookie('fcms_login_uname', '', time() - 3600, '/');
-        @setcookie('fcms_login_pw', '', time() - 3600, '/');
+        if (isset($_SESSION['login_id'])) { unset($_SESSION['login_id']); }
+        if (isset($_SESSION['login_uname'])) { unset($_SESSION['login_uname']); }
+        if (isset($_SESSION['login_pw'])) { unset($_SESSION['login_pw']); }
+        if (isset($_COOKIE['fcms_login_id'])) { setcookie('fcms_login_id', '', time() - 3600, '/'); }
+        if (isset($_COOKIE['fcms_login_uname'])) { setcookie('fcms_login_uname', '', time() - 3600, '/'); }
+        if (isset($_COOKIE['fcms_login_pw'])) { setcookie('fcms_login_pw', '', time() - 3600, '/'); }
 
         return true;
     }
