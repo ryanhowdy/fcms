@@ -28,6 +28,8 @@ require_once INC.'utils.php';
 require_once INC.'upgrade_inc.php';
 require_once INC.'Error.php';
 require_once INC.'Database.php';
+require_once INC.'User.php';
+require_once THIRDPARTY.'phpass/PasswordHash.php';
 
 checkLoginAndPermission();
 
