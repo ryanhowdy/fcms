@@ -357,7 +357,12 @@ Event.observe(window, \'load\', function() {
         echo sprintf(T_pgettext('%s is a name of a table that gets updated.', 'Update [%s] complete.'), 'fcms_address').'<br/>';
 
         // Update all occurences of merge id with id
-        $this->fcmsAdminMembers->mergeMember($id, $merge);
+        if (!$this->fcmsAdminMembers->mergeMember($id, $merge))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
 
         // Delete merge id
         $sql = "DELETE FROM `fcms_users`
