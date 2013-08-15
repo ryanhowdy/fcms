@@ -1184,30 +1184,39 @@ class AdminMembers
         if ($view == 'members')
         {
             $sql .= "WHERE `phpass` != 'NONMEMBER'
-                     AND `phpass` != 'PRIVATE' ";
+                     AND `phpass` != 'PRIVATE'
+                     OR (
+                         `phpass` IS NULL
+                         AND `password` != 'NONMEMBER'
+                         AND `password` != 'PRIVATE'
+                     ) ";
         }
         elseif ($view == 'non')
         {
-            $sql .= "WHERE `phpass` = 'NONMEMBER' ";
+            $sql .= "WHERE `phpass` = 'NONMEMBER'
+                     OR (
+                        `phpass` IS NULL
+                        AND `password` = 'NONMEMBER'
+                     )";
         }
         
         // Search - one or valid search parameters
         if ($valid_search < 1)
         {
-            if (strlen($fname) > 0)
-            {
-                $sql     .= "AND `fname` LIKE ? ";
-                $params[] = $fname;
+            if (strlen($fname) > 0) 
+            {    
+                $sql     .= $view == 'all' ? "WHERE `fname` LIKE ? " : "AND `fname` LIKE ? ";
+                $params[] = "%$fname%";
             }
-            if (strlen($lname) > 0)
-            {
-                $sql     .= "AND `lname` LIKE ? ";
-                $params[] = $lname;
+            if (strlen($lname) > 0) 
+            {    
+                $sql     .= $view == 'all' ? "WHERE `lname` LIKE ? " : "AND `lname` LIKE ? ";
+                $params[] = "%$lname%";
             }
-            if (strlen($uname) > 0)
-            {
-                $sql     .= "AND `username` LIKE ? ";
-                $params[] = $uname;
+            if (strlen($uname) > 0) 
+            {    
+                $sql     .= $view == 'all' ? "WHERE `username` LIKE ? " : "AND `username` LIKE ? ";
+                $params[] = "%$uname%";
             }
 
             $sql .= "ORDER BY `id` LIMIT $from, $perPage";
@@ -1233,6 +1242,12 @@ class AdminMembers
         foreach ($rows as $r)
         {
             $member = ($r['phpass'] == 'NONMEMBER') ? T_('No') : T_('Yes');
+
+            if (is_null($r['phpass']))
+            {
+                $member = ($r['password'] == 'NONMEMBER') ? T_('No') : T_('Yes');
+            }
+
             $active = ($r['activated'] <= 0)        ? T_('No') : T_('Yes');
 
             if ($r['id'] > 1)
