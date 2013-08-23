@@ -390,7 +390,7 @@ Event.observe(window, \'load\', function() {
         $this->displayHeader();
 
         // Check Required Fields
-        $requiredFields  = array('username', 'phpass', 'fname', 'lname', 'sex', 'email');
+        $requiredFields  = array('username', 'password', 'fname', 'lname', 'sex', 'email');
         $missingRequired = false;
 
         foreach ($requiredFields as $field)
@@ -478,7 +478,7 @@ Event.observe(window, \'load\', function() {
             $month, 
             $day,
             $username, 
-            $md5pass, 
+            $hashPassword, 
         );
 
         $lastid = $this->fcmsDatabase->insert($sql, $params);
