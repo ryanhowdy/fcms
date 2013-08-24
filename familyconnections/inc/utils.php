@@ -3029,6 +3029,7 @@ function displayWhatsNewAll ()
     $cachedUserData = array();
 
     $position = 1;
+    $older    = true;
 
     // Loop through data
     foreach ($whatsNewData as $r)
@@ -3050,6 +3051,13 @@ function displayWhatsNewAll ()
             {
                 echo '
                 <p><b>'.T_('Yesterday').'</b></p>';
+            }
+            // Older
+            if ($updatedFull < $yesterday_start && $older)
+            {
+                $older = false;
+                echo '
+                <p><b>'.T_('Older').'</b></p>';
             }
         }
 
