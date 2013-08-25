@@ -374,14 +374,17 @@ class Awards
         // Have last months awards been calculated already?
         $sql = "SELECT `id`, `month`
                 FROM `fcms_user_awards`
-                WHERE `month` = '$lastMonth'";
-        if (!$this->db->query($sql))
+                WHERE `month` = ?";
+
+        $row = $this->fcmsDatabase->getRow($sql, $lastMonth);
+        if ($row === false)
         {
             $this->fcmsError->displayError();
             return false;
         }
 
-        if ($this->db->count_rows() > 0) {
+        if (count($row) > 0)
+        {
             return true;
         }
 
@@ -460,31 +463,33 @@ class Awards
 
         $sql = "SELECT `user`, COUNT(`id`) AS c
                 FROM `".$params['table']."` 
-                WHERE `$date` >= '".$params['start']."' 
-                  AND `$date` <= '".$params['end']."' 
+                WHERE `$date` >= ?
+                  AND `$date` <= ?
                 GROUP BY `user` 
                 ORDER BY c DESC 
                 LIMIT 1";
-        if (!$this->db->query($sql))
+
+        $r = $this->fcmsDatabase->getRow($sql, array($params['start'], $params['end']));
+        if ($r === false)
         {
             $this->fcmsError->displayError();
             return false;
         }
 
-        if ($this->db->count_rows() > 0)
+        if (!empty($r))
         {
-            $r = $this->db->get_row();
-
             $sql = "INSERT INTO `fcms_user_awards`
                         (`user`, `award`, `month`, `date`, `count`)
-                    VALUES (
-                        '".$r['user']."',
-                        '".$params['award']."',
-                        '".$params['month']."',
-                        NOW(),
-                        '".$r['c']."'
-                    )";
-            if (!$this->db->query($sql))
+                    VALUES 
+                        (?, ?, ? NOW(), ?)";
+            $sqlParams = array(
+                $r['user'],
+                $params['award'],
+                $params['month'],
+                $r['c']
+            );
+
+            if (!$this->fcmsDatabase->insert($sql, $sqlParams))
             {
                 $this->fcmsError->displayError();
                 return false;
@@ -529,23 +534,28 @@ class Awards
         }
 
         // Ice Breaker
-        if (!$this->calculateIceBreakerAward($currentAwards)) {
+        if (!$this->calculateIceBreakerAward($currentAwards))
+        {
             return false;
         }
         // Shutterbug
-        if (!$this->calculateShutterbugAward($currentAwards)) {
+        if (!$this->calculateShutterbugAward($currentAwards))
+        {
             return false;
         }
         // Interesting
-        if (!$this->calculateInterestingAward($currentAwards)) {
+        if (!$this->calculateInterestingAward($currentAwards))
+        {
             return false;
         }
         // Secretive
-        if (!$this->calculateSecretiveAward($currentAwards)) {
+        if (!$this->calculateSecretiveAward($currentAwards))
+        {
             return false;
         }
         // Planner
-        if (!$this->calculatePlannerAward($currentAwards)) {
+        if (!$this->calculatePlannerAward($currentAwards))
+        {
             return false;
         }
 
@@ -567,16 +577,19 @@ class Awards
         $sql = "SELECT `user`, `award`, `month`, `item_id`
                 FROM `fcms_user_awards`
                 WHERE `award` IN ('icebreaker', 'shutterbug', 'interesting', 'secretive', 'planner', 'boring', 'photogenic')";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
             $this->fcmsError->displayError();
             return false;
         }
 
-        while ($r = $this->db->get_row()) {
-
+        foreach ($rows as $r)
+        {
             // Secretive or Planner
-            if ($r['award'] == 'secretive' || $r['award'] == 'planner' || $r['award'] == 'photogenic') {
+            if ($r['award'] == 'secretive' || $r['award'] == 'planner' || $r['award'] == 'photogenic')
+            {
                 $array[ $r['award'].'_'.$r['user'] ] = 1;
                 continue;
             }
@@ -604,39 +617,40 @@ class Awards
                 JOIN `fcms_board_threads` AS t ON p.`thread` = t.`id`
                 GROUP BY `thread`
                 HAVING ct >= 21";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
             $this->fcmsError->displayError();
             return false;
         }
 
-        if ($this->db->count_rows() > 0)
+        foreach ($rows as $r)
         {
-            while ($r = $this->db->get_row())
+            $month = date('Ym', strtotime($r['date']));
+
+            // Skip already awarded awards
+            if (isset($currentAwards['icebreaker_'.$r['started_by'].'_'.$month.'_'.$r['thread']]))
             {
-                $month = date('Ym', strtotime($r['date']));
+                continue;
+            }
 
-                // Skip already awarded awards
-                if (isset($currentAwards['icebreaker_'.$r['started_by'].'_'.$month.'_'.$r['thread']]))
-                {
-                    continue;
-                }
+            $sql = "INSERT INTO `fcms_user_awards`
+                        (`user`, `award`, `month`, `date`, `item_id`, `count`)
+                    VALUES
+                        (?, 'icebreaker', ?, NOW(), ?, ?)";
 
-                $sql = "INSERT INTO `fcms_user_awards`
-                            (`user`, `award`, `month`, `date`, `item_id`, `count`)
-                        VALUES (
-                            '".$r['started_by']."',
-                            'icebreaker',
-                            '$month',
-                            NOW(),
-                            '".$r['thread']."',
-                            '".$r['ct']."'
-                        )";
-                if (!$this->db2->query($sql))
-                {
-                    $this->fcmsError->displayError();
-                    return false;
-                }
+            $params = array(
+                $r['started_by'],
+                $month,
+                $r['thread'],
+                $r['ct']
+            );
+
+            if (!$this->fcmsDatabase->insert($sql, $params))
+            {
+                $this->fcmsError->displayError();
+                return false;
             }
         }
 
@@ -657,37 +671,39 @@ class Awards
         $sql = "SELECT `id`, `user`, `date`, `views`
                 FROM `fcms_gallery_photos`
                 WHERE `views` >= 100";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
             $this->fcmsError->displayError();
             return false;
         }
 
-        if ($this->db->count_rows() > 0) {
-            while ($r = $this->db->get_row()) {
+        foreach ($rows as $r)
+        {
+            $month = date('Ym', strtotime($r['date']));
 
-                $month = date('Ym', strtotime($r['date']));
+            // Skip already awarded awards
+            if (isset($currentAwards['shutterbug_'.$r['user'].'_'.$month.'_'.$r['id']])) {
+                continue;
+            }
 
-                // Skip already awarded awards
-                if (isset($currentAwards['shutterbug_'.$r['user'].'_'.$month.'_'.$r['id']])) {
-                    continue;
-                }
+            $sql = "INSERT INTO `fcms_user_awards`
+                        (`user`, `award`, `month`, `date`, `item_id`, `count`)
+                    VALUES
+                        (?, 'shutterbug', ?, NOW(), ?, ?)";
 
-                $sql = "INSERT INTO `fcms_user_awards`
-                            (`user`, `award`, `month`, `date`, `item_id`, `count`)
-                        VALUES (
-                            '".$r['user']."',
-                            'shutterbug',
-                            '$month',
-                            NOW(),
-                            '".$r['id']."',
-                            '".$r['views']."'
-                        )";
-                if (!$this->db2->query($sql))
-                {
-                    $this->fcmsError->displayError();
-                    return false;
-                }
+            $params = array(
+                $r['user'],
+                $month,
+                $r['id'],
+                $r['views']
+            );
+
+            if (!$this->fcmsDatabase->insert($sql, $params))
+            {
+                $this->fcmsError->displayError();
+                return false;
             }
         }
 
@@ -710,39 +726,40 @@ class Awards
                 JOIN `fcms_news` AS n ON c.`news` = n.`id`
                 GROUP BY c.`news`
                 HAVING ct >= 20";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
             $this->fcmsError->displayError();
             return false;
         }
 
-        if ($this->db->count_rows() > 0)
+        foreach ($rows as $r)
         {
-            while ($r = $this->db->get_row())
+            $month = date('Ym', strtotime($r['date']));
+
+            // Skip already awarded awards
+            if (isset($currentAwards['interesting_'.$r['user'].'_'.$month.'_'.$r['news']]))
             {
-                $month = date('Ym', strtotime($r['date']));
+                continue;
+            }
 
-                // Skip already awarded awards
-                if (isset($currentAwards['interesting_'.$r['user'].'_'.$month.'_'.$r['news']]))
-                {
-                    continue;
-                }
+            $sql = "INSERT INTO `fcms_user_awards`
+                        (`user`, `award`, `month`, `date`, `item_id`, `count`)
+                    VALUES
+                        (?, 'interesting', ?, NOW(), ?, ?)";
 
-                $sql = "INSERT INTO `fcms_user_awards`
-                            (`user`, `award`, `month`, `date`, `item_id`, `count`)
-                        VALUES (
-                            '".$r['user']."',
-                            'interesting',
-                            '$month',
-                            NOW(),
-                            '".$r['news']."',
-                            '".$r['ct']."'
-                        )";
-                if (!$this->db2->query($sql))
-                {
-                    $this->fcmsError->displayError();
-                    return false;
-                }
+            $params = array(
+                $r['user'],
+                $month,
+                $r['news'],
+                $r['ct']
+            );
+
+            if (!$this->fcmsDatabase->insert($sql, $params))
+            {
+                $this->fcmsError->displayError();
+                return false;
             }
         }
 
@@ -764,37 +781,39 @@ class Awards
                 FROM `fcms_privatemsg`
                 GROUP BY `from`
                 HAVING ct >= 100";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
             $this->fcmsError->displayError();
             return false;
         }
 
-        if ($this->db->count_rows() > 0)
+        foreach ($rows as $r)
         {
-            while ($r = $this->db->get_row())
+            // Skip already awarded awards
+            if (isset($currentAwards['secretive_'.$r['user']]))
             {
-                // Skip already awarded awards
-                if (isset($currentAwards['secretive_'.$r['user']]))
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                $month = date('Ym', strtotime($r['date']));
-                $sql = "INSERT INTO `fcms_user_awards`
-                            (`user`, `award`, `month`, `date`, `count`)
-                        VALUES (
-                            '".$r['from']."',
-                            'secretive',
-                            '$month',
-                            NOW(),
-                            '".$r['ct']."'
-                        )";
-                if (!$this->db2->query($sql))
-                {
-                    $this->fcmsError->displayError();
-                    return false;
-                }
+            $month = date('Ym', strtotime($r['date']));
+
+            $sql = "INSERT INTO `fcms_user_awards`
+                        (`user`, `award`, `month`, `date`, `count`)
+                    VALUES
+                        (?, 'secretive', ?, NOW(), ?)";
+
+            $params = array(
+                $r['from'],
+                $month,
+                $r['ct']
+            );
+
+            if (!$this->fcmsDatabase->insert($sql, $params))
+            {
+                $this->fcmsError->displayError();
+                return false;
             }
         }
 
@@ -816,37 +835,39 @@ class Awards
                 FROM `fcms_calendar`
                 GROUP BY `created_by`
                 HAVING ct >= 50";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
             $this->fcmsError->displayError();
             return false;
         }
 
-        if ($this->db->count_rows() > 0)
+        foreach ($rows as $r)
         {
-            while ($r = $this->db->get_row())
+            // Skip already awarded awards
+            if (isset($currentAwards['planner_'.$r['created_by']]))
             {
-                // Skip already awarded awards
-                if (isset($currentAwards['planner_'.$r['created_by']]))
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                $month = date('Ym', strtotime($r['date_added']));
-                $sql = "INSERT INTO `fcms_user_awards`
-                            (`user`, `award`, `month`, `date`, `count`)
-                        VALUES (
-                            '".$r['created_by']."',
-                            'planner',
-                            '$month',
-                            NOW(),
-                            '".$r['ct']."'
-                        )";
-                if (!$this->db2->query($sql))
-                {
-                    $this->fcmsError->displayError();
-                    return false;
-                }
+            $month = date('Ym', strtotime($r['date_added']));
+
+            $sql = "INSERT INTO `fcms_user_awards`
+                        (`user`, `award`, `month`, `date`, `count`)
+                    VALUES
+                        (?, 'planner', ?, NOW(), ?)";
+
+            $params = array(
+                $r['created_by'],
+                $month,
+                $r['ct']
+            );
+
+            if (!$this->fcmsDatabase->insert($sql, $params))
+            {
+                $this->fcmsError->displayError();
+                return false;
             }
         }
 
@@ -868,34 +889,36 @@ class Awards
                 FROM `fcms_gallery_photos_tags`
                 GROUP BY `user`
                 HAVING ct >= 50";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
             $this->fcmsError->displayError();
             return false;
         }
 
-        if ($this->db->count_rows() > 0) {
-            while ($r = $this->db->get_row()) {
+        foreach ($rows as $r)
+        {
+            // Skip already awarded awards
+            if (isset($currentAwards['photogenic_'.$r['user']]))
+            {
+                continue;
+            }
 
-                // Skip already awarded awards
-                if (isset($currentAwards['photogenic_'.$r['user']])) {
-                    continue;
-                }
+            $sql = "INSERT INTO `fcms_user_awards`
+                        (`user`, `award`, `month`, `date`, `count`)
+                    VALUES
+                        (?, 'photogenic', '0', NOW(), ?)";
 
-                $sql = "INSERT INTO `fcms_user_awards`
-                            (`user`, `award`, `month`, `date`, `count`)
-                        VALUES (
-                            '".$r['user']."',
-                            'photogenic',
-                            '0',
-                            NOW(),
-                            '".$r['ct']."'
-                        )";
-                if (!$this->db2->query($sql))
-                {
-                    $this->fcmsError->displayError();
-                    return false;
-                }
+            $params = array(
+                $r['user'],
+                $r['ct']
+            );
+
+            if (!$this->fcmsDatabase->insert($sql, $params))
+            {
+                $this->fcmsError->displayError();
+                return false;
             }
         }
 
