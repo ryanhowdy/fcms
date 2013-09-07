@@ -37,6 +37,7 @@ function formatAddress ($address)
     switch ($country)
     {
         case 'US':
+        default:
             $str = formatAddressUs($address);
             break;
     }
