@@ -138,6 +138,21 @@ class Page
                 $this->displayCreateUserForm();
             }
         }
+        elseif (isset($_GET['avatar']))
+        {
+            if (isset($_POST['submitUpload']))
+            {
+                $this->displayUploadAvatarSubmit();
+            }
+            else
+            {
+                $this->displayUploadAvatarForm();
+            }
+        }
+        elseif (isset($_GET['advanced_avatar']))
+        {
+            $this->uploadAdvancedAvatar();
+        }
         else
         {
             $this->displayFamilyTree();
@@ -1163,5 +1178,248 @@ class Page
         }
 
         header("Location: familytree.php");
+    }
+
+    /**
+     * displayUploadAvatarForm 
+     * 
+     * @return void
+     */
+    function displayUploadAvatarForm ()
+    {
+        $this->displayHeader();
+
+        $id = (int)$_GET['avatar'];
+
+        // Get user info
+        $sql = "SELECT `id`, `fname`, `lname`, `maiden`, `avatar`, `gravatar`
+                FROM `fcms_users`
+                WHERE `id` = ?";
+
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $form   = '';
+        $input  = '';
+        $js     = '';
+        $submit = 'submit';
+
+        if (usingAdvancedUploader($this->fcmsUser->id))
+        {
+            $form  = '<form id="frm" name="frm" method="post">';
+
+            $input = '<applet name="jumpLoaderApplet"
+                    code="jmaster.jumploader.app.JumpLoaderApplet.class"
+                    archive="inc/thirdparty/jumploader_z.jar"
+                    width="200"
+                    height="260"
+                    mayscript>
+                    <param name="uc_sendImageMetadata" value="true"/>
+                    <param name="uc_maxFiles" value="1"/>
+                    <param name="uc_uploadUrl" value="familytree.php?advanced_avatar='.$this->fcmsUser->id.'&orig='.$row['avatar'].'"/>
+                    <param name="vc_useThumbs" value="true"/>
+                    <param name="uc_uploadScaledImagesNoZip" value="true"/>
+                    <param name="uc_uploadScaledImages" value="true"/>
+                    <param name="uc_scaledInstanceNames" value="avatar"/>
+                    <param name="uc_scaledInstanceDimensions" value="80x80xcrop"/>
+                    <param name="uc_scaledInstanceQualityFactors" value="900"/>
+                    <param name="uc_uploadFormName" value="frm"/>
+                    <param name="vc_lookAndFeel" value="system"/>
+                    <param name="vc_uploadViewStartActionVisible" value="false"/>
+                    <param name="vc_uploadViewStopActionVisible" value="false"/>
+                    <param name="vc_uploadViewPasteActionVisible" value="false"/>
+                    <param name="vc_uploadViewRetryActionVisible" value="false"/>
+                    <param name="vc_uploadViewFilesSummaryBarVisible" value="false"/>
+                    <param name="vc_uiDefaults" value="Panel.background=#eff0f4; List.background=#eff0f4;"/> 
+                    <param name="ac_fireUploaderStatusChanged" value="true"/> 
+                </applet>
+                <br/>';
+
+            $js = '<script language="javascript">
+                Event.observe("submitUpload","click",function(){
+                    var uploader = document.jumpLoaderApplet.getUploader();
+                    uploader.startUpload();
+                });
+                function uploaderStatusChanged(uploader) {
+                    if (uploader.isReady() && uploader.getFileCountByStatus(3) == 0) { 
+                        window.location.href = "familytree.php";
+                    }
+                }
+                </script>';
+
+            $submit = 'button';
+        }
+        else
+        {
+            $form   = '<form id="frm" name="frm" enctype="multipart/form-data" action="?avatar='.$this->fcmsUser->id.'" method="post">';
+            $input  = '<input type="file" name="avatar" id="avatar" size="30" title="'.T_('Upload your personal image (Avatar)').'"/>';
+        }
+
+
+        echo '
+                '.$form.'
+                    <fieldset>
+                        <legend><span>'.T_('Picture').'</span></legend>
+                        <div class="field-row">
+                            <div class="field-label"><b>'.T_('Current Picture').'</b></div>
+                            <div class="field-widget">
+                                <img src="'.getCurrentAvatar($this->fcmsUser->id).'"/>
+                            </div>
+                        </div>
+                        <div class="field-row">
+                            <div class="field-label"><b>'.T_('Choose new Picture').'</b></div>
+                            <div class="field-widget">
+                                '.$input.'
+                            </div>
+                        </div>
+                        <p>
+                            <input type="hidden" name="avatar_orig" value="'.cleanOutput($row['avatar']).'"/>
+                            <input class="sub1" type="'.$submit.'" name="submitUpload" id="submitUpload" value="'.T_('Submit').'"/>
+                            &nbsp; <a href="familytree.php">'.T_('Cancel').'</a>
+                        </p>
+                    </fieldset>
+                </form>
+                '.$js.'
+            </div>';
+
+        $this->displayFooter();
+    }
+
+    /**
+     * displayUploadAvatarSubmit 
+     * 
+     * @return void
+     */
+    function displayUploadAvatarSubmit ()
+    {
+        $uploadsPath = getUploadsAbsolutePath();
+
+        $this->fcmsImage->destination  = $uploadsPath.'avatar/';
+        $this->fcmsImage->resizeSquare = true;
+        $this->fcmsImage->uniqueName   = true;
+
+        $this->fcmsImage->upload($_FILES['avatar']);
+
+        if ($this->fcmsImage->error == 1)
+        {
+            $this->displayHeader();
+            echo '
+            <p class="error-alert">
+                '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->fcmsImage->name).'
+            </p>';
+
+            $this->displayFooter();
+
+            return;
+        }
+
+        $this->fcmsImage->resize(80, 80);
+
+        if ($this->fcmsImage->error > 0)
+        {
+            $this->displayHeader();
+            echo '
+            <p class="error-alert">
+                '.T_('There was an error uploading your avatar.').'
+            </p>';
+
+            $this->displayFooter();
+
+            return;
+        }
+
+        $sql = "UPDATE `fcms_users`
+                SET `avatar` = ?
+                WHERE `id`   = ?";
+
+        $params = array(
+            $this->fcmsImage->name,
+            $_GET['avatar']
+        );
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+
+            return;
+        }
+
+        if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
+        {
+            unlink($uploadsPath.'avatar/'.basename($_POST['avatar_orig']));
+        }
+
+        $_SESSION['ok'] = 1;
+
+        header("Location: familytree.php");
+    }
+
+    /**
+     * uploadAdvancedAvatar 
+     * 
+     * @return void
+     */
+    function uploadAdvancedAvatar ()
+    {
+        $userid = (int)$_GET['advanced_avatar'];
+
+        $filetypes = array(
+            'image/pjpeg'   => 'jpg', 
+            'image/jpeg'    => 'jpg', 
+            'image/gif'     => 'gif', 
+            'image/bmp'     => 'bmp', 
+            'image/x-png'   => 'png', 
+            'image/png'     => 'png'
+        );
+
+        $type        = $_FILES['avatar']['type'];
+        $extention   = $filetypes[$type];
+        $id          = uniqid("");
+        $name        = $id.".".$extention;
+        $uploadsPath = getUploadsAbsolutePath();
+
+        $sql = "UPDATE `fcms_users`
+                SET `avatar` = '".$name."'
+                WHERE `id` = '$userid'";
+
+        if (!$this->fcmsDatabase->update($sql, array($name, $userid)))
+        {
+            echo "FAILURE: Could not update db with new avatar.\n";
+            exit();
+        }
+
+        if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadsPath.'avatar/'.$name))
+        {
+            echo "success";
+        }
+        else
+        {
+            $this->fcmsError->add(array(
+                'type'    => 'operation',
+                'message' => T_('Could not move avatar file.'),
+                'line'    => __LINE__,
+                'file'    => __FILE__,
+            ));
+
+            echo "FAILURE: Could not move avatar file.\n";
+            exit();
+        }
+
+        if ($_GET['orig'] != 'no_avatar.jpg' && $_GET['orig'] != 'gravatar')
+        {
+            if (file_exists($uploadsPath.'avatar/'.basename($_GET['orig'])))
+            {
+                unlink($uploadsPath.'avatar/'.basename($_GET['orig']));
+            }
+        }
+
+        exit();
     }
 }
