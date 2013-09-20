@@ -979,8 +979,6 @@ Event.observe(window, \'load\', function() {
                 'secret' => $config['fb_secret'],
             ));
 
-            $facebook->setAccessToken($accessToken);
-
             // Check if the user is logged in and authed
             $fbUser    = $facebook->getUser();
             $fbProfile = '';
@@ -1006,7 +1004,10 @@ Event.observe(window, \'load\', function() {
             }
             else
             {
-                $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
+                $params = array(
+                    'scope'        => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access',
+                    'redirect_uri' => $callbackUrl
+                );
 
                 $status = T_('Not Connected');
                 $link   = '<a href="'.$facebook->getLoginUrl($params).'">'.T_('Connect').'</a>';
@@ -1041,14 +1042,25 @@ Event.observe(window, \'load\', function() {
               'secret' => $data['fb_secret'],
             ));
 
-            $accessToken = $facebook->getAccessToken();
+            $fbUserId = $facebook->getUser();
+            if ($fbUserId)
+            {
+                try
+                {
+                    $fbProfile = $facebook->api('/me');
+                }
+                catch (FacebookApiException $e)
+                {
+                    $fbUserId = null;
+                }
+            }
 
             $sql = "UPDATE `fcms_user_settings`
                     SET `fb_access_token` = ?
                     WHERE `user` = ?";
 
             $params = array(
-                $accessToken,
+                $fbUserId,
                 $this->fcmsUser->id
             );
 
@@ -1073,6 +1085,7 @@ Event.observe(window, \'load\', function() {
             </div>';
 
             $this->displayFooter();
+            return;
         }
 
         header("Location: settings.php?view=facebook");

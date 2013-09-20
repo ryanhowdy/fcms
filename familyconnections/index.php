@@ -583,6 +583,7 @@ function handleFacebookLogin ()
     // Check if the user is logged in and authed
     $fbUser    = $facebook->getUser();
     $fbProfile = '';
+
     if ($fbUser)
     {
         try
@@ -601,8 +602,6 @@ function handleFacebookLogin ()
         return;
     }
 
-    $accessToken = $facebook->getAccessToken();
-
     $sql = "SELECT u.`id`, u.`username`, u.`phpass`, u.`activated`, u.`locked`
             FROM `fcms_users` AS u, `fcms_user_settings` AS s
             WHERE s.`user` = u.`id`
@@ -613,7 +612,7 @@ function handleFacebookLogin ()
 
     $params = array(
         $fbProfile['email'],
-        $accessToken
+        $fbUser
     );
 
     $row = $fcmsDatabase->getRow($sql, $params);

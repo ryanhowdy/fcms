@@ -3928,9 +3928,8 @@ function displayStatusUpdateForm ($parent = 0)
     // Facebook option is only good for first status update field, not reply
     if ($parent == 0)
     {
-        $data        = getFacebookConfigData();
-        $accessToken = getUserFacebookAccessToken($fcmsUser->id);
-        $user        = null;
+        $data = getFacebookConfigData();
+        $user = null;
 
         if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
         {
@@ -3938,8 +3937,6 @@ function displayStatusUpdateForm ($parent = 0)
               'appId'  => $data['fb_app_id'],
               'secret' => $data['fb_secret'],
             ));
-
-            $facebook = $facebook->setAccessToken($accessToken);
 
             // Check if the user is logged in and authed
             $user = $facebook->getUser();
@@ -4249,7 +4246,7 @@ function recursive_array_search ($needle, $haystack)
  */
 function printr ($var)
 {
-    echo '<pre>';
+    echo '<pre style="text-align:left; background-color:white; color:#333; padding:20px">';
     print_r($var);
     echo '</pre>';
 }
