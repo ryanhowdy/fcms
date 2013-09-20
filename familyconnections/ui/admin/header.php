@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="<?php echo T_('lang'); ?>">
+<html lang="<?php echo T_pgettext('Language Code for this translation', 'lang'); ?>">
 <head>
 <meta charset="utf-8">
 <title><?php echo $TMPL['sitename'] . " - " . T_('powered by') . " " . $TMPL['version']; ?></title>

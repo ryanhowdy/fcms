@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Family Connections 3.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-09-20 15:13-0500\n"
+"POT-Creation-Date: 2013-09-20 15:29-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,6 +24,10 @@ msgstr ""
 #: familyconnections/lostpw.php:22 familyconnections/register.php:84
 #: familyconnections/rss.php:117 familyconnections/rss.php:373
 #: familyconnections/ui/admin/header.php:2
+#: familyconnections/ui/themes/bare/header.php:2
+#: familyconnections/ui/themes/blue-chrome/header.php:2
+#: familyconnections/ui/themes/default/header.php:2
+msgctxt "Language Code for this translation"
 msgid "lang"
 msgstr ""
 
@@ -7446,15 +7450,6 @@ msgid "Support"
 msgstr ""
 
 #: familyconnections/ui/themes/bare/header.php:2
-#: familyconnections/ui/themes/blue-chrome/header.php:2
-#: familyconnections/ui/themes/default/header.php:2
-msgctxt "Language Code for this translation"
-msgid "lang"
-msgstr ""
-
-#: familyconnections/ui/themes/bare/header.php:2
-#: familyconnections/ui/themes/blue-chrome/header.php:2
-#: familyconnections/ui/themes/default/header.php:2
 msgid "Language Code for this translation"
 msgstr ""
 

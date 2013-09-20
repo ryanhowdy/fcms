@@ -114,7 +114,7 @@ function displayFeedAll ()
 <title>" . getSiteName() . " - " . T_('What\'s New') . "</title> 
 <link>" . $url . "</link> 
 <description>" . getSiteName() . " - " . T_('What\'s New') . " " . T_('RSS Feed') . "</description> 
-<language>" . T_('lang') . "</language> 
+<language>" . T_pgettext('Language Code for this translation', 'lang') . "</language> 
 <managingEditor>" . getContactEmail() . "</managingEditor> 
 "; 
     
@@ -370,7 +370,7 @@ function displayFeedPhotoGallery ()
 <title>" . getSiteName() . " - " . T_('Photo Gallery') . "</title> 
 <link>" . $url . "</link> 
 <description>" . getSiteName() . " - " . T_('Photo Gallery') . " " . T_('RSS Feed') . "</description> 
-<language>" . T_('lang') . "</language> 
+<language>" . T_pgettext('Language Code for this translation', 'lang') . "</language> 
 <managingEditor>" . getContactEmail() . "</managingEditor> 
 ";
 
