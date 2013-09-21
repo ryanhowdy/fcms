@@ -1,0 +1,53 @@
+https://help.github.com/articles/fork-a-repo
+
+Push changes to github
+----------------------
+
+    git push origin master
+
+
+
+Pull in changes from github to local
+------------------------------------
+
+    git fetch upstream
+
+    git merge upstream/master
+
+
+
+Create new branch
+-----------------
+
+    git branch <branch_name>
+
+    // check in changes
+    git commit -a
+
+    // switch back to master
+    git checkout master
+
+    // merge branch into master
+    git merge <branch_name>
+
+    // delete the branch
+    git branch -d <branch_name>
+
+
+
+Push new branch to github
+-------------------------
+
+    git push -u origin <branch_name>
+
+
+Push new changes from branch to github
+--------------------------------------
+
+    git push origin <branch_name>
+
+
+Create patch from git commit
+----------------------------
+
+    git format-patch -1 <sha>
