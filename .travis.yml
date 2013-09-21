@@ -5,4 +5,4 @@ before_script:
   - pear install --alldeps PHP_CodeSniffer
   - phpenv rehash
 script:
-  - phpcs --extensions=php --ignore=*/familyconnections/inc/thirdparty/* ./
+  - phpcs -ns --extensions=php --report=summary --ignore=*/familyconnections/inc/thirdparty/*,*/familyconnections/inc/chat/* familyconnections/.
