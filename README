@@ -42,7 +42,21 @@
 
   3.3
 
+    #232 - Broken Family Tree when removing relationships
+    #293 - Form Validation Class
+    #327 - Better password security
+    #354 - New Upload / Photo Gallery classes
+    #355 - Call to undefined function getsessiontoken() in video.php
+    #357 - Photo Gallery: Photos not showing in Tagged Photos View
     #359 - Cannot merge two members in Administration
+    #360 - Awards are broken
+    #361 - Instagram Scheduled Job Failure
+    #368 - Family Tree: Adding child 
+    #371 - Family Tree - allow complex relationships 
+    #375 - Adress not displayed
+    #385 - Cannot login with Facebook 
+    #392 - Issues merging two members
+    #398 - Birthday url is wrong in day view
 
 
   For the full change log please refer to the included ChangeLog file.

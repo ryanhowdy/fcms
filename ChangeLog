@@ -1,3 +1,13 @@
+  3.2.3
+    #358 - Youtube uploader - blank page, step 2
+    #365 - Cannot view birthday event
+    #373 - Cannot change timezone
+    #374 - Upload Profilepicture without Java-Uploader
+    #382 - Create new address does not create user_settings entry
+    #383 - Via Tender: video.php - line ~1205 missing quote
+    #386 - Via Tender: Auto Registration Error in line 337
+    #387 - Undefined variable when uploading photo with basic uploader
+
   3.2.1
     #554 - Undefined function formatWhatsNewMessageboard()
     #560 - Cron not working
