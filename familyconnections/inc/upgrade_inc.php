@@ -1921,35 +1921,38 @@ class Upgrade
         }
 
         // We need to upgrade the user's old pw to new pw
-        $hasher         = new PasswordHash(8, FALSE);
-        $hashedPassword = $hasher->HashPassword($_SESSION['login_pw']);
-
-        $sql = "UPDATE `fcms_users`
-                SET `password` = '0',
-                    `phpass` = ?
-                WHERE `id` = ?";
-
-        $params = array($hashedPassword, (int)$_SESSION['login_id']);
-        if (!$this->fcmsDatabase->update($sql, $params))
+        if (isset($_SESSION['login_pw']))
         {
-            $this->fcmsError->setMessage(T_('Your password could not be upgraded using enhanced security.'));
-            return false;
-        }
+            $hasher         = new PasswordHash(8, FALSE);
+            $hashedPassword = $hasher->HashPassword($_SESSION['login_pw']);
 
-        // We need to login the user again using the new security features
-        if (!loginUser((int)$_SESSION['login_id'], 0))
-        {
-            $this->fcmsError->setMessage(T_('You could not be logged in using enhanced security.'));
-            return false;
-        }
+            $sql = "UPDATE `fcms_users`
+                    SET `password` = '0',
+                        `phpass` = ?
+                    WHERE `id` = ?";
 
-        // Now, lets delete the old style login info
-        if (isset($_SESSION['login_id'])) { unset($_SESSION['login_id']); }
-        if (isset($_SESSION['login_uname'])) { unset($_SESSION['login_uname']); }
-        if (isset($_SESSION['login_pw'])) { unset($_SESSION['login_pw']); }
-        if (isset($_COOKIE['fcms_login_id'])) { setcookie('fcms_login_id', '', time() - 3600, '/'); }
-        if (isset($_COOKIE['fcms_login_uname'])) { setcookie('fcms_login_uname', '', time() - 3600, '/'); }
-        if (isset($_COOKIE['fcms_login_pw'])) { setcookie('fcms_login_pw', '', time() - 3600, '/'); }
+            $params = array($hashedPassword, (int)$_SESSION['login_id']);
+            if (!$this->fcmsDatabase->update($sql, $params))
+            {
+                $this->fcmsError->setMessage(T_('Your password could not be upgraded using enhanced security.'));
+                return false;
+            }
+
+            // We need to login the user again using the new security features
+            if (!loginUser((int)$_SESSION['login_id'], 0))
+            {
+                $this->fcmsError->setMessage(T_('You could not be logged in using enhanced security.'));
+                return false;
+            }
+
+            // Now, lets delete the old style login info
+            if (isset($_SESSION['login_id'])) { unset($_SESSION['login_id']); }
+            if (isset($_SESSION['login_uname'])) { unset($_SESSION['login_uname']); }
+            if (isset($_SESSION['login_pw'])) { unset($_SESSION['login_pw']); }
+            if (isset($_COOKIE['fcms_login_id'])) { setcookie('fcms_login_id', '', time() - 3600, '/'); }
+            if (isset($_COOKIE['fcms_login_uname'])) { setcookie('fcms_login_uname', '', time() - 3600, '/'); }
+            if (isset($_COOKIE['fcms_login_pw'])) { setcookie('fcms_login_pw', '', time() - 3600, '/'); }
+        }
 
         return true;
     }
