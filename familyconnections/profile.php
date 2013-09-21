@@ -18,7 +18,7 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('awards', 'familytree', 'profile', 'image', 'datetime', 'address', 'addressbook', 'phone', 'gallery');
+load('awards', 'FamilyTree', 'profile', 'image', 'datetime', 'address', 'addressbook', 'phone', 'gallery');
 
 init();
 
@@ -451,7 +451,7 @@ Event.observe(window, \'load\', function() {
 
         $this->displayHeader($memberId);
 
-        $awards->displayAward($memberId, $type);
+        $this->fcmsAward->displayAward($memberId, $type);
 
         $this->displayFooter($memberId);
     }

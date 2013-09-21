@@ -10,7 +10,6 @@
 class Image
 {
     var $db;
-    var $tzOffset;
     var $currentUserId;
     /**
      * error 
@@ -45,7 +44,6 @@ class Image
     function Image ($currentUserId)
     {
         $this->currentUserId    = (int)$currentUserId;
-        $this->tzOffset         = getTimezone($this->currentUserId);
         $this->error            = 0;
         $this->resizeSquare     = false;
         $this->uniqueName       = false;

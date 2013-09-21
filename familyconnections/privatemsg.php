@@ -195,7 +195,7 @@ Event.observe(window, \'load\', function() {
         $sql = "SELECT `id`
                 FROM `fcms_users` 
                 WHERE `activated` > 0
-                AND `password` != 'NONMEMBER'";
+                AND `phpass` != 'NONMEMBER'";
 
         $rows = $this->fcmsDatabase->getRows($sql);
         if ($rows === false)

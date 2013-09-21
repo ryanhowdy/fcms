@@ -18,7 +18,7 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('datetime', 'addressbook', 'alerts', 'phone', 'address');
+load('datetime', 'addressbook', 'alerts', 'phone', 'address', 'FormValidator');
 
 init();
 
@@ -472,6 +472,17 @@ Event.observe(window, \'load\', function() {
         $work    = strip_tags($_POST['work']);
         $cell    = strip_tags($_POST['cell']);
 
+        $validator = new FormValidator();
+
+        $errors = $validator->validate($_POST, $this->fcmsBook->getProfile('add'));
+        if ($errors !== true)
+        {
+            displayErrors($errors);
+            $this->fcmsBook->displayAddForm();
+            $this->displayFooter();
+            return;
+        }
+
         $pw = 'NONMEMBER';
 
         if (isset($_POST['private']))
@@ -480,7 +491,7 @@ Event.observe(window, \'load\', function() {
         }
 
         $sql = "INSERT INTO `fcms_users` (
-                    `access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`
+                    `access`, `joindate`, `fname`, `lname`, `email`, `username`, `phpass`
                 ) VALUES (
                     ?, '0000-00-00 00:00:00', ?, ?, ?, ?, ?
                 )";
@@ -576,8 +587,10 @@ Event.observe(window, \'load\', function() {
      */
     function displayDeleteSubmit ()
     {
-        $aid = (int)$_GET['delete'];
+        $aid = $_GET['delete'];
         $cat = $_GET['cat'];
+
+        $validator = new FormValidator();
 
         if ($this->fcmsUser->access >= 2)
         {
@@ -591,7 +604,17 @@ Event.observe(window, \'load\', function() {
             return;
         }
 
-        $sql = "SELECT a.`user`, u.`password`
+        $errors = $validator->validate($_GET, $this->fcmsBook->getProfile('delete'));
+        if ($errors !== true)
+        {
+            $this->displayHeader();
+            displayErrors($errors);
+            $this->fcmsBook->displayAddressList($cat);
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "SELECT a.`user`, u.`phpass`
                 FROM `fcms_address` AS a, `fcms_users` AS u
                 WHERE a.`id` = ?
                 AND a.`user` = u.`id`";
@@ -607,9 +630,9 @@ Event.observe(window, \'load\', function() {
         }
 
         $user = $r['user'];
-        $pass = $r['password'];
+        $pass = $r['phpass'];
 
-        if ($r['password'] !== 'NONMEMBER' && $r['password'] !== 'PRIVATE')
+        if ($r['phpass'] !== 'NONMEMBER' && $r['phpass'] !== 'PRIVATE')
         {
             $this->displayHeader();
 

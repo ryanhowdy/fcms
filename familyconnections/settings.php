@@ -18,7 +18,7 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube', 'instagram', 'familynews', 'picasa');
+load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube', 'instagram', 'familynews', 'picasa', 'phpass');
 
 init();
 
@@ -420,11 +420,12 @@ Event.observe(window, \'load\', function() {
 
         if (isset($_POST['pass']) && !empty($_POST['pass']))
         {
-            $sql      .= "password = ?, ";
-            $params[]  = md5($_POST['pass']);
+            $sql .= "phpass = ?, ";
 
-            $orig_pass            = $_SESSION['login_pw'];
-            $_SESSION['login_pw'] = md5($_POST['pass']);
+            $hasher   = new PasswordHash(8, FALSE);
+            $params[] = $hasher->HashPassword($_POST['pass']);
+
+            $orig_pass = 1;
         }
 
         $sql .= "`email` = ?
@@ -600,10 +601,14 @@ Event.observe(window, \'load\', function() {
 
         $params = array();
 
+        $changedAdvancedUploader = false;
+
         if ($_POST['advanced_upload'])
         {
             $sql     .= "`advanced_upload` = ?, ";
             $params[] = $_POST['advanced_upload'] == 'yes' ? 1 : 0;
+
+            $changedAdvancedUploader = true;
         }
         if ($_POST['advanced_tagging'])
         {
@@ -651,6 +656,14 @@ Event.observe(window, \'load\', function() {
             }
 
             displayOkMessage();
+        }
+
+        // We may need to reset the fcms_uploader_type
+        // If we were using advanced, then turned it off
+        // we don't want to display the advanced next time
+        if ($changedAdvancedUploader && isset($_SESSION['fcms_uploader_type']))
+        {
+            unset($_SESSION['fcms_uploader_type']);
         }
 
         $this->fcmsSettings->displaySettings();
@@ -966,8 +979,6 @@ Event.observe(window, \'load\', function() {
                 'secret' => $config['fb_secret'],
             ));
 
-            $facebook->setAccessToken($accessToken);
-
             // Check if the user is logged in and authed
             $fbUser    = $facebook->getUser();
             $fbProfile = '';
@@ -993,7 +1004,10 @@ Event.observe(window, \'load\', function() {
             }
             else
             {
-                $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
+                $params = array(
+                    'scope'        => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access',
+                    'redirect_uri' => $callbackUrl
+                );
 
                 $status = T_('Not Connected');
                 $link   = '<a href="'.$facebook->getLoginUrl($params).'">'.T_('Connect').'</a>';
@@ -1028,14 +1042,25 @@ Event.observe(window, \'load\', function() {
               'secret' => $data['fb_secret'],
             ));
 
-            $accessToken = $facebook->getAccessToken();
+            $fbUserId = $facebook->getUser();
+            if ($fbUserId)
+            {
+                try
+                {
+                    $fbProfile = $facebook->api('/me');
+                }
+                catch (FacebookApiException $e)
+                {
+                    $fbUserId = null;
+                }
+            }
 
             $sql = "UPDATE `fcms_user_settings`
                     SET `fb_access_token` = ?
                     WHERE `user` = ?";
 
             $params = array(
-                $accessToken,
+                $fbUserId,
                 $this->fcmsUser->id
             );
 
@@ -1060,6 +1085,7 @@ Event.observe(window, \'load\', function() {
             </div>';
 
             $this->displayFooter();
+            return;
         }
 
         header("Location: settings.php?view=facebook");

@@ -60,7 +60,7 @@ class AddressBook
         $cat = cleanOutput($cat);
 
         $sql = "SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `country`, `address`, `city`, `state`, 
-                    `zip`, `home`, `work`, `cell`, `email`, `password` 
+                    `zip`, `home`, `work`, `cell`, `email`, `phpass` 
                 FROM `fcms_address` AS a, `fcms_users` AS u 
                 WHERE a.`user` = u.`id` 
                 AND a.`id` = ?";
@@ -87,7 +87,7 @@ class AddressBook
         {
             $edit_del = '<li id="edit"><a href="?cat='.$cat.'&amp;edit='.$r['id'].'">'.T_('Edit').'</a></li>';
 
-            if ($r['password'] == 'NONMEMBER' || $r['password'] == 'PRIVATE')
+            if ($r['phpass'] == 'NONMEMBER' || $r['phpass'] == 'PRIVATE')
             {
                 $edit_del .='
                         <li id="delete"><a id="del_address" href="?cat='.$cat.'&amp;delete='.$r['id'].'">'.T_('Delete').'</a></li>';
@@ -286,10 +286,10 @@ class AddressBook
                 FROM `fcms_users` AS u, `fcms_address` as a 
                 WHERE u.`id` = a.`user` 
                 AND (
-                    `password` != 'PRIVATE' 
+                    `phpass` != 'PRIVATE' 
                     OR (
                         a.`created_id` = ".$this->fcmsUser->id." 
-                        AND `password` = 'PRIVATE' 
+                        AND `phpass` = 'PRIVATE' 
                     )
                 )
                 ORDER BY `lname`";
@@ -302,8 +302,8 @@ class AddressBook
                         `country`, `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
-                    AND `password` != 'NONMEMBER' 
-                    AND `password` != 'PRIVATE' 
+                    AND `phpass` != 'NONMEMBER' 
+                    AND `phpass` != 'PRIVATE' 
                     ORDER BY `lname`";
         }
         else if ($category == 'non')
@@ -313,7 +313,7 @@ class AddressBook
                         `country`, `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
-                    AND `password` = 'NONMEMBER' 
+                    AND `phpass` = 'NONMEMBER' 
                     ORDER BY `lname`";
         }
         else if ($category == 'my')
@@ -324,7 +324,7 @@ class AddressBook
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
                     AND a.`created_id` = ".$this->fcmsUser->id." 
-                    AND `password` = 'PRIVATE' 
+                    AND `phpass` = 'PRIVATE' 
                     ORDER BY `lname`";
         }
 
@@ -523,11 +523,11 @@ class AddressBook
         $country_list    = buildCountryList();
         $selected        = getDefaultCountry();
         $country_options = buildHtmlSelectOptions($country_list, $selected);
+        $validator       = new FormValidator();
 
         // TODO
         // Make this a removable alert message (part of Alerts table)
         echo '
-            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form id="addressbook_form" action="addressbook.php" method="post">
                 <p class="info-alert">
                     '.T_('Please only add addresses for Non-members. Anyone who is a member of this website must add/update their own address.').'
@@ -538,26 +538,14 @@ class AddressBook
                         <div class="field-label"><label for="fname"><b>'.T_('First Name').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="fname" id="fname" size="25"/></div>
                     </div>
-                    <script type="text/javascript">
-                        var ffname = new LiveValidation(\'fname\', { onlyOnSubmit: true });
-                        ffname.add(Validate.Presence, {failureMessage: ""});
-                    </script>
                     <div class="field-row">
                         <div class="field-label"><label for="lname"><b>'.T_('Last Name').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="lname" id="lname" size="25"/></div>
                     </div>
-                    <script type="text/javascript">
-                        var flname = new LiveValidation(\'lname\', { onlyOnSubmit: true });
-                        flname.add(Validate.Presence, {failureMessage: ""});
-                    </script>
                     <div class="field-row">
                         <div class="field-label"><label for="email"><b>'.T_('Email').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="email" id="email" size="50"/></div>
                     </div>
-                    <script type="text/javascript">
-                        var femail = new LiveValidation(\'email\', { onlyOnSubmit: true });
-                        femail.add( Validate.Email, { failureMessage: "'.T_('That\'s not a valid email, is it?').'"});
-                    </script>
                     <div class="field-row">
                         <div class="field-label"><label for="country"><b>'.T_('Country').'</b></label></div>
                         <div class="field-widget">
@@ -589,26 +577,14 @@ class AddressBook
                         <div class="field-label"><label for="home"><b>'.T_('Home Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="home" id="home" size="20"/></div>
                     </div>
-                    <script type="text/javascript">
-                        var fhome = new LiveValidation(\'home\', { onlyOnSubmit: true });
-                        fhome.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
-                    </script>
                     <div class="field-row">
                         <div class="field-label"><label for="work"><b>'.T_('Work Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="work" id="work" size="20"/></div>
                     </div>
-                    <script type="text/javascript">
-                        var fwork = new LiveValidation(\'work\', { onlyOnSubmit: true });
-                        fwork.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
-                    </script>
                     <div class="field-row">
                         <div class="field-label"><label for="cell"><b>'.T_('Cell Phone').'</b></label></div>
                         <div class="field-widget"><input class="frm_text" type="text" name="cell" id="cell" size="20"/></div>
                     </div>
-                    <script type="text/javascript">
-                        var fcell = new LiveValidation(\'cell\', { onlyOnSubmit: true });
-                        fcell.add( Validate.Format, { pattern: /^[0-9\.\-\x\s\+\(\)]+$/ } );
-                    </script>
                     <div class="field-row">
                         <div class="field-label"><label for="private"><b>'.T_('Private').'</b></label></div>
                         <div class="field-widget"><input type="checkbox" name="private" id="private"/></div>
@@ -619,6 +595,7 @@ class AddressBook
                         <a href="addressbook.php">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
+                '.$validator->getJsValidation($this->getProfile('add')).'
             </form>';
     }
 
@@ -1148,7 +1125,7 @@ class AddressBook
             }
 
             $sql = "INSERT INTO `fcms_users`
-                        (`access`, `joindate`, `fname`, `lname`, `email`, `username`, `password`)
+                        (`access`, `joindate`, `fname`, `lname`, `email`, `username`, `phpass`)
                     VALUES (3, NOW(), ?, ?, ?, 'NONMEMBER-$uniq', ?)";
 
             $params = array(
@@ -1200,4 +1177,75 @@ class AddressBook
             </p>';
     }
 
+    /**
+     * getProfile 
+     * 
+     * @param string $name 
+     * 
+     * @return array
+     */
+    function getProfile ($name)
+    {
+        $profile = array(
+            'add' => array(
+                'constraints' => array(
+                    'fname' => array(
+                        'required' => 1,
+                    ),
+                    'lname' => array(
+                        'required' => 1,
+                    ),
+                    'email' => array(
+                        'format' => '/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/',
+                    ),
+                    'country' => array(
+                        'required' => 1,
+                        'format'   => '/^[A-Za-z]{2,3}$/',
+                    ),
+                    'home' => array(
+                        'format' => '/^[0-9\.\-\x\s\+\(\)]+$/',
+                    ),
+                    'work' => array(
+                        'format' => '/^[0-9\.\-\x\s\+\(\)]+$/',
+                    ),
+                    'cell' => array(
+                        'format' => '/^[0-9\.\-\x\s\+\(\)]+$/',
+                    )
+                ),
+                'messages' => array(
+                    'constraints' => array(
+                        'fname' => T_('Required'),
+                        'lname' => T_('Required'),
+                    ),
+                    'names' => array(
+                        'fname'   => T_('First Name'),
+                        'lname'   => T_('Last Name'),
+                        'email'   => T_('Email Address'),
+                        'country' => T_('Country'),
+                        'address' => T_('Street Address'),
+                        'city'    => T_('City'),
+                        'state'   => T_('State'),
+                        'zip'     => T_('Zip Code'),
+                        'home'    => T_('Home Phone Number'),
+                        'work'    => T_('Work Phone Number'),
+                        'cell'    => T_('Cellular Phone Number')
+                    )
+                )
+            ),
+            'delete' => array(
+                'constraints' => array(
+                    'delete' => array(
+                        'required' => 1,
+                        'integer'  => 1,
+                    ),
+                    'cat'   => array(
+                        'required' => 1,
+                        'format'   => '/(all|my|members|non)/',
+                    )
+                )
+            )
+        );
+
+        return $profile[$name];
+    }
 }

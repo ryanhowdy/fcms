@@ -6,5 +6,5 @@ before_script:
   - pear install pear.phpunit.de/phpcpd
   - phpenv rehash
 script:
-  - phpcs --extensions=php --ignore=*/familyconnections/inc/thirdparty/* ./
+  - phpcs -ns --extensions=php --report=summary --ignore=*/familyconnections/inc/thirdparty/*,*/familyconnections/inc/chat/* familyconnections/.
   - phpcpd ./

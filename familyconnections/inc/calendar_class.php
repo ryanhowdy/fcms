@@ -472,7 +472,7 @@ class Calendar
 
         foreach($allDayEvents AS $event)
         {
-            $id    = (int)$event['id'];
+            $id    = $event['id'];
             $title = cleanOutput($event['title'], 'html');
             $desc  = cleanOutput($event['desc'], 'html');
 

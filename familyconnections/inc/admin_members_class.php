@@ -504,7 +504,7 @@ class AdminMembers
         }
 
         // Get member list
-        $sql = "SELECT `id`, `username`, `password`,`fname`, `lname`
+        $sql = "SELECT `id`, `username`, `phpass`,`fname`, `lname`
                 FROM `fcms_users` 
                 WHERE `id` != ?";
 
@@ -519,7 +519,7 @@ class AdminMembers
 
         foreach ($rows as $row)
         {
-            if ($row['password'] == 'NONMEMBER')
+            if ($row['phpass'] == 'NONMEMBER')
             {
                 $members[$row['id']] = $row['lname'].', '.$row['fname'].' ('.T_('Non-member').')';
                 continue;
@@ -630,14 +630,17 @@ class AdminMembers
                     u.`dob_year`, u.`dob_month`, u.`dob_day`, 
                     a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`bio`
                 FROM `fcms_users` AS u, `fcms_address` AS a
-                WHERE u.`id` IN ('$id', '$merge') 
+                WHERE u.`id` IN (?, ?) 
                 AND u.`id` = a.`user`";
-        if (!$this->db->query($sql))
+
+        $rows = $this->fcmsDatabase->getRows($sql, array($id, $merge));
+        if ($rows === false)
         {
             $this->fcmsError->displayError();
             return;
         }
-        while ($r = $this->db->get_row())
+
+        foreach ($rows as $r)
         {
             $members[$r['id']] = $r;
         }
@@ -1180,31 +1183,40 @@ class AdminMembers
 
         if ($view == 'members')
         {
-            $sql .= "WHERE `password` != 'NONMEMBER'
-                     AND `password` != 'PRIVATE' ";
+            $sql .= "WHERE `phpass` != 'NONMEMBER'
+                     AND `phpass` != 'PRIVATE'
+                     OR (
+                         `phpass` IS NULL
+                         AND `password` != 'NONMEMBER'
+                         AND `password` != 'PRIVATE'
+                     ) ";
         }
         elseif ($view == 'non')
         {
-            $sql .= "WHERE `password` = 'NONMEMBER' ";
+            $sql .= "WHERE `phpass` = 'NONMEMBER'
+                     OR (
+                        `phpass` IS NULL
+                        AND `password` = 'NONMEMBER'
+                     )";
         }
         
         // Search - one or valid search parameters
         if ($valid_search < 1)
         {
-            if (strlen($fname) > 0)
-            {
-                $sql     .= "AND `fname` LIKE ? ";
-                $params[] = $fname;
+            if (strlen($fname) > 0) 
+            {    
+                $sql     .= $view == 'all' ? "WHERE `fname` LIKE ? " : "AND `fname` LIKE ? ";
+                $params[] = "%$fname%";
             }
-            if (strlen($lname) > 0)
-            {
-                $sql     .= "AND `lname` LIKE ? ";
-                $params[] = $lname;
+            if (strlen($lname) > 0) 
+            {    
+                $sql     .= $view == 'all' ? "WHERE `lname` LIKE ? " : "AND `lname` LIKE ? ";
+                $params[] = "%$lname%";
             }
-            if (strlen($uname) > 0)
-            {
-                $sql     .= "AND `username` LIKE ? ";
-                $params[] = $uname;
+            if (strlen($uname) > 0) 
+            {    
+                $sql     .= $view == 'all' ? "WHERE `username` LIKE ? " : "AND `username` LIKE ? ";
+                $params[] = "%$uname%";
             }
 
             $sql .= "ORDER BY `id` LIMIT $from, $perPage";
@@ -1229,8 +1241,14 @@ class AdminMembers
         // Display the member list
         foreach ($rows as $r)
         {
-            $member = ($r['password'] == 'NONMEMBER') ? T_('No') : T_('Yes');
-            $active = ($r['activated'] <= 0)          ? T_('No') : T_('Yes');
+            $member = ($r['phpass'] == 'NONMEMBER') ? T_('No') : T_('Yes');
+
+            if (is_null($r['phpass']))
+            {
+                $member = ($r['password'] == 'NONMEMBER') ? T_('No') : T_('Yes');
+            }
+
+            $active = ($r['activated'] <= 0)        ? T_('No') : T_('Yes');
 
             if ($r['id'] > 1)
             {
@@ -1349,253 +1367,96 @@ class AdminMembers
     /**
      * mergeMember 
      * 
-     * @param int $id    The id of the current member
-     * @param int $merge The id of the user you are merging with
+     * Will change all occurrances of $fromId to $toId in the db.
      * 
-     * @return void
+     * @param int $toId   The id of the good member
+     * @param int $fromId The id of the old (bad) member - will be deleted
+     * 
+     * @return boolean
      */
-    function mergeMember ($id, $merge)
+    function mergeMember ($toId, $fromId)
     {
-        $id    = (int)$_POST['id'];
-        $merge = (int)$_POST['merge'];
-
-        // fcms_address
-
-        // fcms_alerts
-        $sql = "DELETE FROM `fcms_alerts`
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+        if (!ctype_digit("$toId") || !ctype_digit("$fromId"))
         {
-            $this->fcmsError->displayError();
-            die();
+            echo '<p class="error-alert">Invalid ID(s) passed to mergeMember().</p>';
+            $this->fcmsError->add(array(
+                'message' => 'Invalid ID',
+                'details' => '<p>Invalid ID passed to mergeMember().</p>'
+            ));
+            return false;
         }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_alerts').'<br/>';
 
-        // fcms_board_posts
-        $sql = "UPDATE `fcms_board_posts`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
+        $configuration = array(
+            // Table Name                           Column Name(s)
+            array('fcms_address',                   ''),
+            array('fcms_alerts',                    'user'),
+            array('fcms_board_posts',               'user'),
+            array('fcms_board_threads',             array('started_by', 'updated_by')),
+            array('fcms_calendar',                  'created_by'),
+            array('fcms_category',                  'user'),
+            array('fcms_changelog',                 'user'),
+            array('fcms_chat_messages',             ''),
+            array('fcms_chat_online',               ''),
+            array('fcms_config',                    ''),
+            array('fcms_documents',                 'user'),
+            array('fcms_gallery_category_comment',  'created_id'),
+            array('fcms_gallery_external_photo',    ''),
+            array('fcms_gallery_photos',            'user'),
+            array('fcms_gallery_photos_tags',       'user'),
+            array('fcms_gallery_photo_comment',     'user'),
+            array('fcms_invitation',                'user'),
+            array('fcms_navigation',                ''),
+            array('fcms_news',                      'user'),
+            array('fcms_news_comments',             'user'),
+            array('fcms_notification',              array('user', 'created_id')),
+            array('fcms_polls',                     ''),
+            array('fcms_poll_comment',              'created_id'),
+            array('fcms_poll_options',              ''),
+            array('fcms_poll_votes',                'user'),
+            array('fcms_prayers',                   'user'),
+            array('fcms_privatemsg',                array('to', 'from')),
+            array('fcms_recipes',                   'user'),
+            array('fcms_recipe_comment',            'user'),
+            array('fcms_relationship',              array('user', 'rel_user')),
+            array('fcms_schedule',                  ''),
+            array('fcms_status',                    'user'),
+            array('fcms_users',                     ''),
+            array('fcms_user_awards',               'user'),
+            array('fcms_user_settings',             ''),
+            array('fcms_video',                     array('created_id', 'updated_id')),
+            array('fcms_video_comment',             array('created_id', 'updated_id')),
+        );
+
+        foreach ($configuration as $config)
         {
-            $this->fcmsError->displayError();
-            die();
+            $tableName      = $config[0];
+            $userFieldNames = $config[1];
+
+            if (!is_array($userFieldNames))
+            {
+                $userFieldNames = array($userFieldNames);
+            }
+
+            foreach ($userFieldNames as $fieldName)
+            {
+                // skip tables without user id fields in them
+                if (empty($fieldName))
+                {
+                    continue;
+                }
+
+                $sql = "UPDATE `$tableName`
+                        SET `$fieldName` = ?
+                        WHERE `$fieldName` = ?";
+
+                if (!$this->fcmsDatabase->update($sql, array($toId, $fromId)))
+                {
+                    return false;
+                }
+            }
+            echo sprintf(T_('Merge [%s] complete.'), $tableName).'<br/>';
         }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_board_posts').'<br/>';
 
-        // fcms_board_thread
-        $sql = "UPDATE `fcms_board_threads`
-                SET `started_by` = '$id'
-                WHERE `started_by` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        $sql = "UPDATE `fcms_board_threads`
-                SET `updated_by` = '$id'
-                WHERE `updated_by` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_board_threads').'<br/>';
-
-        // fcms_calendar
-        $sql = "UPDATE `fcms_calendar`
-                SET `created_by` = '$id'
-                WHERE `created_by` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_calendar').'<br/>';
-
-        // fcms_category
-        $sql = "UPDATE `fcms_category`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_category').'<br/>';
-
-        // fcms_chat_messages
-
-        // fcms_chat_users
-
-        // fcms_config
-
-        // fcms_documents
-        $sql = "UPDATE `fcms_documents`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_documents').'<br/>';
-
-        // fcms_gallery_photo_comments
-        $sql = "UPDATE `fcms_gallery_photo_comment`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_photo_comment').'<br/>';
-
-        // fcms_gallery_photos
-        $sql = "UPDATE `fcms_gallery_photos`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_photos').'<br/>';
-
-        // fcms_gallery_photos_tags
-        $sql = "UPDATE `fcms_gallery_photos_tags`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_gallery_photos_tags').'<br/>';
-
-        // fcms_navigation
-
-        // fcms_news
-        $sql = "UPDATE `fcms_news`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_news').'<br/>';
-
-        // fcms_news_comments
-        $sql = "UPDATE `fcms_news_comments`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_news_comments').'<br/>';
-
-        // fcms_polls
-
-        // fcms_poll_options
-
-        // fcms_poll_votes
-        $sql = "UPDATE `fcms_poll_votes`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_poll_votes').'<br/>';
-
-        // fcms_prayers
-        $sql = "UPDATE `fcms_prayers`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_prayers').'<br/>';
-
-        // fcms_privatemsg
-        $sql = "UPDATE `fcms_privatemsg`
-                SET `to` = '$id'
-                WHERE `to` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        $sql = "UPDATE `fcms_privatemsg`
-                SET `from` = '$id'
-                WHERE `from` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_privatemsg').'<br/>';
-
-        // fcms_recipes
-        $sql = "UPDATE `fcms_recipes`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_recipes').'<br/>';
-
-        // fcms_recipe_comment
-        $sql = "UPDATE `fcms_recipe_comment`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_recipe_comment').'<br/>';
-
-        // fcms_relationship
-        $sql = "UPDATE `fcms_relationship`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        $sql = "UPDATE `fcms_relationship`
-                SET `rel_user` = '$id'
-                WHERE `rel_user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_relationship').'<br/>';
-
-        // fcms_users
-
-        // fcms_user_awards
-        $sql = "UPDATE `fcms_user_awards`
-                SET `user` = '$id'
-                WHERE `user` = '$merge'";
-        if (!$this->db->query($sql))
-        {
-            $this->fcmsError->displayError();
-            die();
-        }
-        echo sprintf(T_('Merge [%s] complete.'), 'fcms_user_awards').'<br/>';
-
-        // fcms_user_settings
+        return true;
     }
 }

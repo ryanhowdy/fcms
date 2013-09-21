@@ -227,7 +227,7 @@ Event.observe(window, \'load\', function() {
             <div class="info-alert">
                 <h2>'.T_('Not connected to YouTube.').'</h2>
                 <p>'.T_('The video gallery relies on YouTube.  You must create a YouTube account and connect it with your Family Connections account.').'</p>
-                <p><a href="settings.php?view=socialmedia">'.T_('Connect to YouTube').'</a></p>
+                <p><a href="settings.php?view=youtube">'.T_('Connect to YouTube').'</a></p>
             </div>';
 
             $this->displayFooter();

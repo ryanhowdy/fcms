@@ -105,6 +105,15 @@ function load()
             Zend_Loader::loadClass('Zend_Gdata_AuthSub');
             Zend_Loader::loadClass('Zend_Gdata_Photos_AlbumQuery');
         }
+        elseif ($include == 'phpass')
+        {
+            include_once THIRDPARTY.'phpass/PasswordHash.php';
+        }
+        elseif (substr($include, 0, 7) == 'Upload_')
+        {
+            $path = str_replace('_', '/', $include);
+            require_once INC.$path.'.php';
+        }
         else
         {
             printr(debug_backtrace());
@@ -198,9 +207,9 @@ function getLanguage ()
 {
     global $fcmsDatabase, $fcmsError;
 
-    if (isset($_SESSION['login_id']))
+    if (isset($_SESSION['fcms_id']))
     {
-        $id = (int)$_SESSION['login_id'];
+        $id = (int)$_SESSION['fcms_id'];
 
         $sql = "SELECT `language` 
                 FROM `fcms_user_settings` 
@@ -392,25 +401,23 @@ function checkScheduler ($subdir = '')
  */
 function isLoggedIn ()
 {
-    global $fcmsDatabase, $fcmsError;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
 
     // User has a session
-    if (isset($_SESSION['login_id']))
+    if (isset($_SESSION['fcms_id']))
     {
-        $id   = (int)$_SESSION['login_id'];
-        $user = $_SESSION['login_uname'];
-        $pass = $_SESSION['login_pw'];
+        $id    = (int)$_SESSION['fcms_id'];
+        $token = $_SESSION['fcms_token'];
     }
     // User has a cookie
-    elseif (isset($_COOKIE['fcms_login_id']))
+    elseif (isset($_COOKIE['fcms_cookie_id']))
     {
-        $_SESSION['login_id']    = (int)$_COOKIE['fcms_login_id'];
-        $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-        $_SESSION['login_pw']    = $_COOKIE['fcms_login_pw'];
+        $_SESSION['fcms_id']    = (int)$_COOKIE['fcms_cookie_id'];
+        $_SESSION['fcms_token'] = $_COOKIE['fcms_cookie_token'];
 
-        $id   = $_SESSION['login_id'];
-        $user = $_SESSION['login_uname'];
-        $pass = $_SESSION['login_pw'];
+        $id    = $_SESSION['fcms_id'];
+        $token = $_SESSION['fcms_token'];
     }
     // User has nothing
     else
@@ -428,8 +435,8 @@ function isLoggedIn ()
         exit();
     }
 
-    // User's session/cookie credentials are good
-    if (checkLoginInfo($id, $user, $pass))
+    // Verify the token is good
+    if (isValidLoginToken($id, $token))
     {
         $sql = "SELECT `access` AS 'val'
                 FROM `fcms_users`
@@ -464,15 +471,13 @@ function isLoggedIn ()
     // The user's session/cookie credentials are bad
     else
     {
-        unset($_SESSION['login_id']);
-        unset($_SESSION['login_uname']);
-        unset($_SESSION['login_pw']);
+        unset($_SESSION['fcms_id']);
+        unset($_SESSION['fcms_token']);
 
-        if (isset($_COOKIE['fcms_login_id']))
+        if (isset($_COOKIE['fcms_cookie_id']))
         {
-            setcookie('fcms_login_id', '', time() - 3600, '/');
-            setcookie('fcms_login_uname', '', time() - 3600, '/');
-            setcookie('fcms_login_pw', '', time() - 3600, '/');
+            setcookie('fcms_cookie_id', '', time() - 3600, '/');
+            setcookie('fcms_cookie_token', '', time() - 3600, '/');
         }
         header('Location: '.URL_PREFIX.'index.php?err=login');
         exit();
@@ -505,7 +510,7 @@ function checkSiteStatus ()
     echo '
 <html>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_pgettext('Language Code for this translation', 'lang').'" lang="'.T_pgettext('Language Code for this translation', 'lang').'">
 <head>
 <title>'.T_('Site is currently turned off...').'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>

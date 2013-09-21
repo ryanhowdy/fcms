@@ -18,7 +18,14 @@ define('GALLERY_PREFIX', '');
 
 require URL_PREFIX.'fcms.php';
 
-load('gallery', 'socialmedia', 'datetime', 'image', 'picasa');
+load(
+    'Upload_PhotoGallery',
+    'gallery', 
+    'socialmedia', 
+    'datetime', 
+    'image', 
+    'picasa'
+);
 
 init('gallery/');
 
@@ -195,6 +202,10 @@ class Page
                     $this->displayEditCategoriesForm();
                 }
             }
+        }
+        elseif (isset($_POST['javaUpload']))
+        {
+            $this->displayJavaUploadFormSubmit();
         }
         elseif (isset($_POST['addcatcom']))
         {
@@ -517,7 +528,7 @@ Event.observe(window, \'load\', function() {
         $uploadsPath = getUploadsAbsolutePath();
 
         // Get photo info
-        $sql = "SELECT `user`, `category`, `filename` 
+        $sql = "SELECT `user`, `category`, `filename`, `external_id`
                 FROM `fcms_gallery_photos` 
                 WHERE `id` = ?";
 
@@ -530,9 +541,10 @@ Event.observe(window, \'load\', function() {
             return;
         }
 
-        $photoFilename = $filerow['filename'];
-        $photoUserId   = $filerow['user'];
-        $photoCategory = $filerow['category'];
+        $photoFilename   = $filerow['filename'];
+        $photoUserId     = $filerow['user'];
+        $photoCategory   = $filerow['category'];
+        $photoExternalId = $filerow['external_id'];
         
         // Remove the photo from the DB
         $sql = "DELETE FROM `fcms_gallery_photos` 
@@ -556,9 +568,20 @@ Event.observe(window, \'load\', function() {
             return;
         }
 
+        // Remove any external photos for this photo
+        $sql = "DELETE FROM `fcms_gallery_external_photo`
+                WHERE `id` = ?";
+        if (!$this->fcmsDatabase->delete($sql, $photoExternalId))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
         $filePath  = $uploadsPath.'photos/member'.$photoUserId.'/'.basename($photoFilename);
         $thumbPath = $uploadsPath.'photos/member'.$photoUserId.'/tb_'.basename($photoFilename);
-        $fullPath = $uploadsPath.'photos/member'.$photoUserId.'/full_'.basename($photoFilename);
+        $fullPath  = $uploadsPath.'photos/member'.$photoUserId.'/full_'.basename($photoFilename);
 
         // Remove the Photo from the server
         if (file_exists($filePath))
@@ -617,19 +640,47 @@ Event.observe(window, \'load\', function() {
 
         $this->fcmsPhotoGallery->displayGalleryMenu('none');
 
-        if (isset($_SESSION['error_message']))
+        // Display any errors from last upload
+        if ($this->fcmsError->hasAnyError())
         {
-            echo '
-                <div class="error-alert">
-                    '.$_SESSION['error_message'].'
-                </div>';
+            $this->fcmsError->displayError();
+        }
 
-            unset($_SESSION['error_message']);
+        // Figure out the upload type
+        $type = null;
+
+        // Get selected type (user clicked on type from menu)
+        if (isset($_GET['type']))
+        {
+            $type = $_GET['type'];
+
+            if ($_GET['type'] == 'upload')
+            {
+                $type = null;
+                if (usingAdvancedUploader($this->fcmsUser->id))
+                {
+                    $type = 'java';
+                }
+            }
+        }
+        // Use last upload type (user clicked on 'Upload Photos' button
+        elseif (isset($_SESSION['fcms_uploader_type']))
+        {
+            $type = $_SESSION['fcms_uploader_type'];
+        }
+        else
+        {
+            if (usingAdvancedUploader($this->fcmsUser->id))
+            {
+                $type = 'java';
+            }
         }
 
         // Turn on advanced uploader
         if (isset($_GET['advanced']))
         {
+            $type = 'java';
+
             $sql = "UPDATE `fcms_user_settings`
                     SET `advanced_upload` = '1'
                     WHERE `user` = ?";
@@ -637,40 +688,17 @@ Event.observe(window, \'load\', function() {
             if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
             {
                 $this->fcmsError->displayError();
-            }
-        }
-
-        // Special upload type?
-        if (isset($_GET['type']))
-        {
-            if ($_GET['type'] == 'instagram')
-            {
-                $this->fcmsPhotoGallery->displayInstagramUploadForm();
-                $this->displayFooter();
-                return;
-            }
-            if ($_GET['type'] == 'picasa')
-            {
-                $this->fcmsPhotoGallery->displayPicasaUploadForm();
                 $this->displayFooter();
                 return;
             }
         }
 
-        // Advanced Uploader
-        if (usingAdvancedUploader($this->fcmsUser->id))
-        {
-            $this->fcmsPhotoGallery->displayJavaUploadForm();
-        }
-        // Basic Uploader
-        else
-        {
-            $overrideMemoryLimit = isset($_GET['memory']) ? true : false;
-
-            $this->fcmsPhotoGallery->displayUploadForm($overrideMemoryLimit);
-        }
+        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $type);
+        $this->Uploader->displayForm();
 
         $this->displayFooter();
+
+        return;
     }
 
     /**
@@ -680,87 +708,30 @@ Event.observe(window, \'load\', function() {
      */
     function displayUploadFormSubmit ()
     {
-        // Catch photos that are too large
-        if ($_FILES['photo_filename']['error'] == 1)
+        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
+
+        $formData = array(
+            'photo'       => $_FILES['photo_filename'],
+            'newCategory' => $_POST['new-category'],
+            'caption'     => $_POST['photo_caption'],
+        );
+
+        $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
+        $formData['rotate']   = isset($_POST['rotate'])   ? $_POST['rotate']   : null;
+
+        if (!$this->Uploader->upload($formData))
         {
-            $max  = ini_get('upload_max_filesize');
-            $link = 'index.php?action=upload&amp;advanced=1';
-
-            $_SESSION['error_message']  = '<p>'.sprintf(T_('Your photo exceeds the maximum size allowed by your PHP settings [%s].'), $max).'</p>';
-            $_SESSION['error_message'] .= '<p>'.sprintf(T_('Would you like to use the <a href="%s">Advanced Photo Uploader</a> instead?.'), $link).'</p>';
-
             header('Location: index.php?action=upload');
             return;
         }
 
-        // Make sure we have a category
-        if (empty($_POST['new-category']) && empty($_POST['category']))
-        { 
-            $_SESSION['error_message']  = '<p>'.T_('You must choose a category first.').'</p>';
-
-            header('Location: index.php?action=upload');
-            return;
-        }
-
-        // Make sure we have a photo
-        if ($_FILES['photo_filename']['error'] == 4)
-        {
-            $_SESSION['error_message']  = '<p>'.T_('You must choose a photo first.').'</p>';
-
-            header('Location: index.php?action=upload');
-            return;
-        }
-
-        // Create a new category
-        if (!empty($_POST['new-category']))
-        {
-            $newCategory = strip_tags($_POST['new-category']);
-
-            $sql = "INSERT INTO `fcms_category`(`name`, `type`, `user`) 
-                    VALUES (?, 'gallery', ?)";
-
-            $params = array(
-                $newCategory,
-                $this->fcmsUser->id
-            );
-
-            $categoryId = $this->fcmsDatabase->insert($sql, $params);
-            if ($categoryId === false)
-            {
-                $this->displayHeader();
-                $this->fcmsError->displayError();
-                $this->displayFooter();
-                return;
-            }
-        }
-        // Existing category
-        else
-        {
-            $categoryId = (int)$_POST['category'];
-        }
-
-        $rotate  = isset($_POST['rotate']) ? $_POST['rotate'] : '0';
-        $caption = strip_tags($_POST['photo_caption']);
-        $memory  = isset($_POST['memory_override']) ? true : false;
-
-        $this->displayHeader();
-
-        $this->fcmsPhotoGallery->displayGalleryMenu('none');
-
-        // Upload photo
-        $newPhotoId = $this->fcmsPhotoGallery->uploadPhoto($categoryId, $_FILES['photo_filename'], $caption, $rotate, $memory);
-
-        // Upload failed
-        if ($newPhotoId == false)
-        {
-            $this->displayFooter();
-            return;
-        }
+        $photoId    = $this->Uploader->getLastPhotoId();
+        $categoryId = $this->Uploader->getLastCategoryId();
 
         // Tag photo
         if (isset($_POST['tagged']))
         {
-            if (!$this->tagMembersInPhoto($newPhotoId, $_POST['tagged']))
+            if (!$this->tagMembersInPhoto($photoId, $_POST['tagged']))
             {
                 // error handled by tagMembersInPhoto()
                 return;
@@ -768,48 +739,38 @@ Event.observe(window, \'load\', function() {
         }
 
         // Email members
-        $sql = "SELECT u.`email`, s.`user` 
-                FROM `fcms_user_settings` AS s, `fcms_users` AS u 
-                WHERE `email_updates` = '1'
-                AND u.`id` = s.`user`";
+        $this->fcmsPhotoGallery->emailMembersNewPhotos($categoryId);
 
-        $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
+        // Redirect to new photo
+        header('Location: index.php?uid='.$this->fcmsUser->id.'&cid='.$categoryId.'&pid='.$photoId);
+        return;
+    }
+
+    /**
+     * displayJavaUploadFormSubmit 
+     * 
+     * @return void
+     */
+    function displayJavaUploadFormSubmit ()
+    {
+        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'java');
+
+        $formData = array(
+            'thumb'       => $_FILES['thumb'],
+            'main'        => $_FILES['main'],
+            'newCategory' => $_POST['new-category'],
+        );
+
+        $formData['full']     = isset($_FILES['full'])    ? $_FILES['full']    : null;
+        $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
+
+        if (!$this->Uploader->upload($formData))
         {
-            $this->fcmsError->displayError();
-            $this->displayFooter();
+            echo "Upload Failure";
             return;
         }
 
-        if (count($rows) > 0)
-        {
-            $name          = getUserDisplayName($this->fcmsUser->id);
-            $subject       = sprintf(T_('%s has added a new photo.'), $name);
-            $url           = getDomainAndDir();
-            $email_headers = getEmailHeaders();
-
-            foreach ($rows as $r)
-            {
-                $to    = getUserDisplayName($r['user']);
-                $email = $r['email'];
-
-                $msg = T_('Dear').' '.$to.',
-
-'.$subject.'
-
-'.$url.'index.php?uid='.$this->fcmsUser->id.'&cid='.$categoryId.'
-
-----
-'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
-
-'.$url.'settings.php
-
-';
-                mail($email, $subject, $msg, $email_headers);
-            }
-        }
-
-        $this->displayFooter();
+        echo "Success";
     }
 
     /**
@@ -876,110 +837,21 @@ Event.observe(window, \'load\', function() {
 
 
         // Upload individual photos
-        if (isset($_POST['photos']))
+        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'instagram');
+
+        $formData = array(
+            'photos' => $_POST['photos'],
+        );
+
+        if (!$this->Uploader->upload($formData))
         {
-            $categoryId  = getUserInstagramCategory($this->fcmsUser->id);
-            $existingIds = getExistingInstagramIds();
-
-            foreach ($_POST['photos'] AS $data)
-            {
-                list($sourceId, $thumbnail, $medium, $full, $caption) = explode('|', $data);
-
-                // Skip existing photos
-                if (isset($existingIds[$sourceId]))
-                {
-                    continue;
-                }
-
-                // Save external paths
-                $sql = "INSERT INTO `fcms_gallery_external_photo`
-                            (`source_id`, `thumbnail`, `medium`, `full`)
-                        VALUES
-                            (?, ?, ?, ?)";
-
-                $params = array(
-                    $sourceId,
-                    $thumbnail,
-                    $medium,
-                    $full
-                );
-
-                $id = $this->fcmsDatabase->insert($sql, $params);
-
-                if ($id === false)
-                {
-                    $this->displayHeader();
-                    $this->fcmsError->displayError();
-                    $this->displayFooter();
-                    return;
-                }
-
-                // Insert new photo
-                $sql = "INSERT INTO `fcms_gallery_photos`
-                            (`date`, `external_id`, `caption`, `category`, `user`)
-                        VALUES
-                            (NOW(), ?, ?, ?, ?)";
-
-                $params = array(
-                    $id,
-                    $caption,
-                    $categoryId,
-                    $this->fcmsUser->id
-                );
-
-                if (!$this->fcmsDatabase->insert($sql, $params))
-                {
-                    $this->displayHeader();
-                    $this->fcmsError->displayError();
-                    $this->displayFooter();
-                    return;
-                }
-            }
-
-
-            // Email members
-            $sql = "SELECT u.`email`, s.`user` 
-                    FROM `fcms_user_settings` AS s, `fcms_users` AS u 
-                    WHERE `email_updates` = '1'
-                    AND u.`id` = s.`user`";
-
-            $rows = $this->fcmsDatabase->getRows($sql);
-            if ($rows === false)
-            {
-                $this->fcmsError->displayError();
-                $this->displayFooter();
-                return;
-            }
-
-            if (count($rows) > 0)
-            {
-                foreach ($rows as $r)
-                {
-                    $name          = getUserDisplayName($this->fcmsUser->id);
-                    $to            = getUserDisplayName($r['user']);
-                    $subject       = sprintf(T_('%s has added new photos.'), $name);
-                    $email         = $r['email'];
-                    $url           = getDomainAndDir();
-                    $email_headers = getEmailHeaders();
-
-                    $msg = T_('Dear').' '.$to.',
-
-'.$subject.'
-
-'.$url.'index.php?uid='.$this->fcmsUser->id.'&cid='.$categoryId.'
-
-----
-'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
-
-'.$url.'settings.php
-
-';
-                    mail($email, $subject, $msg, $email_headers);
-                }
-            }
-
-            header('Location: index.php?uid='.$this->fcmsUser->id.'&cid='.$categoryId);
+            header('Location: index.php?action=upload&type=instagram');
+            return;
         }
+
+        $categoryId = $this->Uploader->getLastCategoryId();
+
+        header("Location: index.php?uid=".$this->fcmsUser->id."&cid=$categoryId");
     }
 
     /**
@@ -989,165 +861,24 @@ Event.observe(window, \'load\', function() {
      */
     function displayPicasaUploadFormSubmit ()
     {
-        // Make sure we have a category
-        if (empty($_POST['new-category']) && empty($_POST['category']))
-        { 
-            $_SESSION['error_message']  = '<p>'.T_('You must choose a category first.').'</p>';
+        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'picasa');
 
+        $formData = array(
+            'photos'      => $_POST['photos'],
+            'albums'      => $_POST['albums'],
+            'picasa_user' => $_POST['picasa_user'],
+            'newCategory' => $_POST['new-category'],
+        );
+
+        $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
+
+        if (!$this->Uploader->upload($formData))
+        {
             header('Location: index.php?action=upload&type=picasa');
             return;
         }
 
-        // Make sure we have an album id
-        if (empty($_POST['albums']))
-        { 
-            $_SESSION['error_message']  = '<p>'.T_('No album was selected.').'</p>';
-
-            header('Location: index.php?action=upload&type=picasa');
-            return;
-        }
-
-
-        // Make sure we have some photos
-        if (empty($_POST['photos']))
-        { 
-            $_SESSION['error_message']  = '<p>'.T_('You must choose at least one photo.').'</p>';
-
-            header('Location: index.php?action=upload&type=picasa');
-            return;
-        }
-
-        // Create a new category
-        if (!empty($_POST['new-category']))
-        {
-            $newCategory = strip_tags($_POST['new-category']);
-
-            $sql = "INSERT INTO `fcms_category`(`name`, `type`, `user`) 
-                    VALUES (?, 'gallery', ?)";
-
-            $params = array(
-                $newCategory,
-                $this->fcmsUser->id
-            );
-
-            $categoryId = $this->fcmsDatabase->insert($sql, $params);
-            if ($categoryId === false)
-            {
-                $this->displayHeader();
-                $this->fcmsError->displayError();
-                $this->displayFooter();
-                return;
-            }
-        }
-        // Existing category
-        else
-        {
-            $categoryId = (int)$_POST['category'];
-        }
-
-        $token   = getUserPicasaSessionToken($this->fcmsUser->id);
-        $albumId = $_POST['albums'];
-        $user    = $_POST['picasa_user'];
-
-        $httpClient    = Zend_Gdata_AuthSub::getHttpClient($token);
-        $picasaService = new Zend_Gdata_Photos($httpClient, "Google-DevelopersGuide-1.0");
-
-        $fullSizePhotos = $this->fcmsPhotoGallery->usingFullSizePhotos();
-
-        $thumbSizes = '150c,600';
-        if ($fullSizePhotos)
-        {
-            $thumbSizes .= ',d';
-        }
-
-        try
-        {
-            $query = new Zend_Gdata_Photos_AlbumQuery();
-            $query->setUser($user);
-            $query->setAlbumId($albumId);
-            $query->setParam('thumbsize', $thumbSizes);
-
-            $albumFeed = $picasaService->getAlbumFeed($query);
-        }
-        catch (Zend_Gdata_App_Exception $e)
-        {
-            $this->fcmsError->add(array(
-                'type'    => 'operation',
-                'message' => T_('Could not get Picasa data.'),
-                'error'   => $e->getMessage(),
-                'file'    => __FILE__,
-                'line'    => __LINE__,
-             ));
-
-            $this->fcmsError->displayError();
-            return;
-        }
-
-        $newPhotoFilenames = array();
-
-        foreach ($albumFeed as $photo)
-        {
-            $id = $photo->getGPhotoId()->text;
-
-            if (!in_array($id, $_POST['photos']))
-            {
-                continue;
-            }
-
-            $thumbs    = $photo->getMediaGroup()->getThumbnail();
-            $thumbnail = $thumbs[0]->getUrl();
-            $medium    = $thumbs[1]->getUrl();
-            $full      = $fullSizePhotos ? $thumbs[2]->getUrl() : '';
-
-            // Get filename extension
-            $this->fcmsImage->name = $thumbnail;
-            $this->fcmsImage->getExtension();
-
-            $extension = $this->fcmsImage->extension;
-
-            // Save photo to db
-            $params = array(
-                $categoryId,
-                $this->fcmsUser->id
-            );
-
-            $sql = "INSERT INTO `fcms_gallery_photos`
-                        (`date`, `category`, `user`)
-                    VALUES 
-                        (NOW(), ?, ?)";
-
-            $newPhotoId = $this->fcmsDatabase->insert($sql, $params);
-            if ($newPhotoId === false)
-            {
-                $this->fcmsError->displayError();
-                return;
-            }
-
-            $newFilename = $newPhotoId.'.'.$extension;
-
-            // Move files to server
-            $this->fcmsPhotoGallery->savePhotoFromSource($thumbnail, 'tb_'.$newFilename);
-            $this->fcmsPhotoGallery->savePhotoFromSource($medium, $newFilename);
-            if ($fullSizePhotos)
-            {
-                $this->fcmsPhotoGallery->savePhotoFromSource($full, 'full_'.$newFilename);
-            }
-
-            $newPhotoFilenames[$newPhotoId] = $newPhotoId.'.'.$extension;
-        }
-
-        foreach ($newPhotoFilenames as $id => $filename)
-        {
-            $sql = "UPDATE `fcms_gallery_photos` 
-                    SET `filename` = ?
-                    WHERE `id`     = ?";
-
-            if (!$this->fcmsDatabase->update($sql, array($filename, $id)))
-            {
-                $this->fcmsError->displayError();
-                return;
-            }
-        }
+        $categoryId = $this->Uploader->getLastCategoryId();
 
         header("Location: index.php?edit-category=$categoryId&user=".$this->fcmsUser->id);
     }

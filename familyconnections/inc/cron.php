@@ -22,9 +22,11 @@
  */
 function runAwardsJob ()
 {
+    global $fcmsError, $fcmsDatabase, $fcmsUser;
+
     include_once 'awards_class.php';
 
-    $awards = new Awards(1);
+    $awards = new Awards($fcmsError, $fcmsDatabase, $fcmsUser);
 
     if (!$awards->calculateMonthlyAwards())
     {

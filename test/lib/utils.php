@@ -2,6 +2,7 @@
 
 define('TEST', dirname(dirname(__FILE__)) . '/');
 define('INC', dirname(dirname(dirname(__FILE__))) . '/inc/');
+define('THIRDPARTY', INC.'thirdparty/');
 
 function connectDatabase ()
 {

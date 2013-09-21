@@ -2,11 +2,11 @@
 
  Create dev/list File
 
-    find . \! -path "./test/*" \! -path "./inc/chat/lib/*" \! -path "./inc/thirdparty/*" -type f -name "*.php" | sort > dev/list
+    find . \! -path "./test/*" \! -path "./dev/*" \! -path "./familyconnections/inc/chat/lib/*" \! -path "./familyconnections/inc/thirdparty/*" -type f -name "*.php" | sort > dev/list
 
  Create POT File
 
-    xgettext --files-from=dev/list --keyword=T_ --keyword=T_ngettext:1,2 --keyword=T_pgettext:1c,2 --language=PHP --no-wrap -o language/messages.pot
+    xgettext --files-from=dev/list --keyword=T_ --keyword=T_ngettext:1,2 --keyword=T_pgettext:1c,2 --language=PHP --no-wrap -o familyconnections/language/messages.pot
 
  Create mo file from po
 

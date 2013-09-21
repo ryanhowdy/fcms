@@ -150,8 +150,13 @@ Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$
         $sql = "SELECT u.`id`, u.`activity`, u.`joindate`, u.`fname`, u.`lname`, u.`sex`, 
                     u.`dob_year`, u.`dob_month`, u.`dob_day`, u.`username`, u.`avatar`, u.`gravatar`
                 FROM `fcms_users` AS u
-                WHERE u.`password` != 'NONMEMBER'
-                AND u.`password` != 'PRIVATE'
+                WHERE u.`phpass` != 'NONMEMBER'
+                AND u.`phpass` != 'PRIVATE'
+                OR (
+                    u.`phpass` IS NULL
+                    AND u.`password` != 'NONMEMBER'
+                    AND u.`password` != 'PRIVATE'
+                )
                 ".$validOrderTypes[$order];
 
         $rows = $this->fcmsDatabase->getRows($sql);

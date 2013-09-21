@@ -103,7 +103,7 @@ function displayHeader ()
 {
     echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_pgettext('Language Code for this translation', 'lang').'" lang="'.T_pgettext('Language Code for this translation', 'lang').'">
 <head>
 <title>Family Connections '.T_('Installation').'</title>
 <link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
@@ -297,7 +297,7 @@ function displayStepTwo ($error = '0')
         <p style="text-align:center">'.T_('Step 2 of 5').'</p>
         <div class="progress"><div style="width:40%"></div></div>';
 
-    $host = '';
+    $host = 'localhost';
     $name = '';
     $user = '';
 
@@ -520,7 +520,7 @@ function displayStepFive ($error = '0')
     $_POST['contact']  = mysql_real_escape_string($_POST['contact']);
 
     // Setup Config
-    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 3.2.2');
+    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 3.3');
 
     // Setup Navigation
     $order  = 0;
@@ -689,8 +689,12 @@ function setupDatabase ()
     include_once 'inc/config_inc.php';
     include_once 'inc/install_inc.php';
     include_once 'inc/utils.php';
+    include_once 'inc/thirdparty/phpass/PasswordHash.php';
 
-    $password   = md5($_POST['password']);
+    // Hash the pw
+    $hasher   = new PasswordHash(8, FALSE);
+    $password = $hasher->HashPassword($_POST['password']);
+
     $connection = mysql_connect($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 
     if (!$connection)

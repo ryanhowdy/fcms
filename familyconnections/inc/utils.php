@@ -140,6 +140,13 @@ function getUserDisplayName ($userid, $display = 0, $isMember = true)
 
     if ($userid <= 0)
     {
+        $fcmsError->add(array(
+            'type'    => 'operation',
+            'message' => 'Invalid user id.',
+            'error'   => $userid,
+            'file'    => __FILE__,
+            'line'    => __LINE__,
+        ));
         return 'unknown';
     }
 
@@ -165,6 +172,13 @@ function getUserDisplayName ($userid, $display = 0, $isMember = true)
 
     if (empty($r))
     {
+        $fcmsError->add(array(
+            'type'    => 'operation',
+            'message' => 'Cannot find user ['.$userid.'].',
+            'error'   => $r,
+            'file'    => __FILE__,
+            'line'    => __LINE__,
+        ));
         return 'unknown';
     }
 
@@ -2329,7 +2343,7 @@ function uploadImages ($filetype, $filename, $filetmpname, $destination, $max_h,
 
     include_once('gallery_class.php');
 
-    $currentUserId = (int)$_SESSION['login_id'];
+    $currentUserId = (int)$_SESSION['fcms_id'];
 
     $gallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
 
@@ -2613,23 +2627,23 @@ function displayMembersOnline ()
 }
 
 /**
- * checkLoginInfo
+ * isValidLoginToken
  * 
- * Checks the user's username/pw combo
+ * Checks the user's token against the db.
  *
- * @param   $userid     the id of the user you want to check
- * @param   $username   the username of the user
- * @param   $password   the password of the user
- * returns  boolean
+ * @param $userid
+ * @param $token
+ *
+ * @return boolean
  */
-function checkLoginInfo ($userid, $username, $password)
+function isValidLoginToken ($userid, $token)
 {
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     $userid = (int)$userid;
 
-    $sql = "SELECT `username`, `password` 
+    $sql = "SELECT `token`
             FROM `fcms_users` 
             WHERE `id` = ? 
             LIMIT 1";
@@ -2640,23 +2654,65 @@ function checkLoginInfo ($userid, $username, $password)
         return false;
     }
 
-    if (count($r) <= 0)
+    if (empty($r))
     {
         return false;
     }
 
-    if ($r['username'] !== $username)
-    {
-        return false;
-    }
-    elseif ($r['password'] !== $password)
-    {
-        return false;
-    }
-    else
+    if ($r['token'] == $token)
     {
         return true;
     }
+
+    return false;
+}
+
+/**
+ * loginUser 
+ * 
+ * Generate token.
+ * Save token in db/session/cookie.
+ * Update user activity.
+ * Reset invalid login attempts
+ * 
+ * @param $userId   int     Id of user logging in.
+ * @param $remember boolean Whether to save token in cookie.
+ * 
+ * @return boolean
+ */
+function loginUser ($userId, $remember)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
+    $token = uniqid('');
+
+    $sql = "UPDATE `fcms_users` 
+            SET `activity` = NOW(),
+                `login_attempts` = '0',
+                `token` = ?
+            WHERE `id` = ?";
+
+    if (!$fcmsDatabase->update($sql, array($token, $userId)))
+    {
+        $fcmsError->setMessage(T_('Could not complete login.'));
+        return false;
+    }
+
+    // Setup Cookie/Session
+    if ($remember >= 1)
+    {
+        setcookie('fcms_cookie_id', $userId, time() + (30*(24*3600)), '/');   // 30 days
+        setcookie('fcms_cookie_token', $token, time() + (30*(24*3600)), '/'); // 30 days
+    }
+
+    $_SESSION['fcms_id']    = $userId;
+    $_SESSION['fcms_token'] = $token;
+
+    // Load up all the good user data
+    $fcmsUser = new User($fcmsError, $fcmsDatabase);
+
+    return true;
 }
 
 /**
@@ -2973,6 +3029,7 @@ function displayWhatsNewAll ()
     $cachedUserData = array();
 
     $position = 1;
+    $older    = true;
 
     // Loop through data
     foreach ($whatsNewData as $r)
@@ -2994,6 +3051,13 @@ function displayWhatsNewAll ()
             {
                 echo '
                 <p><b>'.T_('Yesterday').'</b></p>';
+            }
+            // Older
+            if ($updatedFull < $yesterday_start && $older)
+            {
+                $older = false;
+                echo '
+                <p><b>'.T_('Older').'</b></p>';
             }
         }
 
@@ -3563,6 +3627,12 @@ function getWhatsNewData ($days = 30, $groupByType = false)
 
     $whatsNewData = array();
 
+    $sql2 = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
+            FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
+            WHERE p.`thread` = t.`id` 
+            AND p.`user` = u.`id` 
+            AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY)";
+
     $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
             FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
             WHERE p.`thread` = t.`id` 
@@ -3579,13 +3649,13 @@ function getWhatsNewData ($days = 30, $groupByType = false)
             UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.`created_id` AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
             FROM fcms_address AS a, fcms_users AS u
             WHERE a.user = u.id
-            AND u.`password` = 'NONMEMBER' 
+            AND u.`phpass` = 'NONMEMBER' 
             AND u.`activated` < 1 
             AND a.updated >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
 
             UNION SELECT `id`, `joindate` AS date, 0 AS title, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
             FROM `fcms_users` 
-            WHERE `password` != 'NONMEMBER' 
+            WHERE `phpass` != 'NONMEMBER' 
             AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
     if (usingFamilyNews())
     {
@@ -3594,7 +3664,7 @@ function getWhatsNewData ($days = 30, $groupByType = false)
                  WHERE u.`id` = n.`user` 
                  AND n.`updated` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
                  AND `username` != 'SITENEWS' 
-                 AND `password` != 'SITENEWS'
+                 AND `phpass` != 'SITENEWS'
 
                  UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
                  FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u 
@@ -3686,6 +3756,8 @@ function getWhatsNewData ($days = 30, $groupByType = false)
     $rows = $fcmsDatabase->getRows($sql);
     if ($rows === false)
     {
+        $fcmsError->setMessage(T_('Could not get what\'s new information.'));
+        $fcmsError->displayError();
         return false;
     }
 
@@ -3856,9 +3928,8 @@ function displayStatusUpdateForm ($parent = 0)
     // Facebook option is only good for first status update field, not reply
     if ($parent == 0)
     {
-        $data        = getFacebookConfigData();
-        $accessToken = getUserFacebookAccessToken($fcmsUser->id);
-        $user        = null;
+        $data = getFacebookConfigData();
+        $user = null;
 
         if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
         {
@@ -3866,8 +3937,6 @@ function displayStatusUpdateForm ($parent = 0)
               'appId'  => $data['fb_app_id'],
               'secret' => $data['fb_secret'],
             ));
-
-            $facebook = $facebook->setAccessToken($accessToken);
 
             // Check if the user is logged in and authed
             $user = $facebook->getUser();
@@ -4177,7 +4246,7 @@ function recursive_array_search ($needle, $haystack)
  */
 function printr ($var)
 {
-    echo '<pre>';
+    echo '<pre style="text-align:left; background-color:white; color:#333; padding:20px">';
     print_r($var);
     echo '</pre>';
 }
@@ -4966,7 +5035,7 @@ function getMembersNeedingActivation ()
     $sql = "SELECT `id`, `fname`, `lname`
             FROM `fcms_users`
             WHERE `activated` != 1
-            AND `password` != 'NONMEMBER'
+            AND `phpass` != 'NONMEMBER'
             ORDER BY `joindate` DESC";
 
     $rows = $fcmsDatabase->getRows($sql);
@@ -5263,4 +5332,168 @@ function getActiveMemberIdNameLookup ()
     asort($members);
 
     return $members;
+}
+
+/**
+ * displayErrors 
+ * 
+ * @param array $errors 
+ * 
+ * @return void
+ */
+function displayErrors ($errors)
+{
+    echo '
+            <div class="error-alert">
+                <h2>'.T_('Oops, there was an error:').'</h2>';
+
+    foreach ($errors as $error)
+    {
+        echo '<p>'.$error.'</p>';
+    }
+
+    echo '
+            </div>';
+}
+
+/**
+ * savePhotoFromSource 
+ * 
+ * @param string $source
+ * @param string $filename
+ * 
+ * @return void
+ */
+function savePhotoFromSource ($source, $filename)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
+
+    $uploadsPath = getUploadsAbsolutePath();
+
+    // Create new member directory if needed
+    if (!file_exists($uploadsPath.'photos/member'.$fcmsUser->id))
+    {
+        mkdir($uploadsPath.'photos/member'.$fcmsUser->id);
+    }
+
+    $destination = $uploadsPath.'photos/member'.$fcmsUser->id.'/'.$filename;
+
+    $ch = curl_init($source);
+    $fh = fopen($destination, 'w');
+
+    curl_setopt($ch, CURLOPT_FILE, $fh);
+    curl_exec($ch);
+    curl_close($ch);
+}
+
+/**
+ * usingFullSizePhotos 
+ * 
+ * @return boolean
+ */
+function usingFullSizePhotos ()
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
+    $sql = "SELECT `value` AS 'full_size_photos'
+            FROM `fcms_config`
+            WHERE `name` = 'full_size_photos'";
+
+    $r = $fcmsDatabase->getRow($sql);
+    if (empty($r))
+    {
+        return false;
+    }
+
+    if ($r['full_size_photos'] == 1)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * displayPageHeader 
+ * 
+ * @param int   $id 
+ * @param array $TMPL
+ * @param array $options 
+ * 
+ * @return void
+ */
+function displayPageHeader ($id, $TMPL, $options = null)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    $js       = isset($options['js'])       ? $options['js']       : '';
+    $jsOnload = isset($options['jsOnload']) ? $options['jsOnload'] : '';
+
+    $TMPL['javascript'] = '';
+
+    // Load any js modules
+    if (isset($options['modules']))
+    {
+        $list = getModuleList();
+        foreach ($options['modules'] as $module)
+        {
+            $TMPL['javascript'] .= $list[$module]."\n";
+        }
+    }
+
+    // Set page specific javascript
+    $TMPL['javascript'] .= $js;
+
+    // Set onload javascript
+    $TMPL['javascript'] .= '
+    <script type="text/javascript">
+    Event.observe(window, "load", function() {
+        initChatBar("'.T_('Chat').'", "'.$TMPL['path'].'");
+        '.$jsOnload.'
+    });
+    </script>';
+
+    // Display the theme header
+    require_once getTheme($fcmsUser->id).'header.php';
+
+    echo '
+        <div id="'.$id.'" class="centercontent">';
+}
+
+/**
+ * displayPageFooter 
+ * 
+ * @param array $TMPL
+ * 
+ * @return void
+ */
+function displayPageFooter($TMPL)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    echo '
+        </div><!--/centercontent-->';
+
+    require_once getTheme($fcmsUser->id).'footer.php';
+}
+
+/**
+ * getModuleList 
+ * 
+ * @return array
+ */
+function getModuleList ()
+{
+    return array(
+        'livevalidation'    => '<script type="text/javascript" src="ui/js/livevalidation.js"></script>',
+        'datechooser'       => '<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>'
+                              .'<script type="text/javascript" src="ui/js/datechooser.js"></script>',
+    );
 }

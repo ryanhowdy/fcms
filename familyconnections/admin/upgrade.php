@@ -28,6 +28,8 @@ require_once INC.'utils.php';
 require_once INC.'upgrade_inc.php';
 require_once INC.'Error.php';
 require_once INC.'Database.php';
+require_once INC.'User.php';
+require_once THIRDPARTY.'phpass/PasswordHash.php';
 
 checkLoginAndPermission();
 
@@ -176,9 +178,115 @@ function displayFooter ()
 /**
  * checkLoginAndPermission 
  * 
- * @return void
+ * Will verify the user is logged in and is admin.
+ * 
+ * @return void - or die if user not logged in
  */
 function checkLoginAndPermission ()
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+
+    if (isset($_COOKIE['fcms_cookie_id']))
+    {
+        $_SESSION['fcms_id']    = $_COOKIE['fcms_cookie_id'];
+        $_SESSION['fcms_token'] = $_COOKIE['fcms_cookie_token'];
+    }
+    elseif (isset($_SESSION['fcms_id']))
+    {
+        // do nothing
+    }
+    // We have old style login creds
+    elseif (isset($_SESSION['login_id']) || isset($_COOKIE['fcms_login_id']))
+    {
+        $fcmsCurrentVersion = getCurrentVersion();
+        if ($fcmsCurrentVersion === false)
+        {
+            displayHeader();
+            $fcmsDatabase->displayError();
+            displayFooter();
+            die();
+        }
+
+        // if we are upgrading from a version prior to 3.3
+        // and only prior to 3.3, so we keep the added security
+        if (!versionUpToDate($fcmsCurrentVersion, 'Family Connections 3.3.0'))
+        {
+            $checkLoginToken = false;
+
+            // allow old style login
+            checkOldLoginAndPermission();
+            return;
+        }
+    }
+    else
+    {
+        displayHeader();
+        echo '<h1>'.T_('You must be logged in to view this page.').'</h1>';
+        displayFooter();
+        die();
+    }
+
+    $id    = $_SESSION['fcms_id'];
+    $token = $_SESSION['fcms_token'];
+
+    if (!ctype_digit("$id"))
+    {
+        displayHeader();
+        echo '<h1>'.T_('Invalid login id.').'</h1>';
+        displayFooter();
+        die();
+    }
+
+    $sql = "SELECT `access`, `token`
+            FROM `fcms_users` 
+            WHERE `id` = ? 
+            LIMIT 1";
+
+    $userInfo = $fcmsDatabase->getRow($sql, $id);
+    if ($userInfo === false)
+    {
+        displayHeader();
+        echo '<h1>'.T_('Invalid request.').'</h1>';
+        $fcmsError->displayError();
+        displayFooter();
+        die();
+    }
+
+    if (empty($userInfo))
+    {
+        displayHeader();
+        echo '<h1>'.T_('User not found.').'</h1>';
+        displayFooter();
+        die();
+    }
+
+    if ($userInfo['token'] !== $token)
+    {
+        displayHeader();
+        echo '<h1>'.T_('Invalid login credentials.').'</h1>';
+        displayFooter();
+        die();
+    }
+
+    if ($userInfo['access'] > 1)
+    {
+        displayHeader();
+        echo '<h1>'.T_('You do not have access to view this page.').'</h1>';
+        displayFooter();
+        die();
+    }
+}
+
+/**
+ * checkOldLoginAndPermission 
+ * 
+ * Allow users to use old login creds to access admin/upgrade page.
+ * This is needed when upgrading from any version prior to 3.3.
+ * 
+ * @return void - or die if user not logged in
+ */
+function checkOldLoginAndPermission ()
 {
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);

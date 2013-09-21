@@ -188,6 +188,8 @@ function installUsers ($fname, $lname, $email, $dobYear, $dobMonth, $dobDay, $us
                 `dod_day` CHAR(2),
                 `username` VARCHAR(25) NOT NULL DEFAULT '0', 
                 `password` VARCHAR(255) NOT NULL DEFAULT '0', 
+                `phpass` VARCHAR(255) NOT NULL DEFAULT '0', 
+                `token` VARCHAR(255) NULL,
                 `avatar` VARCHAR(25) NOT NULL DEFAULT 'no_avatar.jpg', 
                 `gravatar` VARCHAR(255) NULL, 
                 `bio` VARCHAR(200) NULL,
@@ -203,7 +205,7 @@ function installUsers ($fname, $lname, $email, $dobYear, $dobMonth, $dobDay, $us
 
     // insert users
     $sql = "INSERT INTO `fcms_users` (
-                `id`, `access`, `joindate`, `fname`, `lname`, `email`, `dob_year`, `dob_month`, `dob_day`, `username`, `password`, `activated`
+                `id`, `access`, `joindate`, `fname`, `lname`, `email`, `dob_year`, `dob_month`, `dob_day`, `username`, `phpass`, `activated`
             ) VALUES (
                 1, 
                 1, 

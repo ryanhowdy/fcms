@@ -1631,13 +1631,14 @@ class PhotoGallery
                 'thumbnail'   => $row['thumbnail']
             );
 
-            $filename  = basename($row['filename']);
-            $uid       = (int)$row['uid'];
-            $pid       = (int)$row['pid'];
-            $urlPage   = '?uid=0&amp;cid='.$userId;
-            $caption   = cleanOutput($row['caption']);
-            $row['id'] = $row['pid'];
-            $photoSrc  = $this->getPhotoSource($row);
+            $filename    = basename($row['filename']);
+            $uid         = (int)$row['uid'];
+            $pid         = (int)$row['pid'];
+            $urlPage     = '?uid=0&amp;cid='.$userId;
+            $caption     = cleanOutput($row['caption']);
+            $row['id']   = $row['pid'];
+            $row['user'] = $row['uid'];
+            $photoSrc    = $this->getPhotoSource($row);
 
             echo '
                 <li class="photo">
@@ -1775,523 +1776,6 @@ class PhotoGallery
         $total = ceil($count / $perPage); 
 
         displayPages("index.php$url", $page, $total);
-    }
-
-    /**
-     * displayUploadForm 
-     *
-     * Displays the form for uploading photos to the photo gallery.
-     * 
-     * @param boolean $overrideMemoryLimit 
-     * 
-     * @return void
-     */
-    function displayUploadForm ($overrideMemoryLimit = false)
-    {
-        // Setup the photo tagging options (autocomplete or checkbox)
-        $advanced_tagging       = usingAdvancedTagging($this->fcmsUser->id);
-        $members                = array();
-        $autocomplete_selected  = '';
-        $tagging_options        = '';
-        $users_list             = '';
-        $users_lkup             = '';
-
-        // Setup the list of active members for possible tags
-        $sql = "SELECT `id` 
-                FROM `fcms_users` 
-                WHERE `activated` > 0";
-
-        $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
-
-        foreach ($rows as $r)
-        {
-            $members[$r['id']] = getUserDisplayName($r['id'], 2);
-        }
-        asort($members);
-
-        // Advanced (autocomplete)
-        if ($advanced_tagging)
-        {
-            foreach ($members as $key => $value)
-            {
-                $users_list .= '"'.$key.': '.cleanOutput($value).'", ';
-                $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
-            }
-
-            $users_list = substr($users_list, 0, -2); // remove the extra comma space at the end
-
-            $tagging_options = '
-                                <input type="text" id="autocomplete_input" class="frm_text autocomplete_input" 
-                                    autocomplete="off" size="50" tabindex="3"/>
-                                <div id="autocomplete_instructions" class="autocomplete_instructions">
-                                    '.T_('Type name of person...').'
-                                </div>
-                                <ul id="autocomplete_selected" class="autocomplete_selected"></ul>
-                                <div id="autocomplete_search" class="autocomplete_search" style="display:none"></div>
-                                <script type="text/javascript">
-                                //<![CDATA[
-                                Event.observe(window, "load", function() {
-                                    var users_list = [ '.$users_list.' ];
-                                    var users_lkup = new Array();
-                                    '.$users_lkup.'
-                                    new Autocompleter.Local(
-                                        "autocomplete_input", "autocomplete_search", users_list, {
-                                            fullSearch: true,
-                                            partialChars: 1,
-                                            updateElement: newUpdateElement
-                                        }
-                                    );
-                                });
-                                //]]>
-                                </script>';
-        }
-        // Basic (checkbox)
-        else
-        {
-            $tag_checkboxes = '';
-            foreach ($members as $key => $value)
-            {
-                $tag_checkboxes .= '<label for="'.$key.'">';
-                $tag_checkboxes .= '<input type="checkbox" id="'.$key.'" name="tagged[]" 
-                    value="'.cleanOutput($key).'"/> '.$value.'</label>';
-            }
-            $tagging_options = '
-                            <div class="multi-checkbox">
-                                '.$tag_checkboxes.'
-                            </div>';
-        }
-
-        // Display the form
-        echo '
-            <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
-            <form id="autocomplete_form" enctype="multipart/form-data" action="?action=upload" method="post" class="photo-uploader">
-                <div class="header">
-                    <label>'.T_('Category').'</label>
-                    '.$this->getCategoryInputs().'
-                </div>
-                <ul class="upload-types">
-                    '.$this->getUploadTypesNavigation('upload').'
-                </ul>
-                <div class="upload-area">
-                    <div class="basic">
-                        <p style="float:right">
-                            <a class="help" href="../help.php?topic=photo#gallery-howworks">'.T_('Help').'</a>
-                        </p>
-                        <p>
-                            <label><b>'.T_('Photo').'</b></label><br/>
-                            <input name="photo_filename" type="file" size="50"/>
-                        </p>
-                        <p>
-                            <label><b>'.T_('Caption').'</b></label><br/>
-                            <input class="frm_text" type="text" name="photo_caption" size="50"/>
-                        </p>
-                        <div id="tag-options">
-                            <label><b>'.T_('Who is in this Photo?').'</b></label><br/>
-                            '.$tagging_options.'
-                        </div>
-                        <p class="rotate-options">
-                            <label><b>'.T_('Rotate').'</b></label><br/>
-                            <input type="radio" id="left" name="rotate" value="left"/>
-                            <label for="left" class="radio_label">'.T_('Left').'</label>&nbsp;&nbsp; 
-                            <input type="radio" id="right" name="rotate" value="right"/>
-                            <label for="right" class="radio_label">'.T_('Right').'</label>
-                        </p>
-                    </div><!--/basic-->
-                </div>
-                <div class="footer">
-                    <input class="sub1" type="submit" id="submit-photos" name="addphoto" value="'.T_('Submit').'"/>
-                </div>
-            </form>
-            <script type="text/javascript">
-            Event.observe("submit-photos","click",function(e){
-            '.$this->getJsUploadValidation().'
-            });
-            </script>';
-
-    }
-
-    /**
-     * displayJavaUploadForm 
-     *
-     * Displays the form for uploading photos using the JumpLoader
-     * java applet.
-     * 
-     * @return void
-     */
-    function displayJavaUploadForm ()
-    {
-        // Setup some applet params
-        $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="small,medium"/>';
-        $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit"/>';
-        $fullSizedPhotos          = '';
-
-        if ($this->usingFullSizePhotos())
-        {
-            $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="small,medium,full"/>';
-            $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit,1400x1400xfit"/>';
-            $fullSizedPhotos          = '
-                function sendFullSizedPhotos() {
-                    var uploader = document.jumpLoaderApplet.getUploader();
-                    var attrSet = uploader.getAttributeSet();
-                    var attr = attrSet.createStringAttribute("full-sized-photos", "1");
-                    attr.setSendToServer(true);
-                }
-                sendFullSizedPhotos();';
-        }
-
-        echo '
-            <noscript>
-                <style type="text/css">
-                applet, .photo-uploader {display: none;}
-                #noscript {padding:1em;}
-                #noscript p {background-color:#ff9; padding:3em; font-size:130%; line-height:200%;}
-                #noscript p span {font-size:60%;}
-                </style>
-                <div id="noscript">
-                <p>
-                    '.T_('JavaScript must be enabled in order for you to use the Advanced Uploader. However, it seems JavaScript is either disabled or not supported by your browser.').'<br/>
-                    <span>
-                        '.T_('Either enable JavaScript by changing your browser options.').'<br/>
-                        '.T_('or').'<br/>
-                        '.T_('Enable the Basic Upload option by changing Your Settings.').'
-                    </span>
-                </p>
-                </div>
-            </noscript>
-
-            <div id="loading">'.T_('Loading Advanced Uploader...').'</div>
-            <form method="post" id="uploadForm" name="uploadForm" class="photo-uploader" style="visibility:hidden">
-                <div class="header">
-                    <label>'.T_('Category').'</label>
-                    '.$this->getCategoryInputs().'
-                </div>
-                <ul class="upload-types">
-                    '.$this->getUploadTypesNavigation('upload').'
-                </ul>
-                <div class="upload-area">
-                    <applet id="jumpLoaderApplet" name="jumpLoaderApplet"
-                        code="jmaster.jumploader.app.JumpLoaderApplet.class"
-                        archive="../inc/thirdparty/jumploader_z.jar"
-                        width="540"
-                        height="300"
-                        mayscript>
-                        <param name="uc_sendImageMetadata" value="true"/>
-                        <param name="uc_uploadUrl" value="upload.php"/>
-                        <param name="vc_useThumbs" value="true"/>
-                        <param name="uc_uploadScaledImagesNoZip" value="true"/>
-                        <param name="uc_uploadScaledImages" value="true"/>
-                        '.$scaledInstanceNames.'
-                        '.$scaledInstanceDimensions.'
-                        <param name="uc_scaledInstanceQualityFactors" value="900"/>
-                        <param name="uc_uploadFormName" value="uploadForm"/>
-                        <param name="vc_lookAndFeel" value="system"/>
-                        <param name="vc_uploadViewStartActionVisible" value="false"/>
-                        <param name="vc_uploadViewStopActionVisible" value="false"/>
-                        <param name="vc_uploadViewPasteActionVisible" value="false"/>
-                        <param name="vc_uploadViewRetryActionVisible" value="false"/>
-                        <param name="vc_uploadViewFilesSummaryBarVisible" value="false"/>
-                        <param name="vc_uiDefaults" value="Panel.background=#eff0f4; List.background=#eff0f4;"/> 
-                        <param name="ac_fireAppletInitialized" value="true"/>
-                        <param name="ac_fireUploaderStatusChanged" value="true"/> 
-                        <param name="ac_fireUploaderFileStatusChanged" value="true"/>
-                    </applet>
-                </div>
-                <div class="footer">
-                    <input class="sub1" type="button" value="'.T_('Upload').'" id="start-upload" name="start-upload"/>
-                </div>
-            </form>
-            <script type="text/javascript">
-            Event.observe("start-upload","click",function(e){
-
-                '.$this->getJsUploadValidation().'
-
-                var uploader = document.jumpLoaderApplet.getUploader();
-                var attrSet  = uploader.getAttributeSet();
-
-                var newValue = $F("new-category");
-                var newAttr  = attrSet.createStringAttribute("new-category", newValue);
-                newAttr.setSendToServer(true);
-
-                if ($("existing-categories")) {
-                    var value = $F("existing-categories");
-                    var attr  = attrSet.createStringAttribute("category", value);
-                    attr.setSendToServer(true);
-                }
-
-                uploader.startUpload();
-            });'.$fullSizedPhotos.'
-            function uploaderStatusChanged(uploader) {
-                if (uploader.getStatus() == 0) {
-                    window.location.href = "index.php?action=advanced";
-                }
-            }
-            function appletInitialized(applet) {
-                $("uploadForm").setStyle({visibility:"visible"});
-                $("loading").hide();
-            }
-            </script>';
-    }
-
-    /**
-     * displayInstagramUploadForm 
-     *
-     * Displays the form for uploading photos from Instagram.
-     * 
-     * @return void
-     */
-    function displayInstagramUploadForm ()
-    {
-        if (isset($_SESSION['error']))
-        {
-            unset($_SESSION['error']);
-
-            echo '
-            <p class="error-alert">
-                '.T_('You must choose at least one photo, or choose to automatically import all.').'
-            </p>';
-        }
-
-        require_once THIRDPARTY.'Instagram.php';
-
-        // Get auto upload setting and access token
-        $sql = "SELECT `instagram_access_token`, `instagram_auto_upload`
-                FROM `fcms_user_settings`
-                WHERE `user` = ?
-                LIMIT 1";
-
-        $r = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($r === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
-
-        if (empty($r))
-        {
-            echo '
-            <p class="error-alert">
-                '.T_('Could not get user data.').'
-            </p>';
-            return;
-        }
-
-        $instagramInfo = '';
-
-        if (empty($r['instagram_access_token']))
-        {
-            $instagramInfo = '
-            <div class="info-alert">
-                <h2>'.T_('Not connected to Instagram.').'</h2>
-                <p>'.T_('You must connect your Family Connections account to Instagram before you can begin importing photos from Instagram.').'</p>
-                <p><a href="../settings.php?view=instagram">'.T_('Connect to Instagram').'</a></p>
-            </div>';
-        }
-        else
-        {
-            $config     = getInstagramConfigData();
-            $token      = $r['instagram_access_token'];
-            $automatic  = $r['instagram_auto_upload'] == 1 ? true : false;
-            $instagram  = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $token);
-
-            try
-            {
-                if (isset($_GET['show']) && $_GET['show'] == 'more')
-                {
-                    $feed = $instagram->get('users/self/media/recent/');
-                }
-                else
-                {
-                    $feed = $instagram->get('users/self/media/recent/', array('count' => 8));
-                }
-            }
-            catch (InstagramApiError $e)
-            {
-                echo '
-                <p class="error-alert">
-                    '.T_('Could not get Instagram data.').'
-                </p>';
-
-                logError(__FILE__.' ['.__LINE__.'] - Could not get user instagram data. - '.$e->getMessage());
-                return;
-            }
-
-            $photos          = '';
-            $automaticSelect = '';
-
-            if (!$automatic)
-            {
-                $photos .= '<h2>'.T_('Manual').'</h2>';
-                $photos .= '<p>'.T_('Choose photo to add.').'</p>';
-                $photos .= '<ul>';
-
-                $i = 1;
-                foreach ($feed->data as $photo)
-                {
-                    $sourceId  = $photo->id;
-                    $thumbnail = $photo->images->thumbnail->url;
-                    $medium    = $photo->images->low_resolution->url;
-                    $full      = $photo->images->standard_resolution->url;
-                    $caption   = sprintf(T_('Imported from Instagram.  Filter: %s.'), $photo->filter);
-                    $value     = "$sourceId|$thumbnail|$medium|$full|$caption";
-
-                    $photos .= '<li>';
-                    $photos .= '<label for="instagram'.$i.'">';
-                    $photos .= '<img src="'.$thumbnail.'" alt="'.$caption.'"/><br/>';
-                    $photos .= '<input type="checkbox" id="instagram'.$i.'" name="photos[]" value="'.$value.'"/>';
-                    $photos .= '</label>';
-                    $photos .= '</li>';
-
-                    $i++;
-                }
-
-                // They probably have more
-                if ($i == 8)
-                {
-                    $photos .= '<li><a href="index.php?action=upload&amp;type=instagram&amp;show=more">'.T_('See more').'</a></li>';
-                }
-
-                $photos .= '</ul>';
-            }
-
-            $instagramInfo = $photos.'
-                        <h2>'.T_('Automatic').'</h2>
-                        <label>
-                            <input type="checkbox" id="automatic" name="automatic" value="1" '.($automatic ? 'checked="checked"' : '').'/>
-                            '.T_('Have all photos automatically imported.').'
-                        </label>';
-        }
-
-        echo '
-            <form method="post" class="photo-uploader" action="index.php?action=upload&amp;type=instagram">
-                <div class="header">
-                </div>
-                <ul class="upload-types">
-                    '.$this->getUploadTypesNavigation('instagram').'
-                </ul>
-                <div class="upload-area">
-                    <div class="instagram">
-                        '.$instagramInfo.'
-                    </div>
-                </div>
-                <div class="footer">
-                    <input class="sub1" type="submit" value="'.T_('Upload').'" id="instagram" name="instagram"/>
-                </div>
-            </form>';
-    }
-
-    /**
-     * displayPicasaUploadForm 
-     *
-     * Displays the form for uploading photos from Picasa Web Albums.
-     * 
-     * @return void
-     */
-    function displayPicasaUploadForm ()
-    {
-        if (isset($_SESSION['error']))
-        {
-            unset($_SESSION['error']);
-
-            echo '
-            <p class="error-alert">
-                '.T_('You must choose at least one photo, or choose to automatically import all.').'
-            </p>';
-        }
-
-        // Get session token
-        $sql = "SELECT `picasa_session_token`
-                FROM `fcms_user_settings`
-                WHERE `user` = ?
-                LIMIT 1";
-
-        $r = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($r === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
-
-        if (empty($r))
-        {
-            echo '
-            <p class="error-alert">
-                '.T_('Could not get user data.').'
-            </p>';
-            return;
-        }
-
-        $picasaInfo = '';
-        $token      = '';
-        $js         = '';
-
-        if (empty($r['picasa_session_token']))
-        {
-            $picasaInfo = '
-            <div class="info-alert">
-                <h2>'.T_('Not connected to Picasa.').'</h2>
-                <p>'.T_('You must connect your Family Connections account to Picasa before you can begin importing photos from Picasa.').'</p>
-                <p><a href="../settings.php?view=picasa">'.T_('Connect to Picasa').'</a></p>
-            </div>';
-        }
-        else
-        {
-            $token      = $r['picasa_session_token'];
-            $picasaInfo = '<p></p>';
-            $js         = 'loadPicasaAlbums("'.$token.'", "'.T_('Could not get albums.').'");';
-        }
-
-        echo '
-            <form method="post" class="photo-uploader" action="index.php?action=upload&amp;type=picasa">
-                <div class="header">
-                    <label>'.T_('Category').'</label>
-                    '.$this->getCategoryInputs().'
-                </div>
-                <ul class="upload-types">
-                    '.$this->getUploadTypesNavigation('picasa').'
-                </ul>
-                <div class="upload-area">
-                    <div class="picasa">
-                        '.$picasaInfo.'
-                    </div>
-                </div>
-                <div class="footer">
-                    <input class="sub1" type="submit" value="'.T_('Upload').'" id="submit-photos" name="picasa"/>
-                </div>
-            </form>
-            <script type="text/javascript">
-            '.$js.'
-            Event.observe("submit-photos","click",function(e){
-            '.$this->getJsUploadValidation().'
-            });
-            </script>';
-    }
-
-    /**
-     * getJsUploadValidation 
-     * 
-     * @return string
-     */
-    function getJsUploadValidation ()
-    {
-        return '
-                if ($("new-category").visible() && $F("new-category").empty()) {
-                    Event.stop(e);
-                    $("new-category").addClassName("LV_invalid_field");
-                    $("new-category").focus();
-                    return;
-                }
-                else if ($("existing-categories") != undefined && $("existing-categories").visible() && $F("existing-categories") <= 0)
-                {
-                    Event.stop(e);
-                    $("existing-categories").addClassName("LV_invalid_field");
-                    $("existing-categories").focus();
-                    return;
-                }';
     }
 
     /**
@@ -2635,7 +2119,6 @@ class PhotoGallery
                 'thumbnail'   => $row['thumbnail']
             );
 
-            $row['id']   = $row['pid'];
             $row['user'] = $row['uid'];
 
             $photoSrc = $this->getPhotoSource($row);
@@ -3115,85 +2598,6 @@ class PhotoGallery
     }
 
     /**
-     * handleImageErrors 
-     * 
-     *  1   Image type not supported or invalid
-     *  2   GD doesn't support image type
-     *  3   Could not write new image
-     *  4   Not enough memory to resize image
-     * 
-     * @param int $id 
-     * 
-     * @return void
-     */
-    function handleImageErrors ($id)
-    {
-        switch ($this->fcmsImage->error)
-        {
-            case 2:
-
-                echo '
-            <div class="error-alert">
-                '.T_('GD Library is either not installed or does not support this file type.').'
-            </div>';
-
-                break;
-
-            case 3:
-
-                echo '
-            <div class="error-alert">
-                '.T_('Could not write file, check folder permissions.').'
-            </div>';
-
-                break;
-
-            case 4:
-
-                // Remove the photo from the DB
-                $sql = "DELETE FROM `fcms_gallery_photos` 
-                        WHERE `id` = ?";
-
-                if (!$this->fcmsDatabase->delete($sql, $id))
-                {
-                    $this->fcmsError->displayError();
-                    // continue
-                }
-                
-                // Remove the Photo from the server
-                $path = "photos/member".$this->fcmsUser->id."/".$this->fcmsImage->name;
-                if (file_exists($path))
-                {
-                    unlink($path);
-                }
-
-                echo '
-            <div class="info-alert">
-                <h2>'.T_('Out of Memory Warning.').'</h2>
-                <p>
-                    '.T_('The photo you are trying to upload is quite large and the server might run out of memory if you continue.').' 
-                    '.T_('It is recommended that you try to upload this photo using the "Advanced Uploader" instead.').'
-                    <small>('.number_format($this->fcmsImage->memoryNeeded).' / '.number_format($this->fcmsImage->memoryAvailable).')</small>
-                </p>
-                <h3>'.T_('What do you want to do?').'</h3>
-                <p>
-                    <a href="?action=upload&amp;advanced=on">'.T_('Use the "Advanced Uploader"').'</a>&nbsp; 
-                    '.T_('or').'
-                    <a class="u" href="index.php">'.T_('Cancel').'</a>
-                </p>
-            </div>';
-                break;
-
-            default:
-
-                echo '
-            <div class="error-alert">'.T_('An unknown error has occured.').'</div>';
-
-                break;
-        }
-    }
-
-    /**
      * getPhotoComments 
      * 
      * @param int $pid 
@@ -3414,84 +2818,6 @@ class PhotoGallery
     }
 
     /**
-     * getCategoryInputs 
-     * 
-     * @return string
-     */
-    function getCategoryInputs ()
-    {
-        $categories = $this->getUserCategories();
-
-        // We have existing categories
-        if (count($categories) > 0)
-        {
-            return '
-                    <input class="frm_text" type="text" id="new-category" name="new-category" size="35"/>
-                    <select id="existing-categories" name="category">
-                        <option value="0">&nbsp;</option>
-                        '.buildHtmlSelectOptions($categories, '').'
-                    </select>';
-        }
-        // No Categories (force creation of new one)
-        else
-        {
-            return '
-                    <input class="frm_text" type="text" id="new-category" name="new-category" size="50"/>';
-        }
-    }
-
-    /**
-     * getUploadTypesNavigation 
-     * 
-     * @param string $currentType 
-     * 
-     * @return void
-     */
-    function getUploadTypesNavigation ($currentType)
-    {
-        $nav = '';
-
-        $types = array('upload', 'instagram', 'picasa');
-        foreach ($types as $type)
-        {
-            $url   = '';
-            $class = $currentType == $type ? 'current' : '';
-            $text  = '';
-
-            if ($type == 'upload')
-            {
-                $url   = '?action=upload';
-                $text  = T_('Computer');
-            }
-            elseif ($type == 'instagram')
-            {
-                $config  = getInstagramConfigData();
-                if (empty($config['instagram_client_id']) || empty($config['instagram_client_secret']))
-                {
-                    continue;
-                }
-
-                $url   = '?action=upload&amp;type=instagram';
-                $text  = 'Instagram';
-            }
-            elseif ($type == 'picasa')
-            {
-                $url   = '?action=upload&amp;type=picasa';
-                $text  = 'Picasa';
-            }
-            else
-            {
-                die('Invalid upload type.');
-            }
-
-            $nav .= '
-                    <li class="'.$class.'"><a href="'.$url.'">'.$text.'</a></li>';
-        }
-
-        return $nav;
-    }
-
-    /**
      * getPhotoSource 
      * 
      * @param array $data 
@@ -3548,30 +2874,53 @@ class PhotoGallery
     }
 
     /**
-     * savePhotoFromSource 
+     * emailMembersNewPhotos 
      * 
-     * @param string $source
-     * @param string $filename
+     * @param int $categoryId 
      * 
      * @return void
      */
-    function savePhotoFromSource ($source, $filename)
+    function emailMembersNewPhotos ($categoryId)
     {
-        $uploadsPath = getUploadsAbsolutePath();
+        $sql = "SELECT u.`email`, s.`user` 
+                FROM `fcms_user_settings` AS s, `fcms_users` AS u 
+                WHERE `email_updates` = '1'
+                AND u.`id` = s.`user`";
 
-        // Create new member directory if needed
-        if (!file_exists($uploadsPath.'photos/member'.$this->fcmsUser->id))
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
         {
-            mkdir($uploadsPath.'photos/member'.$this->fcmsUser->id);
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
         }
 
-        $destination = $uploadsPath.'photos/member'.$this->fcmsUser->id.'/'.$filename;
+        if (count($rows) > 0)
+        {
+            $name         = getUserDisplayName($this->fcmsUser->id);
+            $subject      = sprintf(T_('%s has added a new photo.'), $name);
+            $url          = getDomainAndDir();
+            $emailHeaders = getEmailHeaders();
 
-        $ch = curl_init($source);
-        $fh = fopen($destination, 'w');
+            foreach ($rows as $r)
+            {
+                $to    = getUserDisplayName($r['user']);
+                $email = $r['email'];
 
-        curl_setopt($ch, CURLOPT_FILE, $fh);
-        curl_exec($ch);
-        curl_close($ch);
+                $msg = T_('Dear').' '.$to.',
+
+'.$subject.'
+
+'.$url.'index.php?uid='.$this->fcmsUser->id.'&cid='.$category.'
+
+----
+'.T_('To stop receiving these notifications, visit the following url and change your \'Email Update\' setting to No:').'
+
+'.$url.'settings.php
+
+';
+                mail($email, $subject, $msg, $emailHeaders);
+            }
+        }
     }
 }

@@ -36,7 +36,7 @@ class Settings
      */
     function displayAccountInformation ()
     {
-        $sql = "SELECT `username`, `email`, `password`
+        $sql = "SELECT `username`, `email`, `phpass`
                 FROM `fcms_users`
                 WHERE `id` = ?";
 

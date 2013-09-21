@@ -825,7 +825,7 @@ Event.observe(window, \'load\', function() {
     {
         echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_('lang').'" lang="'.T_('lang').'">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_pgettext('Language Code for this translation', 'lang').'" lang="'.T_pgettext('Language Code for this translation', 'lang').'">
 <head>
 <title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -923,7 +923,7 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
         $sql = "SELECT `id`, `email` 
                 FROM `fcms_users` 
                 WHERE `activated` > 0
-                AND `password` != 'NONMEMBER'";
+                AND `phpass` != 'NONMEMBER'";
 
         $rs = $this->fcmsDatabase->getRows($sql);
         if ($rs === false)
@@ -1076,7 +1076,7 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
             $sql = "SELECT `id`, `email` 
                     FROM `fcms_users` 
                     WHERE `activated` > 0
-                    AND `password` != 'NONMEMBER'
+                    AND `phpass` != 'NONMEMBER'
                     AND `id` != ?";
 
             $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);

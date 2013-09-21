@@ -190,7 +190,7 @@ function fixDate ($dateFormat, $tzOffset = '', $date = '', $userid = '')
 
     if ($userid == '')
     {
-        $userid = (int)$_SESSION['login_id'];
+        $userid = (int)$_SESSION['fcms_id'];
     }
 
     // Get DST
@@ -367,11 +367,11 @@ function formatBirthday ($year, $month, $day)
         {
             if (!empty($day))
             {
-                return "$year-$month-$day";
+                return getMonthName((int)$month).', '.$day.' '.$year;
             }
             else
             {
-                return getMonthName($month).', '.$year;
+                return getMonthName((int)$month).', '.$year;
             }
         }
         else
@@ -383,7 +383,7 @@ function formatBirthday ($year, $month, $day)
     {
         if (!empty($day))
         {
-            return getMonthAbbr($month).'. '.$day;
+            return getMonthAbbr((int)$month).'. '.$day;
         }
     }
 

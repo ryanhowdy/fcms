@@ -407,8 +407,7 @@ function keyHandler(e)
         // Post to facebook
         if (isset($_POST['update_fb']))
         {
-            $data        = getFacebookConfigData();
-            $accessToken = getUserFacebookAccessToken($this->fcmsUser->id);
+            $data = getFacebookConfigData();
 
             // Send status to facebook
             if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
@@ -417,8 +416,6 @@ function keyHandler(e)
                     'appId'  => $data['fb_app_id'],
                     'secret' => $data['fb_secret'],
                 ));
-
-                $facebook->setAccessToken($accessToken);
 
                 // Check if the user is logged in and authed
                 $user = $facebook->getUser();
