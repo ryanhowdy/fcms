@@ -334,7 +334,9 @@ class Page
      */
     function displayDetails ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array('jsOnload' => 'initAddRelative();')
+        );
 
         $id = (int)$_GET['details'];
 
@@ -424,9 +426,9 @@ class Page
             </ul>
         </div>
         <div id="actions_menu">
-            <ul>
+            <ul class="tools">
                 '.$editLink.'
-                <li><a href="?add='.$id.'">'.T_('Add Family Member').'</a></li>
+                <li><a class="add" href="#'.$id.'">'.T_('Add Family Member').'</a></li>
             </ul>
         </div>
         <div class="person-details">
