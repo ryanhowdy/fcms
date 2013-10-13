@@ -42,14 +42,12 @@ class Upload_PhotoGallery
             require_once INC.'Upload/PhotoGallery/Destination/Protected.php';
             $this->destinationType = new ProtectedDestination($fcmsError, $fcmsDatabase, $fcmsUser);
         }
-        // TODO 
-        //
-        //// Save to Amazon S3
-        //elseif (defined('S3'))
-        //{
-        //    require_once INC.'Upload/PhotoGallery/Destination/S3.php';
-        //    $this->destinationType = new S3Destination($fcmsError, $fcmsDatabase, $fcmsUser);
-        //}
+        // Save to Amazon S3
+        elseif (defined('S3') && date('Ymd', S3) < date('Ymd'))
+        {
+            require_once INC.'Upload/PhotoGallery/Destination/S3.php';
+            $this->destinationType = new S3Destination($fcmsError, $fcmsDatabase, $fcmsUser);
+        }
         // Save in uploads/photos/*
         else
         {
@@ -180,5 +178,62 @@ class Upload_PhotoGallery
     public function getLastCategoryId ()
     {
         return $this->handlerType->getLastCategoryId();
+    }
+
+    /**
+     * getPhotoPaths 
+     * 
+     * Will return an array of absolute paths to the photo and the full sized
+     * photo (if available).
+     * 
+     * @param string $fileName 
+     * @param string $uid 
+     * 
+     * @return array
+     */
+    public function getPhotoPaths ($fileName, $uid)
+    {
+        return $this->destinationType->getPhotoPaths($fileName, $uid);
+    }
+
+    /**
+     * getPhotoSource 
+     * 
+     * Gets the url used to display in img src for the given photo type.
+     * 
+     * @param array  $data 
+     * @param string $size 
+     * 
+     * @return string
+     */
+    public function getPhotoSource ($data, $size = 'thumbnail')
+    {
+        return $this->destinationType->getPhotoSource($data, $size);
+    }
+
+    /**
+     * getPhotoFileSize 
+     * 
+     * @param string $file 
+     * 
+     * @return string
+     */
+    public function getPhotoFileSize ($file)
+    {
+        return $this->destinationType->getPhotoFileSize($file);
+    }
+
+    /**
+     * deleteFile
+     * 
+     * Deletes the photo from the proper destination source.
+     * 
+     * @param string $file 
+     * 
+     * @return boolean
+     */
+    public function deleteFile ($file)
+    {
+        return $this->destinationType->deleteFile($file);
     }
 }

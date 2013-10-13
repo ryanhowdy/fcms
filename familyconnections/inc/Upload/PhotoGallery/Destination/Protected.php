@@ -36,4 +36,17 @@ class ProtectedDestination extends Destination
         $this->destinationPath = UPLOADS.'photos/member'.$this->fcmsUser->id.'/';
     }
 
+    /**
+     * getPhotoSource 
+     * 
+     * @param array  $data 
+     * @param string $size 
+     * 
+     * @return string
+     */
+    public function getPhotoSource ($data, $size = 'thumbnail')
+    {
+        // Gallery Prefix should be defined on each page
+        return GALLERY_PREFIX.'photo.php?id='.(int)$data['id'].'&amp;size='.$size;
+    }
 }
