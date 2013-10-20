@@ -1198,7 +1198,7 @@ class Page
                 FROM `fcms_users`
                 WHERE `id` = ?";
 
-        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        $row = $this->fcmsDatabase->getRow($sql, $id);
         if ($row === false)
         {
             $this->fcmsError->displayError();
@@ -1223,7 +1223,7 @@ class Page
                     mayscript>
                     <param name="uc_sendImageMetadata" value="true"/>
                     <param name="uc_maxFiles" value="1"/>
-                    <param name="uc_uploadUrl" value="familytree.php?advanced_avatar='.$this->fcmsUser->id.'&orig='.$row['avatar'].'"/>
+                    <param name="uc_uploadUrl" value="familytree.php?advanced_avatar='.$id.'&orig='.$row['avatar'].'"/>
                     <param name="vc_useThumbs" value="true"/>
                     <param name="uc_uploadScaledImagesNoZip" value="true"/>
                     <param name="uc_uploadScaledImages" value="true"/>
@@ -1258,7 +1258,7 @@ class Page
         }
         else
         {
-            $form   = '<form id="frm" name="frm" enctype="multipart/form-data" action="?avatar='.$this->fcmsUser->id.'" method="post">';
+            $form   = '<form id="frm" name="frm" enctype="multipart/form-data" action="?avatar='.$id.'" method="post">';
             $input  = '<input type="file" name="avatar" id="avatar" size="30" title="'.T_('Upload your personal image (Avatar)').'"/>';
         }
 
@@ -1270,7 +1270,7 @@ class Page
                         <div class="field-row">
                             <div class="field-label"><b>'.T_('Current Picture').'</b></div>
                             <div class="field-widget">
-                                <img src="'.getCurrentAvatar($this->fcmsUser->id).'"/>
+                                <img src="'.getCurrentAvatar($id).'"/>
                             </div>
                         </div>
                         <div class="field-row">
