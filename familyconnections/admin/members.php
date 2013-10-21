@@ -875,10 +875,7 @@ Event.observe(window, \'load\', function() {
 
         foreach ($_POST['massupdate'] AS $id)
         {
-            $sql = "DELETE FROM `fcms_users` 
-                    WHERE `id` = ?";
-
-            if (!$this->fcmsDatabase->delete($sql, $id))
+            if (!$this->fcmsAdminMembers->deleteMember($id))
             {
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -927,10 +924,7 @@ Event.observe(window, \'load\', function() {
 
         $id = (int)$_POST['id'];
 
-        $sql = "DELETE FROM `fcms_users` 
-                WHERE `id` = ?";
-
-        if (!$this->fcmsDatabase->delete($sql, $id))
+        if (!$this->fcmsAdminMembers->deleteMember($id))
         {
             $this->fcmsError->displayError();
             $this->displayFooter();

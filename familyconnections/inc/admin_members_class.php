@@ -29,6 +29,46 @@ class AdminMembers
     var $fcmsError;
     var $fcmsDatabase;
     var $fcmsUser;
+    var $configuration = array(
+        // Table Name                           Column Name(s)
+        array('fcms_address',                   'user'),
+        array('fcms_alerts',                    'user'),
+        array('fcms_board_posts',               'user'),
+        array('fcms_board_threads',             array('started_by', 'updated_by')),
+        array('fcms_calendar',                  'created_by'),
+        array('fcms_category',                  'user'),
+        array('fcms_changelog',                 'user'),
+        array('fcms_chat_messages',             ''),
+        array('fcms_chat_online',               ''),
+        array('fcms_config',                    ''),
+        array('fcms_documents',                 'user'),
+        array('fcms_gallery_category_comment',  'created_id'),
+        array('fcms_gallery_external_photo',    ''),
+        array('fcms_gallery_photos',            'user'),
+        array('fcms_gallery_photos_tags',       'user'),
+        array('fcms_gallery_photo_comment',     'user'),
+        array('fcms_invitation',                'user'),
+        array('fcms_navigation',                ''),
+        array('fcms_news',                      'user'),
+        array('fcms_news_comments',             'user'),
+        array('fcms_notification',              array('user', 'created_id')),
+        array('fcms_polls',                     ''),
+        array('fcms_poll_comment',              'created_id'),
+        array('fcms_poll_options',              ''),
+        array('fcms_poll_votes',                'user'),
+        array('fcms_prayers',                   'user'),
+        array('fcms_privatemsg',                array('to', 'from')),
+        array('fcms_recipes',                   'user'),
+        array('fcms_recipe_comment',            'user'),
+        array('fcms_relationship',              array('user', 'rel_user')),
+        array('fcms_schedule',                  ''),
+        array('fcms_status',                    'user'),
+        array('fcms_users',                     'id'),
+        array('fcms_user_awards',               'user'),
+        array('fcms_user_settings',             ''),
+        array('fcms_video',                     array('created_id', 'updated_id')),
+        array('fcms_video_comment',             array('created_id', 'updated_id')),
+    );
 
     /**
      * AdminMembers 
@@ -1386,51 +1426,16 @@ class AdminMembers
             return false;
         }
 
-        $configuration = array(
-            // Table Name                           Column Name(s)
-            array('fcms_address',                   ''),
-            array('fcms_alerts',                    'user'),
-            array('fcms_board_posts',               'user'),
-            array('fcms_board_threads',             array('started_by', 'updated_by')),
-            array('fcms_calendar',                  'created_by'),
-            array('fcms_category',                  'user'),
-            array('fcms_changelog',                 'user'),
-            array('fcms_chat_messages',             ''),
-            array('fcms_chat_online',               ''),
-            array('fcms_config',                    ''),
-            array('fcms_documents',                 'user'),
-            array('fcms_gallery_category_comment',  'created_id'),
-            array('fcms_gallery_external_photo',    ''),
-            array('fcms_gallery_photos',            'user'),
-            array('fcms_gallery_photos_tags',       'user'),
-            array('fcms_gallery_photo_comment',     'user'),
-            array('fcms_invitation',                'user'),
-            array('fcms_navigation',                ''),
-            array('fcms_news',                      'user'),
-            array('fcms_news_comments',             'user'),
-            array('fcms_notification',              array('user', 'created_id')),
-            array('fcms_polls',                     ''),
-            array('fcms_poll_comment',              'created_id'),
-            array('fcms_poll_options',              ''),
-            array('fcms_poll_votes',                'user'),
-            array('fcms_prayers',                   'user'),
-            array('fcms_privatemsg',                array('to', 'from')),
-            array('fcms_recipes',                   'user'),
-            array('fcms_recipe_comment',            'user'),
-            array('fcms_relationship',              array('user', 'rel_user')),
-            array('fcms_schedule',                  ''),
-            array('fcms_status',                    'user'),
-            array('fcms_users',                     ''),
-            array('fcms_user_awards',               'user'),
-            array('fcms_user_settings',             ''),
-            array('fcms_video',                     array('created_id', 'updated_id')),
-            array('fcms_video_comment',             array('created_id', 'updated_id')),
-        );
-
-        foreach ($configuration as $config)
+        foreach ($this->configuration as $config)
         {
             $tableName      = $config[0];
             $userFieldNames = $config[1];
+
+            // Skip user/address tables
+            if ($tableName == 'fcms_address' || $tableName == 'fcms_users')
+            {
+                continue;
+            }
 
             if (!is_array($userFieldNames))
             {
@@ -1455,6 +1460,55 @@ class AdminMembers
                 }
             }
             echo sprintf(T_('Merge [%s] complete.'), $tableName).'<br/>';
+        }
+
+        return true;
+    }
+
+    /**
+     * deleteMember 
+     * 
+     * @param int $id 
+     * 
+     * @return boolean
+     */
+    function deleteMember ($id)
+    {
+        if (!ctype_digit("$id"))
+        {
+            $this->fcmsError->add(array(
+                'message' => 'Invalid ID',
+                'details' => '<p>Invalid ID passed to deleteMember().</p>'
+            ));
+            return false;
+        }
+
+        foreach ($this->configuration as $config)
+        {
+            $tableName      = $config[0];
+            $userFieldNames = $config[1];
+
+            if (!is_array($userFieldNames))
+            {
+                $userFieldNames = array($userFieldNames);
+            }
+
+            foreach ($userFieldNames as $fieldName)
+            {
+                // skip tables without user id fields in them
+                if (empty($fieldName))
+                {
+                    continue;
+                }
+
+                $sql = "DELETE FROM `$tableName`
+                        WHERE `$fieldName` = ?";
+
+                if (!$this->fcmsDatabase->delete($sql, $id))
+                {
+                    return false;
+                }
+            }
         }
 
         return true;
