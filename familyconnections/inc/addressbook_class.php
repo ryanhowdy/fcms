@@ -281,31 +281,58 @@ class AddressBook
      */
     function displayAddressInCategory ($category = '')
     {
+        // All addresses
+        $cat = 'cat=all&amp;';
         $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
                     `country`, `address`, `city`, `state`, `zip`
-                FROM `fcms_users` AS u, `fcms_address` as a 
-                WHERE u.`id` = a.`user` 
-                AND (
-                    `phpass` != 'PRIVATE' 
+                FROM `fcms_users` AS u, `fcms_address` as a
+                WHERE u.`id` = a.`user`
+                AND ((
+                        `phpass` IS NOT NULL
+                        AND (
+                            `phpass` != 'PRIVATE'
+                            OR (a.`created_id` = ? AND `phpass` = 'PRIVATE')
+                        )
+                    )
                     OR (
-                        a.`created_id` = ".$this->fcmsUser->id." 
-                        AND `phpass` = 'PRIVATE' 
+                        `phpass` IS NULL
+                        AND (
+                            `password` != 'PRIVATE'
+                            OR (a.`created_id` = ? AND `password` = 'PRIVATE')
+                        )
                     )
                 )
                 ORDER BY `lname`";
 
-        $cat = 'cat=all&amp;';
+        $params = array(
+            $this->fcmsUser->id,
+            $this->fcmsUser->id
+        );
+
+        // Member addresses
         if ($category == 'members')
         {
             $cat = 'cat=members&amp;';
             $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
                         `country`, `address`, `city`, `state`, `zip`
-                    FROM `fcms_users` AS u, `fcms_address` as a 
-                    WHERE u.`id` = a.`user` 
-                    AND `phpass` != 'NONMEMBER' 
-                    AND `phpass` != 'PRIVATE' 
+                    FROM `fcms_users` AS u, `fcms_address` as a
+                    WHERE u.`id` = a.`user`
+                    AND ((
+                            `phpass` IS NOT NULL
+                            AND `phpass` != 'NONMEMBER'
+                            AND `phpass` != 'PRIVATE'
+                        )
+                        OR (
+                            `phpass` IS NULL
+                            AND `password` != 'NONMEMBER'
+                            AND `password` != 'PRIVATE'
+                        )
+                    )
                     ORDER BY `lname`";
+
+            $params = array();
         }
+        // Non-member addresses
         else if ($category == 'non')
         {
             $cat = 'cat=non&amp;';
@@ -313,9 +340,12 @@ class AddressBook
                         `country`, `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
-                    AND `phpass` = 'NONMEMBER' 
+                    AND (`phpass` = 'NONMEMBER' OR `password` = 'NONMEMBER')
                     ORDER BY `lname`";
+
+            $params = array();
         }
+        // My (private) addresses
         else if ($category == 'my')
         {
             $cat = 'cat=my&amp;';
@@ -323,12 +353,22 @@ class AddressBook
                         `country`, `address`, `city`, `state`, `zip`
                     FROM `fcms_users` AS u, `fcms_address` as a 
                     WHERE u.`id` = a.`user` 
-                    AND a.`created_id` = ".$this->fcmsUser->id." 
-                    AND `phpass` = 'PRIVATE' 
+                    AND a.`created_id` = ?
+                    AND (`phpass` = 'PRIVATE' OR `password` = 'PRIVATE')
                     ORDER BY `lname`";
+
+            $params = array($this->fcmsUser->id);
         }
 
-        $rows = $this->fcmsDatabase->getRows($sql);
+        if (count($params) > 0)
+        {
+            $rows = $this->fcmsDatabase->getRows($sql, $params);
+        }
+        else
+        {
+            $rows = $this->fcmsDatabase->getRows($sql);
+        }
+
         if ($rows === false)
         {
             $this->fcmsError->displayError();
