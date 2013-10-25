@@ -351,7 +351,9 @@ class Page
             return;
         }
 
-        $canEdit = false;
+        $canEdit  = false;
+        $editLink = '';
+
         if ($user['phpass'] == 'NONMEMBER' || $this->fcmsUser->access == 1)
         {
             $canEdit  = true;

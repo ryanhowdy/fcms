@@ -45,6 +45,7 @@
     #401 - Cannot add new family member from family detail view
     #400 - Cannot add profile picture from Family Tree
     #411 - Adress book entries disappear after upgrade
+    #410 - Undefined variable - Family Tree details
 
 
   For the full change log please refer to the included ChangeLog file.
