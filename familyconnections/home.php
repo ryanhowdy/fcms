@@ -22,7 +22,6 @@ define('GALLERY_PREFIX', 'gallery/');
 require 'fcms.php';
 
 load(
-    'Upload_PhotoGallery',
     'datetime', 
     'calendar', 
     'Poll', 

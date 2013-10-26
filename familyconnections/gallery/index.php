@@ -524,7 +524,8 @@ Event.observe(window, \'load\', function() {
      */
     function displayDeletePhotoSubmit ()
     {
-        $photoId = (int)$_POST['photo'];
+        $photoId     = (int)$_POST['photo'];
+        $uploadsPath = getUploadsAbsolutePath();
 
         // Get photo info
         $sql = "SELECT `user`, `category`, `filename`, `external_id`
@@ -568,29 +569,33 @@ Event.observe(window, \'load\', function() {
         }
 
         // Remove any external photos for this photo
-        if (!empty($photoExternalId))
+        $sql = "DELETE FROM `fcms_gallery_external_photo`
+                WHERE `id` = ?";
+        if (!$this->fcmsDatabase->delete($sql, $photoExternalId))
         {
-            $sql = "DELETE FROM `fcms_gallery_external_photo`
-                    WHERE `id` = ?";
-            if (!$this->fcmsDatabase->delete($sql, $photoExternalId))
-            {
-                $this->displayHeader();
-                $this->fcmsError->displayError();
-                $this->displayFooter();
-                return;
-            }
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
         }
 
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
-
-        $filePath  = basename($photoFilename);
-        $thumbPath = 'tb_'.basename($photoFilename);
-        $fullPath  = 'full_'.basename($photoFilename);
+        $filePath  = $uploadsPath.'photos/member'.$photoUserId.'/'.basename($photoFilename);
+        $thumbPath = $uploadsPath.'photos/member'.$photoUserId.'/tb_'.basename($photoFilename);
+        $fullPath  = $uploadsPath.'photos/member'.$photoUserId.'/full_'.basename($photoFilename);
 
         // Remove the Photo from the server
-        $this->Uploader->deleteFile($filePath);
-        $this->Uploader->deleteFile($thumbPath);
-        $this->Uploader->deleteFile($fullPath);
+        if (file_exists($filePath))
+        {
+            unlink($filePath);
+        }
+        if (file_exists($thumbPath))
+        {
+            unlink($thumbPath);
+        }
+        if (file_exists($fullPath))
+        {
+            unlink($fullPath);
+        }
 
         $_SESSION['message'] = 1;
 

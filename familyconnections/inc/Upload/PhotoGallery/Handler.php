@@ -445,7 +445,7 @@ class Handler
         }
         // Get widths and heights for proportional image
         else
-        {
+        {        
             $resizeSize = $this->getResizeSize(
                 $currentSize[0], 
                 $currentSize[1], 
@@ -463,7 +463,7 @@ class Handler
         $destinationIdentifier = ImageCreateTrueColor($trueColorWidth, $trueColorHeight);
 
         // Resize image
-        if (!ImageCopyResampled(
+        ImageCopyResampled(
             $destinationIdentifier, 
             $sourceIdentifier, 
             0, 0, 0, 0, 
@@ -471,10 +471,7 @@ class Handler
             $destinationHeight,
             $currentSize[0], 
             $currentSize[1]
-        ))
-        {
-            die('Could not resample image.');
-        };
+        );
 
         return $this->destinationType->writeImage($destinationIdentifier, $this->fileName, $this->extension);
     }
