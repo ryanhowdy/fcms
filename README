@@ -1,11 +1,11 @@
 
-                             Family Connections 3.3.1
+                             Family Connections 3.4.0
 
 
   Installation
   ------------
 
-  1. Upload the familyconnections/ directory in FCMS_3.3.1.zip to your web host.
+  1. Upload the familyconnections/ directory in FCMS_3.4.0.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -15,7 +15,7 @@
 
 
 
-  Upgrading from 2.6+ to 3.3.1
+  Upgrading from 2.6+ to 3.4.0
   ---------------------------
 
   ** DO NOT DELETE THE FOLLOWING FILE **
@@ -40,12 +40,9 @@
   Change Log
   ----------
 
-  3.3.1
+  3.4.0
 
-    #401 - Cannot add new family member from family detail view
-    #400 - Cannot add profile picture from Family Tree
-    #411 - Adress book entries disappear after upgrade
-    #410 - Undefined variable - Family Tree details
+    #404 - Save photos to Amazon S3
 
 
   For the full change log please refer to the included ChangeLog file.
