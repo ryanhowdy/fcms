@@ -44,6 +44,8 @@
 
     #404 - Save photos to Amazon S3
     #406 - Sort Siblings, Children by DOB
+    #417 - Users should not show up as 'new' until they are activated
+
 
 
   For the full change log please refer to the included ChangeLog file.

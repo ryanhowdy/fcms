@@ -3656,7 +3656,8 @@ function getWhatsNewData ($days = 30, $groupByType = false)
             UNION SELECT `id`, `joindate` AS date, 0 AS title, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
             FROM `fcms_users` 
             WHERE `phpass` != 'NONMEMBER' 
-            AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
+            AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+            AND `activated` > 0 ";
     if (usingFamilyNews())
     {
         $sql .= "UNION SELECT n.`id` AS id, n.`updated` AS date, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type 
