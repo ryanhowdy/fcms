@@ -47,17 +47,6 @@ class Page
         $this->fcmsUser         = $fcmsUser;
         $this->fcmsFamilyNews   = $fcmsFamilyNews;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Family News'),
-            'path'          => URL_PREFIX,
-            'displayname'   => getUserDisplayName($this->fcmsUser->id),
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -130,13 +119,23 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Family News'),
+            'pageId'        => 'familynews',
+            'path'          => URL_PREFIX,
+            'displayname'   => getUserDisplayName($this->fcmsUser->id),
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-        $TMPL['javascript'] = '
+        $params['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     if (!$$(\'.delnews input[type="submit"]\')) { return; }
     $$(\'.delnews input[type="submit"]\').each(function(item) {
         item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
@@ -169,10 +168,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-        require_once getTheme($this->fcmsUser->id).'header.php';
-
-        echo '
-        <div id="familynews" class="centercontent">';
+        loadTemplate('global', 'header', $params);
 
         if ($this->fcmsUser->access < 6 || $this->fcmsUser->access == 9)
         {
@@ -210,12 +206,13 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
-        echo '
-        </div><!--/familynews -->';
-
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**

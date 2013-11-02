@@ -54,7 +54,7 @@ h3 { font: bold 16px/30px Verdana, Tahoma, Arial, sans-serif; }
 <h3>'.T_('Quote').'</h2>
 <p>[quote]'.T_('You can Quote me on it.').'[/quote]<br/><blockquote>'.T_('You can Quote me on it.').'</blockquote></p>
 <h3>'.T_('Add Images From a URL').'</h2>
-<p>[img=http://www.familycms.com/logo.gif]<br/><img src="../ui/images/logo.gif"/></p>
+<p>[img=http://www.familycms.com/logo.gif]<br/><img src="../ui/img/logo.gif"/></p>
 <h3>'.T_('Change Text Color').'</h2>
 <p>[color=#f00]'.T_('Red Text').'[/color]<br/><span style="color:#f00">'.T_('Red Text').'</span></p>
 <p>[color=blue]'.T_('Blue Text').'[/color]<br/><span style="color:blue">'.T_('Blue Text').'</span></p>

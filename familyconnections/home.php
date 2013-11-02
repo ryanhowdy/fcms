@@ -64,17 +64,6 @@ class Page
         $this->fcmsPoll     = $fcmsPoll;
         $this->fcmsAlert    = $fcmsAlert;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => cleanOutput(getSiteName()),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_pgettext('The beginning or starting place.', 'Home'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -111,13 +100,23 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => cleanOutput(getSiteName()),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_pgettext('The beginning or starting place.', 'Home'),
+            'pageId'        => 'home',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-        $TMPL['javascript'] = '
+        $params['javascript'] = '
 <script type="text/javascript">
 Event.observe(window, "load", function()
 {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar("'.T_('Chat').'", "'.URL_PREFIX.'");
 
     document.onkeydown = keyHandler;
 });
@@ -149,10 +148,7 @@ function keyHandler(e)
 }
 </script>';
 
-        include_once getTheme($this->fcmsUser->id).'header.php';
-
-        echo '
-        <div id="home" class="centercontent">';
+        loadTemplate('global', 'header', $params);
     }
 
     /**
@@ -162,13 +158,16 @@ function keyHandler(e)
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'          => URL_PREFIX,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
         echo '
-            </div><!--/maincolumn-->
-        </div><!--/centercontent -->';
+            </div><!--/maincolumn-->';
 
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**

@@ -28,38 +28,38 @@ p, .alert-message p { margin-bottom: 18px; }
 }
 /* http://www.webdesignerdepot.com/2009/07/200-free-exclusive-vector-icons-primo/ */
 .dashboard-links li.configuration a {
-    background: #eee url(../images/configuration.png) center 15px no-repeat;
+    background: #eee url(../img/configuration.png) center 15px no-repeat;
 }
 .dashboard-links li.upgrade a {
-    background: #eee url(../images/upgrade.png) center 15px no-repeat;
+    background: #eee url(../img/upgrade.png) center 15px no-repeat;
 }
 .dashboard-links li.members a {
-    background: #eee url(../images/members.png) center 15px no-repeat;
+    background: #eee url(../img/members.png) center 15px no-repeat;
 }
 .dashboard-links li.photogallery a {
-    background: #eee url(../images/photogallery.png) center 15px no-repeat;
+    background: #eee url(../img/photogallery.png) center 15px no-repeat;
 }
 .dashboard-links li.polls a {
-    background: #eee url(../images/polls.png) center 15px no-repeat;
+    background: #eee url(../img/polls.png) center 15px no-repeat;
 }
 .dashboard-links li.awards a {
-    background: #eee url(../images/awards.png) center 15px no-repeat;
+    background: #eee url(../img/awards.png) center 15px no-repeat;
 }
 .dashboard-links li.scheduler a {
-    background: #eee url(../images/scheduler.png) center 15px no-repeat;
+    background: #eee url(../img/scheduler.png) center 15px no-repeat;
 }
 /* http://www.iconfinder.com/search/?q=iconset%3AWPZOOM_Social_Networking_Icon_Set */
 .dashboard-links li.facebook a {
-    background: #eee url(../images/facebook.png) center 35px no-repeat;
+    background: #eee url(../img/facebook.png) center 35px no-repeat;
 }
 .dashboard-links li.youtube a {
-    background: #eee url(../images/youtube.png) center 35px no-repeat;
+    background: #eee url(../img/youtube.png) center 35px no-repeat;
 }
 .dashboard-links li.foursquare a {
-    background: #eee url(../images/foursquare.png) center 35px no-repeat;
+    background: #eee url(../img/foursquare.png) center 35px no-repeat;
 }
 .dashboard-links li.instagram a {
-    background: #eee url(../images/instagram.png) center 35px no-repeat;
+    background: #eee url(../img/instagram.png) center 35px no-repeat;
 }
 .dashboard-links li a:hover {
     background-color: #ddd;

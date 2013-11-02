@@ -617,7 +617,7 @@ function loadPicasaPhotos (token, errorMessage)
     var albumId = $F("albums");
 
     var img = document.createElement("img");
-    img.setAttribute("src", "../ui/images/ajax-bar.gif");
+    img.setAttribute("src", "../ui/img/ajax-bar.gif");
     img.setAttribute("id", "ajax-loader");
     $("photo_list").insert({"before":img});
 
@@ -649,7 +649,7 @@ function loadMorePicasaPhotos (startIndex, token, errorMessage)
 
     var img = document.createElement("img");
     var li  = document.createElement("li");
-    img.setAttribute("src", "../ui/images/ajax-bar.gif");
+    img.setAttribute("src", "../ui/img/ajax-bar.gif");
     img.setAttribute("id", "ajax-loader");
     li.appendChild(img);
     $("photo_list").insert({"bottom":li});
@@ -680,7 +680,7 @@ function loadMorePicasaPhotos (startIndex, token, errorMessage)
 function loadPicasaAlbums (token, errorMessage)
 {
     var img = document.createElement("img");
-    img.setAttribute("src", "../ui/images/ajax-bar.gif");
+    img.setAttribute("src", "../ui/img/ajax-bar.gif");
     img.setAttribute("id", "ajax-loader");
 
     $$(".picasa").each(function (item) {
@@ -943,7 +943,7 @@ function initAddRelative()
             var id = href.substring(1);
 
             var img = document.createElement("img");
-            img.setAttribute("src", "ui/images/ajax-bar.gif");
+            img.setAttribute("src", "ui/img/ajax-bar.gif");
             img.setAttribute("id", "ajax-loader");
             img.setAttribute("style", "float:right; margin:20px;");
             $('content').insert({"top":img});

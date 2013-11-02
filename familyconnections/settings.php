@@ -48,17 +48,6 @@ class Page
         $this->fcmsUser         = $fcmsUser;
         $this->fcmsSettings     = $fcmsSettings;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => cleanOutput(getSiteName()),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Settings'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -251,29 +240,37 @@ class Page
      */
     function displayHeader ($js = '')
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => cleanOutput(getSiteName()),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Settings'),
+            'pageId'        => 'settings',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-        $TMPL['javascript'] = $js;
+        $params['javascript'] = $js;
 
         // Default js
         if ($js == '')
         {
-            $TMPL['javascript'] = '
+            $params['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[ 
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initAdvancedTagging();
 });
 //]]>
 </script>';
         }
 
-        include_once getTheme($this->fcmsUser->id).'header.php';
+        loadTemplate('global', 'header', $params);
 
         echo '
-        <div id="settings" class="centercontent">
-
             <div id="leftcolumn">
                 <h3>'.T_('General Settings').'</h3>
                 <ul class="menu">
@@ -348,14 +345,17 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
         echo '
-            </div>
-            <div style="clear:both"></div>
-        </div><!-- #settings .centercontent -->';
+            </div><!--/#maincolumn-->
+            <div style="clear:both"></div>';
 
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**
@@ -1016,7 +1016,7 @@ Event.observe(window, \'load\', function() {
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/images/facebook.png" alt="Facebook"/>
+            <img class="icon" src="ui/img/facebook.png" alt="Facebook"/>
             <h2>Facebook</h2>
             <p>'.T_('Facebook helps you connect and share with the people in your life.').'</p>
             <div class="status">'.$status.'</div>
@@ -1163,7 +1163,7 @@ Event.observe(window, \'load\', function() {
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/images/foursquare.png" alt="Foursquare"/>
+            <img class="icon" src="ui/img/foursquare.png" alt="Foursquare"/>
             <h2>Foursquare</h2>
             <p>'.T_('A location-based social networking website for your phone.').'</p>
             <div class="status">'.$status.'</div>
@@ -1281,7 +1281,7 @@ Event.observe(window, \'load\', function() {
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/images/instagram.png" alt="Instagram"/>
+            <img class="icon" src="ui/img/instagram.png" alt="Instagram"/>
             <h2>Instagram</h2>
             <p>'.T_('Instagram is a photo sharing app for your phone.').'</p>
             <div class="status">'.$status.'</div>
@@ -1433,7 +1433,7 @@ Event.observe(window, \'load\', function() {
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/images/youtube.png" alt="YouTube"/>
+            <img class="icon" src="ui/img/youtube.png" alt="YouTube"/>
             <h2>YouTube</h2>
             <p>'.T_('YouTube allows users to discover, watch and share videos.').'</p>
             <div class="status">'.$status.'</div>
@@ -1582,7 +1582,7 @@ Event.observe(window, \'load\', function() {
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/images/picasa.png" alt="Picasa"/>
+            <img class="icon" src="ui/img/picasa.png" alt="Picasa"/>
             <h2>Picasa Web</h2>
             <p>'.T_('Picasa Web allows users to share photos with friends and family.').'</p>
             <div class="status">'.$status.'</div>

@@ -58,17 +58,6 @@ class Page
         $this->fcmsImage         = $fcmsImage;
         $this->fcmsPhotoGallery  = $fcmsPhotoGallery;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Profile'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -173,22 +162,29 @@ class Page
      */
     function displayHeader ($memberId = 0)
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Profile'),
+            'pageId'        => 'profile',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-        $TMPL['javascript'] = '
+        $params['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initGravatar();
 });
 //]]>
 </script>';
 
-        require_once getTheme($this->fcmsUser->id).'header.php';
-
-        echo '
-        <div id="profile" class="centercontent">';
+        loadTemplate('global', 'header', $params);
 
         if ($memberId > 0)
         {
@@ -241,18 +237,19 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter ($memberId = 0)
     {
-        $TMPL = $this->fcmsTemplate;
-
         if ($memberId > 0)
         {
             echo '
             </div><!-- /maincolumn -->';
         }
 
-        echo '
-        </div><!-- /profile -->';
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**

@@ -117,7 +117,7 @@ Event.observe(window, "load", function() {
     // Datechooser
     var objDatePicker = new DateChooser();
     objDatePicker.setUpdateField({"day":"j", "month":"n", "year":"Y"});
-    objDatePicker.setIcon("ui/themes/default/images/datepicker.jpg", "year");
+    objDatePicker.setIcon("ui/themes/default/img/datepicker.jpg", "year");
     return true;
 });
 //]]>

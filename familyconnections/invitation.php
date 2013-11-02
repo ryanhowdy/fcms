@@ -95,7 +95,7 @@ Event.observe(window, \'load\', function() {
 </script>
 </head>
 <body id="invitation" class="clearfix">
-    <img id="logo" src="ui/images/logo.gif" alt="'.getSiteName().'"/>';
+    <img id="logo" src="ui/img/logo.gif" alt="'.getSiteName().'"/>';
     }
 
     /**
@@ -221,21 +221,21 @@ Event.observe(window, \'load\', function() {
         <ul id="attending" class="clearfix">
             <li>
                 <label for="yes">
-                    <img src="ui/images/attend_yes.png"/><br/>
+                    <img src="ui/img/attend_yes.png"/><br/>
                     <b>'.T_('Yes').'</b>
                 </label>
                 <input type="radio" id="yes" name="attending" value="1"/>
             </li>
             <li>
                 <label for="maybe">
-                    <img src="ui/images/attend_maybe.png"/><br/>
+                    <img src="ui/img/attend_maybe.png"/><br/>
                     <b>'.T_('Maybe').'</b>
                 </label>
                 <input type="radio" id="maybe" name="attending" value="2"/>
             </li>
             <li>
                 <label for="no">
-                    <img src="ui/images/attend_no.png"/><br/>
+                    <img src="ui/img/attend_no.png"/><br/>
                     <b>'.T_('No').'</b>
                 </label>
                 <input type="radio" id="no" name="attending" value="0"/>
@@ -281,17 +281,17 @@ Event.observe(window, \'load\', function() {
             elseif ($r['attending'] == 0)
             {
                 $noCount++;
-                $img = '<img src="ui/images/attend_no.png" alt="'.T_('No').'"/>';
+                $img = '<img src="ui/img/attend_no.png" alt="'.T_('No').'"/>';
             }
             elseif ($r['attending'] == 1)
             {
                 $yesCount++;
-                $img = '<img src="ui/images/attend_yes.png" alt="'.T_('Yes').'"/>';
+                $img = '<img src="ui/img/attend_yes.png" alt="'.T_('Yes').'"/>';
             }
             elseif ($r['attending'] > 1)
             {
                 $maybeCount++;
-                $img = '<img src="ui/images/attend_maybe.png" alt="'.T_('Maybe').'"/>';
+                $img = '<img src="ui/img/attend_maybe.png" alt="'.T_('Maybe').'"/>';
             }
 
             $displayname = cleanOutput($r['email']);
@@ -313,9 +313,9 @@ Event.observe(window, \'load\', function() {
         echo '
     <div id="leftcolumn">
         <h3>'.T_('Who\'s Coming').'</h3>
-        <h3 class="coming"><img src="ui/themes/default/images/ok.gif"> '.T_('Yes').' ('.$yesCount.')</h3>
-        <h3 class="coming"><img src="ui/themes/default/images/help.gif"> '.T_('Maybe').' ('.$maybeCount.')</h3>
-        <h3 class="coming"><img src="ui/themes/default/images/delete.gif"> '.T_('No').' ('.$noCount.')</h3>
+        <h3 class="coming"><img src="ui/themes/default/img/ok.gif"> '.T_('Yes').' ('.$yesCount.')</h3>
+        <h3 class="coming"><img src="ui/themes/default/img/help.gif"> '.T_('Maybe').' ('.$maybeCount.')</h3>
+        <h3 class="coming"><img src="ui/themes/default/img/delete.gif"> '.T_('No').' ('.$noCount.')</h3>
         <h3 class="coming">'.T_('Undecided').' ('.$undecidedCount.')</h3>
     </div>
 

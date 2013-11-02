@@ -1807,19 +1807,19 @@ class Calendar
             elseif ($r['attending'] == 0)
             {
                 $noCount++;
-                $img = '<img class="avatar" src="ui/images/attend_no.png" alt="'.T_('No').'"/>';
+                $img = '<img class="avatar" src="ui/img/attend_no.png" alt="'.T_('No').'"/>';
                 $comingNo .= "<p>$displayname</p>";
             }
             elseif ($r['attending'] == 1)
             {
                 $yesCount++;
-                $img = '<img class="avatar" src="ui/images/attend_yes.png" alt="'.T_('Yes').'"/>';
+                $img = '<img class="avatar" src="ui/img/attend_yes.png" alt="'.T_('Yes').'"/>';
                 $comingYes .= "<p>$displayname</p>";
             }
             elseif ($r['attending'] > 1)
             {
                 $maybeCount++;
-                $img = '<img class="avatar" src="ui/images/attend_maybe.png" alt="'.T_('Maybe').'"/>';
+                $img = '<img class="avatar" src="ui/img/attend_maybe.png" alt="'.T_('Maybe').'"/>';
                 $comingMaybe .= "<p>$displayname</p>";
             }
 
@@ -1841,21 +1841,21 @@ class Calendar
                 <ul id="attending">
                     <li>
                         <label for="yes">
-                            <img src="ui/images/attend_yes.png"/><br/>
+                            <img src="ui/img/attend_yes.png"/><br/>
                             <b>'.T_('Yes').'</b>
                         </label>
                         <input type="radio" id="yes" name="attending" value="1"/>
                     </li>
                     <li>
                         <label for="maybe">
-                            <img src="ui/images/attend_maybe.png"/><br/>
+                            <img src="ui/img/attend_maybe.png"/><br/>
                             <b>'.T_('Maybe').'</b>
                         </label>
                         <input type="radio" id="maybe" name="attending" value="2"/>
                     </li>
                     <li>
                         <label for="no">
-                            <img src="ui/images/attend_no.png"/><br/>
+                            <img src="ui/img/attend_no.png"/><br/>
                             <b>'.T_('No').'</b>
                         </label>
                         <input type="radio" id="no" name="attending" value="0"/>

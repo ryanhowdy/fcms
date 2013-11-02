@@ -41,17 +41,6 @@ class Page
         $this->fcmsDatabase      = $fcmsDatabase;
         $this->fcmsUser          = $fcmsUser;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Help'),
-            'path'          => URL_PREFIX,
-            'displayname'   => getUserDisplayName($this->fcmsUser->id),
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -106,18 +95,20 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Help'),
+            'pageId'        => 'help',
+            'path'          => URL_PREFIX,
+            'displayname'   => getUserDisplayName($this->fcmsUser->id),
+            'version'       => getCurrentVersion(),
+        );
 
-        $TMPL['javascript'] = '
-<script type="text/javascript">
-Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });
-</script>';
-
-        require_once getTheme($this->fcmsUser->id).'header.php';
+        displayPageHeader($params);
 
         echo '
-        <div id="help" class="centercontent">
-
             <div id="leftcolumn">
                 <h3>'.T_('Topics').'</h3>
                 <ul class="menu">
@@ -139,14 +130,16 @@ Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
         echo '
-            </div><!--/maincolumn-->
+            </div><!--/#maincolumn-->';
 
-        </div><!--/centercontent-->';
-
-        require_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**
@@ -217,7 +210,7 @@ Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''
             <p>'.T_('You can only edit/change the photo\'s caption and category.').'</p>
             <ol>
             <li>'.T_('Navigate to the photo you would like to edit.').'</li>
-            <li>'.T_('Click the edit button <img src="themes/default/images/edit.gif"/> located above the photo and to the right.').'</li>
+            <li>'.T_('Click the edit button <img src="ui/themes/default/img/edit.gif"/> located above the photo and to the right.').'</li>
             <li>'.T_('To change the category: choose the new category from the dropdown menu above the photo.').'<br/>'.T_('To edit/change the caption: make your changes in the text field area below the photo.').'</li>
             <li>'.T_('Click the submit changes button to finish your changes.').'</li>
             </ol>
@@ -229,7 +222,7 @@ Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''
             <p><b>'.T_('How do I delete a photo?').'</b></p>
             <ol>
                 <li>'.T_('Navigate to the photo you would like to edit.').'</li>
-                <li>'.T_('Click the delete button <img src="themes/default/images/delete.gif"/> located above the photo and to the right.').'</li>
+                <li>'.T_('Click the delete button <img src="ui/themes/default/img/delete.gif"/> located above the photo and to the right.').'</li>
                 <li>'.T_('You will be prompted with a message asking if you are sure you want to delete that photo, click Ok.').'</li>
             </ol>
             <p>
@@ -257,7 +250,7 @@ Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''
                 <li>'.T_('Choose <a href="gallery/index.php?action=category">Create/Edit Category</a> from the <a href="gallery/index.php">Photo Gallery</a> menu.').'</li>
                 <li>'.T_('Scroll down to the list of categories and find the one you want to change.').'</li>
                 <li>'.T_('Make the desired change.').'</li>
-                <li>'.T_('Click the edit button <img src="themes/default/images/edit.gif"/> located to the right of the category name.').'</li>
+                <li>'.T_('Click the edit button <img src="ui/themes/default/img/edit.gif"/> located to the right of the category name.').'</li>
             </ol>
             <p>&nbsp;</p>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>
@@ -268,7 +261,7 @@ Event.observe(window, \'load\', function() { initChatBar(\''.T_('Chat').'\', \''
             <ol>
                 <li>'.T_('Choose <a href="gallery/index.php?action=category">Create/Edit Category</a> from the <a href="gallery/index.php">Photo Gallery</a> menu.').'</li>
                 <li>'.T_('Scroll down to the list of categories and find the one you want to delete.').'</li>
-                <li>'.T_('Click the delete button <img src="themes/default/images/delete.gif"/> located to the right of the category name.').'</li>
+                <li>'.T_('Click the delete button <img src="ui/themes/default/img/delete.gif"/> located to the right of the category name.').'</li>
             </ol>
             <p>&nbsp;</p>
             <div class="top"><a href="#top">'.T_('Back to Top').'</a></div>';

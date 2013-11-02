@@ -48,17 +48,6 @@ class Page
         $this->fcmsRecipe       = $fcmsRecipe;
         $this->fcmsImage        = $fcmsImage;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Recipes'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -164,13 +153,22 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Recipes'),
+            'pageId'        => 'recipe-page',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+        );
 
-        $TMPL['javascript'] = '
+        $params['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initHideAddFormDetails();
     if (!$$(\'.delrec input[type="submit"]\')) { return; }
     $$(\'.delrec input[type="submit"]\').each(function(item) {
@@ -195,10 +193,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-        include_once getTheme($this->fcmsUser->id).'header.php';
-
-        echo '
-        <div id="recipe-page" class="centercontent">';
+        loadTemplate('global', 'header', $params);
     }
 
     /**
@@ -208,13 +203,13 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'     => URL_PREFIX,
+            'version'  => getCurrentVersion(),
+            'year'     => date('Y')
+        );
 
-        echo '
-        </div><!-- #recipe-page .centercontent -->';
-
-
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**

@@ -1,11 +1,3 @@
-/*
- * Theme Name: Default
- * Description: The default theme for Family Connections. Fixed 980px Centered Layout. Now with mobile support.
- * Screen Size: 1024x768+
- * FCMS Compatible: 3.2
- * Updated: July 10, 2013
- * Author: Ryan Haudenschilt
- * ------------------------------------------------*/
 article,
 aside,
 details,
@@ -103,7 +95,7 @@ textarea {
 /* =LAYOUT =STRUCTURE
 ------------------------------------------------*/
 html {
-  background: #9ccef0 url(../../images/bg.png) repeat-x;
+  background: #9ccef0 url(../../../img/bg.png) repeat-x;
 }
 body {
   -webkit-border-radius: 5px;
@@ -399,7 +391,7 @@ fieldset #post {
   text-decoration: underline;
 }
 .error-alert {
-  background: #ffd5cf url(images/error.gif) 15px 15px no-repeat;
+  background: #ffd5cf url(../img/error.gif) 15px 15px no-repeat;
   color: #6f0d00;
   font-weight: bold;
 }
@@ -407,7 +399,7 @@ fieldset #post {
   background-color: #eee;
 }
 .info-alert {
-  background: #eeeeee url(images/information.gif) 15px 15px no-repeat;
+  background: #eeeeee url(../img/information.gif) 15px 15px no-repeat;
 }
 .info-alert h3 {
   padding-top: 20px;
@@ -422,7 +414,7 @@ fieldset #post {
   color: #999;
 }
 .ok-alert {
-  background: #cff0cc url(images/ok.gif) 15px 15px no-repeat;
+  background: #cff0cc url(../img/ok.gif) 15px 15px no-repeat;
 }
 div.close-alert {
   font-size: 10px;
@@ -430,7 +422,7 @@ div.close-alert {
   text-align: right;
 }
 div.close-alert a {
-  background: transparent url(images/delete.gif) center left no-repeat;
+  background: transparent url(../img/delete.gif) center left no-repeat;
   padding: 0 0 0 18px;
 }
 div.close-alert a:hover {
@@ -460,7 +452,7 @@ span.date form div {
   width: 100%;
 }
 .ok-msg {
-  background: #cff0cc url(images/ok.gif) 15px center no-repeat;
+  background: #cff0cc url(../img/ok.gif) 15px center no-repeat;
   margin: 0 auto;
   padding: 20px 20px 20px 45px;
   /*width: 915px;*/
@@ -605,7 +597,7 @@ a.u:hover {
   z-index: 5;
 }
 #navigation {
-  background: #0a85c4 url(images/nav_bg.png) 0 0 repeat-x;
+  background: #0a85c4 url(../img/nav_bg.png) 0 0 repeat-x;
   display: block;
   float: left;
   list-style: none;
@@ -869,13 +861,13 @@ ul.menu li a:hover {
   clear: both;
 }
 .top a {
-  background-image: url(images/top.gif);
+  background-image: url(../img/top.gif);
   background-repeat: no-repeat;
   background-position: center left;
   padding: 0 0 0 12px;
 }
 a.rss {
-  background-image: url(images/rss.gif);
+  background-image: url(../img/rss.gif);
   background-repeat: no-repeat;
   background-position: center left;
   clear: both;
@@ -884,7 +876,7 @@ a.rss {
 }
 .help {
   padding: 2px 18px 2px 0;
-  background: transparent url(images/help.gif) no-repeat center right;
+  background: transparent url(../img/help.gif) no-repeat center right;
 }
 .helpimg {
   display: block;
@@ -892,7 +884,7 @@ a.rss {
   height: 16px;
   overflow: hidden;
   text-indent: -9000px;
-  background: transparent url(images/help.gif) no-repeat 0 0;
+  background: transparent url(../img/help.gif) no-repeat 0 0;
 }
 /* =BUTTONS
 ------------------------------------------------*/
@@ -917,28 +909,28 @@ a.rss {
   width: 16px;
 }
 .delbtn {
-  background: transparent url(images/delete.gif) top left no-repeat;
+  background: transparent url(../img/delete.gif) top left no-repeat;
 }
 .editbtn {
-  background: transparent url(images/edit.gif) top left no-repeat;
+  background: transparent url(../img/edit.gif) top left no-repeat;
 }
 .quotebtn {
-  background: transparent url(images/board_quote.gif) top left no-repeat;
+  background: transparent url(../img/board_quote.gif) top left no-repeat;
 }
 .viewbtn {
-  background: transparent url(images/view.gif) top left no-repeat;
+  background: transparent url(../img/view.gif) top left no-repeat;
 }
 .book_delbtn {
-  background: url(images/book_delete.gif) top left no-repeat;
+  background: url(../img/book_delete.gif) top left no-repeat;
 }
 .book_editbtn {
-  background: url(images/book_edit.gif) top left no-repeat;
+  background: url(../img/book_edit.gif) top left no-repeat;
 }
 .gal_delcombtn {
-  background: url(images/comments_delete.gif) top left no-repeat;
+  background: url(../img/comments_delete.gif) top left no-repeat;
 }
 .gal_addcombtn {
-  background: url(images/comments_add.gif) top left no-repeat;
+  background: url(../img/comments_add.gif) top left no-repeat;
 }
 fieldset input.mouseover {
   background-color: #9ccef0;
@@ -1080,7 +1072,7 @@ ul.whovoted img {
 #home .newcal .info p {
   display: block;
   padding: 23px 0 23px 70px;
-  background: transparent url(images/event.png) no-repeat 0 50%;
+  background: transparent url(../img/event.png) no-repeat 0 50%;
 }
 #home .newstatus .newstatus {
   padding: 10px 0;
@@ -1500,10 +1492,10 @@ li.tag_photo label span {
   padding: 0 0 0 22px;
 }
 .photo_views {
-  background: transparent url(images/view.png) center left no-repeat;
+  background: transparent url(../img/view.png) center left no-repeat;
 }
 .photo_comments {
-  background: transparent url(images/board_quote.gif) center left no-repeat;
+  background: transparent url(../img/board_quote.gif) center left no-repeat;
 }
 #members_in_photo {
   border-left: 1px solid #eee;
@@ -1669,7 +1661,7 @@ li.tag_photo label span {
   padding: 0;
 }
 .slideshow a {
-  background: transparent url(images/view_slideshow.png) no-repeat 15px 50%;
+  background: transparent url(../img/view_slideshow.png) no-repeat 15px 50%;
   border: 1px solid #fff;
   -webkit-border-radius: 6px;
   -moz-border-radius: 6px;
@@ -1765,7 +1757,7 @@ li.tag_photo label span {
   width: 757px;
 }
 #loading {
-  background: url(../../images/ajax-circle.gif) no-repeat center center;
+  background: url(../../../img/ajax-circle.gif) no-repeat center center;
   height: 292px;
   margin: 20px 109px;
   position: absolute;
@@ -1841,7 +1833,7 @@ li.tag_photo label span {
   border: 1px solid green;
 }
 .picasa li label span {
-  background: url(../../images/check.png) no-repeat 50% 50%;
+  background: url(../../../img/check.png) no-repeat 50% 50%;
   cursor: pointer;
   cursor: hand;
   height: 73px;
@@ -1914,21 +1906,21 @@ li.tag_photo label span {
   width: 28px;
 }
 #threadlist td.images .today {
-  background: url(images/today.gif) no-repeat 6px 0;
+  background: url(../img/today.gif) no-repeat 6px 0;
   float: none;
   margin: 0;
 }
 #threadlist td.images .yesterday {
-  background: url(images/yesterday.gif) no-repeat 6px 0;
+  background: url(../img/yesterday.gif) no-repeat 6px 0;
 }
 #threadlist td.images .announcement_today {
-  background: url(images/announcement_today.gif) no-repeat 6px 0;
+  background: url(../img/announcement_today.gif) no-repeat 6px 0;
 }
 #threadlist td.images .announcement_yesterday {
-  background: url(images/announcement_yesterday.gif) no-repeat 6px 0;
+  background: url(../img/announcement_yesterday.gif) no-repeat 6px 0;
 }
 #threadlist td.images .announcement {
-  background: url(images/announcement.gif) no-repeat 6px 0;
+  background: url(../img/announcement.gif) no-repeat 6px 0;
 }
 #threadlist td.replies,
 #threadlist td.views {
@@ -1937,7 +1929,7 @@ li.tag_photo label span {
   text-align: center;
 }
 #threadlist td.info .hot {
-  background: transparent url(images/hot_thread.gif) no-repeat center center;
+  background: transparent url(../img/hot_thread.gif) no-repeat center center;
 }
 #threadlist tr.announcement td.images,
 #threadlist tr.announcement td.replies,
@@ -2075,7 +2067,7 @@ a.nav {
   padding: 2px 0;
 }
 a.home span {
-  background: transparent url(images/home.gif) 20px 50% no-repeat;
+  background: transparent url(../img/home.gif) 20px 50% no-repeat;
   padding: 2px 20px 2px 40px;
 }
 a.nav:hover {
@@ -2084,11 +2076,11 @@ a.nav:hover {
 }
 .del_thread {
   padding: 2px 0 2px 18px;
-  background: transparent url(images/delete.gif) no-repeat center left;
+  background: transparent url(../img/delete.gif) no-repeat center left;
 }
 .edit_thread {
   padding: 2px 0 2px 18px;
-  background: transparent url(images/edit.gif) no-repeat center left;
+  background: transparent url(../img/edit.gif) no-repeat center left;
 }
 span.q {
   border-left: 5px solid #ccc;
@@ -2114,25 +2106,25 @@ blockquote {
   width: 10px;
 }
 .boardtop5 {
-  background: transparent url(images/award_top5.gif) no-repeat center center;
+  background: transparent url(../img/award_top5.gif) no-repeat center center;
 }
 .boardtop5gold {
-  background: transparent url(images/award_top5gold.gif) no-repeat center center;
+  background: transparent url(../img/award_top5gold.gif) no-repeat center center;
 }
 .phototop5 {
-  background: transparent url(images/award_phototop5.gif) no-repeat center center;
+  background: transparent url(../img/award_phototop5.gif) no-repeat center center;
 }
 .phototop5gold {
-  background: transparent url(images/award_phototop5gold.gif) no-repeat center center;
+  background: transparent url(../img/award_phototop5gold.gif) no-repeat center center;
 }
 .smileys {
-  background: transparent url(images/award_mostsmileys.gif) no-repeat center center;
+  background: transparent url(../img/award_mostsmileys.gif) no-repeat center center;
 }
 .threadstarter {
-  background: transparent url(images/award_topthread.gif) no-repeat center center;
+  background: transparent url(../img/award_topthread.gif) no-repeat center center;
 }
 .topviewedphoto {
-  background: transparent url(images/award_mostviewedphoto.gif) no-repeat center center;
+  background: transparent url(../img/award_mostviewedphoto.gif) no-repeat center center;
 }
 #big_search {
   font: 11px/13px Verdana, Arial, sans-serif;
@@ -2273,14 +2265,14 @@ blockquote {
   color: #fff;
 }
 #address-options #edit a {
-  background: #9ccef0 url(images/edit.gif) 5px 50% no-repeat;
+  background: #9ccef0 url(../img/edit.gif) 5px 50% no-repeat;
   padding-left: 26px;
 }
 #address-options #delete {
   float: right;
 }
 #address-options #delete a {
-  background: #9ccef0 url(images/delete.gif) 5px 50% no-repeat;
+  background: #9ccef0 url(../img/delete.gif) 5px 50% no-repeat;
   padding-left: 26px;
 }
 #address-details {
@@ -2327,17 +2319,17 @@ blockquote {
 }
 a.email {
   padding: 0 8px;
-  background: transparent url(images/email.gif) no-repeat center center;
+  background: transparent url(../img/email.gif) no-repeat center center;
 }
 .del_address,
 .edit_address {
   padding: 2px 18px 2px 0;
 }
 .del_address {
-  background: transparent url(images/book_delete.gif) no-repeat center right;
+  background: transparent url(../img/book_delete.gif) no-repeat center right;
 }
 .edit_address {
-  background: transparent url(images/book_edit.gif) no-repeat center right;
+  background: transparent url(../img/book_edit.gif) no-repeat center right;
 }
 /* =CALENDAR
 ------------------------------------------------*/
@@ -2374,7 +2366,7 @@ a.email {
   text-align: center;
 }
 #big-calendar .add {
-  background: transparent url(images/add.gif) no-repeat 0 0;
+  background: transparent url(../img/add.gif) no-repeat 0 0;
   display: block;
   float: right;
   height: 16px;
@@ -2456,10 +2448,10 @@ label.colors {
   width: 270px;
 }
 table .prev {
-  background: transparent url(images/previous.gif) no-repeat 0 0;
+  background: transparent url(../img/previous.gif) no-repeat 0 0;
 }
 table .next {
-  background: transparent url(images/next.gif) no-repeat 0 0;
+  background: transparent url(../img/next.gif) no-repeat 0 0;
 }
 table .today {
   display: block;
@@ -2575,7 +2567,7 @@ label.violet {
   background-color: #8a8bb6;
 }
 .print {
-  background: transparent url(images/print.gif) no-repeat center right;
+  background: transparent url(../img/print.gif) no-repeat center right;
   padding: 2px 18px 2px 0;
 }
 #calendar-section #frm p {
@@ -2716,7 +2708,7 @@ h2.calmenu {
   position: relative;
 }
 #event_details .edit_event {
-  background: transparent url(images/edit.gif) no-repeat center left;
+  background: transparent url(../img/edit.gif) no-repeat center left;
   display: inline-block;
   font-size: 0;
   height: 16px;
@@ -2860,13 +2852,13 @@ h3.coming span {
   width: 20px;
 }
 h3.coming .ok {
-  background: transparent url(images/ok.gif) 0 2px no-repeat;
+  background: transparent url(../img/ok.gif) 0 2px no-repeat;
 }
 h3.coming .maybe {
-  background: transparent url(images/help.gif) 0 2px no-repeat;
+  background: transparent url(../img/help.gif) 0 2px no-repeat;
 }
 h3.coming .no {
-  background: transparent url(images/delete.gif) 0 2px no-repeat;
+  background: transparent url(../img/delete.gif) 0 2px no-repeat;
 }
 h3.coming i {
   color: #999;
@@ -3085,37 +3077,37 @@ h3.coming i {
   font-size: 11px;
 }
 #awards-list li a.board {
-  background: transparent url(images/award_board.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_board.gif) 50% 50% no-repeat;
 }
 #awards-list li a.docs {
-  background: transparent url(images/award_docs.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_docs.gif) 50% 50% no-repeat;
 }
 #awards-list li a.gallery {
-  background: transparent url(images/award_gallery.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_gallery.gif) 50% 50% no-repeat;
 }
 #awards-list li a.icebreaker {
-  background: transparent url(images/award_icebreaker.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_icebreaker.gif) 50% 50% no-repeat;
 }
 #awards-list li a.interesting {
-  background: transparent url(images/award_interesting.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_interesting.gif) 50% 50% no-repeat;
 }
 #awards-list li a.news {
-  background: transparent url(images/award_news.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_news.gif) 50% 50% no-repeat;
 }
 #awards-list li a.photogenic {
-  background: transparent url(images/award_photogenic.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_photogenic.gif) 50% 50% no-repeat;
 }
 #awards-list li a.planner {
-  background: transparent url(images/award_planner.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_planner.gif) 50% 50% no-repeat;
 }
 #awards-list li a.recipes {
-  background: transparent url(images/award_recipes.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_recipes.gif) 50% 50% no-repeat;
 }
 #awards-list li a.secretive {
-  background: transparent url(images/award_secretive.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_secretive.gif) 50% 50% no-repeat;
 }
 #awards-list li a.shutterbug {
-  background: transparent url(images/award_shutterbug.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_shutterbug.gif) 50% 50% no-repeat;
 }
 #current-award {
   *zoom: 1;
@@ -3134,37 +3126,37 @@ h3.coming i {
   width: 60px;
 }
 div.board {
-  background: transparent url(images/award_board.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_board.gif) 50% 50% no-repeat;
 }
 div.docs {
-  background: transparent url(images/award_docs.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_docs.gif) 50% 50% no-repeat;
 }
 div.gallery {
-  background: transparent url(images/award_gallery.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_gallery.gif) 50% 50% no-repeat;
 }
 div.icebreaker {
-  background: transparent url(images/award_icebreaker.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_icebreaker.gif) 50% 50% no-repeat;
 }
 div.interesting {
-  background: transparent url(images/award_interesting.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_interesting.gif) 50% 50% no-repeat;
 }
 div.news {
-  background: transparent url(images/award_news.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_news.gif) 50% 50% no-repeat;
 }
 div.photogenic {
-  background: transparent url(images/award_photogenic.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_photogenic.gif) 50% 50% no-repeat;
 }
 div.planner {
-  background: transparent url(images/award_planner.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_planner.gif) 50% 50% no-repeat;
 }
 div.recipes {
-  background: transparent url(images/award_recipes.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_recipes.gif) 50% 50% no-repeat;
 }
 div.secretive {
-  background: transparent url(images/award_secretive.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_secretive.gif) 50% 50% no-repeat;
 }
 div.shutterbug {
-  background: transparent url(images/award_shutterbug.gif) 50% 50% no-repeat;
+  background: transparent url(../img/award_shutterbug.gif) 50% 50% no-repeat;
 }
 #current-award h1 {
   font: bold 22px/24px Verdana, Arial, sans-serif;
@@ -3196,7 +3188,7 @@ a.new_pm {
   margin: 0 0 0 4px;
   font-size: 0;
   vertical-align: text-top;
-  background: transparent url(images/email.gif) no-repeat top center;
+  background: transparent url(../img/email.gif) no-repeat top center;
 }
 #pm {
   width: 100%;
@@ -3221,10 +3213,10 @@ a.new_pm {
 }
 #pm .img {
   width: 20px;
-  background: transparent url(images/email_open.gif) no-repeat center center;
+  background: transparent url(../img/email_open.gif) no-repeat center center;
 }
 #pm .new td.img {
-  background: #ebf2fa url(images/email.gif) no-repeat center center;
+  background: #ebf2fa url(../img/email.gif) no-repeat center center;
 }
 #pm .new td {
   background-color: #ebf2fa;
@@ -3508,19 +3500,19 @@ fieldset #msg {
 .tree li div.person a.view {
   top: 5px;
   left: 5px;
-  background: transparent url(images/view.png) top left no-repeat;
+  background: transparent url(../img/view.png) top left no-repeat;
 }
 .tree li div.person a.delete {
   top: 5px;
-  background: transparent url(images/delete.gif) top left no-repeat;
+  background: transparent url(../img/delete.gif) top left no-repeat;
 }
 .tree li div.person a.edit {
   top: 25px;
-  background: transparent url(images/edit.gif) top left no-repeat;
+  background: transparent url(../img/edit.gif) top left no-repeat;
 }
 .tree li div.person a.add {
   top: 45px;
-  background: transparent url(images/add.gif) top left no-repeat;
+  background: transparent url(../img/add.gif) top left no-repeat;
 }
 .tree li div.person a:hover {
   text-decoration: underline;
@@ -3614,7 +3606,7 @@ fieldset #msg {
 }
 #familytree-page #immediate-family p.add_relative a {
   color: #000;
-  background: transparent url(images/add.gif) no-repeat center left;
+  background: transparent url(../img/add.gif) no-repeat center left;
   font-size: 13px;
   font-weight: normal;
   padding-left: 20px;
@@ -3961,7 +3953,7 @@ h4.recipe-name {
 .level9,
 .level10 {
   background-color: transparent;
-  background-image: url(images/levels.gif);
+  background-image: url(../img/levels.gif);
   background-repeat: no-repeat;
   display: block;
   height: 10px;
@@ -4014,7 +4006,7 @@ h4.recipe-name {
   padding: 20px 0 0 0;
 }
 a.foursquare {
-  background: transparent url(images/signinwith-foursquare.png) no-repeat center left;
+  background: transparent url(../img/signinwith-foursquare.png) no-repeat center left;
   display: block;
   height: 24px;
   text-indent: -9999px;
@@ -4400,7 +4392,7 @@ a.foursquare {
 }
 #config fieldset .add {
   padding: 0 0 0 20px;
-  background: transparent url(images/add.gif) no-repeat center left;
+  background: transparent url(../img/add.gif) no-repeat center left;
 }
 #delete_category p {
   text-align: right;
@@ -4700,10 +4692,10 @@ ul.poll-results .avatar-member-list-small li {
   padding-right: 20px;
 }
 .sortasc {
-  background-image: url(images/up.gif);
+  background-image: url(../img/up.gif);
 }
 .sortdesc {
-  background-image: url(images/down.gif);
+  background-image: url(../img/down.gif);
 }
 .nosort {
   cursor: default;
@@ -4799,7 +4791,7 @@ textarea.LV_invalid_field:active {
 .small-star a:active,
 .small-star a:focus,
 .small-star .current-rating {
-  background-image: url(images/star_small.gif);
+  background-image: url(../img/star_small.gif);
   line-height: 10px;
   height: 10px;
 }
@@ -4812,7 +4804,7 @@ textarea.LV_invalid_field:active {
 .small-big a:active,
 .small-big a:focus,
 .small-big .current-rating {
-  background-image: url(images/star_big.gif);
+  background-image: url(../img/star_big.gif);
   line-height: 24px;
   height: 24px;
 }
@@ -4836,41 +4828,41 @@ textarea.LV_invalid_field:active {
   margin: 0 0 0 3px;
 }
 .bold {
-  background: url(images/text_bold.gif) top left no-repeat;
+  background: url(../img/text_bold.gif) top left no-repeat;
 }
 .italic {
-  background: url(images/text_italic.png) top left no-repeat;
+  background: url(../img/text_italic.png) top left no-repeat;
 }
 .underline {
-  background: url(images/text_underline.png) top left no-repeat;
+  background: url(../img/text_underline.png) top left no-repeat;
 }
 .left_align {
-  background: url(images/text_left.png) top left no-repeat;
+  background: url(../img/text_left.png) top left no-repeat;
 }
 .center_align {
-  background: url(images/text_center.png) top left no-repeat;
+  background: url(../img/text_center.png) top left no-repeat;
 }
 .right_align {
-  background: url(images/text_right.png) top left no-repeat;
+  background: url(../img/text_right.png) top left no-repeat;
 }
 .h1 {
-  background: url(images/text_h1.png) top left no-repeat;
+  background: url(../img/text_h1.png) top left no-repeat;
 }
 .h2 {
-  background: url(images/text_h2.png) top left no-repeat;
+  background: url(../img/text_h2.png) top left no-repeat;
 }
 .h3 {
-  background: url(images/text_h3.png) top left no-repeat;
+  background: url(../img/text_h3.png) top left no-repeat;
 }
 .board_quote {
-  background: url(images/board_quote.gif) top left no-repeat;
+  background: url(../img/board_quote.gif) top left no-repeat;
 }
 .board_images {
-  background: url(images/board_images.gif) top left no-repeat;
+  background: url(../img/board_images.gif) top left no-repeat;
 }
 .links {
-  background: url(images/board_links.gif) top left no-repeat;
+  background: url(../img/board_links.gif) top left no-repeat;
 }
 .toolbar .smileys {
-  background: transparent url(images/smiley.gif) no-repeat center center;
+  background: transparent url(../img/smiley.gif) no-repeat center center;
 }

@@ -6,8 +6,8 @@
 <meta name="author" content="Ryan Haudenschilt" />
 <meta name="viewport" content="width=device-width" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>ui/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/style.css"/>
-<link rel="stylesheet" type="text/css" media="only screen and (max-width: 480px)" href="<?php echo $TMPL["path"]; ?>ui/themes/default/mobile.css"/>
+<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/css/style.css"/>
+<link rel="stylesheet" type="text/css" media="only screen and (max-width: 480px)" href="<?php echo $TMPL["path"]; ?>ui/themes/default/css/mobile.css"/>
 <script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/prototype.js"></script>
 <script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js?version=320"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
@@ -17,7 +17,7 @@
     <div id="header">
         <div id="logo">
             <a href="<?php echo $TMPL['path']; ?>index.php">
-                <img src="<?php echo $TMPL['path']; ?>ui/images/logo.gif" alt="<?php echo $TMPL['sitename'];?>"/>
+                <img src="<?php echo $TMPL['path']; ?>ui/img/logo.gif" alt="<?php echo $TMPL['sitename'];?>"/>
             </a>
         </div>
         <p>
@@ -27,9 +27,8 @@
         </p>
     </div>
 
-<?php include_once('navigation.php'); ?>
+<?php require_once('navigation.php'); ?>
 
-    <!-- ############ CONTENT START ############ -->
     <div id="content">
-
         <div id="pagetitle"><?php echo $TMPL['pagetitle']; ?></div>
+        <div id="<?php echo $TMPL['pageId']; ?>" class="centercontent">

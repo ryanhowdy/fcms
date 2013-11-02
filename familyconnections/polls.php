@@ -48,17 +48,6 @@ class Page
         $this->fcmsUser     = $fcmsUser;
         $this->fcmsPoll     = $fcmsPoll;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Polls'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -116,21 +105,21 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Polls'),
+            'pageId'        => 'poll',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-        $TMPL['javascript'] = '
-<script type="text/javascript">
-//<![CDATA[ 
-Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
-});
-//]]>
-</script>';
-
-        include_once getTheme($this->fcmsUser->id).'header.php';
+        displayPageHeader($params);
 
         echo '
-        <div id="poll" class="centercontent">
             <div id="sections_menu">
                 <ul>
                     <li><a href="polls.php">'.T_('Latest').'</a></li>
@@ -156,12 +145,13 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'      => URL_PREFIX,
+            'version'   => getCurrentVersion(),
+            'year'      => date('Y')
+        );
 
-        echo '
-        </div><!--/poll-->';
-
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**

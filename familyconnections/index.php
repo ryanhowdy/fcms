@@ -346,7 +346,7 @@ function displayHeader($login = true)
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="author" content="Ryan Haudenschilt"/>
 <link rel="shortcut icon" href="ui/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="ui/fcms-core.css"/>
+<link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css"/>
 </head>
 <body'.$js.'>';
 }
@@ -451,7 +451,7 @@ function displayLogin()
             'secret' => $fbData['fb_secret'],
         ));
 
-        $facebookLogin = '<a href="'.$facebook->getLoginUrl($params).'" title="'.T_('Login using Facebook').'"><img src="ui/images/facebook_tiny.png"/></a>';
+        $facebookLogin = '<a href="'.$facebook->getLoginUrl($params).'" title="'.T_('Login using Facebook').'"><img src="ui/img/facebook_tiny.png"/></a>';
     }
 
     echo '

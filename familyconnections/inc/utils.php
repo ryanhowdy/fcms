@@ -5420,22 +5420,17 @@ function usingFullSizePhotos ()
 /**
  * displayPageHeader 
  * 
- * @param int   $id 
- * @param array $TMPL
+ * @param array $params
  * @param array $options 
  * 
  * @return void
  */
-function displayPageHeader ($id, $TMPL, $options = null)
+function displayPageHeader ($params, $options = null)
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
-
     $js       = isset($options['js'])       ? $options['js']       : '';
     $jsOnload = isset($options['jsOnload']) ? $options['jsOnload'] : '';
 
-    $TMPL['javascript'] = '';
+    $params['javascript'] = '';
 
     // Load any js modules
     if (isset($options['modules']))
@@ -5443,46 +5438,24 @@ function displayPageHeader ($id, $TMPL, $options = null)
         $list = getModuleList();
         foreach ($options['modules'] as $module)
         {
-            $TMPL['javascript'] .= $list[$module]."\n";
+            $params['javascript'] .= $list[$module]."\n";
         }
     }
 
     // Set page specific javascript
-    $TMPL['javascript'] .= $js;
+    $params['javascript'] .= $js;
 
     // Set onload javascript
-    $TMPL['javascript'] .= '
+    $params['javascript'] .= '
     <script type="text/javascript">
     Event.observe(window, "load", function() {
-        initChatBar("'.T_('Chat').'", "'.$TMPL['path'].'");
+        initChatBar("'.T_('Chat').'", "'.$params['path'].'");
         '.$jsOnload.'
     });
     </script>';
 
     // Display the theme header
-    require_once getTheme($fcmsUser->id).'header.php';
-
-    echo '
-        <div id="'.$id.'" class="centercontent">';
-}
-
-/**
- * displayPageFooter 
- * 
- * @param array $TMPL
- * 
- * @return void
- */
-function displayPageFooter($TMPL)
-{
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
-
-    echo '
-        </div><!--/centercontent-->';
-
-    require_once getTheme($fcmsUser->id).'footer.php';
+    loadTemplate('global', 'header', $params);
 }
 
 /**
@@ -5497,4 +5470,39 @@ function getModuleList ()
         'datechooser'       => '<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>'
                               .'<script type="text/javascript" src="ui/js/datechooser.js"></script>',
     );
+}
+
+/**
+ * loadTemplate 
+ * 
+ * Will load a single php template file with some variables.
+ * 
+ * @param string $subDirectory 
+ * @param string $template 
+ * @param array  $variables 
+ * 
+ * @return void
+ */
+function loadTemplate ($subDirectory, $template, $variables = array())
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    if (isset($fcmsUser->id))
+    {
+        $themePath = getTheme($fcmsUser->id);
+    }
+    else
+    {
+        $themePath = getTheme();
+    }
+
+    $TMPL = $variables;
+
+    $subDirectory = basename($subDirectory);
+    $template     = basename($template);
+    $templateFile = $themePath.'/templates/'.$subDirectory.'/'.$template.'.php';
+
+    require_once($templateFile);
 }

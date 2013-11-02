@@ -1,6 +1,6 @@
 
-    </div>
-    <!-- ############ CONTENT END ############ -->
+        </div><!--/.centercontent -->
+    </div><!--/#content-->
 
     <div id="footer">
         <p>

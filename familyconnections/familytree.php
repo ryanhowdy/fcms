@@ -51,17 +51,6 @@ class Page
         $this->fcmsFamilyTree = $fcmsFamilyTree;
         $this->fcmsImage      = $fcmsImage;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Family Tree'),
-            'path'          => URL_PREFIX,
-            'displayname'   => getUserDisplayName($this->fcmsUser->id),
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -168,7 +157,18 @@ class Page
      */
     function displayHeader ($options = null)
     {
-        displayPageHeader('familytree-page', $this->fcmsTemplate, $options);
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Family Tree'),
+            'pageId'        => 'familytree-page',
+            'path'          => URL_PREFIX,
+            'displayname'   => getUserDisplayName($this->fcmsUser->id),
+            'version'       => getCurrentVersion(),
+        );
+
+        displayPageHeader($params, $options);
     }
 
     /**
@@ -178,7 +178,13 @@ class Page
      */
     function displayFooter()
     {
-        displayPageFooter($this->fcmsTemplate);
+        $params = array(
+            'path'      => URL_PREFIX,
+            'version'   => getCurrentVersion(),
+            'year'      => date('Y')
+        );
+
+        loadTemplate('global', 'footer', $params);
     }
 
     /**
@@ -191,10 +197,10 @@ class Page
         $js = '
     var bday = new DateChooser();
     bday.setUpdateField({\'bday\':\'j\', \'bmonth\':\'n\', \'byear\':\'Y\'});
-    bday.setIcon(\'ui/themes/default/images/datepicker.jpg\', \'byear\');
+    bday.setIcon(\'ui/themes/default/img/datepicker.jpg\', \'byear\');
     var dday = new DateChooser();
     dday.setUpdateField({\'dday\':\'j\', \'dmonth\':\'n\', \'dyear\':\'Y\'});
-    dday.setIcon(\'ui/themes/default/images/datepicker.jpg\', \'dyear\');
+    dday.setIcon(\'ui/themes/default/img/datepicker.jpg\', \'dyear\');
 
     initLivingDeceased();';
 
@@ -847,10 +853,10 @@ class Page
         $js = '
     var bday = new DateChooser();
     bday.setUpdateField({\'bday\':\'j\', \'bmonth\':\'n\', \'byear\':\'Y\'});
-    bday.setIcon(\'ui/themes/default/images/datepicker.jpg\', \'byear\');
+    bday.setIcon(\'ui/themes/default/img/datepicker.jpg\', \'byear\');
     var dday = new DateChooser();
     dday.setUpdateField({\'dday\':\'j\', \'dmonth\':\'n\', \'dyear\':\'Y\'});
-    dday.setIcon(\'ui/themes/default/images/datepicker.jpg\', \'dyear\');
+    dday.setIcon(\'ui/themes/default/img/datepicker.jpg\', \'dyear\');
 
     initLivingDeceased();';
 

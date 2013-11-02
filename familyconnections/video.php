@@ -45,17 +45,6 @@ class Page
         $this->fcmsDatabase     = $fcmsDatabase;
         $this->fcmsUser         = $fcmsUser;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Video Gallery'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -152,24 +141,32 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Video Gallery'),
+            'pageId'        => 'video',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-        $TMPL['javascript'] = '
+        $params['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initYouTubeVideoStatus(\''.T_('This page will automatically refresh').'\');
     initHideVideoEdit(\''.T_('Edit Video').'\');
 });
 //]]>
 </script>';
 
-        include_once getTheme($this->fcmsUser->id).'header.php';
+        loadTemplate('global', 'header', $params);
 
         echo '
-        <div id="video" class="centercontent">
-
             <div id="actions_menu">
                 <ul>
                     <li><a href="?upload=youtube">'.T_('Upload to YouTube').'</a></li>
@@ -184,12 +181,13 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
-        echo '
-        </div><!-- /centercontent -->';
-
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**
