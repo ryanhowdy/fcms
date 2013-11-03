@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>ui/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/blue-chrome/style.css"/>
+<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/blue-chrome/css/style.css"/>
 <script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/prototype.js"></script>
 <script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
@@ -15,7 +15,7 @@
     <div id="header">
         <div id="logo">
             <a href="<?php echo $TMPL['path']; ?>index.php">
-                <img src="<?php echo $TMPL['path']; ?>ui/themes/blue-chrome/images/logo.gif" alt="<?php echo $TMPL['sitename'];?>"/>
+                <img src="<?php echo $TMPL['path']; ?>ui/themes/blue-chrome/img/logo.gif" alt="<?php echo $TMPL['sitename'];?>"/>
             </a>
         </div>
         <p>
@@ -27,7 +27,6 @@
 
 <?php include_once('navigation.php'); ?>
 
-    <!-- ############ CONTENT START ############ -->
     <div id="content">
-
         <div id="pagetitle"><?php echo $TMPL['pagetitle']; ?></div>
+        <div id="<?php echo $TMPL['pageId']; ?>" class="centercontent">

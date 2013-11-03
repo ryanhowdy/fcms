@@ -658,8 +658,17 @@ class Settings
         return $ret;
     }
 
+    /**
+     * getThemeData 
+     * 
+     * @param string  $file 
+     * 
+     * @return void
+     */
     function getThemeData ($file)
     {
+        $file = basename($file);
+
         $data = array(
             'file'      => $file,
             'name'      => '',
@@ -669,20 +678,18 @@ class Settings
             'author'    => '',
         );
 
-        if (!file_exists(THEMES."$file/style.css"))
+        if (!file_exists(THEMES."$file/README"))
         {
             $data['name'] = $file;
             return $data;
         }
 
-        $f = @fopen(THEMES."$file/style.css", 'r');
+        $f = @fopen(THEMES."$file/README", 'r');
         if (!$f)
         {
             $data['name'] = $file;
             return $data;
         }
-
-        $comment = fgets($f, 1000);
 
         // name
         $name = fgets($f, 1000);
@@ -726,16 +733,6 @@ class Settings
         $author = trim($author);
 
         $data['author'] = $author;
-
-        // Fix missing theme comment
-        if ($name == '0; }')
-        {
-            $data['name']    = 'Error: missing data';
-            $data['desc']    = '';
-            $data['size']    = '';
-            $data['updated'] = '';
-            $data['author']  = '';
-        }
 
         return $data;
     }
