@@ -1,6 +1,7 @@
 ![Family Connections](./familyconnections/ui/images/logo.gif)
+---
 
-### A private family website
+Family Connections is a private social networking site for families or small groups of people.
 
 # Installation
 
