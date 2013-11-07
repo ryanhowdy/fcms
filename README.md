@@ -1,7 +1,11 @@
 ![Family Connections](./familyconnections/ui/images/logo.gif)
 ---
 
+# What is it?
 Family Connections is a private social networking site for families or small groups of people.
+
+# Why?
+Because social networking sites like Facebook/Google+ are not private enough for family use. Family Connections allows you more control over your site: from who can access it, to what it looks like and what features it has.
 
 # Installation
 
