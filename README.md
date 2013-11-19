@@ -9,9 +9,10 @@ Because social networking sites like Facebook/Google+ are not private enough for
 
 # Contribute
 * Find [open issues](https://github.com/ryanhowdy/fcms/issues?labels=&page=1&state=open) and fix one
-* Fork the [fcms repo(https://github.com/ryanhowdy/fcms) on GitHub
+* Fork the [fcms repo](https://github.com/ryanhowdy/fcms) on GitHub
 * Send a pull request (don't forget to add yourself to the [AUTHORS](https://github.com/ryanhowdy/fcms/blob/master/AUTHORS) file)
-* 
+
+
 
 # Installation
 
