@@ -7,6 +7,12 @@ Family Connections is a private social networking site for families or small gro
 # Why?
 Because social networking sites like Facebook/Google+ are not private enough for family use. Family Connections allows you more control over your site: from who can access it, to what it looks like and what features it has.
 
+# Contribute
+* Find [open issues](https://github.com/ryanhowdy/fcms/issues?labels=&page=1&state=open) and fix one
+* Fork the [fcms repo(https://github.com/ryanhowdy/fcms) on GitHub
+* Send a pull request (don't forget to add yourself to the [AUTHORS](https://github.com/ryanhowdy/fcms/blob/master/AUTHORS) file)
+* 
+
 # Installation
 
 1. Upload the familyconnections/ directory in FCMS_3.3.1.zip to your web host.
