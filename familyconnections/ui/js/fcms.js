@@ -342,6 +342,30 @@ function initInviteAttending ()
         }
     });
 }
+function nextPrevNews (e) {
+    if (!e) { e = window.event; }
+
+    var jDown = 74;
+    var kUp   = 75;
+
+    if (e.srcElement.id == "status")
+    {
+        return;
+    }
+
+    switch (e.keyCode)
+    {
+        case jDown:
+            position++;
+            document.location.href = "#"+position;
+        break;
+
+        case kUp:
+            if (position > 1) { position--; }
+            document.location.href = "#"+position;
+        break;
+    }
+}
 
 /* UTILITIES
 ------------------------------------------------*/

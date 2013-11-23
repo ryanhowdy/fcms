@@ -569,18 +569,19 @@ class Calendar
     }
 
     /**
-     * displaySmallCalendar 
+     * getSmallCalendar
      * 
-     * Displays a small calendar based on the month, day and year.
+     * Gets the data for the small calendar based on the month, day and year.
      *
      * NOTE: Dates are assumed already fixed for timezone and dst.
      * 
-     * @param   int     $month 
-     * @param   int     $year 
-     * @param   int     $day 
-     * @return  void
+     * @param int $month 
+     * @param int $year 
+     * @param int $day 
+     * 
+     * @return array
      */
-    function displaySmallCalendar ($month, $year, $day)
+    function getSmallCalendar ($month, $year, $day)
     {
         $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
@@ -627,67 +628,57 @@ class Calendar
 
         $formatDate = formatDate('F Y', "$year-$month-$day");
 
-        // Display the month
-        echo '
-            <table id="small-calendar">
-                <tr>
-                    <th colspan="7">
-                        <h3><a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.$formatDate.'</a></h3>
-                    </th>
-                </tr>
-                <tr>';
+        $calendarData = array(
+            'thisMonthUrl' => 'calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day,
+            'thisMonth'    => $formatDate,
+        );
 
         // Weekday names
+        $weekDayData = array();
         for ($w = 0; $w <= 6; $w++)
         {
-            echo '
-                    <td class="weekDays">'.$weekDays[($w+$this->weekStartOffset)%7].'</td>';
+            $weekDayData[] = $weekDays[($w+$this->weekStartOffset)%7];
         }
+        $calendarData['weekDays'] = $weekDayData;
 
-        echo '
-                </tr>';
-            
-        $i = 0;
 
-        // Display the days in the month, fill with events
+        // Days in the month, fill with events
+        $monthData = array();
+        $i         = 0;
+
         for ($d = (1 - $offset); $d <= $daysInMonth; $d++)
         {
             if ($i % 7 == 0)
             {
-                echo '
-                <tr>';
+                // start new week
+                $weekData = array();
             }
 
             if ($d < 1)
             {
-                echo '
-                    <td class="nonMonthDay">&nbsp;</td>';
+                $weekData[] = array(
+                    'class' => 'nonMonthDay',
+                    'data'  => '&nbsp;',
+                );
             }
             else
             {
+                $class = 'monthDay';
                 if ($d == $day)
                 {
-                    echo '
-                    <td class="monthToday">';
-                }
-                else
-                {
-                    echo '
-                    <td class="monthDay">';
+                    $class = 'monthToday';
                 }
 
-                // display the events for each day
+                $data = $d;
                 if (in_array($d, $eventDays))
                 {
-                    echo '<a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'">'.$d.'</a>';
-                }
-                else
-                {
-                    echo $d;
+                    $data = '<a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'">'.$d.'</a>';
                 }
 
-                // display the day #
-                echo "</td>";
+                $weekData[] = array(
+                    'class' => $class,
+                    'data'  => $data,
+                );
             }
 
             $i++;
@@ -695,24 +686,193 @@ class Calendar
             // if we have 7 <td> for the current week close the <tr>
             if ($i % 7 == 0)
             {
-                echo '
-                </tr>';
+                $monthData[] = $weekData;
             }
         }
 
-        // close any opening <tr> and insert any additional empty <td>
+        // finish any incomplete weeks/rows
         if ($i % 7 != 0)
         {
+            $lastWeekInMonth = end(array_keys($monthData));
+
             for ($j = 0; $j < (7 - ($i % 7)); $j++)
             {
-                echo '
-                    <td class="nonMonthDay">&nbsp;</td>';
+                $monthData[$lastWeekInMonth] = array(
+                    'class' => 'nonMonthDay',
+                    'data'  => '&nbsp;',
+                );
             }
-            echo '
-                </tr>';
         }
-        echo '
-            </table>';
+
+        $calendarData['days'] = $monthData;
+
+        return $calendarData;
+    }
+
+    /**
+     * getMonthEvents 
+     * 
+     * Gets a listing of events for a given month.
+     * Used on the homepage with the small calendar view.
+     *
+     * @param int $month 
+     * @param int $year 
+     *
+     * @return array
+     */
+    function getMonthEvents ($month, $year)
+    {
+        $month = (int)$month;
+        $month = str_pad($month, 2, 0, STR_PAD_LEFT);
+        $year  = (int)$year;
+
+        $gm_next   = gmdate('Y-m-d H:i:s', gmmktime(gmdate('h'), gmdate('i'), gmdate('s'), $month+1, 1, $year));
+        $nextMonth = fixDate('m', $this->fcmsUser->tzOffset, $gm_next);
+
+        $today      = fixDate('Ymd', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+        $today_year = fixDate('Y',   $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+
+        $sql = "SELECT `id`, DATE_FORMAT(`date`, '%m%d') as day, `title`, `desc`, 
+                    `date`, `private`, `created_by`, `repeat`
+                FROM fcms_calendar 
+                WHERE (`date` LIKE ?) 
+                OR (`date` LIKE ?) 
+                OR (`date` LIKE ? AND `repeat` = 'yearly') 
+                OR (`date` LIKE ? AND `repeat` = 'yearly') 
+                ORDER BY day";
+
+        $params = array(
+            "$year-$month-%%",
+            "$year-$nextMonth-%%",
+            "%%%%-$month-%%",
+            "%%%%-$nextMonth-%%",
+        );
+
+        $rows = $this->fcmsDatabase->getRows($sql, $params);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            return;
+        }
+
+        $events = array();
+
+        if (count($rows) > 0)
+        {
+            foreach ($rows as $row)
+            {
+                $events[] = $row;
+            }
+        }
+
+        // Get birthdays
+        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`, 
+                    `dod_year`, `dod_month`, `dod_day` 
+                FROM `fcms_users` 
+                WHERE `dob_month` = ?";
+
+        $rows = $this->fcmsDatabase->getRows($sql, $month);
+        if ($rows === false)
+        {
+            $this->fcmsError->displayError();
+            return;
+        }
+
+        if (count($rows) > 0)
+        {
+            foreach ($rows as $r)
+            {
+                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                {
+                    continue;
+                }
+
+                if (!empty($r['dod_year']) || !empty($r['dod_month']) || !empty($r['dod_day']))
+                {
+                    continue;
+                }
+
+                $age = getAge($r['dob_year'], $r['dob_month'], $r['dob_day'], "$year-$month-".$r['dob_day']);
+
+                $r['id']         = 'birthday'.$r['id'];
+                $r['day']        = $r['dob_month'].$r['dob_day'];
+                $r['date']       = $r['dob_year'].'-'.$r['dob_month'].'-'.$r['dob_day'];
+                $r['title']      = $r['fname'].' '.$r['lname'];
+                $r['desc']       = sprintf(T_('%s turns %s today.'), $r['fname'], $age);
+                $r['private']    = 0;
+                $r['repeat']     = 'yearly';
+                $r['created_by'] = $r['id'];
+
+                $events[] = $r;
+            }
+        }
+
+        if (count($events) <= 0)
+        {
+            return array();
+        }
+
+        // show the next 5
+        $count = 0;
+
+        // fix order
+        $events = subval_sort($events, 'day');
+
+        $eventData = array();
+
+        foreach ($events as $row)
+        {
+            if ($count > 5)
+            {
+                break;
+            }
+
+            $show = false;
+
+            list($event_year, $event_month, $event_day) = explode("-", $row['date']);
+
+            // Fix repeating event year
+            if ($row['repeat'] == 'yearly')
+            {
+                $event_year = $today_year;
+            }
+
+            // Skip events that have already happened
+            if ($event_year.$event_month.$event_day < $today)
+            {
+                continue;
+            }
+
+            if ($row['private'] == 0)
+            {
+                $show = true;
+            }
+            else
+            {
+                if ($row['created_by'] == $this->fcmsUser->id)
+                {
+                    $show = true;
+                }
+            }
+
+            if ($show)
+            {
+                $count++;
+
+                $title = cleanOutput($row['title']);
+                $desc  = !empty($row['desc']) ? $row['desc'] : $row['title'];
+                $desc  = cleanOutput($desc);
+
+                $eventData[] = array(
+                    'id'    => (int)$row['id'],
+                    'title' => $title,
+                    'desc'  => $desc,
+                    'date'  => formatDate(T_('M. d'), $row['date']),
+                );
+            }
+        }
+
+        return $eventData;
     }
 
     /**
@@ -870,7 +1030,7 @@ class Calendar
     }
 
     /**
-     * displayTodaysEvents 
+     * getTodaysEventsTemplateParams
      *
      * Display the events happening today.  Used on the homepage.
      * 
@@ -879,7 +1039,7 @@ class Calendar
      * @param   int     $year 
      * @return  void
      */
-    function displayTodaysEvents ($month, $day, $year)
+    function getTodaysEventsTemplateParams ($month, $day, $year)
     {
         $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
@@ -890,10 +1050,18 @@ class Calendar
         // Get events
         $sql = "SELECT `title`, `desc`, `private`, `created_by`
                 FROM fcms_calendar 
-                WHERE (`date` LIKE '$year-$month-$day') 
-                OR (`date` LIKE '%%%%-$month-$day' AND `repeat` = 'yearly')";
+                WHERE `date` = ? 
+                OR (
+                    `date` LIKE ? 
+                    AND `repeat` = 'yearly'
+                )";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
+        $params = array(
+            "$year-$month-$day",
+            "%%%%-$month-$day"
+        );
+
+        $rows = $this->fcmsDatabase->getRows($sql, $params);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
@@ -949,9 +1117,13 @@ class Calendar
             }
         }
 
+        $templateParams = array();
+
         if (count($events) > 0)
         {
-            $first = true;
+            $templateParams['textTodaysEvents'] = T_('Today\'s Events');
+            $templateParams['events']           = array();
+
             foreach ($events as $row)
             {
                 $show = false;
@@ -967,39 +1139,22 @@ class Calendar
                     }
                 }
 
-                // Start the todaysevents box
-                if ($first & $show)
-                {
-                    echo '
-                <div id="todaysevents">
-                    <h2>'.T_('Today\'s Events').':</h2>'.
-                    $first = false;
-                }
-
                 // Display each event/calendar entry
                 if ($show)
                 {
-                    echo '
-                    <div class="events">
-                        <b>'.cleanOutput($row['title']).'</b>';
-
+                    $eventParams = array(
+                        'title' => cleanOutput($row['title']),
+                    );
                     if (!empty($row['desc']))
                     {
-                        echo '<span>'.cleanOutput($row['desc']).'</span>';
+                        $eventParams['desc'] = cleanOutput($row['desc']);
                     }
-
-                    echo '
-                    </div>';
+                    $templateParams['events'][] = $eventParams;
                 }
             }
-
-            // close #todaysevents (if it was started)
-            if (!$first)
-            {
-                echo '
-                </div>';
-            }
         }
+
+        return $templateParams;
     }
 
     /**

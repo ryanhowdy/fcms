@@ -28,7 +28,8 @@ load(
     'Poll', 
     'alerts',
     'socialmedia',
-    'facebook'
+    'facebook',
+    'gallery'
 );
 
 init();
@@ -36,7 +37,8 @@ init();
 $calendar = new Calendar($fcmsError, $fcmsDatabase, $fcmsUser);
 $poll     = new Poll($fcmsError, $fcmsDatabase, $fcmsUser);
 $alert    = new Alerts($fcmsError, $fcmsDatabase, $fcmsUser);
-$page     = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $calendar, $poll, $alert);
+$gallery  = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
+$page     = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $calendar, $poll, $alert, $gallery);
 
 exit();
 
@@ -48,21 +50,22 @@ class Page
     private $fcmsCalendar;
     private $fcmsPoll;
     private $fcmsAlert;
-    private $fcmsTemplate;
+    private $fcmsPhotoGallery;
 
     /**
      * Constructor
      * 
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsCalendar, $fcmsPoll, $fcmsAlert)
+    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsCalendar, $fcmsPoll, $fcmsAlert, $fcmsPhotoGallery)
     {
-        $this->fcmsError    = $fcmsError;
-        $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
-        $this->fcmsCalendar = $fcmsCalendar;
-        $this->fcmsPoll     = $fcmsPoll;
-        $this->fcmsAlert    = $fcmsAlert;
+        $this->fcmsError        = $fcmsError;
+        $this->fcmsDatabase     = $fcmsDatabase;
+        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsCalendar     = $fcmsCalendar;
+        $this->fcmsPoll         = $fcmsPoll;
+        $this->fcmsAlert        = $fcmsAlert;
+        $this->fcmsPhotoGallery = $fcmsPhotoGallery;
 
         $this->control();
     }
@@ -112,43 +115,12 @@ class Page
             'year'          => date('Y')
         );
 
-        $params['javascript'] = '
-<script type="text/javascript">
-Event.observe(window, "load", function()
-{
-    initChatBar("'.T_('Chat').'", "'.URL_PREFIX.'");
+        $options = array(
+            'js'       => '<script type="text/javascript">var position = 0;</script>',
+            'jsOnload' => 'document.onkeydown = nextPrevNews;',
+        );
 
-    document.onkeydown = keyHandler;
-});
-var position = 0;
-function keyHandler(e)
-{
-    if (!e) { e = window.event; }
-
-    var jDown = 74;
-    var kUp   = 75;
-
-    if (e.srcElement.id == "status")
-    {
-        return;
-    }
-
-    switch (e.keyCode)
-    {
-        case jDown:
-            position++;
-            document.location.href = "#"+position;
-        break;
-
-        case kUp:
-            if (position > 1) { position--; }
-            document.location.href = "#"+position;
-        break;
-    }
-}
-</script>';
-
-        loadTemplate('global', 'header', $params);
+        displayPageHeader($params, $options);
     }
 
     /**
@@ -164,9 +136,7 @@ function keyHandler(e)
             'year'          => date('Y')
         );
 
-        echo '
-            </div><!--/maincolumn-->';
-
+        loadTemplate('home', 'footer');
         loadTemplate('global', 'footer', $params);
     }
 
@@ -181,30 +151,52 @@ function keyHandler(e)
         $month = fixDate('m', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
         $day   = fixDate('d', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
 
-        echo '
-            <div id="leftcolumn">
-                <h2 class="calmenu">'.T_('Calendar').'</h2>';
+        $templateParams = array(
+            'textCalendar'      => T_('Calendar'),
+            'textUpcoming'      => T_('Upcoming'),
+            'textMembersOnline' => T_('Members Online'),
+        );
 
-        $this->fcmsCalendar->displaySmallCalendar($month, $year, $day);
+        // Get calendar
+        $calendarParams = $this->fcmsCalendar->getSmallCalendar($month, $year, $day);
+        if ($calendarParams === false)
+        {
+            $this->fcmsError->displayError();
+            return;
+        }
 
-        echo '
-                <h3>'.T_('Upcoming').'</h3>';
+        // Get Events
+        $eventParams = $this->fcmsCalendar->getMonthEvents($month, $year);
+        if ($eventParams === false)
+        {
+            $this->fcmsError->displayError();
+            return;
+        }
 
-        $this->fcmsCalendar->displayMonthEvents($month, $year);
+        // Get Poll
+        $pollParams = $this->getLatestPollParams();
+        if ($pollParams === false)
+        {
+            $this->fcmsError->displayError();
+            return;
+        }
 
-        $this->displayPoll();
+        // Get Members Online
+        $onlineParams = $this->getMembersOnline();
+        if ($onlineParams === false)
+        {
+            $this->fcmsError->displayError();
+            return;
+        }
 
-        echo '
-                <h2 class="membermenu">'.T_('Members Online').'</h2>
-                <div class="membermenu">';
+        $templateParams['events'] = $eventParams;
 
-        displayMembersOnline();
+        $templateParams = array_merge($templateParams, $calendarParams);
+        $templateParams = array_merge($templateParams, $pollParams);
+        $templateParams = array_merge($templateParams, $onlineParams);
 
-        echo '
-                </div>
-            </div>
-            <div id="maincolumn">';
-
+        // Load the sidebar
+        loadTemplate('home', 'sidebar', $templateParams);
     }
 
     /**
@@ -240,108 +232,49 @@ function keyHandler(e)
 
         list($db_year, $db_month, $db_day) = explode('-', date('Y-m-d'));
 
-        // Show any events happening today
-        $this->fcmsCalendar->displayTodaysEvents($db_month, $db_day, $db_year);
+        // Template params
+        $templateParams = array(
+            'textSharePlaceholder'  => T_('Share'),
+            'textShareTitle'        => T_('Share something with everyone'),
+            'textSubmit'            => T_('Submit'),
+        );
 
-        // status updates
-        displayStatusUpdateForm();
-
-        // Show what's new based on user's settings
-        echo '
-                <h2>'.T_('What\'s New').'</h2>';
-
-        $sql = "SELECT `frontpage` 
-                FROM `fcms_user_settings` 
-                WHERE `user` = ?";
-
-        $r = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($r === false)
+        // Are we using facebook
+        $data = getFacebookConfigData();
+        $user = null;
+        if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
         {
-            $this->fcmsError->displayError();
-            $this->displayFooter();
-            return;
-        }
+            $facebook = new Facebook(array(
+              'appId'  => $data['fb_app_id'],
+              'secret' => $data['fb_secret'],
+            ));
 
-        // All by date
-        if ($r['frontpage'] < 2)
-        {
-            displayWhatsNewAll($this->fcmsUser->id);
-
-        }
-        // Last 5 by category
-        else
-        {
-            $whatsNewData = getWhatsNewData(30, true);
-            $tzOffset     = getTimezone($this->fcmsUser->id);
-
-            $messageboard    = $this->formatWhatsNewMessageBoard($whatsNewData, $tzOffset);
-            $familynews      = $this->formatWhatsNewFamilyNews($whatsNewData, $tzOffset);
-            $addressbook     = $this->formatWhatsNewAddressBook($whatsNewData, $tzOffset);
-            $recipes         = $this->formatWhatsNewRecipes($whatsNewData, $tzOffset);
-            $prayers         = $this->formatWhatsNewPrayers($whatsNewData, $tzOffset);
-            $photogallery    = $this->formatWhatsNewPhotoGallery($whatsNewData, $tzOffset);
-            $videogallery    = $this->formatWhatsNewVideoGallery($whatsNewData, $tzOffset);
-            $comments        = $this->formatWhatsNewComments($whatsNewData, $tzOffset);
-            $statusupdates   = $this->formatWhatsNewStatusUpdates($whatsNewData, $tzOffset);
-            $calendar        = $this->formatWhatsNewCalendar($whatsNewData, $tzOffset);
-            $documents       = $this->formatWhatsNewDocuments($whatsNewData, $tzOffset);
-            $whereiseveryone = $this->formatWhatsNewWhereIsEveryone($whatsNewData, $tzOffset);
-            $misc            = $this->formatWhatsNewMisc($whatsNewData, $tzOffset);
-
-            // Set the order of the sections
-            $sections = array(
-                'photogallery',
-                'misc',
-                'videogallery',
-                'statusupdates',
-                'messageboard',
-                'familynews',
-                'comments',
-                'whereiseveryone',
-                'addressbook',
-                'recipes',
-                'calendar',
-                'prayers',
-                'documents'
-            );
-
-            // Display the left half
-            echo '
-                <div class="half">';
-
-            for ($i=0; $i < count($sections); $i++)
+            // Check if the user is logged in and authed
+            $user = $facebook->getUser();
+            if ($user)
             {
-                if ($i % 2 == 0)
+                try
                 {
-                    echo ${$sections[$i]};
+                    $user_profile = $facebook->api('/me');
                 }
-
-                $i++;
-            }
-
-            // Display the right half
-            echo '
-                </div>
-                <div class="half">';
-
-            for ($i=1; $i < count($sections); $i++)
-            {
-                if ($i % 2 !== 0)
+                catch (FacebookApiException $e)
                 {
-                    echo ${$sections[$i]};
+                    $user = null;
                 }
-
-                $i++;
             }
-
-            echo '</div><div style="clear:both"></div>';
+        }
+        if ($user)
+        {
+            $templateParams['textUpdateFacebook'] = T_('Update Facebook?');
         }
 
-        echo '
-                <p class="alignright">
-                    <a class="rss" href="rss.php?feed=all">'.T_('RSS Feed').'</a>
-                </p>';
+        $todaysEventsParams = $this->fcmsCalendar->getTodaysEventsTemplateParams($db_month, $db_day, $db_year);
+        $templateParams = array_merge($templateParams, $todaysEventsParams);
 
+        // Load the main template
+        loadTemplate('home', 'main', $templateParams);
+
+        $this->displayWhatsNewAll();
         $this->displayFooter();
     }
 
@@ -481,1124 +414,26 @@ function keyHandler(e)
     }
 
     /**
-     * formatWhatsNewMessageBoard 
+     * getLatestPollParams
      * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     * 
-     * @return string
+     * @return mixed - array on success, false on failure
      */
-    function formatWhatsNewMessageBoard ($whatsNewData, $tzOffset)
-    {
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-            <h3>'.T_('Message Board').'</h3>
-            <ul>';
-
-        if (!isset($whatsNewData['BOARD']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        // $whatsNewData holds all replies, we only want to show the threads that have
-        // been updated, so we keep track of threads as we display them
-        $displayedThreads = array();
-
-        foreach ($whatsNewData['BOARD'] as $row)
-        {
-            // Skip, if we displayed this thread already
-            if (isset($displayedThreads[$row['title']]))
-            {
-                continue;
-            }
-            $displayedThreads[$row['title']] = 1;
-
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $displayname  = getUserDisplayName($row['userid']);
-            $subject      = $row['title'];
-            $subject_full = cleanOutput($subject, 'html');
-
-            // Remove announcment
-            $pos = strpos($subject, '#ANOUNCE#');
-            if ($pos !== false)
-            {
-                $subject = substr($subject, 9, strlen($subject)-9);
-            }
-
-            $subject = shortenString($subject, 30, '...');
-            $subject = cleanOutput($subject, 'html');
-
-            $date = fixDate('YmdHis', $tzOffset, $row['date']);
-
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $full_date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
-                $d = '';
-            }
-
-            $return .= '
-                <li>
-                    <div'.$d.'>'.$full_date.'</div>
-                    <a href="messageboard.php?thread='.(int)$row['id2'].'" title="'.$subject_full.'">'.$subject.'</a> ';
-
-            if (getNumberOfPosts($row['id2']) > 15)
-            {
-                $num_posts  = getNumberOfPosts($row['id2']);
-                $times2loop = ceil($num_posts/15);
-
-                $return .= '('.T_('Page').' ';
-                for ($i=1; $i<=$times2loop; $i++)
-                {
-                    $return .= '<a href="messageboard.php?thread='.(int)$row['id2'].'&amp;page='.$i.'" title="'.T_('Page').' '.$i.'">'.$i.'</a> ';
-                }
-                $return .= ')';
-            }
-
-            $return .= '
-                     - <a class="u" href="profile.php?member='.(int)$row['userid'].'">'.$displayname.'</a>
-                </li>';
-        }
-
-        return $return.'
-            </ul>';
-
-    }
-
-    /**
-     * formatWhatsNewFamilyNews 
-     * 
-     * Returns empty string if Family News section is turned off.
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     * 
-     * @return string
-     */
-    function formatWhatsNewFamilyNews ($whatsNewData, $tzOffset)
-    {
-        if (!usingFamilyNews())
-        {
-            return '';
-        }
-
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-            <h3>'.T_('Family News').'</h3>
-            <ul>';
-
-        if (!isset($whatsNewData['NEWS']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        foreach ($whatsNewData['NEWS'] as $row)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $displayname = getUserDisplayName($row['userid']);
-            $date        = fixDate('YmdHis', $tzOffset, $row['date']);
-
-            $title = T_('untitled');
-
-            if (!empty($row['title']))
-            {
-                $title = shortenString($row['title'], 30, '...');
-                $title = cleanOutput($title, 'html');
-            }
-
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $full_date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
-                $d = '';
-            }
-
-            $return .= '
-                <li>
-                    <div'.$d.'>'.$full_date.'</div>
-                    <a href="familynews.php?getnews='.(int)$row['userid'].'&amp;newsid='.(int)$row['id'].'">'.$title.'</a> - 
-                    <a class="u" href="profile.php?member='.(int)$row['userid'].'">'.$displayname.'</a>
-                </li>';
-        }
-
-        $return .= '
-            </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewAddressBook 
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     * 
-     * @return string
-     */
-    function formatWhatsNewAddressBook ($whatsNewData, $tzOffset)
-    {
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Address Book').'</h3>
-                <ul>';
-
-        if (!isset($whatsNewData['ADDRESSEDIT']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        foreach ($whatsNewData['ADDRESSEDIT'] as $row)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $displayname = getUserDisplayName($row['userid'], 2, false);
-            $date        = fixDate('YmdHis', $tzOffset, $row['date']);
-
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $full_date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $row['date']);
-                $d = '';
-            }
-
-            $return .= '
-                    <li>
-                        <div'.$d.'>'.$full_date.'</div>
-                        <a href="addressbook.php?address='.(int)$row['id'].'">'.$displayname.'</a>
-                    </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewRecipes 
-     * 
-     * Returns empty string if Recipes section is turned off.
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     * 
-     * @return string
-     */
-    function formatWhatsNewRecipes ($whatsNewData, $tzOffset)
-    {
-        if (!usingRecipes())
-        {
-            return '';
-        }
-
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Recipes').'</h3>
-                <ul>';
-
-        if (!isset($whatsNewData['RECIPES']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        foreach ($whatsNewData['RECIPES'] as $r)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $name = $r['title'];
-            $name = shortenString($name, 30, '...');
-            $name = cleanOutput($name, 'html');
-
-            $displayname = getUserDisplayName($r['userid']);
-
-            $url = 'recipes.php?category='.(int)$r['id2'].'&amp;id='.(int)$r['id'];
-
-            $date = fixDate('YmdHis', $tzOffset, $r['date']);
-
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $full_date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-                $d = '';
-            }
-
-            $return .= '
-                    <li>
-                        <div'.$d.'>'.$full_date.'</div>
-                        <a href="'.$url.'">'.$name.'</a> - 
-                        <a class="u" href="profile.php?member='.(int)$r['userid'].'">'.$displayname.'</a>
-                    </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewPrayers 
-     * 
-     * Returns empty string if Prayers section is turned off.
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     * 
-     * @return string
-     */
-    function formatWhatsNewPrayers ($whatsNewData, $tzOffset)
-    {
-        if (!usingPrayers())
-        {
-            return '';
-        }
-
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Prayer Concerns').'</h3>
-                <ul>';
-
-        if (!isset($whatsNewData['PRAYERS']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        foreach ($whatsNewData['PRAYERS'] as $r)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $displayname = getUserDisplayName($r['userid']);
-            $for         = shortenString($r['title'], 30, '...');
-            $for         = cleanOutput($for, 'html');
-            $date        = fixDate('YmdHis', $tzOffset, $r['date']);
-
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $full_date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-                $d = '';
-            }
-
-            $return .= '
-                    <li>
-                        <div'.$d.'>'.$full_date.'</div>
-                        <a href="prayers.php">'.$for.'</a> - 
-                        <a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>
-                    </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewPhotoGallery 
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     * 
-     * @return string
-     */
-    function formatWhatsNewPhotoGallery ($whatsNewData, $tzOffset)
-    {
-        load('gallery');
-
-        $galleryObj = new PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
-
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Photo Gallery').'</h3>
-                <ul>';
-
-        if (!isset($whatsNewData['GALLERY']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        foreach ($whatsNewData['GALLERY'] as $row)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $displayname   = getUserDisplayName($row['userid']);
-            $category      = shortenString($row['title'], 30, '...');
-            $category      = cleanOutput($category, 'html');
-            $full_category = cleanOutput($row['title'], 'html');
-            $date          = fixDate('YmdHis', $tzOffset, $row['date']);
-
-            // Today
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $full_date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
-                $d = '';
-            }
-
-            $return .= '
-                        <li>
-                            <div'.$d.'>'.$full_date.'</div>
-                            <p>
-                                <a href="gallery/index.php?uid='.$row['userid'].'&amp;cid='.$row['id'].'" title="'.$full_category.'">'.$category.'</a> - 
-                                <a class="u" href="profile.php?member='.$row['userid'].'">'.$displayname.'</a>
-                            </p>';
-
-            $limit = 4;
-            if ($row['id2'] < $limit)
-            {
-                $limit = (int)$row['id2'];
-            }
-
-            $sql = "SELECT p.`id`, p.`user`, p.`category`, p.`filename`, p.`caption`,
-                        p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
-                    FROM `fcms_gallery_photos` AS p
-                    LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                    WHERE p.`category` = ?
-                    AND DAYOFYEAR(p.`date`) = ?
-                    ORDER BY p.`date` 
-                    DESC LIMIT $limit";
-
-            $params = array(
-                $row['id'],
-                $row['id3']
-            );
-
-            $rows = $this->fcmsDatabase->getRows($sql, $params);
-            if ($rows === false)
-            {
-                $this->fcmsError->displayError();
-                return;
-            }
-
-            foreach ($rows as $p)
-            {
-                $photoSrc = $galleryObj->getPhotoSource($p);
-
-                $return .= '
-                                <a href="gallery/index.php?uid='.$p['user'].'&amp;cid='.$p['category'].'&amp;pid='.$p['id'].'">
-                                    <img src="'.$photoSrc.'" 
-                                        style="height:50px; width:50px;" 
-                                        alt="'.cleanOutput($p['caption'], 'html').'" 
-                                        title="'.cleanOutput($p['caption'], 'html').'"/>
-                                </a> &nbsp;';
-            }
-
-            $return .= '
-                        </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewVideoGallery 
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     * 
-     * @return string
-     */
-    function formatWhatsNewVideoGallery ($whatsNewData, $tzOffset)
-    {
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Video Gallery').'</h3>
-                <ul>';
-
-        if (!isset($whatsNewData['VIDEO']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        foreach ($whatsNewData['VIDEO'] as $row)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $displayname   = getUserDisplayName($row['userid']);
-            $category      = shortenString($row['title'], 30, '...');
-            $category      = cleanOutput($category, 'html');
-            $full_category = cleanOutput($row['title'], 'html');
-            $date          = fixDate('YmdHis', $tzOffset, $row['date']);
-
-            // Today
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $full_date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $full_date = fixDate(T_('M. j, Y g:i a'), $tzOffset, $row['date']);
-                $d = '';
-            }
-
-            $return .= '
-                        <li>
-                            <div'.$d.'>'.$full_date.'</div>
-                            <p>
-                                <a href="video.php?u='.$row['userid'].'&amp;id='.$row['id'].'" title="'.$full_category.'">'.$category.'</a> - 
-                                <a class="u" href="profile.php?member='.$row['userid'].'">'.$displayname.'</a><br/>
-                                <a href="video.php?u='.$row['userid'].'&amp;id='.$row['id'].'"><img src="http://i.ytimg.com/vi/'.$row['id2'].'/default.jpg"/></a>
-                            </p>
-                        </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewComments 
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     * 
-     * @return string
-     */
-    function formatWhatsNewComments ($whatsNewData, $tzOffset)
-    {
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Comments').'</h3>
-                <ul>';
-
-        if (   !isset($whatsNewData['GALCOM']) 
-            && !isset($whatsNewData['NEWSCOM']) 
-            && !isset($whatsNewData['RECIPESCOM']) 
-            && !isset($whatsNewData['VIDEOCOM']) 
-            && !isset($whatsNewData['POLLCOM'])
-        )
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        # Get each comment type from the $whatsNewData array, store it in a new array
-        $using = array('GALCOM', 'GALCATCOM', 'VIDEOCOM', 'POLLCOM');
-        if (usingFamilyNews())
-        {
-            array_push($using, 'NEWSCOM');
-        }
-        if (usingRecipes())
-        {
-            array_push($using, 'RECIPECOM');
-        }
-
-        $commentsData = array();
-
-        foreach ($using as $type)
-        {
-            if (!isset($whatsNewData[$type]))
-            {
-                continue;
-            }
-            foreach ($whatsNewData[$type] as $data)
-            {
-                $commentsData[] = $data;
-            }
-        }
-
-        // Need to resort the commentsData
-        $commentsData = subval_sort($commentsData, 'date');
-        $commentsData = array_reverse($commentsData);
-
-        foreach ($commentsData as $row)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $date     = fixDate('YmdHis', $tzOffset, $row['date']);
-            $comment  = shortenString($row['title'], 30, '...');
-            $comment  = cleanOutput($comment, 'html');
-            $title    = shortenString($row['title'], 100, '...');
-            $title    = cleanOutput($title, 'html');
-            $user     = cleanOutput($row['userid']);
-            $userName = getUserDisplayName($row['userid']);
-
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $full_date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $row['date']);
-                $d = '';
-            }
-
-            if ($row['type'] == 'NEWSCOM')
-            {
-                $url = 'familynews.php?getnews='.$row['userid'].'&amp;newsid='.$row['id'];
-            }
-            elseif ($row['type'] == 'RECIPECOM')
-            {
-                $url = 'recipes.php?category='.$row['id2'].'&amp;id='.$row['id'];
-            }
-            elseif ($row['type'] == 'VIDEOCOM')
-            {
-                $url = 'video.php?u='.$row['userid'].'&amp;id='.$row['id'].'#comments';
-            }
-            elseif ($row['type'] == 'GALCATCOM')
-            {
-                $url = 'gallery/index.php?uid='.$row['id2'].'&amp;cid='.$row['id3'];
-            }
-            elseif ($row['type'] == 'GALCOM')
-            {
-                $url = 'gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$row['id'];
-            }
-            elseif ($row['type'] == 'POLLCOM')
-            {
-                $comment = '['.T_('Poll').'] '.$comment;
-                $url     = 'polls.php?id='.$row['id'].'"#comments';
-            }
-
-            $return .= '
-                            <li>
-                                <div'.$d.'>'.$full_date.'</div>
-                                <a href="'.$url.'" title="'.$title.'">'.$comment.'</a> - 
-                                <a href="profile.php?member='.$user.'" class="u">'.$userName.'</a>
-                            </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewStatusUpdates 
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     *
-     * @return string
-     */
-    function formatWhatsNewStatusUpdates ($whatsNewData, $tzOffset)
-    {
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Status Updates').'</h3>
-                <ul>';
-
-        if (!isset($whatsNewData['STATUS']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        foreach ($whatsNewData['STATUS'] as $r)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-
-            $title = nl2br_nospaces($r['title']);
-            $title = cleanOutput($title, 'html');
-
-            $return .= '
-                    <li style="line-height: 120%;">
-                        <div>
-                            <p>
-                                '.$displayname.': 
-                                '.$title.'<br/>
-                                <small><i>'.getHumanTimeSince(strtotime($r['id3'])).'</i></small>
-                            </p>
-                        </div>';
-
-            // Get any replies to this status update
-            $sql = "SELECT `id`, `user`, `status`, `parent`, `updated`, `created` 
-                    FROM `fcms_status` 
-                    WHERE `parent` = ?
-                    ORDER BY `id`";
-
-            $rows = $this->fcmsDatabase->getRows($sql, $r['id']);
-            if ($rows === false)
-            {
-                $this->fcmsError->displayError();
-                return;
-            }
-
-            $return .= '
-                        <div class="status_replies">';
-
-            if (count($rows) > 0)
-            {
-                foreach ($rows as $s)
-                {
-                    $name = getUserDisplayName($s['user']);
-                    $name = '<a class="u" href="profile.php?member='.$s['user'].'">'.$name.'</a>';
-
-                    $status = nl2br_nospaces($s['status']);
-                    $status = cleanOutput($status, 'html');
-
-                    $return .= '<div><p>'.$name.': '.$status.'<br/><small><i>'.getHumanTimeSince(strtotime($s['created'])).'</i></small></p></div>';
-                }
-            }
-
-            displayStatusUpdateForm($r['id']);
-            $return .= '
-                        </div>
-                    </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewCalendar 
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     *
-     * @return string
-     */
-    function formatWhatsNewCalendar ($whatsNewData, $tzOffset)
-    {
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Calendar').'</h3>
-                <ul>';
-
-        if (!isset($whatsNewData['CALENDAR']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        foreach ($whatsNewData['CALENDAR'] as $r)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $displayname = getUserDisplayName($r['userid']);
-            $title       = shortenString($r['title'], 30, '...');
-            $title       = cleanOutput($title, 'html');
-            $titleFull   = cleanOutput($r['title'], 'html');
-            $date        = fixDate('YmdHis', $tzOffset, $r['date']);
-
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $full_date = T_('Today');
-                $d         = ' class="today"';
-            }
-            else
-            {
-                $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-                $d         = '';
-            }
-
-            list($year, $month, $day) = explode('-', date('Y-m-d', strtotime($r['date'])));
-
-            $return .= '
-                    <li>
-                        <div'.$d.'>'.$full_date.'</div>
-                        <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'" 
-                            title="'.$titleFull.'">'.$title.'</a> - 
-                        <a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>
-                    </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewDocuments 
-     * 
-     * Returns empty string if Documents section is turned off.
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     *
-     * @return string
-     */
-    function formatWhatsNewDocuments ($whatsNewData, $tzOffset)
-    {
-        if (!usingDocuments())
-        {
-            return '';
-        }
-
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Documents').'</h3>
-                <ul>';
-
-        if (!isset($whatsNewData['DOCS']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        foreach ($whatsNewData['DOCS'] as $r)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $displayname = getUserDisplayName($r['userid']);
-            $document    = shortenString($r['title'], 30, '...');
-            $document    = cleanOutput($document, 'html');
-            $date        = fixDate('YmdHis', $tzOffset, $r['date']);
-
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-                $d = '';
-            }
-
-            $return .= '
-                    <li>
-                        <div'.$d.'>'.$date.'</div>
-                        <a href="documents.php">'.$document.'</a> - 
-                        <a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>
-                    </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewWhereIsEveryone
-     * 
-     * Returns empty string if Where Is Everyone section is turned off.
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     *
-     * @return string
-     */
-    function formatWhatsNewWhereIsEveryone ($whatsNewData, $tzOffset)
-    {
-        if (!usingWhereIsEveryone())
-        {
-            return '';
-        }
-
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Where Is Everyone').'</h3>
-                <ul>';
-
-        if (!isset($whatsNewData['WHEREISEVERYONE']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        foreach ($whatsNewData['WHEREISEVERYONE'] as $r)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $displayname = getUserDisplayName($r['userid']);
-            $title       = shortenString($r['title'], 30, '...');
-            $title       = cleanOutput($title, 'html');
-            $date        = fixDate('YmdHis', $tzOffset, $r['date']);
-
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-                $d = '';
-            }
-
-            $displayname = getUserDisplayName($r['userid']);
-
-            $return .= '
-                    <li>
-                        <div'.$d.'>'.$date.'</div>
-                        <a href="whereiseveryone.php">'.sprintf(T_('%s visited %s.'), $displayname, $title).'</a> - 
-                        <a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>
-                    </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * formatWhatsNewMisc 
-     * 
-     * @param array  $whatsNewData 
-     * @param string $tzOffset 
-     * 
-     * @return string
-     */
-    function formatWhatsNewMisc ($whatsNewData, $tzOffset)
-    {
-        $today_start = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $tzOffset, gmdate('Y-m-d H:i:s')) . '235959';
-
-        $return = '
-                <h3>'.T_('Misc.').'</h3>
-                <ul>';
-
-        if (!isset($whatsNewData['JOINED']) && !isset($whatsNewData['ADDRESSADD']) && !isset($whatsNewData['POLL']) && !isset($whatsNewData['AVATAR']))
-        {
-            return $return.'<i>'.T_('Nothing new').'</i></ul>';
-        }
-
-        $count = 0;
-
-        # Get each comment type from the $whatsNewData array, store it in a new array
-        $miscData = array();
-
-        foreach (array('JOINED', 'ADDRESSADD', 'POLL', 'AVATAR') as $type)
-        {
-            if (!isset($whatsNewData[$type]))
-            {
-                continue;
-            }
-            foreach ($whatsNewData[$type] as $data)
-            {
-                $miscData[] = $data;
-            }
-        }
-
-        // Need to resort the miscData
-        $miscData = subval_sort($miscData, 'date');
-        $miscData = array_reverse($miscData);
-
-        foreach ($miscData as $r)
-        {
-            // Quit, if we displayed 5 already
-            if ($count > 5)
-            {
-                break;
-            }
-            $count++;
-
-            $date = fixDate('YmdHis', $tzOffset, $r['date']);
-
-            if ($date >= $today_start && $date <= $today_end)
-            {
-                $full_date = T_('Today');
-                $d = ' class="today"';
-            }
-            else
-            {
-                $full_date = fixDate(T_('M. j, Y, g:i a'), $tzOffset, $r['date']);
-                $d = '';
-            }
-
-            if ($r['type'] == 'POLL')
-            {
-                $poll  = '<a href="poll.php?id='.$r['id'].'">'.cleanOutput($r['title'], 'html').'</a>';
-                $title = sprintf(T_('A new Poll (%s) has been added.'), $poll);
-            }
-            elseif ($r['type'] == 'ADDRESSADD')
-            {
-                $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.getUserDisplayName($r['id2']).'</a>';
-                $for         = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
-                $title       = sprintf(T_('%s has added address information for %s.'), $displayname, $for);
-            }
-            elseif ($r['type'] == 'AVATAR')
-            {
-                $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.getUserDisplayName($r['userid']).'</a>';
-
-                $title = sprintf(T_('%s changed his profile picture.'), $displayname);
-                if ($r['id3'] == 'F')
-                {
-                    $title = sprintf(T_('%s changed her profile picture.'), $displayname);
-                }
-            }
-            // JOINED
-            else
-            {
-                $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.getUserDisplayName($r['userid']).'</a>';
-                $title       = sprintf(T_('%s has joined the website.'), $displayname);
-            }
-
-            $return .= '
-                        <li>
-                            <div'.$d.'>'.$full_date.'</div>
-                            '.$title.'
-                        </li>';
-        }
-
-        $return .= '
-                </ul>';
-
-        return $return;
-    }
-
-    /**
-     * displayPoll 
-     * 
-     * @return void
-     */
-    function displayPoll ()
+    function getLatestPollParams ()
     {
         $pollData = $this->fcmsPoll->getLatestPollData();
         if ($pollData === false)
         {
-            $fcmsError->displayErrors();
-            $this->displayFooter();
-            return;
+            return false;
         }
 
         if (count($pollData) <= 0)
         {
             # we have no polls
-            return;
+            return array();
         }
 
-        $pollId = key($pollData);
-
-        $pollOptions = '';
-        $input       = '';
-        $results     = '';
+        $pollId      = key($pollData);
+        $pollOptions = array();
 
         // Show results - user already voted
         if (isset($pollData['users_who_voted'][$this->fcmsUser->id]))
@@ -1607,41 +442,662 @@ function keyHandler(e)
             $class       = 'disabled';
             $disabled    = 'disabled="disabled"';
 
-            $pollOptions = $this->fcmsPoll->formatPollResults($pollData);
-            if ($pollOptions === false)
+            $pollResults = $this->fcmsPoll->formatPollResults($pollData);
+            if ($pollResults === false)
             {
-                $fcmsError->displayErrors();
-                $this->displayFooter();
-                return;
+                return false;
             }
+
+            return array(
+                'pollId'          => $pollId,
+                'textPolls'       => T_('Polls'),
+                'pollQuestion'    => cleanOutput($pollData[$pollId]['question'], 'html'),
+                'textPastPolls'   => T_('Past Polls'),
+                'pollResults'     => $pollResults,
+            );
         }
         // Show options
         else
         {
             foreach ($pollData[$pollId]['options'] as $optionId => $optionData)
             {
-                $pollOptions .= '
-                    <p>
-                        <label class="radio_label">
-                            <input type="radio" name="option" value="'.$optionId.'"/>
-                            '.cleanOutput($optionData['option'], 'html').'
-                        </label>
-                    </p>';
+                $pollOptions[] = array(
+                    'id'   => (int)$optionId,
+                    'text' => cleanOutput($optionData['option'], 'html'),
+                );
             }
-
-            $input   = '<input type="submit" id="vote" name="vote" value="'.T_('Vote').'"/>';
-            $results = '<a href="polls.php?id='.$pollId.'&amp;results=1">'.T_('Results').'</a> | ';
         }
 
-        echo '
-            <h2 class="pollmenu">'.T_('Polls').'</h2>
-            <form class="poll-small" method="post" action="polls.php">
-                <h3>'.cleanOutput($pollData[$pollId]['question'], 'html').'</h3>
-                '.$pollOptions.'
-                <input type="hidden" id="id" name="id" value="'.$pollId.'"/>
-                <p>'.$input.'</p>
-                '.$results.'
-                <a href="polls.php?action=pastpolls">'.T_('Past Polls').'</a>
-            </form>';
+        return array(
+            'pollId'          => $pollId,
+            'textPolls'       => T_('Polls'),
+            'pollQuestion'    => cleanOutput($pollData[$pollId]['question'], 'html'),
+            'textPollVote'    => T_('Vote'),
+            'textPollResults' => T_('Results'),
+            'textPastPolls'   => T_('Past Polls'),
+            'pollOptions'     => $pollOptions,
+        );
     }
+
+    /**
+     * displayWhatsNewAll 
+     * 
+     * Displays the following types of new data from the site:
+     *
+     *  ADDRESSADD      Add address of non-member
+     *  ADDRESSEDIT     Edit own address
+     *  AVATAR          Change avatar
+     *  BOARD           Message board post
+     *  CALENDAR        Add date to calendar
+     *  DOCS            Added document
+     *  GALCATCOM       Commented on category of photos
+     *  GALCOM          Commented on photo
+     *  GALLERY         Added photo
+     *  JOINED          Joined the site (became active)
+     *  NEWS            Added family news
+     *  NEWSCOM         Commented on family news
+     *  POLL            Added poll
+     *  POLLCOM         Commented on poll
+     *  PRAYERS         Added prayer concern
+     *  RECIPES         Added recipe
+     *  RECIPECOM       Commented on recipe
+     *  STATUS          Added status update
+     *  VIDEO           Added video
+     *  VIDEOCOM        Commented on video
+     *  WHEREISEVERYONE Checked in on foursquare
+     *
+     * @return void
+     */
+    function displayWhatsNewAll ()
+    {
+        $lastday = '0-0';
+
+        $today_start = fixDate('Ymd', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s')) . '000000';
+        $today_end   = fixDate('Ymd', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s')) . '235959';
+
+        $time            = mktime(0, 0, 0, date('m')  , date('d')-1, date('Y'));
+        $yesterday_start = fixDate('Ymd', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s', $time)) . '000000';
+        $yesterday_end   = fixDate('Ymd', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s', $time)) . '235959';
+
+        // Get data
+        $whatsNewData = getWhatsNewData(30);
+        if ($whatsNewData === false)
+        {
+            return;
+        }
+
+        $cachedUserData = array();
+
+        $position = 1;
+        $older    = true;
+
+        $newParams = array(
+            'textWhatsNew'  => T_('What\'s New'),
+            'textRssFeed'   => T_('RSS Feed'),
+            'new'           => array(),
+        );
+
+        // Loop through data
+        foreach ($whatsNewData as $r)
+        {
+            $updated     = fixDate('Ymd',    $this->fcmsUser->tzOffset, $r['date']);
+            $updatedFull = fixDate('YmdHis', $this->fcmsUser->tzOffset, $r['date']);
+
+            // Date Header
+            if ($updated != $lastday)
+            {
+                // Today
+                if ($updatedFull >= $today_start && $updatedFull <= $today_end)
+                {
+                    $newParams['new'][] = array('textDateHeading' => T_('Today'));
+                }
+                // Yesterday
+                if ($updatedFull >= $yesterday_start && $updatedFull <= $yesterday_end)
+                {
+                    $newParams['new'][] = array('textDateHeading' => T_('Yesterday'));
+                }
+                // Older
+                if ($updatedFull < $yesterday_start && $older)
+                {
+                    $newParams['new'][] = array('textDateHeading' => T_('Older'));
+                    $older       = false;
+                }
+            }
+
+            $rtime = strtotime($r['date']);
+
+            $displayname = '';
+            $avatar      = '';
+
+            // Use cached data
+            if (isset($cachedUserData[$r['userid']]))
+            {
+                $displayname = $cachedUserData[$r['userid']]['displayname'];
+                $avatar      = $cachedUserData[$r['userid']]['avatar'];
+            }
+            // Get new data
+            else
+            {
+                $displayname = getUserDisplayName($r['userid']);
+                $avatar      = getCurrentAvatar($r['userid']);
+
+                // Save this for later
+                $cachedUserData[$r['userid']]['avatar']      = $avatar;
+                $cachedUserData[$r['userid']]['displayname'] = $displayname;
+            }
+
+            if ($r['type'] == 'ADDRESSADD')
+            {
+                $displayname = getUserDisplayName($r['id2']);
+                $for         = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newaddress',
+                    'avatar'        => getCurrentAvatar($r['id2']),
+                    'displayname'   => $displayname,
+                    'userId'        => $r['id2'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Added address information for %s.'), $for),
+                );
+            }
+            elseif ($r['type'] == 'ADDRESSEDIT')
+            {
+                if ($r['title'] == 'address')
+                {
+                    $titleType = T_('address');
+                }
+                elseif ($r['title'] == 'email')
+                {
+                    $titleType = T_('email address');
+                }
+                elseif ($r['title'] == 'home')
+                {
+                    $titleType = T_('home phone number');
+                }
+                elseif ($r['title'] == 'work')
+                {
+                    $titleType = T_('work phone number');
+                }
+                elseif ($r['title'] == 'cell')
+                {
+                    $titleType = T_('cell phone number');
+                }
+                // this shouldn't happen
+                else
+                {
+                    $titleType = T_('address');
+                }
+
+                $address = '<a href="addressbook.php?address='.$r['id'].'">'.$titleType.'</a>';
+
+                if ($r['id2'] != $r['userid'])
+                {
+                    $user = getUserDisplayName($r['userid']);
+                    $text = sprintf(T_pgettext('Example: "Updated the <address/phone/email> for <name>."', 'Updated the %s for %s.'), $address, $user);
+                }
+                else
+                {
+                    if ($r['id3'] == 'F')
+                    {
+                        $text = sprintf(T_pgettext('Example: "Updated her <address/phone/email>."', 'Updated her %s.'), $address);
+                    }
+                    else
+                    {
+                        $text = sprintf(T_pgettext('Example: "Updated his <address/phone/email>."', 'Updated his %s.'), $address);
+                    }
+                }
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newaddress',
+                    'avatar'        => getCurrentAvatar($r['id2']),
+                    'displayname'   => getUserDisplayName($r['id2']),
+                    'userId'        => $r['id2'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => $text,
+                );
+            }
+            elseif ($r['type'] == 'AVATAR')
+            {
+                $text = T_('Changed his profile picture.');
+
+                if ($r['id3'] == 'F')
+                {
+                    $text = T_('Changed her profile picture.');
+                }
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newavatar',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => $text,
+                );
+            }
+            elseif ($r['type'] == 'BOARD')
+            {
+                $sql = "SELECT MIN(`id`) AS 'id' 
+                        FROM `fcms_board_posts` 
+                        WHERE `thread` = ?";
+
+                $minpost = $this->fcmsDatabase->getRow($sql, $r['id2']);
+                if ($minpost === false)
+                {
+                    $this->fcmsError->displayError();
+                    return;
+                }
+
+                $subject  = $r['title'];
+
+                $pos = strpos($subject, '#ANOUNCE#');
+                if ($pos !== false)
+                {
+                    $subject = substr($subject, 9, strlen($subject)-9);
+                }
+
+                $title   = cleanOutput($subject);
+                $subject = cleanOutput($subject);
+                $subject = '<a href="messageboard.php?thread='.$r['id2'].'" title="'.$title.'">'.$subject.'</a>';
+
+                if ($r['id'] == $minpost['id'])
+                {
+                    $class = 'newthread';
+                    $text = sprintf(T_('Started the new thread %s.'), $subject);
+                }
+                else
+                {
+                    $class = 'newpost';
+                    $text = sprintf(T_('Replied to %s.'), $subject);
+                }
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => $class,
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => $text,
+                );
+            }
+            elseif ($r['type'] == 'CALENDAR')
+            {
+                $date_date = date('F j, Y', strtotime($r['id2']));
+                $for       = '<a href="calendar.php?event='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newcal',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => $for.' - '.$date_date,
+                );
+            }
+            elseif ($r['type'] == 'DOCS')
+            {
+                $doc = '<a href="documents.php">'.cleanOutput($r['title']).'</a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newdocument',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Added a new Document (%s).'), $doc),
+                );
+            }
+            elseif ($r['type'] == 'GALCATCOM')
+            {
+                $category = '<a href="gallery/index.php?uid='.$r['id2'].'&amp;cid='.$r['id3'].'">'.cleanOutput($r['title']).'</a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newcom',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Commented on %s.'), $category),
+                );
+            }
+            elseif ($r['type'] == 'GALCOM')
+            {
+                $data = array(
+                    'id'          => $r['id'],
+                    'user'        => $r['id2'],
+                    'filename'    => $r['id3'],
+                    'external_id' => null,
+                    'thumbnail'   => null
+                );
+
+                if ($r['id3'] == 'noimage.gif')
+                {
+                    $sql = "SELECT p.`id`, p.`filename`, p.`external_id`, e.`thumbnail`
+                            FROM `fcms_gallery_photos` AS p
+                            LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                            WHERE p.`id` = '".(int)$r['id']."'";
+
+                    $p = $this->fcmsDatabase->getRow($sql, $r['id']);
+                    if ($p === false)
+                    {
+                        $this->fcmsError->displayError();
+                        return;
+                    }
+
+                    $data['external_id'] = $p['external_id'];
+                    $data['thumbnail']   = $p['thumbnail'];
+                }
+
+                $photoSrc = $galleryObj->getPhotoSource($data);
+
+                $text = T_('Commented on the following photo:').'<br/><a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'"><img src="'.$photoSrc.'"/></a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newcom',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => $text,
+                );
+            }
+            elseif ($r['type'] == 'GALLERY')
+            {
+                $cat    = '<a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+                $photos = '';
+
+                $limit = 4;
+                if ($r['id2'] < $limit)
+                {
+                    $limit = $r['id2'];
+                }
+                $sql = "SELECT p.`id`, p.`user`, p.`category`, p.`filename`, p.`caption`,
+                            p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
+                        FROM `fcms_gallery_photos` AS p
+                        LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                        WHERE p.`category` = '".(int)$r['id']."' 
+                        AND DAYOFYEAR(p.`date`) = '".(int)$r['id3']."' 
+                        ORDER BY p.`date` 
+                        DESC LIMIT $limit";
+
+                $photo_rows = $this->fcmsDatabase->getRows($sql, array($r['id'], $r['id3']));
+                if ($photo_rows === false)
+                {
+                    $this->fcmsError->displayError();
+                    return;
+                }
+
+                foreach ($photo_rows as $p)
+                {
+                    $photoSrc = $galleryObj->getPhotoSource($p);
+
+                    $photos .= '
+                            <a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'&amp;pid='.$p['id'].'">
+                                <img src="'.$photoSrc.'" alt="'.cleanOutput($p['caption']).'"/>
+                            </a> &nbsp;';
+                }
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newphoto',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Added %d new photos to the %s category.'), $r['id2'], $cat).'<br/>'.$photos,
+                );
+            }
+            elseif ($r['type'] == 'JOINED')
+            {
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newmember',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => T_('Joined the website.'),
+                );
+            }
+            elseif ($r['type'] == 'NEWS')
+            {
+                $title = !empty($r['title']) ? cleanOutput($r['title']) : T_('untitled');
+                $news  = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$title.'</a>'; 
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newnews',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Added %s to his/her Family News.'), $news),
+                );
+            }
+            elseif ($r['type'] == 'NEWSCOM')
+            {
+                $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newcom',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Commented on Family News %s.'), $news),
+                );
+            }
+            elseif ($r['type'] == 'POLL')
+            {
+                $poll = '<a href="polls.php?id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newpoll',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Added a new poll %s.'), $poll),
+                );
+            }
+            elseif ($r['type'] == 'POLLCOM')
+            {
+                $poll = '<a href="polls.php?id='.$r['id'].'"#comments>'.cleanOutput($r['title']).'</a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'pollcom',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Commented on Poll %s.'), $poll),
+                );
+            }
+            elseif ($r['type'] == 'PRAYERS')
+            {
+                $for = '<a href="prayers.php">'.cleanOutput($r['title']).'</a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newprayer',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Added a Prayer Concern for %s.'), $for),
+                );
+            }
+            elseif ($r['type'] == 'RECIPES')
+            {
+                $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newrecipe',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Added the %s recipe.'), $rec),
+                );
+            }
+            elseif ($r['type'] == 'RECIPECOM')
+            {
+                $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newcom',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Commented on Recipe %s.'), $rec),
+                );
+            }
+            elseif ($r['type'] == 'STATUS')
+            {
+                $title = cleanOutput($r['title']);
+                $title = nl2br_nospaces($title);
+
+                // Get any replies to this status update
+                $sql = "SELECT `id`, `user`, `status`, `parent`, `updated`, `created` 
+                        FROM `fcms_status` 
+                        WHERE `parent` = ?
+                        ORDER BY `id`";
+
+                $rows = $this->fcmsDatabase->getRows($sql, $r['id']);
+                if ($rows === false)
+                {
+                    $this->fcmsError->displayError();
+                    return;
+                }
+
+                $children = array();
+
+                if (count($rows) > 0)
+                {
+                    foreach ($rows as $s)
+                    {
+                        $status = cleanOutput($s['status']);
+                        $status = nl2br_nospaces($status);
+
+                        $children[] = array(
+                            'class'         => 'newstatus',
+                            'avatar'        => getCurrentAvatar($s['user']),
+                            'displayname'   => getUserDisplayName($s['user']),
+                            'userId'        => $s['user'],
+                            'timeSince'     => getHumanTimeSince(strtotime($s['created'])),
+                            'textInfo'      => $status
+                        );
+                    }
+                }
+
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newcom',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => (int)$r['userid'],
+                    'timeSince'     => getHumanTimeSince(strtotime($r['id3'])),
+                    'textInfo'      => $title,
+                    'children'      => $children,
+                    'textReply'     => T_('Reply'),
+                    'replyParentId' => (int)$r['id'],
+                );
+            }
+            elseif ($r['type'] == 'VIDEO')
+            {
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newvideo',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => T_('Added a new Video.').'<br/><a href="video.php?u='.$r['userid'].'&amp;id='.$r['id'].'"><img src="http://i.ytimg.com/vi/'.$r['id2'].'/default.jpg"/></a>',
+                );
+            }
+            elseif ($r['type'] == 'VIDEOCOM')
+            {
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newvideo',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => T_('Commented on the following Video:').'<br/><a href="video.php?u='.$r['userid'].'&amp;id='.$r['id'].'#comments"><img src="http://i.ytimg.com/vi/'.$r['id2'].'/default.jpg"/></a>',
+                );
+            }
+            elseif ($r['type'] == 'WHEREISEVERYONE')
+            {
+                $newParams['new'][] = array(
+                    'position'      => $position,
+                    'class'         => 'newvideo',
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => $r['userid'],
+                    'timeSince'     => getHumanTimeSince($rtime),
+                    'textInfo'      => sprintf(T_('Visited %s.'), $r['title']).'<br/><br/>'.(!empty($r['id2']) ? '<blockquote>'.cleanOutput($r['id2']).'</blockquote>' : ''),
+                );
+            }
+
+            $position++;
+
+            $lastday = $updated;
+        }
+
+        loadTemplate('home', 'new', $newParams);
+    }
+
+    /**
+     * getMembersOnline 
+     * 
+     * @return mixed - array on success, false on failure
+     */
+    function getMembersOnline ()
+    {
+        $membersOnline = array(
+            'textLastSeen'  => T_('Last Seen'),
+            'membersOnline' => array(),
+        );
+
+        $last24hours = time() - (60 * 60 * 24);
+
+        $sql = "SELECT * 
+                FROM fcms_users 
+                WHERE UNIX_TIMESTAMP(`activity`) >= ?
+                ORDER BY `activity` DESC";
+
+        $rows = $this->fcmsDatabase->getRows($sql, $last24hours);    
+        if ($rows === false)
+        {
+            $this->fcmsError->setMessage('Could not get members online.');
+            return false;
+        }
+
+        foreach ($rows as $r)
+        {
+            $membersOnline['membersOnline'][] = array(
+                'id'          => (int)$r['id'],
+                'avatar'      => getCurrentAvatar($r['id']),
+                'displayname' => getUserDisplayName($r['id']),
+                'since'       => getHumanTimeSince(strtotime($r['activity'])),
+            );
+        }
+
+        return $membersOnline;
+    }
+
 }
