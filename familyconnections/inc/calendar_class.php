@@ -690,18 +690,18 @@ class Calendar
             }
         }
 
-        // finish any incomplete weeks/rows
         if ($i % 7 != 0)
         {
-            $lastWeekInMonth = end(array_keys($monthData));
-
+            // finish any incomplete weeks/rows
             for ($j = 0; $j < (7 - ($i % 7)); $j++)
             {
-                $monthData[$lastWeekInMonth] = array(
+                $weekData[] = array(
                     'class' => 'nonMonthDay',
                     'data'  => '&nbsp;',
                 );
             }
+
+            $monthData[] = $weekData;
         }
 
         $calendarData['days'] = $monthData;
