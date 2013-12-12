@@ -449,6 +449,7 @@ class Page
             }
 
             return array(
+                'pollFormClass'   => 'poll-small',
                 'pollId'          => $pollId,
                 'textPolls'       => T_('Polls'),
                 'pollQuestion'    => cleanOutput($pollData[$pollId]['question'], 'html'),
@@ -469,6 +470,7 @@ class Page
         }
 
         return array(
+            'pollFormClass'   => 'poll-small',
             'pollId'          => $pollId,
             'textPolls'       => T_('Polls'),
             'pollQuestion'    => cleanOutput($pollData[$pollId]['question'], 'html'),

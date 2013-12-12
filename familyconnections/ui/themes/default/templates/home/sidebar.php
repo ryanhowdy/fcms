@@ -34,7 +34,18 @@
                 </div>
             <?php endforeach; ?>
 
-            <?php if (isset($TMPL['pollId'])) { require_once 'sidebar-poll.php'; } ?>
+            <?php if (isset($TMPL['pollId'])): ?>
+                <h2 class="pollmenu"><?php echo $TMPL['textPolls']; ?></h2>
+                <?php
+                if (isset($TMPL['pollOptions']))
+                {
+                    require_once 'ui/themes/default/templates/poll/view.php';
+                }
+                else
+                {
+                    require_once 'ui/themes/default/templates/poll/result.php';
+                } ?>
+            <?php endif; ?>
 
                 <h2 class="membermenu"><?php echo $TMPL['textMembersOnline']; ?></h2>
                 <div class="membermenu">

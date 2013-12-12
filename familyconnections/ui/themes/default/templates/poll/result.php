@@ -1,22 +1,5 @@
-                <h2 class="pollmenu"><?php echo $TMPL['textPolls']; ?></h2>
-                <form class="poll-small" method="post" action="polls.php">
+                <form class="<?php echo $TMPL['pollFormClass']; ?>" method="post" action="polls.php">
                     <h3><?php echo $TMPL['pollQuestion']; ?></h3>
-
-            <?php if (isset($TMPL['pollOptions'])): ?>
-                <?php foreach ($TMPL['pollOptions'] as $option): ?>
-                    <p>
-                        <label class="radio_label">
-                            <input type="radio" name="option" value="<?php echo $option['id']; ?>"/>
-                            <?php echo $option['text']; ?>
-                        </label>
-                    </p>
-                <?php endforeach; ?>
-                    <input type="hidden" id="id" name="id" value="<?php echo $TMPL['pollId']; ?>"/>
-                    <p><input type="submit" id="vote" name="vote" value="<?php echo $TMPL['textPollVote']; ?>"/></p>
-                    <a href="polls.php?id=<?php echo $TMPL['pollId']; ?>&amp;results=1"><?php echo $TMPL['textPollResults']; ?></a> |
-                    <a href="polls.php?action=pastpolls"><?php echo $TMPL['textPastPolls']; ?></a>
-            <?php else: ?>
-
                     <ul class="poll-results">
                 <?php foreach ($TMPL['pollResults'] as $result): ?>
                         <li>
@@ -46,8 +29,12 @@
                         </li>
                 <?php endforeach; ?>
                     </ul><!--/.poll-results-->
+                <?php if (isset($TMPL['textCommentsCount'])): ?>
+                    <p class="actions">
+                        <a href="#comments"><?php echo $TMPL['textCommentsCount']; ?></a><br/>
+                        <input type="submit" class="disabled" disabled="disabled" id="vote" name="vote" value="<?php echo $TMPL['textAlreadyVoted']; ?>"/>
+                    </p>
+                <?php else: ?>
                     <a href="polls.php?action=pastpolls"><?php echo $TMPL['textPastPolls']; ?></a>
-
-            <?php endif; ?>
-
+                <?php endif; ?>
                 </form>
