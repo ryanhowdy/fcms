@@ -2944,12 +2944,11 @@ function debugOn ()
  *  VIDEOCOM        Commented on video
  *  WHEREISEVERYONE Checked in on foursquare
  * 
- * @param int    $days 
- * @param string $groupByType 
+ * @param int $days 
  * 
- * @return void
+ * @return mixed - array on success or false on failure
  */
-function getWhatsNewData ($days = 30, $groupByType = false)
+function getWhatsNewData ($days = 30)
 {
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
@@ -2957,47 +2956,41 @@ function getWhatsNewData ($days = 30, $groupByType = false)
 
     $whatsNewData = array();
 
-    $sql2 = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
-            FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
-            WHERE p.`thread` = t.`id` 
-            AND p.`user` = u.`id` 
-            AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY)";
-
-    $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
+    $sql = "SELECT p.`id`, `date`, `subject` AS title, p.`post` AS details, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
             FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
             WHERE p.`thread` = t.`id` 
             AND p.`user` = u.`id` 
             AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
 
-            UNION SELECT a.`id`, c.`created` AS date, c.`column` AS title, a.`user` AS userid, a.`updated_id` AS id2, u.`sex` AS id3, 'ADDRESSEDIT' AS type
+            UNION SELECT a.`id`, c.`created` AS date, c.`column` AS title, '' AS details, a.`user` AS userid, a.`updated_id` AS id2, u.`sex` AS id3, 'ADDRESSEDIT' AS type
             FROM `fcms_changelog` AS c
             LEFT JOIN `fcms_users` AS u ON c.`user` = u.`id`
             LEFT JOIN `fcms_address` AS a ON u.`id` = a.`user`
             WHERE c.`created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
             AND c.`column` != 'avatar'
 
-            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.`created_id` AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
+            UNION SELECT a.id, a.updated AS date, 0 AS title, '' AS details, a.user AS userid, a.`created_id` AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
             FROM fcms_address AS a, fcms_users AS u
             WHERE a.user = u.id
             AND u.`phpass` = 'NONMEMBER' 
             AND u.`activated` < 1 
             AND a.updated >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
 
-            UNION SELECT `id`, `joindate` AS date, 0 AS title, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
+            UNION SELECT `id`, `joindate` AS date, 0 AS title, '' AS details, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
             FROM `fcms_users` 
             WHERE `phpass` != 'NONMEMBER' 
             AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
             AND `activated` > 0 ";
     if (usingFamilyNews())
     {
-        $sql .= "UNION SELECT n.`id` AS id, n.`updated` AS date, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type 
+        $sql .= "UNION SELECT n.`id` AS id, n.`updated` AS date, `title`, n.`news` AS details, u.`id` AS userid, u.`sex` AS id2, 0 AS id3, 'NEWS' AS type 
                  FROM `fcms_users` AS u, `fcms_news` AS n 
                  WHERE u.`id` = n.`user` 
                  AND n.`updated` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
                  AND `username` != 'SITENEWS' 
                  AND `phpass` != 'SITENEWS'
 
-                 UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
+                 UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`comment` AS details, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
                  FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u 
                  WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
                  AND nc.`user` = u.`id` 
@@ -3005,78 +2998,77 @@ function getWhatsNewData ($days = 30, $groupByType = false)
     }
     if (usingPrayers())
     {
-        $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type 
+        $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `desc` AS details, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type 
                  FROM `fcms_prayers` 
                  WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
     }
     if (usingRecipes())
     {
-        $sql .= "UNION SELECT `id` AS id, `date`, `name` AS title, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type 
+        $sql .= "UNION SELECT `id` AS id, `date`, `name` AS title, '' AS details, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type 
                  FROM `fcms_recipes` 
                  WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
-                 UNION SELECT r.`id`, rc.`date`, r.`name` AS title, rc.`user` AS userid, r.`category` AS id2, 0 AS id3, 'RECIPECOM' AS type
+                 UNION SELECT r.`id`, rc.`date`, r.`name` AS title, rc.`comment` AS details, rc.`user` AS userid, r.`category` AS id2, 0 AS id3, 'RECIPECOM' AS type
                  FROM `fcms_recipe_comment` AS rc, `fcms_recipes` AS r
                  WHERE rc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY)
                  AND rc.`recipe` = r.`id` ";
     }
     if (usingdocuments())
     {
-        $sql .= "UNION SELECT d.`id` AS 'id', d.`date`, `name` AS title, d.`user` AS userid, 0 AS id2, 0 AS id3, 'DOCS' AS type 
+        $sql .= "UNION SELECT d.`id` AS 'id', d.`date`, `name` AS title, d.`description` AS details, d.`user` AS userid, 0 AS id2, 0 AS id3, 'DOCS' AS type 
                  FROM `fcms_documents` AS d, `fcms_users` AS u 
                  WHERE d.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
                  AND d.`user` = u.`id` ";
     }
-    $sql .= "UNION SELECT DISTINCT p.`category` AS id, p.`date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(p.`date`) AS id3, 'GALLERY' AS type 
+    $sql .= "UNION SELECT DISTINCT p.`category` AS id, p.`date`, `name` AS title, '' AS details, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(p.`date`) AS id3, 'GALLERY' AS type 
              FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_category` AS c 
              WHERE p.`user` = u.`id` 
              AND p.`category` = c.`id` 
              AND p.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              GROUP BY userid, title, id3
 
-             UNION SELECT p.`id`, gc.`date`, `comment` AS title, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type 
+             UNION SELECT p.`id`, gc.`date`, gc.`comment` AS title, gc.`comment` AS details, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type 
              FROM `fcms_gallery_photo_comment` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p 
              WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              AND gc.`user` = u.`id` 
              AND gc.`photo` = p.`id` 
 
-             UNION SELECT g.`id`, g.`created`, c.`name` AS title, g.`created_id` AS userid, c.`user` AS id2, c.`id` AS id3, 'GALCATCOM' AS type 
+             UNION SELECT g.`id`, g.`created`, c.`name` AS title, g.`comment` AS details, g.`created_id` AS userid, c.`user` AS id2, c.`id` AS id3, 'GALCATCOM' AS type 
              FROM `fcms_gallery_category_comment` AS g
              LEFT JOIN `fcms_users` AS u    ON g.`created_id`  = u.`id`
              LEFT JOIN `fcms_category` AS c ON g.`category_id` = c.`id`
              WHERE g.`created` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
-             UNION SELECT c.`id`, c.`date_added` AS date, `title`, `created_by` AS userid, `date` AS id2, `category` AS id3, 'CALENDAR' AS type 
+             UNION SELECT c.`id`, c.`date_added` AS date, `title`, c.`desc` AS details, `created_by` AS userid, `date` AS id2, `category` AS id3, 'CALENDAR' AS type 
              FROM `fcms_calendar` AS c, `fcms_users` AS u 
              WHERE c.`date_added` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              AND c.`created_by` = u.`id` AND `private` < 1 
 
-             UNION SELECT `id`, `started` AS date, `question`, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type 
+             UNION SELECT `id`, `started` AS date, `question` AS title, '' AS details, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type 
              FROM `fcms_polls` 
              WHERE `started` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
-             UNION SELECT p.`id`, c.`created` AS date, p.`question` AS title, c.`created_id` AS userid, 'na' AS id2, 'na' AS id3, 'POLLCOM' AS type 
+             UNION SELECT p.`id`, c.`created` AS date, p.`question` AS title, c.`comment` AS details, c.`created_id` AS userid, 'na' AS id2, 'na' AS id3, 'POLLCOM' AS type 
              FROM `fcms_poll_comment` AS c
              LEFT JOIN `fcms_polls` AS p ON c.`poll_id` = p.`id`
              WHERE `created` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
-             UNION SELECT `id`, `updated` AS date, `status` AS title, `user` AS userid, `parent` AS id2, `created` AS id3, 'STATUS' AS type 
+             UNION SELECT `id`, `updated` AS date, `status` AS title, '' AS details, `user` AS userid, `parent` AS id2, `created` AS id3, 'STATUS' AS type 
              FROM `fcms_status` 
              WHERE `updated` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
-             AND `parent` = 0
 
-             UNION SELECT 0 as id, c.`created` AS date, 0 AS title, c.`user` AS userid, 0 AS id2, u.`sex` AS id3, 'AVATAR' AS type
+             UNION SELECT 0 as id, c.`created` AS date, 0 AS title, '' AS details, c.`user` AS userid, 0 AS id2, u.`sex` AS id3, 'AVATAR' AS type
              FROM `fcms_changelog` AS c
              LEFT JOIN `fcms_users` AS u ON c.`user` = u.`id`
              WHERE `created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
              AND `column` = 'avatar'
 
-             UNION SELECT `id`, `created` AS date, `title`, `created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEO' AS type
+             UNION SELECT `id`, `created` AS date, `title`, `description` AS details, `created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEO' AS type
              FROM `fcms_video`
              WHERE `created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
              AND `active` = '1'
 
-             UNION SELECT `video_id` AS 'id', c.`created` AS date, `comment`, c.`created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEOCOM' AS type
+             UNION SELECT `video_id` AS 'id', c.`created` AS date, `comment`, '' AS details, c.`created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEOCOM' AS type
              FROM `fcms_video_comment` AS c
              LEFT JOIN `fcms_video` AS v ON c.`video_id` = v.`id`
              WHERE c.`created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
@@ -3084,158 +3076,370 @@ function getWhatsNewData ($days = 30, $groupByType = false)
 
              ORDER BY date DESC LIMIT 0, 35";
 
-    $rows = $fcmsDatabase->getRows($sql);
-    if ($rows === false)
+    $whatsNewData = $fcmsDatabase->getRows($sql);
+    if ($whatsNewData === false)
     {
-        $fcmsError->setMessage(T_('Could not get what\'s new information.'));
-        $fcmsError->displayError();
+        $fcmsError->setMessage(T_('Could not get What\'s New data.'));
         return false;
     }
 
-    // Save data
-    foreach ($rows as $r)
+    // Get additional data
+    $whatsNewData = getAdditionalWhatsNewData($whatsNewData);
+    if ($whatsNewData === false)
     {
-        if ($groupByType)
-        {
-            $whatsNewData[$r['type']][] = $r;
-        }
-        else
-        {
-            $whatsNewData[] = $r;
-        }
+        $fcmsError->setMessage(T_('Could not get additional What\'s New data.'));
+        return false;
     }
 
     // Add external foursquare data
     if (usingWhereIsEveryone())
     {
-        include_once('socialmedia.php');
-        include_once('thirdparty/foursquare/EpiFoursquare.php');
-        include_once('thirdparty/foursquare/EpiCurl.php');
-
-        $users  = getFoursquareUsersData();
-        $config = getFoursquareConfigData();
-
-        // TODO
-        // Move this check inside the getFoursquareConfigData and have it return false on failure.
-
-        // Foursquare hasn't been setup or is invalid
-        if (empty($config['fs_client_id']) or empty($config['fs_client_secret']))
+        $whatsNewData = getFoursquareWhatsNewData($whatsNewData);
+        if ($whatsNewData === false)
         {
-            // If admin is viewing, alert them that the config is missing/messed up
-            if ($fcmsUser->access < 2)
+            $fcmsError->setMessage(T_('Could not get Foursquare What\'s New data.'));
+            return false;
+        }
+    }
+
+    // Now lets group events together
+    $groupedData = array();
+    foreach ($whatsNewData as $data)
+    {
+        // Build a lookup for the data for each new item
+        $lkup = array();
+        switch ($data['type'])
+        {
+            case 'THREAD':
+            case 'BOARD':
+                $lkup = array(
+                    'type'     => 'thread_',
+                    'parent'   => 'THREAD',
+                    'child'    => 'BOARD',
+                    'parentId' => 'id2',
+                    'childId'  => 'id2',
+                );
+                break;
+
+            case 'GALLERY':
+            case 'GALCATCOM':
+                $lkup = array(
+                    'type'     => 'gallery_',
+                    'parent'   => 'GALLERY',
+                    'child'    => 'GALCATCOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id3',
+                );
+                break;
+
+            case 'NEWS':
+            case 'NEWSCOM':
+                $lkup = array(
+                    'type'     => 'news_',
+                    'parent'   => 'NEWS',
+                    'child'    => 'NEWSCOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id',
+                );
+                break;
+
+            case 'POLL':
+            case 'POLLCOM':
+                $lkup = array(
+                    'type'     => 'poll_',
+                    'parent'   => 'POLL',
+                    'child'    => 'POLLCOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id',
+                );
+                break;
+
+            case 'RECIPES':
+            case 'RECIPECOM':
+                $lkup = array(
+                    'type'     => 'recipe_',
+                    'parent'   => 'RECIPES',
+                    'child'    => 'RECIPECOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id',
+                );
+                break;
+
+            case 'STATUS':
+            case 'STATUSCOM':
+                $lkup = array(
+                    'type'     => 'status_',
+                    'parent'   => 'STATUS',
+                    'child'    => 'STATUSCOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id2',
+                );
+                break;
+
+            case 'VIDEO':
+            case 'VIDEOCOM':
+                $lkup = array(
+                    'type'     => 'video_',
+                    'parent'   => 'VIDEO',
+                    'child'    => 'VIDEOCOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id',
+                );
+                break;
+        }
+
+        // Group things together
+        if (count($lkup) > 0)
+        {
+            $id = $data['type'] == $lkup['parent'] ? $data[ $lkup['parentId'] ] 
+                                                   : $data[ $lkup['childId'] ];
+
+            if (isset($groupedData[ $lkup['type'] . $id ]))
             {
-                echo '
+                if ($data['type'] == $lkup['parent'])
+                {
+                    // put it at the top of the group
+                    array_unshift($groupedData[ $lkup['type'] . $id ], $data);
+                }
+                else
+                {
+                    // put it at the end of the group
+                    $groupedData[ $lkup['type'] . $id ][] = $data;
+                }
+            }
+            else
+            {
+                // start a new group
+                $groupedData[ $lkup['type'] . $id ] = array( $data );
+            }
+
+        }
+        // Just add ungrouped items
+        else
+        {
+            $groupedData[]  = array( $data );
+        }
+    }
+
+    return $groupedData;
+} 
+
+/**
+ * getAdditionalWhatsNewData 
+ * 
+ * Adds additional data that couldn't be retreived with one sql
+ * statements when getting data.
+ * 
+ * @param array $whatsNewData 
+ * 
+ * @return mixed - array on success or false on failure
+ */
+function getAdditionalWhatsNewData ($whatsNewData)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    // Get some extra data, do little cleanup
+    foreach ($whatsNewData as $key => $data)
+    {
+        // Get last 4 photos in category
+        if ($data['type'] == 'GALLERY')
+        {
+            $limit = 4;
+            if ($data['id2'] < $limit)
+            {
+                $limit = (int)$r['id2'];
+            }
+
+            $sql = "SELECT p.`id`, p.`user`, p.`category`, p.`filename`, p.`caption`,
+                        p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
+                    FROM `fcms_gallery_photos` AS p
+                    LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                    WHERE p.`category` = ?
+                    AND DAYOFYEAR(p.`date`) = ?
+                    ORDER BY p.`date` 
+                    DESC LIMIT $limit";
+
+            $photos = $fcmsDatabase->getRows($sql, array($data['id'], $data['id3']));
+            if ($photos === false)
+            {
+                return false;
+            }
+
+            $whatsNewData[$key]['photos'] = $photos;
+        }
+        // See if this is a new thread or a reply
+        elseif ($data['type'] == 'BOARD')
+        {
+            $sql = "SELECT MIN(`id`) AS 'id' 
+                    FROM `fcms_board_posts` 
+                    WHERE `thread` = ?";
+
+            $minpost = $fcmsDatabase->getRow($sql, $data['id2']);
+            if ($minpost === false)
+            {
+                return false;
+            }
+
+            if ($minpost['id'] == $data['id'])
+            {
+                $whatsNewData[$key]['type'] = 'THREAD';
+            }
+        }
+        // See if this is a new status update or reply
+        elseif ($data['type'] == 'STATUS')
+        {
+            if ($data['id2'] != 0)
+            {
+                $whatsNewData[$key]['type'] = 'STATUSCOM';
+            }
+        }
+        // See if this is a new status update or reply
+        elseif ($data['type'] == 'GALCOM')
+        {
+            $photo = array(
+                'user'     => $data['id2'],
+                'filename' => $data['id3'],
+            );
+
+            if ($data['id3'] == 'noimage.gif')
+            {
+                $sql = "SELECT p.`id`, p.`filename`, p.`external_id`, e.`thumbnail`
+                        FROM `fcms_gallery_photos` AS p
+                        LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                        WHERE p.`id` = ?";
+
+                $p = $this->fcmsDatabase->getRow($sql, $data['id']);
+                if ($p === false)
+                {
+                    $this->fcmsError->displayError();
+                    return;
+                }
+
+                $photo['external_id'] = $p['external_id'];
+                $photo['thumbnail']   = $p['thumbnail'];
+            }
+
+            $whatsNewData[$key]['photos'][] = $photo;
+        }
+    }
+
+    return $whatsNewData;
+}
+
+/**
+ * getFoursquareWhatsNewData 
+ * 
+ * Adds foursquare data to the whats new data array.
+ * 
+ * @param array $whatsNewData 
+ * 
+ * @return mixed - array on success or false on failure
+ */
+function getFoursquareWhatsNewData ($whatsNewData)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    include_once('socialmedia.php');
+    include_once('thirdparty/foursquare/EpiFoursquare.php');
+    include_once('thirdparty/foursquare/EpiCurl.php');
+
+    $users  = getFoursquareUsersData();
+    $config = getFoursquareConfigData();
+
+    // TODO
+    // Move this check inside the getFoursquareConfigData and have it return false on failure.
+
+    // Foursquare hasn't been setup or is invalid
+    if (empty($config['fs_client_id']) or empty($config['fs_client_secret']))
+    {
+        // If admin is viewing, alert them that the config is missing/messed up
+        if ($fcmsUser->access < 2)
+        {
+            echo '
                     <div class="info-alert">
                         <h2>'.T_('Foursquare is not configured correctly.').'</h2>
                         <p>'.T_('The "Where Is Everyone" feature cannot work without Foursquare.  Please configure Foursquare or turn off "Where Is Everyone".').'</p>
                         <p><a href="admin/foursquare.php">'.T_('Configure Foursquare').'</a></p>
                         <p><a href="admin/config.php?view=plugins">'.T_('Turn Off "Where is Everyone"').'</a></p>
                     </div>';
-            }
-
-            return $whatsNewData;
         }
 
-        $foursquareData = array();
+        return $whatsNewData;
+    }
 
-        if (count($users[0]) > 0)
+    $foursquareData = array();
+
+    if (count($users[0]) > 0)
+    {
+        $timeago = gmmktime(0, 0, 0, gmdate('m'), gmdate('d')-$days, gmdate('Y'));
+
+        $i = 0;
+        foreach ($users as $k => $data)
         {
-            $timeago = gmmktime(0, 0, 0, gmdate('m'), gmdate('d')-$days, gmdate('Y'));
-
-            $i = 0;
-            foreach ($users as $k => $data)
+            // Skip users who don't have foursquare setup
+            if (empty($data['access_token']))
             {
-                // Skip users who don't have foursquare setup
-                if (empty($data['access_token']))
+                continue;
+            }
+
+            $fsObj = new EpiFoursquare($config['fs_client_id'], $config['fs_client_secret'], $data['access_token']);
+
+            try
+            {
+                $params = array(
+                    'afterTimestamp' => $timeago
+                );
+                $creds = $fsObj->get('/users/'.$data['user_id'].'/checkins', $params);
+            }
+            catch(EpiFoursquareException $e)
+            {
+                echo 'We caught an EpiOAuthException';
+                echo $e->getMessage();
+                return false;
+            }
+            catch(Exception $e)
+            {
+                echo 'We caught an unexpected Exception';
+                echo $e->getMessage();
+                return false;
+            }
+
+            foreach ($creds->response->checkins->items as $checkin)
+            {
+                // Skip shouts, etc
+                if ($checkin->type != 'checkin')
                 {
                     continue;
                 }
 
-                $fsObj = new EpiFoursquare($config['fs_client_id'], $config['fs_client_secret'], $data['access_token']);
+                $date  = date('Y-m-d H:i:s', $checkin->createdAt);
+                $sort  = $checkin->createdAt;
+                $shout = isset($checkin->shout) ? $checkin->shout : '';
 
-                try
-                {
-                    $params = array(
-                        'afterTimestamp' => $timeago
-                    );
-                    $creds = $fsObj->get('/users/'.$data['user_id'].'/checkins', $params);
-                }
-                catch(EpiFoursquareException $e)
-                {
-                    echo 'We caught an EpiOAuthException';
-                    echo $e->getMessage();
-                    return false;
-                }
-                catch(Exception $e)
-                {
-                    echo 'We caught an unexpected Exception';
-                    echo $e->getMessage();
-                    return false;
-                }
-
-                foreach ($creds->response->checkins->items as $checkin)
-                {
-                    // Skip shouts, etc
-                    if ($checkin->type != 'checkin')
-                    {
-                        continue;
-                    }
-
-                    $date  = date('Y-m-d H:i:s', $checkin->createdAt);
-                    $sort  = $checkin->createdAt;
-                    $shout = isset($checkin->shout) ? $checkin->shout : '';
-
-                    // Save data
-                    if ($groupByType)
-                    {
-                        $whatsNewData['WHEREISEVERYONE'][] = array(
-                            'id'        => '',
-                            'date'      => $date,
-                            'title'     => $checkin->venue->name,
-                            'userid'    => $data['fcms_user_id'],
-                            'id2'       => $shout,
-                            'id3'       => '',
-                            'type'      => 'WHEREISEVERYONE'
-                        );
-                    }
-                    else
-                    {
-                        $whatsNewData[] = array(
-                            'id'        => '',
-                            'date'      => $date,
-                            'title'     => $checkin->venue->name,
-                            'userid'    => $data['fcms_user_id'],
-                            'id2'       => $shout,
-                            'id3'       => '',
-                            'type'      => 'WHEREISEVERYONE'
-                        );
-                    }
-                }
+                // Save data
+                $whatsNewData[] = array(
+                    'id'        => '',
+                    'date'      => $date,
+                    'title'     => $checkin->venue->name,
+                    'userid'    => $data['fcms_user_id'],
+                    'id2'       => $shout,
+                    'id3'       => '',
+                    'type'      => 'WHEREISEVERYONE'
+                );
             }
-        }
-
-        // Order is messed up now, so fix it
-        if ($groupByType)
-        {
-            $sorted = array();
-            foreach ($whatsNewData as $type => $data)
-            {
-                $tmp = subval_sort($whatsNewData[$type], 'date');
-                $tmp = array_reverse($tmp);
-
-                $sorted[$type] = $tmp;
-            }
-            $whatsNewData = $sorted;
-        }
-        else
-        {
-            $whatsNewData = subval_sort($whatsNewData, 'date');
-            $whatsNewData = array_reverse($whatsNewData);
         }
     }
 
+    // Order is messed up now, so fix it
+    $whatsNewData = subval_sort($whatsNewData, 'date');
+    $whatsNewData = array_reverse($whatsNewData);
+
     return $whatsNewData;
-} 
+}
 
 /**
  * ImageCreateFromBMP 
@@ -4753,4 +4957,17 @@ function loadTemplate ($subDirectory, $template, $variables = array())
     $templateFile = $themePath.'templates/'.$subDirectory.'/'.$template.'.php';
 
     require_once($templateFile);
+}
+
+/**
+ * startsWith 
+ * 
+ * @param string $haystack 
+ * @param string $needle 
+ * 
+ * @return boolean
+ */
+function startsWith($haystack, $needle)
+{
+    return !strncmp($haystack, $needle, strlen($needle));
 }

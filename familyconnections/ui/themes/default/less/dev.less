@@ -922,35 +922,68 @@ ul.whovoted img {
     height: 20px;
     vertical-align: middle;
 }
-#home .new {
-    border-bottom: 1px solid #e0e0e0;
-    color: #333;
-    padding: 20px 10px;
+
+#home {
+    .new {
+        border-bottom: 1px solid #e0e0e0;
+        color: #333;
+        padding: 20px 10px;
+
+        &:hover {
+            background-color: @hoverColor;
+        }
+
+        i {
+            color: #999;
+        }
+
+        a.u {
+            color: @linkColor;
+            font-weight: bold; text-decoration: none;
+
+            &:hover {
+                color: #000;
+            }
+        }
+
+        .avatar {
+            float: left;
+
+            img {
+                height: 40px;
+                width: 40px;
+            }
+        }
+        .info {
+            margin-left: 50px;
+
+            .avatar {
+                img {
+                    height: 25px;
+                    width: 25px;
+                }
+            }
+            .info {
+                margin-left: 35px;
+            }
+        }
+        div.object  {
+            font-family: Arial;
+            margin: 0 0 20px 0;
+            padding: 0 0 15px 0;
+
+            h5 {
+                margin: 0;
+            }
+        }
+    }
+    .newcalendar {
+        div.object {
+            padding: 23px 0 23px 70px;
+            background: transparent url(../img/event.png) no-repeat 0 50%;
+        }
+    }
 }
-#home .new:hover { background-color: @hoverColor; }
-#home .new i { color: #999; }
-#home .new a.u {
-    color: @linkColor;
-    font-weight: bold; text-decoration: none;
-}
-#home .new a.u:hover { color: #000; }
-#home .avatar { float: left; }
-#home .avatar img {
-    height: 40px;
-    width: 40px;
-}
-#home .info { margin-left: 50px; }
-#home .newcal .info p {
-    display: block;
-    padding: 23px 0 23px 70px;
-    background: transparent url(../img/event.png) no-repeat 0 50%;
-}
-#home .newstatus .newstatus { padding: 10px 0; }
-#home .newstatus .newstatus .avatar img {
-    height: 25px;
-    width: 25px;
-}
-#home .newstatus .newstatus .info { margin-left: 35px; }
 ol.todo li span {
     color: #888;
     text-decoration: line-through;

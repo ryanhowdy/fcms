@@ -1059,30 +1059,34 @@ ul.whovoted img {
 #home .new a.u:hover {
   color: #000;
 }
-#home .avatar {
+#home .new .avatar {
   float: left;
 }
-#home .avatar img {
+#home .new .avatar img {
   height: 40px;
   width: 40px;
 }
-#home .info {
+#home .new .info {
   margin-left: 50px;
 }
-#home .newcal .info p {
-  display: block;
-  padding: 23px 0 23px 70px;
-  background: transparent url(../img/event.png) no-repeat 0 50%;
-}
-#home .newstatus .newstatus {
-  padding: 10px 0;
-}
-#home .newstatus .newstatus .avatar img {
+#home .new .info .avatar img {
   height: 25px;
   width: 25px;
 }
-#home .newstatus .newstatus .info {
+#home .new .info .info {
   margin-left: 35px;
+}
+#home .new div.object {
+  font-family: Arial;
+  margin: 0 0 20px 0;
+  padding: 0 0 15px 0;
+}
+#home .new div.object h5 {
+  margin: 0;
+}
+#home .newcalendar div.object {
+  padding: 23px 0 23px 70px;
+  background: transparent url(../img/event.png) no-repeat 0 50%;
 }
 ol.todo li span {
   color: #888;

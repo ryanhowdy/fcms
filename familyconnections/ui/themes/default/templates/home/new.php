@@ -1,9 +1,9 @@
         <h2><?php echo $TMPL['textWhatsNew']; ?></h2>
 
 <?php foreach ($TMPL['new'] as $new): ?>
-        <?php if (isset($new['textDateHeading'])): ?>
+    <?php if (isset($new['textDateHeading'])): ?>
         <p><b><?php echo $new['textDateHeading']; ?></b></p>
-        <?php else: ?>
+    <?php else: ?>
         <div id="<?php echo $new['position']; ?>" class="new <?php echo $new['class']; ?>">
             <div class="avatar">
                 <img src="<?php echo $new['avatar']; ?>" alt="<?php echo $new['displayname']; ?>"/>
@@ -13,9 +13,16 @@
                 <small><i><?php echo $new['timeSince']; ?></i></small>
                 <p><?php echo $new['textInfo']; ?></p>
 
-            <?php if (isset($new['children'])): ?>
+        <?php if (isset($new['title']) && !empty($new['title'])): ?>
+                <div class="object">
+                    <h5><?php echo $new['title']; ?></h5>
+                    <?php echo $new['details']; ?>
+                </div>
+        <?php endif; ?>
+
+        <?php if (isset($new['children'])): ?>
             <?php foreach ($new['children'] as $child): ?>
-                <div class="<?php echo $child['class']; ?>">
+                <div class="child <?php echo $child['class']; ?>">
                     <div class="avatar">
                         <img src="<?php echo $child['avatar']; ?>" alt="<?php echo $child['displayname']; ?>"/>
                     </div>
@@ -26,9 +33,9 @@
                     </div>
                 </div>
             <?php endforeach; ?>
-            <?php endif; ?>
+        <?php endif; ?>
 
-            <?php if (isset($new['textReply'])): ?>
+        <?php if (isset($new['textReply'])): ?>
                 <div id="status_reply">
                     <form method="post" action="home.php">
                         <textarea id="status" name="status" placeholder="<?php echo $new['textReply']; ?>" title="<?php echo $new['textReply']; ?>"></textarea>
@@ -36,11 +43,11 @@
                         <input type="submit" id="status_submit" name="status_submit" value="<?php echo $new['textReply']; ?>"/>
                     </form>
                 </div>
-            <?php endif; ?>
+        <?php endif; ?>
 
             </div>
         </div>
-        <?php endif; ?>
+    <?php endif; ?>
 <?php endforeach; ?>
 
         <p class="alignright">

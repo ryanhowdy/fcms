@@ -507,560 +507,394 @@ class Page
      *  VIDEO           Added video
      *  VIDEOCOM        Commented on video
      *  WHEREISEVERYONE Checked in on foursquare
-     *
+     * 
      * @return void
      */
     function displayWhatsNewAll ()
     {
-        $lastday = '0-0';
-
-        $today_start = fixDate('Ymd', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s')) . '000000';
-        $today_end   = fixDate('Ymd', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s')) . '235959';
-
-        $time            = mktime(0, 0, 0, date('m')  , date('d')-1, date('Y'));
-        $yesterday_start = fixDate('Ymd', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s', $time)) . '000000';
-        $yesterday_end   = fixDate('Ymd', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s', $time)) . '235959';
-
         // Get data
         $whatsNewData = getWhatsNewData(30);
         if ($whatsNewData === false)
         {
+            $this->fcmsError->displayError();
             return;
         }
 
-        $cachedUserData = array();
-
-        $position = 1;
-        $older    = true;
-
-        $newParams = array(
+        $template = array(
             'textWhatsNew'  => T_('What\'s New'),
             'textRssFeed'   => T_('RSS Feed'),
             'new'           => array(),
         );
 
-        // Loop through data
-        foreach ($whatsNewData as $r)
-        {
-            $updated     = fixDate('Ymd',    $this->fcmsUser->tzOffset, $r['date']);
-            $updatedFull = fixDate('YmdHis', $this->fcmsUser->tzOffset, $r['date']);
+        $position       = 1;
+        $cachedUserData = array();
 
-            // Date Header
-            if ($updated != $lastday)
+        // Loop through data
+        foreach ($whatsNewData as $groupType => $data)
+        {
+            $parent   = array_shift($data);
+            $data     = array_reverse($data);
+
+            // handle children (replies, etc)
+            $children = array();
+            foreach ($data as $d)
             {
-                // Today
-                if ($updatedFull >= $today_start && $updatedFull <= $today_end)
+                // Use cached data
+                if (isset($cachedUserData[$d['userid']]))
                 {
-                    $newParams['new'][] = array('textDateHeading' => T_('Today'));
+                    $displayname = $cachedUserData[ $d['userid'] ]['displayname'];
+                    $avatar      = $cachedUserData[ $d['userid'] ]['avatar'];
                 }
-                // Yesterday
-                if ($updatedFull >= $yesterday_start && $updatedFull <= $yesterday_end)
+                // Get new data
+                else
                 {
-                    $newParams['new'][] = array('textDateHeading' => T_('Yesterday'));
+                    $displayname = getUserDisplayName($d['userid']);
+                    $avatar      = getCurrentAvatar($d['userid']);
+
+                    // Save this for later
+                    $cachedUserData[ $d['userid'] ]['avatar']      = $avatar;
+                    $cachedUserData[ $d['userid'] ]['displayname'] = $displayname;
                 }
-                // Older
-                if ($updatedFull < $yesterday_start && $older)
-                {
-                    $newParams['new'][] = array('textDateHeading' => T_('Older'));
-                    $older       = false;
-                }
+
+                $timeSince = $this->getWhatsNewDataTimeSince($d);
+                $textInfo  = $this->getWhatsNewDataTextInfo($d);
+
+                $children[] = array(
+                    'class'         => 'new'.strtolower($d['type']),
+                    'avatar'        => $avatar,
+                    'displayname'   => $displayname,
+                    'userId'        => (int)$d['userid'],
+                    'timeSince'     => $timeSince,
+                    'textInfo'      => $textInfo,
+                );
             }
 
-            $rtime = strtotime($r['date']);
-
-            $displayname = '';
-            $avatar      = '';
+            $timeSince = $this->getWhatsNewDataTimeSince($parent);
+            $textInfo  = $this->getWhatsNewDataTextInfo($parent);
+            $object    = $this->getWhatsNewDataObject($parent);
 
             // Use cached data
-            if (isset($cachedUserData[$r['userid']]))
+            if (isset($cachedUserData[$parent['userid']]))
             {
-                $displayname = $cachedUserData[$r['userid']]['displayname'];
-                $avatar      = $cachedUserData[$r['userid']]['avatar'];
+                $displayname = $cachedUserData[ $parent['userid'] ]['displayname'];
+                $avatar      = $cachedUserData[ $parent['userid'] ]['avatar'];
             }
             // Get new data
             else
             {
-                $displayname = getUserDisplayName($r['userid']);
-                $avatar      = getCurrentAvatar($r['userid']);
+                $displayname = getUserDisplayName($parent['userid']);
+                $avatar      = getCurrentAvatar($parent['userid']);
 
                 // Save this for later
-                $cachedUserData[$r['userid']]['avatar']      = $avatar;
-                $cachedUserData[$r['userid']]['displayname'] = $displayname;
+                $cachedUserData[ $parent['userid'] ]['avatar']      = $avatar;
+                $cachedUserData[ $parent['userid'] ]['displayname'] = $displayname;
             }
 
-            if ($r['type'] == 'ADDRESSADD')
-            {
-                $displayname = getUserDisplayName($r['id2']);
-                $for         = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
+            $params = array(
+                'position'      => $position,
+                'class'         => 'new'.strtolower($parent['type']),
+                'avatar'        => $avatar,
+                'displayname'   => $displayname,
+                'userId'        => (int)$parent['userid'],
+                'timeSince'     => $timeSince,
+                'textInfo'      => $textInfo,
+                'title'         => $object['title'],
+                'details'       => $object['details'],
+                'children'      => $children,
+            );
 
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newaddress',
-                    'avatar'        => getCurrentAvatar($r['id2']),
-                    'displayname'   => $displayname,
-                    'userId'        => $r['id2'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Added address information for %s.'), $for),
-                );
+            if (startsWith($groupType, 'status'))
+            {
+                $params['textReply']     = T_('Reply');
+                $params['replyParentId'] = (int)$parent['id'];
             }
-            elseif ($r['type'] == 'ADDRESSEDIT')
+
+            $template['new'][] = $params;
+
+            $position++;
+        }
+
+        loadTemplate('home', 'new', $template);
+    }
+
+    /**
+     * getWhatsNewDataTimeSince 
+     * 
+     * @param array $data 
+     * 
+     * @return string
+     */
+    function getWhatsNewDataTimeSince ($data)
+    {
+        $time = '';
+
+        switch ($data['type'])
+        {
+            case 'STATUS':
+                $time = getHumanTimeSince(strtotime($data['id3']));
+                break;
+
+            default:
+                $time = getHumanTimeSince(strtotime($data['date']));
+                break;
+        }
+
+        return $time;
+    }
+
+    /**
+     * getWhatsNewDataTextInfo 
+     * 
+     * @param array $data 
+     * 
+     * @return string
+     */
+    function getWhatsNewDataTextInfo ($data)
+    {
+        $text = '';
+
+        switch ($data['type'])
+        {
+            case 'ADDRESSADD':
+                $displayname = getUserDisplayName($data['id2']);
+                $for         = '<a href="addressbook.php?address='.(int)$data['id'].'">'.getUserDisplayName($data['userid'], 2, false).'</a>';
+                $text        = sprintf(T_('Added address information for %s.'), $for);
+                break;
+
+            case 'ADDRESSEDIT':
+                $text = $this->getWhatsNewDataAddressEditTextInfo($data);
+                break;
+
+            case 'AVATAR':
+                $text = $r['id3'] == 'M' ? T_('Changed his profile picture.')
+                                         : T_('Changed her profile picture.');
+                break;
+
+            case 'CALENDAR':
+                $text = T_('Added a new event.');
+                break;
+
+            case 'DOCS':
+                $text = T_('Added a new document.');
+                break;
+
+            case 'BOARD':
+            case 'GALCATCOM':
+            case 'NEWSCOM':
+            case 'POLLCOM':
+            case 'RECIPECOM':
+            case 'VIDEOCOM':
+                $text = cleanOutput($data['details']);
+                break;
+
+            case 'GALCOM':
+                $text = T_('Commented on the following photo:');
+                break;
+
+            case 'GALLERY':
+                $text = sprintf(T_('Added %d new photos.'), (int)$data['id2']);
+                break;
+
+            case 'JOINED':
+                $text = T_('Joined the website.');
+                break;
+
+            case 'NEWS':
+                $text = T_('Added new Family News.');
+                break;
+
+            case 'POLL':
+                $text = T_('Added a new poll.');
+                break;
+
+            case 'PRAYERS':
+                $text = T_('Added a new prayer concern.');
+                break;
+
+            case 'RECIPES':
+                $text = T_('Added a new recipe.');
+                break;
+
+            case 'THREAD':
+                $text = T_('Started a new thread.');
+                break;
+
+            case 'VIDEO':
+                $text = T_('Added a new video.');
+                break;
+
+            default:
+                $text = cleanOutput($data['title']);
+                $text = nl2br_nospaces($text);
+                break;
+        }
+
+        return $text;
+    }
+
+    /**
+     * getWhatsNewDataAddressEditTextInfo 
+     * 
+     * @param array $data 
+     * @todo  this should probably just say 'updated address'
+     *        then the object info should show the details below
+     * 
+     * @return string
+     */
+    function getWhatsNewDataAddressEditTextInfo ($data)
+    {
+        $titleType = T_('address');
+
+        if ($data['title'] == 'email')
+        {
+            $titleType = T_('email address');
+        }
+        elseif ($data['title'] == 'home')
+        {
+            $titleType = T_('home phone number');
+        }
+        elseif ($data['title'] == 'work')
+        {
+            $titleType = T_('work phone number');
+        }
+        elseif ($data['title'] == 'cell')
+        {
+            $titleType = T_('cell phone number');
+        }
+
+        $address = '<a href="addressbook.php?address='.(int)$data['id'].'">'.$titleType.'</a>';
+
+        if ($data['id2'] != $data['userid'])
+        {
+            $user = getUserDisplayName($data['userid']);
+            $text = sprintf(T_pgettext('Example: "Updated the <address/phone/email> for <name>."', 'Updated the %s for %s.'), $address, $user);
+        }
+        else
+        {
+            if ($data['id3'] == 'F')
             {
-                if ($r['title'] == 'address')
-                {
-                    $titleType = T_('address');
-                }
-                elseif ($r['title'] == 'email')
-                {
-                    $titleType = T_('email address');
-                }
-                elseif ($r['title'] == 'home')
-                {
-                    $titleType = T_('home phone number');
-                }
-                elseif ($r['title'] == 'work')
-                {
-                    $titleType = T_('work phone number');
-                }
-                elseif ($r['title'] == 'cell')
-                {
-                    $titleType = T_('cell phone number');
-                }
-                // this shouldn't happen
-                else
-                {
-                    $titleType = T_('address');
-                }
-
-                $address = '<a href="addressbook.php?address='.$r['id'].'">'.$titleType.'</a>';
-
-                if ($r['id2'] != $r['userid'])
-                {
-                    $user = getUserDisplayName($r['userid']);
-                    $text = sprintf(T_pgettext('Example: "Updated the <address/phone/email> for <name>."', 'Updated the %s for %s.'), $address, $user);
-                }
-                else
-                {
-                    if ($r['id3'] == 'F')
-                    {
-                        $text = sprintf(T_pgettext('Example: "Updated her <address/phone/email>."', 'Updated her %s.'), $address);
-                    }
-                    else
-                    {
-                        $text = sprintf(T_pgettext('Example: "Updated his <address/phone/email>."', 'Updated his %s.'), $address);
-                    }
-                }
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newaddress',
-                    'avatar'        => getCurrentAvatar($r['id2']),
-                    'displayname'   => getUserDisplayName($r['id2']),
-                    'userId'        => $r['id2'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => $text,
-                );
+                $text = sprintf(T_pgettext('Example: "Updated her <address/phone/email>."', 'Updated her %s.'), $address);
             }
-            elseif ($r['type'] == 'AVATAR')
+            else
             {
-                $text = T_('Changed his profile picture.');
-
-                if ($r['id3'] == 'F')
-                {
-                    $text = T_('Changed her profile picture.');
-                }
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newavatar',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => $text,
-                );
+                $text = sprintf(T_pgettext('Example: "Updated his <address/phone/email>."', 'Updated his %s.'), $address);
             }
-            elseif ($r['type'] == 'BOARD')
-            {
-                $sql = "SELECT MIN(`id`) AS 'id' 
-                        FROM `fcms_board_posts` 
-                        WHERE `thread` = ?";
+        }
 
-                $minpost = $this->fcmsDatabase->getRow($sql, $r['id2']);
-                if ($minpost === false)
+        return $text;
+    }
+
+    /**
+     * getWhatsNewDataObject
+     * 
+     * @param array $data 
+     * 
+     * @return array
+     */
+    function getWhatsNewDataObject ($data)
+    {
+        $title   = '';
+        $details = '';
+
+        switch ($data['type'])
+        {
+            case 'CALENDAR':
+                $title   = '<a href="calendar.php?event='.$data['id'].'">'.cleanOutput($data['title']).'</a>';
+                $details = date('F j, Y', strtotime($data['id2']));
+                break;
+
+            case 'DOCS':
+                $title   = '<a href="documents.php">'.cleanOutput($data['title']).'</a>';
+                $details = cleanOutput($data['details']);
+                break;
+
+            case 'GALCOM':
+                foreach ($data['photos'] as $p)
                 {
-                    $this->fcmsError->displayError();
-                    return;
+                    $photoSrc = $this->fcmsPhotoGallery->getPhotoSource($p);
+                    $title    = '<a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.(int)$data['id'].'"><img src="'.$photoSrc.'"/></a>';
+                }
+                $details = cleanOutput($data['title']);
+                break;
+
+            case 'GALLERY':
+                $title   = '<a href="gallery/index.php?uid='.(int)$data['userid'].'&amp;cid='.$data['id'].'">'.cleanOutput($data['title']).'</a>';
+                $details = '';
+
+                foreach ($data['photos'] as $p)
+                {
+                    $photoSrc = $this->fcmsPhotoGallery->getPhotoSource($p);
+
+                    $details .= '
+                            <a href="gallery/index.php?uid='.(int)$data['userid'].'&amp;cid='.$data['id'].'&amp;pid='.(int)$p['id'].'">
+                                <img src="'.$photoSrc.'" alt="'.cleanOutput($p['caption']).'"/>
+                            </a> &nbsp;';
+                }
+                break;
+
+            case 'NEWS':
+                $name  = !empty($data['title']) ? cleanOutput($data['title']) : T_('untitled');
+                $title = '<a href="familynews.php?getnews='.$data['userid'].'&amp;newsid='.$data['id'].'">'.$name.'</a>'; 
+
+                $details = removeBBCode($data['details']);
+                $details = cleanOutput($details);
+                if (strlen($details) > 300)
+                {
+                    $details = substr($details, 0, 300);
+                    $details .= '...<br/><br/><a href="?getnews='.$data['userid'].'&amp;newsid='.(int)$data['id'].'">'.T_('Read More').'</a>';
                 }
 
-                $subject  = $r['title'];
+                break;
 
-                $pos = strpos($subject, '#ANOUNCE#');
+            case 'POLL':
+                $title = '<a href="polls.php?id='.(int)$data['id'].'">'.cleanOutput($data['title']).'</a>';
+                break;
+
+            case 'PRAYERS':
+                $title   = '<a href="prayers.php">'.cleanOutput($data['title']).'</a>';
+                $details = cleanOutput($data['details']);
+                break;
+
+            case 'RECIPES':
+                $title   = '<a href="recipes.php?category='.$data['id2'].'&amp;id='.$data['id'].'">'.cleanOutput($data['title']).'</a>';
+                break;
+
+            case 'THREAD':
+                $subject  = $data['title'];
+                $pos      = strpos($subject, '#ANOUNCE#');
                 if ($pos !== false)
                 {
                     $subject = substr($subject, 9, strlen($subject)-9);
                 }
 
-                $title   = cleanOutput($subject);
                 $subject = cleanOutput($subject);
-                $subject = '<a href="messageboard.php?thread='.$r['id2'].'" title="'.$title.'">'.$subject.'</a>';
+                $title   = '<a href="messageboard.php?thread='.(int)$data['id2'].'" title="'.$subject.'">'.$subject.'</a>';
 
-                if ($r['id'] == $minpost['id'])
+                $details = removeBBCode($data['details']);
+                $details = cleanOutput($details);
+                if (strlen($details) > 300)
                 {
-                    $class = 'newthread';
-                    $text = sprintf(T_('Started the new thread %s.'), $subject);
-                }
-                else
-                {
-                    $class = 'newpost';
-                    $text = sprintf(T_('Replied to %s.'), $subject);
+                    $details = substr($details, 0, 300);
+                    $details .= '...<br/><br/><a href="messageboard.php?thread='.(int)$data['id2'].'">'.T_('Read More').'</a>';
                 }
 
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => $class,
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => $text,
-                );
-            }
-            elseif ($r['type'] == 'CALENDAR')
-            {
-                $date_date = date('F j, Y', strtotime($r['id2']));
-                $for       = '<a href="calendar.php?event='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
+                break;
 
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newcal',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => $for.' - '.$date_date,
-                );
-            }
-            elseif ($r['type'] == 'DOCS')
-            {
-                $doc = '<a href="documents.php">'.cleanOutput($r['title']).'</a>';
+            case 'VIDEO':
+                $title = '<a href="video.php?u='.(int)$data['userid'].'&amp;id='.(int)$data['id'].'"><img src="http://i.ytimg.com/vi/'.$data['id2'].'/default.jpg"/></a>';
+                break;
 
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newdocument',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Added a new Document (%s).'), $doc),
-                );
-            }
-            elseif ($r['type'] == 'GALCATCOM')
-            {
-                $category = '<a href="gallery/index.php?uid='.$r['id2'].'&amp;cid='.$r['id3'].'">'.cleanOutput($r['title']).'</a>';
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newcom',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Commented on %s.'), $category),
-                );
-            }
-            elseif ($r['type'] == 'GALCOM')
-            {
-                $data = array(
-                    'id'          => $r['id'],
-                    'user'        => $r['id2'],
-                    'filename'    => $r['id3'],
-                    'external_id' => null,
-                    'thumbnail'   => null
-                );
-
-                if ($r['id3'] == 'noimage.gif')
-                {
-                    $sql = "SELECT p.`id`, p.`filename`, p.`external_id`, e.`thumbnail`
-                            FROM `fcms_gallery_photos` AS p
-                            LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                            WHERE p.`id` = '".(int)$r['id']."'";
-
-                    $p = $this->fcmsDatabase->getRow($sql, $r['id']);
-                    if ($p === false)
-                    {
-                        $this->fcmsError->displayError();
-                        return;
-                    }
-
-                    $data['external_id'] = $p['external_id'];
-                    $data['thumbnail']   = $p['thumbnail'];
-                }
-
-                $photoSrc = $galleryObj->getPhotoSource($data);
-
-                $text = T_('Commented on the following photo:').'<br/><a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'"><img src="'.$photoSrc.'"/></a>';
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newcom',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => $text,
-                );
-            }
-            elseif ($r['type'] == 'GALLERY')
-            {
-                $cat    = '<a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-                $photos = '';
-
-                $limit = 4;
-                if ($r['id2'] < $limit)
-                {
-                    $limit = $r['id2'];
-                }
-                $sql = "SELECT p.`id`, p.`user`, p.`category`, p.`filename`, p.`caption`,
-                            p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
-                        FROM `fcms_gallery_photos` AS p
-                        LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                        WHERE p.`category` = '".(int)$r['id']."' 
-                        AND DAYOFYEAR(p.`date`) = '".(int)$r['id3']."' 
-                        ORDER BY p.`date` 
-                        DESC LIMIT $limit";
-
-                $photo_rows = $this->fcmsDatabase->getRows($sql, array($r['id'], $r['id3']));
-                if ($photo_rows === false)
-                {
-                    $this->fcmsError->displayError();
-                    return;
-                }
-
-                foreach ($photo_rows as $p)
-                {
-                    $photoSrc = $galleryObj->getPhotoSource($p);
-
-                    $photos .= '
-                            <a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'&amp;pid='.$p['id'].'">
-                                <img src="'.$photoSrc.'" alt="'.cleanOutput($p['caption']).'"/>
-                            </a> &nbsp;';
-                }
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newphoto',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Added %d new photos to the %s category.'), $r['id2'], $cat).'<br/>'.$photos,
-                );
-            }
-            elseif ($r['type'] == 'JOINED')
-            {
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newmember',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => T_('Joined the website.'),
-                );
-            }
-            elseif ($r['type'] == 'NEWS')
-            {
-                $title = !empty($r['title']) ? cleanOutput($r['title']) : T_('untitled');
-                $news  = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$title.'</a>'; 
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newnews',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Added %s to his/her Family News.'), $news),
-                );
-            }
-            elseif ($r['type'] == 'NEWSCOM')
-            {
-                $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newcom',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Commented on Family News %s.'), $news),
-                );
-            }
-            elseif ($r['type'] == 'POLL')
-            {
-                $poll = '<a href="polls.php?id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newpoll',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Added a new poll %s.'), $poll),
-                );
-            }
-            elseif ($r['type'] == 'POLLCOM')
-            {
-                $poll = '<a href="polls.php?id='.$r['id'].'"#comments>'.cleanOutput($r['title']).'</a>';
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'pollcom',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Commented on Poll %s.'), $poll),
-                );
-            }
-            elseif ($r['type'] == 'PRAYERS')
-            {
-                $for = '<a href="prayers.php">'.cleanOutput($r['title']).'</a>';
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newprayer',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Added a Prayer Concern for %s.'), $for),
-                );
-            }
-            elseif ($r['type'] == 'RECIPES')
-            {
-                $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newrecipe',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Added the %s recipe.'), $rec),
-                );
-            }
-            elseif ($r['type'] == 'RECIPECOM')
-            {
-                $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newcom',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Commented on Recipe %s.'), $rec),
-                );
-            }
-            elseif ($r['type'] == 'STATUS')
-            {
-                $title = cleanOutput($r['title']);
-                $title = nl2br_nospaces($title);
-
-                // Get any replies to this status update
-                $sql = "SELECT `id`, `user`, `status`, `parent`, `updated`, `created` 
-                        FROM `fcms_status` 
-                        WHERE `parent` = ?
-                        ORDER BY `id`";
-
-                $rows = $this->fcmsDatabase->getRows($sql, $r['id']);
-                if ($rows === false)
-                {
-                    $this->fcmsError->displayError();
-                    return;
-                }
-
-                $children = array();
-
-                if (count($rows) > 0)
-                {
-                    foreach ($rows as $s)
-                    {
-                        $status = cleanOutput($s['status']);
-                        $status = nl2br_nospaces($status);
-
-                        $children[] = array(
-                            'class'         => 'newstatus',
-                            'avatar'        => getCurrentAvatar($s['user']),
-                            'displayname'   => getUserDisplayName($s['user']),
-                            'userId'        => $s['user'],
-                            'timeSince'     => getHumanTimeSince(strtotime($s['created'])),
-                            'textInfo'      => $status
-                        );
-                    }
-                }
-
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newcom',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => (int)$r['userid'],
-                    'timeSince'     => getHumanTimeSince(strtotime($r['id3'])),
-                    'textInfo'      => $title,
-                    'children'      => $children,
-                    'textReply'     => T_('Reply'),
-                    'replyParentId' => (int)$r['id'],
-                );
-            }
-            elseif ($r['type'] == 'VIDEO')
-            {
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newvideo',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => T_('Added a new Video.').'<br/><a href="video.php?u='.$r['userid'].'&amp;id='.$r['id'].'"><img src="http://i.ytimg.com/vi/'.$r['id2'].'/default.jpg"/></a>',
-                );
-            }
-            elseif ($r['type'] == 'VIDEOCOM')
-            {
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newvideo',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => T_('Commented on the following Video:').'<br/><a href="video.php?u='.$r['userid'].'&amp;id='.$r['id'].'#comments"><img src="http://i.ytimg.com/vi/'.$r['id2'].'/default.jpg"/></a>',
-                );
-            }
-            elseif ($r['type'] == 'WHEREISEVERYONE')
-            {
-                $newParams['new'][] = array(
-                    'position'      => $position,
-                    'class'         => 'newvideo',
-                    'avatar'        => $avatar,
-                    'displayname'   => $displayname,
-                    'userId'        => $r['userid'],
-                    'timeSince'     => getHumanTimeSince($rtime),
-                    'textInfo'      => sprintf(T_('Visited %s.'), $r['title']).'<br/><br/>'.(!empty($r['id2']) ? '<blockquote>'.cleanOutput($r['id2']).'</blockquote>' : ''),
-                );
-            }
-
-            $position++;
-
-            $lastday = $updated;
+            default:
+                $title   = '';
+                $details = '';
+                break;
         }
 
-        loadTemplate('home', 'new', $newParams);
+        return array(
+            'title'   => $title,
+            'details' => $details,
+        );
+
     }
 
     /**
