@@ -1041,23 +1041,30 @@ ul.whovoted img {
   vertical-align: middle;
 }
 #home .new {
-  border-bottom: 1px solid #e0e0e0;
+  border: 1px solid #e0e0e0;
   color: #333;
+  margin-top: 15px;
   padding: 20px 10px;
 }
 #home .new:hover {
   background-color: #ebf2fa;
+  border: 1px solid #9ccef0;
+}
+#home .new:hover .child {
+  background-color: #ebf2fa;
+  border: 1px solid #9ccef0;
 }
 #home .new i {
   color: #999;
 }
-#home .new a.u {
-  color: #1a7ab0;
-  font-weight: bold;
+#home .new a {
   text-decoration: none;
 }
-#home .new a.u:hover {
+#home .new a.u {
   color: #000;
+}
+#home .new a.u:hover {
+  text-decoration: underline !important;
 }
 #home .new .avatar {
   float: left;
@@ -1077,16 +1084,30 @@ ul.whovoted img {
   margin-left: 35px;
 }
 #home .new div.object {
-  font-family: Arial;
+  font-family: Georgia, serif;
   margin: 0 0 20px 0;
   padding: 0 0 15px 0;
 }
 #home .new div.object h5 {
+  font-size: 18px;
   margin: 0;
+}
+#home .new .child {
+  border: 1px solid #e0e0e0;
+  margin-bottom: 15px;
+  padding: 20px 10px;
 }
 #home .newcalendar div.object {
   padding: 23px 0 23px 70px;
   background: transparent url(../img/event.png) no-repeat 0 50%;
+}
+#home .new.selected {
+  background-color: #ebf2fa;
+  border: 1px solid #9ccef0;
+}
+#home .new.selected .child {
+  background-color: #ebf2fa;
+  border: 1px solid #9ccef0;
 }
 ol.todo li span {
   color: #888;

@@ -353,18 +353,28 @@ function nextPrevNews (e) {
         return;
     }
 
-    switch (e.keyCode)
+    if (e.keyCode == jDown)
     {
-        case jDown:
-            position++;
-            document.location.href = "#"+position;
-        break;
-
-        case kUp:
-            if (position > 1) { position--; }
-            document.location.href = "#"+position;
-        break;
+        position++;
     }
+    else if (e.keyCode == kUp && position > 1)
+    {
+        position--;
+    }
+    else
+    {
+        return;
+    }
+
+    $$('div.new').each(function(item) {
+        item.removeClassName('selected');
+    });
+
+    var positionId = position.toString();
+    $(positionId).addClassName('selected');
+    $(positionId).scrollTo();
+
+    window.scrollBy(0, -10);
 }
 
 /* UTILITIES
