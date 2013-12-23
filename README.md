@@ -1,6 +1,9 @@
 ![Family Connections](./familyconnections/ui/images/logo.gif)
 ---
 
+[![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/ryanhowdy/fcms/badges/quality-score.png?s=755b6ade4f4add05acf377fbaf03bb3a201f471c)](https://scrutinizer-ci.com/g/ryanhowdy/fcms/)
+
+
 # What is it?
 Family Connections is a private social networking site for families or small groups of people.
 
