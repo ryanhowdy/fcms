@@ -666,8 +666,8 @@ class Page
                 break;
 
             case 'AVATAR':
-                $text = $r['id3'] == 'M' ? T_('Changed his profile picture.')
-                                         : T_('Changed her profile picture.');
+                $text = $data['id3'] == 'M' ? T_('Changed his profile picture.')
+                                            : T_('Changed her profile picture.');
                 break;
 
             case 'CALENDAR':
