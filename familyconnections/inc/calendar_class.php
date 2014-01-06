@@ -782,7 +782,7 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                if (empty($r['dob_month']) || empty($r['dob_day']))
                 {
                     continue;
                 }
@@ -941,7 +941,7 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                if (empty($r['dob_month']) || empty($r['dob_day']))
                 {
                     continue;
                 }
@@ -1096,7 +1096,7 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                if (empty($r['dob_month']) || empty($r['dob_day']))
                 {
                     continue;
                 }
@@ -1247,7 +1247,7 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                if (empty($r['dob_month']) || empty($r['dob_day']))
                 {
                     continue;
                 }
@@ -1871,7 +1871,7 @@ class Calendar
         $day   = $row['dob_day'];
 
         $date = formatDate(T_('F j'), "$year-$month-$day");
-        $date = sprintf(T_('Every year on %s, since %s.'), $date, $year);
+        $date = sprintf(T_('Every year on %s, since %s.'), $date, !empty($year) ? $year : '?');
 
         // Figure out age
         $age = getAge($year, $month, $day, date('Y')."-$month-$day");
