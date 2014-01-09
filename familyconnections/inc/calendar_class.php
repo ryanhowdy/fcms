@@ -435,9 +435,10 @@ class Calendar
         $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`,
                     `dod_year`, `dod_month`, `dod_day`
                 FROM `fcms_users` 
-                WHERE `dob_month` = ?";
+                WHERE `dob_month` = ?
+                AND `dob_day` = ?";
 
-        $rows = $this->fcmsDatabase->getRows($sql, $month);
+        $rows = $this->fcmsDatabase->getRows($sql, array($month, $day));
         if ($rows === false)
         {
             $this->fcmsError->displayError();
