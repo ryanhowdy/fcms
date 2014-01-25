@@ -3249,7 +3249,7 @@ function getAdditionalWhatsNewData ($whatsNewData)
             $limit = 4;
             if ($data['id2'] < $limit)
             {
-                $limit = (int)$r['id2'];
+                $limit = (int)$data['id2'];
             }
 
             $sql = "SELECT p.`id`, p.`user`, p.`category`, p.`filename`, p.`caption`,
