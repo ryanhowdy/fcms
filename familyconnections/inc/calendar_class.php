@@ -435,9 +435,10 @@ class Calendar
         $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`,
                     `dod_year`, `dod_month`, `dod_day`
                 FROM `fcms_users` 
-                WHERE `dob_month` = ?";
+                WHERE `dob_month` = ?
+                AND `dob_day` = ?";
 
-        $rows = $this->fcmsDatabase->getRows($sql, $month);
+        $rows = $this->fcmsDatabase->getRows($sql, array($month, $day));
         if ($rows === false)
         {
             $this->fcmsError->displayError();
@@ -782,7 +783,7 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                if (empty($r['dob_month']) || empty($r['dob_day']))
                 {
                     continue;
                 }
@@ -941,7 +942,7 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                if (empty($r['dob_month']) || empty($r['dob_day']))
                 {
                     continue;
                 }
@@ -1096,7 +1097,7 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                if (empty($r['dob_month']) || empty($r['dob_day']))
                 {
                     continue;
                 }
@@ -1247,7 +1248,7 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                if (empty($r['dob_year']) || empty($r['dob_month']) || empty($r['dob_day']))
+                if (empty($r['dob_month']) || empty($r['dob_day']))
                 {
                     continue;
                 }
@@ -1871,7 +1872,7 @@ class Calendar
         $day   = $row['dob_day'];
 
         $date = formatDate(T_('F j'), "$year-$month-$day");
-        $date = sprintf(T_('Every year on %s, since %s.'), $date, $year);
+        $date = sprintf(T_('Every year on %s, since %s.'), $date, !empty($year) ? $year : '?');
 
         // Figure out age
         $age = getAge($year, $month, $day, date('Y')."-$month-$day");

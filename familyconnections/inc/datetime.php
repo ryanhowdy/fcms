@@ -405,6 +405,7 @@ function getAge ($year, $month, $day, $dateToCompare = false)
     global $currentUserId;
 
     $age = 0;
+    if (empty($year)) return '...';
 
     if ($dateToCompare === false)
     {
