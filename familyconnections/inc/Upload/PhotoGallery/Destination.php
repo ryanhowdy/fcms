@@ -71,7 +71,7 @@ class Destination
      */
     public function getPhotoPaths ($fileName, $uid)
     {
-        $filename = basename($filename);
+        $fileName = basename($fileName);
         $uid      = (int)$uid;
 
         // Link to the full sized photo if using full sized
@@ -89,16 +89,16 @@ class Destination
 
         $uploadsDirectory = getUploadsAbsolutePath();
 
-        $photoPaths[0] = $uploadsDirectory."photos/member$uid/$filename";
-        $photoPaths[1] = $uploadsDirectory."photos/member$uid/$filename";
+        $photoPaths[0] = $uploadsDirectory."photos/member$uid/$fileName";
+        $photoPaths[1] = $uploadsDirectory."photos/member$uid/$fileName";
 
         if ($usingFullSizePhotos)
         {
             // If you are using full sized but a photo was uploaded prior to that change, 
             // no full sized photo will be available, so don't link to it
-            if (file_exists($uploadsPaths."photos/member$uid/full_$filename"))
+            if (file_exists($uploadsDirectory."photos/member$uid/full_$fileName"))
             {
-                $photo_path[1] = $uploadsPaths."photos/member$uid/full_$filename";
+                $photo_path[1] = $uploadsDirectory."photos/member$uid/full_$fileName";
             }
         }
 
@@ -115,6 +115,7 @@ class Destination
      */
     public function getPhotoSource ($data, $size = 'thumbnail')
     {
+        $prefix = '';
         if ($size == 'thumbnail')
         {
             $prefix = 'tb_';
