@@ -3525,32 +3525,39 @@ function ImageCreateFromBMP ($filename)
 }
 
 /**
- * usingAdvancedUploader 
+ * getUploaderType
  * 
- * @param   int     $userid 
- * @return  boolean
+ * @param int $userid 
+ * 
+ * @return string
  */
-function usingAdvancedUploader ($userid)
+function getUploaderType ($userid)
 {
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
-    $sql = "SELECT `advanced_upload` 
+    $sql = "SELECT `uploader` 
             FROM `fcms_user_settings` 
             WHERE `user` = ?";
 
     $r = $fcmsDatabase->getRow($sql, $userid);
     if ($r === false)
     {
-        return true;
+        return 'basic';
     }
 
-    if ($r['advanced_upload'] != 1)
+    $validUploaderTypes = array(
+        'plupload' => 1,
+        'java'     => 1,
+        'basic'    => 1,
+    );
+
+    if (isset($validUploaderTypes[$r['uploader']]))
     {
-        return false;
+        return $r['uploader'];
     }
 
-    return true;
+    return 'plupload';
 }
 
 /**

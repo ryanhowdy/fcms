@@ -192,6 +192,10 @@ class Page
                 }
             }
         }
+        elseif (isset($_POST['plupload']))
+        {
+            $this->displayPluploadFormSubmit();
+        }
         elseif (isset($_POST['javaUpload']))
         {
             $this->displayJavaUploadFormSubmit();
@@ -243,7 +247,7 @@ class Page
      * 
      * @return void
      */
-    function displayHeader ()
+    function displayHeader ($options = null)
     {
         $params = array(
             'currentUserId' => $this->fcmsUser->id,
@@ -257,26 +261,17 @@ class Page
             'year'          => date('Y')
         );
 
-        $params['javascript'] = '
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
-    hideUploadOptions(
-        \''.T_('Rotate Photo').'\', 
-        \''.T_('Use Existing Category').'\',
-        \''.T_('Create New Category').'\'
-    );
-    hidePhotoDetails(\''.T_('More Details').'\');
-    deleteConfirmationLink("deletephoto", "'.T_('Are you sure you want to DELETE this Photo?').'");
-    deleteConfirmationLinks("gal_delcombtn", "'.T_('Are you sure you want to DELETE this Comment?').'");
-    deleteConfirmationLinks("delcategory", "'.T_('Are you sure you want to DELETE this Category?').'");
-    initNewWindow();
-});
-//]]>
-</script>';
+        if ($options === null)
+        {
+            $options = array(
+                'jsOnload' => 'deleteConfirmationLink("deletephoto", "'.T_('Are you sure you want to DELETE this Photo?').'");'
+                            . 'deleteConfirmationLinks("gal_delcombtn", "'.T_('Are you sure you want to DELETE this Comment?').'");'
+                            . 'deleteConfirmationLinks("delcategory", "'.T_('Are you sure you want to DELETE this Category?').'");'
+                            . 'initNewWindow();',
+            );
+        }
 
-        loadTemplate('global', 'header', $params);
+        displayPageHeader($params, $options);
     }
 
     /**
@@ -628,7 +623,11 @@ Event.observe(window, \'load\', function() {
      */
     function displayUploadForm ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array(
+                'jsOnload' => 'hideUploadOptions(\''.T_('Rotate Photo').'\', \''.T_('Use Existing Category').'\', \''.T_('Create New Category').'\');',
+            )
+        );
 
         $this->fcmsPhotoGallery->displayGalleryMenu('none');
 
@@ -648,11 +647,7 @@ Event.observe(window, \'load\', function() {
 
             if ($_GET['type'] == 'upload')
             {
-                $type = null;
-                if (usingAdvancedUploader($this->fcmsUser->id))
-                {
-                    $type = 'java';
-                }
+                $type = getUploaderType($this->fcmsUser->id);
             }
         }
         // Use last upload type (user clicked on 'Upload Photos' button
@@ -662,27 +657,13 @@ Event.observe(window, \'load\', function() {
         }
         else
         {
-            if (usingAdvancedUploader($this->fcmsUser->id))
-            {
-                $type = 'java';
-            }
+            $type = getUploaderType($this->fcmsUser->id);
         }
 
         // Turn on advanced uploader
         if (isset($_GET['advanced']))
         {
             $type = 'java';
-
-            $sql = "UPDATE `fcms_user_settings`
-                    SET `advanced_upload` = '1'
-                    WHERE `user` = ?";
-
-            if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
-            {
-                $this->fcmsError->displayError();
-                $this->displayFooter();
-                return;
-            }
         }
 
         $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $type);
@@ -736,6 +717,37 @@ Event.observe(window, \'load\', function() {
         // Redirect to new photo
         header('Location: index.php?uid='.$this->fcmsUser->id.'&cid='.$categoryId.'&pid='.$photoId);
         return;
+    }
+
+    /**
+     * displayPluploadFormSubmit 
+     * 
+     * @return void
+     */
+    function displayPluploadFormSubmit ()
+    {
+        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'plupload');
+
+        $type = key($_FILES);
+        $file = array_shift($_FILES);
+
+        $formData = array(
+            'photo_type'  => $type,
+            'type'        => $file['type'],
+            'name'        => $_POST['name'],
+            'tmp_name'    => $file['tmp_name'],
+            'newCategory' => $_POST['new-category'],
+        );
+
+        $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
+
+        if (!$this->Uploader->upload($formData))
+        {
+            echo "Upload Failure";
+            return;
+        }
+
+        echo "Success";
     }
 
     /**

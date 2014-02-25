@@ -381,6 +381,10 @@ class Upgrade
         {
             return false;
         }
+        if (!$this->upgrade340())
+        {
+            return false;
+        }
 
         return true;
     }
@@ -1952,6 +1956,61 @@ class Upgrade
             if (isset($_COOKIE['fcms_login_id'])) { setcookie('fcms_login_id', '', time() - 3600, '/'); }
             if (isset($_COOKIE['fcms_login_uname'])) { setcookie('fcms_login_uname', '', time() - 3600, '/'); }
             if (isset($_COOKIE['fcms_login_pw'])) { setcookie('fcms_login_pw', '', time() - 3600, '/'); }
+        }
+
+        return true;
+    }
+
+    /**
+     * upgrade340
+     * 
+     * Upgrade database to version 3.4.0
+     * 
+     * @return boolean
+     */
+    function upgrade340 ()
+    {
+        $errorMessage = sprintf(T_('Could not upgrade database to version %s.'), '3.4.0');
+
+        // uploader type
+        $uploader_fixed = false;
+
+        $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->setMessage($errorMessage);
+            return false;
+        }
+
+        foreach ($rows as $r)
+        {
+            if ($r['Field'] == 'uploader')
+            {
+                $uploader_fixed = true;
+            }
+        }
+
+        if (!$uploader_fixed)
+        {
+            $sql = "ALTER TABLE `fcms_user_settings`
+                    ADD COLUMN `uploader` SET('plupload', 'java', 'basic') NOT NULL DEFAULT 'plupload'";
+
+            if (!$this->fcmsDatabase->alter($sql))
+            {
+                $this->fcmsError->setMessage($errorMessage);
+                return false;
+            }
+
+            $sql = "ALTER TABLE `fcms_user_settings`
+                    DROP COLUMN `advanced_upload`";
+
+            if (!$this->fcmsDatabase->alter($sql))
+            {
+                $this->fcmsError->setMessage($errorMessage);
+                return false;
+            }
         }
 
         return true;

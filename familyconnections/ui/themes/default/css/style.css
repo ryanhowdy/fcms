@@ -1746,6 +1746,7 @@ li.tag_photo label span {
   width: 740px;
 }
 .basic,
+.plupload,
 .instagram,
 .picasa {
   overflow: auto;

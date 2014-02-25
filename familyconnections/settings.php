@@ -18,7 +18,17 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube', 'instagram', 'familynews', 'picasa', 'phpass');
+load(
+    'settings', 
+    'foursquare', 
+    'facebook', 
+    'socialmedia', 
+    'youtube', 
+    'instagram', 
+    'familynews', 
+    'picasa', 
+    'phpass'
+);
 
 init();
 
@@ -80,6 +90,10 @@ class Page
             {
                 $this->displayEditNotificationsSubmit();
             }
+            elseif ($_GET['view'] == 'photogallery')
+            {
+                $this->displayEditPhotoGallerySubmit();
+            }
             elseif ($_GET['view'] == 'familynews')
             {
                 $this->displayEditFamilyNewsSubmit();
@@ -125,6 +139,10 @@ class Page
             elseif ($_GET['view'] == 'notifications')
             {
                 $this->displayEditNotifications();
+            }
+            elseif ($_GET['view'] == 'photogallery')
+            {
+                $this->displayEditPhotoGallery();
             }
             elseif ($_GET['view'] == 'familynews')
             {
@@ -281,6 +299,7 @@ Event.observe(window, \'load\', function() {
                 </ul>
                 <h3>'.T_('Plugin Settings').'</h3>
                 <ul class="menu">
+                    <li><a href="?view=photogallery">'.T_('Photo Gallery').'</a></li>
                     <li><a href="?view=familynews">'.T_('Family News').'</a></li>
                     <li><a href="?view=messageboard">'.T_('Message Board').'</a></li>
                 </ul>';
@@ -601,15 +620,6 @@ Event.observe(window, \'load\', function() {
 
         $params = array();
 
-        $changedAdvancedUploader = false;
-
-        if ($_POST['advanced_upload'])
-        {
-            $sql     .= "`advanced_upload` = ?, ";
-            $params[] = $_POST['advanced_upload'] == 'yes' ? 1 : 0;
-
-            $changedAdvancedUploader = true;
-        }
         if ($_POST['advanced_tagging'])
         {
             $sql     .= "`advanced_tagging` = ?, ";
@@ -656,14 +666,6 @@ Event.observe(window, \'load\', function() {
             }
 
             displayOkMessage();
-        }
-
-        // We may need to reset the fcms_uploader_type
-        // If we were using advanced, then turned it off
-        // we don't want to display the advanced next time
-        if ($changedAdvancedUploader && isset($_SESSION['fcms_uploader_type']))
-        {
-            unset($_SESSION['fcms_uploader_type']);
         }
 
         $this->fcmsSettings->displaySettings();
@@ -715,6 +717,66 @@ Event.observe(window, \'load\', function() {
         }
 
         $this->fcmsSettings->displayNotifications();
+        $this->displayFooter();
+    }
+
+    /**
+     * displayEditPhotoGallery
+     * 
+     * @return void
+     */
+    function displayEditPhotoGallery ()
+    {
+        $this->displayHeader();
+        $this->fcmsSettings->displayPhotoGallerySettings();
+        $this->displayFooter();
+
+        return;
+    }
+
+    /**
+     * displayEditPhotoGallerySubmit 
+     * 
+     * @return void
+     */
+    function displayEditPhotoGallerySubmit ()
+    {
+        $this->displayHeader();
+
+        $sql = "UPDATE `fcms_user_settings` 
+                SET `uploader` = ?,
+                    `advanced_tagging` = ?
+                WHERE `user` = ?";
+
+        $advancedTagging = $_POST['advanced_tagging'] == 'yes' ? 1 : 0;
+
+        $params = array(
+            $_POST['uploader'],
+            $advancedTagging,
+            $this->fcmsUser->id,
+        );
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        displayOkMessage();
+
+        // We may need to reset the fcms_uploader_type
+        $uploaderTypesThatNeedUpdated = array(
+            'plupload' => 1,
+            'java'     => 1,
+            'basic'    => 1,
+        );
+        if (isset($_SESSION['fcms_uploader_type']) && isset($uploaderTypesThatNeedUpdated[$_SESSION['fcms_uploader_type']]))
+        {
+            unset($_SESSION['fcms_uploader_type']);
+        }
+
+        $this->fcmsSettings->displayPhotoGallerySettings();
         $this->displayFooter();
     }
 

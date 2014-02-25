@@ -81,6 +81,14 @@ class Upload_PhotoGallery
                 $this->handlerType = new PicasaHandler($fcmsError, $fcmsDatabase, $fcmsUser, $this->destinationType);
                 break;
 
+            case 'plupload':
+                require_once INC.'Upload/PhotoGallery/Form/Plupload.php';
+                require_once INC.'Upload/PhotoGallery/Handler/Plupload.php';
+
+                $this->formType    = new PluploadFormUpload($fcmsError, $fcmsDatabase, $fcmsUser);
+                $this->handlerType = new PluploadHandler($fcmsError, $fcmsDatabase, $fcmsUser, $this->destinationType);
+                break;
+
             case 'basic':
             default:
                 require_once INC.'Upload/PhotoGallery/Form.php';
