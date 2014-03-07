@@ -2029,7 +2029,7 @@ class PhotoGallery
             return;
         }
 
-        if (count($photos) < 0)
+        if (count($photos) <= 0)
         {
             echo '<p class="error">'.T_('No photos found in this category.').'</p>';
             return;
