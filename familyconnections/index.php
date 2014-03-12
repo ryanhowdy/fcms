@@ -197,7 +197,7 @@ function displayLoginSubmit ()
     }
 
     // New password style
-    if ($row['password'] == 0)
+    if ($row['password'] == '0')
     {
         $hasher = new PasswordHash(8, FALSE);
 
