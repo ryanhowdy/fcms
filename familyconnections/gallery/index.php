@@ -19,7 +19,10 @@ define('GALLERY_PREFIX', '');
 require URL_PREFIX.'fcms.php';
 
 load(
+    'Upload_Destination',
+    'Upload_Photo',
     'Upload_PhotoGallery',
+    'Upload_PhotoGallery_Form',
     'gallery', 
     'socialmedia', 
     'datetime', 
@@ -573,16 +576,18 @@ class Page
             }
         }
 
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getPhotoDestination();
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $filePath  = basename($photoFilename);
         $thumbPath = 'tb_'.basename($photoFilename);
         $fullPath  = 'full_'.basename($photoFilename);
 
         // Remove the Photo from the server
-        $this->Uploader->deleteFile($filePath);
-        $this->Uploader->deleteFile($thumbPath);
-        $this->Uploader->deleteFile($fullPath);
+        $photoDestination->deleteFile($filePath);
+        $photoDestination->deleteFile($thumbPath);
+        $photoDestination->deleteFile($fullPath);
 
         $_SESSION['message'] = 1;
 
@@ -637,37 +642,12 @@ class Page
             $this->fcmsError->displayError();
         }
 
-        // Figure out the upload type
-        $type = null;
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType  = getPhotoGallery();
+        $photoGalleryType .= 'Form';
+        $photoGalleryForm  = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
 
-        // Get selected type (user clicked on type from menu)
-        if (isset($_GET['type']))
-        {
-            $type = $_GET['type'];
-
-            if ($_GET['type'] == 'upload')
-            {
-                $type = getUploaderType($this->fcmsUser->id);
-            }
-        }
-        // Use last upload type (user clicked on 'Upload Photos' button
-        elseif (isset($_SESSION['fcms_uploader_type']))
-        {
-            $type = $_SESSION['fcms_uploader_type'];
-        }
-        else
-        {
-            $type = getUploaderType($this->fcmsUser->id);
-        }
-
-        // Turn on advanced uploader
-        if (isset($_GET['advanced']))
-        {
-            $type = 'java';
-        }
-
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $type);
-        $this->Uploader->displayForm();
+        $photoGalleryForm->display();
 
         $this->displayFooter();
 
@@ -681,25 +661,33 @@ class Page
      */
     function displayUploadFormSubmit ()
     {
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getPhotoDestination();
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $formData = array(
             'photo'       => $_FILES['photo_filename'],
             'newCategory' => $_POST['new-category'],
             'caption'     => $_POST['photo_caption'],
         );
-
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
         $formData['rotate']   = isset($_POST['rotate'])   ? $_POST['rotate']   : null;
 
-        if (!$this->Uploader->upload($formData))
+        // Upload the photo
+        if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload');
             return;
         }
 
-        $photoId    = $this->Uploader->getLastPhotoId();
-        $categoryId = $this->Uploader->getLastCategoryId();
+        $photoId    = $photoGalleryUploader->getLastPhotoId();
+        $categoryId = $photoGalleryUploader->getLastCategoryId();
 
         // Tag photo
         if (isset($_POST['tagged']))

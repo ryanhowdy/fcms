@@ -4979,3 +4979,90 @@ function startsWith($haystack, $needle)
 {
     return !strncmp($haystack, $needle, strlen($needle));
 }
+
+/**
+ * getPhotoDestination 
+ * 
+ * Returns the name of the appropriate destination object.
+ * 
+ * @return string
+ */
+function getPhotoDestination ()
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    // Save outside the root (Protected)
+    if (defined('UPLOADS'))
+    {
+        $photoDestination = 'ProtectedPhotoDestination';
+    }
+    // Save to Amazon S3
+    elseif (defined('S3') && date('Ymd', S3) < date('Ymd'))
+    {
+        $photoDestination = 'S3PhotoDestination';
+    }
+    // Save in uploads/photos/*
+    else
+    {
+        $photoDestination = 'PhotoDestination';
+    }
+
+    return $photoDestination;
+}
+
+/**
+ * getPhotoGallery
+ * 
+ * Returns the name of the appropriate photo gallery object.
+ * 
+ * @return string
+ */
+function getPhotoGallery ()
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    if (isset($_GET['advanced']))
+    {
+        $type = 'plupload';
+    }
+    // Get selected type (user clicked on type from menu)
+    elseif (isset($_GET['type']))
+    {
+        $type = $_GET['type'];
+    }
+    // Use last upload type (user clicked on 'Upload Photos' button
+    elseif (isset($_SESSION['fcms_uploader_type']))
+    {
+        $type = $_SESSION['fcms_uploader_type'];
+    }
+    else
+    {
+        $type = getUploaderType($fcmsUser->id);
+    }
+
+    switch ($type)
+    {
+        case 'plupload':
+            break;
+
+        case 'java':
+            break;
+
+        case 'instagram':
+            break;
+
+        case 'picasa':
+            break;
+
+        case 'basic':
+        default:
+            $photoGallery = 'UploadPhotoGallery';
+            break;
+    }
+
+    return $photoGallery;
+}

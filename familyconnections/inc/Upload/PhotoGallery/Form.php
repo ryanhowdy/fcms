@@ -1,25 +1,25 @@
 <?php
 /**
- * FormUpload 
+ * Upload PhotoGallery Form
  * 
- * @package Upload_PhotoGallery
- * @subpackage Form
+ * @package Upload
+ * @subpackage UploadPhotoGallery
  * @copyright 2013 Haudenschilt LLC
  * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
-class FormUpload
+class UploadPhotoGalleryForm
 {
     /**
      * __construct 
      * 
-     * @param object $fcmsError 
-     * @param object $fcmsDatabase 
-     * @param object $fcmsUser 
+     * @param FCMS_Error $fcmsError 
+     * @param Database   $fcmsDatabase 
+     * @param User       $fcmsUser 
      * 
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
         $this->fcmsError    = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
@@ -270,5 +270,4 @@ class FormUpload
 
         return $categories;
     }
-
 }

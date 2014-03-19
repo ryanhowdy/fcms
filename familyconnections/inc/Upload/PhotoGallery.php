@@ -1,128 +1,97 @@
 <?php
 /**
- * Upload_PhotoGallery 
+ * UploadPhotoGallery 
  * 
- * @package Family Connections
- * @copyright 2013 Haudenschilt LLC
+ * Handles printing the form, and submitting of the form for the 'Basic'
+ * standard photo gallery upload.
+ * 
+ * @package Upload
+ * @subpackage Photo
+ * @copyright 2014 Haudenschilt LLC
  * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
-class Upload_PhotoGallery
+class UploadPhotoGallery
 {
     private $fcmsError;
     private $fcmsDatabase;
     private $fcmsUser;
+    private $photoDestination;
+    private $uploadPhoto;
 
-    private $formType;
-    private $handlerType;
-    private $destinationType;
+    private $usingFullSizePhotos;
+    private $formData;
+    private $newCategoryId;
+    private $newPhotoId;
+    private $fileName;
+    private $extension;
+
+    private $thumbMaxWidth  = 150;
+    private $thumbMaxHeight = 150;
+    private $mainMaxWidth   = 600;
+    private $mainMaxHeight  = 600;
 
     /**
      * __construct 
      * 
-     * Creates form, handler, and destination objects.
-     * 
-     * @param object $fcmsError 
-     * @param object $fcmsDatabase 
-     * @param object $fcmsUser 
-     * @param string $type 
-     * @param string $destination
+     * @param FCMS_Error        $fcmsError 
+     * @param Database          $fcmsDatabase 
+     * @param User              $fcmsUser 
+     * @param PhotoDestination  $photoDestination 
+     * @param UploadPhoto       $uploadPhoto 
      * 
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $type = 'basic')
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, PhotoDestination $photoDestination, UploadPhoto $uploadPhoto = null)
     {
-        $this->fcmsError    = $fcmsError;
-        $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
-
-        // Save outside the root (Protected)
-        if (defined('UPLOADS'))
-        {
-            require_once INC.'Upload/PhotoGallery/Destination/Protected.php';
-            $this->destinationType = new ProtectedDestination($fcmsError, $fcmsDatabase, $fcmsUser);
-        }
-        // Save to Amazon S3
-        elseif (defined('S3') && date('Ymd', S3) < date('Ymd'))
-        {
-            require_once INC.'Upload/PhotoGallery/Destination/S3.php';
-            $this->destinationType = new S3Destination($fcmsError, $fcmsDatabase, $fcmsUser);
-        }
-        // Save in uploads/photos/*
-        else
-        {
-            require_once INC.'Upload/PhotoGallery/Destination.php';
-            $this->destinationType = new Destination($fcmsError, $fcmsDatabase, $fcmsUser);
-        }
-
-        switch ($type)
-        {
-            case 'java':
-                require_once INC.'Upload/PhotoGallery/Form/Java.php';
-                require_once INC.'Upload/PhotoGallery/Handler/Java.php';
-
-                $this->formType    = new JavaFormUpload($fcmsError, $fcmsDatabase, $fcmsUser);
-                $this->handlerType = new JavaHandler($fcmsError, $fcmsDatabase, $fcmsUser, $this->destinationType);
-                break;
-
-            case 'instagram':
-                require_once INC.'Upload/PhotoGallery/Form/Instagram.php';
-                require_once INC.'Upload/PhotoGallery/Handler/Instagram.php';
-
-                $this->formType    = new InstagramFormUpload($fcmsError, $fcmsDatabase, $fcmsUser);
-                $this->handlerType = new InstagramHandler($fcmsError, $fcmsDatabase, $fcmsUser, $this->destinationType);
-                break;
-
-            case 'picasa':
-                require_once INC.'Upload/PhotoGallery/Form/Picasa.php';
-                require_once INC.'Upload/PhotoGallery/Handler/Picasa.php';
-
-                $this->formType    = new PicasaFormUpload($fcmsError, $fcmsDatabase, $fcmsUser);
-                $this->handlerType = new PicasaHandler($fcmsError, $fcmsDatabase, $fcmsUser, $this->destinationType);
-                break;
-
-            case 'plupload':
-                require_once INC.'Upload/PhotoGallery/Form/Plupload.php';
-                require_once INC.'Upload/PhotoGallery/Handler/Plupload.php';
-
-                $this->formType    = new PluploadFormUpload($fcmsError, $fcmsDatabase, $fcmsUser);
-                $this->handlerType = new PluploadHandler($fcmsError, $fcmsDatabase, $fcmsUser, $this->destinationType);
-                break;
-
-            case 'basic':
-            default:
-                require_once INC.'Upload/PhotoGallery/Form.php';
-                require_once INC.'Upload/PhotoGallery/Handler.php';
-
-                $this->formType    = new FormUpload($fcmsError, $fcmsDatabase, $fcmsUser);
-                $this->handlerType = new Handler($fcmsError, $fcmsDatabase, $fcmsUser, $this->destinationType);
-                break;
-        }
-    }
-
-    /**
-     * displayForm 
-     * 
-     * Calls the appropriate Form Object's display form function.
-     * 
-     * @return void
-     */
-    public function displayForm ()
-    {
-        $this->formType->display();
-        return;
+        $this->fcmsError           = $fcmsError;
+        $this->fcmsDatabase        = $fcmsDatabase;
+        $this->fcmsUser            = $fcmsUser;
+        $this->photoDestination    = $photoDestination;
+        $this->uploadPhoto         = $uploadPhoto;
+        $this->usingFullSizePhotos = usingFullSizePhotos();
     }
 
     /**
      * upload 
      * 
-     * Calls the appropriate Handler Object's upload function.
-     * 
      * @return boolean
      */
     public function upload ($formData)
     {
-        if (!$this->handlerType->upload($formData))
+        $this->formData  = $formData;
+
+        // Load the editor, and do some validation
+        $this->uploadPhoto->load($formData['photo']);
+
+        if ($this->fcmsError->hasUserError())
+        {
+            return false;
+        }
+
+        $this->fileName  = $this->uploadPhoto->fileName;
+        $this->extension = $this->uploadPhoto->extension;
+
+        // Additional validation
+        if (!$this->validate())
+        {
+            return false;
+        }
+
+        // Insert new category
+        if (!$this->insertCategory())
+        {
+            return false;
+        }
+
+        // Insert photo into db
+        if (!$this->insertPhoto())
+        {
+            return false;
+        }
+
+        // Save file, rotate and resize
+        if (!$this->savePhoto())
         {
             return false;
         }
@@ -133,12 +102,11 @@ class Upload_PhotoGallery
     /**
      * validate 
      * 
-     * Validates we have a valid category (all photo gallery uploads should have this)
-     * and then calls the appropriate Handler Object's validate function.
+     * Validates we have a valid category.
      * 
      * @return boolean
      */
-    private function validate ()
+    protected function validate ()
     {
         // Make sure we have a category
         if (strlen($this->formData['newCategory']) <= 0)
@@ -154,8 +122,169 @@ class Upload_PhotoGallery
             }
         }
 
-        // Do file handler specific validation
-        return $this->handlerType->validate($this->formData);
+        return true;
+    }
+
+    /**
+     * insertCategory 
+     * 
+     * @return void
+     */
+    private function insertCategory ()
+    {
+        // Create a new category
+        if (strlen($this->formData['newCategory']) > 0)
+        {
+            $sql = "INSERT INTO `fcms_category`
+                        (`name`, `type`, `user`) 
+                    VALUES
+                        (?, 'gallery', ?)";
+
+            $params = array(
+                $this->formData['newCategory'],
+                $this->fcmsUser->id
+            );
+
+            $this->newCategoryId = $this->fcmsDatabase->insert($sql, $params);
+            if ($this->newCategoryId === false)
+            {
+                return false;
+            }
+        }
+        // Set the supplied category id
+        else
+        {
+            $this->newCategoryId = $this->formData['category'];
+        }
+
+        return true;
+    }
+
+    /**
+     * insertPhoto
+     * 
+     * Inserts new photo record in db, and save photo id.
+     * 
+     * @return boolean
+     */
+    private function insertPhoto ()
+    {
+        $sql = "INSERT INTO `fcms_gallery_photos`
+                    (`date`, `caption`, `category`, `user`)
+                VALUES
+                    (NOW(), ?, ?, ?)";
+
+        $params = array(
+            $this->formData['caption'],
+            $this->newCategoryId,
+            $this->fcmsUser->id
+        );
+
+        $this->newPhotoId = $this->fcmsDatabase->insert($sql, $params);
+        if ($this->newPhotoId === false)
+        {
+            return false;
+        }
+
+        $this->fileName = $this->newPhotoId.'.'.$this->extension;
+
+        // Update photo record
+        $sql = "UPDATE `fcms_gallery_photos` 
+                SET `filename` = ?
+                WHERE `id` = ?";
+
+        $params = array(
+            $this->fileName,
+            $this->newPhotoId
+        );
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * savePhoto 
+     * 
+     * @return boolean
+     */
+    private function savePhoto ()
+    {
+        // Setup the array of photos that need uploaded
+        $uploadPhotos = array(
+            'main'  => array(
+                'resize'     => true,
+                'resizeType' => null,
+                'prefix'     => '',
+                'width'      => $this->mainMaxWidth,
+                'height'     => $this->mainMaxHeight
+            ),
+            'thumb' => array(
+                'resize'     => true,
+                'resizeType' => 'square',
+                'prefix'     => 'tb_',
+                'width'      => $this->thumbMaxWidth,
+                'height'     => $this->thumbMaxHeight
+            ),
+        );
+
+        if ($this->usingFullSizePhotos)
+        {
+            $uploadPhotos['full'] = array(
+                'resize'     => false,
+                'resizeType' => null,
+                'prefix'     => 'full_',
+                'width'      => null,
+                'height'     => null
+            );
+        }
+
+        // Loop through each photo that needs saved
+        foreach ($uploadPhotos as $key => $value)
+        {
+            $resize     = $uploadPhotos[$key]['resize'];
+            $resizeType = $uploadPhotos[$key]['resizeType'];
+            $prefix     = $uploadPhotos[$key]['prefix'];
+            $width      = $uploadPhotos[$key]['width'];
+            $height     = $uploadPhotos[$key]['height'];
+
+            // Reset the filename for each photo
+            $this->fileName = $prefix.$this->newPhotoId.'.'.$this->extension;
+
+            $this->uploadPhoto->save($this->fileName);
+
+            // Rotate
+            if ($this->formData['rotate'] == 'left')
+            {
+                $this->uploadPhoto->rotate(90);
+            }
+            elseif ($this->formData['rotate'] == 'right')
+            {
+                $this->uploadPhoto->rotate(270);
+            }
+
+            // Resize
+            if ($resize)
+            {
+                $this->uploadPhoto->resize($width, $height, $resizeType);
+            }
+
+            // See if uploadPhoto had any errors
+            if ($this->fcmsError->hasUserError())
+            {
+                // Try to delete from db
+                $sql = "DELETE FROM `fcms_gallery_photos` 
+                        WHERE `id` = ?";
+                $this->fcmsDatabase->delete($sql, $this->newPhotoId);
+
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -165,7 +294,7 @@ class Upload_PhotoGallery
      */
     public function getLastPhotoId ()
     {
-        return $this->handlerType->getLastPhotoId();
+        return $this->newPhotoId;
     }
 
     /**
@@ -175,7 +304,7 @@ class Upload_PhotoGallery
      */
     public function getLastPhotoIds ()
     {
-        return $this->handlerType->getLastPhotoIds();
+        return array( $this->newPhotoId );
     }
 
     /**
@@ -185,14 +314,11 @@ class Upload_PhotoGallery
      */
     public function getLastCategoryId ()
     {
-        return $this->handlerType->getLastCategoryId();
+        return $this->newCategoryId;
     }
 
     /**
      * getPhotoPaths 
-     * 
-     * Will return an array of absolute paths to the photo and the full sized
-     * photo (if available).
      * 
      * @param string $fileName 
      * @param string $uid 
@@ -201,13 +327,40 @@ class Upload_PhotoGallery
      */
     public function getPhotoPaths ($fileName, $uid)
     {
-        return $this->destinationType->getPhotoPaths($fileName, $uid);
+        $fileName = basename($fileName);
+        $uid      = (int)$uid;
+
+        // Link to the full sized photo if using full sized
+        $sql = "SELECT `value` AS 'full_size_photos'
+                FROM `fcms_config`
+                WHERE `name` = 'full_size_photos'";
+
+        $usingFullSizePhotos = false; 
+
+        $row = $this->fcmsDatabase->getRow($sql);
+        if ($row !== false)
+        {
+            $usingFullSizePhotos = $row['full_size_photos'] == 1 ? true : false;
+        }
+
+        $photoPaths[0] = $this->photoDestination->absolutePath."member$uid/$fileName";
+        $photoPaths[1] = $this->photoDestination->absolutePath."member$uid/$fileName";
+
+        if ($usingFullSizePhotos)
+        {
+            // If you are using full sized but a photo was uploaded prior to that change, 
+            // no full sized photo will be available, so don't link to it
+            if (file_exists($this->photoDestination->absolutePath."member$uid/full_$fileName"))
+            {
+                $photo_path[1] = $this->photoDestination->absolutePath."member$uid/full_$fileName";
+            }
+        }
+
+        return $photoPaths;
     }
 
     /**
      * getPhotoSource 
-     * 
-     * Gets the url used to display in img src for the given photo type.
      * 
      * @param array  $data 
      * @param string $size 
@@ -216,32 +369,29 @@ class Upload_PhotoGallery
      */
     public function getPhotoSource ($data, $size = 'thumbnail')
     {
-        return $this->destinationType->getPhotoSource($data, $size);
-    }
+        $prefix = '';
+        if ($size == 'thumbnail')
+        {
+            $prefix = 'tb_';
+        }
+        elseif ($size == 'full')
+        {
+            $prefix = 'full_';
+        }
 
-    /**
-     * getPhotoFileSize 
-     * 
-     * @param string $file 
-     * 
-     * @return string
-     */
-    public function getPhotoFileSize ($file)
-    {
-        return $this->destinationType->getPhotoFileSize($file);
-    }
+        $path = $this->photoDestination->relativePath.'member'.(int)$data['user'].'/';
 
-    /**
-     * deleteFile
-     * 
-     * Deletes the photo from the proper destination source.
-     * 
-     * @param string $file 
-     * 
-     * @return boolean
-     */
-    public function deleteFile ($file)
-    {
-        return $this->destinationType->deleteFile($file);
+        $photoSrc = $path.$prefix.basename($data['filename']);
+
+        // XXX: we may have uploaded this photo before we 
+        // starting using full sized photos, so this full
+        // sized photo may not exist.
+        // Give them main size instead
+        if ($size == 'full' && !file_exists($photoSrc))
+        {
+            $photoSrc = $path.basename($data['filename']);
+        }
+
+        return $photoSrc;
     }
 }

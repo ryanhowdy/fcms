@@ -19,6 +19,7 @@ define('GALLERY_PREFIX', '../gallery/');
 require URL_PREFIX.'fcms.php';
 
 load(
+    'Upload_Destination',
     'Upload_PhotoGallery',
     'gallery'
 );
