@@ -1,17 +1,14 @@
 <?php
-
-require_once INC.'Upload/PhotoGallery/Form.php';
-
 /**
- * PluploadFormUpload 
+ * Plupload Form
  * 
- * @package Upload_PhotoGallery
- * @subpackage Form
+ * @package Upload
+ * @subpackage UploadPhotoGallery
  * @copyright 2014 Haudenschilt LLC
  * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
-class PluploadFormUpload extends FormUpload
+class PluploadUploadPhotoGalleryForm extends UploadPhotoGalleryForm
 {
     /**
      * __construct 

@@ -60,7 +60,6 @@ class UploadPhoto
     {
         $this->photo    = $photo;
         $this->fileName = cleanFilename($this->photo['name']);
-logError("load - [".$this->fileName."]");
 
         $this->setExtension();
         $this->validate();
@@ -144,7 +143,6 @@ logError("load - [".$this->fileName."]");
         }
 
         $this->fileName = $savedFileName;
-logError("save - [".$this->fileName."]");
 
         if (is_null($savedFileName))
         {
@@ -152,7 +150,6 @@ logError("save - [".$this->fileName."]");
             $id = uniqid("");
             $this->fileName = $id.'.'.$this->extension;
         }
-logError("save - [".$this->fileName."]");
 
         // Copy temp photo to photoDestination
         $this->photoDestination->copy($this->photo['tmp_name'], $this->fileName);

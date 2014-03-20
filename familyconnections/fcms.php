@@ -45,6 +45,33 @@ if ($fcmsError->hasError())
 }
 
 /**
+ * __autoload 
+ * 
+ * @param string $className 
+ * 
+ * @return void
+ */
+function __autoload ($className)
+{
+    $classPaths = array(
+        'UploadPhotoGalleryForm'            => INC.'Upload/PhotoGallery/Form.php',
+        'PluploadUploadPhotoGalleryForm'    => INC.'Upload/PhotoGallery/Form/Plupload.php',
+        'PluploadUploadPhotoGallery'        => INC.'Upload/PhotoGallery/Plupload.php',
+        'PhotoDestination'                  => INC.'Upload/Destination.php',
+        'UploadPhoto'                       => INC.'Upload/Photo.php',
+        'UploadPhotoGallery'                => INC.'Upload/PhotoGallery.php',
+    );
+
+    if (isset($classPaths[$className]))
+    {
+        if (file_exists($classPaths[$className]))
+        {
+            require_once($classPaths[$className]);
+        }
+    }
+}
+
+/**
  * load 
  * 
  * Will include the necessary classes/inc files.
@@ -108,11 +135,6 @@ function load()
         elseif ($include == 'phpass')
         {
             include_once THIRDPARTY.'phpass/PasswordHash.php';
-        }
-        elseif (substr($include, 0, 7) == 'Upload_')
-        {
-            $path = str_replace('_', '/', $include);
-            require_once INC.$path.'.php';
         }
         else
         {

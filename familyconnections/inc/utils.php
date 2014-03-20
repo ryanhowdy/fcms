@@ -5044,24 +5044,25 @@ function getPhotoGallery ()
         $type = getUploaderType($fcmsUser->id);
     }
 
-    switch ($type)
+    if ($type == 'plupload')
     {
-        case 'plupload':
-            break;
-
-        case 'java':
-            break;
-
-        case 'instagram':
-            break;
-
-        case 'picasa':
-            break;
-
-        case 'basic':
-        default:
-            $photoGallery = 'UploadPhotoGallery';
-            break;
+        $photoGallery = 'PluploadUploadPhotoGallery';
+    }
+    else if ($type == 'java')
+    {
+        $photoGallery = 'JavaUploadPhotoGallery';
+    }
+    else if ($type == 'instagram')
+    {
+        $photoGallery = 'InstagramUploadPhotoGallery';
+    }
+    else if ($type == 'picasa')
+    {
+        $photoGallery = 'PicasaUploadPhotoGallery';
+    }
+    else
+    {
+        $photoGallery = 'UploadPhotoGallery';
     }
 
     return $photoGallery;

@@ -13,18 +13,18 @@
  */
 class UploadPhotoGallery
 {
-    private $fcmsError;
-    private $fcmsDatabase;
-    private $fcmsUser;
-    private $photoDestination;
-    private $uploadPhoto;
+    protected $fcmsError;
+    protected $fcmsDatabase;
+    protected $fcmsUser;
+    protected $photoDestination;
+    protected $uploadPhoto;
 
-    private $usingFullSizePhotos;
-    private $formData;
-    private $newCategoryId;
-    private $newPhotoId;
-    private $fileName;
-    private $extension;
+    protected $usingFullSizePhotos;
+    protected $formData;
+    protected $newCategoryId;
+    protected $newPhotoId;
+    protected $fileName;
+    protected $extension;
 
     private $thumbMaxWidth  = 150;
     private $thumbMaxHeight = 150;
@@ -59,7 +59,7 @@ class UploadPhotoGallery
      */
     public function upload ($formData)
     {
-        $this->formData  = $formData;
+        $this->setFormData($formData);
 
         // Load the editor, and do some validation
         $this->uploadPhoto->load($formData['photo']);
@@ -100,6 +100,20 @@ class UploadPhotoGallery
     }
 
     /**
+     * setFormData 
+     * 
+     * Saves all the data passed in from the form upload.
+     * 
+     * @param array $formData
+     * 
+     * @return void
+     */
+    protected function setFormData ($formData)
+    {
+        $this->formData = $formData;
+    }
+
+    /**
      * validate 
      * 
      * Validates we have a valid category.
@@ -130,7 +144,7 @@ class UploadPhotoGallery
      * 
      * @return void
      */
-    private function insertCategory ()
+    protected function insertCategory ()
     {
         // Create a new category
         if (strlen($this->formData['newCategory']) > 0)
@@ -167,7 +181,7 @@ class UploadPhotoGallery
      * 
      * @return boolean
      */
-    private function insertPhoto ()
+    protected function insertPhoto ()
     {
         $sql = "INSERT INTO `fcms_gallery_photos`
                     (`date`, `caption`, `category`, `user`)
@@ -211,7 +225,7 @@ class UploadPhotoGallery
      * 
      * @return boolean
      */
-    private function savePhoto ()
+    protected function savePhoto ()
     {
         // Setup the array of photos that need uploaded
         $uploadPhotos = array(
@@ -257,13 +271,16 @@ class UploadPhotoGallery
             $this->uploadPhoto->save($this->fileName);
 
             // Rotate
-            if ($this->formData['rotate'] == 'left')
+            if (isset($this->formData['rotate']))
             {
-                $this->uploadPhoto->rotate(90);
-            }
-            elseif ($this->formData['rotate'] == 'right')
-            {
-                $this->uploadPhoto->rotate(270);
+                if ($this->formData['rotate'] == 'left')
+                {
+                    $this->uploadPhoto->rotate(90);
+                }
+                elseif ($this->formData['rotate'] == 'right')
+                {
+                    $this->uploadPhoto->rotate(270);
+                }
             }
 
             // Resize
@@ -295,16 +312,6 @@ class UploadPhotoGallery
     public function getLastPhotoId ()
     {
         return $this->newPhotoId;
-    }
-
-    /**
-     * getLastPhotoIds
-     * 
-     * @return array
-     */
-    public function getLastPhotoIds ()
-    {
-        return array( $this->newPhotoId );
     }
 
     /**

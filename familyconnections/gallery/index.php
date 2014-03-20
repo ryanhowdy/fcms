@@ -19,10 +19,6 @@ define('GALLERY_PREFIX', '');
 require URL_PREFIX.'fcms.php';
 
 load(
-    'Upload_Destination',
-    'Upload_Photo',
-    'Upload_PhotoGallery',
-    'Upload_PhotoGallery_Form',
     'gallery', 
     'socialmedia', 
     'datetime', 
@@ -714,28 +710,34 @@ class Page
      */
     function displayPluploadFormSubmit ()
     {
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'plupload');
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getPhotoDestination();
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $type = key($_FILES);
         $file = array_shift($_FILES);
 
+        $file['name'] = $_POST['name'];
+
         $formData = array(
             'photo_type'  => $type,
-            'type'        => $file['type'],
-            'name'        => $_POST['name'],
-            'tmp_name'    => $file['tmp_name'],
+            'photo'       => $file,
             'newCategory' => $_POST['new-category'],
         );
 
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
 
-        if (!$this->Uploader->upload($formData))
+        // Upload the photo
+        if (!$photoGalleryUploader->upload($formData))
         {
-            echo "Upload Failure";
-            return;
+            header("HTTP/1.0 404 Not Found");
         }
-
-        echo "Success";
     }
 
     /**

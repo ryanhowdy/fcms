@@ -1,10 +1,10 @@
 <?php
 /**
- * Upload PhotoGallery Form
+ * Basic Form
  * 
  * @package Upload
  * @subpackage UploadPhotoGallery
- * @copyright 2013 Haudenschilt LLC
+ * @copyright 2014 Haudenschilt LLC
  * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
