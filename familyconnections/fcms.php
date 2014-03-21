@@ -55,11 +55,14 @@ function __autoload ($className)
 {
     $classPaths = array(
         'UploadPhotoGalleryForm'            => INC.'Upload/PhotoGallery/Form.php',
+        'InstagramUploadPhotoGalleryForm'   => INC.'Upload/PhotoGallery/Form/Instagram.php',
         'PluploadUploadPhotoGalleryForm'    => INC.'Upload/PhotoGallery/Form/Plupload.php',
+        'InstagramUploadPhotoGallery'       => INC.'Upload/PhotoGallery/Instagram.php',
         'PluploadUploadPhotoGallery'        => INC.'Upload/PhotoGallery/Plupload.php',
         'PhotoDestination'                  => INC.'Upload/Destination.php',
         'UploadPhoto'                       => INC.'Upload/Photo.php',
         'UploadPhotoGallery'                => INC.'Upload/PhotoGallery.php',
+        'Instagram'                         => THIRDPARTY.'Instagram.php',
     );
 
     if (isset($classPaths[$className]))

@@ -142,7 +142,7 @@ class UploadPhotoGallery
     /**
      * insertCategory 
      * 
-     * @return void
+     * @return boolean
      */
     protected function insertCategory ()
     {

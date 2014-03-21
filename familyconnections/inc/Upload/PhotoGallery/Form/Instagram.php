@@ -1,18 +1,14 @@
 <?php
-
-require_once INC.'Upload/PhotoGallery/Form.php';
-require_once THIRDPARTY.'Instagram.php';
-
 /**
- * InstagramFormUpload 
+ * Instagram Form
  * 
- * @package Upload_PhotoGallery
- * @subpackage Form
- * @copyright 2013 Haudenschilt LLC
+ * @package Upload
+ * @subpackage UploadPhotoGallery
+ * @copyright 2014 Haudenschilt LLC
  * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
-class InstagramFormUpload extends FormUpload
+class InstagramUploadPhotoGalleryForm extends UploadPhotoGalleryForm
 {
     private $accessToken;
     private $autoUpload;
@@ -20,17 +16,17 @@ class InstagramFormUpload extends FormUpload
     /**
      * __construct 
      * 
-     * @param string  $fcmsError 
-     * @param string  $fcmsDatabase 
-     * @param string  $fcmsUser 
+     * @param FCMS_Error $fcmsError 
+     * @param Database   $fcmsDatabase 
+     * @param User       $fcmsUser 
+     * 
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
         $this->fcmsError    = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
         $this->fcmsUser     = $fcmsUser;
-
     }
 
     /**

@@ -829,21 +829,24 @@ class Page
             return;
         }
 
+        // We currently don't need a photo destination for Instagram
+        $photoDestination = new PhotoDestination($this->fcmsError, $this->fcmsUser);
 
-        // Upload individual photos
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'instagram');
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination);
 
         $formData = array(
             'photos' => $_POST['photos'],
         );
 
-        if (!$this->Uploader->upload($formData))
+        if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload&type=instagram');
             return;
         }
 
-        $categoryId = $this->Uploader->getLastCategoryId();
+        $categoryId = $photoGalleryUploader->getLastCategoryId();
 
         header("Location: index.php?uid=".$this->fcmsUser->id."&cid=$categoryId");
     }
