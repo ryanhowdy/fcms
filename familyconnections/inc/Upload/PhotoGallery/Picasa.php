@@ -1,17 +1,17 @@
 <?php
-
-require_once INC.'Upload/PhotoGallery/Handler.php';
-
 /**
- * PicasaHandler 
+ * UploadPhotoGallery 
  * 
- * @package Upload_PhotoGallery
- * @subpackage Handler
- * @copyright 2013 Haudenschilt LLC
+ * Handles printing the form, and submitting of the form for the 'Basic'
+ * standard photo gallery upload.
+ * 
+ * @package Upload
+ * @subpackage Photo
+ * @copyright 2014 Haudenschilt LLC
  * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
-class PicasaHandler extends Handler
+class PicasaUploadPhotoGallery extends UploadPhotoGallery
 {
     private $albumFeed;
     private $newPhotoIds;
@@ -40,9 +40,6 @@ class PicasaHandler extends Handler
             return false;
         }
 
-        // Create new directory
-        $this->destinationType->createDirectory();
-
         $newPhotoFilenames = array();
 
         foreach ($this->albumFeed as $photo)
@@ -59,7 +56,7 @@ class PicasaHandler extends Handler
             $medium    = $thumbs[1]->getUrl();
             $full      = $this->usingFullSizePhotos ? $thumbs[2]->getUrl() : '';
 
-            $extension = $this->getFileExtension($thumbnail);
+            $extension = $this->uploadPhoto->getFileExtension($thumbnail);
 
             // Save photo to db
             $params = array(

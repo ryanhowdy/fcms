@@ -858,7 +858,15 @@ class Page
      */
     function displayPicasaUploadFormSubmit ()
     {
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'picasa');
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getPhotoDestination();
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $formData = array(
             'photos'      => $_POST['photos'],
@@ -869,13 +877,13 @@ class Page
 
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
 
-        if (!$this->Uploader->upload($formData))
+        if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload&type=picasa');
             return;
         }
 
-        $categoryId = $this->Uploader->getLastCategoryId();
+        $categoryId = $photoGalleryUploader->getLastCategoryId();
 
         header("Location: index.php?edit-category=$categoryId&user=".$this->fcmsUser->id);
     }
@@ -1591,6 +1599,16 @@ class Page
             $i = 1;
             foreach ($albumFeed as $photo)
             {
+                // Skip videos
+                $mediaContent = $photo->getMediaGroup()->getContent();
+                foreach ($mediaContent as $content)
+                {
+                    if ($content->getMedium() == 'video')
+                    {
+                        continue 2;
+                    }
+                }
+
                 $thumb = $photo->getMediaGroup()->getThumbnail();
 
                 $sourceId  = $photo->getGphotoId()->text;
