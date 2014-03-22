@@ -747,7 +747,15 @@ class Page
      */
     function displayJavaUploadFormSubmit ()
     {
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'java');
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getPhotoDestination();
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $formData = array(
             'thumb'       => $_FILES['thumb'],
@@ -758,7 +766,7 @@ class Page
         $formData['full']     = isset($_FILES['full'])    ? $_FILES['full']    : null;
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
 
-        if (!$this->Uploader->upload($formData))
+        if (!$photoGalleryUploader->upload($formData))
         {
             echo "Upload Failure";
             return;

@@ -179,7 +179,8 @@ class UploadPhotoGalleryForm
 
             if ($type == 'upload')
             {
-                $url   = '?action=upload&amp;type=upload';
+                $type  = getUploaderType($this->fcmsUser->id);
+                $url   = '?action=upload&amp;type='.$type;
                 $text  = T_('Computer');
             }
             elseif ($type == 'instagram')

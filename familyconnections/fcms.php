@@ -55,9 +55,11 @@ function __autoload ($className)
 {
     $classPaths = array(
         'UploadPhotoGalleryForm'            => INC.'Upload/PhotoGallery/Form.php',
+        'JavaUploadPhotoGalleryForm'        => INC.'Upload/PhotoGallery/Form/Java.php',
         'InstagramUploadPhotoGalleryForm'   => INC.'Upload/PhotoGallery/Form/Instagram.php',
         'PicasaUploadPhotoGalleryForm'      => INC.'Upload/PhotoGallery/Form/Picasa.php',
         'PluploadUploadPhotoGalleryForm'    => INC.'Upload/PhotoGallery/Form/Plupload.php',
+        'JavaUploadPhotoGallery'            => INC.'Upload/PhotoGallery/Java.php',
         'InstagramUploadPhotoGallery'       => INC.'Upload/PhotoGallery/Instagram.php',
         'PicasaUploadPhotoGallery'          => INC.'Upload/PhotoGallery/Picasa.php',
         'PluploadUploadPhotoGallery'        => INC.'Upload/PhotoGallery/Plupload.php',

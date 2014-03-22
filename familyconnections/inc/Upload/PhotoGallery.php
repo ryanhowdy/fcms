@@ -62,7 +62,7 @@ class UploadPhotoGallery
         $this->setFormData($formData);
 
         // Load the editor, and do some validation
-        $this->uploadPhoto->load($formData['photo']);
+        $this->uploadPhoto->load($this->formData['photo']);
 
         if ($this->fcmsError->hasUserError())
         {
