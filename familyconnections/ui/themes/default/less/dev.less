@@ -1687,6 +1687,61 @@ li.tag_photo label span {
     padding: 0;
     width: 450px;
 }
+#dim {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 9;
+    background-color: black;
+    opacity: 0.85;
+}
+#dim h1 {
+    background-color: black;
+    text-align: center;
+    margin-top: 20%;
+}
+#preview {
+    margin: 20px 0 0 0;
+    padding: 0;
+}
+#preview li {
+    border: 1px solid #ddd;
+    float: left;
+    height: 100px;
+    list-style: none;
+    margin: 0 10px 10px 0;
+    overflow: hidden;
+    position: relative;
+    width: 150px;
+}
+#preview li canvas {
+    left: 0;
+    position: absolute;
+    top: 0;
+}
+#preview li > div.progress {
+    height: 10px;
+    left: 0;
+    position: absolute;
+    top: 90px;
+}
+#preview li > div.remove {
+    background-color: #fff;
+    line-height: 13px;
+    opacity: .8;
+    padding: 2px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2;
+}
+#preview li > div.remove:hover {
+    color: red;
+    cursor: pointer;
+    cursor: hand;
+}
 
 
 

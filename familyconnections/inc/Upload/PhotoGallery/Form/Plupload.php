@@ -80,8 +80,6 @@ Event.observe(window, "load", function() {
     });
 
     uploader.bind("Init", function(up, params) {
-        $("filelist").update("Current runtime: " + params.runtime);
-
         uploader.real_total_files    = 0;
         uploader.real_files_uploaded = 0;
     });
@@ -105,7 +103,7 @@ Event.observe(window, "load", function() {
     });
  
     $("choose_photos").observe("click", function() {
-        $("filelist").insert({ top: "<div id=\"dim\"><h1>Loading. Please wait.</h1></div>"});
+        $("preview").insert({ top: "<div id=\"dim\"><h1>Loading. Please wait.</h1></div>"});
     });
 
     uploader.init();
@@ -143,11 +141,10 @@ Event.observe(window, "load", function() {
 
             var el = new Element("div", {"class": "remove"});
             el.update("X");
-            el.onclick = function() { removePhoto(el); };
+            el.onclick = function() { removePhoto(el, file); };
             $(li).insert({ bottom: el});
 
             setTimeout(function() {
-                console.log("-- onload, embed");
                 img.onload = function() {
                     li.id = this.uid;
 
@@ -156,19 +153,14 @@ Event.observe(window, "load", function() {
                         height: 90,
                         crop: true
                     });
-                    console.log("embed photo");
-                    if (i >= total) {
-                        console.log("i [" + i + "]");
+                    if (i >= total && $("dim")) {
                         $("dim").remove();
-                        console.log("hiding overlay");
                     }
                 };
             }, 4);
 
             setTimeout(function() {
-                console.log("-- load");
                 img.load(file.getSource());
-                console.log("photo load");
             }, 4);
 
             i++;
@@ -215,7 +207,7 @@ Event.observe(window, "load", function() {
     });
  
     uploader.bind("Error", function(up, err) {
-        $("filelist").insert({
+        $("preview").insert({
             after : "<div style=\"color:red\">Error: " + err.code + ", Message: " + err.message + (err.file ? ", File: " + err.file.name : "") + "</div>"
         });
  
@@ -244,68 +236,13 @@ Event.observe(window, "load", function() {
         }
     });
 
-    function removePhoto (el) {
+    function removePhoto (el, file) {
         el.up().remove();
+        uploader.removeFile(file);
+        uploader.real_total_files -= filesPerPhotoCount;
     }
 });
 </script>
-<style>
-#dim {
-    height: 100%;
-    width: 100%;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 9;
-    background-color: black;
-    opacity: 0.85;
-}
-#dim h1 {
-    background-color: black;
-    text-align: center;
-    margin-top: 20%;
-}
-#preview {
-    margin: 20px 0 0 0;
-    padding: 0;
-}
-#preview li {
-    border: 1px solid #ddd;
-    float: left;
-    height: 100px;
-    list-style: none;
-    margin: 0 10px 10px 0;
-    overflow: hidden;
-    position: relative;
-    width: 150px;
-}
-#preview li canvas {
-    left: 0;
-    position: absolute;
-    top: 0;
-}
-#preview li > div.progress {
-    height: 10px;
-    left: 0;
-    position: absolute;
-    top: 90px;
-}
-#preview li > div.remove {
-    background-color: #fff;
-    line-height: 13px;
-    opacity: .8;
-    padding: 2px;
-    position: absolute;
-    right: 0;
-    top: 0;
-    z-index: 2;
-}
-#preview li > div.remove:hover {
-    color: red;
-    cursor: pointer;
-    cursor: hand;
-}
-</style>
             <form id="autocomplete_form" enctype="multipart/form-data" action="?action=upload" method="post" class="photo-uploader">
                 <div class="header">
                     <label>'.T_('Category').'</label>
@@ -320,8 +257,6 @@ Event.observe(window, "load", function() {
                             <a class="help" href="../help.php?topic=photo#gallery-howworks">'.T_('Help').'</a>
                         </p>
                         <div id="container">
-                            <div id="filelist">No runtime found.</div>
-                            <br />
                             <a id="choose_photos" class="sub1" href="#">'.T_('Choose Photos').'</a>
                             <ul id="preview"></ul>
                         </div>
