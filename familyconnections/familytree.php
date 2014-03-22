@@ -629,7 +629,7 @@ class Page
                 $options = $this->fcmsFamilyTree->getAddBrotherSisterAdditionalOptions($userId, $relUserId);
                 break;
 
-            case 'brother':
+            case 'sister':
                 $legend  = sprintf(T_pgettext('%s is a persons name', 'Add new sister for %s'), $userName);
                 $label   = T_('Sister');
                 $options = $this->fcmsFamilyTree->getAddBrotherSisterAdditionalOptions($userId, $relUserId);
