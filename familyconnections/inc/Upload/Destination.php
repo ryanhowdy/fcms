@@ -41,7 +41,7 @@ class PhotoDestination
         $this->destinationPath  = $this->absolutePath;
 
         // default photo gallery
-        if (is_null($subdir))
+        if ($subdir == 'photos')
         {
             $this->destinationPath .= 'member'.(int)$this->fcmsUser->id.'/';
         }
