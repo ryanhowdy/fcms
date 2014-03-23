@@ -10,8 +10,8 @@
  */
 class UploadProfileForm
 {
-    private $avatarTypes;
-    private $data;
+    protected $avatarTypes;
+    protected $data;
 
     /**
      * __construct 
@@ -27,11 +27,6 @@ class UploadProfileForm
         $this->fcmsError    = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
         $this->fcmsUser     = $fcmsUser;
-        $this->avatarTypes  = array(
-            'fcms'      => T_('Upload Avatar'),
-            'gravatar'  => T_('Use Gravatar'),
-            'default'   => T_('Use Default')
-        );
    }
 
     /**
@@ -41,6 +36,8 @@ class UploadProfileForm
      */
     public function display ()
     {
+        $this->setAvatarTypes();
+
         if (!$this->getAvatarData())
         {
             $this->fcmsError->displayError();
@@ -98,7 +95,7 @@ class UploadProfileForm
                             </div>
                         </div>
 
-                        <p><input class="sub1" type="submit" name="submit" id="submitDefault" value="'.T_('Submit').'"/></p>
+                        <p><input class="sub1" type="submit" name="submit" id="submit-avatar" value="'.T_('Submit').'"/></p>
 
                     </fieldset>
                 </form>';
@@ -117,6 +114,20 @@ class UploadProfileForm
                                 <input type="file" name="avatar" id="avatar" size="30" title="'.T_('Upload your personal image (Avatar)').'"/>
                                 <input type="hidden" name="avatar_orig" value="'.cleanOutput($this->data['avatar']).'"/><br/>
                             </div>';
+    }
+
+    /**
+     * setAvatarTypes 
+     * 
+     * @return void
+     */
+    protected function setAvatarTypes ()
+    {
+        $this->avatarTypes  = array(
+            'fcms'      => T_('Upload Avatar'),
+            'gravatar'  => T_('Use Gravatar'),
+            'default'   => T_('Use Default')
+        );
     }
 
     /**

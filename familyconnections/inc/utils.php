@@ -5083,27 +5083,18 @@ function getProfileClassName ()
 
     $type = getUploaderType($fcmsUser->id);
 
-# TODO
-#    if ($type == 'plupload')
-#    {
-#        $className = 'PluploadUploadProfile';
-#    }
-#    else if ($type == 'java')
-#    {
-#        $className = 'JavaUploadProfile';
-#    }
-#    else if ($type == 'instagram')
-#    {
-#        $className = 'InstagramUploadProfile';
-#    }
-#    else if ($type == 'picasa')
-#    {
-#        $className = 'PicasaUploadProfile';
-#    }
-#    else
-#    {
+    if ($type == 'plupload')
+    {
+        $className = 'PluploadUploadProfile';
+    }
+    else if ($type == 'java')
+    {
+        $className = 'JavaUploadProfile';
+    }
+    else
+    {
         $className = 'UploadProfile';
-#    }
+    }
 
     return $className;
 }

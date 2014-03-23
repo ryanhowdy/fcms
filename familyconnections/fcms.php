@@ -64,6 +64,7 @@ function __autoload ($className)
         'PicasaUploadPhotoGallery'          => INC.'Upload/PhotoGallery/Picasa.php',
         'PluploadUploadPhotoGallery'        => INC.'Upload/PhotoGallery/Plupload.php',
         'UploadProfileForm'                 => INC.'Upload/Profile/Form.php',
+        'PluploadUploadProfileForm'         => INC.'Upload/Profile/Form/Plupload.php',
         'PhotoDestination'                  => INC.'Upload/Destination.php',
         'UploadPhoto'                       => INC.'Upload/Photo.php',
         'UploadPhotoGallery'                => INC.'Upload/PhotoGallery.php',

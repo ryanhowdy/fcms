@@ -259,66 +259,30 @@ Event.observe(window, \'load\', function() {
      */
     function displayAdvancedAvatarUploadSubmit ()
     {
-        $filetypes = array(
-            'image/pjpeg'   => 'jpg', 
-            'image/jpeg'    => 'jpg', 
-            'image/gif'     => 'gif', 
-            'image/bmp'     => 'bmp', 
-            'image/x-png'   => 'png', 
-            'image/png'     => 'png'
-        );
+        // Figure out where we are currently saving photos
+        $photoDestinationType = getPhotoDestination();
 
-        $type        = $_FILES['avatar']['type'];
-        $extention   = $filetypes[$type];
-        $id          = uniqid("");
-        $name        = $id.".".$extention;
-        $uploadsPath = getUploadsAbsolutePath();
+        $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser, 'avatar');
+        $uploadPhoto      = new UploadPhoto($this->fcmsError, $photoDestination);
+        $profileUploader  = new UploadProfile($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
-        $sql = "UPDATE `fcms_users`
-                SET `avatar` = ?
-                WHERE `id` = ?";
+        $formData = $_POST;
 
-        if (!$this->fcmsDatabase->update($sql, array($name, $this->fcmsUser->id)))
+        if (isset($_FILES['file']))
         {
-            logError(__FILE__.' ['.__LINE__.'] - Could not update db with new avatar.');
-            echo "FAILURE: Could not update db with new avatar.\n";
-            exit();
+            $_FILES['file']['name'] = $_POST['name'];
+            $formData['avatar']     = $_FILES['file'];
         }
 
-        $sql = "INSERT INTO `fcms_changelog` 
-                    (`user`, `table`, `column`, `created`)
-                VALUES 
-                    (?, 'users', 'avatar', NOW())";
-
-        if (!$this->fcmsDatabase->insert($sql, array($this->fcmsUser->id)))
+        if (!$profileUploader->upload($formData))
         {
-            logError(__FILE__.' ['.__LINE__.'] - Could not update db with changelog details.');
-            echo "FAILURE: Could not update db with changelog details.\n";
-            exit();
-        }
-
-        if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadsPath.'avatar/'.$name))
-        {
-            echo "success";
-        }
-        else
-        {
-            logError(__FILE__.' ['.__LINE__.'] - Could not move avatar file.');
-            echo "FAILURE: Could not move avatar file.\n";
-            exit();
-        }
-
-        if ($_GET['orig'] != 'no_avatar.jpg' && $_GET['orig'] != 'gravatar')
-        {
-            if (file_exists($uploadsPath.'avatar/'.basename($_GET['orig'])))
-            {
-                unlink($uploadsPath.'avatar/'.basename($_GET['orig']));
-            }
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
         }
 
         $_SESSION['success'] = 1;
-
-        exit();
     }
 
     /**
@@ -763,7 +727,10 @@ Event.observe(window, \'load\', function() {
 
         $formData = $_POST;
 
-        $formData['avatar'] = $_FILES['avatar'];
+        if (isset($_FILES['avatar']))
+        {
+            $formData['avatar'] = $_FILES['avatar'];
+        }
 
         if (!$profileUploader->upload($formData))
         {
