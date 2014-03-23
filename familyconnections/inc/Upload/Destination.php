@@ -30,15 +30,21 @@ class PhotoDestination
         $this->fcmsError        = $fcmsError;
         $this->fcmsUser         = $fcmsUser;
 
+        // default photo gallery
         if (is_null($subdir))
         {
             $subdir = 'photos';
         }
 
-        $this->relativePath = URL_PREFIX . 'uploads/'.$subdir.'/';
-        $this->absolutePath = ROOT       . 'uploads/'.$subdir.'/';
+        $this->relativePath     = URL_PREFIX . 'uploads/'.$subdir.'/';
+        $this->absolutePath     = ROOT       . 'uploads/'.$subdir.'/';
+        $this->destinationPath  = $this->absolutePath;
 
-        $this->destinationPath = $this->absolutePath.'member'.(int)$this->fcmsUser->id.'/';
+        // default photo gallery
+        if (is_null($subdir))
+        {
+            $this->destinationPath .= 'member'.(int)$this->fcmsUser->id.'/';
+        }
     }
 
     /**

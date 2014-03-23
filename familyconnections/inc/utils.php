@@ -5067,3 +5067,43 @@ function getPhotoGallery ()
 
     return $photoGallery;
 }
+
+/**
+ * getProfileClassName
+ * 
+ * Returns the name of the appropriate profile class.
+ * 
+ * @return string
+ */
+function getProfileClassName ()
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    $type = getUploaderType($fcmsUser->id);
+
+# TODO
+#    if ($type == 'plupload')
+#    {
+#        $className = 'PluploadUploadProfile';
+#    }
+#    else if ($type == 'java')
+#    {
+#        $className = 'JavaUploadProfile';
+#    }
+#    else if ($type == 'instagram')
+#    {
+#        $className = 'InstagramUploadProfile';
+#    }
+#    else if ($type == 'picasa')
+#    {
+#        $className = 'PicasaUploadProfile';
+#    }
+#    else
+#    {
+        $className = 'UploadProfile';
+#    }
+
+    return $className;
+}

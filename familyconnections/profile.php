@@ -751,96 +751,21 @@ Event.observe(window, \'load\', function() {
      */
     function displayEditProfilePictureFormSubmit ()
     {
-        $sql = "UPDATE `fcms_users` SET ";
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getPhotoDestination();
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser, 'avatar');
 
-        $uploadsPath = getUploadsAbsolutePath();
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
 
-        // Avatar uploads
-        if ($_POST['avatar_type'] == 'fcms')
-        {
-            if ($_FILES['avatar']['error'] < 1)
-            {
-                $this->fcmsImage->destination  = $uploadsPath.'avatar/';
-                $this->fcmsImage->resizeSquare = true;
-                $this->fcmsImage->uniqueName   = true;
+        // Get the right profile uploader
+        $profileClassName = getProfileClassName();
+        $profileUploader  = new $profileClassName($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
-                $this->fcmsImage->upload($_FILES['avatar']);
+        $formData = $_POST;
 
-                if ($this->fcmsImage->error == 1)
-                {
-                    $this->displayHeader();
+        $formData['avatar'] = $_FILES['avatar'];
 
-                    echo '
-                <p class="error-alert">
-                    '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->fcmsImage->name).'
-                </p>';
-
-                    $this->displayFooter();
-                    return;
-                }
-
-                $this->fcmsImage->resize(80, 80);
-
-                if ($this->fcmsImage->error > 0)
-                {
-                    $this->displayHeader();
-
-                    echo '
-                <p class="error-alert">
-                    '.T_('There was an error uploading your avatar.').'
-                </p>';
-
-                    $this->displayFooter();
-                    return;
-                }
-
-                $sql .= "`avatar` = '".$this->fcmsImage->name."'";
-
-                if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
-                {
-                    if (file_exists($uploadsPath.'avatar/'.basename($_POST['avatar_orig'])))
-                    {
-                        unlink($uploadsPath.'avatar/'.basename($_POST['avatar_orig']));
-                    }
-                }
-
-            }
-            else
-            {
-                $sql .= "`avatar` = `avatar`";
-            }
-        }
-        // Avatar Gravatar
-        else if ($_POST['avatar_type'] == 'gravatar')
-        {
-            $sql .= "`avatar` = 'gravatar', `gravatar` = '".$_POST['gravatar_email']."'";
-
-            if ($_POST['avatar_orig'] != 'no_avatar.jpg' && $_POST['avatar_orig'] != 'gravatar')
-            {
-                if (file_exists($uploadsPath.'avatar/'.basename($_POST['avatar_orig'])))
-                {
-                    unlink($uploadsPath.'avatar/'.basename($_POST['avatar_orig']));
-                }
-            }
-        }
-        // Avatar default
-        else
-        {
-            $sql .= "`avatar` = 'no_avatar.jpg'";
-        }
-
-        $sql .= "WHERE `id` = ?";
-        if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
-        {
-            $this->displayHeader();
-            $this->fcmsError->displayError();
-            $this->displayFooter();
-            return;
-        }
-
-        $sql = "INSERT INTO `fcms_changelog` (`user`, `table`, `column`, `created`)
-                VALUES (?, 'users', 'avatar', NOW())";
-        if (!$this->fcmsDatabase->insert($sql, $this->fcmsUser->id))
+        if (!$profileUploader->upload($formData))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();

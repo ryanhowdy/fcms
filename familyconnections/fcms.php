@@ -63,9 +63,11 @@ function __autoload ($className)
         'InstagramUploadPhotoGallery'       => INC.'Upload/PhotoGallery/Instagram.php',
         'PicasaUploadPhotoGallery'          => INC.'Upload/PhotoGallery/Picasa.php',
         'PluploadUploadPhotoGallery'        => INC.'Upload/PhotoGallery/Plupload.php',
+        'UploadProfileForm'                 => INC.'Upload/Profile/Form.php',
         'PhotoDestination'                  => INC.'Upload/Destination.php',
         'UploadPhoto'                       => INC.'Upload/Photo.php',
         'UploadPhotoGallery'                => INC.'Upload/PhotoGallery.php',
+        'UploadProfile'                     => INC.'Upload/Profile.php',
         'Instagram'                         => THIRDPARTY.'Instagram.php',
     );
 
