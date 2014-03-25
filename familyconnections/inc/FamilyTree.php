@@ -499,18 +499,36 @@ class FamilyTree
     {
         $data['sex'] = strtolower($data['sex']);
 
+        $bday = '<i>'.T_('Living').'</i>';
+        $dday = '';
 
-        $bd = isset($data['dob_day']) && !empty($data['dob_day']) ? (int)$data['dob_day'].'.' : '?.';
-        $bm = isset($data['dob_month']) && !empty($data['dob_month']) ? (int)$data['dob_month'].'.' : '?.';
-        $by = isset($data['dob_year']) && !empty($data['dob_year']) ? (int)$data['dob_year'].' - ' : '? - ';
-        $b= $bd.$bm.$by;
+        // Just birthday
+        if (isset($data['dob_year']) && !empty($data['dob_year']))
+        {
+            $bday  = (int)$data['dob_year'];
+            $bday .= ' - ';
+            $dday  = '<i>'.T_('Living').'</i>';
 
-        $dd = isset($data['dod_day']) && !empty($data['dod_day']) ? (int)$data['dod_day'].'.' : '?.';
-        $dm = isset($data['dod_month']) && !empty($data['dod_month']) ? (int)$data['dod_month'].'.' : '?.';
-        $dy = isset($data['dod_year']) && !empty($data['dod_year']) ? (int)$data['dod_year'] : '?';
-        $d =$dd.$dm.$dy;
-        $middlename = isset($data['mname']) && !empty($data['mname']) ? $data['mname'].'<br/>' : '';
-        $maidenname =isset($data['maiden']) && !empty($data['maiden']) && $data['maiden'] <> $data['lname'] ? '<br/>('.$data['maiden'].')' : '';
+            // Birthday and Deceased date
+            if (isset($data['dod_year']) && !empty($data['dod_year']))
+            {
+                $dday  = (int)$data['dod_year'];
+            }
+        }
+        // Just Deceased date
+        else if (isset($data['dod_year']) && !empty($data['dod_year']))
+        {
+            $bday = '? - ';
+            $dday = (int)$data['dod_year'];
+        }
+
+        $middleName = isset($data['mname']) && !empty($data['mname']) ? $data['mname'].'<br/>' : '';
+
+        $maidenName = '';
+        if (isset($data['maiden']) && !empty($data['maiden']) && $data['maiden'] != $data['lname'])
+        {
+            $maidenName = '<br/>('.cleanOutput($data['maiden']).')';
+        }
 
         $avatarPath = getAvatarPath($data['avatar'], $data['gravatar']);
 
@@ -542,12 +560,12 @@ class FamilyTree
             </div>
             <div class="tree-detail">
                 <a href="?details='.$data['id'].'">
-                    '.$data['fname'].'<br/>
-                    '.$middlename.'
-                    '.$data['lname'].'
-                    '.$maidenname.'
+                    '.cleanOutput($data['fname']).'<br/>
+                    '.$middleName.'
+                    '.cleanOutput($data['lname']).'
+                    '.$maidenName.'
                 </a>
-                <p>'.$b.$d.'</p>
+                <p>'.$bday.$dday.'</p>
                 <span class="tools">
                     <a class="view" href="?view='.$data['id'].'">'.T_('View').'</a>
                     '.$del.'
