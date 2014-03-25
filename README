@@ -42,9 +42,17 @@
 
   3.4.0
 
+    #379 - Replace Java-Uploader
     #404 - Save photos to Amazon S3
     #406 - Sort Siblings, Children by DOB
+    #413 - Unable to login after upgrading to 3.3
     #417 - Users should not show up as 'new' until they are activated
+    #421 - Birthday shouldn't require year
+    #423 - Multiple status update reply
+    #426 - Include Middle name on Family Tree
+    #436 - Show full details in What's New area
+    #438 - Error Deleting Photos
+    #446 - Calendar Birthdays
 
 
 
