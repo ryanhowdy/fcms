@@ -65,6 +65,7 @@ function __autoload ($className)
         'PluploadUploadPhotoGallery'        => INC.'Upload/PhotoGallery/Plupload.php',
         'UploadProfileForm'                 => INC.'Upload/Profile/Form.php',
         'PluploadUploadProfileForm'         => INC.'Upload/Profile/Form/Plupload.php',
+        'JavaUploadProfileForm'             => INC.'Upload/Profile/Form/Java.php',
         'PhotoDestination'                  => INC.'Upload/Destination.php',
         'UploadPhoto'                       => INC.'Upload/Photo.php',
         'UploadPhotoGallery'                => INC.'Upload/PhotoGallery.php',

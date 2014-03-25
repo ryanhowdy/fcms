@@ -273,6 +273,10 @@ Event.observe(window, \'load\', function() {
             $_FILES['file']['name'] = $_POST['name'];
             $formData['avatar']     = $_FILES['file'];
         }
+        else if (isset($_FILES['avatar']))
+        {
+            $formData['avatar'] = $_FILES['avatar'];
+        }
 
         if (!$profileUploader->upload($formData))
         {
