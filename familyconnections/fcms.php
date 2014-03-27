@@ -54,6 +54,11 @@ if ($fcmsError->hasError())
 function __autoload ($className)
 {
     $classPaths = array(
+        'Destination'                       => INC.'Upload/Destination.php',
+        'PhotoGalleryDestination'           => INC.'Upload/Destination/PhotoGallery.php',
+        'ProtectedPhotoGalleryDestination'  => INC.'Upload/Destination/PhotoGallery/Protected.php',
+        'ProfileDestination'                => INC.'Upload/Destination/Profile.php',
+        'ProtectedProfileDestination'       => INC.'Upload/Destination/Profile/Protected.php',
         'UploadPhotoGalleryForm'            => INC.'Upload/PhotoGallery/Form.php',
         'JavaUploadPhotoGalleryForm'        => INC.'Upload/PhotoGallery/Form/Java.php',
         'InstagramUploadPhotoGalleryForm'   => INC.'Upload/PhotoGallery/Form/Instagram.php',
@@ -66,7 +71,6 @@ function __autoload ($className)
         'UploadProfileForm'                 => INC.'Upload/Profile/Form.php',
         'PluploadUploadProfileForm'         => INC.'Upload/Profile/Form/Plupload.php',
         'JavaUploadProfileForm'             => INC.'Upload/Profile/Form/Java.php',
-        'PhotoDestination'                  => INC.'Upload/Destination.php',
         'UploadPhoto'                       => INC.'Upload/Photo.php',
         'UploadPhotoGallery'                => INC.'Upload/PhotoGallery.php',
         'UploadProfile'                     => INC.'Upload/Profile.php',

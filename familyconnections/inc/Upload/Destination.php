@@ -1,17 +1,16 @@
 <?php
 /**
- * Photo Destination 
+ * Destination 
  * 
- * Saves uploads to the local uploads directory.  Subdir can be
- * passed in, defaults to photos/memberX/.
+ * The base Destination class.
  * 
  * @package Upload
- * @subpackage Photo
+ * @subpackage Destination
  * @copyright 2014 Haudenschilt LLC
  * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
-class PhotoDestination
+class Destination
 {
     public $destinationPath;
     public $absolutePath;
@@ -25,26 +24,13 @@ class PhotoDestination
      * 
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, User $fcmsUser, $subdir = null)
+    public function __construct (FCMS_Error $fcmsError, User $fcmsUser)
     {
         $this->fcmsError        = $fcmsError;
         $this->fcmsUser         = $fcmsUser;
-
-        // default photo gallery
-        if (is_null($subdir))
-        {
-            $subdir = 'photos';
-        }
-
-        $this->relativePath     = URL_PREFIX . 'uploads/'.$subdir.'/';
-        $this->absolutePath     = ROOT       . 'uploads/'.$subdir.'/';
+        $this->relativePath     = URL_PREFIX . 'uploads/';
+        $this->absolutePath     = ROOT       . 'uploads/';
         $this->destinationPath  = $this->absolutePath;
-
-        // default photo gallery
-        if ($subdir == 'photos')
-        {
-            $this->destinationPath .= 'member'.(int)$this->fcmsUser->id.'/';
-        }
     }
 
     /**

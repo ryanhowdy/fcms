@@ -80,7 +80,7 @@ class JavaUploadPhotoGallery extends UploadPhotoGallery
             $this->fileName = $prefix.$this->newPhotoId.'.'.$this->extension;
 
             // Copy temp photo to destination
-            $this->photoDestination->copy($this->formData[$type]['tmp_name'], $this->fileName);
+            $this->destination->copy($this->formData[$type]['tmp_name'], $this->fileName);
 
             // Set up the session vars to send to edit page
             // only on main, so we don't get both full size and thumbnail

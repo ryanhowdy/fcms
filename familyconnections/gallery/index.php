@@ -573,7 +573,7 @@ class Page
         }
 
         // Figure out where we are currently saving photos, and create new destination object
-        $photoDestinationType = getPhotoDestination();
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
         $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $filePath  = basename($photoFilename);
@@ -658,7 +658,7 @@ class Page
     function displayUploadFormSubmit ()
     {
         // Figure out where we are currently saving photos, and create new destination object
-        $photoDestinationType = getPhotoDestination();
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
         $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
@@ -711,7 +711,7 @@ class Page
     function displayPluploadFormSubmit ()
     {
         // Figure out where we are currently saving photos, and create new destination object
-        $photoDestinationType = getPhotoDestination();
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
         $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
@@ -748,7 +748,7 @@ class Page
     function displayJavaUploadFormSubmit ()
     {
         // Figure out where we are currently saving photos, and create new destination object
-        $photoDestinationType = getPhotoDestination();
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
         $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
@@ -867,7 +867,7 @@ class Page
     function displayPicasaUploadFormSubmit ()
     {
         // Figure out where we are currently saving photos, and create new destination object
-        $photoDestinationType = getPhotoDestination();
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
         $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);

@@ -16,7 +16,7 @@ class UploadPhotoGallery
     protected $fcmsError;
     protected $fcmsDatabase;
     protected $fcmsUser;
-    protected $photoDestination;
+    protected $destination;
     protected $uploadPhoto;
 
     protected $usingFullSizePhotos;
@@ -34,20 +34,20 @@ class UploadPhotoGallery
     /**
      * __construct 
      * 
-     * @param FCMS_Error        $fcmsError 
-     * @param Database          $fcmsDatabase 
-     * @param User              $fcmsUser 
-     * @param PhotoDestination  $photoDestination 
-     * @param UploadPhoto       $uploadPhoto 
+     * @param FCMS_Error  $fcmsError 
+     * @param Database    $fcmsDatabase 
+     * @param User        $fcmsUser 
+     * @param Destination $destination 
+     * @param UploadPhoto $uploadPhoto 
      * 
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, PhotoDestination $photoDestination, UploadPhoto $uploadPhoto = null)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, Destination $destination, UploadPhoto $uploadPhoto = null)
     {
         $this->fcmsError           = $fcmsError;
         $this->fcmsDatabase        = $fcmsDatabase;
         $this->fcmsUser            = $fcmsUser;
-        $this->photoDestination    = $photoDestination;
+        $this->destination    = $destination;
         $this->uploadPhoto         = $uploadPhoto;
         $this->usingFullSizePhotos = usingFullSizePhotos();
     }
@@ -350,55 +350,19 @@ class UploadPhotoGallery
             $usingFullSizePhotos = $row['full_size_photos'] == 1 ? true : false;
         }
 
-        $photoPaths[0] = $this->photoDestination->absolutePath."member$uid/$fileName";
-        $photoPaths[1] = $this->photoDestination->absolutePath."member$uid/$fileName";
+        $photoPaths[0] = $this->destination->absolutePath."member$uid/$fileName";
+        $photoPaths[1] = $this->destination->absolutePath."member$uid/$fileName";
 
         if ($usingFullSizePhotos)
         {
             // If you are using full sized but a photo was uploaded prior to that change, 
             // no full sized photo will be available, so don't link to it
-            if (file_exists($this->photoDestination->absolutePath."member$uid/full_$fileName"))
+            if (file_exists($this->destination->absolutePath."member$uid/full_$fileName"))
             {
-                $photo_path[1] = $this->photoDestination->absolutePath."member$uid/full_$fileName";
+                $photo_path[1] = $this->destination->absolutePath."member$uid/full_$fileName";
             }
         }
 
         return $photoPaths;
-    }
-
-    /**
-     * getPhotoSource 
-     * 
-     * @param array  $data 
-     * @param string $size 
-     * 
-     * @return string
-     */
-    public function getPhotoSource ($data, $size = 'thumbnail')
-    {
-        $prefix = '';
-        if ($size == 'thumbnail')
-        {
-            $prefix = 'tb_';
-        }
-        elseif ($size == 'full')
-        {
-            $prefix = 'full_';
-        }
-
-        $path = $this->photoDestination->relativePath.'member'.(int)$data['user'].'/';
-
-        $photoSrc = $path.$prefix.basename($data['filename']);
-
-        // XXX: we may have uploaded this photo before we 
-        // starting using full sized photos, so this full
-        // sized photo may not exist.
-        // Give them main size instead
-        if ($size == 'full' && !file_exists($photoSrc))
-        {
-            $photoSrc = $path.basename($data['filename']);
-        }
-
-        return $photoSrc;
     }
 }

@@ -20,20 +20,20 @@ class PluploadUploadPhotoGallery extends UploadPhotoGallery
     /**
      * __construct 
      * 
-     * @param FCMS_Error        $fcmsError 
-     * @param Database          $fcmsDatabase 
-     * @param User              $fcmsUser 
-     * @param PhotoDestination  $photoDestination 
-     * @param UploadPhoto       $uploadPhoto 
+     * @param FCMS_Error  $fcmsError 
+     * @param Database    $fcmsDatabase 
+     * @param User        $fcmsUser 
+     * @param Destination $destination 
+     * @param UploadPhoto $uploadPhoto 
      * 
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, PhotoDestination $photoDestination, UploadPhoto $uploadPhoto = null)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, Destination $destination, UploadPhoto $uploadPhoto = null)
     {
         $this->fcmsError           = $fcmsError;
         $this->fcmsDatabase        = $fcmsDatabase;
         $this->fcmsUser            = $fcmsUser;
-        $this->photoDestination    = $photoDestination;
+        $this->destination         = $destination;
         $this->uploadPhoto         = $uploadPhoto;
         $this->usingFullSizePhotos = usingFullSizePhotos();
     }
@@ -148,7 +148,7 @@ class PluploadUploadPhotoGallery extends UploadPhotoGallery
         $this->fileName = $prefix.$this->newPhotoId.'.'.$this->extension;
 
         // Copy temp photo to destination
-        $ret = $this->photoDestination->copy($this->formData['photo']['tmp_name'], $this->fileName);
+        $ret = $this->destination->copy($this->formData['photo']['tmp_name'], $this->fileName);
         if ($ret === false)
         {
             return false;

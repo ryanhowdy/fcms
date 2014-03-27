@@ -4981,35 +4981,31 @@ function startsWith($haystack, $needle)
 }
 
 /**
- * getPhotoDestination 
+ * getDestinationType
  * 
- * Returns the name of the appropriate destination object.
+ * Returns the name of the destination type.
  * 
  * @return string
  */
-function getPhotoDestination ()
+function getDestinationType ()
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
-
     // Save outside the root (Protected)
     if (defined('UPLOADS'))
     {
-        $photoDestination = 'ProtectedPhotoDestination';
+        $destination = 'Protected';
     }
     // Save to Amazon S3
     elseif (defined('S3') && date('Ymd', S3) < date('Ymd'))
     {
-        $photoDestination = 'S3PhotoDestination';
+        $destination = 'S3';
     }
     // Save in uploads/photos/*
     else
     {
-        $photoDestination = 'PhotoDestination';
+        $destination = '';
     }
 
-    return $photoDestination;
+    return $destination;
 }
 
 /**

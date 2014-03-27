@@ -19,21 +19,21 @@ class UploadProfile
     /**
      * __construct 
      * 
-     * @param FCMS_Error        $fcmsError 
-     * @param Database          $fcmsDatabase 
-     * @param User              $fcmsUser 
-     * @param PhotoDestination  $photoDestination 
-     * @param UploadPhoto       $uploadPhoto 
+     * @param FCMS_Error  $fcmsError 
+     * @param Database    $fcmsDatabase 
+     * @param User        $fcmsUser 
+     * @param Destination $destination 
+     * @param UploadPhoto $uploadPhoto 
      * 
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, PhotoDestination $photoDestination, UploadPhoto $uploadPhoto = null)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, Destination $destination, UploadPhoto $uploadPhoto = null)
     {
-        $this->fcmsError           = $fcmsError;
-        $this->fcmsDatabase        = $fcmsDatabase;
-        $this->fcmsUser            = $fcmsUser;
-        $this->photoDestination    = $photoDestination;
-        $this->uploadPhoto         = $uploadPhoto;
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
+        $this->destination  = $destination;
+        $this->uploadPhoto  = $uploadPhoto;
     }
 
     /**
@@ -120,9 +120,9 @@ class UploadProfile
     {
         if ($this->formData['avatar_orig'] != 'no_avatar.jpg' && $this->formData['avatar_orig'] != 'gravatar')
         {
-            if (file_exists($this->photoDestination->destinationPath.basename($this->formData['avatar_orig'])))
+            if (file_exists($this->destination->destinationPath.basename($this->formData['avatar_orig'])))
             {
-                unlink($this->photoDestination->destinationPath.basename($this->formData['avatar_orig']));
+                unlink($this->destination->destinationPath.basename($this->formData['avatar_orig']));
             }
         }
     }

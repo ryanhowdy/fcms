@@ -260,9 +260,9 @@ Event.observe(window, \'load\', function() {
     function displayAdvancedAvatarUploadSubmit ()
     {
         // Figure out where we are currently saving photos
-        $photoDestinationType = getPhotoDestination();
+        $photoDestinationType = getDestinationType().'ProfileDestination';
 
-        $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser, 'avatar');
+        $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
         $uploadPhoto      = new UploadPhoto($this->fcmsError, $photoDestination);
         $profileUploader  = new UploadProfile($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
@@ -720,14 +720,11 @@ Event.observe(window, \'load\', function() {
     function displayEditProfilePictureFormSubmit ()
     {
         // Figure out where we are currently saving photos, and create new destination object
-        $photoDestinationType = getPhotoDestination();
-        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser, 'avatar');
+        $photoDestinationType = getDestinationType().'ProfileDestination';
 
-        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
-
-        // Get the right profile uploader
-        $profileClassName = getProfileClassName();
-        $profileUploader  = new $profileClassName($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
+        $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+        $uploadPhoto      = new UploadPhoto($this->fcmsError, $photoDestination);
+        $profileUploader  = new UploadProfile($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $formData = $_POST;
 

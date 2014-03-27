@@ -10,7 +10,7 @@
 class UploadPhoto
 {
     private $fcmsError;
-    private $photoDestination;
+    private $destination;
 
     public $photo;
     public $fileName;
@@ -35,15 +35,15 @@ class UploadPhoto
     /**
      * __construct 
      * 
-     * @param FCMS_Error       $fcmsError 
-     * @param PhotoDestination $photoDestination 
+     * @param FCMS_Error  $fcmsError 
+     * @param Destination $destination 
      * 
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, PhotoDestination $photoDestination)
+    public function __construct (FCMS_Error $fcmsError, Destination $destination)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->photoDestination = $photoDestination;
+        $this->fcmsError   = $fcmsError;
+        $this->destination = $destination;
     }
 
     /**
@@ -151,8 +151,8 @@ class UploadPhoto
             $this->fileName = $id.'.'.$this->extension;
         }
 
-        // Copy temp photo to photoDestination
-        $this->photoDestination->copy($this->photo['tmp_name'], $this->fileName);
+        // Copy temp photo to destination
+        $this->destination->copy($this->photo['tmp_name'], $this->fileName);
 
         return $this;
     }
@@ -212,12 +212,12 @@ class UploadPhoto
         }
 
         // Make sure file was saved already
-        if (!file_exists($this->photoDestination->destinationPath.$this->fileName))
+        if (!file_exists($this->destination->destinationPath.$this->fileName))
         {
             return $this;
         }
 
-        $currentSize = $this->photoDestination->getImageSize($this->photoDestination->destinationPath.$this->fileName);
+        $currentSize = $this->destination->getImageSize($this->destination->destinationPath.$this->fileName);
 
         // Does the image even need resized?
         if ($currentSize[0] < $maxWidth && $currentSize[1] < $maxHeight)
@@ -233,8 +233,8 @@ class UploadPhoto
                 $currentSize[1], 
                 $maxWidth
             );
-            $photoDestinationWidth   = $resizeSize[0];
-            $photoDestinationHeight  = $resizeSize[1];
+            $destinationWidth   = $resizeSize[0];
+            $destinationHeight  = $resizeSize[1];
             $trueColorWidth     = $resizeSize[2];
             $trueColorHeight    = $resizeSize[3];
         }
@@ -247,23 +247,23 @@ class UploadPhoto
                 $maxWidth, 
                 $maxHeight
             );
-            $photoDestinationWidth   = $resizeSize[0];
-            $photoDestinationHeight  = $resizeSize[1];
+            $destinationWidth   = $resizeSize[0];
+            $destinationHeight  = $resizeSize[1];
             $trueColorWidth     = $resizeSize[0];
             $trueColorHeight    = $resizeSize[1];
         }
 
-        $sourceIdentifier = $this->photoDestination->createImageIdentifier($this->fileName, $this->extension);
+        $sourceIdentifier = $this->destination->createImageIdentifier($this->fileName, $this->extension);
 
-        $photoDestinationIdentifier = ImageCreateTrueColor($trueColorWidth, $trueColorHeight);
+        $destinationIdentifier = ImageCreateTrueColor($trueColorWidth, $trueColorHeight);
 
         // Resize image
         if (!ImageCopyResampled(
-            $photoDestinationIdentifier, 
+            $destinationIdentifier, 
             $sourceIdentifier, 
             0, 0, 0, 0, 
-            $photoDestinationWidth, 
-            $photoDestinationHeight,
+            $destinationWidth, 
+            $destinationHeight,
             $currentSize[0], 
             $currentSize[1]
         ))
@@ -276,7 +276,7 @@ class UploadPhoto
             return $this;
         };
 
-        if (!$this->photoDestination->writeImage($photoDestinationIdentifier, $this->fileName, $this->extension))
+        if (!$this->destination->writeImage($destinationIdentifier, $this->fileName, $this->extension))
         {
             $this->fcmsError->add(array(
                 'message' => T_('Upload Error'),
@@ -304,12 +304,12 @@ class UploadPhoto
         }
 
         // Make sure file was saved already
-        if (!file_exists($this->photoDestination->destinationPath.$this->fileName))
+        if (!file_exists($this->destination->destinationPath.$this->fileName))
         {
             return $this;
         }
 
-        $identifier = $this->photoDestination->createImageIdentifier($this->fileName, $this->extension);
+        $identifier = $this->destination->createImageIdentifier($this->fileName, $this->extension);
 
         if ($identifier === false)
         {
@@ -333,7 +333,7 @@ class UploadPhoto
             return $this;
         }
 
-        if (!$this->photoDestination->writeImage($source, $this->fileName, $this->extension))
+        if (!$this->destination->writeImage($source, $this->fileName, $this->extension))
         {
             $this->fcmsError->add(array(
                 'message' => T_('Upload Error'),
@@ -502,7 +502,7 @@ class UploadPhoto
         $this->memoryAvailable = substr($this->memoryAvailable, 0, -1);
         $this->memoryAvailable = ($this->memoryAvailable * 1024) * 1024;
 
-        $size = $this->photoDestination->getImageSize($this->photoDestination->destinationPath.$this->fileName);
+        $size = $this->destination->getImageSize($this->destination->destinationPath.$this->fileName);
 
         // channels and bits are not present on all images
         if (!isset($size['channels'])) {
@@ -517,7 +517,7 @@ class UploadPhoto
         if ($this->memoryNeeded > $this->memoryAvailable)
         {
             // Try to delete from server
-            $this->photoDestination->deleteFile($this->fileName);
+            $this->destination->deleteFile($this->fileName);
 
             $this->fcmsError->add(array(
                 'message' => T_('Out of Memory Warning'),
