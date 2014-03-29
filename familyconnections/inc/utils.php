@@ -3849,40 +3849,23 @@ function getCurrentAvatar ($id)
  */
 function getAvatarPath ($avatar, $gravatar)
 {
-    // Protected uploads
-    if (defined('UPLOADS'))
+    if ($avatar === 'gravatar')
     {
-        switch ($avatar)
-        {
-            case 'no_avatar.jpg':
-                return URL_PREFIX.'file.php?a=no_avatar.jpg';
-                break;
-
-            case 'gravatar':
-                return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80'; 
-                break;
-
-            default:
-                return URL_PREFIX.'file.php?a='.basename($avatar);
-                break;
-        }
+        return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
+    }
+    else if ($avatar === 'no_avatar.jpg')
+    {
+        return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
     }
 
-    // Unprotected uploads
-    switch ($avatar)
-    {
-        case 'no_avatar.jpg':
-            return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
-            break;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
 
-        case 'gravatar':
-            return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80'; 
-            break;
+    $destinationType = getDestinationType().'ProfileDestination';
+    $destination     = new $destinationType($fcmsError, $fcmsUser);
 
-        default:
-            return URL_PREFIX.'uploads/avatar/'.basename($avatar);
-            break;
-    }
+    return $destination->getPhotoSource($avatar);
 }
 
 /**

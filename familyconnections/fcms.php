@@ -59,6 +59,7 @@ function __autoload ($className)
         'ProtectedPhotoGalleryDestination'  => INC.'Upload/Destination/PhotoGallery/Protected.php',
         'ProfileDestination'                => INC.'Upload/Destination/Profile.php',
         'ProtectedProfileDestination'       => INC.'Upload/Destination/Profile/Protected.php',
+        'S3ProfileDestination'              => INC.'Upload/Destination/Profile/S3.php',
         'UploadPhotoGalleryForm'            => INC.'Upload/PhotoGallery/Form.php',
         'JavaUploadPhotoGalleryForm'        => INC.'Upload/PhotoGallery/Form/Java.php',
         'InstagramUploadPhotoGalleryForm'   => INC.'Upload/PhotoGallery/Form/Instagram.php',
@@ -74,6 +75,7 @@ function __autoload ($className)
         'UploadPhoto'                       => INC.'Upload/Photo.php',
         'UploadPhotoGallery'                => INC.'Upload/PhotoGallery.php',
         'UploadProfile'                     => INC.'Upload/Profile.php',
+        'S3'                                => THIRDPARTY.'s3/S3.php',
         'Instagram'                         => THIRDPARTY.'Instagram.php',
     );
 

@@ -97,6 +97,11 @@ class UploadProfile
      */
     protected function saveAvatar ()
     {
+        if (!$this->destination->createDirectory())
+        {
+            return false;
+        }
+
         $this->uploadPhoto->save()
                           ->resize(80, 80, 'square');
 
