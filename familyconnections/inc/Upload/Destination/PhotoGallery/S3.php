@@ -203,23 +203,13 @@ class S3PhotoGalleryDestination extends PhotoGalleryDestination
      */
     public function getPhotoPaths ($fileName, $uid)
     {
-        $sql = "SELECT `value` AS 'full_size_photos'
-                FROM `fcms_config`
-                WHERE `name` = 'full_size_photos'";
-
-        $usingFullSizePhotos = false; 
-
-        $row = $this->fcmsDatabase->getRow($sql);
-        if ($row !== false)
-        {
-            $usingFullSizePhotos = $row['full_size_photos'] == 1 ? true : false;
-        }
+        $fileName = basename($fileName);
 
         $mediumPath = $this->s3->getAuthenticatedURL($this->bucketName, $fileName, 3600);
 
         $photoPaths = array($mediumPath, $mediumPath);
 
-        if ($usingFullSizePhotos)
+        if (usingFullSizePhotos())
         {
             $photoPaths[1] = $this->s3->getAuthenticatedURL($this->bucketName, 'full_'.$fileName, 3600);
         }

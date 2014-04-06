@@ -32,6 +32,30 @@ class PhotoGalleryDestination extends Destination
     }
 
     /**
+     * getPhotoPaths 
+     * 
+     * @param string $fileName 
+     * @param string $uid 
+     * 
+     * @return array
+     */
+    public function getPhotoPaths ($fileName, $uid)
+    {
+        $fileName = basename($fileName);
+        $uid      = (int)$uid;
+
+        $photoPath[0] = $this->absolutePath."member$uid/$fileName";
+        $photoPath[1] = $this->absolutePath."member$uid/$fileName";
+
+        if (usingFullSizePhotos())
+        {
+            $photoPath[1] = $this->absolutePath."member$uid/full_$fileName";
+        }
+
+        return $photoPath;
+    }
+
+    /**
      * getPhotoSource 
      * 
      * @param array  $data 
