@@ -34,6 +34,12 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
             return false;
         }
 
+        // Create directory
+        if (!$this->destination->createDirectory())
+        {
+            return false;
+        }
+
         // Insert new category
         if (!$this->insertCategory())
         {
@@ -80,11 +86,11 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
             $newFilename = $newPhotoId.'.'.$extension;
 
             // Move files to server
-            savePhotoFromSource($thumbnail, 'tb_'.$newFilename);
-            savePhotoFromSource($medium, $newFilename);
+            $this->destination->savePhotoFromSource($thumbnail, 'tb_'.$newFilename);
+            $this->destination->savePhotoFromSource($medium, $newFilename);
             if ($this->usingFullSizePhotos)
             {
-                savePhotoFromSource($full, 'full_'.$newFilename);
+                $this->destination->savePhotoFromSource($full, 'full_'.$newFilename);
             }
 
             $newPhotoFilenames[$newPhotoId] = $newPhotoId.'.'.$extension;

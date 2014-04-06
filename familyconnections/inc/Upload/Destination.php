@@ -306,4 +306,22 @@ class Destination
 
         return true;
     }
+
+    /**
+     * savePhotoFromSource 
+     * 
+     * @param string $source
+     * @param string $filename
+     * 
+     * @return void
+     */
+    public function savePhotoFromSource ($source, $filename)
+    {
+        $ch = curl_init($source);
+        $fh = fopen($this->destinationPath.$filename, 'w');
+
+        curl_setopt($ch, CURLOPT_FILE, $fh);
+        curl_exec($ch);
+        curl_close($ch);
+    }
 }

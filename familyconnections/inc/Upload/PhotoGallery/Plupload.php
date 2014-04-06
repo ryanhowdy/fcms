@@ -136,6 +136,11 @@ class PluploadUploadPhotoGallery extends UploadPhotoGallery
      */
     protected function savePhoto ()
     {
+        if (!$this->destination->createDirectory())
+        {
+            return false;
+        }
+
         $photoTypes = array(
             'main'  => '',
             'thumb' => 'tb_',

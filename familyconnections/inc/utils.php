@@ -4800,38 +4800,6 @@ function displayErrors ($errors)
 }
 
 /**
- * savePhotoFromSource 
- * 
- * @param string $source
- * @param string $filename
- * 
- * @return void
- */
-function savePhotoFromSource ($source, $filename)
-{
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
-
-    $uploadsPath = getUploadsAbsolutePath();
-
-    // Create new member directory if needed
-    if (!file_exists($uploadsPath.'photos/member'.$fcmsUser->id))
-    {
-        mkdir($uploadsPath.'photos/member'.$fcmsUser->id);
-    }
-
-    $destination = $uploadsPath.'photos/member'.$fcmsUser->id.'/'.$filename;
-
-    $ch = curl_init($source);
-    $fh = fopen($destination, 'w');
-
-    curl_setopt($ch, CURLOPT_FILE, $fh);
-    curl_exec($ch);
-    curl_close($ch);
-}
-
-/**
  * usingFullSizePhotos 
  * 
  * @return boolean

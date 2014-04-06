@@ -47,7 +47,7 @@ class UploadPhotoGallery
         $this->fcmsError           = $fcmsError;
         $this->fcmsDatabase        = $fcmsDatabase;
         $this->fcmsUser            = $fcmsUser;
-        $this->destination    = $destination;
+        $this->destination         = $destination;
         $this->uploadPhoto         = $uploadPhoto;
         $this->usingFullSizePhotos = usingFullSizePhotos();
     }
@@ -227,6 +227,11 @@ class UploadPhotoGallery
      */
     protected function savePhoto ()
     {
+        if (!$this->destination->createDirectory())
+        {
+            return false;
+        }
+
         // Setup the array of photos that need uploaded
         $uploadPhotos = array(
             'main'  => array(
@@ -322,47 +327,5 @@ class UploadPhotoGallery
     public function getLastCategoryId ()
     {
         return $this->newCategoryId;
-    }
-
-    /**
-     * getPhotoPaths 
-     * 
-     * @param string $fileName 
-     * @param string $uid 
-     * 
-     * @return array
-     */
-    public function getPhotoPaths ($fileName, $uid)
-    {
-        $fileName = basename($fileName);
-        $uid      = (int)$uid;
-
-        // Link to the full sized photo if using full sized
-        $sql = "SELECT `value` AS 'full_size_photos'
-                FROM `fcms_config`
-                WHERE `name` = 'full_size_photos'";
-
-        $usingFullSizePhotos = false; 
-
-        $row = $this->fcmsDatabase->getRow($sql);
-        if ($row !== false)
-        {
-            $usingFullSizePhotos = $row['full_size_photos'] == 1 ? true : false;
-        }
-
-        $photoPaths[0] = $this->destination->absolutePath."member$uid/$fileName";
-        $photoPaths[1] = $this->destination->absolutePath."member$uid/$fileName";
-
-        if ($usingFullSizePhotos)
-        {
-            // If you are using full sized but a photo was uploaded prior to that change, 
-            // no full sized photo will be available, so don't link to it
-            if (file_exists($this->destination->absolutePath."member$uid/full_$fileName"))
-            {
-                $photo_path[1] = $this->destination->absolutePath."member$uid/full_$fileName";
-            }
-        }
-
-        return $photoPaths;
     }
 }

@@ -57,6 +57,7 @@ function __autoload ($className)
         'Destination'                       => INC.'Upload/Destination.php',
         'PhotoGalleryDestination'           => INC.'Upload/Destination/PhotoGallery.php',
         'ProtectedPhotoGalleryDestination'  => INC.'Upload/Destination/PhotoGallery/Protected.php',
+        'S3PhotoGalleryDestination'         => INC.'Upload/Destination/PhotoGallery/S3.php',
         'ProfileDestination'                => INC.'Upload/Destination/Profile.php',
         'ProtectedProfileDestination'       => INC.'Upload/Destination/Profile/Protected.php',
         'S3ProfileDestination'              => INC.'Upload/Destination/Profile/S3.php',

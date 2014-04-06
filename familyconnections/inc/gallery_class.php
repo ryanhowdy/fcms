@@ -771,14 +771,10 @@ class PhotoGallery
         $uid      = (int)$uid;
 
         // Figure out where we are currently saving photos, and create new destination object
-        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
-        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+        $destinationType = getDestinationType().'PhotoGalleryDestination';
+        $destination     = new $destinationType($this->fcmsError, $this->fcmsUser);
 
-        // Figure out what type of photo gallery uploader we are using, and create new object
-        $photoGalleryType     = getPhotoGallery();
-        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination);
-
-        $photoPath = $photoGalleryUploader->getPhotoPaths($filename, $uid);
+        $photoPath = $destination->getPhotoPaths($filename, $uid);
 
         return $photoPath;
     }
@@ -795,10 +791,10 @@ class PhotoGallery
     function getPhotoFileSize ($file)
     {
         // Figure out where we are currently saving photos, and create new destination object
-        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
-        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+        $destinationType = getDestinationType().'PhotoGalleryDestination';
+        $destination     = new $destinationType($this->fcmsError, $this->fcmsUser);
 
-        $size = $photoDestination->getPhotoFileSize($file);
+        $size = $destination->getPhotoFileSize($file);
 
         return $size;
     }
