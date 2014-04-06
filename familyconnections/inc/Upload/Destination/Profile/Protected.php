@@ -30,4 +30,23 @@ class ProtectedProfileDestination extends ProfileDestination
 
         $this->destinationPath = $this->absolutePath;
     }
+
+    /**
+     * getPhotoSource
+     * 
+     * @param string $avatar 
+     * 
+     * @return string
+     */
+    public function getPhotoSource ($avatar)
+    {
+        $avatar = basename($avatar);
+
+        if (!file_exists($this->absolutePath.$avatar))
+        {
+            return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
+        }
+
+        return $this->relativePath.'?a='.$avatar;
+    }
 }
