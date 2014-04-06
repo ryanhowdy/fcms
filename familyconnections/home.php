@@ -840,7 +840,7 @@ class Page
                 if (strlen($details) > 300)
                 {
                     $details = substr($details, 0, 300);
-                    $details .= '...<br/><br/><a href="?getnews='.$data['userid'].'&amp;newsid='.(int)$data['id'].'">'.T_('Read More').'</a>';
+                    $details .= '...<br/><br/><a href="familynews.php?getnews='.$data['userid'].'&amp;newsid='.(int)$data['id'].'">'.T_('Read More').'</a>';
                 }
 
                 break;
