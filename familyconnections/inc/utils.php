@@ -1098,7 +1098,7 @@ function parse_smilies ($data)
     {
         $data = str_replace(
             $smiley_array[$i], 
-            '<img src="'.URL_PREFIX.'ui/smileys/'.$smiley_file_array[$i].'" alt="'.$smiley_array[$i].'"/>', 
+            '<img src="'.URL_PREFIX.'ui/img/smileys/'.$smiley_file_array[$i].'" alt="'.$smiley_array[$i].'"/>', 
             $data
         );
 
@@ -1149,7 +1149,7 @@ function displaySmileys ()
     $previous_smiley_file = '';
     foreach ($smiley_array as $smiley) {
         if ($smiley_file_array[$i] != $previous_smiley_file) {
-            echo '<div class="smiley"><img src="../ui/smileys/' . $smiley_file_array[$i] . '" alt="' . $smiley . '" onclick="return addSmiley(\''.str_replace("'", "\'", $smiley).'\')" /></div>';
+            echo '<div class="smiley"><img src="'.URL_PREFIX.'ui/img/smileys/' . $smiley_file_array[$i] . '" alt="' . $smiley . '" onclick="return addSmiley(\''.str_replace("'", "\'", $smiley).'\')" /></div>';
             $previous_smiley_file = $smiley_file_array[$i];
         }
         $i++;
