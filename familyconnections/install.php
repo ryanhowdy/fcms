@@ -109,7 +109,7 @@ function displayHeader ()
 <link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
 <script type="text/javascript" src="ui/js/prototype.js"></script>
 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
-<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>
+<link rel="stylesheet" type="text/css" href="ui/css/datechooser.css"/>
 <script type="text/javascript" src="ui/js/datechooser.js"></script>
 <script type="text/javascript">
 //<![CDATA[

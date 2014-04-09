@@ -4877,7 +4877,7 @@ function getModuleList ()
 {
     return array(
         'livevalidation'    => '<script type="text/javascript" src="ui/js/livevalidation.js"></script>',
-        'datechooser'       => '<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>'
+        'datechooser'       => '<link rel="stylesheet" type="text/css" href="ui/css/datechooser.css"/>'
                               .'<script type="text/javascript" src="ui/js/datechooser.js"></script>',
         'scriptaculous'     => '<script type="text/javascript" src="ui/js/scriptaculous.js"></script>',
     );

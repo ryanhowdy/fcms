@@ -1077,7 +1077,7 @@ Event.observe(window, \'load\', function() {
     function displayAdvancedSearchForm ($error = '', $search = '', $start = null, $end = null, $footer = true)
     {
         $js = '
-<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>
+<link rel="stylesheet" type="text/css" href="ui/css/datechooser.css"/>
 <script type="text/javascript" src="ui/js/datechooser.js"></script>
 <script type="text/javascript">
 //<![CDATA[

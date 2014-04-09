@@ -192,7 +192,7 @@ class Page
             $TMPL['javascript'] = '
 <script type="text/javascript" src="'.$TMPL['path'].'ui/js/livevalidation.js"></script>
 <script type="text/javascript" src="'.$TMPL['path'].'ui/js/tablesort.js"></script>
-<link rel="stylesheet" type="text/css" href="'.$TMPL['path'].'ui/datechooser.css"/>
+<link rel="stylesheet" type="text/css" href="'.$TMPL['path'].'ui/css/datechooser.css"/>
 <script type="text/javascript" src="'.$TMPL['path'].'ui/js/datechooser.js"></script>
 <script type="text/javascript">
 //<![CDATA[
