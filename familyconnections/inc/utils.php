@@ -2576,57 +2576,6 @@ function formatSize($file_size)
 }
 
 /**
- * displayMembersOnline 
- * 
- * @return  void
- */
-function displayMembersOnline ()
-{
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-
-    $last24hours = time() - (60 * 60 * 24);
-
-    $sql = "SELECT * 
-            FROM fcms_users 
-            WHERE UNIX_TIMESTAMP(`activity`) >= $last24hours 
-            ORDER BY `activity` DESC";
-
-    $rows = $fcmsDatabase->getRows($sql, $last24hours);    
-    if ($rows === false)
-    {
-        $fcmsError->displayError();
-        return;
-    }
-
-    echo '
-            <h3>'.T_('Last Seen').':</h3>
-            <ul class="avatar-member-list">';
-
-    foreach ($rows as $r)
-    {
-        $displayname = getUserDisplayName($r['id']);
-        $tz_offset   = getTimezone($r['id']);
-        $activity    = fixDate('F d, h:i a', $tz_offset, $r['activity']);
-        $since       = getHumanTimeSince(strtotime($r['activity']));
-
-        echo '
-                <li>
-                    <a href="profile.php?member='.$r['id'].'" class="tooltip" title="['.$displayname.'] - '.$activity.'" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">
-                        <img alt="avatar" src="'.getCurrentAvatar($r['id']).'" alt="'.$displayname.'"/> 
-                    </a>
-                    <div class="tooltip" style="display:none;">
-                        <h5>'.$displayname.'</h5>
-                        <span>'.$since.'</span>
-                    </div>
-                </li>';
-    }
-
-    echo '
-            </ul><br/><br/>';
-}
-
-/**
  * isValidLoginToken
  * 
  * Checks the user's token against the db.
@@ -2966,625 +2915,6 @@ function debugOn ()
 }
 
 /**
- * displayWhatsNewAll 
- * 
- * Displays the following types of new data from the site:
- *
- *  ADDRESSADD      Add address of non-member
- *  ADDRESSEDIT     Edit own address
- *  AVATAR          Change avatar
- *  BOARD           Message board post
- *  CALENDAR        Add date to calendar
- *  DOCS            Added document
- *  GALCATCOM       Commented on category of photos
- *  GALCOM          Commented on photo
- *  GALLERY         Added photo
- *  JOINED          Joined the site (became active)
- *  NEWS            Added family news
- *  NEWSCOM         Commented on family news
- *  POLL            Added poll
- *  POLLCOM         Commented on poll
- *  PRAYERS         Added prayer concern
- *  RECIPES         Added recipe
- *  RECIPECOM       Commented on recipe
- *  STATUS          Added status update
- *  VIDEO           Added video
- *  VIDEOCOM        Commented on video
- *  WHEREISEVERYONE Checked in on foursquare
- *
- * @return void
- */
-function displayWhatsNewAll ()
-{
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
-
-    if ($fcmsError->hasError())
-    {
-        $fcmsError->displayError();
-        return;
-    }
-
-    load('gallery');
-
-    $galleryObj = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
-
-    $lastday = '0-0';
-
-    $today_start = fixDate('Ymd', $fcmsUser->tzOffset, date('Y-m-d H:i:s')) . '000000';
-    $today_end   = fixDate('Ymd', $fcmsUser->tzOffset, date('Y-m-d H:i:s')) . '235959';
-
-    $time            = mktime(0, 0, 0, date('m')  , date('d')-1, date('Y'));
-    $yesterday_start = fixDate('Ymd', $fcmsUser->tzOffset, date('Y-m-d H:i:s', $time)) . '000000';
-    $yesterday_end   = fixDate('Ymd', $fcmsUser->tzOffset, date('Y-m-d H:i:s', $time)) . '235959';
-
-    // Get data
-    $whatsNewData = getWhatsNewData(30);
-    if ($whatsNewData === false)
-    {
-        return;
-    }
-
-    $cachedUserData = array();
-
-    $position = 1;
-    $older    = true;
-
-    // Loop through data
-    foreach ($whatsNewData as $r)
-    {
-        $updated     = fixDate('Ymd',    $fcmsUser->tzOffset, $r['date']);
-        $updatedFull = fixDate('YmdHis', $fcmsUser->tzOffset, $r['date']);
-
-        // Print date header
-        if ($updated != $lastday)
-        {
-            // Today
-            if ($updatedFull >= $today_start && $updatedFull <= $today_end)
-            {
-                echo '
-                <p><b>'.T_('Today').'</b></p>';
-            }
-            // Yesterday
-            if ($updatedFull >= $yesterday_start && $updatedFull <= $yesterday_end)
-            {
-                echo '
-                <p><b>'.T_('Yesterday').'</b></p>';
-            }
-            // Older
-            if ($updatedFull < $yesterday_start && $older)
-            {
-                $older = false;
-                echo '
-                <p><b>'.T_('Older').'</b></p>';
-            }
-        }
-
-        $rtime = strtotime($r['date']);
-
-        $displayname = '';
-        $avatar      = '';
-
-        // Use cached data
-        if (isset($cachedUserData[$r['userid']]))
-        {
-            $displayname = $cachedUserData[$r['userid']]['displayname'];
-            $avatar      = $cachedUserData[$r['userid']]['avatar'];
-        }
-        // Get new data
-        else
-        {
-            $displayname = getUserDisplayName($r['userid']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['userid'].'">'.$displayname.'</a>';
-            $avatar      = '<img src="'.getCurrentAvatar($r['userid']).'" alt="'.cleanOutput($displayname).'"/>';
-
-            // Save this for later
-            $cachedUserData[$r['userid']]['avatar']      = $avatar;
-            $cachedUserData[$r['userid']]['displayname'] = $displayname;
-        }
-
-        if ($r['type'] == 'ADDRESSADD')
-        {
-            $displayname = getUserDisplayName($r['id2']);
-            $displayname = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$displayname.'</a>';
-            $avatar      = '<img src="'.getCurrentAvatar($r['id2']).'" alt="'.cleanOutput($displayname).'"/>';
-            $for         = '<a href="addressbook.php?address='.$r['id'].'">'.getUserDisplayName($r['userid'], 2, false).'</a>';
-
-            echo '
-                <div id="'.$position.'" class="new newaddress">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Added address information for %s.'), $for).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'ADDRESSEDIT')
-        {
-            if ($r['title'] == 'address')
-            {
-                $titleType = T_('address');
-            }
-            elseif ($r['title'] == 'email')
-            {
-                $titleType = T_('email address');
-            }
-            elseif ($r['title'] == 'home')
-            {
-                $titleType = T_('home phone number');
-            }
-            elseif ($r['title'] == 'work')
-            {
-                $titleType = T_('work phone number');
-            }
-            elseif ($r['title'] == 'cell')
-            {
-                $titleType = T_('cell phone number');
-            }
-            // this shouldn't happen
-            else
-            {
-                $titleType = T_('address');
-            }
-
-            $editor  = getUserDisplayName($r['id2']);
-            $editor  = '<a class="u" href="profile.php?member='.$r['id2'].'">'.$editor.'</a>';
-            $avatar  = '<img src="'.getCurrentAvatar($r['id2']).'" alt="'.cleanOutput($editor).'"/>';
-            $address = '<a href="addressbook.php?address='.$r['id'].'">'.$titleType.'</a>';
-
-            if ($r['id2'] != $r['userid'])
-            {
-                $user = getUserDisplayName($r['userid']);
-                $text = sprintf(T_pgettext('Example: "Updated the <address/phone/email> for <name>."', 'Updated the %s for %s.'), $address, $user);
-            }
-            else
-            {
-                if ($r['id3'] == 'F')
-                {
-                    $text = sprintf(T_pgettext('Example: "Updated her <address/phone/email>."', 'Updated her %s.'), $address);
-                }
-                else
-                {
-                    $text = sprintf(T_pgettext('Example: "Updated his <address/phone/email>."', 'Updated his %s.'), $address);
-                }
-            }
-
-            echo '
-                <div id="'.$position.'" class="new newaddress">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$editor.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.$text.'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'AVATAR')
-        {
-            $text = T_('Changed his profile picture.');
-
-            if ($r['id3'] == 'F')
-            {
-                $text = T_('Changed her profile picture.');
-            }
-
-            echo '
-                <div id="'.$position.'" class="new newavatar">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>'.$text.'</p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'BOARD')
-        {
-            $sql = "SELECT MIN(`id`) AS 'id' 
-                    FROM `fcms_board_posts` 
-                    WHERE `thread` = ?";
-
-            $minpost = $fcmsDatabase->getRow($sql, $r['id2']);
-            if ($minpost === false)
-            {
-                $fcmsError->displayError();
-                return;
-            }
-
-            $subject  = $r['title'];
-
-            $pos = strpos($subject, '#ANOUNCE#');
-            if ($pos !== false)
-            {
-                $subject = substr($subject, 9, strlen($subject)-9);
-            }
-
-            $title   = cleanOutput($subject);
-            $subject = cleanOutput($subject);
-            $subject = '<a href="messageboard.php?thread='.$r['id2'].'" title="'.$title.'">'.$subject.'</a>';
-
-            if ($r['id'] == $minpost['id'])
-            {
-                $class = 'newthread';
-                $text = sprintf(T_('Started the new thread %s.'), $subject);
-            }
-            else
-            {
-                $class = 'newpost';
-                $text = sprintf(T_('Replied to %s.'), $subject);
-            }
-
-            echo '
-                <div id="'.$position.'" class="new '.$class.'">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.$text.'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'CALENDAR')
-        {
-            $date_date = date('F j, Y', strtotime($r['id2']));
-            $for       = '<a href="calendar.php?event='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div id="'.$position.'" class="new newcal">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.$for.' - '.$date_date.'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'DOCS')
-        {
-            $doc = '<a href="documents.php">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div id="'.$position.'" class="new newdocument">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Added a new Document (%s).'), $doc).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'GALCATCOM')
-        {
-            $category = '<a href="gallery/index.php?uid='.$r['id2'].'&amp;cid='.$r['id3'].'">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div id="'.$position.'" class="new newcom">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Commented on %s.'), $category).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'GALCOM')
-        {
-            $data = array(
-                'id'          => $r['id'],
-                'user'        => $r['id2'],
-                'filename'    => $r['id3'],
-                'external_id' => null,
-                'thumbnail'   => null
-            );
-
-            if ($r['id3'] == 'noimage.gif')
-            {
-                $sql = "SELECT p.`id`, p.`filename`, p.`external_id`, e.`thumbnail`
-                        FROM `fcms_gallery_photos` AS p
-                        LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                        WHERE p.`id` = '".(int)$r['id']."'";
-
-                $p = $fcmsDatabase->getRow($sql, $r['id']);
-                if ($p === false)
-                {
-                    $fcmsError->displayError();
-                    return;
-                }
-
-                $data['external_id'] = $p['external_id'];
-                $data['thumbnail']   = $p['thumbnail'];
-            }
-
-            $photoSrc = $galleryObj->getPhotoSource($data);
-
-            echo '
-                <div id="'.$position.'" class="new newcom">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.T_('Commented on the following photo:').'<br/>
-                            <a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.$r['id'].'">
-                                <img src="'.$photoSrc.'"/>
-                            </a>
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'GALLERY')
-        {
-            $cat    = '<a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-            $photos = '';
-
-            $limit = 4;
-            if ($r['id2'] < $limit)
-            {
-                $limit = $r['id2'];
-            }
-            $sql = "SELECT p.`id`, p.`user`, p.`category`, p.`filename`, p.`caption`,
-                        p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
-                    FROM `fcms_gallery_photos` AS p
-                    LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                    WHERE p.`category` = '".(int)$r['id']."' 
-                    AND DAYOFYEAR(p.`date`) = '".(int)$r['id3']."' 
-                    ORDER BY p.`date` 
-                    DESC LIMIT $limit";
-
-            $photo_rows = $fcmsDatabase->getRows($sql, array($r['id'], $r['id3']));
-            if ($photo_rows === false)
-            {
-                $fcmsError->displayError();
-                return;
-            }
-
-            foreach ($photo_rows as $p)
-            {
-                $photoSrc = $galleryObj->getPhotoSource($p);
-
-                $photos .= '
-                        <a href="gallery/index.php?uid='.$r['userid'].'&amp;cid='.$r['id'].'&amp;pid='.$p['id'].'">
-                            <img src="'.$photoSrc.'" alt="'.cleanOutput($p['caption']).'"/>
-                        </a> &nbsp;';
-            }
-
-            echo '
-                <div id="'.$position.'" class="new newphoto">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Added %d new photos to the %s category.'), $r['id2'], $cat).'<br/>
-                            '.$photos.'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'JOINED')
-        {
-            echo '
-                <div id="'.$position.'" class="new newmember">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>'.T_('Joined the website.').'</p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'NEWS')
-        {
-            $title = !empty($r['title']) ? cleanOutput($r['title']) : T_('untitled');
-            $news  = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.$title.'</a>'; 
-
-            echo '
-                <div id="'.$position.'" class="new newnews">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Added %s to his/her Family News.'), $news).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'NEWSCOM')
-        {
-            $news = '<a href="familynews.php?getnews='.$r['userid'].'&amp;newsid='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div id="'.$position.'" class="new newcom">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Commented on Family News %s.'), $news).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'POLL')
-        {
-            $poll = '<a href="polls.php?id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <p class="new newpoll">'.sprintf(T_('A new Poll (%s) has been added.'), $poll).' <small><i>'.getHumanTimeSince($rtime).'</i></small></p>';
-        }
-        elseif ($r['type'] == 'POLLCOM')
-        {
-            $poll = '<a href="polls.php?id='.$r['id'].'"#comments>'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div id="'.$position.'" class="new pollcom">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Commented on Poll %s.'), $poll).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'PRAYERS')
-        {
-            $for = '<a href="prayers.php">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div id="'.$position.'" class="new newprayer">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Added a Prayer Concern for %s.'), $for).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'RECIPES')
-        {
-            $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div id="'.$position.'" class="new newrecipe">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Added the %s recipe.'), $rec).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'RECIPECOM')
-        {
-            $rec = '<a href="recipes.php?category='.$r['id2'].'&amp;id='.$r['id'].'">'.cleanOutput($r['title']).'</a>';
-
-            echo '
-                <div id="'.$position.'" class="new newcom">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Commented on Recipe %s.'), $rec).'
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'STATUS')
-        {
-            $title = cleanOutput($r['title']);
-            $title = nl2br_nospaces($title);
-
-            // Get any replies to this status update
-            $sql = "SELECT `id`, `user`, `status`, `parent`, `updated`, `created` 
-                    FROM `fcms_status` 
-                    WHERE `parent` = ?
-                    ORDER BY `id`";
-
-            $rows = $fcmsDatabase->getRows($sql, $r['id']);
-            if ($rows === false)
-            {
-                $fcmsError->displayError();
-                return;
-            }
-
-            $statuses = '';
-
-            if (count($rows) > 0)
-            {
-                foreach ($rows as $s)
-                {
-                    $name = getUserDisplayName($s['user']);
-                    $name = '<a class="u" href="profile.php?member='.$s['user'].'">'.$name.'</a>';
-
-                    $avatar2 = '<img src="'.getCurrentAvatar($s['user']).'" alt="'.cleanOutput($name).'"/>';
-
-                    $status = cleanOutput($s['status']);
-                    $status = nl2br_nospaces($status);
-
-                    $statuses .= '
-                    <div class="newstatus">
-                        <div class="avatar">'.$avatar2.'</div>
-                        <div class="info">
-                            '.$name.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince(strtotime($s['created'])).'</i></small>
-                            <p>
-                                '.$status.'
-                            </p>
-                        </div>
-                    </div>';
-                }
-            }
-
-            echo '
-                <div id="'.$position.'" class="new newstatus">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince(strtotime($r['id3'])).'</i></small>
-                        <p>
-                            '.$title.'
-                        </p>
-                        '.$statuses;
-
-            displayStatusUpdateForm($r['id']);
-            echo '
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'VIDEO')
-        {
-            echo '
-                <div id="'.$position.'" class="new newvideo">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.T_('Added a new Video.').'<br/>
-                            <a href="video.php?u='.$r['userid'].'&amp;id='.$r['id'].'"><img src="http://i.ytimg.com/vi/'.$r['id2'].'/default.jpg"/></a>
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'VIDEOCOM')
-        {
-            echo '
-                <div id="'.$position.'" class="new newcom">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.T_('Commented on the following Video:').'<br/>
-                            <a href="video.php?u='.$r['userid'].'&amp;id='.$r['id'].'#comments"><img src="http://i.ytimg.com/vi/'.$r['id2'].'/default.jpg"/></a>
-                        </p>
-                    </div>
-                </div>';
-        }
-        elseif ($r['type'] == 'WHEREISEVERYONE')
-        {
-            echo '
-                <div id="'.$position.'" class="new newwhere">
-                    <div class="avatar">'.$avatar.'</div>
-                    <div class="info">
-                        '.$displayname.' &nbsp;- &nbsp;<small><i>'.getHumanTimeSince($rtime).'</i></small>
-                        <p>
-                            '.sprintf(T_('Visited %s.'), $r['title']).'
-                        </p>
-                        '.(!empty($r['id2']) ? '<blockquote>'.cleanOutput($r['id2']).'</blockquote>' : '').'
-                    </div>
-                </div>';
-        }
-
-        $position++;
-
-        $lastday = $updated;
-    }
-}
-
-/**
  * getWhatsNewData 
  * 
  * Get the latest information in the site, including any external data.
@@ -3614,12 +2944,11 @@ function displayWhatsNewAll ()
  *  VIDEOCOM        Commented on video
  *  WHEREISEVERYONE Checked in on foursquare
  * 
- * @param int    $days 
- * @param string $groupByType 
+ * @param int $days 
  * 
- * @return void
+ * @return mixed - array on success or false on failure
  */
-function getWhatsNewData ($days = 30, $groupByType = false)
+function getWhatsNewData ($days = 30)
 {
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
@@ -3627,46 +2956,41 @@ function getWhatsNewData ($days = 30, $groupByType = false)
 
     $whatsNewData = array();
 
-    $sql2 = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
-            FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
-            WHERE p.`thread` = t.`id` 
-            AND p.`user` = u.`id` 
-            AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY)";
-
-    $sql = "SELECT p.`id`, `date`, `subject` AS title, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
+    $sql = "SELECT p.`id`, `date`, `subject` AS title, p.`post` AS details, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
             FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
             WHERE p.`thread` = t.`id` 
             AND p.`user` = u.`id` 
             AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
 
-            UNION SELECT a.`id`, c.`created` AS date, c.`column` AS title, a.`user` AS userid, a.`updated_id` AS id2, u.`sex` AS id3, 'ADDRESSEDIT' AS type
+            UNION SELECT a.`id`, c.`created` AS date, c.`column` AS title, '' AS details, a.`user` AS userid, a.`updated_id` AS id2, u.`sex` AS id3, 'ADDRESSEDIT' AS type
             FROM `fcms_changelog` AS c
             LEFT JOIN `fcms_users` AS u ON c.`user` = u.`id`
             LEFT JOIN `fcms_address` AS a ON u.`id` = a.`user`
             WHERE c.`created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
             AND c.`column` != 'avatar'
 
-            UNION SELECT a.id, a.updated AS date, 0 AS title, a.user AS userid, a.`created_id` AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
+            UNION SELECT a.id, a.updated AS date, 0 AS title, '' AS details, a.user AS userid, a.`created_id` AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
             FROM fcms_address AS a, fcms_users AS u
             WHERE a.user = u.id
             AND u.`phpass` = 'NONMEMBER' 
             AND u.`activated` < 1 
             AND a.updated >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
 
-            UNION SELECT `id`, `joindate` AS date, 0 AS title, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
+            UNION SELECT `id`, `joindate` AS date, 0 AS title, '' AS details, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
             FROM `fcms_users` 
             WHERE `phpass` != 'NONMEMBER' 
-            AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
+            AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+            AND `activated` > 0 ";
     if (usingFamilyNews())
     {
-        $sql .= "UNION SELECT n.`id` AS id, n.`updated` AS date, `title`, u.`id` AS userid, 0 AS id2, 0 AS id3, 'NEWS' AS type 
+        $sql .= "UNION SELECT n.`id` AS id, n.`updated` AS date, `title`, n.`news` AS details, u.`id` AS userid, u.`sex` AS id2, 0 AS id3, 'NEWS' AS type 
                  FROM `fcms_users` AS u, `fcms_news` AS n 
                  WHERE u.`id` = n.`user` 
                  AND n.`updated` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
                  AND `username` != 'SITENEWS' 
                  AND `phpass` != 'SITENEWS'
 
-                 UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
+                 UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`comment` AS details, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
                  FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u 
                  WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
                  AND nc.`user` = u.`id` 
@@ -3674,78 +2998,77 @@ function getWhatsNewData ($days = 30, $groupByType = false)
     }
     if (usingPrayers())
     {
-        $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type 
+        $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `desc` AS details, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type 
                  FROM `fcms_prayers` 
                  WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
     }
     if (usingRecipes())
     {
-        $sql .= "UNION SELECT `id` AS id, `date`, `name` AS title, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type 
+        $sql .= "UNION SELECT `id` AS id, `date`, `name` AS title, '' AS details, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type 
                  FROM `fcms_recipes` 
                  WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
-                 UNION SELECT r.`id`, rc.`date`, r.`name` AS title, rc.`user` AS userid, r.`category` AS id2, 0 AS id3, 'RECIPECOM' AS type
+                 UNION SELECT r.`id`, rc.`date`, r.`name` AS title, rc.`comment` AS details, rc.`user` AS userid, r.`category` AS id2, 0 AS id3, 'RECIPECOM' AS type
                  FROM `fcms_recipe_comment` AS rc, `fcms_recipes` AS r
                  WHERE rc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY)
                  AND rc.`recipe` = r.`id` ";
     }
     if (usingdocuments())
     {
-        $sql .= "UNION SELECT d.`id` AS 'id', d.`date`, `name` AS title, d.`user` AS userid, 0 AS id2, 0 AS id3, 'DOCS' AS type 
+        $sql .= "UNION SELECT d.`id` AS 'id', d.`date`, `name` AS title, d.`description` AS details, d.`user` AS userid, 0 AS id2, 0 AS id3, 'DOCS' AS type 
                  FROM `fcms_documents` AS d, `fcms_users` AS u 
                  WHERE d.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
                  AND d.`user` = u.`id` ";
     }
-    $sql .= "UNION SELECT DISTINCT p.`category` AS id, p.`date`, `name` AS title, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(p.`date`) AS id3, 'GALLERY' AS type 
+    $sql .= "UNION SELECT DISTINCT p.`category` AS id, p.`date`, `name` AS title, '' AS details, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(p.`date`) AS id3, 'GALLERY' AS type 
              FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_category` AS c 
              WHERE p.`user` = u.`id` 
              AND p.`category` = c.`id` 
              AND p.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              GROUP BY userid, title, id3
 
-             UNION SELECT p.`id`, gc.`date`, `comment` AS title, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type 
+             UNION SELECT p.`id`, gc.`date`, gc.`comment` AS title, gc.`comment` AS details, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type 
              FROM `fcms_gallery_photo_comment` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p 
              WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              AND gc.`user` = u.`id` 
              AND gc.`photo` = p.`id` 
 
-             UNION SELECT g.`id`, g.`created`, c.`name` AS title, g.`created_id` AS userid, c.`user` AS id2, c.`id` AS id3, 'GALCATCOM' AS type 
+             UNION SELECT g.`id`, g.`created`, c.`name` AS title, g.`comment` AS details, g.`created_id` AS userid, c.`user` AS id2, c.`id` AS id3, 'GALCATCOM' AS type 
              FROM `fcms_gallery_category_comment` AS g
              LEFT JOIN `fcms_users` AS u    ON g.`created_id`  = u.`id`
              LEFT JOIN `fcms_category` AS c ON g.`category_id` = c.`id`
              WHERE g.`created` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
-             UNION SELECT c.`id`, c.`date_added` AS date, `title`, `created_by` AS userid, `date` AS id2, `category` AS id3, 'CALENDAR' AS type 
+             UNION SELECT c.`id`, c.`date_added` AS date, `title`, c.`desc` AS details, `created_by` AS userid, `date` AS id2, `category` AS id3, 'CALENDAR' AS type 
              FROM `fcms_calendar` AS c, `fcms_users` AS u 
              WHERE c.`date_added` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              AND c.`created_by` = u.`id` AND `private` < 1 
 
-             UNION SELECT `id`, `started` AS date, `question`, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type 
+             UNION SELECT `id`, `started` AS date, `question` AS title, '' AS details, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type 
              FROM `fcms_polls` 
              WHERE `started` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
-             UNION SELECT p.`id`, c.`created` AS date, p.`question` AS title, c.`created_id` AS userid, 'na' AS id2, 'na' AS id3, 'POLLCOM' AS type 
+             UNION SELECT p.`id`, c.`created` AS date, p.`question` AS title, c.`comment` AS details, c.`created_id` AS userid, 'na' AS id2, 'na' AS id3, 'POLLCOM' AS type 
              FROM `fcms_poll_comment` AS c
              LEFT JOIN `fcms_polls` AS p ON c.`poll_id` = p.`id`
              WHERE `created` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
 
-             UNION SELECT `id`, `updated` AS date, `status` AS title, `user` AS userid, `parent` AS id2, `created` AS id3, 'STATUS' AS type 
+             UNION SELECT `id`, `updated` AS date, `status` AS title, '' AS details, `user` AS userid, `parent` AS id2, `created` AS id3, 'STATUS' AS type 
              FROM `fcms_status` 
              WHERE `updated` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
-             AND `parent` = 0
 
-             UNION SELECT 0 as id, c.`created` AS date, 0 AS title, c.`user` AS userid, 0 AS id2, u.`sex` AS id3, 'AVATAR' AS type
+             UNION SELECT 0 as id, c.`created` AS date, 0 AS title, '' AS details, c.`user` AS userid, 0 AS id2, u.`sex` AS id3, 'AVATAR' AS type
              FROM `fcms_changelog` AS c
              LEFT JOIN `fcms_users` AS u ON c.`user` = u.`id`
              WHERE `created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
              AND `column` = 'avatar'
 
-             UNION SELECT `id`, `created` AS date, `title`, `created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEO' AS type
+             UNION SELECT `id`, `created` AS date, `title`, `description` AS details, `created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEO' AS type
              FROM `fcms_video`
              WHERE `created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
              AND `active` = '1'
 
-             UNION SELECT `video_id` AS 'id', c.`created` AS date, `comment`, c.`created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEOCOM' AS type
+             UNION SELECT `video_id` AS 'id', c.`created` AS date, `comment`, '' AS details, c.`created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEOCOM' AS type
              FROM `fcms_video_comment` AS c
              LEFT JOIN `fcms_video` AS v ON c.`video_id` = v.`id`
              WHERE c.`created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
@@ -3753,240 +3076,370 @@ function getWhatsNewData ($days = 30, $groupByType = false)
 
              ORDER BY date DESC LIMIT 0, 35";
 
-    $rows = $fcmsDatabase->getRows($sql);
-    if ($rows === false)
+    $whatsNewData = $fcmsDatabase->getRows($sql);
+    if ($whatsNewData === false)
     {
-        $fcmsError->setMessage(T_('Could not get what\'s new information.'));
-        $fcmsError->displayError();
+        $fcmsError->setMessage(T_('Could not get What\'s New data.'));
         return false;
     }
 
-    // Save data
-    foreach ($rows as $r)
+    // Get additional data
+    $whatsNewData = getAdditionalWhatsNewData($whatsNewData);
+    if ($whatsNewData === false)
     {
-        if ($groupByType)
-        {
-            $whatsNewData[$r['type']][] = $r;
-        }
-        else
-        {
-            $whatsNewData[] = $r;
-        }
+        $fcmsError->setMessage(T_('Could not get additional What\'s New data.'));
+        return false;
     }
 
     // Add external foursquare data
     if (usingWhereIsEveryone())
     {
-        include_once('socialmedia.php');
-        include_once('thirdparty/foursquare/EpiFoursquare.php');
-        include_once('thirdparty/foursquare/EpiCurl.php');
-
-        $users  = getFoursquareUsersData();
-        $config = getFoursquareConfigData();
-
-        // TODO
-        // Move this check inside the getFoursquareConfigData and have it return false on failure.
-
-        // Foursquare hasn't been setup or is invalid
-        if (empty($config['fs_client_id']) or empty($config['fs_client_secret']))
+        $whatsNewData = getFoursquareWhatsNewData($whatsNewData);
+        if ($whatsNewData === false)
         {
-            // If admin is viewing, alert them that the config is missing/messed up
-            if ($fcmsUser->access < 2)
+            $fcmsError->setMessage(T_('Could not get Foursquare What\'s New data.'));
+            return false;
+        }
+    }
+
+    // Now lets group events together
+    $groupedData = array();
+    foreach ($whatsNewData as $data)
+    {
+        // Build a lookup for the data for each new item
+        $lkup = array();
+        switch ($data['type'])
+        {
+            case 'THREAD':
+            case 'BOARD':
+                $lkup = array(
+                    'type'     => 'thread_',
+                    'parent'   => 'THREAD',
+                    'child'    => 'BOARD',
+                    'parentId' => 'id2',
+                    'childId'  => 'id2',
+                );
+                break;
+
+            case 'GALLERY':
+            case 'GALCATCOM':
+                $lkup = array(
+                    'type'     => 'gallery_',
+                    'parent'   => 'GALLERY',
+                    'child'    => 'GALCATCOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id3',
+                );
+                break;
+
+            case 'NEWS':
+            case 'NEWSCOM':
+                $lkup = array(
+                    'type'     => 'news_',
+                    'parent'   => 'NEWS',
+                    'child'    => 'NEWSCOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id',
+                );
+                break;
+
+            case 'POLL':
+            case 'POLLCOM':
+                $lkup = array(
+                    'type'     => 'poll_',
+                    'parent'   => 'POLL',
+                    'child'    => 'POLLCOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id',
+                );
+                break;
+
+            case 'RECIPES':
+            case 'RECIPECOM':
+                $lkup = array(
+                    'type'     => 'recipe_',
+                    'parent'   => 'RECIPES',
+                    'child'    => 'RECIPECOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id',
+                );
+                break;
+
+            case 'STATUS':
+            case 'STATUSCOM':
+                $lkup = array(
+                    'type'     => 'status_',
+                    'parent'   => 'STATUS',
+                    'child'    => 'STATUSCOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id2',
+                );
+                break;
+
+            case 'VIDEO':
+            case 'VIDEOCOM':
+                $lkup = array(
+                    'type'     => 'video_',
+                    'parent'   => 'VIDEO',
+                    'child'    => 'VIDEOCOM',
+                    'parentId' => 'id',
+                    'childId'  => 'id',
+                );
+                break;
+        }
+
+        // Group things together
+        if (count($lkup) > 0)
+        {
+            $id = $data['type'] == $lkup['parent'] ? $data[ $lkup['parentId'] ] 
+                                                   : $data[ $lkup['childId'] ];
+
+            if (isset($groupedData[ $lkup['type'] . $id ]))
             {
-                echo '
+                if ($data['type'] == $lkup['parent'])
+                {
+                    // put it at the top of the group
+                    array_unshift($groupedData[ $lkup['type'] . $id ], $data);
+                }
+                else
+                {
+                    // put it at the end of the group
+                    $groupedData[ $lkup['type'] . $id ][] = $data;
+                }
+            }
+            else
+            {
+                // start a new group
+                $groupedData[ $lkup['type'] . $id ] = array( $data );
+            }
+
+        }
+        // Just add ungrouped items
+        else
+        {
+            $groupedData[]  = array( $data );
+        }
+    }
+
+    return $groupedData;
+} 
+
+/**
+ * getAdditionalWhatsNewData 
+ * 
+ * Adds additional data that couldn't be retreived with one sql
+ * statements when getting data.
+ * 
+ * @param array $whatsNewData 
+ * 
+ * @return mixed - array on success or false on failure
+ */
+function getAdditionalWhatsNewData ($whatsNewData)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    // Get some extra data, do little cleanup
+    foreach ($whatsNewData as $key => $data)
+    {
+        // Get last 4 photos in category
+        if ($data['type'] == 'GALLERY')
+        {
+            $limit = 4;
+            if ($data['id2'] < $limit)
+            {
+                $limit = (int)$data['id2'];
+            }
+
+            $sql = "SELECT p.`id`, p.`user`, p.`category`, p.`filename`, p.`caption`,
+                        p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
+                    FROM `fcms_gallery_photos` AS p
+                    LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                    WHERE p.`category` = ?
+                    AND DAYOFYEAR(p.`date`) = ?
+                    ORDER BY p.`date` 
+                    DESC LIMIT $limit";
+
+            $photos = $fcmsDatabase->getRows($sql, array($data['id'], $data['id3']));
+            if ($photos === false)
+            {
+                return false;
+            }
+
+            $whatsNewData[$key]['photos'] = $photos;
+        }
+        // See if this is a new thread or a reply
+        elseif ($data['type'] == 'BOARD')
+        {
+            $sql = "SELECT MIN(`id`) AS 'id' 
+                    FROM `fcms_board_posts` 
+                    WHERE `thread` = ?";
+
+            $minpost = $fcmsDatabase->getRow($sql, $data['id2']);
+            if ($minpost === false)
+            {
+                return false;
+            }
+
+            if ($minpost['id'] == $data['id'])
+            {
+                $whatsNewData[$key]['type'] = 'THREAD';
+            }
+        }
+        // See if this is a new status update or reply
+        elseif ($data['type'] == 'STATUS')
+        {
+            if ($data['id2'] != 0)
+            {
+                $whatsNewData[$key]['type'] = 'STATUSCOM';
+            }
+        }
+        // See if this is a new status update or reply
+        elseif ($data['type'] == 'GALCOM')
+        {
+            $photo = array(
+                'user'     => $data['id2'],
+                'filename' => $data['id3'],
+            );
+
+            if ($data['id3'] == 'noimage.gif')
+            {
+                $sql = "SELECT p.`id`, p.`filename`, p.`external_id`, e.`thumbnail`
+                        FROM `fcms_gallery_photos` AS p
+                        LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
+                        WHERE p.`id` = ?";
+
+                $p = $this->fcmsDatabase->getRow($sql, $data['id']);
+                if ($p === false)
+                {
+                    $this->fcmsError->displayError();
+                    return;
+                }
+
+                $photo['external_id'] = $p['external_id'];
+                $photo['thumbnail']   = $p['thumbnail'];
+            }
+
+            $whatsNewData[$key]['photos'][] = $photo;
+        }
+    }
+
+    return $whatsNewData;
+}
+
+/**
+ * getFoursquareWhatsNewData 
+ * 
+ * Adds foursquare data to the whats new data array.
+ * 
+ * @param array $whatsNewData 
+ * 
+ * @return mixed - array on success or false on failure
+ */
+function getFoursquareWhatsNewData ($whatsNewData)
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    include_once('socialmedia.php');
+    include_once('thirdparty/foursquare/EpiFoursquare.php');
+    include_once('thirdparty/foursquare/EpiCurl.php');
+
+    $users  = getFoursquareUsersData();
+    $config = getFoursquareConfigData();
+
+    // TODO
+    // Move this check inside the getFoursquareConfigData and have it return false on failure.
+
+    // Foursquare hasn't been setup or is invalid
+    if (empty($config['fs_client_id']) or empty($config['fs_client_secret']))
+    {
+        // If admin is viewing, alert them that the config is missing/messed up
+        if ($fcmsUser->access < 2)
+        {
+            echo '
                     <div class="info-alert">
                         <h2>'.T_('Foursquare is not configured correctly.').'</h2>
                         <p>'.T_('The "Where Is Everyone" feature cannot work without Foursquare.  Please configure Foursquare or turn off "Where Is Everyone".').'</p>
                         <p><a href="admin/foursquare.php">'.T_('Configure Foursquare').'</a></p>
                         <p><a href="admin/config.php?view=plugins">'.T_('Turn Off "Where is Everyone"').'</a></p>
                     </div>';
-            }
-
-            return $whatsNewData;
         }
 
-        $foursquareData = array();
+        return $whatsNewData;
+    }
 
-        if (count($users[0]) > 0)
+    $foursquareData = array();
+
+    if (count($users[0]) > 0)
+    {
+        $timeago = gmmktime(0, 0, 0, gmdate('m'), gmdate('d')-$days, gmdate('Y'));
+
+        $i = 0;
+        foreach ($users as $k => $data)
         {
-            $timeago = gmmktime(0, 0, 0, gmdate('m'), gmdate('d')-$days, gmdate('Y'));
-
-            $i = 0;
-            foreach ($users as $k => $data)
+            // Skip users who don't have foursquare setup
+            if (empty($data['access_token']))
             {
-                // Skip users who don't have foursquare setup
-                if (empty($data['access_token']))
+                continue;
+            }
+
+            $fsObj = new EpiFoursquare($config['fs_client_id'], $config['fs_client_secret'], $data['access_token']);
+
+            try
+            {
+                $params = array(
+                    'afterTimestamp' => $timeago
+                );
+                $creds = $fsObj->get('/users/'.$data['user_id'].'/checkins', $params);
+            }
+            catch(EpiFoursquareException $e)
+            {
+                echo 'We caught an EpiOAuthException';
+                echo $e->getMessage();
+                return false;
+            }
+            catch(Exception $e)
+            {
+                echo 'We caught an unexpected Exception';
+                echo $e->getMessage();
+                return false;
+            }
+
+            foreach ($creds->response->checkins->items as $checkin)
+            {
+                // Skip shouts, etc
+                if ($checkin->type != 'checkin')
                 {
                     continue;
                 }
 
-                $fsObj = new EpiFoursquare($config['fs_client_id'], $config['fs_client_secret'], $data['access_token']);
+                $date  = date('Y-m-d H:i:s', $checkin->createdAt);
+                $sort  = $checkin->createdAt;
+                $shout = isset($checkin->shout) ? $checkin->shout : '';
 
-                try
-                {
-                    $params = array(
-                        'afterTimestamp' => $timeago
-                    );
-                    $creds = $fsObj->get('/users/'.$data['user_id'].'/checkins', $params);
-                }
-                catch(EpiFoursquareException $e)
-                {
-                    echo 'We caught an EpiOAuthException';
-                    echo $e->getMessage();
-                    return false;
-                }
-                catch(Exception $e)
-                {
-                    echo 'We caught an unexpected Exception';
-                    echo $e->getMessage();
-                    return false;
-                }
-
-                foreach ($creds->response->checkins->items as $checkin)
-                {
-                    // Skip shouts, etc
-                    if ($checkin->type != 'checkin')
-                    {
-                        continue;
-                    }
-
-                    $date  = date('Y-m-d H:i:s', $checkin->createdAt);
-                    $sort  = $checkin->createdAt;
-                    $shout = isset($checkin->shout) ? $checkin->shout : '';
-
-                    // Save data
-                    if ($groupByType)
-                    {
-                        $whatsNewData['WHEREISEVERYONE'][] = array(
-                            'id'        => '',
-                            'date'      => $date,
-                            'title'     => $checkin->venue->name,
-                            'userid'    => $data['fcms_user_id'],
-                            'id2'       => $shout,
-                            'id3'       => '',
-                            'type'      => 'WHEREISEVERYONE'
-                        );
-                    }
-                    else
-                    {
-                        $whatsNewData[] = array(
-                            'id'        => '',
-                            'date'      => $date,
-                            'title'     => $checkin->venue->name,
-                            'userid'    => $data['fcms_user_id'],
-                            'id2'       => $shout,
-                            'id3'       => '',
-                            'type'      => 'WHEREISEVERYONE'
-                        );
-                    }
-                }
+                // Save data
+                $whatsNewData[] = array(
+                    'id'        => '',
+                    'date'      => $date,
+                    'title'     => $checkin->venue->name,
+                    'userid'    => $data['fcms_user_id'],
+                    'id2'       => $shout,
+                    'id3'       => '',
+                    'type'      => 'WHEREISEVERYONE'
+                );
             }
-        }
-
-        // Order is messed up now, so fix it
-        if ($groupByType)
-        {
-            $sorted = array();
-            foreach ($whatsNewData as $type => $data)
-            {
-                $tmp = subval_sort($whatsNewData[$type], 'date');
-                $tmp = array_reverse($tmp);
-
-                $sorted[$type] = $tmp;
-            }
-            $whatsNewData = $sorted;
-        }
-        else
-        {
-            $whatsNewData = subval_sort($whatsNewData, 'date');
-            $whatsNewData = array_reverse($whatsNewData);
         }
     }
+
+    // Order is messed up now, so fix it
+    $whatsNewData = subval_sort($whatsNewData, 'date');
+    $whatsNewData = array_reverse($whatsNewData);
 
     return $whatsNewData;
-} 
-
-/**
- * displayStatusUpdateForm 
- * 
- * @param int $parent the id of the parent status update, or 0 if none
- * 
- * @return void
- */
-function displayStatusUpdateForm ($parent = 0)
-{
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
-
-    if ($fcmsError->hasError())
-    {
-        $fcmsError->displayError();
-        return;
-    }
-
-    // Facebook option is only good for first status update field, not reply
-    if ($parent == 0)
-    {
-        $data = getFacebookConfigData();
-        $user = null;
-
-        if (!empty($data['fb_app_id']) && !empty($data['fb_secret']))
-        {
-            $facebook = new Facebook(array(
-              'appId'  => $data['fb_app_id'],
-              'secret' => $data['fb_secret'],
-            ));
-
-            // Check if the user is logged in and authed
-            $user = $facebook->getUser();
-            if ($user)
-            {
-                try
-                {
-                    $user_profile = $facebook->api('/me');
-                }
-                catch (FacebookApiException $e)
-                {
-                    $user = null;
-                }
-            }
-        }
-
-        $fb = '';
-        if ($user)
-        {
-            $fb  = '<input type="checkbox" id="update_fb" name="update_fb"/>';
-            $fb .= '<label for="update_fb">'.T_('Update Facebook?').'</label>';
-        }
-    }
-
-    $id    = 'status_update';
-    $value = T_('Submit');
-    $ph    = T_('Share');
-    $title = T_('Share something with everyone.');
-    $input = '';
-
-    if (ctype_digit($parent) && $parent > 0)
-    {
-        $id    = 'status_reply';
-        $fb    = '';
-        $value = T_('Reply');
-        $ph    = T_('Reply');
-        $title = T_('Reply');
-        $input = '<input type="hidden" id="parent" name="parent" value="'.$parent.'"/>';
-    }
-
-    echo '
-        <div id="'.$id.'">
-            <form method="post" action="home.php">
-                <textarea id="status" name="status" placeholder="'.$ph.'" title="'.$title.'"></textarea>
-                <small>'.$fb.'</small>'.$input.'
-                <input type="submit" id="status_submit" name="status_submit" value="'.$value.'"/>
-            </form>
-        </div>';
 }
-
 
 /**
  * ImageCreateFromBMP 
@@ -4072,32 +3525,39 @@ function ImageCreateFromBMP ($filename)
 }
 
 /**
- * usingAdvancedUploader 
+ * getUploaderType
  * 
- * @param   int     $userid 
- * @return  boolean
+ * @param int $userid 
+ * 
+ * @return string
  */
-function usingAdvancedUploader ($userid)
+function getUploaderType ($userid)
 {
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
-    $sql = "SELECT `advanced_upload` 
+    $sql = "SELECT `uploader` 
             FROM `fcms_user_settings` 
             WHERE `user` = ?";
 
     $r = $fcmsDatabase->getRow($sql, $userid);
     if ($r === false)
     {
-        return true;
+        return 'basic';
     }
 
-    if ($r['advanced_upload'] != 1)
+    $validUploaderTypes = array(
+        'plupload' => 1,
+        'java'     => 1,
+        'basic'    => 1,
+    );
+
+    if (isset($validUploaderTypes[$r['uploader']]))
     {
-        return false;
+        return $r['uploader'];
     }
 
-    return true;
+    return 'plupload';
 }
 
 /**
@@ -4389,40 +3849,23 @@ function getCurrentAvatar ($id)
  */
 function getAvatarPath ($avatar, $gravatar)
 {
-    // Protected uploads
-    if (defined('UPLOADS'))
+    if ($avatar === 'gravatar')
     {
-        switch ($avatar)
-        {
-            case 'no_avatar.jpg':
-                return URL_PREFIX.'file.php?a=no_avatar.jpg';
-                break;
-
-            case 'gravatar':
-                return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80'; 
-                break;
-
-            default:
-                return URL_PREFIX.'file.php?a='.basename($avatar);
-                break;
-        }
+        return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
+    }
+    else if ($avatar === 'no_avatar.jpg')
+    {
+        return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
     }
 
-    // Unprotected uploads
-    switch ($avatar)
-    {
-        case 'no_avatar.jpg':
-            return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
-            break;
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
 
-        case 'gravatar':
-            return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80'; 
-            break;
+    $destinationType = getDestinationType().'ProfileDestination';
+    $destination     = new $destinationType($fcmsError, $fcmsUser);
 
-        default:
-            return URL_PREFIX.'uploads/avatar/'.basename($avatar);
-            break;
-    }
+    return $destination->getPhotoSource($avatar);
 }
 
 /**
@@ -5357,38 +4800,6 @@ function displayErrors ($errors)
 }
 
 /**
- * savePhotoFromSource 
- * 
- * @param string $source
- * @param string $filename
- * 
- * @return void
- */
-function savePhotoFromSource ($source, $filename)
-{
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
-
-    $uploadsPath = getUploadsAbsolutePath();
-
-    // Create new member directory if needed
-    if (!file_exists($uploadsPath.'photos/member'.$fcmsUser->id))
-    {
-        mkdir($uploadsPath.'photos/member'.$fcmsUser->id);
-    }
-
-    $destination = $uploadsPath.'photos/member'.$fcmsUser->id.'/'.$filename;
-
-    $ch = curl_init($source);
-    $fh = fopen($destination, 'w');
-
-    curl_setopt($ch, CURLOPT_FILE, $fh);
-    curl_exec($ch);
-    curl_close($ch);
-}
-
-/**
  * usingFullSizePhotos 
  * 
  * @return boolean
@@ -5419,22 +4830,17 @@ function usingFullSizePhotos ()
 /**
  * displayPageHeader 
  * 
- * @param int   $id 
- * @param array $TMPL
+ * @param array $params
  * @param array $options 
  * 
  * @return void
  */
-function displayPageHeader ($id, $TMPL, $options = null)
+function displayPageHeader ($params, $options = null)
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
-
     $js       = isset($options['js'])       ? $options['js']       : '';
     $jsOnload = isset($options['jsOnload']) ? $options['jsOnload'] : '';
 
-    $TMPL['javascript'] = '';
+    $params['javascript'] = '';
 
     // Load any js modules
     if (isset($options['modules']))
@@ -5442,46 +4848,24 @@ function displayPageHeader ($id, $TMPL, $options = null)
         $list = getModuleList();
         foreach ($options['modules'] as $module)
         {
-            $TMPL['javascript'] .= $list[$module]."\n";
+            $params['javascript'] .= $list[$module]."\n";
         }
     }
 
     // Set page specific javascript
-    $TMPL['javascript'] .= $js;
+    $params['javascript'] .= $js;
 
     // Set onload javascript
-    $TMPL['javascript'] .= '
+    $params['javascript'] .= '
     <script type="text/javascript">
     Event.observe(window, "load", function() {
-        initChatBar("'.T_('Chat').'", "'.$TMPL['path'].'");
+        initChatBar("'.T_('Chat').'", "'.$params['path'].'");
         '.$jsOnload.'
     });
     </script>';
 
     // Display the theme header
-    require_once getTheme($fcmsUser->id).'header.php';
-
-    echo '
-        <div id="'.$id.'" class="centercontent">';
-}
-
-/**
- * displayPageFooter 
- * 
- * @param array $TMPL
- * 
- * @return void
- */
-function displayPageFooter($TMPL)
-{
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
-
-    echo '
-        </div><!--/centercontent-->';
-
-    require_once getTheme($fcmsUser->id).'footer.php';
+    loadTemplate('global', 'header', $params);
 }
 
 /**
@@ -5495,5 +4879,169 @@ function getModuleList ()
         'livevalidation'    => '<script type="text/javascript" src="ui/js/livevalidation.js"></script>',
         'datechooser'       => '<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>'
                               .'<script type="text/javascript" src="ui/js/datechooser.js"></script>',
+        'scriptaculous'     => '<script type="text/javascript" src="ui/js/scriptaculous.js"></script>',
     );
+}
+
+/**
+ * loadTemplate 
+ * 
+ * Will load a single php template file with some variables.
+ * 
+ * @param string $subDirectory 
+ * @param string $template 
+ * @param array  $variables 
+ * 
+ * @return void
+ */
+function loadTemplate ($subDirectory, $template, $variables = array())
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    if (isset($fcmsUser->id))
+    {
+        $themePath = getTheme($fcmsUser->id);
+    }
+    else
+    {
+        $themePath = getTheme();
+    }
+
+    $TMPL = $variables;
+
+    $subDirectory = basename($subDirectory);
+    $template     = basename($template);
+    $templateFile = $themePath.'templates/'.$subDirectory.'/'.$template.'.php';
+
+    require_once($templateFile);
+}
+
+/**
+ * startsWith 
+ * 
+ * @param string $haystack 
+ * @param string $needle 
+ * 
+ * @return boolean
+ */
+function startsWith($haystack, $needle)
+{
+    return !strncmp($haystack, $needle, strlen($needle));
+}
+
+/**
+ * getDestinationType
+ * 
+ * Returns the name of the destination type.
+ * 
+ * @return string
+ */
+function getDestinationType ()
+{
+    // Save outside the root (Protected)
+    if (defined('UPLOADS'))
+    {
+        $destination = 'Protected';
+    }
+    // Save to Amazon S3
+    elseif (defined('S3') && date('Ymd', S3) < date('Ymd'))
+    {
+        $destination = 'S3';
+    }
+    // Save in uploads/photos/*
+    else
+    {
+        $destination = '';
+    }
+
+    return $destination;
+}
+
+/**
+ * getPhotoGallery
+ * 
+ * Returns the name of the appropriate photo gallery object.
+ * 
+ * @return string
+ */
+function getPhotoGallery ()
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    if (isset($_GET['advanced']))
+    {
+        $type = 'plupload';
+    }
+    // Get selected type (user clicked on type from menu)
+    elseif (isset($_GET['type']))
+    {
+        $type = $_GET['type'];
+    }
+    // Use last upload type (user clicked on 'Upload Photos' button
+    elseif (isset($_SESSION['fcms_uploader_type']))
+    {
+        $type = $_SESSION['fcms_uploader_type'];
+    }
+    else
+    {
+        $type = getUploaderType($fcmsUser->id);
+    }
+
+    if ($type == 'plupload')
+    {
+        $photoGallery = 'PluploadUploadPhotoGallery';
+    }
+    else if ($type == 'java')
+    {
+        $photoGallery = 'JavaUploadPhotoGallery';
+    }
+    else if ($type == 'instagram')
+    {
+        $photoGallery = 'InstagramUploadPhotoGallery';
+    }
+    else if ($type == 'picasa')
+    {
+        $photoGallery = 'PicasaUploadPhotoGallery';
+    }
+    else
+    {
+        $photoGallery = 'UploadPhotoGallery';
+    }
+
+    return $photoGallery;
+}
+
+/**
+ * getProfileClassName
+ * 
+ * Returns the name of the appropriate profile class.
+ * 
+ * @return string
+ */
+function getProfileClassName ()
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    $type = getUploaderType($fcmsUser->id);
+
+    if ($type == 'plupload')
+    {
+        $className = 'PluploadUploadProfile';
+    }
+    else if ($type == 'java')
+    {
+        $className = 'JavaUploadProfile';
+    }
+    else
+    {
+        $className = 'UploadProfile';
+    }
+
+    return $className;
 }

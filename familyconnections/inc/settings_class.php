@@ -188,7 +188,7 @@ class Settings
      */
     function displaySettings ()
     {
-        $sql = "SELECT `displayname`, `advanced_upload`, `advanced_tagging`, `language`,
+        $sql = "SELECT `displayname`, `language`,
                     `dst`, `timezone`, `boardsort`, `frontpage`
                 FROM `fcms_user_settings`
                 WHERE `user` = '" . $this->fcmsUser->id . "'";
@@ -208,24 +208,6 @@ class Settings
             "3" => T_('Username')
         );
         $displayname_options = buildHtmlSelectOptions($displayname_list, $row['displayname']);
-
-        // Advanced Upload
-        $yc = $row['advanced_upload'] == 1 ? 'checked="checked"' : '';
-        $nc = $row['advanced_upload'] == 0 ? 'checked="checked"' : '';
-
-        $advanced_upload_options  = '<input type="radio" name="advanced_upload" id="advanced_upload_yes" value="yes" '.$yc.'>';
-        $advanced_upload_options .= '<label class="radio_label" for="advanced_upload_yes">'.T_('Yes').'</label>&nbsp;&nbsp; ';
-        $advanced_upload_options .= '<input type="radio" name="advanced_upload" id="advanced_upload_no" value="no" '.$nc.'>';
-        $advanced_upload_options .= '<label class="radio_label" for="advanced_upload_no">'.T_('No').'</label>';
-
-        // Advanced Tagging
-        $yc = $row['advanced_tagging'] == 1 ? 'checked="checked"' : '';
-        $nc = $row['advanced_tagging'] == 0 ? 'checked="checked"' : '';
-
-        $advanced_tagging_options  = '<input type="radio" name="advanced_tagging" id="advanced_tagging_yes" value="yes" '.$yc.'>';
-        $advanced_tagging_options .= '<label class="radio_label" for="advanced_tagging_yes">'.T_('Yes').'</label>&nbsp;&nbsp; ';
-        $advanced_tagging_options .= '<input type="radio" name="advanced_tagging" id="advanced_tagging_no" value="no" '.$nc.'>';
-        $advanced_tagging_options .= '<label class="radio_label" for="advanced_tagging_no">'.T_('No').'</label>';
 
         // Language
         $lang_dir     = "language/";
@@ -288,29 +270,6 @@ class Settings
         echo '
                 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
                 <form id="frm" action="settings.php?view=settings" method="post">
-                <fieldset>
-                    <legend><span>'.T_('Advanced Settings').'</span></legend>
-                    <div class="field-row">
-                        <div class="field-label"><label for="advanced_upload"><b>'.T_('Advanced Uploader').'</b></label></div>
-                        <div class="field-widget">
-                            '.$advanced_upload_options.'<br/>
-                            <small>
-                                <b>'.T_('Requires Java.').'</b>
-                                '.T_('Allows you to upload multiple photos at once and very large photos.').'
-                            </small>
-                        </div>
-                    </div>
-                    <div id="advanced_tagging_div" class="field-row" style="display:none">
-                        <div class="field-label"><label for="advanced_tagging"><b>'.T_('Advanced Tagging').'</b></label></div>
-                        <div class="field-widget">
-                            '.$advanced_tagging_options.'<br/>
-                            <small>
-                                <b>'.T_('Requires JavaScript.').'</b>
-                                '.T_('Allows you to more quickly tag members in photos.').'
-                            </small>
-                        </div>
-                    </div>
-                </fieldset>
                 <fieldset>
                     <legend><span>'.T_('Langugage and Time').'</span></legend>
                     <div class="field-row">
@@ -399,6 +358,91 @@ class Settings
                         <div class="field-label"><label for="email_updates"><b>'.T_('Email Updates').'</b></label></div>
                         <div class="field-widget">
                             '.$email_updates_options.'
+                        </div>
+                    </div>
+                    <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
+                </fieldset>
+                </form>';
+    }
+
+    /**
+     * displayPhotoGallerySettings 
+     * 
+     * @return void
+     */
+    function displayPhotoGallerySettings ()
+    {
+        $sql = "SELECT `uploader`, `advanced_tagging`
+                FROM `fcms_user_settings`
+                WHERE `user` = ?";
+
+        $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
+        if ($row === false)
+        {
+            $this->fcmsError->displayError();
+            return;
+        }
+
+        // Advanced Upload
+        $plupload = '';
+        $java     = '';
+        $basic    = '';
+        if ($row['uploader'] == 'plupload')
+        {
+            $plupload = 'checked="checked"';
+        }
+        else if ($row['uploader'] == 'java')
+        {
+            $java = 'checked="checked"';
+        }
+        else
+        {
+            $basic = 'checked="checked"';
+        }
+
+        // Advanced Tagging
+        $yc = $row['advanced_tagging'] == 1 ? 'checked="checked"' : '';
+        $nc = $row['advanced_tagging'] == 0 ? 'checked="checked"' : '';
+
+        $advanced_tagging_options  = '<input type="radio" name="advanced_tagging" id="advanced_tagging_yes" value="yes" '.$yc.'>';
+        $advanced_tagging_options .= '<label class="radio_label" for="advanced_tagging_yes">'.T_('Yes').'</label>&nbsp;&nbsp; ';
+        $advanced_tagging_options .= '<input type="radio" name="advanced_tagging" id="advanced_tagging_no" value="no" '.$nc.'>';
+        $advanced_tagging_options .= '<label class="radio_label" for="advanced_tagging_no">'.T_('No').'</label>';
+
+        echo '
+                <script type="text/javascript" src="ui/js/livevalidation.js"></script>
+                <form id="frm" action="settings.php?view=photogallery" method="post">
+                <fieldset>
+                    <legend><span>'.T_('Photo Gallery Settings').'</span></legend>
+                    <div class="field-row">
+                        <div class="field-label"><label for="uploader"><b>'.T_('Uploader').'</b></label></div>
+                        <div class="field-widget">
+                            <input type="radio" name="uploader" id="advanced_uploader" value="plupload" '.$plupload.'>
+                            <label class="radio_label" for="advanced_uploader">'.T_('Advanced').'</label><br/>
+                            <small>
+                                <b>'.T_('Recommended.').'</b>
+                                '.T_('Should work in most modern browsers. Allows you to upload multiple photos at once and very large photos.').'
+                            </small><br/><br/>
+                            <input type="radio" name="uploader" id="java_uploader" value="java" '.$java.'>
+                            <label class="radio_label" for="java_uploader">'.T_('Java').'</label><br/>
+                            <small>
+                                '.T_('Allows you to upload multiple photos at once and very large photos.').'
+                            </small><br/><br/>
+                            <input type="radio" name="uploader" id="basic_uploader" value="basic" '.$basic.'>
+                            <label class="radio_label" for="basic_uploader">'.T_('Basic').'</label><br/>
+                            <small>
+                                '.T_('For older browsers. Uploads one photo at a time.  May not work for on very large photos.').'
+                            </small><br/><br/>
+                        </div>
+                    </div>
+                    <div id="advanced_tagging_div" class="field-row" style="display:none">
+                        <div class="field-label"><label for="advanced_tagging"><b>'.T_('Advanced Tagging').'</b></label></div>
+                        <div class="field-widget">
+                            '.$advanced_tagging_options.'<br/>
+                            <small>
+                                <b>'.T_('Requires JavaScript.').'</b>
+                                '.T_('Allows you to more quickly tag members in photos.').'
+                            </small>
                         </div>
                     </div>
                     <p><input class="sub1" type="submit" name="submit" id="submit" value="'.T_('Submit').'"/></p>
@@ -658,8 +702,17 @@ class Settings
         return $ret;
     }
 
+    /**
+     * getThemeData 
+     * 
+     * @param string  $file 
+     * 
+     * @return void
+     */
     function getThemeData ($file)
     {
+        $file = basename($file);
+
         $data = array(
             'file'      => $file,
             'name'      => '',
@@ -669,20 +722,18 @@ class Settings
             'author'    => '',
         );
 
-        if (!file_exists(THEMES."$file/style.css"))
+        if (!file_exists(THEMES."$file/README"))
         {
             $data['name'] = $file;
             return $data;
         }
 
-        $f = @fopen(THEMES."$file/style.css", 'r');
+        $f = @fopen(THEMES."$file/README", 'r');
         if (!$f)
         {
             $data['name'] = $file;
             return $data;
         }
-
-        $comment = fgets($f, 1000);
 
         // name
         $name = fgets($f, 1000);
@@ -726,16 +777,6 @@ class Settings
         $author = trim($author);
 
         $data['author'] = $author;
-
-        // Fix missing theme comment
-        if ($name == '0; }')
-        {
-            $data['name']    = 'Error: missing data';
-            $data['desc']    = '';
-            $data['size']    = '';
-            $data['updated'] = '';
-            $data['author']  = '';
-        }
 
         return $data;
     }

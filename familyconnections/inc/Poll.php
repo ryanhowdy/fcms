@@ -204,10 +204,9 @@ class Poll
             }
         }
 
-        $pollOptions = '
-                <ul class="poll-results">';
+        $i           = 1;
+        $pollResults = array();
 
-        $i = 1;
         foreach ($pollData[$pollId]['options'] as $optionId => $optionData)
         {
             $votes   = $optionData['votes']['total'];
@@ -222,37 +221,31 @@ class Poll
                 $percent = round((($votes/$totalVotes) * 100), 0);
             }
 
+            $fcmsUsers = array();
             foreach ($optionData['votes']['users'] as $fcmsUserId => $val)
             {
-                $fcmsUsers .= '<li><div onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">';
-                $fcmsUsers .= '<img src="'.$fcmsUsersLkup[$fcmsUserId]['avatar'].'"/></div><div class="tooltip" style="display:none;">';
-                $fcmsUsers .= '<h5>'.$fcmsUsersLkup[$fcmsUserId]['name'].'</h5></div></li>';
+                $fcmsUsers[] = array(
+                    'avatar' => $fcmsUsersLkup[$fcmsUserId]['avatar'],
+                    'name'   => $fcmsUsersLkup[$fcmsUserId]['name'],
+                );
             }
-            if (is_null($fcmsUsers))
+            if (count($fcmsUsers) <= 0)
             {
-                 $fcmsUsers = '<li>'.T_('None').'</li>';
+                 $fcmsUsers = array(T_('None'));
             }
 
-            $pollOptions .= '
-                    <li>
-                        <b>'.cleanOutput($optionData['option'], 'html').'</b>
-                        <span>'.sprintf(T_('%s votes'), $votes).'</span>
-                        <a href="#" onclick="$(\'who'.$i.'\').toggle(); return false;" class="progress" title="'.T_('Click to see who voted for this.').'">
-                            <div class="bar" style="width:'.$percent.'%"></div>
-                        </a>
-                        <div id="who'.$i.'" class="who-voted" style="display:none">
-                            <ul class="avatar-member-list-small">
-                                '.$fcmsUsers.'
-                            </ul>
-                        </div>
-                    </li>';
+            $pollResults[] = array(
+                'text'      => cleanOutput($optionData['option'], 'html'),
+                'votes'     => sprintf(T_('%s votes'), $votes),
+                'textClick' => T_('Click to see who voted for this.'),
+                'percent'   => $percent,
+                'count'     => $i,
+                'users'     => $fcmsUsers,
+            );
             $i++;
         }
 
-        $pollOptions .= '
-                </ul>';
-
-        return $pollOptions;
+        return $pollResults;
     }
 
     /**

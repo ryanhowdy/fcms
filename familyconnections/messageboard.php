@@ -47,17 +47,6 @@ class Page
         $this->fcmsUser         = $fcmsUser;
         $this->fcmsMessageBoard = $fcmsMessageBoard;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Message Board'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -146,18 +135,27 @@ class Page
      */
     function displayHeader ($js = '')
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Message Board'),
+            'pageId'        => 'messageboard',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+        );
 
-        $TMPL['javascript'] = $js;
+        $params['javascript'] = $js;
 
         // Default js
         if ($js == '')
         {
-            $TMPL['javascript'] = '
+            $params['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     if (!$$(\'.delpost input[type="submit"]\')) { return; }
     $$(\'.delpost input[type="submit"]\').each(function(item) {
         item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
@@ -182,10 +180,7 @@ Event.observe(window, \'load\', function() {
 </script>';
         }
 
-        include getTheme($this->fcmsUser->id).'header.php';
-
-        echo '
-        <div id="messageboard" class="centercontent">';
+        loadTemplate('global', 'header', $params);
     }
 
     /**
@@ -195,12 +190,13 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
-        echo '
-        </div><!-- #messageboard .centercontent -->';
-
-        include getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**
@@ -1088,10 +1084,10 @@ Event.observe(window, \'load\', function() {
 Event.observe(window, \'load\', function() {
     var dc1 = new DateChooser();
     dc1.setUpdateField({\'start\':\'Y-m-d\'});
-    dc1.setIcon(\'ui/themes/default/images/datepicker.jpg\', \'start\');
+    dc1.setIcon(\'ui/themes/default/img/datepicker.jpg\', \'start\');
     var dc2 = new DateChooser();
     dc2.setUpdateField({\'end\':\'Y-m-d\'});
-    dc2.setIcon(\'ui/themes/default/images/datepicker.jpg\', \'end\');
+    dc2.setIcon(\'ui/themes/default/img/datepicker.jpg\', \'end\');
 });
 //]]>
 </script>';

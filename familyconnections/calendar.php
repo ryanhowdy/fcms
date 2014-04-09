@@ -47,17 +47,6 @@ class Page
         $this->fcmsUser     = $fcmsUser;
         $this->fcmsCalendar = $fcmsCalendar;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Calendar'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -198,16 +187,25 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Calendar'),
+            'pageId'        => 'calendar-section',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+        );
 
-        $TMPL['javascript'] = '
+        $params['javascript'] = '
 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
 <link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>
 <script type="text/javascript" src="ui/js/datechooser.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initHideAdd();
     initCalendarHighlight();
     initDisableTimes();
@@ -219,7 +217,7 @@ Event.observe(window, \'load\', function() {
     // Datpicker
     var objDatePicker = new DateChooser();
     objDatePicker.setUpdateField({\'sday\':\'j\', \'smonth\':\'n\', \'syear\':\'Y\'});
-    objDatePicker.setIcon(\''.$TMPL['path'].'ui/themes/default/images/datepicker.jpg\', \'syear\');
+    objDatePicker.setIcon(\''.URL_PREFIX.'ui/themes/default/img/datepicker.jpg\', \'syear\');
     // Delete Confirmation
     if ($(\'delcal\')) {
         var item = $(\'delcal\');
@@ -235,10 +233,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-        include_once getTheme($this->fcmsUser->id).'header.php';
-
-        echo '
-        <div id="calendar-section" class="centercontent">';
+        loadTemplate('global', 'header', $params);
     }
 
     /**
@@ -248,12 +243,13 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
-        echo '
-        </div><!-- /calendar-section -->';
-
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**

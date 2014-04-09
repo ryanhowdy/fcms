@@ -44,17 +44,6 @@ class Page
         $this->fcmsDatabase = $fcmsDatabase;
         $this->fcmsUser     = $fcmsUser;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Members'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -77,17 +66,21 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Members'),
+            'pageId'        => 'members',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-        $TMPL['javascript'] = '
-<script type="text/javascript">
-Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });
-</script>';
-
-        include_once getTheme($this->fcmsUser->id).'header.php';
+        displayPageHeader($params);
 
         echo '
-        <div id="members" class="centercontent">
             <div id="leftcolumn">
                 <h3>'.T_('Order Members By:').'</h3>
                 <ul class="menu">
@@ -108,13 +101,16 @@ Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'      => URL_PREFIX,
+            'version'   => getCurrentVersion(),
+            'year'      => date('Y')
+        );
 
         echo '
-            </div><!-- /maincolumn -->
-        </div><!-- /members -->';
+            </div><!--/#maincolumn-->';
 
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**

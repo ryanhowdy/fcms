@@ -117,7 +117,7 @@ Event.observe(window, "load", function() {
     // Datechooser
     var objDatePicker = new DateChooser();
     objDatePicker.setUpdateField({"day":"j", "month":"n", "year":"Y"});
-    objDatePicker.setIcon("ui/themes/default/images/datepicker.jpg", "year");
+    objDatePicker.setIcon("ui/themes/default/img/datepicker.jpg", "year");
     return true;
 });
 //]]>
@@ -520,7 +520,7 @@ function displayStepFive ($error = '0')
     $_POST['contact']  = mysql_real_escape_string($_POST['contact']);
 
     // Setup Config
-    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 3.3.1');
+    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 3.4.0');
 
     // Setup Navigation
     $order  = 0;

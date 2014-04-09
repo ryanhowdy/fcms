@@ -19,7 +19,6 @@ define('GALLERY_PREFIX', '');
 require URL_PREFIX.'fcms.php';
 
 load(
-    'Upload_PhotoGallery',
     'gallery', 
     'socialmedia', 
     'datetime', 
@@ -56,17 +55,6 @@ class Page
         $this->fcmsUser         = $fcmsUser;
         $this->fcmsPhotoGallery = $fcmsPhotoGallery;
         $this->fcmsImage        = $fcmsImage;
-
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => cleanOutput(getSiteName()),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Photo Gallery'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
 
         $this->control();
     }
@@ -203,6 +191,10 @@ class Page
                 }
             }
         }
+        elseif (isset($_POST['plupload']))
+        {
+            $this->displayPluploadFormSubmit();
+        }
         elseif (isset($_POST['javaUpload']))
         {
             $this->displayJavaUploadFormSubmit();
@@ -254,33 +246,31 @@ class Page
      * 
      * @return void
      */
-    function displayHeader ()
+    function displayHeader ($options = null)
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => cleanOutput(getSiteName()),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Photo Gallery'),
+            'pageId'        => 'gallery',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-        $TMPL['javascript'] = '
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
-    hideUploadOptions(
-        \''.T_('Rotate Photo').'\', 
-        \''.T_('Use Existing Category').'\',
-        \''.T_('Create New Category').'\'
-    );
-    hidePhotoDetails(\''.T_('More Details').'\');
-    deleteConfirmationLink("deletephoto", "'.T_('Are you sure you want to DELETE this Photo?').'");
-    deleteConfirmationLinks("gal_delcombtn", "'.T_('Are you sure you want to DELETE this Comment?').'");
-    deleteConfirmationLinks("delcategory", "'.T_('Are you sure you want to DELETE this Category?').'");
-    initNewWindow();
-});
-//]]>
-</script>';
+        if ($options === null)
+        {
+            $options = array(
+                'jsOnload' => 'deleteConfirmationLink("deletephoto", "'.T_('Are you sure you want to DELETE this Photo?').'");'
+                            . 'deleteConfirmationLinks("gal_delcombtn", "'.T_('Are you sure you want to DELETE this Comment?').'");'
+                            . 'deleteConfirmationLinks("delcategory", "'.T_('Are you sure you want to DELETE this Category?').'");'
+                            . 'initNewWindow();',
+            );
+        }
 
-        include_once getTheme($this->fcmsUser->id, $TMPL['path']).'header.php';
-
-        echo '
-        <div id="gallery" class="centercontent">';
+        displayPageHeader($params, $options);
     }
 
     /**
@@ -290,12 +280,13 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
-        echo '
-        </div><!-- #gallery .centercontent -->';
-
-        include_once getTheme($this->fcmsUser->id, $TMPL['path']).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**
@@ -524,8 +515,7 @@ Event.observe(window, \'load\', function() {
      */
     function displayDeletePhotoSubmit ()
     {
-        $photoId     = (int)$_POST['photo'];
-        $uploadsPath = getUploadsAbsolutePath();
+        $photoId = (int)$_POST['photo'];
 
         // Get photo info
         $sql = "SELECT `user`, `category`, `filename`, `external_id`
@@ -569,33 +559,31 @@ Event.observe(window, \'load\', function() {
         }
 
         // Remove any external photos for this photo
-        $sql = "DELETE FROM `fcms_gallery_external_photo`
-                WHERE `id` = ?";
-        if (!$this->fcmsDatabase->delete($sql, $photoExternalId))
+        if (!empty($photoExternalId))
         {
-            $this->displayHeader();
-            $this->fcmsError->displayError();
-            $this->displayFooter();
-            return;
+            $sql = "DELETE FROM `fcms_gallery_external_photo`
+                    WHERE `id` = ?";
+            if (!$this->fcmsDatabase->delete($sql, $photoExternalId))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
         }
 
-        $filePath  = $uploadsPath.'photos/member'.$photoUserId.'/'.basename($photoFilename);
-        $thumbPath = $uploadsPath.'photos/member'.$photoUserId.'/tb_'.basename($photoFilename);
-        $fullPath  = $uploadsPath.'photos/member'.$photoUserId.'/full_'.basename($photoFilename);
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $filePath  = basename($photoFilename);
+        $thumbPath = 'tb_'.basename($photoFilename);
+        $fullPath  = 'full_'.basename($photoFilename);
 
         // Remove the Photo from the server
-        if (file_exists($filePath))
-        {
-            unlink($filePath);
-        }
-        if (file_exists($thumbPath))
-        {
-            unlink($thumbPath);
-        }
-        if (file_exists($fullPath))
-        {
-            unlink($fullPath);
-        }
+        $photoDestination->deleteFile($filePath);
+        $photoDestination->deleteFile($thumbPath);
+        $photoDestination->deleteFile($fullPath);
 
         $_SESSION['message'] = 1;
 
@@ -636,7 +624,11 @@ Event.observe(window, \'load\', function() {
      */
     function displayUploadForm ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array(
+                'jsOnload' => 'hideUploadOptions(\''.T_('Rotate Photo').'\', \''.T_('Use Existing Category').'\', \''.T_('Create New Category').'\');',
+            )
+        );
 
         $this->fcmsPhotoGallery->displayGalleryMenu('none');
 
@@ -646,55 +638,12 @@ Event.observe(window, \'load\', function() {
             $this->fcmsError->displayError();
         }
 
-        // Figure out the upload type
-        $type = null;
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType  = getPhotoGallery();
+        $photoGalleryType .= 'Form';
+        $photoGalleryForm  = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
 
-        // Get selected type (user clicked on type from menu)
-        if (isset($_GET['type']))
-        {
-            $type = $_GET['type'];
-
-            if ($_GET['type'] == 'upload')
-            {
-                $type = null;
-                if (usingAdvancedUploader($this->fcmsUser->id))
-                {
-                    $type = 'java';
-                }
-            }
-        }
-        // Use last upload type (user clicked on 'Upload Photos' button
-        elseif (isset($_SESSION['fcms_uploader_type']))
-        {
-            $type = $_SESSION['fcms_uploader_type'];
-        }
-        else
-        {
-            if (usingAdvancedUploader($this->fcmsUser->id))
-            {
-                $type = 'java';
-            }
-        }
-
-        // Turn on advanced uploader
-        if (isset($_GET['advanced']))
-        {
-            $type = 'java';
-
-            $sql = "UPDATE `fcms_user_settings`
-                    SET `advanced_upload` = '1'
-                    WHERE `user` = ?";
-
-            if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
-            {
-                $this->fcmsError->displayError();
-                $this->displayFooter();
-                return;
-            }
-        }
-
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $type);
-        $this->Uploader->displayForm();
+        $photoGalleryForm->display();
 
         $this->displayFooter();
 
@@ -708,25 +657,33 @@ Event.observe(window, \'load\', function() {
      */
     function displayUploadFormSubmit ()
     {
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $formData = array(
             'photo'       => $_FILES['photo_filename'],
             'newCategory' => $_POST['new-category'],
             'caption'     => $_POST['photo_caption'],
         );
-
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
         $formData['rotate']   = isset($_POST['rotate'])   ? $_POST['rotate']   : null;
 
-        if (!$this->Uploader->upload($formData))
+        // Upload the photo
+        if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload');
             return;
         }
 
-        $photoId    = $this->Uploader->getLastPhotoId();
-        $categoryId = $this->Uploader->getLastCategoryId();
+        $photoId    = $photoGalleryUploader->getLastPhotoId();
+        $categoryId = $photoGalleryUploader->getLastCategoryId();
 
         // Tag photo
         if (isset($_POST['tagged']))
@@ -747,13 +704,58 @@ Event.observe(window, \'load\', function() {
     }
 
     /**
+     * displayPluploadFormSubmit 
+     * 
+     * @return void
+     */
+    function displayPluploadFormSubmit ()
+    {
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
+
+        $type = key($_FILES);
+        $file = array_shift($_FILES);
+
+        $file['name'] = $_POST['name'];
+
+        $formData = array(
+            'photo_type'  => $type,
+            'photo'       => $file,
+            'newCategory' => $_POST['new-category'],
+        );
+
+        $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
+
+        // Upload the photo
+        if (!$photoGalleryUploader->upload($formData))
+        {
+            header("HTTP/1.0 404 Not Found");
+        }
+    }
+
+    /**
      * displayJavaUploadFormSubmit 
      * 
      * @return void
      */
     function displayJavaUploadFormSubmit ()
     {
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'java');
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $formData = array(
             'thumb'       => $_FILES['thumb'],
@@ -764,7 +766,7 @@ Event.observe(window, \'load\', function() {
         $formData['full']     = isset($_FILES['full'])    ? $_FILES['full']    : null;
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
 
-        if (!$this->Uploader->upload($formData))
+        if (!$photoGalleryUploader->upload($formData))
         {
             echo "Upload Failure";
             return;
@@ -835,21 +837,24 @@ Event.observe(window, \'load\', function() {
             return;
         }
 
+        // We currently don't need a photo destination for Instagram
+        $photoDestination = new PhotoDestination($this->fcmsError, $this->fcmsUser);
 
-        // Upload individual photos
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'instagram');
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination);
 
         $formData = array(
             'photos' => $_POST['photos'],
         );
 
-        if (!$this->Uploader->upload($formData))
+        if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload&type=instagram');
             return;
         }
 
-        $categoryId = $this->Uploader->getLastCategoryId();
+        $categoryId = $photoGalleryUploader->getLastCategoryId();
 
         header("Location: index.php?uid=".$this->fcmsUser->id."&cid=$categoryId");
     }
@@ -861,7 +866,15 @@ Event.observe(window, \'load\', function() {
      */
     function displayPicasaUploadFormSubmit ()
     {
-        $this->Uploader = new Upload_PhotoGallery($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, 'picasa');
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $formData = array(
             'photos'      => $_POST['photos'],
@@ -872,13 +885,13 @@ Event.observe(window, \'load\', function() {
 
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
 
-        if (!$this->Uploader->upload($formData))
+        if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload&type=picasa');
             return;
         }
 
-        $categoryId = $this->Uploader->getLastCategoryId();
+        $categoryId = $photoGalleryUploader->getLastCategoryId();
 
         header("Location: index.php?edit-category=$categoryId&user=".$this->fcmsUser->id);
     }
@@ -1594,6 +1607,16 @@ Event.observe(window, \'load\', function() {
             $i = 1;
             foreach ($albumFeed as $photo)
             {
+                // Skip videos
+                $mediaContent = $photo->getMediaGroup()->getContent();
+                foreach ($mediaContent as $content)
+                {
+                    if ($content->getMedium() == 'video')
+                    {
+                        continue 2;
+                    }
+                }
+
                 $thumb = $photo->getMediaGroup()->getThumbnail();
 
                 $sourceId  = $photo->getGphotoId()->text;

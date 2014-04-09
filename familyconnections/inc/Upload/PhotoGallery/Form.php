@@ -1,25 +1,25 @@
 <?php
 /**
- * FormUpload 
+ * Basic Form
  * 
- * @package Upload_PhotoGallery
- * @subpackage Form
- * @copyright 2013 Haudenschilt LLC
+ * @package Upload
+ * @subpackage UploadPhotoGallery
+ * @copyright 2014 Haudenschilt LLC
  * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
-class FormUpload
+class UploadPhotoGalleryForm
 {
     /**
      * __construct 
      * 
-     * @param object $fcmsError 
-     * @param object $fcmsDatabase 
-     * @param object $fcmsUser 
+     * @param FCMS_Error $fcmsError 
+     * @param Database   $fcmsDatabase 
+     * @param User       $fcmsUser 
      * 
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
         $this->fcmsError    = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
@@ -179,7 +179,8 @@ class FormUpload
 
             if ($type == 'upload')
             {
-                $url   = '?action=upload&amp;type=upload';
+                $type  = getUploaderType($this->fcmsUser->id);
+                $url   = '?action=upload&amp;type='.$type;
                 $text  = T_('Computer');
             }
             elseif ($type == 'instagram')
@@ -270,5 +271,4 @@ class FormUpload
 
         return $categories;
     }
-
 }

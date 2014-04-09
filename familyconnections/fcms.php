@@ -45,6 +45,51 @@ if ($fcmsError->hasError())
 }
 
 /**
+ * __autoload 
+ * 
+ * @param string $className 
+ * 
+ * @return void
+ */
+function __autoload ($className)
+{
+    $classPaths = array(
+        'Destination'                       => INC.'Upload/Destination.php',
+        'PhotoGalleryDestination'           => INC.'Upload/Destination/PhotoGallery.php',
+        'ProtectedPhotoGalleryDestination'  => INC.'Upload/Destination/PhotoGallery/Protected.php',
+        'S3PhotoGalleryDestination'         => INC.'Upload/Destination/PhotoGallery/S3.php',
+        'ProfileDestination'                => INC.'Upload/Destination/Profile.php',
+        'ProtectedProfileDestination'       => INC.'Upload/Destination/Profile/Protected.php',
+        'S3ProfileDestination'              => INC.'Upload/Destination/Profile/S3.php',
+        'UploadPhotoGalleryForm'            => INC.'Upload/PhotoGallery/Form.php',
+        'JavaUploadPhotoGalleryForm'        => INC.'Upload/PhotoGallery/Form/Java.php',
+        'InstagramUploadPhotoGalleryForm'   => INC.'Upload/PhotoGallery/Form/Instagram.php',
+        'PicasaUploadPhotoGalleryForm'      => INC.'Upload/PhotoGallery/Form/Picasa.php',
+        'PluploadUploadPhotoGalleryForm'    => INC.'Upload/PhotoGallery/Form/Plupload.php',
+        'JavaUploadPhotoGallery'            => INC.'Upload/PhotoGallery/Java.php',
+        'InstagramUploadPhotoGallery'       => INC.'Upload/PhotoGallery/Instagram.php',
+        'PicasaUploadPhotoGallery'          => INC.'Upload/PhotoGallery/Picasa.php',
+        'PluploadUploadPhotoGallery'        => INC.'Upload/PhotoGallery/Plupload.php',
+        'UploadProfileForm'                 => INC.'Upload/Profile/Form.php',
+        'PluploadUploadProfileForm'         => INC.'Upload/Profile/Form/Plupload.php',
+        'JavaUploadProfileForm'             => INC.'Upload/Profile/Form/Java.php',
+        'UploadPhoto'                       => INC.'Upload/Photo.php',
+        'UploadPhotoGallery'                => INC.'Upload/PhotoGallery.php',
+        'UploadProfile'                     => INC.'Upload/Profile.php',
+        'S3'                                => THIRDPARTY.'s3/S3.php',
+        'Instagram'                         => THIRDPARTY.'Instagram.php',
+    );
+
+    if (isset($classPaths[$className]))
+    {
+        if (file_exists($classPaths[$className]))
+        {
+            require_once($classPaths[$className]);
+        }
+    }
+}
+
+/**
  * load 
  * 
  * Will include the necessary classes/inc files.
@@ -108,11 +153,6 @@ function load()
         elseif ($include == 'phpass')
         {
             include_once THIRDPARTY.'phpass/PasswordHash.php';
-        }
-        elseif (substr($include, 0, 7) == 'Upload_')
-        {
-            $path = str_replace('_', '/', $include);
-            require_once INC.$path.'.php';
         }
         else
         {

@@ -44,17 +44,6 @@ class Page
         $this->fcmsDatabase     = $fcmsDatabase;
         $this->fcmsUser         = $fcmsUser;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Prayer Concerns'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -102,13 +91,23 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Prayer Concerns'),
+            'pageId'        => 'prayers',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-        $TMPL['javascript'] = '
+        $params['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     if (!$$(\'.delform input[type="submit"]\')) { return; }
     $$(\'.delform input[type="submit"]\').each(function(item) {
         item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
@@ -123,10 +122,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-        require_once getTheme($this->fcmsUser->id).'header.php';
-
-        echo '
-        <div id="prayers" class="centercontent">';
+        loadTemplate('global', 'header', $params);
     }
 
     /**
@@ -136,12 +132,13 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
-        echo '
-        </div><!--/prayers-->';
-
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**

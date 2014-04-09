@@ -23,25 +23,20 @@ load('datetime', 'socialmedia', 'foursquare');
 
 init();
 
-$TMPL = array(
+$templateParams = array(
     'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
     'pagetitle'     => T_('Where Is Everyone'),
+    'pageId'        => 'whereiseveryone-page',
     'path'          => URL_PREFIX,
     'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
     'year'          => date('Y')
 );
-$TMPL['javascript'] = '
-<script type="text/javascript" src="'.$TMPL['path'].'ui/js/livevalidation.js"></script>
-<script type="text/javascript">Event.observe(window, "load", function() { initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\'); });</script>';
+$options = array('modules' => array('livevalidation'));
 
-// Show Header
-require_once getTheme($fcmsUser->id).'header.php';
-
-echo '
-        <div id="whereiseveryone-page" class="centercontent">';
+displayPageHeader($templateParams, $options);
 
 //-------------------------------------
 // Show Latest checkins
@@ -55,6 +50,7 @@ if (count($users[0]) <= 0)
             <div class="info-alert">
                 <p>'.T_('No users with foursquare data found.').'</p>
             </div>';
+    loadTemplate('global', 'footer', $templateParams);
     return;
 }
 
@@ -157,8 +153,6 @@ foreach ($historyData as $k => $data)
 }
 
 echo '
-            </ul>
-        </div><!-- #whereiseveryone-page .centercontent -->';
+            </ul>';
 
-// Show Footer
-require_once getTheme($fcmsUser->id).'footer.php';
+loadTemplate('global', 'footer', $templateParams);

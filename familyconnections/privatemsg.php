@@ -44,17 +44,6 @@ class Page
         $this->fcmsDatabase     = $fcmsDatabase;
         $this->fcmsUser         = $fcmsUser;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Private Messages'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -106,13 +95,22 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Private Messages'),
+            'pageId'        => 'privatemsg',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+        );
 
-        $TMPL['javascript'] = '
+        $params['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     if (!$$(\'.pm_footer input[type="submit"]\')) { return; }
     $$(\'.pm_footer input[type="submit"]\').each(function(item) {
         item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
@@ -127,7 +125,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-        require_once getTheme($this->fcmsUser->id).'header.php';
+        loadTemplate('global', 'header', $params);
 
         $link = T_('Inbox');
 
@@ -137,8 +135,6 @@ Event.observe(window, \'load\', function() {
         }
 
         echo '
-        <div id="privatemsg" class="centercontent">
-
             <div id="actions_menu">
                 <ul><li><a href="?compose=new">'.T_('New Message').'</a></li></ul>
             </div>
@@ -160,13 +156,16 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
         echo '
-            </div><!--/maincolumn-->
-        </div><!--/profile-->';
+            </div><!--/#maincolumn-->';
 
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**

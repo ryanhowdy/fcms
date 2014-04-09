@@ -200,10 +200,10 @@ Event.observe(window, \'load\', function() {
     // Datechooser
     var bday = new DateChooser();
     bday.setUpdateField({\'bday\':\'j\', \'bmonth\':\'n\', \'byear\':\'Y\'});
-    bday.setIcon(\''.$TMPL['path'].'ui/themes/default/images/datepicker.jpg\', \'byear\');
+    bday.setIcon(\''.$TMPL['path'].'ui/themes/default/img/datepicker.jpg\', \'byear\');
     var dday = new DateChooser();
     dday.setUpdateField({\'dday\':\'j\', \'dmonth\':\'n\', \'dyear\':\'Y\'});
-    dday.setIcon(\''.$TMPL['path'].'ui/themes/default/images/datepicker.jpg\', \'dyear\');
+    dday.setIcon(\''.$TMPL['path'].'ui/themes/default/img/datepicker.jpg\', \'dyear\');
     // Delete Confirmation All
     if ($(\'deleteAll\')) {
         var item = $(\'deleteAll\'); 

@@ -454,10 +454,14 @@ class PhotoGallery
 
         $r['user']  = $r['uid'];
 
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
         $mediumSrc  = $this->getPhotoSource($r, 'medium');
         $fullSrc    = $this->getPhotoSource($r, 'full');
         $caption    = cleanOutput($r['caption']);
-        $dimensions = GetImageSize($photo_path_full);
+        $dimensions = $photoDestination->getImageSize($photo_path_full);
         $date_added = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $r['date']);
 
         // Calculate rating
@@ -765,40 +769,33 @@ class PhotoGallery
         $filename = basename($filename);
         $uid      = (int)$uid;
 
-        // Link to the full sized photo if using full sized
-        $sql = "SELECT `value` AS 'full_size_photos'
-                FROM `fcms_config`
-                WHERE `name` = 'full_size_photos'";
+        // Figure out where we are currently saving photos, and create new destination object
+        $destinationType = getDestinationType().'PhotoGalleryDestination';
+        $destination     = new $destinationType($this->fcmsError, $this->fcmsUser);
 
-        $full_size_photos = false; 
+        $photoPath = $destination->getPhotoPaths($filename, $uid);
 
-        $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
-            // If we can't figure out full sized, we will default to no and continue on
-            $this->fcmsError->displayError();
-        }
-        else
-        {
-            $full_size_photos = $row['full_size_photos'] == 1 ? true : false;
-        }
+        return $photoPath;
+    }
 
-        $uploads_path = getUploadsAbsolutePath();
+    /**
+     * getPhotoFileSize 
+     * 
+     * Returns the filesize of the given photo.
+     * 
+     * @param string $file 
+     * 
+     * @return string
+     */
+    function getPhotoFileSize ($file)
+    {
+        // Figure out where we are currently saving photos, and create new destination object
+        $destinationType = getDestinationType().'PhotoGalleryDestination';
+        $destination     = new $destinationType($this->fcmsError, $this->fcmsUser);
 
-        $photo_path[0] = $uploads_path."photos/member$uid/$filename";
-        $photo_path[1] = $uploads_path."photos/member$uid/$filename";
+        $size = $destination->getPhotoFileSize($file);
 
-        if ($full_size_photos)
-        {
-            // If you are using full sized but a photo was uploaded prior to that change, 
-            // no full sized photo will be available, so don't link to it
-            if (file_exists($uploads_path."photos/member$uid/full_$filename"))
-            {
-                $photo_path[1] = $uploads_path."photos/member$uid/full_$filename";
-            }
-        }
-
-        return $photo_path;
+        return $size;
     }
 
     /**
@@ -2039,7 +2036,7 @@ class PhotoGallery
             return;
         }
 
-        if (count($photos) < 0)
+        if (count($photos) <= 0)
         {
             echo '<p class="error">'.T_('No photos found in this category.').'</p>';
             return;
@@ -2119,6 +2116,7 @@ class PhotoGallery
                 'thumbnail'   => $row['thumbnail']
             );
 
+            $row['id']   = $row['pid'];
             $row['user'] = $row['uid'];
 
             $photoSrc = $this->getPhotoSource($row);
@@ -2832,45 +2830,21 @@ class PhotoGallery
         }
 
         // External
+            // TODO - Instagram hack -- needs to go away
+            // We should never keep photos externally like this
+            // We should download the photos locally like we do with Picasa
         if ($data['filename'] == 'noimage.gif' && $data['external_id'] != null)
         {
             return $data[$size]; 
         }
 
-        // Protected
-        if (defined('UPLOADS'))
-        {
-            // Gallery Prefix should be defined on each page
-            return GALLERY_PREFIX.'photo.php?id='.(int)$data['id'].'&amp;size='.$size;
-        }
+        // Figure out where we are currently saving photos, and create new destination object
+        $destinationType = getDestinationType().'PhotoGalleryDestination';
+        $destination     = new $destinationType($this->fcmsError, $this->fcmsUser);
 
-        // Unprotected - Local
-        if ($size == 'thumbnail')
-        {
-            $prefix = 'tb_';
-        }
-        elseif ($size == 'full' && $this->usingFullSizePhotos())
-        {
-            $prefix = 'full_';
-        }
-        else
-        {
-            $prefix = '';
-        }
+        $photoSource = $destination->getPhotoSource($data, $size);
 
-        // URL Prefix should be defined on each page
-        $photoSrc = URL_PREFIX.'uploads/photos/member'.(int)$data['user'].'/'.$prefix.basename($data['filename']);
-
-        // XXX: we may have uploaded this photo before we 
-        // starting using full sized photos, so this full
-        // sized photo may not exist.
-        // Give them main size instead
-        if ($size == 'full' && !file_exists($photoSrc))
-        {
-            $photoSrc = URL_PREFIX.'uploads/photos/member'.(int)$data['user'].'/'.basename($data['filename']);
-        }
-
-        return $photoSrc;
+        return $photoSource;
     }
 
     /**

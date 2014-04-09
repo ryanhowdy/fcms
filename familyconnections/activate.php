@@ -22,7 +22,7 @@ echo '
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_pgettext('Language Code for this translation', 'lang').'" lang="'.T_pgettext('Language Code for this translation', 'lang').'">
 <head>
 <title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
-<link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
+<link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css" />
 </head>
 <body>';
 

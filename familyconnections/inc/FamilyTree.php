@@ -346,6 +346,7 @@ class FamilyTree
                 $this->displayPerson($spouse);
 
                 $thisKids = $this->getKids($parent, $spouse, $kids);
+                $thisKids = subval_sort($thisKids, 'dob_year');
                 $kidCount = count($thisKids);
 
                 if ($kidCount > 0)
@@ -498,8 +499,36 @@ class FamilyTree
     {
         $data['sex'] = strtolower($data['sex']);
 
-        $b = isset($data['dob_year']) && !empty($data['dob_year']) ? (int)$data['dob_year'].' - ' : '';
-        $d = isset($data['dod_year']) && !empty($data['dod_year']) ? (int)$data['dod_year']       : '';
+        $bday = '<i>'.T_('Living').'</i>';
+        $dday = '';
+
+        // Just birthday
+        if (isset($data['dob_year']) && !empty($data['dob_year']))
+        {
+            $bday  = (int)$data['dob_year'];
+            $bday .= ' - ';
+            $dday  = '<i>'.T_('Living').'</i>';
+
+            // Birthday and Deceased date
+            if (isset($data['dod_year']) && !empty($data['dod_year']))
+            {
+                $dday  = (int)$data['dod_year'];
+            }
+        }
+        // Just Deceased date
+        else if (isset($data['dod_year']) && !empty($data['dod_year']))
+        {
+            $bday = '? - ';
+            $dday = (int)$data['dod_year'];
+        }
+
+        $middleName = isset($data['mname']) && !empty($data['mname']) ? $data['mname'].'<br/>' : '';
+
+        $maidenName = '';
+        if (isset($data['maiden']) && !empty($data['maiden']) && $data['maiden'] != $data['lname'])
+        {
+            $maidenName = '<br/>('.cleanOutput($data['maiden']).')';
+        }
 
         $avatarPath = getAvatarPath($data['avatar'], $data['gravatar']);
 
@@ -531,10 +560,12 @@ class FamilyTree
             </div>
             <div class="tree-detail">
                 <a href="?details='.$data['id'].'">
-                    '.$data['fname'].'<br/>
-                    '.$data['lname'].'
+                    '.cleanOutput($data['fname']).'<br/>
+                    '.$middleName.'
+                    '.cleanOutput($data['lname']).'
+                    '.$maidenName.'
                 </a>
-                <p>'.$b.$d.'</p>
+                <p>'.$bday.$dday.'</p>
                 <span class="tools">
                     <a class="view" href="?view='.$data['id'].'">'.T_('View').'</a>
                     '.$del.'

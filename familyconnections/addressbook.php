@@ -50,17 +50,6 @@ class Page
         $this->fcmsBook     = $fcmsBook;
         $this->fcmsAlert    = $fcmsAlert;
 
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => getSiteName(),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Address Book'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
-
         $this->control();
     }
 
@@ -149,14 +138,23 @@ class Page
      */
     function displayHeader ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => getSiteName(),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Address Book'),
+            'pageId'        => 'addressbook',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+        );
 
-        $TMPL['javascript'] = '
+        $params['javascript'] = '
 <script type="text/javascript" src="ui/js/tablesort.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initAddressBookClickRow();
     initCheckAll(\''.T_("Select All").'\');
     deleteConfirmationLink("del_address", "'.T_('Are you sure you want to DELETE this address?').'");
@@ -164,10 +162,7 @@ Event.observe(window, \'load\', function() {
 //]]>
 </script>';
 
-        include_once getTheme($this->fcmsUser->id).'header.php';
-
-        echo '
-        <div id="addressbook" class="centercontent">';
+        loadTemplate('global', 'header', $params);
     }
 
     /**
@@ -177,12 +172,13 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter ()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
-        echo '
-        </div><!-- /centercontent -->';
-
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**

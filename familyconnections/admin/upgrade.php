@@ -151,8 +151,8 @@ img { margin: 0 0 20px 0; }
 ul { list-style-type: none; margin: 0; padding: 0; }
 li h2 { color: #000; margin-left: -20px; }
 li { color: #ccc; font-weight: bold; padding: 3px 0 3px 20px; }
-li.current { color: #000; background: transparent url(../ui/images/current.gif) left center no-repeat; }
-li.complete { color: green; background: transparent url(../ui/images/complete.png) left center no-repeat; }
+li.current { color: #000; background: transparent url(../ui/img/current.gif) left center no-repeat; }
+li.complete { color: green; background: transparent url(../ui/img/complete.png) left center no-repeat; }
 .manual { border-bottom: 1px solid #ddd; }
 .manual li { font-weight: normal; color: #000; font: 14px/18px arial, verdana, sans-serif; border: 1px solid #ddd; border-bottom: none; padding: 3px 3px 3px 30px; }
 .manual li.complete { background-position: 8px 17px; }
@@ -160,7 +160,7 @@ li.complete { color: green; background: transparent url(../ui/images/complete.pn
 </style>
 </head>
 <body>
-<a href="../home.php"><img src="../ui/images/logo.gif"/></a>';
+<a href="../home.php"><img src="../ui/img/logo.gif"/></a>';
 }
 
 /**

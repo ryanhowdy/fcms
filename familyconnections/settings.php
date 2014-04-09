@@ -18,7 +18,17 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('settings', 'foursquare', 'facebook', 'socialmedia', 'youtube', 'instagram', 'familynews', 'picasa', 'phpass');
+load(
+    'settings', 
+    'foursquare', 
+    'facebook', 
+    'socialmedia', 
+    'youtube', 
+    'instagram', 
+    'familynews', 
+    'picasa', 
+    'phpass'
+);
 
 init();
 
@@ -47,17 +57,6 @@ class Page
         $this->fcmsDatabase     = $fcmsDatabase;
         $this->fcmsUser         = $fcmsUser;
         $this->fcmsSettings     = $fcmsSettings;
-
-        $this->fcmsTemplate = array(
-            'currentUserId' => $this->fcmsUser->id,
-            'sitename'      => cleanOutput(getSiteName()),
-            'nav-link'      => getNavLinks(),
-            'pagetitle'     => T_('Settings'),
-            'path'          => URL_PREFIX,
-            'displayname'   => $this->fcmsUser->displayName,
-            'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
 
         $this->control();
     }
@@ -90,6 +89,10 @@ class Page
             elseif ($_GET['view'] == 'notifications')
             {
                 $this->displayEditNotificationsSubmit();
+            }
+            elseif ($_GET['view'] == 'photogallery')
+            {
+                $this->displayEditPhotoGallerySubmit();
             }
             elseif ($_GET['view'] == 'familynews')
             {
@@ -136,6 +139,10 @@ class Page
             elseif ($_GET['view'] == 'notifications')
             {
                 $this->displayEditNotifications();
+            }
+            elseif ($_GET['view'] == 'photogallery')
+            {
+                $this->displayEditPhotoGallery();
             }
             elseif ($_GET['view'] == 'familynews')
             {
@@ -251,29 +258,37 @@ class Page
      */
     function displayHeader ($js = '')
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'currentUserId' => $this->fcmsUser->id,
+            'sitename'      => cleanOutput(getSiteName()),
+            'nav-link'      => getNavLinks(),
+            'pagetitle'     => T_('Settings'),
+            'pageId'        => 'settings',
+            'path'          => URL_PREFIX,
+            'displayname'   => $this->fcmsUser->displayName,
+            'version'       => getCurrentVersion(),
+            'year'          => date('Y')
+        );
 
-        $TMPL['javascript'] = $js;
+        $params['javascript'] = $js;
 
         // Default js
         if ($js == '')
         {
-            $TMPL['javascript'] = '
+            $params['javascript'] = '
 <script type="text/javascript">
 //<![CDATA[ 
 Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.$TMPL['path'].'\');
+    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initAdvancedTagging();
 });
 //]]>
 </script>';
         }
 
-        include_once getTheme($this->fcmsUser->id).'header.php';
+        loadTemplate('global', 'header', $params);
 
         echo '
-        <div id="settings" class="centercontent">
-
             <div id="leftcolumn">
                 <h3>'.T_('General Settings').'</h3>
                 <ul class="menu">
@@ -284,6 +299,7 @@ Event.observe(window, \'load\', function() {
                 </ul>
                 <h3>'.T_('Plugin Settings').'</h3>
                 <ul class="menu">
+                    <li><a href="?view=photogallery">'.T_('Photo Gallery').'</a></li>
                     <li><a href="?view=familynews">'.T_('Family News').'</a></li>
                     <li><a href="?view=messageboard">'.T_('Message Board').'</a></li>
                 </ul>';
@@ -348,14 +364,17 @@ Event.observe(window, \'load\', function() {
      */
     function displayFooter()
     {
-        $TMPL = $this->fcmsTemplate;
+        $params = array(
+            'path'    => URL_PREFIX,
+            'version' => getCurrentVersion(),
+            'year'    => date('Y')
+        );
 
         echo '
-            </div>
-            <div style="clear:both"></div>
-        </div><!-- #settings .centercontent -->';
+            </div><!--/#maincolumn-->
+            <div style="clear:both"></div>';
 
-        include_once getTheme($this->fcmsUser->id).'footer.php';
+        loadTemplate('global', 'footer', $params);
     }
 
     /**
@@ -601,15 +620,6 @@ Event.observe(window, \'load\', function() {
 
         $params = array();
 
-        $changedAdvancedUploader = false;
-
-        if ($_POST['advanced_upload'])
-        {
-            $sql     .= "`advanced_upload` = ?, ";
-            $params[] = $_POST['advanced_upload'] == 'yes' ? 1 : 0;
-
-            $changedAdvancedUploader = true;
-        }
         if ($_POST['advanced_tagging'])
         {
             $sql     .= "`advanced_tagging` = ?, ";
@@ -656,14 +666,6 @@ Event.observe(window, \'load\', function() {
             }
 
             displayOkMessage();
-        }
-
-        // We may need to reset the fcms_uploader_type
-        // If we were using advanced, then turned it off
-        // we don't want to display the advanced next time
-        if ($changedAdvancedUploader && isset($_SESSION['fcms_uploader_type']))
-        {
-            unset($_SESSION['fcms_uploader_type']);
         }
 
         $this->fcmsSettings->displaySettings();
@@ -715,6 +717,66 @@ Event.observe(window, \'load\', function() {
         }
 
         $this->fcmsSettings->displayNotifications();
+        $this->displayFooter();
+    }
+
+    /**
+     * displayEditPhotoGallery
+     * 
+     * @return void
+     */
+    function displayEditPhotoGallery ()
+    {
+        $this->displayHeader();
+        $this->fcmsSettings->displayPhotoGallerySettings();
+        $this->displayFooter();
+
+        return;
+    }
+
+    /**
+     * displayEditPhotoGallerySubmit 
+     * 
+     * @return void
+     */
+    function displayEditPhotoGallerySubmit ()
+    {
+        $this->displayHeader();
+
+        $sql = "UPDATE `fcms_user_settings` 
+                SET `uploader` = ?,
+                    `advanced_tagging` = ?
+                WHERE `user` = ?";
+
+        $advancedTagging = $_POST['advanced_tagging'] == 'yes' ? 1 : 0;
+
+        $params = array(
+            $_POST['uploader'],
+            $advancedTagging,
+            $this->fcmsUser->id,
+        );
+
+        if (!$this->fcmsDatabase->update($sql, $params))
+        {
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        displayOkMessage();
+
+        // We may need to reset the fcms_uploader_type
+        $uploaderTypesThatNeedUpdated = array(
+            'plupload' => 1,
+            'java'     => 1,
+            'basic'    => 1,
+        );
+        if (isset($_SESSION['fcms_uploader_type']) && isset($uploaderTypesThatNeedUpdated[$_SESSION['fcms_uploader_type']]))
+        {
+            unset($_SESSION['fcms_uploader_type']);
+        }
+
+        $this->fcmsSettings->displayPhotoGallerySettings();
         $this->displayFooter();
     }
 
@@ -1016,7 +1078,7 @@ Event.observe(window, \'load\', function() {
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/images/facebook.png" alt="Facebook"/>
+            <img class="icon" src="ui/img/facebook.png" alt="Facebook"/>
             <h2>Facebook</h2>
             <p>'.T_('Facebook helps you connect and share with the people in your life.').'</p>
             <div class="status">'.$status.'</div>
@@ -1163,7 +1225,7 @@ Event.observe(window, \'load\', function() {
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/images/foursquare.png" alt="Foursquare"/>
+            <img class="icon" src="ui/img/foursquare.png" alt="Foursquare"/>
             <h2>Foursquare</h2>
             <p>'.T_('A location-based social networking website for your phone.').'</p>
             <div class="status">'.$status.'</div>
@@ -1281,7 +1343,7 @@ Event.observe(window, \'load\', function() {
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/images/instagram.png" alt="Instagram"/>
+            <img class="icon" src="ui/img/instagram.png" alt="Instagram"/>
             <h2>Instagram</h2>
             <p>'.T_('Instagram is a photo sharing app for your phone.').'</p>
             <div class="status">'.$status.'</div>
@@ -1433,7 +1495,7 @@ Event.observe(window, \'load\', function() {
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/images/youtube.png" alt="YouTube"/>
+            <img class="icon" src="ui/img/youtube.png" alt="YouTube"/>
             <h2>YouTube</h2>
             <p>'.T_('YouTube allows users to discover, watch and share videos.').'</p>
             <div class="status">'.$status.'</div>
@@ -1582,7 +1644,7 @@ Event.observe(window, \'load\', function() {
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/images/picasa.png" alt="Picasa"/>
+            <img class="icon" src="ui/img/picasa.png" alt="Picasa"/>
             <h2>Picasa Web</h2>
             <p>'.T_('Picasa Web allows users to share photos with friends and family.').'</p>
             <div class="status">'.$status.'</div>
