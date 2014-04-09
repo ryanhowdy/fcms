@@ -1,4 +1,4 @@
-![Family Connections](./familyconnections/ui/images/logo.gif)
+![Family Connections](./familyconnections/ui/img/logo.gif)
 ---
 
 [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/ryanhowdy/fcms/badges/quality-score.png?s=755b6ade4f4add05acf377fbaf03bb3a201f471c)](https://scrutinizer-ci.com/g/ryanhowdy/fcms/)
