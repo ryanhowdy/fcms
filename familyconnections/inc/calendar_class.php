@@ -1501,7 +1501,7 @@ class Calendar
                                     '.buildHtmlSelectOptions($times, $defaultTimeEnd).'
                                 </select> &nbsp;
                                 <input id="all-day" name="all-day" type="checkbox" 
-                                    onclick="toggleDisable($(\'timestart\'), $(\'timeend\'))"/>
+                                    onclick="toggleDisable($(\'#timestart\'), $(\'#timeend\'))"/>
                                 <label for="all-day">'.T_('All Day').'</label> 
                             </div>
                         </div>
@@ -1678,7 +1678,7 @@ class Calendar
                                 '.buildHtmlSelectOptions($times, $row['time_end']).'
                             </select> &nbsp;
                             <input id="all-day" named="all-day" type="checkbox" 
-                                onclick="toggleDisable($(\'timestart\'), $(\'timeend\'))" '.$allDayChk.'/>
+                                onclick="toggleDisable($(\'#timestart\'), $(\'#timeend\'))" '.$allDayChk.'/>
                             <label for="all-day">'.T_('All Day').'</label> 
                         </div>
                     </div>

@@ -4830,8 +4830,11 @@ function usingFullSizePhotos ()
 /**
  * displayPageHeader 
  * 
- * @param array $params
- * @param array $options 
+ * @param array $params  params are passed to loadTemplate()
+ * @param array $options can be one of the following:
+ *                        js       - js functions, global vars
+ *                        jsOnload - js that must be run onload
+ *                        modules  - an array of modules to load
  * 
  * @return void
  */
@@ -4858,7 +4861,7 @@ function displayPageHeader ($params, $options = null)
     // Set onload javascript
     $params['javascript'] .= '
     <script type="text/javascript">
-    Event.observe(window, "load", function() {
+    $(document).ready(function() {
         initChatBar("'.T_('Chat').'", "'.$params['path'].'");
         '.$jsOnload.'
     });

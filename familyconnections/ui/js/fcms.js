@@ -1,12 +1,20 @@
-Event.observe(window, "load", function() {
-    $("mobile-topmenu").observe('change', function(event) {
-        window.location = $F("mobile-topmenu");
-    });
-    $("top").scrollTo();
-});
-
 /* =GENERAL =GLOBAL
 ------------------------------------------------*/
+
+// Mobile navigation
+$(document).ready(function() {
+    $("#mobile-topmenu").on('change', function(event) {
+        window.location = $("#mobile-topmenu option:selected").val();
+    });
+
+    if ($("#top").length > 0) {
+        $('html, body').animate({
+            scrollTop: $("#top").position().top 
+        });
+    }
+});
+
+// New on load events
 function addLoadEvent(func) {   
     var oldonload = window.onload;
     if (typeof window.onload != 'function'){
@@ -18,28 +26,6 @@ function addLoadEvent(func) {
         }
     }
 }
-function initTextFieldHighlight() {
-    if (!$$('input[type="text"], input[type="password"]')) { return; }
-    $$('input[type="text"], input[type="password"]').each(function(item) {
-        item.onfocus = function () {
-            item.addClassName('frm_text_highlight');
-        }
-        item.onblur = function () {
-            item.removeClassName('frm_text_highlight');
-        }
-    });
-}
-function initRowHighlight() {
-    if (!$$('.sortable tr')) { return; }
-    $$('.sortable tr').each(function(item) {
-        item.observe('mouseover', function() {
-            item.addClassName('mouseover');
-        });
-        item.observe('mouseout', function() {
-            item.removeClassName('mouseover');
-        });
-    });
-}
 function initNewWindow() {
     if (!$$('a.new_window')) { return; }
     $$('a.new_window').each(function(link) {
@@ -49,37 +35,46 @@ function initNewWindow() {
         };
     });
 }
+
+// Make this link a confirmation link
 function deleteConfirmationLink(linkId, confirmTxt) {
-    var link = $(linkId);
-    if (!link) { return; }
-    link.onclick = function() { return confirmDeleteLink(this, confirmTxt); };
-}
-function deleteConfirmationLinks(linkClass, confirmTxt) {
-    if (!$$('.'+linkClass)) { return; }
-    $$('.'+linkClass).each(function(item) {
-        item.onclick = function() { return confirmDeleteLink(this, confirmTxt); };
+    $('#' + linkId).click(function(event) {
+        return confirmDeleteLink(this, confirmTxt, event);
     });
 }
-function confirmDeleteLink(obj, confirmTxt) {
-    var link = $(obj);
-    var url = link.readAttribute('href');
+
+// Make all links of this class a confirmation link
+function deleteConfirmationLinks(linkClass, confirmTxt) {
+    $('.' + linkClass).click(function(event) {
+        return confirmDeleteLink(this, confirmTxt, event);
+    });
+}
+
+// Create the confirmation delete
+function confirmDeleteLink(element, confirmTxt, event) {
+    event.preventDefault();
+
+    var itemClicked = $(element); // Could be button or link
 
     if (confirm(confirmTxt)) {
         // Form
-        if (link.tagName == 'INPUT') {
-            var frm = link.up('form');
-            var act = frm.readAttribute('action');
-            var sep = '&';
-            if (endsWith(act, 'php')) {
-                sep = '?';
-            }
-            frm.writeAttribute('action', act+sep+'confirmed=1');
+        if (itemClicked.prop('tagName') == 'INPUT') {
+            var jqForm = itemClicked.closest('form');
+            var name   = itemClicked.attr('name');
+            var value  = itemClicked.val();
+            jqForm.append('<input type="hidden" name="confirmed" value="1" />');
+            jqForm.append('<input type="hidden" name="' + name + '" value="' + value + '" />');
+            jqForm.submit();
             return true;
+        }
         // Link
-        } else {
+        else {
+            var url = itemClicked.attr('href');
             document.location = url+'&confirmed=1';
+            return false;
         }
     }
+
     return false;
 }
 function addSmiley(smileystring) {
@@ -247,28 +242,44 @@ function checkCheckAll(frmobj)
         $('allbox').checked = false;
     }
 }
+
+// Opens the chat window
 function openChat (path)
 {
     window.open(path + 'inc/chat/index.php', 'name', 'width=750,height=550,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no'); 
     return false;
 }
+
+// Create the chat bar
 function initChatBar(txt, path)
 {
-    var footer = $('footer');
-    var chatLink = Element.extend(document.createElement('a'));
-    chatLink.href = '#';
-    chatLink.onclick = function() {
-        window.open(path + 'inc/chat/index.php', 'name', 'width=750,height=550,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no');
-        return false;
-    };
-    chatLink.id = 'chat_link';
-    chatLink.addClassName('chat_bar');
-    chatLink.appendChild(document.createTextNode(txt + ' (0)'));
-    footer.insert({'before':chatLink});
+    var footer   = $('#footer');
+    var linkText = txt + ' (0)';
+    var time     = 2000;
+    var chatLink = '<a href="#" id="chat_bar" class="chat_bar" '
+                 + 'onclick="window.open(\'' + path + 'inc/chat/index.php\', \'chat\', '
+                 + '\'width=750,height=550,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no\'); return false;">' + linkText + '</a>';
 
-    new Ajax.PeriodicalUpdater('chat_link', path + 'inc/chat/whoisonline.php', {
-        method: 'get', frequency: 2, decay: 1.2
-    });
+    $(chatLink).appendTo(footer);
+
+    (function worker() {
+        $.ajax({
+            type :  'GET',
+            url  :  path + 'inc/chat/whoisonline.php',
+        })
+        .success (function (data) {
+            if (data === linkText) {
+                time = time * 1.2;
+            }
+            else {
+                time = 2000;
+            }
+            $('#chat_bar').text(data);
+
+            setTimeout(worker, time);
+            linkText = data;
+        });
+    })();
 }
 function showTooltip (obj)
 {
@@ -285,63 +296,43 @@ function hideTooltip (obj)
     var link = $(obj);
     link.next().hide();
 }
+
+// Handles color changing of yes/no/maybe checkboxes
 function initAttendingEvent ()
 {
-    if ($('yes')) {
-        Event.observe('yes', 'click', function(event) {
-            if ($('yes').checked) {
-                $('yes').previous().addClassName("yes_checked");
-                $('maybe').previous().removeClassName("maybe_checked");
-                $('no').previous().removeClassName("no_checked");
-            } else {
-                $('yes').previous().removeClassName("yes_checked");
-            }
-        });
-        Event.observe('maybe', 'click', function(event) {
-            if ($('maybe').checked) {
-                $('maybe').previous().addClassName("maybe_checked");
-                $('yes').previous().removeClassName("yes_checked");
-                $('no').previous().removeClassName("no_checked");
-            } else {
-                $('maybe').previous().removeClassName("maybe_checked");
-            }
-        });
-        Event.observe('no', 'click', function(event) {
-            if ($('no').checked) {
-                $('no').previous().addClassName("no_checked");
-                $('yes').previous().removeClassName("yes_checked");
-                $('maybe').previous().removeClassName("maybe_checked");
-            } else {
-                $('no').previous().removeClassName("no_checked");
-            }
-        });
-    }
-}
-function initInviteAll ()
-{
-    if ($('all-members')) {
-        Event.observe('all-members', 'click', function(event) {
-            if ($('all-members').checked) {
-                $('invite-members-list').hide();
-            } else {
-                $('invite-members-list').show();
-            }
-        });
-    }
-}
-function initInviteAttending ()
-{
-    $$('div.coming_details').each(function(item) {
-        item.hide();
-    });
+    var jqYes   = $('#yes');
+    var jqMaybe = $('#maybe');
+    var jqNo    = $('#no');
 
-    Event.observe('whos_coming', 'click', function(event) {
-        var clickedH3 = event.findElement('h3');
-        if (clickedH3) {
-            $(clickedH3).next('div').toggle();
+    jqYes.click(function(event) {
+        if (jqYes.is(':checked')) {
+            jqYes.prev().addClass("yes_checked");
+            jqMaybe.prev().removeClass("maybe_checked");
+            jqNo.prev().removeClass("no_checked");
+        } else {
+            jqYes.prev().removeClass("yes_checked");
+        }
+    });
+    jqMaybe.click(function(event) {
+        if (jqMaybe.is(':checked')) {
+            jqMaybe.prev().addClass("maybe_checked");
+            jqYes.prev().removeClass("yes_checked");
+            jqNo.prev().removeClass("no_checked");
+        } else {
+            jqMaybe.prev().removeClass("maybe_checked");
+        }
+    });
+    jqNo.click(function(event) {
+        if (jqNo.is(':checked')) {
+            jqNo.prev().addClass("no_checked");
+            jqYes.prev().removeClass("yes_checked");
+            jqMaybe.prev().removeClass("maybe_checked");
+        } else {
+            jqNo.prev().removeClass("no_checked");
         }
     });
 }
+
 function nextPrevNews (e) {
     if (!e) { e = window.event; }
 
@@ -765,87 +756,93 @@ function picasaSelectNone ()
 
 /* =CALENDAR
 ------------------------------------------------*/
-function initCalendarHighlight() {
-    if (!$$('#big-calendar td.monthDay, #big-calendar td.monthToday')) { return; }
-    $$('#big-calendar td.monthDay, #big-calendar td.monthToday').each(function(item) {
-        item.observe('mouseover', function() {
-            var link = item.childNodes[1];
-            if (link) {
-                if (link.getAttribute('href')) {
-                    item.addClassName('mouseover');
-                }
-            }
-        });
-        item.observe('mouseout', function() {
-            item.removeClassName('mouseover');
-        });
-    });
-}
-function initHideAdd() {
-    if (!$$('#big-calendar td')) { return; }
-    $$('#big-calendar td').each(function(item) {
-        item.addClassName('hideadd');
-    });
-}
+// Hide detail options when creating a new calendar event
 function initHideMoreDetails(txt) {
-    if ($('cal-details')) {
-        var div = $('cal-details');
-        if (div.style.setAttribute) {
-            div.style.setAttribute('cssText', 'display:none');
-        } else {
-            div.setAttribute('style', 'display:none');
-        }
-        var a = new Element('a', { href: '#' }).update(txt);
-        a.onclick = function() { $('cal-details').toggle(); return false; };
-        div.insert({'before':a});
+    var jqDetails = $('#cal-details');
+    if (jqDetails.length > 0) {
+        jqDetails.before('<a id="cal-details-link" href="#">' + txt + '</a>');
+        $('#cal-details-link').click(function() {
+            $('#cal-details').toggle();
+            return false;
+        });
+        jqDetails.hide();
     }
 }
+
+// disable times if the event is for all day
 function initDisableTimes() {
-    var start = $('timestart');
-    if (start) {
-        if ($('all-day').checked) { 
-            start.setAttribute('disabled', 'disabled'); 
-        }
-    }
-    var end = $('timeend');
-    if (end) {
-        if ($('all-day').checked) { 
-            end.setAttribute('disabled', 'disabled'); 
-        }
+    var jqStart = $('#timestart');
+    var jqEnd   = $('#timeend');
+
+    if ($('#all-day').is(':checked')) { 
+        jqStart.prop('disabled', true); 
+        jqEnd.prop('disabled', true); 
     }
 }
+
+// toggles disable for all arguments passed to it
+// aguments must be jquery objects
 function toggleDisable() { 
     for (var i = 0; i < arguments.length; i++) { 
-        var element = $(arguments[i]); 
-        if (element.hasAttribute('disabled')) { 
-            element.removeAttribute('disabled'); 
-        } else { 
-            element.setAttribute('disabled', 'disabled'); 
+        var element = arguments[i]; 
+        if (element.is(':disabled')) { 
+            element.prop('disabled', false); 
+        }
+        else { 
+            element.prop('disabled', true); 
         } 
     } 
 } 
+
+// On invite screen make clicking row, also check the checkbox
 function initCalendarClickRow()
 {
-    if ($('invite-table')) {
-        $$('tbody tr').each(function(row) {
-            if (!row.hasClassName('header')) {
-                var chk = row.down('td').down('input');
-                row.childElements().each(function(td) {
-                    if (!td.hasClassName('chk')) {
-                        td.onclick = function() {
-                            if (chk.checked) {
-                                row.removeClassName('checked');
-                                chk.checked = false;
-                            } else {
-                                row.addClassName('checked');
-                                chk.checked = true;
-                            }
-                        };
-                    }
-                });
-            }
-        });
-    }
+    $('#invite-table tbody tr').each(function() {
+        var jqRow = $(this);
+        if (!jqRow.hasClass('header')) {
+            var chk = jqRow.find('td input[type="checkbox"]');
+            jqRow.children('td').each(function() {
+                var jqTd = $(this);
+                if (!jqTd.hasClass('chk')) {
+                    jqTd.click(function() {
+                        if (chk.is(':checked')) {
+                            jqRow.removeClass('checked');
+                            chk.prop('checked', false);
+                        }
+                        else {
+                            jqRow.addClass('checked');
+                            chk.prop('checked', true);
+                        }
+                    });
+                }
+            });
+        }
+    });
+}
+
+// Hide the member list if we are inviting everyone
+function initInviteAll ()
+{
+    $('#all-members').click(function() {
+        if ($('#all-members').is(':checked')) {
+            $('#invite-members-list').hide();
+        }
+        else {
+            $('#invite-members-list').show();
+        }
+    });
+}
+
+// Toggle the members listed in who's coming section
+function initInviteAttending ()
+{
+    $('#whos_coming .coming_details').each(function() {
+        $(this).hide();
+    });
+
+    $('#whos_coming h3.coming').click(function() {
+        $(this).next().toggle();
+    });
 }
 
 /* =RECIPE
@@ -1001,7 +998,3 @@ alert('oops');
         });
     });
 }
-
-// TODO - move these out of here 
-addLoadEvent(initTextFieldHighlight);
-addLoadEvent(initRowHighlight);

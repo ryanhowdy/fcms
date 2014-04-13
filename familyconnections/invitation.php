@@ -84,14 +84,13 @@ class Page
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_pgettext('Language Code for this translation', 'lang').'" lang="'.T_pgettext('Language Code for this translation', 'lang').'">
 <head>
 <title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
-<script type="text/javascript" src="ui/js/prototype.js"></script>
+<script type="text/javascript" src="ui/js/jquery.js"></script>
+<script type="text/javascript" src="ui/js/fcms.js"></script>
 <link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css" />
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+$(document).ready(function() {
     initAttendingEvent();
 });
-//]]>
 </script>
 </head>
 <body id="invitation" class="clearfix">

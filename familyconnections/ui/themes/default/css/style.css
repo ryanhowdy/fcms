@@ -2392,7 +2392,7 @@ a.email {
   vertical-align: top;
   width: 131px;
 }
-#big-calendar td.mouseover,
+#big-calendar td:hover,
 #big-calendar .monthToday {
   background-color: #e8f5fb;
 }
@@ -2405,7 +2405,7 @@ a.email {
 }
 #big-calendar .add {
   background: transparent url(../img/add.gif) no-repeat 0 0;
-  display: block;
+  display: none;
   float: right;
   height: 16px;
   overflow: hidden;
@@ -2413,10 +2413,7 @@ a.email {
   text-indent: -9000px;
   width: 16px;
 }
-#big-calendar td.hideadd .add {
-  display: none;
-}
-#big-calendar td.mouseover .add {
+#big-calendar td:hover .add {
   display: block;
 }
 #big-calendar .views {

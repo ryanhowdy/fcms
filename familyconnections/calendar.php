@@ -183,6 +183,10 @@ class Page
     /**
      * displayHeader 
      * 
+     * TODO - this needs updated to accept options.
+     * No need to run all this js on pages we know won't
+     * need it.
+     * 
      * @return void
      */
     function displayHeader ()
@@ -198,42 +202,25 @@ class Page
             'version'       => getCurrentVersion(),
         );
 
-        $params['javascript'] = '
-<script type="text/javascript" src="ui/js/livevalidation.js"></script>
-<link rel="stylesheet" type="text/css" href="ui/css/datechooser.css"/>
-<script type="text/javascript" src="ui/js/datechooser.js"></script>
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
-    initHideAdd();
-    initCalendarHighlight();
-    initDisableTimes();
-    initHideMoreDetails(\''.T_('Add More Details').'\');
-    initCalendarClickRow();
-    initAttendingEvent();
-    initInviteAll();
-    initInviteAttending();
-    // Datpicker
-    var objDatePicker = new DateChooser();
-    objDatePicker.setUpdateField({\'sday\':\'j\', \'smonth\':\'n\', \'syear\':\'Y\'});
-    objDatePicker.setIcon(\''.URL_PREFIX.'ui/themes/default/img/datepicker.jpg\', \'syear\');
-    // Delete Confirmation
-    if ($(\'delcal\')) {
-        var item = $(\'delcal\');
-        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
-        var hid = document.createElement(\'input\');
-        hid.setAttribute(\'type\', \'hidden\');
-        hid.setAttribute(\'name\', \'confirmed\');
-        hid.setAttribute(\'value\', \'true\');
-        item.insert({\'after\':hid});
-    }
-    return true;
-});
-//]]>
-</script>';
+        $jsOnload = '
+        initDisableTimes();
+        initHideMoreDetails(\''.T_('Add More Details').'\');
+        initCalendarClickRow();
+        initAttendingEvent();
+        initInviteAll();
+        initInviteAttending();
+        // Datpicker
+        var objDatePicker = new DateChooser();
+        objDatePicker.setUpdateField({\'sday\':\'j\', \'smonth\':\'n\', \'syear\':\'Y\'});
+        objDatePicker.setIcon(\''.URL_PREFIX.'ui/themes/default/img/datepicker.jpg\', \'syear\');
+        deleteConfirmationLink("delcal", "'.T_('Are you sure you want to DELETE this?').'");';
 
-        loadTemplate('global', 'header', $params);
+        $options = array(
+            'jsOnload' => $jsOnload,
+            'modules'  => array('livevalidation', 'datechooser'),
+        );
+
+        displayPageHeader($params, $options);
     }
 
     /**
@@ -1015,6 +1002,7 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
         $invitations = $this->getInvitations($calendarId, true);
         if ($invitations === false)
         {
+            $this->fcmsError->displayError();
             $this->displayFooter();
             return;
         }
@@ -1076,7 +1064,7 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
                     AND `id` != ?";
 
             $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);
-            if (!$rows === false)
+            if ($rows === false)
             {
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -1251,10 +1239,8 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
                 ORDER BY `updated` DESC";
 
         $rows = $this->fcmsDatabase->getRows($sql, $eventId);
-        if (!$rows === false)
+        if ($rows === false)
         {
-            $this->fcmsError->displayError();
-
             return false;
         }
 
