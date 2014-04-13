@@ -5,7 +5,7 @@
                         <li>
                             <b><?php echo $result['text']; ?></b>
                             <span><?php echo $result['votes']; ?></span>
-                            <a href="#" onclick="$('who<?php echo $result['count']; ?>').toggle(); return false;" class="progress" title="<?php echo $result['textClick']; ?>">
+                            <a href="#" onclick="$('#who<?php echo $result['count']; ?>').toggle(); return false;" class="progress" title="<?php echo $result['textClick']; ?>">
                                 <div class="bar" style="width:<?php echo $result['percent']; ?>%"></div>
                             </a>
                             <div id="who<?php echo $result['count']; ?>" class="who-voted" style="display:none">

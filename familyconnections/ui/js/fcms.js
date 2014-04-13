@@ -281,20 +281,23 @@ function initChatBar(txt, path)
         });
     })();
 }
+
+// show tooltip on avatar
 function showTooltip (obj)
 {
     var link = $(obj);
-    link.writeAttribute({title: ""});
+    link.attr('title', '');
     var tip = link.next();
-    var h = tip.getHeight();
+    var h = tip.outerHeight(true);
     h = h + 3;
-    tip.setStyle({top: '-' + h + 'px'});
+    tip.css('top', '-' + h + 'px');
     tip.show();
 }
+
+// hide avatar tooltip
 function hideTooltip (obj)
 {
-    var link = $(obj);
-    link.next().hide();
+    $(obj).next().hide();
 }
 
 // Handles color changing of yes/no/maybe checkboxes
@@ -333,6 +336,7 @@ function initAttendingEvent ()
     });
 }
 
+// Allows j/k to scroll through news events
 function nextPrevNews (e) {
     if (!e) { e = window.event; }
 
@@ -357,15 +361,13 @@ function nextPrevNews (e) {
         return;
     }
 
-    $$('div.new').each(function(item) {
-        item.removeClassName('selected');
+    $('div.new').each(function() {
+        $(this).removeClass('selected');
     });
 
     var positionId = position.toString();
-    $(positionId).addClassName('selected');
-    $(positionId).scrollTo();
-
-    window.scrollBy(0, -10);
+    $("#" + positionId).addClass('selected');
+    $('html, body').animate({ scrollTop: $("#" + positionId).position().top });
 }
 
 /* UTILITIES
