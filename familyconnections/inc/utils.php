@@ -2292,10 +2292,9 @@ function displayOkMessage ($msg = '', $timeout = 0)
     }
 
     echo '
-        <script type="text/javascript" src="'.URL_PREFIX.'ui/js/scriptaculous.js"></script>
         <div id="'.$id.'" class="ok-msg-container" style="display:none">
             <div class="ok-msg">
-                <a class="close-msg" href="#" onclick="Effect.Fade(\''.$id.'\')" title="'.T_('Close Message').'">x</a>
+                <a class="close-msg" href="#" onclick="$(\'#'.$id.'\').fadeOut(\'slow\')" title="'.T_('Close Message').'">x</a>
                 '.$msg.'
             </div>
         </div>
@@ -2307,9 +2306,9 @@ function displayOkMessage ($msg = '', $timeout = 0)
         </style>
         </noscript>
         <script type="text/javascript">
-            Event.observe(window, \'load\', function() {
-                Effect.BlindDown(\''.$id.'\');
-                var t=setTimeout("Effect.Fade(\''.$id.'\')",'.$timeout.'); 
+            $(document).ready(function() {
+                $("#'.$id.'").slideDown("'.$id.'");
+                var t=setTimeout("$(\'#'.$id.'\').fadeOut(\'slow\')", '.$timeout.'); 
             });
         </script>';
 }

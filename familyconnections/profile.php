@@ -175,13 +175,17 @@ class Page
         );
 
         $params['javascript'] = '
+<link rel="stylesheet" type="text/css" href="ui/css/datechooser.css"/>
+<script type="text/javascript" src="ui/js/datechooser.js"></script>
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+$(document).ready(function() {
     initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initGravatar();
+    // Datepicker
+    var objDatePicker = new DateChooser();
+    objDatePicker.setUpdateField({\'sday\':\'j\', \'smonth\':\'n\', \'syear\':\'Y\'});
+    objDatePicker.setIcon(\''.URL_PREFIX.'ui/themes/default/img/datepicker.jpg\', \'syear\');
 });
-//]]>
 </script>';
 
         loadTemplate('global', 'header', $params);

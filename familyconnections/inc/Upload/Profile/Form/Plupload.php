@@ -34,10 +34,9 @@ class PluploadUploadProfileForm extends UploadProfileForm
     protected function displayUploadArea ()
     {
         echo '
-            <script type="text/javascript" src="ui/js/scriptaculous.js"></script>
             <script type="text/javascript" src="inc/thirdparty/plupload/js/plupload.full.min.js"></script>
-<script>
-Event.observe(window, "load", function() {
+<script type="text/javascript">
+$(document).ready(function() {
     var uploader = new plupload.Uploader({
         runtimes            : "gears,html5,flash,silverlight,browserplus",
         browse_button       : "choose_photos",
@@ -52,13 +51,13 @@ Event.observe(window, "load", function() {
         resize              : { width: 80, height: 80, quality: 90, crop: true }
     });
 
-    $("submit-avatar").observe("click", function(e) {
-        if ($F("avatar_type") == "fcms") {
+    $("#submit-avatar").click(function(e) {
+        if ($("#avatar_type option:selected").val() == "fcms") {
             e.preventDefault();
 
             uploader.settings.multipart_params = {
-                "avatar_type" : $F("avatar_type"),
-                "avatar_orig" : $F("avatar_orig"),
+                "avatar_type" : $("#avatar_type").val(),
+                "avatar_orig" : $("#avatar_orig").val(),
             };
 
             uploader.start();
@@ -71,33 +70,31 @@ Event.observe(window, "load", function() {
         if (uploader.files.length > 1) {
             uploader.files.each(function(file) {
                 uploader.removeFile(file);
-                $("file").firstDescendant().remove();
+                $("#file").find("li").remove();
                 throw $break;
             });
         }
 
-        files.each(function(file) {
-            var li = document.createElement("li");
-            $("file").appendChild(li);
-
-            $(li).insert({
-                bottom:   "<div id=\"" + file.id + "\">" + file.name + " (" + plupload.formatSize(file.size) + ")<span></span></div>"
-            });
+        plupload.each(files, function(file) {
+            $("#file").append(
+                "<li><div id=\"" + file.id + "\">" +
+                file.name +
+                " (" + plupload.formatSize(file.size) + ")" +
+                "<span></span></div></li>"
+            );
         });
  
         up.refresh(); // Reposition Flash/Silverlight
     });
 
     uploader.bind("UploadProgress", function(up, file) {
-        $(file.id).firstDescendant().insert({
-            bottom : file.percent
-        });
+        $("#" + file.id).find("span").append(file.percent);
     });
  
     uploader.bind("Error", function(up, err) {
-        $("file").insert({
-            after : "<div style=\"color:red\">Error: " + err.code + ", Message: " + err.message + (err.file ? ", File: " + err.file.name : "") + "</div>"
-        });
+        $("#file").insertAfter(
+            "<div style=\"color:red\">Error: " + err.code + ", Message: " + err.message + (err.file ? ", File: " + err.file.name : "") + "</div>"
+        );
  
         up.refresh(); // Reposition Flash/Silverlight
     });

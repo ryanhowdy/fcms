@@ -864,29 +864,35 @@ function initHideAddFormDetails() {
 
 /* =SETTINGS
 ------------------------------------------------*/
+// attach onchange event to avatar type select
 function initGravatar() {
-    if ($('avatar_type')) {
+    if ($('#avatar_type')) {
         handleAvatar();
-        $('avatar_type').onchange = handleAvatar;
+        $('#avatar_type').change(function() { handleAvatar() });
     }
 }
+
+// handle changing avatar type
 function handleAvatar() {
-    if ($F('avatar_type') == "fcms") {
-        $('fcms').show();
-        $('gravatar').hide();
-        $('default').hide();
+    var avatarType = $('#avatar_type option:selected').val();
+
+    if (avatarType == "fcms") {
+        $('#fcms').show();
+        $('#gravatar').hide();
+        $('#default').hide();
     }
-    if ($F('avatar_type') == "gravatar") {
-        $('fcms').hide();
-        $('gravatar').show();
-        $('default').hide();
+    if (avatarType == "gravatar") {
+        $('#fcms').hide();
+        $('#gravatar').show();
+        $('#default').hide();
     }
-    if ($F('avatar_type') == "default") {
-        $('fcms').hide();
-        $('gravatar').hide();
-        $('default').show();
+    if (avatarType == "default") {
+        $('#fcms').hide();
+        $('#gravatar').hide();
+        $('#default').show();
     }
 }
+
 function initAdvancedTagging() {
     if ($('advanced_tagging_div')) {
         $('advanced_tagging_div').show();
