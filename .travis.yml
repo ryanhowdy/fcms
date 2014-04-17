@@ -5,6 +5,7 @@ php:
   - 5.4
   - 5.5
 before_script:
+   - cp familyconnections/inc/config_inc_sample.php familyconnections/inc/config_inc.php
 #  - pear install --alldeps PHP_CodeSniffer
 #  - pear install pear.phpunit.de/phpcpd
 #  - phpenv rehash
