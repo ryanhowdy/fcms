@@ -10,6 +10,6 @@ before_script:
 #  - pear install pear.phpunit.de/phpcpd
 #  - phpenv rehash
 script:
-   - phpunit --bootstrap tests/bootstrap.php --verbose test/.
+   - phpunit --bootstrap tests/bootstrap.php --verbose tests/.
 #  - phpcs -ns --extensions=php --report=summary --ignore=*/familyconnections/inc/thirdparty/*,*/familyconnections/inc/chat/* familyconnections/.
 #  - phpcpd ./
