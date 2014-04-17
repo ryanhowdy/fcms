@@ -1,10 +1,14 @@
 language: php
 php:
   - 5.2
+  - 5.3
+  - 5.4
+  - 5.5
 before_script:
 #  - pear install --alldeps PHP_CodeSniffer
 #  - pear install pear.phpunit.de/phpcpd
 #  - phpenv rehash
 script:
+   - phpunit --bootstrap test/boostrap.php --verbose test/.
 #  - phpcs -ns --extensions=php --report=summary --ignore=*/familyconnections/inc/thirdparty/*,*/familyconnections/inc/chat/* familyconnections/.
 #  - phpcpd ./
