@@ -9,7 +9,6 @@ define('GALLERY', ROOT.'gallery/');
 define('ADMIN', ROOT.'admin/');
 define('THIRDPARTY', INC.'thirdparty/');
 
-require_once INC.'config_inc.php';
 require_once INC.'thirdparty/gettext.inc';
 require_once INC.'utils.php';
 require_once INC.'constants.php';
