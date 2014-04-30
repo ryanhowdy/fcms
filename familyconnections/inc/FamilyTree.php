@@ -346,11 +346,12 @@ class FamilyTree
                 $this->displayPerson($spouse);
 
                 $thisKids = $this->getKids($parent, $spouse, $kids);
-                $thisKids = subval_sort($thisKids, 'dob_year');
                 $kidCount = count($thisKids);
 
                 if ($kidCount > 0)
                 {
+                    $thisKids = subval_sort($thisKids, 'dob_year');
+
                     echo "\n";
                     echo '<ul class="c">';
 
