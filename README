@@ -1,11 +1,11 @@
 
-                             Family Connections 3.4.0
+                             Family Connections 3.4.1
 
 
   Installation
   ------------
 
-  1. Upload the familyconnections/ directory in FCMS_3.4.0.zip to your web host.
+  1. Upload the familyconnections/ directory in FCMS_3.4.1.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -15,7 +15,7 @@
 
 
 
-  Upgrading from 2.6+ to 3.4.0
+  Upgrading from 2.6+ to 3.4.1
   ---------------------------
 
   ** DO NOT DELETE THE FOLLOWING FILE **
@@ -40,23 +40,7 @@
   Change Log
   ----------
 
-  3.4.0
-
-    #379 - Replace Java-Uploader
-    #404 - Save photos to Amazon S3
-    #406 - Sort Siblings, Children by DOB
-    #413 - Unable to login after upgrading to 3.3
-    #417 - Users should not show up as 'new' until they are activated
-    #421 - Birthday shouldn't require year
-    #423 - Multiple status update reply
-    #426 - Include Middle name on Family Tree
-    #436 - Show full details in What's New area
-    #438 - Error Deleting Photos
-    #446 - Calendar Birthdays
-
-
-
-  For the full change log please refer to the included ChangeLog file.
+  Please refer to the included ChangeLog file.
 
 
 
