@@ -5047,3 +5047,35 @@ function getProfileClassName ()
 
     return $className;
 }
+
+/**
+ * getFamilyTreeClassName 
+ * 
+ * Returns the name of the appropriate family tree
+ * avatar upload class name.
+ * 
+ * @return string
+ */
+function getFamilyTreeClassName ()
+{
+    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    $type = getUploaderType($fcmsUser->id);
+
+    if ($type == 'plupload')
+    {
+        $className = 'PluploadUploadFamilyTree';
+    }
+    else if ($type == 'java')
+    {
+        $className = 'JavaUploadFamilyTree';
+    }
+    else
+    {
+        $className = 'UploadFamilyTree';
+    }
+
+    return $className;
+}
