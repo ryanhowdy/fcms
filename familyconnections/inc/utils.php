@@ -1077,7 +1077,7 @@ function getBBCodeList ()
         '/\[span\](.*?)\[\/span\]/is', 
         '/\[span\=(.*?)\](.*?)\[\/span\]/is', 
         '/\[quote\](.*?)\[\/quote\]/is', 
-        '/\[video\](.*?)\[\/video\]/ise'
+        '/\[video\](.*?)\[\/video\]/is'
     );
 }
 
