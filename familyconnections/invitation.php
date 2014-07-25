@@ -85,7 +85,7 @@ class Page
 <head>
 <title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
 <script type="text/javascript" src="ui/js/prototype.js"></script>
-<link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
+<link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css" />
 <script type="text/javascript">
 //<![CDATA[
 Event.observe(window, \'load\', function() {
