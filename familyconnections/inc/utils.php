@@ -3295,10 +3295,10 @@ function getAdditionalWhatsNewData ($whatsNewData)
                 $whatsNewData[$key]['type'] = 'STATUSCOM';
             }
         }
-        // See if this is a new status update or reply
         elseif ($data['type'] == 'GALCOM')
         {
             $photo = array(
+                'id'       => $data['id'],
                 'user'     => $data['id2'],
                 'filename' => $data['id3'],
             );
