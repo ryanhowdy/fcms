@@ -413,20 +413,13 @@ Event.observe(window, \'load\', function() {
      */
     function displayDeleteAllPhotosSubmit ()
     {
-        foreach ($_POST['bulk_actions'] AS $id)
+        $worked = $this->fcmsPhotoGallery->deletePhotos($_POST['bulk_actions']);
+        if (!$worked)
         {
-            $id = (int)$id;
-
-            $sql = "DELETE FROM `fcms_gallery_photos`
-                    WHERE `id` = ?";
-
-            if (!$this->fcmsDatabase->delete($sql, $id))
-            {
-                $this->displayHeader();
-                $this->fcmsError->displayError();
-                $this->displayFooter();
-                return;
-            }
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
         }
 
         $_SESSION['success'] = 1;

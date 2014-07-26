@@ -25,7 +25,7 @@ echo '
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="ui/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
+<link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css" />
 </head>
 <body onload="document.resetform.email.focus()">';
 

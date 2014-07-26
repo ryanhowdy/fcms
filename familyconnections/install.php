@@ -106,7 +106,7 @@ function displayHeader ()
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_pgettext('Language Code for this translation', 'lang').'" lang="'.T_pgettext('Language Code for this translation', 'lang').'">
 <head>
 <title>Family Connections '.T_('Installation').'</title>
-<link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
+<link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css" />
 <script type="text/javascript" src="ui/js/prototype.js"></script>
 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
 <link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>
@@ -520,7 +520,7 @@ function displayStepFive ($error = '0')
     $_POST['contact']  = mysql_real_escape_string($_POST['contact']);
 
     // Setup Config
-    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 3.4.1');
+    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 3.4.2');
 
     // Setup Navigation
     $order  = 0;

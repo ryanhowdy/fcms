@@ -86,7 +86,7 @@ class Page
 <title>'.sprintf(T_pgettext('%s is the name of the website', 'Register for %s.'), getSiteName()).'</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
-<link rel="stylesheet" type="text/css" href="ui/fcms-core.css" />
+<link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css" />
 <script type="text/javascript" src="ui/js/prototype.js"></script>
 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
 <script type="text/javascript">
