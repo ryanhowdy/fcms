@@ -531,59 +531,17 @@ class Page
             return;
         }
 
-        $photoFilename   = $filerow['filename'];
-        $photoUserId     = $filerow['user'];
-        $photoCategory   = $filerow['category'];
-        $photoExternalId = $filerow['external_id'];
-        
-        // Remove the photo from the DB
-        $sql = "DELETE FROM `fcms_gallery_photos` 
-                WHERE `id` = ?";
-        if (!$this->fcmsDatabase->delete($sql, $photoId))
+        $photoUserId   = $filerow['user'];
+        $photoCategory = $filerow['category'];
+
+        $worked = $this->fcmsPhotoGallery->deletePhotos(array($photoId));
+        if (!$worked)
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
             return;
         }
-
-        // Remove any comments for this photo
-        $sql = "DELETE FROM `fcms_gallery_photo_comment` 
-                WHERE `photo` = ?";
-        if (!$this->fcmsDatabase->delete($sql, $photoId))
-        {
-            $this->displayHeader();
-            $this->fcmsError->displayError();
-            $this->displayFooter();
-            return;
-        }
-
-        // Remove any external photos for this photo
-        if (!empty($photoExternalId))
-        {
-            $sql = "DELETE FROM `fcms_gallery_external_photo`
-                    WHERE `id` = ?";
-            if (!$this->fcmsDatabase->delete($sql, $photoExternalId))
-            {
-                $this->displayHeader();
-                $this->fcmsError->displayError();
-                $this->displayFooter();
-                return;
-            }
-        }
-
-        // Figure out where we are currently saving photos, and create new destination object
-        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
-        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
-
-        $filePath  = basename($photoFilename);
-        $thumbPath = 'tb_'.basename($photoFilename);
-        $fullPath  = 'full_'.basename($photoFilename);
-
-        // Remove the Photo from the server
-        $photoDestination->deleteFile($filePath);
-        $photoDestination->deleteFile($thumbPath);
-        $photoDestination->deleteFile($fullPath);
 
         $_SESSION['message'] = 1;
 
