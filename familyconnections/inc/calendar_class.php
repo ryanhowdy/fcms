@@ -795,6 +795,7 @@ class Calendar
 
                 $age = getAge($r['dob_year'], $r['dob_month'], $r['dob_day'], "$year-$month-".$r['dob_day']);
 
+                $r['created_by'] = $r['id'];
                 $r['id']         = 'birthday'.$r['id'];
                 $r['day']        = $r['dob_month'].$r['dob_day'];
                 $r['date']       = $r['dob_year'].'-'.$r['dob_month'].'-'.$r['dob_day'];
@@ -802,7 +803,6 @@ class Calendar
                 $r['desc']       = sprintf(T_('%s turns %s today.'), $r['fname'], $age);
                 $r['private']    = 0;
                 $r['repeat']     = 'yearly';
-                $r['created_by'] = $r['id'];
 
                 $events[] = $r;
             }
@@ -865,7 +865,7 @@ class Calendar
                 $desc  = cleanOutput($desc);
 
                 $eventData[] = array(
-                    'id'    => (int)$row['id'],
+                    'id'    => startsWith($row['id'], 'birthday') ? $row['id'] : (int)$row['id'],
                     'title' => $title,
                     'desc'  => $desc,
                     'date'  => formatDate(T_('M. d'), $row['date']),
