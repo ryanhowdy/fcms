@@ -894,8 +894,8 @@ function handleAvatar() {
 }
 
 function initAdvancedTagging() {
-    if ($('advanced_tagging_div')) {
-        $('advanced_tagging_div').show();
+    if ($('#advanced_tagging_div')) {
+        $('#advanced_tagging_div').show();
     }
 }
 
