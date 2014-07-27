@@ -2897,4 +2897,94 @@ class PhotoGallery
             }
         }
     }
+
+    /**
+     * deletePhotos
+     * 
+     * Will delete an array of photos. Including removing the photo, and comments
+     * from the db and also deleting the photo from the server.
+     * 
+     * @param array $ids
+     * 
+     * @return boolean
+     */
+    function deletePhotos (array $ids)
+    {
+        $in = implode(',', array_fill(0, count($ids), '?'));
+
+        // Get photo info
+        $sql = "SELECT `id`, `user`, `category`, `filename`, `external_id`
+                FROM `fcms_gallery_photos` 
+                WHERE `id` IN ($in)";
+
+        $photos = $this->fcmsDatabase->getRows($sql, $ids);
+        if ($photos === false)
+        {
+            return false;
+        }
+
+        $photoExternalIds = array();
+
+        foreach ($photos as $photo)
+        {
+            $photoIds[]         = $photo['id'];
+            $photoFilenames[]   = $photo['filename'];
+            $photoUserIds[]     = $photo['user'];
+            $photoCategories[]  = $photo['category'];
+
+            if (!empty($photo['external_id']))
+            {
+                $photoExternalIds[] = $photo['external_id'];
+            }
+        }
+        
+        $in = implode(',', array_fill(0, count($photoIds), '?'));
+
+        // Remove the photos from the DB
+        $sql = "DELETE FROM `fcms_gallery_photos` 
+                WHERE `id` IN ($in)";
+        if (!$this->fcmsDatabase->delete($sql, $photoIds))
+        {
+            return false;
+        }
+
+        // Remove any comments for these photos
+        $sql = "DELETE FROM `fcms_gallery_photo_comment` 
+                WHERE `photo` IN ($in)";
+        if (!$this->fcmsDatabase->delete($sql, $photoIds))
+        {
+            return false;
+        }
+
+        // Remove external photos for these photos
+        if (count($photoExternalIds) > 0)
+        {
+            $in = implode(',', array_fill(0, count($photoExternalIds), '?'));
+
+            $sql = "DELETE FROM `fcms_gallery_external_photo`
+                    WHERE `id` IN ($in)";
+            if (!$this->fcmsDatabase->delete($sql, $photoExternalIds))
+            {
+                return false;
+            }
+        }
+
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        // Remove these photos from the server
+        foreach ($photoFilenames as $photoFilename)
+        {
+            $filePath  = basename($photoFilename);
+            $thumbPath = 'tb_'.basename($photoFilename);
+            $fullPath  = 'full_'.basename($photoFilename);
+
+            $photoDestination->deleteFile($filePath);
+            $photoDestination->deleteFile($thumbPath);
+            $photoDestination->deleteFile($fullPath);
+        }
+
+        return true;
+    }
 }
