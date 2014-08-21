@@ -57,22 +57,20 @@ else
     $sql = "SELECT p.`id`, p.`user`, p.`filename`, p.`external_id`, e.`thumbnail`, e.`medium`, e.`full`
             FROM `fcms_gallery_photos` AS p
             LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-            WHERE p.`id` = '$id'";
+            WHERE p.`id` = ?";
 
-    $result = mysql_query($sql);
-    if (!$result)
+    $photo = $fcmsDatabase->getRow($sql, $id);
+    if ($photo === false)
     {
         logError(__FILE__.' ['.__LINE__.'] Could not get photo from db.');
         return;
     }
 
-    if (mysql_num_rows($result) <= 0)
+    if (empty($photo))
     {
         logError(__FILE__.' ['.__LINE__.'] No photo found in db for id ['.$id.'].');
         return;
     }
-
-    $photo = mysql_fetch_assoc($result);
 }
 
 // Get photo path
