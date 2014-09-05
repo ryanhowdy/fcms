@@ -445,6 +445,8 @@ function checkScheduler ($subdir = '')
  */
 function isLoggedIn ()
 {
+    global $fcmsUser;
+
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
@@ -509,6 +511,8 @@ function isLoggedIn ()
         // Good login, you may proceed
         else
         {
+            // Load logged in user
+            $fcmsUser = new User($fcmsError, $fcmsDatabase);
             return;
         }
     }
