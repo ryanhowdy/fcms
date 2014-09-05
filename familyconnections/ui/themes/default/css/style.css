@@ -1,3 +1,9 @@
+.viewtable-ul {
+  font: 12px/16px Verdana, Arial, sans-serif;
+  list-style: none;
+  margin: 0;
+  padding: 5px 0 30px 5px;
+}
 article,
 aside,
 details,
@@ -2239,33 +2245,33 @@ blockquote {
   font-weight: bold;
   background-color: #cee9f5;
 }
-#address-table {
+#addressbook table {
   border: 5px solid #cee9f5;
   font: 12px/16px Verdana, Arial, sans-serif;
   width: 100%;
 }
-#address-table th {
+#addressbook table th {
   background-color: #cee9f5;
   padding: 15px;
 }
-#address-table tr.header td {
+#addressbook table tr.header td {
   color: #999;
 }
-#address-table td {
+#addressbook table td {
   border-bottom: 1px solid #ddd;
   height: 30px;
   padding: 5px 0;
 }
-#address-table td.chk {
+#addressbook table td.chk {
   text-align: center;
   width: 30px;
 }
-#address-table tbody tr:hover {
+#addressbook table tbody tr:hover {
   background-color: #e8f5fb;
   cursor: pointer;
   cursor: hand;
 }
-#address-table tbody tr.header:hover {
+#addressbook table tbody tr.header:hover {
   background-color: #fff;
   cursor: default;
 }
@@ -2918,36 +2924,60 @@ h3.coming i {
 }
 /* =MEMBERS
 ------------------------------------------------*/
-#memberlist {
-  *zoom: 1;
+#members #leftcolumn {
   margin: 0;
-  padding: 0;
+  width: 205px;
 }
-#memberlist:before,
-#memberlist:after {
-  display: table;
-  content: "";
-}
-#memberlist:after {
-  clear: both;
-}
-#memberlist li {
-  font: 11px/13px Arial, sans-serif;
-  float: left;
+#members #leftcolumn ul {
+  font: 12px/16px Verdana, Arial, sans-serif;
   list-style: none;
-  height: 140px;
-  margin: 20px;
-  text-align: center;
-  width: 110px;
+  margin: 0;
+  padding: 5px 0 30px 5px;
 }
-#memberlist li a.avatar {
-  margin: 0 10px;
-}
-#memberlist li a {
+#members #leftcolumn ul li a {
   color: #000;
+  display: block;
+  font-weight: normal;
+  padding: 5px;
 }
-#memberlist li a:hover {
-  background-color: transparent;
+#members #leftcolumn ul li a:hover {
+  background-color: #e8f5fb;
+}
+#members #leftcolumn ul li.selected a {
+  font-weight: bold;
+  background-color: #cee9f5;
+}
+#members table {
+  border: 5px solid #cee9f5;
+  font: 12px/16px Verdana, Arial, sans-serif;
+  width: 100%;
+}
+#members table th {
+  background-color: #cee9f5;
+  padding: 15px;
+}
+#members table tr.header td {
+  color: #999;
+}
+#members table td {
+  border-bottom: 1px solid #ddd;
+  height: 30px;
+  padding: 5px 0;
+}
+#members table td a.avatar img {
+  height: 40px;
+  margin: 5px 0 0 10px;
+  width: 40px;
+}
+#members table tbody tr:hover {
+  background-color: #e8f5fb;
+  cursor: pointer;
+  cursor: hand;
+  cursor: default;
+}
+#members table tbody tr.header:hover {
+  background-color: #fff;
+  cursor: default;
 }
 /* =PROFILE
 ------------------------------------------------*/
