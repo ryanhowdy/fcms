@@ -2589,65 +2589,145 @@ h3.coming i {
 
 /* =PROFILE
 ------------------------------------------------*/
-#profile #leftcolumn { text-align: center; }
-#profile #leftcolumn .menu { text-align: left; }
-#contact-buttons ul {
-    list-style-type: none;
-    margin: 20px 0 0 0;
-    padding: 0;
+#profile {
+    > #maincolumn {
+        > #avatar {
+            float: left;
+            padding: 20px 0;
+            text-align: center;
+            width: 300px;
+
+            > h1 {
+                background-color: #99cef0;
+                width: 150px;
+                margin: 0 auto;
+                padding: 35px 0;
+                border-radius: 75px;
+
+                > img {
+                    border-radius: 45px;
+                    width: 80px;
+                    height: 80px;
+                }
+            }
+            > div {
+                margin: 15px 0 0 115px;
+            }
+        }
+
+        > .name-contacts {
+            float: left;
+            margin: 0 0 20px 0;
+
+            > h1 {
+                font-size: 28px;
+                margin: 10px 0 10px 0;
+            }
+            > h2 {
+                font-size: 18px;
+                margin: 0 0 10px 0;
+            }
+            > ul {
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+
+                > li {
+                    padding: 7px 15px;
+                    border-bottom: 1px solid #ddd;
+
+                    > a {
+                        color: #333;
+                        font-size: 13px;
+                        font-weight: normal;
+                        padding-left: 25px;
+
+                        &.call {
+                            background: transparent url('../img/phone.png') left center no-repeat;
+                        }
+                        &.email {
+                            background: transparent url('../img/email.png') left center no-repeat;
+                        }
+                        &.pm {
+                            background: transparent url('../img/message.png') left center no-repeat;
+                        }
+                        &:hover {
+                            font-weight: bold;
+                        }
+                    }
+                }
+            }
+        }
+
+        > ul {
+            border-top: 1px solid #ccc;
+            clear: both;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+
+            li {
+                > b {
+                    color: #999;
+                    display: block;
+                    font-size: 12px;
+                    font-weight: normal;
+                    line-height: 18px;
+                    padding: 0 0 5px 0;
+                }
+                > div {
+                    > p {
+                        margin: 0 0 20px 0;
+
+                        > span {
+                            color: #999;
+                            float: right;
+                        }
+                    }
+                }
+            }
+            > li {
+                border-bottom: 1px solid #ccc;
+                padding: 30px;
+
+                > ul {
+                    list-style-type: none;
+                    margin: 0;
+                    overflow: hidden;
+                    padding: 0;
+                    width: 100%;
+
+                    li {
+                        float: left;
+                        width: 50%;
+                    }
+                }
+            }
+        }
+    }
 }
-#contact-buttons li {
-    margin: 0 0 10px 0;
-}
-.name { margin-bottom: 30px; }
-#content .name h1 {
-    line-height: 40px;
-    margin: 0;
-}
-#content .name h2 {
-    font-size: 20px;
-    font-weight: normal;
-}
-#profile-data {
-    .clearfix();
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-}
-#profile-data li {
-    float: left;
-    margin-bottom: 40px;
-    width: 100%;
-}
-#profile-data li b {
-    float: left;
+// Profile Stats/Chart using easy pie chart
+.stat {
+    display: inline-block;
+    margin: 40px;
+    position: relative;
+    text-align: center;
     width: 150px;
+    > canvas {
+        left: 0;
+        position: absolute;
+        top: 45px;
+    }
+    > .inner {
+        color: #6baad3;
+        display: inline-block;
+        font-weight: bold;
+        font-size: 32px;
+        line-height: 175px;
+        z-index: 2;
+    }
 }
-#profile-data li div {
-    float: left;
-    font-size: 11px;
-}
-#profile-data li div p { margin: 0 0 5px 0; }
-#profile-data li div span {
-    color: #999;
-    display: inline-block;
-    width: 60px;
-}
-#profile-data a.action {
-    background-color: #eee;
-    border: 1px solid #ddd;
-    .border-radius;
-    color: #999;
-    display: inline-block;
-    font-size: 11px;
-    font-weight: normal;
-    line-height: 20px;
-    width: 130px;
-}
-#profile-data a.action:hover {
-    color: #666;
-    border-color: #ccc;
-}
+
 #profile fieldset {
     margin-left: 0;
     margin-right: 0;
@@ -2662,64 +2742,51 @@ h3.coming i {
 #profile .level7 {
     margin: 10px 0 0 0;
 }
-#stats {
-    .clearfix();
-    margin: 0 0 30px 0;
+
+// Awards
+#profile {
+    > #maincolumn {
+        > #awards-list {
+            border: none;
+            .clearfix();
+            margin: 10px 0 50px 0;
+            padding: 0;
+
+            > li {
+                border: none;
+                float: left;
+                list-style: none;
+                padding: 0;
+                width: 188px;
+
+                > a {
+                    display: inline-block;
+                    height: 60px;
+                    margin: 5px;
+                    vertical-align: middle;
+                    width: 60px;
+
+                    &.board { background: transparent url(../img/award_board.gif) 50% 50% no-repeat; }
+                    &.docs { background: transparent url(../img/award_docs.gif) 50% 50% no-repeat; } 
+                    &.gallery { background: transparent url(../img/award_gallery.gif) 50% 50% no-repeat; } 
+                    &.icebreaker { background: transparent url(../img/award_icebreaker.gif) 50% 50% no-repeat; }
+                    &.interesting { background: transparent url(../img/award_interesting.gif) 50% 50% no-repeat; }
+                    &.news { background: transparent url(../img/award_news.gif) 50% 50% no-repeat; } 
+                    &.photogenic { background: transparent url(../img/award_photogenic.gif) 50% 50% no-repeat; }
+                    &.planner { background: transparent url(../img/award_planner.gif) 50% 50% no-repeat; }
+                    &.recipes { background: transparent url(../img/award_recipes.gif) 50% 50% no-repeat; } 
+                    &.secretive { background: transparent url(../img/award_secretive.gif) 50% 50% no-repeat; }
+                    &.shutterbug { background: transparent url(../img/award_shutterbug.gif) 50% 50% no-repeat; }
+                }
+                span {
+                    color: #999;
+                    display: inline-block;
+                    font-size: 11px;
+                }
+            }
+        }
+    }
 }
-#stats .stat {
-    background-color: #eee;
-    .border-radius;
-    float: left;
-    font-size: 10px;
-    margin: 0 10px 10px 0;
-    padding: 10px;
-    width: 100px;
-}
-#maincolumn #stats .stat { width: 150px; }
-#stats .stat span {
-    display: block;
-    cursor: help;
-    font: bold 30px Arial, Verdana, sans-serif;
-    text-align: center;
-}
-#stats .stat b {
-    display: block;
-    text-align: center;
-}
-#main-info span.date { display: block; }
-#awards-list {
-    .clearfix();
-    margin: 10px 0 50px 0;
-    padding: 0;
-}
-#awards-list li {
-    float: left;
-    list-style: none;
-    width: 188px;
-}
-#awards-list li a {
-    display: inline-block;
-    height: 60px;
-    margin: 5px;
-    vertical-align: middle;
-    width: 60px;
-}
-#awards-list li span {
-    color: #999;
-    display: inline-block;
-    font-size: 11px;
-}
-#awards-list li a.board { background: transparent url(../img/award_board.gif) 50% 50% no-repeat; }
-#awards-list li a.docs { background: transparent url(../img/award_docs.gif) 50% 50% no-repeat; } 
-#awards-list li a.gallery { background: transparent url(../img/award_gallery.gif) 50% 50% no-repeat; } 
-#awards-list li a.icebreaker { background: transparent url(../img/award_icebreaker.gif) 50% 50% no-repeat; }
-#awards-list li a.interesting { background: transparent url(../img/award_interesting.gif) 50% 50% no-repeat; }
-#awards-list li a.news { background: transparent url(../img/award_news.gif) 50% 50% no-repeat; } 
-#awards-list li a.photogenic { background: transparent url(../img/award_photogenic.gif) 50% 50% no-repeat; }
-#awards-list li a.planner { background: transparent url(../img/award_planner.gif) 50% 50% no-repeat; }
-#awards-list li a.recipes { background: transparent url(../img/award_recipes.gif) 50% 50% no-repeat; } 
-#awards-list li a.secretive { background: transparent url(../img/award_secretive.gif) 50% 50% no-repeat; }
-#awards-list li a.shutterbug { background: transparent url(../img/award_shutterbug.gif) 50% 50% no-repeat; }
 #current-award {
     .clearfix();
 }

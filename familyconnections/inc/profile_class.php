@@ -48,21 +48,26 @@ class Profile
         $stats = $this->getStats($this->fcmsUser->id);
 
         echo '
-            <div id="leftcolumn">
-                <ul class="menu">
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/easy-pie-chart/2.1.4/jquery.easypiechart.min.js"></script>
+            <div id="sections_menu">
+                <ul>
+                    <li><a href="profile.php">'.T_('View Stats').'</a></li>
                     <li><a href="?view=info">'.T_('Basic Information').'</a></li>
                     <li><a href="?view=picture">'.T_('Profile Picture').'</a></li>
                     <li><a href="?view=address">'.T_('Address / Contact').'</a></li>
                 </ul>
             </div>
-            <div id="maincolumn">
-                <div id="actions_menu">
-                    <ul>
-                        <li><a href="?member='.$this->fcmsUser->id.'">'.T_('View Profile').'</a></li>
-                    </ul>
-                </div>
-                <h2>'.T_('Stats').'</h2>
-                <div id="stats">';
+            <div id="actions_menu">
+                <ul>
+                    <li><a href="?member='.$this->fcmsUser->id.'">'.T_('View Profile').'</a></li>
+                </ul>
+            </div>
+            <div class="info-alert">
+                <h2>'.T_('Edit Profile').'</h2>
+                <p>'.T_('Use the links above to Edit the different sections of your profile.').'</p>
+            </div>
+            <h2>'.T_('Stats').'</h2>
+            <div id="stats">';
 
         foreach ($stats as $stat)
         {
@@ -70,8 +75,18 @@ class Profile
         }
 
         echo '
-                </div>
-            </div>';
+            </div>
+            <script type="text/javascript">
+                $(function() {
+                    $(".stat").easyPieChart({
+                        animate     : false,
+                        scaleColor  : false,
+                        barColor    : "#99CEF0",
+                        lineWidth   : 6,
+                        size        : 150
+                    });
+                });
+            </script>';
     }
 
     /**
@@ -126,17 +141,26 @@ class Profile
         $year_options = buildHtmlSelectOptions($year_list, $row['dob_year']);
 
         echo '
-            <div id="leftcolumn">
-                <ul class="menu">
+            <div id="sections_menu">
+                <ul>
+                    <li><a href="profile.php">'.T_('View Stats').'</a></li>
                     <li><a href="?view=info">'.T_('Basic Information').'</a></li>
                     <li><a href="?view=picture">'.T_('Profile Picture').'</a></li>
                     <li><a href="?view=address">'.T_('Address / Contact').'</a></li>
                 </ul>
             </div>
+            <div id="leftcolumn">
+                <ul class="menu">
+                    <li><a href="#section-name">'.T_('Name').'</a></li>
+                    <li><a href="#section-bio">'.T_('Bio').'</a></li>
+                    <li><a href="#section-gender">'.T_('Gender').'</a></li>
+                    <li><a href="#section-birthday">'.T_('Birthday').'</a></li>
+                </ul>
+            </div>
             <div id="maincolumn">
                 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
                 <form id="frm" action="profile.php?view=info" method="post">
-                <fieldset>
+                <fieldset id="section-name">
                     <legend><span>'.T_('Name').'</span></legend>
                     <div class="field-row">
                         <div class="field-label"><label for="fname"><b>'.T_('First').'</b></label></div>
@@ -171,7 +195,7 @@ class Profile
                         </div>
                     </div>
                 </fieldset>
-                <fieldset>
+                <fieldset id="section-bio">
                     <legend><span>'.T_('Bio').'</span></legend>
                     <div class="field-row">
                         <div class="field-label"><label class="optional" for="bio"><b>'.T_('Bio').'</b></label></div>
@@ -180,7 +204,7 @@ class Profile
                         </div>
                     </div>
                 </fieldset>
-                <fieldset>
+                <fieldset id="section-gender">
                     <legend><span>'.T_('Gender').'</span></legend>
                     <div class="field-row">
                         <div class="field-label"><b><label for="sex">'.T_('Gender').'</label></b></div>
@@ -195,7 +219,7 @@ class Profile
                         fsex.add(Validate.Presence, {failureMessage: "'.T_('Sorry, but this information is required.').'"});
                     </script>
                 </fieldset>
-                <fieldset>
+                <fieldset id="section-birthday">
                     <legend><span>'.T_('Birthday').'</span></legend>
                     <div class="field-row">
                         <div class="field-label"><label for="sday"><b>'.T_('Birthday').'</b></label></div>
@@ -228,12 +252,16 @@ class Profile
     function displayEditProfilePicture ()
     {
         echo '
-            <div id="leftcolumn">
-                <ul class="menu">
+            <div id="sections_menu">
+                <ul>
+                    <li><a href="profile.php">'.T_('View Stats').'</a></li>
                     <li><a href="?view=info">'.T_('Basic Information').'</a></li>
                     <li><a href="?view=picture">'.T_('Profile Picture').'</a></li>
                     <li><a href="?view=address">'.T_('Address / Contact').'</a></li>
                 </ul>
+            </div>
+            <div id="leftcolumn">
+                <br/>
             </div>
             <div id="maincolumn">';
 
@@ -270,12 +298,16 @@ class Profile
         $address_id = $row['id'];
 
         echo '
-            <div id="leftcolumn">
-                <ul class="menu">
+            <div id="sections_menu">
+                <ul>
+                    <li><a href="profile.php">'.T_('View Stats').'</a></li>
                     <li><a href="?view=info">'.T_('Basic Information').'</a></li>
                     <li><a href="?view=picture">'.T_('Profile Picture').'</a></li>
                     <li><a href="?view=address">'.T_('Address / Contact').'</a></li>
                 </ul>
+            </div>
+            <div id="leftcolumn">
+                <br/>
             </div>
             <div id="maincolumn">';
 
@@ -301,60 +333,71 @@ class Profile
         $commentsCount  = getCommentsById($userid, 'array');
         $calendarsCount = getCalendarEntriesById($userid, 'array');
 
-        $data['posts'] = '<div class="stat c1">
-                        <span title="'.$postsCount['percent'].' of total">'.$postsCount['count'].'</span>
-                        <b>'.T_('Posts').'</b>
-                    </div>';
-        $data['photos'] = '<div class="stat c2">
-                        <span title="'.$photosCount['percent'].' of total">'.$photosCount['count'].'</span>
-                        <b>'.T_('Photos').'</b>
-                    </div>';
-        $data['comments'] = '<div class="stat c3">
-                        <span title="'.$commentsCount['percent'].' of total">'.$commentsCount['count'].'</span>
-                        <b>'.T_('Comments').'</b>
-                    </div>';
-        $data['events'] = '<div class="stat c4">
-                        <span title="'.$calendarsCount['percent'].' of total">'.$calendarsCount['count'].'</span>
-                        <b>'.T_('Dates').'</b>
+        $data['posts'] = '
+                    <div class="stat" data-percent="'.$postsCount['percent'].'">
+                        <div class="label">'.T_('Posts').'</div>
+                        <span class="inner" title="'.$postsCount['percent'].'%">'.$postsCount['count'].'</span>
                     </div>';
 
-        $i = 5;
+        $data['photos'] = '
+                    <div class="stat" data-percent="'.$photosCount['percent'].'">
+                        <div class="label">'.T_('Photos').'</div>
+                        <span class="inner" title="'.$photosCount['percent'].'%">'.$photosCount['count'].'</span>
+                    </div>';
+
+        $data['comments'] = '
+                    <div class="stat" data-percent="'.$commentsCount['percent'].'">
+                        <div class="label">'.T_('Comments').'</div>
+                        <span class="inner" title="'.$commentsCount['percent'].'%">'.$commentsCount['count'].'</span>
+                    </div>';
+
+        $data['events'] = '
+                    <div class="stat" data-percent="'.$calendarsCount['percent'].'">
+                        <div class="label">'.T_('Dates').'</div>
+                        <span class="inner" title="'.$calendarsCount['percent'].'%">'.$calendarsCount['count'].'</span>
+                    </div>';
 
         if (usingFamilyNews())
         {
             $newsCount = getFamilyNewsById($userid, 'array');
-            $data['news'] = '<div class="stat c'.$i.'">
-                        <span title="'.$newsCount['percent'].' of total">'.$newsCount['count'].'</span>
-                        <b>'.T_('Family News').'</b>
+
+            $data['news'] = '
+                    <div class="stat" data-percent="'.$newsCount['percent'].'">
+                        <div class="label">'.T_('Family News').'</div>
+                        <span class="inner" title="'.$newsCount['percent'].'%">'.$newsCount['count'].'</span>
                     </div>';
-            $i++;
         }
+
         if (usingRecipes())
         {
             $recipesCount = getRecipesById($userid, 'array');
-            $data['recipes'] = '<div class="stat c'.$i.'">
-                        <span title="'.$recipesCount['percent'].' of total">'.$recipesCount['count'].'</span>
-                        <b>'.T_('Recipes').'</b>
+
+            $data['recipes'] = '
+                    <div class="stat" data-percent="'.$recipesCount['percent'].'">
+                        <div class="label">'.T_('Recipes').'</div>
+                        <span class="inner" title="'.$recipesCount['percent'].'%">'.$recipesCount['count'].'</span>
                     </div>';
-            $i++;
         }
+
         if (usingDocuments())
         {
             $documentsCount = getDocumentsById($userid, 'array');
-            $data['documents'] = '<div class="stat c'.$i.'">
-                        <span title="'.$documentsCount['percent'].' of total">'.$documentsCount['count'].'</span>
-                        <b>'.T_('Documents').'</b>
+
+            $data['documents'] = '
+                    <div class="stat" data-percent="'.$documentsCount['percent'].'">
+                        <div class="label">'.T_('Documents').'</div>
+                        <span class="inner" title="'.$documentsCount['percent'].'%">'.$documentsCount['count'].'</span>
                     </div>';
-            $i++;
         }
         if (usingPrayers())
         {
             $prayersCount = getPrayersById($userid, 'array');
-            $data['prayers'] = '<div class="stat c'.$i.'">
-                        <span title="'.$prayersCount['percent'].' of total">'.$prayersCount['count'].'</span>
-                        <b>'.T_('Prayer Concerns').'</b>
+
+            $data['prayers'] = '
+                    <div class="stat" data-percent="'.$prayersCount['percent'].'">
+                        <div class="label">'.T_('Prayer Concerns').'</div>
+                        <span class="inner" title="'.$prayersCount['percent'].'%">'.$prayersCount['count'].'</span>
                     </div>';
-            $i++;
         }
 
         return $data;
