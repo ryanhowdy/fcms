@@ -864,22 +864,9 @@ Event.observe(window, \'load\', function() {
             <p>'.cleanOutput($video['description']).'</p>
         </div>
         <div id="video_content">
-            <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="'.$video['width'].'" height="'.$video['height'].'">
-                <param name="movie" value="'.$videoUrl.'" />
-                <param name="wmode" value="transparent"></param>
-                <!--[if !IE]>-->
-                <object type="application/x-shockwave-flash" data="'.$videoUrl.'" wmode="transparent" width="'.$video['width'].'" height="'.$video['height'].'">
-                <!--<![endif]-->
-                <div class="info-alert">
-                    '.T_('You need Flash player to view this video.').'<br/>
-                    <a href="http://www.adobe.com/go/getflashplayer">
-                        <img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="'.T_('Get Adobe Flash player').'"/>
-                    </a>
-                </div>
-                <!--[if !IE]>-->
-                </object>
-                <!--<![endif]-->
-            </object>
+            <iframe class="youtube-player" type="text/html" width="'.$video['width'].'" height="'.$video['height'].'" 
+                src="http://www.youtube.com/embed/'.$video['source_id'].'" allowfullscreen frameborder="0">
+            </iframe>
         </div>';
 
         echo '<p>'.T_('Views').': '.$videoEntry->getVideoViewCount().'</p>';

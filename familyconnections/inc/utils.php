@@ -998,7 +998,8 @@ function parse_bbcodes ($data)
         '<span>$1</span>', 
         '<span class="$1">$2</span>',
         '<blockquote>$1</blockquote>',
-        'unhtmlentities("\\1")'
+        '<iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/$1" allowfullscreen frameborder="0"></iframe>',
+        '<iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/$1" allowfullscreen frameborder="0"></iframe>'
     );
     $data = preg_replace ($search, $replace, $data);
     return $data; 
@@ -1039,6 +1040,7 @@ function removeBBCode ($str)
         '$2', // span
         '$1', // quote
         '',   // video
+        ''    // video
     );
     return preg_replace($search, $replace, stripslashes($str));
 }
@@ -1077,7 +1079,8 @@ function getBBCodeList ()
         '/\[span\](.*?)\[\/span\]/is', 
         '/\[span\=(.*?)\](.*?)\[\/span\]/is', 
         '/\[quote\](.*?)\[\/quote\]/is', 
-        '/\[video\](.*?)\[\/video\]/ise'
+        '/\[video\](?:http(?:s)?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:(?:watch)?\?(?:.*&)?v(?:i)?=|(?:embed|v|vi|user)\/))([^\?&\"\'>]+)\[\/video\]/is',
+        '/\[video\]([^\?&\"\'>]+)\[\/video\]/is'
     );
 }
 
