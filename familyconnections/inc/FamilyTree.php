@@ -542,14 +542,15 @@ class FamilyTree
             $add  = '<a class="add" href="#'.$data['id'].'">'.T_('Add Family Member').'</a>';
             $del  = '<a class="delete" href="?delete='.$data['id'].'">'.T_('Delete All Relationships').'</a>';
             $del .= '<script type="text/javascript">';
-            $del .= '$$(\'a.delete\').each(function(item) {';
-            $del .= '    item.onclick = function() {';
+            $del .= '$(\'a.delete\').each(function() {';
+            $del .= '    var jqLink = $(this);';
+            $del .= '    jqLink.click(function() {';
             $del .= '        if (confirm(\''.T_('Are you sure you want to DELETE this?').'\')) {';
-            $del .= '            var url = item.href;';
+            $del .= '            var url = jqLink.attr("href");';
             $del .= '            window.location = url + "&confirm=1";';
             $del .= '        }';
             $del .= '        return false;';
-            $del .= '    };';
+            $del .= '    });';
             $del .= '});';
             $del .= '</script>';
         }

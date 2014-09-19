@@ -973,35 +973,29 @@ function initLivingDeceased()
 }
 function initAddRelative()
 {
-    $$('.tools a.add').each(function(anchor) {
-        anchor.observe("click", function(e) {
+    $('span.tools a.add').each(function() {
+        var jqAnchor = $(this);
+        jqAnchor.click(function(e) {
             e.preventDefault();
 
-            var tools = anchor.up();
-            var href = anchor.readAttribute("href");
-            var id = href.substring(1);
+            var tools = jqAnchor.closest('span.tools');
+            var href  = jqAnchor.attr('href');
+            var id    = href.substring(1);
 
-            var img = document.createElement("img");
-            img.setAttribute("src", "ui/img/ajax-bar.gif");
-            img.setAttribute("id", "ajax-loader");
-            img.setAttribute("style", "float:right; margin:20px;");
-            $('content').insert({"top":img});
+            var jqImg = $('<img src="ui/img/ajax-bar.gif" id="ajax-loader" style="float:right; margin:20px"/>');
+            $('#content').prepend(jqImg);
 
-            new Ajax.Request("familytree.php", {
-                method: "post",
-                parameters: {
+            $.ajax({
+                url  : 'familytree.php',
+                type : 'post',
+                data : {
                     ajax : "add_relative_menu",
                     id   : id,
                 },
-                onSuccess: function(transport) {
-                    var response = transport.responseText;
-                    $('content').insert({"bottom":response});
-
-                    $("ajax-loader").remove();
-                },
-                onFailure: function(transport) {
-alert('oops');
-                }
+            })
+            .success(function(data) {
+                $('#content').append(data);
+                $('#ajax-loader').remove();
             });
         });
     });
