@@ -3377,7 +3377,7 @@ function getFoursquareWhatsNewData ($whatsNewData)
 
     if (count($users[0]) > 0)
     {
-        $timeago = gmmktime(0, 0, 0, gmdate('m'), gmdate('d')-$days, gmdate('Y'));
+        $timeago = gmmktime(0, 0, 0, gmdate('m'), gmdate('d'), gmdate('Y'));
 
         $i = 0;
         foreach ($users as $k => $data)
