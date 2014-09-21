@@ -93,7 +93,7 @@ class Page
      * 
      * @return void
      */
-    function displayHeader ()
+    function displayHeader ($options = null)
     {
         $params = array(
             'currentUserId' => $this->fcmsUser->id,
@@ -106,26 +106,7 @@ class Page
             'version'       => getCurrentVersion(),
         );
 
-        $params['javascript'] = '
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
-    if (!$$(\'.pm_footer input[type="submit"]\')) { return; }
-    $$(\'.pm_footer input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
-        var hid = document.createElement(\'input\');
-        hid.setAttribute(\'type\', \'hidden\');
-        hid.setAttribute(\'name\', \'confirmed\');
-        hid.setAttribute(\'value\', \'true\');
-        item.insert({\'after\':hid});
-    });
-    return true;
-});
-//]]>
-</script>';
-
-        loadTemplate('global', 'header', $params);
+        displayPageHeader($params, $options);
 
         $link = T_('Inbox');
 
@@ -597,7 +578,14 @@ Event.observe(window, \'load\', function() {
      */
     function displayInbox ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array(
+                'jsOnload' => '
+    $(\'.pm_footer input[type="submit"]\').click(function(e) {
+        return confirmDeleteLink(this, "'.T_('Are you sure you want to DELETE this?').'", e);
+    });'
+            )
+        );
 
         if (isset($_SESSION['success']))
         {
