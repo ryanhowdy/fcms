@@ -1195,7 +1195,7 @@ a:hover { background-color: #6cd163; }
 
             $user    = '<a href="http://foursquare.com/user/'.$self->response->user->id.'">'.$self->response->user->contact->email.'</a>';
             $status  = sprintf(T_('Currently connected as: %s'), $user);
-            $status .= '<br/><br/><img src="'.$self->response->user->photo.'"/>';
+            $status .= '<br/><br/><img src="'.$self->response->user->photo->prefix.'80x80'.$self->response->user->photo->suffix.'"/>';
             $link    = '<a class="disconnect" href="?revoke=foursquare">'.T_('Disconnect').'</a>';
         }
         else
