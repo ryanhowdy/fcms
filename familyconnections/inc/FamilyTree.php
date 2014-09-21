@@ -19,6 +19,9 @@ class FamilyTree
 
     private $count = 0;
 
+    public $memoryAvailable = 0;
+    public $hasEnoughMemory = true;
+
     /**
      * FamilyTree
      * 
@@ -33,6 +36,8 @@ class FamilyTree
         $this->fcmsError    = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
         $this->fcmsUser     = $fcmsUser;
+
+        $this->memoryAvailable = getMemoryLimitBytes();
 
         // Set the user's tree we are currently viewing
         if (isset($_GET['view']))
@@ -314,6 +319,15 @@ class FamilyTree
     {
         $spouses = array_shift($data);
         $kids    = array_shift($data);
+
+        // Lets make sure we have enough memory for all this
+        $currentMemoryUsage  = memory_get_usage();
+        $currentMemoryUsage += 256000; // the standard php increment size
+        if ($currentMemoryUsage >= $this->memoryAvailable)
+        {
+            $this->hasEnoughMemory = false;
+            return;
+        }
 
         $thisSpouses = $this->getSpouses($parent, $spouses);
         $spouseCount = count($thisSpouses);

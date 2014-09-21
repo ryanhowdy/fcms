@@ -1,3 +1,6 @@
+  3.5.0
+    #450 - Memory error on Family Tree with a lot of relatives
+
   3.4.2
     #457 - Photos not deleted from server in Admin
     #463 - PHP Error for comments on protected images in newsstream

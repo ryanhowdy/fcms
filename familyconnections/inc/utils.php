@@ -5082,3 +5082,30 @@ function getFamilyTreeClassName ()
 
     return $className;
 }
+
+/**
+ * getMemoryLimitBytes 
+ * 
+ * Will get the current memory limit in bytes.
+ * 
+ * @return integer
+ */
+function getMemoryLimitBytes ()
+{
+    $memory = ini_get('memory_limit');
+    $size   = substr($memory, -1);
+    $memory = substr($memory, 0, -1);
+
+    // KB
+    if ($size == 'K')
+    {
+        $memory = ($memory * 1024);
+    }
+    // MB
+    else
+    {
+        $memory = ($memory * 1024) * 1024;
+    }
+
+    return $memory;
+}
