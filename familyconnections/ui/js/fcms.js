@@ -27,12 +27,9 @@ function addLoadEvent(func) {
     }
 }
 function initNewWindow() {
-    if (!$$('a.new_window')) { return; }
-    $$('a.new_window').each(function(link) {
-        link.onclick = function() {
-            window.open(this.href, '', 'width=650, height=620, location=no, status=no, menubar=no, toolbar=no');
-            return false;
-        };
+    $('a.new_window').click(function() {
+        window.open($(this).attr('href'), '', 'width=650, height=620, location=no, status=no, menubar=no, toolbar=no');
+        return false;
     });
 }
 
@@ -387,52 +384,39 @@ function endsWith(str, suffix) {
 ------------------------------------------------*/
 function hideUploadOptions(rotateText, catText, newCatText) {
     // Hide Rotate options
-    if ($('rotate-options')) {
-        var rDiv = $('rotate-options');
-        var rPara = document.createElement('p');
-        if (rDiv.style.setAttribute) {
-            rDiv.style.setAttribute('cssText', 'display:none');
-            rPara.style.setAttribute('cssText', 'text-align:center');
-        } else {
-            rDiv.setAttribute('style', 'display:none');
-            rPara.setAttribute('style', 'text-align:center');
-        }
-        var rLink = Element.extend(document.createElement('a'));
-        rLink.href = '#';
-        rLink.addClassName('u');
-        rLink.appendChild(document.createTextNode(rotateText));
-        rLink.onclick = function() { $('rotate-options').toggle(); return false; };
-        rPara.appendChild(rLink);
-        rDiv.insert({'before':rPara});
+    if ($('#rotate-options')) {
+        $('#rotate-options').hide();
+
+        $('#rotate-options').before(
+            '<p style="text-align:center;">'
+                + '<a href="#" class="u" onclick="function() { $(\'#rotate-options\').toggle(); return false; };">'
+                    + rotateText
+                + '</a>'
+            + '</p>'
+        );
     }
+
     // Hide Existing Categories
-    if ($('existing-categories')) {
-        var eDiv = $('existing-categories');
-        var ePara = Element.extend(document.createElement('span'));
-        if (eDiv.style.setAttribute) {
-            eDiv.style.setAttribute('cssText', 'display:none');
-        } else {
-            eDiv.setAttribute('style', 'display:none');
-        }
-        var eLink = Element.extend(document.createElement('a'));
-        eLink.id = 'category-link';
-        eLink.href = '#';
-        eLink.addClassName('u');
-        eLink.appendChild(document.createTextNode(catText));
-        eLink.onclick = function() {
-            if ($('new-category').visible()) {
-                $('existing-categories').show();
-                $('new-category').hide();
-                $('category-link').update(newCatText);
-            } else {
-                $('existing-categories').hide();
-                $('new-category').show();
-                $('category-link').update(catText);
+    if ($('#existing-categories')) {
+        $('#existing-categories').hide();
+
+        $('#existing-categories').after(
+            '<span><a href="#" id="category-link" class="u">' + catText + '</a></span>'
+        );
+
+        $('#category-link').click(function() {
+            if ($('#new-category').is(':visible')) {
+                $('#existing-categories').show();
+                $('#new-category').hide();
+                $('#category-link').text(newCatText);
+            }
+            else {
+                $('#existing-categories').hide();
+                $('#new-category').show();
+                $('#category-link').text(catText);
             }
             return false;
-        };
-        ePara.appendChild(eLink);
-        eDiv.insert({'after':ePara});
+        });
     }
 }
 function hidePhotoDetails(txt) {
@@ -496,37 +480,6 @@ function initMultiPreviouslyTagged(key, users_lkup)
         $("autocomplete_selected_"+key).appendChild(li);
     });
 }
-function newUpdateElement(li)
-{
-    $("autocomplete_input").clear().focus();
-
-    var selection = li.innerHTML;
-    var indx = selection.indexOf(":");
-    var id = selection.substring(0, indx);
-    var txt = selection.substring(indx+1, selection.length);
-
-    var newli = document.createElement("li");
-    Element.extend(newli);
-    newli.update(txt);
-    var a = document.createElement("a");
-    Element.extend(a);
-    a.href = "#";
-    a.writeAttribute("alt", id);
-    a.onclick = removeTagged;
-    a.update("x");
-    newli.appendChild(a);
-    $("autocomplete_selected").appendChild(newli);
-
-    var tag = document.createElement("input");
-    Element.extend(tag);
-    tag.writeAttribute("type","hidden");
-    tag.writeAttribute("name","tagged[]");
-    tag.addClassName("tagged");
-    tag.setValue(id);
-    $("autocomplete_form").appendChild(tag);
-
-    return false;
-}
 function newMultiUpdateElement(li)
 {
     var i = li.parentNode.parentNode;
@@ -564,30 +517,34 @@ function newMultiUpdateElement(li)
 
     return false;
 }
-function removeTagged ()
+function removeTagged (anchor)
 {
-    var userid = this.readAttribute("alt");
+    $anchor = $(anchor);
+
+    var userid = $anchor.attr('alt');
 
     // The id of the ul might have the # we are looking for
-    var ul = this.up('ul');
-    var txt = ul.id;
+    var $ul = $anchor.closest('ul');
+    var txt = $ul.attr('id');
     // remove the autocomplete_selected_ part
     var id = txt.substr(22);
 
-    $$(".tagged").each(function(item) {
-        if (item.getValue() == userid) {
+    $('input.tagged').each(function() {
+        $input = $(this);
+        if ($input.val() == userid) {
             if (id) {
-                if (item.id == 'tagged_'+id) {
-                    item.remove();
+                if ($input.attr('id') == 'tagged_' + id) {
+                    $input.remove();
                 }
             } else {
-                item.remove();
+                $input.remove();
             }
         }
     });
 
-    var li = this.parentNode;
-    li.remove();
+    var $li = $anchor.closest('li');
+    $li.remove();
+
     return false;
 }
 function clickMassTagMember (event)

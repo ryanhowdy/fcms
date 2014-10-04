@@ -4651,46 +4651,36 @@ ul.poll-results .avatar-member-list-small li {
 }
 /* =AUTOCOMPLETE
 ------------------------------------------------*/
-.autocomplete_instructions {
+.autocomplete-suggestions {
+  background: #fff;
+  border: 1px solid #999;
+  overflow: auto;
+}
+.autocomplete-suggestions strong {
+  background: #ddd;
   color: #3e8ec1;
 }
-.autocomplete_search {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  margin: 0px;
-  padding: 0px;
-  position: absolute;
-  width: 350px;
+.autocomplete-suggestions .autocomplete-suggestion {
+  overflow: hidden;
+  padding: 2px 5px;
+  white-space: nowrap;
 }
-.autocomplete_search ul {
-  list-style-type: none;
-  margin: 0px;
-  padding: 0px;
+.autocomplete-suggestions .autocomplete-selected {
+  background: #9ccef0;
 }
-.autocomplete_search ul li.selected {
-  background-color: #9ccef0;
-}
-.autocomplete_search ul li strong {
-  background-color: #ddd;
-  font-weight: bold;
-}
-.autocomplete_search ul li.selected strong {
-  background-color: #3e8ec1;
-}
-.autocomplete_search ul li {
+.autocomplete-suggestions .autocomplete-selected strong {
+  background: #3e8ec1;
   color: #000;
-  cursor: pointer;
-  display: block;
-  height: 2em;
-  list-style-type: none;
-  margin: 0;
-  padding: 2px;
+}
+.autocomplete_instructions {
+  color: #3e8ec1;
 }
 .autocomplete_selected {
   *zoom: 1;
   list-style-type: none;
   margin: 5px 0 20px 0;
   overflow: hidden;
+  padding: 0;
   width: 330px;
 }
 .autocomplete_selected:before,

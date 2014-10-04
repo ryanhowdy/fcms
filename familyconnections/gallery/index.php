@@ -584,6 +584,7 @@ class Page
     {
         $this->displayHeader(
             array(
+                'modules'  => array('autocomplete'),
                 'jsOnload' => 'hideUploadOptions(\''.T_('Rotate Photo').'\', \''.T_('Use Existing Category').'\', \''.T_('Create New Category').'\');',
             )
         );

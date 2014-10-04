@@ -4023,61 +4023,62 @@ ul.poll-results {
 
 /* =AUTOCOMPLETE
 ------------------------------------------------*/
-.autocomplete_instructions { color: @baseColorDark; }
-.autocomplete_search {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    margin: 0px;  
-    padding: 0px;  
-    position: absolute;
-    width: 350px;
+.autocomplete-suggestions {
+    background: #fff;
+    border: 1px solid #999;
+    overflow: auto; 
+
+    strong {
+        background: #ddd;
+        color: @baseColorDark;
+    }
+    .autocomplete-suggestion {
+        overflow: hidden;
+        padding: 2px 5px;
+        white-space: nowrap;
+    }
+    .autocomplete-selected {
+        background: @baseColor;
+
+        strong {
+            background: @baseColorDark;
+            color: #000;
+        }
+    }
 }
-.autocomplete_search ul {
-    list-style-type: none;
-    margin: 0px;
-    padding: 0px;
-}
-.autocomplete_search ul li.selected { background-color: @baseColor; }
-.autocomplete_search ul li strong {
-    background-color: #ddd;
-    font-weight: bold;
-}
-.autocomplete_search ul li.selected strong { background-color: @baseColorDark; }
-.autocomplete_search ul li {
-    color: #000;
-    cursor: pointer;
-    display: block;
-    height:2em;
-    list-style-type: none;
-    margin: 0;
-    padding: 2px;
+.autocomplete_instructions {
+    color: @baseColorDark;
 }
 .autocomplete_selected {
     .clearfix();
     list-style-type: none;
     margin: 5px 0 20px 0;
     overflow: hidden;
+    padding: 0;
     width: 330px;
-}
-.autocomplete_selected li {
-    background-color: @linkColor;
-    .border-radius;
-    color: #fff;
-    float: left;
-    font: 10px/10px @baseFontFamily;
-    margin: 0 5px 5px 0;
-    padding: 5px 10px;
-}
-.autocomplete_selected li strong {
-    font-weight: normal;
-}
-.autocomplete_selected li a {
-    color: #000;
-    padding: 0 0 2px 5px;
-}
-.autocomplete_selected li a:hover {
-    background-color: transparent;
-    color: #fff;
+
+    li {
+        background-color: @linkColor;
+        .border-radius;
+        color: #fff;
+        float: left;
+        font: 10px/10px @baseFontFamily;
+        margin: 0 5px 5px 0;
+        padding: 5px 10px;
+
+        strong {
+            font-weight: normal;
+        }
+        a {
+            color: #000;
+            padding: 0 0 2px 5px;
+
+            &:hover {
+                background-color: transparent;
+                color: #fff;
+            }
+        }
+    }
 }
 
 

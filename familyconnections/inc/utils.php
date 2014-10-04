@@ -4881,10 +4881,11 @@ function displayPageHeader ($params, $options = null)
 function getModuleList ()
 {
     return array(
-        'livevalidation'    => '<script type="text/javascript" src="ui/js/livevalidation.js"></script>',
+        'livevalidation'    => '<script type="text/javascript" src="'.URL_PREFIX.'ui/js/livevalidation.js"></script>',
         'datechooser'       => '<link rel="stylesheet" type="text/css" href="ui/css/datechooser.css"/>'
-                              .'<script type="text/javascript" src="ui/js/datechooser.js"></script>',
-        'scriptaculous'     => '<script type="text/javascript" src="ui/js/scriptaculous.js"></script>',
+                              .'<script type="text/javascript" src="'.URL_PREFIX.'ui/js/datechooser.js"></script>',
+        'scriptaculous'     => '<script type="text/javascript" src="'.URL_PREFIX.'ui/js/scriptaculous.js"></script>',
+        'autocomplete'      => '<script type="text/javascript" src="'.URL_PREFIX.'ui/js/autocomplete/jquery.autocomplete.min.js"></script>',
     );
 }
 
