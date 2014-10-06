@@ -1,0 +1,4817 @@
+# English (United Kingdom) translation for familycms
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the familycms package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: familycms\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2012-06-04 10:03-0500\n"
+"PO-Revision-Date: 2013-05-04 16:28+0000\n"
+"Last-Translator: mrx5682 <Unknown>\n"
+"Language-Team: English (United Kingdom) <en_GB@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Launchpad-Export-Date: 2013-09-20 20:21+0000\n"
+"X-Generator: Launchpad (build 16765)\n"
+"Content-Type: text/plain; charset=UTF-8"
+
+msgid "lang"
+msgstr ""
+
+msgid "powered by"
+msgstr ""
+
+msgid "Account Activation"
+msgstr ""
+
+msgid "Alright!"
+msgstr ""
+
+msgid "Your account is now active."
+msgstr ""
+
+msgid "You can now login and begin using the site."
+msgstr ""
+
+msgid "Invalid Activation Code!"
+msgstr ""
+
+msgid "Your account could NOT be activated"
+msgstr ""
+
+msgid "Access Denied"
+msgstr ""
+
+msgid "Address Book"
+msgstr ""
+
+msgid ""
+"You do not have permission to perform this task.  You must have an access "
+"level of 3 (Member) or higher."
+msgstr ""
+
+msgid "You must choose at least one member to email."
+msgstr ""
+
+msgid "Get more help on sending mass emails."
+msgstr ""
+
+msgid "Chat"
+msgstr ""
+
+msgid "Select All"
+msgstr ""
+
+msgid "Are you sure you want to DELETE this address?"
+msgstr ""
+
+msgid "Email has been sent."
+msgstr ""
+
+msgid "Are you sure you want to DELETE this?"
+msgstr ""
+
+msgid "This can NOT be undone."
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "You do not have permission to perform this task."
+msgstr ""
+
+msgid "You cannot delete the address of a member."
+msgstr ""
+
+msgid "Address Deleted Successfully."
+msgstr ""
+
+msgid "Administration: Configuration"
+msgstr ""
+
+msgid "General"
+msgstr ""
+
+msgid "Defaults"
+msgstr ""
+
+msgid "Plugins"
+msgstr ""
+
+msgid "Navigation"
+msgstr ""
+
+msgid "Photo Gallery"
+msgstr ""
+
+msgid "You do not have access to view this page."
+msgstr ""
+
+msgid "This page requires an access level 1 (Admin)."
+msgstr ""
+
+msgid ""
+"Please contact your website's administrator if you feel you should have "
+"access to this page."
+msgstr ""
+
+msgid "Admin Activation"
+msgstr ""
+
+msgid "Auto Activation"
+msgstr ""
+
+msgid "Off"
+msgstr ""
+
+msgid "On"
+msgstr ""
+
+msgid "Changes Updated Successfully"
+msgstr ""
+
+msgid "General Configuration"
+msgstr ""
+
+msgid "Site Name"
+msgstr ""
+
+msgid "Contact Email"
+msgstr ""
+
+msgid "That's not a valid email address is it?"
+msgstr ""
+
+msgid "Registration"
+msgstr ""
+
+msgid "Start of the Week"
+msgstr ""
+
+msgid "Sunday"
+msgstr ""
+
+msgid "Monday"
+msgstr ""
+
+msgid "Tuesday"
+msgstr ""
+
+msgid "Wednesday"
+msgstr ""
+
+msgid "Thursday"
+msgstr ""
+
+msgid "Friday"
+msgstr ""
+
+msgid "Saturday"
+msgstr ""
+
+msgid "Turn Off Site?"
+msgstr ""
+
+msgid "Yes, turn the site off, so no one can access it."
+msgstr ""
+
+msgid "No, keep the site on and running."
+msgstr ""
+
+msgid "Debug"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "First Name"
+msgstr ""
+
+msgid "First & Last Name"
+msgstr ""
+
+msgid "Username"
+msgstr ""
+
+msgid "All (by date)"
+msgstr ""
+
+msgid "Last 5 (by plugin)"
+msgstr ""
+
+msgid "(GMT -12:00) Eniwetok, Kwajalein"
+msgstr ""
+
+msgid "(GMT -11:00) Midway Island, Samoa"
+msgstr ""
+
+msgid "(GMT -10:00) Hawaii"
+msgstr ""
+
+msgid "(GMT -9:00) Alaska"
+msgstr ""
+
+msgid "(GMT -8:00) Pacific Time (US & Canada)"
+msgstr ""
+
+msgid "(GMT -7:00) Mountain Time (US & Canada)"
+msgstr ""
+
+msgid "(GMT -6:00) Central Time (US & Canada), Mexico City"
+msgstr ""
+
+msgid "(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima"
+msgstr ""
+
+msgid "(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz"
+msgstr ""
+
+msgid "(GMT -3:30) Newfoundland"
+msgstr ""
+
+msgid "(GMT -3:00) Brazil, Buenos Aires, Georgetown"
+msgstr ""
+
+msgid "(GMT -2:00) Mid-Atlantic"
+msgstr ""
+
+msgid "(GMT -1:00) Azores, Cape Verde Islands"
+msgstr ""
+
+msgid "(GMT) Western Europe Time, London, Lisbon, Casablanca"
+msgstr ""
+
+msgid "(GMT +1:00) Brussels, Copenhagen, Madrid, Paris"
+msgstr ""
+
+msgid "(GMT +2:00) Kaliningrad, South Africa"
+msgstr ""
+
+msgid "(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburgh"
+msgstr ""
+
+msgid "(GMT +3:30) Tehran"
+msgstr ""
+
+msgid "(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi"
+msgstr ""
+
+msgid "(GMT +4:30) Kabul"
+msgstr ""
+
+msgid "(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent"
+msgstr ""
+
+msgid "(GMT +5:30) Bombay, Calcutta, Madras, New Delhi"
+msgstr ""
+
+msgid "(GMT +6:00) Almaty, Dhaka, Colombo"
+msgstr ""
+
+msgid "(GMT +7:00) Bangkok, Hanoi, Jakarta"
+msgstr ""
+
+msgid "(GMT +8:00) Beijing, Perth, Singapore, Hong Kong"
+msgstr ""
+
+msgid "(GMT +9:00) Tokyo, Seoul, Osaka, Spporo, Yakutsk"
+msgstr ""
+
+msgid "(GMT +9:30) Adeliaide, Darwin"
+msgstr ""
+
+msgid "(GMT +10:00) Eastern Australia, Guam, Vladivostok"
+msgstr ""
+
+msgid "(GMT +11:00) Magadan, Solomon Islands, New Caledonia"
+msgstr ""
+
+msgid "(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka"
+msgstr ""
+
+msgid "New Messages at Bottom"
+msgstr ""
+
+msgid "New Messages at Top"
+msgstr ""
+
+msgid "New Member Default Settings"
+msgstr ""
+
+msgid "Theme"
+msgstr ""
+
+msgid "Display Name"
+msgstr ""
+
+msgid "How do you want your name to display?"
+msgstr ""
+
+msgid "Front Page"
+msgstr ""
+
+msgid "How do you want the latest information to display on the homepage?"
+msgstr ""
+
+msgid "Time Zone"
+msgstr ""
+
+msgid "What time zone do you live in?"
+msgstr ""
+
+msgid "Daylight Savings Time"
+msgstr ""
+
+msgid "Sort Messages"
+msgstr ""
+
+msgid "How do you want messages to display on the Message Board?"
+msgstr ""
+
+msgid "Update existing users?"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Communicate"
+msgstr ""
+
+msgid "Share"
+msgstr ""
+
+msgid "An error occurred. Changes could not be saved."
+msgstr ""
+
+msgid "Changes Saved"
+msgstr ""
+
+msgid "Can't have two items with the same order."
+msgstr ""
+
+msgid "Please try again"
+msgstr ""
+
+msgid "Off (2 photos)"
+msgstr ""
+
+msgid "On (3 photos)"
+msgstr ""
+
+msgid "Protected"
+msgstr ""
+
+msgid "Un-protected"
+msgstr ""
+
+msgid "Your photos can be viewed from non-authorized users."
+msgstr ""
+
+msgid ""
+"In order to protect your photos so only logged in users can view them, "
+"please refer to the help document below."
+msgstr ""
+
+msgid "Help Me Protect My Photos"
+msgstr ""
+
+msgid "Full Size Photos"
+msgstr ""
+
+msgid ""
+"By default, Full Sized Photos is turned off to save on storage space and "
+"bandwidth.  Turning this feature on can eat up significant space and "
+"bandwith."
+msgstr ""
+
+msgid "Protected Photos"
+msgstr ""
+
+msgid "Facebook"
+msgstr ""
+
+msgid "Facebook Integration"
+msgstr ""
+
+msgid ""
+"In order to integrate Family Connections with Facebook, you must create a "
+"new Facebook app, and configure that app in Family Connections."
+msgstr ""
+
+msgid "Step 1"
+msgstr ""
+
+msgid "Got to Facebook and create a new Application."
+msgstr ""
+
+msgid "Create Facebook Application"
+msgstr ""
+
+msgid ""
+"You don't really have to fill out any additional information other than the "
+"application name."
+msgstr ""
+
+msgid "Step 2"
+msgstr ""
+
+msgid ""
+"Fill out the form with the App Id and App Secret from your newly created "
+"Facebook Application."
+msgstr ""
+
+msgid "Facebook Application"
+msgstr ""
+
+msgid "App ID"
+msgstr ""
+
+msgid "App Secret"
+msgstr ""
+
+msgid "Administration: Foursquare"
+msgstr ""
+
+msgid "This page requires an access level 2 (Helper) or better."
+msgstr ""
+
+msgid "Go to Foursquare and register a new OAuth Consumer."
+msgstr ""
+
+msgid "Register a new foursquare OAuth Consumer."
+msgstr ""
+
+msgid ""
+"Be sure to include settings.php as part of your callback url.  For example: "
+"if your site is located at http://www.my-awesome-site.com/fcms/index.php "
+"then your callback url should be http://www.my-awesome-site.com/fcms/"
+"settings.php"
+msgstr ""
+
+msgid "Fill out the form below with the information you provided in Step 1."
+msgstr ""
+
+msgid "Foursquare Confirguration"
+msgstr ""
+
+msgid "Client ID"
+msgstr ""
+
+msgid "Client Secret"
+msgstr ""
+
+msgid "Callback URL"
+msgstr ""
+
+msgid "Administration: Photo Gallery"
+msgstr ""
+
+msgid "Are you sure you want to DELETE all selected categories?"
+msgstr ""
+
+msgid "Are you sure you want to DELETE all selected photos?"
+msgstr ""
+
+msgid "No photos have been added yet."
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Delete Selected"
+msgstr ""
+
+msgid "Yes, Delete"
+msgstr ""
+
+msgid "No, Cancel"
+msgstr ""
+
+msgid "This category contains no photos."
+msgstr ""
+
+msgid "Categories"
+msgstr ""
+
+msgid "Dashboard"
+msgstr ""
+
+msgid "New Version"
+msgstr ""
+
+msgid "A new version is available for upgrade."
+msgstr ""
+
+msgid "Upgrade Now"
+msgstr ""
+
+msgid "New Members"
+msgstr ""
+
+msgid "%s is requesting access to the site."
+msgstr ""
+
+msgid "Activate Now"
+msgstr ""
+
+msgid "Member activated successfully"
+msgstr ""
+
+msgid "Pending Items"
+msgstr ""
+
+msgid "You have the following pending items that need to be taken care of."
+msgstr ""
+
+msgid "Account Activated"
+msgstr ""
+
+msgid "Your account at %s has been activated by the administrator."
+msgstr ""
+
+msgid "Administration: Instagram"
+msgstr ""
+
+msgid "Instagram Integration"
+msgstr ""
+
+msgid ""
+"In order to integrate Family Connections with Instagram, you must create a "
+"new Instagram client as Instagram.com, and configure that client in Family "
+"Connections."
+msgstr ""
+
+msgid "Got to Instagram and register a new Instagram client."
+msgstr ""
+
+msgid "Register new Instagram Client"
+msgstr ""
+
+msgid ""
+"Make sure you add <code>settings.php?view=instagram</code> to your Callback "
+"URL."
+msgstr ""
+
+msgid ""
+"Fill out the form below with the Instagram Client Id and Client Secret."
+msgstr ""
+
+msgid "Administration: Members"
+msgstr ""
+
+msgid "You must choose a member to merge with."
+msgstr ""
+
+msgid "Update [%s] complete."
+msgstr ""
+
+msgid "Delete [%s] complete."
+msgstr ""
+
+msgid "Missing Required Field"
+msgstr ""
+
+msgid ""
+"The email address %s is already in use.  Please choose a different email."
+msgstr ""
+
+msgid "Invitation to %s"
+msgstr ""
+
+msgid "You have been invited by %s to join %s."
+msgstr ""
+
+msgid "You can login using the following information"
+msgstr ""
+
+msgid "URL"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Thanks"
+msgstr ""
+
+msgid "The %s Webmaster"
+msgstr ""
+
+msgid "This is an automated response, please do not reply."
+msgstr ""
+
+msgid "Password Change"
+msgstr ""
+
+msgid "Your password at %s has been changed by the administrator."
+msgstr ""
+
+msgid "Your new password is %s"
+msgstr ""
+
+msgid "Administration: Polls"
+msgstr ""
+
+msgid "Add New Poll"
+msgstr ""
+
+msgid "Past Polls"
+msgstr ""
+
+msgid "Question"
+msgstr ""
+
+msgid "Created"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "No Previous Polls"
+msgstr ""
+
+msgid "Edit Poll"
+msgstr ""
+
+msgid "Option %s"
+msgstr ""
+
+msgid "Poll Question"
+msgstr ""
+
+msgid "Required"
+msgstr ""
+
+msgid "Without at least 2 options, it's not much of a poll is it?"
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "Administration: Scheduler"
+msgstr ""
+
+msgid "A scheduled job is currently running."
+msgstr ""
+
+msgid ""
+"Most jobs take less than an hour to complete, if the last successfull run "
+"for a scheduled job below is over an hour ago, their may be a problem with "
+"the current job."
+msgstr ""
+
+msgid "To debug this job:"
+msgstr ""
+
+msgid "Turn on debugging."
+msgstr ""
+
+msgid "Reset the running job flag."
+msgstr ""
+
+msgid "Set running job flag to off."
+msgstr ""
+
+msgid "(only if you know what you are doing)"
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Frequency"
+msgstr ""
+
+msgid "Last Run"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "No schedules found."
+msgstr ""
+
+msgid "Restore missing schedules."
+msgstr ""
+
+msgid "Hourly"
+msgstr ""
+
+msgid "Daily"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
+msgid "Save Changes"
+msgstr ""
+
+msgid "Set up Cron"
+msgstr ""
+
+msgid "Set up a new crontab for each of the following commands."
+msgstr ""
+
+msgid "Automatic Upgrade"
+msgstr ""
+
+msgid "You must be logged in to view this page."
+msgstr ""
+
+msgid "Invalid login id."
+msgstr ""
+
+msgid "Invalid request."
+msgstr ""
+
+msgid "User not found."
+msgstr ""
+
+msgid "Invalid login credentials."
+msgstr ""
+
+msgid "Turning off site."
+msgstr ""
+
+msgid "Downloading latest version."
+msgstr ""
+
+msgid "Unpacking files."
+msgstr ""
+
+msgid "Installing files."
+msgstr ""
+
+msgid "Upgrading database."
+msgstr ""
+
+msgid "Upgrading version number."
+msgstr ""
+
+msgid "Turning site back on."
+msgstr ""
+
+msgid "Upgrading to %s"
+msgstr ""
+
+msgid "Back to Site"
+msgstr ""
+
+msgid "Awesome, you have the latest version of Family Connections."
+msgstr ""
+
+msgid ""
+"You do not need to upgrade at this time, you are currently running %s, which "
+"is the most up to date version. If you need to, you can re-install the "
+"current version."
+msgstr ""
+
+msgid "Re-install %s"
+msgstr ""
+
+msgid "Manual Upgrade"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "Bummer!, you need to Update."
+msgstr ""
+
+msgid ""
+"Your version (%s) is out of date.  Please update to the latest version using "
+"the Automatic Upgrade, or by downloading and manually upgrading."
+msgstr ""
+
+msgid "Remember to back up your site first."
+msgstr ""
+
+msgid "Back to Automatic Upgrade"
+msgstr ""
+
+msgid "Please follow the steps below to manually upgrade to %s."
+msgstr ""
+
+msgid "Turn Off Site"
+msgstr ""
+
+msgid ""
+"Turning the site off during an upgrade keeps users from trying to login and "
+"potentially causing problems."
+msgstr ""
+
+msgid "Manual Upgrade Files"
+msgstr ""
+
+msgid ""
+"Since your webserver does not support the Automatic Upgrade, you must "
+"download the latest Family Connection files and upload them to your site "
+"manually."
+msgstr ""
+
+msgid "You must make sure to complete this step before continuing."
+msgstr ""
+
+msgid "Step 3"
+msgstr ""
+
+msgid "Upgrade Database"
+msgstr ""
+
+msgid "Make any databases changes needed for this upgrade."
+msgstr ""
+
+msgid "Step 4"
+msgstr ""
+
+msgid "Finish"
+msgstr ""
+
+msgid "Turn the site back on and go to the homepage."
+msgstr ""
+
+msgid "Could not turn on site"
+msgstr ""
+
+msgid "Could not turn off site"
+msgstr ""
+
+msgid "Could not upgrade database"
+msgstr ""
+
+msgid "Could not update version"
+msgstr ""
+
+msgid "Vimeo"
+msgstr ""
+
+msgid "Vimeo Integration"
+msgstr ""
+
+msgid ""
+"In order to integrate Family Connections with Vimeo, you must create a new "
+"Vimeo app, and configure that app in Family Connections."
+msgstr ""
+
+msgid "Create Vimeo Application"
+msgstr ""
+
+msgid "Callback url should be: %s."
+msgstr ""
+
+msgid "Request Upload access for your Vimeo application."
+msgstr ""
+
+msgid ""
+"Be sure and fill out the Purpose field throughly, or your request might get "
+"denied"
+msgstr ""
+
+msgid ""
+"Fill out the form below with the Key and Secret from your newly created "
+"Vimeo Application."
+msgstr ""
+
+msgid "Vimeo Application"
+msgstr ""
+
+msgid "Consumer Key"
+msgstr ""
+
+msgid "Consumer Secret"
+msgstr ""
+
+msgid "Administration: YouTube"
+msgstr ""
+
+msgid "YouTube Integration"
+msgstr ""
+
+msgid ""
+"In order to integrate Family Connections with YouTube, you must get a "
+"Developer Key from Google, and provide that Key to Family Connections."
+msgstr ""
+
+msgid "Got to Google and create a new YouTube Application."
+msgstr ""
+
+msgid "Create Youtube Application"
+msgstr ""
+
+msgid ""
+"Fill out the form below with the YouTube Developer Key provided by Google."
+msgstr ""
+
+msgid "YouTube"
+msgstr ""
+
+msgid "Developer Key"
+msgstr ""
+
+msgid "Calendar"
+msgstr ""
+
+msgid "Add More Details"
+msgstr ""
+
+msgid "You cannot invite guests to a repeating event."
+msgstr ""
+
+msgid "Your event was created, but no invitations were sent."
+msgstr ""
+
+msgid "Please create a new non-repeating event and invite guests to that."
+msgstr ""
+
+msgid ""
+"The changes to this  event have been saved, but no invitations were sent."
+msgstr ""
+
+msgid "I can't seem to find that calendar event."
+msgstr ""
+
+msgid "Please double check and try again."
+msgstr ""
+
+msgid "Calendar Entry Deleted Successfully."
+msgstr ""
+
+msgid "Invalid ID."
+msgstr ""
+
+msgid "Choose Guests"
+msgstr ""
+
+msgid "Invite Members"
+msgstr ""
+
+msgid "Invite all Members?"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Invite Non Members"
+msgstr ""
+
+msgid "Enter list of emails to invite. One email per line."
+msgstr ""
+
+msgid "Send Invitations"
+msgstr ""
+
+msgid "or"
+msgstr ""
+
+msgid "You must invite at least one guest."
+msgstr ""
+
+msgid "Invitation: %s"
+msgstr ""
+
+msgid "Dear %s,"
+msgstr ""
+
+msgid "%s has invited you to %s."
+msgstr ""
+
+msgid "Please visit the link below to view the rest of this invitation."
+msgstr ""
+
+msgid "Contact"
+msgstr ""
+
+msgid "The following message has been sent to the Administrator:"
+msgstr ""
+
+msgid "Your Email"
+msgstr ""
+
+msgid "Your Name"
+msgstr ""
+
+msgid "Subject"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Submit"
+msgstr ""
+
+msgid "CHANGE_ME"
+msgstr ""
+
+msgid "Documents"
+msgstr ""
+
+msgid "%s has added a new document (%s)."
+msgstr ""
+
+msgid "Dear"
+msgstr ""
+
+msgid ""
+"To stop receiving these notifications, visit the following url and change "
+"your 'Email Update' setting to No:"
+msgstr ""
+
+msgid "Document could not be deleted from the server."
+msgstr ""
+
+msgid "Add Document"
+msgstr ""
+
+msgid "Family News"
+msgstr ""
+
+msgid "Latest News"
+msgstr ""
+
+msgid "My News"
+msgstr ""
+
+msgid "Add News"
+msgstr ""
+
+msgid "%s has added %s to his/her Family News"
+msgstr ""
+
+msgid "Family News Deleted Successfully"
+msgstr ""
+
+msgid "This can NOT be undone"
+msgstr ""
+
+msgid "Family Tree"
+msgstr ""
+
+msgid ""
+"Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, ."
+"jpeg, .gif, .bmp or .png)."
+msgstr ""
+
+msgid "There was an error uploading your avatar."
+msgstr ""
+
+msgid "Site is currently turned off..."
+msgstr ""
+
+msgid "Hold On a Second!"
+msgstr ""
+
+msgid "The site has been closed by an administrator."
+msgstr ""
+
+msgid "Please come back later."
+msgstr ""
+
+msgid "Rotate Photo"
+msgstr ""
+
+msgid "Use Existing Category"
+msgstr ""
+
+msgid "Create New Category"
+msgstr ""
+
+msgid "More Details"
+msgstr ""
+
+msgid "Are you sure you want to DELETE this Photo?"
+msgstr ""
+
+msgid "Are you sure you want to DELETE this Comment?"
+msgstr ""
+
+msgid "Are you sure you want to DELETE this Category?"
+msgstr ""
+
+msgid "Invalid tagged member data."
+msgstr ""
+
+msgid "You do NOT have access to perform this action."
+msgstr ""
+
+msgid "Your photo exceeds the maximum size allowed by your PHP settings [%s]."
+msgstr ""
+
+msgid ""
+"Would you like to use the <a href=\"%s\">Advanced Photo Uploader</a> "
+"instead?."
+msgstr ""
+
+msgid "You must choose a category first."
+msgstr ""
+
+msgid "You must choose a photo first."
+msgstr ""
+
+msgid "%s has added a new photo."
+msgstr ""
+
+msgid ""
+"Your Instagram photos will be automatically imported into the site soon."
+msgstr ""
+
+msgid ""
+"Your Instagram photos will no longer be automatically imported into the site "
+"soon."
+msgstr ""
+
+msgid "%s has added new photos."
+msgstr ""
+
+msgid "Category name cannot be blank."
+msgstr ""
+
+msgid "The Category %s was Updated Successfully"
+msgstr ""
+
+msgid "Are you sure you want to DELETE this category?"
+msgstr ""
+
+msgid "Missing or invalid id."
+msgstr ""
+
+msgid "Category Deleted Successfully"
+msgstr ""
+
+msgid "RSS Feed"
+msgstr ""
+
+msgid "Category Description"
+msgstr ""
+
+msgid "Photo Gallery Slideshow"
+msgstr ""
+
+msgid "Invalid Category ID"
+msgstr ""
+
+msgid "You must supply a valid category id."
+msgstr ""
+
+msgid "No photos found."
+msgstr ""
+
+msgid "Help"
+msgstr ""
+
+msgid "Topics"
+msgstr ""
+
+msgid "Video Gallery"
+msgstr ""
+
+msgid "Personal Settings"
+msgstr ""
+
+msgid "Administration"
+msgstr ""
+
+msgid "Welcome to the Help section."
+msgstr ""
+
+msgid ""
+"Browse the topics to the left to find help on the most frequently asked "
+"topics."
+msgstr ""
+
+msgid "Need more help?"
+msgstr ""
+
+msgid "Check out the support forum for more help."
+msgstr ""
+
+msgid "Support Forum"
+msgstr ""
+
+msgid "How does the Photo Gallery work?"
+msgstr ""
+
+msgid "How do I add a photo?"
+msgstr ""
+
+msgid "How do I edit/change a photo?"
+msgstr ""
+
+msgid "How do I delete a photo?"
+msgstr ""
+
+msgid "How do I add a category?"
+msgstr ""
+
+msgid "How do I rename a category?"
+msgstr ""
+
+msgid "How do I delete a category?"
+msgstr ""
+
+msgid ""
+"Each member of the website has his/her own Category on the Photo Gallery.  "
+"This category will not show up until that member creates a new sub-category "
+"and uploads at least one photo.  You can not upload photos until you have "
+"created a category.  It is best to create a new category each time you "
+"upload a new group of photos.  This helps create a more organized Photo "
+"Gallery."
+msgstr ""
+
+msgid "Back to Top"
+msgstr ""
+
+msgid ""
+"Choose <a href=\"gallery/index.php?action=upload\">Upload Photos</a> from "
+"the <a href=\"gallery/index.php\">Photo Gallery</a> menu."
+msgstr ""
+
+msgid "Choose a category from the drop down menu."
+msgstr ""
+
+msgid ""
+"Note: You must have at least one category to upload photos. If you do not "
+"have a existing category you must add a category first."
+msgstr ""
+
+msgid ""
+"Click the browse button to browse your computer for the desired photo to "
+"upload."
+msgstr ""
+
+msgid ""
+"If the photo you are uploading needs rotated click 'Upload Options' and two "
+"radio buttons will drop in above the photo caption."
+msgstr ""
+
+msgid "Note: You must have JavaScript enabled to use the rotation feature."
+msgstr ""
+
+msgid "Fill in the caption (description of the photo)."
+msgstr ""
+
+msgid "Click the <b>Add Photos</b> button."
+msgstr ""
+
+msgid "You can only edit/change the photo's caption and category."
+msgstr ""
+
+msgid "Navigate to the photo you would like to edit."
+msgstr ""
+
+msgid ""
+"Click the edit button <img src=\"themes/default/images/edit.gif\"/> located "
+"above the photo and to the right."
+msgstr ""
+
+msgid ""
+"To change the category: choose the new category from the dropdown menu above "
+"the photo."
+msgstr ""
+
+msgid ""
+"To edit/change the caption: make your changes in the text field area below "
+"the photo."
+msgstr ""
+
+msgid "Click the submit changes button to finish your changes."
+msgstr ""
+
+msgid ""
+"Click the delete button <img src=\"themes/default/images/delete.gif\"/> "
+"located above the photo and to the right."
+msgstr ""
+
+msgid ""
+"You will be prompted with a message asking if you are sure you want to "
+"delete that photo, click Ok."
+msgstr ""
+
+msgid ""
+"Note: you can only delete your own photos.  Once you delete a photo it is "
+"gone forever, you cannot undo a delete."
+msgstr ""
+
+msgid ""
+"Choose <a href=\"gallery/index.php?action=category\">Create/Edit Category</"
+"a> from the <a href=\"gallery/index.php\">Photo Gallery</a> menu."
+msgstr ""
+
+msgid "Fill out the category name."
+msgstr ""
+
+msgid "Click the <b>Add Category</b> button."
+msgstr ""
+
+msgid "A list of previously created categories will be listed below."
+msgstr ""
+
+msgid ""
+"Scroll down to the list of categories and find the one you want to change."
+msgstr ""
+
+msgid "Make the desired change."
+msgstr ""
+
+msgid ""
+"Click the edit button <img src=\"themes/default/images/edit.gif\"/> located "
+"to the right of the category name."
+msgstr ""
+
+msgid ""
+"Scroll down to the list of categories and find the one you want to delete."
+msgstr ""
+
+msgid ""
+"Click the delete button <img src=\"themes/default/images/delete.gif\"/> "
+"located to the right of the category name."
+msgstr ""
+
+msgid "YouTube Private Videos."
+msgstr ""
+
+msgid "YouTube Private Videos"
+msgstr ""
+
+msgid ""
+"When you connect your Family Connections account with YouTube, a unique "
+"token is created which grants your Family Connections account access to view "
+"data on YouTube, just like if you were logged into YouTube."
+msgstr ""
+
+msgid ""
+"In order to keep your videos private on YouTube, but public to the members "
+"of your family site, Family Connections will use your unique token to let "
+"other members view your private videos."
+msgstr ""
+
+msgid "How do I add/change my avatar?"
+msgstr ""
+
+msgid "How do I change my theme?"
+msgstr ""
+
+msgid "How do I change my password?"
+msgstr ""
+
+msgid ""
+"An avatar is just a graphical representation of a person.  You can upload a "
+"picture of yourself or any picture that you feel represents you."
+msgstr ""
+
+msgid ""
+"Click on the <a href=\"settings.php\">My Settings</a> link in the top right "
+"hand corner of the site."
+msgstr ""
+
+msgid ""
+"Click the browse button, which will pop open a menu allowing you to search "
+"your computer for an avatar.  (Avatar's must be one of the following file "
+"types .jpg, .jpeg .gif or .bmp or .png)"
+msgstr ""
+
+msgid ""
+"Once you have choosen your avatar, scroll down to the bottom of the Settings "
+"page and click the Submit button."
+msgstr ""
+
+msgid ""
+"Note: You can upload animated avatar's as long as the are smaller than 80 "
+"pixels x 80 pixels.  Uploading an avatar larger than this will result in the "
+"loss of animation."
+msgstr ""
+
+msgid "Choose your theme from the drop down menu."
+msgstr ""
+
+msgid ""
+"Scroll down to the bottom of the Settings page and click the Submit button."
+msgstr ""
+
+msgid ""
+"Click continue and your theme will automatically be applied to the site."
+msgstr ""
+
+msgid "Type in your new password."
+msgstr ""
+
+msgid "Click the Submit button."
+msgstr ""
+
+msgid "How do I email multiple people (Mass Email)?"
+msgstr ""
+
+msgid ""
+"Check the checkboxes to the right of the email addresses of the members you "
+"want to email."
+msgstr ""
+
+msgid ""
+"Click the <b>Email</b> button at the bottom right hand corner of the address "
+"book."
+msgstr ""
+
+msgid ""
+"Fill out the email form (similar to the contact form) and click <b>Send Mass "
+"Email</b>."
+msgstr ""
+
+msgid "Member Access Levels"
+msgstr ""
+
+msgid "How do I add an optional section?"
+msgstr ""
+
+msgid "How do I change the site navigation?"
+msgstr ""
+
+msgid "How do I protect my photos from un-authorized users?"
+msgstr ""
+
+msgid ""
+"Family Connections has ten different member access levels.  These levels are "
+"meant to limit the amount of access each family member has to the website."
+msgstr ""
+
+msgid "Admin"
+msgstr ""
+
+msgid ""
+"this is the access level given to the account that was setup during the "
+"installation of FCMS. This is the only level that has the ability to change "
+"other members access levels. This level can add, update and delete all "
+"information on the site."
+msgstr ""
+
+msgid "Helper"
+msgstr ""
+
+msgid ""
+"this access level has all the same priveleges of the Member level, but can "
+"also run the latest awards, can add, update and delete poll questions, and "
+"add, update and delete message board posts."
+msgstr ""
+
+msgid "Member (default)"
+msgstr ""
+
+msgid ""
+"this access level can add, update and delete all information they have "
+"contributed to the site. They have view only access to other member's "
+"information."
+msgstr ""
+
+msgid "Non-Photographer"
+msgstr ""
+
+msgid ""
+"this access level has all the same priveleges of the Member level, but "
+"cannot add, update or delete photos from the Photo Gallery."
+msgstr ""
+
+msgid "Non-Poster"
+msgstr ""
+
+msgid ""
+"this access level has all the same priveleges of the Member level, but "
+"cannot add, update or delete posts from the Message Board."
+msgstr ""
+
+msgid "Commenter"
+msgstr ""
+
+msgid ""
+"this access level can only add comments to Photos, Family News and can reply "
+"to posts on the Message Board.  Has view access to all other sections."
+msgstr ""
+
+msgid "Poster"
+msgstr ""
+
+msgid ""
+"this access level can add, update and delete their own Message Board posts "
+"only.  Has view access to all other sections."
+msgstr ""
+
+msgid "Photographer"
+msgstr ""
+
+msgid ""
+"this access level can add, update and delete their own Photos only.  Has "
+"view access to all other sections."
+msgstr ""
+
+msgid "Blogger"
+msgstr ""
+
+msgid ""
+"this access level can add, update and delete their own Family News entries "
+"only.  Has view access to all other sections."
+msgstr ""
+
+msgid "Guest"
+msgstr ""
+
+msgid "this access level has view only access to the site."
+msgstr ""
+
+msgid "Access Level"
+msgstr ""
+
+msgid "Access Rights"
+msgstr ""
+
+msgid "Admininstration"
+msgstr ""
+
+msgid "Message Board"
+msgstr ""
+
+msgid "Prayer Concerns"
+msgstr ""
+
+msgid "1. Admin"
+msgstr ""
+
+msgid "2. Helper"
+msgstr ""
+
+msgid "3. Member"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "4. Non-Photographer"
+msgstr ""
+
+msgid "5. Non-Poster"
+msgstr ""
+
+msgid "6. Commenter"
+msgstr ""
+
+msgid "Comment Only"
+msgstr ""
+
+msgid "7. Poster"
+msgstr ""
+
+msgid "8. Photographer"
+msgstr ""
+
+msgid "9. Blogger"
+msgstr ""
+
+msgid "10. Guest"
+msgstr ""
+
+msgid "Can add/edit/delete all members information"
+msgstr ""
+
+msgid "Has limited access to Administration"
+msgstr ""
+
+msgid ""
+"Family Connections has three optional sections: Family News, Prayer Concerns "
+"and Recipes.  In order to use these sections you must first add them to the "
+"site (some sections may have been previously added during installation).  "
+"Adding an optional section, allows that section to be used in the <a href="
+"\"#adm-sections-nav\">site navigation</a>."
+msgstr ""
+
+msgid "To add an optional section:"
+msgstr ""
+
+msgid ""
+"Click the <a href=\"admin/config.php\">Configuration</a> link on the "
+"Administration sub menu"
+msgstr ""
+
+msgid "Expand the <u>Sections</u> by clicking the <b>Show/Hide</b> link."
+msgstr ""
+
+msgid "Click the <b>Add</b> link beside the section you want to add."
+msgstr ""
+
+msgid ""
+"Note: If a section has been previously added it will say \"Already Added\" "
+"beside the section."
+msgstr ""
+
+msgid ""
+"You can only change the navigation position of a few of the sections.  They "
+"are:  Family News, Prayer Concerns, Recipes and Calendar.  The navigation is "
+"broken down into two parts, (1) the Top Navigation and the (2) the Side "
+"Navigation.  The Top Navigation can hold links for up to 6 sections."
+msgstr ""
+
+msgid ""
+"In all versions of Family Connections prior to 3.0, the photos in the Photo "
+"Gallery are viewable to users outside of your website, without being logged "
+"in. A non-authorized user would have to guess the location of these photos, "
+"but they still could see them, if they guessed correctly."
+msgstr ""
+
+msgid ""
+"To fix this, FCMS 3.0 added a way to hide the photos from outside users.  To "
+"do this:"
+msgstr ""
+
+msgid ""
+"Edit the inc/config_inc.php file on your server. Add the following line just "
+"below the MySQL database information, but above the ?>:"
+msgstr ""
+
+msgid "Move the uploads directoy to the path you specified in step 1."
+msgstr ""
+
+msgid "Upcoming"
+msgstr ""
+
+msgid "Members Online"
+msgstr ""
+
+msgid "What's New"
+msgstr ""
+
+msgid "Update Facebook?"
+msgstr ""
+
+msgid "Share something with everyone."
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
+msgid "%s added a new status update."
+msgstr ""
+
+msgid "Nothing new"
+msgstr ""
+
+msgid "Today"
+msgstr ""
+
+msgid "M. j, Y g:i a"
+msgstr ""
+
+msgid "Page"
+msgstr ""
+
+msgid "untitled"
+msgstr ""
+
+msgid "M. j, Y, g:i a"
+msgstr ""
+
+msgid "Recipes"
+msgstr ""
+
+msgid "Comments"
+msgstr ""
+
+msgid "Poll"
+msgstr ""
+
+msgid "Status Updates"
+msgstr ""
+
+msgid "Where Is Everyone"
+msgstr ""
+
+msgid "%s visited %s."
+msgstr ""
+
+msgid "Misc."
+msgstr ""
+
+msgid "A new Poll (%s) has been added."
+msgstr ""
+
+msgid "%s has added address information for %s."
+msgstr ""
+
+msgid "%s changed his profile picture."
+msgstr ""
+
+msgid "%s changed her profile picture."
+msgstr ""
+
+msgid "%s has joined the website."
+msgstr ""
+
+msgid "Already Voted"
+msgstr ""
+
+msgid "Vote"
+msgstr ""
+
+msgid "Results"
+msgstr ""
+
+msgid "Polls"
+msgstr ""
+
+msgid "Could not find address (%s)"
+msgstr ""
+
+msgid "none"
+msgstr ""
+
+msgid "Map"
+msgstr ""
+
+msgid "Email This Member"
+msgstr ""
+
+msgid "Back to Addresses"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Work"
+msgstr ""
+
+msgid "Mobile"
+msgstr ""
+
+msgid "Add New Address"
+msgstr ""
+
+msgid "Phone"
+msgstr ""
+
+msgid "Email Selected"
+msgstr ""
+
+msgid "View"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "Only show My personal Addresses"
+msgstr ""
+
+msgid "My Addresses"
+msgstr ""
+
+msgid "Only show Addresses for members of the site"
+msgstr ""
+
+msgid "Members"
+msgstr ""
+
+msgid "Only show Addresses for non-members"
+msgstr ""
+
+msgid "Non-Members"
+msgstr ""
+
+msgid "Options"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Export"
+msgstr ""
+
+msgid "Edit Address"
+msgstr ""
+
+msgid "That's not a valid email, is it?"
+msgstr ""
+
+msgid "Country"
+msgstr ""
+
+msgid "UNITED STATES"
+msgstr ""
+
+msgid "Street Address"
+msgstr ""
+
+msgid "City"
+msgstr ""
+
+msgid "State"
+msgstr ""
+
+msgid "Zip Code"
+msgstr ""
+
+msgid "Home Phone"
+msgstr ""
+
+msgid "Work Phone"
+msgstr ""
+
+msgid "Cell Phone"
+msgstr ""
+
+msgid ""
+"Please only add addresses for Non-members. Anyone who is a member of this "
+"website must add/update their own address."
+msgstr ""
+
+msgid "Add Address"
+msgstr ""
+
+msgid "Last Name"
+msgstr ""
+
+msgid "Private"
+msgstr ""
+
+msgid ""
+"Filling out the form below will send an email to all the selected members in "
+"your addressbook. Sending an email to a large number of people can take a "
+"long time. Please be patient."
+msgstr ""
+
+msgid "Send Email"
+msgstr ""
+
+msgid "%s (%s) is not a CSV file."
+msgstr ""
+
+msgid "%d Address Added Successfully[0]"
+msgstr ""
+
+msgid "%d Address Added Successfully[1]"
+msgstr ""
+
+msgid "Create New Member"
+msgstr ""
+
+msgid "First"
+msgstr ""
+
+msgid "Middle"
+msgstr ""
+
+msgid "Last"
+msgstr ""
+
+msgid "Maiden Name"
+msgstr ""
+
+msgid "Gender"
+msgstr ""
+
+msgid "Male"
+msgstr ""
+
+msgid "Female"
+msgstr ""
+
+msgid "Sorry, but this information is Required."
+msgstr ""
+
+msgid "Birthday"
+msgstr ""
+
+msgid "Send Invitation Email"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Could not find member."
+msgstr ""
+
+msgid "Edit Member"
+msgstr ""
+
+msgid "Merge"
+msgstr ""
+
+msgid "Middle Name"
+msgstr ""
+
+msgid "Day"
+msgstr ""
+
+msgid "Month"
+msgstr ""
+
+msgid "Year"
+msgstr ""
+
+msgid "Deceased"
+msgstr ""
+
+msgid "Member"
+msgstr ""
+
+msgid "Advanced Options"
+msgstr ""
+
+msgid "Non-Editable Member"
+msgstr ""
+
+msgid "Non-member"
+msgstr ""
+
+msgid "Merge Member"
+msgstr ""
+
+msgid "Zip"
+msgstr ""
+
+msgid "Bio"
+msgstr ""
+
+msgid "Member to merge with"
+msgstr ""
+
+msgid "Next"
+msgstr ""
+
+msgid ""
+"Choose which information you would like to use from the two members below."
+msgstr ""
+
+msgid ""
+"Please note that user [%s] and all information not selected will be deleted."
+msgstr ""
+
+msgid "Create Member"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+msgid "Get Help using Access Levels"
+msgstr ""
+
+msgid "Member?"
+msgstr ""
+
+msgid "Active?"
+msgstr ""
+
+msgid "Activate Selected"
+msgstr ""
+
+msgid "Inactivate Selected"
+msgstr ""
+
+msgid "Non-editable Member"
+msgstr ""
+
+msgid "Merge [%s] complete."
+msgstr ""
+
+msgid "Connect social media sites"
+msgstr ""
+
+msgid "Add a Profile Picture"
+msgstr ""
+
+msgid "Add your Address/Contact information"
+msgstr ""
+
+msgid "Vote on the Poll"
+msgstr ""
+
+msgid "It looks like you're new here."
+msgstr ""
+
+msgid "Complete the following list to get the most out of the site:"
+msgstr ""
+
+msgid "Your profile is %s complete."
+msgstr ""
+
+msgid "Skip This and get right to the app."
+msgstr ""
+
+msgid "Welcome to the Poll Administration."
+msgstr ""
+
+msgid "Here you can add new Poll questions or edit existing polls."
+msgstr ""
+
+msgid ""
+"If you do not want to use Polls on your site, simply delete all existing "
+"polls and they will no longer show up on the frontpage."
+msgstr ""
+
+msgid "Delete This Alert"
+msgstr ""
+
+msgid "It looks like your address is incomplete."
+msgstr ""
+
+msgid ""
+"The other website members would appreciate it if you would complete your "
+"address information.  This will help them stay in touch."
+msgstr ""
+
+msgid "Complete Address Now"
+msgstr ""
+
+msgid "Important info about FCMS Scheduler."
+msgstr ""
+
+msgid ""
+"FCMS Scheduler is a replacement for cron.  If your host supports cron, you "
+"should disable the FCMS Scheduler and use cron instead."
+msgstr ""
+
+msgid ""
+"FCMS Scheduler can NOT guarantee that the scheduled tasks will complete on "
+"the desired intervals."
+msgstr ""
+
+msgid "This user has no awards yet."
+msgstr ""
+
+msgid "Invalid Member/Award."
+msgstr ""
+
+msgid "%s has been given this award %d time.[0]"
+msgstr ""
+
+msgid "%s has been given this award %d time.[1]"
+msgstr ""
+
+msgid "You have been given this award %d time.[0]"
+msgstr ""
+
+msgid "You have been given this award %d time.[1]"
+msgstr ""
+
+msgid "%s - %s posts"
+msgstr ""
+
+msgid "%s - %s photos"
+msgstr ""
+
+msgid "%s - %s recipes"
+msgstr ""
+
+msgid "%s - %s documents"
+msgstr ""
+
+msgid "%d replies"
+msgstr ""
+
+msgid "%d views"
+msgstr ""
+
+msgid "%d comments"
+msgstr ""
+
+msgid "%d private messages"
+msgstr ""
+
+msgid "%d events"
+msgstr ""
+
+msgid "%d photos"
+msgstr ""
+
+msgid "Adding the most Message Board posts for the month."
+msgstr ""
+
+msgid "Uploading the most photos for the month."
+msgstr ""
+
+msgid "Adding the most recipes for the month."
+msgstr ""
+
+msgid "Adding the most Family News for the month."
+msgstr ""
+
+msgid "Sharing the most documents for the month."
+msgstr ""
+
+msgid "Ice Breaker"
+msgstr ""
+
+msgid "Starting a Message Board post with over 20 replies."
+msgstr ""
+
+msgid "Shutterbug"
+msgstr ""
+
+msgid "Uploading a photo with over 100 views."
+msgstr ""
+
+msgid "Interesting"
+msgstr ""
+
+msgid "Adding Family News with over 20 comments."
+msgstr ""
+
+msgid "Secretive"
+msgstr ""
+
+msgid "Sending over 100 Private Messages (PM)."
+msgstr ""
+
+msgid "Planner"
+msgstr ""
+
+msgid "Adding over 50 events to the calendar."
+msgstr ""
+
+msgid "Photogenic"
+msgstr ""
+
+msgid "Being tagged in over 50 photos."
+msgstr ""
+
+msgid "BBCode Help"
+msgstr ""
+
+msgid ""
+"BBCode is a easy way to format text. Check out the examples below, the first "
+"line shows the bbcode and the second line show the output."
+msgstr ""
+
+msgid "Available BBCodes"
+msgstr ""
+
+msgid "Text Formatting"
+msgstr ""
+
+msgid "Bold Text"
+msgstr ""
+
+msgid "Italic Text"
+msgstr ""
+
+msgid "Underline Text"
+msgstr ""
+
+msgid "Text Alignment"
+msgstr ""
+
+msgid "Left Aligned Text"
+msgstr ""
+
+msgid "Centered Text"
+msgstr ""
+
+msgid "Right Aligned Text"
+msgstr ""
+
+msgid "Headers"
+msgstr ""
+
+msgid "Really Big Header"
+msgstr ""
+
+msgid "Big Header"
+msgstr ""
+
+msgid "You can use any header number 1-6."
+msgstr ""
+
+msgid "Quote"
+msgstr ""
+
+msgid "You can Quote me on it."
+msgstr ""
+
+msgid "Add Images From a URL"
+msgstr ""
+
+msgid "Change Text Color"
+msgstr ""
+
+msgid "Red Text"
+msgstr ""
+
+msgid "Blue Text"
+msgstr ""
+
+msgid "Links"
+msgstr ""
+
+msgid "Click Here For Google"
+msgstr ""
+
+msgid "Mail Some Guy"
+msgstr ""
+
+msgid "Youtube Video"
+msgstr ""
+
+msgid "Previous"
+msgstr ""
+
+msgid "Add Category"
+msgstr ""
+
+msgid "Print"
+msgstr ""
+
+msgid "l, F j, Y"
+msgstr ""
+
+msgid "%s turns %s today."
+msgstr ""
+
+msgid "12:00 am - 7:00 am"
+msgstr ""
+
+msgid "M. d"
+msgstr ""
+
+msgid "Today's Events"
+msgstr ""
+
+msgid "Invalid Date"
+msgstr ""
+
+msgid "M. d, Y"
+msgstr ""
+
+msgid "Event"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "through"
+msgstr ""
+
+msgid "All Day"
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+msgid "Repeat (Yearly)"
+msgstr ""
+
+msgid "Private?"
+msgstr ""
+
+msgid "Invite Guests?"
+msgstr ""
+
+msgid "Edit Event"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "F j, Y"
+msgstr ""
+
+msgid "F j"
+msgstr ""
+
+msgid "Every year on %s"
+msgstr ""
+
+msgid "beginning at %s"
+msgstr ""
+
+msgid "between %s and %s"
+msgstr ""
+
+msgid "Created By"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgid "Back to Calendar"
+msgstr ""
+
+msgid "When"
+msgstr ""
+
+msgid "Every year on %s, since %s."
+msgstr ""
+
+msgid "Maybe"
+msgstr ""
+
+msgid "Are you attending?"
+msgstr ""
+
+msgid "Who's Coming"
+msgstr ""
+
+msgid "Undecided"
+msgstr ""
+
+msgid "F j, Y g:i a"
+msgstr ""
+
+msgid "Add New Category"
+msgstr ""
+
+msgid "Edit Category"
+msgstr ""
+
+msgid "Color"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Red"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Yellow"
+msgstr ""
+
+msgid "Green"
+msgstr ""
+
+msgid "Blue"
+msgstr ""
+
+msgid "Indigo"
+msgstr ""
+
+msgid "Violet"
+msgstr ""
+
+msgid "Add Comment"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Delete this Comment"
+msgstr ""
+
+msgid "Imported from Instagram.  Filter: %s."
+msgstr ""
+
+msgid "M"
+msgstr ""
+
+msgid "W"
+msgstr ""
+
+msgid "T"
+msgstr ""
+
+msgid "F"
+msgstr ""
+
+msgid "S"
+msgstr ""
+
+msgid "Sun"
+msgstr ""
+
+msgid "Mon"
+msgstr ""
+
+msgid "Tue"
+msgstr ""
+
+msgid "Wed"
+msgstr ""
+
+msgid "Thr"
+msgstr ""
+
+msgid "Fri"
+msgstr ""
+
+msgid "Sat"
+msgstr ""
+
+msgid "January"
+msgstr ""
+
+msgid "February"
+msgstr ""
+
+msgid "March"
+msgstr ""
+
+msgid "April"
+msgstr ""
+
+msgid "June"
+msgstr ""
+
+msgid "July"
+msgstr ""
+
+msgid "August"
+msgstr ""
+
+msgid "September"
+msgstr ""
+
+msgid "October"
+msgstr ""
+
+msgid "November"
+msgstr ""
+
+msgid "December"
+msgstr ""
+
+msgid "Jan"
+msgstr ""
+
+msgid "Feb"
+msgstr ""
+
+msgid "Mar"
+msgstr ""
+
+msgid "Apr"
+msgstr ""
+
+msgid "May"
+msgstr ""
+
+msgid "Jun"
+msgstr ""
+
+msgid "Jul"
+msgstr ""
+
+msgid "Aug"
+msgstr ""
+
+msgid "Sep"
+msgstr ""
+
+msgid "Oct"
+msgstr ""
+
+msgid "Nov"
+msgstr ""
+
+msgid "Dec"
+msgstr ""
+
+msgid "am"
+msgstr ""
+
+msgid "pm"
+msgstr ""
+
+msgid "AM"
+msgstr ""
+
+msgid "PM"
+msgstr ""
+
+msgid "right now"
+msgstr ""
+
+msgid "%s second ago[0]"
+msgstr ""
+
+msgid "%s second ago[1]"
+msgstr ""
+
+msgid "%s minute ago[0]"
+msgstr ""
+
+msgid "%s minute ago[1]"
+msgstr ""
+
+msgid "%s hour ago[0]"
+msgstr ""
+
+msgid "%s hour ago[1]"
+msgstr ""
+
+msgid "%s day ago[0]"
+msgstr ""
+
+msgid "%s day ago[1]"
+msgstr ""
+
+msgid "Document"
+msgstr ""
+
+msgid "Uploaded By"
+msgstr ""
+
+msgid "Date Added"
+msgstr ""
+
+msgid "m/d/Y h:ia"
+msgstr ""
+
+msgid "Delete this Document"
+msgstr ""
+
+msgid "Nothing to see here"
+msgstr ""
+
+msgid "Currently no one has shared any documents."
+msgstr ""
+
+msgid "Why don't you share a document now?"
+msgstr ""
+
+msgid "Upload Document"
+msgstr ""
+
+msgid ""
+"Document %s exceeds the maximum file size allowed by your PHP settings."
+msgstr ""
+
+msgid "Invalid Document"
+msgstr ""
+
+msgid "Documents must be of type (.doc, .txt, .xsl, .zip, .rtf, .ppt, .pdf)."
+msgstr ""
+
+msgid "Document %s already exists!  Please change the filename and try again."
+msgstr ""
+
+msgid "M. j"
+msgstr ""
+
+msgid "Edit this Family News"
+msgstr ""
+
+msgid "Delete this Family News"
+msgstr ""
+
+msgid "Originally from %s, %s."
+msgstr ""
+
+msgid "Add a comment"
+msgstr ""
+
+msgid "no comments"
+msgstr ""
+
+msgid "Delete this comment"
+msgstr ""
+
+msgid "Edit News"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "Title of your Family News"
+msgstr ""
+
+msgid "Currently no one has added any news"
+msgstr ""
+
+msgid "Why don't you be the first to add news?"
+msgstr ""
+
+msgid "Add Family News"
+msgstr ""
+
+msgid "Import News from existing blog"
+msgstr ""
+
+msgid "Read More"
+msgstr ""
+
+msgid "Invalid url [%s]."
+msgstr ""
+
+msgid "Could not import news from external source."
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "URL/Account"
+msgstr ""
+
+msgid "Invalid Display Type"
+msgstr ""
+
+msgid "Could not find user."
+msgstr ""
+
+msgid "Remove Relationship"
+msgstr ""
+
+msgid "Add Spouse"
+msgstr ""
+
+msgid "Add Child"
+msgstr ""
+
+msgid "Add Father"
+msgstr ""
+
+msgid "Add Mother"
+msgstr ""
+
+msgid "Add Grandfather"
+msgstr ""
+
+msgid "Add Grandmother"
+msgstr ""
+
+msgid "Invalid parent type."
+msgstr ""
+
+msgid "Add Father for %s"
+msgstr ""
+
+msgid "Add Mother for %s"
+msgstr ""
+
+msgid "Add New Parent"
+msgstr ""
+
+msgid "Parent"
+msgstr ""
+
+msgid "Add Parent Not Listed Above"
+msgstr ""
+
+msgid "Invalid spouse type."
+msgstr ""
+
+msgid "Add New Spouse"
+msgstr ""
+
+msgid "Spouse"
+msgstr ""
+
+msgid "Add Spouse Not Listed Above"
+msgstr ""
+
+msgid "Add New Child"
+msgstr ""
+
+msgid "Add Child for %s"
+msgstr ""
+
+msgid "Child"
+msgstr ""
+
+msgid "Add Child Not Listed Above"
+msgstr ""
+
+msgid "Add New Father for %s"
+msgstr ""
+
+msgid "Add New Mother for %s"
+msgstr ""
+
+msgid "Add New Spouse for %s"
+msgstr ""
+
+msgid "Add New Child for %s"
+msgstr ""
+
+msgid "Sex"
+msgstr ""
+
+msgid "Living"
+msgstr ""
+
+msgid "Date Deceased"
+msgstr ""
+
+msgid "View Family Tree for..."
+msgstr ""
+
+msgid "Kids"
+msgstr ""
+
+msgid "Parents"
+msgstr ""
+
+msgid "Grandparents"
+msgstr ""
+
+msgid "Relationship"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid "Father"
+msgstr ""
+
+msgid "Mother"
+msgstr ""
+
+msgid "Grandfather"
+msgstr ""
+
+msgid "Grandmother"
+msgstr ""
+
+msgid "Add Picture"
+msgstr ""
+
+msgid "Upload your personal image (Avatar)"
+msgstr ""
+
+msgid "Picture"
+msgstr ""
+
+msgid "Current Picture"
+msgstr ""
+
+msgid "Choose new Picture"
+msgstr ""
+
+msgid "View tree for %s."
+msgstr ""
+
+msgid "Latest"
+msgstr ""
+
+msgid "Top Rated"
+msgstr ""
+
+msgid "Most Viewed"
+msgstr ""
+
+msgid "My Photos"
+msgstr ""
+
+msgid "Upload Photos"
+msgstr ""
+
+msgid "Manage Categories"
+msgstr ""
+
+msgid "Photo Uploaded By"
+msgstr ""
+
+msgid "Members In Photo"
+msgstr ""
+
+msgid "Currently no one has added any photos"
+msgstr ""
+
+msgid "Why don't you upload some photos now?"
+msgstr ""
+
+msgid "M. j, Y"
+msgstr ""
+
+msgid "Oops!"
+msgstr ""
+
+msgid "The Category you are trying to view is Empty."
+msgstr ""
+
+msgid "The Photo you are trying to view can not be found."
+msgstr ""
+
+msgid "%d of %d"
+msgstr ""
+
+msgid "From the Category:"
+msgstr ""
+
+msgid "by"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Click to view more photos of %s."
+msgstr ""
+
+msgid "Currently %s/5 Starts"
+msgstr ""
+
+msgid "%s out of 5 Stars"
+msgstr ""
+
+msgid "Members in Photo"
+msgstr ""
+
+msgid "Filename"
+msgstr ""
+
+msgid "Photo Size"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Latest Comments"
+msgstr ""
+
+msgid "Photos of %s"
+msgstr ""
+
+msgid "Photos uploaded by %s"
+msgstr ""
+
+msgid "Uh Oh!"
+msgstr ""
+
+msgid "The category you are trying to view doesn't exist."
+msgstr ""
+
+msgid "View All"
+msgstr ""
+
+msgid "View Categories for %s"
+msgstr ""
+
+msgid "Photos"
+msgstr ""
+
+msgid "View Photos in %s"
+msgstr ""
+
+msgid "Administrate"
+msgstr ""
+
+msgid "Add Description"
+msgstr ""
+
+msgid "No description"
+msgstr ""
+
+msgid "Edit Description"
+msgstr ""
+
+msgid "View Slideshow"
+msgstr ""
+
+msgid "Members In Category"
+msgstr ""
+
+msgid "Currently %d/5 Stars."
+msgstr ""
+
+msgid "1 out of 5 Stars"
+msgstr ""
+
+msgid "2 out of 5 Stars"
+msgstr ""
+
+msgid "3 out of 5 Stars"
+msgstr ""
+
+msgid "4 out of 5 Stars"
+msgstr ""
+
+msgid "5 out of 5 Stars"
+msgstr ""
+
+msgid "Views"
+msgstr ""
+
+msgid "Type name of person..."
+msgstr ""
+
+msgid "Photo"
+msgstr ""
+
+msgid "Caption"
+msgstr ""
+
+msgid "Who is in this Photo?"
+msgstr ""
+
+msgid "Rotate"
+msgstr ""
+
+msgid "Left"
+msgstr ""
+
+msgid "Right"
+msgstr ""
+
+msgid ""
+"JavaScript must be enabled in order for you to use the Advanced Uploader. "
+"However, it seems JavaScript is either disabled or not supported by your "
+"browser."
+msgstr ""
+
+msgid "Either enable JavaScript by changing your browser options."
+msgstr ""
+
+msgid "Enable the Basic Upload option by changing Your Settings."
+msgstr ""
+
+msgid "Upload"
+msgstr ""
+
+msgid "Please specify a category first."
+msgstr ""
+
+msgid ""
+"You must choose at least one photo, or choose to automatically import all."
+msgstr ""
+
+msgid "Could not get user data."
+msgstr ""
+
+msgid "Not connected to Instagram."
+msgstr ""
+
+msgid ""
+"You must connect your Family Connections account to Instagram before you can "
+"begin importing photos from Instagram."
+msgstr ""
+
+msgid "Connect to Instagram"
+msgstr ""
+
+msgid "Could not get Instagram data."
+msgstr ""
+
+msgid "Manual"
+msgstr ""
+
+msgid "Choose photo to add."
+msgstr ""
+
+msgid "See more"
+msgstr ""
+
+msgid "Automatic"
+msgstr ""
+
+msgid "Have all photos automatically imported."
+msgstr ""
+
+msgid "Edit Photo"
+msgstr ""
+
+msgid "Change Category"
+msgstr ""
+
+msgid "Could not edit Photo.  Photo ID does not exist."
+msgstr ""
+
+msgid "You must create a new category, or select an existing category."
+msgstr ""
+
+msgid "Edit Photos"
+msgstr ""
+
+msgid "Photo is corrupt or missing."
+msgstr ""
+
+msgid "The following photo was added successfully."
+msgstr ""
+
+msgid "Delete Category"
+msgstr ""
+
+msgid "No Categories created yet."
+msgstr ""
+
+msgid "Quick Delete"
+msgstr ""
+
+msgid "Delete All"
+msgstr ""
+
+msgid "GD Library is either not installed or does not support this file type."
+msgstr ""
+
+msgid "Could not write file, check folder permissions."
+msgstr ""
+
+msgid "Out of Memory Warning."
+msgstr ""
+
+msgid ""
+"The photo you are trying to upload is quite large and the server might run "
+"out of memory if you continue."
+msgstr ""
+
+msgid ""
+"It is recommended that you try to upload this photo using the \"Advanced "
+"Uploader\" instead."
+msgstr ""
+
+msgid "What do you want to do?"
+msgstr ""
+
+msgid "Use the \"Advanced Uploader\""
+msgstr ""
+
+msgid "An unknown error has occured."
+msgstr ""
+
+msgid "No members found."
+msgstr ""
+
+msgid "No photos found in this category."
+msgstr ""
+
+msgid "Tag Members In Photos"
+msgstr ""
+
+msgid "Anniversary"
+msgstr ""
+
+msgid "Holiday"
+msgstr ""
+
+msgid "Christmas"
+msgstr ""
+
+msgid "Valentine's Day"
+msgstr ""
+
+msgid "New Year's Day"
+msgstr ""
+
+msgid "Independence Day"
+msgstr ""
+
+msgid "Groundhog Day"
+msgstr ""
+
+msgid "St. Patrick's Day"
+msgstr ""
+
+msgid "April Fools Day"
+msgstr ""
+
+msgid "Halloween"
+msgstr ""
+
+msgid "Family Connections software is..."
+msgstr ""
+
+msgid "Easy to use!"
+msgstr ""
+
+msgid "Visually appealing!"
+msgstr ""
+
+msgid "Just what our family needed!"
+msgstr ""
+
+msgid "Welcome"
+msgstr ""
+
+msgid "Welcome to the %s Message Board."
+msgstr ""
+
+msgid "Replies"
+msgstr ""
+
+msgid "Last Updated"
+msgstr ""
+
+msgid "Announcement"
+msgstr ""
+
+msgid "h:ia"
+msgstr ""
+
+msgid "Today at %s"
+msgstr ""
+
+msgid "Yesterday at %s"
+msgstr ""
+
+msgid "Thread does not exist."
+msgstr ""
+
+msgid "n/d/y g:ia"
+msgstr ""
+
+msgid "Quote this message"
+msgstr ""
+
+msgid "Edit this message"
+msgstr ""
+
+msgid "Delete this message"
+msgstr ""
+
+msgid "Posts"
+msgstr ""
+
+msgid "New Message"
+msgstr ""
+
+msgid "Admin Tools"
+msgstr ""
+
+msgid "Make Announcement"
+msgstr ""
+
+msgid "Last post written by %s"
+msgstr ""
+
+msgid "Quoting"
+msgstr ""
+
+msgid "Edited"
+msgstr ""
+
+msgid "Advanced Search"
+msgstr ""
+
+msgid "Message Board Home"
+msgstr ""
+
+msgid "Make Normal Thread"
+msgstr ""
+
+msgid "Make Thread an Announcement"
+msgstr ""
+
+msgid "Edit Thread Subject"
+msgstr ""
+
+msgid "Delete Thread"
+msgstr ""
+
+msgid "Administrate Thread"
+msgstr ""
+
+msgid "Edit Thread"
+msgstr ""
+
+msgid "Could not get latest poll information."
+msgstr ""
+
+msgid "Could not get poll information."
+msgstr ""
+
+msgid "%s votes"
+msgstr ""
+
+msgid "Click to see who voted for this."
+msgstr ""
+
+msgid "Could not get polls information."
+msgstr ""
+
+msgid "Could not update poll."
+msgstr ""
+
+msgid "Could not add vote."
+msgstr ""
+
+msgid "Could not get polls votes."
+msgstr ""
+
+msgid "Could not get poll comments."
+msgstr ""
+
+msgid "Could not get member information."
+msgstr ""
+
+msgid "Basic Information"
+msgstr ""
+
+msgid "Profile Picture"
+msgstr ""
+
+msgid "Address / Contact"
+msgstr ""
+
+msgid "View Profile"
+msgstr ""
+
+msgid "Stats"
+msgstr ""
+
+msgid "Sorry, but this information is required."
+msgstr ""
+
+msgid "Maiden"
+msgstr ""
+
+msgid "Upload Avatar"
+msgstr ""
+
+msgid "Use Gravatar"
+msgstr ""
+
+msgid "Use Default"
+msgstr ""
+
+msgid "This is your current avatar."
+msgstr ""
+
+msgid "Avatar"
+msgstr ""
+
+msgid "Gravatar Email"
+msgstr ""
+
+msgid "Dates"
+msgstr ""
+
+msgid "Add Recipe"
+msgstr ""
+
+msgid "Currently no one has added any recipes"
+msgstr ""
+
+msgid "Why don't you share a recipe now?"
+msgstr ""
+
+msgid "Latest Recipes"
+msgstr ""
+
+msgid "Click to view recipe"
+msgstr ""
+
+msgid "Recipe Categories"
+msgstr ""
+
+msgid "Currently no one has added any recipes to this category."
+msgstr ""
+
+msgid "Add a Recipe"
+msgstr ""
+
+msgid "Recipe does not exist."
+msgstr ""
+
+msgid "F j, Y, g:i a"
+msgstr ""
+
+msgid "Submitted by %s on %s."
+msgstr ""
+
+msgid "Edit this Recipe"
+msgstr ""
+
+msgid "Delete this Recipe"
+msgstr ""
+
+msgid "Directions"
+msgstr ""
+
+msgid "Ingredients"
+msgstr ""
+
+msgid "You need to create a category before you add a recipe."
+msgstr ""
+
+msgid "The name of your recipe."
+msgstr ""
+
+msgid "Thumbnail"
+msgstr ""
+
+msgid "New Category"
+msgstr ""
+
+msgid "Put each ingredient on a seperate line."
+msgstr ""
+
+msgid "Edit Recipe"
+msgstr ""
+
+msgid "Change"
+msgstr ""
+
+msgid "Admin Options"
+msgstr ""
+
+msgid "Edit Categories"
+msgstr ""
+
+msgid "Account Information"
+msgstr ""
+
+msgid "Change Password"
+msgstr ""
+
+msgid "Leave blank if you don't wish to change it."
+msgstr ""
+
+msgid "No Preview"
+msgstr ""
+
+msgid "Current Theme"
+msgstr ""
+
+msgid "Themes"
+msgstr ""
+
+msgid "Click to use this theme."
+msgstr ""
+
+msgid "Use Theme"
+msgstr ""
+
+msgid "First and Last Name"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Advanced Uploader"
+msgstr ""
+
+msgid "Requires Java."
+msgstr ""
+
+msgid "Allows you to upload multiple photos at once and very large photos."
+msgstr ""
+
+msgid "Advanced Tagging"
+msgstr ""
+
+msgid "Requires JavaScript."
+msgstr ""
+
+msgid "Allows you to more quickly tag members in photos."
+msgstr ""
+
+msgid "Langugage and Time"
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid "What language do you speak?"
+msgstr ""
+
+msgid "Timezone"
+msgstr ""
+
+msgid "What timezone do you live in?"
+msgstr ""
+
+msgid ""
+"You will need to manually change this off and on if your City/Town makes use "
+"of DST."
+msgstr ""
+
+msgid "Preferences"
+msgstr ""
+
+msgid "Frontpage"
+msgstr ""
+
+msgid "How do you want the latest information to display on the frontpage?"
+msgstr ""
+
+msgid "Notifications"
+msgstr ""
+
+msgid "Email Updates"
+msgstr ""
+
+msgid "Import Blog Posts"
+msgstr ""
+
+msgid "Enter your blogger id."
+msgstr ""
+
+msgid "More Info"
+msgstr ""
+
+msgid "Manually Import Posts"
+msgstr ""
+
+msgid "Tumblr"
+msgstr ""
+
+msgid "Enter the url to your blog."
+msgstr ""
+
+msgid "WordPress"
+msgstr ""
+
+msgid "Enter the url to the wordpress rss feed."
+msgstr ""
+
+msgid "Posterous"
+msgstr ""
+
+msgid "Enter the account name for your blog."
+msgstr ""
+
+msgid "What order do you want new messages to display?"
+msgstr ""
+
+msgid "No configuration data found."
+msgstr ""
+
+msgid "Click here to link your account to foursquare."
+msgstr ""
+
+msgid "Foursquare"
+msgstr ""
+
+msgid "Foursquare ID"
+msgstr ""
+
+msgid "Level 1 (Admin)"
+msgstr ""
+
+msgid "You have administrative rights."
+msgstr ""
+
+msgid "You have full access to add/change/delete all information."
+msgstr ""
+
+msgid "Level 2 (Helper)"
+msgstr ""
+
+msgid "You have moderation rights."
+msgstr ""
+
+msgid ""
+"You have some access to add/change/delete information including your own.  "
+"This level is mostly used for message board moderation (i.e. cleanup of old/"
+"unused posts and other such information)."
+msgstr ""
+
+msgid "Level 3 (Member)"
+msgstr ""
+
+msgid "You have basic rights."
+msgstr ""
+
+msgid "You can add/change/delete only your own information."
+msgstr ""
+
+msgid "Level 4 (Non-Photographer)"
+msgstr ""
+
+msgid "You have limited rights."
+msgstr ""
+
+msgid ""
+"You have the same rights as a Member, except you cannot use the Photo "
+"Gallery."
+msgstr ""
+
+msgid "Level 5 (Non-Poster)"
+msgstr ""
+
+msgid ""
+"You have the same rights as a Member, except you cannot use the Message "
+"Board."
+msgstr ""
+
+msgid "Level 6 (Commenter)"
+msgstr ""
+
+msgid "You can only add comments to the site."
+msgstr ""
+
+msgid "Level 7 (Poster)"
+msgstr ""
+
+msgid "You can only post messages to the Message Board."
+msgstr ""
+
+msgid "Level 8 (Photographer)"
+msgstr ""
+
+msgid "You can only add photos to the Photo Gallery."
+msgstr ""
+
+msgid "Level 9 (Blogger)"
+msgstr ""
+
+msgid "You can only add news to Family News."
+msgstr ""
+
+msgid "Level 10 (Guest)"
+msgstr ""
+
+msgid "You have view only rights."
+msgstr ""
+
+msgid "You cannot add/change/delete any information."
+msgstr ""
+
+msgid "Missing or invalid YouTube session token."
+msgstr ""
+
+msgid ""
+"Could not connect to YouTube API.  Your YouTube session token may be invalid."
+""
+msgstr ""
+
+msgid "Could not open zip file."
+msgstr ""
+
+msgid "Could extract zip file."
+msgstr ""
+
+msgid "Could not find upgrade directory."
+msgstr ""
+
+msgid "Could not open upgrade directory."
+msgstr ""
+
+msgid "Could not find new upgrade files."
+msgstr ""
+
+msgid "Could not find origin: %s."
+msgstr ""
+
+msgid "Destination not found and could not be created: %s."
+msgstr ""
+
+msgid "Could not open directory: %s."
+msgstr ""
+
+msgid "Could not copy file: %s."
+msgstr ""
+
+msgid "No user birthday's found."
+msgstr ""
+
+msgid "You do not have access to delete this image."
+msgstr ""
+
+msgid "There was an error uploading your image."
+msgstr ""
+
+msgid "Click to insert image into message."
+msgstr ""
+
+msgid "Image was Deleted Successfully"
+msgstr ""
+
+msgid "Upload Image"
+msgstr ""
+
+msgid "Choose the image you want to upload."
+msgstr ""
+
+msgid "Uploaded Images"
+msgstr ""
+
+msgid "Delete this Image"
+msgstr ""
+
+msgid "Are you sure you want to DELETE this image?"
+msgstr ""
+
+msgid "Total Size"
+msgstr ""
+
+msgid "Could not get information for user [%s]."
+msgstr ""
+
+msgid "My Stuff"
+msgstr ""
+
+msgid "Awards"
+msgstr ""
+
+msgid "Configuration"
+msgstr ""
+
+msgid "Scheduler"
+msgstr ""
+
+msgid "Upgrade"
+msgstr ""
+
+msgid "Contact Webmaster"
+msgstr ""
+
+msgid "Prayers"
+msgstr ""
+
+msgid "Profile"
+msgstr ""
+
+msgid "Private Messages"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Allows members to share Address information."
+msgstr ""
+
+msgid "Allows members to share events and send invitations."
+msgstr ""
+
+msgid "Allows members to share files."
+msgstr ""
+
+msgid "Allows members to create a family blog."
+msgstr ""
+
+msgid "Allows members to communicate with each other."
+msgstr ""
+
+msgid "Allows members to share photos."
+msgstr ""
+
+msgid "Allows members to share prayer concerns."
+msgstr ""
+
+msgid "Allows members to share recipes."
+msgstr ""
+
+msgid "Allows members to create a family tree."
+msgstr ""
+
+msgid "Allows members to share videos."
+msgstr ""
+
+msgid "Allows members to share Foursquare checkins."
+msgstr ""
+
+msgid "New PM"
+msgstr ""
+
+msgid "Level 10"
+msgstr ""
+
+msgid "Level 9"
+msgstr ""
+
+msgid "Level 8"
+msgstr ""
+
+msgid "Level 7"
+msgstr ""
+
+msgid "Level 6"
+msgstr ""
+
+msgid "Level 5"
+msgstr ""
+
+msgid "Level 4"
+msgstr ""
+
+msgid "Level 3"
+msgstr ""
+
+msgid "Level 2"
+msgstr ""
+
+msgid "Level 1"
+msgstr ""
+
+msgid "Level 0"
+msgstr ""
+
+msgid "Bold"
+msgstr ""
+
+msgid "Italic"
+msgstr ""
+
+msgid "Underline"
+msgstr ""
+
+msgid "Left Align"
+msgstr ""
+
+msgid "Center"
+msgstr ""
+
+msgid "Right Align"
+msgstr ""
+
+msgid "Heading 1"
+msgstr ""
+
+msgid "Heading 2"
+msgstr ""
+
+msgid "Heading 3"
+msgstr ""
+
+msgid "Insert Image"
+msgstr ""
+
+msgid "Insert URL"
+msgstr ""
+
+msgid "Insert Smiley"
+msgstr ""
+
+msgid "Images"
+msgstr ""
+
+msgid "Changes Updated Successfully."
+msgstr ""
+
+msgid "Close Message"
+msgstr ""
+
+msgid ""
+"Error: File %s is not a photo.  Photos must be of type (.JPG, .JPEG, .GIF, ."
+"BMP or .PNG)."
+msgstr ""
+
+msgid "First Page"
+msgstr ""
+
+msgid "Previous Page"
+msgstr ""
+
+msgid "Next Page"
+msgstr ""
+
+msgid "Last page"
+msgstr ""
+
+msgid "Last Seen"
+msgstr ""
+
+msgid "There was a problem communicating with the database."
+msgstr ""
+
+msgid "Yesterday"
+msgstr ""
+
+msgid "Added address information for %s."
+msgstr ""
+
+msgid "address"
+msgstr ""
+
+msgid "email address"
+msgstr ""
+
+msgid "home phone number"
+msgstr ""
+
+msgid "work phone number"
+msgstr ""
+
+msgid "cell phone number"
+msgstr ""
+
+msgid "Updated the %s for %s."
+msgstr ""
+
+msgid "Updated her %s."
+msgstr ""
+
+msgid "Updated his %s."
+msgstr ""
+
+msgid "Changed his profile picture."
+msgstr ""
+
+msgid "Changed her profile picture."
+msgstr ""
+
+msgid "Started the new thread %s."
+msgstr ""
+
+msgid "Replied to %s."
+msgstr ""
+
+msgid "Added a new Document (%s)."
+msgstr ""
+
+msgid "Commented on %s."
+msgstr ""
+
+msgid "Commented on the following photo:"
+msgstr ""
+
+msgid "Added %d new photos to the %s category."
+msgstr ""
+
+msgid "Joined the website."
+msgstr ""
+
+msgid "Added %s to his/her Family News."
+msgstr ""
+
+msgid "Commented on Family News %s."
+msgstr ""
+
+msgid "Commented on Poll %s."
+msgstr ""
+
+msgid "Added a Prayer Concern for %s."
+msgstr ""
+
+msgid "Added the %s recipe."
+msgstr ""
+
+msgid "Commented on Recipe %s."
+msgstr ""
+
+msgid "Added a new Video."
+msgstr ""
+
+msgid "Commented on the following Video:"
+msgstr ""
+
+msgid "Visited %s."
+msgstr ""
+
+msgid "Foursquare is not configured correctly."
+msgstr ""
+
+msgid ""
+"The \"Where Is Everyone\" feature cannot work without Foursquare.  Please "
+"configure Foursquare or turn off \"Where Is Everyone\"."
+msgstr ""
+
+msgid "Czech (Czech Republic)"
+msgstr ""
+
+msgid "Danish (Denmark)"
+msgstr ""
+
+msgid "German (Germany)"
+msgstr ""
+
+msgid "English (United States)"
+msgstr ""
+
+msgid "Spanish (Spain)"
+msgstr ""
+
+msgid "Estonian"
+msgstr ""
+
+msgid "French (France)"
+msgstr ""
+
+msgid "Latvian"
+msgstr ""
+
+msgid "Dutch"
+msgstr ""
+
+msgid "Portuguese (Brazil)"
+msgstr ""
+
+msgid "Slovak"
+msgstr ""
+
+msgid "Chinese (China)"
+msgstr ""
+
+msgid "X Wrapped"
+msgstr ""
+
+msgid "Could not read inc/country.txt file."
+msgstr ""
+
+msgid "This site hasn't been installed yet."
+msgstr ""
+
+msgid "You must finish the installation before using the site."
+msgstr ""
+
+msgid "You must be logged in to view that page."
+msgstr ""
+
+msgid "Forgot Password?"
+msgstr ""
+
+msgid "Register"
+msgstr ""
+
+msgid "Login using Facebook"
+msgstr ""
+
+msgid "Login to"
+msgstr ""
+
+msgid "Remember Me"
+msgstr ""
+
+msgid "Login"
+msgstr ""
+
+msgid "That login information wasn't quite right."
+msgstr ""
+
+msgid "Be sure and check that you typed your username/password correctly."
+msgstr ""
+
+msgid ""
+"Your account hasn't been connected to Facebook yet.  You need to connect "
+"your existing account with Facebook or register a new account using Facebook."
+""
+msgstr ""
+
+msgid "Not So Fast"
+msgstr ""
+
+msgid ""
+"Your account isn't active yet.  Your website administrator must activate "
+"your account before you can login and begin using the website."
+msgstr ""
+
+msgid "You have exceeded the number of allowed login attempts."
+msgstr ""
+
+msgid "Your account has been locked for 1 hour."
+msgstr ""
+
+msgid "Installation"
+msgstr ""
+
+msgid "Wait a Minute."
+msgstr ""
+
+msgid ""
+"The installation for this site is already finished. Running the installation "
+"again will cause you to Lose All Your Previous Information.  Are you sure "
+"you want to continue?"
+msgstr ""
+
+msgid "I just want to view my site."
+msgstr ""
+
+msgid "I want to run the installation anyway. (Not Recommended)"
+msgstr ""
+
+msgid "BAD"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Pre-Installation Check"
+msgstr ""
+
+msgid "Step 1 of 5"
+msgstr ""
+
+msgid "Checking Requirements"
+msgstr ""
+
+msgid "Checking Folder Permissions"
+msgstr ""
+
+msgid "Your site is ready to be installed.  Please proceed to the next step."
+msgstr ""
+
+msgid ""
+"Unfortunatly your site is not ready to be installed.  Please make sure that "
+"the folders above exist and have the proper permissions set."
+msgstr ""
+
+msgid "Install"
+msgstr ""
+
+msgid "Database Information"
+msgstr ""
+
+msgid "Step 2 of 5"
+msgstr ""
+
+msgid "Database Host"
+msgstr ""
+
+msgid "This is usually localhost or your database ip address."
+msgstr ""
+
+msgid "Sorry, but I can't install without this information."
+msgstr ""
+
+msgid "Database Name"
+msgstr ""
+
+msgid "The database name where you want to install %s."
+msgstr ""
+
+msgid "Database Username"
+msgstr ""
+
+msgid "The username for the database specified above."
+msgstr ""
+
+msgid "There has to be a user for this database."
+msgstr ""
+
+msgid "Database Password"
+msgstr ""
+
+msgid "The password for the database specified above."
+msgstr ""
+
+msgid "Passwords are hard to remember, but unfortunately necessary."
+msgstr ""
+
+msgid "You forgot a required field.  Please fill out all required fields."
+msgstr ""
+
+msgid "Could not connect to the database. Please try again."
+msgstr ""
+
+msgid "Checking Database Connection"
+msgstr ""
+
+msgid "Step 3 of 5"
+msgstr ""
+
+msgid "Awesome!"
+msgstr ""
+
+msgid ""
+"A connection was successfully made to the database.  Please proceed to the "
+"next step."
+msgstr ""
+
+msgid "Website Information"
+msgstr ""
+
+msgid "Step 4 of 5"
+msgstr ""
+
+msgid "Website Name"
+msgstr ""
+
+msgid "What do you want your website to be called?"
+msgstr ""
+
+msgid "(Examples: \"The Smith's\" or \"The Johnson Family Website\")"
+msgstr ""
+
+msgid "Without a name, how will you tell people about your website?"
+msgstr ""
+
+msgid ""
+"The email address you want all questions, comments and concerns about the "
+"site to go."
+msgstr ""
+
+msgid "That's not a valid emaill address is it?"
+msgstr ""
+
+msgid "Optional Plugins"
+msgstr ""
+
+msgid "Which plugins would you like to use on your site?"
+msgstr ""
+
+msgid "Administrative Account"
+msgstr ""
+
+msgid "Step 5 of 5"
+msgstr ""
+
+msgid ""
+"Everyone will be required to have an account and be logged in at all times "
+"to use this website.  This will help protect your site."
+msgstr ""
+
+msgid ""
+"You must have at least one administrative account.  Please fill out the "
+"information below for the person who will be the administrator of this site."
+msgstr ""
+
+msgid "Email Address"
+msgstr ""
+
+msgid "Hooray!  Yippie!"
+msgstr ""
+
+msgid "%s has been installed successfully."
+msgstr ""
+
+msgid "Please continue to the homepage to login and begin using %s."
+msgstr ""
+
+msgid "Invalid URL"
+msgstr ""
+
+msgid "Invalid Invitation Code!"
+msgstr ""
+
+msgid "Invalid Event!"
+msgstr ""
+
+msgid ""
+"Your email address could not be found.  Please make sure you have entered it "
+"correctly."
+msgstr ""
+
+msgid "Password Reset"
+msgstr ""
+
+msgid "Your password at %s has been reset."
+msgstr ""
+
+msgid "New Password"
+msgstr ""
+
+msgid "This is an automated message, please do not reply."
+msgstr ""
+
+msgid "Your password has been reset, please check your email."
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
+msgid "Reset Password"
+msgstr ""
+
+msgid "The email address associated with your account."
+msgstr ""
+
+msgid "Order Members By:"
+msgstr ""
+
+msgid "Alphabetical"
+msgstr ""
+
+msgid "Age"
+msgstr ""
+
+msgid "Participation"
+msgstr ""
+
+msgid "Joined"
+msgstr ""
+
+msgid "Invalid Order."
+msgstr ""
+
+msgid "%s years old"
+msgstr ""
+
+msgid "%s started the new thread %s."
+msgstr ""
+
+msgid "%s has replied to the thread: %s"
+msgstr ""
+
+msgid "Invalid Date [%s]"
+msgstr ""
+
+msgid "Could not find anything matching your search."
+msgstr ""
+
+msgid "Search For"
+msgstr ""
+
+msgid "You do not have any notifications."
+msgstr ""
+
+msgid "View past notifications"
+msgstr ""
+
+msgid "Mark All Read"
+msgstr ""
+
+msgid "Mark Read"
+msgstr ""
+
+msgid "%s has added a photo of you."
+msgstr ""
+
+msgid "Unread Notifications"
+msgstr ""
+
+msgid "Latest Poll"
+msgstr ""
+
+msgid "Comments (%s)"
+msgstr ""
+
+msgid "Votes"
+msgstr ""
+
+msgid "You have already voted."
+msgstr ""
+
+msgid "Could not add comment."
+msgstr ""
+
+msgid "Add a Prayer Concern"
+msgstr ""
+
+msgid "Pray For"
+msgstr ""
+
+msgid "%s added a new Prayer Concern for %s"
+msgstr ""
+
+msgid "Edit Prayer Concern"
+msgstr ""
+
+msgid "Prayer Concern Deleted Successfully"
+msgstr ""
+
+msgid "Currently no one has added any Prayer Concerns."
+msgstr ""
+
+msgid "Why don't you add a new Prayer Concern now?"
+msgstr ""
+
+msgid "Edit this Prayer Concern"
+msgstr ""
+
+msgid "Delete this Prayer Concern"
+msgstr ""
+
+msgid "%s asks that you please pray for..."
+msgstr ""
+
+msgid "Because..."
+msgstr ""
+
+msgid "Inbox"
+msgstr ""
+
+msgid "Inbox (%d)"
+msgstr ""
+
+msgid "Sent"
+msgstr ""
+
+msgid "To"
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "A new Private Message at %s"
+msgstr ""
+
+msgid "%s has sent you a new Private Message at %s"
+msgstr ""
+
+msgid "The message has been attached below."
+msgstr ""
+
+msgid "To respond to this message either visit %s or respond to this email."
+msgstr ""
+
+msgid "From"
+msgstr ""
+
+msgid "Message Title"
+msgstr ""
+
+msgid ""
+"The PM you are trying to view either doesn't exist or you don't have "
+"permission to view it."
+msgstr ""
+
+msgid "n/j/Y g:i a"
+msgstr ""
+
+msgid "to %s"
+msgstr ""
+
+msgid "Sent Messages"
+msgstr ""
+
+msgid "Send PM"
+msgstr ""
+
+msgid "Contributions"
+msgstr ""
+
+msgid "Never visited"
+msgstr ""
+
+msgid "Cell"
+msgstr ""
+
+msgid "Join Date"
+msgstr ""
+
+msgid "Last Visit"
+msgstr ""
+
+msgid "Latest Posts"
+msgstr ""
+
+msgid "Latest Photos"
+msgstr ""
+
+msgid "Participation Points"
+msgstr ""
+
+msgid ""
+"Thumbnail [%s] is not a supported type. Thumbnails must be of type (.jpg, ."
+"jpeg, .gif, .bmp or .png)."
+msgstr ""
+
+msgid "There was an error uploading your thumbnail."
+msgstr ""
+
+msgid "%s has added the recipe: %s"
+msgstr ""
+
+msgid "Change Thumbnail"
+msgstr ""
+
+msgid "Register for %s."
+msgstr ""
+
+msgid "There was an error with the connection."
+msgstr ""
+
+msgid "Available"
+msgstr ""
+
+msgid "That username has already been taken."
+msgstr ""
+
+msgid "Could not check availability of username."
+msgstr ""
+
+msgid "Registration is closed."
+msgstr ""
+
+msgid "You forgot to fill out a required field."
+msgstr ""
+
+msgid ""
+"The email you have choosen is already in use.  Please choose a different "
+"email."
+msgstr ""
+
+msgid "If you have forgotten your password please reset it"
+msgstr ""
+
+msgid ""
+"Sorry, but that username is already taken.  Please choose another username."
+msgstr ""
+
+msgid "Membership"
+msgstr ""
+
+msgid "Thank you for registering at %s"
+msgstr ""
+
+msgid ""
+"In order to login and begin using the site, your administrator must activate "
+"your account.  You will get an email when this has been done."
+msgstr ""
+
+msgid ""
+"After your account is activated you can login using the following "
+"information"
+msgstr ""
+
+msgid "Congratulations and Welcome"
+msgstr ""
+
+msgid "You have been successfully registered at %s."
+msgstr ""
+
+msgid "Your account information has been emailed to %s."
+msgstr ""
+
+msgid "Please remember your username and password for this site."
+msgstr ""
+
+msgid ""
+"Unfortunately your account must be activated before you can  <a href=\"index."
+"php\">login</a> and begin using the site."
+msgstr ""
+
+msgid "New User Registration at %s"
+msgstr ""
+
+msgid "A new user has registered at %s"
+msgstr ""
+
+msgid "Time of Registration"
+msgstr ""
+
+msgid "Register with Facebook"
+msgstr ""
+
+msgid "Connect with Facebook"
+msgstr ""
+
+msgid "Used for logging into the site."
+msgstr ""
+
+msgid "Required: Can' login without one."
+msgstr ""
+
+msgid "Used for loggin into the site."
+msgstr ""
+
+msgid "Required: Can't login without one."
+msgstr ""
+
+msgid "The name your mother gave you."
+msgstr ""
+
+msgid "Your family name."
+msgstr ""
+
+msgid "Where can we send validation and updates?"
+msgstr ""
+
+msgid "Invalid Email"
+msgstr ""
+
+msgid "Please click the following link to activate your account"
+msgstr ""
+
+msgid ""
+"Unfortunately you must activate your account before you can <a href=\"index."
+"php\">login</a> and begin using the site"
+msgstr ""
+
+msgid "Facebook isn't Configured Yet."
+msgstr ""
+
+msgid "The RSS feed you requested doesn't exist"
+msgstr ""
+
+msgid "%s has updated his/her address."
+msgstr ""
+
+msgid "%s has changed his/her picture."
+msgstr ""
+
+msgid "%s replied to %s."
+msgstr ""
+
+msgid "m-d-y"
+msgstr ""
+
+msgid "%s has added a new Calendar entry on %s for %s."
+msgstr ""
+
+msgid "%s commented on (%s)."
+msgstr ""
+
+msgid "%s commented on the following photo:"
+msgstr ""
+
+msgid "%s has added %d new photos to the %s category."
+msgstr ""
+
+msgid "%s has added %s to his/her Family News."
+msgstr ""
+
+msgid "%s commented on Family News %s."
+msgstr ""
+
+msgid "%s commented on Poll %s."
+msgstr ""
+
+msgid "%s has added a Prayer Concern for %s."
+msgstr ""
+
+msgid "%s has added the recipe %s."
+msgstr ""
+
+msgid "%s commented on Recipe %s."
+msgstr ""
+
+msgid "%s has added a the video %s."
+msgstr ""
+
+msgid "%s commented on the video %s."
+msgstr ""
+
+msgid "D, d M Y H:i:s"
+msgstr ""
+
+msgid "General Settings"
+msgstr ""
+
+msgid "Account"
+msgstr ""
+
+msgid "Plugin Settings"
+msgstr ""
+
+msgid "Social Media"
+msgstr ""
+
+msgid "To complete your changes, you must logout and log back in again."
+msgstr ""
+
+msgid "Logout"
+msgstr ""
+
+msgid "You will be automatically logged out in 10 seconds."
+msgstr ""
+
+msgid "Are you sure you want to DELETE this theme?"
+msgstr ""
+
+msgid "Theme [%s] not found."
+msgstr ""
+
+msgid "[%s] is not a directory."
+msgstr ""
+
+msgid "Could not delete theme [%s]."
+msgstr ""
+
+msgid "Nothing to import."
+msgstr ""
+
+msgid "%d post has been imported.[0]"
+msgstr ""
+
+msgid "%d post has been imported.[1]"
+msgstr ""
+
+msgid "Currently connected as: %s"
+msgstr ""
+
+msgid "Disconnect"
+msgstr ""
+
+msgid "Not Connected"
+msgstr ""
+
+msgid "Connect"
+msgstr ""
+
+msgid "Facebook helps you connect and share with the people in your life."
+msgstr ""
+
+msgid "Unfortunately, your website administrator has not set up Facebook yet."
+msgstr ""
+
+msgid "A location-based social networking website for your phone."
+msgstr ""
+
+msgid "Instagram is a photo sharing app for your phone."
+msgstr ""
+
+msgid "Instagram isn't Configured Yet."
+msgstr ""
+
+msgid ""
+"Unfortunately, your website administrator has not set up Instagram yet."
+msgstr ""
+
+msgid "Could not get YouTube data for user."
+msgstr ""
+
+msgid "YouTube allows users to discover, watch and share videos."
+msgstr ""
+
+msgid "YouTube isn't Configured Yet."
+msgstr ""
+
+msgid "Unfortunately, your website administrator has not set up YouTube yet."
+msgstr ""
+
+msgid "My Settings"
+msgstr ""
+
+msgid "This page will automatically refresh"
+msgstr ""
+
+msgid "Edit Video"
+msgstr ""
+
+msgid "Upload to YouTube"
+msgstr ""
+
+msgid "Not connected to YouTube."
+msgstr ""
+
+msgid ""
+"The video gallery relies on YouTube.  You must create a YouTube account and "
+"connect it with your Family Connections account."
+msgstr ""
+
+msgid "Connect to YouTube"
+msgstr ""
+
+msgid "Upload YouTube Video"
+msgstr ""
+
+msgid "YouTube Account"
+msgstr ""
+
+msgid "Autos &amp; Vehicles"
+msgstr ""
+
+msgid "Music"
+msgstr ""
+
+msgid "Pets &amp; Animals"
+msgstr ""
+
+msgid "Sports"
+msgstr ""
+
+msgid "Travel &amp; Events"
+msgstr ""
+
+msgid "Gadgets &amp; Games"
+msgstr ""
+
+msgid "Comedy"
+msgstr ""
+
+msgid "People &amp; Blogs"
+msgstr ""
+
+msgid "News &amp; Politics"
+msgstr ""
+
+msgid "Entertainment"
+msgstr ""
+
+msgid "Education"
+msgstr ""
+
+msgid "Howto &amp; Style"
+msgstr ""
+
+msgid "Nonprofit &amp; Activism"
+msgstr ""
+
+msgid "Science &amp; Technology"
+msgstr ""
+
+msgid "Unlisted"
+msgstr ""
+
+msgid ""
+"\"Unlisted\" means that only people who know the link to the video can view "
+"it. The video will not appear in any of YouTube's public spaces, such as "
+"search results, your channel, or the Browse page, but the link can be shared "
+"with anyone."
+msgstr ""
+
+msgid "Video"
+msgstr ""
+
+msgid "An error occurred with you video upload."
+msgstr ""
+
+msgid "No Videos"
+msgstr ""
+
+msgid "Unfortunately no videos have been added yet."
+msgstr ""
+
+msgid "How do I add videos?"
+msgstr ""
+
+msgid "Create a YouTube account"
+msgstr ""
+
+msgid "Connect your YouTube account with Family Connections"
+msgstr ""
+
+msgid "Upload Videos"
+msgstr ""
+
+msgid "Why aren't my videos showing up?"
+msgstr ""
+
+msgid ""
+"Depending on your setup and the size of the video uploaded, it can take over "
+"an hour before your videos show up on the site."
+msgstr ""
+
+msgid "Learn more."
+msgstr ""
+
+msgid "Latest Videos"
+msgstr ""
+
+msgid "by %s"
+msgstr ""
+
+msgid "on %s"
+msgstr ""
+
+msgid "%d video[0]"
+msgstr ""
+
+msgid "%d video[1]"
+msgstr ""
+
+msgid "See all members."
+msgstr ""
+
+msgid "Missing or Invalid Video."
+msgstr ""
+
+msgid "This video cannot be found.  Are you sure you typed in URL correctly?"
+msgstr ""
+
+msgid "Sorry, this video is private."
+msgstr ""
+
+msgid "Could not get video information."
+msgstr ""
+
+msgid "Your video was uploaded to YouTube successfully."
+msgstr ""
+
+msgid ""
+"However it may take a few moments before you video is viewable. Please check "
+"back later."
+msgstr ""
+
+msgid "Current status: "
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Remove Video"
+msgstr ""
+
+msgid "Delete from YouTube?"
+msgstr ""
+
+msgid "You need Flash player to view this video."
+msgstr ""
+
+msgid "Get Adobe Flash player"
+msgstr ""
+
+msgid ""
+"JavaScript must be enabled in order for you to use the Video Gallery. "
+"However, it seems JavaScript is either disabled or not supported by your "
+"browser."
+msgstr ""
+
+msgid "Please enable JavaScript by changing your browser options."
+msgstr ""
+
+msgid "Could not retrieve video status: "
+msgstr ""
+
+msgid "Could not find session token for user."
+msgstr ""
+
+msgid "Member not found."
+msgstr ""
+
+msgid "Videos For:"
+msgstr ""
+
+msgid "No videos found."
+msgstr ""
+
+msgid "Can't remove video.  Missing video id."
+msgstr ""
+
+msgid "Can't delete video.  Missing video id."
+msgstr ""
+
+msgid "Video removed successfully."
+msgstr ""
+
+msgid "Video deleted successfully."
+msgstr ""
+
+msgid "Video removed and deleted from YouTube successfully."
+msgstr ""
+
+msgid "Source Video cannot be found."
+msgstr ""
+
+msgid "The video file for this video could not be found at %s."
+msgstr ""
+
+msgid "Would you like to delete this video?"
+msgstr ""
+
+msgid "No users with foursquare data found."
+msgstr ""
+
+msgid "History"
+msgstr ""
