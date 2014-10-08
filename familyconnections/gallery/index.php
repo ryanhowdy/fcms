@@ -99,7 +99,7 @@ class Page
         // Delete Photo
         elseif (isset($_POST['deletephoto']))
         {
-            if (isset($_GET['confirmed']))
+            if (isset($_POST['confirmed']) || isset($_GET['confirmed']))
             {
                 $this->displayDeletePhotoSubmit();
             }
@@ -797,7 +797,7 @@ class Page
         }
 
         // We currently don't need a photo destination for Instagram
-        $photoDestination = new PhotoDestination($this->fcmsError, $this->fcmsUser);
+        $photoDestination = new Destination($this->fcmsError, $this->fcmsUser);
 
         // Figure out what type of photo gallery uploader we are using, and create new object
         $photoGalleryType     = getPhotoGallery();
