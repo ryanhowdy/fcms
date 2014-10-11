@@ -1561,8 +1561,6 @@ class Page
             $_SESSION['picasa_photos'] = array();
             $_SESSION['picasa_user']   = $feed->getTitle()->text;
 
-            $photos .= '<input type="hidden" name="picasa_user" value="'.$_SESSION['picasa_user'].'"/>';
-
             $i = 1;
             foreach ($albumFeed as $photo)
             {
@@ -1615,6 +1613,13 @@ class Page
                 $photos .= '<script type="text/javascript">loadMorePicasaPhotos(26, "'.$token.'", "'.T_('Could not get additional photos.').'");</script>';
             }
         }
+
+        if ($i <= 1 && empty($photos))
+        {
+            $photos = '<p class="info-alert">'.T_('No photos were found in this album').'</p>';
+        }
+
+        $photos .= '<input type="hidden" name="picasa_user" value="'.$_SESSION['picasa_user'].'"/>';
 
         echo $photos;
     }
@@ -1676,6 +1681,16 @@ class Page
         $count = 0;
         foreach ($albumFeed as $photo)
         {
+            // Skip videos
+            $mediaContent = $photo->getMediaGroup()->getContent();
+            foreach ($mediaContent as $content)
+            {
+                if ($content->getMedium() == 'video')
+                {
+                    continue 2;
+                }
+            }
+
             $thumb = $photo->getMediaGroup()->getThumbnail();
 
             $sourceId  = $photo->getGphotoId()->text;
@@ -1788,7 +1803,9 @@ class Page
                     <a href="#" onclick="picasaSelectAll();" id="select-all">'.T_('Select All').'</a>
                     <a href="#" onclick="picasaSelectNone();" id="select-none">'.T_('Select None').'</a>
                 </div>
-                <ul id="photo_list"></ul>
-                <script language="javascript">loadPicasaPhotos("'.$token.'", "'.T_('Could not get photos.').'");</script>';
+                <script language="javascript">loadPicasaPhotoEvents("'.$token.'", "'.T_('Could not get photos.').'");</script>
+                <ul id="photo_list">
+                    <script language="javascript">loadPicasaPhotos("'.$token.'", "'.T_('Could not get photos.').'");</script>
+                </ul>';
     }
 }

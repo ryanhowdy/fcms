@@ -98,7 +98,7 @@ class PicasaUploadPhotoGalleryForm extends UploadPhotoGalleryForm
             </form>
             <script type="text/javascript">
             '.$js.'
-            Event.observe("submit-photos","click",function(e){
+            $("#submit-photos").click(function(e) {
             '.$this->getJsUploadValidation().'
             });
             </script>';

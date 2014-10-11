@@ -1683,9 +1683,11 @@ li.tag_photo label span {
     margin: 0 10px;
 }
 .picasa #ajax-loader {
-    left: 340px;
+    background-color: #eee;
+    left: 318px;
     position: absolute;
-    top: 100px;
+    padding: 10px;
+    top: 25px;
 }
 .picasa ul {
     list-style-type: none;
@@ -1720,6 +1722,10 @@ li.tag_photo label span {
     position: absolute;
     top: 0;
     width: 73px;
+}
+// hide the checkbox, when selecting photos for upload
+.picasa #photo_list > li > input {
+    display: none;
 }
 .photo_edit_area {
     overflow: hidden;
