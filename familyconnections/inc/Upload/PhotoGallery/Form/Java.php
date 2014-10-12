@@ -121,26 +121,26 @@ class JavaUploadPhotoGalleryForm extends UploadPhotoGalleryForm
             {
                 if (!e) { e = window.event; }
                 if (e.keyCode == 27) {
-                    $("uploadForm").setStyle({visibility:"visible"});
-                    $("loading").hide();
+                    $("#uploadForm").css("visibility", "visible");
+                    $("#loading").hide();
                 }
             }
-            Event.observe("start-upload","click",function(e){
+            $("#start-upload").click(function(e) {
 
                 '.$this->getJsUploadValidation().'
 
                 var uploader = document.jumpLoaderApplet.getUploader();
                 var attrSet  = uploader.getAttributeSet();
 
-                var newValue = $F("new-category");
+                var newValue = $("#new-category").val();
                 var newAttr  = attrSet.createStringAttribute("new-category", newValue);
                 newAttr.setSendToServer(true);
 
                 var attribute = attrSet.createStringAttribute("javaUpload", 1);
                 attribute.setSendToServer(true);
 
-                if ($("existing-categories")) {
-                    var value = $F("existing-categories");
+                if ($("#existing-categories")) {
+                    var value = $("#existing-categories").val();
                     var attr  = attrSet.createStringAttribute("category", value);
                     attr.setSendToServer(true);
                 }
@@ -153,8 +153,8 @@ class JavaUploadPhotoGalleryForm extends UploadPhotoGalleryForm
                 }
             }
             function appletInitialized(applet) {
-                $("uploadForm").setStyle({visibility:"visible"});
-                $("loading").hide();
+                $("#uploadForm").css("visibility", "visible");
+                $("#loading").hide();
             }
             </script>';
     }
