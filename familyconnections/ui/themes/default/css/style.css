@@ -1766,6 +1766,21 @@ li.tag_photo label span {
   float: left;
   margin: 0 30px 0 0;
 }
+.plupload {
+  padding: 0;
+  height: 300px;
+}
+.plupload > #uploader > .plupload_wrapper > .plupload_container {
+  border: none;
+  height: 295px;
+  min-height: 295px;
+}
+.plupload > #uploader > .plupload_wrapper > .plupload_container > .plupload_header {
+  display: none;
+}
+#uploader_dropbox {
+  top: 0;
+}
 #content .instagram h2 {
   font: bold 15px/24px Verdana, Arial, sans-serif;
 }

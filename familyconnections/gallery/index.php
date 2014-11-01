@@ -695,7 +695,10 @@ class Page
         // Upload the photo
         if (!$photoGalleryUploader->upload($formData))
         {
-            header("HTTP/1.0 404 Not Found");
+            $error   = $photoGalleryUploader->fcmsUser->getError();
+            $message = $error['message']. ' - '.$error['details'];
+
+            die('{"jsonrpc" : "2.0", "error" : {"code": 500, "message": "'.$message.'"}, "id" : "id"}');
         }
     }
 
