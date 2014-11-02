@@ -38,8 +38,6 @@ echo '
 html { background-image: none !important; background-color: #000; }
 body { background-color: #000; margin: 10px 0 0 0 !important; padding: 0 !important; width: 650px !important; text-align: center; }
 </style>
-<script type="text/javascript" src="../ui/js/prototype.js"></script>
-<script type="text/javascript" src="../ui/js/effects.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 function slideshow(start,last,interval) {

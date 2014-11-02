@@ -154,8 +154,6 @@ class Page
         $TMPL = $this->fcmsTemplate;
 
         $TMPL['javascript'] = '
-<script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>
-<script src="'.URL_PREFIX.'ui/js/scriptaculous.js" type="text/javascript"></script>
 <script src="'.URL_PREFIX.'ui/js/admin.js" type="text/javascript"></script>
 <script src="'.URL_PREFIX.'ui/js/livevalidation.js" type="text/javascript"></script>';
 

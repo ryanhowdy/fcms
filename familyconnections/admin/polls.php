@@ -125,7 +125,6 @@ class Page
         $TMPL = $this->fcmsTemplate;
 
         $TMPL['javascript'] = '
-<script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>
 <script src="'.URL_PREFIX.'ui/js/fcms.js" type="text/javascript"></script>
 <script type="text/javascript">
 //<![CDATA[
