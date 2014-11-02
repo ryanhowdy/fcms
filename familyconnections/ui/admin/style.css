@@ -133,9 +133,9 @@ li.sortable {
     border: 1px solid #fff;
     cursor: pointer;
     cursor: hand;
-    padding: 15px;
+    padding: 15px 0;
     text-align: center;
-    width: auto;
+    width: 196px;
 }
 #check_all_form label:hover {
     background-color: #eee;

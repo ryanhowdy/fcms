@@ -119,24 +119,23 @@ class Page
         $TMPL = $this->fcmsTemplate;
 
         $TMPL['javascript'] = '
-<script src="'.URL_PREFIX.'ui/js/prototype.js" type="text/javascript"></script>
+<script src="'.URL_PREFIX.'ui/js/jquery.js" type="text/javascript"></script>
 <script src="'.URL_PREFIX.'ui/js/fcms.js" type="text/javascript"></script>
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+$(document).ready(function() {
     deleteConfirmationLink("deleteAll", "'.T_('Are you sure you want to DELETE all selected categories?').'");
     deleteConfirmationLink("deleteAllPhotos", "'.T_('Are you sure you want to DELETE all selected photos?').'");
-    $("check_all_form").getInputs("checkbox").each(function(item) {
-        item.observe("click", function () {
-            if (item.checked) {
-                item.up("label").addClassName("active");
+    $("#check_all_form input[type=checkbox]").each(function() {
+        var item = $(this);
+        item.click(function () {
+            if (item.is(":checked")) {
+                item.closest("label").addClass("active");
             } else {
-                item.up("label").removeClassName("active");
+                item.closest("label").removeClass("active");
             }
         });
     });
 });
-//]]>
 </script>';
 
         include_once URL_PREFIX.'ui/admin/header.php';
