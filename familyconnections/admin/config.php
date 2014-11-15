@@ -154,6 +154,9 @@ class Page
         $TMPL = $this->fcmsTemplate;
 
         $TMPL['javascript'] = '
+<script src="'.URL_PREFIX.'ui/js/jquery.js" type="text/javascript"></script>
+<script src="'.URL_PREFIX.'ui/js/jqueryui/jquery-ui.min.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="'.URL_PREFIX.'ui/js/jqueryui/jquery-ui.min.css"/>
 <script src="'.URL_PREFIX.'ui/js/admin.js" type="text/javascript"></script>
 <script src="'.URL_PREFIX.'ui/js/livevalidation.js" type="text/javascript"></script>';
 
@@ -1150,54 +1153,48 @@ class Page
 
                 <p><input type="submit" class="btn primary" id="submit-navigation" name="submit-navigation" value="'.T_('Save').'"/></p>
             </form>
-
             <script type="text/javascript">
-            $("submit-navigation").hide();
-            $$(".order").each(function(item) {
-                item.hide();
-                item.up("li").addClassName("sortable");
+            $("#submit-navigation").hide();
+            $(".order").each(function() {
+                $(this).before(\'<span class="ui-icon ui-icon-arrowthick-2-n-s"></span>\');
+                $(this).hide();
             });
-            Sortable.create("com_order", {
-                onUpdate: function() {
-                    new Ajax.Request("config.php", {
-                        method: "post",
-                        onSuccess: function(response) {
-                            if (response.responseText !== "success") {
-                                insertAlertMessage("error", "navigation-heading", "'.T_('An error occurred. Changes could not be saved.').'");
-                            } else {
-                                insertAlertMessage("success inline-alert", "navigation-heading", "'.T_('Changes Saved').'");
-                            }
-                        },
-                        onFailure: function(response) {
-                            insertAlertMessage("error", "navigation-heading", "'.T_('An error occurred. Changes could not be saved.').'");
-                        },
-                        parameters: { 
-                            "submit-ajax-navigation": "1",
-                            data: Sortable.serialize("com_order")
+
+            $("#com_order").sortable({
+                stop: function(event, ui) {
+                    var arr = $("#com_order").sortable("toArray");
+                    $.ajax({
+                        url  : "config.php",
+                        type : "POST",
+                        data : {
+                            "submit-ajax-navigation" : 1,
+                            data                     : arr,
+                            com_order                : 1
                         }
+                    }).done(function(data) {
+                        insertAlertMessage("success inline-alert", "navigation-heading", "'.T_('Changes Saved').'");
+                    }).fail(function() {
+                        insertAlertMessage("error", "navigation-heading", "'.T_('An error occurred. Changes could not be saved.').'");
                     });
-                }
+                },
             });
-            Sortable.create("share_order", {
-                onUpdate: function() {
-                    new Ajax.Request("config.php", {
-                        method: "post",
-                        onSuccess: function(response) {
-                            if (response.responseText !== "success") {
-                                insertAlertMessage("error", "navigation-heading", "'.T_('An error occurred. Changes could not be saved.').'");
-                            } else {
-                                insertAlertMessage("success inline-alert", "navigation-heading", "'.T_('Changes Saved').'");
-                            }
-                        },
-                        onFailure: function(response) {
-                            insertAlertMessage("error", "navigation-heading", "'.T_('An error occurred. Changes could not be saved.').'");
-                        },
-                        parameters: { 
-                            "submit-ajax-navigation": "1",
-                            data: Sortable.serialize("share_order")
+            $("#share_order").sortable({
+                stop: function(event, ui) {
+                    var arr = $("#share_order").sortable("toArray");
+                    $.ajax({
+                        url  : "config.php",
+                        type : "POST",
+                        data : {
+                            "submit-ajax-navigation" : 1,
+                            data                     : arr,
+                            share_order              : 1
                         }
+                    }).done(function(data) {
+                        insertAlertMessage("success inline-alert", "navigation-heading", "'.T_('Changes Saved').'");
+                    }).fail(function() {
+                        insertAlertMessage("error", "navigation-heading", "'.T_('An error occurred. Changes could not be saved.').'");
                     });
-                }
+                },
             });
             </script>';
 
@@ -1221,16 +1218,20 @@ class Page
         // Fix the data (Ajax)
         if (isset($_POST['data']))
         {
-            parse_str($_POST['data']);
-
-            if (isset($share_order))
+            if (isset($_POST['share_order']))
             {
-                $shareOrder = $share_order;
+                foreach ($_POST['data'] as $data)
+                {
+                    $shareOrder[] = substr($data, 6);
+                }
             }
 
-            if (isset($com_order))
+            if (isset($_POST['com_order']))
             {
-                $communicateOrder = $com_order;
+                foreach ($_POST['data'] as $data)
+                {
+                    $communicateOrder[] = substr($data, 4);
+                }
             }
         }
         // Fix the data (Form)
@@ -1310,8 +1311,8 @@ class Page
             {
                 if ($ajax)
                 {
-                    echo 'error';
-                    exit();
+                    header("HTTP/1.0 404 Not Found");
+                    return;
                 }
                 $this->displayHeader();
                 $this->fcmsError->displayError();
@@ -1339,8 +1340,8 @@ class Page
             {
                 if ($ajax)
                 {
-                    echo 'error';
-                    exit();
+                    header("HTTP/1.0 404 Not Found");
+                    return;
                 }
                 $this->displayHeader();
                 $this->fcmsError->displayError();
@@ -1351,8 +1352,7 @@ class Page
 
         if ($ajax)
         {
-            echo 'success';
-            exit();
+            return;
         }
 
         $_SESSION['success'] = 1;
