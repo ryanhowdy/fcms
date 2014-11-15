@@ -158,7 +158,6 @@ class Page
         {
             $this->displayHeader();
             $this->fcmsAdminMembers->displayMemberList(1, $_POST['fname'], $_POST['lname'], $_POST['uname']);
-
             $this->displayFooter();
         }
         else
@@ -190,43 +189,25 @@ class Page
         if ($js == '')
         {
             $TMPL['javascript'] = '
-<script type="text/javascript" src="'.$TMPL['path'].'ui/js/livevalidation.js"></script>
-<script type="text/javascript" src="'.$TMPL['path'].'ui/js/tablesort.js"></script>
-<link rel="stylesheet" type="text/css" href="'.$TMPL['path'].'ui/css/datechooser.css"/>
-<script type="text/javascript" src="'.$TMPL['path'].'ui/js/datechooser.js"></script>
+<script type="text/javascript" src="'.URL_PREFIX.'ui/js/jquery.js"></script>
+<script type="text/javascript" src="'.URL_PREFIX.'ui/js/livevalidation.js"></script>
+<script type="text/javascript" src="'.URL_PREFIX.'ui/js/tablesorter/js/jquery.tablesorter.min.js"></script>
+<link rel="stylesheet" type="text/css" href="'.URL_PREFIX.'ui/css/datechooser.css"/>
+<script type="text/javascript" src="'.URL_PREFIX.'ui/js/datechooser.js"></script>
+<script type="text/javascript" src="'.URL_PREFIX.'ui/js/fcms.js"></script>
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+$(document).ready(function() {
     // Datechooser
     var bday = new DateChooser();
-    bday.setUpdateField({\'bday\':\'j\', \'bmonth\':\'n\', \'byear\':\'Y\'});
-    bday.setIcon(\''.$TMPL['path'].'ui/themes/default/img/datepicker.jpg\', \'byear\');
-    var dday = new DateChooser();
-    dday.setUpdateField({\'dday\':\'j\', \'dmonth\':\'n\', \'dyear\':\'Y\'});
-    dday.setIcon(\''.$TMPL['path'].'ui/themes/default/img/datepicker.jpg\', \'dyear\');
+    bday.setUpdateField({\'day\':\'j\', \'month\':\'n\', \'year\':\'Y\'});
+    bday.setIcon(\''.URL_PREFIX.'ui/themes/default/img/datepicker.jpg\', \'year\');
+
     // Delete Confirmation All
-    if ($(\'deleteAll\')) {
-        var item = $(\'deleteAll\'); 
-        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
-        var hid = document.createElement(\'input\');
-        hid.setAttribute(\'type\', \'hidden\');
-        hid.setAttribute(\'name\', \'confirmedall\');
-        hid.setAttribute(\'value\', \'true\');
-        item.insert({\'after\':hid});
-    }
-    // Delete Confirmation
-    if ($(\'delete\')) {
-        var item = $(\'delete\'); 
-        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
-        var hid = document.createElement(\'input\');
-        hid.setAttribute(\'type\', \'hidden\');
-        hid.setAttribute(\'name\', \'confirmed\');
-        hid.setAttribute(\'value\', \'true\');
-        item.insert({\'after\':hid});
-    }
-    return true;
+    deleteConfirmationLink("deleteAll", "'.T_('Are you sure you want to DELETE this?').'");
+    deleteConfirmationLink("delete", "'.T_('Are you sure you want to DELETE this?').'");
+
+    $(".tablesorter").tablesorter();
 });
-//]]>
 </script>';
         }
 

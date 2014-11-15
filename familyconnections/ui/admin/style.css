@@ -162,3 +162,7 @@ li.sortable {
 #share_order li span.ui-icon {
     display: inline-block;
 }
+table.tablesorter > thead > th,
+table.tablesorter .tablesorter-header {
+    cursor: pointer;
+}

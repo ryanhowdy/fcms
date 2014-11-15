@@ -4886,6 +4886,7 @@ function getModuleList ()
                               .'<script type="text/javascript" src="'.URL_PREFIX.'ui/js/datechooser.js"></script>',
         'scriptaculous'     => '<script type="text/javascript" src="'.URL_PREFIX.'ui/js/scriptaculous.js"></script>',
         'autocomplete'      => '<script type="text/javascript" src="'.URL_PREFIX.'ui/js/autocomplete/jquery.autocomplete.min.js"></script>',
+        'tablesorter'       => '<script type="text/javascript" src="'.URL_PREFIX.'ui/js/tablesorter/js/jquery.tablesorter.min.js"></script>',
     );
 }
 
