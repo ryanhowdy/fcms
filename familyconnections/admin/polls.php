@@ -125,13 +125,12 @@ class Page
         $TMPL = $this->fcmsTemplate;
 
         $TMPL['javascript'] = '
+<script src="'.URL_PREFIX.'ui/js/jquery.js" type="text/javascript"></script>
 <script src="'.URL_PREFIX.'ui/js/fcms.js" type="text/javascript"></script>
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+$(document).ready(function() {
     deleteConfirmationLinks("delpoll", "'.T_('Are you sure you want to DELETE this?').'");
 });
-//]]>
 </script>';
 
         include_once URL_PREFIX.'ui/admin/header.php';
