@@ -107,9 +107,6 @@ class UploadPhotoGalleryForm
                                         );
                                     }
                                 });
-
-                                $("#autocomplete_selected li a").click(function() {
-                                });
                             });
                             </script>
                         </div>

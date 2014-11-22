@@ -296,7 +296,9 @@ class Page
      */
     function displayEditPhotoForm ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array('modules' => array('autocomplete'))
+        );
         $this->fcmsPhotoGallery->displayEditPhotoForm($_POST['photo'], $_POST['url']);
         $this->displayFooter();
     }
@@ -1057,7 +1059,9 @@ class Page
      */
     function displayEditCategoryForm ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array('modules' => array('autocomplete'))
+        );
 
         $category = (int)$_GET['edit-category'];
         $user     = (int)$_GET['user'];
@@ -1171,7 +1175,9 @@ class Page
      */
     function displayMassTagForm ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array('modules' => array('autocomplete'))
+        );
 
         $category = (int)$_GET['tag'];
         $user     = (int)$_GET['user'];
