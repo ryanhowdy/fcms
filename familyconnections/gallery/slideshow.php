@@ -33,34 +33,29 @@ echo '
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="../ui/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="../themes/default/style.css"/>
 <style type="text/css">
-html { background-image: none !important; background-color: #000; }
-body { background-color: #000; margin: 10px 0 0 0 !important; padding: 0 !important; width: 650px !important; text-align: center; }
+html { background-color: #000; }
+body { overflow: hidden; text-align: center; }
+ul { margin: 0 auto; padding: 0; }
+ul > li { list-style-type: none; }
 </style>
+<script type="text/javascript" src="../ui/js/jquery.js"></script>
 <script type="text/javascript">
-//<![CDATA[
-function slideshow(start,last,interval) {
-    var frame = start;
-    var nextframe = start+1;
-
-    Effect.Appear(\'img1\',{duration:.5,from:0.0,to:1.0});
+$(document).ready(function(){
+    $("#slideshow > li").hide();
     setInterval(function() {
-        Effect.Fade(\'img\'+frame,{duration:.5,from:1.0,to:0.0,afterFinish:function() {
-            $(\'img\'+frame).hide();
-            Effect.Appear(\'img\'+nextframe,{duration:.5,from:0.0,to:1.0});
-            frame = nextframe;
-            nextframe = (frame == last) ? start : nextframe+1;
-        }});
-    }, interval);
-
-    return;
-};
-//]]>
+        $("#slideshow > li:first")
+            // Hide the first photo
+            .fadeOut(1000)
+            // Get next photo and fade in
+            .next().fadeIn(1000)
+            // Put this photo at the end of the list
+            .end().appendTo("#slideshow")
+    }, 6000);
+});
 </script>
 </head>
-<body>
-<div class="fadein">';
+<body>';
 
 if (!isset($_GET['category']))
 {
@@ -69,7 +64,6 @@ if (!isset($_GET['category']))
         <h3>'.T_('Invalid Category ID').'</h3>
         <p>'.T_('You must supply a valid category id.').'</p>
     </div>
-</div>
 </body>
 </html>';
     exit();
@@ -86,15 +80,15 @@ $rows = $fcmsDatabase->getRows($sql, $cid);
 if ($rows === false)
 {
     $fcmsError->displayError();
-    echo '
-</div>
-</body>
-</html>';
+    echo '</body></html>';
     die();
 }
 
 if (count($rows) > 0)
 {
+    echo '
+    <ul id="slideshow">';
+
     $i = 0;
     foreach ($rows as $r)
     {
@@ -107,15 +101,13 @@ if (count($rows) > 0)
         $photoSrc = $fcmsGallery->getPhotoSource($r, 'medium');
 
         echo '
-    <div id="img'.$i.'" style="display:none; color:#fff;">
-        <img src="'.$photoSrc.'" alt="'.$caption.'"/><br/>
-        '.$caption.'
-    </div>';
+        <li>
+            <img src="'.$photoSrc.'" alt="'.$caption.'" title="'.$caption.'"/>
+        </li>';
 
     }
-
     echo '
-    <script type="text/javascript">slideshow(1,'.$i.',5000);</script>';
+    </ul>';
 }
 else
 {
@@ -124,6 +116,5 @@ else
 }
 
 echo '
-</div>
 </body>
 </html>';
