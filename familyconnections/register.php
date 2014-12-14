@@ -87,44 +87,40 @@ class Page
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css" />
+<script type="text/javascript" src="ui/js/jquery.js"></script>
 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, "load", function() {
-    var u = $("username");
-    u.focus();
-    u.onchange = function(){
-        checkAvailability();
-    }
+$(document).ready(function() {
+    $("#username")
+        .focus()
+        .change(checkAvailability);
 });
-var url = "register.php";
 function checkAvailability() {
-    new Ajax.Request(url, {
-        method: "get",
-        parameters: { ajax: 1, username: $("username").value },
-        onSuccess: process,
-        onFailure: function() { alert("'.T_('There was an error with the connection.').'"); }
+    $("#username").next("span").remove();
+    $.ajax({
+        type : "GET",
+        url  : "register.php",
+        data : {
+            ajax     : 1,
+            username : $("#username").val(),
+        }
+    })
+    .success (function (data) {
+        if (data === "available") {
+            $("#username").after("<span class=\"available\">'.T_('Available').'</span>");
+        }
+        else if (data === "unavailable") {
+            $("#username").addClass("LV_invalid_field");
+            $("#username").after("<span class=\"LV_validation_message LV_invalid\">'.T_('That username has already been taken.').'</span>");
+        }
+        else {
+            alert("'.T_('Could not check availability of username.').'");
+        }
+    })
+    .error (function() {
+        alert("'.T_('There was an error with the connection.').'");
     });
 }
-function process(transport) {
-    var response = transport.responseText;
-    var u = $("username");
-    var s = document.createElement("span");
-
-    if (response == "available") {
-        s.addClassName("available");
-        s.appendChild(document.createTextNode("'.T_('Available').'"));
-        u.insert({"after":s});
-    } else if (response == "unavailable") {
-        u.addClassName("LV_invalid_field");
-        s.addClassName("LV_validation_message LV_invalid");
-        s.appendChild(document.createTextNode("'.T_('That username has already been taken.').'"));
-        u.insert({"after":s});
-    } else {
-        alert("'.T_('Could not check availability of username.').'");
-    }
-}
-//]]>
 </script>
 </head>
 <body>';
