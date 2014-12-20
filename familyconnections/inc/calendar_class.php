@@ -673,7 +673,7 @@ class Calendar
                 $data = $d;
                 if (in_array($d, $eventDays))
                 {
-                    $data = '<a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'">'.$d.'</a>';
+                    $data = '<a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'&amp;view=day">'.$d.'</a>';
                 }
 
                 $weekData[] = array(
