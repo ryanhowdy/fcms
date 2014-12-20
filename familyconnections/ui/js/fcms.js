@@ -177,66 +177,53 @@ BBCode.prototype.insertLink=function(html) {
 };
 function initCheckAll(selectText)
 {
-    var frm = $('check_all_form');
-    if (frm) {
-        // Create Check All box
-        var chk = document.createElement('input');
-        chk.setAttribute('type', 'checkbox');
-        chk.setAttribute('id', 'allbox');
-        chk.setAttribute('name', 'allbox');
-        chk.setAttribute('value', 'Check All');
-        chk.onclick = function () { checkUncheckAll(document.mass_mail_form); }
-        var lbl = document.createElement('label');
-        lbl.setAttribute('for', 'allbox');
-        lbl.appendChild(document.createTextNode(selectText));
-        $('check-all').appendChild(chk);
-        $('check-all').appendChild(lbl);
-        
-        // Add CheckCheckAll() to each checkbox
-        frm.getInputs('checkbox').each(function(item) {
-            if (item.name != 'allbox') {
-                item.onclick = checkCheckAll;
-            }
-        });
-    }
+    $('#check-all').prepend(
+        '<input type="checkbox" id="allbox" name="allbox" onclick="checkUncheckAll();" value="' + selectText + '">' +
+        '<label for="allbox">' + selectText + '</label>'
+    );
+
+    // Add CheckCheckAll() to each checkbox
+    $('#check_all_form input:checkbox').each(function () {
+        if ($(this).attr('name') != 'allbox') {
+            $(this).click(checkCheckAll);
+        }
+    });
+
     return true;
 }
-function checkUncheckAll(frmobj)
+function checkUncheckAll()
 {
-    var checkall = 0;
+    $('#check_all_form input:checkbox').each(function () {
+        if ($(this).attr('name') != 'allbox') {
 
-    if ($('allbox').checked) {
-        checkall++;
-    }
+            $(this).prop('checked', false);
 
-    $('check_all_form').getInputs('checkbox').each(function(item) {
-        if (item.name != 'allbox') {
-            if (checkall > 0) {
-                item.checked = true;
-            } else {
-                item.checked = false;
+            if ($('#allbox').is(':checked'))
+            {
+                $(this).prop('checked', true);
             }
         }
     });
 }
-function checkCheckAll(frmobj)
+function checkCheckAll()
 {
     var total_boxes = 0;
     var total_on    = 0;
 
-    $('check_all_form').getInputs('checkbox').each(function(item) {
-        if (item.name != 'allbox') {
+    $('#check_all_form input:checkbox').each(function () {
+        if ($(this).attr('name') != 'allbox') {
             total_boxes++;
-            if (item.checked) {
+            if ($(this).prop('checked')) {
                 total_on++;
             }
         }
     });
 
     if (total_boxes == total_on) {
-        $('allbox').checked = true;
-    } else {
-        $('allbox').checked = false;
+        $('#allbox').prop('checked', true);
+    }
+    else {
+        $('#allbox').prop('checked', false);
     }
 }
 
@@ -825,18 +812,15 @@ function initAdvancedTagging() {
 ------------------------------------------------*/
 function initAddressBookClickRow()
 {
-    if ($('address-table')) {
-        $$('tbody tr').each(function(row) {
-            if (!row.hasClassName('header')) {
-                var url = row.down('td', 1).down('a').href;
-                row.childElements().each(function(td) {
-                    if (!td.hasClassName('chk')) {
-                        td.onclick = function() { window.location.href=url; };
-                    }
-                });
-            }
-        });
-    }
+    $('#address-table > tbody > tr > td').each(function() {
+        var $cell = $(this);
+        if (!$cell.hasClass('chk')) {
+            $cell.click(function() {
+                var url = $cell.closest('tr').find('td:nth-of-type(2) > a').attr('href');
+                window.location.href=url;
+            });
+        }
+    });
 }
 
 /* =VIDEO
