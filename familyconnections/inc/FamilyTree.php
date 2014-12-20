@@ -789,17 +789,17 @@ class FamilyTree
                 </div>
                 '.$validator->getJsValidation($this->getProfile('edit')).'
                 <script type="text/javascript">
-                    if ($F("sex") == "M") {
-                        $("maiden-name").hide();
+                    if ($("#sex").val() == "M") {
+                        $("#maiden-name").hide();
                     } else {
-                        $("maiden-name").show();
+                        $("#maiden-name").show();
                     }
 
-                    $("sex").observe("change", function() {
-                        if ($F("sex") == "M") {
-                            $("maiden-name").hide();
+                    $("#sex").change(function() {
+                        if ($("#sex").val() == "M") {
+                            $("#maiden-name").hide();
                         } else {
-                            $("maiden-name").show();
+                            $("#maiden-name").show();
                         }
                     });
                 </script>
