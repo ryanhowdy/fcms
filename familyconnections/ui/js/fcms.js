@@ -356,13 +356,6 @@ function nextPrevNews (e) {
 
 /* UTILITIES
 ------------------------------------------------*/
-function setElementDisplayNone(el) {
-    if (el.style.setAttribute) {
-        el.style.setAttribute('cssText', 'display:none');
-    } else {
-        el.setAttribute('style', 'display:none');
-    }
-}
 function endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
@@ -759,16 +752,17 @@ function initInviteAttending ()
 /* =RECIPE
 ------------------------------------------------*/
 function initHideAddFormDetails() {
-    if ($('addform')) {
-        // Name
-        setElementDisplayNone($('name-info'));
-        $('name').onfocus = function() { $('name-info').show(); };
-        $('name').onblur  = function() { $('name-info').hide(); };
-        // Ingredients
-        setElementDisplayNone($('ingredients-info'));
-        $('ingredients').onfocus = function() { $('ingredients-info').show(); };
-        $('ingredients').onblur  = function() { $('ingredients-info').hide(); };
-    }
+    // Name
+    $('#name-info').hide();
+    $('#name')
+        .focus(function() { $('#name-info').show(); })
+        .blur(function() { $('#name-info').hide(); });
+
+    // Ingredients
+    $('#ingredients-info').hide();
+    $('#ingredients')
+        .focus(function() { $('#ingredients-info').show(); })
+        .blur(function() { $('#ingredients-info').hide(); });
 }
 
 /* =SETTINGS

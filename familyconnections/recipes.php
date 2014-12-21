@@ -166,31 +166,13 @@ class Page
 
         $params['javascript'] = '
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+$(document).ready(function() {
     initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initHideAddFormDetails();
-    if (!$$(\'.delrec input[type="submit"]\')) { return; }
-    $$(\'.delrec input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
-        var hid = document.createElement(\'input\');
-        hid.setAttribute(\'type\', \'hidden\');
-        hid.setAttribute(\'name\', \'confirmed\');
-        hid.setAttribute(\'value\', \'true\');
-        item.insert({\'after\':hid});
+    $(\'.delrec input[type="submit"]\').click(function(event) {
+        return confirmDeleteLink(\'.delrec input[type="submit"]\', "'.T_('Are you sure you want to DELETE this?').'", event);
     });
-    if ($(\'toolbar\')) {
-        $(\'toolbar\').removeClassName("hideme");
-    }
-    if ($(\'smileys\')) {
-        $(\'smileys\').removeClassName("hideme");
-    }
-    if ($(\'upimages\')) {
-        $(\'upimages\').removeClassName("hideme");
-    }
-    return true;
 });
-//]]>
 </script>';
 
         loadTemplate('global', 'header', $params);
