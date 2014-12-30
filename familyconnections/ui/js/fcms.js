@@ -364,7 +364,7 @@ function endsWith(str, suffix) {
 ------------------------------------------------*/
 function hideUploadOptions(rotateText, catText, newCatText) {
     // Hide Rotate options
-    if ($('#rotate-options')) {
+    if ($('#rotate-options').length) {
         $('#rotate-options').hide();
 
         $('#rotate-options').before(
@@ -377,7 +377,7 @@ function hideUploadOptions(rotateText, catText, newCatText) {
     }
 
     // Hide Existing Categories
-    if ($('#existing-categories')) {
+    if ($('#existing-categories').length) {
         $('#existing-categories').hide();
 
         $('#existing-categories').after(
@@ -769,7 +769,7 @@ function initHideAddFormDetails() {
 ------------------------------------------------*/
 // attach onchange event to avatar type select
 function initGravatar() {
-    if ($('#avatar_type')) {
+    if ($('#avatar_type').length) {
         handleAvatar();
         $('#avatar_type').change(function() { handleAvatar() });
     }
@@ -797,7 +797,7 @@ function handleAvatar() {
 }
 
 function initAdvancedTagging() {
-    if ($('#advanced_tagging_div')) {
+    if ($('#advanced_tagging_div').length) {
         $('#advanced_tagging_div').show();
     }
 }
@@ -821,38 +821,38 @@ function initAddressBookClickRow()
 ------------------------------------------------*/
 function initYouTubeVideoStatus(txt)
 {
-    if ($('current_status')) {
-        $('refresh').hide();
-        $('js_msg').update(txt);
-        pu = new Ajax.PeriodicalUpdater('current_status', 'video.php', {
-            method: 'get', 
-            parameters : 'check_status=1',
-            frequency: 3, 
-            decay: 2,
-            onSuccess : function(t) {
-                if (t.responseText == 'Finished') {
-                    pu.stop();
+    if ($('#current_status').length)
+    {
+        $('#refresh').hide();
+        $('#js_msg').text(txt);
+
+        setTimeout(function () {
+            $.ajax({
+                url  : 'video.php',
+                type : 'get',
+                data : {
+                    check_status : 1,
+                },
+            })
+            .done(function(data) {
+                if (data == 'Finished') {
                     window.location.reload();
                 }
-            },
-            onFailure : function(t) {
-                alert('Could not get status: ' + t.responseText);
-            }
-        });
+                else {
+                    initYouTubeVideoStatus(txt);
+                }
+            })
+            .fail(function(jqXHR, textStatus) {
+                alert('Could not get status: ' + textStatus);
+            });
+        }, 2000);
     }
 }
 function initHideVideoEdit(txt)
 {
-    if ($('video_edit')) {
-        $('video_edit').hide();
-        var vDiv = $('video_edit');
-        var vLink = Element.extend(document.createElement('a'));
-        vLink.href = '#';
-        vLink.addClassName('video_edit_show_hide');
-        vLink.appendChild(document.createTextNode(txt));
-        vLink.onclick = function() { $('video_edit').toggle(); return false; };
-        vDiv.insert({'before':vLink});
-    }
+    $('#video_edit')
+        .hide()
+        .before('<a href="#" class="video_edit_show_hide" onclick="$(\'#video_edit\').toggle(); return false;">' + txt + '</a>');
 }
 
 /* =FAMILYTREE =TREE

@@ -155,13 +155,11 @@ class Page
 
         $params['javascript'] = '
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+$(document).ready(function() {
     initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initYouTubeVideoStatus(\''.T_('This page will automatically refresh').'\');
     initHideVideoEdit(\''.T_('Edit Video').'\');
 });
-//]]>
 </script>';
 
         loadTemplate('global', 'header', $params);
@@ -616,13 +614,8 @@ Event.observe(window, \'load\', function() {
             </div>
         </div>
         <script type="text/javascript">
-        if ($("help")) {
-            var div = $("help");
-            div.hide();
-            var a = new Element("a", { href: "#" }).update("'.T_('Learn more.').'");
-            a.onclick = function() { $("help").toggle(); return false; };
-            div.insert({"before":a});
-        }
+        $("#help").hide();
+        $("#help").before(\'<a href="#" onclick="function() { $("#help").toggle(); return false; }">'.T_('Learn more.').'</a>\');
         </script>';
 
             $this->displayFooter();
@@ -902,7 +895,7 @@ Event.observe(window, \'load\', function() {
             </p>
             </div>
         </noscript>
-        <script type="text/javascript" src="ttp://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>';
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>';
     }
 
     /**
