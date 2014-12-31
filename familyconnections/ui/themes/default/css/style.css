@@ -3790,6 +3790,13 @@ fieldset #msg {
 #familytree-page label.no-check {
   margin-left: 19px;
 }
+#familytree-page .plupload_header {
+  display: none;
+}
+#familytree-page .plupload_container {
+  min-height: 200px;
+  width: 325px;
+}
 /* =RECIPES
 ------------------------------------------------*/
 #recipe-page .menu li span {

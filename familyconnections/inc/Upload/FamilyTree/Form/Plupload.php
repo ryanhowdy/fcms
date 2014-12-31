@@ -36,80 +36,84 @@ class PluploadUploadFamilyTreeForm extends UploadFamilyTreeForm
         $id = (int)$_GET['avatar'];
 
         echo '
-            <script type="text/javascript" src="ui/js/scriptaculous.js"></script>
+            <link rel="stylesheet" href="ui/js/jqueryui/jquery-ui.min.css">
+            <link rel="stylesheet" href="ui/js/jqueryui/jquery-ui.theme.min.css">
+            <link rel="stylesheet" href="inc/thirdparty/plupload/js/jquery.ui.plupload/css/jquery.ui.plupload.css">
+            <script type="text/javascript" src="ui/js/jqueryui/jquery-ui.min.js"></script>
             <script type="text/javascript" src="inc/thirdparty/plupload/js/plupload.full.min.js"></script>
+            <script type="text/javascript" src="inc/thirdparty/plupload/js/jquery.ui.plupload/jquery.ui.plupload.min.js"></script>
 <script>
-Event.observe(window, "load", function() {
-    var uploader = new plupload.Uploader({
-        runtimes            : "gears,html5,flash,silverlight,browserplus",
-        browse_button       : "choose_photos",
-        container           : "plupload_container",
-        url                 : "familytree.php?advanced_avatar='.$id.'",
-        flash_swf_url       : "inc/thirdparty/plupload/js/plupload.flash.swf",
-        silverlight_xap_url : "inc/thirdparty/plupload/js/plupload.silverlight.xap",
-        multi_selection     : false,
-        filters             : [
-            {title : "Image files", extensions : "jpg,jpeg,gif,png"},
+$(document).ready(function() {
+    $("#uploader").plupload({
+
+        runtimes        : "html5,flash,silverlight,html4",
+        url             : "familytree.php?advanced_avatar='.$id.'",
+        max_file_size   : "100mb",
+        multi_selection : false,
+
+        buttons: {
+            "start" : false,
+        },
+ 
+        multipart_params: {
+            "plupload" : "1",
+        },
+ 
+        filters : [
+            {title : "Image files", extensions : "jpg,jpeg,gif,png"}
         ],
-        resize              : { width: 80, height: 80, quality: 90, crop: true }
+
+        resize : {
+            width: 80,
+            height: 80,
+            quality: 90,
+            crop: true
+        },
+ 
+        // Sort files
+        sortable: true,
+ 
+        // Views to activate
+        views: {
+            list   : false,
+            thumbs : true,
+            active : "thumbs"
+        },
+ 
+        // Flash settings
+        flash_swf_url : "../inc/thirdparty/plupload/js/Moxie.swf",
+     
+        // Silverlight settings
+        silverlight_xap_url : "../inc/thirdparty/plupload/js/Moxie.xap",
+
+        init : {
+            FilesAdded: function(up, files) {
+                while (up.files.length > 1) {
+                    up.removeFile(up.files[0]);
+                }
+            },
+
+            FileUploaded: function(up, file, info) {
+                window.location.href = "familytree.php";
+            }
+        }
     });
 
-    $("submitUpload").observe("click", function(e) {
-        e.preventDefault();
+    $("#frm").submit(function(event) {
+        event.preventDefault();
 
+        var uploader = $("#uploader").plupload("getUploader");
         uploader.settings.multipart_params = {
-            "avatar_orig" : $F("avatar_orig"),
+            "avatar_orig" : $("#avatar_orig").val()
         };
 
-        uploader.start();
-    });
-
-    uploader.init();
- 
-    uploader.bind("FilesAdded", function(up, files) {
-        if (uploader.files.length > 1) {
-            uploader.files.each(function(file) {
-                uploader.removeFile(file);
-                $("file").firstDescendant().remove();
-                throw $break;
-            });
-        }
-
-        files.each(function(file) {
-            var li = document.createElement("li");
-            $("file").appendChild(li);
-
-            $(li).insert({
-                bottom:   "<div id=\"" + file.id + "\">" + file.name + " (" + plupload.formatSize(file.size) + ")<span></span></div>"
-            });
-        });
- 
-        up.refresh(); // Reposition Flash/Silverlight
-    });
-
-    uploader.bind("UploadProgress", function(up, file) {
-        $(file.id).firstDescendant().insert({
-            bottom : file.percent
-        });
-    });
- 
-    uploader.bind("Error", function(up, err) {
-        $("file").insert({
-            after : "<div style=\"color:red\">Error: " + err.code + ", Message: " + err.message + (err.file ? ", File: " + err.file.name : "") + "</div>"
-        });
- 
-        up.refresh(); // Reposition Flash/Silverlight
-    });
- 
-    uploader.bind("FileUploaded", function(up, file) {
-        window.location.href = "familytree.php";
+        $("#uploader").plupload("start");
     });
 });
 </script>
                             <div class="field-label">&nbsp;</div>
                             <div id="plupload_container" class="field-widget">
-                                <a id="choose_photos" class="sub1" href="#">'.T_('Choose Avatar').'</a>
-                                <ul id="file"></ul>
+                                <div id="uploader"></div>
                                 <input type="hidden" id="avatar_orig" name="avatar_orig" value="'.cleanOutput($this->data['avatar']).'"/><br/>
                             </div>';
     }
