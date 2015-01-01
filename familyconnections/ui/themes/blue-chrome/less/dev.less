@@ -121,6 +121,62 @@
     line-height: @lineHeight;
 }
 
+
+// viewtable - Addressbook and Member table
+.viewtable-leftcolumn() {
+    margin: 0;
+    width: 205px;
+}
+.viewtable-ul {
+    font: 12px/16px @baseFontFamily;
+    list-style: none;
+    margin: 0;
+    padding: 5px 0 30px 5px;
+}
+.viewtable-ul-a() {
+    color: #000;
+    display: block;
+    font-weight: normal;
+    padding: 5px;
+}
+.viewtable-ul-a-hover() {
+    background-color: #e8f5fb;
+}
+.viewtable-ul-a-selected() {
+    font-weight: bold;
+    background-color: #cee9f5;
+}
+.viewtable-table() {
+    border: 5px solid #cee9f5;
+    font: 12px/16px @baseFontFamily;
+    width: 100%;
+}
+.viewtable-table-th() {
+    background-color: #cee9f5;
+    padding: 15px;
+}
+.viewtable-table-header-td() {
+    color: #999;
+}
+.viewtable-table-td() {
+    border-bottom: 1px solid #ddd;
+    height: 30px;
+    padding: 5px 0;
+}
+.viewtable-table-td-chk() {
+    text-align: center;
+    width: 30px;
+}
+.viewtable-table-row-hover() {
+    background-color: #e8f5fb;
+    cursor: pointer;
+    cursor: hand;
+}
+.viewtable-table-header-row-hover() {
+    background-color: #fff;
+    cursor: default;
+}
+
 // RESET
 // --------------------------------------------------
 
@@ -2281,23 +2337,46 @@ h3.coming i {
 
 /* =MEMBERS
 ------------------------------------------------*/
-#memberlist {
-    .clearfix();
-    margin: 0;
-    padding: 0;
+#members #leftcolumn {
+    .viewtable-leftcolumn();
 }
-#memberlist li {
-    font: 11px/13px Arial, sans-serif;
-    float: left;
-    list-style: none;
-    height: 140px;
-    margin: 20px;
-    text-align: center;
-    width: 110px;
+#members #leftcolumn ul {
+    .viewtable-ul();
 }
-#memberlist li a.avatar { margin: 0 10px; }
-#memberlist li a { color: #000; }
-#memberlist li a:hover { background-color: transparent; }
+#members #leftcolumn ul li a {
+    .viewtable-ul-a();
+}
+#members #leftcolumn ul li a:hover {
+    .viewtable-ul-a-hover();
+}
+#members #leftcolumn ul li.selected a {
+    .viewtable-ul-a-selected();
+}
+#members table {
+    .viewtable-table();
+}
+#members table th {
+    .viewtable-table-th();
+}
+#members table tr.header td {
+    .viewtable-table-header-td();
+}
+#members table td {
+    .viewtable-table-td();
+}
+#members table td a.avatar img {
+    height: 40px;
+    margin: 5px 0 0 10px;
+    width: 40px;
+}
+#members table tbody tr:hover {
+    .viewtable-table-row-hover();
+    cursor: default;
+}
+#members table tbody tr.header:hover {
+    .viewtable-table-header-row-hover();
+}
+
 
 
 /* =PROFILE
@@ -2732,6 +2811,7 @@ fieldset #msg {
     color: #000;
 }
 .tree li div.person a.view,
+.tree li div.person a.delete,
 .tree li div.person a.edit,
 .tree li div.person a.add {
     border: 0;
@@ -2753,12 +2833,16 @@ fieldset #msg {
     left: 5px;
     background: transparent url(../img/view.png) top left no-repeat;
 }
-.tree li div.person a.edit {
+.tree li div.person a.delete {
     top: 5px;
+    background: transparent url(../img/delete.gif) top left no-repeat;
+}
+.tree li div.person a.edit {
+    top: 25px;
     background: transparent url(../img/edit.gif) top left no-repeat;
 }
 .tree li div.person a.add {
-    top: 25px;
+    top: 45px;
     background: transparent url(../img/add.gif) top left no-repeat;
 }
 .tree li div.person a:hover {
@@ -2888,6 +2972,63 @@ fieldset #msg {
     }
 }
 
+#add_relative_menu {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    .box-shadow(5px 5px 10px rgba(0,0,0,.1));
+    height: 200px;
+    left: 50%;
+    list-style-type: none;
+    margin: -100px 0 0 -179px;
+    overflow: auto;
+    padding: 10px;
+    position: fixed;
+    top: 40%;
+    width: 358px;
+    z-index: 999;
+
+    li {
+        float: left;
+        margin: 10px;
+        width: 150px;
+
+        &.close {
+            float: none;
+            font-size: 12px;
+            line-height: 12px;
+            padding: 2px;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: auto;
+
+            &:hover {
+                color: #fff;
+                cursor: pointer;
+                cursor: hand;
+                background-color: red;
+            }
+        }
+        &.header {
+            float: none;
+            font-size: 12px;
+            font-weight: bold;
+            width: auto;
+        }
+        a {
+            background-color: @baseColor;
+            border: 1px solid @baseColorDark;
+            display: block;
+            font-size: 12px;
+            padding: 5px 0;
+            text-align: center;
+        }
+        a:hover {
+            background-color: @baseColorDark;
+            color: #fff;
+        }
+    }
+}
 /* Edit Person Form */
 #content .relationship-form {
     .cols {

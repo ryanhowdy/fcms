@@ -1,3 +1,9 @@
+.viewtable-ul {
+  font: 12px/16px Arial, Helvetica, sans-serif;
+  list-style: none;
+  margin: 0;
+  padding: 5px 0 30px 5px;
+}
 article,
 aside,
 details,
@@ -2816,36 +2822,60 @@ h3.coming i {
 }
 /* =MEMBERS
 ------------------------------------------------*/
-#memberlist {
-  *zoom: 1;
+#members #leftcolumn {
   margin: 0;
-  padding: 0;
+  width: 205px;
 }
-#memberlist:before,
-#memberlist:after {
-  display: table;
-  content: "";
-}
-#memberlist:after {
-  clear: both;
-}
-#memberlist li {
-  font: 11px/13px Arial, sans-serif;
-  float: left;
+#members #leftcolumn ul {
+  font: 12px/16px Arial, Helvetica, sans-serif;
   list-style: none;
-  height: 140px;
-  margin: 20px;
-  text-align: center;
-  width: 110px;
+  margin: 0;
+  padding: 5px 0 30px 5px;
 }
-#memberlist li a.avatar {
-  margin: 0 10px;
-}
-#memberlist li a {
+#members #leftcolumn ul li a {
   color: #000;
+  display: block;
+  font-weight: normal;
+  padding: 5px;
 }
-#memberlist li a:hover {
-  background-color: transparent;
+#members #leftcolumn ul li a:hover {
+  background-color: #e8f5fb;
+}
+#members #leftcolumn ul li.selected a {
+  font-weight: bold;
+  background-color: #cee9f5;
+}
+#members table {
+  border: 5px solid #cee9f5;
+  font: 12px/16px Arial, Helvetica, sans-serif;
+  width: 100%;
+}
+#members table th {
+  background-color: #cee9f5;
+  padding: 15px;
+}
+#members table tr.header td {
+  color: #999;
+}
+#members table td {
+  border-bottom: 1px solid #ddd;
+  height: 30px;
+  padding: 5px 0;
+}
+#members table td a.avatar img {
+  height: 40px;
+  margin: 5px 0 0 10px;
+  width: 40px;
+}
+#members table tbody tr:hover {
+  background-color: #e8f5fb;
+  cursor: pointer;
+  cursor: hand;
+  cursor: default;
+}
+#members table tbody tr.header:hover {
+  background-color: #fff;
+  cursor: default;
 }
 /* =PROFILE
 ------------------------------------------------*/
@@ -3413,6 +3443,7 @@ fieldset #msg {
   color: #000;
 }
 .tree li div.person a.view,
+.tree li div.person a.delete,
 .tree li div.person a.edit,
 .tree li div.person a.add {
   border: 0;
@@ -3434,12 +3465,16 @@ fieldset #msg {
   left: 5px;
   background: transparent url(../img/view.png) top left no-repeat;
 }
-.tree li div.person a.edit {
+.tree li div.person a.delete {
   top: 5px;
+  background: transparent url(../img/delete.gif) top left no-repeat;
+}
+.tree li div.person a.edit {
+  top: 25px;
   background: transparent url(../img/edit.gif) top left no-repeat;
 }
 .tree li div.person a.add {
-  top: 25px;
+  top: 45px;
   background: transparent url(../img/add.gif) top left no-repeat;
 }
 .tree li div.person a:hover {
@@ -3563,6 +3598,62 @@ fieldset #msg {
   text-align: center;
 }
 #familytree-page #types li a:hover {
+  background-color: #3e8ec1;
+  color: #fff;
+}
+#add_relative_menu {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  -webkit-box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
+  height: 200px;
+  left: 50%;
+  list-style-type: none;
+  margin: -100px 0 0 -179px;
+  overflow: auto;
+  padding: 10px;
+  position: fixed;
+  top: 40%;
+  width: 358px;
+  z-index: 999;
+}
+#add_relative_menu li {
+  float: left;
+  margin: 10px;
+  width: 150px;
+}
+#add_relative_menu li.close {
+  float: none;
+  font-size: 12px;
+  line-height: 12px;
+  padding: 2px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: auto;
+}
+#add_relative_menu li.close:hover {
+  color: #fff;
+  cursor: pointer;
+  cursor: hand;
+  background-color: red;
+}
+#add_relative_menu li.header {
+  float: none;
+  font-size: 12px;
+  font-weight: bold;
+  width: auto;
+}
+#add_relative_menu li a {
+  background-color: #bfd8e7;
+  border: 1px solid #3e8ec1;
+  display: block;
+  font-size: 12px;
+  padding: 5px 0;
+  text-align: center;
+}
+#add_relative_menu li a:hover {
   background-color: #3e8ec1;
   color: #fff;
 }
