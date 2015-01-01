@@ -134,9 +134,11 @@ class Page
     /**
      * displayHeader 
      * 
+     * @param array $options 
+     * 
      * @return void
      */
-    function displayHeader ()
+    function displayHeader ($options = null)
     {
         $params = array(
             'currentUserId' => $this->fcmsUser->id,
@@ -149,20 +151,7 @@ class Page
             'version'       => getCurrentVersion(),
         );
 
-        $params['javascript'] = '
-<script type="text/javascript" src="ui/js/tablesort.js"></script>
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
-    initAddressBookClickRow();
-    initCheckAll(\''.T_("Select All").'\');
-    deleteConfirmationLink("del_address", "'.T_('Are you sure you want to DELETE this address?').'");
-});
-//]]>
-</script>';
-
-        loadTemplate('global', 'header', $params);
+        displayPageHeader($params, $options);
     }
 
     /**
@@ -713,7 +702,9 @@ Event.observe(window, \'load\', function() {
      */
     function displayAddress ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array('jsOnload' => 'deleteConfirmationLink("del_address", "'.T_('Are you sure you want to DELETE this address?').'");')
+        );
 
         $address = (int)$_GET['address'];
         $cat     = 'all';
@@ -753,7 +744,9 @@ Event.observe(window, \'load\', function() {
      */
     function displayAddressList ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array('jsOnload' => 'initCheckAll("'.T_('Select All').'"); initAddressBookClickRow();')
+        );
 
         $cat = 'members';
 

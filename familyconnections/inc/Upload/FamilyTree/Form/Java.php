@@ -85,14 +85,14 @@ class JavaUploadFamilyTreeForm extends UploadFamilyTreeForm
                                 </applet>
                                 <input type="hidden" id="avatar_orig" name="avatar_orig" value="'.cleanOutput($this->data['avatar']).'"/><br/>
                                 <script type="text/javascript">
-                                Event.observe(window, "load", function() {
-                                    Event.observe("submitUpload","click",function(e){
-                                        e.preventDefault();
+                                $(document).ready(function() {
+                                    $("#frm").submit(function(event) {
+                                        event.preventDefault();
 
                                         var uploader = document.jumpLoaderApplet.getUploader();
                                         var attrSet  = uploader.getAttributeSet();
 
-                                        var origAttr = attrSet.createStringAttribute("avatar_orig", $F("avatar_orig"));
+                                        var origAttr = attrSet.createStringAttribute("avatar_orig", $("#avatar_orig").val());
                                         origAttr.setSendToServer(true);
 
                                         uploader.startUpload();

@@ -1821,18 +1821,10 @@ class PhotoGallery
             $categories  = $this->getUserCategories($photo_user);
             $cat_options = buildHtmlSelectOptions($categories, $cat_id);
 
-            $advanced_tagging = usingAdvancedTagging($photo_user);
-
             $prev_tagged = array();
             $members     = array();
 
             $autocomplete_selected = '';
-            $prev_tagged_options   = '';
-
-            // Setup the photo tagging options (autocomplete or checkbox)
-            $tagging_options = '';
-            $users_list      = '';
-            $users_lkup      = '';
 
             // Setup the list of users already tagged
             $sql = "SELECT `id`, `user` 
@@ -1854,7 +1846,8 @@ class PhotoGallery
             // Setup the list of active members for possible tags
             $sql = "SELECT `id` 
                     FROM `fcms_users` 
-                    WHERE `activated` > 0";
+                    WHERE `activated` > 0
+                    ORDER BY `fname`, `lname`";
 
             $rows = $this->fcmsDatabase->getRows($sql, $photo);
             if ($rows === false)
@@ -1863,86 +1856,31 @@ class PhotoGallery
                 return;
             }
 
+            $autocompleteList = '';
             foreach ($rows as $r)
             {
-                $members[$r['id']] = getUserDisplayName($r['id'], 2);
+                $name = cleanOutput(getUserDisplayName($r['id'], 2));
+
+                $autocompleteList .= '{ data: "'.$r['id'].'", value: "'.$name.'" }, ';
+
+                $members[$r['id']] = $name;
             }
-            asort($members);
+            $autocompleteList = substr($autocompleteList, 0, -2); // remove the extra comma space at the end
 
             // handle previously tagged members
             if (count($prev_tagged) > 0)
             {
                 foreach ($prev_tagged as $id => $name)
                 {
-                    $prev_tagged_options .= '<input type="hidden" name="prev_tagged_users[]" value="'.$id.'"/>';
-                    if ($advanced_tagging) {
-                        $prev_tagged_options .= '<input type="hidden" name="tagged[]" class="tagged" value="'.$id.'"/>';
-                    }
-                    $autocomplete_selected .= '<li>'.$members[$id].'<a href="#" alt="'.$id.'" onclick="removeTagged()">x</a></li>';
+                    $prev_tagged_options   .= '<input type="hidden" name="prev_tagged_users[]" value="'.$id.'"/>';
+                    $prev_tagged_options   .= '<input type="hidden" name="tagged[]" class="tagged" value="'.$id.'"/>';
+                    $autocomplete_selected .= '<li>'.$members[$id].'<a href="#" alt="'.$id.'" onclick="removeTagged(this)">x</a></li>';
                 }
             }
-            
 
-            // Advanced (autocomplete)
-            if ($advanced_tagging)
-            {
-                foreach ($members as $key => $value)
-                {
-                    $users_list .= '"'.$key.': '.cleanOutput($value).'", ';
-                    $users_lkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
-                }
-
-                $users_list = substr($users_list, 0, -2); // remove the extra comma space at the end
-
-                $tagging_options = '
-                                <input type="text" id="autocomplete_input" class="frm_text autocomplete_input" 
-                                    autocomplete="off" size="50" tabindex="3"/>
-                                <div id="autocomplete_instructions" class="autocomplete_instructions">
-                                    '.T_('Type name of person...').'
-                                </div>
-                                <ul id="autocomplete_selected" class="autocomplete_selected"></ul>
-                                <div id="autocomplete_search" class="autocomplete_search" style="display:none"></div>
-                                <script type="text/javascript">
-                                //<![CDATA[
-                                Event.observe(window, "load", function() {
-                                    var users_list = [ '.$users_list.' ];
-                                    var users_lkup = new Array();
-                                    '.$users_lkup.'
-                                    new Autocompleter.Local(
-                                        "autocomplete_input", "autocomplete_search", users_list, {
-                                            fullSearch: true,
-                                            partialChars: 1,
-                                            updateElement: newUpdateElement
-                                        }
-                                    );
-                                    initPreviouslyTagged(users_lkup);
-                                });
-                                //]]>
-                                </script>';
-            }
-            // Basic (checkbox)
-            else
-            {
-                $tag_checkboxes = '';
-                foreach ($members as $key => $value)
-                {
-                    $check = isset($prev_tagged[$key]) ? 'checked="checked"' : '';
-
-                    $tag_checkboxes .= '<label for="'.$key.'">';
-                    $tag_checkboxes .= '<input type="checkbox" id="'.cleanOutput($key).'" 
-                        name="tagged[]"  value="'.cleanOutput($key).'" '.$check.'/> '.$value;
-                    $tag_checkboxes .= '</label>';
-                }
-                $tagging_options = '
-                                <div class="multi-checkbox">
-                                    '.$tag_checkboxes.'
-                                </div>';
-            }
-            
             // Display the form
             echo '
                 <fieldset>
-                    <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
                     <legend><span>'.T_('Edit Photo').'</span></legend>
                     <img class="thumbnail" src="'.$photoSrc.'"/>
                     <form id="autocomplete_form" enctype="multipart/form-data" action="index.php?'.$url.'" method="post">
@@ -1963,7 +1901,37 @@ class PhotoGallery
                         <div class="field-row">
                             <div class="field-label"><label><b>'.T_('Who is in this Photo?').'</b></label></div>
                             <div class="field-widget">
-                                '.$tagging_options.'
+                                <input type="text" id="autocomplete_input" class="frm_text autocomplete_input" 
+                                    autocomplete="off" size="50" tabindex="3"/>
+                                <div id="autocomplete_instructions" class="autocomplete_instructions">
+                                    '.T_('Type name of person...').'
+                                </div>
+                                <ul id="autocomplete_selected" class="autocomplete_selected">
+                                    '.$autocomplete_selected.'
+                                </ul>
+                                <div id="autocomplete_search" class="autocomplete_search" style="display:none"></div>
+                                <script type="text/javascript">
+                                $(document).ready(function() {
+                                    var users = [ '.$autocompleteList.' ];
+                                    $("#autocomplete_input").autocomplete({
+                                        lookup: users,
+                                        showNoSuggestionNotice: true,
+                                        noSuggestionNotice: "'.T_('No users found').'",
+                                        tabDisabled: true,
+                                        onSelect: function (suggestion) {
+                                            $("#autocomplete_instructions").hide();
+                                            $("#autocomplete_form").append(
+                                                "<input type=\"hidden\" name=\"tagged[]\" class=\"tagged\" value=\"" + suggestion.data + "\">"
+                                            );
+                                            $("#autocomplete_input").val("").focus();
+                                            $("#autocomplete_selected").append(
+                                                "<li>" + suggestion.value + "<a href=\"#\" alt=\"" + suggestion.data + "\" "
+                                                    + "onclick=\"removeTagged(this);\">x</a></li>"
+                                            );
+                                        }
+                                    });
+                                });
+                                </script>
                             </div>
                         </div>
                         <p>
@@ -2002,13 +1970,6 @@ class PhotoGallery
         $displayDescription = isset($turnOff['description']) ? false : true;
         $displayCaption     = isset($turnOff['caption'])     ? false : true;
         $displayTag         = isset($turnOff['tag'])         ? false : true;
-
-        $members = getActiveMemberIdNameLookup();
-        if ($members === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
 
         // Get photos in category
         $sql = "SELECT u.`id` AS uid, p.`category` AS cid, p.`id` AS pid, p.`caption`, 
@@ -2075,22 +2036,24 @@ class PhotoGallery
         }
 
         // Setup some vars for js tagging
-        $usersList = '';
-        $usersLkup = '';
-        foreach ($members as $key => $value)
+        $members = getActiveMemberIdNameLookup();
+        if ($members === false)
         {
-            $usersList .= '"'.$key.': '.cleanOutput($value).'", ';
-            $usersLkup .= 'users_lkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
+            $this->fcmsError->displayError();
+            return;
         }
 
-        $usersList = substr($usersList, 0, -2); // remove the extra comma space at the end
+        $autocompleteList = '';
+        foreach ($members as $key => $value)
+        {
+            $autocompleteList .= '{ data: "'.$key.'", value: "'.cleanOutput($value).'" }, ';
+        }
+        $autocompleteList = substr($autocompleteList, 0, -2); // remove the extra comma space at the end
 
-        $tabIndex        = 1;
-        $jsAutocompleter = '';
+        $tabIndex = 1;
 
         // Display the form
         echo '
-                <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
                 <form id="autocomplete_form" class="edit-category-form" action="index.php?uid='.$user.'&amp;cid='.$category.'" method="post">
                     <fieldset>
                         <legend><span>'.$photos[0]['category'].'</span></legend>';
@@ -2104,6 +2067,8 @@ class PhotoGallery
                         </p>';
             $tabIndex++;
         }
+
+        $previouslyTaggedInputs = '';
 
         // Loop over each photo
         foreach ($photos as $row)
@@ -2138,45 +2103,58 @@ class PhotoGallery
                 $tabIndex++;
             }
 
-            $previouslyTaggedOptions = '';
-            $taggingOptions          = '';
+            $previouslySelected     = '';
 
             if ($displayTag)
             {
                 if (isset($previouslyTaggedMembers[$row['pid']]))
                 {
-                    foreach ($previouslyTaggedMembers[$row['pid']] as $id)
+                    foreach ($previouslyTaggedMembers[$row['pid']] as $id => $val)
                     {
-                        $previouslyTaggedOptions .= '<input type="hidden" name="prev_tagged_users['.$row['pid'].'][]" value="'.$id.'"/>';
-                        $previouslyTaggedOptions .= '<input type="hidden" id="tagged_'.$row['pid'].'" name="tagged['.$row['pid'].'][]" class="tagged" value="'.$id.'"/>';
+                        $previouslyTaggedInputs .= '<input type="hidden" name="prev_tagged_users['.$row['pid'].'][]" value="'.$id.'"/>';
+                        $previouslyTaggedInputs .= '<input type="hidden" id="tagged_'.$row['pid'].'" name="tagged['.$row['pid'].'][]" class="tagged" value="'.$id.'"/>';
+
+                        $previouslySelected .= '<li>'.cleanOutput($members[$id]).'<a href="#" alt="'.$id.'" onclick="removeTagged(this)">x</a></li>';
                     }
                 }
-
-                $taggingOptions .= '
-                            <input type="text" id="autocomplete_input_'.$row['pid'].'" class="frm_text autocomplete_input" 
-                                autocomplete="off" tabindex="'.$tabIndex.'" size="50"/>
-                            <div id="autocomplete_instructions_'.$row['pid'].'" class="autocomplete_instructions">
-                                '.T_('Type name of person...').'
-                            </div>
-                            <ul id="autocomplete_selected_'.$row['pid'].'" class="autocomplete_selected"></ul>
-                            <div id="autocomplete_search_'.$row['pid'].'" class="autocomplete_search" style="display:none"></div>';
-                $jsAutocompleter .= '
-                    new Autocompleter.Local(
-                        "autocomplete_input_'.$row['pid'].'", "autocomplete_search_'.$row['pid'].'", users_list, {
-                            fullSearch: true,
-                            partialChars: 1,
-                            updateElement: newMultiUpdateElement
-                        }
-                    );
-                    initMultiPreviouslyTagged('.$row['pid'].', users_lkup);';
 
                 $tabIndex++;
 
                 echo '
                             <div>
                                 '.T_('Who is in this Photo?').'<br/>
-                                '.$taggingOptions.'
-                                '.$previouslyTaggedOptions.'
+                                <input type="text" id="autocomplete_input_'.$row['pid'].'" class="frm_text autocomplete_input" 
+                                    autocomplete="off" tabindex="'.$tabIndex.'" size="50"/>
+                                <div id="autocomplete_instructions_'.$row['pid'].'" class="autocomplete_instructions">
+                                    '.T_('Type name of person...').'
+                                </div>
+                                <ul id="autocomplete_selected_'.$row['pid'].'" class="autocomplete_selected">
+                                    '.$previouslySelected.'
+                                </ul>
+                                <div id="autocomplete_search_'.$row['pid'].'" class="autocomplete_search" style="display:none"></div>
+                                <script type="text/javascript">
+                                $(document).ready(function() {
+                                    var users = [ '.$autocompleteList.' ];
+                                    $("#autocomplete_input_'.$row['id'].'").autocomplete({
+                                        lookup: users,
+                                        showNoSuggestionNotice: true,
+                                        noSuggestionNotice: "'.T_('No users found').'",
+                                        tabDisabled: true,
+                                        onSelect: function (suggestion) {
+                                            $("#autocomplete_instructions_'.$row['pid'].'").hide();
+                                            $("#autocomplete_form").append(
+                                                "<input type=\"hidden\" id=\"tagged_'.$row['pid'].'\" name=\"tagged['.$row['pid'].'][]\""
+                                                    + " class=\"tagged\" value=\"" + suggestion.data + "\">"
+                                            );
+                                            $("#autocomplete_input_'.$row['pid'].'").val("").focus();
+                                            $("#autocomplete_selected_'.$row['pid'].'").append(
+                                                "<li>" + suggestion.value + "<a href=\"#\" alt=\"" + suggestion.data + "\" "
+                                                    + "onclick=\"removeTagged(this);\">x</a></li>"
+                                            );
+                                        }
+                                    });
+                                });
+                                </script>
                             </div><br/>';
             }
 
@@ -2189,27 +2167,23 @@ class PhotoGallery
 
         echo '
                         <p>
+                            '.$previouslyTaggedInputs.'
                             <input class="sub1" type="submit" name="save-edit-category" id="save-edit-category" tabindex="'.$tabIndex.'" value="'.T_('Save').'"/> 
                             '.T_('or').' 
                             <a href="index.php?uid='.$user.'&amp;cid='.$category.'">'.T_('Cancel').'</a>
                         </p>
                     </fieldset>
-                </form>';
-
-        if ($displayTag)
-        {
-            echo '
+                </form>
                 <script type="text/javascript">
-                //<![CDATA[
-                Event.observe(window, "load", function() {
-                    var users_list = [ '.$usersList.' ];
-                    var users_lkup = new Array();
-                    '.$usersLkup.'
-                    '.$jsAutocompleter.'
+                $(document).ready(function() {
+                    $(window).keydown(function(event){
+                        if(event.keyCode == 13) {
+                            event.preventDefault();
+                            return false;
+                        }
+                    });
                 });
-                //]]>
                 </script>';
-        }
     }
 
     /**

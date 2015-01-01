@@ -83,18 +83,18 @@ class JavaUploadProfileForm extends UploadProfileForm
                                 </applet>
                                 <input type="hidden" id="avatar_orig" name="avatar_orig" value="'.cleanOutput($this->data['avatar']).'"/><br/>
                                 <script type="text/javascript">
-                                Event.observe(window, "load", function() {
-                                    Event.observe("submit-avatar","click",function(e){
-                                        if ($F("avatar_type") == "fcms") {
-                                            e.preventDefault();
+                                $(document).ready(function() {
+                                    $("#frm").submit(function(event) {
+                                        if ($("#avatar_type").val() == "fcms") {
+                                            event.preventDefault();
 
                                             var uploader = document.jumpLoaderApplet.getUploader();
                                             var attrSet  = uploader.getAttributeSet();
 
-                                            var typeAttr = attrSet.createStringAttribute("avatar_type", $F("avatar_type"));
+                                            var typeAttr = attrSet.createStringAttribute("avatar_type", $("#avatar_type").val());
                                             typeAttr.setSendToServer(true);
 
-                                            var origAttr = attrSet.createStringAttribute("avatar_orig", $F("avatar_orig"));
+                                            var origAttr = attrSet.createStringAttribute("avatar_orig", $("#avatar_orig").val());
                                             origAttr.setSendToServer(true);
 
                                             uploader.startUpload();

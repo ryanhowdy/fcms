@@ -152,7 +152,7 @@ var ajaxChat = {
 
 	initDirectories: function() {
 		this.dirs = new Object();
-		this.dirs['emoticons'] 	= this.baseURL+'../../ui/smileys/';
+		this.dirs['emoticons'] 	= this.baseURL+'../../ui/img/smileys/';
 		this.dirs['sounds']		= this.baseURL+'sounds/';
 		this.dirs['flash']		= this.baseURL+'flash/';
 	},

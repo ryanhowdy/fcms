@@ -1131,6 +1131,7 @@ class AdminMembers
         $from = (($page * $perPage) - $perPage);
 
         $view = 'members';
+        $url  = '?view=members';
 
         $allActive     = '';
         $membersActive = '';
@@ -1141,11 +1142,13 @@ class AdminMembers
             if ($_GET['view'] == 'all')
             {
                 $view      = 'all';
+                $url       = '?view=all';
                 $allActive = 'active';
             }
             elseif ($_GET['view'] == 'non')
             {
                 $view      = 'non';
+                $url       = '?view=non';
                 $nonActive = 'active';
             }
             else
@@ -1166,7 +1169,7 @@ class AdminMembers
                 <li class="'.$nonActive.'"><a href="?view=non">'.T_('Non-Members').'</a></li>
                 <li class="action"><a href="?create=member">'.T_('Create Member').'</a></li>
             </ul>
-            <form method="post" action="members.php" name="search_frm" id="search_frm">
+            <form method="post" action="members.php'.$url.'" name="search_frm" id="search_frm">
                 <div>
                     <input type="text" name="fname" id="fname" placeholder="'.T_('First Name').'" title="'.T_('First Name').'" value="'.cleanOutput($fname).'"/>
                     <input type="text" name="lname" id="lname" placeholder="'.T_('Last Name').'" title="'.T_('Last Name').'" value="'.cleanOutput($lname).'"/>
@@ -1176,7 +1179,7 @@ class AdminMembers
             </form>
             <p>&nbsp;</p>
             <form method="post" action="members.php">
-                <table class="sortable">
+                <table class="tablesorter">
                     <thead>
                         <tr>
                             <th>'.T_('ID').'</th>
@@ -1223,20 +1226,17 @@ class AdminMembers
 
         if ($view == 'members')
         {
-            $sql .= "WHERE `phpass` != 'NONMEMBER'
-                     AND `phpass` != 'PRIVATE'
-                     OR (
-                         `phpass` IS NULL
-                         AND `password` != 'NONMEMBER'
-                         AND `password` != 'PRIVATE'
+            $sql .= "WHERE (
+                        (`phpass` != 'NONMEMBER' AND `phpass` != 'PRIVATE')
+                         OR
+                        (`phpass` IS NULL AND `password` != 'NONMEMBER' AND `password` != 'PRIVATE')
                      ) ";
         }
         elseif ($view == 'non')
         {
-            $sql .= "WHERE `phpass` = 'NONMEMBER'
-                     OR (
-                        `phpass` IS NULL
-                        AND `password` = 'NONMEMBER'
+            $sql .= "WHERE (
+                        `phpass` = 'NONMEMBER'
+                        OR (`phpass` IS NULL AND `password` = 'NONMEMBER')
                      )";
         }
         

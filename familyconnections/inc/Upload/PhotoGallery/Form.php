@@ -38,7 +38,8 @@ class UploadPhotoGalleryForm
         // Setup the list of active members for possible tags
         $sql = "SELECT `id` 
                 FROM `fcms_users` 
-                WHERE `activated` > 0";
+                WHERE `activated` > 0
+                ORDER BY `fname`, `lname`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
         if ($rows === false)
@@ -47,26 +48,15 @@ class UploadPhotoGalleryForm
             return;
         }
 
+        $autocompleteList = '';
         foreach ($rows as $r)
         {
-            $members[$r['id']] = getUserDisplayName($r['id'], 2);
+            $autocompleteList .= '{ data: "'.$r['id'].'", value: "'.cleanOutput(getUserDisplayName($r['id'], 2)).'" }, ';
         }
-        asort($members);
-
-        $usersList = '';
-        $usersLkup = '';
-
-        foreach ($members as $key => $value)
-        {
-            $usersList .= '"'.$key.': '.cleanOutput($value).'", ';
-            $usersLkup .= 'usersLkup["'.$key.'"] = "'.cleanOutput($value).'"; ';
-        }
-
-        $usersList = substr($usersList, 0, -2); // remove the extra comma space at the end
+        $autocompleteList = substr($autocompleteList, 0, -2); // remove the extra comma space at the end
 
         // Display the form
         echo '
-            <script type="text/javascript" src="../ui/js/scriptaculous.js"></script>
             <form id="autocomplete_form" enctype="multipart/form-data" action="?action=upload" method="post" class="photo-uploader">
                 <div class="header">
                     <label>'.T_('Category').'</label>
@@ -98,17 +88,25 @@ class UploadPhotoGalleryForm
                             <ul id="autocomplete_selected" class="autocomplete_selected"></ul>
                             <div id="autocomplete_search" class="autocomplete_search" style="display:none"></div>
                             <script type="text/javascript">
-                            Event.observe(window, "load", function() {
-                                var usersList = [ '.$usersList.' ];
-                                var usersLkup = new Array();
-                                '.$usersLkup.'
-                                new Autocompleter.Local(
-                                    "autocomplete_input", "autocomplete_search", usersList, {
-                                        fullSearch: true,
-                                        partialChars: 1,
-                                        updateElement: newUpdateElement
+                            $(document).ready(function() {
+                                var users = [ '.$autocompleteList.' ];
+                                $("#autocomplete_input").autocomplete({
+                                    lookup: users,
+                                    showNoSuggestionNotice: true,
+                                    noSuggestionNotice: "'.T_('No users found').'",
+                                    tabDisabled: true,
+                                    onSelect: function (suggestion) {
+                                        $("#autocomplete_instructions").hide();
+                                        $("#autocomplete_form").append(
+                                            "<input type=\"hidden\" name=\"tagged[]\" class=\"tagged\" value=\"" + suggestion.data + "\">"
+                                        );
+                                        $("#autocomplete_input").val("").focus();
+                                        $("#autocomplete_selected").append(
+                                            "<li>" + suggestion.value + "<a href=\"#\" alt=\"" + suggestion.data + "\" "
+                                                + "onclick=\"removeTagged(this);\">x</a></li>"
+                                        );
                                     }
-                                );
+                                });
                             });
                             </script>
                         </div>
@@ -126,7 +124,7 @@ class UploadPhotoGalleryForm
                 </div>
             </form>
             <script type="text/javascript">
-            Event.observe("submit-photos","click",function(e) {
+            $("#submit-photos").click(function(e) {
             '.$this->getJsUploadValidation().'
             });
             </script>';
@@ -219,17 +217,17 @@ class UploadPhotoGalleryForm
     protected function getJsUploadValidation ()
     {
         return '
-                if ($("new-category").visible() && $F("new-category").empty()) {
-                    Event.stop(e);
-                    $("new-category").addClassName("LV_invalid_field");
-                    $("new-category").focus();
+                if ($("#new-category").is(":visible") && !($("#new-category").val())) {
+                    e.preventDefault();
+                    $("#new-category").addClass("LV_invalid_field");
+                    $("#new-category").focus();
                     return;
                 }
-                else if ($("existing-categories") != undefined && $("existing-categories").visible() && $F("existing-categories") <= 0)
+                else if ($("#existing-categories").is(":visible") && $("#existing-categories").val() == "0")
                 {
-                    Event.stop(e);
-                    $("existing-categories").addClassName("LV_invalid_field");
-                    $("existing-categories").focus();
+                    e.preventDefault();
+                    $("#existing-categories").addClass("LV_invalid_field");
+                    $("#existing-categories").focus();
                     return;
                 }';
     }

@@ -99,7 +99,7 @@ class Page
         // Delete Photo
         elseif (isset($_POST['deletephoto']))
         {
-            if (isset($_GET['confirmed']))
+            if (isset($_POST['confirmed']) || isset($_GET['confirmed']))
             {
                 $this->displayDeletePhotoSubmit();
             }
@@ -296,7 +296,9 @@ class Page
      */
     function displayEditPhotoForm ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array('modules' => array('autocomplete'))
+        );
         $this->fcmsPhotoGallery->displayEditPhotoForm($_POST['photo'], $_POST['url']);
         $this->displayFooter();
     }
@@ -584,6 +586,7 @@ class Page
     {
         $this->displayHeader(
             array(
+                'modules'  => array('autocomplete'),
                 'jsOnload' => 'hideUploadOptions(\''.T_('Rotate Photo').'\', \''.T_('Use Existing Category').'\', \''.T_('Create New Category').'\');',
             )
         );
@@ -694,7 +697,10 @@ class Page
         // Upload the photo
         if (!$photoGalleryUploader->upload($formData))
         {
-            header("HTTP/1.0 404 Not Found");
+            $error   = $photoGalleryUploader->fcmsUser->getError();
+            $message = $error['message']. ' - '.$error['details'];
+
+            die('{"jsonrpc" : "2.0", "error" : {"code": 500, "message": "'.$message.'"}, "id" : "id"}');
         }
     }
 
@@ -796,7 +802,7 @@ class Page
         }
 
         // We currently don't need a photo destination for Instagram
-        $photoDestination = new PhotoDestination($this->fcmsError, $this->fcmsUser);
+        $photoDestination = new Destination($this->fcmsError, $this->fcmsUser);
 
         // Figure out what type of photo gallery uploader we are using, and create new object
         $photoGalleryType     = getPhotoGallery();
@@ -1053,7 +1059,9 @@ class Page
      */
     function displayEditCategoryForm ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array('modules' => array('autocomplete'))
+        );
 
         $category = (int)$_GET['edit-category'];
         $user     = (int)$_GET['user'];
@@ -1167,7 +1175,9 @@ class Page
      */
     function displayMassTagForm ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array('modules' => array('autocomplete'))
+        );
 
         $category = (int)$_GET['tag'];
         $user     = (int)$_GET['user'];
@@ -1560,8 +1570,6 @@ class Page
             $_SESSION['picasa_photos'] = array();
             $_SESSION['picasa_user']   = $feed->getTitle()->text;
 
-            $photos .= '<input type="hidden" name="picasa_user" value="'.$_SESSION['picasa_user'].'"/>';
-
             $i = 1;
             foreach ($albumFeed as $photo)
             {
@@ -1614,6 +1622,13 @@ class Page
                 $photos .= '<script type="text/javascript">loadMorePicasaPhotos(26, "'.$token.'", "'.T_('Could not get additional photos.').'");</script>';
             }
         }
+
+        if ($i <= 1 && empty($photos))
+        {
+            $photos = '<p class="info-alert">'.T_('No photos were found in this album').'</p>';
+        }
+
+        $photos .= '<input type="hidden" name="picasa_user" value="'.$_SESSION['picasa_user'].'"/>';
 
         echo $photos;
     }
@@ -1675,6 +1690,16 @@ class Page
         $count = 0;
         foreach ($albumFeed as $photo)
         {
+            // Skip videos
+            $mediaContent = $photo->getMediaGroup()->getContent();
+            foreach ($mediaContent as $content)
+            {
+                if ($content->getMedium() == 'video')
+                {
+                    continue 2;
+                }
+            }
+
             $thumb = $photo->getMediaGroup()->getThumbnail();
 
             $sourceId  = $photo->getGphotoId()->text;
@@ -1787,7 +1812,9 @@ class Page
                     <a href="#" onclick="picasaSelectAll();" id="select-all">'.T_('Select All').'</a>
                     <a href="#" onclick="picasaSelectNone();" id="select-none">'.T_('Select None').'</a>
                 </div>
-                <ul id="photo_list"></ul>
-                <script language="javascript">loadPicasaPhotos("'.$token.'", "'.T_('Could not get photos.').'");</script>';
+                <script language="javascript">loadPicasaPhotoEvents("'.$token.'", "'.T_('Could not get photos.').'");</script>
+                <ul id="photo_list">
+                    <script language="javascript">loadPicasaPhotos("'.$token.'", "'.T_('Could not get photos.').'");</script>
+                </ul>';
     }
 }

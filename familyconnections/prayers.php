@@ -87,9 +87,11 @@ class Page
     /**
      * displayHeader 
      * 
+     * @param array $options 
+     * 
      * @return void
      */
-    function displayHeader ()
+    function displayHeader ($options = null)
     {
         $params = array(
             'currentUserId' => $this->fcmsUser->id,
@@ -103,26 +105,7 @@ class Page
             'year'          => date('Y')
         );
 
-        $params['javascript'] = '
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
-    if (!$$(\'.delform input[type="submit"]\')) { return; }
-    $$(\'.delform input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
-        var hid = document.createElement(\'input\');
-        hid.setAttribute(\'type\', \'hidden\');
-        hid.setAttribute(\'name\', \'confirmed\');
-        hid.setAttribute(\'value\', \'true\');
-        item.insert({\'after\':hid});
-    });
-    return true;
-});
-//]]>
-</script>';
-
-        loadTemplate('global', 'header', $params);
+        displayPageHeader($params, $options);
     }
 
     /**
@@ -148,10 +131,11 @@ Event.observe(window, \'load\', function() {
      */
     function displayAddForm ()
     {
-        $this->displayHeader();
+        $this->displayHeader(array(
+            'modules' => array('livevalidation'),
+        ));
 
         echo '
-            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form method="post" name="addform" action="prayers.php">
                 <fieldset>
                     <legend><span>'.T_('Add a Prayer Concern').'</span></legend>
@@ -265,14 +249,15 @@ Event.observe(window, \'load\', function() {
      */
     function displayEditForm ()
     {
-        $this->displayHeader();
+        $this->displayHeader(array(
+            'modules' => array('livevalidation'),
+        ));
 
         $id   = (int)$_POST['id'];
         $for  = cleanOutput($_POST['for']);
         $desc = $_POST['desc'];
 
         echo '
-            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form method="post" name="editform" action="prayers.php">
                 <fieldset>
                     <legend><span>'.T_('Edit Prayer Concern').'</span></legend>
@@ -398,7 +383,12 @@ Event.observe(window, \'load\', function() {
      */
     function displayPrayers ()
     {
-        $this->displayHeader();
+        $this->displayHeader(array(
+            'jsOnload' => '
+    $(\'.delform input[type="submit"]\').click(function(e) {
+        return confirmDeleteLink(this, "'.T_('Are you sure you want to DELETE this?').'", e);
+    });'
+        ));
 
         if (isset($_SESSION['success']))
         {

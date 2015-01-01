@@ -14,10 +14,11 @@ class EpiFoursquare
   protected $clientId, $clientSecret, $accessToken;
   protected $requestTokenUrl= 'https://foursquare.com/oauth2/authenticate';
   protected $accessTokenUrl = 'https://foursquare.com/oauth2/access_token';
-  protected $authorizeUrl   = 'https://foursquare.com/oauth/authorize';
+  protected $authorizeUrl   = 'https://foursquare.com/oauth2/authorize';
   protected $apiUrl         = 'https://api.foursquare.com';
   protected $userAgent      = 'EpiFoursquare (http://github.com/jmathai/foursquare-async/tree/)';
   protected $apiVersion     = 'v2';
+  protected $apiParams      = array('v' => '20131016');
   protected $isAsynchronous = false;
   protected $followLocation = false;
   protected $connectionTimeout = 5;
@@ -26,15 +27,9 @@ class EpiFoursquare
 
   public function getAccessToken($code, $redirectUri)
   {
-    $params = array(
-        'client_id'     => $this->clientId, 
-        'client_secret' => $this->clientSecret, 
-        'grant_type'    => 'authorization_code', 
-        'redirect_uri'  => $redirectUri, 
-        'code'          => $code
-    );
+    $params = array('client_id' => $this->clientId, 'client_secret' => $this->clientSecret, 'grant_type' => 'authorization_code', 'redirect_uri' => $redirectUri, 'code' => $code);
     $qs = http_build_query($params);
-    return $this->request('GET', "{$this->accessTokenUrl}", $params);
+	return $this->request('GET', "{$this->accessTokenUrl}", $params);
   }
 
   public function getAuthorizeUrl($redirectUri)
@@ -55,6 +50,11 @@ class EpiFoursquare
       $this->requestTimeout = floatval($requestTimeout);
     if($connectionTimeout !== null)
       $this->connectionTimeout = floatval($connectionTimeout);
+  }
+
+  public function setUserAgent($agent)
+  {
+    $this->userAgent = $agent;
   }
 
   public function useApiVersion($version = null)
@@ -100,6 +100,7 @@ class EpiFoursquare
 
   private function request($method, $endpoint, $params = null)
   {
+    $params = array_merge((array)$params, $this->apiParams);
     if(preg_match('#^https?://#', $endpoint))
       $url = $endpoint;
     else
@@ -118,6 +119,7 @@ class EpiFoursquare
     if($method === 'GET')
       $url .= is_null($params) ? '' : '?'.http_build_query($params, '', '&');
     $ch  = curl_init($url);
+    curl_setopt($ch, CURLOPT_USERAGENT, $this->userAgent);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, $this->requestTimeout);
@@ -170,28 +172,28 @@ class EpiFoursquareJson implements ArrayAccess, Countable, IteratorAggregate
   {
     return count($this->response);
   }
-  
+
   // Next four functions are to support ArrayAccess interface
   // 1
-  public function offsetSet($offset, $value) 
+  public function offsetSet($offset, $value)
   {
     $this->response[$offset] = $value;
   }
 
   // 2
-  public function offsetExists($offset) 
+  public function offsetExists($offset)
   {
     return isset($this->response[$offset]);
   }
-  
+
   // 3
-  public function offsetUnset($offset) 
+  public function offsetUnset($offset)
   {
     unset($this->response[$offset]);
   }
 
   // 4
-  public function offsetGet($offset) 
+  public function offsetGet($offset)
   {
     return isset($this->response[$offset]) ? $this->response[$offset] : null;
   }
@@ -232,12 +234,12 @@ class EpiFoursquareJson implements ArrayAccess, Countable, IteratorAggregate
   }
 }
 
-class EpiFoursquareException extends Exception 
+class EpiFoursquareException extends Exception
 {
   public static function raise($response, $debug)
   {
     $message = $response->data;
- 
+
     switch($response->code)
     {
       case 400:

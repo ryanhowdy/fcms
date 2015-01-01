@@ -79,15 +79,15 @@ class Page
         {
             $this->displayDeleteConfirmation();
         }
-        elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
+        elseif (isset($_POST['delnews']) && isset($_POST['confirmed']))
         {
             $this->displayDeleteSubmit();
         }
-        elseif (isset($_POST['delcom']) && !isset($_POST['comconfirmed']))
+        elseif (isset($_POST['delcom']) && !isset($_POST['confirmed']))
         {
             $this->displayDeleteCommentConfirmation();
         }
-        elseif (isset($_POST['delcomconfirm']) || isset($_POST['comconfirmed']))
+        elseif (isset($_POST['delcom']) && isset($_POST['confirmed']))
         {
             $this->displayDeleteCommentSubmit();
         }
@@ -117,7 +117,7 @@ class Page
      * 
      * @return void
      */
-    function displayHeader ()
+    function displayHeader ($options = null)
     {
         $params = array(
             'currentUserId' => $this->fcmsUser->id,
@@ -131,44 +131,7 @@ class Page
             'year'          => date('Y')
         );
 
-        $params['javascript'] = '
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
-    if (!$$(\'.delnews input[type="submit"]\')) { return; }
-    $$(\'.delnews input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
-        var hid = document.createElement(\'input\');
-        hid.setAttribute(\'type\', \'hidden\');
-        hid.setAttribute(\'name\', \'confirmed\');
-        hid.setAttribute(\'value\', \'true\');
-        item.insert({\'after\':hid});
-    });
-    if (!$$(\'.delcom input[type="submit"]\')) { return; }
-    $$(\'.delcom input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
-        var hid = document.createElement(\'input\');
-        hid.setAttribute(\'type\', \'hidden\');
-        hid.setAttribute(\'name\', \'comconfirmed\');
-        hid.setAttribute(\'value\', \'true\');
-        item.insert({\'after\':hid});
-    });
-    if ($(\'toolbar\')) {
-        $(\'toolbar\').removeClassName("hideme");
-    }
-    if ($(\'smileys\')) {
-        $(\'smileys\').removeClassName("hideme");
-    }
-    if ($(\'upimages\')) {
-        $(\'upimages\').removeClassName("hideme");
-    }
-    return true;
-});
-//]]>
-</script>';
-
-        loadTemplate('global', 'header', $params);
+        displayPageHeader($params, $options);
 
         if ($this->fcmsUser->access < 6 || $this->fcmsUser->access == 9)
         {
@@ -427,7 +390,7 @@ Event.observe(window, \'load\', function() {
                         <p><b><i>'.T_('This can NOT be undone').'</i></b></p>
                         <div>
                             <input type="hidden" name="id" value="'.(int)$_POST['id'].'"/>
-                            <input style="float:left;" type="submit" id="delcomconfirm" name="delcomconfirm" value="'.T_('Yes').'"/>
+                            <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
                             <a style="float:right;" href="familynews.php?getnews='.(int)$_GET['getnews'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
@@ -500,7 +463,17 @@ Event.observe(window, \'load\', function() {
      */
     function displayNews ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array(
+                'jsOnload' => '
+    $(\'.delnews input[type="submit"]\').click(function(e) {
+        return confirmDeleteLink(this, "'.T_('Are you sure you want to DELETE this?').'", e);
+    });
+    $(\'.delcom input[type="submit"]\').click(function(e) {
+        return confirmDeleteLink(this, "'.T_('Are you sure you want to DELETE this?').'", e);
+    });'
+            )
+        );
 
         $user = (int)$_GET['getnews'];
         $nid  = (int)$_GET['newsid'];

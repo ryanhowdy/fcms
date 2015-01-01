@@ -19,6 +19,9 @@ class FamilyTree
 
     private $count = 0;
 
+    public $memoryAvailable = 0;
+    public $hasEnoughMemory = true;
+
     /**
      * FamilyTree
      * 
@@ -33,6 +36,8 @@ class FamilyTree
         $this->fcmsError    = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
         $this->fcmsUser     = $fcmsUser;
+
+        $this->memoryAvailable = getMemoryLimitBytes();
 
         // Set the user's tree we are currently viewing
         if (isset($_GET['view']))
@@ -315,6 +320,15 @@ class FamilyTree
         $spouses = array_shift($data);
         $kids    = array_shift($data);
 
+        // Lets make sure we have enough memory for all this
+        $currentMemoryUsage  = memory_get_usage();
+        $currentMemoryUsage += 256000; // the standard php increment size
+        if ($currentMemoryUsage >= $this->memoryAvailable)
+        {
+            $this->hasEnoughMemory = false;
+            return;
+        }
+
         $thisSpouses = $this->getSpouses($parent, $spouses);
         $spouseCount = count($thisSpouses);
 
@@ -542,14 +556,15 @@ class FamilyTree
             $add  = '<a class="add" href="#'.$data['id'].'">'.T_('Add Family Member').'</a>';
             $del  = '<a class="delete" href="?delete='.$data['id'].'">'.T_('Delete All Relationships').'</a>';
             $del .= '<script type="text/javascript">';
-            $del .= '$$(\'a.delete\').each(function(item) {';
-            $del .= '    item.onclick = function() {';
+            $del .= '$(\'a.delete\').each(function() {';
+            $del .= '    var jqLink = $(this);';
+            $del .= '    jqLink.click(function() {';
             $del .= '        if (confirm(\''.T_('Are you sure you want to DELETE this?').'\')) {';
-            $del .= '            var url = item.href;';
+            $del .= '            var url = jqLink.attr("href");';
             $del .= '            window.location = url + "&confirm=1";';
             $del .= '        }';
             $del .= '        return false;';
-            $del .= '    };';
+            $del .= '    });';
             $del .= '});';
             $del .= '</script>';
         }
@@ -774,17 +789,17 @@ class FamilyTree
                 </div>
                 '.$validator->getJsValidation($this->getProfile('edit')).'
                 <script type="text/javascript">
-                    if ($F("sex") == "M") {
-                        $("maiden-name").hide();
+                    if ($("#sex").val() == "M") {
+                        $("#maiden-name").hide();
                     } else {
-                        $("maiden-name").show();
+                        $("#maiden-name").show();
                     }
 
-                    $("sex").observe("change", function() {
-                        if ($F("sex") == "M") {
-                            $("maiden-name").hide();
+                    $("#sex").change(function() {
+                        if ($("#sex").val() == "M") {
+                            $("#maiden-name").hide();
                         } else {
-                            $("maiden-name").show();
+                            $("#maiden-name").show();
                         }
                     });
                 </script>

@@ -1,10 +1,15 @@
 language: php
 php:
   - 5.2
+  - 5.3
+  - 5.4
+  - 5.5
 before_script:
+   - cp familyconnections/inc/config_inc_sample.php familyconnections/inc/config_inc.php
 #  - pear install --alldeps PHP_CodeSniffer
 #  - pear install pear.phpunit.de/phpcpd
 #  - phpenv rehash
 script:
+   - phpunit --bootstrap tests/bootstrap.php --verbose tests/.
 #  - phpcs -ns --extensions=php --report=summary --ignore=*/familyconnections/inc/thirdparty/*,*/familyconnections/inc/chat/* familyconnections/.
 #  - phpcpd ./

@@ -107,20 +107,17 @@ function displayHeader ()
 <head>
 <title>Family Connections '.T_('Installation').'</title>
 <link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css" />
-<script type="text/javascript" src="ui/js/prototype.js"></script>
+<script type="text/javascript" src="ui/js/jquery.js"></script>
 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
-<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>
+<link rel="stylesheet" type="text/css" href="ui/css/datechooser.css"/>
 <script type="text/javascript" src="ui/js/datechooser.js"></script>
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, "load", function() {
-    // Datechooser
+$(document).ready(function() {
     var objDatePicker = new DateChooser();
     objDatePicker.setUpdateField({"day":"j", "month":"n", "year":"Y"});
     objDatePicker.setIcon("ui/themes/default/img/datepicker.jpg", "year");
     return true;
 });
-//]]>
 </script>
 </head>
 <body>';
@@ -158,8 +155,8 @@ function displayAlreadyInstalled ()
                 '.T_('I just want to view my site.').'
             </div>
             <div class="option">
-                <a class="ybtn" href="#" onclick="$(\'show-install\').toggle(); 
-                    $(\'install\').toggle(); document.setupform.dbhost.focus(); return false">'.T_('Yes').'</a><br/><br/>
+                <a class="ybtn" href="#" onclick="$(\'#show-install\').toggle(); 
+                    $(\'#install\').toggle(); return false">'.T_('Yes').'</a><br/><br/>
                 '.T_('I want to run the installation anyway. (Not Recommended)').'
             </div>
         </div>
@@ -384,7 +381,7 @@ function displayStepThree ()
     {
         echo '
         <script type="text/javascript">
-        Event.observe(window, \'load\', function() { $(\'dbhost\').focus(); });
+        $(document).ready(function() { $(\'#dbhost\').focus(); });
         </script>';
 
         displayStepTwo("<p class=\"error\">".T_('You forgot a required field.  Please fill out all required fields.')."</p>");
@@ -437,7 +434,7 @@ function displayStepThree ()
 function displayStepFour ($error = '0')
 {
     echo '
-    <script type="text/javascript">Event.observe(window, \'load\', function() { $(\'sitename\').focus(); });</script>
+    <script type="text/javascript">$(document).ready(function() { $(\'#sitename\').focus(); });</script>
     <div id="column">
         <h1>'.T_('Install').' Family Connections</h1>
         <h2>'.T_('Website Information').'</h2>
@@ -520,7 +517,7 @@ function displayStepFive ($error = '0')
     $_POST['contact']  = mysql_real_escape_string($_POST['contact']);
 
     // Setup Config
-    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 3.4.2');
+    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 3.5.0');
 
     // Setup Navigation
     $order  = 0;

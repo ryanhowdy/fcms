@@ -173,7 +173,7 @@ class Awards
         $string       = T_ngettext('%s has been given this award %d time.', '%s has been given this award %d times.', $totalTimesAwarded);
         $awardedCount = sprintf($string, $fname, $totalTimesAwarded).'</h5>';
 
-        if ($userid == $this->currentUserId)
+        if ($userid == $this->fcmsUser->id)
         {
             $string       = T_ngettext('You have been given this award %d time.', 'You have been given this award %d times.', $totalTimesAwarded);
             $awardedCount = sprintf($string, $totalTimesAwarded).'</h5>';
@@ -481,7 +481,7 @@ class Awards
             $sql = "INSERT INTO `fcms_user_awards`
                         (`user`, `award`, `month`, `date`, `count`)
                     VALUES 
-                        (?, ?, ? NOW(), ?)";
+                        (?, ?, ?, NOW(), ?)";
             $sqlParams = array(
                 $r['user'],
                 $params['award'],
@@ -851,7 +851,8 @@ class Awards
                 continue;
             }
 
-            $month = date('Ym', strtotime($r['date_added']));
+            // Enter the date the user reached >50
+            $month = date('Ym');
 
             $sql = "INSERT INTO `fcms_user_awards`
                         (`user`, `award`, `month`, `date`, `count`)

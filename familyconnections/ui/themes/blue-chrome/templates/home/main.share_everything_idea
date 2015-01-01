@@ -1,0 +1,195 @@
+<?php if (isset($TMPL['events'])): ?>
+        <div id="todaysevents">
+            <h2><?php echo $TMPL['textTodaysEvents']; ?></h2>
+<?php foreach ($TMPL['events'] as $e): ?>
+            <div class="events">
+                <b><?php echo $e['title']; ?></b>
+                <?php if (isset($e['desc'])): ?><span><?php echo $e['desc']; ?></span><?php endif; ?>
+            </div>
+<?php endforeach; ?>
+        </div>
+<?php endif; ?>
+
+<style>
+/* share navigation 1 */
+#share-navigation {
+    margin: 0;
+    overflow: auto;
+    padding: 0;
+}
+#share-navigation li {
+    float: left;
+    list-style-type: none;
+    margin: 0 10px 0 0;
+}
+#share-navigation li a {
+    border: 1px solid #fff;
+    border-radius: 3px;
+    color: #999;
+    display: block;
+    padding: 4px 8px 3px 8px;
+    margin-bottom: 15px;
+}
+#share-navigation li.selected a,
+#share-navigation li a:hover {
+    background-color: #eee;
+    border-color: #ddd;
+}
+
+/* share navigation 2 */
+#share-navigation2 {
+    margin: 0;
+    overflow: auto;
+    padding: 0;
+}
+#share-navigation2 li {
+    float: left;
+    list-style-type: none;
+    margin: 0 20px 0 0;
+}
+#share-navigation2 li a {
+    color: #999;
+    display: block;
+    font-weight: normal;
+    font-size: 13px;
+    padding: 0 0 10px 0;
+}
+#share-navigation2 li.selected a,
+#share-navigation2 li a:hover {
+    color: #000;
+}
+
+/* share area */
+#share {
+    background-color: #eee;
+    border-radius: 3px;
+    margin: 0 0 20px 0;
+    padding: 20px;
+}
+#share fieldset {
+    background-color: transparent;
+    border: none;
+    margin: 0;
+}
+#main-cal-info {
+    width: 379px;
+}
+#event_update fieldset > p {
+    clear: both;
+}
+#status_update textarea {
+    width: 696px;
+}
+#status_submit {
+    background-color: #ddd;
+    margin: 5px 0 0 0;
+}
+</style>
+<ul id="share-navigation">
+    <li class="menu" style="padding-top: 5px;">Share:</li>
+    <li class="selected"><a title="Status Update" class="status_update" href="#"><span class="glyphicon glyphicon-comment"></span></a></li>
+    <li><a title="Photos" class="photo_update" href="#"><span class="glyphicon glyphicon-camera"></span></a></li>
+    <li><a title="Video" class="video_update" href="#"><span class="glyphicon glyphicon-facetime-video"></span></a></li>
+    <li><a title="Event" class="event_update" href="#"><span class="glyphicon glyphicon-calendar"></span></a></li>
+</ul>
+<ul id="share-navigation2" style="display:none";>
+    <li class="menu">Share:</li>
+    <li class="selected"><a class="status_update" href="#">Update Status</a><span class="share_arrow"></span></li>
+    <li><a class="photo_update" href="#">Photos</a></li>
+    <li><a class="video_update" href="#">Video</a></li>
+    <li><a class="event_update" href="#">Event</a></li>
+</ul>
+<div id="share">
+    <form method="post" action="home.php">
+        <div id="status_update">
+                <textarea id="status" name="status" 
+                    placeholder="<?php echo $TMPL['textSharePlaceholder']; ?>" title="<?php echo $TMPL['textShareTitle']; ?>"></textarea>
+<?php if (isset($TMPL['textUpdateFacebook'])): ?>
+                <small>
+                    <input type="checkbox" id="update_fb" name="update_fb"/>
+                    <label for="update_fb"><?php echo $TMPL['textUpdateFacebook']; ?></label>
+                </small>
+<?php endif; ?>
+                <input type="submit" id="status_submit" name="status_submit" value="<?php echo $TMPL['textSubmit']; ?>"/>
+        </div><!--/#status_update-->
+        <div id="photo_update" style="display:none">
+photos ya'll
+        </div><!--/#photo_update-->
+        <div id="video_update" style="display:none">
+video time
+        </div><!--/#video_update-->
+        <div id="event_update" style="display:none">
+            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
+            <?php global $calendar; ?>
+            <?php $calendar->displayAddForm('2013-12-24'); ?>
+        </div><!--/#event_update-->
+    </form>
+</div>
+<script>
+Event.observe(window, "load", function() {
+    document.onkeydown = function(e) {
+        if (!e) { e = window.event; }
+
+        if (e.keyCode == 49)
+        {
+            $('share-navigation').show();
+            $('share-navigation2').hide();
+        }
+        else if (e.keyCode == 50)
+        {
+            $('share-navigation').hide();
+            $('share-navigation2').show();
+        }
+    };
+});
+$$('#share-navigation li a').each(function(item) {
+    item.observe('click', function(e) {
+        e.preventDefault();
+
+        // hide all update divs
+        $$('#share > form > div').each(function(d) {
+            d.hide();
+        });
+
+        // remove current selected
+        $$('#share-navigation li').each(function(l) {
+            l.removeClassName('selected');
+        });
+
+        // select the clicked anchor
+        item.up().addClassName('selected');
+
+        // show the correct update div
+        $(item.readAttribute('class')).show();
+    });
+});
+$$('#share-navigation2 li a').each(function(item) {
+    item.observe('click', function(e) {
+        e.preventDefault();
+
+        // hide all update divs
+        $$('#share > form > div').each(function(d) {
+            d.hide();
+        });
+
+        // remove current selected
+        $$('#share-navigation2 li').each(function(l) {
+            l.removeClassName('selected');
+        });
+
+        // remove arrow
+        $$('#share-navigation2 li span').each(function(s) {
+            s.remove();
+        });
+
+        // select the clicked anchor
+        item.up().addClassName('selected');
+
+        // insert new arrow
+        item.insert({ after: '<span class="share_arrow"></span>' });
+
+        // show the correct update div
+        $(item.readAttribute('class')).show();
+    });
+});
+</script>

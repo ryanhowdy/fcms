@@ -133,9 +133,9 @@ li.sortable {
     border: 1px solid #fff;
     cursor: pointer;
     cursor: hand;
-    padding: 15px;
+    padding: 15px 0;
     text-align: center;
-    width: auto;
+    width: 196px;
 }
 #check_all_form label:hover {
     background-color: #eee;
@@ -148,3 +148,21 @@ li.sortable {
 #check_all_form label.active:hover { border: 1px solid #000; }
 #scheduler-frm td i { color: #aaa; }
 .label { padding: 3px 6px; }
+#com_order li,
+#share_order li {
+    background-color: #eee;
+    border: 1px solid #ddd;
+    cursor: all-scroll;
+    margin: 0 3px 3px 3px;
+    padding: 0.4em;
+    padding-left: 10px;
+    height: 18px;
+}
+#com_order li span.ui-icon,
+#share_order li span.ui-icon {
+    display: inline-block;
+}
+table.tablesorter > thead > th,
+table.tablesorter .tablesorter-header {
+    cursor: pointer;
+}

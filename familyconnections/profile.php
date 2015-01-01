@@ -22,12 +22,13 @@ load('awards', 'FamilyTree', 'profile', 'image', 'datetime', 'address', 'address
 
 init();
 
-$awards  = new Awards($fcmsError, $fcmsDatabase, $fcmsUser);
 $tree    = new FamilyTree($fcmsError, $fcmsDatabase, $fcmsUser);
 $book    = new AddressBook($fcmsError, $fcmsDatabase, $fcmsUser);
+$mBoard  = new MessageBoard($fcmsError, $fcmsDatabase, $fcmsUser);
+$gallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
+$awards  = new Awards($fcmsError, $fcmsDatabase, $fcmsUser, $mBoard, $gallery);
 $profile = new Profile($fcmsError, $fcmsDatabase, $fcmsUser, $tree, $awards, $book);
 $img     = new Image($fcmsUser->id);
-$gallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
 $page    = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $profile, $awards, $img, $gallery);
 
 exit();
@@ -175,13 +176,17 @@ class Page
         );
 
         $params['javascript'] = '
+<link rel="stylesheet" type="text/css" href="ui/css/datechooser.css"/>
+<script type="text/javascript" src="ui/js/datechooser.js"></script>
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+$(document).ready(function() {
     initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initGravatar();
+    // Datepicker
+    var objDatePicker = new DateChooser();
+    objDatePicker.setUpdateField({\'sday\':\'j\', \'smonth\':\'n\', \'syear\':\'Y\'});
+    objDatePicker.setIcon(\''.URL_PREFIX.'ui/themes/default/img/datepicker.jpg\', \'syear\');
 });
-//]]>
 </script>';
 
         loadTemplate('global', 'header', $params);
@@ -201,32 +206,37 @@ Event.observe(window, \'load\', function() {
                 return;
             }
 
+            if ($memberId == $this->fcmsUser->id)
+            {
+                echo '
+            <div id="actions_menu">
+                <ul>
+                    <li><a href="profile.php">'.T_('Edit Profile').'</a></li>
+                </ul>
+            </div>';
+            }
+
             echo '
             <div id="leftcolumn">
-                <div id="avatar">
-                    <img class="avatar" src="'.getCurrentAvatar($memberId).'" alt="avatar"/>
-                </div>
-                <div id="contact-buttons">
-                    <ul>
-                        <li><a class="action" href="privatemsg.php?compose=new&amp;id='.$memberId.'">'.T_('Send PM').'</a></li>
-                        <li><a class="action" href="mailto:'.$row['email'].'">'.T_('Send Email').'</a></li>
-                    </ul>
-                </div>
+                <h3>'.T_('Sections').'</h3>
+                <ul class="menu">
+                    <li><a href="?member='.$memberId.'">'.T_('Profile').'</a></li>
+                    <li><a href="?member='.$memberId.'&amp;view=awards">'.T_('Awards').'</a></li>
+                    <li><a href="?member='.$memberId.'&amp;view=contributions">'.T_('Contributions').'</a></li>
+                    <li><a href="?member='.$memberId.'&amp;view=participation">'.T_('Participation').'</a></li>
+                </ul>
+                <h3>'.T_('Quick Links').'</h3>
+                <ul class="menu">
+                    <li><a href="familynews.php?getnews='.$memberId.'">'.T_('Family News').'</a></li>
+                    <li><a href="familytree.php?view='.$memberId.'">'.T_('Family Tree').'</a></li>
+                    <li><a href="gallery/index.php?uid='.$memberId.'">'.T_('Photos').'</a></li>
+                    <li><a href="gallery/index.php?uid=0&cid='.$memberId.'">'.sprintf(T_pgettext('%s is the name of a person. Photos of Bill. etc.', 'Photos Of %s'), $row['fname']).'</a></li>
+                    <li><a href="video.php?u='.$memberId.'">'.T_('Videos').'</a></li>
+                    <li><a href="addressbook.php?cat=all&address='.$memberId.'">'.T_('Address').'</a></li>
+                </ul>
             </div><!-- /leftcolumn -->
 
-            <div id="maincolumn">
-                <div class="name">
-                    <h1>'.cleanOutput($row['fname']).' '.cleanOutput($row['lname']).'</h1>
-                    <h2>'.cleanOutput($row['username']).'</h2>
-                </div>
-                <div id="sections_menu">
-                    <ul>
-                        <li><a href="?member='.$memberId.'">'.T_('Profile').'</a></li>
-                        <li><a href="?member='.$memberId.'&amp;view=awards">'.T_('Awards').'</a></li>
-                        <li><a href="?member='.$memberId.'&amp;view=contributions">'.T_('Contributions').'</a></li>
-                        <li><a href="?member='.$memberId.'&amp;view=participation">'.T_('Participation').'</a></li>
-                    </ul>
-                </div>';
+            <div id="maincolumn">';
         }
     }
 
@@ -323,7 +333,7 @@ Event.observe(window, \'load\', function() {
                     u.`activity`, u.`sex`, a.`id` AS aid, a.`address`, a.`city`, a.`state`, a.`zip`, 
                     a.`home`, a.`cell`, a.`work`  
                 FROM fcms_users AS u, fcms_address AS a 
-                WHERE u.id = '$memberId' 
+                WHERE u.id = ?
                 AND u.id = a.user";
 
         $row = $this->fcmsDatabase->getRow($sql, $memberId);
@@ -341,7 +351,19 @@ Event.observe(window, \'load\', function() {
         $contact      = '';
         $activityDate = T_('Never visited');
 
-        // Phone
+        $points = getUserParticipationPoints($memberId);
+        $level  = getUserParticipationLevel($points);
+
+        // Contacts - Email
+        if (!empty($row['cell']))
+        {
+            $contact .= '<p><span>'.T_('Email').'</span> '.$row['email'].'</p>';
+        }
+        // Contacts - Phone
+        if (!empty($row['cell']))
+        {
+            $contact .= '<p><span>'.T_('Cell').'</span> '.formatPhone($row['cell']).'</p>';
+        }
         if (!empty($row['home']))
         {
             $contact .= '<p><span>'.T_pgettext('The beginning or starting place.', 'Home').'</span> '.formatPhone($row['home']).'</p>';
@@ -350,9 +372,30 @@ Event.observe(window, \'load\', function() {
         {
             $contact .= '<p><span>'.T_('Work').'</span> '.formatPhone($row['work']).'</p>';
         }
+
+        // Call
+        $hasPhone = false;
+        $call     = '';
+        $tel      = '';
         if (!empty($row['cell']))
         {
-            $contact .= '<p><span>'.T_('Cell').'</span> '.formatPhone($row['cell']).'</p>';
+            $tel     = $row['cell'];
+            $hasPhone = true;
+        }
+        else if (!empty($row['home']))
+        {
+            $tel     = $row['home'];
+            $hasPhone = true;
+        }
+        else if (!empty($row['work']))
+        {
+            $tel     = $row['work'];
+            $hasPhone = true;
+        }
+
+        if ($hasPhone)
+        {
+            $call = '<li><a class="call" href="tel:'.$tel.'">'.sprintf(T_pgettext('%s is the name of a person. Call Bob. etc.', 'Call %s'), $row['fname']).'</a></li>';
         }
 
         // Activity
@@ -361,29 +404,67 @@ Event.observe(window, \'load\', function() {
             $activityDate = fixDate(T_('F j, Y g:i a'), $tzOffset, $row['activity']);
         }
 
+        $bday = formatDate('F j, Y', $row['dob_year'].'-'.$row['dob_month'].'-'.$row['dob_day']);
+        $age  = getAge($row['dob_year'], $row['dob_month'], $row['dob_day']);
+
+        $gender = $row['sex'] == 'M' ? T_('Male') : T_('Female');
+
         echo '
-            <ul id="profile-data">
-                <li>
-                    <b>'.T_('Bio').'</b>
-                    <div>'.cleanOutput($row['bio']).'</div>
-                </li>
-                <li>
-                    <b>'.T_('Address').'</b>
-                    <div>'.$address.'</div>
-                </li>
-                <li>
-                    <b>'.T_('Contact').'</b>
-                    <div>'.$contact.'</div>
-                </li>
-                <li>
-                    <b>'.T_('Join Date').'</b>
-                    <div>'.$joinDate.'</div>
-                </li>
-                <li>
-                    <b>'.T_('Last Visit').'</b>
-                    <div>'.$activityDate.'</div>
-                </li>
-            </ul>';
+                <div id="avatar">
+                    <h1><img class="avatar" src="'.getCurrentAvatar($memberId).'" alt="avatar"/></h1>
+                    '.$level.'
+                </div>
+                <div class="name-contacts">
+                    <h1>'.cleanOutput($row['fname']).' '.cleanOutput($row['lname']).'</h1>
+                    <h2>'.cleanOutput($row['username']).'</h2>
+                    <ul>
+                        '.$call.'
+                        <li><a class="email" href="mailto:'.$row['email'].'">'.T_('Send Email').'</a></li>
+                        <li><a class="pm" href="privatemsg.php?compose=new&amp;id='.$memberId.'">'.T_('Send Private Message').'</a></li>
+                    </ul>
+                </div>
+                <ul>
+                    <li>
+                        <ul>
+                            <li>
+                                <b>'.T_('Birthday').'</b>
+                                <div>'.$bday.' ('.sprintf(T_('%s years old'), $age).')</div>
+                            </li>
+                            <li>
+                                <b>'.T_('Gender').'</b>
+                                <div>'.$gender.'</div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <ul>
+                            <li>
+                                <b>'.T_('Location').'</b>
+                                <div>'.$address.'</div>
+                            </li>
+                            <li>
+                                <b>'.T_('Contact').'</b>
+                                <div>'.$contact.'</div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <b>'.T_('Bio').'</b>
+                        <div>'.cleanOutput($row['bio']).'</div>
+                    </li>
+                    <li>
+                        <ul>
+                            <li>
+                                <b>'.T_('Join Date').'</b>
+                                <div>'.$joinDate.'</div>
+                            </li>
+                            <li>
+                                <b>'.T_('Last Visit').'</b>
+                                <div>'.$activityDate.'</div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>';
 
         $this->displayFooter($memberId);
     }
@@ -398,6 +479,8 @@ Event.observe(window, \'load\', function() {
         $memberId = (int)$_GET['member'];
 
         $this->displayHeader($memberId);
+
+        echo '<h2>'.T_('Awards').'</h2>';
 
         $this->fcmsAward->displayAwards($memberId);
 
@@ -568,6 +651,7 @@ Event.observe(window, \'load\', function() {
         $level     = getUserParticipationLevel($points);
 
         echo '
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/easy-pie-chart/2.1.4/jquery.easypiechart.min.js"></script>
             <div>
                 <b>'.T_('Participation Points').'</b><br/>
                 <span style="float:left; padding-right: 10px;">'.$points.'</span>
@@ -582,7 +666,18 @@ Event.observe(window, \'load\', function() {
         }
 
         echo '
-            </div>';
+            </div>
+            <script type="text/javascript">
+                $(function() {
+                    $(".stat").easyPieChart({
+                        animate     : false,
+                        scaleColor  : false,
+                        barColor    : "#99CEF0",
+                        lineWidth   : 6,
+                        size        : 150
+                    });
+                });
+            </script>';
 
         $this->displayFooter($memberId);
     }

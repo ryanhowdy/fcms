@@ -133,7 +133,7 @@ class Page
      * 
      * @return void
      */
-    function displayHeader ($js = '')
+    function displayHeader ($options = null)
     {
         $params = array(
             'currentUserId' => $this->fcmsUser->id,
@@ -146,41 +146,7 @@ class Page
             'version'       => getCurrentVersion(),
         );
 
-        $params['javascript'] = $js;
-
-        // Default js
-        if ($js == '')
-        {
-            $params['javascript'] = '
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
-    initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
-    if (!$$(\'.delpost input[type="submit"]\')) { return; }
-    $$(\'.delpost input[type="submit"]\').each(function(item) {
-        item.onclick = function() { return confirm(\''.T_('Are you sure you want to DELETE this?').'\'); };
-        var hid = document.createElement(\'input\');
-        hid.setAttribute(\'type\', \'hidden\');
-        hid.setAttribute(\'name\', \'confirmed\');
-        hid.setAttribute(\'value\', \'true\');
-        item.insert({\'after\':hid});
-    });
-    if ($(\'toolbar\')) {
-        $(\'toolbar\').removeClassName("hideme");
-    }
-    if ($(\'smileys\')) {
-        $(\'smileys\').removeClassName("hideme");
-    }
-    if ($(\'upimages\')) {
-        $(\'upimages\').removeClassName("hideme");
-    }
-    return true;
-});
-//]]>
-</script>';
-        }
-
-        loadTemplate('global', 'header', $params);
+        displayPageHeader($params, $options);
     }
 
     /**
@@ -232,7 +198,14 @@ Event.observe(window, \'load\', function() {
      */
     function displayThread ()
     {
-        $this->displayHeader();
+        $this->displayHeader(
+            array(
+                'jsOnload' => '
+    $(\'.delpost input[type="submit"]\').click(function(e) {
+        return confirmDeleteLink(this, "'.T_('Are you sure you want to DELETE this?').'", e);
+    });'
+            )
+        );
 
         $threadId = (int)$_GET['thread'];
         $page     = getPage();
@@ -1076,23 +1049,18 @@ Event.observe(window, \'load\', function() {
      */
     function displayAdvancedSearchForm ($error = '', $search = '', $start = null, $end = null, $footer = true)
     {
-        $js = '
-<link rel="stylesheet" type="text/css" href="ui/datechooser.css"/>
-<script type="text/javascript" src="ui/js/datechooser.js"></script>
-<script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+        $this->displayHeader(
+            array(
+                'modules'  => array('datechooser'),
+                'jsOnload' => '
     var dc1 = new DateChooser();
     dc1.setUpdateField({\'start\':\'Y-m-d\'});
     dc1.setIcon(\'ui/themes/default/img/datepicker.jpg\', \'start\');
     var dc2 = new DateChooser();
     dc2.setUpdateField({\'end\':\'Y-m-d\'});
-    dc2.setIcon(\'ui/themes/default/img/datepicker.jpg\', \'end\');
-});
-//]]>
-</script>';
-
-        $this->displayHeader($js);
+    dc2.setIcon(\'ui/themes/default/img/datepicker.jpg\', \'end\');',
+            )
+        );
 
         if (empty($end))
         {

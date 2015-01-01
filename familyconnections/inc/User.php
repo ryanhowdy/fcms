@@ -15,13 +15,15 @@ class User
     /**
      * __construct 
      * 
-     * @param object $error 
+     * @param FCMS_Error $error 
+     * @param Database   $db
+     * @param int        $id
      * 
      * @return void
      */
-    public function __construct ($error, $db)
+    public function __construct (FCMS_Error $error, Database $db, $id = null)
     {
-        if (!isset($_SESSION['fcms_id']))
+        if (!isset($_SESSION['fcms_id']) && is_null($id))
         {
             $this->displayName = 'unknown-user';
             $this->email       = 'unknow-email';
@@ -29,11 +31,21 @@ class User
             $this->access      = 10;
             return;
         }
+        else if (isset($_SESSION['fcms_id']))
+        {
+            $this->id = (int)$_SESSION['fcms_id'];
+        }
+
+        // Passing in an ID, will overwrite the session
+        // So we can create a user object for a user other than the logged in one
+        if (!is_null($id))
+        {
+            $this->id = (int)$id;
+        }
 
         $this->error = $error;
         $this->db    = $db;
 
-        $this->id = (int)$_SESSION['fcms_id'];
 
         // Get User info
         $sql = "SELECT u.`fname`, u.`lname`, u.`username`, s.`displayname`, u.`email`, s.`timezone`, u.`access`

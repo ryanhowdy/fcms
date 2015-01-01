@@ -1,0 +1,174 @@
+        <h2><?php echo $TMPL['textWhatsNew']; ?></h2>
+
+<style>
+.new-list {
+    position: relative;
+}
+.new-list:before {
+    position: absolute;
+    top: 0;
+    bottom: 35px;
+    left: 18px;
+    width: 1px;
+    background: #e0e4e8;
+    content: '';
+}
+.new-list .item {
+    position: relative;
+}
+.new-list .reply {
+    margin-left: 46px;
+}
+.new-list .item .avatar {
+    border-radius: 500px;
+    display: inline-block;
+    float: left;
+    width: 36px;
+}
+.new-list .item .avatar img {
+    border-radius: 500px;
+    height: auto;
+    max-width: 100%;
+    vertical-align: middle;
+}
+.new-list .item .arrow {
+    border-bottom-color: rgba(0, 0, 0, 0);
+    border-bottom-style: solid;
+    border-bottom-width: 8px;
+    border-left-color: rgba(0, 0, 0, 0);
+    border-left-style: solid;
+    border-left-width: 0px;
+    border-right-color: rgba(0, 0, 0, 0.0980392);
+    border-right-style: solid;
+    border-right-width: 8px;
+    border-top-color: rgba(0, 0, 0, 0);
+    border-top-style: solid;
+    border-top-width: 8px;
+    box-sizing: border-box;
+    color: rgb(113, 113, 113);
+    display: block;
+    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    height: 16px;
+    left: 39px;
+    line-height: 18px;
+    margin-top: -8px;
+    position: absolute;
+    top: 20px;
+    width: 8px;
+    z-index: 10;
+}
+.new-list .item .arrow:after {
+    content: " ";
+    left: 1px;
+    border-left-width: 0;
+    border-right-color: #fff;
+    bottom: -7px;
+    position: absolute;
+    display: block;
+    width: 0;
+    height: 0;
+    border: 7px solid transparent;
+}
+.new-list .item .container {
+    margin: 0 0 20px 46px;
+    border: 1px solid #e8e8e8;
+    border-radius: 2px;
+}
+.new-list .item .container .header {
+    border-bottom: 1px solid #e8e8e8;
+    font: 12px/17px 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    padding: 10px 15px;
+    position: relative;
+}
+.new-list .item .container .header a {
+    color: #000;
+    font-weight: normal;
+}
+.new-list .item .container .header span {
+    color: #999;
+    float: right;
+    margin-left: 10px;
+}
+.new-list .item .container .body {
+    padding: 10px 15px;
+    border-radius: 0 0 2px 2px;
+}
+.new-list .item .container .body .details {
+    border-left: 5px solid #eee;
+    margin: 0 0 0 20px;
+    padding: 10px 15px;
+}
+.new-list .item .container .body .details h5 {
+    margin: 0 0 10px 0;
+}
+.new-list .item:hover .container,
+.new-list .item:hover .container .header,
+.new-list .item:hover .container .body .details
+{
+    background-color: #ebf2fa;
+    border-color: #9ccef0;
+}
+</style>
+        <div class="new-list">
+<?php foreach ($TMPL['new'] as $new): ?>
+            <div id="<?php echo $new['position']; ?>" class="item <?php echo $new['class']; ?>">
+                <div class="avatar">
+                    <img src="<?php echo $new['avatar']; ?>" alt="<?php echo $new['displayname']; ?>"/>
+                </div>
+                <span class="arrow"></span>
+                <div class="container">
+                    <div class="header">
+                        <a href="profile.php?member=<?php echo $new['userId']; ?>"><?php echo $new['displayname']; ?></a>
+                        <span><?php echo $new['timeSince']; ?></span>
+                    </div>
+                    <div class="body">
+                        <p><?php echo $new['textInfo']; ?></p>
+
+    <?php if (isset($new['title']) && !empty($new['title'])): ?>
+                        <div class="details">
+                            <h5><?php echo $new['title']; ?></h5>
+                            <?php echo $new['details']; ?>
+                        </div>
+    <?php endif; ?>
+
+                    </div><!--/.body-->
+                </div><!--/.container-->
+            </div><!--/.item-->
+
+    <?php if (isset($new['children'])): ?>
+        <?php foreach ($new['children'] as $child): ?>
+            <div class="item reply <?php echo $child['class']; ?>">
+                <div class="avatar">
+                    <img src="<?php echo $child['avatar']; ?>" alt="<?php echo $child['displayname']; ?>"/>
+                </div>
+                <span class="arrow"></span>
+                <div class="container">
+                    <div class="header">
+                        <a class="u" href="profile.php?member=<?php echo $child['userId']; ?>"><?php echo $child['displayname']; ?></a>
+                        <span><?php echo $child['timeSince']; ?></span>
+                    </div>
+                    <div class="body">
+                        <p><?php echo $child['textInfo']; ?></p>
+                    </div>
+                </div><!--/.container-->
+            </div><!--/.item.reply-->
+        <?php endforeach; ?>
+    <?php endif; ?>
+
+    <?php if (isset($new['textReply'])): ?>
+                <div id="status_reply">
+                    <form method="post" action="home.php">
+                        <textarea id="status" name="status" placeholder="<?php echo $new['textReply']; ?>" title="<?php echo $new['textReply']; ?>"></textarea>
+                        <input type="hidden" id="parent" name="parent" value="<?php echo $new['replyParentId']; ?>"/>
+                        <input type="submit" id="status_submit" name="status_submit" value="<?php echo $new['textReply']; ?>"/>
+                    </form>
+                </div>
+    <?php endif; ?>
+
+<?php endforeach; ?>
+        </div>
+
+        <p class="alignright">
+            <a class="rss" href="rss.php?feed=all"><?php echo $TMPL['textRssFeed']; ?></a>
+        </p>

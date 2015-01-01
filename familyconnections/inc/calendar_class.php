@@ -673,7 +673,7 @@ class Calendar
                 $data = $d;
                 if (in_array($d, $eventDays))
                 {
-                    $data = '<a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'">'.$d.'</a>';
+                    $data = '<a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'&amp;view=day">'.$d.'</a>';
                 }
 
                 $weekData[] = array(
@@ -1501,7 +1501,7 @@ class Calendar
                                     '.buildHtmlSelectOptions($times, $defaultTimeEnd).'
                                 </select> &nbsp;
                                 <input id="all-day" name="all-day" type="checkbox" 
-                                    onclick="toggleDisable($(\'timestart\'), $(\'timeend\'))"/>
+                                    onclick="toggleDisable($(\'#timestart\'), $(\'#timeend\'))"/>
                                 <label for="all-day">'.T_('All Day').'</label> 
                             </div>
                         </div>
@@ -1678,7 +1678,7 @@ class Calendar
                                 '.buildHtmlSelectOptions($times, $row['time_end']).'
                             </select> &nbsp;
                             <input id="all-day" named="all-day" type="checkbox" 
-                                onclick="toggleDisable($(\'timestart\'), $(\'timeend\'))" '.$allDayChk.'/>
+                                onclick="toggleDisable($(\'#timestart\'), $(\'#timeend\'))" '.$allDayChk.'/>
                             <label for="all-day">'.T_('All Day').'</label> 
                         </div>
                     </div>

@@ -155,13 +155,11 @@ class Page
 
         $params['javascript'] = '
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+$(document).ready(function() {
     initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
     initYouTubeVideoStatus(\''.T_('This page will automatically refresh').'\');
     initHideVideoEdit(\''.T_('Edit Video').'\');
 });
-//]]>
 </script>';
 
         loadTemplate('global', 'header', $params);
@@ -616,13 +614,8 @@ Event.observe(window, \'load\', function() {
             </div>
         </div>
         <script type="text/javascript">
-        if ($("help")) {
-            var div = $("help");
-            div.hide();
-            var a = new Element("a", { href: "#" }).update("'.T_('Learn more.').'");
-            a.onclick = function() { $("help").toggle(); return false; };
-            div.insert({"before":a});
-        }
+        $("#help").hide();
+        $("#help").before(\'<a href="#" onclick="function() { $("#help").toggle(); return false; }">'.T_('Learn more.').'</a>\');
         </script>';
 
             $this->displayFooter();
@@ -864,22 +857,9 @@ Event.observe(window, \'load\', function() {
             <p>'.cleanOutput($video['description']).'</p>
         </div>
         <div id="video_content">
-            <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="'.$video['width'].'" height="'.$video['height'].'">
-                <param name="movie" value="'.$videoUrl.'" />
-                <param name="wmode" value="transparent"></param>
-                <!--[if !IE]>-->
-                <object type="application/x-shockwave-flash" data="'.$videoUrl.'" wmode="transparent" width="'.$video['width'].'" height="'.$video['height'].'">
-                <!--<![endif]-->
-                <div class="info-alert">
-                    '.T_('You need Flash player to view this video.').'<br/>
-                    <a href="http://www.adobe.com/go/getflashplayer">
-                        <img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="'.T_('Get Adobe Flash player').'"/>
-                    </a>
-                </div>
-                <!--[if !IE]>-->
-                </object>
-                <!--<![endif]-->
-            </object>
+            <iframe class="youtube-player" type="text/html" width="'.$video['width'].'" height="'.$video['height'].'" 
+                src="http://www.youtube.com/embed/'.$video['source_id'].'" allowfullscreen frameborder="0">
+            </iframe>
         </div>';
 
         echo '<p>'.T_('Views').': '.$videoEntry->getVideoViewCount().'</p>';
@@ -915,7 +895,7 @@ Event.observe(window, \'load\', function() {
             </p>
             </div>
         </noscript>
-        <script type="text/javascript" src="ttp://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>';
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>';
     }
 
     /**

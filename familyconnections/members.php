@@ -80,15 +80,39 @@ class Page
 
         displayPageHeader($params);
 
+        $order = isset($_GET['order']) ? $_GET['order'] : 'alphabetical';
+
+        $alpha = $age = $part = $act = $join = '';
+        if ($order == 'alphabetical')
+        {
+            $alpha = 'class="selected"';
+        }
+        elseif ($order == 'age')
+        {
+            $age = 'class="selected"';
+        }
+        elseif ($order == 'participation')
+        {
+            $part = 'class="selected"';
+        }
+        elseif ($order == 'activity')
+        {
+            $act = 'class="selected"';
+        }
+        elseif ($order == 'joined')
+        {
+            $join = 'class="selected"';
+        }
+
         echo '
             <div id="leftcolumn">
-                <h3>'.T_('Order Members By:').'</h3>
-                <ul class="menu">
-                    <li><a href="?order=alphabetical">'.T_('Alphabetical').'</a></li>
-                    <li><a href="?order=age">'.T_('Age').'</a></li>
-                    <li><a href="?order=participation">'.T_('Participation').'</a></li>
-                    <li><a href="?order=activity">'.T_('Last Seen').'</a></li>
-                    <li><a href="?order=joined">'.T_('Joined').'</a></li>
+                <h3>'.T_('Views').'</h3>
+                <ul>
+                    <li '.$alpha.'><a href="?order=alphabetical">'.T_('Alphabetical').'</a></li>
+                    <li '.$age.'><a href="?order=age">'.T_('Age').'</a></li>
+                    <li '.$part.'><a href="?order=participation">'.T_('Participation').'</a></li>
+                    <li '.$act.'><a href="?order=activity">'.T_('Last Seen').'</a></li>
+                    <li '.$join.'><a href="?order=joined">'.T_('Joined').'</a></li>
                 </ul>
             </div>
             <div id="maincolumn">';
@@ -189,59 +213,101 @@ class Page
             $memberData = array_reverse($c);
         }
 
+        // Get Additional header columns
+        $header  = '';
+        $colspan = 4;
+
+        if ($order == 'age')
+        {
+            $header = '<td>'.T_('Age').'</td><td>'.T_('Birthday').'</td>';
+            $colspan++;
+        }
+        elseif ($order == 'participation')
+        {
+            $header = '<td>'.T_('Participation Points').'</td>';
+        }
+        elseif ($order == 'activity')
+        {
+            $header = '<td>'.T_('Last Seen').'</td>';
+        }
+        elseif ($order == 'joined')
+        {
+            $header = '<td>'.T_('Joined').'</td>';
+        }
+
         echo '
-        <ul id="memberlist">';
+        <table cellspacing="0" cellpadding="0">
+            <thead>
+                <th colspan="'.$colspan.'"></th>
+            </thead>
+            <tbody>
+                <tr class="header">
+                    <td></td>
+                    <td>'.T_('Name').'</td>
+                    <td>'.T_('Username').'</td>
+                    '.$header.'
+                </tr>';
 
         foreach ($memberData AS $row)
         {
             $display = '';
 
-            // Alphabetical
-            if ($order == 'alphabetical')
-            {
-                $display = '('.$row['username'].')';
-            }
             // Age
-            elseif ($order == 'age')
+            if ($order == 'age')
             {
                 $age = getAge($row['dob_year'], $row['dob_month'], $row['dob_day']);
 
-                $display = sprintf(T_('%s years old'), $age);
+                // Don't show users with an unknown age
+                if ($age === '...')
+                {
+                    continue;
+                }
+
+                $display  = '<td>'.sprintf(T_('%s years old'), $age).'</td>';
+                $display .= '<td>'.$row['dob_year'].'-'.$row['dob_month'].'-'.$row['dob_day'].'</td>';
             }
             // Participation
             elseif ($order == 'participation')
             {
-                $display = $row['points'];
+                $display = '<td>'.$row['points'].'</td>';
             }
             // Last Seen
             elseif ($order == 'activity')
             {
-                $display = '';
+                $display = '<td></td>';
 
                 if ($row['activity'] != '0000-00-00 00:00:00')
                 {
-                    $display = fixDate(T_('M. j, Y'), $tzOffset, $row['activity']);
+                    $display = '<td>'.fixDate(T_('M. j, Y (g:i a)'), $tzOffset, $row['activity']).'</td>';
                 }
             }
             // Joined
             elseif ($order == 'joined')
             {
-                $display = fixDate(T_('M. j, Y'), $tzOffset, $row['joindate']);
+                $display = '<td>'.fixDate(T_('M. j, Y'), $tzOffset, $row['joindate']).'</td>';
             }
 
             // Display members
             echo '
-                <li>
-                    <a class="avatar" href="profile.php?member='.(int)$row['id'].'">
-                        <img alt="avatar" src="'.getCurrentAvatar($row['id']).'"/>
-                    </a><br/>
-                    <a href="profile.php?member='.(int)$row['id'].'">'.cleanOutput($row['fname']).' '.cleanOutput($row['lname']).'</a><br/>
+                <tr>
+                    <td>
+                        <a class="avatar" href="profile.php?member='.(int)$row['id'].'">
+                            <img alt="avatar" src="'.getCurrentAvatar($row['id']).'"/>
+                        </a>
+                    </td>
+                    <td>
+                        <a class="avatar" href="profile.php?member='.(int)$row['id'].'">
+                            '.cleanOutput($row['fname']).' '.cleanOutput($row['lname']).'
+                        </a>
+                    </td>
+                    <td>'.cleanOutput($row['username']).'</td>
                     '.$display.'
-                </li>';
+                </tr>';
         }
 
         echo '
-            </ul>';
+            </tbody>
+        </table>';
 
         $this->displayFooter();
     }

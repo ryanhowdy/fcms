@@ -1,12 +1,20 @@
-Event.observe(window, "load", function() {
-    $("mobile-topmenu").observe('change', function(event) {
-        window.location = $F("mobile-topmenu");
-    });
-    $("top").scrollTo();
-});
-
 /* =GENERAL =GLOBAL
 ------------------------------------------------*/
+
+// Mobile navigation
+$(document).ready(function() {
+    $("#mobile-topmenu").on('change', function(event) {
+        window.location = $("#mobile-topmenu option:selected").val();
+    });
+
+    if ($("#top").length > 0) {
+        $('html, body').animate({
+            scrollTop: $("#top").position().top 
+        });
+    }
+});
+
+// New on load events
 function addLoadEvent(func) {   
     var oldonload = window.onload;
     if (typeof window.onload != 'function'){
@@ -18,68 +26,52 @@ function addLoadEvent(func) {
         }
     }
 }
-function initTextFieldHighlight() {
-    if (!$$('input[type="text"], input[type="password"]')) { return; }
-    $$('input[type="text"], input[type="password"]').each(function(item) {
-        item.onfocus = function () {
-            item.addClassName('frm_text_highlight');
-        }
-        item.onblur = function () {
-            item.removeClassName('frm_text_highlight');
-        }
-    });
-}
-function initRowHighlight() {
-    if (!$$('.sortable tr')) { return; }
-    $$('.sortable tr').each(function(item) {
-        item.observe('mouseover', function() {
-            item.addClassName('mouseover');
-        });
-        item.observe('mouseout', function() {
-            item.removeClassName('mouseover');
-        });
-    });
-}
 function initNewWindow() {
-    if (!$$('a.new_window')) { return; }
-    $$('a.new_window').each(function(link) {
-        link.onclick = function() {
-            window.open(this.href, '', 'width=650, height=620, location=no, status=no, menubar=no, toolbar=no');
-            return false;
-        };
+    $('a.new_window').click(function() {
+        window.open($(this).attr('href'), '', 'width=650, height=620, location=no, status=no, menubar=no, toolbar=no');
+        return false;
     });
 }
+
+// Make this link a confirmation link
 function deleteConfirmationLink(linkId, confirmTxt) {
-    var link = $(linkId);
-    if (!link) { return; }
-    link.onclick = function() { return confirmDeleteLink(this, confirmTxt); };
-}
-function deleteConfirmationLinks(linkClass, confirmTxt) {
-    if (!$$('.'+linkClass)) { return; }
-    $$('.'+linkClass).each(function(item) {
-        item.onclick = function() { return confirmDeleteLink(this, confirmTxt); };
+    $('#' + linkId).click(function(event) {
+        return confirmDeleteLink(this, confirmTxt, event);
     });
 }
-function confirmDeleteLink(obj, confirmTxt) {
-    var link = $(obj);
-    var url = link.readAttribute('href');
+
+// Make all links of this class a confirmation link
+function deleteConfirmationLinks(linkClass, confirmTxt) {
+    $('.' + linkClass).click(function(event) {
+        return confirmDeleteLink(this, confirmTxt, event);
+    });
+}
+
+// Create the confirmation delete
+function confirmDeleteLink(element, confirmTxt, event) {
+    event.preventDefault();
+
+    var itemClicked = $(element); // Could be button or link
 
     if (confirm(confirmTxt)) {
         // Form
-        if (link.tagName == 'INPUT') {
-            var frm = link.up('form');
-            var act = frm.readAttribute('action');
-            var sep = '&';
-            if (endsWith(act, 'php')) {
-                sep = '?';
-            }
-            frm.writeAttribute('action', act+sep+'confirmed=1');
+        if (itemClicked.prop('tagName') == 'INPUT') {
+            var jqForm = itemClicked.closest('form');
+            var name   = itemClicked.attr('name');
+            var value  = itemClicked.val();
+            jqForm.append('<input type="hidden" name="confirmed" value="1" />');
+            jqForm.append('<input type="hidden" name="' + name + '" value="' + value + '" />');
+            jqForm.submit();
             return true;
+        }
         // Link
-        } else {
+        else {
+            var url = itemClicked.attr('href');
             document.location = url+'&confirmed=1';
+            return false;
         }
     }
+
     return false;
 }
 function addSmiley(smileystring) {
@@ -185,163 +177,150 @@ BBCode.prototype.insertLink=function(html) {
 };
 function initCheckAll(selectText)
 {
-    var frm = $('check_all_form');
-    if (frm) {
-        // Create Check All box
-        var chk = document.createElement('input');
-        chk.setAttribute('type', 'checkbox');
-        chk.setAttribute('id', 'allbox');
-        chk.setAttribute('name', 'allbox');
-        chk.setAttribute('value', 'Check All');
-        chk.onclick = function () { checkUncheckAll(document.mass_mail_form); }
-        var lbl = document.createElement('label');
-        lbl.setAttribute('for', 'allbox');
-        lbl.appendChild(document.createTextNode(selectText));
-        $('check-all').appendChild(chk);
-        $('check-all').appendChild(lbl);
-        
-        // Add CheckCheckAll() to each checkbox
-        frm.getInputs('checkbox').each(function(item) {
-            if (item.name != 'allbox') {
-                item.onclick = checkCheckAll;
-            }
-        });
-    }
+    $('#check-all').prepend(
+        '<input type="checkbox" id="allbox" name="allbox" onclick="checkUncheckAll();" value="' + selectText + '">' +
+        '<label for="allbox">' + selectText + '</label>'
+    );
+
+    // Add CheckCheckAll() to each checkbox
+    $('#check_all_form input:checkbox').each(function () {
+        if ($(this).attr('name') != 'allbox') {
+            $(this).click(checkCheckAll);
+        }
+    });
+
     return true;
 }
-function checkUncheckAll(frmobj)
+function checkUncheckAll()
 {
-    var checkall = 0;
+    $('#check_all_form input:checkbox').each(function () {
+        if ($(this).attr('name') != 'allbox') {
 
-    if ($('allbox').checked) {
-        checkall++;
-    }
+            $(this).prop('checked', false);
 
-    $('check_all_form').getInputs('checkbox').each(function(item) {
-        if (item.name != 'allbox') {
-            if (checkall > 0) {
-                item.checked = true;
-            } else {
-                item.checked = false;
+            if ($('#allbox').is(':checked'))
+            {
+                $(this).prop('checked', true);
             }
         }
     });
 }
-function checkCheckAll(frmobj)
+function checkCheckAll()
 {
     var total_boxes = 0;
     var total_on    = 0;
 
-    $('check_all_form').getInputs('checkbox').each(function(item) {
-        if (item.name != 'allbox') {
+    $('#check_all_form input:checkbox').each(function () {
+        if ($(this).attr('name') != 'allbox') {
             total_boxes++;
-            if (item.checked) {
+            if ($(this).prop('checked')) {
                 total_on++;
             }
         }
     });
 
     if (total_boxes == total_on) {
-        $('allbox').checked = true;
-    } else {
-        $('allbox').checked = false;
+        $('#allbox').prop('checked', true);
+    }
+    else {
+        $('#allbox').prop('checked', false);
     }
 }
+
+// Opens the chat window
 function openChat (path)
 {
     window.open(path + 'inc/chat/index.php', 'name', 'width=750,height=550,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no'); 
     return false;
 }
+
+// Create the chat bar
 function initChatBar(txt, path)
 {
-    var footer = $('footer');
-    var chatLink = Element.extend(document.createElement('a'));
-    chatLink.href = '#';
-    chatLink.onclick = function() {
-        window.open(path + 'inc/chat/index.php', 'name', 'width=750,height=550,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no');
-        return false;
-    };
-    chatLink.id = 'chat_link';
-    chatLink.addClassName('chat_bar');
-    chatLink.appendChild(document.createTextNode(txt + ' (0)'));
-    footer.insert({'before':chatLink});
+    var footer   = $('#footer');
+    var linkText = txt + ' (0)';
+    var time     = 2000;
+    var chatLink = '<a href="#" id="chat_bar" class="chat_bar" '
+                 + 'onclick="window.open(\'' + path + 'inc/chat/index.php\', \'chat\', '
+                 + '\'width=750,height=550,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no\'); return false;">' + linkText + '</a>';
 
-    new Ajax.PeriodicalUpdater('chat_link', path + 'inc/chat/whoisonline.php', {
-        method: 'get', frequency: 2, decay: 1.2
-    });
+    $(chatLink).appendTo(footer);
+
+    (function worker() {
+        $.ajax({
+            type :  'GET',
+            url  :  path + 'inc/chat/whoisonline.php',
+        })
+        .success (function (data) {
+            if (data === linkText) {
+                time = time * 1.2;
+            }
+            else {
+                time = 2000;
+            }
+            $('#chat_bar').text(data);
+
+            setTimeout(worker, time);
+            linkText = data;
+        });
+    })();
 }
+
+// show tooltip on avatar
 function showTooltip (obj)
 {
     var link = $(obj);
-    link.writeAttribute({title: ""});
+    link.attr('title', '');
     var tip = link.next();
-    var h = tip.getHeight();
+    var h = tip.outerHeight(true);
     h = h + 3;
-    tip.setStyle({top: '-' + h + 'px'});
+    tip.css('top', '-' + h + 'px');
     tip.show();
 }
+
+// hide avatar tooltip
 function hideTooltip (obj)
 {
-    var link = $(obj);
-    link.next().hide();
+    $(obj).next().hide();
 }
+
+// Handles color changing of yes/no/maybe checkboxes
 function initAttendingEvent ()
 {
-    if ($('yes')) {
-        Event.observe('yes', 'click', function(event) {
-            if ($('yes').checked) {
-                $('yes').previous().addClassName("yes_checked");
-                $('maybe').previous().removeClassName("maybe_checked");
-                $('no').previous().removeClassName("no_checked");
-            } else {
-                $('yes').previous().removeClassName("yes_checked");
-            }
-        });
-        Event.observe('maybe', 'click', function(event) {
-            if ($('maybe').checked) {
-                $('maybe').previous().addClassName("maybe_checked");
-                $('yes').previous().removeClassName("yes_checked");
-                $('no').previous().removeClassName("no_checked");
-            } else {
-                $('maybe').previous().removeClassName("maybe_checked");
-            }
-        });
-        Event.observe('no', 'click', function(event) {
-            if ($('no').checked) {
-                $('no').previous().addClassName("no_checked");
-                $('yes').previous().removeClassName("yes_checked");
-                $('maybe').previous().removeClassName("maybe_checked");
-            } else {
-                $('no').previous().removeClassName("no_checked");
-            }
-        });
-    }
-}
-function initInviteAll ()
-{
-    if ($('all-members')) {
-        Event.observe('all-members', 'click', function(event) {
-            if ($('all-members').checked) {
-                $('invite-members-list').hide();
-            } else {
-                $('invite-members-list').show();
-            }
-        });
-    }
-}
-function initInviteAttending ()
-{
-    $$('div.coming_details').each(function(item) {
-        item.hide();
-    });
+    var jqYes   = $('#yes');
+    var jqMaybe = $('#maybe');
+    var jqNo    = $('#no');
 
-    Event.observe('whos_coming', 'click', function(event) {
-        var clickedH3 = event.findElement('h3');
-        if (clickedH3) {
-            $(clickedH3).next('div').toggle();
+    jqYes.click(function(event) {
+        if (jqYes.is(':checked')) {
+            jqYes.prev().addClass("yes_checked");
+            jqMaybe.prev().removeClass("maybe_checked");
+            jqNo.prev().removeClass("no_checked");
+        } else {
+            jqYes.prev().removeClass("yes_checked");
+        }
+    });
+    jqMaybe.click(function(event) {
+        if (jqMaybe.is(':checked')) {
+            jqMaybe.prev().addClass("maybe_checked");
+            jqYes.prev().removeClass("yes_checked");
+            jqNo.prev().removeClass("no_checked");
+        } else {
+            jqMaybe.prev().removeClass("maybe_checked");
+        }
+    });
+    jqNo.click(function(event) {
+        if (jqNo.is(':checked')) {
+            jqNo.prev().addClass("no_checked");
+            jqYes.prev().removeClass("yes_checked");
+            jqMaybe.prev().removeClass("maybe_checked");
+        } else {
+            jqNo.prev().removeClass("no_checked");
         }
     });
 }
+
+// Allows j/k to scroll through news events
 function nextPrevNews (e) {
     if (!e) { e = window.event; }
 
@@ -366,26 +345,17 @@ function nextPrevNews (e) {
         return;
     }
 
-    $$('div.new').each(function(item) {
-        item.removeClassName('selected');
+    $('div.new').each(function() {
+        $(this).removeClass('selected');
     });
 
     var positionId = position.toString();
-    $(positionId).addClassName('selected');
-    $(positionId).scrollTo();
-
-    window.scrollBy(0, -10);
+    $("#" + positionId).addClass('selected');
+    $('html, body').animate({ scrollTop: $("#" + positionId).position().top });
 }
 
 /* UTILITIES
 ------------------------------------------------*/
-function setElementDisplayNone(el) {
-    if (el.style.setAttribute) {
-        el.style.setAttribute('cssText', 'display:none');
-    } else {
-        el.setAttribute('style', 'display:none');
-    }
-}
 function endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
@@ -394,52 +364,39 @@ function endsWith(str, suffix) {
 ------------------------------------------------*/
 function hideUploadOptions(rotateText, catText, newCatText) {
     // Hide Rotate options
-    if ($('rotate-options')) {
-        var rDiv = $('rotate-options');
-        var rPara = document.createElement('p');
-        if (rDiv.style.setAttribute) {
-            rDiv.style.setAttribute('cssText', 'display:none');
-            rPara.style.setAttribute('cssText', 'text-align:center');
-        } else {
-            rDiv.setAttribute('style', 'display:none');
-            rPara.setAttribute('style', 'text-align:center');
-        }
-        var rLink = Element.extend(document.createElement('a'));
-        rLink.href = '#';
-        rLink.addClassName('u');
-        rLink.appendChild(document.createTextNode(rotateText));
-        rLink.onclick = function() { $('rotate-options').toggle(); return false; };
-        rPara.appendChild(rLink);
-        rDiv.insert({'before':rPara});
+    if ($('#rotate-options').length) {
+        $('#rotate-options').hide();
+
+        $('#rotate-options').before(
+            '<p style="text-align:center;">'
+                + '<a href="#" class="u" onclick="function() { $(\'#rotate-options\').toggle(); return false; };">'
+                    + rotateText
+                + '</a>'
+            + '</p>'
+        );
     }
+
     // Hide Existing Categories
-    if ($('existing-categories')) {
-        var eDiv = $('existing-categories');
-        var ePara = Element.extend(document.createElement('span'));
-        if (eDiv.style.setAttribute) {
-            eDiv.style.setAttribute('cssText', 'display:none');
-        } else {
-            eDiv.setAttribute('style', 'display:none');
-        }
-        var eLink = Element.extend(document.createElement('a'));
-        eLink.id = 'category-link';
-        eLink.href = '#';
-        eLink.addClassName('u');
-        eLink.appendChild(document.createTextNode(catText));
-        eLink.onclick = function() {
-            if ($('new-category').visible()) {
-                $('existing-categories').show();
-                $('new-category').hide();
-                $('category-link').update(newCatText);
-            } else {
-                $('existing-categories').hide();
-                $('new-category').show();
-                $('category-link').update(catText);
+    if ($('#existing-categories').length) {
+        $('#existing-categories').hide();
+
+        $('#existing-categories').after(
+            '<span><a href="#" id="category-link" class="u">' + catText + '</a></span>'
+        );
+
+        $('#category-link').click(function() {
+            if ($('#new-category').is(':visible')) {
+                $('#existing-categories').show();
+                $('#new-category').hide();
+                $('#category-link').text(newCatText);
+            }
+            else {
+                $('#existing-categories').hide();
+                $('#new-category').show();
+                $('#category-link').text(catText);
             }
             return false;
-        };
-        ePara.appendChild(eLink);
-        eDiv.insert({'after':ePara});
+        });
     }
 }
 function hidePhotoDetails(txt) {
@@ -458,81 +415,6 @@ function hidePhotoDetails(txt) {
         pPara.appendChild(pLink);
         pDiv.insert({'before':pPara});
     }
-}
-function initPreviouslyTagged(users_lkup)
-{
-    $$('input.tagged').each(function(item) {
-        var id = item.getValue();
-        var txt = users_lkup[id];
-
-        var li = document.createElement("li");
-        Element.extend(li);
-        li.update(txt);
-        var a = document.createElement("a");
-        Element.extend(a);
-        a.href = "#";
-        a.writeAttribute("alt", id);
-        a.onclick = removeTagged;
-        a.update("x");
-        li.appendChild(a);
-        $("autocomplete_selected").appendChild(li);
-    });
-}
-function initMultiPreviouslyTagged(key, users_lkup)
-{
-    $$('input.tagged').each(function(item) {
-        var name = item.id;
-
-        if (name != 'tagged_'+key) {
-            return; // each is a function call, not a for loop
-        }
-
-        var id = item.getValue();
-        var txt = users_lkup[id];
-
-        var li = document.createElement("li");
-        Element.extend(li);
-        li.update(txt);
-        var a = document.createElement("a");
-        Element.extend(a);
-        a.href = "#";
-        a.writeAttribute("alt", id);
-        a.onclick = removeTagged;
-        a.update("x");
-        li.appendChild(a);
-        $("autocomplete_selected_"+key).appendChild(li);
-    });
-}
-function newUpdateElement(li)
-{
-    $("autocomplete_input").clear().focus();
-
-    var selection = li.innerHTML;
-    var indx = selection.indexOf(":");
-    var id = selection.substring(0, indx);
-    var txt = selection.substring(indx+1, selection.length);
-
-    var newli = document.createElement("li");
-    Element.extend(newli);
-    newli.update(txt);
-    var a = document.createElement("a");
-    Element.extend(a);
-    a.href = "#";
-    a.writeAttribute("alt", id);
-    a.onclick = removeTagged;
-    a.update("x");
-    newli.appendChild(a);
-    $("autocomplete_selected").appendChild(newli);
-
-    var tag = document.createElement("input");
-    Element.extend(tag);
-    tag.writeAttribute("type","hidden");
-    tag.writeAttribute("name","tagged[]");
-    tag.addClassName("tagged");
-    tag.setValue(id);
-    $("autocomplete_form").appendChild(tag);
-
-    return false;
 }
 function newMultiUpdateElement(li)
 {
@@ -571,30 +453,34 @@ function newMultiUpdateElement(li)
 
     return false;
 }
-function removeTagged ()
+function removeTagged (anchor)
 {
-    var userid = this.readAttribute("alt");
+    $anchor = $(anchor);
+
+    var userid = $anchor.attr('alt');
 
     // The id of the ul might have the # we are looking for
-    var ul = this.up('ul');
-    var txt = ul.id;
+    var $ul = $anchor.closest('ul');
+    var txt = $ul.attr('id');
     // remove the autocomplete_selected_ part
     var id = txt.substr(22);
 
-    $$(".tagged").each(function(item) {
-        if (item.getValue() == userid) {
+    $('input.tagged').each(function() {
+        $input = $(this);
+        if ($input.val() == userid) {
             if (id) {
-                if (item.id == 'tagged_'+id) {
-                    item.remove();
+                if ($input.attr('id') == 'tagged_' + id) {
+                    $input.remove();
                 }
             } else {
-                item.remove();
+                $input.remove();
             }
         }
     });
 
-    var li = this.parentNode;
-    li.remove();
+    var $li = $anchor.closest('li');
+    $li.remove();
+
     return false;
 }
 function clickMassTagMember (event)
@@ -607,290 +493,268 @@ function clickMassTagMember (event)
 }
 function loadPicasaPhotoEvents (token, errorMessage)
 {
-    $$(".picasa ul").invoke("observe", "mouseover", function(event) {
-        var mousedList = event.findElement("li");
-        if (mousedList) {
-            mousedList.down("span").show();
+    $(".picasa ul").mouseover(function(event) {
+        var jqMousedList = $(event.target).closest('li');
+        if (jqMousedList) {
+            jqMousedList.find('span').show();
         }
     });
-    $$(".picasa ul").invoke("observe", "mouseout", function(event) {
-        var mousedList = event.findElement("li");
-        if (mousedList && !mousedList.hasClassName("selected")) {
-            mousedList.down("span").hide();
+    $(".picasa ul").mouseout(function(event) {
+        var jqMousedList = $(event.target).closest('li');
+        if (jqMousedList && !jqMousedList.hasClass("selected")) {
+            jqMousedList.find('span').hide();
         }
     });
-    $$(".picasa ul").invoke("observe", "click", function(event) {
-        var clickedList = event.findElement("li");
-        if (clickedList) {
-            var chk = clickedList.down("input");
-            if (chk.checked) {
-                clickedList.addClassName("selected");
-                clickedList.down("span").show();
-                clickedList.down("img").setStyle({ opacity: 0.4 });
+    $(".picasa ul").click(function(event) {
+        var jqClickedList = $(event.target).closest('li');
+        if (jqClickedList) {
+            var jqChk = jqClickedList.find("input");
+            if (jqChk.prop('checked')) {
+                jqClickedList.addClass("selected");
+                jqClickedList.find("span").show();
+                jqClickedList.find("img").css('opacity', '0.4');
             }
             else {
-                clickedList.removeClassName("selected");
-                clickedList.down("span").hide();
-                clickedList.down("img").setStyle({ opacity: 1 });
+                jqClickedList.removeClass("selected");
+                jqClickedList.find("span").hide();
+                jqClickedList.find("img").css('opacity', '1');
             }
         }
     });
 
-    if (!$('albums')) { return; }
-
-    Event.observe($("albums"), "change", function() {
-        $$("#photo_list li").each(function (item) {
-            item.remove();
-        });
+    $('.picasa > p').on('change', '> #albums', function() {
+        $("#photo_list").empty();
         loadPicasaPhotos(token, errorMessage);
     });
 }
 
 function loadPicasaPhotos (token, errorMessage)
 {
-    var albumId = $F("albums");
+    var albumId = $('#albums').val();
 
-    var img = document.createElement("img");
-    img.setAttribute("src", "../ui/img/ajax-bar.gif");
-    img.setAttribute("id", "ajax-loader");
-    $("photo_list").insert({"before":img});
+    $('.picasa').prepend('<img id="ajax-loader" src="../ui/img/ajax-bar.gif" />');
 
-    new Ajax.Request("index.php", {
-        method: "post",
-        parameters: {
+    $.ajax({
+        url  : 'index.php',
+        type : 'POST',
+        data : {
             ajax                 : "picasa_photos",
             picasa_session_token : token,
             albumId              : albumId,
-        },
-        onSuccess: function(transport) {
-            var response = transport.responseText;
-            loadPicasaPhotoEvents(token, errorMessage);
-            $("photo_list").insert({"bottom":response});
-            $("ajax-loader").remove();
-        },
-        onFailure: function() {
-            var para = document.createElement("p");
-            para.setAttribute("class", "error-alert");
-            para.appendChild(document.createTextNode(errorMessage));
-            $("ajax-loader").insert({"before":para});
-            $("ajax-loader").remove();
         }
+    }).done(function(data) {
+        $('#ajax-loader').remove();
+        $('#photo_list').prepend(data)
+    }).fail(function() {
+        $('#ajax-loader').remove();
+        $('.picasa').prepend('<p class="error-alert">' + errorMessage + '</p>')
     });
 }
 function loadMorePicasaPhotos (startIndex, token, errorMessage)
 {
-    var albumId = $F("albums");
+    var albumId = $('#albums').val();
 
-    var img = document.createElement("img");
-    var li  = document.createElement("li");
-    img.setAttribute("src", "../ui/img/ajax-bar.gif");
-    img.setAttribute("id", "ajax-loader");
-    li.appendChild(img);
-    $("photo_list").insert({"bottom":li});
+    $('.picasa').append('<img id="ajax-loader" src="../ui/img/ajax-bar.gif" />');
 
-    new Ajax.Request("index.php", {
-        method: "post",
-        parameters: {
+    $.ajax({
+        url  : 'index.php',
+        type : 'POST',
+        data : {
             ajax                 : "more_picasa_photos",
             picasa_session_token : token,
             albumId              : albumId,
             start_index          : startIndex,
-        },
-        onSuccess: function(transport) {
-            var response = transport.responseText;
-            loadPicasaPhotoEvents(token, errorMessage);
-            $("ajax-loader").remove();
-            $("photo_list").insert({"bottom":response});
-        },
-        onFailure: function() {
-            var para = document.createElement("p");
-            para.setAttribute("class", "error-alert");
-            para.appendChild(document.createTextNode(errorMessage));
-            $("ajax-loader").insert({"before":para});
-            $("ajax-loader").remove();
         }
+    }).done(function(data) {
+        $('#ajax-loader').remove();
+        $('#photo_list').append(data);
+    }).fail(function() {
+        $('#ajax-loader').remove();
+        $('.picasa').prepend('<p class="error-alert">' + errorMessage + '</p>');
     });
 }
 function loadPicasaAlbums (token, errorMessage)
 {
-    var img = document.createElement("img");
-    img.setAttribute("src", "../ui/img/ajax-bar.gif");
-    img.setAttribute("id", "ajax-loader");
+    $('.picasa').prepend('<img id="ajax-loader" src="../ui/img/ajax-bar.gif" />');
 
-    $$(".picasa").each(function (item) {
-        item.insert({"top":img});
-    });
-
-    new Ajax.Request("index.php", {
-        method: "post",
-        parameters: {
+    $.ajax({
+        url  : 'index.php',
+        type : 'POST',
+        data : {
             ajax                 : "picasa_albums",
             picasa_session_token : token,
-        },
-        onSuccess: function(transport) {
-            var response = transport.responseText;
-            $("ajax-loader").insert({"before":response});
-            $("ajax-loader").remove();
-        },
-        onFailure: function() {
-            var para = document.createElement("p");
-            para.setAttribute("class", "error-alert");
-            para.appendChild(document.createTextNode(errorMessage));
-            $("ajax-loader").insert({"before":para});
-            $("ajax-loader").remove();
         }
+    }).done(function(data) {
+        $('.picasa').prepend(data);
+        $('#ajax-loader').remove();
+    }).fail(function() {
+        $('.picasa').prepend('<p class="error-alert">' + errorMessage + '</p>');
+        $('#ajax-loader').remove();
     });
 }
 function picasaSelectAll ()
 {
-    $$('.picasa input[type=checkbox]').each(function(item) {
-        item.checked = true;
-        var li = item.up('li');
-        li.addClassName("selected");
-        li.down("span").show();
-        li.down("img").setStyle({ opacity: 0.4 });
+    $('.picasa input[type=checkbox]').each(function() {
+        this.checked = true;
+        jqLi = $(this).closest('li');
+        jqLi.addClass("selected");
+        jqLi.find("span").show();
+        jqLi.find("img").css('opacity', '0.4');
     });
 }
 function picasaSelectNone ()
 {
-    $$('.picasa input[type=checkbox]').each(function(item) {
+    $('.picasa input[type=checkbox]').each(function(item) {
         item.checked = false;
-        var li = item.up('li');
-        li.removeClassName("selected");
-        li.down("span").hide();
-        li.down("img").setStyle({ opacity: 1 });
+        jqLi = $(this).closest('li');
+        jqLi.removeClass("selected");
+        jqLi.find("span").hide();
+        jqLi.find("img").css('opacity', '1');
     });
 }
 
 
 /* =CALENDAR
 ------------------------------------------------*/
-function initCalendarHighlight() {
-    if (!$$('#big-calendar td.monthDay, #big-calendar td.monthToday')) { return; }
-    $$('#big-calendar td.monthDay, #big-calendar td.monthToday').each(function(item) {
-        item.observe('mouseover', function() {
-            var link = item.childNodes[1];
-            if (link) {
-                if (link.getAttribute('href')) {
-                    item.addClassName('mouseover');
-                }
-            }
-        });
-        item.observe('mouseout', function() {
-            item.removeClassName('mouseover');
-        });
-    });
-}
-function initHideAdd() {
-    if (!$$('#big-calendar td')) { return; }
-    $$('#big-calendar td').each(function(item) {
-        item.addClassName('hideadd');
-    });
-}
+// Hide detail options when creating a new calendar event
 function initHideMoreDetails(txt) {
-    if ($('cal-details')) {
-        var div = $('cal-details');
-        if (div.style.setAttribute) {
-            div.style.setAttribute('cssText', 'display:none');
-        } else {
-            div.setAttribute('style', 'display:none');
-        }
-        var a = new Element('a', { href: '#' }).update(txt);
-        a.onclick = function() { $('cal-details').toggle(); return false; };
-        div.insert({'before':a});
+    var jqDetails = $('#cal-details');
+    if (jqDetails.length > 0) {
+        jqDetails.before('<a id="cal-details-link" href="#">' + txt + '</a>');
+        $('#cal-details-link').click(function() {
+            $('#cal-details').toggle();
+            return false;
+        });
+        jqDetails.hide();
     }
 }
+
+// disable times if the event is for all day
 function initDisableTimes() {
-    var start = $('timestart');
-    if (start) {
-        if ($('all-day').checked) { 
-            start.setAttribute('disabled', 'disabled'); 
-        }
-    }
-    var end = $('timeend');
-    if (end) {
-        if ($('all-day').checked) { 
-            end.setAttribute('disabled', 'disabled'); 
-        }
+    var jqStart = $('#timestart');
+    var jqEnd   = $('#timeend');
+
+    if ($('#all-day').is(':checked')) { 
+        jqStart.prop('disabled', true); 
+        jqEnd.prop('disabled', true); 
     }
 }
+
+// toggles disable for all arguments passed to it
+// aguments must be jquery objects
 function toggleDisable() { 
     for (var i = 0; i < arguments.length; i++) { 
-        var element = $(arguments[i]); 
-        if (element.hasAttribute('disabled')) { 
-            element.removeAttribute('disabled'); 
-        } else { 
-            element.setAttribute('disabled', 'disabled'); 
+        var element = arguments[i]; 
+        if (element.is(':disabled')) { 
+            element.prop('disabled', false); 
+        }
+        else { 
+            element.prop('disabled', true); 
         } 
     } 
 } 
+
+// On invite screen make clicking row, also check the checkbox
 function initCalendarClickRow()
 {
-    if ($('invite-table')) {
-        $$('tbody tr').each(function(row) {
-            if (!row.hasClassName('header')) {
-                var chk = row.down('td').down('input');
-                row.childElements().each(function(td) {
-                    if (!td.hasClassName('chk')) {
-                        td.onclick = function() {
-                            if (chk.checked) {
-                                row.removeClassName('checked');
-                                chk.checked = false;
-                            } else {
-                                row.addClassName('checked');
-                                chk.checked = true;
-                            }
-                        };
-                    }
-                });
-            }
-        });
-    }
+    $('#invite-table tbody tr').each(function() {
+        var jqRow = $(this);
+        if (!jqRow.hasClass('header')) {
+            var chk = jqRow.find('td input[type="checkbox"]');
+            jqRow.children('td').each(function() {
+                var jqTd = $(this);
+                if (!jqTd.hasClass('chk')) {
+                    jqTd.click(function() {
+                        if (chk.is(':checked')) {
+                            jqRow.removeClass('checked');
+                            chk.prop('checked', false);
+                        }
+                        else {
+                            jqRow.addClass('checked');
+                            chk.prop('checked', true);
+                        }
+                    });
+                }
+            });
+        }
+    });
+}
+
+// Hide the member list if we are inviting everyone
+function initInviteAll ()
+{
+    $('#all-members').click(function() {
+        if ($('#all-members').is(':checked')) {
+            $('#invite-members-list').hide();
+        }
+        else {
+            $('#invite-members-list').show();
+        }
+    });
+}
+
+// Toggle the members listed in who's coming section
+function initInviteAttending ()
+{
+    $('#whos_coming .coming_details').each(function() {
+        $(this).hide();
+    });
+
+    $('#whos_coming h3.coming').click(function() {
+        $(this).next().toggle();
+    });
 }
 
 /* =RECIPE
 ------------------------------------------------*/
 function initHideAddFormDetails() {
-    if ($('addform')) {
-        // Name
-        setElementDisplayNone($('name-info'));
-        $('name').onfocus = function() { $('name-info').show(); };
-        $('name').onblur  = function() { $('name-info').hide(); };
-        // Ingredients
-        setElementDisplayNone($('ingredients-info'));
-        $('ingredients').onfocus = function() { $('ingredients-info').show(); };
-        $('ingredients').onblur  = function() { $('ingredients-info').hide(); };
-    }
+    // Name
+    $('#name-info').hide();
+    $('#name')
+        .focus(function() { $('#name-info').show(); })
+        .blur(function() { $('#name-info').hide(); });
+
+    // Ingredients
+    $('#ingredients-info').hide();
+    $('#ingredients')
+        .focus(function() { $('#ingredients-info').show(); })
+        .blur(function() { $('#ingredients-info').hide(); });
 }
 
 /* =SETTINGS
 ------------------------------------------------*/
+// attach onchange event to avatar type select
 function initGravatar() {
-    if ($('avatar_type')) {
+    if ($('#avatar_type').length) {
         handleAvatar();
-        $('avatar_type').onchange = handleAvatar;
+        $('#avatar_type').change(function() { handleAvatar() });
     }
 }
+
+// handle changing avatar type
 function handleAvatar() {
-    if ($F('avatar_type') == "fcms") {
-        $('fcms').show();
-        $('gravatar').hide();
-        $('default').hide();
+    var avatarType = $('#avatar_type option:selected').val();
+
+    if (avatarType == "fcms") {
+        $('#fcms').show();
+        $('#gravatar').hide();
+        $('#default').hide();
     }
-    if ($F('avatar_type') == "gravatar") {
-        $('fcms').hide();
-        $('gravatar').show();
-        $('default').hide();
+    if (avatarType == "gravatar") {
+        $('#fcms').hide();
+        $('#gravatar').show();
+        $('#default').hide();
     }
-    if ($F('avatar_type') == "default") {
-        $('fcms').hide();
-        $('gravatar').hide();
-        $('default').show();
+    if (avatarType == "default") {
+        $('#fcms').hide();
+        $('#gravatar').hide();
+        $('#default').show();
     }
 }
+
 function initAdvancedTagging() {
-    if ($('advanced_tagging_div')) {
-        $('advanced_tagging_div').show();
+    if ($('#advanced_tagging_div').length) {
+        $('#advanced_tagging_div').show();
     }
 }
 
@@ -898,56 +762,53 @@ function initAdvancedTagging() {
 ------------------------------------------------*/
 function initAddressBookClickRow()
 {
-    if ($('address-table')) {
-        $$('tbody tr').each(function(row) {
-            if (!row.hasClassName('header')) {
-                var url = row.down('td', 1).down('a').href;
-                row.childElements().each(function(td) {
-                    if (!td.hasClassName('chk')) {
-                        td.onclick = function() { window.location.href=url; };
-                    }
-                });
-            }
-        });
-    }
+    $('#address-table > tbody > tr > td').each(function() {
+        var $cell = $(this);
+        if (!$cell.hasClass('chk')) {
+            $cell.click(function() {
+                var url = $cell.closest('tr').find('td:nth-of-type(2) > a').attr('href');
+                window.location.href=url;
+            });
+        }
+    });
 }
 
 /* =VIDEO
 ------------------------------------------------*/
 function initYouTubeVideoStatus(txt)
 {
-    if ($('current_status')) {
-        $('refresh').hide();
-        $('js_msg').update(txt);
-        pu = new Ajax.PeriodicalUpdater('current_status', 'video.php', {
-            method: 'get', 
-            parameters : 'check_status=1',
-            frequency: 3, 
-            decay: 2,
-            onSuccess : function(t) {
-                if (t.responseText == 'Finished') {
-                    pu.stop();
+    if ($('#current_status').length)
+    {
+        $('#refresh').hide();
+        $('#js_msg').text(txt);
+
+        setTimeout(function () {
+            $.ajax({
+                url  : 'video.php',
+                type : 'get',
+                data : {
+                    check_status : 1,
+                },
+            })
+            .done(function(data) {
+                if (data == 'Finished') {
                     window.location.reload();
                 }
-            },
-            onFailure : function(t) {
-                alert('Could not get status: ' + t.responseText);
-            }
-        });
+                else {
+                    initYouTubeVideoStatus(txt);
+                }
+            })
+            .fail(function(jqXHR, textStatus) {
+                alert('Could not get status: ' + textStatus);
+            });
+        }, 2000);
     }
 }
 function initHideVideoEdit(txt)
 {
-    if ($('video_edit')) {
-        $('video_edit').hide();
-        var vDiv = $('video_edit');
-        var vLink = Element.extend(document.createElement('a'));
-        vLink.href = '#';
-        vLink.addClassName('video_edit_show_hide');
-        vLink.appendChild(document.createTextNode(txt));
-        vLink.onclick = function() { $('video_edit').toggle(); return false; };
-        vDiv.insert({'before':vLink});
-    }
+    $('#video_edit')
+        .hide()
+        .before('<a href="#" class="video_edit_show_hide" onclick="$(\'#video_edit\').toggle(); return false;">' + txt + '</a>');
 }
 
 /* =FAMILYTREE =TREE
@@ -968,40 +829,30 @@ function initLivingDeceased()
 }
 function initAddRelative()
 {
-    $$('.tools a.add').each(function(anchor) {
-        anchor.observe("click", function(e) {
+    $('span.tools a.add').each(function() {
+        var jqAnchor = $(this);
+        jqAnchor.click(function(e) {
             e.preventDefault();
 
-            var tools = anchor.up();
-            var href = anchor.readAttribute("href");
-            var id = href.substring(1);
+            var tools = jqAnchor.closest('span.tools');
+            var href  = jqAnchor.attr('href');
+            var id    = href.substring(1);
 
-            var img = document.createElement("img");
-            img.setAttribute("src", "ui/img/ajax-bar.gif");
-            img.setAttribute("id", "ajax-loader");
-            img.setAttribute("style", "float:right; margin:20px;");
-            $('content').insert({"top":img});
+            var jqImg = $('<img src="ui/img/ajax-bar.gif" id="ajax-loader" style="float:right; margin:20px"/>');
+            $('#content').prepend(jqImg);
 
-            new Ajax.Request("familytree.php", {
-                method: "post",
-                parameters: {
+            $.ajax({
+                url  : 'familytree.php',
+                type : 'post',
+                data : {
                     ajax : "add_relative_menu",
                     id   : id,
                 },
-                onSuccess: function(transport) {
-                    var response = transport.responseText;
-                    $('content').insert({"bottom":response});
-
-                    $("ajax-loader").remove();
-                },
-                onFailure: function(transport) {
-alert('oops');
-                }
+            })
+            .success(function(data) {
+                $('#content').append(data);
+                $('#ajax-loader').remove();
             });
         });
     });
 }
-
-// TODO - move these out of here 
-addLoadEvent(initTextFieldHighlight);
-addLoadEvent(initRowHighlight);

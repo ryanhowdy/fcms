@@ -101,11 +101,9 @@ class Page
 
         $params['javascript'] = '
 <script type="text/javascript">
-//<![CDATA[
-Event.observe(window, \'load\', function() {
+$(document).ready(function() {
     initChatBar(\''.T_('Chat').'\', \''.URL_PREFIX.'\');
 });
-//]]>
 </script>';
 
         loadTemplate('global', 'header', $params);
@@ -176,6 +174,7 @@ Event.observe(window, \'load\', function() {
                 <small><a class="u" href="notifications.php?view=all">'.T_('View past notifications').'</a></small>
             </p>';
 
+            $this->displayFooter();
             return;
         }
 
@@ -355,9 +354,17 @@ Event.observe(window, \'load\', function() {
 
                 list($uid, $cid, $pid, $filename) = explode(':', $r['data']);
 
+                $data = array(
+                    'id'          => $pid,
+                    'external_id' => null,
+                    'filename'    => $filename,
+                    'user'        => $uid,
+                );
+                $photoSrc = $this->fcmsPhotoGallery->getPhotoSource($data);
+
                 $info  = sprintf(T_('%s has added a photo of you.'), $displayName).$date;
                 $info .= '<br/><a href="gallery/index.php?uid='.$uid.'&amp;cid='.$cid.'&amp;pid='.$pid.'">';
-                $info .= '<img src="uploads/photos/member'.$uid.'/tb_'.basename($filename).'"/></a>';
+                $info .= '<img src="'.$photoSrc.'"/></a>';
             }
 
             echo '

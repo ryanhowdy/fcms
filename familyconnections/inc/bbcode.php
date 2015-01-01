@@ -65,8 +65,8 @@ h3 { font: bold 16px/30px Verdana, Tahoma, Arial, sans-serif; }
 <p>[mail]anotherguy@mail.com[/mail]<br/><a href="mailto:anotherguy@mail.com">anotherguy@mail.com</a></p>
 <h3>'.T_('Youtube Video').'</h2>
 <p>
-    [video]&lt;object width="320" height="265"&gt;&lt;param name="movie" value="http://www.youtube.com/v/dMH0bHeiRNg&hl=en_US&fs=1&"&gt;&lt;/param&gt;&lt;param name="allowFullScreen" value="true"&gt;&lt;/param&gt;&lt;param name="allowscriptaccess" value="always"&gt;&lt;/param&gt;&lt;embed src="http://www.youtube.com/v/dMH0bHeiRNg&hl=en_US&fs=1&" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="320" height="265"&gt;&lt;/embed&gt;&lt;/object&gt;>[/video]<br/>
-    <object width="320" height="265"><param name="movie" value="http://www.youtube.com/v/dMH0bHeiRNg&hl=en_US&fs=1&"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/dMH0bHeiRNg&hl=en_US&fs=1&" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="320" height="265"></embed></object>
+    [video]http://www.youtube.com/watch?v=dMH0bHeiRNg[/video]<br/>
+    <iframe class="youtube-player" type="text/html" width="320" height="265" src="http://www.youtube.com/embed/dMH0bHeiRNg" allowfullscreen frameborder="0"></iframe>
 </p>
 </body>
 </html>';
