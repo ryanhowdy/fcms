@@ -1,5 +1,11 @@
   3.5.0
+    #407 - Move from Prototype to jQuery
+    #441 - HTML5 YouTube videos
     #450 - Memory error on Family Tree with a lot of relatives
+    #452 - Upgrade plupload to 2.1.1
+    #454 - PHP Error pre_replace(): The /e modifier is deprecated
+    #472 - PhotoDestination issue when uploading instagram
+    #473 - Foursquare API needs updated
 
   3.4.2
     #457 - Photos not deleted from server in Admin
