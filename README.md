@@ -1,7 +1,7 @@
 ![Family Connections](./familyconnections/ui/img/logo.gif)
 ---
 
-[![Build Status](https://travis-ci.org/ryanhowdy/fcms.svg?branch=3.5.0)](https://travis-ci.org/ryanhowdy/fcms)
+[![Build Status](https://travis-ci.org/ryanhowdy/fcms.svg?branch=master)](https://travis-ci.org/ryanhowdy/fcms)
 [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/ryanhowdy/fcms/badges/quality-score.png?s=755b6ade4f4add05acf377fbaf03bb3a201f471c)](https://scrutinizer-ci.com/g/ryanhowdy/fcms/)
 
 
