@@ -2879,82 +2879,122 @@ h3.coming i {
 }
 /* =PROFILE
 ------------------------------------------------*/
-#profile #leftcolumn {
+#profile > #maincolumn > #avatar {
+  float: left;
+  padding: 20px 0;
   text-align: center;
+  width: 300px;
 }
-#profile #leftcolumn .menu {
-  text-align: left;
+#profile > #maincolumn > #avatar > h1 {
+  background-color: #99cef0;
+  width: 150px;
+  margin: 0 auto;
+  padding: 35px 0;
+  border-radius: 75px;
 }
-#contact-buttons ul {
-  list-style-type: none;
-  margin: 20px 0 0 0;
-  padding: 0;
+#profile > #maincolumn > #avatar > h1 > img {
+  border-radius: 45px;
+  width: 80px;
+  height: 80px;
 }
-#contact-buttons li {
+#profile > #maincolumn > #avatar > div {
+  margin: 15px 0 0 115px;
+}
+#profile > #maincolumn > .name-contacts {
+  float: left;
+  margin: 0 0 20px 0;
+}
+#profile > #maincolumn > .name-contacts > h1 {
+  font-size: 28px;
+  margin: 10px 0 10px 0;
+}
+#profile > #maincolumn > .name-contacts > h2 {
+  font-size: 18px;
   margin: 0 0 10px 0;
 }
-.name {
-  margin-bottom: 30px;
-}
-#content .name h1 {
-  line-height: 40px;
-  margin: 0;
-}
-#content .name h2 {
-  font-size: 20px;
-  font-weight: normal;
-}
-#profile-data {
-  *zoom: 1;
+#profile > #maincolumn > .name-contacts > ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
-#profile-data:before,
-#profile-data:after {
-  display: table;
-  content: "";
+#profile > #maincolumn > .name-contacts > ul > li {
+  padding: 7px 15px;
+  border-bottom: 1px solid #ddd;
 }
-#profile-data:after {
+#profile > #maincolumn > .name-contacts > ul > li > a {
+  color: #333;
+  font-size: 13px;
+  font-weight: normal;
+  padding-left: 25px;
+}
+#profile > #maincolumn > .name-contacts > ul > li > a.call {
+  background: transparent url('../img/phone.png') left center no-repeat;
+}
+#profile > #maincolumn > .name-contacts > ul > li > a.email {
+  background: transparent url('../img/email.png') left center no-repeat;
+}
+#profile > #maincolumn > .name-contacts > ul > li > a.pm {
+  background: transparent url('../img/message.png') left center no-repeat;
+}
+#profile > #maincolumn > .name-contacts > ul > li > a:hover {
+  font-weight: bold;
+}
+#profile > #maincolumn > ul {
+  border-top: 1px solid #ccc;
   clear: both;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
 }
-#profile-data li {
-  float: left;
-  margin-bottom: 40px;
+#profile > #maincolumn > ul li > b {
+  color: #999;
+  display: block;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 18px;
+  padding: 0 0 5px 0;
+}
+#profile > #maincolumn > ul li > div > p {
+  margin: 0 0 20px 0;
+}
+#profile > #maincolumn > ul li > div > p > span {
+  color: #999;
+  float: right;
+}
+#profile > #maincolumn > ul > li {
+  border-bottom: 1px solid #ccc;
+  padding: 30px;
+}
+#profile > #maincolumn > ul > li > ul {
+  list-style-type: none;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
   width: 100%;
 }
-#profile-data li b {
+#profile > #maincolumn > ul > li > ul li {
   float: left;
+  width: 50%;
+}
+.stat {
+  display: inline-block;
+  margin: 40px;
+  position: relative;
+  text-align: center;
   width: 150px;
 }
-#profile-data li div {
-  float: left;
-  font-size: 11px;
+.stat > canvas {
+  left: 0;
+  position: absolute;
+  top: 45px;
 }
-#profile-data li div p {
-  margin: 0 0 5px 0;
-}
-#profile-data li div span {
-  color: #999;
+.stat > .inner {
+  color: #6baad3;
   display: inline-block;
-  width: 60px;
-}
-#profile-data a.action {
-  background-color: #eee;
-  border: 1px solid #ddd;
-  -webkit-border-radius: 10px;
-  -moz-border-radius: 10px;
-  border-radius: 10px;
-  color: #999;
-  display: inline-block;
-  font-size: 11px;
-  font-weight: normal;
-  line-height: 20px;
-  width: 130px;
-}
-#profile-data a.action:hover {
-  color: #666;
-  border-color: #ccc;
+  font-weight: bold;
+  font-size: 32px;
+  line-height: 175px;
+  z-index: 2;
 }
 #profile fieldset {
   margin-left: 0;
@@ -2970,107 +3010,71 @@ h3.coming i {
 #profile .level7 {
   margin: 10px 0 0 0;
 }
-#stats {
-  *zoom: 1;
-  margin: 0 0 30px 0;
-}
-#stats:before,
-#stats:after {
-  display: table;
-  content: "";
-}
-#stats:after {
-  clear: both;
-}
-#stats .stat {
-  background-color: #eee;
-  -webkit-border-radius: 10px;
-  -moz-border-radius: 10px;
-  border-radius: 10px;
-  float: left;
-  font-size: 10px;
-  margin: 0 10px 10px 0;
-  padding: 10px;
-  width: 100px;
-}
-#maincolumn #stats .stat {
-  width: 150px;
-}
-#stats .stat span {
-  display: block;
-  cursor: help;
-  font: bold 30px Arial, Verdana, sans-serif;
-  text-align: center;
-}
-#stats .stat b {
-  display: block;
-  text-align: center;
-}
-#main-info span.date {
-  display: block;
-}
-#awards-list {
+#profile > #maincolumn > #awards-list {
+  border: none;
   *zoom: 1;
   margin: 10px 0 50px 0;
   padding: 0;
 }
-#awards-list:before,
-#awards-list:after {
+#profile > #maincolumn > #awards-list:before,
+#profile > #maincolumn > #awards-list:after {
   display: table;
   content: "";
 }
-#awards-list:after {
+#profile > #maincolumn > #awards-list:after {
   clear: both;
 }
-#awards-list li {
+#profile > #maincolumn > #awards-list > li {
+  border: none;
   float: left;
   list-style: none;
+  padding: 0;
   width: 188px;
 }
-#awards-list li a {
+#profile > #maincolumn > #awards-list > li > a {
   display: inline-block;
   height: 60px;
   margin: 5px;
   vertical-align: middle;
   width: 60px;
 }
-#awards-list li span {
+#profile > #maincolumn > #awards-list > li > a.board {
+  background: transparent url(../img/award_board.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li > a.docs {
+  background: transparent url(../img/award_docs.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li > a.gallery {
+  background: transparent url(../img/award_gallery.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li > a.icebreaker {
+  background: transparent url(../img/award_icebreaker.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li > a.interesting {
+  background: transparent url(../img/award_interesting.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li > a.news {
+  background: transparent url(../img/award_news.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li > a.photogenic {
+  background: transparent url(../img/award_photogenic.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li > a.planner {
+  background: transparent url(../img/award_planner.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li > a.recipes {
+  background: transparent url(../img/award_recipes.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li > a.secretive {
+  background: transparent url(../img/award_secretive.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li > a.shutterbug {
+  background: transparent url(../img/award_shutterbug.gif) 50% 50% no-repeat;
+}
+#profile > #maincolumn > #awards-list > li span {
   color: #999;
   display: inline-block;
   font-size: 11px;
-}
-#awards-list li a.board {
-  background: transparent url(../img/award_board.gif) 50% 50% no-repeat;
-}
-#awards-list li a.docs {
-  background: transparent url(../img/award_docs.gif) 50% 50% no-repeat;
-}
-#awards-list li a.gallery {
-  background: transparent url(../img/award_gallery.gif) 50% 50% no-repeat;
-}
-#awards-list li a.icebreaker {
-  background: transparent url(../img/award_icebreaker.gif) 50% 50% no-repeat;
-}
-#awards-list li a.interesting {
-  background: transparent url(../img/award_interesting.gif) 50% 50% no-repeat;
-}
-#awards-list li a.news {
-  background: transparent url(../img/award_news.gif) 50% 50% no-repeat;
-}
-#awards-list li a.photogenic {
-  background: transparent url(../img/award_photogenic.gif) 50% 50% no-repeat;
-}
-#awards-list li a.planner {
-  background: transparent url(../img/award_planner.gif) 50% 50% no-repeat;
-}
-#awards-list li a.recipes {
-  background: transparent url(../img/award_recipes.gif) 50% 50% no-repeat;
-}
-#awards-list li a.secretive {
-  background: transparent url(../img/award_secretive.gif) 50% 50% no-repeat;
-}
-#awards-list li a.shutterbug {
-  background: transparent url(../img/award_shutterbug.gif) 50% 50% no-repeat;
 }
 #current-award {
   *zoom: 1;
