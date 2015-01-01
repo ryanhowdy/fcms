@@ -416,50 +416,6 @@ function hidePhotoDetails(txt) {
         pDiv.insert({'before':pPara});
     }
 }
-function initPreviouslyTagged(users_lkup)
-{
-    $$('input.tagged').each(function(item) {
-        var id = item.getValue();
-        var txt = users_lkup[id];
-
-        var li = document.createElement("li");
-        Element.extend(li);
-        li.update(txt);
-        var a = document.createElement("a");
-        Element.extend(a);
-        a.href = "#";
-        a.writeAttribute("alt", id);
-        a.onclick = removeTagged;
-        a.update("x");
-        li.appendChild(a);
-        $("autocomplete_selected").appendChild(li);
-    });
-}
-function initMultiPreviouslyTagged(key, users_lkup)
-{
-    $$('input.tagged').each(function(item) {
-        var name = item.id;
-
-        if (name != 'tagged_'+key) {
-            return; // each is a function call, not a for loop
-        }
-
-        var id = item.getValue();
-        var txt = users_lkup[id];
-
-        var li = document.createElement("li");
-        Element.extend(li);
-        li.update(txt);
-        var a = document.createElement("a");
-        Element.extend(a);
-        a.href = "#";
-        a.writeAttribute("alt", id);
-        a.onclick = removeTagged;
-        a.update("x");
-        li.appendChild(a);
-        $("autocomplete_selected_"+key).appendChild(li);
-    });
-}
 function newMultiUpdateElement(li)
 {
     var i = li.parentNode.parentNode;
