@@ -16,6 +16,8 @@ Because social networking sites like Facebook/Google+ are not private enough for
 * Fork the [fcms repo](https://github.com/ryanhowdy/fcms) on GitHub
 * Send a pull request (don't forget to add yourself to the [AUTHORS](https://github.com/ryanhowdy/fcms/blob/master/AUTHORS) file)
 
+We usually have a few bugs/feature requests that you can get paid to fix. Check out our list of issues labeled  [bounty](https://github.com/ryanhowdy/fcms/labels/bounty).
+
 
 
 # Installation
