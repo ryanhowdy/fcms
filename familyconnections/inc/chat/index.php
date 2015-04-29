@@ -7,6 +7,9 @@
  * @link https://blueimp.net/ajax/
  */
 
+// Disable displaying errors.
+ini_set('display_errors', 'Off');
+
 // Keep FCMS session
 session_start();
 
