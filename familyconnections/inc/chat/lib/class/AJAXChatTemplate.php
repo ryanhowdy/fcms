@@ -55,7 +55,10 @@ class AJAXChatTemplate {
                 $this->_parsedContent = preg_replace_callback(
                     $this->_regExpTemplateTags,
                     function ($matches) {
-                        return $this->replaceTemplateTags($matches[1], $matches[2]);
+                        $tag = $matches[1];
+                        $content = count($matches) > 2 ? $matches[2] : '';
+
+                        return $this->replaceTemplateTags($tag, $content);
                     },
                     $this->_parsedContent);
 	}
