@@ -112,6 +112,8 @@ class CustomAJAXChat extends AJAXChat
      */
     function getUserDisplayName ($userid, $display = 0, $isMember = true)
     {
+        global $connection;
+
         $userid = (int)$userid;
 
         if ($isMember) {
@@ -124,10 +126,10 @@ class CustomAJAXChat extends AJAXChat
                  . "FROM `fcms_users` "
                  . "WHERE `id` = '$userid' ";
         }
-        $result = mysql_query($sql) or displaySQLError(
+        $result = mysqli_query($connection, $sql) or displaySQLError(
             'Displayname Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        $r = mysql_fetch_array($result);
+        $r = mysqli_fetch_array($result);
 
         // Do we want user's settings or overriding it?
         if ($display < 1) {
@@ -153,15 +155,17 @@ class CustomAJAXChat extends AJAXChat
      */
     function checkAccess ($userid)
     {
+        global $connection;
+
         $userid = (int)$userid;
 
         $sql = "SELECT `access` 
                 FROM `fcms_users` 
                 WHERE `id` = '$userid'";
-        $result = mysql_query($sql) or displaySQLError(
+        $result = mysqli_query($connection, $sql) or displaySQLError(
             'Access Error', __FILE__ . ' [' . __LINE__ . ']', $sql, mysql_error()
         );
-        $r = mysql_fetch_array($result);
+        $r = mysqli_fetch_array($result);
         return $r['access'];
     }
 }
