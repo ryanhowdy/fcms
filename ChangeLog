@@ -1,3 +1,6 @@
+  3.5.1
+    #488 - Turning site off causes php errors
+
   3.5.0
     #407 - Move from Prototype to jQuery
     #441 - HTML5 YouTube videos
