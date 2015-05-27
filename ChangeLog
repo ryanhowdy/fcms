@@ -1,5 +1,6 @@
   3.5.1
     #488 - Turning site off causes php errors
+    #486 - Account - Undefined index: advanced_tagging
 
   3.5.0
     #407 - Move from Prototype to jQuery
