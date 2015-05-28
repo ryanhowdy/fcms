@@ -224,8 +224,8 @@ class Page
             return;
         }
 
-        // If this is a real user, and you are not an admin, you can't edit it
-        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1)
+        // If this is a real user, and you are not an admin, you can't edit it and this user isn't you
+        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1 && $user['id'] != $this->fcmsUser->id)
         {
             echo '<div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
             $this->displayFooter();
@@ -258,7 +258,8 @@ class Page
             return;
         }
 
-        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1)
+        // If this is a real user, and you are not an admin, you can't edit it and this user isn't you
+        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1 && $user['id'] != $this->fcmsUser->id)
         {
             $this->displayHeader();
             echo '<div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
@@ -520,8 +521,8 @@ class Page
             return;
         }
 
-        // If this is a real user, and you are not an admin, you can't edit it
-        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1)
+        // If this is a real user, and you are not an admin, you can't edit it and this user isn't you
+        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1 && $user['id'] != $this->fcmsUser->id)
         {
             echo '<div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
             $this->displayFooter();
@@ -711,7 +712,8 @@ class Page
         $user    = $users[0];
         $relUser = $users[1];
 
-        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1)
+        // If this is a real user, and you are not an admin, you can't edit it and this user isn't you
+        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1 && $user['id'] != $this->fcmsUser->id)
         {
             $this->displayHeader();
             echo '<div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
@@ -1136,8 +1138,8 @@ class Page
             return;
         }
 
-        // If this is a real user, and you are not an admin, you can't edit it
-        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1)
+        // If this is a real user, and you are not an admin, you can't edit it and this user isn't you
+        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1 && $user['id'] != $this->fcmsUser->id)
         {
             echo '<div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
             $this->displayFooter();
@@ -1180,8 +1182,8 @@ class Page
             return;
         }
 
-        // If this is a real user, and you are not an admin, you can't edit it
-        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1)
+        // If this is a real user, and you are not an admin, you can't edit it and this user isn't you
+        if ($user['phpass'] != 'NONMEMBER' && $this->fcmsUser->access != 1 && $user['id'] != $this->fcmsUser->id)
         {
             $this->displayHeader();
             echo '<div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';

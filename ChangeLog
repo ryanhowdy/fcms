@@ -2,6 +2,7 @@
     #488 - Turning site off causes php errors
     #486 - Account - Undefined index: advanced_tagging
     #487 - Admin: Can't edit user profiles
+    #424 - Members cannot add to family tree
 
   3.5.0
     #407 - Move from Prototype to jQuery
