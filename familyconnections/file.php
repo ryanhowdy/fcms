@@ -25,6 +25,8 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require URL_PREFIX.'fcms.php';
 
+init();
+
 control();
 exit();
 
