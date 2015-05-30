@@ -67,6 +67,12 @@ class Page
      */
     function control ()
     {
+        if ($this->fcmsUser->access > 1)
+        {
+            $this->displayInvalidAccessLevel();
+            return;
+        }
+
         if (isset($_POST['submit']))
         {
             $this->displayFormSubmitPage();
@@ -107,6 +113,27 @@ class Page
         include_once URL_PREFIX.'ui/admin/footer.php';
     }
 
+    /**
+     * displayInvalidAccessLevel 
+     * 
+     * Display an error message for users who do not have admin access.
+     * 
+     * @return void
+     */
+    function displayInvalidAccessLevel ()
+    {
+        $this->displayHeader();
+
+        echo '
+            <p class="error-alert">
+                <b>'.T_('You do not have access to view this page.').'</b><br/>
+                '.T_('This page requires an access level 1 (Admin).').' 
+                <a href="'.URL_PREFIX.'contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
+            </p>';
+
+        $this->displayFooter();
+    }
+    
     /**
      * displayFormPage
      * 
