@@ -4,7 +4,7 @@
  * @author Sebastian Tschan
  * @author Alan Davies
  * @copyright (c) Sebastian Tschan
- * @license GNU Affero General Public License
+ * @license Modified MIT License
  * @link https://blueimp.net/ajax/
  */
 
@@ -21,7 +21,7 @@ $lang['inputLineBreak'] = 'Gwasgwch SHIFT+ENTER i orfodi llinell newydd';
 $lang['messageSubmit'] = 'Anfon';
 $lang['registeredUsers'] = 'Defnyddwyr Cofrestredig';
 $lang['onlineUsers'] = 'Defnyddwyr ar-lein';
-$lang['toggleAutoScroll'] = 'Awtorhôl ymlaen/bant';
+$lang['toggleAutoScroll'] = 'AwtorhÃ´l ymlaen/bant';
 $lang['toggleAudio'] = 'Sain ymlaen/bant';
 $lang['toggleHelp'] = 'Dangos/cuddio cymorth';
 $lang['toggleSettings'] = 'Dangos/cuddio gosodiadau';
@@ -34,6 +34,7 @@ $lang['bbCodeLabelCode'] = 'Cod';
 $lang['bbCodeLabelURL'] = 'URL';
 $lang['bbCodeLabelImg'] = 'Delwedd';
 $lang['bbCodeLabelColor'] = 'Lliw Ffont';
+$lang['bbCodeLabelEmoticon'] = 'Gwenogluniau';
 $lang['bbCodeTitleBold'] = 'Testun bras: [b]testun[/b]';
 $lang['bbCodeTitleItalic'] = 'Testun italig: [i]testun[/i]';
 $lang['bbCodeTitleUnderline'] = 'Tanlinellu testun: [u]testun[/u]';
@@ -42,14 +43,15 @@ $lang['bbCodeTitleCode'] = 'Dangos cod: [code]cod[/code]';
 $lang['bbCodeTitleURL'] = 'Mewnosod URL: [url]http://example.org[/url] neu [url=http://example.org]testun[/url]';
 $lang['bbCodeTitleImg'] = 'Mewnosod delwedd: [img]http://example.org/image.jpg[/img]';
 $lang['bbCodeTitleColor'] = 'Lliw Ffont: [color=red]testun[/color]';
+$lang['bbCodeTitleEmoticon'] = 'Gwenogluniau list';
 $lang['help'] = 'Cymorth';
-$lang['helpItemDescJoin'] = 'Ymunwch â sianel:';
+$lang['helpItemDescJoin'] = 'Ymunwch Ã¢ sianel:';
 $lang['helpItemCodeJoin'] = '/join EnwSianel';
-$lang['helpItemDescJoinCreate'] = 'Crëwch ystafell breifat (Defnyddwyr cofrestredig yn unig):';
+$lang['helpItemDescJoinCreate'] = 'CrÃ«wch ystafell breifat (Defnyddwyr cofrestredig yn unig):';
 $lang['helpItemCodeJoinCreate'] = '/join';
 $lang['helpItemDescInvite'] = 'Gwahodd rhywun (e.e. i ystafell breifat):';
 $lang['helpItemCodeInvite'] = '/invite Enw';
-$lang['helpItemDescUninvite'] = 'Tynnu gwahaoddiad yn ôl:';
+$lang['helpItemDescUninvite'] = 'Tynnu gwahaoddiad yn Ã´l:';
 $lang['helpItemCodeUninvite'] = '/uninvite Enw';
 $lang['helpItemDescLogout'] = 'Allgofnodwch o Sgwrs:';
 $lang['helpItemCodeLogout'] = '/quit';
@@ -105,6 +107,7 @@ $lang['settingsSoundEnter'] = 'Sain am fewngofnodi a negeseuon myned i sianeli:'
 $lang['settingsSoundLeave'] = 'Sain am allgofnodi a negeseuon gadael sianeli:';
 $lang['settingsSoundChatBot'] = 'Sain am negeseuon sgwrsbot:';
 $lang['settingsSoundError'] = 'Sain am wallnegeseuon:';
+$lang['settingsSoundPrivate'] = 'Sain am negeseuon preifat:';
 $lang['settingsBlink'] = 'Fflachio teitl y ffenestr ar negeseuon newydd:';
 $lang['settingsBlinkInterval'] = 'Cyfwng fflachio mewn milieiliadau:';
 $lang['settingsBlinkIntervalNumber'] = 'Nifer y cyfyngau fflachio:';

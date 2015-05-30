@@ -4,7 +4,7 @@
  * @author Sebastian Tschan
  * @author Borislav Manolov
  * @copyright (c) Sebastian Tschan
- * @license GNU Affero General Public License
+ * @license Modified MIT License
  * @link https://blueimp.net/ajax/
  */
 
@@ -12,8 +12,8 @@ $lang = array();
 $lang['title'] = 'AJAX Chat';
 $lang['userName'] = 'Потребителско име';
 $lang['password'] = 'Парола';
-$lang['login'] = 'Влизане';
-$lang['logout'] = 'Излизане';
+$lang['login'] = 'Вход';
+$lang['logout'] = 'Изход';
 $lang['channel'] = 'Канал';
 $lang['style'] = 'Облик';
 $lang['language'] = 'Език';
@@ -32,16 +32,18 @@ $lang['bbCodeLabelUnderline'] = 'u';
 $lang['bbCodeLabelQuote'] = 'Цитат';
 $lang['bbCodeLabelCode'] = 'Код';
 $lang['bbCodeLabelURL'] = 'URL';
-$lang['bbCodeLabelImg'] = 'Image';
+$lang['bbCodeLabelImg'] = 'Картинка';
 $lang['bbCodeLabelColor'] = 'Цвят на шрифта';
+$lang['bbCodeLabelEmoticon'] = 'Усмивките';
 $lang['bbCodeTitleBold'] = 'Получер текст: [b]текст[/b]';
 $lang['bbCodeTitleItalic'] = 'Курсивен текст: [i]текст[/i]';
 $lang['bbCodeTitleUnderline'] = 'Подчертан текст: [u]текст[/u]';
 $lang['bbCodeTitleQuote'] = 'Цитиран текст: [quote]текст[/quote] или [quote=Автор]текст[/quote]';
 $lang['bbCodeTitleCode'] = 'Показване на код: [code]код[/code]';
 $lang['bbCodeTitleURL'] = 'URL: [url]http://example.org[/url] или [url=http://example.org]текст[/url]';
-$lang['bbCodeTitleImg'] = 'Insert image: [img]http://example.org/image.jpg[/img]';
+$lang['bbCodeTitleImg'] = 'Вмъкване на картинка: [img]http://primer.org/kartinka.jpg[/img]';
 $lang['bbCodeTitleColor'] = 'Цвят на шрифта: [color=red]текст[/color]';
+$lang['bbCodeTitleEmoticon'] = 'списък Усмивките';
 $lang['help'] = 'Помощ';
 $lang['helpItemDescJoin'] = 'Присъединяване към канал:';
 $lang['helpItemCodeJoin'] = '/join име_на_канал';
@@ -51,7 +53,7 @@ $lang['helpItemDescInvite'] = 'Покана на потребител (напр.
 $lang['helpItemCodeInvite'] = '/invite Потребителско_име';
 $lang['helpItemDescUninvite'] = 'Отказване на покана:';
 $lang['helpItemCodeUninvite'] = '/uninvite Потребителско_име';
-$lang['helpItemDescLogout'] = 'Излизане от чата:';
+$lang['helpItemDescLogout'] = 'Изход от чата:';
 $lang['helpItemCodeLogout'] = '/quit';
 $lang['helpItemDescPrivateMessage'] = 'Лично съобщение:';
 $lang['helpItemCodePrivateMessage'] = '/msg Потребителско_име Текст';
@@ -87,11 +89,11 @@ $lang['helpItemDescNick'] = 'Смяна на потребителско име:'
 $lang['helpItemCodeNick'] = '/nick Потребителско_име';
 $lang['settings'] = 'Настройки';
 $lang['settingsBBCode'] = 'Позволяване на BBCode:';
-$lang['settingsBBCodeImages'] = 'Enable image BBCode:';
-$lang['settingsBBCodeColors'] = 'Enable font color BBCode:';
+$lang['settingsBBCodeImages'] = 'Позволяване на BBCode за картинки:';
+$lang['settingsBBCodeColors'] = 'Позволяване на BBCode за шрифтов цвят:';
 $lang['settingsHyperLinks'] = 'Позволяване на хипервръзки:';
 $lang['settingsLineBreaks'] = 'Позволяване на край на ред:';
-$lang['settingsEmoticons'] = 'Позволяване на емоциконки:';
+$lang['settingsEmoticons'] = 'Позволяване на усмивки:';
 $lang['settingsAutoFocus'] = 'Автоматично фокусиране на полето за въвеждане:';
 $lang['settingsMaxMessages'] = 'Максимален брой съобщения в прозореца на чата:';
 $lang['settingsWordWrap'] = 'Пренасяне на дълги думи:';
@@ -105,6 +107,7 @@ $lang['settingsSoundEnter'] = 'Звук за съобщенията за вли�
 $lang['settingsSoundLeave'] = 'Звук за съобщенията за излизане от чата или от канала:';
 $lang['settingsSoundChatBot'] = 'Звук за съобщенията на чатбота:';
 $lang['settingsSoundError'] = 'Звук за съобщенията за грешки:';
+$lang['settingsSoundPrivate'] = 'Звук за лични за съобщенията:';
 $lang['settingsBlink'] = 'Примигване на прозоречното заглавие при нови съобщения:';
 $lang['settingsBlinkInterval'] = 'Интервал на примигване в милисекунди:';
 $lang['settingsBlinkIntervalNumber'] = 'Брой пъти на примигване:';

@@ -3,7 +3,8 @@
     #486 - Account - Undefined index: advanced_tagging
     #487 - Admin: Can't edit user profiles
     #424 - Members cannot add to family tree
-     N/A - Fix unauthorized photo/file access
+    #495 - Unauthorized users can see protected photos
+    #465 - CHAT ERROR: error on line 2 at column 1: Extra content at the end of the document
 
   3.5.0
     #407 - Move from Prototype to jQuery

@@ -3,7 +3,7 @@
  * @package AJAX_Chat
  * @author Sebastian Tschan
  * @copyright (c) Sebastian Tschan
- * @license GNU Affero General Public License
+ * @license Modified MIT License
  * @link https://blueimp.net/ajax/
  */
 
@@ -24,7 +24,7 @@ class AJAXChat {
 	var $_onlineUsersData;
 	var $_bannedUsersData;
 	
-	function AJAXChat() {
+	function __construct() {
 		$this->initialize();
 	}
 
@@ -64,7 +64,7 @@ class AJAXChat {
 		$this->_requestVars['userName']		= isset($_REQUEST['userName'])		? $_REQUEST['userName']			: null;
 		$this->_requestVars['channelID']	= isset($_REQUEST['channelID'])		? (int)$_REQUEST['channelID']	: null;
 		$this->_requestVars['channelName']	= isset($_REQUEST['channelName'])	? $_REQUEST['channelName']		: null;
-		$this->_requestVars['text']			= isset($_REQUEST['text'])			? $_REQUEST['text']				: null;
+		$this->_requestVars['text']			= isset($_POST['text'])				? $_POST['text']				: null;
 		$this->_requestVars['lastID']		= isset($_REQUEST['lastID'])		? (int)$_REQUEST['lastID']		: 0;
 		$this->_requestVars['login']		= isset($_REQUEST['login'])			? true							: false;
 		$this->_requestVars['logout']		= isset($_REQUEST['logout'])		? true							: false;
@@ -121,7 +121,7 @@ class AJAXChat {
 	}
 	
 	function getDataBaseTable($table) {
-		return ($this->db->getName() ? $this->db->getName().'.'.$this->getConfig('dbTableNames',$table) : $this->getConfig('dbTableNames',$table));
+		return ($this->db->getName() ? '`'.$this->db->getName().'`.'.$this->getConfig('dbTableNames',$table) : $this->getConfig('dbTableNames',$table));
 	}
 
 	function initSession() {
@@ -232,8 +232,16 @@ class AJAXChat {
 			$time += $this->getConfig('timeZoneOffset');
 		}
 		// Check the opening hours:
-		if(($this->getConfig('openingHour') > date('G', $time)) || ($this->getConfig('closingHour') <= date('G', $time)))
-			return false;
+		if($this->getConfig('openingHour') < $this->getConfig('closingHour'))
+		{
+			if(($this->getConfig('openingHour') > date('G', $time)) || ($this->getConfig('closingHour') <= date('G', $time)))
+				return false;
+		}
+		else
+		{
+			if(($this->getConfig('openingHour') > date('G', $time)) && ($this->getConfig('closingHour') <= date('G', $time)))
+				return false;
+		}
 		// Check the opening weekdays:
 		if(!in_array(date('w', $time), $this->getConfig('openingWeekDays')))
 			return false;
@@ -371,7 +379,7 @@ class AJAXChat {
 			$this->addInfoMessage('errorChatClosed');
 			return false;
 		}
-
+		
 		if(!$this->getConfig('allowGuestLogins') && $userData['userRole'] == AJAX_CHAT_GUEST) {
 			return false;
 		}
@@ -670,6 +678,11 @@ class AJAXChat {
 
 			switch($textParts[0]) {
 				
+				// Channel switch:
+				case '/join':
+					$this->insertParsedMessageJoin($textParts);
+					break;
+					
 				// Logout:
 				case '/quit':
 					$this->logout();
@@ -677,24 +690,77 @@ class AJAXChat {
 					
 				// Private message:
 				case '/msg':
+				case '/describe':
 					$this->insertParsedMessagePrivMsg($textParts);
 					break;
 				
+				// Invitation:
+				case '/invite':
+					$this->insertParsedMessageInvite($textParts);
+					break;
+
+				// Uninvitation:
+				case '/uninvite':		
+					$this->insertParsedMessageUninvite($textParts);
+					break;
+
+				// Private messaging:
+				case '/query':
+					$this->insertParsedMessageQuery($textParts);
+					break;
+				
+				// Kicking offending users from the chat:
+				case '/kick':
+					$this->insertParsedMessageKick($textParts);
+					break;
+				
+				// Listing banned users:
+				case '/bans':
+					$this->insertParsedMessageBans($textParts);
+					break;
+				
+				// Unban user (remove from ban list):
+				case '/unban':
+					$this->insertParsedMessageUnban($textParts);
+					break;
+				
+				// Describing actions:
+				case '/me':
+				case '/action':
+					$this->insertParsedMessageAction($textParts);
+					break;
+
+
 				// Listing online Users:
 				case '/who':	
 					$this->insertParsedMessageWho($textParts);
+					break;
+				
+				// Listing available channels:
+				case '/list':	
+					$this->insertParsedMessageList($textParts);
+					break;
+
+				// Retrieving the channel of a User:
+				case '/whereis':
+					$this->insertParsedMessageWhereis($textParts);
 					break;
 				
 				// Listing information about a User:
 				case '/whois':
 					$this->insertParsedMessageWhois($textParts);
 					break;
-
-                // List actions
-                case '/help':
-                    $this->insertChatBotMessage($this->getPrivateMessageId(), 'Available commands: /quit /msg /who /whois');
-                    break;
 				
+				// Rolling dice:
+				case '/roll':				
+					$this->insertParsedMessageRoll($textParts);
+					break;
+
+				// Switching userName:
+				case '/nick':				
+					$this->insertParsedMessageNick($textParts);
+					break;
+			
 				// Custom or unknown command:
 				default:
 					if(!$this->parseCustomCommands($text, $textParts)) {				
@@ -1547,9 +1613,6 @@ class AJAXChat {
 	}
 	
 	function rollDice($sides) {
-		// seed with microseconds since last "whole" second:
-		mt_srand((double)microtime()*1000000);
-		
 		return mt_rand(1, $sides);
 	}
 	
@@ -1561,7 +1624,7 @@ class AJAXChat {
 			return;
 		}
 
-		$banMinutes = $banMinutes ? $banMinutes : $this->getConfig('defaultBanTime');
+		$banMinutes = ($banMinutes !== null) ? $banMinutes : $this->getConfig('defaultBanTime');
 
 		if($banMinutes) {
 			// Ban User for the given time in minutes:
@@ -1858,7 +1921,7 @@ class AJAXChat {
 			($this->getConfig('requestMessagesPriorChannelEnterList') && in_array($this->getChannel(), $this->getConfig('requestMessagesPriorChannelEnterList')))) {
 			$condition .= 'NOW() < DATE_ADD(dateTime, interval '.$this->getConfig('requestMessagesTimeDiff').' HOUR)';
 		} else {
-			$condition .= 'dateTime >= \''.date('Y-m-d H:i:s', $this->getChannelEnterTimeStamp()).'\'';	
+			$condition .= 'dateTime >= FROM_UNIXTIME(' . $this->getChannelEnterTimeStamp() . ')';
 		}
 		return $condition;
 	}
@@ -2323,7 +2386,7 @@ class AJAXChat {
 					FROM
 						'.$this->getDataBaseTable('online').'
 					ORDER BY
-						userName;';
+						LOWER(userName);';
 			
 			// Create a new SQL query:
 			$result = $this->db->sqlQuery($sql);
