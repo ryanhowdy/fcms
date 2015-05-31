@@ -46,7 +46,7 @@ class ProfileDestination extends Destination
 
         if (!file_exists($path))
         {
-            $path = URL_PREFIX.'uploads/avatar/no_avatar.jpg';
+            $path = getAvatarPath('no_avatar.jpg', '');
         }
 
         return $path;

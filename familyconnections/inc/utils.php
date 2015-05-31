@@ -3897,7 +3897,14 @@ function getAvatarPath ($avatar, $gravatar)
     }
     else if ($avatar === 'no_avatar.jpg')
     {
-        return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
+        if (defined('UPLOADS'))
+        {
+            return URL_PREFIX.'file.php?a=no_avatar.jpg';
+        }
+        else
+        {
+            return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
+        }
     }
 
     $fcmsError    = FCMS_Error::getInstance();
