@@ -82,7 +82,7 @@ class UploadProfileForm
                             <div class="field-label">&nbsp;</div>
                             <div class="field-widget">
                                 <b>'.T_('Default').'</b><br/>
-                                <img id="current-avatar" src="'.URL_PREFIX.'uploads/avatar/no_avatar.jpg" alt="'.T_('Default avatar.').'"/>
+                                <img id="current-avatar" src="'.getAvatarPath('no_avatar.jpg', '').'" alt="'.T_('Default avatar.').'"/>
                             </div>
                         </div>
 

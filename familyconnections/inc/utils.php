@@ -3893,11 +3893,18 @@ function getAvatarPath ($avatar, $gravatar)
 {
     if ($avatar === 'gravatar')
     {
-        return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
+        return '//www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
     }
     else if ($avatar === 'no_avatar.jpg')
     {
-        return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
+        if (defined('UPLOADS'))
+        {
+            return URL_PREFIX.'file.php?a=no_avatar.jpg';
+        }
+        else
+        {
+            return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
+        }
     }
 
     $fcmsError    = FCMS_Error::getInstance();
