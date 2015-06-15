@@ -3895,10 +3895,6 @@ function getAvatarPath ($avatar, $gravatar)
     {
         return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
     }
-    else if ($avatar === 'no_avatar.jpg')
-    {
-        return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
-    }
 
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
