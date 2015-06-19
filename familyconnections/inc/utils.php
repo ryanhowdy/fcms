@@ -3893,7 +3893,7 @@ function getAvatarPath ($avatar, $gravatar)
 {
     if ($avatar === 'gravatar')
     {
-        return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
+        return '//www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
     }
 
     $fcmsError    = FCMS_Error::getInstance();
