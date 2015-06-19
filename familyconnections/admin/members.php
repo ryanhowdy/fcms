@@ -535,7 +535,7 @@ $(document).ready(function() {
         }
 
         $this->fcmsAdminMembers->displayMemberList(1);
-        displayOkMessage();
+        displayOkMessageAdmin();
         $this->displayFooter();
     }
 
@@ -637,7 +637,7 @@ $(document).ready(function() {
                           FROM `fcms_users` 
                           WHERE `email` = ?";
 
-            $row = $this->fcmsDatabase->getRow($sql, $email);
+            $row = $this->fcmsDatabase->getRow($email_sql, $email);
             if ($row === false)
             {
                 $this->fcmsError->displayError();
@@ -701,7 +701,7 @@ $(document).ready(function() {
             return;
         }
 
-        displayOkMessage();
+        displayOkMessageAdmin();
         $this->fcmsAdminMembers->displayMemberList(1);
         $this->displayFooter();
     }
@@ -779,7 +779,7 @@ $(document).ready(function() {
             }
         }
 
-        displayOkMessage();
+        displayOkMessageAdmin();
         $this->fcmsAdminMembers->displayMemberList(1);
         $this->displayFooter();
     }
@@ -807,7 +807,7 @@ $(document).ready(function() {
             }
         }
 
-        displayOkMessage();
+        displayOkMessageAdmin();
         $this->fcmsAdminMembers->displayMemberList(1);
         $this->displayFooter();
     }
@@ -864,7 +864,7 @@ $(document).ready(function() {
             }
         }
 
-        displayOkMessage();
+        displayOkMessageAdmin();
         $this->fcmsAdminMembers->displayMemberList(1);
         $this->displayFooter();
     }
@@ -912,7 +912,7 @@ $(document).ready(function() {
             return;
         }
 
-        displayOkMessage();
+        displayOkMessageAdmin();
         $this->fcmsAdminMembers->displayMemberList(1);
         $this->displayFooter();
     }

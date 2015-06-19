@@ -487,7 +487,7 @@ function isLoggedIn ()
         $sql = "SELECT `access` AS 'val'
                 FROM `fcms_users`
                 WHERE `id` = ?
-                UNION
+                UNION ALL
                 SELECT `value` AS 'val'
                 FROM `fcms_config`
                 WHERE `name` = ?";

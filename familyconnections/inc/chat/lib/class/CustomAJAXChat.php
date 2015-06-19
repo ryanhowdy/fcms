@@ -3,16 +3,16 @@
  * @package AJAX_Chat
  * @author Sebastian Tschan
  * @copyright (c) Sebastian Tschan
- * @license GNU Affero General Public License
+ * @license Modified MIT License
  * @link https://blueimp.net/ajax/
  */
 
-class CustomAJAXChat extends AJAXChat
-{
+class CustomAJAXChat extends AJAXChat {
+
 	// Returns an associative array containing userName, userID and userRole
 	// Returns null if login is invalid
-	function getValidLoginUserData()
-    {
+	function getValidLoginUserData() {
+		
         if (!isset($_SESSION['fcms_id']))
         {
             die('NOT LOGGED IN');
@@ -42,38 +42,36 @@ class CustomAJAXChat extends AJAXChat
         );
 
         return $userData;
-  }
-
-  // Store the channels the current user has access to
-  // Make sure channel names don't contain any whitespace
-  function &getChannels()
-  {
-        $this->_channels = array('Public' => 0);
-        return $this->_channels;
-  }
-
-  // Store all existing channels
-  // Make sure channel names don't contain any whitespace
-  function &getAllChannels()
-  {
-        $this->_allChannels = array('Public' => 0);
-        return $this->_allChannels;
 	}
 
-	function &getCustomUsers()
-    {
+	// Store the channels the current user has access to
+	// Make sure channel names don't contain any whitespace
+	function &getChannels() {
+        $this->_channels = array('Public' => 0);
+		return $this->_channels;
+	}
+
+	// Store all existing channels
+	// Make sure channel names don't contain any whitespace
+	function &getAllChannels() {
+        $this->_allChannels = array('Public' => 0);
+		return $this->_allChannels;
+	}
+
+	function &getCustomUsers() {
 		// List containing the registered chat users:
 		$users = null;
 		require(AJAX_CHAT_PATH.'lib/data/users.php');
 		return $users;
 	}
 	
-	function &getCustomChannels()
-    {
+	function getCustomChannels() {
 		// List containing the custom channels:
 		$channels = null;
 		require(AJAX_CHAT_PATH.'lib/data/channels.php');
-		return $channels;
+		// Channel array structure should be:
+		// ChannelName => ChannelID
+		return array_flip($channels);
 	}
 
     // Initialize custom configuration settings
@@ -165,4 +163,3 @@ class CustomAJAXChat extends AJAXChat
         return $r['access'];
     }
 }
-?>

@@ -550,7 +550,7 @@ class FamilyTree
         $edit = '';
         $add  = '';
         $del  = '';
-        if ($data['phpass'] == 'NONMEMBER' || $this->fcmsUser->access == 1)
+        if ($data['phpass'] == 'NONMEMBER' || $this->fcmsUser->access == 1 || $this->fcmsUser->id == $data['id'])
         {
             $edit = '<a class="edit" href="?view='.$data['id'].'&amp;edit='.$data['id'].'">'.T_('Edit').'</a>';
             $add  = '<a class="add" href="#'.$data['id'].'">'.T_('Add Family Member').'</a>';

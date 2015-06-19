@@ -582,6 +582,13 @@ a:hover { background-color: #6cd163; }
     function displayEditSettings ()
     {
         $this->displayHeader();
+
+        if (isset($_SESSION['success']))
+        {
+            displayOkMessage();
+            unset($_SESSION['success']);
+        }
+
         $this->fcmsSettings->displaySettings();
         $this->displayFooter();
 
@@ -595,17 +602,10 @@ a:hover { background-color: #6cd163; }
      */
     function displayEditSettingsSubmit ()
     {
-        $this->displayHeader();
-
         $sql = "UPDATE `fcms_user_settings` SET ";
 
         $params = array();
 
-        if ($_POST['advanced_tagging'])
-        {
-            $sql     .= "`advanced_tagging` = ?, ";
-            $params[] = $_POST['advanced_tagging'] == 'yes' ? 1 : 0;
-        }
         if ($_POST['language'])
         {
             $sql     .= "`language` = ?, ";
@@ -641,16 +641,16 @@ a:hover { background-color: #6cd163; }
         {
             if (!$this->fcmsDatabase->update($sql, $params))
             {
+                $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
                 return;
             }
-
-            displayOkMessage();
         }
 
-        $this->fcmsSettings->displaySettings();
-        $this->displayFooter();
+        $_SESSION['success'] = 1;
+
+        header("Location: settings.php?view=settings");
     }
 
     /**

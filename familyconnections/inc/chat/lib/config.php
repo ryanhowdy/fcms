@@ -3,11 +3,13 @@
  * @package AJAX_Chat
  * @author Sebastian Tschan
  * @copyright (c) Sebastian Tschan
- * @license GNU Affero General Public License
+ * @license Modified MIT License
  * @link https://blueimp.net/ajax/
  */
 
 // Define AJAX Chat user roles:
+define('AJAX_CHAT_BANNED',		6);
+define('AJAX_CHAT_CUSTOM',		5);
 define('AJAX_CHAT_CHATBOT',		4);
 define('AJAX_CHAT_ADMIN',		3);
 define('AJAX_CHAT_MODERATOR',	2);
@@ -20,13 +22,13 @@ $config = array();
 // Database connection values:
 $config['dbConnection'] = array();
 // Database hostname:
-$config['dbConnection']['host'] = '';
+$config['dbConnection']['host'] = 'localhost';
 // Database username:
-$config['dbConnection']['user'] = '';
+$config['dbConnection']['user'] = 'root';
 // Database password:
 $config['dbConnection']['pass'] = '';
 // Database name:
-$config['dbConnection']['name'] = '';
+$config['dbConnection']['name'] = 'chat';
 // Database type:
 $config['dbConnection']['type'] = null;
 // Database link:
@@ -40,16 +42,24 @@ $config['dbTableNames']['bans']			= 'fcms_chat_online';
 $config['dbTableNames']['invitations']	= 'fcms_chat_online';
 
 // Available languages:
-$config['langAvailable'] = array('ar','bg','bp','ca','cy','cz','de','el','en','es','et','fi','fr','gl','he','hr','hu','in','it','ka','kr','ja','nl','no','pl','ro','ru','sk','sl','sr','sv','tr','uk','zh','zh-tw');
+$config['langAvailable'] = array(
+	'ar','bg','ca','cy','cz','da','de','el','en','es','et','fa','fi','fr','gl','he','hr','hu','in','it','ja','ka','kr','mk','nl','nl-be','no','pl','pt-br','pt-pt','ro','ru','sk','sl','sr','sv','th','tr','uk','zh','zh-tw'
+);
 // Default language:
 $config['langDefault'] = 'en';
-// Language names:
-$config['langNames'] = array('ar'=>'عربي','bg'=>'Български','bp'=>'Português (Brasil)','ca'=>'Català','cy'=>'Cymraeg','cz'=>'Česky','de'=>'Deutsch','el'=>'Ελληνικα','en'=>'English','es'=>'Español','et'=>'Eesti','fi'=>'Suomi','fr'=>'Français','gl'=>'Galego','he'=>'עברית','hr' => 'Hrvatski','hu' => 'Magyar','in'=>'Bahasa Indonesia','it'=>'Italiano','ja'=>'日本語','ka'=>'ქართული','kr'=>'한글','nl'=>'Nederlands','no'=>'Norsk','pl'=>'Polski','ro'=>'România','ru'=>'Русский','sk'=>'Slovenčina','sl'=>'Slovensko','sr'=>'Srpski','sv'=>'Svenska','tr'=>'Türkçe','uk'=>'Українська','zh'=>'中文 (简体)', 'zh-tw'=>'中文 (繁體)');
+// Language names (each languge code in available languages must have a display name assigned here):
+$config['langNames'] = array(
+	'ar'=>'عربي', 'bg'=>'Български', 'ca'=>'Català', 'cy'=>'Cymraeg', 'cz'=>'Česky', 'da'=>'Dansk', 'de'=>'Deutsch', 'el'=>'Ελληνικα', 'en'=>'English',
+	'es'=>'Español', 'et'=>'Eesti', 'fa'=>'فارسی', 'fi'=>'Suomi', 'fr'=>'Français', 'gl'=>'Galego', 'he'=>'עברית', 'hr' => 'Hrvatski', 'hu' => 'Magyar', 'in'=>'Bahasa Indonesia', 'it'=>'Italiano',
+	'ja'=>'日本語','ka'=>'ქართული','kr'=>'한 글','mk'=>'Македонски', 'nl'=>'Nederlands', 'nl-be'=>'Nederlands (België)', 'no'=>'Norsk', 'pl'=> 'Polski', 'pt-br'=>'Português (Brasil)', 'pt-pt'=>'Português (Portugal)', 
+	'ro'=>'România', 'ru'=>'Русский', 'sk'=> 'Slovenčina', 'sl'=>'Slovensko', 'sr'=>'Srpski', 'sv'=> 'Svenska', 'th'=>'&#x0e20;&#x0e32;&#x0e29;&#x0e32;&#x0e44;&#x0e17;&#x0e22;', 
+	'tr'=>'Türkçe', 'uk'=>'Українська', 'zh'=>'中文 (简体)', 'zh-tw'=>'中文 (繁體)'
+);
 
 // Available styles:
-$config['styleAvailable'] = array('subSilver');
-// Default style:
-$config['styleDefault'] = 'subSilver';
+$config['styleAvailable'] = array('Core');
+
+$config['styleDefault'] = 'Core';
 
 // The encoding used for the XHTML content:
 $config['contentEncoding'] = 'UTF-8';
@@ -61,7 +71,7 @@ $config['contentType'] = null;
 // Session name used to identify the session cookie:
 $config['sessionName'] = 'login_id';
 // Prefix added to every session key:
-$config['sessionKeyPrefix'] = 'ajax';
+$config['sessionKeyPrefix'] = 'ajaxChat';
 // The lifetime of the language, style and setting cookies in days:
 $config['sessionCookieLifeTime'] = 365;
 // The path of the cookies, '/' allows to read the cookies from all directories:
@@ -136,7 +146,7 @@ $config['allowUserMessageDelete'] = false;
 // The userID used for ChatBot messages:
 $config['chatBotID'] = 2147483647;
 // The userName used for ChatBot messages
-$config['chatBotName'] = 'ChatBot';
+$config['chatBotName'] = 'System';
 
 // Minutes until a user is declared inactive (last status update) - the minimum is 2 minutes:
 $config['inactiveTimeout'] = 2;
@@ -179,7 +189,7 @@ $config['logsRequestMessagesLimit'] = 10;
 $config['logsFirstYear'] = 2007;
 
 // Defines if old messages are purged from the database:
-$config['logsPurgeLogs'] = false;
+$config['logsPurgeLogs'] = true;
 // Max time difference in days for old messages before they are purged from the database:
 $config['logsPurgeTimeDiff'] = 365;
 

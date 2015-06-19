@@ -2317,6 +2317,46 @@ function displayOkMessage ($msg = '', $timeout = 0)
 }
 
 /**
+ * displayOKMessageAdmin 
+ * 
+ * This is temporary and needs to be removed once we move everything
+ * to bootstrap templates.
+ * 
+ * @param string $msg     defaults to 'Changes Updated Successfully.'
+ * @param int    $timeout defaults to 4000 ms
+ * 
+ * @return void
+ */
+function displayOKMessageAdmin ($msg = '', $timeout = 0)
+{
+    $id = 'msg-'.time();
+
+    if (empty($msg))
+    {
+        $msg = T_('Changes Updated Successfully.');
+    }
+
+    if ($timeout <= 0)
+    {
+        $timeout = '4000';
+    }
+
+    echo '
+        <div id="'.$id.'" class="alert-message success" style="display:none">
+            <a class="close" href="#" onclick="$(\'#'.$id.'\').fadeOut(\'slow\')" title="'.T_('Close Message').'">x</a>
+            <p>
+                '.$msg.'
+            </p>
+        </div>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $("#'.$id.'").fadeIn("'.$id.'");
+                var t=setTimeout("$(\'#'.$id.'\').fadeOut(\'slow\')", '.$timeout.'); 
+            });
+        </script>';
+}
+
+/**
  * uploadImages 
  * 
  * @param string  $filetype 
@@ -3853,11 +3893,7 @@ function getAvatarPath ($avatar, $gravatar)
 {
     if ($avatar === 'gravatar')
     {
-        return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
-    }
-    else if ($avatar === 'no_avatar.jpg')
-    {
-        return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
+        return '//www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
     }
 
     $fcmsError    = FCMS_Error::getInstance();

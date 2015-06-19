@@ -1,3 +1,17 @@
+  3.5.1
+    #405 - Upgrade Ajax Chat to latest version
+    #424 - Members cannot add to family tree
+    #465 - CHAT ERROR: error on line 2 at column 1: Extra content at the end of the document
+    #471 - Cannot edit Family Tree (non admin)
+    #486 - Account - Undefined index: advanced_tagging
+    #487 - Admin: Can't edit user profiles
+    #488 - Turning site off causes php errors
+    #494 - Fix unauthorized photo/file access
+    #495 - Unauthorized users can see protected photos
+    #496 - Deny access to non-admin users on Youtube and Instagram config pages
+    #499 - Fix hard-coded URLS for no_avatar.jpg
+    #500 - Change gravatar URL to be compatible with both HTTP and HTTPS sites
+
   3.5.0
     #407 - Move from Prototype to jQuery
     #441 - HTML5 YouTube videos
