@@ -51,3 +51,30 @@ Create patch from git commit
 ----------------------------
 
     git format-patch -1 <sha>
+
+
+Revert local changes
+--------------------
+
+    git checkout .
+
+Revert changes to index (staged)
+-------------------------------
+
+    git reset
+    # Warning this will reset all of your unpushed commits to master!
+
+Revert committed changes
+------------------------
+
+    git revert ...
+
+Remove untracked files
+----------------------
+
+    git clean -f 
+
+Remove untracked directories
+----------------------------
+
+    git clean -d
