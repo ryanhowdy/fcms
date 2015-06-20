@@ -520,9 +520,11 @@ class Page
         }
 
         $template = array(
-            'textWhatsNew'  => T_('What\'s New'),
-            'textRssFeed'   => T_('RSS Feed'),
-            'new'           => array(),
+            'textWhatsNew'         => T_('What\'s New'),
+            'textRssFeed'          => T_('RSS Feed'),
+            'new'                  => array(),
+            'textBlankHeader'      => T_('Nothing New'),
+            'textBlankDescription' => T_('Bummer, nothing new has happened in the last 30 days.'),
         );
 
         $position       = 1;
