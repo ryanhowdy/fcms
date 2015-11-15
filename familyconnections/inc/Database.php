@@ -331,7 +331,7 @@ class Database
      * 
      * @return mixed
      */
-    function insert ($sql, $params)
+    function insert ($sql, $params = null)
     {
         $this->sql = $sql;
 

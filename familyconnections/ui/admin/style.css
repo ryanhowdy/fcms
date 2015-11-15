@@ -51,8 +51,8 @@ h1, h2, h3, h4, h5 { margin-bottom: 9px; }
 .dashboard-links li.facebook a {
     background: #eee url(../img/facebook.png) center 35px no-repeat;
 }
-.dashboard-links li.youtube a {
-    background: #eee url(../img/youtube.png) center 35px no-repeat;
+.dashboard-links li.google a {
+    background: #eee url(../img/google.png) ceneter 35px no-repeat;
 }
 .dashboard-links li.foursquare a {
     background: #eee url(../img/foursquare.png) center 35px no-repeat;

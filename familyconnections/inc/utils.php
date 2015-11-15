@@ -491,6 +491,9 @@ function getPluginName ($section)
         case 'admin_foursquare':
             return 'Foursquare';
             break;
+        case 'admin_google':
+            return 'Google';
+            break;
         case 'admin_instagram':
             return 'Instagram';
             break;
@@ -516,7 +519,7 @@ function getPluginName ($section)
             return 'Foursquare';
             break;
         case 'admin_youtube':
-            return 'YouTube';
+            return 'Google';
             break;
         case 'addressbook':
             return T_('Address Book');
@@ -604,6 +607,9 @@ function getPluginUrl ($section)
         case 'admin_foursquare':
             return 'admin/foursquare.php';
             break;
+        case 'admin_google':
+            return 'admin/google.php';
+            break;
         case 'admin_instagram':
             return 'admin/instagram.php';
             break;
@@ -629,7 +635,7 @@ function getPluginUrl ($section)
             return 'admin/foursquare.php';
             break;
         case 'admin_youtube':
-            return 'admin/youtube.php';
+            return 'admin/google.php';
             break;
         case 'addressbook':
             return 'addressbook.php';
@@ -740,7 +746,7 @@ function getPluginDescription ($plugin)
             return T_('Foursquare');
             break;
         case 'admin_youtube':
-            return T_('YouTube');
+            return 'Google';
             break;
         case 'addressbook':
             return T_('Allows members to share Address information.');
@@ -3893,7 +3899,11 @@ function getAvatarPath ($avatar, $gravatar)
 {
     if ($avatar === 'gravatar')
     {
-        return '//www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
+        return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
+    }
+    else if ($avatar === 'no_avatar.jpg')
+    {
+        return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
     }
 
     $fcmsError    = FCMS_Error::getInstance();

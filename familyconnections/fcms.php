@@ -80,6 +80,8 @@ function __autoload ($className)
         'UploadPhoto'                       => INC.'Upload/Photo.php',
         'UploadPhotoGallery'                => INC.'Upload/PhotoGallery.php',
         'UploadProfile'                     => INC.'Upload/Profile.php',
+        'Google_Client'                     => THIRDPARTY.'google-api-php-client/src/Google/Client.php',
+        'Google_Service_YouTube'            => THIRDPARTY.'google-api-php-client/src/Google/Service/YouTube.php',
         'S3'                                => THIRDPARTY.'s3/S3.php',
         'Instagram'                         => THIRDPARTY.'Instagram.php',
     );
@@ -157,6 +159,12 @@ function load()
         elseif ($include == 'phpass')
         {
             include_once THIRDPARTY.'phpass/PasswordHash.php';
+        }
+        elseif ($include == 'google')
+        {
+            set_include_path(THIRDPARTY.'google-api-php-client/src/');
+
+            require_once THIRDPARTY.'google-api-php-client/src/Google/autoload.php';
         }
         else
         {

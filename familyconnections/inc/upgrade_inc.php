@@ -385,6 +385,11 @@ class Upgrade
         {
             return false;
         }
+        // No db changes for 3.5.0
+        if (!$this->upgrade360())
+        {
+            return false;
+        }
 
         return true;
     }
@@ -2010,6 +2015,205 @@ class Upgrade
             {
                 $this->fcmsError->setMessage($errorMessage);
                 return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * upgrade360
+     * 
+     * Upgrade database to version 3.6.0
+     * 
+     * @return boolean
+     */
+    function upgrade360 ()
+    {
+        $errorMessage = sprintf(T_('Could not upgrade database to version %s.'), '3.6.0');
+
+        // google client id
+        $google_id_fixed = false;
+
+        $sql = "SELECT `name` FROM `fcms_config` WHERE `name` = 'google_client_id'";
+
+        $row = $this->fcmsDatabase->getRow($sql);
+        if ($row === false)
+        {
+            $this->fcmsError->setMessage($errorMessage);
+            return false;
+        }
+
+        if (!empty($row))
+        {
+            $google_id_fixed = true;
+        }
+
+        if (!$google_id_fixed)
+        {
+            $sql = "INSERT INTO `fcms_config` (`name`, `value`)
+                    VALUES ('google_client_id', NULL)";
+
+            if (!$this->fcmsDatabase->insert($sql))
+            {
+                $this->fcmsError->setMessage($errorMessage);
+                return false;
+            }
+        }
+
+        // google client secret
+        $google_secret_fixed = false;
+
+        $sql = "SELECT `name` FROM `fcms_config` WHERE `name` = 'google_client_secret'";
+
+        $row = $this->fcmsDatabase->getRow($sql);
+        if ($row === false)
+        {
+            $this->fcmsError->setMessage($errorMessage);
+            return false;
+        }
+
+        if (!empty($row))
+        {
+            $google_secret_fixed = true;
+        }
+
+        if (!$google_secret_fixed)
+        {
+            $sql = "INSERT INTO `fcms_config` (`name`, `value`)
+                    VALUES ('google_client_secret', NULL)";
+
+            if (!$this->fcmsDatabase->insert($sql))
+            {
+                $this->fcmsError->setMessage($errorMessage);
+                return false;
+            }
+        }
+
+        // google user setting
+        $google_user_fixed = false;
+        $youtube_user_exists = false;
+
+        $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->setMessage($errorMessage);
+            return false;
+        }
+
+        foreach ($rows as $r)
+        {
+            if ($r['Field'] == 'google_session_token')
+            {
+                $google_user_fixed = true;
+            }
+            if ($r['Field'] == 'youtube_session_token')
+            {
+                $youtube_user_exists = true;
+            }
+        }
+
+        if (!$google_user_fixed)
+        {
+            // change youtube column to google
+            if ($youtube_user_exists)
+            {
+                $sql = "ALTER TABLE `fcms_user_settings`
+                        CHANGE COLUMN `youtube_session_token` `google_session_token` VARCHAR(255) NULL";
+
+                if (!$this->fcmsDatabase->alter($sql))
+                {
+                    $this->fcmsError->setMessage($errorMessage);
+                    return false;
+                }
+
+                // Set all existing youtube session to null
+                $sql = "UPDATE `fcms_user_settings`
+                        SET `google_session_token` = NULL";
+
+                if (!$this->fcmsDatabase->update($sql))
+                {
+                    $this->fcmsError->setMessage($errorMessage);
+                    return false;
+                }
+            }
+            // create new column for google
+            else
+            {
+                $sql = "ALTER TABLE `fcms_user_settings`
+                        ADD COLUMN `google_session_token` VARCHAR(255) NULL";
+
+                if (!$this->fcmsDatabase->alter($sql))
+                {
+                    $this->fcmsError->setMessage($errorMessage);
+                    return false;
+                }
+            }
+        }
+
+        // google admin nav
+        $google_nav_fixed = false;
+
+        $sql = "SELECT `link` FROM `fcms_navigation` WHERE `link` = 'admin_google'";
+
+        $row = $this->fcmsDatabase->getRow($sql);
+        if ($row === false)
+        {
+            $this->fcmsError->setMessage($errorMessage);
+            return false;
+        }
+
+        if (!empty($row))
+        {
+            $google_nav_fixed = true;
+        }
+
+        if (!$google_nav_fixed)
+        {
+            // changing youtube to google?
+            $change_youtube = false;
+
+            $sql = "SELECT `link` FROM `fcms_navigation` WHERE `link` = 'admin_youtube'";
+
+            $row = $this->fcmsDatabase->getRow($sql);
+            if ($row === false)
+            {
+                $this->fcmsError->setMessage($errorMessage);
+                return false;
+            }
+
+            if (!empty($row))
+            {
+                $change_youtube = true;
+            }
+
+            if ($change_youtube)
+            {
+                $sql = "UPDATE `fcms_navigation`
+                        SET `link` = 'admin_google'
+                        WHERE `link` = 'admin_youtube'";
+
+                if (!$this->fcmsDatabase->update($sql))
+                {
+                    $this->fcmsError->setMessage($errorMessage);
+                    return false;
+                }
+            }
+            // new google
+            else
+            {
+                $adminOrder = getNextAdminNavigationOrder();
+
+                $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
+                        VALUES ('admin_google', 6, ?, 1)";
+
+                if (!$this->fcmsDatabase->insert($sql, $adminOrder))
+                {
+                    $this->fcmsError->setMessage($errorMessage);
+                    return false;
+                }
             }
         }
 

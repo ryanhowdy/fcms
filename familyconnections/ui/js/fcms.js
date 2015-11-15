@@ -777,10 +777,18 @@ function initAddressBookClickRow()
 ------------------------------------------------*/
 function initYouTubeVideoStatus(txt)
 {
-    if ($('#current_status').length)
+    if ($('#current_complete').length)
     {
         $('#refresh').hide();
-        $('#js_msg').text(txt);
+
+        if (jQuery.isNumeric(txt))
+        {
+            $('#current_complete').text(txt + '%');
+        }
+        else
+        {
+            $('#js_msg').text(txt);
+        }
 
         setTimeout(function () {
             $.ajax({
@@ -791,11 +799,12 @@ function initYouTubeVideoStatus(txt)
                 },
             })
             .done(function(data) {
-                if (data == 'Finished') {
-                    window.location.reload();
+                if (jQuery.isNumeric(data))
+                {
+                    initYouTubeVideoStatus(data);
                 }
                 else {
-                    initYouTubeVideoStatus(txt);
+                    window.location.reload();
                 }
             })
             .fail(function(jqXHR, textStatus) {

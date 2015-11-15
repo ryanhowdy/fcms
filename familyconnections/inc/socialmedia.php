@@ -261,56 +261,55 @@ function getFoursquareUsersData ()
 }
 
 /**
- * getYouTubeConfigData 
+ * getGoogleConfigData 
  * 
  * @return void
  */
-function getYouTubeConfigData ()
+function getGoogleConfigData ()
 {
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
-    if (isset($_SESSION['youtube_key']) && !empty($_SESSION['youtube_key']))
-    {
-        return array('youtube_key' => $_SESSION['youtube_key']);
-    }
-
     $sql = "SELECT `name`, `value`
             FROM `fcms_config`
-            WHERE `name` = 'youtube_key'";
+            WHERE `name` = 'google_client_id'
+            OR `name` = 'google_client_secret'";
 
-    $r = $fcmsDatabase->getRow($sql);
-    if ($r === false)
+    $rows = $fcmsDatabase->getRows($sql);
+    if ($rows === false)
     {
         return;
     }
 
-    if (empty($r))
+    if (empty($rows))
     {
         return;
     }
 
     $data = array();
 
-    $_SESSION['youtube_key'] = $r['value'];
-    $data[$r['name']]        = $_SESSION['youtube_key'];
+    foreach ($rows as $r)
+    {
+        $_SESSION[$r['name']] = $r['value'];
+        $data[$r['name']] = $r['value'];
+    }
 
     return $data;
 }
 
 /**
- * getYouTubeUserData 
+ * getGoogleUserData 
  * 
  * @param int $user 
  * 
  * @return void
  */
-function getYouTubeUserData ($user)
+function getGoogleUserData ($user)
 {
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
-    $sql = "SELECT `youtube_session_token`
+    $sql = "SELECT `google_session_token`
             FROM `fcms_user_settings`
             WHERE `user` = ?
             LIMIT 1";
@@ -330,50 +329,91 @@ function getYouTubeUserData ($user)
 }
 
 /**
- * getYouTubeAuthSubHttpClient 
- * 
- * @param string $key   the developer key
- * @param string $token optional user's authenticated session token 
- * 
- * @return Zend_Http_Client An authenticated client.
+ * getAuthedGoogleClient
+ *
+ * Will return a Google_Client on success,
+ * or false on failure.
+ *
+ * @return mixed
  */
-function getYouTubeAuthSubHttpClient($key, $token = '')
+function getAuthedGoogleClient ($userId)
 {
-    if ($token == '')
-    {
-        if (isset($_SESSION['youtube_session_token']))
-        {
-            $token = $_SESSION['youtube_session_token'];
-        }
-        else
-        {
-            print '
-                <div class="error-alert">
-                    <p>'.T_('Missing or invalid YouTube session token.').'</p>
-                </div>';
+    $fcmsError = FCMS_Error::getInstance();
 
+    $config = getGoogleConfigData();
+    $user   = getGoogleUserData($userId);
+
+    if (empty($user['google_session_token']))
+    {
+        return false;
+    }
+
+    if (empty($config['google_client_id']) || empty($config['google_client_secret']))
+    {
+        return false;
+    }
+
+    // Setup url for callbacks
+    $callbackUrl  = getDomainAndDir();
+    $callbackUrl .= 'settings.php?view=google&oauth2callback';
+
+    $googleClient = new Google_Client();
+    $googleClient->setClientId($config['google_client_id']);
+    $googleClient->setClientSecret($config['google_client_secret']);
+    $googleClient->setAccessType('offline');
+    $googleClient->setScopes(array(
+        'https://www.googleapis.com/auth/youtube.force-ssl',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile'
+    ));
+    $googleClient->setRedirectUri($callbackUrl);
+
+    // We still have a token saved
+    if (isset($_SESSION['googleSessionToken']))
+    {
+        try
+        {
+            $googleClient->setAccessToken($_SESSION['googleSessionToken']);
+            // Make sure our access token is still good
+            if ($googleClient->isAccessTokenExpired()) {
+                $googleClient->refreshToken($user['google_session_token']);
+            }
+        }
+        catch (Exception $e)
+        {
+            $fcmsError->add(array(
+                'type'    => 'operation',
+                'message' => 'Could not get Google Session Token.',
+                'error'   => $e,
+                'file'    => __FILE__,
+                'line'    => __LINE__,
+            ));
+            return false;
+        }
+    }
+    // We need to use our refresh token from the db to get an access token
+    elseif (!empty($user['google_session_token']))
+    {
+        try
+        {
+            $googleClient->refreshToken($user['google_session_token']);
+
+            $_SESSION['googleSessionToken'] = $googleClient->getAccessToken();
+        }
+        catch (Exception $e)
+        {
+            $fcmsError->add(array(
+                'type'    => 'operation',
+                'message' => 'Could not get Google Session Token.',
+                'error'   => $e,
+                'file'    => __FILE__,
+                'line'    => __LINE__,
+            ));
             return false;
         }
     }
 
-    try
-    {
-        $httpClient = Zend_Gdata_AuthSub::getHttpClient($token);
-    }
-    catch (Zend_Gdata_App_Exception $e)
-    {
-        print '
-            <div class="error-alert">
-                <p>'.T_('Could not connect to YouTube API.  Your YouTube session token may be invalid.').'</p>
-                <p><i>'.$e->getMessage().'</i></p>
-            </div>';
-
-        return false;
-    }
-
-    $httpClient->setHeaders('X-GData-Key', 'key='. $key);
-
-    return $httpClient;
+    return $googleClient;
 }
 
 /**

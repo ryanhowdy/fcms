@@ -1,6 +1,6 @@
 <?php
 /**
- * YouTube
+ * Google
  * 
  * PHP version 5
  * 
@@ -10,7 +10,7 @@
  * @copyright 2011 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
  * @link      http://www.familycms.com/wiki/
- * @since     2.6
+ * @since     3.5.1
  */
 session_start();
 
@@ -48,7 +48,7 @@ class Page
         $this->fcmsTemplate = array(
             'sitename'      => cleanOutput(getSiteName()),
             'nav-link'      => getAdminNavLinks(),
-            'pagetitle'     => T_('Administration: YouTube'),
+            'pagetitle'     => T_('Administration: Google'),
             'path'          => URL_PREFIX,
             'displayname'   => $fcmsUser->displayName,
             'version'       => getCurrentVersion(),
@@ -67,12 +67,6 @@ class Page
      */
     function control ()
     {
-        if ($this->fcmsUser->access > 1)
-        {
-            $this->displayInvalidAccessLevel();
-            return;
-        }
-
         if (isset($_POST['submit']))
         {
             $this->displayFormSubmitPage();
@@ -95,7 +89,7 @@ class Page
         include_once URL_PREFIX.'ui/admin/header.php';
 
         echo '
-        <div id="youtube">';
+        <div id="google">';
     }
 
     /**
@@ -108,36 +102,15 @@ class Page
         $TMPL = $this->fcmsTemplate;
 
         echo '
-        </div><!-- /youtube -->';
+        </div><!-- /google -->';
 
         include_once URL_PREFIX.'ui/admin/footer.php';
     }
 
     /**
-     * displayInvalidAccessLevel 
-     * 
-     * Display an error message for users who do not have admin access.
-     * 
-     * @return void
-     */
-    function displayInvalidAccessLevel ()
-    {
-        $this->displayHeader();
-
-        echo '
-            <p class="error-alert">
-                <b>'.T_('You do not have access to view this page.').'</b><br/>
-                '.T_('This page requires an access level 1 (Admin).').' 
-                <a href="'.URL_PREFIX.'contact.php">'.T_('Please contact your website\'s administrator if you feel you should have access to this page.').'</a>
-            </p>';
-
-        $this->displayFooter();
-    }
-
-    /**
      * displayFormPage
      * 
-     * Displays the form for configuring a youtube app.
+     * Displays the form for configuring a google api.
      * 
      * @return void
      */
@@ -158,32 +131,44 @@ class Page
             unset($_SESSION['success']);
         }
 
-        $r = getYouTubeConfigData();
+        $r = getGoogleConfigData();
 
-        $key = isset($r['youtube_key']) ? cleanOutput($r['youtube_key']) : '';
+        $clientId     = isset($r['google_client_id'])     ? cleanOutput($r['google_client_id'])     : '';
+        $clientSecret = isset($r['google_client_secret']) ? cleanOutput($r['google_client_secret']) : '';
 
         echo '
         <div class="alert-message block-message info">
-            <h1>'.T_('YouTube Integration').'</h1>
+            <h1>'.T_('Google Integration').'</h1>
             <p>
-                '.T_('In order to integrate Family Connections with YouTube, you must get a Developer Key from Google, and provide that Key to Family Connections.').'
+                '.T_('In order to integrate Family Connections with Google, you must create a Google API Project.').'
             </p>
         </div>';
 
-        if (empty($key))
+        if (empty($clientId) || empty($clientSecret))
         {
             echo '
         <div class="row">
             <div class="span4">
                 <h2>'.T_('Step 1').'</h2>
                 <p>
-                    '.T_('Got to Google and create a new YouTube Application.').'
+                    '.T_('Go to Google and create a new API Project.').'
                 </p>
             </div>
             <div class="span12">
-                <h3>
-                    <a href="http://code.google.com/apis/youtube/dashboard/">'.T_('Create Youtube Application').'</a><br/>
-                </h3>
+                <ol>
+                    <li>
+                        '.sprintf(T_('Open the %s.'), '<a href="http://console.developers.google.com/">'.T_('Google Developers Console').'</a>').'
+                    </li>
+                    <li>'.T_('Create a new Project.').'</li>
+                    <li>'.T_('Click APIs & auth.').'</li>
+                    <li>'.T_('Select Consent screen.').'</li>
+                    <li>'.T_('Fill out the Product name and any other optional information and Save.').'
+                    <li>'.T_('Select Credentials.').'</li>
+                    <li>'.T_('Click Create new Client ID.').'</li>
+                    <li>'.T_('Select Web application for the application type.').'</li>
+                    <li>'.T_('Fill out the Authorized redirct URIs, they need to end with "settings.php?view=google&oauth2callback".').'</li>
+                    <li>'.T_('Click Create Client ID.').'</li>
+                </ol>
             </div><!-- /span12 -->
         </div><!-- /row -->
 
@@ -195,20 +180,26 @@ class Page
             <div class="span4">
                 <h2>'.T_('Step 2').'</h2>
                 <p>
-                    '.T_('Fill out the form below with the YouTube Developer Key provided by Google.').'
+                    '.T_('Fill out the form below with the Client ID for web application detials you created in Step 1 above.').'
                 </p>
             </div>
             <div class="span12">';
         }
 
         echo '
-                <form method="post" action="youtube.php">
+                <form method="post" action="google.php">
                     <fieldset>
-                        <legend>'.T_('YouTube').'</legend>
+                        <legend>'.T_('Google').'</legend>
                         <div class="clearfix">
-                            <label for="key">'.T_('Developer Key').'</label>
+                            <label for="client_id">'.T_('Client ID').'</label>
                             <div class="input">
-                                <input class="span6" type="text" name="key" id="key" value="'.$key.'"/>
+                                <input class="span6" type="text" name="client_id" id="client_id" value="'.$clientId.'"/>
+                            </div>
+                        </div>
+                        <div class="clearfix">
+                            <label for="client_secret">'.T_('Client secret').'</label>
+                            <div class="input">
+                                <input class="span6" type="text" name="client_secret" id="client_secret" value="'.$clientSecret.'"/>
                             </div>
                         </div>
                         <div class="actions">
@@ -217,7 +208,7 @@ class Page
                     </fieldset>
                 </form>';
 
-        if (empty($key))
+        if (empty($clientId) || empty($clientSecret))
         {
             echo '
             </div><!-- /span12 -->
@@ -234,18 +225,35 @@ class Page
      */
     function displayFormSubmitPage ()
     {
-        if (isset($_SESSION['youtube_key']))
+        if (isset($_SESSION['google_client_id']))
         {
-            unset($_SESSION['youtube_key']);
+            unset($_SESSION['google_client_id']);
+        }
+        if (isset($_SESSION['google_client_secret']))
+        {
+            unset($_SESSION['google_client_secret']);
         }
 
-        $key = isset($_POST['key']) ? $_POST['key'] : '';
+        $clientId     = isset($_POST['client_id'])     ? $_POST['client_id']     : '';
+        $clientSecret = isset($_POST['client_secret']) ? $_POST['client_secret'] : '';
 
         $sql = "UPDATE `fcms_config` 
                 SET `value` = ?
-                WHERE `name` = 'youtube_key'";
+                WHERE `name` = 'google_client_id'";
 
-        if (!$this->fcmsDatabase->update($sql, $key))
+        if (!$this->fcmsDatabase->update($sql, $clientId))
+        {
+            $this->displayHeader();
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
+        }
+
+        $sql = "UPDATE `fcms_config` 
+                SET `value` = ?
+                WHERE `name` = 'google_client_secret'";
+
+        if (!$this->fcmsDatabase->update($sql, $clientSecret))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
@@ -255,6 +263,6 @@ class Page
 
         $_SESSION['success'] = 1;
 
-        header("Location: youtube.php");
+        header("Location: google.php");
     }
 }
