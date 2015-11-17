@@ -441,7 +441,7 @@ function displayLogin()
     }
 
     $fbData = getFacebookConfigData();
-    $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
+    $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_actions');
 
     // Print the facebook register button
     if (!empty($fbData['fb_app_id']) && !empty($fbData['fb_secret']))

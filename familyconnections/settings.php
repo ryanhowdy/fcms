@@ -1048,7 +1048,7 @@ a:hover { background-color: #6cd163; }
             else
             {
                 $params = array(
-                    'scope'        => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access',
+                    'scope'        => 'user_about_me,user_birthday,user_location,email,publish_actions',
                     'redirect_uri' => $callbackUrl
                 );
 
