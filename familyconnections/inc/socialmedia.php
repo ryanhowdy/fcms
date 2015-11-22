@@ -364,7 +364,8 @@ function getAuthedGoogleClient ($userId)
     $googleClient->setScopes(array(
         'https://www.googleapis.com/auth/youtube.force-ssl',
         'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile'
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://picasaweb.google.com/data/'
     ));
     $googleClient->setRedirectUri($callbackUrl);
 

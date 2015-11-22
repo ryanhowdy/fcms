@@ -48,19 +48,26 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
 
         $newPhotoFilenames = array();
 
-        foreach ($this->albumFeed as $photo)
+        foreach ($this->albumFeed->entry as $photo)
         {
-            $id = $photo->getGPhotoId()->text;
+            $id = (int)$photo->children('gphoto', true)->id;
 
+            // just get the photos the user choose in the form
             if (!in_array($id, $this->formData['photos']))
             {
                 continue;
             }
 
-            $thumbs    = $photo->getMediaGroup()->getThumbnail();
-            $thumbnail = $thumbs[0]->getUrl();
-            $medium    = $thumbs[1]->getUrl();
-            $full      = $this->usingFullSizePhotos ? $thumbs[2]->getUrl() : '';
+            // thumbnails
+            $group = $photo->children('media', true)->group;
+
+            $thumbnail = (string)$group->thumbnail[0]->attributes()->url;
+            $medium    = (string)$group->thumbnail[1]->attributes()->url;
+
+            if ($this->usingFullSizePhotos)
+            {
+                $full = (string)$group->thumbnail[2]->attributes()->url;
+            }
 
             $extension = $this->uploadPhoto->getFileExtension($thumbnail);
 
@@ -154,12 +161,15 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
     {
         $this->formData = $formData;
 
-        $token   = getUserPicasaSessionToken($this->fcmsUser->id);
         $albumId = $formData['albums'];
         $user    = $formData['picasa_user'];
 
-        $httpClient    = Zend_Gdata_AuthSub::getHttpClient($token);
-        $picasaService = new Zend_Gdata_Photos($httpClient, "Google-DevelopersGuide-1.0");
+        $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
+
+        $json = json_decode($_SESSION['googleSessionToken']);
+        $token = $json->access_token;
+
+        $curl = curl_init();
 
         $thumbSizes = '150c,600';
         if ($this->usingFullSizePhotos)
@@ -167,29 +177,38 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
             $thumbSizes .= ',d';
         }
 
-        try
-        {
-            $query = new Zend_Gdata_Photos_AlbumQuery();
-            $query->setUser($user);
-            $query->setAlbumId($albumId);
-            $query->setParam('thumbsize', $thumbSizes);
+        $url = 'https://picasaweb.google.com/data/feed/api/user/default/albumid/'.$albumId.'?thumbsize='.$thumbSizes;
 
-            $albumFeed = $picasaService->getAlbumFeed($query);
-        }
-        catch (Zend_Gdata_App_Exception $e)
+        curl_setopt_array(
+            $curl, 
+            array(
+                CURLOPT_CUSTOMREQUEST  => 'GET',
+                CURLOPT_URL            => $url,
+                CURLOPT_HTTPHEADER     => array('GData-Version: 2', 'Authorization: Bearer '.$token),
+                CURLOPT_RETURNTRANSFER => 1,
+            )
+        );
+
+        $response = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        curl_close($curl);
+
+        if ($httpCode !== 200)
         {
             $this->fcmsError->add(array(
                 'type'    => 'operation',
                 'message' => T_('Could not get Picasa data.'),
-                'error'   => $e->getMessage(),
+                'error'   => $response,
                 'file'    => __FILE__,
                 'line'    => __LINE__,
              ));
-
             return false;
         }
 
-        $this->albumFeed = $albumFeed;
+        $xml = new SimpleXMLElement($response);
+
+        $this->albumFeed = $xml;
     }
 
 }

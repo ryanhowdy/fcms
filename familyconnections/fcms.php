@@ -44,14 +44,16 @@ if ($fcmsError->hasError())
     return;
 }
 
+spl_autoload_register('fcms_autoload');
+
 /**
- * __autoload 
+ * fcms_autoload 
  * 
  * @param string $className 
  * 
  * @return void
  */
-function __autoload ($className)
+function fcms_autoload ($className)
 {
     $classPaths = array(
         'Destination'                       => INC.'Upload/Destination.php',
@@ -137,32 +139,13 @@ function load()
         {
             include_once THIRDPARTY.'vimeo/vimeo.php';
         }
-        elseif ($include == 'youtube')
-        {
-            set_include_path(THIRDPARTY);
-
-            require_once 'Zend/Loader.php';
-            Zend_Loader::loadClass('Zend_Gdata_YouTube');
-            Zend_Loader::loadClass('Zend_Gdata_AuthSub');
-            Zend_Loader::loadClass('Zend_Gdata_App_Exception');
-        }
-        elseif ($include == 'picasa')
-        {
-            set_include_path(THIRDPARTY);
-
-            require_once 'Zend/Loader.php';
-            Zend_Loader::loadClass('Zend_Gdata_Photos');
-            Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
-            Zend_Loader::loadClass('Zend_Gdata_AuthSub');
-            Zend_Loader::loadClass('Zend_Gdata_Photos_AlbumQuery');
-        }
         elseif ($include == 'phpass')
         {
             include_once THIRDPARTY.'phpass/PasswordHash.php';
         }
         elseif ($include == 'google')
         {
-            set_include_path(THIRDPARTY.'google-api-php-client/src/');
+            set_include_path(get_include_path().PATH_SEPARATOR.THIRDPARTY.'google-api-php-client/src/');
 
             require_once THIRDPARTY.'google-api-php-client/src/Google/autoload.php';
         }

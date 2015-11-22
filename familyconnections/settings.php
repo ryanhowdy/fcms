@@ -25,7 +25,6 @@ load(
     'socialmedia', 
     'instagram', 
     'familynews', 
-    'picasa', 
     'phpass',
     'google'
 );
@@ -1454,7 +1453,8 @@ a:hover { background-color: #6cd163; }
             $googleClient->setScopes(array(
                 'https://www.googleapis.com/auth/youtube.force-ssl',
                 'https://www.googleapis.com/auth/userinfo.email',
-                'https://www.googleapis.com/auth/userinfo.profile'
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'https://picasaweb.google.com/data/'
             ));
             $googleClient->setRedirectUri($callbackUrl);
 
@@ -1576,7 +1576,8 @@ a:hover { background-color: #6cd163; }
         $googleClient->setScopes(array(
             'https://www.googleapis.com/auth/youtube.force-ssl',
             'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile'
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'https://picasaweb.google.com/data/'
         ));
         $googleClient->setRedirectUri($_SESSION['callback_url']);
 
@@ -1628,7 +1629,8 @@ a:hover { background-color: #6cd163; }
             $googleClient->setScopes(array(
                 'https://www.googleapis.com/auth/youtube.force-ssl',
                 'https://www.googleapis.com/auth/userinfo.email',
-                'https://www.googleapis.com/auth/userinfo.profile'
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'https://picasaweb.google.com/data/'
             ));
             $googleClient->setRedirectUri($_SESSION['callback_url']);
 

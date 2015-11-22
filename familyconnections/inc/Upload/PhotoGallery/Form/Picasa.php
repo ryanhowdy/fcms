@@ -35,44 +35,31 @@ class PicasaUploadPhotoGalleryForm extends UploadPhotoGalleryForm
     {
         $_SESSION['fcms_uploader_type'] = 'picasa';
 
-        // Get session token
-        $sql = "SELECT `picasa_session_token`
-                FROM `fcms_user_settings`
-                WHERE `user` = ?
-                LIMIT 1";
-
-        $r = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($r === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
-
-        if (empty($r))
-        {
-            echo '
-            <p class="error-alert">
-                '.T_('Could not get user data.').'
-            </p>';
-            return;
-        }
+        $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
 
         $picasaInfo = '';
         $token      = '';
         $js         = '';
 
-        if (empty($r['picasa_session_token']))
+        if ($this->fcmsError->hasError())
+        {
+            $this->fcmsError->displayError();
+            return;
+        }
+        else if ($googleClient === false)
         {
             $picasaInfo = '
             <div class="info-alert">
-                <h2>'.T_('Not connected to Picasa.').'</h2>
-                <p>'.T_('You must connect your Family Connections account to Picasa before you can begin importing photos from Picasa.').'</p>
-                <p><a href="../settings.php?view=picasa">'.T_('Connect to Picasa').'</a></p>
+                <h2>'.T_('Not connected to Google.').'</h2>
+                <p>'.T_('You must connect your Family Connections account to Google before you can begin importing photos from Google.').'</p>
+                <p><a href="../settings.php?view=google">'.T_('Connect to Google').'</a></p>
             </div>';
         }
         else
         {
-            $token      = $r['picasa_session_token'];
+            $json = json_decode($_SESSION['googleSessionToken']);
+
+            $token      = $json->access_token;
             $picasaInfo = '<p></p>';
             $js         = 'loadPicasaAlbums("'.$token.'", "'.T_('Could not get albums.').'");';
         }
