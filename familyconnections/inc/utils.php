@@ -4314,7 +4314,7 @@ function userConnectedSocialMedia ($userId)
     // Get Social Media data
     $facebook   = getUserFacebookAccessToken($userId);
     $foursquare = getFoursquareUserData($userId);
-    $youtube    = getYouTubeUserData($userId);
+    $google     = getGoogleUserData($userId);
 
     // Facebook
     if (!empty($facebook))
@@ -4328,8 +4328,8 @@ function userConnectedSocialMedia ($userId)
         return true;
     }
 
-    // YouTube
-    if (!empty($youtube['youtube_session_token']))
+    // Google
+    if (!empty($google['google_session_token']))
     {
         return true;
     }
