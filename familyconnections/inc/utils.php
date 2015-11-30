@@ -4100,34 +4100,33 @@ function getNumberOfPosts ($thread_id)
  */
 function postAsync ($url, $params)
 {
-    foreach ($params as $key => &$val)
+    $data = '';
+
+    foreach ($params as $key => $row)
     {
-        if (is_array($val))
+        $row = urlencode($row);
+        $key = urlencode($key);
+
+        if ($data == '')
         {
-            $val = implode(',', $val);
+            $data .= "$key=$row";
         }
-        $post_params[] = $key.'='.urlencode($val);
+        else
+        {
+            $data .= "&$key=$row";
+        }
     }
 
-    $post_string = implode('&', $post_params);
-
-    $parts = parse_url($url);
-
-    $fp = fsockopen($parts['host'], isset($parts['port'])?$parts['port']:80, $errno, $errstr, 30);
-
-    $out  = "POST ".$parts['path']." HTTP/1.1\r\n";
-    $out .= "Host: ".$parts['host']."\r\n";
-    $out .= "Content-Type: application/x-www-form-urlencoded\r\n";
-    $out .= "Content-Length: ".strlen($post_string)."\r\n";
-    $out .= "Connection: Close\r\n\r\n";
-
-    if (isset($post_string))
-    {
-        $out .= $post_string;
-    }
-
-    fwrite($fp, $out);
-    fclose($fp);
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT_MS, 2000);
+    $result = curl_exec($ch);
+    curl_close($ch);
 }
 
 /**
