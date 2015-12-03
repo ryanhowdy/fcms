@@ -199,18 +199,6 @@ class Page
                     $this->displayEditGoogle();
                 }
             }
-            // Picasa
-            elseif ($_GET['view'] == 'picasa')
-            {
-                if (isset($_GET['token']))
-                {
-                    $this->displayEditPicasaSubmit();
-                }
-                else
-                {
-                    $this->displayEditPicasa();
-                }
-            }
             else
             {
                 $this->displayEditAccount();
@@ -234,10 +222,6 @@ class Page
             elseif ($_GET['revoke'] == 'google')
             {
                 $this->displayRevokeGoogleAccess();
-            }
-            elseif ($_GET['revoke'] == 'picasa')
-            {
-                $this->displayRevokePicasaAccess();
             }
         }
         else
@@ -317,9 +301,7 @@ class Page
             $googleLink = '<li><a href="?view=google">Google</a></li>';
         }
 
-        $picasaLink = '<li><a href="?view=picasa">Picasa</a></li>';
-
-        $links = "$facebookLink$foursquareLink$instagramLink$googleLink$picasaLink";
+        $links = "$facebookLink$foursquareLink$instagramLink$googleLink";
 
         if (!empty($links))
         {
@@ -330,7 +312,6 @@ class Page
                     '.$foursquareLink.'
                     '.$instagramLink.'
                     '.$googleLink.'
-                    '.$picasaLink.'
                 </ul>';
         }
 
@@ -1060,7 +1041,11 @@ a:hover { background-color: #6cd163; }
         <div class="social-media-connect">
             <img class="icon" src="ui/img/facebook.png" alt="Facebook"/>
             <h2>Facebook</h2>
-            <p>'.T_('Facebook helps you connect and share with the people in your life.').'</p>
+            <p>'.T_('Connecting with Facebook will allow you to:').'</p>
+            <ul>
+                <li>'.T_('Login to this site using your Facebook credentials.').'</li>
+                <li>'.T_('Share status updates from this site to Facebook.').'</li>
+            </ul>
             <div class="status">'.$status.'</div>
             <div class="action">'.$link.'</div>
         </div>';
@@ -1207,7 +1192,10 @@ a:hover { background-color: #6cd163; }
         <div class="social-media-connect">
             <img class="icon" src="ui/img/foursquare.png" alt="Foursquare"/>
             <h2>Foursquare</h2>
-            <p>'.T_('A location-based social networking website for your phone.').'</p>
+            <p>'.T_('Connecting with Foursquare will allow you to:').'</p>
+            <ul>
+                <li>'.T_('Share your Foursquare check-ins with this site.').'</li>
+            </ul>
             <div class="status">'.$status.'</div>
             <div class="action">'.$link.'</div>
         </div>';
@@ -1325,7 +1313,10 @@ a:hover { background-color: #6cd163; }
         <div class="social-media-connect">
             <img class="icon" src="ui/img/instagram.png" alt="Instagram"/>
             <h2>Instagram</h2>
-            <p>'.T_('Instagram is a photo sharing app for your phone.').'</p>
+            <p>'.T_('Connecting with Instagram will allow you to:').'</p>
+            <ul>
+                <li>'.T_('Share your Instagram photos with this site.').'</li>
+            </ul>
             <div class="status">'.$status.'</div>
             <div class="action">'.$link.'</div>
         </div>';
@@ -1531,7 +1522,11 @@ a:hover { background-color: #6cd163; }
         <div class="social-media-connect">
             <img class="icon" src="ui/img/google.png" alt="Google"/>
             <h2>Google</h2>
-            <p>'.T_('Google allows users to discover, watch and share YouTube videos.').'</p>
+            <p>'.T_('Connecting with Google will allow you to:').'</p>
+            <ul>
+                <li>'.T_('Share your Picasa photos with this site.').'</li>
+                <li>'.T_('Share your YouTube videos with this site.').'</li>
+            </ul>
             <div class="status">'.$status.'</div>
             <div class="action">'.$link.'</div>
         </div>';
@@ -1655,129 +1650,4 @@ a:hover { background-color: #6cd163; }
         header("Location: settings.php?view=google");
     }
 
-    /**
-     * displayEditPicasa
-     * 
-     * @return void
-     */
-    function displayEditPicasa ()
-    {
-        $this->displayHeader();
-
-        $token = getUserPicasaSessionToken($this->fcmsUser->id);
-
-        // Setup url for callbacks
-        $callbackUrl  = getDomainAndDir();
-        $callbackUrl .= 'settings.php?view=picasa';
-
-        if (!is_null($token))
-        {
-            $httpClient = Zend_Gdata_AuthSub::getHttpClient($token);
-
-            $picasaService = new Zend_Gdata_Photos($httpClient, "Google-DevelopersGuide-1.0");
-
-            try
-            {
-                $feed = $picasaService->getUserFeed("default");
-            }
-            catch (Zend_Gdata_App_Exception $e)
-            {
-                print '<div class="error-alert">'.T_('Could not get Picasa session token.').'</div>';
-                return;
-            }
-
-            $username = $feed->getTitle();
-
-            $user    = '<a href="http://picasaweb.google.com/'.$username.'">'.$username.'</a>';
-            $status  = sprintf(T_('Currently connected as: %s'), $user);
-            $link    = '<a class="disconnect" href="?revoke=picasa">'.T_('Disconnect').'</a>';
-        }
-        else
-        {
-            $url = Zend_Gdata_AuthSub::getAuthSubTokenUri($callbackUrl, 'https://picasaweb.google.com/data', false, true);
-
-            $status = T_('Not Connected');
-            $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
-        }
-
-        echo '
-        <div class="social-media-connect">
-            <img class="icon" src="ui/img/picasa.png" alt="Picasa"/>
-            <h2>Picasa Web</h2>
-            <p>'.T_('Picasa Web allows users to share photos with friends and family.').'</p>
-            <div class="status">'.$status.'</div>
-            <div class="action">'.$link.'</div>
-        </div>';
-
-        $this->displayFooter();
-    }
-
-    /**
-     * displayEditPicasaSubmit
-     * 
-     * @return void
-     */
-    function displayEditPicasaSubmit ()
-    {
-        $singleUseToken = $_GET['token'];
-
-        // Exchange single use token for a session token
-        try
-        {
-            $sessionToken = Zend_Gdata_AuthSub::getAuthSubSessionToken($singleUseToken);
-        }
-        catch (Zend_Gdata_App_Exception $e)
-        {
-            $this->displayHeader();
-            echo '<div class="error-alert">ERROR - Token upgrade for ['.$singleUseToken.'] failed: '.$e->getMessage();
-            $this->displayFooter();
-            return;
-        }
-
-        $sql = "UPDATE `fcms_user_settings`
-                SET `picasa_session_token` = ?
-                WHERE `user` = ?";
-
-        $params = array(
-            $sessionToken,
-            $this->fcmsUser->id
-        );
-
-        if (!$this->fcmsDatabase->update($sql, $params))
-        {
-            $this->displayHeader();
-            $this->fcmsError->displayError();
-            $this->displayFooter();
-            return;
-        }
-
-        header("Location: settings.php?view=picasa");
-    }
-
-    /**
-     * displayRevokePicasaAccess 
-     * 
-     * @return void
-     */
-    function displayRevokePicasaAccess ()
-    {
-        if (isset($_SESSION['sessionToken']))
-        {
-            unset($_SESSION['sessionToken']);
-        }
-
-        $sql = "UPDATE `fcms_user_settings`
-                SET `picasa_session_token` = NULL
-                WHERE `user` = ?";
-
-        if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
-        {
-            $this->displayHeader();
-            $this->fcmsError->displayError();
-            $this->displayFooter();
-            return;
-        }
-
-        header("Location: settings.php?view=picasa");
-    }
 }
