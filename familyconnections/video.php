@@ -588,8 +588,7 @@ $(document).ready(function() {
 
         $sql = "SELECT `id`, `source_id`, `title`, `description`, `created`, `created_id`
                 FROM `fcms_video`
-                WHERE `id` = ?
-                AND `active` = 1";
+                WHERE `id` = ?";
 
         $video = $this->fcmsDatabase->getRow($sql, $id);
         if ($video === false)
@@ -613,9 +612,6 @@ $(document).ready(function() {
      */
     function displayYouTubeVideoPage ($video)
     {
-        // Save video id for ajax call
-        $_SESSION['source_id'] = $video['source_id'];
-
         $this->displayHeader();
 
         // Video not found in db
@@ -636,6 +632,9 @@ $(document).ready(function() {
             $this->displayVideoNotFound($video, 'YouTube');
             return;
         }
+
+        // Save video id for ajax call
+        $_SESSION['source_id'] = $video['source_id'];
 
         $url   = 'video.php?u='.$video['created_id'].'&amp;id='.$video['id'];
         $views = T_('Unknown');
@@ -1182,7 +1181,7 @@ $(document).ready(function() {
     
         if (!$this->fcmsDatabase->update($sql, array($this->fcmsUser->id, $id)))
         {
-            $this->displayFooter();
+            $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
 
@@ -1191,24 +1190,29 @@ $(document).ready(function() {
 
         if (isset($_POST['delete_youtube']))
         {
-            $sessionToken  = $this->getSessionToken($this->fcmsUser->id);
-            $youtubeConfig = getYouTubeConfigData();
-            $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
+            try
+            {
+                $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
 
-            if ($httpClient === false)
-             {
-                // Error message was already displayed by getYouTubeAuthSubHttpClient()
+                $youtube = new Google_Service_YouTube($googleClient);
+                $youtube->videos->delete($sourceId);
+            }
+            catch (Exception $e)
+            {
+                $this->displayHeader();
+                $this->fcmsError->add(array(
+                    'type'    => 'operation',
+                    'message' => 'Could not upload video to YouTube.',
+                    'error'   => $e,
+                    'file'    => __FILE__,
+                    'line'    => __LINE__,
+                ));
+                $this->fcmsError->displayError();
                 $this->displayFooter();
                 return;
             }
-
-            $youTubeService = new Zend_Gdata_YouTube($httpClient);
-            $videoEntry     = $youTubeService->getVideoEntry($sourceId);
-
             // Set message
             $_SESSION['message'] = 'delete_video_youtube';
-
-            $youTubeService->delete($videoEntry);
         }
 
         // Set message
