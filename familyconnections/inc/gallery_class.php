@@ -626,7 +626,9 @@ class PhotoGallery
                 <form action="?uid='.$uid.'&amp;cid='.$urlcid.'&amp;pid='.$pid.'" method="post">
                     '.T_('Add Comment').'<br/>
                     <textarea class="frm_textarea" name="post" id="post" rows="3" cols="63"></textarea>
-                    <input type="submit" name="addcom" id="addcom" value="'.T_('Add Comment').'" title="'.T_('Add Comment').'" class="gal_addcombtn"/>
+                    <p>
+                        <input type="submit" name="addcom" id="addcom" value="'.T_('Add Comment').'" title="'.T_('Add Comment').'" class="sub1"/>
+                    </p>
                 </form>
             </div>';
         }
@@ -1339,8 +1341,10 @@ class PhotoGallery
                 <div class="add_comment_block">
                     <form action="?uid='.$uid.'&amp;cid='.$cid.'" method="post">
                         '.T_('Add Comment').'<br/>
-                        <textarea class="frm_textarea" name="comment" id="comment" rows="3" cols="63"></textarea><br/>
-                        <input type="submit" name="addcatcom" id="addcatcom" value="'.T_('Add Comment').'" title="'.T_('Add Comment').'"/>
+                        <textarea class="frm_textarea" name="comment" id="comment" rows="3" cols="63"></textarea>
+                        <p>
+                            <input type="submit" class="sub1" name="addcatcom" id="addcatcom" value="'.T_('Add Comment').'" title="'.T_('Add Comment').'"/>
+                        </p>
                     </form>
                 </div>';
         }
