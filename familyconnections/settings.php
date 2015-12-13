@@ -1086,11 +1086,13 @@ a:hover { background-color: #6cd163; }
             $accessToken = $facebook->getAccessToken();
 
             $sql = "UPDATE `fcms_user_settings`
-                    SET `fb_access_token` = ?
+                    SET `fb_access_token` = ?,
+                        `fb_user_id` = ?
                     WHERE `user` = ?";
 
             $params = array(
                 $accessToken,
+                $fbUserId,
                 $this->fcmsUser->id
             );
 

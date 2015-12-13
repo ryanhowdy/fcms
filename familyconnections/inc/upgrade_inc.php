@@ -2217,6 +2217,36 @@ class Upgrade
             }
         }
 
+        // facebook user id
+        $facebook_user_id_fixed = false;
+
+        $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+
+        $rows = $this->fcmsDatabase->getRows($sql);
+        if ($rows === false)
+        {
+            $this->fcmsError->setMessage($errorMessage);
+            return false;
+        }
+
+        foreach ($rows as $r)
+        {
+            if ($r['Field'] == 'fb_user_id')
+            {
+                $facebook_user_id_fixed = true;
+            }
+        }
+
+        if (!$facebook_user_id_fixed)
+        {
+            $sql = "ALTER TABLE `fcms_user_settings` ADD `fb_user_id` VARCHAR(255) NULL";
+            if (!$this->fcmsDatabase->alter($sql))
+            {
+                $this->fcmsError->setMessage($errorMessage);
+                return false;
+            }
+        }
+
         return true;
     }
 }

@@ -607,7 +607,7 @@ function handleFacebookLogin ()
             WHERE s.`user` = u.`id`
             AND (
                 u.`username` = ?
-                OR s.`fb_access_token` = ?
+                OR s.`fb_user_id` = ?
             )";
 
     $params = array(
