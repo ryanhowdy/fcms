@@ -613,6 +613,109 @@ function picasaSelectNone ()
     });
 }
 
+function loadPhotoGalleryPhotos (type, errorMessage)
+{
+    var albumId = $('#albums').val();
+
+    $('.' + type).prepend('<img id="ajax-loader" src="../ui/img/ajax-bar.gif" />');
+
+    $.ajax({
+        url  : 'index.php',
+        type : 'POST',
+        data : {
+            ajax    : 1,
+            type    : type,
+            albumId : albumId,
+        }
+    }).done(function(data) {
+        $('#ajax-loader').remove();
+        $('#photo_list').prepend(data)
+    }).fail(function() {
+        $('#ajax-loader').remove();
+        $('.' + type).prepend('<p class="error-alert">' + errorMessage + '</p>')
+    });
+}
+function loadMorePhotoGalleryPhotos (type, startIndex, errorMessage)
+{
+    var albumId = $('#albums').val();
+
+    $('.' + type).append('<img id="ajax-loader" src="../ui/img/ajax-bar.gif" />');
+
+    $.ajax({
+        url  : 'index.php',
+        type : 'POST',
+        data : {
+            ajax       : 1,
+            type       : type,
+            albumId    : albumId,
+            startIndex : startIndex,
+        }
+    }).done(function(data) {
+        $('#ajax-loader').remove();
+        $('#photo_list').append(data);
+    }).fail(function() {
+        $('#ajax-loader').remove();
+        $('.picasa').prepend('<p class="error-alert">' + errorMessage + '</p>');
+    });
+}
+function loadPhotoGalleryPhotoEvents (type, errorMessage)
+{
+    $('.' + type + ' ul').mouseover(function(event) {
+        var jqMousedList = $(event.target).closest('li');
+        if (jqMousedList) {
+            jqMousedList.find('span').show();
+        }
+    });
+    $('.' + type + ' ul').mouseout(function(event) {
+        var jqMousedList = $(event.target).closest('li');
+        if (jqMousedList && !jqMousedList.hasClass('selected')) {
+            jqMousedList.find('span').hide();
+        }
+    });
+    $('.' + type + ' ul').click(function(event) {
+        var jqClickedList = $(event.target).closest('li');
+        if (jqClickedList) {
+            var jqChk = jqClickedList.find("input");
+            if (jqChk.prop('checked')) {
+                jqClickedList.addClass('selected');
+                jqClickedList.find('span').show();
+                jqClickedList.find('img').css('opacity', '0.4');
+            }
+            else {
+                jqClickedList.removeClass('selected');
+                jqClickedList.find('span').hide();
+                jqClickedList.find('img').css('opacity', '1');
+            }
+        }
+    });
+
+    $('.' + type + ' > p').on('change', '> #albums', function() {
+        $('#photo_list').empty();
+        loadPhotoGalleryPhotos(type, errorMessage);
+    });
+}
+function photoGallerySelectAll (e, type)
+{
+    e.preventDefault();
+    $('.' + type + ' input[type=checkbox]').each(function() {
+        this.checked = true;
+        jqLi = $(this).closest('li');
+        jqLi.addClass("selected");
+        jqLi.find("span").show();
+        jqLi.find("img").css('opacity', '0.4');
+    });
+}
+function photoGallerySelectNone (e, type)
+{
+    e.preventDefault();
+    $('.' + type + ' input[type=checkbox]').each(function(item) {
+        item.checked = false;
+        jqLi = $(this).closest('li');
+        jqLi.removeClass("selected");
+        jqLi.find("span").hide();
+        jqLi.find("img").css('opacity', '1');
+    });
+}
 
 /* =CALENDAR
 ------------------------------------------------*/

@@ -5059,6 +5059,10 @@ function getPhotoGallery ()
     {
         $photoGallery = 'PicasaUploadPhotoGallery';
     }
+    else if ($type == 'facebook')
+    {
+        $photoGallery = 'FacebookUploadPhotoGallery';
+    }
     else
     {
         $photoGallery = 'UploadPhotoGallery';

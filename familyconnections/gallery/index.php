@@ -23,7 +23,8 @@ load(
     'socialmedia', 
     'datetime', 
     'image',
-    'google'
+    'google',
+    'facebook'
 );
 
 init('gallery/');
@@ -84,7 +85,14 @@ class Page
             {
                 $this->getAjaxPicasaAlbums();
             }
-
+            elseif (isset($_POST['type']) && $_POST['type'] == 'facebook')
+            {
+                $this->getAjaxFacebookPhotos();
+            }
+            else
+            {
+                die('Uknown AJAX Request');
+            }
             return;
         }
         // Edit Photo
@@ -169,6 +177,10 @@ class Page
                 elseif (isset($_POST['picasa']))
                 {
                     $this->displayPicasaUploadFormSubmit();
+                }
+                elseif (isset($_POST['facebook']))
+                {
+                    $this->displayFacebookUploadFormSubmit();
                 }
                 else
                 {
@@ -852,6 +864,44 @@ class Page
         if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload&type=picasa');
+            return;
+        }
+
+        $categoryId = $photoGalleryUploader->getLastCategoryId();
+
+        header("Location: index.php?edit-category=$categoryId&user=".$this->fcmsUser->id);
+    }
+
+    /**
+     * displayFacebookUploadFormSubmit 
+     * 
+     * @return void
+     */
+    function displayFacebookUploadFormSubmit ()
+    {
+        load('facebook');
+
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
+
+        $formData = array(
+            'photos'      => $_POST['photos'],
+            'albums'      => $_POST['albums'],
+            'newCategory' => $_POST['new-category'],
+        );
+
+        $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
+
+        if (!$photoGalleryUploader->upload($formData))
+        {
+            header('Location: index.php?action=upload&type=facebook');
             return;
         }
 
@@ -1815,5 +1865,90 @@ class Page
                 <ul id="photo_list">
                     <script language="javascript">loadPicasaPhotos("'.$token.'", "'.T_('Could not get photos.').'");</script>
                 </ul>';
+    }
+
+    /**
+     * getAjaxFacebookPhotos 
+     * 
+     * Will print a list of photos from facebook.
+     * 
+     * @return null
+     */
+    function getAjaxFacebookPhotos()
+    {
+        $config      = getFacebookConfigData();
+        $accessToken = getUserFacebookAccessToken($this->fcmsUser->id);
+
+        $facebook = new Facebook(array(
+            'appId'  => $config['fb_app_id'],
+            'secret' => $config['fb_secret'],
+        ));
+
+        $facebook->setAccessToken($accessToken);
+
+        $albumId = (int)$_POST['albumId'];
+        $photos  = '';
+        $i       = 1;
+
+        $_SESSION['facebook_photos'] = array();
+
+        try
+        {
+            $fbPhotos = $facebook->api("/$albumId/photos");
+
+            foreach ($fbPhotos['data'] as $photo)
+            {
+                $w = $photo['width'];
+                $h = $photo['height'];
+
+                $width  = '100%;';
+                $height = 'auto;';
+
+                if ($w > $h)
+                {
+                    $width  = 'auto;';
+                    $height = '100%;';
+                }
+
+                $sourceId  = $photo['id'];
+                $thumbnail = $photo['picture'];
+
+                $_SESSION['facebook_photos'][$sourceId] = array(
+                    'thumbnail' => $thumbnail,
+                    'width'     => $width,
+                    'height'    => $height,
+                );
+
+                $photos .= '<li>';
+                $photos .= '<label for="facebook'.$i.'">';
+                $photos .= '<img src="'.$thumbnail.'" style="width:'.$width.' height:'.$height.'"/>';
+                $photos .= '<span style="display:none"></span>';
+                $photos .= '</label>';
+                $photos .= '<input type="checkbox" id="facebook'.$i.'" name="photos[]" value="'.$sourceId.'"/>';
+                $photos .= '</li>';
+
+                $i++;
+            }
+        }
+        catch (FacebookApiException $e)
+        {
+            echo '<p class="error-alert">'.T_('Could not get Facebook photos.').'</p>';
+
+            $this->fcmsError->add(array(
+                'type'    => 'operation',
+                'message' => T_('Could not get Facebook photos.'),
+                'error'   => $e,
+                'file'    => __FILE__,
+                'line'    => __LINE__,
+             ));
+            return;
+        }
+
+        if ($i <= 1 && empty($photos))
+        {
+            $photos = '<p class="info-alert">'.T_('No photos were found in this album').'</p>';
+        }
+
+        echo $photos;
     }
 }

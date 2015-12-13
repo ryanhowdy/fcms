@@ -174,6 +174,14 @@ class UploadPhoto
         {
             $ext = end($arr);
             $ext = strtolower($ext);
+
+            // check if we have any ?params or anything after the extension
+            $pos = strpos($ext, '?');
+
+            if ($pos !== false)
+            {
+                $ext = substr($ext, 0, $pos);
+            }
         }
 
         return $ext;

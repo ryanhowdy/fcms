@@ -179,6 +179,8 @@ class Destination
             case 'png':
                 $identifier = @imagecreatefrompng($this->destinationPath.$fileName);
                 break;
+            default:
+                die('unknown image extension: '.$extension);
         }
 
         if ($identifier === false)

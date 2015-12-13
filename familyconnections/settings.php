@@ -1028,7 +1028,7 @@ a:hover { background-color: #6cd163; }
             else
             {
                 $params = array(
-                    'scope'        => 'user_about_me,user_birthday,user_location,email,publish_actions',
+                    'scope'        => 'user_about_me,user_photos,user_birthday,user_location,email,publish_actions',
                     'redirect_uri' => $callbackUrl
                 );
 
@@ -1082,12 +1082,15 @@ a:hover { background-color: #6cd163; }
                 }
             }
 
+            $facebook->setExtendedAccessToken();
+            $accessToken = $facebook->getAccessToken();
+
             $sql = "UPDATE `fcms_user_settings`
                     SET `fb_access_token` = ?
                     WHERE `user` = ?";
 
             $params = array(
-                $fbUserId,
+                $accessToken,
                 $this->fcmsUser->id
             );
 
