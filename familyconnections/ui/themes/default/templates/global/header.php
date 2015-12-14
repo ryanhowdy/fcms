@@ -8,8 +8,8 @@
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>ui/favicon.ico"/>
 <link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/css/style.css?version=350"/>
 <link rel="stylesheet" type="text/css" media="only screen and (max-width: 480px)" href="<?php echo $TMPL["path"]; ?>ui/themes/default/css/mobile.css"/>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/jquery.js?version=350"></script>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js?version=350"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/jquery.js?version=360"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js?version=360"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
 </head>
 <body id="top">

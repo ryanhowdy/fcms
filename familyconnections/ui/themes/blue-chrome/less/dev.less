@@ -1486,7 +1486,7 @@ li.tag_photo label span {
     right: 0;
     width: 757px;
 }
-.basic, .instagram, .picasa {
+.basic, .instagram, .picasa, .facebook {
     overflow: auto;
     padding: 20px;
     height: 260px;
@@ -1538,43 +1538,61 @@ li.tag_photo label span {
     padding: 0;
     width: 450px;
 }
-.picasa #selector { 
+.picasa #selector,
+.facebook #selector
+{ 
     float: right; 
     margin: -40px 35px 0 0; 
 } 
-.picasa #selector a { 
+.picasa #selector a,
+.facebook #selector a
+{ 
     margin: 0 10px; 
 } 
-.picasa #ajax-loader { 
+.picasa #ajax-loader,
+.facebook #ajax-loader
+{ 
     left: 340px; 
     position: absolute; 
     top: 100px; 
 } 
-.picasa ul { 
+.picasa ul,
+.facebook ul
+{ 
     list-style-type: none; 
     margin: 0 0 20px 0; 
     padding: 0; 
 } 
-.picasa li { 
+.picasa li,
+.facebook li
+{ 
     display: inline-block; 
     height: 73px; 
     overflow: hidden; 
     text-align: center; 
 } 
-.picasa li label { 
+.picasa li label,
+.facebook li label
+{ 
     display: block; 
     height: 73px; 
     overflow: hidden; 
     position: relative; 
     width: 73px; 
 } 
-.picasa li label img { 
+.picasa li label img
+.facebook li label img
+{ 
     border: 1px solid transparent; 
 } 
-.picasa li.selected label img { 
+.picasa li.selected label img,
+.facebook li.selected label img
+{ 
     border: 1px solid green; 
 } 
-.picasa li label span { 
+.picasa li label span,
+.facebook li label span
+{ 
     background: url(../../img/check.png) no-repeat 50% 50%; 
     cursor: pointer; 
     cursor: hand; 
@@ -1583,6 +1601,12 @@ li.tag_photo label span {
     position: absolute; 
     top: 0; 
     width: 73px; 
+}
+// hide the checkbox, when selecting photos for upload
+.picasa #photo_list > li > input,
+.facebook #photo_list > li > input
+{
+    display: none;
 }
 
 
