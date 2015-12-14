@@ -328,6 +328,18 @@ $(document).ready(function() {
 
         $this->displayHeader($memberId);
 
+        // handle unknown user
+        if ($memberId == 0)
+        {
+            echo '
+            <p class="error-alert">
+                <b>'.T_('Unknown member.').'</b><br/>
+            </p>';
+
+            $this->displayFooter();
+            return;
+        }
+
         $sql = "SELECT u.fname, u.lname, u.email, u.`bio`, u.`dob_year`, u.`dob_month`, u.`dob_day`, 
                     u.`dod_year`, u.`dod_month`, u.`dod_day`, u.avatar, u.username, u.joindate, 
                     u.`activity`, u.`sex`, a.`id` AS aid, a.`address`, a.`city`, a.`state`, a.`zip`, 

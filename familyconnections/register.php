@@ -448,7 +448,7 @@ function checkAvailability() {
 
         if (!$fbUser && $facebook)
         {
-            $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access');
+            $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_actions');
 
             echo '
         <p style="text-align:right">

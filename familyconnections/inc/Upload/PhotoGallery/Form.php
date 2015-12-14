@@ -168,7 +168,13 @@ class UploadPhotoGalleryForm
     {
         $nav = '';
 
-        $types = array('upload', 'instagram', 'picasa');
+        $types = array(
+            'upload',
+            'facebook',
+            'picasa',
+            'instagram'
+        );
+
         foreach ($types as $type)
         {
             $url   = '';
@@ -196,6 +202,17 @@ class UploadPhotoGalleryForm
             {
                 $url   = '?action=upload&amp;type=picasa';
                 $text  = 'Picasa';
+            }
+            elseif ($type == 'facebook')
+            {
+                $config = getFacebookConfigData();
+                if (empty($config['fb_app_id']) && empty($config['fb_secret']))
+                {
+                    continue;
+                }
+
+                $url   = '?action=upload&amp;type=facebook';
+                $text  = 'Facebook';
             }
             else
             {

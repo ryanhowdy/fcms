@@ -23,11 +23,10 @@ load(
     'foursquare', 
     'facebook', 
     'socialmedia', 
-    'youtube', 
     'instagram', 
     'familynews', 
-    'picasa', 
-    'phpass'
+    'phpass',
+    'google'
 );
 
 init();
@@ -188,28 +187,16 @@ class Page
                     $this->displayEditInstagram();
                 }
             }
-            // YouTube
-            elseif ($_GET['view'] == 'youtube')
+            // Google
+            elseif ($_GET['view'] == 'google')
             {
-                if (isset($_GET['token']))
+                if (isset($_GET['oauth2callback']))
                 {
-                    $this->displayEditYouTubeSubmit();
+                    $this->displayEditGoogleSubmit();
                 }
                 else
                 {
-                    $this->displayEditYouTube();
-                }
-            }
-            // Picasa
-            elseif ($_GET['view'] == 'picasa')
-            {
-                if (isset($_GET['token']))
-                {
-                    $this->displayEditPicasaSubmit();
-                }
-                else
-                {
-                    $this->displayEditPicasa();
+                    $this->displayEditGoogle();
                 }
             }
             else
@@ -232,13 +219,9 @@ class Page
             {
                 $this->displayRevokeInstagramAccess();
             }
-            elseif ($_GET['revoke'] == 'youtube')
+            elseif ($_GET['revoke'] == 'google')
             {
-                $this->displayRevokeYouTubeAccess();
-            }
-            elseif ($_GET['revoke'] == 'picasa')
-            {
-                $this->displayRevokePicasaAccess();
+                $this->displayRevokeGoogleAccess();
             }
         }
         else
@@ -291,12 +274,12 @@ class Page
         $facebookConfig   = getFacebookConfigData();
         $foursquareConfig = getFoursquareConfigData();
         $instagramConfig  = getInstagramConfigData();
-        $youtubeConfig    = getYouTubeConfigData();
+        $googleConfig     = getGoogleConfigData();
 
         $facebookLink   = '';
         $foursquareLink = '';
         $instagramLink  = '';
-        $youtubeLink    = '';
+        $googleLink    = '';
 
         if (!empty($facebookConfig['fb_app_id']) && !empty($facebookConfig['fb_secret']))
         {
@@ -313,14 +296,12 @@ class Page
             $instagramLink = '<li><a href="?view=instagram">Instagram</a></li>';
         }
 
-        if (!empty($youtubeConfig['youtube_key']))
+        if (!empty($googleConfig['google_client_id']) && !empty($googleConfig['google_client_secret']))
         {
-            $youtubeLink = '<li><a href="?view=youtube">YouTube</a></li>';
+            $googleLink = '<li><a href="?view=google">Google</a></li>';
         }
 
-        $picasaLink = '<li><a href="?view=picasa">Picasa</a></li>';
-
-        $links = "$facebookLink$foursquareLink$instagramLink$youtubeLink$picasaLink";
+        $links = "$facebookLink$foursquareLink$instagramLink$googleLink";
 
         if (!empty($links))
         {
@@ -330,8 +311,7 @@ class Page
                     '.$facebookLink.'
                     '.$foursquareLink.'
                     '.$instagramLink.'
-                    '.$youtubeLink.'
-                    '.$picasaLink.'
+                    '.$googleLink.'
                 </ul>';
         }
 
@@ -1048,7 +1028,7 @@ a:hover { background-color: #6cd163; }
             else
             {
                 $params = array(
-                    'scope'        => 'user_about_me,user_birthday,user_location,email,publish_stream,offline_access',
+                    'scope'        => 'user_about_me,user_photos,user_birthday,user_location,email,publish_actions',
                     'redirect_uri' => $callbackUrl
                 );
 
@@ -1061,7 +1041,11 @@ a:hover { background-color: #6cd163; }
         <div class="social-media-connect">
             <img class="icon" src="ui/img/facebook.png" alt="Facebook"/>
             <h2>Facebook</h2>
-            <p>'.T_('Facebook helps you connect and share with the people in your life.').'</p>
+            <p>'.T_('Connecting with Facebook will allow you to:').'</p>
+            <ul>
+                <li>'.T_('Login to this site using your Facebook credentials.').'</li>
+                <li>'.T_('Share status updates from this site to Facebook.').'</li>
+            </ul>
             <div class="status">'.$status.'</div>
             <div class="action">'.$link.'</div>
         </div>';
@@ -1098,11 +1082,16 @@ a:hover { background-color: #6cd163; }
                 }
             }
 
+            $facebook->setExtendedAccessToken();
+            $accessToken = $facebook->getAccessToken();
+
             $sql = "UPDATE `fcms_user_settings`
-                    SET `fb_access_token` = ?
+                    SET `fb_access_token` = ?,
+                        `fb_user_id` = ?
                     WHERE `user` = ?";
 
             $params = array(
+                $accessToken,
                 $fbUserId,
                 $this->fcmsUser->id
             );
@@ -1208,7 +1197,10 @@ a:hover { background-color: #6cd163; }
         <div class="social-media-connect">
             <img class="icon" src="ui/img/foursquare.png" alt="Foursquare"/>
             <h2>Foursquare</h2>
-            <p>'.T_('A location-based social networking website for your phone.').'</p>
+            <p>'.T_('Connecting with Foursquare will allow you to:').'</p>
+            <ul>
+                <li>'.T_('Share your Foursquare check-ins with this site.').'</li>
+            </ul>
             <div class="status">'.$status.'</div>
             <div class="action">'.$link.'</div>
         </div>';
@@ -1326,7 +1318,10 @@ a:hover { background-color: #6cd163; }
         <div class="social-media-connect">
             <img class="icon" src="ui/img/instagram.png" alt="Instagram"/>
             <h2>Instagram</h2>
-            <p>'.T_('Instagram is a photo sharing app for your phone.').'</p>
+            <p>'.T_('Connecting with Instagram will allow you to:').'</p>
+            <ul>
+                <li>'.T_('Share your Instagram photos with this site.').'</li>
+            </ul>
             <div class="status">'.$status.'</div>
             <div class="action">'.$link.'</div>
         </div>';
@@ -1428,46 +1423,100 @@ a:hover { background-color: #6cd163; }
     }
 
     /**
-     * displayEditYouTube 
+     * displayEditGoogle
      * 
      * @return void
      */
-    function displayEditYouTube ()
+    function displayEditGoogle ()
     {
         $this->displayHeader();
 
-        $config = getYouTubeConfigData();
-        $user   = getYouTubeUserData($this->fcmsUser->id);
+        $config = getGoogleConfigData();
+        $user   = getGoogleUserData($this->fcmsUser->id);
 
         // Setup url for callbacks
         $callbackUrl  = getDomainAndDir();
-        $callbackUrl .= 'settings.php?view=youtube';
+        $callbackUrl .= 'settings.php?view=google&oauth2callback';
 
-        if (!empty($config['youtube_key']))
+        $_SESSION['callback_url'] = $callbackUrl;
+
+        if (!empty($config['google_client_id']) || !empty($config['google_client_secret']))
         {
-            if (!empty($user['youtube_session_token']))
+            $googleClient = new Google_Client();
+            $googleClient->setClientId($config['google_client_id']);
+            $googleClient->setClientSecret($config['google_client_secret']);
+            $googleClient->setAccessType('offline');
+            $googleClient->setScopes(array(
+                'https://www.googleapis.com/auth/youtube.force-ssl',
+                'https://www.googleapis.com/auth/userinfo.email',
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'https://picasaweb.google.com/data/'
+            ));
+            $googleClient->setRedirectUri($callbackUrl);
+
+            // We still have a token saved
+            if (isset($_SESSION['googleSessionToken']))
             {
-                $httpClient = getYouTubeAuthSubHttpClient($config['youtube_key'], $user['youtube_session_token']);
-
-                $youTubeService = new Zend_Gdata_YouTube($httpClient);
-
-                $feed = $youTubeService->getUserProfile('default');
-                if (!$feed instanceof Zend_Gdata_YouTube_UserProfileEntry)
+                try
                 {
-                    print '
-            <div class="error-alert">'.T_('Could not get YouTube data for user.').'</div>';
+                    $googleClient->setAccessToken($_SESSION['googleSessionToken']);
+                    // Make sure our access token is still good
+                    if ($googleClient->isAccessTokenExpired()) {
+                        $googleClient->refreshToken($user['google_session_token']);
+                    }
+                }
+                catch (Exception $e)
+                {
+                    $failure = 1;
+                }
+            }
+            // We need to use our refresh token from the db to get an access token
+            elseif (!empty($user['google_session_token']))
+            {
+                try
+                {
+                    $googleClient->refreshToken($user['google_session_token']);
+
+                    $_SESSION['googleSessionToken'] = $googleClient->getAccessToken();
+                }
+                catch (Exception $e)
+                {
+                    $failure = 1;
+                }
+            }
+
+            if (!isset($failure) && isset($_SESSION['googleSessionToken']))
+            {
+                try
+                {
+                    $youtube = new Google_Service_YouTube($googleClient);
+                    $channel = $youtube->channels->listChannels('id', array(
+                        'mine' => 'true',
+                    ));
+                }
+                catch (Exception $e)
+                {
+                    echo '<div class="error-alert">ERROR: '.$e->getMessage().'</div>';
+                    $this->displayFooter();
                     return;
                 }
 
-                $username = $feed->getUsername();
+                $oAuth = new Google_Service_Oauth2($googleClient);
 
-                $user    = '<a href="http://www.youtube.com/user/'.$username.'">'.$username.'</a>';
+                $userInfo = $oAuth->userinfo->get();
+
+                $user    = '<a href="http://www.youtube.com/channel/'.$channel->items[0]['id'].'">'.$userInfo->email.'</a>';
                 $status  = sprintf(T_('Currently connected as: %s'), $user);
-                $link    = '<a class="disconnect" href="?revoke=youtube">'.T_('Disconnect').'</a>';
+                $link    = '<a class="disconnect" href="?revoke=google">'.T_('Disconnect').'</a>';
             }
             else
             {
-                $url = Zend_Gdata_AuthSub::getAuthSubTokenUri($callbackUrl, 'http://gdata.youtube.com', false, true);
+                $state = mt_rand();
+                $googleClient->setState($state);
+
+                $_SESSION['state'] = $state;
+
+                $url = $googleClient->createAuthUrl();
 
                 $status = T_('Not Connected');
                 $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
@@ -1476,9 +1525,13 @@ a:hover { background-color: #6cd163; }
 
         echo '
         <div class="social-media-connect">
-            <img class="icon" src="ui/img/youtube.png" alt="YouTube"/>
-            <h2>YouTube</h2>
-            <p>'.T_('YouTube allows users to discover, watch and share videos.').'</p>
+            <img class="icon" src="ui/img/google.png" alt="Google"/>
+            <h2>Google</h2>
+            <p>'.T_('Connecting with Google will allow you to:').'</p>
+            <ul>
+                <li>'.T_('Share your Picasa photos with this site.').'</li>
+                <li>'.T_('Share your YouTube videos with this site.').'</li>
+            </ul>
             <div class="status">'.$status.'</div>
             <div class="action">'.$link.'</div>
         </div>';
@@ -1487,182 +1540,63 @@ a:hover { background-color: #6cd163; }
     }
 
     /**
-     * displayEditYouTubeSubmit
+     * displayEditGoogleSubmit
      * 
      * @return void
      */
-    function displayEditYouTubeSubmit ()
+    function displayEditGoogleSubmit ()
     {
-        $data = getYouTubeConfigData();
+        $config = getGoogleConfigData();
 
-        $singleUseToken = $_GET['token'];
-
-        if (!empty($data['youtube_key']))
-        {
-            // Exchange single use token for a session token
-            try
-            {
-                $sessionToken = Zend_Gdata_AuthSub::getAuthSubSessionToken($singleUseToken);
-            }
-            catch (Zend_Gdata_App_Exception $e)
-            {
-                $this->displayHeader();
-                echo '
-            <div class="error-alert">ERROR - Token upgrade for ['.$singleUseToken.'] failed: '.$e->getMessage();
-                $this->displayFooter();
-                return;
-            }
-
-            $_SESSION['sessionToken'] = $sessionToken;
-
-            $sql = "UPDATE `fcms_user_settings`
-                    SET `youtube_session_token` = ?
-                    WHERE `user` = ?";
-
-            $params = array(
-                $sessionToken,
-                $this->fcmsUser->id
-            );
-
-            if (!$this->fcmsDatabase->update($sql, $params))
-            {
-                $this->displayHeader();
-                $this->fcmsError->displayError();
-                $this->displayFooter();
-                return;
-            }
-        }
-
-        // YouTube isn't configured
-        else
+        if (strval($_SESSION['state']) !== strval($_GET['state']))
         {
             $this->displayHeader();
-
             echo '
-            <div class="info-alert">
-                <h2>'.T_('YouTube isn\'t Configured Yet.').'</h2>
-                <p>'.T_('Unfortunately, your website administrator has not set up YouTube yet.').'</p>
+            <div class="error-alert">The session state did not match.</div>';
+            $this->displayFooter();
+            return;
+        }
+
+        if (!isset($_GET['code']))
+        {
+            $this->displayHeader();
+            echo '
+            <div class="error-alert">
+                <p>Something went wrong.</p>
+                <p><a href="settings.php?view=google">Go back to Google Settings.</a></p>
             </div>';
-
             $this->displayFooter();
             return;
         }
 
-        header("Location: settings.php?view=youtube");
-    }
+        $googleClient = new Google_Client();
+        $googleClient->setClientId($config['google_client_id']);
+        $googleClient->setClientSecret($config['google_client_secret']);
+        $googleClient->setAccessType('offline');
+        $googleClient->setScopes(array(
+            'https://www.googleapis.com/auth/youtube.force-ssl',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'https://picasaweb.google.com/data/'
+        ));
+        $googleClient->setRedirectUri($_SESSION['callback_url']);
 
-    /**
-     * displayRevokeYouTubeAccess 
-     * 
-     * @return void
-     */
-    function displayRevokeYouTubeAccess ()
-    {
-        if (isset($_SESSION['sessionToken']))
-        {
-            unset($_SESSION['sessionToken']);
-        }
+        // auth by turning code into token
+        $googleClient->authenticate($_GET['code']);
+
+        $_SESSION['googleSessionToken'] = $googleClient->getAccessToken();
+
+        // Save the token
+        $googleClient->setAccessToken($_SESSION['googleSessionToken']);
+
+        $json = json_decode($_SESSION['googleSessionToken']);
 
         $sql = "UPDATE `fcms_user_settings`
-                SET `youtube_session_token` = NULL
-                WHERE `user` = ?";
-
-        if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
-        {
-            $this->displayHeader();
-            $this->fcmsError->displayError();
-            $this->displayFooter();
-            return;
-        }
-
-        header("Location: settings.php?view=youtube");
-    }
-
-    /**
-     * displayEditPicasa
-     * 
-     * @return void
-     */
-    function displayEditPicasa ()
-    {
-        $this->displayHeader();
-
-        $token = getUserPicasaSessionToken($this->fcmsUser->id);
-
-        // Setup url for callbacks
-        $callbackUrl  = getDomainAndDir();
-        $callbackUrl .= 'settings.php?view=picasa';
-
-        if (!is_null($token))
-        {
-            $httpClient = Zend_Gdata_AuthSub::getHttpClient($token);
-
-            $picasaService = new Zend_Gdata_Photos($httpClient, "Google-DevelopersGuide-1.0");
-
-            try
-            {
-                $feed = $picasaService->getUserFeed("default");
-            }
-            catch (Zend_Gdata_App_Exception $e)
-            {
-                print '<div class="error-alert">'.T_('Could not get Picasa session token.').'</div>';
-                return;
-            }
-
-            $username = $feed->getTitle();
-
-            $user    = '<a href="http://picasaweb.google.com/'.$username.'">'.$username.'</a>';
-            $status  = sprintf(T_('Currently connected as: %s'), $user);
-            $link    = '<a class="disconnect" href="?revoke=picasa">'.T_('Disconnect').'</a>';
-        }
-        else
-        {
-            $url = Zend_Gdata_AuthSub::getAuthSubTokenUri($callbackUrl, 'https://picasaweb.google.com/data', false, true);
-
-            $status = T_('Not Connected');
-            $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
-        }
-
-        echo '
-        <div class="social-media-connect">
-            <img class="icon" src="ui/img/picasa.png" alt="Picasa"/>
-            <h2>Picasa Web</h2>
-            <p>'.T_('Picasa Web allows users to share photos with friends and family.').'</p>
-            <div class="status">'.$status.'</div>
-            <div class="action">'.$link.'</div>
-        </div>';
-
-        $this->displayFooter();
-    }
-
-    /**
-     * displayEditPicasaSubmit
-     * 
-     * @return void
-     */
-    function displayEditPicasaSubmit ()
-    {
-        $singleUseToken = $_GET['token'];
-
-        // Exchange single use token for a session token
-        try
-        {
-            $sessionToken = Zend_Gdata_AuthSub::getAuthSubSessionToken($singleUseToken);
-        }
-        catch (Zend_Gdata_App_Exception $e)
-        {
-            $this->displayHeader();
-            echo '<div class="error-alert">ERROR - Token upgrade for ['.$singleUseToken.'] failed: '.$e->getMessage();
-            $this->displayFooter();
-            return;
-        }
-
-        $sql = "UPDATE `fcms_user_settings`
-                SET `picasa_session_token` = ?
+                SET `google_session_token` = ?
                 WHERE `user` = ?";
 
         $params = array(
-            $sessionToken,
+            $json->refresh_token,
             $this->fcmsUser->id
         );
 
@@ -1674,23 +1608,40 @@ a:hover { background-color: #6cd163; }
             return;
         }
 
-        header("Location: settings.php?view=picasa");
+        header("Location: settings.php?view=google");
     }
 
     /**
-     * displayRevokePicasaAccess 
+     * displayRevokeGoogleAccess 
      * 
      * @return void
      */
-    function displayRevokePicasaAccess ()
+    function displayRevokeGoogleAccess ()
     {
-        if (isset($_SESSION['sessionToken']))
+        $config = getGoogleConfigData();
+
+        if (isset($_SESSION['googleSessionToken']))
         {
-            unset($_SESSION['sessionToken']);
+            $googleClient = new Google_Client();
+            $googleClient->setClientId($config['google_client_id']);
+            $googleClient->setClientSecret($config['google_client_secret']);
+            $googleClient->setAccessType('offline');
+            $googleClient->setScopes(array(
+                'https://www.googleapis.com/auth/youtube.force-ssl',
+                'https://www.googleapis.com/auth/userinfo.email',
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'https://picasaweb.google.com/data/'
+            ));
+            $googleClient->setRedirectUri($_SESSION['callback_url']);
+
+            $googleClient->setAccessToken($_SESSION['googleSessionToken']);
+            $googleClient->revokeToken();
+
+            unset($_SESSION['googleSessionToken']);
         }
 
         $sql = "UPDATE `fcms_user_settings`
-                SET `picasa_session_token` = NULL
+                SET `google_session_token` = NULL
                 WHERE `user` = ?";
 
         if (!$this->fcmsDatabase->update($sql, $this->fcmsUser->id))
@@ -1701,6 +1652,7 @@ a:hover { background-color: #6cd163; }
             return;
         }
 
-        header("Location: settings.php?view=picasa");
+        header("Location: settings.php?view=google");
     }
+
 }

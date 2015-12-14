@@ -22,8 +22,9 @@ load(
     'gallery', 
     'socialmedia', 
     'datetime', 
-    'image', 
-    'picasa'
+    'image',
+    'google',
+    'facebook'
 );
 
 init('gallery/');
@@ -84,7 +85,14 @@ class Page
             {
                 $this->getAjaxPicasaAlbums();
             }
-
+            elseif (isset($_POST['type']) && $_POST['type'] == 'facebook')
+            {
+                $this->getAjaxFacebookPhotos();
+            }
+            else
+            {
+                die('Uknown AJAX Request');
+            }
             return;
         }
         // Edit Photo
@@ -169,6 +177,10 @@ class Page
                 elseif (isset($_POST['picasa']))
                 {
                     $this->displayPicasaUploadFormSubmit();
+                }
+                elseif (isset($_POST['facebook']))
+                {
+                    $this->displayFacebookUploadFormSubmit();
                 }
                 else
                 {
@@ -861,6 +873,44 @@ class Page
     }
 
     /**
+     * displayFacebookUploadFormSubmit 
+     * 
+     * @return void
+     */
+    function displayFacebookUploadFormSubmit ()
+    {
+        load('facebook');
+
+        // Figure out where we are currently saving photos, and create new destination object
+        $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
+        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+
+        // Figure out what type of photo gallery uploader we are using, and create new object
+        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
+
+        $formData = array(
+            'photos'      => $_POST['photos'],
+            'albums'      => $_POST['albums'],
+            'newCategory' => $_POST['new-category'],
+        );
+
+        $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
+
+        if (!$photoGalleryUploader->upload($formData))
+        {
+            header('Location: index.php?action=upload&type=facebook');
+            return;
+        }
+
+        $categoryId = $photoGalleryUploader->getLastCategoryId();
+
+        header("Location: index.php?edit-category=$categoryId&user=".$this->fcmsUser->id);
+    }
+
+    /**
      * displayUploadAdvancedEditCategory
      * 
      * Handles the form submission after uploading photos using advanced uploader.
@@ -1505,6 +1555,8 @@ class Page
 
         $photos = '';
 
+        $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
+
         if (isset($_SESSION['picasa_album_done']) && isset($_SESSION['picasa_album_id']) && $_SESSION['picasa_album_id'] == $albumId)
         {
             $photos .= '<input type="hidden" name="picasa_user" value="'.$_SESSION['picasa_user'].'"/>';
@@ -1529,76 +1581,69 @@ class Page
 
             $_SESSION['picasa_album_id'] = $albumId;
 
-            $httpClient    = Zend_Gdata_AuthSub::getHttpClient($token);
-            $picasaService = new Zend_Gdata_Photos($httpClient, "Google-DevelopersGuide-1.0");
+            // Get the album data
+            $curl = curl_init();
 
-            try
-            {
-                $feed = $picasaService->getUserFeed("default");
-            }
-            catch (Zend_Gdata_App_Exception $e)
-            {
-                echo '
-                    <p class="error-alert">
-                        '.T_('Could not get Picasa data.').'
-                    </p>';
+            curl_setopt_array(
+                $curl, 
+                array(
+                    CURLOPT_CUSTOMREQUEST  => 'GET',
+                    CURLOPT_URL            => 'https://picasaweb.google.com/data/feed/api/user/default/albumid/'.$albumId.'?max-results=25',
+                    CURLOPT_HTTPHEADER     => array('GData-Version: 2', 'Authorization: Bearer '.$token),
+                    CURLOPT_RETURNTRANSFER => 1,
+                )
+            );
 
-                logError(__FILE__.' ['.__LINE__.'] - Could not get user picasa data. - '.$e->getMessage());
-                return;
-            }
+            $response = curl_exec($curl);
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-            try
-            {
-                $query = new Zend_Gdata_Photos_AlbumQuery();
-                $query->setUser($feed->getTitle());
-                $query->setAlbumId($albumId);
-                $query->setMaxResults(25);
+            curl_close($curl);
 
-                $albumFeed = $picasaService->getAlbumFeed($query);
-            }
-            catch (Zend_Gdata_App_Exception $e)
+            if ($httpCode !== 200)
             {
                 echo '
                     <p class="error-alert">
                         '.T_('Could not get Picasa album data.').'
                     </p>';
 
-                logError(__FILE__.' ['.__LINE__.'] - Could not get user picasa album data. - '.$e->getMessage());
+                logError(__FILE__.' ['.__LINE__.'] - Could not get Picasa album data. - '.$response);
                 return;
             }
 
+            $xml = new SimpleXMLElement($response);
+
             $_SESSION['picasa_photos'] = array();
-            $_SESSION['picasa_user']   = $feed->getTitle()->text;
+            $_SESSION['picasa_user']   = (string)$xml->title;
 
             $i = 1;
-            foreach ($albumFeed as $photo)
+            foreach ($xml->entry as $photo)
             {
-                // Skip videos
-                $mediaContent = $photo->getMediaGroup()->getContent();
-                foreach ($mediaContent as $content)
+                $group = $photo->children('media', true)->group;
+
+                // skip videos
+                foreach ($group->content as $content)
                 {
-                    if ($content->getMedium() == 'video')
+                    if ($content->attributes()->medium == 'video')
                     {
                         continue 2;
                     }
                 }
 
-                $thumb = $photo->getMediaGroup()->getThumbnail();
+                $sourceId = (int)$photo->children('gphoto', true)->id;
 
-                $sourceId  = $photo->getGphotoId()->text;
-                $thumbnail = $thumb[1]->getUrl();
+                $w = (int)$photo->children('gphoto', true)->width;
+                $h = (int)$photo->children('gphoto', true)->height;
 
-                $w = $photo->getGphotoWidth()->text;
-                $h = $photo->getGphotoHeight()->text;
-
-                $width = '100%;';
+                $width  = '100%;';
                 $height = 'auto;';
 
                 if ($w > $h)
                 {
-                    $width = 'auto;';
+                    $width  = 'auto;';
                     $height = '100%;';
                 }
+
+                $thumbnail = (string)$group->thumbnail[1]->attributes()->url;
 
                 $_SESSION['picasa_photos'][$sourceId] = array(
                     'thumbnail' => $thumbnail,
@@ -1648,72 +1693,64 @@ class Page
         $startIndex = $_POST['start_index'];
         $photos     = '';
 
-        $httpClient    = Zend_Gdata_AuthSub::getHttpClient($token);
-        $picasaService = new Zend_Gdata_Photos($httpClient, "Google-DevelopersGuide-1.0");
+        // Get the album data
+        $curl = curl_init();
 
-        try
-        {
-            $feed = $picasaService->getUserFeed("default");
-        }
-        catch (Zend_Gdata_App_Exception $e)
-        {
-            echo '
-                <p class="error-alert">
-                    '.T_('Could not get Picasa data.').'
-                </p>';
+        curl_setopt_array(
+            $curl, 
+            array(
+                CURLOPT_CUSTOMREQUEST  => 'GET',
+                CURLOPT_URL            => 'https://picasaweb.google.com/data/feed/api/user/default/albumid/'.$albumId.'?start-index='.$startIndex.'&max-results=25',
+                CURLOPT_HTTPHEADER     => array('GData-Version: 2', 'Authorization: Bearer '.$token),
+                CURLOPT_RETURNTRANSFER => 1,
+            )
+        );
 
-            logError(__FILE__.' ['.__LINE__.'] - Could not get user picasa data. - '.$e->getMessage());
-            return;
-        }
+        $response = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        try
-        {
-            $query = new Zend_Gdata_Photos_AlbumQuery();
-            $query->setUser($feed->getTitle());
-            $query->setAlbumId($albumId);
-            $query->setStartIndex($startIndex);
-            $query->setMaxResults(25);
+        curl_close($curl);
 
-            $albumFeed = $picasaService->getAlbumFeed($query);
-        }
-        catch (Zend_Gdata_App_Exception $e)
+        if ($httpCode !== 200)
         {
             echo '
                 <p class="error-alert">
                     '.T_('Could not get Picasa album data.').'
                 </p>';
 
-            logError(__FILE__.' ['.__LINE__.'] - Could not get user picasa album data. - '.$e->getMessage());
+            logError(__FILE__.' ['.__LINE__.'] - Could not get Picasa album data. - '.$response);
             return;
         }
 
+        $xml = new SimpleXMLElement($response);
+
         $count = 0;
-        foreach ($albumFeed as $photo)
+        foreach ($xml->entry as $photo)
         {
+            $group = $photo->children('media', true)->group;
+
             // Skip videos
-            $mediaContent = $photo->getMediaGroup()->getContent();
-            foreach ($mediaContent as $content)
+            foreach ($group->content as $content)
             {
-                if ($content->getMedium() == 'video')
+                if ($content->attributes()->medium == 'video')
                 {
                     continue 2;
                 }
             }
 
-            $thumb = $photo->getMediaGroup()->getThumbnail();
+            $sourceId = (int)$photo->children('gphoto', true)->id;
 
-            $sourceId  = $photo->getGphotoId()->text;
-            $thumbnail = $thumb[1]->getUrl();
+            $thumbnail = (string)$group->thumbnail[1]->attributes()->url;
 
-            $w = $photo->getGphotoWidth()->text;
-            $h = $photo->getGphotoHeight()->text;
+            $w = (int)$photo->children('gphoto', true)->width;
+            $h = (int)$photo->children('gphoto', true)->height;
 
-            $width = '100%;';
+            $width  = '100%;';
             $height = 'auto;';
 
             if ($w > $h)
             {
-                $width = 'auto;';
+                $width  = 'auto;';
                 $height = '100%;';
             }
 
@@ -1756,7 +1793,7 @@ class Page
      */
     function getAjaxPicasaAlbums ()
     {
-        $token   = $_POST['picasa_session_token'];
+        $token = $_POST['picasa_session_token'];
 
         if (isset($_SESSION['picasa_albums']))
         {
@@ -1771,32 +1808,44 @@ class Page
         }
         else
         {
-            $httpClient    = Zend_Gdata_AuthSub::getHttpClient($token);
-            $picasaService = new Zend_Gdata_Photos($httpClient, "Google-DevelopersGuide-1.0");
+            $curl = curl_init();
 
-            try
-            {
-                $feed = $picasaService->getUserFeed("default");
-            }
-            catch (Zend_Gdata_App_Exception $e)
+            curl_setopt_array(
+                $curl, 
+                array(
+                    CURLOPT_CUSTOMREQUEST  => 'GET',
+                    CURLOPT_URL            => 'https://picasaweb.google.com/data/feed/api/user/default',
+                    CURLOPT_HTTPHEADER     => array('GData-Version: 2', 'Authorization: Bearer '.$token),
+                    CURLOPT_RETURNTRANSFER => 1,
+                )
+            );
+
+            $response = curl_exec($curl);
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+            curl_close($curl);
+
+            if ($httpCode !== 200)
             {
                 echo '
                     <p class="error-alert">
                         '.T_('Could not get Picasa data.').'
                     </p>';
 
-                logError(__FILE__.' ['.__LINE__.'] - Could not get user picasa data. - '.$e->getMessage());
+                logError(__FILE__.' ['.__LINE__.'] - Could not get user picasa data. - '.$response);
                 return;
             }
+
+            $xml = new SimpleXMLElement($response);
 
             $albums = '<select id="albums" name="albums">';
 
             $_SESSION['picasa_albums'] = array();
 
-            foreach ($feed as $album)
+            foreach ($xml->entry as $album)
             {
-                $id    = $album->getGphotoId()->text;
-                $title = $album->title->text;
+                $id    = (int)$album->children('gphoto', true)->id;
+                $title = (string)$album->title;
 
                 $_SESSION['picasa_albums'][$id] = $title;
 
@@ -1816,5 +1865,90 @@ class Page
                 <ul id="photo_list">
                     <script language="javascript">loadPicasaPhotos("'.$token.'", "'.T_('Could not get photos.').'");</script>
                 </ul>';
+    }
+
+    /**
+     * getAjaxFacebookPhotos 
+     * 
+     * Will print a list of photos from facebook.
+     * 
+     * @return null
+     */
+    function getAjaxFacebookPhotos()
+    {
+        $config      = getFacebookConfigData();
+        $accessToken = getUserFacebookAccessToken($this->fcmsUser->id);
+
+        $facebook = new Facebook(array(
+            'appId'  => $config['fb_app_id'],
+            'secret' => $config['fb_secret'],
+        ));
+
+        $facebook->setAccessToken($accessToken);
+
+        $albumId = (int)$_POST['albumId'];
+        $photos  = '';
+        $i       = 1;
+
+        $_SESSION['facebook_photos'] = array();
+
+        try
+        {
+            $fbPhotos = $facebook->api("/$albumId/photos");
+
+            foreach ($fbPhotos['data'] as $photo)
+            {
+                $w = $photo['width'];
+                $h = $photo['height'];
+
+                $width  = '100%;';
+                $height = 'auto;';
+
+                if ($w > $h)
+                {
+                    $width  = 'auto;';
+                    $height = '100%;';
+                }
+
+                $sourceId  = $photo['id'];
+                $thumbnail = $photo['picture'];
+
+                $_SESSION['facebook_photos'][$sourceId] = array(
+                    'thumbnail' => $thumbnail,
+                    'width'     => $width,
+                    'height'    => $height,
+                );
+
+                $photos .= '<li>';
+                $photos .= '<label for="facebook'.$i.'">';
+                $photos .= '<img src="'.$thumbnail.'" style="width:'.$width.' height:'.$height.'"/>';
+                $photos .= '<span style="display:none"></span>';
+                $photos .= '</label>';
+                $photos .= '<input type="checkbox" id="facebook'.$i.'" name="photos[]" value="'.$sourceId.'"/>';
+                $photos .= '</li>';
+
+                $i++;
+            }
+        }
+        catch (FacebookApiException $e)
+        {
+            echo '<p class="error-alert">'.T_('Could not get Facebook photos.').'</p>';
+
+            $this->fcmsError->add(array(
+                'type'    => 'operation',
+                'message' => T_('Could not get Facebook photos.'),
+                'error'   => $e,
+                'file'    => __FILE__,
+                'line'    => __LINE__,
+             ));
+            return;
+        }
+
+        if ($i <= 1 && empty($photos))
+        {
+            $photos = '<p class="info-alert">'.T_('No photos were found in this album').'</p>';
+        }
+
+        echo $photos;
     }
 }

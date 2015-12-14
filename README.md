@@ -19,7 +19,6 @@ Because social networking sites like Facebook/Google+ are not private enough for
 We usually have a few bugs/feature requests that you can get paid to fix. Check out our list of issues labeled  [bounty](https://github.com/ryanhowdy/fcms/labels/bounty).
 
 
-
 # Installation
 
 1. Upload the familyconnections/ directory in FCMS_3.5.1.zip to your web host.
@@ -43,4 +42,11 @@ __DO NOT TOUCH ANY FILES IN THE FOLLOWING DIRECTORIES__
 * uploads/documents/
 * uploads/photos/memberX/
 * uploads/upimages/
+
+# Credits
+
+* [Contributors](https://github.com/ryanhowdy/fcms/graphs/contributors)
+* Icons
+    * [WPZOOM Social Networking Icon Set](http://www.wpzoom.com/) - David Ferreira
+    * [PRIMO](http://www.webdesignerdepot.com/2009/07/200-free-exclusive-vector-icons-primo/) - Webdesigner Depot
 

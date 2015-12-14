@@ -175,28 +175,24 @@ function runFamilyNewsJob ()
  */
 function runYouTubeJob ()
 {
-    global $file;
-
     require_once 'constants.php';
     require_once 'socialmedia.php';
     require_once 'datetime.php';
     require_once THIRDPARTY.'gettext.inc';
-    set_include_path(THIRDPARTY);
-    require_once 'Zend/Loader.php';
-    Zend_Loader::loadClass('Zend_Gdata_YouTube');
-    Zend_Loader::loadClass('Zend_Gdata_AuthSub');
-    Zend_Loader::loadClass('Zend_Gdata_App_Exception');
+
+    set_include_path(get_include_path().PATH_SEPARATOR.THIRDPARTY.'google-api-php-client/src/');
+    require_once THIRDPARTY.'google-api-php-client/src/Google/autoload.php';
 
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     $existingIds = getExistingYouTubeIds();
 
-    // Get user's session tokens
-    $sql = "SELECT u.`id`, s.`youtube_session_token`
-            FROM `fcms_user_settings` AS s, `fcms_users` AS u
-            WHERE s.`user` = u.`id`
-            AND s.`youtube_session_token` IS NOT NULL";
+    // Get all google session tokens
+    $sql = "SELECT u.`id`, s.`google_session_token`
+            FROM `fcms_user_settings` AS s
+            LEFT JOIN `fcms_users` AS u ON s.`user` = u.`id`
+            WHERE s.`google_session_token` IS NOT NULL";
 
     $rows = $fcmsDatabase->getRows($sql);
     if ($rows === false)
@@ -206,63 +202,65 @@ function runYouTubeJob ()
     }
 
     $sessionTokens = array();
-
     foreach ($rows as $row)
     {
-        $sessionTokens[$row['id']] = $row['youtube_session_token'];
+        $sessionTokens[$row['id']] = $row['google_session_token'];
     }
-
-    $youtubeConfig  = getYouTubeConfigData();
 
     // Get videos for each user
     foreach ($sessionTokens as $userId => $token)
     {
-        // Setup youtube api
-        $httpClient     = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $token);
-        $youTubeService = new Zend_Gdata_YouTube($httpClient);
-
-        $feed = $youTubeService->getUserUploads('default');
-
         $values     = '';
         $videoCount = 0;
         $params     = array();
 
-        foreach ($feed as $entry)
+        try
         {
-            $id = $entry->getVideoId();
+            $googleClient = getAuthedGoogleClient($userId);
 
-            if (isset($existingIds[$id]))
+            $youtube = new Google_Service_YouTube($googleClient);
+
+            $channelsResponse = $youtube->channels->listChannels('id,snippet,status,contentDetails,statistics', array('mine' => true));
+
+            foreach ($channelsResponse['items'] as $channel)
             {
-                continue;
+                $uploadsListId = $channel['contentDetails']['relatedPlaylists']['uploads'];
+
+                $playlistItemsResponse = $youtube->playlistItems->listPlaylistItems('snippet', array(
+                    'playlistId' => $uploadsListId,
+                    'maxResults' => 50
+                ));
+
+                foreach ($playlistItemsResponse['items'] as $playlistItem) {
+                    $id          = $playlistItem['snippet']['resourceId']['videoId'];
+                    $title       = $playlistItem['snippet']['title'];
+                    $description = $playlistItem['snippet']['description'];
+                    $created     = formatDate('Y-m-d H:i:s', $playlistItem['snippet']['publishedAt']);
+
+                    if (isset($existingIds[$id]))
+                    {
+                        continue;
+                    }
+
+                    $values .= "(?, ?, ?, 'youtube', ?, ?, NOW(), ?),";
+
+                    $params[] = $id;
+                    $params[] = $title;
+                    $params[] = $description;
+                    $params[] = $created;
+                    $params[] = $userId;
+                    $params[] = $userId;
+
+                    $videoCount++;
+                }
             }
+        }
+        catch (Exception $e)
+        {
+            $errors = print_r($e, true);
 
-            $title       = htmlspecialchars($entry->getVideoTitle());
-            $description = htmlspecialchars($entry->getVideoDescription());
-            $created     = formatDate('Y-m-d H:i:s', $entry->published);
-            $duration    = $entry->getVideoDuration();
-
-            $height = '420';
-            $width  = '780';
-            $thumbs = $entry->getVideoThumbnails();
-
-            if (count($thumbs) > 0)
-            {
-                $height = $thumbs[0]['height'];
-                $width  = $thumbs[0]['width'];
-            }
-
-            $values .= "(?, ?, ?, 'youtube', ?, ?, ?, ?, NOW(), ?),";
-
-            $params[] = $id;
-            $params[] = $title;
-            $params[] = $description;
-            $params[] = $height;
-            $params[] = $width;
-            $params[] = $created;
-            $params[] = $userId;
-            $params[] = $userId;
-
-            $videoCount++;
+            logError(__FILE__.' ['.__LINE__.'] - Could not upload videos to YouTube. '.$errors);
+            die();
         }
 
         if ($videoCount > 0)
@@ -270,9 +268,8 @@ function runYouTubeJob ()
             $values = substr($values, 0, -1); // remove comma
 
             $sql = "INSERT INTO `fcms_video`
-                        (`source_id`, `title`, `description`, `source`, `height`, `width`, `created`, `created_id`, `updated`, `updated_id`)
+                        (`source_id`, `title`, `description`, `source`, `created`, `created_id`, `updated`, `updated_id`)
                     VALUES $values";
-
             if (!$fcmsDatabase->insert($sql, $params))
             {
                 logError(__FILE__.' ['.__LINE__.'] - Could not insert new video to db.');

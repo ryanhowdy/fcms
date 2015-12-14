@@ -6,8 +6,8 @@
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>ui/favicon.ico"/>
 <link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/blue-chrome/css/style.css"/>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/jquery.js?version=350"></script>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js?version=350"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/jquery.js?version=360"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js?version=360"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
 </head>
 <body id="top">

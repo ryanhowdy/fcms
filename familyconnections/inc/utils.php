@@ -491,6 +491,9 @@ function getPluginName ($section)
         case 'admin_foursquare':
             return 'Foursquare';
             break;
+        case 'admin_google':
+            return 'Google';
+            break;
         case 'admin_instagram':
             return 'Instagram';
             break;
@@ -516,7 +519,7 @@ function getPluginName ($section)
             return 'Foursquare';
             break;
         case 'admin_youtube':
-            return 'YouTube';
+            return 'Google';
             break;
         case 'addressbook':
             return T_('Address Book');
@@ -604,6 +607,9 @@ function getPluginUrl ($section)
         case 'admin_foursquare':
             return 'admin/foursquare.php';
             break;
+        case 'admin_google':
+            return 'admin/google.php';
+            break;
         case 'admin_instagram':
             return 'admin/instagram.php';
             break;
@@ -629,7 +635,7 @@ function getPluginUrl ($section)
             return 'admin/foursquare.php';
             break;
         case 'admin_youtube':
-            return 'admin/youtube.php';
+            return 'admin/google.php';
             break;
         case 'addressbook':
             return 'addressbook.php';
@@ -740,7 +746,7 @@ function getPluginDescription ($plugin)
             return T_('Foursquare');
             break;
         case 'admin_youtube':
-            return T_('YouTube');
+            return 'Google';
             break;
         case 'addressbook':
             return T_('Allows members to share Address information.');
@@ -3893,7 +3899,11 @@ function getAvatarPath ($avatar, $gravatar)
 {
     if ($avatar === 'gravatar')
     {
-        return '//www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
+        return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($gravatar)).'&amp;s=80';
+    }
+    else if ($avatar === 'no_avatar.jpg')
+    {
+        return URL_PREFIX.'uploads/avatar/no_avatar.jpg';
     }
 
     $fcmsError    = FCMS_Error::getInstance();
@@ -4090,34 +4100,33 @@ function getNumberOfPosts ($thread_id)
  */
 function postAsync ($url, $params)
 {
-    foreach ($params as $key => &$val)
+    $data = '';
+
+    foreach ($params as $key => $row)
     {
-        if (is_array($val))
+        $row = urlencode($row);
+        $key = urlencode($key);
+
+        if ($data == '')
         {
-            $val = implode(',', $val);
+            $data .= "$key=$row";
         }
-        $post_params[] = $key.'='.urlencode($val);
+        else
+        {
+            $data .= "&$key=$row";
+        }
     }
 
-    $post_string = implode('&', $post_params);
-
-    $parts = parse_url($url);
-
-    $fp = fsockopen($parts['host'], isset($parts['port'])?$parts['port']:80, $errno, $errstr, 30);
-
-    $out  = "POST ".$parts['path']." HTTP/1.1\r\n";
-    $out .= "Host: ".$parts['host']."\r\n";
-    $out .= "Content-Type: application/x-www-form-urlencoded\r\n";
-    $out .= "Content-Length: ".strlen($post_string)."\r\n";
-    $out .= "Connection: Close\r\n\r\n";
-
-    if (isset($post_string))
-    {
-        $out .= $post_string;
-    }
-
-    fwrite($fp, $out);
-    fclose($fp);
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT_MS, 2000);
+    $result = curl_exec($ch);
+    curl_close($ch);
 }
 
 /**
@@ -4304,7 +4313,7 @@ function userConnectedSocialMedia ($userId)
     // Get Social Media data
     $facebook   = getUserFacebookAccessToken($userId);
     $foursquare = getFoursquareUserData($userId);
-    $youtube    = getYouTubeUserData($userId);
+    $google     = getGoogleUserData($userId);
 
     // Facebook
     if (!empty($facebook))
@@ -4318,8 +4327,8 @@ function userConnectedSocialMedia ($userId)
         return true;
     }
 
-    // YouTube
-    if (!empty($youtube['youtube_session_token']))
+    // Google
+    if (!empty($google['google_session_token']))
     {
         return true;
     }
@@ -5049,6 +5058,10 @@ function getPhotoGallery ()
     else if ($type == 'picasa')
     {
         $photoGallery = 'PicasaUploadPhotoGallery';
+    }
+    else if ($type == 'facebook')
+    {
+        $photoGallery = 'FacebookUploadPhotoGallery';
     }
     else
     {

@@ -19,7 +19,7 @@ define('GALLERY_PREFIX', 'gallery/');
 
 require 'fcms.php';
 
-load('datetime', 'socialmedia', 'youtube', 'comments');
+load('datetime', 'socialmedia', 'google', 'comments');
 
 init();
 
@@ -41,9 +41,9 @@ class Page
      */
     public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError    = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser     = $fcmsUser;
 
         $this->control();
     }
@@ -62,8 +62,7 @@ class Page
         {
             if (isset($_SESSION['source_id']))
             {
-                $sessionToken  = $this->getSessionToken($this->fcmsUser->id);
-                echo $this->getUploadStatus($_SESSION['source_id'], $sessionToken);
+                echo $this->getUploadStatus($_SESSION['source_id']);
                 return;
             }
 
@@ -76,20 +75,15 @@ class Page
             // YouTube
             if ($_GET['upload'] == 'youtube')
             {
-                // Step 3 - YouTube Response
-                if (isset($_GET['status']) && isset($_GET['id']))
+                // Step 2 - Upload to YouTube
+                if (isset($_POST['upload_data']))
                 {
-                    $this->displayYouTubeUploadStatusPage();
+                    $this->displayYouTubeUploadSubmitPage();
                 }
-                // Step 2 - Video
-                elseif (isset($_POST['upload_data']))
-                {
-                    $this->displayYouTubeUploadFilePage();
-                }
-                // Step 1 - Title/Desc
+                // Step 1 - Print the upload form
                 else
                 {
-                    $this->displayYouTubeUploadPage();
+                    $this->displayYouTubeUploadFormPage();
                 }
             }
             // Vimeo
@@ -200,11 +194,11 @@ $(document).ready(function() {
     function checkUserAuthedYouTube ()
     {
         // Get session token
-        $sql = "SELECT `youtube_session_token`
+        $sql = "SELECT `google_session_token`
                 FROM `fcms_user_settings`
                 WHERE `user` = ?
-                AND `youtube_session_token` IS NOT NULL
-                AND `youtube_session_token` != ''";
+                AND `google_session_token` IS NOT NULL
+                AND `google_session_token` != ''";
 
         $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
         if ($row === false)
@@ -218,72 +212,53 @@ $(document).ready(function() {
         if (empty($row))
         {
             // TODO
-            // Check that admin has setup youtube first.
+            // Check that admin has setup google first.
             echo '
             <div class="info-alert">
-                <h2>'.T_('Not connected to YouTube.').'</h2>
-                <p>'.T_('The video gallery relies on YouTube.  You must create a YouTube account and connect it with your Family Connections account.').'</p>
-                <p><a href="settings.php?view=youtube">'.T_('Connect to YouTube').'</a></p>
+                <h2>'.T_('Not connected to Google.').'</h2>
+                <p>'.T_('The video gallery relies on Gooble.  You must create a Google account and connect it with your Family Connections account.').'</p>
+                <p><a href="settings.php?view=google">'.T_('Connect to Google').'</a></p>
             </div>';
 
             $this->displayFooter();
             die();
         }
 
-        $_SESSION['youtube_session_token'] = $row['youtube_session_token'];
+        $_SESSION['google_session_token'] = $row['google_session_token'];
 
-        $youtubeConfig = getYouTubeConfigData();
-        $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $row['youtube_session_token']);
-
-        if ($httpClient === false)
-        {
-            // Error message was already displayed by getYouTubeAuthSubHttpClient()
-            $this->displayFooter();
-            die();
-        }
+        $googleConfig = getGoogleConfigData();
     }
 
     /**
-     * displayYouTubeUploadPage
+     * displayYouTubeUploadFormPage
+     * 
+     * Prints a form for upload videos to YouTube.
      * 
      * @return void
      */
-    function displayYouTubeUploadPage ()
+    function displayYouTubeUploadFormPage ()
     {
         $this->displayHeader();
 
         $this->checkUserAuthedYouTube();
 
-        $youtubeConfig = getYouTubeConfigData();
-        $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key']);
+        $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
+        $authService  = new Google_Service_Oauth2($googleClient);
 
-        if ($httpClient === false)
-        {
-            // Error message was already displayed by getYouTubeAuthSubHttpClient()
-            $this->displayFooter();
-            die();
-        }
-
-        $youTubeService = new Zend_Gdata_YouTube($httpClient);
-
-        $feed = $youTubeService->getUserProfile('default');
-        if (!$feed instanceof Zend_Gdata_YouTube_UserProfileEntry)
-        {
-            print '
-            <div class="error-alert">'.T_('Could not get YouTube data for user.').'</div>';
-
-            return;
-        }
-
-        $username = $feed->getUsername();
+        $userInfo = $authService->userinfo->get();
 
         echo '
-        <form action="video.php?upload=youtube" method="post">
+        <form enctype="multipart/form-data" action="?upload=youtube" method="post">
             <fieldset>
                 <legend><span>'.T_('Upload YouTube Video').'</span></legend>
                 <div class="field-row">
                     <div class="field-label"><label><b>'.T_('YouTube Account').'</b></label></div>
-                    <div class="field-widget">'.$username.'
+                    <div class="field-widget">'.$userInfo->name.' ('.$userInfo->email.')</div>
+                </div>
+                <div class="field-row">
+                    <div class="field-label"><label><b>'.T_('Videe').'</b></label></div>
+                    <div class="field-widget">
+                        <input name="video" type="file"/>
                     </div>
                 </div>
                 <div class="field-row">
@@ -296,27 +271,6 @@ $(document).ready(function() {
                     <div class="field-label"><label><b>'.T_('Description').'</b></label></div>
                     <div class="field-widget">
                         <textarea cols="50" name="description"></textarea>
-                    </div>
-                </div>
-                <div class="field-row">
-                    <div class="field-label"><label><b>'.T_('Category').'</b></label></div>
-                    <div class="field-widget">
-                        <select name="category">
-                            <option value="Autos">'.T_('Autos &amp; Vehicles').'</option>
-                            <option value="Music">'.T_('Music').'</option>
-                            <option value="Animals">'.T_('Pets &amp; Animals').'</option>
-                            <option value="Sports">'.T_('Sports').'</option>
-                            <option value="Travel">'.T_('Travel &amp; Events').'</option>
-                            <option value="Games">'.T_('Gadgets &amp; Games').'</option>
-                            <option value="Comedy">'.T_('Comedy').'</option>
-                            <option value="People">'.T_('People &amp; Blogs').'</option>
-                            <option value="News">'.T_('News &amp; Politics').'</option>
-                            <option value="Entertainment">'.T_('Entertainment').'</option>
-                            <option value="Education">'.T_('Education').'</option>
-                            <option value="Howto">'.T_('Howto &amp; Style').'</option>
-                            <option value="Nonprofit">'.T_('Nonprofit &amp; Activism').'</option>
-                            <option value="Tech">'.T_('Science &amp; Technology').'</option>
-                        </select>
                     </div>
                 </div>
                 <div class="field-row">
@@ -336,19 +290,18 @@ $(document).ready(function() {
     }
 
     /**
-     * displayYouTubeUploadFilePage 
+     * displayYouTubeUploadSubmitPage 
      * 
-     * Takes the post data from the previous form, sends to youtube, creates new entry,
-     * and prints the video file upload form.
+     * Upload the video to youtube.
      * 
      * @return void
      */
-    function displayYouTubeUploadFilePage ()
+    function displayYouTubeUploadSubmitPage ()
     {
-        $this->displayHeader();
-
         $videoTitle         = '';
         $videoDescription   = '';
+
+        $videoPath = $_FILES['video']['tmp_name'];
 
         if (isset($_POST['title']))
         {
@@ -361,7 +314,7 @@ $(document).ready(function() {
         }
 
         $videoCategory = isset($_POST['category']) ? $_POST['category'] : '';
-        $videoUnlisted = isset($_POST['unlisted']) ? true               : false;
+        $videoPrivacy  = isset($_POST['unlisted']) ? 'unlisted'         : 'public';
 
         // Create fcms video - we update after the youtube video is created
         $sql = "INSERT INTO `fcms_video` (
@@ -384,174 +337,103 @@ $(document).ready(function() {
             $this->fcmsUser->id
         );
 
-        $lastId = $this->fcmsDatabase->insert($sql, $params);
-        if ($lastId === false)
+        $videoId = $this->fcmsDatabase->insert($sql, $params);
+        if ($videoId === false)
         {
+            $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
             return;
         }
 
-        // Save fcms video id
-        $_SESSION['fcmsVideoId'] = $lastId;
-
-        $sessionToken  = $this->getSessionToken($this->fcmsUser->id);
-        $youtubeConfig = getYouTubeConfigData();
-        $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
-
-        if ($httpClient === false)
-        {
-            // Error message was already displayed by getYouTubeAuthSubHttpClient()
-            $this->displayFooter();
-            die();
-        }
-
-        $youTubeService = new Zend_Gdata_YouTube($httpClient);
-        $newVideoEntry  = new Zend_Gdata_YouTube_VideoEntry();
-
-        $newVideoEntry->setVideoTitle($videoTitle);
-        $newVideoEntry->setVideoDescription($videoDescription);
-        $newVideoEntry->setVideoCategory($videoCategory);
-
-        // make video unlisted
-        if ($videoUnlisted)
-        {
-            $unlisted = new Zend_Gdata_App_Extension_Element('yt:accessControl', 'yt', 'http://gdata.youtube.com/schemas/2007', '');
-            $unlisted->setExtensionAttributes(array(
-                array('namespaceUri' => '', 'name' => 'action', 'value' => 'list'),
-                array('namespaceUri' => '', 'name' => 'permission', 'value' => 'denied')
-            ));
-            $newVideoEntry->setExtensionElements(array($unlisted));
-        }
-
         try
         {
-            $tokenArray = $youTubeService->getFormUploadToken($newVideoEntry, 'http://gdata.youtube.com/action/GetUploadToken');
+            $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
+
+            $youtube = new Google_Service_YouTube($googleClient);
+            $snippet = new Google_Service_YouTube_VideoSnippet();
+            $status  = new Google_Service_YouTube_VideoStatus();
+            $video   = new Google_Service_YouTube_Video();
+
+            // Save the video title, desc and category
+            $snippet->setTitle($videoTitle);
+            $snippet->setDescription($videoDescription);
+            $snippet->setCategoryId('22');
+
+            // Save privacy (public, private or unlisted)
+            $status->privacyStatus = $videoPrivacy;
+
+            // Associate the snippet and status objects with the new video
+            $video->setSnippet($snippet);
+            $video->setStatus($status);
+
+            // Specify the size of each chuck in bytes.
+            // Note: higher value faster uploads, lower for better recovery
+            $chunkSizeBytes = 1 * 1024 * 1024;
+
+            // Defer - tells the client to return a request which can be called
+            // with ->execute() instead of making API call immediately
+            $googleClient->setDefer(true);
+
+            $insertRequest = $youtube->videos->insert('status,snippet', $video);
+
+            // Create a MediaFileUpload for resumable uploads
+            $media = new Google_Http_MediaFileUpload(
+                $googleClient,
+                $insertRequest,
+                'video/*',
+                null,
+                true,
+                $chunkSizeBytes
+            );
+            $media->setFileSize($_FILES['video']['size']);
+
+            // Read the media file and upload it chunk by chunk.
+            $status = false;
+            $handle = fopen($videoPath, 'rb');
+            while (!$status && !feof($handle)) {
+                $chunk  = fread($handle, $chunkSizeBytes);
+                $status = $media->nextChunk($chunk);
+            }
+
+            fclose($handle);
+
+            $sourceId = $status['id'];
+
+            // Update fcms video
+            $sql = "UPDATE `fcms_video`
+                    SET `source_id` = ?,
+                        `updated` = NOW()
+                    WHERE `id` = ?";
+
+            $params = array(
+                $sourceId,
+                $videoId
+            );
+
+            if (!$this->fcmsDatabase->update($sql, $params))
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+
+            header("Location: video.php?u=".$this->fcmsUser->id."&id=$videoId");
         }
         catch (Exception $e)
         {
-            echo '
-            <div class="error-alert">
-                <p>'.T('Could not retrieve token for syndicated upload.').'</p>
-                <p>'.$e->getMessage().'</p>
-            </div>';
-
+            $this->displayHeader();
+            $this->fcmsError->add(array(
+                'type'    => 'operation',
+                'message' => 'Could not upload video to YouTube.',
+                'error'   => $e,
+                'file'    => __FILE__,
+                'line'    => __LINE__,
+            ));
+            $this->fcmsError->displayError();
             $this->displayFooter();
             return;
-        }
-
-
-        $tokenValue = $tokenArray['token'];
-        $postUrl    = $tokenArray['url'];
-        $nextUrl    = getDomainAndDir().'video.php?upload=youtube';
-     
-        echo '
-        <form action="'.$postUrl.'?nexturl='.$nextUrl.'" method="post" enctype="multipart/form-data">
-            <fieldset>
-                <legend><span>'.T_('Upload YouTube Video').'</span></legend>
-                <div class="field-row">
-                    <div class="field-label"><label><b>'.T_('Title').'</b></label></div>
-                    <div class="field-widget"><b>'.$videoTitle.'</b></div>
-                </div>
-                <div class="field-row">
-                    <div class="field-label"><label><b>'.T_('Video').'</b></label></div>
-                    <div class="field-widget">
-                        <input type="file" name="file" size="50"/>
-                    </div>
-                </div>
-                <input name="token" type="hidden" value="'.$tokenValue.'"/>
-                <input class="sub1" type="submit" id="upload_file" name="upload_file" value="'.T_('Upload').'"/>
-            </fieldset>
-        </form>';
-
-        $this->displayFooter();
-    }
-
-    /**
-     * displayYouTubeUploadStatusPage 
-     * 
-     * @return void
-     */
-    function displayYouTubeUploadStatusPage ()
-    {
-        $sourceId = $_GET['id'];
-        $status   = $_GET['status'];
-        $videoId  = (int)$_SESSION['fcmsVideoId'];
-
-        unset($_SESSION['fcmsVideoId']);
-
-        switch ($status)
-        {
-            case $status < 400:
-     
-                // Connect to YouTube and get more info about this video
-                $youtubeConfig  = getYouTubeConfigData();
-                $httpClient     = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key']);
-
-                if ($httpClient === false)
-                {
-                    // Error message was already displayed by getYouTubeAuthSubHttpClient()
-                    $this->displayFooter();
-                    die();
-                }
-
-                $youTubeService = new Zend_Gdata_YouTube($httpClient);
-                $videoEntry     = $youTubeService->getVideoEntry($sourceId);
-
-                $duration = $videoEntry->getVideoDuration();
-                $thumbs   = $videoEntry->getVideoThumbnails();
-
-                $height = '420';
-                $width  = '780';
-
-                if (count($thumbs) > 0)
-                {
-                    $height = $thumbs[0]['height'];
-                    $width  = $thumbs[0]['width'];
-                }
-
-                // Update fcms video
-                $sql = "UPDATE `fcms_video`
-                        SET `source_id` = ?,
-                            `height` = ?,
-                            `width` = ?,
-                            `updated` = NOW()
-                        WHERE `id` = ?";
-
-                $params = array(
-                    $sourceId,
-                    $height,
-                    $width,
-                    $videoId
-                );
-
-                if (!$this->fcmsDatabase->update($sql, $params))
-                {
-                    $this->displayHeader();
-                    $this->fcmsError->displayError();
-                    $this->displayFooter();
-
-                    return;
-                }
-
-                // Create fcms video
-                header("Location: video.php?u=".$this->fcmsUser->id."&id=$videoId");
-
-                break;
-
-            default:
-
-                $this->displayHeader();
-
-                echo '
-            <div class="error-alert">
-                <p>'.T_('An error occurred with you video upload.').'</p>
-                <p>'.$this->getUploadStatus($videoId).'</p>
-            </div>';
-
-                $this->displayFooter();
-
-                break;
         }
     }
 
@@ -606,7 +488,7 @@ $(document).ready(function() {
                 <p><b>'.T_('How do I add videos?').'</b></p>
                 <ol>
                     <li><a href="http://www.youtube.com">'.T_('Create a YouTube account').'</a></li>
-                    <li><a href="settings.php?view=socialmedia">'.T_('Connect your YouTube account with Family Connections').'</a></li>
+                    <li><a href="settings.php?view=google">'.T_('Connect your Google account with Family Connections').'</a></li>
                     <li><a href="?upload=youtube">'.T_('Upload Videos').'</a></li>
                 </ol><br/>
                 <p><b>'.T_('Why aren\'t my videos showing up?').'</b></p>
@@ -615,7 +497,11 @@ $(document).ready(function() {
         </div>
         <script type="text/javascript">
         $("#help").hide();
-        $("#help").before(\'<a href="#" onclick="function() { $("#help").toggle(); return false; }">'.T_('Learn more.').'</a>\');
+        $("#help").before(\'<a id="learn_more" href="#">'.T_('Learn more.').'</a>\');
+        $("#learn_more").click(function() {
+            $("#help").toggle();
+            return false;
+        });
         </script>';
 
             $this->displayFooter();
@@ -700,10 +586,9 @@ $(document).ready(function() {
     {
         $id = (int)$_GET['id'];
 
-        $sql = "SELECT `id`, `source_id`, `title`, `description`, `height`, `width`, `created`, `created_id`
+        $sql = "SELECT `id`, `source_id`, `title`, `description`, `created`, `created_id`
                 FROM `fcms_video`
-                WHERE `id` = ?
-                AND `active` = 1";
+                WHERE `id` = ?";
 
         $video = $this->fcmsDatabase->getRow($sql, $id);
         if ($video === false)
@@ -727,9 +612,6 @@ $(document).ready(function() {
      */
     function displayYouTubeVideoPage ($video)
     {
-        // Save video id for ajax call
-        $_SESSION['source_id'] = $video['source_id'];
-
         $this->displayHeader();
 
         // Video not found in db
@@ -751,75 +633,122 @@ $(document).ready(function() {
             return;
         }
 
-        $youTubeService = new Zend_Gdata_YouTube();
-        $status         = null;
+        // Save video id for ajax call
+        $_SESSION['source_id'] = $video['source_id'];
 
-        // Get video entry
-        try 
-        {
-            $videoEntry = $youTubeService->getVideoEntry($video['source_id']);
-        }
-        catch (Exception $e)
-        {
-            $response = $e->getRawResponseBody();
-            $private  = stripos($response, 'Private video');
-            $notFound = stripos($response, 'Video not found');
+        $url   = 'video.php?u='.$video['created_id'].'&amp;id='.$video['id'];
+        $views = T_('Unknown');
 
-            // Video not found at YouTube
-            if ($notFound !== false)
+        // Get authed google client
+        $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
+
+        // If this user has a google account setup, we should get a google client in return
+        // so go ahead and do googly/youtuby stuff
+        if ($googleClient !== false)
+        {
+            // Get video entry
+            try
+            {
+                $youtube = new Google_Service_YouTube($googleClient);
+
+                $videoEntry = $youtube->videos->listVideos('id,snippet,status,contentDetails,processingDetails,statistics', array('id'=>$video['source_id']));
+            }
+            catch (Exception $e)
+            {
+                $this->fcmsError->add(array(
+                    'type'    => 'operation',
+                    'message' => 'Could not search YouTube.',
+                    'error'   => $e,
+                    'file'    => __FILE__,
+                    'line'    => __LINE__,
+                ));
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+
+            // Make sure we found the video first
+            if (!(isset($videoEntry['items'][0])))
             {
                 $this->displayVideoNotFound($video, 'YouTube');
-                return;
-            }
-            // Video is private
-            elseif ($private !== false)
-            {
-                echo '
-            <div class="error-alert">
-                <p>'.T_('Sorry, this video is private.').'</p>
-                <p>'.$e->getMessage().'</p>
-            </div>';
                 $this->displayFooter();
                 return;
             }
-            else
+
+            $status = $videoEntry['items'][0]['status']['uploadStatus'];
+            $views  = $videoEntry['items'][0]['statistics']['viewCount'];
+
+            // Let's handle all the upload statuses
+            if ($status === 'deleted')
             {
+                $this->displayVideoNotFound($video, 'YouTube');
+                $this->displayFooter();
+                return;
+            }
+            else if ($status === 'failed')
+            {
+                // TODO
+                echo '<h1>FAILED</h1>';
+                $this->displayFooter();
+                return;
+            }
+            else if ($status === 'rejected')
+            {
+                $reason = $videoEntry['items'][0]['status']['rejectionReason'];
+
                 echo '
-            <div class="error-alert">
-                <p>'.T_('Could not get video information.').'</p>
-                <p>'.$e->getMessage().'</p>
-            </div>';
+                <div class="info-alert">
+                    <p><b>'.T_('This video was Rejected by YouTube').'</b></p>
+                    <p>'.T_('Rejection reason:').' '.$reason.'</p>
+                    <p>'.T_('Would you like to delete this video?').'</p>
+                    <form action="'.$url.'" method="post">
+                        <input type="hidden" id="id" name="id" value="'.$video['id'].'"/>
+                        <input type="hidden" id="source_id" name="source_id" value="'.$video['source_id'].'"/>
+                        <input class="sub1" type="submit" id="delete_video" name="delete_video" value="'.T_('Yes').'"/>
+                        &nbsp; &nbsp; '.T_('or').' &nbsp; &nbsp;
+                        <a href="video.php">'.T_('No').'</a>
+                    </form>
+                </div>';
+                $this->displayFooter();
+                return;
+            }
+            else if ($status === 'uploaded')
+            {
+                $percentComplete = 0;
+
+                $steps = array(
+                    'fileDetailsAvailability',
+                    'processingIssuesAvailability',
+                    'tagSuggestionsAvailability',
+                    'editorSuggestionsAvailability',
+                    'thumbnailsAvailability'
+                );
+
+                foreach ($steps as $step)
+                {
+                    if ($videoEntry['items'][0]['processingDetails'][$step] === 'available')
+                    {
+                        $percentComplete += 20;
+                    }
+                }
+
+                $message = $percentComplete;
+
+                echo '
+                <div class="ok-alert">
+                    <p><b>'.T_('This video was uploaded to YouTube successfully.').'</b></p>
+                    <p>'.T_('However it may take a few moments before you video is viewable. Please check back later.').'</p>
+                    <p>
+                        '.T_('Percentage complete:').' <span id="current_complete">'.$percentComplete.'%</span>
+                    </p>
+                    <p id="js_msg"></p>
+                    <p id="refresh"><a href="'.$url.'">'.T_('Refresh').'</a></p>
+                </div>';
+
                 $this->displayFooter();
                 return;
             }
         }
-
-        // Video is public/unlisted
-        if ($status == null)
-        {
-            $status = $this->getUploadStatus($video['source_id']);
-        }
-
-        $url = 'video.php?u='.$video['created_id'].'&amp;id='.$video['id'];
-
-        // Is youtube processing finished?
-        if ($status !== 'Finished')
-        {
-            echo '
-            <div class="ok-alert">
-                <p><b>'.T_('Your video was uploaded to YouTube successfully.').'</b></p>
-                <p>'.T_('However it may take a few moments before you video is viewable. Please check back later.').'</p>
-                <p id="js_msg"></p><br/>
-                <p>'.T_('Current status: ').'<span id="current_status">'.$status.'</span></p>
-                <p id="refresh"><a href="'.$url.'">'.T_('Refresh').'</a></p>
-            </div>';
-
-            $this->displayFooter();
-            return;
-        }
-
-        // Ajax is done at this point, we don't need the id anymore
-        unset($_SESSION['source_id']);
 
         $videoUrl = 'http://www.youtube.com/e/'.$video['source_id'].'?version=3&enablejsapi=1&rel=0&wmode=transparent';
 
@@ -857,12 +786,12 @@ $(document).ready(function() {
             <p>'.cleanOutput($video['description']).'</p>
         </div>
         <div id="video_content">
-            <iframe class="youtube-player" type="text/html" width="'.$video['width'].'" height="'.$video['height'].'" 
+            <iframe class="youtube-player" type="text/html" width="854" height="480" 
                 src="http://www.youtube.com/embed/'.$video['source_id'].'" allowfullscreen frameborder="0">
             </iframe>
         </div>';
 
-        echo '<p>'.T_('Views').': '.$videoEntry->getVideoViewCount().'</p>';
+        echo '<p>'.T_('Views').': '.cleanOutput($views).'</p>';
 
         $params = array(
             'id' => $video['id']
@@ -901,60 +830,82 @@ $(document).ready(function() {
     /**
      * getUploadStatus
      * 
-     * Check the upload status of a video.  If the session token is provided 
-     * it's because the video is private and we need to auth to get the
-     * status of the video.
+     * Check the upload status of a video.
      * 
      * @param string $videoId 
-     * @param string $sessionToken
      * 
      * @return string
      */
-    function getUploadStatus ($videoId, $sessionToken = false)
+    function getUploadStatus ($videoId)
     {
-        $youtubeConfig  = getYouTubeConfigData();
-        $youTubeService = new Zend_Gdata_YouTube();
+        $message = '';
 
-        if ($sessionToken !== false)
-        {
-            $httpClient     = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
-            $youTubeService = new Zend_Gdata_YouTube($httpClient);
+        // Get authed google client
+        $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
 
-            if ($httpClient === false)
-            {
-                // Error message was already displayed by getYouTubeAuthSubHttpClient()
-                die();
-            }
-        }
-
-        $videoEntry = $youTubeService->getVideoEntry($videoId);
-
+        // Get video entry
         try
         {
-            $control = $videoEntry->getControl();
+            $youtube = new Google_Service_YouTube($googleClient);
+
+            $videoEntry = $youtube->videos->listVideos('status,processingDetails', array('id'=>$videoId));
         }
         catch (Exception $e)
         {
-            return T_('Could not retrieve video status: ').$e->getMessage();
+            $this->fcmsError->add(array(
+                'type'    => 'operation',
+                'message' => 'Could not search YouTube.',
+                'error'   => $e,
+                'file'    => __FILE__,
+                'line'    => __LINE__,
+            ));
+            $this->fcmsError->displayError();
+            $this->displayFooter();
+            return;
         }
 
-        $message = 'Finished';
-
-        if ($control instanceof Zend_Gdata_App_Extension_Control)
+        // Make sure we found the video first
+        if (!(isset($videoEntry['items'][0])))
         {
-            if (($control->getDraft() != null) && ($control->getDraft()->getText() == 'yes'))
-            {
-                $state = $videoEntry->getVideoState();
+            return T_('Could not find video');
+        }
 
-                if ($state instanceof Zend_Gdata_YouTube_Extension_State)
+        $status = $videoEntry['items'][0]['status']['uploadStatus'];
+
+        // Let's handle all the upload statuses
+        if ($status === 'deleted')
+        {
+            $message = T_('Video has been deleted.');
+        }
+        else if ($status === 'failed')
+        {
+            $message = T_('Video failed to upload.');
+        }
+        else if ($status === 'rejected')
+        {
+            $message = T_('Video has been rejected.');
+        }
+        else if ($status === 'uploaded')
+        {
+            $percentComplete = 0;
+
+            $steps = array(
+                'fileDetailsAvailability',
+                'processingIssuesAvailability',
+                'tagSuggestionsAvailability',
+                'editorSuggestionsAvailability',
+                'thumbnailsAvailability'
+            );
+
+            foreach ($steps as $step)
+            {
+                if ($videoEntry['items'][0]['processingDetails'][$step] === 'available')
                 {
-                    $message = $state->getName().' '.$state->getText();
-                }
-                else
-                {
-                    return $message;
+                    $percentComplete += 20;
                 }
             }
+
+            $message = $percentComplete;
         }
 
         return $message;
@@ -1230,7 +1181,7 @@ $(document).ready(function() {
     
         if (!$this->fcmsDatabase->update($sql, array($this->fcmsUser->id, $id)))
         {
-            $this->displayFooter();
+            $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
 
@@ -1239,24 +1190,29 @@ $(document).ready(function() {
 
         if (isset($_POST['delete_youtube']))
         {
-            $sessionToken  = $this->getSessionToken($this->fcmsUser->id);
-            $youtubeConfig = getYouTubeConfigData();
-            $httpClient    = getYouTubeAuthSubHttpClient($youtubeConfig['youtube_key'], $sessionToken);
+            try
+            {
+                $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
 
-            if ($httpClient === false)
-             {
-                // Error message was already displayed by getYouTubeAuthSubHttpClient()
+                $youtube = new Google_Service_YouTube($googleClient);
+                $youtube->videos->delete($sourceId);
+            }
+            catch (Exception $e)
+            {
+                $this->displayHeader();
+                $this->fcmsError->add(array(
+                    'type'    => 'operation',
+                    'message' => 'Could not upload video to YouTube.',
+                    'error'   => $e,
+                    'file'    => __FILE__,
+                    'line'    => __LINE__,
+                ));
+                $this->fcmsError->displayError();
                 $this->displayFooter();
                 return;
             }
-
-            $youTubeService = new Zend_Gdata_YouTube($httpClient);
-            $videoEntry     = $youTubeService->getVideoEntry($sourceId);
-
             // Set message
             $_SESSION['message'] = 'delete_video_youtube';
-
-            $youTubeService->delete($videoEntry);
         }
 
         // Set message

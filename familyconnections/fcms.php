@@ -44,14 +44,16 @@ if ($fcmsError->hasError())
     return;
 }
 
+spl_autoload_register('fcms_autoload');
+
 /**
- * __autoload 
+ * fcms_autoload 
  * 
  * @param string $className 
  * 
  * @return void
  */
-function __autoload ($className)
+function fcms_autoload ($className)
 {
     $classPaths = array(
         'Destination'                       => INC.'Upload/Destination.php',
@@ -66,10 +68,12 @@ function __autoload ($className)
         'PluploadUploadFamilyTreeForm'      => INC.'Upload/FamilyTree/Form/Plupload.php',
         'UploadFamilyTree'                  => INC.'Upload/FamilyTree.php',
         'UploadPhotoGalleryForm'            => INC.'Upload/PhotoGallery/Form.php',
+        'FacebookUploadPhotoGalleryForm'    => INC.'Upload/PhotoGallery/Form/Facebook.php',
         'InstagramUploadPhotoGalleryForm'   => INC.'Upload/PhotoGallery/Form/Instagram.php',
         'JavaUploadPhotoGalleryForm'        => INC.'Upload/PhotoGallery/Form/Java.php',
         'PicasaUploadPhotoGalleryForm'      => INC.'Upload/PhotoGallery/Form/Picasa.php',
         'PluploadUploadPhotoGalleryForm'    => INC.'Upload/PhotoGallery/Form/Plupload.php',
+        'FacebookUploadPhotoGallery'        => INC.'Upload/PhotoGallery/Facebook.php',
         'InstagramUploadPhotoGallery'       => INC.'Upload/PhotoGallery/Instagram.php',
         'JavaUploadPhotoGallery'            => INC.'Upload/PhotoGallery/Java.php',
         'PicasaUploadPhotoGallery'          => INC.'Upload/PhotoGallery/Picasa.php',
@@ -80,6 +84,8 @@ function __autoload ($className)
         'UploadPhoto'                       => INC.'Upload/Photo.php',
         'UploadPhotoGallery'                => INC.'Upload/PhotoGallery.php',
         'UploadProfile'                     => INC.'Upload/Profile.php',
+        'Google_Client'                     => THIRDPARTY.'google-api-php-client/src/Google/Client.php',
+        'Google_Service_YouTube'            => THIRDPARTY.'google-api-php-client/src/Google/Service/YouTube.php',
         'S3'                                => THIRDPARTY.'s3/S3.php',
         'Instagram'                         => THIRDPARTY.'Instagram.php',
     );
@@ -135,28 +141,15 @@ function load()
         {
             include_once THIRDPARTY.'vimeo/vimeo.php';
         }
-        elseif ($include == 'youtube')
-        {
-            set_include_path(THIRDPARTY);
-
-            require_once 'Zend/Loader.php';
-            Zend_Loader::loadClass('Zend_Gdata_YouTube');
-            Zend_Loader::loadClass('Zend_Gdata_AuthSub');
-            Zend_Loader::loadClass('Zend_Gdata_App_Exception');
-        }
-        elseif ($include == 'picasa')
-        {
-            set_include_path(THIRDPARTY);
-
-            require_once 'Zend/Loader.php';
-            Zend_Loader::loadClass('Zend_Gdata_Photos');
-            Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
-            Zend_Loader::loadClass('Zend_Gdata_AuthSub');
-            Zend_Loader::loadClass('Zend_Gdata_Photos_AlbumQuery');
-        }
         elseif ($include == 'phpass')
         {
             include_once THIRDPARTY.'phpass/PasswordHash.php';
+        }
+        elseif ($include == 'google')
+        {
+            set_include_path(get_include_path().PATH_SEPARATOR.THIRDPARTY.'google-api-php-client/src/');
+
+            require_once THIRDPARTY.'google-api-php-client/src/Google/autoload.php';
         }
         else
         {
