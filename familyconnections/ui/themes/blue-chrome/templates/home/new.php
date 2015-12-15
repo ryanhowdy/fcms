@@ -50,6 +50,19 @@
     <?php endif; ?>
 <?php endforeach; ?>
 
+<?php if (empty($TMPL['new'])): ?>
+        <div class="blank-state">
+            <h2><?php echo $TMPL['textBlankHeader']; ?></h2>
+            <h3><?php echo $TMPL['textBlankDescription']; ?></h3>
+        </div>
+<?php endif; ?>
+
         <p class="alignright">
             <a class="rss" href="rss.php?feed=all"><?php echo $TMPL['textRssFeed']; ?></a>
         </p>
+
+<?php if (isset($TMPL['page'])): ?>
+        <p class="more-whats-new">
+            <a href="?page=<?php echo $TMPL['page']; ?>"><?php echo $TMPL['txtMore']; ?></a>
+        </p>
+<?php endif; ?>
