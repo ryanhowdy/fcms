@@ -21,7 +21,7 @@ We usually have a few bugs/feature requests that you can get paid to fix. Check 
 
 # Installation
 
-1. Upload the familyconnections/ directory in FCMS_3.5.1.zip to your web host.
+1. Upload the familyconnections/ directory in FCMS_3.6.1.zip to your web host.
 
 2. Run the online installation script by visiting your website.
 
@@ -32,7 +32,7 @@ We usually have a few bugs/feature requests that you can get paid to fix. Check 
 
 # Upgrade
 
-## Upgrading from 2.6+ to 3.5.1
+## Upgrading from 2.6+ to 3.6.1
 
 __DO NOT DELETE *inc/config_inc.php*__
 
