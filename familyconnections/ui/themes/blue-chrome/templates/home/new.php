@@ -60,3 +60,9 @@
         <p class="alignright">
             <a class="rss" href="rss.php?feed=all"><?php echo $TMPL['textRssFeed']; ?></a>
         </p>
+
+<?php if (isset($TMPL['page'])): ?>
+        <p class="more-whats-new">
+            <a href="?page=<?php echo $TMPL['page']; ?>"><?php echo $TMPL['txtMore']; ?></a>
+        </p>
+<?php endif; ?>

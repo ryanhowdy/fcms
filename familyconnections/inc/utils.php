@@ -2966,7 +2966,7 @@ function debugOn ()
  * getWhatsNewData 
  * 
  * Get the latest information in the site, including any external data.
- * Defaults to the last 30 days.
+ * By default will return the last 30 data elements.
  * 
  * Types of data:
  * 
@@ -2992,11 +2992,12 @@ function debugOn ()
  *  VIDEOCOM        Commented on video
  *  WHEREISEVERYONE Checked in on foursquare
  * 
- * @param int $days 
+ * @param int $limit
+ * @param int $start
  * 
  * @return mixed - array on success or false on failure
  */
-function getWhatsNewData ($days = 30)
+function getWhatsNewData ($limit = 30, $start = 0)
 {
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
@@ -3004,125 +3005,125 @@ function getWhatsNewData ($days = 30)
 
     $whatsNewData = array();
 
-    $sql = "SELECT p.`id`, `date`, `subject` AS title, p.`post` AS details, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
+    $sql = "(SELECT p.`id`, `date`, `subject` AS title, p.`post` AS details, u.`id` AS userid, `thread` AS id2, 0 AS id3, 'BOARD' AS type
             FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, fcms_users AS u 
             WHERE p.`thread` = t.`id` 
             AND p.`user` = u.`id` 
-            AND `date` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+            LIMIT $limit)
 
-            UNION SELECT a.`id`, c.`created` AS date, c.`column` AS title, '' AS details, a.`user` AS userid, a.`updated_id` AS id2, u.`sex` AS id3, 'ADDRESSEDIT' AS type
+            UNION (SELECT a.`id`, c.`created` AS date, c.`column` AS title, '' AS details, a.`user` AS userid, a.`updated_id` AS id2, u.`sex` AS id3, 'ADDRESSEDIT' AS type
             FROM `fcms_changelog` AS c
             LEFT JOIN `fcms_users` AS u ON c.`user` = u.`id`
             LEFT JOIN `fcms_address` AS a ON u.`id` = a.`user`
-            WHERE c.`created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
-            AND c.`column` != 'avatar'
+            WHERE c.`column` != 'avatar'
+            LIMIT $limit)
 
-            UNION SELECT a.id, a.updated AS date, 0 AS title, '' AS details, a.user AS userid, a.`created_id` AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
+            UNION (SELECT a.id, a.updated AS date, 0 AS title, '' AS details, a.user AS userid, a.`created_id` AS id2, u.joindate AS id3, 'ADDRESSADD' AS type
             FROM fcms_address AS a, fcms_users AS u
             WHERE a.user = u.id
             AND u.`phpass` = 'NONMEMBER' 
             AND u.`activated` < 1 
-            AND a.updated >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
+            LIMIT $limit)
 
-            UNION SELECT `id`, `joindate` AS date, 0 AS title, '' AS details, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
+            UNION (SELECT `id`, `joindate` AS date, 0 AS title, '' AS details, `id` AS userid, 0 AS id2, 0 AS id3, 'JOINED' AS type 
             FROM `fcms_users` 
             WHERE `phpass` != 'NONMEMBER' 
-            AND `joindate` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
-            AND `activated` > 0 ";
+            AND `activated` > 0
+            LIMIT $limit) ";
     if (usingFamilyNews())
     {
-        $sql .= "UNION SELECT n.`id` AS id, n.`updated` AS date, `title`, n.`news` AS details, u.`id` AS userid, u.`sex` AS id2, 0 AS id3, 'NEWS' AS type 
+        $sql .= "UNION (SELECT n.`id` AS id, n.`updated` AS date, `title`, n.`news` AS details, u.`id` AS userid, u.`sex` AS id2, 0 AS id3, 'NEWS' AS type 
                  FROM `fcms_users` AS u, `fcms_news` AS n 
                  WHERE u.`id` = n.`user` 
-                 AND n.`updated` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
                  AND `username` != 'SITENEWS' 
                  AND `phpass` != 'SITENEWS'
+                 LIMIT $limit)
 
-                 UNION SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`comment` AS details, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
+                 UNION (SELECT n.`id` AS 'id', nc.`date`, `title`, nc.`comment` AS details, nc.`user` AS userid, 0 AS id2, 0 AS id3, 'NEWSCOM' AS type 
                  FROM `fcms_news_comments` AS nc, `fcms_news` AS n, `fcms_users` AS u 
-                 WHERE nc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
-                 AND nc.`user` = u.`id` 
-                 AND n.`id` = nc.`news` ";
+                 WHERE nc.`user` = u.`id` 
+                 AND n.`id` = nc.`news` 
+                 LIMIT $limit) ";
     }
     if (usingPrayers())
     {
-        $sql .= "UNION SELECT 0 AS id, `date`, `for` AS title, `desc` AS details, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type 
+        $sql .= "UNION (SELECT 0 AS id, `date`, `for` AS title, `desc` AS details, `user` AS userid, 0 AS id2, 0 AS id3, 'PRAYERS' AS type 
                  FROM `fcms_prayers` 
-                 WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) ";
+                 LIMIT $limit) ";
     }
     if (usingRecipes())
     {
-        $sql .= "UNION SELECT `id` AS id, `date`, `name` AS title, '' AS details, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type 
+        $sql .= "UNION (SELECT `id` AS id, `date`, `name` AS title, '' AS details, `user` AS userid, `category` AS id2, 0 AS id3, 'RECIPES' AS type 
                  FROM `fcms_recipes` 
-                 WHERE `date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+                 LIMIT $limit)
 
-                 UNION SELECT r.`id`, rc.`date`, r.`name` AS title, rc.`comment` AS details, rc.`user` AS userid, r.`category` AS id2, 0 AS id3, 'RECIPECOM' AS type
+                 UNION (SELECT r.`id`, rc.`date`, r.`name` AS title, rc.`comment` AS details, rc.`user` AS userid, r.`category` AS id2, 0 AS id3, 'RECIPECOM' AS type
                  FROM `fcms_recipe_comment` AS rc, `fcms_recipes` AS r
-                 WHERE rc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY)
-                 AND rc.`recipe` = r.`id` ";
+                 WHERE rc.`recipe` = r.`id` 
+                 LIMIT $limit) ";
     }
     if (usingdocuments())
     {
-        $sql .= "UNION SELECT d.`id` AS 'id', d.`date`, `name` AS title, d.`description` AS details, d.`user` AS userid, 0 AS id2, 0 AS id3, 'DOCS' AS type 
+        $sql .= "UNION (SELECT d.`id` AS 'id', d.`date`, `name` AS title, d.`description` AS details, d.`user` AS userid, 0 AS id2, 0 AS id3, 'DOCS' AS type 
                  FROM `fcms_documents` AS d, `fcms_users` AS u 
-                 WHERE d.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
-                 AND d.`user` = u.`id` ";
+                 WHERE d.`user` = u.`id` 
+                 LIMIT $limit) ";
     }
-    $sql .= "UNION SELECT DISTINCT p.`category` AS id, p.`date`, `name` AS title, '' AS details, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(p.`date`) AS id3, 'GALLERY' AS type 
+    $sql .= "UNION (SELECT DISTINCT p.`category` AS id, p.`date`, `name` AS title, '' AS details, p.`user` AS userid, COUNT(*) AS id2, DAYOFYEAR(p.`date`) AS id3, 'GALLERY' AS type 
              FROM `fcms_gallery_photos` AS p, `fcms_users` AS u, `fcms_category` AS c 
              WHERE p.`user` = u.`id` 
              AND p.`category` = c.`id` 
-             AND p.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
              GROUP BY userid, title, id3
+             LIMIT $limit)
 
-             UNION SELECT p.`id`, gc.`date`, gc.`comment` AS title, gc.`comment` AS details, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type 
+             UNION (SELECT p.`id`, gc.`date`, gc.`comment` AS title, gc.`comment` AS details, gc.`user` AS userid, p.`user` AS id2, `filename` AS id3, 'GALCOM' AS type 
              FROM `fcms_gallery_photo_comment` AS gc, `fcms_users` AS u, `fcms_gallery_photos` AS p 
-             WHERE gc.`date` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
-             AND gc.`user` = u.`id` 
+             WHERE gc.`user` = u.`id` 
              AND gc.`photo` = p.`id` 
+             LIMIT $limit)
 
-             UNION SELECT g.`id`, g.`created`, c.`name` AS title, g.`comment` AS details, g.`created_id` AS userid, c.`user` AS id2, c.`id` AS id3, 'GALCATCOM' AS type 
+             UNION (SELECT g.`id`, g.`created`, c.`name` AS title, g.`comment` AS details, g.`created_id` AS userid, c.`user` AS id2, c.`id` AS id3, 'GALCATCOM' AS type 
              FROM `fcms_gallery_category_comment` AS g
              LEFT JOIN `fcms_users` AS u    ON g.`created_id`  = u.`id`
              LEFT JOIN `fcms_category` AS c ON g.`category_id` = c.`id`
-             WHERE g.`created` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+             LIMIT $limit)
 
-             UNION SELECT c.`id`, c.`date_added` AS date, `title`, c.`desc` AS details, `created_by` AS userid, `date` AS id2, `category` AS id3, 'CALENDAR' AS type 
+             UNION (SELECT c.`id`, c.`date_added` AS date, `title`, c.`desc` AS details, `created_by` AS userid, `date` AS id2, `category` AS id3, 'CALENDAR' AS type 
              FROM `fcms_calendar` AS c, `fcms_users` AS u 
-             WHERE c.`date_added` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
-             AND c.`created_by` = u.`id` AND `private` < 1 
+             WHERE c.`created_by` = u.`id` AND `private` < 1 
+             LIMIT $limit)
 
-             UNION SELECT `id`, `started` AS date, `question` AS title, '' AS details, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type 
+             UNION (SELECT `id`, `started` AS date, `question` AS title, '' AS details, '0' AS userid, 'na' AS id2, 'na' AS id3, 'POLL' AS type 
              FROM `fcms_polls` 
-             WHERE `started` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+             LIMIT $limit)
 
-             UNION SELECT p.`id`, c.`created` AS date, p.`question` AS title, c.`comment` AS details, c.`created_id` AS userid, 'na' AS id2, 'na' AS id3, 'POLLCOM' AS type 
+             UNION (SELECT p.`id`, c.`created` AS date, p.`question` AS title, c.`comment` AS details, c.`created_id` AS userid, 'na' AS id2, 'na' AS id3, 'POLLCOM' AS type 
              FROM `fcms_poll_comment` AS c
              LEFT JOIN `fcms_polls` AS p ON c.`poll_id` = p.`id`
-             WHERE `created` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+             LIMIT $limit)
 
-             UNION SELECT `id`, `updated` AS date, `status` AS title, '' AS details, `user` AS userid, `parent` AS id2, `created` AS id3, 'STATUS' AS type 
+             UNION (SELECT `id`, `updated` AS date, `status` AS title, '' AS details, `user` AS userid, `parent` AS id2, `created` AS id3, 'STATUS' AS type 
              FROM `fcms_status` 
-             WHERE `updated` >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+             LIMIT $limit)
 
-             UNION SELECT 0 as id, c.`created` AS date, 0 AS title, '' AS details, c.`user` AS userid, 0 AS id2, u.`sex` AS id3, 'AVATAR' AS type
+             UNION (SELECT 0 as id, c.`created` AS date, 0 AS title, '' AS details, c.`user` AS userid, 0 AS id2, u.`sex` AS id3, 'AVATAR' AS type
              FROM `fcms_changelog` AS c
              LEFT JOIN `fcms_users` AS u ON c.`user` = u.`id`
-             WHERE `created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
-             AND `column` = 'avatar'
+             WHERE `column` = 'avatar'
+             LIMIT $limit)
 
-             UNION SELECT `id`, `created` AS date, `title`, `description` AS details, `created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEO' AS type
+             UNION (SELECT `id`, `created` AS date, `title`, `description` AS details, `created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEO' AS type
              FROM `fcms_video`
-             WHERE `created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
-             AND `active` = '1'
+             WHERE `active` = '1'
+             LIMIT $limit)
 
-             UNION SELECT `video_id` AS 'id', c.`created` AS date, `comment`, '' AS details, c.`created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEOCOM' AS type
+             UNION (SELECT `video_id` AS 'id', c.`created` AS date, `comment`, '' AS details, c.`created_id` AS userid, `source_id` AS id2, `source` AS id3, 'VIDEOCOM' AS type
              FROM `fcms_video_comment` AS c
              LEFT JOIN `fcms_video` AS v ON c.`video_id` = v.`id`
-             WHERE c.`created` >= DATE_SUB(CURDATE(),INTERVAL $days DAY) 
-             AND v.`active` = '1'
+             WHERE v.`active` = '1'
+             LIMIT $limit)
 
-             ORDER BY date DESC LIMIT 0, 35";
+             ORDER BY date DESC LIMIT $start, $limit";
 
     $whatsNewData = $fcmsDatabase->getRows($sql);
     if ($whatsNewData === false)
