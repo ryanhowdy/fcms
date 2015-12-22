@@ -813,6 +813,7 @@ ul.menu li a:hover {
   -moz-border-radius: 10px;
   border-radius: 10px;
   float: right;
+  padding: 0;
 }
 .pages li {
   float: left;

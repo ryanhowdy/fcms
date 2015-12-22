@@ -37,6 +37,28 @@ class Documents
      */
     function showDocuments ($page = 1)
     {
+        $templateParams = array(
+            'documentText'    => T_('Document'),
+            'descriptionText' => T_('Description'),
+            'uploadedByText'  => T_('Uploaded By'),
+            'dateAddedText'   => T_('Date Added'),
+            'blankStateHeaderText' => T_('Nothing to see here'),
+            'blankStateText'       => T_('Currently no one has shared any documents.'),
+            'blankStateLinkText'   => T_('Why don\'t you share a document now?'),
+        );
+
+        if ($this->fcmsUser->access <= 5)
+        {
+            $templateParams['pageNavigation'] = array(
+                'action' => array(
+                    array(
+                        'url'  => '?adddoc=yes',
+                        'text' => T_('Add Document'),
+                    ),
+                ),
+            );
+        }
+
         $from = (($page * 25) - 25); 
 
         $sql = "SELECT `id`, `name`, `description`, `user`, `date` 
@@ -51,33 +73,20 @@ class Documents
             return;
         }
 
-        if (count($rows) > 0)
+        foreach ($rows as $r)
         {
-            echo '
-            <script type="text/javascript" src="ui/js/tablesort.js"></script>
-            <table id="docs" class="sortable">
-                <thead>
-                    <tr>
-                        <th class="sortfirstasc">'.T_('Document').'</th>
-                        <th>'.T_('Description').'</th>
-                        <th>'.T_('Uploaded By').'</th>
-                        <th>'.T_('Date Added').'</th>
-                    </tr>
-                </thead>
-                <tbody>';
+            $date = fixDate(T_('m/d/Y h:ia'), $this->fcmsUser->tzOffset, $r['date']);
 
-            foreach ($rows as $r)
+            $documentRow = array(
+                'name'        => cleanOutput($r['name']),
+                'description' => cleanOutput($r['description']),
+                'user'        => getUserDisplayName($r['user']),
+                'date'        => $date,
+            );
+
+            if ($this->fcmsUser->access < 3 || $this->fcmsUser->id == $r['user'])
             {
-                $date = fixDate(T_('m/d/Y h:ia'), $this->fcmsUser->tzOffset, $r['date']);
-
-                echo '
-                    <tr>
-                        <td>
-                            <a href="?download='.cleanOutput($r['name']).'">'.cleanOutput($r['name']).'</a>';
-
-                if ($this->fcmsUser->access < 3 || $this->fcmsUser->id == $r['user'])
-                {
-                    echo '&nbsp;
+                $documentRow['delete'] = '&nbsp;
                             <form method="post" action="documents.php">
                                 <div>
                                     <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
@@ -85,46 +94,28 @@ class Documents
                                     <input type="submit" name="deldoc" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Document').'"/>
                                 </div>
                             </form>';
-                }
-
-                echo '
-                        </td>
-                        <td>'.cleanOutput($r['description']).'</td>
-                        <td>'.getUserDisplayName($r['user']).'</td>
-                        <td>'.$date.'</td>
-                    </tr>';
             }
 
-            echo '
-                </tbody>
-            </table>';
-
-            // Pages
-            $sql = "SELECT count(`id`) AS c 
-                    FROM `fcms_documents`";
-
-            $row = $this->fcmsDatabase->getRow($sql);
-            if ($row === false)
-            {
-                $this->fcmsError->displayError();
-                return;
-            }
-
-            $docscount   = isset($row['c']) ? $row['c'] : 0;
-            $total_pages = ceil($docscount / 25); 
-
-            displayPages('documents.php', $page, $total_pages);
+            $templateParams['documents'][] = $documentRow;
         }
-        // No docs to show
-        else
+
+        // Pages
+        $sql = "SELECT count(`id`) AS c 
+                FROM `fcms_documents`";
+
+        $row = $this->fcmsDatabase->getRow($sql);
+        if ($row === false)
         {
-            echo '
-            <div class="blank-state">
-                <h2>'.T_('Nothing to see here').'</h2>
-                <h3>'.T_('Currently no one has shared any documents.').'</h3>
-                <h3><a href="?adddoc=yes">'.T_('Why don\'t you share a document now?').'</a></h3>
-            </div>';
+            $this->fcmsError->displayError();
+            return;
         }
+
+        $docscount   = isset($row['c']) ? $row['c'] : 0;
+        $total_pages = ceil($docscount / 25); 
+
+        loadTemplate('document', 'main', $templateParams);
+
+        displayPages('documents.php', $page, $total_pages);
     }
 
     /**
@@ -136,29 +127,16 @@ class Documents
      */
     function displayForm ()
     {
-        echo '
-            <script type="text/javascript" src="inc/livevalidation.js"></script>
-            <form method="post" enctype="multipart/form-data" name="addform" action="documents.php">
-                <fieldset>
-                    <legend><span>'.T_('Upload Document').'</span></legend>
-                    <p>
-                        <label for="doc">'.T_('Document').'</label>: 
-                        <input type="file" name="doc" id="doc" size="30"/>
-                    </p>
-                    <p>
-                        <label for="desc">'.T_('Description').'</label>: 
-                        <input type="text" name="desc" id="desc" size="60"/>
-                    </p>
-                    <script type="text/javascript">
-                        var fdesc = new LiveValidation(\'desc\', { onlyOnSubmit: true});
-                        fdesc.add(Validate.Presence, {failureMessage: "'.T_('Required').'"});
-                    </script>
-                    <p>
-                        <input class="sub1" type="submit" name="submitadd" value="'.T_('Add').'"/> &nbsp;
-                        <a href="documents.php">'.T_('Cancel').'</a>
-                    </p>
-                </fieldset>
-            </form>';
+        $templateParams = array(
+            'uploadDocumentText'     => T_('Upload Document'),
+            'documentText'           => T_('Document'),
+            'descriptionText'        => T_('Description'),
+            'descriptionFailureText' => T_('Required'),
+            'addText'                => T_('Add'),
+            'cancelText'             => T_('Cancel'),
+        );
+
+        loadTemplate('document', 'add', $templateParams);
     }
 
     /**

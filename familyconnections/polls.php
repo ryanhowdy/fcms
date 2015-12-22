@@ -120,24 +120,26 @@ class Page
         displayPageHeader($params);
 
         $navParams = array(
-            'navigation' => array(
-                array(
-                    'url'      => 'polls.php',
-                    'textLink' => T_('Latest'),
-                ),
-                array(
-                    'url'      => 'polls.php?action=pastpolls',
-                    'textLink' => T_('Past Polls'),
+            'pageNavigation' => array(
+                'section' => array(
+                    array(
+                        'url'  => 'polls.php',
+                        'text' => T_('Latest'),
+                    ),
+                    array(
+                        'url'  => 'polls.php?action=pastpolls',
+                        'text' => T_('Past Polls'),
+                    ),
                 ),
             ),
         );
 
         if ($this->fcmsUser->access < 2)
         {
-            $navParams['actions'] = array(
+            $navParams['pageNavigation']['action'] = array(
                 array(
-                    'url'      => 'admin/polls.php',
-                    'textLink' => T_('Administrate'),
+                    'url'  => 'admin/polls.php',
+                    'text' => T_('Administrate'),
                 ),
             );
         }

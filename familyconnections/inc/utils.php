@@ -46,9 +46,11 @@ function getTheme ($userid = 0)
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
+    $theme = 'default';
+
     if (empty($userid))
     {
-        return UI."themes/default/";
+        $theme = 'default';
     }
     else
     {
@@ -61,7 +63,7 @@ function getTheme ($userid = 0)
         $r = $fcmsDatabase->getRow($sql, $userid);
         if ($r === false)
         {
-            return UI."themes/default/";
+            $theme = 'default';
         }
 
         // old versions of fcms may still list .css in theme name
@@ -69,13 +71,20 @@ function getTheme ($userid = 0)
 
         if ($pos === false)
         {
-            return UI."themes/".basename($r['theme'])."/";
+            $theme = basename($r['theme']);
         }
         else
         {
-            return UI."themes/".substr($r['theme'], 0, $pos)."/";
+            $theme = substr($r['theme'], 0, $pos);
         }
     }
+
+    if (!defined('TEMPLATES'))
+    {
+        define('TEMPLATES', UI.'/themes/'.$theme.'/templates/');
+    }
+
+    return UI.'/themes/'.$theme.'/';
 }
 
 /**
@@ -2512,6 +2521,10 @@ function displayPages ($url, $cur_page, $total_pages)
  */
 function displayPagination ($url, $cur_page, $total_pages)
 {
+    $templateParams = array(
+        'pages' => array(),
+    );
+
     // Check if we have a index.php url or a index.php?uid=0 url
     $end = substr($url, strlen($url) - 4);
     if ($end == '.php') {
@@ -2522,24 +2535,29 @@ function displayPagination ($url, $cur_page, $total_pages)
 
     if ($total_pages > 1)
     {
-        echo '
-            <div class="pagination pages">
-                <ul>';
-
         // First / Previous
+        $prev = 1;
+
         if ($cur_page > 1)
         {
             $prev = ($cur_page - 1);
-            echo '
-                    <li><a title="'.T_('First Page').'" class="first" href="'.$url.$divider.'page=1">'.T_('First').'</a></li>
-                    <li><a title="'.T_('Previous Page').'" class="previous" href="'.$url.$divider.'page='.$prev.'">'.T_('Previous').'</a></li>';
+
         }
-        else
-        {
-            echo '
-                    <li><a title="'.T_('First Page').'" class="first" href="'.$url.$divider.'page=1">'.T_('First').'</a></li>
-                    <li><a title="'.T_('Previous Page').'" class="previous" href="'.$url.$divider.'page=1">'.T_('Previous').'</a></li>';
-        }
+
+        $templateParams['pages'][] = array(
+            'liClass'   => '',
+            'linkTitle' => T_('First Page'),
+            'linkClass' => 'first',
+            'linkUrl'   => $url.$divider.'page=1',
+            'linkText'  => T_('First'),
+        );
+        $templateParams['pages'][] = array(
+            'liClass'   => '',
+            'linkTitle' => T_('Previous Page'),
+            'linkClass' => 'previous',
+            'linkUrl'   => $url.$divider.'page='.$prev,
+            'linkText'  => T_('Previous'),
+        );
 
         // Numbers
         if ($total_pages > 8)
@@ -2550,11 +2568,16 @@ function displayPagination ($url, $cur_page, $total_pages)
                 {
                     if ($i <= $total_pages)
                     {
-                        $aClass = $cur_page == $i ? ' class="current"' : '';
-                        $lClass = $cur_page == $i ? ' class="active"'  : '';
+                        $aClass = $cur_page == $i ? 'current' : '';
+                        $lClass = $cur_page == $i ? 'active'  : '';
 
-                        echo '
-                    <li'.$lClass.'><a href="'.$url.$divider.'page='.$i.'"'.$aClass.'>'.$i.'</a></li>';
+                        $templateParams['pages'][] = array(
+                            'liClass'   => $lClass,
+                            'linkTitle' => $i,
+                            'linkClass' => $aClass,
+                            'linkUrl'   => $url.$divider.'page='.$i,
+                            'linkText'  => $i,
+                        );
                     }
                 } 
             }
@@ -2562,11 +2585,16 @@ function displayPagination ($url, $cur_page, $total_pages)
             {
                 for ($i = 1; $i <= 8; $i++)
                 {
-                    $aClass = $cur_page == $i ? ' class="current"' : '';
-                    $lClass = $cur_page == $i ? ' class="active"'  : '';
+                    $aClass = $cur_page == $i ? 'current' : '';
+                    $lClass = $cur_page == $i ? 'active'  : '';
 
-                    echo '
-                    <li'.$lClass.'><a href="'.$url.$divider.'page='.$i.'"'.$aClass.'>'.$i.'</a></li>';
+                    $templateParams['pages'][] = array(
+                        'liClass'   => $lClass,
+                        'linkTitle' => $i,
+                        'linkClass' => $aClass,
+                        'linkUrl'   => $url.$divider.'page='.$i,
+                        'linkText'  => $i,
+                    );
                 } 
             }
         }
@@ -2574,33 +2602,44 @@ function displayPagination ($url, $cur_page, $total_pages)
         {
             for ($i = 1; $i <= $total_pages; $i++)
             {
-                $aClass = $cur_page == $i ? ' class="current"' : '';
-                $lClass = $cur_page == $i ? ' class="active"'  : '';
+                $aClass = $cur_page == $i ? 'current' : '';
+                $lClass = $cur_page == $i ? 'active'  : '';
 
-                echo '
-                    <li'.$lClass.'><a href="'.$url.$divider.'page='.$i.'"'.$aClass.'>'.$i.'</a></li>';
+                $templateParams['pages'][] = array(
+                    'liClass'   => $lClass,
+                    'linkTitle' => $i,
+                    'linkClass' => $aClass,
+                    'linkUrl'   => $url.$divider.'page='.$i,
+                    'linkText'  => $i,
+                );
             } 
         }
 
         // Next / Last
+        $next = $total_pages;
+
         if ($cur_page < $total_pages)
         {
             $next = ($cur_page + 1);
-            echo '
-                    <li><a title="'.T_('Next Page').'" class="next" href="'.$url.$divider.'page='.$next.'">'.T_('Next').'</a></li>
-                    <li><a title="'.T_('Last page').'" class="last" href="'.$url.$divider.'page='.$total_pages.'">'.T_('Last').'</a></li>';
         }
-        else
-        {
-            echo '
-                    <li><a title="'.T_('Next Page').'" class="next" href="'.$url.$divider.'page='.$total_pages.'">'.T_('Next').'</a></li>
-                    <li><a title="'.T_('Last page').'" class="last" href="'.$url.$divider.'page='.$total_pages.'">'.T_('Last').'</a></li>';
-        } 
 
-        echo '
-                </ul>
-            </div>';
-    }    
+        $templateParams['pages'][] = array(
+            'liClass'   => '',
+            'linkTitle' => T_('Next Page'),
+            'linkClass' => 'next',
+            'linkUrl'   => $url.$divider.'page='.$next,
+            'linkText'  => T_('Next'),
+        );
+        $templateParams['pages'][] = array(
+            'liClass'   => '',
+            'linkTitle' => T_('Last Page'),
+            'linkClass' => 'last',
+            'linkUrl'   => $url.$divider.'page='.$total_pages,
+            'linkText'  => T_('Last'),
+        );
+
+        loadTemplate('global', 'pagination', $templateParams);
+    }
 }
 
 /**
