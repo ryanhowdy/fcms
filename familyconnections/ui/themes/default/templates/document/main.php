@@ -1,6 +1,5 @@
 
     <?php if (isset($TMPL['pageNavigation'])): ?>
-<h1>page nav</h1>
         <?php require_once(TEMPLATES.'global/page-navigation.php'); ?>
     <?php endif; ?>
 
