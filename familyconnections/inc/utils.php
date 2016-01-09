@@ -494,6 +494,9 @@ function getPluginName ($section)
         case 'admin_configuration':
             return T_('Configuration');
             break;
+        case 'admin_debug':
+            return 'Debug';
+            break;
         case 'admin_facebook':
             return 'Facebook';
             break;
@@ -609,6 +612,9 @@ function getPluginUrl ($section)
             break;
         case 'admin_configuration':
             return 'admin/config.php';
+            break;
+        case 'admin_debug':
+            return 'admin/debug.php';
             break;
         case 'admin_facebook':
             return 'admin/facebook.php';
@@ -726,6 +732,9 @@ function getPluginDescription ($plugin)
             break;
         case 'admin_configuration':
             return T_('Configuration');
+            break;
+        case 'admin_debug':
+            return T_('Debug');
             break;
         case 'admin_facebook':
             return T_('Facebook');

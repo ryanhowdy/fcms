@@ -620,6 +620,34 @@ class Database
     }
 
     /**
+     * getAttribute 
+     * 
+     * @param string $attribute 
+     * 
+     * @return string
+     */
+    function getAttribute ($attribute)
+    {
+        $return = $this->dbh->getAttribute(constant($attribute));
+
+        if ($return === false)
+        {
+            $this->error->add(array(
+                'type'    => 'operation',
+                'message' => T_('Cannot get attribute.'),
+                'error'   => $this->dbh->errorInfo(),
+                'line'    => __LINE__,
+                'file'    => __FILE__,
+                'sql'     => ''
+            ));
+
+            return false;
+        }
+
+        return $return;
+    }
+
+    /**
      * getRowCount 
      * 
      * @return int

@@ -390,6 +390,10 @@ class Upgrade
         {
             return false;
         }
+        if (!$this->upgrade370())
+        {
+            return false;
+        }
 
         return true;
     }
@@ -2241,6 +2245,53 @@ class Upgrade
         {
             $sql = "ALTER TABLE `fcms_user_settings` ADD `fb_user_id` VARCHAR(255) NULL";
             if (!$this->fcmsDatabase->alter($sql))
+            {
+                $this->fcmsError->setMessage($errorMessage);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * upgrade370
+     * 
+     * Upgrade database to version 3.7.0
+     * 
+     * @return boolean
+     */
+    function upgrade370 ()
+    {
+        $errorMessage = sprintf(T_('Could not upgrade database to version %s.'), '3.7.0');
+
+        // turn on debug admin
+        $debug_fixed = false;
+
+        $sql = "SELECT `link`, `order`
+                FROM `fcms_navigation` 
+                WHERE `link` = 'admin_debug' 
+                LIMIT 1";
+
+        $row = $this->fcmsDatabase->getRow($sql);
+        if ($row === false)
+        {
+            $this->fcmsError->setMessage($errorMessage);
+            return false;
+        }
+        if (!empty($row))
+        {
+            $debug_fixed = true;
+        }
+
+        if (!$debug_fixed)
+        {
+            $adminOrder = getNextAdminNavigationOrder();
+
+            $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
+                    VALUES ('admin_debug', 6, ?, 0)";
+
+            if (!$this->fcmsDatabase->insert($sql, $adminOrder))
             {
                 $this->fcmsError->setMessage($errorMessage);
                 return false;
