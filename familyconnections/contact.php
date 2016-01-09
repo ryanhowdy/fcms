@@ -125,10 +125,18 @@ class Page
     {
         $this->displayHeader();
 
-        $email   = isset($_POST['email'])   ? cleanOutput($_POST['email'])       : '';
-        $name    = isset($_POST['name'])    ? cleanOutput($_POST['name'])        : '';
-        $subject = isset($_POST['subject']) ? cleanOutput($_POST['subject'])     : '';
-        $msg     = isset($_POST['msg'])     ? cleanOutput($_POST['msg'], 'html') : '';
+        $templateParams = array(
+            'emailText'   => T_('Your Email'),
+            'nameText'    => T_('Your Name'),
+            'subjectText' => T_('Subject'),
+            'messageText' => T_('Message'),
+            'submitText'  => T_('Submit'),
+        );
+
+        $templateParams['email']   = isset($_POST['email'])   ? cleanOutput($_POST['email'])       : '';
+        $templateParams['name']    = isset($_POST['name'])    ? cleanOutput($_POST['name'])        : '';
+        $templateParams['subject'] = isset($_POST['subject']) ? cleanOutput($_POST['subject'])     : '';
+        $templateParams['message'] = isset($_POST['msg'])     ? cleanOutput($_POST['msg'], 'html') : '';
 
         if (isset($_SESSION['ok']))
         {
@@ -139,29 +147,7 @@ class Page
             unset($_SESSION['ok']);
         }
 
-        echo '
-            <fieldset>
-                <form method="post" class="contactform" action="contact.php">
-                    <div class="field-row">
-                        <div class="field-label"><label for="email"><b>'.T_('Your Email').'</b></label></div>
-                        <div class="field-widget"><input type="text" id="email" name="email" size="30" value="'.$email.'"/></div>
-                    </div>
-                    <div class="field-row">
-                        <div class="field-label"><label for="name"><b>'.T_('Your Name').'</b></label></div>
-                        <div class="field-widget"><input type="text" id="name" name="name" size="30" value="'.$name.'"/></div>
-                    </div>
-                    <div class="field-row">
-                        <div class="field-label"><label for="subject"><b>'.T_('Subject').'</b></label></div>
-                        <div class="field-widget"><input type="text" id="subject" name="subject" size="30" value="'.$subject.'"/></div>
-                    </div>
-                    <div class="field-row">
-                        <div class="field-label"><label for="msg"><b>'.T_('Message').'</b></label></div>
-                        <div class="field-widget"><textarea name="msg" rows="10" cols="40">'.$msg.'</textarea></div>
-                    </div>
-                    <p><input type="submit" name="submit" value="'.T_('Submit').'"/></p>
-                </form>
-            </fieldset>';
-
+        loadTemplate('contact', 'main', $templateParams);
         $this->displayFooter();
     }
 }
