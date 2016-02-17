@@ -459,7 +459,7 @@ class Calendar
                 $row['id']    = 'birthday'.$row['id'];
                 $row['color'] = $birthdayColor;
                 $row['title'] = $row['fname'].' '.$row['lname'];
-                $row['desc']  = sprintf(T_('%s turns %s today.'), $row['fname'], $age);
+                $row['desc']  = sprintf(T_('%s turns %s today.'), $row['fname'], $age + 1);
 
                 $allDayEvents[] = $row;
             }
