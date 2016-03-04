@@ -2247,6 +2247,31 @@ function displayBBCodeToolbar ()
 }
 
 /**
+ * getBBCodeToolbarTemplateParams 
+ * 
+ * @return array
+ */
+function getBBCodeToolbarTemplateParams ()
+{
+    return array(
+        'boldText'         => T_('Bold'),
+        'italicText'       => T_('Italic'),
+        'underlineText'    => T_('Underline'),
+        'leftAlignText'    => T_('Left Align'),
+        'centerText'       => T_('Center'),
+        'rightAlignText'   => T_('Right Align'),
+        'heading1Text'     => T_('Heading 1'),
+        'heading2Text'     => T_('Heading 2'),
+        'heading3Text'     => T_('Heading 3'),
+        'quoteText'        => T_('Quote'),
+        'insertImageText'  => T_('Insert Image'),
+        'insertUrlText'    => T_('Insert URL'),
+        'insertSmileyText' => T_('Insert Smiley'),
+        'bbcodeHelpText'   => T_('BBCode Help'),
+    );
+}
+
+/**
  * displayWysiwygJs 
  * 
  * @param mixed $id 
