@@ -89,7 +89,9 @@ function installConfig ($sitename, $contact, $version)
                 ('debug', '0'),
                 ('country', 'US'),
                 ('instagram_client_id', NULL),
-                ('instagram_client_secret', NULL)";
+                ('instagram_client_secret', NULL),
+                ('google_client_id', NULL),
+                ('google_client_secret', NULL)";
     mysql_query($sql) or die($sql . '<br/>' . mysql_error());
 }
 
@@ -133,7 +135,7 @@ function installNavigation ($sections)
                 ('admin_polls', 6, 5, 1),
                 ('admin_scheduler', 6, 10, 1),
                 ('admin_facebook', 6, 6, 1),
-                ('admin_youtube', 6, 7, 1),
+                ('admin_google', 6, 7, 1),
                 ('admin_foursquare', 6, 8, 1),
                 ('admin_instagram', 6, 9, 1)";
     mysql_query($sql) or die("$sql<br/>".mysql_error());
@@ -243,10 +245,11 @@ function installUsers ($fname, $lname, $email, $dobYear, $dobMonth, $dobDay, $us
                 `wordpress`                 VARCHAR(255) NULL,
                 `posterous`                 VARCHAR(255) NULL,
                 `fb_access_token`           VARCHAR(255) NULL,
-                `youtube_session_token`     VARCHAR(255) NULL,
+                `google_session_token`      VARCHAR(255) NULL,
                 `instagram_access_token`    VARCHAR(255) NULL,
                 `instagram_auto_upload`     TINYINT(1) DEFAULT 0,
                 `picasa_session_token`      VARCHAR(255) NULL,
+                `fb_user_id`                VARCHAR(255) NULL,
                 PRIMARY KEY (`id`), 
                 KEY `user_ind` (`user`)
             ) 

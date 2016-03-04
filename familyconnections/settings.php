@@ -1434,93 +1434,104 @@ a:hover { background-color: #6cd163; }
         $config = getGoogleConfigData();
         $user   = getGoogleUserData($this->fcmsUser->id);
 
+        // If google hasn't been configured, warn the user
+        if (empty($config['google_client_id']) || empty($config['google_client_secret']))
+        {
+            echo '
+            <div class="info-alert">
+                <h2>'.T_('Google isn\'t Configured Yet.').'</h2>
+                <p>'.T_('Unfortunately, your website administrator has not set up Google yet.').'</p>
+                <p>'.T_('You will not be able to upload photos from Picasa or upload videos from YouTube, until this is complete.').'</p>
+            </div>';
+
+            $this->displayFooter();
+            return;
+        }
+
         // Setup url for callbacks
         $callbackUrl  = getDomainAndDir();
         $callbackUrl .= 'settings.php?view=google&oauth2callback';
 
         $_SESSION['callback_url'] = $callbackUrl;
 
-        if (!empty($config['google_client_id']) || !empty($config['google_client_secret']))
+        $googleClient = new Google_Client();
+        $googleClient->setClientId($config['google_client_id']);
+        $googleClient->setClientSecret($config['google_client_secret']);
+        $googleClient->setAccessType('offline');
+        $googleClient->setScopes(array(
+            'https://www.googleapis.com/auth/youtube.force-ssl',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'https://picasaweb.google.com/data/'
+        ));
+        $googleClient->setRedirectUri($callbackUrl);
+
+        // We still have a token saved
+        if (isset($_SESSION['googleSessionToken']))
         {
-            $googleClient = new Google_Client();
-            $googleClient->setClientId($config['google_client_id']);
-            $googleClient->setClientSecret($config['google_client_secret']);
-            $googleClient->setAccessType('offline');
-            $googleClient->setScopes(array(
-                'https://www.googleapis.com/auth/youtube.force-ssl',
-                'https://www.googleapis.com/auth/userinfo.email',
-                'https://www.googleapis.com/auth/userinfo.profile',
-                'https://picasaweb.google.com/data/'
-            ));
-            $googleClient->setRedirectUri($callbackUrl);
-
-            // We still have a token saved
-            if (isset($_SESSION['googleSessionToken']))
+            try
             {
-                try
-                {
-                    $googleClient->setAccessToken($_SESSION['googleSessionToken']);
-                    // Make sure our access token is still good
-                    if ($googleClient->isAccessTokenExpired()) {
-                        $googleClient->refreshToken($user['google_session_token']);
-                    }
-                }
-                catch (Exception $e)
-                {
-                    $failure = 1;
-                }
-            }
-            // We need to use our refresh token from the db to get an access token
-            elseif (!empty($user['google_session_token']))
-            {
-                try
-                {
+                $googleClient->setAccessToken($_SESSION['googleSessionToken']);
+                // Make sure our access token is still good
+                if ($googleClient->isAccessTokenExpired()) {
                     $googleClient->refreshToken($user['google_session_token']);
-
-                    $_SESSION['googleSessionToken'] = $googleClient->getAccessToken();
-                }
-                catch (Exception $e)
-                {
-                    $failure = 1;
                 }
             }
-
-            if (!isset($failure) && isset($_SESSION['googleSessionToken']))
+            catch (Exception $e)
             {
-                try
-                {
-                    $youtube = new Google_Service_YouTube($googleClient);
-                    $channel = $youtube->channels->listChannels('id', array(
-                        'mine' => 'true',
-                    ));
-                }
-                catch (Exception $e)
-                {
-                    echo '<div class="error-alert">ERROR: '.$e->getMessage().'</div>';
-                    $this->displayFooter();
-                    return;
-                }
-
-                $oAuth = new Google_Service_Oauth2($googleClient);
-
-                $userInfo = $oAuth->userinfo->get();
-
-                $user    = '<a href="http://www.youtube.com/channel/'.$channel->items[0]['id'].'">'.$userInfo->email.'</a>';
-                $status  = sprintf(T_('Currently connected as: %s'), $user);
-                $link    = '<a class="disconnect" href="?revoke=google">'.T_('Disconnect').'</a>';
+                $failure = 1;
             }
-            else
+        }
+        // We need to use our refresh token from the db to get an access token
+        elseif (!empty($user['google_session_token']))
+        {
+            try
             {
-                $state = mt_rand();
-                $googleClient->setState($state);
+                $googleClient->refreshToken($user['google_session_token']);
 
-                $_SESSION['state'] = $state;
-
-                $url = $googleClient->createAuthUrl();
-
-                $status = T_('Not Connected');
-                $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
+                $_SESSION['googleSessionToken'] = $googleClient->getAccessToken();
             }
+            catch (Exception $e)
+            {
+                $failure = 1;
+            }
+        }
+
+        if (!isset($failure) && isset($_SESSION['googleSessionToken']))
+        {
+            try
+            {
+                $youtube = new Google_Service_YouTube($googleClient);
+                $channel = $youtube->channels->listChannels('id', array(
+                    'mine' => 'true',
+                ));
+            }
+            catch (Exception $e)
+            {
+                echo '<div class="error-alert">ERROR: '.$e->getMessage().'</div>';
+                $this->displayFooter();
+                return;
+            }
+
+            $oAuth = new Google_Service_Oauth2($googleClient);
+
+            $userInfo = $oAuth->userinfo->get();
+
+            $user    = '<a href="http://www.youtube.com/channel/'.$channel->items[0]['id'].'">'.$userInfo->email.'</a>';
+            $status  = sprintf(T_('Currently connected as: %s'), $user);
+            $link    = '<a class="disconnect" href="?revoke=google">'.T_('Disconnect').'</a>';
+        }
+        else
+        {
+            $state = mt_rand();
+            $googleClient->setState($state);
+
+            $_SESSION['state'] = $state;
+
+            $url = $googleClient->createAuthUrl();
+
+            $status = T_('Not Connected');
+            $link   = '<a href="'.$url.'">'.T_('Connect').'</a>';
         }
 
         echo '

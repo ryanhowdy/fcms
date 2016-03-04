@@ -1,3 +1,18 @@
+  3.6.2
+    #524 - FCMS 3.6.0 - Google/YouTube db updates missing from install
+
+  3.6.1
+    #516 - Update version, added blank state to blue-chrome, updated changelog
+
+  3.6.0
+    #395 - Update Youtube API to v 3.0
+    #484 - Import Pictures from Facebook
+    #491 - New YouTube API
+    #502 - Need a blank state message when no new entries found
+    #504 - 'Unknown' user when creating Polls in admin
+    #505 - Update Picasa API to use new Google API
+    #507 - Facebook: Invalid Scopes: publish_stream, offline_access
+
   3.5.1
     #405 - Upgrade Ajax Chat to latest version
     #424 - Members cannot add to family tree
