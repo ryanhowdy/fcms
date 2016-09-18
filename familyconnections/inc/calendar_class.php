@@ -123,6 +123,22 @@ class Calendar
      */
     function displayCalendarMonth ($month = 0, $year = 0, $day = 0)
     {
+        $templateParams = array(
+            'previousText'     => T_('Previous'),
+            'todayText'        => T_('Today'),
+            'nextText'         => T_('Next'),
+            'dayText'          => T_('Day'),
+            'monthText'        => T_('Month'),
+            'categoriesText'   => T_('Categories'),
+            'addCategoryText'  => T_('Add Category'),
+            'actionsText'      => T_('Actions'),
+            'editCategoryText' => T_('Edit Category'),
+            'printText'        => T_('Print'),
+            'importText'       => T_('Import'),
+            'exportText'       => T_('Export'),
+            'categories'       => $this->getCategories(),
+        );
+
         if ($month == 0)
         {
             $year  = fixDate('Y', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
@@ -137,7 +153,6 @@ class Calendar
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
 
         $weekDays   = getDayNames();
-        $categories = $this->getCategories();
         $eventDays  = $this->getEventDays($month, $year);
         
         // First day of the month starts on which day?
@@ -173,126 +188,95 @@ class Calendar
         $nDay = ($day > date('t', $nextTS)) ? date('t', $nextTS) : $day;
         list($nYear, $nMonth) = explode('-', date('Y-m', $nextTS));
 
-        // Display the month
-        echo '
-            <table id="big-calendar" cellpadding="0" cellspacing="0">
-                <tr>
-                    <th colspan="2">
-                        <a class="prev" href="?year='.$pYear.'&amp;month='.$pMonth.'&amp;day='.$pDay.'">'.T_('Previous').'</a> 
-                        <a class="today" href="?year='.$tYear.'&amp;month='.$tMonth.'&amp;day='.$tDay.'">'.T_('Today').'</a> 
-                        <a class="next" href="?year='.$nYear.'&amp;month='.$nMonth.'&amp;day='.$nDay.'">'.T_('Next').'</a>
-                    </th>
-                    <th colspan="3"><h3>'.formatDate('F Y', "$year-$month-$day").'</h3></th>
-                    <th class="views" colspan="2">
-                        <a class="day" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;view=day">'.T_('Day').'</a> | 
-                        <a class="month" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Month').'</a>
-                    </th>
-                </tr>
-                <tr>';
+        $templateParams['prevUrl']  = '?year='.$pYear.'&amp;month='.$pMonth.'&amp;day='.$pDay;
+        $templateParams['todayUrl'] = '?year='.$tYear.'&amp;month='.$tMonth.'&amp;day='.$tDay;
+        $templateParams['nextUrl']  = '?year='.$nYear.'&amp;month='.$nMonth.'&amp;day='.$nDay;
+
+        $templateParams['dayViewUrl']   = '?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;view=day';
+        $templateParams['monthViewUrl'] = '?year='.$year.'&amp;month='.$month.'&amp;day='.$day;
+        $templateParams['printUrl']     = 'calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;print=1';
+
+        $templateParams['monthYear'] = formatDate('F Y', "$year-$month-$day");
 
         // Weekday names
         for ($w = 0; $w <= 6; $w++)
         {
-            echo '
-                    <td class="weekDays">'.$weekDays[($w+$this->weekStartOffset)%7].'</td>';
+            $templateParams['weekDays'][] = $weekDays[($w+$this->weekStartOffset)%7];
         }
 
-        echo '
-                </tr>';
-            
+        $templateParams['weeks'] = array();
+
+        $templateWeek = array();
+
         $i = 0;
 
-        // Display the days in the month, fill with events
+        // Add weeks array filled with days to the template
         for ($d = (1 - $offset); $d <= $daysInMonth; $d++)
         {
-            // start new row
+            // start new week
             if ($i % 7 == 0)
             {
-                echo '
-                <tr>';
+                $templateWeek = array();
             }
 
-            // display cell for date outside of this month
+            // add a day to the week, outside of the month
             if ($d < 1)
             {
-                echo '
-                    <td class="nonMonthDay">&nbsp;</td>';
+                $templateWeek[] = array('class' => 'nonMonthDay');
             }
-            // display cell for a day in this month
+            // add a day to the week
             else
             {
+                $templateDay = array(
+                    'dayUrl' => '?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'&amp;view=day',
+                    'day'    => $d,
+                );
+
                 // today
                 if ($d == $day)
                 {
-                    echo '
-                    <td class="monthToday">';
+                    $templateDay['class'] = 'monthToday';
                 }
                 // every day other than today
                 else
                 {
-                    echo '
-                    <td class="monthDay">';
+                    $templateDay['class'] = 'monthDay';
                 }
 
                 // add the add cal date link
                 if ($this->fcmsUser->access <= 5)
                 {
-                    echo '<a class="add" href="?add='.$year.'-'.$month.'-'.$d.'">'.T_('Add').'</a>';
+                    $templateDay['addUrl']  = '?add='.$year.'-'.$month.'-'.$d;
+                    $templateDay['addText'] = T_('Add');
                 }
-
-                // display the day #
-                echo '<a href="?year='.$year.'&amp;month='.$month.'&amp;day='.$d.'&amp;view=day">'.$d.'</a>';
 
                 // display the events for each day
                 if (in_array($d, $eventDays))
                 {
-                    $this->displayEvents($month, $d, $year);
+                    $templateDay['events'] = $this->getEvents($month, $d, $year);
                 }
 
-                echo "</td>";
+                $templateWeek[] = $templateDay;
             }
 
             $i++;
             // if we have 7 <td> for the current week close the <tr>
             if ($i % 7 == 0)
             {
-                echo '
-                </tr>';
+                $templateParams['weeks'][] = $templateWeek;
             }
         }
 
-        // close any opening <tr> and insert any additional empty <td>
         if ($i % 7 != 0)
         {
             for ($j = 0; $j < (7 - ($i % 7)); $j++)
             {
-                echo '
-                    <td class="nonMonthDay">&nbsp;</td>';
+                $templateWeek[] = array('class' => 'nonMonthDay');
             }
-            echo '
-                </tr>';
+            $templateParams['weeks'][] = $templateWeek;
         }
 
-        // Display the bottom menu of calendar
-        echo '
-                <tr class="actions">
-                    <td style="text-align:left;" colspan="3">
-                        <b>'.T_('Categories').'</b><br/>
-                        <ul id="category_menu">'.$categories.'
-                            <li><a href="?category=add">'.T_('Add Category').'</a></li>
-                        </ul>
-                    </td>
-                    <td colspan="4">
-                        '.T_('Actions').': 
-                        <a class="print" href="#" 
-                            onclick="window.open(\'calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;print=1\',
-                            \'name\',\'width=700,height=400,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no\'); 
-                            return false;">'.T_('Print').'</a> | 
-                        <a href="?import=true">'.T_('Import').'</a> | 
-                        <a href="?export=true">'.T_('Export').'</a>
-                    </td>
-                </tr>
-            </table>';
+        loadTemplate('calendar', 'month', $templateParams);
     }
 
     /**
@@ -309,13 +293,27 @@ class Calendar
      */
     function displayCalendarDay ($month, $year, $day)
     {
+        $templateParams = array(
+            'previousText'     => T_('Previous'),
+            'todayText'        => T_('Today'),
+            'nextText'         => T_('Next'),
+            'dayText'          => T_('Day'),
+            'monthText'        => T_('Month'),
+            'categoriesText'   => T_('Categories'),
+            'addCategoryText'  => T_('Add Category'),
+            'actionsText'      => T_('Actions'),
+            'editCategoryText' => T_('Edit Category'),
+            'printText'        => T_('Print'),
+            'importText'       => T_('Import'),
+            'exportText'       => T_('Export'),
+            'categories'       => $this->getCategories(),
+        );
+
+        $year  = (int)$year;
         $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-        $year  = (int)$year;
         $day   = (int)$day;
         $day   = str_pad($day, 2, 0, STR_PAD_LEFT);
-
-        $categories = $this->getCategories();
 
         // Previous day links
         $prevTS = strtotime("$year-$month-$day -1 day");
@@ -326,37 +324,30 @@ class Calendar
         $tMonth  = fixDate('m', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
         $tDay    = fixDate('d', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
         $isToday = false;
-        $header  = formatDate(T_('l, F j, Y'), "$year-$month-$day");
+
+        $templateParams['header'] = formatDate(T_('l, F j, Y'), "$year-$month-$day");
 
         if ("$year$month$day" === "$tYear$tMonth$tDay")
         {
             $isToday = true;
-            $header = T_('Today');
+            $templateParams['header'] = T_('Today');
         }
 
         // Next day links
         $nextTS = strtotime("$year-$month-$day +1 day");
         list($nYear, $nMonth, $nDay) = explode('-', date('Y-m-d', $nextTS));
 
-        // Display day 
-        echo '
-            <table id="day-calendar">
-                <tr>
-                    <th class="header" colspan="2">
-                        <div class="navigation">
-                            <a class="prev" href="?year='.$pYear.'&amp;month='.$pMonth.'&amp;day='.$pDay.'&amp;view=day">'.T_('Previous').'</a> 
-                            <a class="today" href="?year='.$tYear.'&amp;month='.$tMonth.'&amp;day='.$tDay.'&amp;view=day">'.T_('Today').'</a> 
-                            <a class="next" href="?year='.$nYear.'&amp;month='.$nMonth.'&amp;day='.$nDay.'&amp;view=day">'.T_('Next').'</a>
-                        </div>
-                        <h3>'.$header.'</h3>
-                        <div class="views">
-                            <a class="day" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;view=day">'.T_('Day').'</a> | 
-                            <a class="month" href="?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Month').'</a>
-                        </div>
-                    </th>
-                </tr>';
+        $templateParams['prevUrl']  = '?year='.$pYear.'&amp;month='.$pMonth.'&amp;day='.$pDay.'&amp;view=day';
+        $templateParams['todayUrl'] = '?year='.$tYear.'&amp;month='.$tMonth.'&amp;day='.$tDay.'&amp;view=day';
+        $templateParams['nextUrl']  = '?year='.$nYear.'&amp;month='.$nMonth.'&amp;day='.$nDay.'&amp;view=day';
 
-        $allDayEvents = array();
+        $templateParams['dayViewUrl']   = '?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;view=day';
+        $templateParams['monthViewUrl'] = '?year='.$year.'&amp;month='.$month.'&amp;day='.$day;
+        $templateParams['printUrl']     = 'calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'&amp;print=1';
+
+        $templateParams['allDayEvents'] = array();
+        $templateParams['times']        = array();
+
         $timeEvents = array();
 
         // Get Events
@@ -385,24 +376,38 @@ class Calendar
             {
                 if (empty($row['time_start']))
                 {
-                    $allDayEvents[] = $row;
+                    $templateParams['allDayEvents'][] = array(
+                        'class' => cleanOutput($row['color']),
+                        'url'   => '?event='.(int)$row['id'],
+                        'title' => cleanOutput($row['title'], 'html'),
+                        'desc'  => cleanOutput($row['desc'], 'html'),
+                    );
                 }
                 else
                 {
                     list($hour, $min, $sec) = explode(':', $row['time_start']);
 
-                    // multiple events for this hour?
-                    if (array_key_exists($hour, $timeEvents))
+                    if (isset($timeEvents[$hour]))
                     {
-                        $singleEvent       = $timeEvents[$hour];
-                        $timeEvents[$hour] = array($singleEvent);
-
-                        array_push($timeEvents[$hour], $row);
+                        $timeEvents[$hour][] = array(
+                            'class' => cleanOutput($row['color']),
+                            'url'   => '?event='.(int)$row['id'],
+                            'start' => cleanOutput($row['time_start']),
+                            'end'   => cleanOutput($row['time_end']),
+                            'title' => cleanOutput($row['title'], 'html'),
+                            'desc'  => cleanOutput($row['desc'], 'html'),
+                        );
                     }
-                    // nope
                     else
                     {
-                        $timeEvents[$hour] = $row;
+                        $timeEvents[$hour] = array(array(
+                            'class' => cleanOutput($row['color']),
+                            'url'   => '?event='.(int)$row['id'],
+                            'start' => cleanOutput($row['time_start']),
+                            'end'   => cleanOutput($row['time_end']),
+                            'title' => cleanOutput($row['title'], 'html'),
+                            'desc'  => cleanOutput($row['desc'], 'html'),
+                        ));
                     }
                 }
             }
@@ -465,29 +470,6 @@ class Calendar
             }
         }
 
-        // All Day Events
-        echo '
-                <tr>
-                    <td class="all-day"></td>
-                    <td class="time-event-data">';
-
-        foreach($allDayEvents AS $event)
-        {
-            $id    = $event['id'];
-            $title = cleanOutput($event['title'], 'html');
-            $desc  = cleanOutput($event['desc'], 'html');
-
-            echo '
-                        <div class="event">
-                            <a class="'.$event['color'].'" href="?event='.$id.'">'.$title.'<span>'.$desc.'</span></a>
-                        </div>';
-        }
-
-        echo '
-                    </td>
-                </tr>';
-
-
         // Time Specific Events
         $times   = $this->getTimesList();
         $curTime = fixDate('Hi', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s'))."00";
@@ -496,19 +478,24 @@ class Calendar
         {
             list($hour, $min, $sec) = explode(':', $key);
 
+            $timeParams = array(
+                'class'  => '',
+                'time'   => $val,
+                'events' => isset($timeEvents[$hour]) ? $timeEvents[$hour] : array(),
+            );
+
             // Only show hours
             if ($min == 30)
             {
                 continue;
             }
 
-            $class = '';
             // Show time past, for today only
             if ($isToday)
             {
                 if ($curTime > $hour.$min.$sec)
                 {
-                    $class = 'past';
+                    $timeParams['class'] = 'past';
                 }
             }
 
@@ -517,56 +504,18 @@ class Calendar
             {
                 if ($hour == 0)
                 {
-                    echo '
-                <tr>
-                    <td class="time '.$class.'">'.T_('12:00 am - 7:00 am').'</td>
-                    <td class="time-event-data">';
+                    $timeParams['time'] = T_('12:00 am - 7:00 am');
                 }
-
-                $this->displayTimeEvents($timeEvents, $hour);
-
-                if ($hour == 7)
-                {
-                    echo '
-                    </td>
-                </tr>';
-                }
+                $templateParams['times'][] = $timeParams;
             }
             // Regular times greater than 7:00am
             else
             {
-                echo '
-                <tr>
-                    <td class="time '.$class.'">'.$val.'</td>
-                    <td class="time-event-data">';
-
-                $this->displayTimeEvents($timeEvents, $hour);
-
-                echo '
-                    </td>
-                </tr>';
+                $templateParams['times'][] = $timeParams;
             }
         }
 
-        echo '
-                <tr class="actions">
-                    <td style="text-align:left;">
-                        <b>'.T_('Categories').'</b><br/>
-                        <ul id="category_menu">'.$categories.'
-                            <li><a href="?category=add">'.T_('Add Category').'</a></li>
-                        </ul>
-                    </td>
-                    <td>
-                        '.T_('Actions').': 
-                        <a class="print" href="#" 
-                            onclick="window.open(\'inc/calendar_print.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'\',
-                            \'name\',\'width=700,height=400,scrollbars=yes,resizable=yes,location=no,menubar=no,status=no\'); 
-                            return false;">'.T_('Print').'</a> | 
-                        <a href="?import=true">'.T_('Import').'</a> | 
-                        <a href="?export=true">'.T_('Export').'</a>
-                    </td>
-                </tr>
-            </table>';
+        loadTemplate('calendar', 'day', $templateParams);
     }
 
     /**
@@ -877,160 +826,6 @@ class Calendar
     }
 
     /**
-     * displayMonthEvents 
-     * 
-     * Displays a listing of events for a given month.
-     * Used on the homepage with the small calendar view.
-     *
-     * @param int $month 
-     * @param int $year 
-     *
-     * @return void
-     */
-    function displayMonthEvents ($month, $year)
-    {
-        $month = (int)$month;
-        $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-        $year  = (int)$year;
-
-        $gm_next   = gmdate('Y-m-d H:i:s', gmmktime(gmdate('h'), gmdate('i'), gmdate('s'), $month+1, 1, $year));
-        $nextMonth = fixDate('m', $this->fcmsUser->tzOffset, $gm_next);
-
-        $today      = fixDate('Ymd', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
-        $today_year = fixDate('Y',   $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
-
-        $sql = "SELECT `id`, DATE_FORMAT(`date`, '%m%d') as day, `title`, `desc`, 
-                    `date`, `private`, `created_by`, `repeat`
-                FROM fcms_calendar 
-                WHERE (`date` LIKE '$year-$month-%%') 
-                OR (`date` LIKE '$year-$nextMonth-%%') 
-                OR (`date` LIKE '%%%%-$month-%%' AND `repeat` = 'yearly') 
-                OR (`date` LIKE '%%%%-$nextMonth-%%' AND `repeat` = 'yearly') 
-                ORDER BY day";
-
-        $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
-
-        $events = array();
-
-        if (count($rows) > 0)
-        {
-            foreach ($rows as $row)
-            {
-                $events[] = $row;
-            }
-        }
-
-        // Get birthdays
-        $sql = "SELECT `id`, `fname`, `lname`, `dob_year`, `dob_month`, `dob_day`, 
-                    `dod_year`, `dod_month`, `dod_day` 
-                FROM `fcms_users` 
-                WHERE `dob_month` = ?";
-
-        $rows = $this->fcmsDatabase->getRows($sql, $month);
-        if ($rows === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
-
-        if (count($rows) > 0)
-        {
-            foreach ($rows as $r)
-            {
-                if (empty($r['dob_month']) || empty($r['dob_day']))
-                {
-                    continue;
-                }
-
-                if (!empty($r['dod_year']) || !empty($r['dod_month']) || !empty($r['dod_day']))
-                {
-                    continue;
-                }
-
-                $age = getAge($r['dob_year'], $r['dob_month'], $r['dob_day'], "$year-$month-".$r['dob_day']);
-
-                $r['id']         = 'birthday'.$r['id'];
-                $r['day']        = $r['dob_month'].$r['dob_day'];
-                $r['date']       = $r['dob_year'].'-'.$r['dob_month'].'-'.$r['dob_day'];
-                $r['title']      = $r['fname'].' '.$r['lname'];
-                $r['desc']       = sprintf(T_('%s turns %s today.'), $r['fname'], $age);
-                $r['private']    = 0;
-                $r['repeat']     = 'yearly';
-                $r['created_by'] = $r['id'];
-
-                $events[] = $r;
-            }
-        }
-
-        if (count($events) <= 0)
-        {
-            return;
-        }
-
-        // show the next 5
-        $count = 0;
-
-        // fix order
-        $events = subval_sort($events, 'day');
-
-        foreach ($events as $row)
-        {
-            if ($count > 5)
-            {
-                break;
-            }
-
-            $show = false;
-
-            list($event_year, $event_month, $event_day) = explode("-", $row['date']);
-
-            // Fix repeating event year
-            if ($row['repeat'] == 'yearly')
-            {
-                $event_year = $today_year;
-            }
-
-            // Skip events that have already happened
-            if ($event_year.$event_month.$event_day < $today)
-            {
-                continue;
-            }
-
-            if ($row['private'] == 0)
-            {
-                $show = true;
-            }
-            else
-            {
-                if ($row['created_by'] == $this->fcmsUser->id)
-                {
-                    $show = true;
-                }
-            }
-
-            if ($show)
-            {
-                $count++;
-
-                $title = !empty($row['desc']) ? $row['desc'] : $row['title'];
-                $title = cleanOutput($title);
-                $event = cleanOutput($row['title']);
-
-                echo '
-                <div class="events">
-                    <a title="'.$title.'" href="calendar.php?event='.$row['id'].'">'.$event.'</a><br/>
-                    '.formatDate(T_('M. d'), $row['date']).'
-                </div>';
-            }
-        }
-    }
-
-    /**
      * getTodaysEventsTemplateParams
      *
      * Display the events happening today.  Used on the homepage.
@@ -1159,18 +954,17 @@ class Calendar
     }
 
     /**
-     * displayEvents 
+     * getEvents 
      *
      * Display the events for a given day.
      * 
-     * @param int     $month 
-     * @param int     $day 
-     * @param int     $year 
-     * @param boolean $showDesc 
+     * @param int $month 
+     * @param int $day 
+     * @param int $year 
      * 
      * @return  void
      */
-    function displayEvents ($month, $day, $year, $showDesc = false)
+    function getEvents ($month, $day, $year)
     {
         $month = (int)$month;
         $month = str_pad($month, 2, 0, STR_PAD_LEFT);
@@ -1191,21 +985,11 @@ class Calendar
                     AND c.`category` = ca.`id`
                 ORDER BY c.`time_start`";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
+        $events = $this->fcmsDatabase->getRows($sql);
+        if ($events === false)
         {
             $this->fcmsError->displayError();
             return;
-        }
-
-        $events = array();
-
-        if (count($rows) > 0)
-        {
-            foreach ($rows as $row)
-            {
-                $events[] = $row;
-            }
         }
 
         $birthdayCategory = 1;
@@ -1275,113 +1059,90 @@ class Calendar
         {
             $times = $this->getTimesList(false);
 
-            foreach ($events as $event)
+            for ($i = 0; $i < count($events); $i++)
             {
                 $show = false;
 
                 // always display non-private events
-                if ($event['private'] == 0)
+                if ($events[$i]['private'] == 0)
                 {
                     $show = true;
                 }
                 // show private events to the user who created it
-                elseif ($event['created_by'] == $this->fcmsUser->id)
+                elseif ($events[$i]['created_by'] == $this->fcmsUser->id)
                 {
                     $show = true;
                 }
 
-                if ($show)
+                if (!$show)
                 {
-                    // Show The Description
-                    if ($showDesc)
-                    {
-                        if ($event['id'][0] == 'b')
-                        {
-                            $id = 'birthday'.(int)substr($event['id'], 8);
-                        }
-                        else
-                        {
-                            $id = (int)$event['id'];
-                        }
-
-                        $color = cleanOutput($event['color']);
-                        $title = cleanOutput($event['title']);
-                        $desc  = cleanOutput($event['desc']);
-
-                        echo '
-                            <div class="event">
-                                <a class="'.$color.'" href="?event='.$id.'">'.$title.'<span>'.$desc.'</span></a>
-                            </div>';
-                    }
-                    // No description
-                    else
-                    {
-                        // event title/description
-                        if (empty($event['desc']))
-                        {
-                            $title = cleanOutput($event['title']);
-
-                            $tooltipDetails = '<h5>'.$title.'</h5>';
-                        }
-                        else
-                        {
-                            $cleanTitle = cleanOutput($event['title']);
-                            $cleanDesc  = cleanOutput($event['desc']);
-
-                            $title = $cleanTitle.' : '.$cleanDesc;
-
-                            $tooltipDesc = $cleanDesc;
-                            if (strlen($tooltipDesc) > 150)
-                            {
-                                $tooltipDesc = substr($tooltipDesc, 0, 147)."...";
-                            }
-
-                            $tooltipDetails = '<h5 class="highlight">'.$cleanTitle.'</h5><h5>'.$tooltipDesc.'</h5>';
-                        }
-
-                        // event time
-                        $start = '';
-                        $end   = '';
-                        if (isset($times[$event['time_start']]))
-                        {
-                            $start = $times[$event['time_start']];
-
-                            $tooltipDetails .= '<span>'.$start;
-
-                            if (isset($times[$event['time_end']]))
-                            {
-                                if ($event['time_start'] != $event['time_end'])
-                                {
-                                    $end = ' - '.$times[$event['time_end']];
-
-                                    $tooltipDetails .= $end;
-                                }
-                            }
-                            $tooltipDetails .= '</span>';
-                        }
-
-                        if ($event['id'][0] == 'b')
-                        {
-                            $id = 'birthday'.(int)substr($event['id'], 8);
-                        }
-                        else
-                        {
-                            $id = (int)$event['id'];
-                        }
-
-                        $color = cleanOutput($event['color']);
-
-                        echo '
-                            <div class="event">
-                                <a class="'.$color.' tooltip" title="'.$start.$end.' '.$title.'" href="?event='.$id.'" 
-                                    onmouseover="showTooltip(this)" 
-                                    onmouseout="hideTooltip(this)"><i>'.$start.'</i> '.$title.'</a>
-                                <div class="tooltip" style="display:none">'.$tooltipDetails.'</div>
-                            </div>';
-                    }
+                    continue;
                 }
+
+                $events[$i]['title'] = cleanOutput($events[$i]['title']);
+
+                // event title/description
+                if (empty($events[$i]['desc']))
+                {
+
+                    $events[$i]['desc']    = '<h5>'.$events[$i]['title'].'</h5>';
+                    $events[$i]['details'] = '<h5>'.$events[$i]['title'].'</h5>';
+                }
+                else
+                {
+                    $cleanDesc = cleanOutput($events[$i]['desc']);
+
+                    $title = $events[$i]['title'].' : '.$cleanDesc;
+
+                    $tooltipDesc = $cleanDesc;
+                    if (strlen($tooltipDesc) > 150)
+                    {
+                        $tooltipDesc = substr($tooltipDesc, 0, 147)."...";
+                    }
+
+                    $events[$i]['details'] = '<h5 class="highlight">'.$events[$i]['title'].'</h5><h5>'.$tooltipDesc.'</h5>';
+                }
+
+                // event time
+                $start = '';
+                $end   = '';
+                if (isset($times[$events[$i]['time_start']]))
+                {
+                    $start = $times[$events[$i]['time_start']];
+
+                    $events[$i]['details'] .= '<span>'.$start;
+
+                    if (isset($times[$events[$i]['time_end']]))
+                    {
+                        if ($events[$i]['time_start'] != $events[$i]['time_end'])
+                        {
+                            $end = ' - '.$times[$events[$i]['time_end']];
+
+                            $events[$i]['details'] .= $end;
+                        }
+                    }
+                    $events[$i]['details'] .= '</span>';
+                }
+
+                $events[$i]['start'] = $start;
+                $events[$i]['end']   = $end;
+
+                if ($events[$i]['id'][0] == 'b')
+                {
+                    $id = 'birthday'.(int)substr($events[$i]['id'], 8);
+                }
+                else
+                {
+                    $id = (int)$events[$i]['id'];
+                }
+
+                $events[$i]['url']   = '?event='.$id;
+                $events[$i]['class'] = cleanOutput($events[$i]['color']);
+
             } // foreach
         }
+
+        return $events;
     }
 
     /**
@@ -1397,19 +1158,33 @@ class Calendar
         // Check Access
         if ($this->fcmsUser->access > 3)
         {
-            echo '
-            <div class="error-alert">'.T_('You do not have permission to perform this task.').'</div>';
+            loadTemplate('calendar', 'add', array('error' => T_('You do not have permission to perform this task.')));
+            return;
         }
 
         // Validate date YYYY-MM-DD or YYYY-M-D
         if (!preg_match('/[0-9]{4}-[0-9]|[0-9]{2}-[0-9]|[0-9]{2}/', $addDate))
         {
-            echo '
-            <div class="error-alert">'.T_('Invalid Date').'</div>';
+            loadTemplate('calendar', 'add', array('error' => T_('Invalid Date.')));
+            return;
         }
 
-        // Format date
-        $dateTitle = formatDate(T_('M. d, Y'), $addDate);
+        $templateParams = array(
+            'eventText'        => T_('Event'),
+            'date'             => formatDate(T_('M. d, Y'), $addDate),
+            'descriptionText'  => T_('Description'),
+            'timeText'         => T_('Time'),
+            'throughText'      => T_('through'),
+            'allDayText'       => T_('All Day'),
+            'categoryText'     => T_('Category'),
+            'repeatYearlyText' => T_('Repeat (Yearly)'),
+            'privateText'      => T_('Private?'),
+            'inviteGuestsText' => T_('Invite Guests?'),
+            'addText'          => T_('Add'),
+            'addDate'          => $addDate,
+            'orText'           => T_('or'),
+            'cancelText'       => T_('Cancel'),
+        );
 
         // Split date
         list($year, $month, $day) = explode('-', $addDate);
@@ -1426,6 +1201,8 @@ class Calendar
             $years[$i] = $i;
         }
 
+        $templateParams['cancelUrl'] = 'calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day;
+
         // Setup time fields
         $defaultTimeStart = fixDate('H:i', $this->fcmsUser->tzOffset, date('Y-m-d H:i:s'));
         list($hour, $min) = explode(':', $defaultTimeStart);
@@ -1441,6 +1218,20 @@ class Calendar
         }
         $times = $this->getTimesList();
 
+        foreach ($times as $key => $val)
+        {
+            $templateParams['startTimes'][] = array(
+                'value'    => $key,
+                'selected' => ($defaultTimeStart == $key ? 'selected="selected"' : ''),
+                'text'     => $val,
+            );
+            $templateParams['endTimes'][]   = array(
+                'value'    => $key,
+                'selected' => ($defaultTimeEnd == $key ? 'selected="selected"' : ''),
+                'text'     => $val,
+            );
+        }
+
         // Setup category field
         $sql = "SELECT * 
                 FROM `fcms_category` 
@@ -1453,100 +1244,15 @@ class Calendar
             return;
         }
 
-        $choose = '';
-
         foreach ($rows as $r)
         {
-            if ($r['name'] == '')
-            {
-                $choose = '<option value="'.$r['id'].'"></option>';
-            }
-            else
-            {
-                $categories[$r['id']] = $r['name'];
-            }
+            $templateParams['categories'][] = array(
+                'value' => $r['id'],
+                'text'  => $r['name'],
+            );
         }
 
-        // Display the form
-        echo '
-            <form id="frm" method="post" action="calendar.php">
-                <fieldset>
-                    <legend><span>'.$dateTitle.'</span></legend>
-
-                    <div id="main-cal-info">
-                        <div class="field-row">
-                            <div class="field-label"><label for="title"><b>'.T_('Event').'</b></label></div>
-                            <div class="field-widget">
-                                <input type="text" id="title" name="title" size="40">
-                                <script type="text/javascript">
-                                    var ftitle = new LiveValidation(\'title\', { onlyOnSubmit: true});
-                                    ftitle.add(Validate.Presence, {failureMessage: ""});
-                                </script>
-                            </div>
-                        </div>
-                        <div class="field-row">
-                            <div class="field-label"><label for="desc"><b>'.T_('Description').'</b></label></div>
-                            <div class="field-widget">
-                                <input type="text" id="desc" name="desc" size="50">
-                            </div>
-                        </div>
-                        <div id="time" class="field-row">
-                            <div class="field-label"><label for="sday"><b>'.T_('Time').'</b></label></div>
-                            <div class="field-widget">
-                                <select id="timestart" name="timestart">
-                                    '.buildHtmlSelectOptions($times, $defaultTimeStart).'
-                                </select> &nbsp;
-                                '.T_('through').' &nbsp;
-                                <select id="timeend" name="timeend">
-                                    '.buildHtmlSelectOptions($times, $defaultTimeEnd).'
-                                </select> &nbsp;
-                                <input id="all-day" name="all-day" type="checkbox" 
-                                    onclick="toggleDisable($(\'#timestart\'), $(\'#timeend\'))"/>
-                                <label for="all-day">'.T_('All Day').'</label> 
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="more-cal-info">
-                        <div id="cal-details">
-                            <div class="field-row">
-                                <div class="field-label"><label for="category"><b>'.T_('Category').'</b></label></div>
-                                <div class="field-widget">
-                                    <select id="category" name="category">
-                                        '.$choose.'
-                                        '.buildHtmlSelectOptions($categories, 0).'
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="field-row">
-                                <div class="field-widget">
-                                    <input type="checkbox" name="repeat-yearly" id="repeat-yearly"/>
-                                    <label for="repeat-yearly"><b>'.T_('Repeat (Yearly)').'</b></label>
-                                </div>
-                            </div>
-                            <div class="field-row">
-                                <div class="field-widget">
-                                    <input type="checkbox" name="private" id="private"/>
-                                    <label for="private"><b>'.T_('Private?').'</b></label>
-                                </div>
-                            </div>
-                            <div class="field-row">
-                                <div class="field-widget">
-                                    <input type="checkbox" name="invite" id="invite"/>
-                                    <label for="invite"><b>'.T_('Invite Guests?').'</b></label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p>
-                        <input type="hidden" id="date" name="date" value="'.$addDate.'"/> 
-                        <input class="sub1" type="submit" name="add" value="'.T_('Add').'"/> 
-                        '.T_('or').'&nbsp;
-                        <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Cancel').'</a>
-                    </p>
-                </form>
-            </fieldset>';
+        loadTemplate('calendar', 'add', $templateParams);
     }
 
     /**
@@ -1567,38 +1273,80 @@ class Calendar
                 WHERE `id` = ?
                 LIMIT 1";
 
-        $row = $this->fcmsDatabase->getRow($sql, $id);
-        if ($row === false)
+        $calendar = $this->fcmsDatabase->getRow($sql, $id);
+        if ($calendar === false)
         {
             $this->fcmsError->displayError();
             return;
         }
 
         // Make sure then can edit this event
-        if ($this->fcmsUser->access > 1 and $row['created_by'] != $this->fcmsUser->id)
+        if ($this->fcmsUser->access > 1 and $calendar['created_by'] != $this->fcmsUser->id)
         {
-            echo '
-            <div class="error-alert">'.T_('You do not have permission to perform this task.') .'</div>';
+            loadTemplate('calendar', 'add', array('error' => T_('You do not have permission to perform this task.')));
             return;
         }
 
-        list($year, $month, $day) = explode('-', $row['date']);
+        $templateParams = array(
+            'id'               => (int)$calendar['id'],
+            'editEventText'    => T_('Edit Event'),
+            'eventText'        => T_('Event'),
+            'title'            => cleanOutput($calendar['title']),
+            'descriptionText'  => T_('Description'),
+            'description'      => cleanOutput($calendar['desc']),
+            'dateText'         => T_('Date'),
+            'timeText'         => T_('Time'),
+            'throughText'      => T_('through'),
+            'allDayText'       => T_('All Day'),
+            'categoryText'     => T_('Category'),
+            'repeatYearlyText' => T_('Repeat (Yearly)'),
+            'privateText'      => T_('Private?'),
+            'inviteGuestsText' => T_('Invite Guests?'),
+            'editText'         => T_('Edit'),
+            'deleteText'       => T_('Delete'),
+            'cancelText'       => T_('Cancel'),
+            'orText'           => T_('or'),
+            'repeatChecked'    => ($calendar['repeat'] == 'yearly' ? 'checked="checked"' : ''),
+            'privateChecked'   => ($calendar['private'] == 1       ? 'checked="checked"' : ''),
+            'inviteChecked'    => ($calendar['invite'] == 1        ? 'checked="checked"' : ''),
+        );
+
+        list($year, $month, $day) = explode('-', $calendar['date']);
         for ($i = 1; $i <= 31; $i++) {
-            $days[$i] = $i;
+            $templateParams['days'][] = array(
+                'value'    => $i,
+                'selected' => ($day == $i ? 'selected="selected"' : ''),
+                'text'     => $i,
+            );
         }
         for ($i = 1; $i <= 12; $i++) {
-            $months[$i] = getMonthAbbr($i);
+            $templateParams['months'][] = array(
+                'value'    => $i,
+                'selected' => ($month == $i ? 'selected="selected"' : ''),
+                'text'     => getMonthAbbr($i),
+            );
         }
-        for ($i = 1900; $i <= date('Y')+5; $i++) {
-            $years[$i] = $i;
-        }
+        $templateParams['year'] = $year;
+
+        $templateParams['cancelUrl'] = 'calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day;
 
         $times = $this->getTimesList();
 
-        $title  = cleanOutput($row['title']);
-        $desc   = cleanOutput($row['desc']);
+        foreach ($times as $key => $val)
+        {
+            $templateParams['startTimes'][] = array(
+                'value'    => $key,
+                'selected' => ($calendar['time_start'] == $key ? 'selected="selected"' : ''),
+                'text'     => $val,
+            );
+            $templateParams['endTimes'][]   = array(
+                'value'    => $key,
+                'selected' => ($calendar['time_end'] == $key ? 'selected="selected"' : ''),
+                'text'     => $val,
+            );
+        }
 
-        $allDayChk = empty($row['time_start']) ? 'checked="checked"' : '';
+        $templateParams['allDayChecked'] = empty($calendar['time_start']) ? 'checked="checked"' : '';
 
         // Setup category field
         $sql = "SELECT *
@@ -1612,113 +1360,16 @@ class Calendar
             return;
         }
 
-        $choose = '';
-
         foreach ($rows as $r)
         {
-            if ($r['name'] == '')
-            {
-                $choose = '<option value="'.$r['id'].'"></option>';
-            }
-            else
-            {
-                $categories[$r['id']] = $r['name'];
-            }
+            $templateParams['categories'][] = array(
+                'value'    => (int)$r['id'],
+                'selected' => ($calendar['category'] == $r['id'] ? 'selected="selected"' : ''),
+                'text'     => cleanOutput($r['name']),
+            );
         }
 
-        $repeatChk  = ($row['repeat'] == 'yearly')  ? 'checked="checked"' : '';
-        $privateChk = ($row['private'] == 1)        ? 'checked="checked"' : '';
-        $inviteChk  = ($row['invite'] == 1)         ? 'checked="checked"' : '';
-
-        // Display the form
-        echo '
-            <form id="frm" method="post" action="calendar.php">
-                <fieldset>
-                    <legend><span>'.T_('Edit Event').'</span></legend>
-                    <div class="field-row">
-                        <div class="field-label"><label for="title"><b>'.T_('Event').'</b></label></div>
-                        <div class="field-widget">
-                            <input type="text" id="title" name="title" size="40" value="'.$title.'"/>
-                            <script type="text/javascript">
-                                var ftitle = new LiveValidation(\'title\', { onlyOnSubmit: true});
-                                ftitle.add(Validate.Presence, {failureMessage: ""});
-                            </script>
-                        </div>
-                    </div>
-                    <div class="field-row">
-                        <div class="field-label"><label for="desc"><b>'.T_('Description').'</b></label></div>
-                        <div class="field-widget">
-                            <input type="text" id="desc" name="desc" size="50" value="'.$desc.'"/>
-                        </div>
-                    </div>
-                    <div class="field-row">
-                        <div class="field-label"><label for="sday"><b>'.T_('Date').'</b></label></div>
-                        <div class="field-widget">
-                            <select id="sday" name="sday">
-                                '.buildHtmlSelectOptions($days, $day).'
-                            </select>
-                            <select id="smonth" name="smonth">
-                                '.buildHtmlSelectOptions($months, $month).'
-                            </select>
-                            <select id="syear" name="syear">
-                                '.buildHtmlSelectOptions($years, $year).'
-                            </select>
-                        </div>
-                    </div>
-                    <div id="time" class="field-row">
-                        <div class="field-label"><label for="sday"><b>'.T_('Time').'</b></label></div>
-                        <div class="field-widget">
-                            <select id="timestart" name="timestart">
-                                <option></option>
-                                '.buildHtmlSelectOptions($times, $row['time_start']).'
-                            </select> &nbsp;
-                            '.T_('through').' &nbsp;
-                            <select id="timeend" name="timeend">
-                                <option></option>
-                                '.buildHtmlSelectOptions($times, $row['time_end']).'
-                            </select> &nbsp;
-                            <input id="all-day" named="all-day" type="checkbox" 
-                                onclick="toggleDisable($(\'#timestart\'), $(\'#timeend\'))" '.$allDayChk.'/>
-                            <label for="all-day">'.T_('All Day').'</label> 
-                        </div>
-                    </div>
-                    <div class="field-row">
-                        <div class="field-label"><label for="category"><b>'.T_('Category').'</b></label></div>
-                        <div class="field-widget">
-                            <select id="category" name="category">
-                                '.$choose.'
-                                '.buildHtmlSelectOptions($categories, $row['category']).'
-                            </select>
-                        </div>
-                    </div>
-                    <div class="field-row">
-                        <div class="field-label"><label for="repeat-yearly"><b>'.T_('Repeat (Yearly)').'</b></label></div>
-                        <div class="field-widget">
-                            <input type="checkbox" name="repeat-yearly" id="repeat-yearly" ' . $repeatChk . '/>
-                        </div>
-                    </div>
-                    <div class="field-row">
-                        <div class="field-label"><label for="private"><b>'.T_('Private?').'</b></label></div>
-                        <div class="field-widget">
-                            <input type="checkbox" name="private" id="private" ' . $privateChk . '/>
-                        </div>
-                    </div>
-                    <div class="field-row">
-                        <div class="field-label"><label for="invite"><b>'.T_('Invite Guests?').'</b></label></div>
-                        <div class="field-widget">
-                            <input type="checkbox" name="invite" id="invite" '.$inviteChk.'/>
-                        </div>
-                    </div>
-
-                    <p>
-                        <input type="hidden" name="id" value="'.$id.'"/>
-                        <input class="sub1" type="submit" name="edit" value="'.T_('Edit').'"/> 
-                        <input class="sub2" type="submit" id="delcal" name="delete" value="'.T_('Delete').'"/>
-                        '.T_('or').'&nbsp;
-                        <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Cancel').'</a>
-                    </p>
-                </form>
-            </fieldset>';
+        loadTemplate('calendar', 'edit', $templateParams);
     }
 
     /**
@@ -1730,9 +1381,12 @@ class Calendar
      *
      * @return  void
      */
-    function displayEvent ($id)
+    function displayEvent ($id, $templateParams = array())
     {
+echo '<h1 style="background-color: red">displayEvent</h1>';
         $id = (int)$id;
+
+        $templateParams['editUrl'] = '?edit='.$id;
 
         $sql = "SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, c.`title`, 
                     c.`desc`, c.`created_by`, cat.`name` AS category, c.`repeat`, c.`private`,
@@ -1751,20 +1405,30 @@ class Calendar
 
         if (count($row) <= 0)
         {
-            echo '<div class="info-alert"><h2>'.T_('I can\'t seem to find that calendar event.').'</h2>';
-            echo '<p>'.T_('Please double check and try again.').'</p></div>';
+            loadTemplate('calendar', 'event', array(
+                'error' => array(
+                        'header' => T_('I can\'t seem to find that calendar event.'),
+                        'errors' => array(
+                            T_('Please double check and try again.'),
+                        ),
+                    ),
+                )
+            );
             return;
         }
 
         $times = $this->getTimesList();
         $date  = formatDate(T_('F j, Y'), $row['date']);
-        $title = cleanOutput($row['title']);
 
         $time = '';
-        $cat  = '';
         $desc = '';
 
         list($year, $month, $day) = explode('-', $row['date']);
+
+        $templateParams['title']       = cleanOutput($row['title']);
+        $templateParams['backUrl']     = 'calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day;
+        $templateParams['category']    = cleanOutput($row['category']);
+        $templateParams['description'] = cleanOutput($row['desc']);
 
         if ($row['repeat'] == 'yearly')
         {
@@ -1778,55 +1442,33 @@ class Calendar
             // one moment in time
             if ($row['time_start'] == $row['time_end'])
             {
-                $time = '<br/>'.sprintf(T_('beginning at %s'), $times[$row['time_start']]);
+                $time = sprintf(T_('beginning at %s'), $times[$row['time_start']]);
             }
             // start and end
             else
             {
-                $time = '<br/>'.sprintf(T_('between %s and %s'), $times[$row['time_start']], $times[$row['time_end']]);
+                $time = sprintf(T_('between %s and %s'), $times[$row['time_start']], $times[$row['time_end']]);
             }
         }
 
-        if (!empty($row['category']))
-        {
-            $cat = ' <h2>'.cleanOutput($row['category']).'</h2>';
-        }
-
-        if (!empty($row['desc']))
-        {
-            $desc = '<br/>'.cleanOutput($row['desc']);
-        }
+        $templateParams['date'] = $date;
+        $templateParams['time'] = $time;
 
         // host/created by
-        $hostOrCreatedTitle = T_('Created By');
+        $templateParams['hostOrCreatedTitle'] = T_('Created By');
         if ($row['invite'] == 1)
         {
-            $hostOrCreatedTitle = T_('Host');
+            $templateParams['hostOrCreatedTitle'] = T_('Host');
         }
 
-        $edit = '';
+        $templateParams['createdBy'] = getUserDisplayName($row['created_by']);
+
         if ($this->fcmsUser->access == 1 || $row['created_by'] == $this->fcmsUser->id)
         {
-            $edit = '<span><a href="?edit='.$id.'" class="edit_event">'.T_('Edit').'</a></span>';
+            $templateParams['edit'] = 1;
         }
 
-        // Display the form
-        echo '
-            <p id="back">
-                <a href="calendar.php?year='.$year.'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Back to Calendar').'</a>
-            </p>
-            <div id="event_details">
-                '.$edit.'
-                <h1>'.$title.'</h1>
-                '.$cat.'
-                <p id="desc">'.$desc.'</p>
-                <div id="when">
-                    <h3>'.T_('When').'</h3>
-                    <p><b>'.$date.'</b> '.$time.'</p>
-                    <h3>'.$hostOrCreatedTitle.'</h3>
-                    <p>'.getUserDisplayName($row['created_by']).'</p>
-                </div>
-            </div>';
+        loadTemplate('calendar', 'event', $templateParams);
 
         // Show invitation stuff
         if ($row['invite'] == 1)
@@ -1860,10 +1502,19 @@ class Calendar
             return;
         }
 
+        $templateParams = array();
+
         if (empty($row))
         {
-            echo '<div class="info-alert"><h2>'.T_('I can\'t seem to find that calendar event.').'</h2>';
-            echo '<p>'.T_('Please double check and try again.').'</p></div>';
+            loadTemplate('calendar', 'event', array(
+                'error' => array(
+                        'header' => T_('I can\'t seem to find that calendar event.'),
+                        'errors' => array(
+                            T_('Please double check and try again.'),
+                        ),
+                    ),
+                )
+            );
             return;
         }
 
@@ -1882,32 +1533,26 @@ class Calendar
         // If this bday is the current user's, edit sends them to their profile
         if ($id == $this->fcmsUser->id)
         {
-            $edit = '<span><a href="profile.php?view=info" class="edit_event">'.T_('Edit').'</a></span>';
+            $templateParams['edit']    = 1;
+            $templateParams['editUrl'] = 'profile.php?view=info';
         }
         // If current user is admin, edit sends them to the admin member's page
         elseif ($this->fcmsUser->access == 1)
         {
-            $edit = '<span><a href="admin/members.php?edit='.$id.'" class="edit_event">'.T_('Edit').'</a></span>';
+            $templateParams['edit']    = 1;
+            $templateParams['editUrl'] = 'admin/members.php?edit='.$id;
         }
 
-        // Display the form
-        echo '
-            <p id="back">
-                <a href="calendar.php?year='.date('Y').'&amp;month='.$month.'&amp;day='.$day.'">'.T_('Back to Calendar').'</a>
-            </p>
-            <div id="event_details">
-                '.$edit.'
-                <h1>'.cleanOutput($row['fname']).' '.cleanOutput($row['lname']).'</h1>
-                <p id="desc">'.sprintf(T_('%s turns %s today.'), cleanOutput($row['fname']), $age).'</p>
-                <div id="when">
-                    <h3>'.T_('When').'</h3>
-                    <p><b>'.$date.'</b></p>
-                </div>
-            </div>';
+        $templateParams['title']       = cleanOutput($row['fname']).' '.cleanOutput($row['lname']);
+        $templateParams['backUrl']     = 'calendar.php?year='.date('Y').'&amp;month='.$month.'&amp;day='.$day;
+        $templateParams['description'] = sprintf(T_('%s turns %s today.'), cleanOutput($row['fname']), $age);
+        $templateParams['date']        = $date;
+
+        loadTemplate('calendar', 'event', $templateParams);
     }
 
     /**
-     * displayInvitationDetails 
+     * displayInvitationDetails
      * 
      * @param int $id 
      * 
@@ -1929,16 +1574,30 @@ class Calendar
             exit();
         }
 
-        $yesCount        = 0;
-        $noCount         = 0;
-        $maybeCount      = 0;
-        $undecidedCount  = 0;
-        $comingYes       = '';
-        $comingNo        = '';
-        $comingMaybe     = '';
-        $comingUndecided = '';
-        $responses       = array();
-        $usersLkup       = array();
+        $templateParams = array(
+            'eventId'   => $id,
+            'whosComing' => array(
+                'yes'       => array(
+                    'count' => 0,
+                    'users' => array(),
+                ),
+                'no'        => array(
+                    'count' => 0,
+                    'users' => array(),
+                ),
+                'maybe'     => array(
+                    'count' => 0,
+                    'users' => array(),
+                ),
+                'undecided' => array(
+                    'count' => 0,
+                    'users' => array(),
+                ),
+            ),
+            'responses' => array(),
+        );
+
+        $usersLkup = array();
 
         foreach ($rows as $r)
         {
@@ -1947,120 +1606,61 @@ class Calendar
                 'id'        => $r['id']
             );
 
-            $img = '';
+            $response = array(
+                'updated' => fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $r['updated']),
+                'text'    => cleanOutput($r['response']),
+            );
 
             $displayname = cleanOutput($r['email']);
             if ($r['user'] != 0)
             {
                 $displayname = getUserDisplayName($r['user'], 2);
             }
+            $response['name'] = $displayname;
 
             if ($r['attending'] === null)
             {
-                $undecidedCount++;
-                $comingUndecided .= "<p>$displayname</p>";
+                $templateParams['whosComing']['undecided']['count']++;
+                $templateParams['whosComing']['undecided']['users'][] = $displayname;
             }
             elseif ($r['attending'] == 0)
             {
-                $noCount++;
-                $img = '<img class="avatar" src="ui/img/attend_no.png" alt="'.T_('No').'"/>';
-                $comingNo .= "<p>$displayname</p>";
+                $templateParams['whosComing']['no']['count']++;
+                $templateParams['whosComing']['no']['users'] = $displayname;
+
+                $response['responseType'] = 'no';
+                $response['responseText'] = T_('No');
             }
             elseif ($r['attending'] == 1)
             {
-                $yesCount++;
-                $img = '<img class="avatar" src="ui/img/attend_yes.png" alt="'.T_('Yes').'"/>';
-                $comingYes .= "<p>$displayname</p>";
+                $templateParams['whosComing']['yes']['count']++;
+                $templateParams['whosComing']['yes']['users'] = $displayname;
+
+                $response['responseType'] = 'yes';
+                $response['responseText'] = T_('Yes');
             }
             elseif ($r['attending'] > 1)
             {
-                $maybeCount++;
-                $img = '<img class="avatar" src="ui/img/attend_maybe.png" alt="'.T_('Maybe').'"/>';
-                $comingMaybe .= "<p>$displayname</p>";
+                $templateParams['whosComing']['maybe']['count']++;
+                $templateParams['whosComing']['maybe']['users'] = $displayname;
+
+                $response['responseType'] = 'maybe';
+                $response['responseText'] = T_('Maybe');
             }
 
-            $responses[] = array(
-                'user'        => $r['user'],
-                'updated'     => $r['updated'],
-                'displayname' => $displayname,
-                'response'    => $r['response'],
-                'attending'   => $r['attending'],
-                'img'         => $img
-            );
+            if ($r['attending'] > 0)
+            {
+                $templateParams['responses'][] = $response;
+            }
         }
 
         if (isset($usersLkup[$this->fcmsUser->id]) && $usersLkup[$this->fcmsUser->id]['attending'] === null)
         {
-            echo '
-            <form action="calendar.php?event='.$id.'" method="post">
-                <h1 id="attending_header">'.T_('Are you attending?').'</h1>
-                <ul id="attending">
-                    <li>
-                        <label for="yes">
-                            <img src="ui/img/attend_yes.png"/><br/>
-                            <b>'.T_('Yes').'</b>
-                        </label>
-                        <input type="radio" id="yes" name="attending" value="1"/>
-                    </li>
-                    <li>
-                        <label for="maybe">
-                            <img src="ui/img/attend_maybe.png"/><br/>
-                            <b>'.T_('Maybe').'</b>
-                        </label>
-                        <input type="radio" id="maybe" name="attending" value="2"/>
-                    </li>
-                    <li>
-                        <label for="no">
-                            <img src="ui/img/attend_no.png"/><br/>
-                            <b>'.T_('No').'</b>
-                        </label>
-                        <input type="radio" id="no" name="attending" value="0"/>
-                    </li>
-                    <li class="submit">
-                        <textarea id="response" name="response" cols="50" rows="10"></textarea>
-                        <input type="hidden" id="id" name="id" value="'.$usersLkup[$this->fcmsUser->id]['id'].'"/>
-                        <input type="submit" id="attend_submit" name="attend_submit" value="'.T_('Submit').'"/>
-                    </li>
-                </ul>
-            </form>';
+            $templateParams['showAttendingForm']     = 1;
+            $templateParams['currentUserResponseId'] = $usersLkup[$this->fcmsUser->id]['id'];
         }
 
-        echo '
-            <div id="leftcolumn">
-                <div id="whos_coming">
-                    <h3>'.T_('Who\'s Coming').'</h3>
-                    <h3 class="coming"><span class="ok"></span>'.T_('Yes').' <i>'.$yesCount.'</i></h3>
-                    <div class="coming_details">'.$comingYes.'</div>
-                    <h3 class="coming"><span class="maybe"></span>'.T_('Maybe').' <i>'.$maybeCount.'</i></h3>
-                    <div class="coming_details">'.$comingMaybe.'</div>
-                    <h3 class="coming"><span class="no"></span>'.T_('No').' <i>'.$noCount.'</i></h3>
-                    <div class="coming_details">'.$comingNo.'</div>
-                    <h3 class="coming">'.T_('Undecided').' <i>'.$undecidedCount.'</i></h3>
-                    <div class="coming_details">'.$comingUndecided.'</div>
-                </div>
-            </div>
-
-            <div id="maincolumn">';
-
-        foreach ($responses as $response)
-        {
-            if (isset($response['attending']))
-            {
-                $updated = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $response['updated']);
-
-                echo '
-                <div class="comment_block">
-                    '.$response['img'].'
-                    <b>'.$response['displayname'].'</b> <i>'.$updated.'</i>
-                    <p>
-                        '.cleanOutput($response['response']).'
-                    </p>
-                </div>';
-            }
-        }
-
-        echo '
-            </div>';
+        loadTemplate('calendar', 'event-invitation', $templateParams);
     }
 
     /**
@@ -2077,17 +1677,11 @@ class Calendar
     {
         $id = (int)$id;
 
-        $name   = '';
-        $none   = '';
-        $red    = '';
-        $orange = '';
-        $yellow = '';
-        $green  = '';
-        $blue   = '';
-        $indigo = '';
-        $violet = '';
-        $url    = '?category=add';
-        $title  = T_('Add New Category');
+        $templateParams = array(
+            'url'    => '?category=add',
+            'title'  => T_('Add New Category'),
+            'name'   => '',
+        );
 
         // Edit
         if ($id > 0)
@@ -2104,63 +1698,16 @@ class Calendar
                 return;
             }
 
-            $title = T_('Edit Category');
-            $url   = '?category=edit&amp;id='.$id;
-            $name  = $row['name'];
+            $templateParams['edit']  = true;
+            $templateParams['id']    = $id;
+            $templateParams['title'] = T_('Edit Category');
+            $templateParams['url']   = '?category=edit&amp;id='.$id;
+            $templateParams['name']  = cleanOutput($row['name']);
 
-            ${$row['color']} = 'checked="checked"';
+            $templateParams[$row['color']] = 'checked="checked"';
         }
 
-        echo '
-            <form method="post" action="'.$url.'">
-                <fieldset>
-                    <legend><span>'.cleanOutput($title).'</span></legend>
-                    <div class="field-row">
-                        <div class="field-label"><label for="name"><b>'.T_('Name').'</b></label></div>
-                        <div class="field-widget">
-                            <input type="text" id="name" name="name" size="40" value="'.cleanOutput($name).'">
-                            <script type="text/javascript">
-                                var fname = new LiveValidation(\'name\', { onlyOnSubmit: true});
-                                fname.add(Validate.Presence, {failureMessage: ""});
-                            </script>
-                        </div>
-                    </div>
-                    <div class="field-row">
-                        <div class="field-label"><label for="color"><b>'.T_('Color').'</b></label></div>
-                        <div class="field-widget">
-                            <label for="none" class="colors none"><input type="radio" '.$none.' name="colors" id="none" value="none"/>'.T_('None').'</label>
-                            <label for="red" class="colors red"><input type="radio" '.$red.' name="colors" id="red" value="red"/>'.T_('Red').'</label>
-                            <label for="orange" class="colors orange"><input type="radio" '.$orange.' name="colors" id="orange" value="orange"/>'.T_('Orange').'</label>
-                            <label for="yellow" class="colors yellow"><input type="radio" '.$yellow.' name="colors" id="yellow" value="yellow"/>'.T_('Yellow').'</label><br/>
-                            <label for="green" class="colors green"><input type="radio" '.$green.' name="colors" id="green" value="green"/>'.T_('Green').'</label>
-                            <label for="blue" class="colors blue"><input type="radio" '.$blue.' name="colors" id="blue" value="blue"/>'.T_('Blue').'</label>
-                            <label for="indigo" class="colors indigo"><input type="radio" '.$indigo.' name="colors" id="indigo" value="indigo"/>'.T_('Indigo').'</label>
-                            <label for="violet" class="colors violet"><input type="radio" '.$violet.' name="colors" id="violet" value="violet"/>'.T_('Violet').'</label>
-                        </div>
-                    </div>';
-        if ($id > 0)
-        {
-            echo '
-                    <p>
-                        <input type="hidden" id="id" name="id" value="'.$id.'"/> 
-                        <input class="sub1" type="submit" id="editcat" name="editcat" value="'.T_('Edit').'"/> 
-                        <input class="sub2" type="submit" id="delcat" name="delcat" value="'.T_('Delete').'"/>
-                        '.T_('or').' &nbsp;
-                        <a href="calendar.php">'.T_('Cancel').'</a>
-                    </p>';
-        }
-        else
-        {
-            echo '
-                    <p>
-                        <input class="sub1" type="submit" id="addcat" name="addcat" value="'.T_('Add').'"/>
-                        '.T_('or').' &nbsp;
-                        <a href="calendar.php">'.T_('Cancel').'</a>
-                    </p>';
-        }
-        echo '
-                </fieldset>
-            </form>';
+        loadTemplate('calendar', 'category', $templateParams);
     }
 
     /**
@@ -2371,18 +1918,7 @@ class Calendar
      */
     function displayImportForm ()
     {
-        echo '
-            <form enctype="multipart/form-data" method="post" action="calendar.php">
-                <fieldset class="add-edit big">
-                    <legend><span>'.T_('Import').'</span></legend>
-                    <p><input class="frm_file" type="file" id="file" name="file"/></p>
-                    <p>
-                        <input type="submit" name="import" value="'.T_('Import').'"/> 
-                        '.T_('or').' &nbsp;
-                        <a href="calendar.php">'.T_('Cancel').'</a>
-                    </p>
-                </fieldset>
-            </form>';
+        loadTemplate('calendar', 'import');
     }
 
     /**
@@ -2428,7 +1964,7 @@ class Calendar
      */
     function getCategories ()
     {
-        $ret = '';
+        $categories = array();
 
         $sql = "SELECT * 
                 FROM `fcms_category` 
@@ -2446,62 +1982,15 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                $ret .= '
-                            <li class="cat '.cleanOutput($r['color']).'">
-                                <a title="'.T_('Edit Category').'" href="?category=edit&amp;id='.$r['id'].'">'.cleanOutput($r['name'], 'html').'</a>
-                            </li>';
+                $categories[] = array(
+                    'class' => cleanOutput($r['color']),
+                    'url'   => '?category=edit&amp;id='.(int)$r['id'],
+                    'name'  => cleanOutput($r['name'], 'html'),
+                );
             }
         }
 
-        return $ret;
-    }
-
-    /**
-     * displayTimeEvents 
-     * 
-     * Given an array of events, and an hour.  Displays all events for that hour.
-     *
-     * @param array $timeEvents 
-     * @param string $hour 
-     * @return void
-     */
-    function displayTimeEvents ($timeEvents, $hour)
-    {
-        if (!is_array($timeEvents)) {
-            return;
-        }
-
-        $t = $this->getTimesList();
-
-        if (isset($timeEvents[$hour]))
-        {
-            if (isset($timeEvents[$hour][0]))
-            {
-                foreach($timeEvents[$hour] AS $event)
-                {
-                    echo '
-                        <div class="event">
-                            <a class="'.cleanOutput($event['color']).'" href="?event='.$event['id'].'">
-                                <i>'.$t[$event['time_start']].' - '.$t[$event['time_end']].'</i>
-                                '.cleanOutput($event['title'], 'html').'
-                                <span>'.cleanOutput($event['desc'], 'html').'</span>
-                            </a>
-                        </div>';
-                }
-            }
-            else
-            {
-                echo '
-                        <div class="event">
-                            <a class="'.$timeEvents[$hour]['color'].'" href="?event='.$timeEvents[$hour]['id'].'">
-                                <i>'.$t[$timeEvents[$hour]['time_start']].'</i>
-                                '.cleanOutput($timeEvents[$hour]['title']).'
-                                <span>'.cleanOutput($timeEvents[$hour]['desc']).'</span>
-                            </a>
-                        </div>';
-            }
-        }
-
+        return $categories;
     }
 
     /**
@@ -2517,107 +2006,107 @@ class Calendar
         if ($whitespace)
         {
             return array(
-                '00:00:00' => '12:00 am',
-                '00:30:00' => '12:30 am',
-                '01:00:00' => '1:00 am',
-                '01:30:00' => '1:30 am',
-                '02:00:00' => '2:00 am',
-                '02:30:00' => '2:30 am',
-                '03:00:00' => '3:00 am',
-                '03:30:00' => '3:30 am',
-                '04:00:00' => '4:00 am',
-                '04:30:00' => '4:30 am',
-                '05:00:00' => '5:00 am',
-                '05:30:00' => '5:30 am',
-                '06:00:00' => '6:00 am',
-                '06:30:00' => '6:30 am',
-                '07:00:00' => '7:00 am',
-                '07:30:00' => '7:30 am',
-                '08:00:00' => '8:00 am',
-                '08:30:00' => '8:30 am',
-                '09:00:00' => '9:00 am',
-                '09:30:00' => '9:30 am',
-                '10:00:00' => '10:00 am',
-                '10:30:00' => '10:30 am',
-                '11:00:00' => '11:00 am',
-                '11:30:00' => '11:30 am',
-                '12:00:00' => '12:00 pm',
-                '12:30:00' => '12:30 pm',
-                '13:00:00' => '1:00 pm',
-                '13:30:00' => '1:30 pm',
-                '14:00:00' => '2:00 pm',
-                '14:30:00' => '2:30 pm',
-                '15:00:00' => '3:00 pm',
-                '15:30:00' => '3:30 pm',
-                '16:00:00' => '4:00 pm',
-                '16:30:00' => '4:30 pm',
-                '17:00:00' => '5:00 pm',
-                '17:30:00' => '5:30 pm',
-                '18:00:00' => '6:00 pm',
-                '18:30:00' => '6:30 pm',
-                '19:00:00' => '7:00 pm',
-                '19:30:00' => '7:30 pm',
-                '20:00:00' => '8:00 pm',
-                '20:30:00' => '8:30 pm',
-                '21:00:00' => '9:00 pm',
-                '21:30:00' => '9:30 pm',
-                '22:00:00' => '10:00 pm',
-                '22:30:00' => '10:30 pm',
-                '23:00:00' => '11:00 pm',
-                '23:30:00' => '11:30 pm',
+                '00:00:00' => T_('12:00 am'),
+                '00:30:00' => T_('12:30 am'),
+                '01:00:00' => T_('1:00 am'),
+                '01:30:00' => T_('1:30 am'),
+                '02:00:00' => T_('2:00 am'),
+                '02:30:00' => T_('2:30 am'),
+                '03:00:00' => T_('3:00 am'),
+                '03:30:00' => T_('3:30 am'),
+                '04:00:00' => T_('4:00 am'),
+                '04:30:00' => T_('4:30 am'),
+                '05:00:00' => T_('5:00 am'),
+                '05:30:00' => T_('5:30 am'),
+                '06:00:00' => T_('6:00 am'),
+                '06:30:00' => T_('6:30 am'),
+                '07:00:00' => T_('7:00 am'),
+                '07:30:00' => T_('7:30 am'),
+                '08:00:00' => T_('8:00 am'),
+                '08:30:00' => T_('8:30 am'),
+                '09:00:00' => T_('9:00 am'),
+                '09:30:00' => T_('9:30 am'),
+                '10:00:00' => T_('10:00 am'),
+                '10:30:00' => T_('10:30 am'),
+                '11:00:00' => T_('11:00 am'),
+                '11:30:00' => T_('11:30 am'),
+                '12:00:00' => T_('12:00 pm'),
+                '12:30:00' => T_('12:30 pm'),
+                '13:00:00' => T_('1:00 pm'),
+                '13:30:00' => T_('1:30 pm'),
+                '14:00:00' => T_('2:00 pm'),
+                '14:30:00' => T_('2:30 pm'),
+                '15:00:00' => T_('3:00 pm'),
+                '15:30:00' => T_('3:30 pm'),
+                '16:00:00' => T_('4:00 pm'),
+                '16:30:00' => T_('4:30 pm'),
+                '17:00:00' => T_('5:00 pm'),
+                '17:30:00' => T_('5:30 pm'),
+                '18:00:00' => T_('6:00 pm'),
+                '18:30:00' => T_('6:30 pm'),
+                '19:00:00' => T_('7:00 pm'),
+                '19:30:00' => T_('7:30 pm'),
+                '20:00:00' => T_('8:00 pm'),
+                '20:30:00' => T_('8:30 pm'),
+                '21:00:00' => T_('9:00 pm'),
+                '21:30:00' => T_('9:30 pm'),
+                '22:00:00' => T_('10:00 pm'),
+                '22:30:00' => T_('10:30 pm'),
+                '23:00:00' => T_('11:00 pm'),
+                '23:30:00' => T_('11:30 pm'),
             );
         }
 
         // remove whitespace
         return array(
-            '00:00:00' => '12:00am',
-            '00:30:00' => '12:30am',
-            '01:00:00' => '1:00am',
-            '01:30:00' => '1:30am',
-            '02:00:00' => '2:00am',
-            '02:30:00' => '2:30am',
-            '03:00:00' => '3:00am',
-            '03:30:00' => '3:30am',
-            '04:00:00' => '4:00am',
-            '04:30:00' => '4:30am',
-            '05:00:00' => '5:00am',
-            '05:30:00' => '5:30am',
-            '06:00:00' => '6:00am',
-            '06:30:00' => '6:30am',
-            '07:00:00' => '7:00am',
-            '07:30:00' => '7:30am',
-            '08:00:00' => '8:00am',
-            '08:30:00' => '8:30am',
-            '09:00:00' => '9:00am',
-            '09:30:00' => '9:30am',
-            '10:00:00' => '10:00am',
-            '10:30:00' => '10:30am',
-            '11:00:00' => '11:00am',
-            '11:30:00' => '11:30am',
-            '12:00:00' => '12:00pm',
-            '12:30:00' => '12:30pm',
-            '13:00:00' => '1:00pm',
-            '13:30:00' => '1:30pm',
-            '14:00:00' => '2:00pm',
-            '14:30:00' => '2:30pm',
-            '15:00:00' => '3:00pm',
-            '15:30:00' => '3:30pm',
-            '16:00:00' => '4:00pm',
-            '16:30:00' => '4:30pm',
-            '17:00:00' => '5:00pm',
-            '17:30:00' => '5:30pm',
-            '18:00:00' => '6:00pm',
-            '18:30:00' => '6:30pm',
-            '19:00:00' => '7:00pm',
-            '19:30:00' => '7:30pm',
-            '20:00:00' => '8:00pm',
-            '20:30:00' => '8:30pm',
-            '21:00:00' => '9:00pm',
-            '21:30:00' => '9:30pm',
-            '22:00:00' => '10:00pm',
-            '22:30:00' => '10:30pm',
-            '23:00:00' => '11:00pm',
-            '23:30:00' => '11:30pm',
+            '00:00:00' => T_('12:00am'),
+            '00:30:00' => T_('12:30am'),
+            '01:00:00' => T_('1:00am'),
+            '01:30:00' => T_('1:30am'),
+            '02:00:00' => T_('2:00am'),
+            '02:30:00' => T_('2:30am'),
+            '03:00:00' => T_('3:00am'),
+            '03:30:00' => T_('3:30am'),
+            '04:00:00' => T_('4:00am'),
+            '04:30:00' => T_('4:30am'),
+            '05:00:00' => T_('5:00am'),
+            '05:30:00' => T_('5:30am'),
+            '06:00:00' => T_('6:00am'),
+            '06:30:00' => T_('6:30am'),
+            '07:00:00' => T_('7:00am'),
+            '07:30:00' => T_('7:30am'),
+            '08:00:00' => T_('8:00am'),
+            '08:30:00' => T_('8:30am'),
+            '09:00:00' => T_('9:00am'),
+            '09:30:00' => T_('9:30am'),
+            '10:00:00' => T_('10:00am'),
+            '10:30:00' => T_('10:30am'),
+            '11:00:00' => T_('11:00am'),
+            '11:30:00' => T_('11:30am'),
+            '12:00:00' => T_('12:00pm'),
+            '12:30:00' => T_('12:30pm'),
+            '13:00:00' => T_('1:00pm'),
+            '13:30:00' => T_('1:30pm'),
+            '14:00:00' => T_('2:00pm'),
+            '14:30:00' => T_('2:30pm'),
+            '15:00:00' => T_('3:00pm'),
+            '15:30:00' => T_('3:30pm'),
+            '16:00:00' => T_('4:00pm'),
+            '16:30:00' => T_('4:30pm'),
+            '17:00:00' => T_('5:00pm'),
+            '17:30:00' => T_('5:30pm'),
+            '18:00:00' => T_('6:00pm'),
+            '18:30:00' => T_('6:30pm'),
+            '19:00:00' => T_('7:00pm'),
+            '19:30:00' => T_('7:30pm'),
+            '20:00:00' => T_('8:00pm'),
+            '20:30:00' => T_('8:30pm'),
+            '21:00:00' => T_('9:00pm'),
+            '21:30:00' => T_('9:30pm'),
+            '22:00:00' => T_('10:00pm'),
+            '22:30:00' => T_('10:30pm'),
+            '23:00:00' => T_('11:00pm'),
+            '23:30:00' => T_('11:30pm'),
         );
     }
 }

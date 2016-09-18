@@ -343,22 +343,26 @@ class Page
         // Finish adding, show the event
         $this->displayHeader();
 
+        $templateParams = array();
+
         // Did the user try to make a yearly event also an invitation?
         if ($notify_user_changed_event == 1)
         {
-            echo '
-                <div class="error-alert">
-                    <h3>'.T_('You cannot invite guests to a repeating event.').'</h3>
-                    <p>'.T_('Your event was created, but no invitations were sent.').'</p>
-                    <p>'.T_('Please create a new non-repeating event and invite guests to that.').'</p>
-                </div>';
+            $templateParams['error'] = array(
+                'showForm' => true,
+                'header'   => T_('You cannot invite guests to a repeating event.'),
+                'errors'   => array(
+                    T_('Your event was created, but no invitations were sent.'),
+                    T_('Please create a new non-repeating event and invite guests to that.'),
+                ),
+            );
         }
         else
         {
             displayOkMessage();
         }
 
-        $this->fcmsCalendar->displayEvent($id);
+        $this->fcmsCalendar->displayEvent($id, $templateParams);
         $this->displayFooter();
     }
 
@@ -485,13 +489,15 @@ class Page
         // Did the user try to make a yearly event also an invitation?
         if ($notify_user_changed_event == 1)
         {
-            echo '
-                <div class="error-alert">
-                    <h3>'.T_('You cannot invite guests to a repeating event.').'</h3>
-                    <p>'.T_('The changes to this  event have been saved, but no invitations were sent.').'</p>
-                    <p>'.T_('Please create a new non-repeating event and invite guests to that.').'</p>
-                </div>';
-            $this->fcmsCalendar->displayEvent($id);
+            $templateParams['error'] = array(
+                'showForm' => true,
+                'header'   => T_('You cannot invite guests to a repeating event.'),
+                'errors'   => array(
+                    T_('The changes to this  event have been saved, but no invitations were sent.'),
+                    T_('Please create a new non-repeating event and invite guests to that.'),
+                ),
+            );
+            $this->fcmsCalendar->displayEvent($id, $templateParams);
         }
         else
         {
@@ -531,8 +537,15 @@ class Page
         }
         else
         {
-            echo '<div class="info-alert"><h2>'.T_('I can\'t seem to find that calendar event.').'</h2>';
-            echo '<p>'.T_('Please double check and try again.').'</p></div>';
+            loadTemplate('calendar', 'event', array(
+                'error' => array(
+                        'header' => T_('I can\'t seem to find that calendar event.'),
+                        'errors' => array(
+                            T_('Please double check and try again.'),
+                        ),
+                    ),
+                )
+            );
         }
 
         $this->displayFooter();
@@ -579,19 +592,12 @@ class Page
     {
         $this->displayHeader();
 
-        echo '
-            <div class="info-alert">
-                <form action="calendar.php" method="post">
-                    <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
-                    <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
-                    <div>
-                        <input type="hidden" name="id" value="'.(int)$_POST['id'].'"/>
-                        <input type="hidden" name="confirmed" value="1"/>
-                        <input style="float:left;" type="submit" id="delconfirm" name="delete" value="'.T_('Yes').'"/>
-                        <a style="float:right;" href="calendar.php">'.T_('Cancel').'</a>
-                    </div>
-                </form>
-            </div>';
+        loadTemplate('global', 'confirmation', array(
+                'formUrl'   => 'calendar.php',
+                'cancelUrl' => 'calendar.php',
+                'id'        => (int)$_POST['id'],
+            )
+        );
 
         $this->displayFooter();
     }
@@ -806,26 +812,11 @@ class Page
      */
     function displayPrintCalendar ()
     {
-        echo '
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_pgettext('Language Code for this translation', 'lang').'" lang="'.T_pgettext('Language Code for this translation', 'lang').'">
-<head>
-<title>'.getSiteName().' - '.T_('powered by').' '.getCurrentVersion().'</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="author" content="Ryan Haudenschilt" />
-<style type="text/css">
-#big-calendar { width: 658px; border-collapse: collapse; }
-a { text-decoration: none; }
-h3 { text-align: center; }
-th { height: 50px; }
-td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align: top; line-height: 10pt; overflow: hidden; }
-.weekDays { padding: 3px; background-color: #ccc; text-align: center; font-weight: bold; }
-.nonMonthDay { background-color: #eee; }
-.add, .prev, .next, .today, .views, .actions { display: none; }
-.event { padding: 5px 0 2px 0; }
-</style>
-</head>
-<body onload="window.print();">';
+        $params = array(
+            'sitename' => getSiteName(),
+            'version'  => getCurrentVersion(),
+        );
+        loadTemplate('calendar', 'print', $params);
 
         // Use the supplied date, if available
         if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day']))
@@ -843,12 +834,6 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
         {
             $this->fcmsCalendar->displayCalendarMonth();
         }
-
-        echo '
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-</body>
-</html>';
     }
 
     /**
@@ -925,7 +910,7 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
         }
         asort($members);
 
-        $rows = '';
+        $rows = array();
         foreach ($members as $id => $arr)
         {
             if ($id == $this->fcmsUser->id)
@@ -933,48 +918,19 @@ td { padding: 0 0 30px 2px; width: 94px; border: 1px solid #000; vertical-align:
                 continue;
             }
 
-            $rows .= '<tr>';
-            $rows .= '<td class="chk"><input type="checkbox" id="member'.(int)$id.'" name="member[]" value="'.(int)$id.'"/></td>';
-            $rows .= '<td>'.cleanOutput($members[$id]['name']).'</td>';
-            $rows .= '<td>'.cleanOutput($members[$id]['email']);
-            $rows .= '<input type="hidden" name="id'.(int)$id.'" value="'.cleanOutput($members[$id]['email']).'"/></td></tr>';
+            $rows[] = array(
+                'id'    => (int)$id,
+                'name'  => cleanOutput($members[$id]['name']),
+                'email' => cleanOutput($members[$id]['email']),
+            );
         }
 
-        // Display the form
-        echo '
-            <form id="invite-form" method="post" action="calendar.php?event='.$calendarId.'">
-                <fieldset>
-                    <legend><span>'.T_('Choose Guests').'</span></legend>
-                    <h3>'.T_('Invite Members').'</h3>
-                    <p>
-                        <input type="checkbox" id="all-members" name="all-members" value="yes"/>
-                        <label for="all-members">'.T_('Invite all Members?').'</label>
-                    </p>
-                    <div id="invite-members-list">
-                        <table id="invite-table" cellspacing="0" cellpadding="0">
-                            <thead>
-                                <tr>
-                                    <th class="chk"></td> 
-                                    <th>'.T_('Name').'</td> 
-                                    <th>'.T_('Email').'</td> 
-                                </tr>
-                            </thead>
-                            <tbody>
-                                '.$rows.'
-                            </tbody>
-                        </table>
-                    </div>
-                    <h3>'.T_('Invite Non Members').'</h3>
-                    <span>'.T_('Enter list of emails to invite. One email per line.').'</span>
-                    <textarea name="non-member-emails" id="non-member-emails" rows="10" cols="63"></textarea>
-                    <p style="clear:both">
-                        <input type="hidden" name="calendar" value="'.$calendarId.'"/>
-                        <input class="sub1" type="submit" id="submit-invite" name="submit-invite" value="'.T_('Send Invitations').'"/> 
-                        '.T_('or').'&nbsp;
-                        <a href="calendar.php">'.T_('Cancel').'</a>
-                    </p>
-                </fieldset>
-            </form>';
+        $templateParams = array(
+            'calendarId' => $calendarId,
+            'rows'       => $rows,
+        );
+
+        loadTemplate('calendar', 'invite', $templateParams);
 
         $this->displayFooter();
     }
