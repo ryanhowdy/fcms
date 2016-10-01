@@ -126,11 +126,9 @@ body {
   float: left;
   height: 90px;
   /* logo height - remove bg on hover in IE */
-
   margin: 20px 0 0 0;
   overflow: hidden;
   /* remove bg on hover */
-
   text-align: right;
   width: 321px;
 }
@@ -141,7 +139,6 @@ body {
   text-align: right;
   width: 641px;
   /* 980 (body) - 291 (logo) - 15px (spacer) */
-
 }
 #pagetitle {
   color: #999;
@@ -316,9 +313,7 @@ fieldset legend span {
   position: absolute;
   *top: 0;
   /* IE6 IE7 */
-
   /* top: 0\0/;  IE8 IE9 */
-
 }
 fieldset .field-row {
   *zoom: 1;
@@ -405,7 +400,7 @@ fieldset #post {
   background-color: #eee;
 }
 .info-alert {
-  background: #eeeeee url(../img/information.gif) 15px 15px no-repeat;
+  background: #eee url(../img/information.gif) 15px 15px no-repeat;
 }
 .info-alert h3 {
   padding-top: 20px;
@@ -462,7 +457,6 @@ span.date form div {
   margin: 0 auto;
   padding: 20px 20px 20px 45px;
   /*width: 915px;*/
-
   width: 915px;
 }
 a.close-msg {
@@ -643,7 +637,6 @@ a.u:hover {
   display: block;
   vertical-align: middle;
   text-align: left;
-  text-decoration: none;
   padding: 10px 30px;
   font: normal 11px Verdana, Arial, sans-serif;
   text-decoration: none;
@@ -1146,7 +1139,7 @@ ol.todo li span {
   margin-left: -10px;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-bottom: 10px solid #eeeeee;
+  border-bottom: 10px solid #eee;
 }
 .share_arrow:before {
   bottom: 100%;
@@ -1353,7 +1346,6 @@ li.tag_photo {
   border: 1px solid #fff;
   display: inline-block;
   /* gives layout for IE float clearing */
-
   float: left;
   margin: 0 10px 10px 0;
   padding: 10px;
@@ -1393,7 +1385,6 @@ li.tag_photo_checked:hover {
 li.tag_photo label span {
   background: url(logo.gif) no-repeat -9999px;
   /* required for IE click bug fix */
-
   height: 5px;
   left: 0;
   position: absolute;
@@ -2508,8 +2499,12 @@ a.email {
   border-left: 16px solid #8a8bb6;
 }
 label.colors {
+  border-radius: 3px;
   color: #000;
-  padding: 3px;
+  display: inline-block;
+  margin: 0 0px 4px 0;
+  min-width: 70px;
+  padding: 2px 8px;
 }
 #day-calendar .header {
   background-color: #e8f5fb;
@@ -3657,7 +3652,6 @@ fieldset #msg {
 }
 #familytree-page {
   /* Person Details */
-
 }
 #familytree-page h1 {
   margin-bottom: 10px;
@@ -4360,7 +4354,7 @@ a.foursquare {
   background-image: -ms-linear-gradient(#ffffff, #ffffff 25%, #e6e6e6);
   background-image: -o-linear-gradient(#ffffff, #ffffff 25%, #e6e6e6);
   background-image: linear-gradient(#ffffff, #ffffff 25%, #e6e6e6);
-  filter: progid:dximagetransform.microsoft.gradient(startColorstr='#ffffff', endColorstr='#e6e6e6', GradientType=0);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e6e6e6', GradientType=0);
   padding: 5px 14px 6px;
   color: #333;
   font: 11px Verdana, Arial, sans-serif;
@@ -4598,14 +4592,14 @@ form.poll .sub1 {
   border-radius: 0;
   color: #333;
   background-color: #96e28c;
-  background-image: -moz-linear-gradient(top, #a6f09c, #7dcd73);
-  background-image: -ms-linear-gradient(top, #a6f09c, #7dcd73);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#a6f09c), to(#7dcd73));
-  background-image: -webkit-linear-gradient(top, #a6f09c, #7dcd73);
-  background-image: -o-linear-gradient(top, #a6f09c, #7dcd73);
-  background-image: linear-gradient(top, #a6f09c, #7dcd73);
+  background-image: -moz-linear-gradient(top, #A6F09C, #7dcd73);
+  background-image: -ms-linear-gradient(top, #A6F09C, #7dcd73);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#A6F09C), to(#7dcd73));
+  background-image: -webkit-linear-gradient(top, #A6F09C, #7dcd73);
+  background-image: -o-linear-gradient(top, #A6F09C, #7dcd73);
+  background-image: linear-gradient(top, #A6F09C, #7dcd73);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#a6f09c', endColorstr='#7dcd73', GradientType=0);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#A6F09C', endColorstr='#7dcd73', GradientType=0);
   float: right;
   padding: 10px 20px;
 }
