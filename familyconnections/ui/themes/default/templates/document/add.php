@@ -1,5 +1,5 @@
 
-            <script type="text/javascript" src="inc/livevalidation.js"></script>
+            <script type="text/javascript" src="ui/js/livevalidation.js"></script>
             <form method="post" enctype="multipart/form-data" name="addform" action="documents.php">
                 <fieldset>
                     <legend><span><?php echo $TMPL['uploadDocumentText']; ?></span></legend>
