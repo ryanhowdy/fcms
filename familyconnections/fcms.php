@@ -221,11 +221,13 @@ function setLanguage ()
 {
     if (isset($_SESSION['language']))
     {
+        putenv('LC_ALL='.$_SESSION['language']);
         T_setlocale(LC_MESSAGES, $_SESSION['language']);
     }
     else
     {
         $lang = getLanguage();
+        putenv('LC_ALL='.$lang);
         T_setlocale(LC_MESSAGES, $lang);
     }
     T_bindtextdomain('messages', './language');
