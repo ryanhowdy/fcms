@@ -647,6 +647,6 @@ function checkAvailability() {
             'accessToken' => $accessToken
         );
 
-        displaySubmit($params);
+        $this->displaySubmit($params);
     }
 }
