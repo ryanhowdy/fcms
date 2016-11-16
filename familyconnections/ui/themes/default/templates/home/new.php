@@ -30,6 +30,11 @@
                         <a class="u" href="profile.php?member=<?php echo $child['userId']; ?>"><?php echo $child['displayname']; ?></a> &nbsp;- &nbsp;
                         <small><i><?php echo $child['timeSince']; ?></i></small>
                         <p><?php echo $child['textInfo']; ?></p>
+
+                <?php if (isset($child['details']) && !empty($child['details'])): ?>
+                        <?php echo $child['details']; ?>
+                <?php endif; ?>
+
                     </div>
                 </div>
             <?php endforeach; ?>

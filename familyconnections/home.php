@@ -570,6 +570,7 @@ class Page
 
                 $timeSince = $this->getWhatsNewDataTimeSince($d);
                 $textInfo  = $this->getWhatsNewDataTextInfo($d);
+                $object    = $this->getWhatsNewDataObject($d);
 
                 $children[] = array(
                     'class'         => 'new'.strtolower($d['type']),
@@ -578,6 +579,7 @@ class Page
                     'userId'        => (int)$d['userid'],
                     'timeSince'     => $timeSince,
                     'textInfo'      => $textInfo,
+                    'details'       => $object['details'],
                 );
             }
 
