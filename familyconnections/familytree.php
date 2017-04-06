@@ -358,31 +358,40 @@ class Page
             return;
         }
 
+        list($bday, $death) = $this->fcmsFamilyTree->getFormattedBirthdayAndDeath($user);
+
+        $templateParams = array(
+            'familyTreeId'      => $id,
+            'canEdit'           => false,
+            'avatarPath'        => getAvatarPath($user['avatar'], $user['gravatar']),
+            'name'              => $user['fname'].' '.$user['lname'],
+            'status'            => ($user['phpass'] == 'NONMEMBER' ? T_('Non-member')  : T_('Member')),
+            'dateOfBirth'       => $bday,
+            'dateOfDeath'       => $death,
+            'relatives'         => array(),
+        );
+
         $canEdit  = false;
         $editLink = '';
 
         if ($user['phpass'] == 'NONMEMBER' || $this->fcmsUser->access == 1)
         {
+            $templateParams['canEditDetails'] = true;
             $canEdit  = true;
-            $editLink = '<li><a href="?edit='.$id.'">'.T_('Edit This Person').'</a></li>';
         }
-
-        $avatarPath = getAvatarPath($user['avatar'], $user['gravatar']);
-
-        $status = $user['phpass'] == 'NONMEMBER' ? T_('Non-member')  : T_('Member');
 
         // Bio
         if (strlen($user['bio']) > 0)
         {
-            $bio = cleanOutput($user['bio']);
+            $templateParams['bio'] = cleanOutput($user['bio']);
         }
         elseif ($canEdit)
         {
-            $bio = '<a href="?edit='.$id.'">'.T_('Share some information about this person.').'</a>';
+            $templateParams['noBio'] = T_('Share some information about this person.');
         }
         else
         {
-            $bio = T_('This user does not have a bio.');
+            $templateParams['noBio'] = T_('This user does not have a bio.');
         }
 
         // Get Parents
@@ -426,35 +435,6 @@ class Page
             return;
         }
 
-        list($bday, $death) = $this->fcmsFamilyTree->getFormattedBirthdayAndDeath($user);
-
-        echo '
-        <div id="sections_menu">
-            <ul>
-                <li><a href="?view='.$id.'">'.T_('View Family Tree').'</a></li>
-            </ul>
-        </div>
-        <div id="actions_menu">
-            <ul class="tools">
-                '.$editLink.'
-                <li><a class="add" href="#'.$id.'">'.T_('Add Family Member').'</a></li>
-            </ul>
-        </div>
-        <div class="person-details">
-            <img class="avatar" src="'.$avatarPath.'"/>
-            <h1>'.$user['fname'].' '.$user['lname'].'</h1>
-            <p class="member_status">'.$status.'</p>
-        </div>
-        <p>
-            '.$bday.'<br/>
-            '.$death.'
-        </p>
-        <h3>'.T_('Bio').'</h3>
-        <p>'.$bio.'</p>
-        <h3>'.T_('Immediate Family').'</h3>
-        <ul id="immediate-family">';
-
-        // Print parents, spouses, and children
         $types = array(
             'father' => array(
                 'M' => T_('Father'),
@@ -482,19 +462,17 @@ class Page
 
                     $maiden = strlen($relative['maiden']) > 0 ? '('.$relative['maiden'].')' : '';
 
-                    echo '
-        <li>
-            <img class="small-avatar" src="'.$relAvatarPath.'"/>
-            <p>
-                <a href="?details='.$relative['id'].'">
-                    '.$relative['fname'].' '.$relative['mname'].' '.$relative['lname'].' '.$maiden.'
-                </a>
-                <i>'.$i18n[$relative['sex']].'</i>
-            </p>
-        </li>';
+                    $templateParams['relatives'][] = array(
+                        'id'        => $relative['id'],
+                        'avatar'    => $relAvatarPath,
+                        'name'      => $relative['fname'].' '.$relative['mname'].' '.$relative['lname'].' '.$maiden,
+                        'relation'  => $i18n[$relative['sex']],
+                    );
                 }
             }
         }
+
+        loadTemplate('familytree', 'details', $templateParams);
 
         $this->displayFooter();
     }
