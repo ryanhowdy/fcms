@@ -298,19 +298,22 @@ function getHumanTimeSince ($from, $to = 0)
     $diff = (int)abs($to - $from);
 
     // now
+    // 0 seconds ago
     if ($diff < 1)
     {
         $since = T_('right now');
     }
     // seconds
-    elseif ($diff < 60)
+    // 1 - 59 seconds ago
+    elseif ($diff < MINUTE_IN_SECONDS)
     {
         $since = sprintf(T_ngettext('%s second ago', '%s seconds ago', $diff), $diff);
     }
     // minutes
-    elseif ($diff <= 3600)
+    // 1 - 59 minutes ago
+    elseif ($diff < HOUR_IN_SECONDS)
     {
-        $mins = round($diff / 60);
+        $mins = round($diff / MINUTE_IN_SECONDS);
         if ($mins <= 1)
         {
             $mins = 1;
@@ -318,9 +321,10 @@ function getHumanTimeSince ($from, $to = 0)
         $since = sprintf(T_ngettext('%s minute ago', '%s minutes ago', $mins), $mins);
     }
     // hours
-    elseif (($diff <= 86400) && ($diff > 3600))
+    // 1 - 23 hours ago
+    elseif ($diff < DAY_IN_SECONDS)
     {
-        $hours = round($diff / 3600);
+        $hours = round($diff / HOUR_IN_SECONDS);
         if ($hours <= 1)
         {
             $hours = 1;
@@ -328,14 +332,37 @@ function getHumanTimeSince ($from, $to = 0)
         $since = sprintf(T_ngettext('%s hour ago', '%s hours ago', $hours), $hours);
     }
     // days
-    elseif ($diff >= 86400)
+    // 1 - 29 days ago
+    elseif ($diff < MONTH_IN_SECONDS)
     {
-        $days = round($diff / 86400);
+        $days = round($diff / DAY_IN_SECONDS);
         if ($days <= 1)
         {
             $days = 1;
         }
         $since = sprintf(T_ngettext('%s day ago', '%s days ago', $days), $days);
+    }
+    // months
+    // 30 - 364 days ago
+    elseif ($diff < YEAR_IN_SECONDS)
+    {
+        $months = round($diff / MONTH_IN_SECONDS);
+        if ($months <= 1)
+        {
+            $months = 1;
+        }
+        $since = sprintf(T_ngettext('%s month ago', '%s months ago', $months), $months);
+    }
+    // years
+    // 365+ days ago
+    elseif ($diff >= YEAR_IN_SECONDS)
+    {
+        $years = round($diff / YEAR_IN_SECONDS);
+        if ($years <= 1)
+        {
+            $years = 1;
+        }
+        $since = sprintf(T_ngettext('%s year ago', '%s years ago', $years), $years);
     }
 
     return $since;

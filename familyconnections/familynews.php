@@ -133,32 +133,37 @@ class Page
 
         displayPageHeader($params, $options);
 
+        $templateParams = array();
+
         if ($this->fcmsUser->access < 6 || $this->fcmsUser->access == 9)
         {
-            echo '
-            <div id="sections_menu">
-                <ul>
-                    <li><a href="familynews.php">'.T_('Latest News').'</a></li>';
+            $templateParams['latestNewsText'] = T_('Latest News');
+            $templateParams['addNewsText']    = T_('Add News');
 
             if ($this->fcmsFamilyNews->hasNews($this->fcmsUser->id))
             {
-                echo '
-                    <li><a href="?getnews='.$this->fcmsUser->id.'">'.T_('My News').'</a></li>';
+                $templateParams['myUserId']   = $this->fcmsUser->id;
+                $templateParams['myNewsText'] = T_('My News');
             }
 
-            echo '
-                </ul>
-            </div>
-            <div id="actions_menu">
-                <ul>
-                    <li><a href="?addnews=yes">'.T_('Add News').'</a></li>
-                </ul>
-            </div>';
         }
 
         if (!isset($_GET['addnews']) && !isset($_POST['editnews']))
         {
-            $this->fcmsFamilyNews->displayNewsList();
+            $menuParams = $this->fcmsFamilyNews->getNewsListMenu();
+            if ($menuParams === false)
+            {
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+
+            $templateParams = array_merge($templateParams, $menuParams);
+        }
+
+        if (!empty($templateParams))
+        {
+            loadTemplate('familynews', 'menu', $templateParams);
         }
     }
 
