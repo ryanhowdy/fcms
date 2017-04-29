@@ -396,19 +396,7 @@ function displayStepThree ()
         return;
     }
                        
-/** Commented out the lines below because of depracated code.                      
-* #  $connection = @mysql_connect($_POST['dbhost'], $_POST['dbuser'], $_POST['dbpass']);
-* #
-* #    if (!$connection)
-* #    {
-* #        displayStepTwo("<p class=\"error\">".T_('Could not connect to the database. Please try again.')."</p>");
-* #        return;
-* #    }
-*/
-    
-    $connection->select_db($_POST['fcms']) or printf("<h1>Error</hr><p><b>Connection made, but database could not be found!</b></p>" ( " . $connection->errno . ")) . $connection->error;
-
-#    mysql_select_db($_POST['dbname']) or die("<h1>Error</h1><p><b>Connection made, but database could not be found!</b></p>".mysql_error());
+    $connection->select_db($_POST['fcms']) or die("<h1>Error</hr><p><b>Connection made, but database could not be found!</b></p> ( " . $connection->errno . ") " . $connection->error);
 
     $file = fopen('inc/config_inc.php', 'w') or die("<h1>Error Creating Config File</h1>");
     $str  = "<?php \$cfg_mysql_host = '".$_POST['dbhost']."'; \$cfg_mysql_db = '".$_POST['dbname']."'; \$cfg_mysql_user = '".$_POST['dbuser']."'; \$cfg_mysql_pass = '".$_POST['dbpass']."'; ?".">";
