@@ -17,18 +17,18 @@ class Profile
     var $fcmsAddressBook;
 
     /**
-     * Profile 
+     * __construct 
      * 
-     * @param object $fcmsError 
-     * @param object $fcmsDatabase
-     * @param object $fcmsUser 
-     * @param object $fcmsFamilyTree
-     * @param object $fcmsAward
-     * @param object $fcmsAddressBook
+     * @param FCMS_Error    $fcmsError 
+     * @param Database      $fcmsDatabase
+     * @param User          $fcmsUser 
+     * @param FamilyTree    $fcmsFamilyTree
+     * @param Awards        $fcmsAward
+     * @param AddressBook   $fcmsAddressBook
      *
-     * @return  void
+     * @return void
      */
-    function Profile ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsFamilyTree, $fcmsAward, $fcmsAddressBook = null)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, FamilyTree $fcmsFamilyTree, Awards $fcmsAward, $fcmsAddressBook = null)
     {
         $this->fcmsError       = $fcmsError;
         $this->fcmsDatabase    = $fcmsDatabase;

@@ -14,15 +14,15 @@ class Documents
     var $fcmsUser;
 
     /**
-     * Documents 
+     * __construct 
      * 
-     * @param object $fcmsError 
-     * @param object $fcmsDatabase
-     * @param object $fcmsUser 
-     *
+     * @param FCMS_Error $fcmsError 
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser 
+     * 
      * @return void
      */
-    function Documents ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
         $this->fcmsError       = $fcmsError;
         $this->fcmsDatabase    = $fcmsDatabase;
