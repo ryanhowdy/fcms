@@ -178,7 +178,7 @@ function runYouTubeJob ()
     require_once 'constants.php';
     require_once 'socialmedia.php';
     require_once 'datetime.php';
-    require_once THIRDPARTY.'gettext.inc';
+    require_once THIRDPARTY.'php-gettext/gettext.inc';
 
     set_include_path(get_include_path().PATH_SEPARATOR.THIRDPARTY.'google-api-php-client/src/');
     require_once THIRDPARTY.'google-api-php-client/src/Google/autoload.php';
@@ -293,7 +293,7 @@ function runInstagramJob ()
     require_once 'inc/constants.php';
     require_once 'inc/socialmedia.php';
     require_once 'inc/utils.php';
-    require_once THIRDPARTY.'gettext.inc';
+    require_once THIRDPARTY.'php-gettext/gettext.inc';
     require_once THIRDPARTY.'Instagram.php';
 
     $fcmsError    = FCMS_Error::getInstance();

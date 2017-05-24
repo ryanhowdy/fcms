@@ -1,5 +1,5 @@
 <?php
-include_once 'thirdparty/gettext.inc';
+include_once 'thirdparty/php-gettext/gettext.inc';
 
 /**
  * dropTables 

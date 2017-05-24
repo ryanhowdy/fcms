@@ -79,7 +79,7 @@ function control ()
 function displayNoConfig ()
 {
     include_once 'inc/constants.php';
-    include_once 'inc/thirdparty/gettext.inc';
+    include_once THIRDPARTY.'php-gettext/gettext.inc';
 
     // Setup php-gettext
     T_setlocale(LC_MESSAGES, 'en_US');

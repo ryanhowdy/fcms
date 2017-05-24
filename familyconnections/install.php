@@ -28,8 +28,8 @@
  * @link      http://www.familycms.com/wiki/
  */
 
-require_once 'inc/thirdparty/gettext.inc';
 require_once 'inc/constants.php';
+require_once THIRDPARTY.'php-gettext/gettext.inc';
 
 // Setup php-gettext
 T_setlocale(LC_MESSAGES, 'en_US');

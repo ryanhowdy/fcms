@@ -14,7 +14,7 @@
  */
 
 require_once 'inc/config_inc.php';
-require_once 'inc/thirdparty/gettext.inc';
+require_once 'inc/thirdparty/php-gettext/gettext.inc';
 require_once 'inc/utils.php';
 require_once 'inc/constants.php';
 require_once 'inc/Error.php';
