@@ -271,7 +271,7 @@ class Settings
                 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
                 <form id="frm" action="settings.php?view=settings" method="post">
                 <fieldset>
-                    <legend><span>'.T_('Langugage and Time').'</span></legend>
+                    <legend><span>'.T_('Language and Time').'</span></legend>
                     <div class="field-row">
                         <div class="field-label"><label for="language"><b>'.T_('Language').'</b></label></div>
                         <div class="field-widget">
