@@ -24,12 +24,14 @@
                     <h3><?php echo T_('When'); ?></h3>
                     <p>
                         <b><?php echo $TMPL['date']; ?></b>
-                    <?php if (isset($TMPL['edit'])): ?>
+                    <?php if (isset($TMPL['time'])): ?>
                         <br/><?php echo $TMPL['time']; ?>
                     <?php endif; ?>
                     </p>
+                    <?php if (isset($TMPL['hostOrCreatedTitle'])): ?>
                     <h3><?php echo $TMPL['hostOrCreatedTitle']; ?></h3>
                     <p><?php echo $TMPL['createdBy']; ?></p>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php endif; ?>
