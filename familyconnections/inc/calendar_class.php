@@ -1383,7 +1383,6 @@ class Calendar
      */
     function displayEvent ($id, $templateParams = array())
     {
-echo '<h1 style="background-color: red">displayEvent</h1>';
         $id = (int)$id;
 
         $templateParams['editUrl'] = '?edit='.$id;
