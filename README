@@ -1,11 +1,11 @@
 
-                             Family Connections 3.6.2
+                             Family Connections 3.7.0
 
 
   Installation
   ------------
 
-  1. Upload the familyconnections/ directory in FCMS_3.6.2.zip to your web host.
+  1. Upload the familyconnections/ directory in FCMS_3.7.0.zip to your web host.
 
   2. Run the online installation script by visiting your website.
 
@@ -15,7 +15,7 @@
 
 
 
-  Upgrading from 2.6+ to 3.6.2
+  Upgrading from 2.6+ to 3.7.0
   ---------------------------
 
   ** DO NOT DELETE THE FOLLOWING FILE **
