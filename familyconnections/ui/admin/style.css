@@ -47,6 +47,9 @@ h1, h2, h3, h4, h5 { margin-bottom: 9px; }
 .dashboard-links li.scheduler a {
     background: #eee url(../img/scheduler.png) center 15px no-repeat;
 }
+.dashboard-links li.debug a {
+    background: #eee url(../img/debug.png) center 15px no-repeat;
+}
 /* http://www.iconfinder.com/search/?q=iconset%3AWPZOOM_Social_Networking_Icon_Set */
 .dashboard-links li.facebook a {
     background: #eee url(../img/facebook.png) center 35px no-repeat;

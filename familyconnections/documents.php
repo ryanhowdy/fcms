@@ -281,14 +281,6 @@ class Page
     {
         $this->displayHeader();
 
-        if ($this->fcmsUser->access <= 5)
-        {
-            echo '
-            <div id="actions_menu">
-                <ul><li><a href="?adddoc=yes">'.T_('Add Document').'</a></li></ul>
-            </div>';
-        }
-
         if (isset($_SESSION['ok']))
         {
             unset($_SESSION['ok']);

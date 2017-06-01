@@ -57,10 +57,6 @@ function control ()
     {
         displayChangeLanguage();
     }
-    elseif (isset($_GET['err']))
-    {
-        displayLoginError();
-    }
     elseif (isset($_SESSION['fcms_id']) || isset($_COOKIE['fcms_cookie_id']))
     {
         displayAlreadyLoggedIn();
@@ -83,7 +79,7 @@ function control ()
 function displayNoConfig ()
 {
     include_once 'inc/constants.php';
-    include_once 'inc/thirdparty/gettext.inc';
+    include_once THIRDPARTY.'php-gettext/gettext.inc';
 
     // Setup php-gettext
     T_setlocale(LC_MESSAGES, 'en_US');
@@ -93,16 +89,19 @@ function displayNoConfig ()
 
     displayHeader(false);
 
-    echo '
-    <div id="oops">
-        <h1>'.T_('Oops!').'</h1>
-        <p>
-            '.T_('This site hasn\'t been installed yet.').' 
-            <a href="install.php">'.T_('You must finish the installation before using the site.').'</a>
-        </p>
-    </div>
-</body>
-</html>';
+    $TMPL = array(
+        'message' => array(
+            'type'     => 'err-msg',
+            'title'    => T_('Oops!'),
+            'messages' => array(
+                T_('This site hasn\'t been installed yet.')
+                    .' <a href="install.php">'.T_('You must finish the installation before using the site.').'</a>',
+            ),
+        ),
+        'noForm' => 1,
+    );
+
+    require_once('ui/login/main.php');
 }
 
 /**
@@ -119,42 +118,6 @@ function displayChangeLanguage ()
     T_setlocale(LC_MESSAGES, $_SESSION['language']);
 
     header("Location: index.php");
-}
-
-/**
- * displayLoginError 
- * 
- * @return void
- */
-function displayLoginError ()
-{
-    // Tried to access a page before logging in
-    if ($_GET['err'] == 'login')
-    {
-        displayHeader();
-
-        echo '
-    <div class="err-msg">
-        <h2>'.T_('Access Denied').'</h2>
-        <p>'.T_('You must be logged in to view that page.').'</p>
-    </div>';
-
-        displayLogin();
-    }
-    // Site is turned off
-    elseif ($_GET['err'] == 'off')
-    {
-        displayHeader();
-
-        echo '
-    <div class="err-msg">
-        <h2>'.T_('Hold On a Second!').'</h2>
-        <p>'.T_('The site has been closed by an administrator.').'</p>
-        <p>'.T_('Please come back later.').'</p>
-    </div>';
-
-        displayLogin();
-    }
 }
 
 /**
@@ -326,29 +289,18 @@ function displayAlreadyLoggedIn ()
  */
 function displayHeader($login = true)
 {
+    $TMPL = array(
+        'sitename' => 'Family Connections',
+        'body'     => '',
+    );
+
     if ($login)
     {
-        $sitename = getSiteName().' - '.T_('powered by').' '.getCurrentVersion();
-        $js       = ' onload="document.getElementById(\'user\').focus()"';
-    }
-    else
-    {
-        // Don't translate
-        $sitename = 'Family Connections';
-        $js       = '';
+        $TMPL['sitename'] = getSiteName().' - '.T_('powered by').' '.getCurrentVersion();
+        $TMPL['body']     = ' onload="document.getElementById(\'user\').focus()"';
     }
 
-    echo '
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_pgettext('Language Code for this translation', 'lang').'" lang="'.T_pgettext('Language Code for this translation', 'lang').'">
-<head>
-<title>'.$sitename.'</title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-<meta name="author" content="Ryan Haudenschilt"/>
-<link rel="shortcut icon" href="ui/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css"/>
-</head>
-<body'.$js.'>';
+    require_once('ui/login/header.php');
 }
 
 /**
@@ -358,10 +310,10 @@ function displayHeader($login = true)
  */
 function displayLoginForm ()
 {
-    handleFacebookLogin();
+    $msg = handleFacebookLogin();
 
     displayHeader();
-    displayLogin();
+    displayLogin($msg);
 }
 
 /**
@@ -369,17 +321,55 @@ function displayLoginForm ()
  * 
  * @return void
  */
-function displayLogin()
+function displayLogin($msg = null)
 {
-    $sitename = getSiteName();
+    $TMPL = array(
+        'sitename'           => getSiteName(),
+        'languageOptions'    => array(),
+        'usernameText'       => T_('Username'),
+        'passwordText'       => T_('Password'),
+        'rememberMeText'     => T_('Remember Me'),
+        'loginText'          => T_('Login'),
+        'forgotPasswordText' => T_('Forgot Password?'),
+        'currentVersion'     => getCurrentVersion(),
+    );
+
+    // Display any errors, that were redirected here
+    if (isset($_GET['err']))
+    {
+        if ($_GET['err'] == 'login')
+        {
+            $TMPL['message'] = array(
+                'type'     => 'err-msg',
+                'title'    => T_('Access Denied'),
+                'messages' => array(
+                    T_('You must be logged in to view that page.'),
+                ),
+            );
+        }
+        elseif ($_GET['err'] == 'off')
+        {
+            $TMPL['noForm']  = 1;
+            $TMPL['message'] = array(
+                'type'     => 'err-msg',
+                'title'    => T_('Hold On a Second!'),
+                'messages' => array(
+                    T_('The site has been closed by an administrator.'),
+                    T_('Please come back later.'),
+                ),
+            );
+        }
+    }
 
     if (isset($_GET['url']))
     {
-        $hidden = '<input type="hidden" name="url" id="url" value="'.cleanOutput($_GET['url']).'"/>';
+        $TMPL['redirectUrl'] = '<input type="hidden" name="url" id="url" value="'.cleanOutput($_GET['url']).'"/>';
     }
-    else
+
+    // Display any errors that were passed in
+    if (!is_null($msg))
     {
-        $hidden = '';
+        $TMPL['message'] = $msg;
     }
 
     // Get available languages
@@ -410,34 +400,28 @@ function displayLogin()
                     continue;
                 }
 
-                $arr[$file] = getLangName($file);
+                $selected = '';
+                if (isset($_SESSION['language']) && $_SESSION['language'] == $file)
+                {
+                    $selected = 'selected="selected"';
+                }
+
+                $TMPL['languageOptions'][] = array(
+                    'value'    => $file,
+                    'language' => getLangName($file),
+                    'selected' => $selected,
+                );
             }
+
+            $TMPL['languageOptions'] = subval_sort($TMPL['languageOptions'], 'language');
 
             closedir($dh);
-            asort($arr);
-
-            foreach ($arr as $key => $val)
-            {
-                $lang_options .= '<option value="'.$key.'"';
-                if (isset($_SESSION['language']))
-                {
-                    if ($_SESSION['language'] == $key)
-                    {
-                        $lang_options .= ' selected="selected"';
-                    }
-                }
-                $lang_options .= '>'.$val.'</option>';
-            }
         }
     }
 
-    $forgotPassLink = '<a href="lostpw.php">'.T_('Forgot Password?').'</a>';
-    $registerLink   = '';
-    $facebookLogin  = '';
-
     if (isRegistrationOn())
     {
-        $registerLink = ' | <a href="register.php">'.T_('Register').'</a>';
+        $TMPL['registerText'] = T_('Register');
     }
 
     $fbData = getFacebookConfigData();
@@ -451,38 +435,13 @@ function displayLogin()
             'secret' => $fbData['fb_secret'],
         ));
 
-        $facebookLogin = '<a href="'.$facebook->getLoginUrl($params).'" title="'.T_('Login using Facebook').'"><img src="ui/img/facebook_tiny.png"/></a>';
+        $TMPL['facebookLogin'] = array(
+            'url'  => $facebook->getLoginUrl($params),
+            'text' => T_('Login using Facebook'),
+        );
     }
 
-    echo '
-    <div id="login_box">
-        <h1 id="login_header">'.T_('Login to').' '.$sitename.'</h1>
-        <form action="index.php" method="post">
-            <div style="float:right">
-                <select style="background-color:#e9f3fb; border:none;" 
-                    onchange="window.location.href=\'?lang=\'+this.options[this.selectedIndex].value;">
-                    <option>'.T_('Language').':</option>
-                    '.$lang_options.'
-                </select>
-            </div>
-            <p><label for="user">'.T_('Username').':</label><input type="text" name="user" id="user"/></p>
-            <p><label for="pass">'.T_('Password').':</label><input type="password" name="pass" id="pass"/></p>
-            <p>
-                <label class="rem" for="rem">'.T_('Remember Me').'</label>
-                <input class="rem" name="rem" id="rem" type="checkbox" value="1"/>
-                '.$hidden.'
-                <input type="submit" name="submit" id="submit" value="'.T_('Login').'"/>
-            </p>
-            <div class="clear"></div>
-        </form>
-        <p style="text-align:center; margin-bottom:20px;">'.$forgotPassLink.$registerLink.'</p>
-        <div style="color:silver; font-size:11px; float:left;">'.getCurrentVersion().'</div>
-        <div style="float:right">
-            '.$facebookLogin.'
-        </div>
-    </div>
-</body>
-</html>';
+    require_once('ui/login/main.php');
 }
 
 /**
@@ -547,14 +506,16 @@ function handleBadLogin ($user)
 
     displayHeader();
 
-    echo '
-    <div class="err-msg">
-        <h2>'.T_('Oops!').'</h2/>
-        <p>'.T_('That login information wasn\'t quite right.').'</p>
-        <p>'.T_('Be sure and check that you typed your username/password correctly.').'</p>
-    </div>';
+    $msg = array(
+        'type'     => 'err-msg',
+        'title'    => T_('Oops!'),
+        'messages' => array(
+            T_('That login information wasn\'t quite right.'),
+            T_('Be sure and check that you typed your username/password correctly.'),
+        ),
+    );
 
-    displayLogin();
+    displayLogin($msg);
 }
 
 /**
@@ -567,6 +528,8 @@ function handleFacebookLogin ()
     $fcmsError    = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
     $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+
+    $msg = null;
 
     $fbData = getFacebookConfigData();
 
@@ -599,7 +562,7 @@ function handleFacebookLogin ()
     // User isn't logged in, or authed
     if (!$fbUser)
     {
-        return;
+        return $msg;
     }
 
     $sql = "SELECT u.`id`, u.`username`, u.`phpass`, u.`activated`, u.`locked`
@@ -619,18 +582,20 @@ function handleFacebookLogin ()
     if ($row === false)
     {
         $fcmsError->displayError();
-        return;
+        return $msg;
     }
 
     if (empty($row))
     {
-        echo '
-    <div class="err-msg">
-        <h2>'.T_('Oops!').'</h2>
-        <p>'.T_('Your account hasn\'t been connected to Facebook yet.  You need to connect your existing account with Facebook or register a new account using Facebook.').'</p>
-    </div>';
+        $msg = array(
+            'type'     => 'err-msg',
+            'title'    => T_('Oops!'),
+            'messages' => array(
+                T_('Your account hasn\'t been connected to Facebook yet.  You need to connect your existing account with Facebook or register a new account using Facebook.'),
+            ),
+        );
 
-        return;
+        return $msg;
     }
 
     // Check account is active
@@ -644,7 +609,7 @@ function handleFacebookLogin ()
     if (!loginUser($row['id'], 0))
     {
         $fcmsError->displayError();
-        return;
+        return $msg;
     }
 
     header("Location: home.php");
@@ -659,13 +624,15 @@ function displayNotActive ()
 {
     displayHeader();
 
-    echo '
-    <div class="err-msg">
-        <h2>'.T_('Not So Fast').'</h2>
-        <p>'.T_('Your account isn\'t active yet.  Your website administrator must activate your account before you can login and begin using the website.').'</p>
-    </div>';
+    $msg = array(
+        'type'     => 'err-msg',
+        'title'    => T_('Not So Fast'),
+        'messages' => array(
+            T_('Your account isn\'t active yet.  Your website administrator must activate your account before you can login and begin using the website.'),
+        ),
+    );
 
-    displayLogin();
+    displayLogin($msg);
 }
 
 /**
@@ -677,14 +644,16 @@ function displayLockedOut ()
 {
     displayHeader();
 
-    echo '
-    <div class="err-msg">
-        <h2>'.T_('Hold On a Second!').'</h2>
-        <p>'.T_('You have exceeded the number of allowed login attempts.').'</p>
-        <p>'.T_('Your account has been locked for 1 hour.').'</p>
-    </div>';
+    $msg = array(
+        'type'     => 'err-msg',
+        'title'    => T_('Hold On a Second!'),
+        'messages' => array(
+            T_('You have exceeded the number of allowed login attempts.'),
+            T_('Your account has been locked for 1 hour.'),
+        ),
+    );
 
-    displayLogin();
+    displayLogin($msg);
 }
 
 /**

@@ -511,8 +511,12 @@ class Page
      */
     function displayWhatsNewAll ()
     {
+        $page    = getPage();
+        $perPage = 30;
+        $from    = ($page * $perPage) - $perPage;
+
         // Get data
-        $whatsNewData = getWhatsNewData(30);
+        $whatsNewData = getWhatsNewData($perPage, $from);
         if ($whatsNewData === false)
         {
             $this->fcmsError->displayError();
@@ -525,14 +529,19 @@ class Page
             'new'                  => array(),
             'textBlankHeader'      => T_('Nothing New'),
             'textBlankDescription' => T_('Bummer, nothing new has happened in the last 30 days.'),
+            'page'                 => ($page+1),
+            'txtMore'              => T_('Show More'),
         );
 
         $position       = 1;
         $cachedUserData = array();
+        $totalData      = 0;
 
         // Loop through data
         foreach ($whatsNewData as $groupType => $data)
         {
+            $totalData++;
+
             $parent   = array_shift($data);
             $data     = array_reverse($data);
 
@@ -540,6 +549,8 @@ class Page
             $children = array();
             foreach ($data as $d)
             {
+                $totalData++;
+
                 // Use cached data
                 if (isset($cachedUserData[$d['userid']]))
                 {
@@ -559,6 +570,7 @@ class Page
 
                 $timeSince = $this->getWhatsNewDataTimeSince($d);
                 $textInfo  = $this->getWhatsNewDataTextInfo($d);
+                $object    = $this->getWhatsNewDataObject($d);
 
                 $children[] = array(
                     'class'         => 'new'.strtolower($d['type']),
@@ -567,6 +579,7 @@ class Page
                     'userId'        => (int)$d['userid'],
                     'timeSince'     => $timeSince,
                     'textInfo'      => $textInfo,
+                    'details'       => $object['details'],
                 );
             }
 
@@ -613,6 +626,12 @@ class Page
             $template['new'][] = $params;
 
             $position++;
+        }
+
+        if ($totalData < $perPage)
+        {
+            unset($template['page']);
+            unset($template['txtMore']);
         }
 
         loadTemplate('home', 'new', $template);

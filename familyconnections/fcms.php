@@ -14,7 +14,7 @@
  */
 
 require_once 'inc/config_inc.php';
-require_once 'inc/thirdparty/gettext.inc';
+require_once 'inc/thirdparty/php-gettext/gettext.inc';
 require_once 'inc/utils.php';
 require_once 'inc/constants.php';
 require_once 'inc/Error.php';
@@ -221,11 +221,13 @@ function setLanguage ()
 {
     if (isset($_SESSION['language']))
     {
+        putenv('LC_ALL='.$_SESSION['language']);
         T_setlocale(LC_MESSAGES, $_SESSION['language']);
     }
     else
     {
         $lang = getLanguage();
+        putenv('LC_ALL='.$lang);
         T_setlocale(LC_MESSAGES, $lang);
     }
     T_bindtextdomain('messages', './language');

@@ -14,15 +14,15 @@ class FamilyNews
     var $fcmsUser;
 
     /**
-     * FamilyNews 
+     * __construct 
      * 
-     * @param object $fcmsError 
-     * @param object $fcmsDatabase
-     * @param object $fcmsUser 
-     *
+     * @param FCMS_Error $fcmsError 
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser 
+     * 
      * @return void
      */
-    function FamilyNews ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
         $this->fcmsError       = $fcmsError;
         $this->fcmsDatabase    = $fcmsDatabase;
@@ -30,13 +30,13 @@ class FamilyNews
     }
 
     /**
-     * displayNewsList 
+     * getNewsListMenu
      *
-     * Displays a navigation list of users who have news.
+     * Returns the template params for the family news list menu.
      * 
-     * @return void
+     * @return array
      */
-    function displayNewsList ()
+    function getNewsListMenu ()
     {
         $sql = "SELECT u.`id`, `fname`, `lname`, `displayname`, `username`, MAX(`updated`) AS d 
                 FROM `fcms_news` AS n, `fcms_users` AS u, `fcms_user_settings` AS s 
@@ -46,29 +46,26 @@ class FamilyNews
         $rows = $this->fcmsDatabase->getRows($sql);
         if ($rows === false)
         {
-            $this->fcmsError->displayError();
-
-            return;
+            return false;
         }
+
+        $templateParams = array(
+            'familyNewsText' => T_('Family News'),
+        );
 
         if (count($rows) > 0)
         {
-            echo '
-            <div id="news-list">
-                <h2>'.T_('Family News').'</h2>
-                <ul>';
-
             foreach ($rows as $r)
             {
-                $date = fixDate(T_('M. j'), $this->fcmsUser->tzOffset, $r['d']);
-                $displayname = getUserDisplayName($r['id']);
-                echo '
-                    <li><a href="familynews.php?getnews='.(int)$r['id'].'">'.$displayname.'</a> &nbsp;<small>'.$date.'</small></li>';
+                $templateParams['newsMenu'][] = array(
+                    'id'          => (int)$r['id'],
+                    'displayname' => getUserDisplayName($r['id']),
+                    'date'        => fixDate(T_('M. j'), $this->fcmsUser->tzOffset, $r['d']),
+                );
             }
-            echo '
-                </ul>
-            </div>';
         }
+
+        return $templateParams;
     }
 
     /**
@@ -157,6 +154,17 @@ class FamilyNews
         $user = (int)$user;
         $id   = (int)$id;
 
+        $templateParams = array(
+            'username'        => getUserDisplayName($user),
+            'commentsText'    => T_('Comments'),
+            'addText'         => T_('Add'),
+            'addCommentText'  => T_('Add Comment'),
+            'addACommentText' => T_('Add a comment'),
+            'addCommentUrl'   => '?getnews='.$user.'&amp;newsid='.$id.'#footer',
+            'comments'        => array(),
+            'noCommentsText'  => T_('no comments'),
+        );
+
         $sql = "SELECT n.`id`, n.`title`, n.`news`, n.`updated`, n.`created`,
                     n.`external_type`, n.`external_id`
                 FROM `fcms_news` AS n, `fcms_users` AS u 
@@ -169,82 +177,49 @@ class FamilyNews
             return;
         }
 
-        $updated = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['updated']);
-        $created = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['created']);
-
-        $displayname = getUserDisplayName($user);
-
-        $edit = '';
-        $del  = '';
-
         if ($this->fcmsUser->id == $user || $this->fcmsUser->access < 2)
         {
-            $edit = ' &nbsp;
-                <form method="post" action="familynews.php">
-                    <div>
-                        <input type="hidden" name="user" value="'.$user.'"/>
-                        <input type="hidden" name="id" value="'.(int)$row['id'].'"/>
-                        <input type="hidden" name="title" value="'.cleanOutput($row['title']).'"/>
-                        <input type="hidden" name="news" value="'.cleanOutput($row['news']).'"/>
-                        <input type="submit" name="editnews" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Family News').'"/>
-                    </div>
-                </form>';
+            $templateParams['edit'] = array(
+                'user'                   => $user,
+                'id'                     => (int)$row['id'],
+                'title'                  => cleanOutput($row['title']),
+                'news'                   => cleanOutput($row['news']),
+                'editText'               => T_('Edit'),
+                'editThisFamilyNewsText' => T_('Edit this Family News'),
+            );
 
-            $del = ' &nbsp;
-                <form class="delnews" method="post" action="familynews.php?getnews='.$user.'">
-                    <div>
-                        <input type="hidden" name="user" value="'.$user.'"/>
-                        <input type="hidden" name="id" value="'.(int)$row['id'].'"/>
-                        <input type="submit" name="delnews" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Family News').'"/>
-                    </div>
-                </form>';
+            $templateParams['delete'] = array(
+                'user'                     => $user,
+                'id'                       => (int)$row['id'],
+                'deleteText'               => T_('Delete'),
+                'deleteThisFamilyNewsText' => T_('Delete this Family News'),
+            );
         }
 
-        $newsSource = '';
+        $updated = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['updated']);
+        $created = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['created']);
 
         // FCMS news
         if (empty($row['external_type']) && empty($row['external_id']))
         {
-            $news = parse($row['news']);
+            $templateParams['news'] = parse($row['news']);
         }
         // External news
         else
         {
-            $newsSource = '
-                    <span style="background-color:#eee; color:#999; font-size:13px;">
-                        '.sprintf(T_('Originally from %s, %s.'), $row['external_type'], $created).'
-                    </span><br/>';
-            $news = $row['news'];
-            $edit = ''; // can't edit external
+            $templateParams['external'] = sprintf(T_('Originally from %s, %s.'), $row['external_type'], $created);
+            $templateParams['news']     = $row['news'];
+
+            unset($templateParams['edit']); // can't edit external
         }
 
-        $title = !empty($row['title']) ? cleanOutput($row['title']) : T_('untitled');
+        $templateParams['updated']      = $updated;
+        $templateParams['created']      = $created;
+        $templateParams['url']          = '?getnews='.$user.'&amp;newsid='.(int)$row['id'];
+        $templateParams['commentUrl']   = '?getnews='.$user.'&amp;newsid='.(int)$row['id'].'#comments';
+        $templateParams['commentCount'] = getNewsComments($row['id']);
 
-        echo '
-            <div class="news-post">
-                <h2>
-                    <a href="?getnews='.$user.'&amp;newsid='.(int)$row['id'].'">'.$title.'</a>
-                </h2>
-                <span class="date">
-                    '.$updated.' - '.$displayname.$edit.$del.'
-                </span>
-                <p>
-                    '.$newsSource.$news.'
-                </p>
-                <p class="news-comments">
-                    <a href="?getnews='.$user.'&amp;newsid='.(int)$row['id'].'#comments">'.T_('Comments').'</a> - 
-                    '.getNewsComments($row['id']).'
-                </p>
-            </div>
-            <h3 id="comments">'.T_('Comments').'</h3>
-            <p class="center">
-                <form action="?getnews='.$user.'&amp;newsid='.$id.'#footer" method="post">
-                    '.T_('Add Comment').'<br/>
-                    <input type="text" name="comment" id="comment" size="50" title="'.T_('Add a comment').'"/> 
-                    <input type="submit" name="addcom" id="addcom" value="'.T_('Add').'" class="gal_addcombtn"/>
-                </form>
-            </p>
-            <p>&nbsp;</p>';
+        $templateParams['title'] = !empty($row['title']) ? cleanOutput($row['title']) : T_('untitled');
 
         // Comments
         $sql = "SELECT c.id, comment, `date`, fname, lname, username, user, avatar  
@@ -261,45 +236,29 @@ class FamilyNews
             return;
         }
 
-        if (count($rows) <= 0)
-        { 
-            echo '
-            <p class="center">'.T_('no comments').'</p>';
-
-            return;
-        }
-
         foreach ($rows as $row)
         {
-            $displayname = getUserDisplayName($row['user']);
-            $date        = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['date']);
+            $commentParams = array(
+                'avatar'   => getCurrentAvatar($row['user']),
+                'username' => getUserDisplayName($row['user']),
+                'date'     => fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['date']),
+                'comment'  => cleanOutput($row['comment']),
+            );
 
             if ($this->fcmsUser->id == $row['user'] || $this->fcmsUser->access < 2)
             {
-                echo '
-            <div class="comment_block">
-                <form class="delcom" action="?getnews='.$user.'&amp;newsid='.$id.'" method="post">
-                    <input type="submit" name="delcom" id="delcom" value="'.T_('Delete').'" class="gal_delcombtn" title="'.T_('Delete this comment').'"/>
-                    <img class="avatar" alt="avatar" src="'.getCurrentAvatar($row['user']).'"/>
-                    <b>'.$displayname.'</b>
-                    <span>'.$date.'</span>
-                    <p>'.cleanOutput($row['comment']).'</p>
-                    <input type="hidden" name="id" value="'.(int)$row['id'].'">
-                </form>
-            </div>';
+                $commentParams['delete'] = array(
+                    'url'                   => '?getnews='.$user.'&amp;newsid='.$id,
+                    'id'                    => (int)$row['id'],
+                    'deleteText'            => T_('Delete'),
+                    'deleteThisCommentText' => T_('Delete this comment'),
+                );
             }
-            else
-            {
-                echo '
-            <div class="comment_block">
-                    <img class="avatar" src="avatar/'.basename($row['avatar']).'">
-                    <b>'.$displayname.'</b>
-                    <span>'.$date.'</span>
-                    <p>'.cleanOutput($row['comment']).'</p>
-                </form>
-            </div>';
-            }
+
+            $templateParams['comments'][] = $commentParams;
         }
+
+        loadTemplate('familynews', 'main', $templateParams);
     }
 
     /**
@@ -315,65 +274,33 @@ class FamilyNews
      */
     function displayForm ($type, $user = 0, $newsid = 0, $title='error', $news = 'error')
     {
-        echo '
-            <script type="text/javascript" src="ui/js/livevalidation.js"></script>';
+        $templateParams = array(
+            'titleText'                 => T_('Title'),
+            'titleOfYourFamilyNewsText' => T_('Title of your Family News'),
+            'orText'                    => T_('or'),
+            'cancelText'                => T_('Cancel'),
+        );
 
         if ($type == 'edit')
         {
-            echo '
-            <form method="post" id="editform" action="familynews.php">
-                <fieldset>
-                    <legend><span>'.T_('Edit News').'</span></legend>';
+            $templateParams['editText']     = T_('Edit');
+            $templateParams['editNewsText'] = T_('Edit News');
+            $templateParams['title']        = $title;
+            $templateParams['news']         = $news;
+            $templateParams['id']           = (int)$newsid;
+            $templateParams['user']         = (int)$user;
         }
         else
         {
-            echo '
-            <form method="post" id="addform" action="familynews.php">
-                <fieldset>
-                    <legend><span>'.T_('Add News').'</span></legend>';
+            $templateParams['addText']     = T_('Add');
+            $templateParams['addNewsText'] = T_('Add News');
         }
-        echo '
-                    <p>
-                        <label for="title">'.T_('Title').'</label>:
-                        <input type="text" name="title" id="title" title="'.T_('Title of your Family News').'"';
 
-        if ($type == 'edit')
-        {
-            echo ' value="'.cleanOutput($title).'"';
-        }
-        echo ' tabindex="1" size="50"/>
-                    </p>
-                    <script type="text/javascript">
-                        var ftitle = new LiveValidation(\'title\', { onlyOnSubmit:true });
-                        ftitle.add(Validate.Presence, { failureMessage: "" });
-                    </script>
-                    <script type="text/javascript">var bb = new BBCode();</script>';
-        displayBBCodeToolbar();
-        echo '
-                    <div><textarea name="post" id="post" rows="10" cols="63" tabindex="2">';
+        // get the bbcode toolbar params
+        $bbcodeToolbarParams = getBBCodeToolbarTemplateParams();
+        $templateParams      = array_merge($templateParams, $bbcodeToolbarParams);
 
-        if ($type == 'edit')
-        {
-            echo cleanOutput($news);
-        }
-        echo '</textarea></div>
-                    <script type="text/javascript">bb.init(\'post\');</script>
-                    <p>';
-        if ($type == 'add') {
-            echo '
-                        <input class="sub1" type="submit" name="submitadd" tabindex="3" value="'.T_('Add').'"/>';
-        } else {
-            echo '
-                        <input type="hidden" name="id" value="'.(int)$newsid.'"/>
-                        <input type="hidden" name="user" value="'.(int)$user.'"/>
-                        <input class="sub1" type="submit" name="submitedit" tabindex="3" value="'.T_('Edit').'"/>';
-        }
-        echo '
-                         &nbsp;'.T_('or').' &nbsp;
-                        <a href="familynews.php">'.T_('Cancel').'</a>
-                    </p>
-                </fieldset>
-            </form>';
+        loadTemplate('familynews', $type, $templateParams);
     }
 
     /**
@@ -395,26 +322,21 @@ class FamilyNews
             return;
         }
 
-        if (count($rows) <= 0)
-        {
-            echo '
-            <div class="blank-state">
-                <h2>'.T_('Nothing to see here').'</h2>
-                <h3>'.T_('Currently no one has added any news').'</h3>
-                <h3>'.T_('Why don\'t you be the first to add news?').'</a></h3>
-                <ol>
-                    <li><a href="?addnews=yes">'.T_('Add Family News').'</a></li>
-                    <li><a href="settings.php?view=familynews">'.T_('Import News from existing blog').'</a></li>
-                </ol>
-            </div>';
-
-            return;
-        }
+        $templateParams = array(
+            'nothingToSeeHereText'  => T_('Nothing to see here'),
+            'noOneAddedNewsText'    => T_('Currently no one has added any news'),
+            'beFirstAddNewsText'    => T_('Why don\'t you be the first to add news?'),
+            'addFamilyNewsText'     => T_('Add Family News'),
+            'importExistinBlogText' => T_('Import News from existing blog'),
+            'news'                  => array(),
+        );
 
         foreach ($rows as $row)
         {
-            $this->displayNews($row);
+            $templateParams['news'][] = $this->getNewsTemplateParams($row);
         }
+
+        loadTemplate('familynews', 'news', $templateParams);
     }
 
     /**
@@ -564,64 +486,53 @@ class FamilyNews
     }
 
     /**
-     * displayNews 
+     * getNewsTemplateParams
      * 
      * Prints out the news info when looping through a list of news.
      * Used when viewing last 5 and users news.
      * 
      * @param array $data 
      * 
-     * @return void
+     * @return array
      */
-    function displayNews ($data)
+    function getNewsTemplateParams ($data)
     {
-        $displayname = getUserDisplayName($data['user']);
-
-        $updated = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $data['updated']);
-        $created = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $data['created']);
-
-        $newsSource = '';
+        $templateParams = array(
+            'displayname'   => getUserDisplayName($data['user']),
+            'updated'       => fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $data['updated']),
+            'title'         => cleanOutput($data['title']),
+            'url'           => '?getnews='.(int)$data['user'].'&amp;newsid='.(int)$data['id'],
+            'commentsText'  => T_('Comments'),
+            'commentCount'  => getNewsComments($data['id']),
+        );
 
         // Imported news
         if (strlen($data['external_type']) > 0)
         {
-            $newsSource = '
-                    <span style="background-color:#eee; color:#999; font-size:13px;">
-                        '.sprintf(T_('Originally from %s, %s.'), $data['external_type'], $created).'
-                    </span><br/>';
+            $created = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $data['created']);
 
-            $news = strip_tags($data['news']);
+            $templateParams['external'] = sprintf(T_('Originally from %s, %s.'), $data['external_type'], $created);
+            $templateParams['news']     = strip_tags($data['news']);
         }
         // Family News
         else
         {
-            $news = removeBBCode($data['news']);
-            $news = cleanOutput($news);
+            $templateParams['news'] = removeBBCode($data['news']);
+            $templateParams['news'] = cleanOutput($templateParams['news']);
         }
 
         if (strlen($data['news']) > 300)
         {
-            $news = substr($news, 0, 300);
-            $news .= '...<br/><br/><a href="?getnews='.$data['user'].'&amp;newsid='.(int)$data['id'].'">'.T_('Read More').'</a>';
+            $templateParams['news'] = substr($templateParams['news'], 0, 300);
+            $templateParams['news'] .= '...<br/><br/><a href="?getnews='.$data['user'].'&amp;newsid='.(int)$data['id'].'">'.T_('Read More').'</a>';
         }
 
         if (empty($data['title']))
         {
-            $data['title'] = T_('untitled');
+            $templateParams['title'] = T_('untitled');
         }
 
-        echo '
-            <div class="news-post">
-                <h2>
-                    <a href="?getnews='.$data['user'].'&amp;newsid='.(int)$data['id'].'">'.cleanOutput($data['title']).'</a>
-                </h2>
-                <span class="date">'.$updated.' - '.$displayname.'</span>
-                <p>'.$newsSource.$news.'</p>
-                <p class="news-comments">
-                    <a href="?getnews='.$data['user'].'&amp;newsid='.(int)$data['id'].'#comments">'
-                        .T_('Comments').'</a> - '.getNewsComments($data['id']).'
-                </p>
-            </div>';
+        return $templateParams;
     }
 
     /**

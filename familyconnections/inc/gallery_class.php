@@ -29,16 +29,16 @@ class PhotoGallery
     var $fcmsImage;
 
     /**
-     * PhotoGallery 
+     * __construct 
      * 
-     * @param object $fcmsError 
-     * @param object $fcmsDatabase
-     * @param object $fcmsUser 
-     * @param object $fcmsImage
+     * @param FCMS_Error $fcmsError 
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser 
+     * @param Image      $fcmsImage
      * 
      * @return void
      */
-    function PhotoGallery ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsImage = null)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, $fcmsImage = null)
     {
         $this->fcmsError    = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;

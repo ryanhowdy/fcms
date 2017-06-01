@@ -29,15 +29,15 @@ class AddressBook
     var $fcmsUser;
 
     /**
-     * AddressBook 
+     * __construct 
      * 
-     * @param object $fcmsError 
-     * @param object $fcmsDatabase
-     * @param object $fcmsUser 
+     * @param FCMS_Error $fcmsError 
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser 
      * 
      * @return void
      */
-    function AddressBook ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
         $this->fcmsError    = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
@@ -80,95 +80,74 @@ class AddressBook
             return;
         }
 
-        // Edit / Delete links
-        $edit_del = '';
+        $templateParams = array(
+            'addressText'     => T_('Address'),
+            'emailText'       => T_('Email'),
+            'homeText'        => T_pgettext('The dwelling where you live.', 'Home'),
+            'workText'        => T_('Work'),
+            'mobileText'      => T_('Mobile'),
+            'emailMemberText' => T_('Email This Member'),
+            'avatar'          => getCurrentAvatar($r['user']),
+            'name'            => cleanOutput($r['fname']).' '.cleanOutput($r['lname']),
+            'addressOptions' => array(
+                array(
+                    'liId' => 'back',
+                    'aId'  => '',
+                    'url'  => '?cat='.$cat,
+                    'text' => T_('Back to Addresses'),
+                ),
+                array(
+                    'liId' => 'email',
+                    'aId'  => '',
+                    'url'  => 'mailto:'.cleanOutput($r['email']),
+                    'text' => T_('Email'),
+                ),
+            ),
+        );
 
+        // Edit / Delete links
         if ($this->fcmsUser->id == $r['user'] || $this->fcmsUser->access < 2)
         {
-            $edit_del = '<li id="edit"><a href="?cat='.$cat.'&amp;edit='.$r['id'].'">'.T_('Edit').'</a></li>';
+            $templateParams['addressOptions'][] = array(
+                'liId' => 'edit',
+                'aId'  => '',
+                'url'  => '?cat='.$cat.'&amp;edit='.(int)$r['id'],
+                'text' => T_('Edit'),
+            );
 
             if ($r['phpass'] == 'NONMEMBER' || $r['phpass'] == 'PRIVATE')
             {
-                $edit_del .='
-                        <li id="delete"><a id="del_address" href="?cat='.$cat.'&amp;delete='.$r['id'].'">'.T_('Delete').'</a></li>';
+                $templateParams['addressOptions'][] = array(
+                    'liId' => 'delete',
+                    'aId'  => 'del_address',
+                    'url'  => '?cat='.$cat.'&amp;delete='.(int)$r['id'],
+                    'text' => T_('Delete'),
+                );
             }
         }
 
-
         // Address
-        $address    = formatAddress($r);
-        $addressUrl = formatAddressUrl($address);
+        $templateParams['address']    = formatAddress($r);
+        $templateParams['addressUrl'] = formatAddressUrl($templateParams['address']);
 
-        if ($address == '')
+        if ($templateParams['address'] == '')
         {
-            $str = "<i>(".T_('none').")</i>";
+            $templateParams['address'] = "<i>(".T_('none').")</i>";
         }
-
-        $map_link = !empty($addressUrl) 
-                  ? '<br/><a href="http://maps.google.com/maps?q='.$addressUrl.'"/>'.T_('Map').'</a>' 
-                  : '';
 
         // Email
-        if (empty($r['email']))
-        {
-            $email = "<i>(".T_('none').")</i>";
-        }
-        else
-        {
-            $email = cleanOutput($r['email']).' <a class="email" href="mailto:'.cleanOutput($r['email']).'" 
-                title="'.T_('Email This Member').'">&nbsp;</a>';
-        }
+        $templateParams['email'] = empty($r['email']) ? "<i>(".T_('none').")</i>" : cleanOutput($r['email']); 
 
         // Phone Number
-        $home = empty($r['home']) ? '<i>('.T_('none').')</i>' : formatPhone($r['home'], $r['country']);
-        $work = empty($r['work']) ? '<i>('.T_('none').')</i>' : formatPhone($r['work'], $r['country']);
-        $cell = empty($r['cell']) ? '<i>('.T_('none').')</i>' : formatPhone($r['cell'], $r['country']);
+        $templateParams['home']   = empty($r['home']) ? '<i>('.T_('none').')</i>' : formatPhone($r['home'], $r['country']);
+        $templateParams['work']   = empty($r['work']) ? '<i>('.T_('none').')</i>' : formatPhone($r['work'], $r['country']);
+        $templateParams['mobile'] = empty($r['cell']) ? '<i>('.T_('none').')</i>' : formatPhone($r['cell'], $r['country']);
 
-        // Display address
-        echo '
-            <div id="leftcolumn">';
+        $categories = $this->getCategoryParams($cat);
 
-        $this->displayCategories($cat);
+        $templateParams = array_merge($templateParams, $categories);
 
-        echo '
-            </div>
-            <div id="maincolumn">
-
-                <div id="address-options">
-                    <ul>
-                        <li id="back"><a href="?cat='.$cat.'">'.T_('Back to Addresses').'</a></li>
-                        <li id="email"><a href="mailto:'.cleanOutput($r['email']).'">'.T_('Email').'</a></li>
-                        '.$edit_del.'
-                    </ul>
-                </div>
-                <div id="address-details">
-                    <p>
-                        <img alt="avatar" src="'.getCurrentAvatar($r['user']).'"/>
-                        <b class="name">'.cleanOutput($r['fname']).' '.cleanOutput($r['lname']).'</b>
-                    </p>
-                    <p>
-                        <b class="label">'.T_('Address').':</b>
-                        <span class="data">'.$address.' '.$map_link.'</span>
-                    </p>
-                    <p>
-                        <b class="label">'.T_('Email').':</b>
-                        <span class="data">'.$email.'</span>
-                    </p>
-                    <p>
-                        <b class="label">'.T_pgettext('The dwelling where you live.', 'Home').':</b>
-                        <span class="data">'.$home.'</span>
-                    </p>
-                    <p>
-                        <b class="label">'.T_('Work').':</b>
-                        <span class="data">'.$work.'</span>
-                    </p>
-                    <p>
-                        <b class="label">'.T_('Mobile').':</b>
-                        <span class="data">'.$cell.'</span>
-                    </p>
-                </div>
-
-            </div>';
+        loadTemplate('addressbook', 'address', $templateParams);
     }
 
     /**
@@ -182,105 +161,119 @@ class AddressBook
      */
     function displayAddressList ($cat = '')
     {
-        echo '
-            <div id="leftcolumn">';
+        $templateParams = array(
+            'addNewAddressText' => T_('Add New Address'),
+            'nameText'          => T_('Name'),
+            'addressText'       => T_('Address'),
+            'phoneText'         => T_('Phone'),
+        );
 
-        $this->displayCategories($cat);
+        $categories = $this->getCategoryParams($cat);
+        $addresses  = $this->getAddressInCategoryParams($cat);
 
-        echo '
-            </div>
-            <div id="maincolumn">
-
-                <form action="addressbook.php" id="check_all_form" name="check_all_form" method="post">
-                <table id="address-table" cellspacing="0" cellpadding="0">
-                    <thead>
-                        <tr>
-                            <th colspan="2">
-                                <div id="check-all"></div>
-                            </th>
-                            <th style="text-align:right" colspan="2">
-                                <a href="?add=yes">'.T_('Add New Address').'</a>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="header">
-                            <td class="chk"></td> 
-                            <td>'.T_('Name').'</td> 
-                            <td>'.T_('Address').'</td> 
-                            <td>'.T_('Phone').'</td> 
-                        </tr>';
-
-        $this->displayAddressInCategory($cat);
-
-        echo '
-                    </tbody>
-                </table>';
+        $templateParams = array_merge($templateParams, $categories);
+        $templateParams = array_merge($templateParams, $addresses);
 
         if ($this->fcmsUser->access <= 3)
         {
-            echo '
-                <p class="alignright"><input class="sub1" type="submit" name="emailsubmit" value="'.T_('Email Selected').'"/></p>';
+            $templateParams['allowedToEmail']    = 1;
+            $templateParams['emailSelectedText'] = T_('Email Selected');
         }
 
-        echo '
-            </form>';
+        loadTemplate('addressbook', 'main', $templateParams);
     }
 
     /**
-     * displayCategories
+     * getCategoryParams
      *
-     * Displays the list of categories.
+     * Returns an array of template parameters for showing the list of categories.
      *
      * @param string $selected The currently selected category
      *
-     * @return void
+     * @return array
      */
-    function displayCategories ($selected = 'members')
+    function getCategoryParams ($selected = 'members')
     {
-        $all = $my = $mem = $non = '';
+        $rv  = array();
+        $all = '';
+        $my  = '';
+        $mem = '';
+        $non = '';
+
         if ($selected == 'all')
         {
-            $all = 'class="selected"';
+            $all = 'selected';
         }
         if ($selected == 'my')
         {
-            $my = 'class="selected"';
+            $my = 'selected';
         }
         if ($selected == 'members')
         {
-            $mem = 'class="selected"';
+            $mem = 'selected';
         }
         if ($selected == 'non')
         {
-            $non = 'class="selected"';
+            $non = 'selected';
         }
-        echo '
-                <b>'.T_('View').'</b>
-                <ul class="address-categories">
-                    <li '.$all.'><a href="?cat=all">'.T_('All').'</a></li>
-                    <li '.$my.'><a href="?cat=my" title="'.T_('Only show My personal Addresses').'">'.T_('My Addresses').'</a></li>
-                    <li '.$mem.'><a href="?cat=members" title="'.T_('Only show Addresses for members of the site').'">'.T_('Members').'</a></li>
-                    <li '.$non.'><a href="?cat=non" title="'.T_('Only show Addresses for non-members').'">'.T_('Non-Members').'</a></li>
-                </ul>
-                <b>'.T_('Options').'</b>
-                <ul class="address-options">
-                    <li><a href="?csv=import">'.T_('Import').'</a></li>
-                    <li><a href="?csv=export">'.T_('Export').'</a></li>
-                </ul>';
+
+        $rv['viewText']   = T_('View');
+        $rv['optionText'] = T_('Options');
+
+        $rv['categories'] = array(
+            array(
+                'liClass' => $all,
+                'url'     => '?cat=all',
+                'title'   => '',
+                'text'    => T_('All'),
+            ),
+            array(
+                'liClass' => $my,
+                'url'     => '?cat=my',
+                'title'   => T_('Only show My personal Addresses'),
+                'text'    => T_('My Addresses'),
+            ),
+            array(
+                'liClass' => $mem,
+                'url'     => '?cat=members',
+                'title'   => T_('Only show Addresses for members of the site'),
+                'text'    => T_('Members'),
+            ),
+            array(
+                'liClass' => $non,
+                'url'     => '?cat=non',
+                'title'   => T_('Only show Addresses for non-members'),
+                'text'    => T_('Non-Members'),
+            ),
+        );
+
+        $rv['options'] = array(
+            array(
+                'url'  => '?csv=import',
+                'text' => T_('Import'),
+            ),
+            array(
+                'url'  => '?csv=export',
+                'text' => T_('Export'),
+            ),
+        );
+
+        return $rv;
     }
 
     /**
-     * displayAddressInCategory
+     * getAddressInCategoryParams
      *
-     * Displays all the addresses in the given category.
+     * Returns an array of template params for all the addresses in the given category.
      *
      * @param string $category Category name
      *
-     * @return void
+     * @return array
      */
-    function displayAddressInCategory ($category = '')
+    function getAddressInCategoryParams ($category = '')
     {
+        $rv = array();
+
         // All addresses
         $cat = 'cat=all&amp;';
         $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
@@ -405,15 +398,16 @@ class AddressBook
                 $address .= cleanOutput($r['zip']);
             }
 
-            echo '
-                        <tr>
-                            <td class="chk">'.$email.'</td>
-                            <td><a href="?'.$cat.'address='.(int)$r['id'].'">
-                                '.cleanOutput($r['lname']).', '.cleanOutput($r['fname']).'</a></td>
-                            <td>'.$address.'</td>
-                            <td>'.formatPhone($r['home'], $r['country']).'</td>
-                        </tr>';
+            $rv['addresses'][] = array(
+                'checkbox'   => $email,
+                'addressUrl' => '?'.$cat.'address='.(int)$r['id'],
+                'name'       => cleanOutput($r['lname']).', '.cleanOutput($r['fname']),
+                'address'    => $address,
+                'phone'      => formatPhone($r['home'], $r['country']),
+            );
         }
+
+        return $rv;
     }
 
     /**

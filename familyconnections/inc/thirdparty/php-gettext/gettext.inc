@@ -127,7 +127,6 @@ function _get_reader($domain=null, $category=5, $enable_cache=true) {
         $input = null;
         foreach ($locale_names as $locale) {
           $full_path = $bound_path . $locale . "/" . $subpath;
-          $full_path = ROOT.'language/' . $locale . "/" . $subpath;
           if (file_exists($full_path)) {
             $input = new FileReader($full_path);
             break;
@@ -175,14 +174,13 @@ function _get_codeset($domain=null) {
  * Convert the given string to the encoding set by bind_textdomain_codeset.
  */
 function _encode($text) {
+  $target_encoding = _get_codeset();
+  if (function_exists("mb_detect_encoding")) {
     $source_encoding = mb_detect_encoding($text);
-    $target_encoding = _get_codeset();
-    if ($source_encoding != $target_encoding) {
-        return mb_convert_encoding($text, $target_encoding, $source_encoding);
-    }
-    else {
-        return $text;
-    }
+    if ($source_encoding != $target_encoding)
+      $text = mb_convert_encoding($text, $target_encoding, $source_encoding);
+  }
+  return $text;
 }
 
 

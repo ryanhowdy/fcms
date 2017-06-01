@@ -23,7 +23,7 @@ define('LATEST_VERSION_URL', 'http://www.familycms.com/latest/version.php');
 define('LATEST_FILE_URL',    'http://www.familycms.com/latest/latest.zip');
 
 require_once INC.'config_inc.php';
-require_once INC.'thirdparty/gettext.inc';
+require_once THIRDPARTY.'php-gettext/gettext.inc';
 require_once INC.'utils.php';
 require_once INC.'upgrade_inc.php';
 require_once INC.'Error.php';

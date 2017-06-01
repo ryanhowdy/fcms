@@ -30,6 +30,11 @@
                         <a class="u" href="profile.php?member=<?php echo $child['userId']; ?>"><?php echo $child['displayname']; ?></a> &nbsp;- &nbsp;
                         <small><i><?php echo $child['timeSince']; ?></i></small>
                         <p><?php echo $child['textInfo']; ?></p>
+
+                <?php if (isset($child['details']) && !empty($child['details'])): ?>
+                        <?php echo $child['details']; ?>
+                <?php endif; ?>
+
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -56,6 +61,13 @@
             <h3><?php echo $TMPL['textBlankDescription']; ?></h3>
         </div>
 <?php endif; ?>
+
         <p class="alignright">
             <a class="rss" href="rss.php?feed=all"><?php echo $TMPL['textRssFeed']; ?></a>
         </p>
+
+<?php if (isset($TMPL['page'])): ?>
+        <p class="more-whats-new">
+            <a href="?page=<?php echo $TMPL['page']; ?>"><?php echo $TMPL['txtMore']; ?></a>
+        </p>
+<?php endif; ?>

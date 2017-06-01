@@ -22,7 +22,7 @@ We usually have a few bugs/feature requests that you can get paid to fix. Check 
 
 # Installation
 
-1. Upload the familyconnections/ directory in FCMS_3.6.2.zip to your web host.
+1. Upload the familyconnections/ directory in FCMS_3.7.0.zip to your web host.
 
 2. Run the online installation script by visiting your website.
 
@@ -33,7 +33,7 @@ We usually have a few bugs/feature requests that you can get paid to fix. Check 
 
 # Upgrade
 
-## Upgrading from 2.6+ to 3.6.2
+## Upgrading from 2.6+ to 3.7.0
 
 __DO NOT DELETE *inc/config_inc.php*__
 
@@ -43,6 +43,12 @@ __DO NOT TOUCH ANY FILES IN THE FOLLOWING DIRECTORIES__
 * uploads/documents/
 * uploads/photos/memberX/
 * uploads/upimages/
+
+1. It is recommended that you backup your entire site, including your MySQL database before upgrading.
+
+2. Login as the administrator, visit the upgrade section, and run the automatic upgrade.
+
+3. Delete the install.php file from your web host (if it still exists).
 
 # Credits
 

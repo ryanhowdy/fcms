@@ -17,6 +17,8 @@ require 'fcms.php';
 
 load('facebook', 'socialmedia', 'phpass');
 
+setLanguage();
+
 $page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
 exit();
@@ -647,6 +649,6 @@ function checkAvailability() {
             'accessToken' => $accessToken
         );
 
-        displaySubmit($params);
+        $this->displaySubmit($params);
     }
 }

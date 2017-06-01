@@ -22,17 +22,17 @@ class Awards
     var $fcmsPhotoGallery;
 
     /**
-     * Awards 
+     * __construct 
      * 
-     * @param object $fcmsError 
-     * @param object $fcmsDatabase
-     * @param object $fcmsUser 
-     * @param object $fcmsMessageBoard
-     * @param object $fcmsPhotoGallery
+     * @param FCMS_Error    $fcmsError 
+     * @param Database      $fcmsDatabase
+     * @param User          $fcmsUser 
+     * @param MessageBoard  $fcmsMessageBoard
+     * @param PhotoGallery  $fcmsPhotoGallery
      * 
      * @return void
      */
-    function Awards ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsMessageBoard = null, $fcmsPhotoGallery = null)
+    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, $fcmsMessageBoard = null, $fcmsPhotoGallery = null)
     {
         $this->fcmsError        = $fcmsError;
         $this->fcmsDatabase     = $fcmsDatabase;
