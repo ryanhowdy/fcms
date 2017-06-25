@@ -1650,8 +1650,23 @@ li.tag_photo label span {
     padding: 20px;
     height: 260px;
 }
+#gallery fieldset .rotate-options,
 .basic .rotate-options {
     margin: 10px 0 0 0;
+
+    .radio_label {
+        text-indent: -999px;
+        overflow: hidden;
+        width: 45px;
+        height: 45px;
+        display: inline-block;
+        vertical-align: middle;
+        background: transparent url(../img/rotate_right.png) -15px -10px no-repeat;
+
+        &.left {
+            background: transparent url(../img/rotate_left.png) -15px -10px no-repeat;
+        }
+    }
 }
 .basic .multi-checkbox {
     float: left;

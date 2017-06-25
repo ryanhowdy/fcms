@@ -326,4 +326,29 @@ class Destination
         curl_exec($ch);
         curl_close($ch);
     }
+
+    /**
+     * rotate 
+     * 
+     * @param int $degrees 
+     * 
+     * @return boolean
+     */
+    function rotate ($filename, $degrees = 90)
+    {
+        $arr = explode('.', $filename);
+
+        $extension = '';
+        if (count($arr) >= 2)
+        {
+            $extension = end($arr);
+            $extension = strtolower($extension);
+        }
+
+        $identifier = $this->createImageIdentifier($filename, $extension);
+
+        $source = imagerotate($identifier, $degrees, 0);
+
+        return $this->writeImage($source, $filename, $extension);
+    }
 }
