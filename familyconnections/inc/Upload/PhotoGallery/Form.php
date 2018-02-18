@@ -72,7 +72,7 @@ class UploadPhotoGalleryForm
                         </p>
                         <p>
                             <label><b>'.T_('Photo').'</b></label><br/>
-                            <input name="photo_filename" type="file" size="50"/>
+                            <input name="photo_filename" type="file" accept="image/*" size="50"/>
                         </p>
                         <p>
                             <label><b>'.T_('Caption').'</b></label><br/>
