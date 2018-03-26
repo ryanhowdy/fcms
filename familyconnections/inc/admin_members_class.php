@@ -84,8 +84,6 @@ class AdminMembers
         $this->fcmsError    = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
         $this->fcmsUser     = $fcmsUser;
-
-        T_bindtextdomain('messages', '.././language');
     }
     
     /**

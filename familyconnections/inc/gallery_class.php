@@ -44,9 +44,6 @@ class PhotoGallery
         $this->fcmsDatabase = $fcmsDatabase;
         $this->fcmsUser     = $fcmsUser;
         $this->fcmsImage    = $fcmsImage;
-
-        // TODO - this could be fixed by using ROOT
-        T_bindtextdomain('messages', '.././language');
     }
 
     /**

@@ -307,7 +307,7 @@ function getHumanTimeSince ($from, $to = 0)
     // 1 - 59 seconds ago
     elseif ($diff < MINUTE_IN_SECONDS)
     {
-        $since = sprintf(T_ngettext('%s second ago', '%s seconds ago', $diff), $diff);
+        $since = sprintf(T_ngettext('%s second ago', '%s seconds ago', (int)$diff), $diff);
     }
     // minutes
     // 1 - 59 minutes ago
@@ -318,7 +318,7 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $mins = 1;
         }
-        $since = sprintf(T_ngettext('%s minute ago', '%s minutes ago', $mins), $mins);
+        $since = sprintf(T_ngettext('%s minute ago', '%s minutes ago', (int)$mins), $mins);
     }
     // hours
     // 1 - 23 hours ago
@@ -329,7 +329,7 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $hours = 1;
         }
-        $since = sprintf(T_ngettext('%s hour ago', '%s hours ago', $hours), $hours);
+        $since = sprintf(T_ngettext('%s hour ago', '%s hours ago', (int)$hours), $hours);
     }
     // days
     // 1 - 29 days ago
@@ -340,7 +340,7 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $days = 1;
         }
-        $since = sprintf(T_ngettext('%s day ago', '%s days ago', $days), $days);
+        $since = sprintf(T_ngettext('%s day ago', '%s days ago', (int)$days), $days);
     }
     // months
     // 30 - 364 days ago
@@ -351,7 +351,7 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $months = 1;
         }
-        $since = sprintf(T_ngettext('%s month ago', '%s months ago', $months), $months);
+        $since = sprintf(T_ngettext('%s month ago', '%s months ago', (int)$months), $months);
     }
     // years
     // 365+ days ago
@@ -362,7 +362,7 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $years = 1;
         }
-        $since = sprintf(T_ngettext('%s year ago', '%s years ago', $years), $years);
+        $since = sprintf(T_ngettext('%s year ago', '%s years ago', (int)$years), $years);
     }
 
     return $since;
