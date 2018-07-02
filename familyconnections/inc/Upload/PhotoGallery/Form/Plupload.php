@@ -1,37 +1,35 @@
 <?php
 /**
- * Plupload Form
- * 
- * @package Upload
- * @subpackage UploadPhotoGallery
+ * Plupload Form.
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class PluploadUploadPhotoGalleryForm extends UploadPhotoGalleryForm
 {
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
     }
 
     /**
-     * display 
-     * 
+     * display.
+     *
      * @return void
      */
-    public function display ()
+    public function display()
     {
         $_SESSION['fcms_uploader_type'] = 'plupload';
 
@@ -40,7 +38,7 @@ class PluploadUploadPhotoGalleryForm extends UploadPhotoGalleryForm
             unset($_SESSION['photos']);
         }
 
-        $fullFileUploaded   = '';
+        $fullFileUploaded = '';
         $filesPerPhotoCount = 2;
 
         if (usingFullSizePhotos())

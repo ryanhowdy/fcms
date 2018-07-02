@@ -1,14 +1,15 @@
 <?php
 /**
- * Family News
- * 
+ * Family News.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -23,7 +24,7 @@ load('familynews', 'datetime');
 init();
 
 $fnews = new FamilyNews($fcmsError, $fcmsDatabase, $fcmsUser);
-$page  = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $fnews);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $fnews);
 
 exit();
 
@@ -36,28 +37,28 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsFamilyNews)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsFamilyNews)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
-        $this->fcmsFamilyNews   = $fcmsFamilyNews;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
+        $this->fcmsFamilyNews = $fcmsFamilyNews;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if (isset($_GET['addnews']))
         {
@@ -113,13 +114,13 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ($options = null)
+    public function displayHeader($options = null)
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -128,21 +129,21 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => getUserDisplayName($this->fcmsUser->id),
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         displayPageHeader($params, $options);
 
-        $templateParams = array();
+        $templateParams = [];
 
         if ($this->fcmsUser->access < 6 || $this->fcmsUser->access == 9)
         {
             $templateParams['latestNewsText'] = T_('Latest News');
-            $templateParams['addNewsText']    = T_('Add News');
+            $templateParams['addNewsText'] = T_('Add News');
 
             if ($this->fcmsFamilyNews->hasNews($this->fcmsUser->id))
             {
-                $templateParams['myUserId']   = $this->fcmsUser->id;
+                $templateParams['myUserId'] = $this->fcmsUser->id;
                 $templateParams['myNewsText'] = T_('My News');
             }
 
@@ -155,6 +156,7 @@ class Page
             {
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
 
@@ -168,34 +170,34 @@ class Page
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'    => URL_PREFIX,
             'version' => getCurrentVersion(),
-            'year'    => date('Y')
-        );
+            'year'    => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
     /**
-     * displayAddNewsSubmit 
-     * 
+     * displayAddNewsSubmit.
+     *
      * @return void
      */
-    function displayAddNewsSubmit ()
+    public function displayAddNewsSubmit()
     {
-        $sql = "INSERT INTO `fcms_news`
+        $sql = 'INSERT INTO `fcms_news`
                     (`title`, `news`, `user`, `created`, `updated`)
                 VALUES
-                    (?, ?, ? ,NOW(), NOW())";
+                    (?, ?, ? ,NOW(), NOW())';
 
-        $params = array($_POST['title'], $_POST['post'], $this->fcmsUser->id);
+        $params = [$_POST['title'], $_POST['post'], $this->fcmsUser->id];
 
         $newNewsId = $this->fcmsDatabase->insert($sql, $params);
         if ($newNewsId === false)
@@ -225,15 +227,15 @@ class Page
 
         if (count($rows) > 0)
         {
-            $name          = getUserDisplayName($this->fcmsUser->id);
-            $url           = getDomainAndDir();
+            $name = getUserDisplayName($this->fcmsUser->id);
+            $url = getDomainAndDir();
             $email_headers = getEmailHeaders();
 
             foreach ($rows as $r)
             {
-                $to      = getUserDisplayName($r['user']);
+                $to = getUserDisplayName($r['user']);
                 $subject = sprintf(T_('%s has added %s to his/her Family News'), $name, $_POST['title']);
-                $email   = $r['email'];
+                $email = $r['email'];
 
                 $msg = T_('Dear').' '.$to.',
 
@@ -251,29 +253,29 @@ class Page
             }
         }
 
-        $user = (int)$this->fcmsUser->id;
+        $user = (int) $this->fcmsUser->id;
 
         header("Location: familynews.php?getnews=$user&newsid=$newNewsId");
     }
 
     /**
-     * displayEditNewsSubmit 
-     * 
+     * displayEditNewsSubmit.
+     *
      * @return void
      */
-    function displayEditNewsSubmit ()
+    public function displayEditNewsSubmit()
     {
         $this->displayHeader();
 
-        $id   = $_POST['id'];
+        $id = $_POST['id'];
         $user = $_POST['user'];
 
-        $sql = "UPDATE `fcms_news` 
+        $sql = 'UPDATE `fcms_news` 
                 SET `title` = ?, 
                     `news`  = ? 
-                WHERE `id`  = ?";
+                WHERE `id`  = ?';
 
-        $params = array($_POST['title'], $_POST['post'], $_POST['id']);
+        $params = [$_POST['title'], $_POST['post'], $_POST['id']];
 
         if (!$this->fcmsDatabase->update($sql, $params))
         {
@@ -291,11 +293,11 @@ class Page
     }
 
     /**
-     * displayAddNewsForm 
-     * 
+     * displayAddNewsForm.
+     *
      * @return void
      */
-    function displayAddNewsForm ()
+    public function displayAddNewsForm()
     {
         $this->displayHeader();
 
@@ -312,11 +314,11 @@ class Page
     }
 
     /**
-     * displayEditNewsForm 
-     * 
+     * displayEditNewsForm.
+     *
      * @return void
      */
-    function displayEditNewsForm ()
+    public function displayEditNewsForm()
     {
         $this->displayHeader();
         $this->fcmsFamilyNews->displayForm('edit', $_POST['user'], $_POST['id'], $_POST['title'], $_POST['news']);
@@ -324,24 +326,24 @@ class Page
     }
 
     /**
-     * displayDeleteConfirmation 
-     * 
+     * displayDeleteConfirmation.
+     *
      * @return void
      */
-    function displayDeleteConfirmation ()
+    public function displayDeleteConfirmation()
     {
         $this->displayHeader();
 
         echo '
                 <div class="info-alert">
-                    <form action="familynews.php?getnews='.(int)$_POST['user'].'" method="post">
+                    <form action="familynews.php?getnews='.(int) $_POST['user'].'" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
-                            <input type="hidden" name="user" value="'.(int)$_POST['user'].'"/>
-                            <input type="hidden" name="id" value="'.(int)$_POST['id'].'"/>
+                            <input type="hidden" name="user" value="'.(int) $_POST['user'].'"/>
+                            <input type="hidden" name="id" value="'.(int) $_POST['id'].'"/>
                             <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
-                            <a style="float:right;" href="familynews.php?getnews='.(int)$_POST['user'].'">'.T_('Cancel').'</a>
+                            <a style="float:right;" href="familynews.php?getnews='.(int) $_POST['user'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -350,15 +352,15 @@ class Page
     }
 
     /**
-     * displayDeleteSubmit 
-     * 
+     * displayDeleteSubmit.
+     *
      * @return void
      */
-    function displayDeleteSubmit ()
+    public function displayDeleteSubmit()
     {
 
-        $sql = "DELETE FROM `fcms_news` 
-                WHERE id = ?";
+        $sql = 'DELETE FROM `fcms_news` 
+                WHERE id = ?';
 
         if (!$this->fcmsDatabase->delete($sql, $_POST['id']))
         {
@@ -371,32 +373,32 @@ class Page
 
         if (isset($_GET['getnews']))
         {
-            header("Location: familynews.php?getnews=".$_GET['getnews']);
+            header('Location: familynews.php?getnews='.$_GET['getnews']);
         }
         else
         {
-            header("Location: familynews.php");
+            header('Location: familynews.php');
         }
     }
 
     /**
-     * displayDeleteCommentConfirmation 
-     * 
+     * displayDeleteCommentConfirmation.
+     *
      * @return void
      */
-    function displayDeleteCommentConfirmation ()
+    public function displayDeleteCommentConfirmation()
     {
         $this->displayHeader();
 
         echo '
                 <div class="info-alert">
-                    <form action="familynews.php?getnews='.(int)$_GET['getnews'].'" method="post">
+                    <form action="familynews.php?getnews='.(int) $_GET['getnews'].'" method="post">
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone').'</i></b></p>
                         <div>
-                            <input type="hidden" name="id" value="'.(int)$_POST['id'].'"/>
+                            <input type="hidden" name="id" value="'.(int) $_POST['id'].'"/>
                             <input style="float:left;" type="submit" id="delconfirm" name="delconfirm" value="'.T_('Yes').'"/>
-                            <a style="float:right;" href="familynews.php?getnews='.(int)$_GET['getnews'].'">'.T_('Cancel').'</a>
+                            <a style="float:right;" href="familynews.php?getnews='.(int) $_GET['getnews'].'">'.T_('Cancel').'</a>
                         </div>
                     </form>
                 </div>';
@@ -405,14 +407,14 @@ class Page
     }
 
     /**
-     * displayDeleteCommentSubmit 
-     * 
+     * displayDeleteCommentSubmit.
+     *
      * @return void
      */
-    function displayDeleteCommentSubmit ()
+    public function displayDeleteCommentSubmit()
     {
-        $sql = "DELETE FROM `fcms_news_comments`
-                WHERE `id` = ?";
+        $sql = 'DELETE FROM `fcms_news_comments`
+                WHERE `id` = ?';
 
         if (!$this->fcmsDatabase->delete($sql, $_POST['id']))
         {
@@ -423,30 +425,30 @@ class Page
             return;
         }
 
-        header("Location: familynews.php?getnews=".(int)$_GET['getnews']);
+        header('Location: familynews.php?getnews='.(int) $_GET['getnews']);
     }
 
     /**
-     * displayAddCommentSubmit 
-     * 
+     * displayAddCommentSubmit.
+     *
      * @return void
      */
-    function displayAddCommentSubmit ()
+    public function displayAddCommentSubmit()
     {
         $com = ltrim($_POST['comment']);
 
         if (!empty($com))
         {
-            $sql = "INSERT INTO `fcms_news_comments`
+            $sql = 'INSERT INTO `fcms_news_comments`
                         (`news`, `comment`, `date`, `user`)
                     VALUES
-                        (?, ?, NOW(), ?)";
+                        (?, ?, NOW(), ?)';
 
-            $params = array(
+            $params = [
                 $_GET['newsid'],
                 $com,
-                $this->fcmsUser->id
-            );
+                $this->fcmsUser->id,
+            ];
 
             if (!$this->fcmsDatabase->insert($sql, $params))
             {
@@ -458,59 +460,59 @@ class Page
             }
         }
 
-        header("Location: familynews.php?getnews=".(int)$_GET['getnews']."&newsid=".(int)$_GET['newsid']);
+        header('Location: familynews.php?getnews='.(int) $_GET['getnews'].'&newsid='.(int) $_GET['newsid']);
     }
 
     /**
-     * displayNews 
-     * 
+     * displayNews.
+     *
      * @return void
      */
-    function displayNews ()
+    public function displayNews()
     {
         $this->displayHeader(
-            array(
+            [
                 'jsOnload' => '
     $(\'.delnews input[type="submit"]\').click(function(e) {
         return confirmDeleteLink(this, "'.T_('Are you sure you want to DELETE this?').'", e);
     });
     $(\'.delcom input[type="submit"]\').click(function(e) {
         return confirmDeleteLink(this, "'.T_('Are you sure you want to DELETE this?').'", e);
-    });'
-            )
+    });',
+            ]
         );
 
-        $user = (int)$_GET['getnews'];
-        $nid  = (int)$_GET['newsid'];
+        $user = (int) $_GET['getnews'];
+        $nid = (int) $_GET['newsid'];
 
         $this->fcmsFamilyNews->displayFamilyNews($user, $nid);
 
-        $this->displayFooter(); 
+        $this->displayFooter();
     }
 
     /**
-     * displayUserNews 
-     * 
+     * displayUserNews.
+     *
      * @return void
      */
-    function displayUserNews ()
+    public function displayUserNews()
     {
         $this->displayHeader();
 
-        $user = (int)$_GET['getnews'];
+        $user = (int) $_GET['getnews'];
         $page = getPage();
 
         $this->fcmsFamilyNews->displayUserFamilyNews($user, $page);
 
-        $this->displayFooter(); 
+        $this->displayFooter();
     }
 
     /**
-     * displayLast5 
-     * 
+     * displayLast5.
+     *
      * @return void
      */
-    function displayLast5 ()
+    public function displayLast5()
     {
         $this->displayHeader();
         $this->fcmsFamilyNews->displayLast5News();
