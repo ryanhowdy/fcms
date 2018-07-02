@@ -1,14 +1,15 @@
 <?php
 /**
- * Polls
- * 
+ * Polls.
+ *
  * PHP version 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2012 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     3.1
  */
@@ -37,75 +38,60 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsPoll)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsPoll)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
-        $this->fcmsPoll     = $fcmsPoll;
+        $this->fcmsUser = $fcmsUser;
+        $this->fcmsPoll = $fcmsPoll;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
-        if (isset($_GET['action']))
-        {
-            if ($_GET['action'] == 'pastpolls')
-            {
+        if (isset($_GET['action'])) {
+            if ($_GET['action'] == 'pastpolls') {
                 $this->displayPolls();
-            }
-            else
-            {
+            } else {
                 $this->displayLatestPoll();
             }
-        }
-        elseif (isset($_GET['id']))
-        {
-            if (isset($_POST['addcomment']))
-            {
+        } elseif (isset($_GET['id'])) {
+            if (isset($_POST['addcomment'])) {
                 $this->displayAddCommentSubmit();
-            }
-            elseif (isset($_GET['results']))
-            {
+            } elseif (isset($_GET['results'])) {
                 $this->displayPoll(true);
-            }
-            else
-            {
+            } else {
                 $this->displayPoll();
             }
-        }
-        elseif (isset($_POST['vote']) && isset($_POST['option']))
-        {
+        } elseif (isset($_POST['vote']) && isset($_POST['option'])) {
             $this->displayVoteSubmit();
-        }
-        else
-        {
+        } else {
             $this->displayLatestPoll();
         }
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * Displays the header of the page, including the leftcolumn navigation.
-     * 
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => cleanOutput(getSiteName()),
             'nav-link'      => getNavLinks(),
@@ -114,76 +100,74 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         displayPageHeader($params);
 
-        $navParams = array(
-            'pageNavigation' => array(
-                'section' => array(
-                    array(
+        $navParams = [
+            'pageNavigation' => [
+                'section' => [
+                    [
                         'url'  => 'polls.php',
                         'text' => T_('Latest'),
-                    ),
-                    array(
+                    ],
+                    [
                         'url'  => 'polls.php?action=pastpolls',
                         'text' => T_('Past Polls'),
-                    ),
-                ),
-            ),
-        );
+                    ],
+                ],
+            ],
+        ];
 
-        if ($this->fcmsUser->access < 2)
-        {
-            $navParams['pageNavigation']['action'] = array(
-                array(
+        if ($this->fcmsUser->access < 2) {
+            $navParams['pageNavigation']['action'] = [
+                [
                     'url'  => 'admin/polls.php',
                     'text' => T_('Administrate'),
-                ),
-            );
+                ],
+            ];
         }
 
         loadTemplate('global', 'page-navigation', $navParams);
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'      => URL_PREFIX,
             'version'   => getCurrentVersion(),
-            'year'      => date('Y')
-        );
+            'year'      => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
     /**
-     * displayLatestPoll 
-     * 
+     * displayLatestPoll.
+     *
      * @return void
      */
-    function displayLatestPoll ()
+    public function displayLatestPoll()
     {
         $this->displayHeader();
 
         // Get poll info
         $data = $this->fcmsPoll->getLatestPollData();
-        if ($data === false)
-        {
+        if ($data === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        if (count($data) <= 0)
-        {
-            # we have no polls
+        if (count($data) <= 0) {
+            // we have no polls
             return;
         }
 
@@ -191,43 +175,42 @@ class Page
     }
 
     /**
-     * displayPollTemplate 
-     * 
-     * @param array  $data 
-     * @param string $displayResults 
-     * 
+     * displayPollTemplate.
+     *
+     * @param array  $data
+     * @param string $displayResults
+     *
      * @return void
      */
-    function displayPollTemplate ($data, $displayResults = false)
+    public function displayPollTemplate($data, $displayResults = false)
     {
         $pollId = key($data);
 
         // Get comments
         $comments = $this->fcmsPoll->getPollCommentsData($pollId);
-        if ($comments === false)
-        {
+        if ($comments === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $commentsTotal = $comments['total'];
         unset($comments['total']);
 
-        $pollOptions = array();
+        $pollOptions = [];
 
         // Show results - user already voted
-        if (isset($data['users_who_voted'][$this->fcmsUser->id]) || $displayResults)
-        {
+        if (isset($data['users_who_voted'][$this->fcmsUser->id]) || $displayResults) {
             $pollResults = $this->fcmsPoll->formatPollResults($data);
-            if ($pollResults === false)
-            {
+            if ($pollResults === false) {
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
 
-            $pollParams = array(
+            $pollParams = [
                 'pollFormClass'     => 'poll',
                 'pollId'            => $pollId,
                 'textPolls'         => T_('Polls'),
@@ -235,22 +218,20 @@ class Page
                 'textCommentsCount' => sprintf(T_('Comments (%s)'), $commentsTotal),
                 'textAlreadyVoted'  => T_('Already Voted'),
                 'pollResults'       => $pollResults,
-            );
+            ];
 
-            loadTemplate('poll', 'result',  $pollParams);
+            loadTemplate('poll', 'result', $pollParams);
         }
         // Show options
-        else
-        {
-            foreach ($data[$pollId]['options'] as $optionId => $optionData)
-            {
-                $pollOptions[] = array(
-                    'id'   => (int)$optionId,
+        else {
+            foreach ($data[$pollId]['options'] as $optionId => $optionData) {
+                $pollOptions[] = [
+                    'id'   => (int) $optionId,
                     'text' => cleanOutput($optionData['option'], 'html'),
-                );
+                ];
             }
 
-            $pollParams = array(
+            $pollParams = [
                 'pollFormClass'   => 'poll',
                 'pollId'          => $pollId,
                 'textPolls'       => T_('Polls'),
@@ -259,29 +240,27 @@ class Page
                 'textPollResults' => T_('Results'),
                 'textPastPolls'   => T_('Past Polls'),
                 'pollOptions'     => $pollOptions,
-            );
+            ];
 
-            loadTemplate('poll', 'view',  $pollParams);
+            loadTemplate('poll', 'view', $pollParams);
         }
 
         // Comments
-        $commentsParams = array();
+        $commentsParams = [];
 
-        foreach ($comments as $row)
-        {
-            $params = array(
-                'id'            => (int)$row['id'],
+        foreach ($comments as $row) {
+            $params = [
+                'id'            => (int) $row['id'],
                 'formClass'     => 'delcom',
                 'formUrl'       => 'polls.php?id='.$pollId,
                 'avatar'        => getAvatarPath($row['avatar'], $row['gravatar']),
                 'displayname'   => $row['fname'].' '.$row['lname'],
                 'date'          => fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['created']),
                 'comment'       => parse($row['comment']),
-            );
+            ];
 
-            if ($this->fcmsUser->id == $row['created'] || $this->fcmsUser->access < 2)
-            {
-                $params['textDelete']  = T_('Delete');
+            if ($this->fcmsUser->id == $row['created'] || $this->fcmsUser->access < 2) {
+                $params['textDelete'] = T_('Delete');
                 $params['deleteClass'] = 'gal_delcombtn';
                 $params['deleteTitle'] = T_('Delete this Comment');
             }
@@ -289,14 +268,14 @@ class Page
             $commentsParams[] = $params;
         }
 
-        $templateParams = array(
+        $templateParams = [
             'comments'              => $commentsParams,
             'addCommentUrl'         => 'polls.php?id='.$pollId,
             'textAddCommentLabel'   => T_('Add Comment'),
             'addCommentSubmitClass' => 'sub1',
             'addCommentSubmitValue' => T_('Comment'),
             'addCommentSubmitTitle' => T_('Add Comment'),
-        );
+        ];
 
         loadTemplate('global', 'comments', $templateParams);
 
@@ -304,21 +283,21 @@ class Page
     }
 
     /**
-     * displayPolls 
-     * 
+     * displayPolls.
+     *
      * @return void
      */
-    function displayPolls ()
+    public function displayPolls()
     {
         $this->displayHeader();
 
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 
         $pollsData = $this->fcmsPoll->getPolls($page);
-        if ($pollsData === false)
-        {
+        if ($pollsData === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -326,32 +305,31 @@ class Page
         unset($pollsData['ids']);
 
         $votesLkup = $this->fcmsPoll->getPollsTotalVotes($ids);
-        if ($votesLkup === false)
-        {
+        if ($votesLkup === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        $pollParams = array();
+        $pollParams = [];
 
-        foreach ($pollsData as $row)
-        {
-            $pollParams[] = array(
-                'url'      => '?id='.(int)$row['id'],
+        foreach ($pollsData as $row) {
+            $pollParams[] = [
+                'url'      => '?id='.(int) $row['id'],
                 'question' => cleanOutput($row['question'], 'html'),
                 'date'     => fixDate(T_('M. j, Y, g:i a'), $this->fcmsUser->tzOffset, $row['started']),
                 'vote'     => $votesLkup[$row['id']],
-            );
+            ];
         }
 
-        $templateParams = array(
+        $templateParams = [
             'textPastPolls' => T_('Past Polls'),
             'textQuestion'  => T_('Question'),
             'textDate'      => T_('Date'),
             'textVotes'     => T_('Votes'),
             'polls'         => $pollParams,
-        );
+        ];
 
         loadTemplate('poll', 'polls', $templateParams);
 
@@ -359,23 +337,23 @@ class Page
     }
 
     /**
-     * displayPoll 
-     * 
-     * @param boolean $displayResults 
-     * 
+     * displayPoll.
+     *
+     * @param bool $displayResults
+     *
      * @return void
      */
-    function displayPoll ($displayResults = false)
+    public function displayPoll($displayResults = false)
     {
         $this->displayHeader();
 
-        $id = (int)$_GET['id'];
+        $id = (int) $_GET['id'];
 
         $pollData = $this->fcmsPoll->getPollData($id);
-        if ($pollData === false)
-        {
+        if ($pollData === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -383,28 +361,24 @@ class Page
     }
 
     /**
-     * displayVoteSubmit 
-     * 
+     * displayVoteSubmit.
+     *
      * @return void
      */
-    function displayVoteSubmit ()
+    public function displayVoteSubmit()
     {
-        $optionId = (int)$_POST['option'];
-        $pollId   = (int)$_POST['id'];
+        $optionId = (int) $_POST['option'];
+        $pollId = (int) $_POST['id'];
 
         $result = $this->fcmsPoll->placeVote($optionId, $pollId);
-        if ($result === false)
-        {
-            if ($this->fcmsError->hasError())
-            {
+        if ($result === false) {
+            if ($this->fcmsError->hasError()) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
 
                 return;
-            }
-            else
-            {
+            } else {
                 // TODO
                 // Use session redirect to form
                 $this->displayHeader();
@@ -419,33 +393,31 @@ class Page
     }
 
     /**
-     * displayAddCommentSubmit 
-     * 
+     * displayAddCommentSubmit.
+     *
      * @return void
      */
-    function displayAddCommentSubmit ()
+    public function displayAddCommentSubmit()
     {
-        $pollId   = (int)$_GET['id'];
+        $pollId = (int) $_GET['id'];
         $comments = strip_tags($_POST['comments']);
 
-        if (empty($comments))
-        {
+        if (empty($comments)) {
             header("Location: polls.php?id=$pollId");
         }
 
-        $sql = "INSERT INTO `fcms_poll_comment`
+        $sql = 'INSERT INTO `fcms_poll_comment`
                     (`poll_id`, `comment`, `created`, `created_id`) 
                 VALUES
-                    (?, ?, NOW(), ?)";
+                    (?, ?, NOW(), ?)';
 
-        $params = array(
-            $pollId, 
-            $comments, 
-            $this->fcmsUser->id
-        );
+        $params = [
+            $pollId,
+            $comments,
+            $this->fcmsUser->id,
+        ];
 
-        if (!$this->fcmsDatabase->insert($sql, $params))
-        {
+        if (!$this->fcmsDatabase->insert($sql, $params)) {
             $this->displayHeader();
 
             $this->fcmsError->setMessage(T_('Could not add comment.'));

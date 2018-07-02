@@ -1,43 +1,40 @@
 <?php
 
 /**
- * addChildOppositeSexParents 
- * 
+ * addChildOppositeSexParents.
+ *
  * Verifies that both parents are of opposite sex.
- * 
- * @param array $data 
- * 
- * @return boolean
+ *
+ * @param array $data
+ *
+ * @return bool
  */
-function addChildOppositeSexParents ($data)
+function addChildOppositeSexParents($data)
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
-    if (empty($data['parentId2']))
-    {
+    if (empty($data['parentId2'])) {
         return true;
     }
 
     // Get parents sex if not provided
-    if (empty($data['parentSex1']) || empty($data['parentSex2']))
-    {
-        $sql = "SELECT `id`, `sex`
+    if (empty($data['parentSex1']) || empty($data['parentSex2'])) {
+        $sql = 'SELECT `id`, `sex`
                 FROM `fcms_users`
                 WHERE `id` = ?
                 UNION
                 SELECT `id`, `sex`
                 FROM `fcms_users`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        $params = array(
+        $params = [
             $data['parentId1'],
-            $data['parentId2']
-        );
+            $data['parentId2'],
+        ];
 
         $parentsInfo = $fcmsDatabase->getRows($sql, $params);
-        if ($parentsInfo === false)
-        {
+        if ($parentsInfo === false) {
             return false;
         }
 
@@ -45,8 +42,7 @@ function addChildOppositeSexParents ($data)
         $data['parentSex2'] = $parentsInfo[1]['sex'];
     }
 
-    if ($data['parentSex1'] === $data['parentSex2'])
-    {
+    if ($data['parentSex1'] === $data['parentSex2']) {
         return false;
     }
 

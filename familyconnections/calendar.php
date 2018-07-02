@@ -1,14 +1,15 @@
 <?php
 /**
- * Calendar
- * 
+ * Calendar.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -23,7 +24,7 @@ load('datetime', 'calendar');
 init();
 
 $calendar = new Calendar($fcmsError, $fcmsDatabase, $fcmsUser);
-$page     = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $calendar);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $calendar);
 
 exit();
 
@@ -36,162 +37,114 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsCalendar)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsCalendar)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
         $this->fcmsCalendar = $fcmsCalendar;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
-        if (isset($_GET['export']))
-        {
+        if (isset($_GET['export'])) {
             $this->displayExportSubmit();
-        }
-        elseif (isset($_GET['import']))
-        {
+        } elseif (isset($_GET['import'])) {
             $this->displayImportForm();
-        }
-        else if (isset($_POST['import']))
-        {
+        } elseif (isset($_POST['import'])) {
             $this->displayImportSubmit();
-        }
-        elseif (isset($_GET['invite']))
-        {
+        } elseif (isset($_GET['invite'])) {
             $this->displayInvitationForm();
-        }
-        elseif (isset($_POST['submit-invite']))
-        {
+        } elseif (isset($_POST['submit-invite'])) {
             $this->displayInvitationSubmit();
-        }
-        elseif (isset($_GET['add']))
-        {
+        } elseif (isset($_GET['add'])) {
             $this->displayAddForm();
-        }
-        elseif (isset($_POST['add']))
-        {
+        } elseif (isset($_POST['add'])) {
             $this->displayAddSubmit();
-        }
-        elseif (isset($_GET['edit']))
-        {
+        } elseif (isset($_GET['edit'])) {
             $this->displayEditForm();
-        }
-        elseif (isset($_POST['edit']))
-        {
+        } elseif (isset($_POST['edit'])) {
             $this->displayEditSubmit();
-        }
-        elseif (isset($_GET['event']))
-        {
-            if (isset($_POST['attend_submit']))
-            {
+        } elseif (isset($_GET['event'])) {
+            if (isset($_POST['attend_submit'])) {
                 $this->displayAttendSubmit();
-            }
-            else
-            {
+            } else {
                 $this->displayEvent();
             }
-        }
-        elseif (isset($_POST['delete']))
-        {
-            if (!isset($_POST['confirmed']))
-            {
+        } elseif (isset($_POST['delete'])) {
+            if (!isset($_POST['confirmed'])) {
                 $this->displayDeleteConfirmationForm();
-            }
-            else
-            {
+            } else {
                 $this->displayDeleteSubmit();
             }
-        }
-        elseif (isset($_GET['category']))
-        {
-            if (isset($_POST['delcat']))
-            {
+        } elseif (isset($_GET['category'])) {
+            if (isset($_POST['delcat'])) {
                 $this->displayDeleteCategorySubmit();
-            }
-            elseif ($_GET['category'] == 'add')
-            {
-                if (isset($_POST['addcat']))
-                {
+            } elseif ($_GET['category'] == 'add') {
+                if (isset($_POST['addcat'])) {
                     $this->displayAddCategorySubmit();
-                }
-                else
-                {
+                } else {
                     $this->displayAddCategoryForm();
                 }
-            }
-            elseif ($_GET['category'] == 'edit')
-            {
-                if (isset($_POST['editcat']))
-                {
+            } elseif ($_GET['category'] == 'edit') {
+                if (isset($_POST['editcat'])) {
                     $this->displayEditCategorySubmit();
-                }
-                else
-                {
+                } else {
                     $this->displayEditCategoryForm();
                 }
-            }
-            else
-            {
+            } else {
                 $this->displayCalendar();
             }
-        }
-        elseif (isset($_GET['view']))
-        {
+        } elseif (isset($_GET['view'])) {
             $this->displayCalendarDay();
-        }
-        elseif (isset($_GET['print']))
-        {
+        } elseif (isset($_GET['print'])) {
             $this->displayPrintCalendar();
-        }
-        else
-        {
+        } else {
             $this->displayCalendar();
         }
     }
 
     /**
-     * displayExportSubmit 
-     * 
+     * displayExportSubmit.
+     *
      * @return void
      */
-    function displayExportSubmit ()
+    public function displayExportSubmit()
     {
-        $cal  = $this->fcmsCalendar->exportCalendar();
+        $cal = $this->fcmsCalendar->exportCalendar();
         $date = fixDate('Y-m-d', $this->fcmsUser->tzOffset);
 
-        header("Cache-control: private");
-        header("Content-type: text/plain");
+        header('Cache-control: private');
+        header('Content-type: text/plain');
         header("Content-disposition: ics; filename=FCMS_Calendar_$date.ics; size=".strlen($cal));
         echo $cal;
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * TODO - this needs updated to accept options.
      * No need to run all this js on pages we know won't
      * need it.
-     * 
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -200,7 +153,7 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-        );
+        ];
 
         $jsOnload = '
         initDisableTimes();
@@ -215,43 +168,43 @@ class Page
         objDatePicker.setIcon(\''.URL_PREFIX.'ui/themes/default/img/datepicker.jpg\', \'syear\');
         deleteConfirmationLink("delcal", "'.T_('Are you sure you want to DELETE this?').'");';
 
-        $options = array(
+        $options = [
             'jsOnload' => $jsOnload,
-            'modules'  => array('livevalidation', 'datechooser'),
-        );
+            'modules'  => ['livevalidation', 'datechooser'],
+        ];
 
         displayPageHeader($params, $options);
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'    => URL_PREFIX,
             'version' => getCurrentVersion(),
-            'year'    => date('Y')
-        );
+            'year'    => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
     /**
-     * displayAddForm 
-     * 
+     * displayAddForm.
+     *
      * @return void
      */
-    function displayAddForm ()
+    public function displayAddForm()
     {
         $this->displayHeader();
 
-        if ($this->fcmsUser->access > 5)
-        {
+        if ($this->fcmsUser->access > 5) {
             $this->fcmsCalendar->displayCalendarMonth();
             $this->displayFooter();
+
             return;
         }
 
@@ -262,103 +215,94 @@ class Page
     }
 
     /**
-     * displayAddSubmit 
-     * 
+     * displayAddSubmit.
+     *
      * @return void
      */
-    function displayAddSubmit ()
+    public function displayAddSubmit()
     {
         $timeStart = null;
-        $timeEnd   = null;
-        $repeat    = null;
-        $private   = 0;
-        $invite    = 0;
+        $timeEnd = null;
+        $repeat = null;
+        $private = 0;
+        $invite = 0;
 
-        if (isset($_POST['timestart']) and !isset($_POST['all-day']))
-        {
+        if (isset($_POST['timestart']) and !isset($_POST['all-day'])) {
             $timeStart = $_POST['timestart'];
         }
-        if (isset($_POST['timeend']) and !isset($_POST['all-day']))
-        {
+        if (isset($_POST['timeend']) and !isset($_POST['all-day'])) {
             $timeEnd = $_POST['timeend'];
         }
-        if (isset($_POST['repeat-yearly']))
-        {
+        if (isset($_POST['repeat-yearly'])) {
             $repeat = 'yearly';
         }
-        if (isset($_POST['private']))
-        {
+        if (isset($_POST['private'])) {
             $private = 1;
         }
-        if (isset($_POST['invite']))
-        {
+        if (isset($_POST['invite'])) {
             $invite = 1;
         }
 
         // Can't make a yearly event also an invitation
         $notify_user_changed_event = 0;
-        if ($repeat == 'yearly' && $invite == 1)
-        {
+        if ($repeat == 'yearly' && $invite == 1) {
             // Let's turn off the invitation, submit the event and tell the user what we did
             $invite = 0;
             $notify_user_changed_event = 1;
         }
 
-        $sql = "INSERT INTO `fcms_calendar` (
+        $sql = 'INSERT INTO `fcms_calendar` (
                     `date`, `time_start`, `time_end`, `date_added`, `title`, `desc`, `created_by`, 
                     `category`, `repeat`, `private`, `invite`
                 ) 
-                VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?)";
+                VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?)';
 
-        $params = array(
-            $_POST['date'], 
-            $timeStart, 
-            $timeEnd, 
-            $_POST['title'], 
-            $_POST['desc'], 
-            $this->fcmsUser->id, 
-            $_POST['category'], 
-            $repeat, 
-            $private, 
-            $invite
-        );
+        $params = [
+            $_POST['date'],
+            $timeStart,
+            $timeEnd,
+            $_POST['title'],
+            $_POST['desc'],
+            $this->fcmsUser->id,
+            $_POST['category'],
+            $repeat,
+            $private,
+            $invite,
+        ];
 
         $id = $this->fcmsDatabase->insert($sql, $params);
 
-        if ($id === false)
-        {
+        if ($id === false) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         // Display the invitation screen
-        if ($invite == 1)
-        {
+        if ($invite == 1) {
             header("Location: calendar.php?invite=$id");
+
             return;
         }
 
         // Finish adding, show the event
         $this->displayHeader();
 
-        $templateParams = array();
+        $templateParams = [];
 
         // Did the user try to make a yearly event also an invitation?
-        if ($notify_user_changed_event == 1)
-        {
-            $templateParams['error'] = array(
+        if ($notify_user_changed_event == 1) {
+            $templateParams['error'] = [
                 'showForm' => true,
                 'header'   => T_('You cannot invite guests to a repeating event.'),
-                'errors'   => array(
+                'errors'   => [
                     T_('Your event was created, but no invitations were sent.'),
                     T_('Please create a new non-repeating event and invite guests to that.'),
-                ),
-            );
-        }
-        else
-        {
+                ],
+            ];
+        } else {
             displayOkMessage();
         }
 
@@ -367,22 +311,22 @@ class Page
     }
 
     /**
-     * displayEditForm 
-     * 
+     * displayEditForm.
+     *
      * @return void
      */
-    function displayEditForm ()
+    public function displayEditForm()
     {
         $this->displayHeader();
 
-        if ($this->fcmsUser->access > 5)
-        {
+        if ($this->fcmsUser->access > 5) {
             $this->fcmsCalendar->displayCalendarMonth();
             $this->displayFooter();
+
             return;
         }
 
-        $id = (int)$_GET['edit'];
+        $id = (int) $_GET['edit'];
 
         $this->fcmsCalendar->displayEditForm($id);
 
@@ -390,60 +334,53 @@ class Page
     }
 
     /**
-     * displayEditSubmit 
-     * 
+     * displayEditSubmit.
+     *
      * @return void
      */
-    function displayEditSubmit ()
+    public function displayEditSubmit()
     {
-        $id        = (int)$_POST['id'];
-        $year      = (int)$_POST['syear'];
-        $month     = (int)$_POST['smonth']; 
-        $month     = str_pad($month, 2, "0", STR_PAD_LEFT);
-        $day       = (int)$_POST['sday'];
-        $day       = str_pad($day, 2, "0", STR_PAD_LEFT);
-        $date      = "$year-$month-$day";
-        $title     = strip_tags($_POST['title']);
-        $desc      = strip_tags($_POST['desc']);
-        $category  = strip_tags($_POST['category']);
+        $id = (int) $_POST['id'];
+        $year = (int) $_POST['syear'];
+        $month = (int) $_POST['smonth'];
+        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+        $day = (int) $_POST['sday'];
+        $day = str_pad($day, 2, '0', STR_PAD_LEFT);
+        $date = "$year-$month-$day";
+        $title = strip_tags($_POST['title']);
+        $desc = strip_tags($_POST['desc']);
+        $category = strip_tags($_POST['category']);
         $timeStart = null;
-        $timeEnd   = null;
-        $repeat    = null;
-        $private   = 0;
-        $invite    = 0;
+        $timeEnd = null;
+        $repeat = null;
+        $private = 0;
+        $invite = 0;
 
-
-        if (isset($_POST['timestart']) and !isset($_POST['all-day']))
-        {
+        if (isset($_POST['timestart']) and !isset($_POST['all-day'])) {
             $timeStart = $_POST['timestart'];
         }
-        if (isset($_POST['timeend']) and !isset($_POST['all-day']))
-        {
+        if (isset($_POST['timeend']) and !isset($_POST['all-day'])) {
             $timeEnd = $_POST['timeend'];
         }
-        if (isset($_POST['repeat-yearly']))
-        {
+        if (isset($_POST['repeat-yearly'])) {
             $repeat = 'yearly';
         }
-        if (isset($_POST['private']))
-        {
+        if (isset($_POST['private'])) {
             $private = 1;
         }
-        if (isset($_POST['invite']))
-        {
+        if (isset($_POST['invite'])) {
             $invite = 1;
         }
 
         // Can't make a yearly event also an invitation
         $notify_user_changed_event = 0;
-        if ($repeat == 'yearly' && $invite == 1)
-        {
+        if ($repeat == 'yearly' && $invite == 1) {
             // Let's turn off the invitation, submit the event and tell the user what we did
             $invite = 0;
             $notify_user_changed_event = 1;
         }
 
-        $sql = "UPDATE `fcms_calendar` 
+        $sql = 'UPDATE `fcms_calendar` 
                 SET `date`      = ?,
                     `time_start`= ?,
                     `time_end`  = ?,
@@ -453,23 +390,22 @@ class Page
                     `repeat`    = ?,
                     `private`   = ?,
                     `invite`    = ?
-                WHERE id = ?";
+                WHERE id = ?';
 
-        $params = array(
-            $date, 
+        $params = [
+            $date,
             $timeStart,
-            $timeEnd, 
-            $title, 
-            $desc, 
-            $category, 
-            $repeat, 
+            $timeEnd,
+            $title,
+            $desc,
+            $category,
+            $repeat,
             $private,
             $invite,
-            $id
-        );
+            $id,
+        ];
 
-        if ($this->fcmsDatabase->insert($sql, $params))
-        {
+        if ($this->fcmsDatabase->insert($sql, $params)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -478,29 +414,26 @@ class Page
         }
 
         // Display the invitation screen
-        if ($invite == 1)
-        {
+        if ($invite == 1) {
             header("Location: calendar.php?invite=$id");
+
             return;
         }
 
         $this->displayHeader();
 
         // Did the user try to make a yearly event also an invitation?
-        if ($notify_user_changed_event == 1)
-        {
-            $templateParams['error'] = array(
+        if ($notify_user_changed_event == 1) {
+            $templateParams['error'] = [
                 'showForm' => true,
                 'header'   => T_('You cannot invite guests to a repeating event.'),
-                'errors'   => array(
+                'errors'   => [
                     T_('The changes to this  event have been saved, but no invitations were sent.'),
                     T_('Please create a new non-repeating event and invite guests to that.'),
-                ),
-            );
+                ],
+            ];
             $this->fcmsCalendar->displayEvent($id, $templateParams);
-        }
-        else
-        {
+        } else {
             displayOkMessage();
             $this->fcmsCalendar->displayCalendarMonth();
         }
@@ -509,42 +442,37 @@ class Page
     }
 
     /**
-     * displayEvent 
-     * 
+     * displayEvent.
+     *
      * @return void
      */
-    function displayEvent ()
+    public function displayEvent()
     {
         $this->displayHeader();
 
-        if ($this->fcmsUser->access > 5)
-        {
+        if ($this->fcmsUser->access > 5) {
             $this->fcmsCalendar->displayCalendarMonth();
             $this->displayFooter();
+
             return;
         }
 
-        if (ctype_digit($_GET['event']))
-        {
-            $id = (int)$_GET['event'];
+        if (ctype_digit($_GET['event'])) {
+            $id = (int) $_GET['event'];
             $this->fcmsCalendar->displayEvent($id);
-        }
-        elseif (strlen($_GET['event']) >= 8 && substr($_GET['event'], 0, 8) == 'birthday')
-        {
+        } elseif (strlen($_GET['event']) >= 8 && substr($_GET['event'], 0, 8) == 'birthday') {
             $id = substr($_GET['event'], 8);
-            $id = (int)$id;
+            $id = (int) $id;
             $this->fcmsCalendar->displayBirthdayEvent($id);
-        }
-        else
-        {
-            loadTemplate('calendar', 'event', array(
-                'error' => array(
+        } else {
+            loadTemplate('calendar', 'event', [
+                'error' => [
                         'header' => T_('I can\'t seem to find that calendar event.'),
-                        'errors' => array(
+                        'errors' => [
                             T_('Please double check and try again.'),
-                        ),
-                    ),
-                )
+                        ],
+                    ],
+                ]
             );
         }
 
@@ -552,11 +480,11 @@ class Page
     }
 
     /**
-     * displayImportForm 
-     * 
+     * displayImportForm.
+     *
      * @return void
      */
-    function displayImportForm ()
+    public function displayImportForm()
     {
         $this->displayHeader();
         $this->fcmsCalendar->displayImportForm();
@@ -564,18 +492,17 @@ class Page
     }
 
     /**
-     * displayImportSubmit 
-     * 
+     * displayImportSubmit.
+     *
      * @return void
      */
-    function displayImportSubmit ()
+    public function displayImportSubmit()
     {
         $this->displayHeader();
 
-        $file_name = $_FILES["file"]["tmp_name"];
+        $file_name = $_FILES['file']['tmp_name'];
 
-        if ($this->fcmsCalendar->importCalendar($file_name))
-        {
+        if ($this->fcmsCalendar->importCalendar($file_name)) {
             displayOkMessage();
             $this->fcmsCalendar->displayCalendarMonth();
         }
@@ -584,40 +511,40 @@ class Page
     }
 
     /**
-     * displayDeleteConfirmationForm 
-     * 
+     * displayDeleteConfirmationForm.
+     *
      * @return void
      */
-    function displayDeleteConfirmationForm ()
+    public function displayDeleteConfirmationForm()
     {
         $this->displayHeader();
 
-        loadTemplate('global', 'confirmation', array(
+        loadTemplate('global', 'confirmation', [
                 'formUrl'   => 'calendar.php',
                 'cancelUrl' => 'calendar.php',
-                'id'        => (int)$_POST['id'],
-            )
+                'id'        => (int) $_POST['id'],
+            ]
         );
 
         $this->displayFooter();
     }
 
     /**
-     * displayDeleteSubmit 
-     * 
+     * displayDeleteSubmit.
+     *
      * @return void
      */
-    function displayDeleteSubmit ()
+    public function displayDeleteSubmit()
     {
         $this->displayHeader();
 
-        $sql = "DELETE FROM `fcms_calendar` 
-                WHERE id = ?";
+        $sql = 'DELETE FROM `fcms_calendar` 
+                WHERE id = ?';
 
-        if (!$this->fcmsDatabase->delete($sql, $_POST['id']))
-        {
+        if (!$this->fcmsDatabase->delete($sql, $_POST['id'])) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -627,11 +554,11 @@ class Page
     }
 
     /**
-     * displayAddCategoryForm 
-     * 
+     * displayAddCategoryForm.
+     *
      * @return void
      */
-    function displayAddCategoryForm ()
+    public function displayAddCategoryForm()
     {
         $this->displayHeader();
         $this->fcmsCalendar->displayCategoryForm();
@@ -639,36 +566,34 @@ class Page
     }
 
     /**
-     * displayAddCategorySubmit 
-     * 
+     * displayAddCategorySubmit.
+     *
      * @return void
      */
-    function displayAddCategorySubmit ()
+    public function displayAddCategorySubmit()
     {
         $this->displayHeader();
 
-        $name   = strip_tags($_POST['name']);
+        $name = strip_tags($_POST['name']);
         $colors = 'none';
 
-        if (isset($_POST['colors']))
-        {
+        if (isset($_POST['colors'])) {
             $colors = $_POST['colors'];
         }
 
-        $sql = "INSERT INTO `fcms_category`
+        $sql = 'INSERT INTO `fcms_category`
                     (`name`, `type`, `user`, `date`, `color`)
                 VALUES
-                    (?, ?, ?, NOW(), ?)";
+                    (?, ?, ?, NOW(), ?)';
 
-        $params = array(
-            $name, 
+        $params = [
+            $name,
             'calendar',
-            $this->fcmsUser->id, 
-            $colors
-        );
+            $this->fcmsUser->id,
+            $colors,
+        ];
 
-        if (!$this->fcmsDatabase->insert($sql, $params))
-        {
+        if (!$this->fcmsDatabase->insert($sql, $params)) {
             $this->fcmsError->displayError();
             $this->displayFooter();
 
@@ -681,34 +606,34 @@ class Page
     }
 
     /**
-     * displayEditCategorySubmit 
-     * 
+     * displayEditCategorySubmit.
+     *
      * @return void
      */
-    function displayEditCategorySubmit ()
+    public function displayEditCategorySubmit()
     {
         $this->displayHeader();
 
-        $id     = (int)$_POST['id'];
-        $name   = strip_tags($_POST['name']);
+        $id = (int) $_POST['id'];
+        $name = strip_tags($_POST['name']);
         $colors = strip_tags($_POST['colors']);
 
-        $sql = "UPDATE `fcms_category`
+        $sql = 'UPDATE `fcms_category`
                 SET
                     `name`  = ?,
                     `color` = ?
-                WHERE `id`  = ?";
+                WHERE `id`  = ?';
 
-        $params = array(
+        $params = [
             $name,
             $colors,
-            $id
-        );
+            $id,
+        ];
 
-        if (!$this->fcmsDatabase->update($sql, $params))
-        {
+        if (!$this->fcmsDatabase->update($sql, $params)) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -718,34 +643,33 @@ class Page
     }
 
     /**
-     * displayEditCategoryForm 
-     * 
+     * displayEditCategoryForm.
+     *
      * @return void
      */
-    function displayEditCategoryForm ()
+    public function displayEditCategoryForm()
     {
         $this->displayHeader();
 
-        $id = (int)$_GET['id'];
+        $id = (int) $_GET['id'];
 
         $this->fcmsCalendar->displayCategoryForm($id);
         $this->displayFooter();
     }
 
     /**
-     * displayDeleteCategorySubmit 
-     * 
+     * displayDeleteCategorySubmit.
+     *
      * @return void
      */
-    function displayDeleteCategorySubmit ()
+    public function displayDeleteCategorySubmit()
     {
         $this->displayHeader();
 
-        $sql = "DELETE FROM `fcms_category` 
-                WHERE `id` = ?";
+        $sql = 'DELETE FROM `fcms_category` 
+                WHERE `id` = ?';
 
-        if (!$this->fcmsDatabase->delete($sql, $_POST['id']))
-        {
+        if (!$this->fcmsDatabase->delete($sql, $_POST['id'])) {
             $this->fcmsError->displayError();
             $this->displayFooter();
 
@@ -758,47 +682,45 @@ class Page
     }
 
     /**
-     * displayCalendarDay 
-     * 
+     * displayCalendarDay.
+     *
      * @return void
      */
-    function displayCalendarDay ()
+    public function displayCalendarDay()
     {
         $this->displayHeader();
 
-        $year  = (int)$_GET['year'];
-        $month = (int)$_GET['month']; 
-        $month = str_pad($month, 2, "0", STR_PAD_LEFT);
-        $day   = (int)$_GET['day'];
-        $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
+        $year = (int) $_GET['year'];
+        $month = (int) $_GET['month'];
+        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+        $day = (int) $_GET['day'];
+        $day = str_pad($day, 2, '0', STR_PAD_LEFT);
 
         $this->fcmsCalendar->displayCalendarDay($month, $year, $day);
         $this->displayFooter();
     }
 
     /**
-     * displayCalendar 
-     * 
+     * displayCalendar.
+     *
      * @return void
      */
-    function displayCalendar ()
+    public function displayCalendar()
     {
         $this->displayHeader();
 
         // Use the supplied date, if available
-        if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day']))
-        {
-            $year  = (int)$_GET['year'];
-            $month = (int)$_GET['month']; 
-            $month = str_pad($month, 2, "0", STR_PAD_LEFT);
-            $day   = (int)$_GET['day'];
-            $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
+        if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day'])) {
+            $year = (int) $_GET['year'];
+            $month = (int) $_GET['month'];
+            $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+            $day = (int) $_GET['day'];
+            $day = str_pad($day, 2, '0', STR_PAD_LEFT);
 
             $this->fcmsCalendar->displayCalendarMonth($month, $year, $day);
         }
         // use today's date
-        else
-        {
+        else {
             $this->fcmsCalendar->displayCalendarMonth();
         }
 
@@ -806,84 +728,81 @@ class Page
     }
 
     /**
-     * displayPrintCalendar 
-     * 
+     * displayPrintCalendar.
+     *
      * @return void
      */
-    function displayPrintCalendar ()
+    public function displayPrintCalendar()
     {
-        $params = array(
+        $params = [
             'sitename' => getSiteName(),
             'version'  => getCurrentVersion(),
-        );
+        ];
         loadTemplate('calendar', 'print', $params);
 
         // Use the supplied date, if available
-        if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day']))
-        {
-            $year  = (int)$_GET['year'];
-            $month = (int)$_GET['month']; 
-            $month = str_pad($month, 2, "0", STR_PAD_LEFT);
-            $day   = (int)$_GET['day'];
-            $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
+        if (isset($_GET['year']) && isset($_GET['month']) && isset($_GET['day'])) {
+            $year = (int) $_GET['year'];
+            $month = (int) $_GET['month'];
+            $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+            $day = (int) $_GET['day'];
+            $day = str_pad($day, 2, '0', STR_PAD_LEFT);
 
             $this->fcmsCalendar->displayCalendarMonth($month, $year, $day);
         }
         // use today's date
-        else
-        {
+        else {
             $this->fcmsCalendar->displayCalendarMonth();
         }
     }
 
     /**
-     * displayInvitationForm 
-     * 
+     * displayInvitationForm.
+     *
      * Used for both creating and editing an invitation.
-     * 
+     *
      * @param int $calendarId The calendar entry id
      * @param int $errors     Any errors from previous form
-     * 
+     *
      * @return void
      */
-    function displayInvitationForm ($calendarId = 0, $errors = 0)
+    public function displayInvitationForm($calendarId = 0, $errors = 0)
     {
         $this->displayHeader();
 
-        $calendarId = (int)$calendarId;
+        $calendarId = (int) $calendarId;
 
-        if (isset($_GET['invite']))
-        {
-            $calendarId = (int)$_GET['invite'];
+        if (isset($_GET['invite'])) {
+            $calendarId = (int) $_GET['invite'];
         }
 
-        if ($calendarId == 0)
-        {
+        if ($calendarId == 0) {
             echo '<p class="error-alert">'.T_('Invalid ID.').'</p>';
             $this->displayFooter();
+
             return;
         }
 
         // Get calendar invite options
-        $sql = "SELECT `id`, `date`, `time_start`, `time_end`, `date_added`, 
+        $sql = 'SELECT `id`, `date`, `time_start`, `time_end`, `date_added`, 
                     `title`, `desc`, `created_by`, `category`, `repeat`, `private`
                 FROM `fcms_calendar` 
                 WHERE `id` = ?
-                LIMIT 1";
+                LIMIT 1';
 
         $event = $this->fcmsDatabase->getRow($sql, $calendarId);
-        if ($event === false)
-        {
+        if ($event === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         // only creator, or admin can edit this invitation
-        if ($event['created_by'] != $this->fcmsUser->id && getAccessLevel($this->fcmsUser->id) > 1)
-        {
+        if ($event['created_by'] != $this->fcmsUser->id && getAccessLevel($this->fcmsUser->id) > 1) {
             echo '<p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
             $this->displayFooter();
+
             return;
         }
 
@@ -894,41 +813,38 @@ class Page
                 AND `phpass` != 'NONMEMBER'";
 
         $rs = $this->fcmsDatabase->getRows($sql);
-        if ($rs === false)
-        {
+        if ($rs === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        foreach ($rs as $r)
-        {
-            $members[$r['id']] = array(
+        foreach ($rs as $r) {
+            $members[$r['id']] = [
                 'name'  => getUserDisplayName($r['id'], 2),
-                'email' => $r['email']
-            );
+                'email' => $r['email'],
+            ];
         }
         asort($members);
 
-        $rows = array();
-        foreach ($members as $id => $arr)
-        {
-            if ($id == $this->fcmsUser->id)
-            {
+        $rows = [];
+        foreach ($members as $id => $arr) {
+            if ($id == $this->fcmsUser->id) {
                 continue;
             }
 
-            $rows[] = array(
-                'id'    => (int)$id,
+            $rows[] = [
+                'id'    => (int) $id,
                 'name'  => cleanOutput($members[$id]['name']),
                 'email' => cleanOutput($members[$id]['email']),
-            );
+            ];
         }
 
-        $templateParams = array(
+        $templateParams = [
             'calendarId' => $calendarId,
             'rows'       => $rows,
-        );
+        ];
 
         loadTemplate('calendar', 'invite', $templateParams);
 
@@ -936,48 +852,46 @@ class Page
     }
 
     /**
-     * displayInvitationSubmit 
-     * 
+     * displayInvitationSubmit.
+     *
      * @return void
      */
-    function displayInvitationSubmit ()
+    public function displayInvitationSubmit()
     {
         $this->displayHeader();
 
-        $calendarId = (int)$_POST['calendar'];
+        $calendarId = (int) $_POST['calendar'];
 
         // make sure the user submitted atleast one email address
-        if (!isset($_POST['all-members']) && !isset($_POST['email']) && !isset($_POST['non-member-emails']))
-        {
+        if (!isset($_POST['all-members']) && !isset($_POST['email']) && !isset($_POST['non-member-emails'])) {
             $error = T_('You must invite at least one guest.');
             displayInvitationForm($calendarId, $error);
+
             return;
         }
 
         // Get any invitations already sent for this event
         $invitations = $this->getInvitations($calendarId, true);
-        if ($invitations === false)
-        {
+        if ($invitations === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        if (!isset($invitations['_current_user']))
-        {
+        if (!isset($invitations['_current_user'])) {
             // add the current user (host) to the invite as attending
-            $sql = "INSERT INTO `fcms_invitation` 
+            $sql = 'INSERT INTO `fcms_invitation` 
                         (`event_id`, `user`, `created`, `updated`, `attending`)
                     VALUES 
-                        (?, ?, NOW(), NOW(), 1)";
+                        (?, ?, NOW(), NOW(), 1)';
 
-            $params = array(
+            $params = [
                 $calendarId,
                 $this->fcmsUser->id,
-            );
+            ];
 
-            if (!$this->fcmsDatabase->insert($sql, $params))
-            {
+            if (!$this->fcmsDatabase->insert($sql, $params)) {
                 $this->fcmsError->displayError();
                 $this->displayFooter();
 
@@ -986,33 +900,30 @@ class Page
         }
 
         // Get the calendar event title
-        $sql = "SELECT `title` 
+        $sql = 'SELECT `title` 
                 FROM `fcms_calendar` 
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $r = $this->fcmsDatabase->getRow($sql, $calendarId);
-        if ($r === false)
-        {
+        if ($r === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
 
             return;
         }
 
-        $title      = $r['title'];
-        $invitees   = array();
-        $nonMembers = array();
-        $members    = array();
+        $title = $r['title'];
+        $invitees = [];
+        $nonMembers = [];
+        $members = [];
 
         // get emails from textarea
-        if (isset($_POST['non-member-emails']))
-        {
+        if (isset($_POST['non-member-emails'])) {
             $nonMembers = explode("\n", $_POST['non-member-emails']);
         }
 
         // get any members that have been invited
-        if (isset($_POST['all-members']))
-        {
+        if (isset($_POST['all-members'])) {
             $sql = "SELECT `id`, `email` 
                     FROM `fcms_users` 
                     WHERE `activated` > 0
@@ -1020,24 +931,19 @@ class Page
                     AND `id` != ?";
 
             $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);
-            if ($rows === false)
-            {
+            if ($rows === false) {
                 $this->fcmsError->displayError();
                 $this->displayFooter();
 
                 return;
             }
 
-            foreach ($rows as $r)
-            {
-                array_push($members, array('id' => $r['id'], 'email' => $r['email']));
+            foreach ($rows as $r) {
+                array_push($members, ['id' => $r['id'], 'email' => $r['email']]);
             }
-        }
-        elseif (isset($_POST['member']))
-        {
-            foreach ($_POST['member'] as $id)
-            {
-                array_push($members, array('id' => $id, 'email' => $_POST["id$id"]));
+        } elseif (isset($_POST['member'])) {
+            foreach ($_POST['member'] as $id) {
+                array_push($members, ['id' => $id, 'email' => $_POST["id$id"]]);
             }
         }
 
@@ -1045,63 +951,57 @@ class Page
         $invitees = array_merge($nonMembers, $members);
 
         // Create the invite and send the emails to each invitee
-        foreach ($invitees as $invitee)
-        {
-            if (empty($invitee))
-            {
+        foreach ($invitees as $invitee) {
+            if (empty($invitee)) {
                 continue;
             }
 
             // create a code for this user
             $code = uniqid('');
 
-            $user     = 0;
-            $email    = '';
-            $toEmail  = '';
-            $toName   = '';
+            $user = 0;
+            $email = '';
+            $toEmail = '';
+            $toName = '';
             $fromName = getUserDisplayName($this->fcmsUser->id);
-            $url      = getDomainAndDir();
+            $url = getDomainAndDir();
 
             // member
-            if (is_array($invitee))
-            {
-                $user    = (int)$invitee['id'];
+            if (is_array($invitee)) {
+                $user = (int) $invitee['id'];
                 $toEmail = rtrim($invitee['email']);
-                $toName  = getUserDisplayName($user);
-                $email   = null;
-                $url    .= 'calendar.php?event='.$calendarId;
+                $toName = getUserDisplayName($user);
+                $email = null;
+                $url .= 'calendar.php?event='.$calendarId;
             }
             // non member
-            else
-            {
-                $user    = 0;
+            else {
+                $user = 0;
                 $toEmail = rtrim($invitee);
-                $toName  = $toEmail;
-                $email   = $toEmail;
-                $url    .= 'invitation.php?event='.$calendarId.'&code='.$code;
+                $toName = $toEmail;
+                $email = $toEmail;
+                $url .= 'invitation.php?event='.$calendarId.'&code='.$code;
             }
 
             // Skip email address that have already been invited
-            if (isset($invitations[$toEmail]))
-            {
+            if (isset($invitations[$toEmail])) {
                 continue;
             }
 
             // add an invitation to db
-            $sql = "INSERT INTO `fcms_invitation` 
+            $sql = 'INSERT INTO `fcms_invitation` 
                         (`event_id`, `user`, `email`, `created`, `updated`, `code`)
                     VALUES 
-                        (?, ?, ?, NOW(), NOW(), ?)";
+                        (?, ?, ?, NOW(), NOW(), ?)';
 
-            $params = array(
-                $calendarId, 
-                $user, 
+            $params = [
+                $calendarId,
+                $user,
                 $email,
-                $code
-            );
+                $code,
+            ];
 
-            if (!$this->fcmsDatabase->insert($sql, $params))
-            {
+            if (!$this->fcmsDatabase->insert($sql, $params)) {
                 $this->fcmsError->displayError();
                 $this->displayFooter();
 
@@ -1133,34 +1033,33 @@ class Page
     }
 
     /**
-     * displayAttendSubmit 
-     * 
+     * displayAttendSubmit.
+     *
      * When a user submits the form telling whether they will be
      * attending an event or not.
-     * 
+     *
      * @return void
      */
-    function displayAttendSubmit ()
+    public function displayAttendSubmit()
     {
         $this->displayHeader();
 
-        $calendarId = (int)$_GET['event'];
-        $attending  = isset($_POST['attending']) ? (int)$_POST['attending'] : null;
+        $calendarId = (int) $_GET['event'];
+        $attending = isset($_POST['attending']) ? (int) $_POST['attending'] : null;
 
-        $sql = "UPDATE `fcms_invitation`
+        $sql = 'UPDATE `fcms_invitation`
                 SET `response`  = ?,
                     `attending` = ?,
                     `updated` = NOW()
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        $params = array(
+        $params = [
             $_POST['response'],
             $attending,
-            $_POST['id']
-        );
+            $_POST['id'],
+        ];
 
-        if (!$this->fcmsDatabase->update($sql, $params))
-        {
+        if (!$this->fcmsDatabase->update($sql, $params)) {
             $this->fcmsError->displayError();
             $this->displayFooter();
 
@@ -1172,19 +1071,19 @@ class Page
     }
 
     /**
-     * getInvitations 
-     * 
+     * getInvitations.
+     *
      * Returns an array of invitations that have been sent for this event.
      * Including whether or not the invitee has responded.
-     * 
+     *
      * Will also add a key of _current_user if the current user is included.
-     * 
-     * @param int     $eventId    The calendar event id
-     * @param boolean $keyByEmail Whether or not to key the array by email or 0,1,2 etc.
-     * 
+     *
+     * @param int  $eventId    The calendar event id
+     * @param bool $keyByEmail Whether or not to key the array by email or 0,1,2 etc.
+     *
      * @return array
      */
-    function getInvitations ($eventId, $keyByEmail = false)
+    public function getInvitations($eventId, $keyByEmail = false)
     {
         $sql = "SELECT i.`id`, i.`user`, i.`email`, i.`attending`, i.`response`, i.`updated`,
                     u.`email` AS user_email
@@ -1195,28 +1094,22 @@ class Page
                 ORDER BY `updated` DESC";
 
         $rows = $this->fcmsDatabase->getRows($sql, $eventId);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             return false;
         }
 
-        $data = array();
+        $data = [];
 
-        foreach ($rows as $r)
-        {
-            if ($this->fcmsUser->id == $r['user'])
-            {
+        foreach ($rows as $r) {
+            if ($this->fcmsUser->id == $r['user']) {
                 $data['_current_user'] = $r;
             }
 
-            if ($keyByEmail)
-            {
+            if ($keyByEmail) {
                 $email = isset($r['email']) ? $r['email'] : $r['user_email'];
 
                 $data[$email] = $r;
-            }
-            else
-            {
+            } else {
                 $data[] = $r;
             }
         }

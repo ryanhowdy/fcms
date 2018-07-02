@@ -1,4 +1,5 @@
 <?php
+
 // TODO
 // Move this file out of inc/ and possibly rename it.
 
@@ -21,34 +22,29 @@ control();
 exit();
 
 /**
- * control 
- * 
+ * control.
+ *
  * The controlling structure for this script.
- * 
+ *
  * @return void
  */
-function control ()
+function control()
 {
-    if (isset($_POST['delimg']))
-    {
+    if (isset($_POST['delimg'])) {
         displayDeleteSubmit();
-    }
-    elseif (isset($_POST['upload']))
-    {
+    } elseif (isset($_POST['upload'])) {
         displayUploadSubmit();
-    }
-    else
-    {
+    } else {
         displayImages();
     }
 }
 
 /**
- * displayHeader 
- * 
+ * displayHeader.
+ *
  * @return void
  */
-function displayHeader ()
+function displayHeader()
 {
     echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -59,9 +55,9 @@ function displayHeader ()
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="stylesheet" type="text/css" href="'.URL_PREFIX.'ui/themes/default/style.css"/>
 <link rel="shortcut icon" href="'.URL_PREFIX.'ui/themes/favicon.ico"/>';
-// TODO
-// Move css to fcms-core
-echo '
+    // TODO
+    // Move css to fcms-core
+    echo '
 <style type="text/css">
 html { background: #fff; }
 body { width: 600px; margin: 0; padding: 20px; text-align: left; font-family: Verdana, Tahoma, Arial, sans-serif; font-size: 11px; border: none; background: #fff; }
@@ -90,11 +86,11 @@ function insertUpImage(str) {
 }
 
 /**
- * displayFooter 
- * 
+ * displayFooter.
+ *
  * @return void
  */
-function displayFooter ()
+function displayFooter()
 {
     echo '
 </body>
@@ -102,19 +98,19 @@ function displayFooter ()
 }
 
 /**
- * displayDeleteSubmit 
- * 
+ * displayDeleteSubmit.
+ *
  * @return void
  */
-function displayDeleteSubmit ()
+function displayDeleteSubmit()
 {
     global $fcmsUser;
 
-    if ($fcmsUser->access >= 2)
-    {
+    if ($fcmsUser->access >= 2) {
         displayHeader();
         echo '<p class="error-alert">'.T_('You do not have access to delete this image.').'</p>';
         displayFooter();
+
         return;
     }
 
@@ -128,49 +124,48 @@ function displayDeleteSubmit ()
 }
 
 /**
- * displayUploadSubmit 
- * 
+ * displayUploadSubmit.
+ *
  * @return void
  */
-function displayUploadSubmit ()
+function displayUploadSubmit()
 {
     global $img;
 
     displayHeader();
 
-    $uploadsPath      = getUploadsAbsolutePath();
+    $uploadsPath = getUploadsAbsolutePath();
     $img->destination = $uploadsPath.'upimages/';
 
     $img->upload($_FILES['upfile']);
 
-    if ($img->error == 1)
-    {
+    if ($img->error == 1) {
         echo '
     <p class="error-alert">
         '.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $img->name).'
     </p>';
 
         displayFooter();
+
         return;
     }
 
     $img->resize(600, 400);
 
-    if ($img->error > 0)
-    {
+    if ($img->error > 0) {
         echo '
     <p class="error-alert">
         '.T_('There was an error uploading your image.').'
     </p>';
 
         displayFooter();
+
         return;
     }
 
     $path = 'uploads/upimages/';
 
-    if (defined('UPLOADS'))
-    {
+    if (defined('UPLOADS')) {
         $path = 'file.php?u=';
     }
 
@@ -185,18 +180,17 @@ function displayUploadSubmit ()
 }
 
 /**
- * displayImages 
- * 
+ * displayImages.
+ *
  * @return void
  */
-function displayImages ()
+function displayImages()
 {
     global $fcmsUser;
 
     displayHeader();
 
-    if (isset($_SESSION['delete_ok']))
-    {
+    if (isset($_SESSION['delete_ok'])) {
         unset($_SESSION['delete_ok']);
 
         echo '<p class="ok-alert">'.T_('Image was Deleted Successfully').'</p>';
@@ -213,12 +207,10 @@ function displayImages ()
     <table>';
 
     $uploadsPath = getUploadsAbsolutePath();
-    $img_dir     = opendir($uploadsPath.'upimages');
+    $img_dir = opendir($uploadsPath.'upimages');
 
-    while ($file = readdir($img_dir))
-    {
-        if ($file !== 'index.htm')
-        {
+    while ($file = readdir($img_dir)) {
+        if ($file !== 'index.htm') {
             $images_in_dir[] = $file;
         }
     }
@@ -229,35 +221,36 @@ function displayImages ()
     $i = 0;
     $total_size = 0;
 
-    foreach ($images_in_dir as $file)
-    {
+    foreach ($images_in_dir as $file) {
         // Skip directories that start with a period
-        if ($file[0] === '.')
-        {
+        if ($file[0] === '.') {
             continue;
         }
 
-        $img_name_arr = explode(".", $file);
-        $img_type     = end($img_name_arr);
+        $img_name_arr = explode('.', $file);
+        $img_type = end($img_name_arr);
 
-        $this_size   = filesize($uploadsPath.'upimages/'.$file);
+        $this_size = filesize($uploadsPath.'upimages/'.$file);
         $total_size += $this_size;
-        $img_info    = getimagesize($uploadsPath.'upimages/'.$file);
+        $img_info = getimagesize($uploadsPath.'upimages/'.$file);
 
         $win_w = $img_info[0] + 50;
         $win_h = $img_info[1] + 50;
 
         $path = 'uploads/upimages/';
 
-        if (defined('UPLOADS'))
-        {
+        if (defined('UPLOADS')) {
             $path = 'file.php?u=';
         }
 
         $i++;
 
         echo '
-        <tr'; if ($i % 2 != 0) { echo 'class="alt"'; } echo '>
+        <tr';
+        if ($i % 2 != 0) {
+            echo 'class="alt"';
+        }
+        echo '>
             <td class="v">
                 <button class="viewbtn" onclick="window.open(\''.URL_PREFIX.$path.basename($file).'\',\'file\',
                 \'width='.$win_w.',height='.$win_h.',resizable=no,location=no,menubar=no,status=no\'); return false;"/>
@@ -268,8 +261,7 @@ function displayImages ()
             </td>
             <td>';
 
-        if ($fcmsUser->access < 2)
-        {
+        if ($fcmsUser->access < 2) {
             echo '
                 <form method="post" action="upimages.php">
                     <div>

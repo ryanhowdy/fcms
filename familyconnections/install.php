@@ -1,33 +1,33 @@
 <?php
 /**
- * Family Connections - www.familycms.com
- * 
+ * Family Connections - www.familycms.com.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * Copyright (C) 2007 Ryan Haudenschilt
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
-
 require_once 'inc/constants.php';
 require_once THIRDPARTY.'php-gettext/gettext.inc';
 
@@ -38,68 +38,56 @@ T_bind_textdomain_codeset('messages', 'UTF-8');
 T_textdomain('messages');
 
 // Fix magic quotes
-if (get_magic_quotes_gpc())
-{
+if (get_magic_quotes_gpc()) {
     $_REQUEST = array_map('stripslashes', $_REQUEST);
-    $_GET     = array_map('stripslashes', $_GET);
-    $_POST    = array_map('stripslashes', $_POST);
-    $_COOKIE  = array_map('stripslashes', $_COOKIE);
+    $_GET = array_map('stripslashes', $_GET);
+    $_POST = array_map('stripslashes', $_POST);
+    $_COOKIE = array_map('stripslashes', $_COOKIE);
 }
 
 define('URL_PREFIX', '');
 define('GALLERY_PREFIX', 'gallery/');
 
 main();
+
 return;
 
 /**
- * main 
- * 
+ * main.
+ *
  * @return void
  */
-function main ()
+function main()
 {
     displayHeader();
 
-    if (isset($_POST['submit1']))
-    {
+    if (isset($_POST['submit1'])) {
         displayStepTwo();
-    }
-    elseif (isset($_POST['submit2']))
-    {
+    } elseif (isset($_POST['submit2'])) {
         displayStepThree();
-    }
-    elseif (isset($_POST['submit3']))
-    {
+    } elseif (isset($_POST['submit3'])) {
         displayStepFour();
-    }
-    elseif (isset($_POST['submit4']))
-    {
+    } elseif (isset($_POST['submit4'])) {
         displayStepFive();
-    }
-    elseif (isset($_POST['submit5']))
-    {
+    } elseif (isset($_POST['submit5'])) {
         setupDatabase();
-    }
-    elseif (file_exists('inc/config_inc.php'))
-    {
+    } elseif (file_exists('inc/config_inc.php')) {
         displayAlreadyInstalled();
         displayStepOne();
         displayFooter();
+
         return;
-    }
-    else
-    {
+    } else {
         displayStepOne();
     }
 }
 
 /**
- * displayHeader 
- * 
+ * displayHeader.
+ *
  * @return void
  */
-function displayHeader ()
+function displayHeader()
 {
     echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -124,26 +112,25 @@ $(document).ready(function() {
 }
 
 /**
- * displayFooter 
- * 
+ * displayFooter.
+ *
  * @return void
  */
-function displayFooter ()
+function displayFooter()
 {
     echo '
 </body>
 </html>';
-
 }
 
 /**
- * displayAlreadyInstalled 
- * 
+ * displayAlreadyInstalled.
+ *
  * If config file exists and where not in the middle of installing, error out
- * 
+ *
  * @return void
  */
-function displayAlreadyInstalled ()
+function displayAlreadyInstalled()
 {
     echo '
     <div id="install">
@@ -167,74 +154,67 @@ function displayAlreadyInstalled ()
 }
 
 /**
- * displayStepOne 
- * 
+ * displayStepOne.
+ *
  * @return void
  */
-function displayStepOne ()
+function displayStepOne()
 {
-    $inc    = "<span class=\"bad\">".T_('BAD')."</span>";
-    $avatar = "<span class=\"bad\">".T_('BAD')."</span>";
-    $docs   = "<span class=\"bad\">".T_('BAD')."</span>";
-    $photos = "<span class=\"bad\">".T_('BAD')."</span>";
-    $up     = "<span class=\"bad\">".T_('BAD')."</span>";
-    $curl   = "<span class=\"bad\">".T_('BAD')."</span>";
-    $php    = "<span class=\"bad\">".T_('BAD')."</span>";
+    $inc = '<span class="bad">'.T_('BAD').'</span>';
+    $avatar = '<span class="bad">'.T_('BAD').'</span>';
+    $docs = '<span class="bad">'.T_('BAD').'</span>';
+    $photos = '<span class="bad">'.T_('BAD').'</span>';
+    $up = '<span class="bad">'.T_('BAD').'</span>';
+    $curl = '<span class="bad">'.T_('BAD').'</span>';
+    $php = '<span class="bad">'.T_('BAD').'</span>';
 
     // Check inc
     $check_inc = false;
-    if (isWritable('inc/'))
-    {
+    if (isWritable('inc/')) {
         $check_inc = true;
-        $inc       = "<span class=\"ok\">".T_('OK')."</span>";
+        $inc = '<span class="ok">'.T_('OK').'</span>';
     }
 
     // Check avatar
     $check_avatar = false;
-    if (isWritable('uploads/avatar/'))
-    {
+    if (isWritable('uploads/avatar/')) {
         $check_avatar = true;
-        $avatar       = "<span class=\"ok\">".T_('OK')."</span>";
+        $avatar = '<span class="ok">'.T_('OK').'</span>';
     }
 
     // Check documents
     $check_docs = false;
-    if (isWritable('uploads/documents/'))
-    {
+    if (isWritable('uploads/documents/')) {
         $check_docs = true;
-        $docs       = "<span class=\"ok\">".T_('OK')."</span>";
+        $docs = '<span class="ok">'.T_('OK').'</span>';
     }
 
     // Check photos
     $check_photos = false;
-    if (isWritable('uploads/photos/'))
-    {
+    if (isWritable('uploads/photos/')) {
         $check_photos = true;
-        $photos       = "<span class=\"ok\">".T_('OK')."</span>";
+        $photos = '<span class="ok">'.T_('OK').'</span>';
     }
 
     // Check upimages
     $check_up = false;
-    if (isWritable('uploads/upimages/'))
-    {
+    if (isWritable('uploads/upimages/')) {
         $check_up = true;
-        $up       = "<span class=\"ok\">".T_('OK')."</span>";
+        $up = '<span class="ok">'.T_('OK').'</span>';
     }
 
     // Check curl support
     $check_curl = false;
-    if (function_exists('curl_init'))
-    {
+    if (function_exists('curl_init')) {
         $check_curl = true;
-        $curl       = "<span class=\"ok\">".T_('OK')."</span>";
+        $curl = '<span class="ok">'.T_('OK').'</span>';
     }
 
     // Check PHP Version
     $check_php = false;
-    if (function_exists('version_compare') && version_compare(phpversion(), '5.0.0', '>='))
-    {
+    if (function_exists('version_compare') && version_compare(phpversion(), '5.0.0', '>=')) {
         $check_php = true;
-        $php       = "<span class=\"ok\">".T_('OK')."</span>";
+        $php = '<span class="ok">'.T_('OK').'</span>';
     }
 
     echo '
@@ -260,15 +240,12 @@ function displayStepOne ()
             <div><div class="dir">'.'uploads/upimages/</div> <div class="status">'.$up.'</div></div>
             <div style="clear:both;"></div>';
 
-    if ($check_inc && $check_avatar && $check_docs && $check_photos && $check_up && $check_curl && $check_php)
-    {
+    if ($check_inc && $check_avatar && $check_docs && $check_photos && $check_up && $check_curl && $check_php) {
         echo '
             <p>'.T_('Your site is ready to be installed.  Please proceed to the next step.').'</p>
             <p style="text-align:right;"><input id="submit" name="submit1" type="submit"  value="'.T_('Next').' >>"/></p>
             <div class="clear"></div>';
-    }
-    else
-    {
+    } else {
         echo '
             <br/><div>'.T_('Unfortunatly your site is not ready to be installed.  Please make sure that the folders above exist and have the proper permissions set.').'</div>';
     }
@@ -279,13 +256,13 @@ function displayStepOne ()
 }
 
 /**
- * displayStepTwo 
- * 
+ * displayStepTwo.
+ *
  * @param string $error Any previous errors with this step.
- * 
+ *
  * @return void
  */
-function displayStepTwo ($error = '0')
+function displayStepTwo($error = '0')
 {
     echo '
     <div id="column">
@@ -298,8 +275,7 @@ function displayStepTwo ($error = '0')
     $name = '';
     $user = '';
 
-    if ($error !== '0')
-    {
+    if ($error !== '0') {
         echo $error;
 
         $host = htmlentities($_POST['dbhost'], ENT_COMPAT, 'UTF-8');
@@ -360,48 +336,46 @@ function displayStepTwo ($error = '0')
 }
 
 /**
- * displayStepThree 
- * 
+ * displayStepThree.
+ *
  * @return void
  */
-function displayStepThree ()
+function displayStepThree()
 {
     // Check required fields
-    $requiredFields  = array('dbhost', 'dbname', 'dbuser', 'dbpass');
+    $requiredFields = ['dbhost', 'dbname', 'dbuser', 'dbpass'];
     $missingRequired = false;
 
-    foreach ($requiredFields as $field)
-    {
-        if (!isset($_POST[$field]))
-        {
+    foreach ($requiredFields as $field) {
+        if (!isset($_POST[$field])) {
             $missingRequired = true;
         }
     }
-    if ($missingRequired)
-    {
+    if ($missingRequired) {
         echo '
         <script type="text/javascript">
         $(document).ready(function() { $(\'#dbhost\').focus(); });
         </script>';
 
-        displayStepTwo("<p class=\"error\">".T_('You forgot a required field.  Please fill out all required fields.')."</p>");
+        displayStepTwo('<p class="error">'.T_('You forgot a required field.  Please fill out all required fields.').'</p>');
+
         return;
     }
 
     $connection = new mysqli($_POST['dbhost'], $_POST['dbuser'], $_POST['dbpass']);
-    
-    if ($connection->connect_errno) 
-    {
-        displayStepTwo("<p class\"error\">".T_('Could not connect to the database. Please try again.' . $connection->connect_errno)."</p>") . $connection->connect_error;
+
+    if ($connection->connect_errno) {
+        displayStepTwo('<p class"error">'.T_('Could not connect to the database. Please try again.'.$connection->connect_errno).'</p>').$connection->connect_error;
+
         return;
     }
-                       
-    $connection->select_db($_POST['dbname']) or die("<h1>Error</hr><p><b>Connection made, but database could not be found!</b></p> ( " . $connection->errno . ") " . $connection->error);
 
-    $file = fopen('inc/config_inc.php', 'w') or die("<h1>Error Creating Config File</h1>");
-    $str  = "<?php \$cfg_mysql_host = '".$_POST['dbhost']."'; \$cfg_mysql_db = '".$_POST['dbname']."'; \$cfg_mysql_user = '".$_POST['dbuser']."'; \$cfg_mysql_pass = '".$_POST['dbpass']."'; ?".">";
+    $connection->select_db($_POST['dbname']) or die('<h1>Error</hr><p><b>Connection made, but database could not be found!</b></p> ( '.$connection->errno.') '.$connection->error);
 
-    fwrite($file, $str) or die("<h1>Could not write to config.</h1>");
+    $file = fopen('inc/config_inc.php', 'w') or die('<h1>Error Creating Config File</h1>');
+    $str = "<?php \$cfg_mysql_host = '".$_POST['dbhost']."'; \$cfg_mysql_db = '".$_POST['dbname']."'; \$cfg_mysql_user = '".$_POST['dbuser']."'; \$cfg_mysql_pass = '".$_POST['dbpass']."'; ?".'>';
+
+    fwrite($file, $str) or die('<h1>Could not write to config.</h1>');
     fclose($file);
 
     include_once 'inc/install_inc.php';
@@ -425,13 +399,13 @@ function displayStepThree ()
 }
 
 /**
- * displayStepFour 
- * 
+ * displayStepFour.
+ *
  * @param string $error Any previous errors with this step.
- * 
+ *
  * @return void
  */
-function displayStepFour ($error = '0')
+function displayStepFour($error = '0')
 {
     echo '
     <script type="text/javascript">$(document).ready(function() { $(\'#sitename\').focus(); });</script>
@@ -490,19 +464,19 @@ function displayStepFour ($error = '0')
 }
 
 /**
- * displayStepFive 
- * 
+ * displayStepFive.
+ *
  * @param string $error Any previous errors with this step.
- * 
+ *
  * @return void
  */
-function displayStepFive ($error = '0')
+function displayStepFive($error = '0')
 {
     global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
 
-    if (empty($_POST['sitename']) || empty($_POST['contact']))
-    {
-        displayStepFour("<p class=\"error\">".T_('You forgot a required field.  Please fill out all required fields.')."</p>");
+    if (empty($_POST['sitename']) || empty($_POST['contact'])) {
+        displayStepFour('<p class="error">'.T_('You forgot a required field.  Please fill out all required fields.').'</p>');
+
         return;
     }
 
@@ -514,72 +488,66 @@ function displayStepFive ($error = '0')
     $connection->select_db($cfg_mysql_db);
 
     $_POST['sitename'] = $connection->real_escape_string($_POST['sitename']);
-    $_POST['contact']  = $connection->real_escape_string($_POST['contact']);
+    $_POST['contact'] = $connection->real_escape_string($_POST['contact']);
 
     // Setup Config
     installConfig($connection, $_POST['sitename'], $_POST['contact'], 'Family Connections 3.7.0');
 
     // Setup Navigation
-    $order  = 0;
+    $order = 0;
     $order2 = 0;
 
-    $nextComOrder   = 2;
+    $nextComOrder = 2;
     $nextShareOrder = 5;
 
-    $params = array();
+    $params = [];
 
     // Family News
-    if (isset($_POST['sections-news']))
-    {
+    if (isset($_POST['sections-news'])) {
         $order = $nextComOrder;
         $nextComOrder++;
     }
-    $params['familynews'] = array(3, $order, 0);
+    $params['familynews'] = [3, $order, 0];
 
     // Prayers
     $order = 0;
-    if (isset($_POST['sections-prayers']))
-    {
+    if (isset($_POST['sections-prayers'])) {
         $order = $nextComOrder;
         $nextComOrder++;
     }
-    $params['prayers'] = array(3, $order, 0);
+    $params['prayers'] = [3, $order, 0];
 
     // Recipes
     $order = 0;
-    if (isset($_POST['sections-recipes']))
-    {
+    if (isset($_POST['sections-recipes'])) {
         $order = $nextShareOrder;
         $nextShareOrder++;
     }
-    $params['recipes'] = array(4, $order, 0);
+    $params['recipes'] = [4, $order, 0];
 
     // Family Tree
     $order = 0;
-    if (isset($_POST['sections-tree']))
-    {
+    if (isset($_POST['sections-tree'])) {
         $order = $nextShareOrder;
         $nextShareOrder++;
     }
-    $params['tree'] = array(4, $order, 0);
+    $params['tree'] = [4, $order, 0];
 
     // Documents
     $order = 0;
-    if (isset($_POST['sections-documents']))
-    {
+    if (isset($_POST['sections-documents'])) {
         $order = $nextShareOrder;
         $nextShareOrder++;
     }
-    $params['documents'] = array(4, $order, 0);
+    $params['documents'] = [4, $order, 0];
 
     // Where Is Everyone
     $order = 0;
-    if (isset($_POST['sections-whereiseveryone']))
-    {
-        $order  = $nextShareOrder;
+    if (isset($_POST['sections-whereiseveryone'])) {
+        $order = $nextShareOrder;
         $nextShareOrder++;
     }
-    $params['whereiseveryone'] = array(4, $order, 0);
+    $params['whereiseveryone'] = [4, $order, 0];
 
     installNavigation($connection, $params);
 
@@ -640,22 +608,19 @@ function displayStepFive ($error = '0')
                     <select id="day" name="day">';
 
     $d = 1;
-    while ($d <= 31)
-    {
+    while ($d <= 31) {
         echo "<option value=\"$d\">$d</option>";
         $d++;
     }
     echo '</select><select id="month" name="month">';
     $m = 1;
-    while ($m <= 12)
-    {
-        echo "<option value=\"$m\">".getMonthAbbr($m)."</option>";
+    while ($m <= 12) {
+        echo "<option value=\"$m\">".getMonthAbbr($m).'</option>';
         $m++;
     }
     echo '</select><select id="year" name="year">';
     $y = 1900;
-    while ($y - 5 <= gmdate('Y'))
-    {
+    while ($y - 5 <= gmdate('Y')) {
         echo "<option value=\"$y\">$y</option>";
         $y++;
     }
@@ -671,15 +636,15 @@ function displayStepFive ($error = '0')
 }
 
 /**
- * setupDatabase 
- * 
+ * setupDatabase.
+ *
  * @return void
  */
-function setupDatabase ()
+function setupDatabase()
 {
-    if (empty($_POST['username']) || empty($_POST['password']) || empty($_POST['fname']) || empty($_POST['lname']) || empty($_POST['email']))
-    {
-        displayStepFive("<p class=\"error\">".T_('You forgot a required field.  Please fill out all required fields.')."</p>");
+    if (empty($_POST['username']) || empty($_POST['password']) || empty($_POST['fname']) || empty($_POST['lname']) || empty($_POST['email'])) {
+        displayStepFive('<p class="error">'.T_('You forgot a required field.  Please fill out all required fields.').'</p>');
+
         return;
     }
 
@@ -689,40 +654,39 @@ function setupDatabase ()
     include_once 'inc/thirdparty/phpass/PasswordHash.php';
 
     // Hash the pw
-    $hasher   = new PasswordHash(8, FALSE);
+    $hasher = new PasswordHash(8, false);
     $password = $hasher->HashPassword($_POST['password']);
 
     $connection = new mysqli($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
 
-    if (!$connection)
-    {
-        die("<h1>Connection Error [".__FILE__.__LINE__."]</h1>".mysql_error());
+    if (!$connection) {
+        die('<h1>Connection Error ['.__FILE__.__LINE__.']</h1>'.mysql_error());
     }
 
     $connection->select_db($cfg_mysql_db);
 
-    $fname    = $connection->real_escape_string($_POST['fname']);
-    $lname    = $connection->real_escape_string($_POST['lname']);
-    $email    = $connection->real_escape_string($_POST['email']);
-    $bYear    = (int)$_POST['year'];
-    $bMonth   = (int)$_POST['month'];
-    $bMonth   = str_pad($bMonth, 2, "0", STR_PAD_LEFT);
-    $bDay     = (int)$_POST['day'];
-    $bDay     = str_pad($bDay, 2, "0", STR_PAD_LEFT);
+    $fname = $connection->real_escape_string($_POST['fname']);
+    $lname = $connection->real_escape_string($_POST['lname']);
+    $email = $connection->real_escape_string($_POST['email']);
+    $bYear = (int) $_POST['year'];
+    $bMonth = (int) $_POST['month'];
+    $bMonth = str_pad($bMonth, 2, '0', STR_PAD_LEFT);
+    $bDay = (int) $_POST['day'];
+    $bDay = str_pad($bDay, 2, '0', STR_PAD_LEFT);
     $username = $connection->real_escape_string($_POST['username']);
 
     installUsers(
         $connection,
-        array(
-            'fname'     => $fname, 
-            'lname'     => $lname, 
-            'email'     => $email, 
-            'dob_year'  => $bYear, 
-            'dob_month' => $bMonth, 
-            'dob_day'   => $bDay, 
-            'username'  => $username, 
-            'password'  => $password
-        )
+        [
+            'fname'     => $fname,
+            'lname'     => $lname,
+            'email'     => $email,
+            'dob_year'  => $bYear,
+            'dob_month' => $bMonth,
+            'dob_day'   => $bDay,
+            'username'  => $username,
+            'password'  => $password,
+        ]
     );
     installCategory($connection);
     installCalendar($connection);
@@ -737,32 +701,35 @@ function setupDatabase ()
 }
 
 /**
- * isWritable 
- * 
+ * isWritable.
+ *
  * will work in despite of Windows ACLs bug
  *
  * NOTE: use a trailing slash for folders!!!
  * see http://bugs.php.net/bug.php?id=27609
  * see http://bugs.php.net/bug.php?id=30931
- * 
+ *
  * @param string $path File path to check permissions
- * 
- * @return  void
+ *
+ * @return void
  */
-function isWritable ($path)
+function isWritable($path)
 {
-    if ($path{strlen($path)-1}=='/') // recursively return a temporary file path
+    if ($path[strlen($path) - 1] == '/') { // recursively return a temporary file path
         return isWritable($path.uniqid(mt_rand()).'.tmp');
-    else if (@is_dir($path))
+    } elseif (@is_dir($path)) {
         return isWritable($path.'/'.uniqid(mt_rand()).'.tmp');
+    }
     // check tmp file for read/write capabilities
     $rm = file_exists($path);
-    $f  = @fopen($path, 'a');
-    if ($f===false)
+    $f = @fopen($path, 'a');
+    if ($f === false) {
         return false;
+    }
     fclose($f);
-    if (!$rm)
+    if (!$rm) {
         unlink($path);
+    }
+
     return true;
 }
-

@@ -1,56 +1,53 @@
 <?php
 /**
- * Basic Form
- * 
- * @package Upload
- * @subpackage UploadPhotoGallery
+ * Basic Form.
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class UploadPhotoGalleryForm
 {
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
     }
 
     /**
-     * display 
-     * 
+     * display.
+     *
      * @return void
      */
-    public function display ()
+    public function display()
     {
         $_SESSION['fcms_uploader_type'] = 'basic';
 
         // Setup the list of active members for possible tags
-        $sql = "SELECT `id` 
+        $sql = 'SELECT `id` 
                 FROM `fcms_users` 
                 WHERE `activated` > 0
-                ORDER BY `fname`, `lname`";
+                ORDER BY `fname`, `lname`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
+
             return;
         }
 
         $autocompleteList = '';
-        foreach ($rows as $r)
-        {
+        foreach ($rows as $r) {
             $autocompleteList .= '{ data: "'.$r['id'].'", value: "'.cleanOutput(getUserDisplayName($r['id'], 2)).'" }, ';
         }
         $autocompleteList = substr($autocompleteList, 0, -2); // remove the extra comma space at the end
@@ -131,17 +128,16 @@ class UploadPhotoGalleryForm
     }
 
     /**
-     * getCategoryInputs 
-     * 
+     * getCategoryInputs.
+     *
      * @return string
      */
-    protected function getCategoryInputs ()
+    protected function getCategoryInputs()
     {
         $categories = $this->getUserCategories();
 
         // We have existing categories
-        if (count($categories) > 0)
-        {
+        if (count($categories) > 0) {
             return '
                     <input class="frm_text" type="text" id="new-category" name="new-category" size="35"/>
                     <select id="existing-categories" name="category">
@@ -150,72 +146,59 @@ class UploadPhotoGalleryForm
                     </select>';
         }
         // No Categories (force creation of new one)
-        else
-        {
+        else {
             return '
                     <input class="frm_text" type="text" id="new-category" name="new-category" size="50"/>';
         }
     }
 
     /**
-     * getUploadTypesNavigation 
-     * 
-     * @param string $currentType 
-     * 
+     * getUploadTypesNavigation.
+     *
+     * @param string $currentType
+     *
      * @return string
      */
-    protected function getUploadTypesNavigation ($currentType)
+    protected function getUploadTypesNavigation($currentType)
     {
         $nav = '';
 
-        $types = array(
+        $types = [
             'upload',
             'facebook',
             'picasa',
-            'instagram'
-        );
+            'instagram',
+        ];
 
-        foreach ($types as $type)
-        {
-            $url   = '';
+        foreach ($types as $type) {
+            $url = '';
             $class = $currentType == $type ? 'current' : '';
-            $text  = '';
+            $text = '';
 
-            if ($type == 'upload')
-            {
-                $type  = getUploaderType($this->fcmsUser->id);
-                $url   = '?action=upload&amp;type='.$type;
-                $text  = T_('Computer');
-            }
-            elseif ($type == 'instagram')
-            {
-                $config  = getInstagramConfigData();
-                if (empty($config['instagram_client_id']) || empty($config['instagram_client_secret']))
-                {
+            if ($type == 'upload') {
+                $type = getUploaderType($this->fcmsUser->id);
+                $url = '?action=upload&amp;type='.$type;
+                $text = T_('Computer');
+            } elseif ($type == 'instagram') {
+                $config = getInstagramConfigData();
+                if (empty($config['instagram_client_id']) || empty($config['instagram_client_secret'])) {
                     continue;
                 }
 
-                $url   = '?action=upload&amp;type=instagram';
-                $text  = 'Instagram';
-            }
-            elseif ($type == 'picasa')
-            {
-                $url   = '?action=upload&amp;type=picasa';
-                $text  = 'Picasa';
-            }
-            elseif ($type == 'facebook')
-            {
+                $url = '?action=upload&amp;type=instagram';
+                $text = 'Instagram';
+            } elseif ($type == 'picasa') {
+                $url = '?action=upload&amp;type=picasa';
+                $text = 'Picasa';
+            } elseif ($type == 'facebook') {
                 $config = getFacebookConfigData();
-                if (empty($config['fb_app_id']) && empty($config['fb_secret']))
-                {
+                if (empty($config['fb_app_id']) && empty($config['fb_secret'])) {
                     continue;
                 }
 
-                $url   = '?action=upload&amp;type=facebook';
-                $text  = 'Facebook';
-            }
-            else
-            {
+                $url = '?action=upload&amp;type=facebook';
+                $text = 'Facebook';
+            } else {
                 die('Invalid upload type.');
             }
 
@@ -227,11 +210,11 @@ class UploadPhotoGalleryForm
     }
 
     /**
-     * getJsUploadValidation 
-     * 
+     * getJsUploadValidation.
+     *
      * @return string
      */
-    protected function getJsUploadValidation ()
+    protected function getJsUploadValidation()
     {
         return '
                 if ($("#new-category").is(":visible") && !($("#new-category").val())) {
@@ -250,18 +233,17 @@ class UploadPhotoGalleryForm
     }
 
     /**
-     * getUserCategories 
-     * 
+     * getUserCategories.
+     *
      * Returns an array of the categories for the given user.
      *
-     * @param int $userid 
+     * @param int $userid
      *
-     * @return  array
+     * @return array
      */
-    protected function getUserCategories ($userid = 0)
+    protected function getUserCategories($userid = 0)
     {
-        if ($userid == 0)
-        {
+        if ($userid == 0) {
             $userid = $this->fcmsUser->id;
         }
 
@@ -271,16 +253,15 @@ class UploadPhotoGalleryForm
                 ORDER BY `id` DESC";
 
         $rows = $this->fcmsDatabase->getRows($sql, $userid);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
+
             return;
         }
 
-        $categories = array();
+        $categories = [];
 
-        foreach ($rows as $row)
-        {
+        foreach ($rows as $row) {
             $categories[$row['id']] = $row['name'];
         }
 

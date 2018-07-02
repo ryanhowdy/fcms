@@ -37,12 +37,9 @@
             <?php if (isset($TMPL['pollId'])): ?>
                 <h2 class="pollmenu"><?php echo $TMPL['textPolls']; ?></h2>
                 <?php
-                if (isset($TMPL['pollOptions']))
-                {
+                if (isset($TMPL['pollOptions'])) {
                     require_once 'ui/themes/default/templates/poll/view.php';
-                }
-                else
-                {
+                } else {
                     require_once 'ui/themes/default/templates/poll/result.php';
                 } ?>
             <?php endif; ?>

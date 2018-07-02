@@ -1,14 +1,15 @@
 <?php
 /**
- * Photo Gallery
- * 
+ * Photo Gallery.
+ *
  * PHP versions 4 and 5
  *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2010 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -24,7 +25,7 @@ init('admin/');
 
 // Globals
 $gallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
-$page    = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $gallery);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $gallery);
 
 exit();
 
@@ -37,84 +38,72 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsPhotoGallery)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsPhotoGallery)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
         $this->fcmsPhotoGallery = $fcmsPhotoGallery;
 
-        $this->fcmsTemplate = array(
+        $this->fcmsTemplate = [
             'sitename'      => getSiteName(),
             'nav-link'      => getAdminNavLinks(),
             'pagetitle'     => T_('Administration: Photo Gallery'),
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
-        if ($this->fcmsUser->access > 2)
-        {
+        if ($this->fcmsUser->access > 2) {
             $this->displayInvalidAccessLevel();
+
             return;
         }
         // Delete Categories
-        elseif (isset($_POST['deleteAll']) && isset($_POST['bulk_actions']))
-        {
-            if (isset($_GET['confirmed']))
-            {
+        elseif (isset($_POST['deleteAll']) && isset($_POST['bulk_actions'])) {
+            if (isset($_GET['confirmed'])) {
                 $this->displayDeleteAllCategoriesSubmit();
-            }
-            else
-            {
+            } else {
                 $this->displayConfirmDeleteAllCategoriesForm();
             }
         }
         // Delete Photos
-        elseif (isset($_POST['deleteAllPhotos']) && isset($_POST['bulk_actions']))
-        {
-            if (isset($_GET['confirmed']))
-            {
+        elseif (isset($_POST['deleteAllPhotos']) && isset($_POST['bulk_actions'])) {
+            if (isset($_GET['confirmed'])) {
                 $this->displayDeleteAllPhotosSubmit();
-            }
-            else
-            {
+            } else {
                 $this->displayConfirmDeleteAllPhotosForm();
             }
-        }
-        elseif (isset($_GET['edit']))
-        {
+        } elseif (isset($_GET['edit'])) {
             $this->displayEditCategoryForm();
-        }
-        else
-        {
+        } else {
             $this->displayLatestCategoriesForm();
         }
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -145,11 +134,11 @@ $(document).ready(function() {
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -160,11 +149,11 @@ $(document).ready(function() {
     }
 
     /**
-     * displayInvalidAccessLevel 
-     * 
+     * displayInvalidAccessLevel.
+     *
      * @return void
      */
-    function displayInvalidAccessLevel ()
+    public function displayInvalidAccessLevel()
     {
         $this->displayHeader();
 
@@ -179,17 +168,17 @@ $(document).ready(function() {
     }
 
     /**
-     * displayLatestCategoriesForm 
-     * 
+     * displayLatestCategoriesForm.
+     *
      * @return void
      */
-    function displayLatestCategoriesForm ()
+    public function displayLatestCategoriesForm()
     {
         $this->displayHeader();
 
-        $page    = getPage();
+        $page = getPage();
         $perPage = 10;
-        $from    = ($page * $perPage) - $perPage;
+        $from = ($page * $perPage) - $perPage;
 
         $sql = "SELECT * 
                 FROM (
@@ -205,27 +194,26 @@ $(document).ready(function() {
                 LIMIT $from, $perPage";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        if (count($rows) <= 0)
-        {
+        if (count($rows) <= 0) {
             echo '
             <p>'.T_('No photos have been added yet.').'</p>';
 
             $this->displayFooter();
+
             return;
         }
 
         $message = '';
 
-        if (isset($_SESSION['success']))
-        {
-            $message  = '<div class="alert-message success">';
+        if (isset($_SESSION['success'])) {
+            $message = '<div class="alert-message success">';
             $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
             $message .= T_('Changes Updated Successfully').'</div>';
 
@@ -237,8 +225,7 @@ $(document).ready(function() {
             <form id="check_all_form" name="check_all_form" action="gallery.php" method="post">
                 <ul class="unstyled clearfix">';
 
-        foreach ($rows as $row)
-        {
+        foreach ($rows as $row) {
             $count = $this->fcmsPhotoGallery->getCategoryPhotoCount($row['category']);
 
             $photoSrc = $this->fcmsPhotoGallery->getPhotoSource($row);
@@ -255,7 +242,6 @@ $(document).ready(function() {
                             <a href="?edit='.$row['category'].'">'.T_('Edit').'</a>
                         </p>
                     </li>';
-
         }
 
         echo '
@@ -265,32 +251,32 @@ $(document).ready(function() {
 
         // Pagination
 
-        // Remove the LIMIT from the $sql statement 
+        // Remove the LIMIT from the $sql statement
         // used above, so we can get the total count
         $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        $count       = count($rows);
-        $total_pages = ceil($count / $perPage); 
+        $count = count($rows);
+        $total_pages = ceil($count / $perPage);
 
-        displayPages("gallery.php", $page, $total_pages);
+        displayPages('gallery.php', $page, $total_pages);
 
         $this->displayFooter();
     }
 
     /**
-     * displayConfirmDeleteAllCategoriesForm 
-     * 
+     * displayConfirmDeleteAllCategoriesForm.
+     *
      * @return void
      */
-    function displayConfirmDeleteAllCategoriesForm ()
+    public function displayConfirmDeleteAllCategoriesForm()
     {
         $this->displayHeader();
 
@@ -301,10 +287,9 @@ $(document).ready(function() {
                     <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                     <div class="alert-actions">';
 
-        foreach ($_POST['bulk_actions'] AS $id)
-        {
+        foreach ($_POST['bulk_actions'] as $id) {
             echo '
-                        <input type="hidden" name="bulk_actions[]" value="'.(int)$id.'"/>';
+                        <input type="hidden" name="bulk_actions[]" value="'.(int) $id.'"/>';
         }
 
         echo '
@@ -318,69 +303,67 @@ $(document).ready(function() {
     }
 
     /**
-     * displayDeleteAllCategoriesSubmit 
-     * 
+     * displayDeleteAllCategoriesSubmit.
+     *
      * @return void
      */
-    function displayDeleteAllCategoriesSubmit ()
+    public function displayDeleteAllCategoriesSubmit()
     {
-        foreach ($_POST['bulk_actions'] AS $category)
-        {
-            $category = (int)$category;
+        foreach ($_POST['bulk_actions'] as $category) {
+            $category = (int) $category;
 
             // Delete all photos in category
-            $sql = "DELETE FROM `fcms_gallery_photos`
-                    WHERE `category` = ?";
+            $sql = 'DELETE FROM `fcms_gallery_photos`
+                    WHERE `category` = ?';
 
-            if (!$this->fcmsDatabase->delete($sql, $category))
-            {
+            if (!$this->fcmsDatabase->delete($sql, $category)) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
 
             // Delete all category comments
-            $sql = "DELETE FROM `fcms_gallery_category_comment`
-                    WHERE `category_id` = ?";
+            $sql = 'DELETE FROM `fcms_gallery_category_comment`
+                    WHERE `category_id` = ?';
 
-            if (!$this->fcmsDatabase->delete($sql, $category))
-            {
+            if (!$this->fcmsDatabase->delete($sql, $category)) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
 
             // Delete category
-            $sql = "DELETE FROM `fcms_category`
-                    WHERE `id` = ?";
+            $sql = 'DELETE FROM `fcms_category`
+                    WHERE `id` = ?';
 
-            if (!$this->fcmsDatabase->delete($sql, $category))
-            {
+            if (!$this->fcmsDatabase->delete($sql, $category)) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
-
         }
 
         $_SESSION['success'] = 1;
 
-        header("Location: gallery.php");
+        header('Location: gallery.php');
     }
 
     /**
-     * displayConfirmDeleteAllPhotosForm 
-     * 
+     * displayConfirmDeleteAllPhotosForm.
+     *
      * @return void
      */
-    function displayConfirmDeleteAllPhotosForm ()
+    public function displayConfirmDeleteAllPhotosForm()
     {
         $this->displayHeader();
 
-        $url = 'edit='.(int)$_GET['edit'];
+        $url = 'edit='.(int) $_GET['edit'];
 
         echo '
             <div class="alert-message block-message warning">
@@ -389,10 +372,9 @@ $(document).ready(function() {
                     <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                     <div class="alert-actions">';
 
-        foreach ($_POST['bulk_actions'] AS $id)
-        {
+        foreach ($_POST['bulk_actions'] as $id) {
             echo '
-                        <input type="hidden" name="bulk_actions[]" value="'.(int)$id.'"/>';
+                        <input type="hidden" name="bulk_actions[]" value="'.(int) $id.'"/>';
         }
 
         echo '
@@ -406,72 +388,71 @@ $(document).ready(function() {
     }
 
     /**
-     * displayDeleteAllPhotosSubmit 
-     * 
+     * displayDeleteAllPhotosSubmit.
+     *
      * @return void
      */
-    function displayDeleteAllPhotosSubmit ()
+    public function displayDeleteAllPhotosSubmit()
     {
         $worked = $this->fcmsPhotoGallery->deletePhotos($_POST['bulk_actions']);
-        if (!$worked)
-        {
+        if (!$worked) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $_SESSION['success'] = 1;
 
-        if (isset($_GET['edit']))
-        {
-            header("Location: gallery.php?edit=".(int)$_GET['edit']);
+        if (isset($_GET['edit'])) {
+            header('Location: gallery.php?edit='.(int) $_GET['edit']);
+
             return;
         }
 
-        header("Location: gallery.php");
+        header('Location: gallery.php');
     }
 
     /**
-     * displayEditCategoryForm 
-     * 
+     * displayEditCategoryForm.
+     *
      * @return void
      */
-    function displayEditCategoryForm ()
+    public function displayEditCategoryForm()
     {
         $this->displayHeader();
 
-        $category = (int)$_GET['edit'];
+        $category = (int) $_GET['edit'];
 
-        $sql = "SELECT p.`id`, p.`date`, p.`filename`, c.`name` AS category, p.`user`, p.`caption`, p.`views`,
+        $sql = 'SELECT p.`id`, p.`date`, p.`filename`, c.`name` AS category, p.`user`, p.`caption`, p.`views`,
                     p.`external_id`, e.`thumbnail`
                 FROM `fcms_gallery_photos` AS p
                 LEFT JOIN `fcms_category` AS c               ON p.`category`    = c.`id`
                 LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-                WHERE p.`category` = ?";
+                WHERE p.`category` = ?';
 
         $rows = $this->fcmsDatabase->getRows($sql, $category);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        if (count($rows) <= 0)
-        {
+        if (count($rows) <= 0) {
             echo '
             <p>'.T_('This category contains no photos.').'</p>';
 
             $this->displayFooter();
+
             return;
         }
 
         $message = '';
 
-        if (isset($_SESSION['success']))
-        {
-            $message  = '<div class="alert-message success">';
+        if (isset($_SESSION['success'])) {
+            $message = '<div class="alert-message success">';
             $message .= '<a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>';
             $message .= T_('Changes Updated Successfully').'</div>';
 
@@ -484,8 +465,7 @@ $(document).ready(function() {
             <form id="check_all_form" name="check_all_form" action="gallery.php?edit='.$category.'" method="post">
                 <ul class="unstyled clearfix">';
 
-        foreach ($rows as $row)
-        {
+        foreach ($rows as $row) {
             $photoSrc = $this->fcmsPhotoGallery->getPhotoSource($row);
 
             echo '

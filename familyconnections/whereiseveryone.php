@@ -1,14 +1,15 @@
 <?php
 /**
- * WhereIsEveryone
- * 
+ * WhereIsEveryone.
+ *
  * PHP version 5
  *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2010 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     2.4
  */
@@ -23,7 +24,7 @@ load('datetime', 'socialmedia', 'foursquare');
 
 init();
 
-$templateParams = array(
+$templateParams = [
     'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
@@ -32,34 +33,32 @@ $templateParams = array(
     'path'          => URL_PREFIX,
     'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
-$options = array('modules' => array('livevalidation'));
+    'year'          => date('Y'),
+];
+$options = ['modules' => ['livevalidation']];
 
 displayPageHeader($templateParams, $options);
 
 //-------------------------------------
 // Show Latest checkins
 //-------------------------------------
-$users  = getFoursquareUsersData();
+$users = getFoursquareUsersData();
 $config = getFoursquareConfigData();
 
-if (count($users[0]) <= 0)
-{
+if (count($users[0]) <= 0) {
     echo '
             <div class="info-alert">
                 <p>'.T_('No users with foursquare data found.').'</p>
             </div>';
     loadTemplate('global', 'footer', $templateParams);
+
     return;
 }
 
 // Foursquare hasn't been setup or is invalid
-if (empty($config['fs_client_id']) or empty($config['fs_client_secret']))
-{
+if (empty($config['fs_client_id']) or empty($config['fs_client_secret'])) {
     // If admin is viewing, alert them that the config is missing/messed up
-    if ($fcmsUser->access < 2)
-    {
+    if ($fcmsUser->access < 2) {
         echo '
             <div class="info-alert">
                 <h2>'.T_('Foursquare is not configured correctly.').'</h2>
@@ -70,31 +69,24 @@ if (empty($config['fs_client_id']) or empty($config['fs_client_secret']))
     // this would happen if foursquare was setup, users granted access, then foursquare was removed.
 }
 
-$historyData = array();
+$historyData = [];
 
 $i = 0;
-foreach ($users as $k => $data)
-{
+foreach ($users as $k => $data) {
     // Skip users who don't have foursquare setup
-    if (empty($data['access_token']))
-    {
+    if (empty($data['access_token'])) {
         continue;
     }
 
     $fsObj = new EpiFoursquare($config['fs_client_id'], $config['fs_client_secret'], $data['access_token']);
 
-    try
-    {
+    try {
         $creds = $fsObj->get('/users/'.$data['user_id'].'/checkins');
-    }
-    catch(EpiFoursquareException $e)
-    {
+    } catch (EpiFoursquareException $e) {
         echo 'We caught an EpiOAuthException';
         echo $e->getMessage();
         break;
-    }
-    catch(Exception $e)
-    {
+    } catch (Exception $e) {
         echo 'We caught an unexpected Exception';
         echo $e->getMessage();
         break;
@@ -102,29 +94,27 @@ foreach ($users as $k => $data)
 
     $photo = getAvatarPath($data['avatar'], $data['gravatar']);
 
-    foreach ($creds->response->checkins->items as $checkin)
-    {
+    foreach ($creds->response->checkins->items as $checkin) {
         // Skip shouts, etc
-        if ($checkin->type != 'checkin')
-        {
+        if ($checkin->type != 'checkin') {
             continue;
         }
 
         $address = isset($checkin->venue->location->address) ? $checkin->venue->location->address : '';
-        $shout   = isset($checkin->shout)                    ? $checkin->shout                    : '';
+        $shout = isset($checkin->shout) ? $checkin->shout : '';
 
         $date = fixDate('F j, Y', $data['timezone'], date('Y-m-d H:i:s', $checkin->createdAt));
         $sort = $checkin->createdAt;
 
-        $historyData[$i] = array(
+        $historyData[$i] = [
             'photo'     => $photo,
             'name'      => $data['name'],
             'venue'     => $checkin->venue->name,
             'address'   => $address,
             'date'      => $date,
             'sort'      => $sort,
-            'shout'     => $shout
-        );
+            'shout'     => $shout,
+        ];
         $i++;
     }
 }
@@ -137,8 +127,7 @@ echo '
             <ul id="latest-history">
                 <li id="label">'.T_('History').'</li>';
 
-foreach ($historyData as $k => $data)
-{
+foreach ($historyData as $k => $data) {
     echo '
                 <li>
                     <div class="img"><img src="'.$data['photo'].'" height="32px" width="32px"/></div>

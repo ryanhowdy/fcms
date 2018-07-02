@@ -1,14 +1,12 @@
 <?php
 /**
- * UploadPhotoGallery 
- * 
+ * UploadPhotoGallery.
+ *
  * Handles printing the form, and submitting of the form for the 'Basic'
  * standard photo gallery upload.
- * 
- * @package Upload
- * @subpackage Photo
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class PicasaUploadPhotoGallery extends UploadPhotoGallery
@@ -17,74 +15,67 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
     private $newPhotoIds;
 
     /**
-     * upload
-     * 
-     * @param array $formData 
-     * 
-     * @return boolean
+     * upload.
+     *
+     * @param array $formData
+     *
+     * @return bool
      */
-    public function upload ($formData)
+    public function upload($formData)
     {
         // Save necessary form data
         $this->setFormData($formData);
 
         // Validate
-        if (!$this->validate())
-        {
+        if (!$this->validate()) {
             return false;
         }
 
         // Create directory
-        if (!$this->destination->createDirectory())
-        {
+        if (!$this->destination->createDirectory()) {
             return false;
         }
 
         // Insert new category
-        if (!$this->insertCategory())
-        {
+        if (!$this->insertCategory()) {
             return false;
         }
 
-        $newPhotoFilenames = array();
+        $newPhotoFilenames = [];
 
-        foreach ($this->albumFeed->entry as $photo)
-        {
-            $id = (int)$photo->children('gphoto', true)->id;
+        foreach ($this->albumFeed->entry as $photo) {
+            $id = (int) $photo->children('gphoto', true)->id;
 
             // just get the photos the user choose in the form
-            if (!in_array($id, $this->formData['photos']))
-            {
+            if (!in_array($id, $this->formData['photos'])) {
                 continue;
             }
 
             // thumbnails
             $group = $photo->children('media', true)->group;
 
-            $thumbnail = (string)$group->thumbnail[0]->attributes()->url;
-            $medium    = (string)$group->thumbnail[1]->attributes()->url;
+            $thumbnail = (string) $group->thumbnail[0]->attributes()->url;
+            $medium = (string) $group->thumbnail[1]->attributes()->url;
 
-            if ($this->usingFullSizePhotos)
-            {
-                $full = (string)$group->thumbnail[2]->attributes()->url;
+            if ($this->usingFullSizePhotos) {
+                $full = (string) $group->thumbnail[2]->attributes()->url;
             }
 
             $extension = $this->uploadPhoto->getFileExtension($thumbnail);
 
             // Save photo to db
-            $params = array(
+            $params = [
                 $this->newCategoryId,
-                $this->fcmsUser->id
-            );
+                $this->fcmsUser->id,
+            ];
 
-            $sql = "INSERT INTO `fcms_gallery_photos`
+            $sql = 'INSERT INTO `fcms_gallery_photos`
                         (`date`, `category`, `user`)
                     VALUES 
-                        (NOW(), ?, ?)";
+                        (NOW(), ?, ?)';
 
             $newPhotoId = $this->fcmsDatabase->insert($sql, $params);
-            if ($newPhotoId === false)
-            {
+            if ($newPhotoId === false) {
                 return false;
             }
 
@@ -95,22 +86,19 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
             // Move files to server
             $this->destination->savePhotoFromSource($thumbnail, 'tb_'.$newFilename);
             $this->destination->savePhotoFromSource($medium, $newFilename);
-            if ($this->usingFullSizePhotos)
-            {
+            if ($this->usingFullSizePhotos) {
                 $this->destination->savePhotoFromSource($full, 'full_'.$newFilename);
             }
 
             $newPhotoFilenames[$newPhotoId] = $newPhotoId.'.'.$extension;
         }
 
-        foreach ($newPhotoFilenames as $id => $filename)
-        {
-            $sql = "UPDATE `fcms_gallery_photos` 
+        foreach ($newPhotoFilenames as $id => $filename) {
+            $sql = 'UPDATE `fcms_gallery_photos` 
                     SET `filename` = ?
-                    WHERE `id`     = ?";
+                    WHERE `id`     = ?';
 
-            if (!$this->fcmsDatabase->update($sql, array($filename, $id)))
-            {
+            if (!$this->fcmsDatabase->update($sql, [$filename, $id])) {
                 return false;
             }
         }
@@ -119,28 +107,26 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
     }
 
     /**
-     * validate 
-     * 
-     * @return boolean
+     * validate.
+     *
+     * @return bool
      */
-    public function validate ()
+    public function validate()
     {
-        if (empty($this->formData['albums']))
-        {
-            $this->fcmsError->add(array(
+        if (empty($this->formData['albums'])) {
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('You must choose a Picasa Web Album selected.').'</p>'
-            ));
+                'details' => '<p>'.T_('You must choose a Picasa Web Album selected.').'</p>',
+            ]);
 
             return false;
         }
 
-        if (empty($this->formData['photos']))
-        {
-            $this->fcmsError->add(array(
+        if (empty($this->formData['photos'])) {
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('You must choose at least one photo.').'</p>'
-            ));
+                'details' => '<p>'.T_('You must choose at least one photo.').'</p>',
+            ]);
 
             return false;
         }
@@ -149,20 +135,20 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
     }
 
     /**
-     * setFormData 
-     * 
+     * setFormData.
+     *
      * Saves all the data passed in from the form upload.
-     * 
+     *
      * @param array $formData
-     * 
+     *
      * @return void
      */
-    public function setFormData ($formData)
+    public function setFormData($formData)
     {
         $this->formData = $formData;
 
         $albumId = $formData['albums'];
-        $user    = $formData['picasa_user'];
+        $user = $formData['picasa_user'];
 
         $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
 
@@ -172,21 +158,20 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
         $curl = curl_init();
 
         $thumbSizes = '150c,600';
-        if ($this->usingFullSizePhotos)
-        {
+        if ($this->usingFullSizePhotos) {
             $thumbSizes .= ',d';
         }
 
         $url = 'https://picasaweb.google.com/data/feed/api/user/default/albumid/'.$albumId.'?thumbsize='.$thumbSizes;
 
         curl_setopt_array(
-            $curl, 
-            array(
+            $curl,
+            [
                 CURLOPT_CUSTOMREQUEST  => 'GET',
                 CURLOPT_URL            => $url,
-                CURLOPT_HTTPHEADER     => array('GData-Version: 2', 'Authorization: Bearer '.$token),
+                CURLOPT_HTTPHEADER     => ['GData-Version: 2', 'Authorization: Bearer '.$token],
                 CURLOPT_RETURNTRANSFER => 1,
-            )
+            ]
         );
 
         $response = curl_exec($curl);
@@ -194,15 +179,15 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
 
         curl_close($curl);
 
-        if ($httpCode !== 200)
-        {
-            $this->fcmsError->add(array(
+        if ($httpCode !== 200) {
+            $this->fcmsError->add([
                 'type'    => 'operation',
                 'message' => T_('Could not get Picasa data.'),
                 'error'   => $response,
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-             ));
+             ]);
+
             return false;
         }
 
@@ -210,5 +195,4 @@ class PicasaUploadPhotoGallery extends UploadPhotoGallery
 
         $this->albumFeed = $xml;
     }
-
 }

@@ -19,35 +19,51 @@
                         </div>
                         <div class="field-widget">
                             <label for="none" class="colors none">
-                                <input type="radio" <?php if (isset($TMPL['none'])) { echo 'checked="checked"'; } ?> name="colors" id="none" value="none"/>
+                                <input type="radio" <?php if (isset($TMPL['none'])) {
+    echo 'checked="checked"';
+} ?> name="colors" id="none" value="none"/>
                                 <?php echo T_('None'); ?>
                             </label>
                             <label for="red" class="colors red">
-                                <input type="radio" <?php if (isset($TMPL['red'])) { echo 'checked="checked"'; } ?> name="colors" id="red" value="red"/>
+                                <input type="radio" <?php if (isset($TMPL['red'])) {
+    echo 'checked="checked"';
+} ?> name="colors" id="red" value="red"/>
                                 <?php echo T_('Red'); ?>
                             </label>
                             <label for="orange" class="colors orange">
-                                <input type="radio" <?php if (isset($TMPL['orange'])) { echo 'checked="checked"'; } ?> name="colors" id="orange" value="orange"/>
+                                <input type="radio" <?php if (isset($TMPL['orange'])) {
+    echo 'checked="checked"';
+} ?> name="colors" id="orange" value="orange"/>
                                 <?php echo T_('Orange'); ?>
                             </label>
                             <label for="yellow" class="colors yellow">
-                                <input type="radio" <?php if (isset($TMPL['yellow'])) { echo 'checked="checked"'; } ?> name="colors" id="yellow" value="yellow"/>
+                                <input type="radio" <?php if (isset($TMPL['yellow'])) {
+    echo 'checked="checked"';
+} ?> name="colors" id="yellow" value="yellow"/>
                                 <?php echo T_('Yellow'); ?>
                             </label><br/>
                             <label for="green" class="colors green">
-                                <input type="radio" <?php if (isset($TMPL['green'])) { echo 'checked="checked"'; } ?> name="colors" id="green" value="green"/>
+                                <input type="radio" <?php if (isset($TMPL['green'])) {
+    echo 'checked="checked"';
+} ?> name="colors" id="green" value="green"/>
                                 <?php echo T_('Green'); ?>
                             </label>
                             <label for="blue" class="colors blue">
-                                <input type="radio" <?php if (isset($TMPL['blue'])) { echo 'checked="checked"'; } ?> name="colors" id="blue" value="blue"/>
+                                <input type="radio" <?php if (isset($TMPL['blue'])) {
+    echo 'checked="checked"';
+} ?> name="colors" id="blue" value="blue"/>
                                 <?php echo T_('Blue'); ?>
                             </label>
                             <label for="indigo" class="colors indigo">
-                                <input type="radio" <?php if (isset($TMPL['indigo'])) { echo 'checked="checked"'; } ?> name="colors" id="indigo" value="indigo"/>
+                                <input type="radio" <?php if (isset($TMPL['indigo'])) {
+    echo 'checked="checked"';
+} ?> name="colors" id="indigo" value="indigo"/>
                                 <?php echo T_('Indigo'); ?>
                             </label>
                             <label for="violet" class="colors violet">
-                                <input type="radio" <?php if (isset($TMPL['violet'])) { echo 'checked="checked"'; } ?> name="colors" id="violet" value="violet"/>
+                                <input type="radio" <?php if (isset($TMPL['violet'])) {
+    echo 'checked="checked"';
+} ?> name="colors" id="violet" value="violet"/>
                                 <?php echo T_('Violet'); ?>
                             </label>
                         </div>

@@ -1,14 +1,15 @@
 <?php
 /**
- * Facebook
- * 
+ * Facebook.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     2.5
  */
@@ -35,54 +36,51 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
 
-        $this->fcmsTemplate = array(
+        $this->fcmsTemplate = [
             'sitename'      => cleanOutput(getSiteName()),
             'nav-link'      => getAdminNavLinks(),
             'pagetitle'     => T_('Facebook'),
             'path'          => URL_PREFIX,
             'displayname'   => $fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
-        if (isset($_POST['submit']))
-        {
+        if (isset($_POST['submit'])) {
             $this->displayFormSubmit();
-        }
-        else
-        {
+        } else {
             $this->displayForm();
         }
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -93,11 +91,11 @@ class Page
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -108,18 +106,17 @@ class Page
     }
 
     /**
-     * displayForm 
-     * 
+     * displayForm.
+     *
      * Displays the form for configuring a facebook app.
-     * 
+     *
      * @return void
      */
-    function displayForm ()
+    public function displayForm()
     {
         $this->displayHeader();
 
-        if (isset($_SESSION['success']))
-        {
+        if (isset($_SESSION['success'])) {
             echo '
         <div class="alert-message success">
             <a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>
@@ -131,7 +128,7 @@ class Page
 
         $r = getFacebookConfigData();
 
-        $id     = isset($r['fb_app_id']) ? $r['fb_app_id'] : '';
+        $id = isset($r['fb_app_id']) ? $r['fb_app_id'] : '';
         $secret = isset($r['fb_secret']) ? $r['fb_secret'] : '';
 
         echo '
@@ -142,8 +139,7 @@ class Page
             </p>
         </div>';
 
-        if (empty($id) || empty($secret))
-        {
+        if (empty($id) || empty($secret)) {
             echo '
         <div class="row">
             <div class="span4">
@@ -196,8 +192,7 @@ class Page
                 </fieldset>
             </form>';
 
-        if (empty($id) || empty($secret))
-        {
+        if (empty($id) || empty($secret)) {
             echo '
             </div><!-- /span12 -->
         </div><!-- /row -->';
@@ -207,41 +202,41 @@ class Page
     }
 
     /**
-     * displayFormSubmit 
-     * 
+     * displayFormSubmit.
+     *
      * @return void
      */
-    function displayFormSubmit ()
+    public function displayFormSubmit()
     {
-        $id     = isset($_POST['id'])     ? $_POST['id']     : '';
+        $id = isset($_POST['id']) ? $_POST['id'] : '';
         $secret = isset($_POST['secret']) ? $_POST['secret'] : '';
 
         $sql = "UPDATE `fcms_config`
                 SET `value` = ?
                 WHERE `name` = 'fb_app_id'";
 
-        if (!$this->fcmsDatabase->update($sql, $id))
-        {
+        if (!$this->fcmsDatabase->update($sql, $id)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $sql = "UPDATE `fcms_config`
                 SET `value` = ?
                 WHERE `name` = 'fb_secret'";
-        
-        if (!$this->fcmsDatabase->update($sql, $secret))
-        {
+
+        if (!$this->fcmsDatabase->update($sql, $secret)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $_SESSION['success'] = 1;
 
-        header("Location: facebook.php");
+        header('Location: facebook.php');
     }
 }

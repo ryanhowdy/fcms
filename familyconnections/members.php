@@ -1,14 +1,15 @@
 <?php
 /**
- * Members
- *  
+ * Members.
+ *
  * PHP versions 4 and 5
- *  
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2008 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -34,39 +35,39 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         $this->displayMembers();
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -75,32 +76,23 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         displayPageHeader($params);
 
         $order = isset($_GET['order']) ? $_GET['order'] : 'alphabetical';
 
         $alpha = $age = $part = $act = $join = '';
-        if ($order == 'alphabetical')
-        {
+        if ($order == 'alphabetical') {
             $alpha = 'class="selected"';
-        }
-        elseif ($order == 'age')
-        {
+        } elseif ($order == 'age') {
             $age = 'class="selected"';
-        }
-        elseif ($order == 'participation')
-        {
+        } elseif ($order == 'participation') {
             $part = 'class="selected"';
-        }
-        elseif ($order == 'activity')
-        {
+        } elseif ($order == 'activity') {
             $act = 'class="selected"';
-        }
-        elseif ($order == 'joined')
-        {
+        } elseif ($order == 'joined') {
             $join = 'class="selected"';
         }
 
@@ -119,17 +111,17 @@ class Page
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'      => URL_PREFIX,
             'version'   => getCurrentVersion(),
-            'year'      => date('Y')
-        );
+            'year'      => date('Y'),
+        ];
 
         echo '
             </div><!--/#maincolumn-->';
@@ -138,11 +130,11 @@ class Page
     }
 
     /**
-     * displayMembers 
-     * 
+     * displayMembers.
+     *
      * @return void
      */
-    function displayMembers ()
+    public function displayMembers()
     {
         $this->displayHeader();
 
@@ -150,20 +142,20 @@ class Page
 
         $tzOffset = getTimezone($this->fcmsUser->id);
 
-        $validOrderTypes = array(
+        $validOrderTypes = [
             'alphabetical'  => 'ORDER BY u.`fname`',
             'age'           => 'ORDER BY u.`dob_year`, u.`dob_month`, u.`dob_day`',
             'participation' => '',
             'activity'      => 'ORDER BY u.`activity` DESC',
             'joined'        => 'ORDER BY u.`joindate` DESC',
-        );
+        ];
 
-        if (!array_key_exists($order, $validOrderTypes))
-        {
+        if (!array_key_exists($order, $validOrderTypes)) {
             echo '
         <div class="error-alert">'.T_('Invalid Order.').'</div>';
 
             $this->displayFooter();
+
             return;
         }
 
@@ -180,33 +172,28 @@ class Page
                 ".$validOrderTypes[$order];
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
 
             return;
         }
 
-        foreach ($rows as $row)
-        {
+        foreach ($rows as $row) {
             $row['points'] = getUserParticipationPoints($row['id']);
 
             $memberData[] = $row;
         }
 
         // Sort by participation
-        if ($order == 'participation')
-        {
-            foreach ($memberData as $k => $v)
-            {
+        if ($order == 'participation') {
+            foreach ($memberData as $k => $v) {
                 $b[$k] = strtolower($v['points']);
             }
 
             asort($b);
 
-            foreach ($b as $key => $val)
-            {
+            foreach ($b as $key => $val) {
                 $c[] = $memberData[$key];
             }
 
@@ -214,24 +201,17 @@ class Page
         }
 
         // Get Additional header columns
-        $header  = '';
+        $header = '';
         $colspan = 4;
 
-        if ($order == 'age')
-        {
+        if ($order == 'age') {
             $header = '<td>'.T_('Age').'</td><td>'.T_('Birthday').'</td>';
             $colspan++;
-        }
-        elseif ($order == 'participation')
-        {
+        } elseif ($order == 'participation') {
             $header = '<td>'.T_('Participation Points').'</td>';
-        }
-        elseif ($order == 'activity')
-        {
+        } elseif ($order == 'activity') {
             $header = '<td>'.T_('Last Seen').'</td>';
-        }
-        elseif ($order == 'joined')
-        {
+        } elseif ($order == 'joined') {
             $header = '<td>'.T_('Joined').'</td>';
         }
 
@@ -248,42 +228,35 @@ class Page
                     '.$header.'
                 </tr>';
 
-        foreach ($memberData AS $row)
-        {
+        foreach ($memberData as $row) {
             $display = '';
 
             // Age
-            if ($order == 'age')
-            {
+            if ($order == 'age') {
                 $age = getAge($row['dob_year'], $row['dob_month'], $row['dob_day']);
 
                 // Don't show users with an unknown age
-                if ($age === '...')
-                {
+                if ($age === '...') {
                     continue;
                 }
 
-                $display  = '<td>'.sprintf(T_('%s years old'), $age).'</td>';
+                $display = '<td>'.sprintf(T_('%s years old'), $age).'</td>';
                 $display .= '<td>'.$row['dob_year'].'-'.$row['dob_month'].'-'.$row['dob_day'].'</td>';
             }
             // Participation
-            elseif ($order == 'participation')
-            {
+            elseif ($order == 'participation') {
                 $display = '<td>'.$row['points'].'</td>';
             }
             // Last Seen
-            elseif ($order == 'activity')
-            {
+            elseif ($order == 'activity') {
                 $display = '<td></td>';
 
-                if ($row['activity'] != '0000-00-00 00:00:00')
-                {
+                if ($row['activity'] != '0000-00-00 00:00:00') {
                     $display = '<td>'.fixDate(T_('M. j, Y (g:i a)'), $tzOffset, $row['activity']).'</td>';
                 }
             }
             // Joined
-            elseif ($order == 'joined')
-            {
+            elseif ($order == 'joined') {
                 $display = '<td>'.fixDate(T_('M. j, Y'), $tzOffset, $row['joindate']).'</td>';
             }
 
@@ -291,12 +264,12 @@ class Page
             echo '
                 <tr>
                     <td>
-                        <a class="avatar" href="profile.php?member='.(int)$row['id'].'">
+                        <a class="avatar" href="profile.php?member='.(int) $row['id'].'">
                             <img alt="avatar" src="'.getCurrentAvatar($row['id']).'"/>
                         </a>
                     </td>
                     <td>
-                        <a class="avatar" href="profile.php?member='.(int)$row['id'].'">
+                        <a class="avatar" href="profile.php?member='.(int) $row['id'].'">
                             '.cleanOutput($row['fname']).' '.cleanOutput($row['lname']).'
                         </a>
                     </td>

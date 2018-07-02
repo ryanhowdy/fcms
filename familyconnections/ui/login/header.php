@@ -8,4 +8,6 @@
 <link rel="shortcut icon" href="ui/favicon.ico"/>
 <link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css?version370"/>
 </head>
-<body <?php if (isset($TMPL['body'])) { echo $TMPL['body']; } ?>>
+<body <?php if (isset($TMPL['body'])) {
+    echo $TMPL['body'];
+} ?>>

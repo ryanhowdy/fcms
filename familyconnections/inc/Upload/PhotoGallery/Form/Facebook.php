@@ -1,106 +1,93 @@
 <?php
 /**
- * Facebook Form
- * 
+ * Facebook Form.
+ *
  * Prints the form for uploading photos from facebook.
- * 
- * @package Upload
- * @subpackage UploadPhotoGallery
+ *
  * @copyright 2015 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class FacebookUploadPhotoGalleryForm extends UploadPhotoGalleryForm
 {
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
 
         load('facebook');
     }
 
     /**
-     * display 
-     * 
+     * display.
+     *
      * @return void
      */
-    public function display ()
+    public function display()
     {
         $_SESSION['fcms_uploader_type'] = 'facebook';
 
-        $config      = getFacebookConfigData();
+        $config = getFacebookConfigData();
         $accessToken = getUserFacebookAccessToken($this->fcmsUser->id);
 
-        $facebook = new Facebook(array(
+        $facebook = new Facebook([
             'appId'  => $config['fb_app_id'],
             'secret' => $config['fb_secret'],
-        ));
+        ]);
 
         $facebook->setAccessToken($accessToken);
 
         $fbUser = $facebook->getUser();
-        if ($fbUser)
-        {
-            try
-            {
+        if ($fbUser) {
+            try {
                 $fbProfile = $facebook->api('/me');
-            }
-            catch (FacebookApiException $e)
-            {
+            } catch (FacebookApiException $e) {
                 $fbUser = null;
             }
         }
 
         $facebookInfo = '';
-        $js           = '';
+        $js = '';
 
-        if ($this->fcmsError->hasError())
-        {
+        if ($this->fcmsError->hasError()) {
             $this->fcmsError->displayError();
+
             return;
-        }
-        elseif (!$fbUser)
-        {
+        } elseif (!$fbUser) {
             $facebookInfo = '
             <div class="info-alert">
                 <h2>'.T_('Not connected to Facebook.').'</h2>
                 <p>'.T_('You must connect your Family Connections account to Facebook before you can begin importing photos from Facebook.').'</p>
                 <p><a href="../settings.php?view=facebook">'.T_('Connect to Facebook').'</a></p>
             </div>';
-        }
-        else
-        {
-            try
-            {
+        } else {
+            try {
                 $fbAlbums = $facebook->api('/me/albums');
 
                 $albumOptions = '';
-                foreach ($fbAlbums['data'] as $album)
-                {
+                foreach ($fbAlbums['data'] as $album) {
                     $albumOptions .= '<option value="'.$album['id'].'">'.$album['name'].'</option>';
                 }
-            }
-            catch (FacebookApiException $e)
-            {
-                $this->fcmsError->add(array(
+            } catch (FacebookApiException $e) {
+                $this->fcmsError->add([
                     'type'    => 'operation',
                     'message' => T_('Could not get Facebook albums.'),
                     'error'   => $e,
                     'file'    => __FILE__,
                     'line'    => __LINE__,
-                ));
+                ]);
                 $this->fcmsError->displayError();
+
                 return;
             }
 
@@ -116,7 +103,7 @@ class FacebookUploadPhotoGalleryForm extends UploadPhotoGalleryForm
             </div>
             <ul id="photo_list"></ul>';
 
-            $js  = 'loadPhotoGalleryPhotos("facebook", "'.T_('Could not get Facebook photos.').'");';
+            $js = 'loadPhotoGalleryPhotos("facebook", "'.T_('Could not get Facebook photos.').'");';
             $js .= 'loadPhotoGalleryPhotoEvents("facebook", "'.T_('Could not get Facebook photos.').'");';
         }
 

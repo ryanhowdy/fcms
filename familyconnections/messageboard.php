@@ -1,14 +1,15 @@
 <?php
 /**
- * Members
- *  
+ * Members.
+ *
  * PHP versions 4 and 5
- *  
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -23,7 +24,7 @@ load('datetime', 'messageboard');
 init();
 
 $mBoard = new MessageBoard($fcmsError, $fcmsDatabase, $fcmsUser);
-$page   = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $mBoard);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $mBoard);
 
 exit();
 
@@ -36,106 +37,83 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsMessageBoard)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsMessageBoard)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
         $this->fcmsMessageBoard = $fcmsMessageBoard;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         // New Post
-        if (isset($_GET['reply']))
-        {
+        if (isset($_GET['reply'])) {
             $this->displayNewPostForm();
-        }
-        elseif (isset($_POST['reply_submit']))
-        {
+        } elseif (isset($_POST['reply_submit'])) {
             $this->displayNewPostSubmit();
-        }
-        elseif (isset($_POST['post_submit']))
-        {
+        } elseif (isset($_POST['post_submit'])) {
             $this->displayNewThreadSubmit();
         }
         // Edit Post
-        elseif (isset($_POST['editpost']))
-        {
+        elseif (isset($_POST['editpost'])) {
             $this->displayEditPostForm();
-        }
-        elseif (isset($_POST['edit_submit']))
-        {
+        } elseif (isset($_POST['edit_submit'])) {
             $this->displayEditPostSubmit();
         }
         // Delete
-        elseif (isset($_POST['delpost']) && !isset($_POST['confirmed']))
-        {
+        elseif (isset($_POST['delpost']) && !isset($_POST['confirmed'])) {
             $this->displayConfirmDelete();
-        }
-        elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed']))
-        {
+        } elseif (isset($_POST['delconfirm']) || isset($_POST['confirmed'])) {
             $this->displayDeletePostSubmit();
         }
         // Administrate Thread
-        elseif (isset($_POST['submit_admin']) && $this->fcmsUser->access < 2)
-        {
+        elseif (isset($_POST['submit_admin']) && $this->fcmsUser->access < 2) {
             $this->displayAdministrateThreadSubmit();
         }
         // Admin Edit Subject
-        elseif (isset($_POST['edit_admin_submit']))
-        {
+        elseif (isset($_POST['edit_admin_submit'])) {
             $this->displayAdminEditSubjectSubmit();
         }
         // Search results
-        elseif (isset($_POST['search']))
-        {
-            if (isset($_POST['advanced']))
-            {
+        elseif (isset($_POST['search'])) {
+            if (isset($_POST['advanced'])) {
                 $this->displayAdvancedSearchSubmit();
-            }
-            else
-            {
+            } else {
                 $this->displaySearchSubmit();
             }
-        }
-        elseif (isset($_GET['search']))
-        {
+        } elseif (isset($_GET['search'])) {
             $this->displayAdvancedSearchForm();
-        }
-        elseif (isset($_GET['thread']))
-        {
+        } elseif (isset($_GET['thread'])) {
             $this->displayThread();
-        }
-        else
-        {
+        } else {
             $this->displayThreads();
         }
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @param string $js Javascript to overwrite the default
-     * 
+     *
      * @return void
      */
-    function displayHeader ($options = null)
+    public function displayHeader($options = null)
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -144,40 +122,39 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-        );
+        ];
 
         displayPageHeader($params, $options);
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'    => URL_PREFIX,
             'version' => getCurrentVersion(),
-            'year'    => date('Y')
-        );
+            'year'    => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
     /**
-     * displayThreads 
-     * 
+     * displayThreads.
+     *
      * @return void
      */
-    function displayThreads ()
+    public function displayThreads()
     {
         $page = getPage();
 
         $this->displayHeader();
 
-        if (isset($_SESSION['success']))
-        {
+        if (isset($_SESSION['success'])) {
             displayOkMessage();
 
             unset($_SESSION['success']);
@@ -190,28 +167,27 @@ class Page
     }
 
     /**
-     * displayThread 
-     * 
+     * displayThread.
+     *
      * Displays the posts for a specific thread.
-     * 
+     *
      * @return void
      */
-    function displayThread ()
+    public function displayThread()
     {
         $this->displayHeader(
-            array(
+            [
                 'jsOnload' => '
     $(\'.delpost input[type="submit"]\').click(function(e) {
         return confirmDeleteLink(this, "'.T_('Are you sure you want to DELETE this?').'", e);
-    });'
-            )
+    });',
+            ]
         );
 
-        $threadId = (int)$_GET['thread'];
-        $page     = getPage();
+        $threadId = (int) $_GET['thread'];
+        $page = getPage();
 
-        if (isset($_SESSION['success']))
-        {
+        if (isset($_SESSION['success'])) {
             displayOkMessage();
 
             unset($_SESSION['success']);
@@ -223,35 +199,33 @@ class Page
     }
 
     /**
-     * displayNewThreadSubmit 
-     * 
+     * displayNewThreadSubmit.
+     *
      * @return void
      */
-    function displayNewThreadSubmit ()
+    public function displayNewThreadSubmit()
     {
-        $post       = $_POST['post'];
-        $subject    = $_POST['subject'];
+        $post = $_POST['post'];
+        $subject = $_POST['subject'];
 
-        if (isset($_POST['sticky']))
-        {
-            $subject = "#ANOUNCE#".$subject;
+        if (isset($_POST['sticky'])) {
+            $subject = '#ANOUNCE#'.$subject;
         }
 
         // Create new thread
-        $sql = "INSERT INTO `fcms_board_threads` 
+        $sql = 'INSERT INTO `fcms_board_threads` 
                     (`subject`, `started_by`, `updated`, `updated_by`) 
                 VALUES
-                    (?, ?, NOW(), ?)";
+                    (?, ?, NOW(), ?)';
 
-        $params = array(
+        $params = [
             $subject,
             $this->fcmsUser->id,
-            $this->fcmsUser->id
-        );
+            $this->fcmsUser->id,
+        ];
 
         $newThreadId = $this->fcmsDatabase->insert($sql, $params);
-        if ($newThreadId === false)
-        {
+        if ($newThreadId === false) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -260,19 +234,18 @@ class Page
         }
 
         // Create new post
-        $sql = "INSERT INTO `fcms_board_posts`
+        $sql = 'INSERT INTO `fcms_board_posts`
                     (`date`, `thread`, `user`, `post`) 
                 VALUES 
-                    (NOW(), ?, ?, ?)";
+                    (NOW(), ?, ?, ?)';
 
-        $params = array(
+        $params = [
             $newThreadId,
             $this->fcmsUser->id,
-            $post
-        );
+            $post,
+        ];
 
-        if (!$this->fcmsDatabase->insert($sql, $params))
-        {
+        if (!$this->fcmsDatabase->insert($sql, $params)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -287,8 +260,7 @@ class Page
                 AND u.`id` = s.`user`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -296,18 +268,16 @@ class Page
             return;
         }
 
-        if (count($rows) > 0)
-        {
-            foreach ($rows as $r)
-            {
+        if (count($rows) > 0) {
+            foreach ($rows as $r) {
                 $name = getUserDisplayName($this->fcmsUser->id);
-                $to   = getUserDisplayName($r['user']);
+                $to = getUserDisplayName($r['user']);
 
                 // Email is sent as plain text
-                $emailHeaders  = getEmailHeaders();
-                $emailSubject  = sprintf(T_('%s started the new thread %s.'), $name, $subject);
-                $email         = $r['email'];
-                $url           = getDomainAndDir();
+                $emailHeaders = getEmailHeaders();
+                $emailSubject = sprintf(T_('%s started the new thread %s.'), $name, $subject);
+                $email = $r['email'];
+                $url = getDomainAndDir();
 
                 $msg = T_('Dear').' '.$to.',
 
@@ -331,23 +301,22 @@ class Page
     }
 
     /**
-     * displayNewPostSubmit 
-     * 
+     * displayNewPostSubmit.
+     *
      * @return void
      */
-    function displayNewPostSubmit ()
+    public function displayNewPostSubmit()
     {
-        $post     = $_POST['post'];
-        $threadId = (int)$_POST['thread_id'];
+        $post = $_POST['post'];
+        $threadId = (int) $_POST['thread_id'];
 
         // Update Thread info
-        $sql = "UPDATE `fcms_board_threads` 
+        $sql = 'UPDATE `fcms_board_threads` 
                 SET `updated` = NOW(), 
                     `updated_by` = ?
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        if (!$this->fcmsDatabase->update($sql, array($this->fcmsUser->id, $threadId)))
-        {
+        if (!$this->fcmsDatabase->update($sql, [$this->fcmsUser->id, $threadId])) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -356,19 +325,18 @@ class Page
         }
 
         // Insert new Post
-        $sql = "INSERT INTO `fcms_board_posts`
+        $sql = 'INSERT INTO `fcms_board_posts`
                     (`date`, `thread`, `user`, `post`)
                 VALUES
-                    (NOW(), ?, ?, ?)";
+                    (NOW(), ?, ?, ?)';
 
-        $params = array(
-            $threadId, 
-            $this->fcmsUser->id, 
-            $post
-        );
+        $params = [
+            $threadId,
+            $this->fcmsUser->id,
+            $post,
+        ];
 
-        if (!$this->fcmsDatabase->insert($sql, $params))
-        {
+        if (!$this->fcmsDatabase->insert($sql, $params)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -384,17 +352,15 @@ class Page
 
         $rows = $this->fcmsDatabase->getRows($sql);
 
-        if (count($rows) > 0)
-        {
+        if (count($rows) > 0) {
             $name = getUserDisplayName($this->fcmsUser->id);
 
-            $sql = "SELECT `subject` 
+            $sql = 'SELECT `subject` 
                     FROM `fcms_board_threads` 
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
 
             $threadInfo = $this->fcmsDatabase->getRow($sql, $threadId);
-            if ($threadInfo === false)
-            {
+            if ($threadInfo === false) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -404,20 +370,18 @@ class Page
 
             $threadSubject = $threadInfo['subject'];
 
-            $pos = strpos($threadSubject, '#ANOUNCE#'); 
-            if ($pos !== false)
-            {
-                $threadSubject = substr($threadSubject, 9, strlen($threadSubject)-9);
-            } 
+            $pos = strpos($threadSubject, '#ANOUNCE#');
+            if ($pos !== false) {
+                $threadSubject = substr($threadSubject, 9, strlen($threadSubject) - 9);
+            }
 
-            $emailHeaders  = getEmailHeaders();
-            $subject       = sprintf(T_('%s has replied to the thread: %s'), $name, $threadSubject);
-            $url           = getDomainAndDir();
+            $emailHeaders = getEmailHeaders();
+            $subject = sprintf(T_('%s has replied to the thread: %s'), $name, $threadSubject);
+            $url = getDomainAndDir();
 
-            foreach ($rows as $r)
-            {
-                $email  = $r['email'];
-                $to     = getUserDisplayName($r['user']);
+            foreach ($rows as $r) {
+                $email = $r['email'];
+                $to = getUserDisplayName($r['user']);
 
                 $msg = T_('Dear').' '.$to.',
 
@@ -439,40 +403,34 @@ class Page
     }
 
     /**
-     * displayNewPostForm 
-     * 
+     * displayNewPostForm.
+     *
      * Used to create new posts.  Used when creating a new thread also.
-     * 
+     *
      * @return void
      */
-    function displayNewPostForm ()
+    public function displayNewPostForm()
     {
         $this->displayHeader();
 
-        if ($this->fcmsUser->access >= 8 && $this->fcmsUser->access == 5)
-        {
+        if ($this->fcmsUser->access >= 8 && $this->fcmsUser->access == 5) {
             echo '
             <p class="error-alert">'.T_('You do not have access to view this page.').'</p>';
             $this->displayFooter();
+
             return;
         }
 
-        if ($_GET['reply'] == 'new')
-        {
+        if ($_GET['reply'] == 'new') {
             $this->fcmsMessageBoard->displayForm('new');
-        }
-        else
-        {
-            $reply = (int)$_GET['reply'];
+        } else {
+            $reply = (int) $_GET['reply'];
 
-            if (isset($_POST['quotepost']))
-            {
-                $id = (int)$_POST['id'];
+            if (isset($_POST['quotepost'])) {
+                $id = (int) $_POST['id'];
 
                 $this->fcmsMessageBoard->displayForm('reply', $reply, $id);
-            }
-            else
-            {
+            } else {
                 $this->fcmsMessageBoard->displayForm('reply', $reply);
             }
         }
@@ -481,26 +439,25 @@ class Page
     }
 
     /**
-     * displayEditPostForm 
-     * 
+     * displayEditPostForm.
+     *
      * Displays the form for editing a post.
-     * 
+     *
      * @return void
      */
-    function displayEditPostForm ()
+    public function displayEditPostForm()
     {
         $this->displayHeader();
 
-        $id = (int)$_POST['id'];
+        $id = (int) $_POST['id'];
 
-        $sql = "SELECT `post`, `thread`
+        $sql = 'SELECT `post`, `thread`
                 FROM `fcms_board_posts` 
                 WHERE `id` = ?
-                LIMIT 1";
+                LIMIT 1';
 
         $row = $this->fcmsDatabase->getRow($sql, $id);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
 
@@ -513,38 +470,34 @@ class Page
     }
 
     /**
-     * displayEditPostSubmit 
-     * 
+     * displayEditPostSubmit.
+     *
      * TODO - see below
-     * 
+     *
      * @return void
      */
-    function displayEditPostSubmit ()
+    public function displayEditPostSubmit()
     {
-        $id       = (int)$_POST['id'];
-        $threadId = (int)$_POST['thread_id'];
-        $post     = $_POST['post'];
+        $id = (int) $_POST['id'];
+        $threadId = (int) $_POST['thread_id'];
+        $post = $_POST['post'];
 
         // TODO
         // Need to find a better way to add the edited by text
         // this method could mess up if the site changes languages at some point
         $pos = strpos($post, "\n\n[size=small][i]".T_('Edited'));
-        if ($pos === false)
-        {
-            $post = $post."\n\n[size=small][i]".T_('Edited')." ".fixDate('n/d/Y g:ia', $this->fcmsUser->tzOffset)."[/i][/size]";
-        }
-        else
-        {
+        if ($pos === false) {
+            $post = $post."\n\n[size=small][i]".T_('Edited').' '.fixDate('n/d/Y g:ia', $this->fcmsUser->tzOffset).'[/i][/size]';
+        } else {
             $post = substr($post, 0, $pos);
-            $post = $post."[size=small][i]".T_('Edited')." ".fixDate('n/d/Y g:ia', $this->fcmsUser->tzOffset)."[/i][/size]";
+            $post = $post.'[size=small][i]'.T_('Edited').' '.fixDate('n/d/Y g:ia', $this->fcmsUser->tzOffset).'[/i][/size]';
         }
 
         // Update Post
-        $sql = "UPDATE `fcms_board_posts` 
+        $sql = 'UPDATE `fcms_board_posts` 
                 SET `post` = ?
-                WHERE `id` = ?";
-        if (!$this->fcmsDatabase->update($sql, array($post, $id)))
-        {
+                WHERE `id` = ?';
+        if (!$this->fcmsDatabase->update($sql, [$post, $id])) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -556,31 +509,27 @@ class Page
     }
 
     /**
-     * displayAdminEditSubjectSubmit 
-     * 
+     * displayAdminEditSubjectSubmit.
+     *
      * The submit screen for editing the subject of a thread.
-     * 
+     *
      * @return void
      */
-    function displayAdminEditSubjectSubmit ()
+    public function displayAdminEditSubjectSubmit()
     {
-        $threadId = (int)$_POST['thread'];
+        $threadId = (int) $_POST['thread'];
 
-        if (isset($_POST['sticky']))
-        {
-            $subject = "#ANOUNCE#".$_POST['subject'];
-        }
-        else
-        {
+        if (isset($_POST['sticky'])) {
+            $subject = '#ANOUNCE#'.$_POST['subject'];
+        } else {
             $subject = $_POST['subject'];
         }
 
-        $sql = "UPDATE `fcms_board_threads` 
+        $sql = 'UPDATE `fcms_board_threads` 
                 SET `subject` = ?
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        if (!$this->fcmsDatabase->update($sql, array($subject, $threadId)))
-        {
+        if (!$this->fcmsDatabase->update($sql, [$subject, $threadId])) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -592,16 +541,16 @@ class Page
     }
 
     /**
-     * displayConfirmDelete 
-     * 
+     * displayConfirmDelete.
+     *
      * The delete post confirmation screen, used when user doesn't have js turned on.
-     * 
+     *
      * @return void
      */
-    function displayConfirmDelete ()
+    public function displayConfirmDelete()
     {
-        $threadId = (int)$_POST['thread'];
-        $id       = (int)$_POST['id'];
+        $threadId = (int) $_POST['thread'];
+        $id = (int) $_POST['id'];
 
         $this->displayHeader();
 
@@ -622,25 +571,24 @@ class Page
     }
 
     /**
-     * displayDeletePostSubmit 
-     * 
+     * displayDeletePostSubmit.
+     *
      * The submit screen for deleting a post.
-     * 
+     *
      * @return void
      */
-    function displayDeletePostSubmit ()
+    public function displayDeletePostSubmit()
     {
-        $id       = (int)$_POST['id'];
-        $threadId = (int)$_POST['thread'];
+        $id = (int) $_POST['id'];
+        $threadId = (int) $_POST['thread'];
 
         // Get id of last post in the current thread
-        $sql = "SELECT MAX(`id`) AS max 
+        $sql = 'SELECT MAX(`id`) AS max 
                 FROM `fcms_board_posts` 
-                WHERE `thread` = ?";
+                WHERE `thread` = ?';
 
         $row = $this->fcmsDatabase->getRow($sql, $threadId);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -651,13 +599,12 @@ class Page
         $max = $row['max'];
 
         // Get total post count for this thread
-        $sql = "SELECT `id` 
+        $sql = 'SELECT `id` 
                 FROM `fcms_board_posts` 
-                WHERE `thread` = ?";
+                WHERE `thread` = ?';
 
         $rows = $this->fcmsDatabase->getRows($sql, $threadId);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -668,14 +615,12 @@ class Page
         $total = count($rows);
 
         // If this thread only has one post
-        if ($total == 1)
-        {
+        if ($total == 1) {
             // Delete the entire thread
-            $sql = "DELETE FROM `fcms_board_threads` 
-                    WHERE `id` = ?";
+            $sql = 'DELETE FROM `fcms_board_threads` 
+                    WHERE `id` = ?';
 
-            if (!$this->fcmsDatabase->delete($sql, $threadId))
-            {
+            if (!$this->fcmsDatabase->delete($sql, $threadId)) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -685,19 +630,17 @@ class Page
 
             $_SESSION['success'] = 1;
 
-            header("Location: messageboard.php");
+            header('Location: messageboard.php');
 
             return;
         }
         // If we are deleting the last post in the thread
-        elseif ($id == $max)
-        {
+        elseif ($id == $max) {
             // Delete post
-            $sql = "DELETE FROM `fcms_board_posts`  
-                    WHERE `id` = ?";
+            $sql = 'DELETE FROM `fcms_board_posts`  
+                    WHERE `id` = ?';
 
-            if (!$this->fcmsDatabase->delete($sql, $id))
-            {
+            if (!$this->fcmsDatabase->delete($sql, $id)) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -706,13 +649,12 @@ class Page
             }
 
             // Get new last post in the thread
-            $sql = "SELECT MAX(`id`) AS max 
+            $sql = 'SELECT MAX(`id`) AS max 
                     FROM `fcms_board_posts` 
-                    WHERE `thread` = ?";
+                    WHERE `thread` = ?';
 
             $row = $this->fcmsDatabase->getRow($sql, $threadId);
-            if ($row === false)
-            {
+            if ($row === false) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -723,13 +665,12 @@ class Page
             $newmax = $row['max'];
 
             // Get info from new last post
-            $sql = "SELECT `date`, `user` 
+            $sql = 'SELECT `date`, `user` 
                     FROM `fcms_board_posts` 
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
 
             $r = $this->fcmsDatabase->getRow($sql, $newmax);
-            if ($r === false)
-            {
+            if ($r === false) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -738,15 +679,14 @@ class Page
             }
 
             // Update the thread with last post info
-            $sql = "UPDATE `fcms_board_threads` 
+            $sql = 'UPDATE `fcms_board_threads` 
                     SET `updated` = ?,
                         `updated_by` = ?
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
 
-            $params = array($r['date'], $r['user'], $threadId);
+            $params = [$r['date'], $r['user'], $threadId];
 
-            if (!$this->fcmsDatabase->update($sql, $params))
-            {
+            if (!$this->fcmsDatabase->update($sql, $params)) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -755,13 +695,11 @@ class Page
             }
         }
         // We are deleting a post in the middle of the thread
-        else
-        {
-            $sql = "DELETE FROM `fcms_board_posts`  
-                    WHERE `id` = ?";
+        else {
+            $sql = 'DELETE FROM `fcms_board_posts`  
+                    WHERE `id` = ?';
 
-            if (!$this->fcmsDatabase->delete($sql, $id))
-            {
+            if (!$this->fcmsDatabase->delete($sql, $id)) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -776,34 +714,32 @@ class Page
     }
 
     /**
-     * displayAdministrateThreadSubmit 
-     * 
+     * displayAdministrateThreadSubmit.
+     *
      * The submit screen for administering a thread.
-     * 
+     *
      * @return void
      */
-    function displayAdministrateThreadSubmit ()
+    public function displayAdministrateThreadSubmit()
     {
-        $threadId    = (int)$_POST['thread'];
+        $threadId = (int) $_POST['thread'];
         $adminOption = $_POST['admin_option'];
 
         // Did they submit a blank form?
-        if (empty($adminOption))
-        {
+        if (empty($adminOption)) {
             header("Location: messageboard.php?thread=$threadId");
+
             return;
         }
 
         // Changing Thread type
-        if ($adminOption == 'normal' || $adminOption == 'announcement')
-        {
-            $sql = "SELECT `subject`
+        if ($adminOption == 'normal' || $adminOption == 'announcement') {
+            $sql = 'SELECT `subject`
                     FROM `fcms_board_threads`
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
 
             $row = $this->fcmsDatabase->getRow($sql, $threadId);
-            if ($row === false)
-            {
+            if ($row === false) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -811,8 +747,7 @@ class Page
                 return;
             }
 
-            if (count($row) < 1)
-            {
+            if (count($row) < 1) {
                 $this->displayHeader();
                 echo '<p class="error-alert">'.T_('Thread does not exist.').'</p>';
                 $this->displayFooter();
@@ -821,22 +756,19 @@ class Page
             }
 
             // Normal Thread
-            if ($adminOption == 'normal')
-            {
+            if ($adminOption == 'normal') {
                 $subject = $this->fcmsMessageBoard->fixSubject($row['subject']);
             }
             // Announcement
-            else
-            {
+            else {
                 $subject = '#ANOUNCE#'.$row['subject'];
             }
 
-            $sql = "UPDATE `fcms_board_threads` 
+            $sql = 'UPDATE `fcms_board_threads` 
                     SET `subject` = ? 
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
 
-            if (!$this->fcmsDatabase->update($sql, array($subject, $threadId)))
-            {
+            if (!$this->fcmsDatabase->update($sql, [$subject, $threadId])) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -847,26 +779,25 @@ class Page
             $_SESSION['success'] = 1;
 
             header("Location: messageboard.php?thread=$threadId");
+
             return;
-        } 
+        }
 
         // Edit Thread Subject
-        if ($adminOption == 'subject')
-        {
+        if ($adminOption == 'subject') {
             $this->displayHeader();
             $this->fcmsMessageBoard->displayAdminEditSubjectForm($threadId);
             $this->displayFooter();
+
             return;
         }
 
         // Delete thread
-        if ($adminOption == 'delete')
-        {
-            $sql = "DELETE FROM `fcms_board_posts` 
-                    WHERE `thread` = ?";
+        if ($adminOption == 'delete') {
+            $sql = 'DELETE FROM `fcms_board_posts` 
+                    WHERE `thread` = ?';
 
-            if (!$this->fcmsDatabase->delete($sql, $threadId))
-            {
+            if (!$this->fcmsDatabase->delete($sql, $threadId)) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -874,11 +805,10 @@ class Page
                 return;
             }
 
-            $sql = "DELETE FROM `fcms_board_threads` 
-                    WHERE `id` = ?";
+            $sql = 'DELETE FROM `fcms_board_threads` 
+                    WHERE `id` = ?';
 
-            if (!$this->fcmsDatabase->delete($sql, $threadId))
-            {
+            if (!$this->fcmsDatabase->delete($sql, $threadId)) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -889,30 +819,28 @@ class Page
             $_SESSION['success'] = 1;
         }
 
-        header("Location: messageboard.php");
+        header('Location: messageboard.php');
     }
 
     /**
-     * displaySearchSubmit 
-     * 
+     * displaySearchSubmit.
+     *
      * Display the results for the search query.
-     * 
+     *
      * @return void
      */
-    function displaySearchSubmit ()
+    public function displaySearchSubmit()
     {
         $search = trim($_POST['search']);
 
         $advanced = false;
 
         // validate start date
-        if (isset($_POST['start']))
-        {
+        if (isset($_POST['start'])) {
             $start = $_POST['start'];
             $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $start);
 
-            if ($found === false || $found < 1)
-            {
+            if ($found === false || $found < 1) {
                 $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($start));
                 $this->displayAdvancedSearchForm($error);
 
@@ -923,13 +851,11 @@ class Page
         }
 
         // validate end date
-        if (isset($_POST['end']))
-        {
-            $end   = $_POST['end'];
+        if (isset($_POST['end'])) {
+            $end = $_POST['end'];
             $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $end);
 
-            if ($found === false || $found < 1)
-            {
+            if ($found === false || $found < 1) {
                 $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($end));
                 $this->displayAdvancedSearchForm($error);
 
@@ -956,64 +882,58 @@ class Page
             </form>';
 
         // Thread subject
-        $sql = "SELECT t.`id`, t.`subject`, t.`started_by`, p.`date`, p.`post`
+        $sql = 'SELECT t.`id`, t.`subject`, t.`started_by`, p.`date`, p.`post`
                 FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t
                 WHERE p.`thread` = t.`id`
-                AND `subject` LIKE ?";
+                AND `subject` LIKE ?';
 
-        $params = array("%$search%");
+        $params = ["%$search%"];
 
-        if ($advanced)
-        {
-            $sql .= "
+        if ($advanced) {
+            $sql .= '
                 AND p.`date` >= ?
-                AND p.`date` <= ?";
+                AND p.`date` <= ?';
 
             $params[] = $start;
             $params[] = $end;
         }
 
         // Post body
-        $sql .= "
+        $sql .= '
                 GROUP BY p.`thread`
                 UNION
                 SELECT t.`id`, t.`subject`, t.`started_by`, p.`date`, p.`post`
                 FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t
                 WHERE p.`thread` = t.`id`
-                AND `post` LIKE ?";
+                AND `post` LIKE ?';
 
         $params[] = "%$search%";
 
-        if ($advanced)
-        {
-            $sql .= "
+        if ($advanced) {
+            $sql .= '
                 AND p.`date` >= ?
-                AND p.`date` <= ?";
+                AND p.`date` <= ?';
 
             $params[] = $start;
             $params[] = $end;
         }
 
         $rows = $this->fcmsDatabase->getRows($sql, $params);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
 
             return;
         }
 
-        if (count($rows) <= 0)
-        {
+        if (count($rows) <= 0) {
             echo '
             <div class="search_result">
                 <p>'.T_('Could not find anything matching your search.').'</p>
             </div>';
-        
         }
 
-        foreach ($rows as $r)
-        {
+        foreach ($rows as $r) {
             // Remove #ANNOUNCE#
             $subject = $this->fcmsMessageBoard->fixSubject($r['subject']);
             // Clean html
@@ -1041,17 +961,17 @@ class Page
     }
 
     /**
-     * displayAdvancedSearchForm 
-     * 
+     * displayAdvancedSearchForm.
+     *
      * @param string $error Any previous error for this form.
-     * 
+     *
      * @return void
      */
-    function displayAdvancedSearchForm ($error = '', $search = '', $start = null, $end = null, $footer = true)
+    public function displayAdvancedSearchForm($error = '', $search = '', $start = null, $end = null, $footer = true)
     {
         $this->displayHeader(
-            array(
-                'modules'  => array('datechooser'),
+            [
+                'modules'  => ['datechooser'],
                 'jsOnload' => '
     var dc1 = new DateChooser();
     dc1.setUpdateField({\'start\':\'Y-m-d\'});
@@ -1059,21 +979,18 @@ class Page
     var dc2 = new DateChooser();
     dc2.setUpdateField({\'end\':\'Y-m-d\'});
     dc2.setIcon(\'ui/themes/default/img/datepicker.jpg\', \'end\');',
-            )
+            ]
         );
 
-        if (empty($end))
-        {
-            $end   = fixDate('Y-m-d', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
+        if (empty($end)) {
+            $end = fixDate('Y-m-d', $this->fcmsUser->tzOffset, gmdate('Y-m-d H:i:s'));
         }
 
-        if (empty($start))
-        {
+        if (empty($start)) {
             $start = date('Y-m-d', strtotime("$end -30 day"));
         }
 
-        if ($error != '')
-        {
+        if ($error != '') {
             $error = '<div class="error-alert">'.$error.'</div>';
         }
 
@@ -1102,36 +1019,35 @@ class Page
                 </fieldset>
             </form>';
 
-        if ($footer)
-        {
+        if ($footer) {
             $this->displayFooter();
         }
     }
 
     /**
-     * displayAdvancedSearchSubmit 
-     * 
+     * displayAdvancedSearchSubmit.
+     *
      * @return void
      */
-    function displayAdvancedSearchSubmit ()
+    public function displayAdvancedSearchSubmit()
     {
-        $start  = $_POST['start'];
-        $end    = $_POST['end'];
+        $start = $_POST['start'];
+        $end = $_POST['end'];
         $search = $_POST['search'];
 
         // validate dates
         $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $start);
-        if ($found === false || $found < 1)
-        {
+        if ($found === false || $found < 1) {
             $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($start));
             $this->displayAdvancedSearchForm($error);
+
             return;
         }
         $found = preg_match('/^\d{4}-(1[012]|0?\d)-(3[01]|[012]?\d)$/', $end);
-        if ($found === false || $found < 1)
-        {
+        if ($found === false || $found < 1) {
             $error = sprintf(T_('Invalid Date [%s]'), cleanOutput($end));
             $this->displayAdvancedSearchForm($error);
+
             return;
         }
 
@@ -1152,41 +1068,35 @@ class Page
                 AND `date` >= ?
                 AND `date` <= ?";
 
-        $params = array(
+        $params = [
             "%$search%",
             "%$search%",
             "$start 00:00:00",
-            "$end 24:59:59"
-        );
+            "$end 24:59:59",
+        ];
 
         $rows = $this->fcmsDatabase->getRows($sql, $params);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
 
             return;
         }
 
-        if (count($rows) <= 0)
-        {
+        if (count($rows) <= 0) {
             echo '
             <div class="search_result">
                 <p>'.T_('Could not find anything matching your search.').'</p>
             </div>';
-        
         }
 
-        $threadsFound = array();
+        $threadsFound = [];
 
-        foreach ($rows as $r)
-        {
+        foreach ($rows as $r) {
             // if the search is found both in the subject and post
             // skip the post, so we don't show doubles
-            if ($r['type'] == 'post')
-            {
-                if (isset($threadsFound[$r['id']]))
-                {
+            if ($r['type'] == 'post') {
+                if (isset($threadsFound[$r['id']])) {
                     continue;
                 }
             }

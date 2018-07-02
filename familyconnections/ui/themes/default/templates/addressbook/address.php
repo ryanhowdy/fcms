@@ -1,6 +1,6 @@
 
             <div id="leftcolumn">
-                <?php require_once(TEMPLATES.'addressbook/menu.php'); ?>
+                <?php require_once TEMPLATES.'addressbook/menu.php'; ?>
             </div>
 
             <div id="maincolumn">

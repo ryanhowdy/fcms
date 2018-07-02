@@ -1,14 +1,15 @@
 <?php
 /**
- * Help
- * 
+ * Help.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -20,7 +21,7 @@ require 'fcms.php';
 
 init();
 
-$page  = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser);
 
 exit();
 
@@ -31,71 +32,57 @@ class Page
     private $fcmsUser;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError         = $fcmsError;
-        $this->fcmsDatabase      = $fcmsDatabase;
-        $this->fcmsUser          = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
-        if (isset($_GET['topic']))
-        {
+        if (isset($_GET['topic'])) {
             $topic = $_GET['topic'];
 
-            if ($topic == 'photo')
-            {
+            if ($topic == 'photo') {
                 $this->displayPhotoGallery();
-            }
-            elseif ($topic == 'video')
-            {
+            } elseif ($topic == 'video') {
                 $this->displayVideoGallery();
-            }
-            elseif ($topic == 'settings')
-            {
+            } elseif ($topic == 'settings') {
                 $this->displaySettings();
-            }
-            elseif ($topic == 'address')
-            {
+            } elseif ($topic == 'address') {
                 $this->displayAddressBook();
-            }
-            elseif ($topic == 'admin')
-            {
+            } elseif ($topic == 'admin') {
                 $this->displayAdministration();
-            }
-            else
-            {
+            } else {
                 $this->displayHome();
             }
-        }
-        else
-        {
+        } else {
             $this->displayHome();
         }
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -104,7 +91,7 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => getUserDisplayName($this->fcmsUser->id),
             'version'       => getCurrentVersion(),
-        );
+        ];
 
         displayPageHeader($params);
 
@@ -112,27 +99,27 @@ class Page
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'    => URL_PREFIX,
             'version' => getCurrentVersion(),
-            'year'    => date('Y')
-        );
+            'year'    => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
     /**
-     * displayHome 
-     * 
+     * displayHome.
+     *
      * @return void
      */
-    function displayHome ()
+    public function displayHome()
     {
         $this->displayHeader();
         loadTemplate('help', 'home');
@@ -140,11 +127,11 @@ class Page
     }
 
     /**
-     * displayPhotoGallery 
-     * 
+     * displayPhotoGallery.
+     *
      * @return void
      */
-    function displayPhotoGallery ()
+    public function displayPhotoGallery()
     {
         $this->displayHeader();
         loadTemplate('help', 'photo-gallery');
@@ -152,11 +139,11 @@ class Page
     }
 
     /**
-     * displayVideoGallery 
-     * 
+     * displayVideoGallery.
+     *
      * @return void
      */
-    function displayVideoGallery ()
+    public function displayVideoGallery()
     {
         $this->displayHeader();
         loadTemplate('help', 'video-gallery');
@@ -164,11 +151,11 @@ class Page
     }
 
     /**
-     * displaySettings 
-     * 
+     * displaySettings.
+     *
      * @return void
      */
-    function displaySettings ()
+    public function displaySettings()
     {
         $this->displayHeader();
         loadTemplate('help', 'settings');
@@ -176,11 +163,11 @@ class Page
     }
 
     /**
-     * displayAddressBook 
-     * 
+     * displayAddressBook.
+     *
      * @return void
      */
-    function displayAddressBook ()
+    public function displayAddressBook()
     {
         $this->displayHeader();
         loadTemplate('help', 'address-book');
@@ -188,11 +175,11 @@ class Page
     }
 
     /**
-     * displayAdministration 
-     * 
+     * displayAdministration.
+     *
      * @return void
      */
-    function displayAdministration ()
+    public function displayAdministration()
     {
         $this->displayHeader();
         loadTemplate('help', 'administration');

@@ -1,14 +1,15 @@
 <?php
 /**
- * Contact
- * 
+ * Contact.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -32,46 +33,43 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
-        if (!empty($_POST['subject']) && !empty($_POST['email']) && !empty($_POST['name']) && !empty($_POST['msg']))
-        {
+        if (!empty($_POST['subject']) && !empty($_POST['email']) && !empty($_POST['name']) && !empty($_POST['msg'])) {
             $this->displayContactFormSubmit();
-        }
-        else
-        {
+        } else {
             $this->displayContactForm();
         }
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -80,66 +78,63 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-        );
+        ];
 
         displayPageHeader($params);
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'      => URL_PREFIX,
             'version'   => getCurrentVersion(),
-            'year'      => date('Y')
-        );
+            'year'      => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
-
-    function displayContactFormSubmit ()
+    public function displayContactFormSubmit()
     {
-        $subject       = $_POST['subject'];
-        $email         = $_POST['email'];
-        $name          = $_POST['name'];
-        $msg           = $_POST['msg'];
+        $subject = $_POST['subject'];
+        $email = $_POST['email'];
+        $name = $_POST['name'];
+        $msg = $_POST['msg'];
         $email_headers = getEmailHeaders($name, $email);
 
-        if (!mail(getContactEmail(), $subject, "$msg\r\n-$name", $email_headers))
-        {
+        if (!mail(getContactEmail(), $subject, "$msg\r\n-$name", $email_headers)) {
             $this->displayHeader();
             $this->displayFooter();
         }
 
         $_SESSION['ok'] = '<p>'.cleanOutput($msg).'<br/>- '.cleanOutput($name).'</p>';
 
-        header("Location: contact.php");
+        header('Location: contact.php');
     }
 
-    function displayContactForm ()
+    public function displayContactForm()
     {
         $this->displayHeader();
 
-        $templateParams = array(
+        $templateParams = [
             'emailText'   => T_('Your Email'),
             'nameText'    => T_('Your Name'),
             'subjectText' => T_('Subject'),
             'messageText' => T_('Message'),
             'submitText'  => T_('Submit'),
-        );
+        ];
 
-        $templateParams['email']   = isset($_POST['email'])   ? cleanOutput($_POST['email'])       : '';
-        $templateParams['name']    = isset($_POST['name'])    ? cleanOutput($_POST['name'])        : '';
-        $templateParams['subject'] = isset($_POST['subject']) ? cleanOutput($_POST['subject'])     : '';
-        $templateParams['message'] = isset($_POST['msg'])     ? cleanOutput($_POST['msg'], 'html') : '';
+        $templateParams['email'] = isset($_POST['email']) ? cleanOutput($_POST['email']) : '';
+        $templateParams['name'] = isset($_POST['name']) ? cleanOutput($_POST['name']) : '';
+        $templateParams['subject'] = isset($_POST['subject']) ? cleanOutput($_POST['subject']) : '';
+        $templateParams['message'] = isset($_POST['msg']) ? cleanOutput($_POST['msg'], 'html') : '';
 
-        if (isset($_SESSION['ok']))
-        {
+        if (isset($_SESSION['ok'])) {
             $okMessage = '<p>'.T_('The following message has been sent to the Administrator:').'</p>'.$_SESSION['ok'];
 
             displayOkMessage($okMessage);

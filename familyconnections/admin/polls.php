@@ -1,14 +1,15 @@
 <?php
 /**
- * Polls
- * 
+ * Polls.
+ *
  * PHP versions 4 and 5
  *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -24,7 +25,7 @@ init('admin/');
 
 // Globals
 $fcmsAlert = new Alerts($fcmsError, $fcmsDatabase, $fcmsUser);
-$page      = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsAlert);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsAlert);
 
 exit();
 
@@ -37,90 +38,74 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsAlert)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsAlert)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
-        $this->fcmsAlert    = $fcmsAlert;
+        $this->fcmsUser = $fcmsUser;
+        $this->fcmsAlert = $fcmsAlert;
 
-        $this->fcmsTemplate = array(
+        $this->fcmsTemplate = [
             'sitename'      => getSiteName(),
             'nav-link'      => getAdminNavLinks(),
             'pagetitle'     => T_('Administration: Polls'),
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         $this->control();
     }
 
-
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
-        if ($this->fcmsUser->access > 2)
-        {
+        if ($this->fcmsUser->access > 2) {
             $this->displayInvalidAccessLevel();
+
             return;
-        }
-        elseif (isset($_GET['alert']))
-        {
+        } elseif (isset($_GET['alert'])) {
             $this->displayRemoveAlertSubmit();
-        }
-        elseif (isset($_POST['delsubmit']))
-        {
-            if (!isset($_GET['confirmed']))
-            {
+        } elseif (isset($_POST['delsubmit'])) {
+            if (!isset($_GET['confirmed'])) {
                 $this->displayConfirmDeleteForm();
-            }
-            else
-            {
+            } else {
                 $this->displayDeleteSubmit();
             }
         }
         // Edit
-        elseif (isset($_GET['editpoll']))
-        {
+        elseif (isset($_GET['editpoll'])) {
             $this->displayEditForm();
-        }
-        elseif (isset($_POST['editsubmit']))
-        {
+        } elseif (isset($_POST['editsubmit'])) {
             $this->displayEditFormSubmit();
         }
         // Add
-        elseif (isset($_GET['addpoll']))
-        {
+        elseif (isset($_GET['addpoll'])) {
             $this->displayAddForm();
-        }
-        elseif (isset($_POST['addsubmit']))
-        {
+        } elseif (isset($_POST['addsubmit'])) {
             $this->displayAddFormSubmit();
-        }
-        else
-        {
+        } else {
             $this->displayPolls();
         }
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -141,11 +126,11 @@ $(document).ready(function() {
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -156,11 +141,11 @@ $(document).ready(function() {
     }
 
     /**
-     * displayInvalidAccessLevel 
-     * 
+     * displayInvalidAccessLevel.
+     *
      * @return void
      */
-    function displayInvalidAccessLevel ()
+    public function displayInvalidAccessLevel()
     {
         $this->displayHeader();
 
@@ -175,39 +160,39 @@ $(document).ready(function() {
     }
 
     /**
-     * displayRemoveAlertSubmit 
-     * 
+     * displayRemoveAlertSubmit.
+     *
      * @return void
      */
-    function displayRemoveAlertSubmit ()
+    public function displayRemoveAlertSubmit()
     {
-        $sql = "INSERT INTO `fcms_alerts`
+        $sql = 'INSERT INTO `fcms_alerts`
                     (`alert`, `user`)
                 VALUES
-                    (?, ?)";
+                    (?, ?)';
 
-        $params = array(
+        $params = [
             $_GET['alert'],
-            $this->fcmsUser->id
-        );
+            $this->fcmsUser->id,
+        ];
 
-        if (!$this->fcmsDatabase->insert($sql, $params))
-        {
+        if (!$this->fcmsDatabase->insert($sql, $params)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        header("Location: polls.php");
+        header('Location: polls.php');
     }
 
     /**
-     * displayPolls 
-     * 
+     * displayPolls.
+     *
      * @return void
      */
-    function displayPolls ()
+    public function displayPolls()
     {
         $this->displayHeader();
 
@@ -222,10 +207,10 @@ $(document).ready(function() {
                 LIMIT $from, 10";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -241,10 +226,8 @@ $(document).ready(function() {
                 </thead>
                 <tbody>';
 
-        if (count($rows) > 0)
-        {
-            foreach ($rows as $r)
-            {
+        if (count($rows) > 0) {
+            foreach ($rows as $r) {
                 echo '
                     <tr>
                         <td>'.cleanOutput($r['question']).'</td>
@@ -259,25 +242,23 @@ $(document).ready(function() {
                     </tr>';
             }
 
-            // Remove the LIMIT from the $sql statement 
+            // Remove the LIMIT from the $sql statement
             // used above, so we can get the total count
             $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
 
             $rows = $this->fcmsDatabase->getRows($sql);
-            if ($rows === false)
-            {
+            if ($rows === false) {
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
 
-            $count       = count($rows);
-            $total_pages = ceil($count / 10); 
+            $count = count($rows);
+            $total_pages = ceil($count / 10);
 
-            displayPages("polls.php", $page, $total_pages);
-        }
-        else
-        {
+            displayPages('polls.php', $page, $total_pages);
+        } else {
             echo '<tr><td colspan="3">'.T_('No Previous Polls').'</td></tr>';
         }
 
@@ -289,31 +270,30 @@ $(document).ready(function() {
     }
 
     /**
-     * displayEditForm 
-     * 
+     * displayEditForm.
+     *
      * @return void
      */
-    function displayEditForm ()
+    public function displayEditForm()
     {
         $this->displayHeader();
 
-        $id = (int)$_GET['editpoll'];
+        $id = (int) $_GET['editpoll'];
 
-        $sql = "SELECT `question`, o.`id`, `option` 
+        $sql = 'SELECT `question`, o.`id`, `option` 
                 FROM `fcms_polls` AS p, `fcms_poll_options` AS o 
                 WHERE p.`id` = o.`poll_id` 
-                AND p.`id` = ?";
+                AND p.`id` = ?';
 
         $rows = $this->fcmsDatabase->getRows($sql, $id);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        if (isset($_SESSION['success']))
-        {
+        if (isset($_SESSION['success'])) {
             echo '
         <div class="alert-message success">
             <a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>
@@ -330,10 +310,8 @@ $(document).ready(function() {
 
         $i = 1;
 
-        foreach ($rows as $row)
-        {
-            if ($i < 2)
-            {
+        foreach ($rows as $row) {
+            if ($i < 2) {
                 echo '
                     <h3>'.cleanOutput($row['question']).'</h3>';
             }
@@ -343,16 +321,14 @@ $(document).ready(function() {
                         <label for="show'.$i.'">'.sprintf(T_('Option %s'), $i).'</label>
                         <div class="input">
                             <input type="text" name="show'.$i.'" id="show'.$i.'" ';
-            if ($i < 3)
-            {
-                echo "class=\"required\"";
+            if ($i < 3) {
+                echo 'class="required"';
             }
             echo ' size="50" value="'.cleanOutput($row['option']).'"/>
                             <input type="hidden" name="option'.$i.'" value="'.$row['id'].'"/>';
 
             // Needs to be created by js
-            if ($i >= 3)
-            {
+            if ($i >= 3) {
                 echo '
                             <input type="button" name="deleteoption" class="btn small danger" style="width:auto;" value="'.T_('Delete').'" 
                                 onclick="document.editform.show'.$i.'.value=\'\';"/>';
@@ -363,8 +339,7 @@ $(document).ready(function() {
             $i++;
         }
 
-        while ($i < 11)
-        {
+        while ($i < 11) {
             echo '
                     <div class="clearfix">
                         <label for="show'.$i.'">'.sprintf(T_('Option %s'), $i).'</label>
@@ -389,21 +364,21 @@ $(document).ready(function() {
     }
 
     /**
-     * displayEditFormSubmit 
-     * 
+     * displayEditFormSubmit.
+     *
      * @return void
      */
-    function displayEditFormSubmit ()
+    public function displayEditFormSubmit()
     {
-        $sql = "SELECT MAX(id) AS c 
-                FROM `fcms_polls`";
+        $sql = 'SELECT MAX(id) AS c 
+                FROM `fcms_polls`';
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -411,57 +386,50 @@ $(document).ready(function() {
 
         $i = 1;
 
-        while ($i <= 10)
-        {
-            if ($_POST['show'.$i])
-            {
-                if ($_POST['option'.$i] == 'new')
-                {
-                    $sql = "INSERT INTO `fcms_poll_options`
+        while ($i <= 10) {
+            if ($_POST['show'.$i]) {
+                if ($_POST['option'.$i] == 'new') {
+                    $sql = 'INSERT INTO `fcms_poll_options`
                                 (`poll_id`, `option`, `votes`) 
                             VALUES
-                                (?, ?, 0)";
+                                (?, ?, 0)';
 
-                    $params = array($latestId, $_POST['show'.$i]);
+                    $params = [$latestId, $_POST['show'.$i]];
 
-                    if (!$this->fcmsDatabase->insert($sql, $params))
-                    {
+                    if (!$this->fcmsDatabase->insert($sql, $params)) {
                         $this->displayHeader();
                         $this->fcmsError->displayError();
                         $this->displayFooter();
+
                         return;
                     }
-                }
-                else
-                {
-                    $sql = "UPDATE `fcms_poll_options` 
+                } else {
+                    $sql = 'UPDATE `fcms_poll_options` 
                             SET `option` = ?
-                            WHERE `id` = ?";
+                            WHERE `id` = ?';
 
-                    $params = array(
+                    $params = [
                         $_POST['show'.$i],
-                        $_POST['option'.$i]
-                    );
+                        $_POST['option'.$i],
+                    ];
 
-                    if (!$this->fcmsDatabase->update($sql, $params))
-                    {
+                    if (!$this->fcmsDatabase->update($sql, $params)) {
                         $this->displayHeader();
                         $this->fcmsError->displayError();
                         $this->displayFooter();
+
                         return;
                     }
                 }
-            }
-            elseif ($_POST['option'.$i] != 'new')
-            {
-                $sql = "DELETE FROM `fcms_poll_options` 
-                        WHERE `id` = ?";
+            } elseif ($_POST['option'.$i] != 'new') {
+                $sql = 'DELETE FROM `fcms_poll_options` 
+                        WHERE `id` = ?';
 
-                if (!$this->fcmsDatabase->delete($sql, $_POST['option'.$i]))
-                {
+                if (!$this->fcmsDatabase->delete($sql, $_POST['option'.$i])) {
                     $this->displayHeader();
                     $this->fcmsError->displayError();
                     $this->displayFooter();
+
                     return;
                 }
             }
@@ -471,20 +439,19 @@ $(document).ready(function() {
 
         $_SESSION['success'] = 1;
 
-        header("Location: polls.php");
+        header('Location: polls.php');
     }
 
     /**
-     * displayAddForm 
-     * 
+     * displayAddForm.
+     *
      * @return void
      */
-    function displayAddForm ()
+    public function displayAddForm()
     {
         $this->displayHeader();
 
-        if (isset($_SESSION['success']))
-        {
+        if (isset($_SESSION['success'])) {
             echo '
         <div class="alert-message success">
             <a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>
@@ -566,48 +533,46 @@ $(document).ready(function() {
     }
 
     /**
-     * displayAddFormSubmit 
-     * 
+     * displayAddFormSubmit.
+     *
      * @return void
      */
-    function displayAddFormSubmit ()
+    public function displayAddFormSubmit()
     {
         $question = strip_tags($_POST['question']);
 
-        $sql = "INSERT INTO `fcms_polls`
+        $sql = 'INSERT INTO `fcms_polls`
                     (`question`, `started`) 
                 VALUES
-                    (?, NOW())";
+                    (?, NOW())';
 
         $pollId = $this->fcmsDatabase->insert($sql, $question);
-        if ($pollId === false)
-        {
+        if ($pollId === false) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $i = 1;
 
-        while ($i <= 10)
-        {
-            if ($_POST['option'.$i])
-            {
+        while ($i <= 10) {
+            if ($_POST['option'.$i]) {
                 $option = strip_tags($_POST['option'.$i]);
 
-                $sql = "INSERT INTO `fcms_poll_options`
+                $sql = 'INSERT INTO `fcms_poll_options`
                             (`poll_id`, `option`, `votes`) 
                         VALUES
-                            (?, ?, 0)";
+                            (?, ?, 0)';
 
-                $params = array($pollId, $option);
+                $params = [$pollId, $option];
 
-                if (!$this->fcmsDatabase->insert($sql, $params))
-                {
+                if (!$this->fcmsDatabase->insert($sql, $params)) {
                     $this->displayHeader();
                     $this->fcmsError->displayError();
                     $this->displayFooter();
+
                     return;
                 }
             }
@@ -617,15 +582,15 @@ $(document).ready(function() {
 
         $_SESSION['success'] = 1;
 
-        header("Location: polls.php");
+        header('Location: polls.php');
     }
 
     /**
-     * displayConfirmDeleteForm 
-     * 
+     * displayConfirmDeleteForm.
+     *
      * @return void
      */
-    function displayConfirmDeleteForm ()
+    public function displayConfirmDeleteForm()
     {
         $this->displayHeader();
 
@@ -635,7 +600,7 @@ $(document).ready(function() {
                         <h2>'.T_('Are you sure you want to DELETE this?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div class="alert-actions">
-                            <input type="hidden" name="pollid" value="'.(int)$_POST['pollid'].'"/>
+                            <input type="hidden" name="pollid" value="'.(int) $_POST['pollid'].'"/>
                             <input class="btn danger" type="submit" id="delsubmit" name="delsubmit" value="'.T_('Yes, Delete').'"/>
                             <a class="btn secondary" href="polls.php">'.T_('No, Cancel').'</a>
                         </div>
@@ -646,36 +611,36 @@ $(document).ready(function() {
     }
 
     /**
-     * displayDeleteSubmit 
-     * 
+     * displayDeleteSubmit.
+     *
      * @return void
      */
-    function displayDeleteSubmit ()
+    public function displayDeleteSubmit()
     {
-        $id = (int)$_POST['pollid'];
+        $id = (int) $_POST['pollid'];
 
-        $sql = "DELETE FROM fcms_poll_options 
-                WHERE id = ?";
+        $sql = 'DELETE FROM fcms_poll_options 
+                WHERE id = ?';
 
-        if (!$this->fcmsDatabase->delete($sql, $id))
-        {
+        if (!$this->fcmsDatabase->delete($sql, $id)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        $sql = "DELETE FROM `fcms_polls` 
-                WHERE `id` = ?";
+        $sql = 'DELETE FROM `fcms_polls` 
+                WHERE `id` = ?';
 
-        if (!$this->fcmsDatabase->delete($sql, $id))
-        {
+        if (!$this->fcmsDatabase->delete($sql, $id)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        header("Location: polls.php");
+        header('Location: polls.php');
     }
 }
