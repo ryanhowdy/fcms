@@ -1,48 +1,46 @@
 <?php
 /**
- * Settings 
- * 
- * @package     Family Connections
+ * Settings.
+ *
  * @copyright   Copyright (c) 2010 Haudenschilt LLC
- * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
 class Settings
 {
-    var $fcmsError;
-    var $fcmsDatabase;
-    var $fcmsUser;
+    public $fcmsError;
+    public $fcmsDatabase;
+    public $fcmsUser;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
      * @param Database   $fcmsDatabase
-     * @param User       $fcmsUser 
+     * @param User       $fcmsUser
      *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError       = $fcmsError;
-        $this->fcmsDatabase    = $fcmsDatabase;
-        $this->fcmsUser        = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
     }
 
     /**
-     * displayAccountInformation 
-     * 
+     * displayAccountInformation.
+     *
      * @return void
      */
-    function displayAccountInformation ()
+    public function displayAccountInformation()
     {
-        $sql = "SELECT `username`, `email`, `phpass`
+        $sql = 'SELECT `username`, `email`, `phpass`
                 FROM `fcms_users`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->displayError();
 
             return;
@@ -84,43 +82,38 @@ class Settings
     }
 
     /**
-     * displayTheme 
-     * 
+     * displayTheme.
+     *
      * @return void
      */
-    function displayTheme ()
+    public function displayTheme()
     {
-        $sql = "SELECT `theme`
+        $sql = 'SELECT `theme`
                 FROM `fcms_user_settings`
-                WHERE `user` = ?";
+                WHERE `user` = ?';
 
         $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->displayError();
 
             return;
         }
 
         // Theme
-        $themes    = array();
+        $themes = [];
         $themeList = getThemeList();
 
-        foreach($themeList as $file)
-        {
-            $themeData      = $this->getThemeData($file);
-            $themes[$file]  = $themeData;
+        foreach ($themeList as $file) {
+            $themeData = $this->getThemeData($file);
+            $themes[$file] = $themeData;
         }
 
         $currentTheme = $themes[$row['theme']];
 
         // current theme screenshot
-        if (file_exists('ui/themes/'.$currentTheme['file'].'/screenshot.png'))
-        {
+        if (file_exists('ui/themes/'.$currentTheme['file'].'/screenshot.png')) {
             $img = '<img src="ui/themes/'.$currentTheme['file'].'/screenshot.png"/>';
-        }
-        else
-        {
+        } else {
             $img = '<span>'.T_('No Preview').'</span>';
         }
 
@@ -139,33 +132,26 @@ class Settings
                 <h3>'.T_('Themes').'</h3>';
 
         $canDelete = false;
-        if ($this->fcmsUser->access == 1)
-        {
+        if ($this->fcmsUser->access == 1) {
             $canDelete = true;
         }
 
-        foreach ($themes as $theme)
-        {
+        foreach ($themes as $theme) {
             // skip current theme
-            if ($theme['file'] == $row['theme'])
-            {
+            if ($theme['file'] == $row['theme']) {
                 continue;
             }
 
             // screenshot
-            if (file_exists('ui/themes/'.$theme['file'].'/screenshot.png'))
-            {
+            if (file_exists('ui/themes/'.$theme['file'].'/screenshot.png')) {
                 $img = '<img src="ui/themes/'.$theme['file'].'/screenshot.png"/>';
-            }
-            else
-            {
+            } else {
                 $img = '<span>'.T_('No Preview').'</span>';
             }
 
             // only admin can delete themes
             $del = '';
-            if ($canDelete)
-            {
+            if ($canDelete) {
                 $del = ' | <a class="del_theme"href="?view=theme&amp;delete='.$theme['file'].'">'.T_('Delete').'</a>';
             }
 
@@ -182,57 +168,52 @@ class Settings
     }
 
     /**
-     * displaySettings 
-     * 
+     * displaySettings.
+     *
      * @return void
      */
-    function displaySettings ()
+    public function displaySettings()
     {
         $sql = "SELECT `displayname`, `language`,
                     `dst`, `timezone`, `boardsort`, `frontpage`
                 FROM `fcms_user_settings`
-                WHERE `user` = '" . $this->fcmsUser->id . "'";
+                WHERE `user` = '".$this->fcmsUser->id."'";
 
         $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->displayError();
 
             return;
         }
 
         // Display Name
-        $displayname_list = array(
-            "1" => T_('First Name'),
-            "2" => T_('First and Last Name'),
-            "3" => T_('Username')
-        );
+        $displayname_list = [
+            '1' => T_('First Name'),
+            '2' => T_('First and Last Name'),
+            '3' => T_('Username'),
+        ];
         $displayname_options = buildHtmlSelectOptions($displayname_list, $row['displayname']);
 
         // Language
-        $lang_dir     = "language/";
+        $lang_dir = 'language/';
         $lang_options = '';
 
-        if (is_dir($lang_dir))
-        {
-            if ($dh = opendir($lang_dir))
-            {
-                $arr = array();
-                while (($file = readdir($dh)) !== false)
-                {
+        if (is_dir($lang_dir)) {
+            if ($dh = opendir($lang_dir)) {
+                $arr = [];
+                while (($file = readdir($dh)) !== false) {
                     // Skip directories that start with a period
                     if ($file[0] === '.') {
                         continue;
                     }
 
                     // Skip files (messages.pot)
-                    if (!is_dir("$lang_dir$file"))
-                    {
+                    if (!is_dir("$lang_dir$file")) {
                         continue;
                     }
 
                     // Skip directories that don't include a messages.mo file
-                    if (!file_exists($lang_dir . $file . '/LC_MESSAGES/messages.mo')) {
+                    if (!file_exists($lang_dir.$file.'/LC_MESSAGES/messages.mo')) {
                         continue;
                     }
 
@@ -240,8 +221,7 @@ class Settings
                 }
                 closedir($dh);
                 asort($arr);
-                foreach($arr as $key => $val)
-                {
+                foreach ($arr as $key => $val) {
                     $sel = $row['language'] == $key ? 'selected="selected"' : '';
                     $lang_options .= '<option value="'.$key.'" '.$sel.'>'.$val.'</option>';
                 }
@@ -249,22 +229,22 @@ class Settings
         }
 
         // Timezone
-        $tz_list    = getTimezoneList();
+        $tz_list = getTimezoneList();
         $tz_options = buildHtmlSelectOptions($tz_list, $row['timezone']);
 
         // DST
         $yc = $row['dst'] == 1 ? 'checked="checked"' : '';
         $nc = $row['dst'] == 0 ? 'checked="checked"' : '';
-        $dst_options  = '<input type="radio" name="dst" id="dst_on" value="on" '.$yc.'>';
+        $dst_options = '<input type="radio" name="dst" id="dst_on" value="on" '.$yc.'>';
         $dst_options .= '<label class="radio_label" for="dst_on">'.T_('On').'</label>&nbsp;&nbsp; ';
         $dst_options .= '<input type="radio" name="dst" id="dst_off" value="off" '.$nc.'>';
         $dst_options .= '<label class="radio_label" for="dst_off">'.T_('Off').'</label>';
 
         // Front Page
-        $frontpage_list = array(
-            "1" => T_('All (by date)'),
-            "2" => T_('Last 5 (by plugin)')
-        );
+        $frontpage_list = [
+            '1' => T_('All (by date)'),
+            '2' => T_('Last 5 (by plugin)'),
+        ];
         $frontpage_options = buildHtmlSelectOptions($frontpage_list, $row['frontpage']);
 
         echo '
@@ -320,19 +300,18 @@ class Settings
     }
 
     /**
-     * displayNotifications 
-     * 
+     * displayNotifications.
+     *
      * @return void
      */
-    function displayNotifications ()
+    public function displayNotifications()
     {
         $sql = "SELECT `email_updates` 
                 FROM `fcms_user_settings`
-                WHERE `user` = '" . $this->fcmsUser->id . "'";
+                WHERE `user` = '".$this->fcmsUser->id."'";
 
         $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->displayError();
 
             return;
@@ -340,14 +319,18 @@ class Settings
 
         // Email Options
         $email_updates_options = '<input type="radio" name="email_updates" id="email_updates_yes" '
-            . 'value="yes"';
-        if ($row['email_updates'] == 1) { $email_updates_options .= ' checked="checked"'; }
+            .'value="yes"';
+        if ($row['email_updates'] == 1) {
+            $email_updates_options .= ' checked="checked"';
+        }
         $email_updates_options .= '><label class="radio_label" for="email_updates_yes">'
-            . T_('Yes') . '</label>&nbsp;&nbsp; <input type="radio" name="email_updates" '
-            . 'id="email_updates_no" value="no"';
-        if ($row['email_updates'] == 0) { $email_updates_options .= ' checked="checked"'; }
+            .T_('Yes').'</label>&nbsp;&nbsp; <input type="radio" name="email_updates" '
+            .'id="email_updates_no" value="no"';
+        if ($row['email_updates'] == 0) {
+            $email_updates_options .= ' checked="checked"';
+        }
         $email_updates_options .= '><label class="radio_label" for="email_updates_no">'
-            . T_('No') . '</label>';
+            .T_('No').'</label>';
 
         echo '
                 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
@@ -366,37 +349,32 @@ class Settings
     }
 
     /**
-     * displayPhotoGallerySettings 
-     * 
+     * displayPhotoGallerySettings.
+     *
      * @return void
      */
-    function displayPhotoGallerySettings ()
+    public function displayPhotoGallerySettings()
     {
-        $sql = "SELECT `uploader`, `advanced_tagging`
+        $sql = 'SELECT `uploader`, `advanced_tagging`
                 FROM `fcms_user_settings`
-                WHERE `user` = ?";
+                WHERE `user` = ?';
 
         $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->displayError();
+
             return;
         }
 
         // Advanced Upload
         $plupload = '';
-        $java     = '';
-        $basic    = '';
-        if ($row['uploader'] == 'plupload')
-        {
+        $java = '';
+        $basic = '';
+        if ($row['uploader'] == 'plupload') {
             $plupload = 'checked="checked"';
-        }
-        else if ($row['uploader'] == 'java')
-        {
+        } elseif ($row['uploader'] == 'java') {
             $java = 'checked="checked"';
-        }
-        else
-        {
+        } else {
             $basic = 'checked="checked"';
         }
 
@@ -404,7 +382,7 @@ class Settings
         $yc = $row['advanced_tagging'] == 1 ? 'checked="checked"' : '';
         $nc = $row['advanced_tagging'] == 0 ? 'checked="checked"' : '';
 
-        $advanced_tagging_options  = '<input type="radio" name="advanced_tagging" id="advanced_tagging_yes" value="yes" '.$yc.'>';
+        $advanced_tagging_options = '<input type="radio" name="advanced_tagging" id="advanced_tagging_yes" value="yes" '.$yc.'>';
         $advanced_tagging_options .= '<label class="radio_label" for="advanced_tagging_yes">'.T_('Yes').'</label>&nbsp;&nbsp; ';
         $advanced_tagging_options .= '<input type="radio" name="advanced_tagging" id="advanced_tagging_no" value="no" '.$nc.'>';
         $advanced_tagging_options .= '<label class="radio_label" for="advanced_tagging_no">'.T_('No').'</label>';
@@ -451,35 +429,34 @@ class Settings
     }
 
     /**
-     * displayFamilyNews 
-     * 
+     * displayFamilyNews.
+     *
      * @return void
      */
-    function displayFamilyNews ()
+    public function displayFamilyNews()
     {
         $sql = "SELECT `blogger`, `tumblr`, `wordpress`, `posterous`
                 FROM `fcms_user_settings`
-                WHERE `user` = '" . $this->fcmsUser->id . "'";
+                WHERE `user` = '".$this->fcmsUser->id."'";
 
         $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->displayError();
 
             return;
         }
 
-        $bloggerManualImport    = empty($row['blogger']) 
-                                ? '' 
+        $bloggerManualImport = empty($row['blogger'])
+                                ? ''
                                 : '<p><a class="blogger" href="?view=familynews&amp;import=blogger">'.T_('Manually Import Posts').'</a></p>';
-        $tumblrManualImport     = empty($row['tumblr'])
-                                ? '' 
+        $tumblrManualImport = empty($row['tumblr'])
+                                ? ''
                                 : '<p><a class="tumblr" href="?view=familynews&amp;import=tumblr">'.T_('Manually Import Posts').'</a></p>';
-        $wordpressManualImport  = empty($row['wordpress'])
-                                ? '' 
+        $wordpressManualImport = empty($row['wordpress'])
+                                ? ''
                                 : '<p><a class="wordpress" href="?view=familynews&amp;import=wordpress">'.T_('Manually Import Posts').'</a></p>';
-        $posterousManualImport  = empty($row['posterous'])
-                                ? '' 
+        $posterousManualImport = empty($row['posterous'])
+                                ? ''
                                 : '<p><a class="posterous" href="?view=familynews&amp;import=posterous">'.T_('Manually Import Posts').'</a></p>';
 
         echo '
@@ -535,29 +512,28 @@ class Settings
     }
 
     /**
-     * displayMessageBoard 
-     * 
+     * displayMessageBoard.
+     *
      * @return void
      */
-    function displayMessageBoard ()
+    public function displayMessageBoard()
     {
         $sql = "SELECT `boardsort`
                 FROM `fcms_user_settings`
                 WHERE `user` = '".$this->fcmsUser->id."'";
 
         $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->displayError();
 
             return;
         }
 
         // Messageboard Sort
-        $boardsort_list = array(
-            "ASC"  => T_('New Messages at Bottom'),
-            "DESC" => T_('New Messages at Top')
-        );
+        $boardsort_list = [
+            'ASC'  => T_('New Messages at Bottom'),
+            'DESC' => T_('New Messages at Top'),
+        ];
         $boardsort_options = buildHtmlSelectOptions($boardsort_list, $row['boardsort']);
 
         echo '
@@ -579,49 +555,48 @@ class Settings
     }
 
     /**
-     * displayWhereIsEveryone
-     * 
+     * displayWhereIsEveryone.
+     *
      * Displays the form for linking your foursquare account.
-     * 
+     *
      * @return void
      */
-    function displayWhereIsEveryone ()
+    public function displayWhereIsEveryone()
     {
         $sql = "SELECT `fs_user_id`, `fs_access_token`
                 FROM `fcms_user_settings`
-                WHERE `user` = '" . $this->fcmsUser->id . "'";
-        if (!$this->db->query($sql))
-        {
+                WHERE `user` = '".$this->fcmsUser->id."'";
+        if (!$this->db->query($sql)) {
             $this->fcmsError->displayError();
+
             return;
         }
 
         $row = $this->db->get_row();
 
         $link = '';
-        if (!empty($row['fs_user_id']))
-        {
-            $sql = "SELECT `fs_client_id`, `fs_client_secret`, `fs_callback_url`
+        if (!empty($row['fs_user_id'])) {
+            $sql = 'SELECT `fs_client_id`, `fs_client_secret`, `fs_callback_url`
                     FROM `fcms_config`
-                    LIMIT 1";
+                    LIMIT 1';
 
             $r = $this->fcmsDatabase->getRow($sql);
-            if ($r === false)
-            {
+            if ($r === false) {
                 $this->fcmsError->displayError();
+
                 return;
             }
 
-            if (empty($r))
-            {
+            if (empty($r)) {
                 echo '
                     <p class="error-alert">'.T_('No configuration data found.').'</p>';
+
                 return;
             }
 
-            $id     = cleanOutput($r['fs_client_id']);
+            $id = cleanOutput($r['fs_client_id']);
             $secret = cleanOutput($r['fs_client_secret']);
-            $url    = cleanOutput($r['fs_callback_url']);
+            $url = cleanOutput($r['fs_callback_url']);
 
             $url = 'https://foursquare.com/oauth2/authenticate?client_id='.$id.'&response_type=code&redirect_uri='.$url;
             $link = '<p><a class="foursquare" href="'.$url.'">'.T_('Click here to link your account to foursquare.').'</a></p>';
@@ -644,14 +619,15 @@ class Settings
     }
 
     /**
-     * getAccessLevelDescription 
-     * 
-     * @param   int     $access 
-     * @return  string
+     * getAccessLevelDescription.
+     *
+     * @param int $access
+     *
+     * @return string
      */
-    function getAccessLevelDescription ($access)
+    public function getAccessLevelDescription($access)
     {
-        $access = (int)$access;
+        $access = (int) $access;
 
         switch ($access) {
             case 1:
@@ -699,39 +675,40 @@ class Settings
                     .T_('You can add/change/delete only your own information.');
                 break;
         }
+
         return $ret;
     }
 
     /**
-     * getThemeData 
-     * 
-     * @param string  $file 
-     * 
+     * getThemeData.
+     *
+     * @param string $file
+     *
      * @return void
      */
-    function getThemeData ($file)
+    public function getThemeData($file)
     {
         $file = basename($file);
 
-        $data = array(
+        $data = [
             'file'      => $file,
             'name'      => '',
             'desc'      => '',
             'size'      => '',
             'updated'   => '',
             'author'    => '',
-        );
+        ];
 
-        if (!file_exists(THEMES."$file/README"))
-        {
+        if (!file_exists(THEMES."$file/README")) {
             $data['name'] = $file;
+
             return $data;
         }
 
         $f = @fopen(THEMES."$file/README", 'r');
-        if (!$f)
-        {
+        if (!$f) {
             $data['name'] = $file;
+
             return $data;
         }
 
@@ -771,7 +748,7 @@ class Settings
         $data['updated'] = $updated;
 
         // author
-        $author  = fgets($f, 1000);
+        $author = fgets($f, 1000);
         $author = explode(':', $author);
         $author = end($author);
         $author = trim($author);
@@ -780,5 +757,4 @@ class Settings
 
         return $data;
     }
-
 }

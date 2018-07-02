@@ -1,11 +1,9 @@
 <?php
 /**
- * Instagram Form
- * 
- * @package Upload
- * @subpackage UploadPhotoGallery
+ * Instagram Form.
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class InstagramUploadPhotoGalleryForm extends UploadPhotoGalleryForm
@@ -14,44 +12,42 @@ class InstagramUploadPhotoGalleryForm extends UploadPhotoGalleryForm
     private $autoUpload;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
     }
 
     /**
-     * display 
-     * 
+     * display.
+     *
      * @return void
      */
-    public function display ()
+    public function display()
     {
         $_SESSION['fcms_uploader_type'] = 'instagram';
 
         // Get auto upload setting and access token
-        $sql = "SELECT `instagram_access_token`, `instagram_auto_upload`
+        $sql = 'SELECT `instagram_access_token`, `instagram_auto_upload`
                 FROM `fcms_user_settings`
                 WHERE `user` = ?
-                LIMIT 1";
+                LIMIT 1';
 
         $r = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($r === false)
-        {
+        if ($r === false) {
             return false;
         }
 
-        if (empty($r))
-        {
+        if (empty($r)) {
             echo '
             <p class="error-alert">
                 '.T_('Could not get Instagram user data.').'
@@ -61,14 +57,11 @@ class InstagramUploadPhotoGalleryForm extends UploadPhotoGalleryForm
         }
 
         $this->accessToken = $r['instagram_access_token'];
-        $this->autoUpload  = $r['instagram_auto_upload'] == 1 ? true : false;
+        $this->autoUpload = $r['instagram_auto_upload'] == 1 ? true : false;
 
-        if (empty($this->accessToken))
-        {
+        if (empty($this->accessToken)) {
             $instagramInfo = $this->getNotConnectedInfo();
-        }
-        else
-        {
+        } else {
             $instagramInfo = $this->getPhotoInfo();
         }
 
@@ -91,11 +84,11 @@ class InstagramUploadPhotoGalleryForm extends UploadPhotoGalleryForm
     }
 
     /**
-     * getNotConnectedInfo 
-     * 
+     * getNotConnectedInfo.
+     *
      * @return string
      */
-    private function getNotConnectedInfo ()
+    private function getNotConnectedInfo()
     {
         return '
             <div class="info-alert">
@@ -106,58 +99,50 @@ class InstagramUploadPhotoGalleryForm extends UploadPhotoGalleryForm
     }
 
     /**
-     * getPhotoInfo 
-     * 
+     * getPhotoInfo.
+     *
      * @return string
      */
-    private function getPhotoInfo ()
+    private function getPhotoInfo()
     {
-        $config     = getInstagramConfigData();
-        $instagram  = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $this->accessToken);
+        $config = getInstagramConfigData();
+        $instagram = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $this->accessToken);
 
-        try
-        {
-            if (isset($_GET['show']) && $_GET['show'] == 'more')
-            {
+        try {
+            if (isset($_GET['show']) && $_GET['show'] == 'more') {
                 $feed = $instagram->get('users/self/media/recent/');
+            } else {
+                $feed = $instagram->get('users/self/media/recent/', ['count' => 8]);
             }
-            else
-            {
-                $feed = $instagram->get('users/self/media/recent/', array('count' => 8));
-            }
-        }
-        catch (InstagramApiError $e)
-        {
-            $this->fcmsError->add(array(
+        } catch (InstagramApiError $e) {
+            $this->fcmsError->add([
                 'type'    => 'operation',
                 'message' => T_('Could not get Instagram User data.'),
                 'error'   => $e->getMessage(),
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-            ));
+            ]);
 
             return false;
         }
 
-        $photos          = '';
+        $photos = '';
         $automaticSelect = '';
 
-        if (!$this->autoUpload)
-        {
+        if (!$this->autoUpload) {
             $photos .= '<h2>'.T_('Manual').'</h2>';
             $photos .= '<p>'.T_('Choose photo to add.').'</p>';
             $photos .= '<ul>';
 
             $i = 1;
-            foreach ($feed->data as $photo)
-            {
-                $sourceId  = $photo->id;
+            foreach ($feed->data as $photo) {
+                $sourceId = $photo->id;
                 $thumbnail = $photo->images->thumbnail->url;
-                $medium    = $photo->images->low_resolution->url;
-                $full      = $photo->images->standard_resolution->url;
-                $caption   = isset($photo->caption) ? $photo->caption->text : '';
-                $caption  .= ' ['.sprintf(T_('Instagram filter: %s.'), $photo->filter).']';
-                $value     = "$sourceId|$thumbnail|$medium|$full|$caption";
+                $medium = $photo->images->low_resolution->url;
+                $full = $photo->images->standard_resolution->url;
+                $caption = isset($photo->caption) ? $photo->caption->text : '';
+                $caption .= ' ['.sprintf(T_('Instagram filter: %s.'), $photo->filter).']';
+                $value = "$sourceId|$thumbnail|$medium|$full|$caption";
 
                 $photos .= '<li>';
                 $photos .= '<label for="instagram'.$i.'">';
@@ -170,8 +155,7 @@ class InstagramUploadPhotoGalleryForm extends UploadPhotoGalleryForm
             }
 
             // They probably have more
-            if ($i == 8)
-            {
+            if ($i == 8) {
                 $photos .= '<li><a href="index.php?action=upload&amp;type=instagram&amp;show=more">'.T_('See more').'</a></li>';
             }
 

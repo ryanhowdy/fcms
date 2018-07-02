@@ -1,14 +1,15 @@
 <?php
 /**
- * Scheduler
+ * Scheduler.
  *
  * PHP version 5
  *
  * @category  FCMS
- * @package   FamilyConnections
+ *
  * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2011 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     2.6
  */
@@ -25,7 +26,7 @@ init('admin/');
 
 // Globals
 $fcmsAlert = new Alerts($fcmsError, $fcmsDatabase, $fcmsUser);
-$page      = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsAlert);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsAlert);
 
 exit();
 
@@ -38,69 +39,60 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsAlert)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsAlert)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
-        $this->fcmsAlert    = $fcmsAlert;
+        $this->fcmsUser = $fcmsUser;
+        $this->fcmsAlert = $fcmsAlert;
 
-        $this->fcmsTemplate = array(
+        $this->fcmsTemplate = [
             'sitename'      => getSiteName(),
             'nav-link'      => getAdminNavLinks(),
             'pagetitle'     => T_('Administration: Scheduler'),
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         $this->control();
     }
 
     /**
-     * control
+     * control.
      *
      * The controlling structure for this script.
      *
      * @return void
      */
-    function control ()
+    public function control()
     {
         $this->checkPermissions();
 
-        if (isset($_GET['restore']))
-        {
+        if (isset($_GET['restore'])) {
             $this->displayRestoreSchedulesPage();
-        }
-        elseif (isset($_POST['save']))
-        {
+        } elseif (isset($_POST['save'])) {
             $this->displayEditScheduleSubmitPage();
-        }
-        elseif (isset($_GET['running_job']))
-        {
+        } elseif (isset($_GET['running_job'])) {
             $this->displayTurnOffRunningJobPage();
-        }
-        elseif (isset($_GET['alert']))
-        {
+        } elseif (isset($_GET['alert'])) {
             $this->removeAlert();
-        }
-        else
-        {
+        } else {
             $this->displaySchedulerPage();
         }
     }
 
     /**
-     * displayHeader
+     * displayHeader.
      *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -114,11 +106,11 @@ class Page
     }
 
     /**
-     * displayFooter
+     * displayFooter.
      *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -129,14 +121,13 @@ class Page
     }
 
     /**
-     * checkPermissions
+     * checkPermissions.
      *
      * @return void
      */
-    function checkPermissions ()
+    public function checkPermissions()
     {
-        if ($this->fcmsUser->access > 2)
-        {
+        if ($this->fcmsUser->access > 2) {
             $this->displayHeader();
 
             echo '
@@ -152,16 +143,15 @@ class Page
     }
 
     /**
-     * displaySchedulerPage
+     * displaySchedulerPage.
      *
      * @return void
      */
-    function displaySchedulerPage ()
+    public function displaySchedulerPage()
     {
         $this->displayHeader();
 
-        if (isset($_SESSION['schedule_edit']))
-        {
+        if (isset($_SESSION['schedule_edit'])) {
             displayOkMessage();
             unset($_SESSION['schedule_edit']);
         }
@@ -174,15 +164,14 @@ class Page
                 WHERE `name` = 'running_job'";
 
         $status = $this->fcmsDatabase->getRow($sql);
-        if ($status === false)
-        {
+        if ($status === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        if ($status['running_job'] > 0)
-        {
+        if ($status['running_job'] > 0) {
             echo '
             <div class="alert-message block-message warning">
                 <h2>'.T_('A scheduled job is currently running.').'</h2>
@@ -200,14 +189,14 @@ class Page
         }
 
         // Get schedules
-        $sql = "SELECT `id`, `type`, `repeat`, `lastrun`, `status`
-                FROM `fcms_schedule`";
+        $sql = 'SELECT `id`, `type`, `repeat`, `lastrun`, `status`
+                FROM `fcms_schedule`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -227,8 +216,7 @@ class Page
                 <tbody>';
 
         // This shouldn't happen
-        if (count($rows) <= 0)
-        {
+        if (count($rows) <= 0) {
             echo '
                     <tr>
                         <td colspan="6" style="text-align:center">
@@ -240,43 +228,39 @@ class Page
         </form>';
 
             $this->displayFooter();
+
             return;
         }
 
-        $onOff = array(
+        $onOff = [
             '1' => T_('On'),
-            '0' => T_('Off')
-        );
-        $frequency = array(
+            '0' => T_('Off'),
+        ];
+        $frequency = [
             'hourly' => T_('Hourly'),
-            'daily'  => T_('Daily')
-        );
+            'daily'  => T_('Daily'),
+        ];
 
         $setupCron = '';
 
-        foreach ($rows as $row)
-        {
-            $id      = cleanOutput($row['id']);
-            $type    = cleanOutput($row['type']);
+        foreach ($rows as $row) {
+            $id = cleanOutput($row['id']);
+            $type = cleanOutput($row['type']);
             $lastrun = cleanOutput($row['lastrun']);
 
             $statusOptions = buildHtmlSelectOptions($onOff, $row['status']);
             $repeatOptions = buildHtmlSelectOptions($frequency, $row['repeat']);
 
             $status = '<span class="label important">'.T_('Off').'</span>';
-            if ($row['status'] == 1)
-            {
+            if ($row['status'] == 1) {
                 $status = '<span class="label success">'.T_('On').'</span>';
             }
 
-            if ($lastrun == '0000-00-00 00:00:00')
-            {
+            if ($lastrun == '0000-00-00 00:00:00') {
                 $lastrun = '<i>'.T_('never').'</i>';
-            }
-            else
-            {
+            } else {
                 $tzOffset = getTimezone($this->fcmsUser->id);
-                $lastrun  = fixDate('Y-m-d h:i:s', $tzOffset, $lastrun);
+                $lastrun = fixDate('Y-m-d h:i:s', $tzOffset, $lastrun);
             }
 
             $cronFreq = $row['repeat'] == 'daily' ? '0 0 * * *' : '0 * * * *';
@@ -323,11 +307,11 @@ class Page
     }
 
     /**
-     * displayRestoreSchedulesPage 
-     * 
+     * displayRestoreSchedulesPage.
+     *
      * @return void
      */
-    function displayRestoreSchedulesPage ()
+    public function displayRestoreSchedulesPage()
     {
         $sql = "INSERT INTO `fcms_schedule`
                     (`type`, `repeat`)
@@ -335,112 +319,108 @@ class Page
                     ('familynews', 'hourly'),
                     ('youtube', 'hourly')";
 
-        if (!$this->fcmsDatabase->insert($sql))
-        {
+        if (!$this->fcmsDatabase->insert($sql)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        header("Location: scheduler.php");
+        header('Location: scheduler.php');
     }
 
     /**
-     * displayEditScheduleSubmitPage 
-     * 
+     * displayEditScheduleSubmitPage.
+     *
      * @return void
      */
-    function displayEditScheduleSubmitPage ()
+    public function displayEditScheduleSubmitPage()
     {
-        if (!isset($_POST['id']) or !is_array($_POST['id']))
-        {
-            header("Location: scheduler.php");
+        if (!isset($_POST['id']) or !is_array($_POST['id'])) {
+            header('Location: scheduler.php');
         }
 
-        for ($i = 0; $i < count($_POST['id']); $i++)
-        {
-            if (!isset($_POST['id'][$i]) or !isset($_POST['status'][$i]) or !isset($_POST['repeat'][$i]))
-            {
+        for ($i = 0; $i < count($_POST['id']); $i++) {
+            if (!isset($_POST['id'][$i]) or !isset($_POST['status'][$i]) or !isset($_POST['repeat'][$i])) {
                 continue;
             }
 
-            $id     = (int)$_POST['id'][$i];
+            $id = (int) $_POST['id'][$i];
             $repeat = $_POST['repeat'][$i];
             $status = $_POST['status'][$i];
 
-            $sql = "UPDATE `fcms_schedule`
+            $sql = 'UPDATE `fcms_schedule`
                     SET `repeat` = ?,
                         `status` = ?
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
 
-            $params = array($repeat, $status, $id);
+            $params = [$repeat, $status, $id];
 
-            if (!$this->fcmsDatabase->update($sql, $params))
-            {
+            if (!$this->fcmsDatabase->update($sql, $params)) {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
         }
 
         $_SESSION['schedule_edit'] = 1;
-        header("Location: scheduler.php");
+        header('Location: scheduler.php');
     }
 
     /**
-     * removeAlert 
-     * 
+     * removeAlert.
+     *
      * @return void
      */
-    function removeAlert ()
+    public function removeAlert()
     {
-        if ($_GET['alert'] !== 'alert_scheduler')
-        {
+        if ($_GET['alert'] !== 'alert_scheduler') {
             return;
         }
 
-        $sql = "INSERT INTO `fcms_alerts`
+        $sql = 'INSERT INTO `fcms_alerts`
                     (`alert`, `user`)
                 VALUES
-                    (?, ?)";
+                    (?, ?)';
 
-        $params = array(
+        $params = [
             $_GET['alert'],
-            $this->fcmsUser->id
-        );
+            $this->fcmsUser->id,
+        ];
 
-        if (!$this->fcmsDatabase->insert($sql, $params))
-        {
+        if (!$this->fcmsDatabase->insert($sql, $params)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        header("Location: scheduler.php");
+        header('Location: scheduler.php');
     }
 
     /**
-     * displayTurnOffRunningJobPage 
-     * 
+     * displayTurnOffRunningJobPage.
+     *
      * @return void
      */
-    function displayTurnOffRunningJobPage ()
+    public function displayTurnOffRunningJobPage()
     {
         $sql = "UPDATE `fcms_config`
                 SET `value` = NULL
                 WHERE `name` = 'running_job'";
 
-        if (!$this->fcmsDatabase->update($sql))
-        {
+        if (!$this->fcmsDatabase->update($sql)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        header("Location: scheduler.php");
+        header('Location: scheduler.php');
     }
 }

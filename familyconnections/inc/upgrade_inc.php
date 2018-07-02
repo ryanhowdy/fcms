@@ -1,25 +1,27 @@
 <?php
 /**
- * Upgrade
- * 
+ * Upgrade.
+ *
  * PHP version 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2012 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 
 /**
- * Upgrade 
- * 
+ * Upgrade.
+ *
  * @category  FCMS
- * @package   Family_Connections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2012 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 class Upgrade
@@ -28,38 +30,36 @@ class Upgrade
     public $fcmsDatabase;
 
     /**
-     * __construct 
-     * 
+     * __construct.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase)
+    public function __construct($fcmsError, $fcmsDatabase)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
 
         $this->fcmsDatabase->setFetchType(PDO::FETCH_BOTH);
     }
 
     /**
-     * disableSite 
-     * 
+     * disableSite.
+     *
      * Creates a 'siteoff' file in the inc directory.
      * If this file exists users will be unable to view site for a period of time.
-     * 
+     *
      * @return void
      */
-    function disableSite ()
+    public function disableSite()
     {
         $str = '<?php $upgrading = '.time().'; ?>';
         $file = @fopen(INC.'siteoff', 'w');
-        if ($file === false)
-        {
+        if ($file === false) {
             return false;
         }
 
         $write = @fwrite($file, $str);
-        if ($write === false)
-        {
+        if ($write === false) {
             return false;
         }
 
@@ -69,18 +69,16 @@ class Upgrade
     }
 
     /**
-     * enableSite 
-     * 
+     * enableSite.
+     *
      * Removes 'siteoff' file from inc directory.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function enableSite ()
+    public function enableSite()
     {
-        if (file_exists(INC.'siteoff'))
-        {
-            if (!unlink(INC.'siteoff'))
-            {
+        if (file_exists(INC.'siteoff')) {
+            if (!unlink(INC.'siteoff')) {
                 return false;
             }
         }
@@ -89,21 +87,21 @@ class Upgrade
     }
 
     /**
-     * updateCurrentVersion 
-     * 
-     * @param string  $version 
-     * 
-     * @return boolean
+     * updateCurrentVersion.
+     *
+     * @param string $version
+     *
+     * @return bool
      */
-    function updateCurrentVersion ($version)
+    public function updateCurrentVersion($version)
     {
         $sql = "UPDATE `fcms_config` 
                 SET `value` = ?
                 WHERE `name` = 'current_version'";
 
-        if (!$this->fcmsDatabase->update($sql, $version))
-        {
+        if (!$this->fcmsDatabase->update($sql, $version)) {
             $this->fcmsError->setMessage('Could not update version');
+
             return false;
         }
 
@@ -111,20 +109,18 @@ class Upgrade
     }
 
     /**
-     * downloadLatestVersion 
-     * 
+     * downloadLatestVersion.
+     *
      * @return void
      */
-    function downloadLatestVersion ()
+    public function downloadLatestVersion()
     {
         // Have we downloaded the latest file already?
-        if (file_exists(INC.'latest.zip'))
-        {
+        if (file_exists(INC.'latest.zip')) {
             $modified = filemtime(INC.'latest.zip');
 
             // Skip the download if the file has been downloaded already today
-            if (date('Ymd') == date('Ymd', $modified))
-            {
+            if (date('Ymd') == date('Ymd', $modified)) {
                 return;
             }
         }
@@ -137,25 +133,25 @@ class Upgrade
     }
 
     /**
-     * unzipFile 
-     * 
-     * @return boolean
+     * unzipFile.
+     *
+     * @return bool
      */
-    function unzipFile ()
+    public function unzipFile()
     {
         $zipFile = INC.'latest.zip';
 
-        $za = new ZipArchive(); 
+        $za = new ZipArchive();
 
-        if (!$za->open($zipFile))
-        {
+        if (!$za->open($zipFile)) {
             echo '<div class="error-alert">'.T_('Could not open zip file.').'</div>';
+
             return false;
         }
 
-        if (!$za->extractTo(INC.'upgrade'))
-        {
+        if (!$za->extractTo(INC.'upgrade')) {
             echo '<div class="error-alert">'.T_('Could extract zip file.').'</div>';
+
             return false;
         }
 
@@ -165,125 +161,113 @@ class Upgrade
     }
 
     /**
-     * install 
-     * 
+     * install.
+     *
      * Copies newly downloaded files from temp.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function install ()
+    public function install()
     {
         $dir = INC.'upgrade/';
 
-        if (!is_dir($dir))
-        {
+        if (!is_dir($dir)) {
             echo '<div class="error-alert">'.T_('Could not find upgrade directory.').'</div>';
+
             return false;
         }
 
         $dh = @opendir($dir);
-        if ($dh === false)
-        {
+        if ($dh === false) {
             echo '<div class="error-alert">'.T_('Could not open upgrade directory.').'</div>';
+
             return false;
         }
 
         // Get container file (FCMS 2.X)
-        while (($container = readdir($dh)) !== false)
-        {
+        while (($container = readdir($dh)) !== false) {
             // Skip directories that start with a period
-            if ($container[0] === '.')
-            {
+            if ($container[0] === '.') {
                 continue;
             }
 
-            if (!is_dir($dir.$container))
-            {
+            if (!is_dir($dir.$container)) {
                 echo '<div class="error-alert">'.T_('Could not find new upgrade files.').'</div>';
+
                 return false;
             }
 
             break;
         }
 
-        if (!$this->copy_files(INC."upgrade/$container", ROOT))
-        {
+        if (!$this->copy_files(INC."upgrade/$container", ROOT)) {
             // error alrady displayed by copy_files
             return false;
         }
 
         // Everything copied over fine, delete the upgrade directory
-        $this->deleteDirectory(INC."upgrade");
+        $this->deleteDirectory(INC.'upgrade');
 
         return true;
     }
 
     /**
-     * copy_files 
-     * 
-     * @param string $from 
-     * @param string $to 
-     * 
+     * copy_files.
+     *
+     * @param string $from
+     * @param string $to
+     *
      * @return void
      */
-    function copy_files ($from, $to)
+    public function copy_files($from, $to)
     {
         // Add trailing slashes to directories
-        if (substr($from, -1) !== '/')
-        {
+        if (substr($from, -1) !== '/') {
             $from .= '/';
         }
-        if (substr($to, -1) !== '/')
-        {
+        if (substr($to, -1) !== '/') {
             $to .= '/';
         }
 
-        if (!is_dir($from))
-        {
+        if (!is_dir($from)) {
             echo '<div class="error-alert">'.sprintf(T_('Could not find origin: %s.'), $from).'</div>';
+
             return false;
         }
 
-        if (!is_dir($to))
-        {
-            if (!mkdir($to))
-            {
+        if (!is_dir($to)) {
+            if (!mkdir($to)) {
                 echo '<div class="error-alert">'.sprintf(T_('Destination not found and could not be created: %s.'), $to).'</div>';
+
                 return false;
             }
         }
 
         $dh = @opendir($from);
-        if ($dh === false)
-        {
+        if ($dh === false) {
             echo '<div class="error-alert">'.sprintf(T_('Could not open directory: %s.'), $from).'</div>';
+
             return false;
         }
 
-        while (($file = readdir($dh)) !== false)
-        {
+        while (($file = readdir($dh)) !== false) {
             // Skip directories that start with a period
-            if ($file[0] === '.')
-            {
+            if ($file[0] === '.') {
                 continue;
             }
 
             // Directory
-            if (filetype($from.$file) == "dir")
-            {
-                if (!$this->copy_files($from.$file, $to.$file))
-                {
+            if (filetype($from.$file) == 'dir') {
+                if (!$this->copy_files($from.$file, $to.$file)) {
                     // error alrady displayed by copy_files
                     return false;
                 }
-
             }
             // File
-            else
-            {
-                if (!copy($from.$file, $to.$file))
-                {
+            else {
+                if (!copy($from.$file, $to.$file)) {
                     echo '<div class="error-alert">'.sprintf(T_('Could not copy file: %s.'), $from.$file).'</div>';
+
                     return false;
                 }
             }
@@ -293,105 +277,91 @@ class Upgrade
     }
 
     /**
-     * deleteDirectory 
-     * 
+     * deleteDirectory.
+     *
      * Recursively deletes a directory and anything in it.
-     * 
-     * @param string $dir 
-     * 
+     *
+     * @param string $dir
+     *
      * @return void
      */
-    function deleteDirectory ($dir)
+    public function deleteDirectory($dir)
     {
         $files = scandir($dir);
 
-        if ($files === false)
-        {
+        if ($files === false) {
             return false;
         }
 
         // remove . and .. if they exist
-        if ($files[0] == '.') { array_shift($files); }
-        if ($files[0] == '..') { array_shift($files); }
-       
-        foreach ($files as $file)
-        {
-            $file = $dir . '/' . $file;
+        if ($files[0] == '.') {
+            array_shift($files);
+        }
+        if ($files[0] == '..') {
+            array_shift($files);
+        }
 
-            if (is_dir($file))
-            {
+        foreach ($files as $file) {
+            $file = $dir.'/'.$file;
+
+            if (is_dir($file)) {
                 $this->deleteDirectory($file);
-            }
-            else
-            {
+            } else {
                 unlink($file);
             }
         }
 
-        if (is_dir($dir))
-        {
+        if (is_dir($dir)) {
             rmdir($dir);
-        } 
+        }
 
         return true;
     }
 
     /**
-     * upgrade 
-     * 
+     * upgrade.
+     *
      * Upgrade database from 2.5 to current version.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade ()
+    public function upgrade()
     {
-        if (!$this->upgrade250())
-        {
+        if (!$this->upgrade250()) {
             return false;
         }
-        if (!$this->upgrade260())
-        {
+        if (!$this->upgrade260()) {
             return false;
         }
-        if (!$this->upgrade270())
-        {
+        if (!$this->upgrade270()) {
             return false;
         }
-        if (!$this->upgrade280())
-        {
+        if (!$this->upgrade280()) {
             return false;
         }
-        if (!$this->upgrade290())
-        {
+        if (!$this->upgrade290()) {
             return false;
         }
-        if (!$this->upgrade300())
-        {
+        if (!$this->upgrade300()) {
             return false;
         }
-        if (!$this->upgrade310())
-        {
+        if (!$this->upgrade310()) {
             return false;
         }
-        if (!$this->upgrade320())
-        {
+        if (!$this->upgrade320()) {
             return false;
         }
-        if (!$this->upgrade330())
-        {
+        if (!$this->upgrade330()) {
             return false;
         }
-        if (!$this->upgrade340())
-        {
+        if (!$this->upgrade340()) {
             return false;
         }
         // No db changes for 3.5.0
-        if (!$this->upgrade360())
-        {
+        if (!$this->upgrade360()) {
             return false;
         }
-        if (!$this->upgrade370())
-        {
+        if (!$this->upgrade370()) {
             return false;
         }
 
@@ -399,13 +369,13 @@ class Upgrade
     }
 
     /**
-     * upgrade250 
-     * 
+     * upgrade250.
+     *
      * Upgrade database to version 2.5.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade250 ()
+    public function upgrade250()
     {
         global $cfg_mysql_db;
 
@@ -417,22 +387,19 @@ class Upgrade
         $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r[0] == 'fcms_status')
-            {
+        foreach ($rows as $r) {
+            if ($r[0] == 'fcms_status') {
                 $status_fixed = true;
             }
         }
 
-        if (!$status_fixed)
-        {
+        if (!$status_fixed) {
             $sql = "CREATE TABLE `fcms_status` (
                         `id` INT(25) NOT NULL AUTO_INCREMENT,
                         `user` INT(25) NOT NULL DEFAULT '0',
@@ -444,30 +411,30 @@ class Upgrade
                         CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
-            $sql = "ALTER TABLE `fcms_config` ADD `fb_app_id` VARCHAR(50) NULL";
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            $sql = 'ALTER TABLE `fcms_config` ADD `fb_app_id` VARCHAR(50) NULL';
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
-            $sql = "ALTER TABLE `fcms_config` ADD `fb_secret` VARCHAR(50) NULL";
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            $sql = 'ALTER TABLE `fcms_config` ADD `fb_secret` VARCHAR(50) NULL';
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
-            $sql = "ALTER TABLE `fcms_user_settings` ADD `fb_access_token` VARCHAR(255) NULL";
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            $sql = 'ALTER TABLE `fcms_user_settings` ADD `fb_access_token` VARCHAR(255) NULL';
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
@@ -475,9 +442,9 @@ class Upgrade
 
             $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
                     VALUES ('admin_facebook', 6, ?, 0)";
-            if (!$this->fcmsDatabase->insert($sql, $adminOrder))
-            {
+            if (!$this->fcmsDatabase->insert($sql, $adminOrder)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -486,13 +453,13 @@ class Upgrade
     }
 
     /**
-     * upgrade260 
-     * 
+     * upgrade260.
+     *
      * Upgrade database to version 2.6.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade260 ()
+    public function upgrade260()
     {
         global $cfg_mysql_db;
 
@@ -501,31 +468,28 @@ class Upgrade
         // Family News created/updated
         $fnews_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_news`";
+        $sql = 'SHOW COLUMNS FROM `fcms_news`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'created')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'created') {
                 $fnews_fixed = true;
             }
         }
 
-        if (!$fnews_fixed)
-        {
+        if (!$fnews_fixed) {
             $sql = "ALTER TABLE `fcms_news`
                     CHANGE `date` `updated` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
                     ADD COLUMN `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00' AFTER `user`";
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -536,19 +500,19 @@ class Upgrade
         $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r[0] == 'fcms_changelog') { $change_fixed = true; }
+        foreach ($rows as $r) {
+            if ($r[0] == 'fcms_changelog') {
+                $change_fixed = true;
+            }
         }
 
-        if (!$change_fixed)
-        {
+        if (!$change_fixed) {
             $sql = "CREATE TABLE `fcms_changelog` (
                         `id` INT(25) NOT NULL AUTO_INCREMENT,
                         `user` INT(25) NOT NULL DEFAULT '0',
@@ -559,9 +523,9 @@ class Upgrade
                         CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 
-            if (!$this->fcmsDatabase->create($sql))
-            {
+            if (!$this->fcmsDatabase->create($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -569,43 +533,40 @@ class Upgrade
         // Addressbook
         $book_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_address`";
+        $sql = 'SHOW COLUMNS FROM `fcms_address`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'created')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'created') {
                 $book_fixed = true;
             }
         }
 
-        if (!$book_fixed)
-        {
+        if (!$book_fixed) {
             $sql = "ALTER TABLE `fcms_address`
                     CHANGE `entered_by` `created_id` INT(11) NOT NULL DEFAULT '0',
                     ADD COLUMN `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00' AFTER `created_id`,
                     ADD COLUMN `updated_id` INT(11) NOT NULL DEFAULT '0' AFTER `updated`";
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
-            $sql = "UPDATE `fcms_address`
+            $sql = 'UPDATE `fcms_address`
                     SET `updated_id` = `created_id`
-                    WHERE `updated_id` = 0";
+                    WHERE `updated_id` = 0';
 
-            if (!$this->fcmsDatabase->update($sql))
-            {
+            if (!$this->fcmsDatabase->update($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
@@ -613,9 +574,9 @@ class Upgrade
                     SET `created` = `updated`
                     WHERE `created` = '0000-00-00 00:00:00'";
 
-            if (!$this->fcmsDatabase->update($sql))
-            {
+            if (!$this->fcmsDatabase->update($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -623,19 +584,17 @@ class Upgrade
         // YouTube (key) - Old config style
         $youtube_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_config`";
+        $sql = 'SHOW COLUMNS FROM `fcms_config`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'youtube_key')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'youtube_key') {
                 $youtube_fixed = true;
             }
         }
@@ -644,31 +603,28 @@ class Upgrade
         // We do this check, because the upgrade script may have already done added the youtube key,
         // and then converted it to the new style.
         // We want to check for that before we add the old style config.
-        if (!$youtube_fixed)
-        {
+        if (!$youtube_fixed) {
             $sql = "SELECT `name` FROM `fcms_config` WHERE `name` = 'youtube_key'";
 
             $row = $this->fcmsDatabase->getRow($sql);
-            if ($row === false)
-            {
+            if ($row === false) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
-            if (!empty($row))
-            {
+            if (!empty($row)) {
                 $youtube_fixed = true;
             }
         }
 
-        if (!$youtube_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_config`
-                    ADD COLUMN `youtube_key` VARCHAR(255) NULL";
+        if (!$youtube_fixed) {
+            $sql = 'ALTER TABLE `fcms_config`
+                    ADD COLUMN `youtube_key` VARCHAR(255) NULL';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
@@ -677,9 +633,9 @@ class Upgrade
             $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
                     VALUES ('admin_youtube', 6, ?, 1)";
 
-            if (!$this->fcmsDatabase->insert($sql, $adminOrder))
-            {
+            if (!$this->fcmsDatabase->insert($sql, $adminOrder)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -687,31 +643,28 @@ class Upgrade
         // YouTube (token)
         $youtube_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+        $sql = 'SHOW COLUMNS FROM `fcms_user_settings`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'youtube_session_token')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'youtube_session_token') {
                 $youtube_fixed = true;
             }
         }
 
-        if (!$youtube_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_user_settings`
-                    ADD COLUMN `youtube_session_token` VARCHAR(255) NULL";
+        if (!$youtube_fixed) {
+            $sql = 'ALTER TABLE `fcms_user_settings`
+                    ADD COLUMN `youtube_session_token` VARCHAR(255) NULL';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -719,46 +672,43 @@ class Upgrade
         // Config
         $cfg_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_config`";
+        $sql = 'SHOW COLUMNS FROM `fcms_config`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'name')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'name') {
                 $cfg_fixed = true;
             }
         }
 
-        if (!$cfg_fixed)
-        {
+        if (!$cfg_fixed) {
             // Create new config
-            $sql = "CREATE TABLE `fcms_config2` (
+            $sql = 'CREATE TABLE `fcms_config2` (
                         `name` VARCHAR(50) NOT NULL,
                         `value` VARCHAR(255) NULL
                     ) 
-                    ENGINE=InnoDB DEFAULT CHARSET=utf8";
+                    ENGINE=InnoDB DEFAULT CHARSET=utf8';
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
             // Get current config data
-            $sql = "SELECT *
-                    FROM `fcms_config`";
+            $sql = 'SELECT *
+                    FROM `fcms_config`';
 
             $config = $this->fcmsDatabase->getRows($sql);
-            if ($config === false)
-            {
+            if ($config === false) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
@@ -782,45 +732,45 @@ class Upgrade
                         ('fb_secret', ?),
                         ('youtube_key', ?)";
 
-            $params = array(
+            $params = [
                 $config['sitename'],
                 $config['contact'],
                 $config['current_version'],
                 $config['auto_activate'],
-                $config['registration'], 
+                $config['registration'],
                 $config['full_size_photos'],
                 $config['site_off'],
                 $config['log_errors'],
                 $config['fs_client_id'],
-                $config['fs_client_secret'], 
+                $config['fs_client_secret'],
                 $config['fs_callback_url'],
                 $config['external_news_date'],
                 $config['fb_app_id'],
                 $config['fb_secret'],
-                $config['youtube_key']
-            );
+                $config['youtube_key'],
+            ];
 
-            if (!$this->fcmsDatabase->insert($sql, $params))
-            {
+            if (!$this->fcmsDatabase->insert($sql, $params)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
             // Delete current config
-            $sql = "DROP TABLE `fcms_config`";
+            $sql = 'DROP TABLE `fcms_config`';
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
             // Rename new table to current
-            $sql = "RENAME TABLE `fcms_config2` TO `fcms_config`";
+            $sql = 'RENAME TABLE `fcms_config2` TO `fcms_config`';
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -831,19 +781,19 @@ class Upgrade
         $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r[0] == 'fcms_schedule') { $schedule_fixed = true; }
+        foreach ($rows as $r) {
+            if ($r[0] == 'fcms_schedule') {
+                $schedule_fixed = true;
+            }
         }
 
-        if (!$schedule_fixed)
-        {
+        if (!$schedule_fixed) {
             $sql = "CREATE TABLE `fcms_schedule` (
                         `id`        INT(25) NOT NULL AUTO_INCREMENT,
                         `type`      VARCHAR(50) NOT NULL DEFAULT 'familynews',
@@ -852,9 +802,9 @@ class Upgrade
                         `status`    TINYINT(1) NOT NULL DEFAULT 0,
                         PRIMARY KEY (`id`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
@@ -862,17 +812,17 @@ class Upgrade
                     VALUES 
                         ('familynews', 'hourly'),
                         ('youtube', 'hourly')";
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
             $sql = "INSERT INTO `fcms_config` (`name`, `value`)
                     VALUES ('running_job', '0')";
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
@@ -881,9 +831,9 @@ class Upgrade
             $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
                     VALUES ('admin_scheduler', 6, ?, 1)";
 
-            if (!$this->fcmsDatabase->insert($sql, $adminOrder))
-            {
+            if (!$this->fcmsDatabase->insert($sql, $adminOrder)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -894,19 +844,19 @@ class Upgrade
         $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r[0] == 'fcms_video') { $video_fixed = true; }
+        foreach ($rows as $r) {
+            if ($r[0] == 'fcms_video') {
+                $video_fixed = true;
+            }
         }
 
-        if (!$video_fixed)
-        {
+        if (!$video_fixed) {
             $sql = "CREATE TABLE `fcms_video` (
                         `id`                INT(25) NOT NULL AUTO_INCREMENT,
                         `source_id`         VARCHAR(255) NOT NULL,
@@ -924,9 +874,9 @@ class Upgrade
                         PRIMARY KEY (`id`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
@@ -935,9 +885,9 @@ class Upgrade
             $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
                     VALUES ('videogallery', 4, ?, 1)";
 
-            if (!$this->fcmsDatabase->insert($sql, $order))
-            {
+            if (!$this->fcmsDatabase->insert($sql, $order)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
@@ -953,9 +903,9 @@ class Upgrade
                         CONSTRAINT FOREIGN KEY (`video_id`) REFERENCES `fcms_video` (`id`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -964,13 +914,13 @@ class Upgrade
     }
 
     /**
-     * upgrade270
-     * 
+     * upgrade270.
+     *
      * Upgrade database to version 2.7.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade270 ()
+    public function upgrade270()
     {
         global $cfg_mysql_db;
 
@@ -979,38 +929,35 @@ class Upgrade
         // Country
         $country_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_address`";
+        $sql = 'SHOW COLUMNS FROM `fcms_address`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'country')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'country') {
                 $country_fixed = true;
             }
         }
 
-        if (!$country_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_address`
-                    ADD COLUMN `country` CHAR(2) DEFAULT NULL AFTER `user`";
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+        if (!$country_fixed) {
+            $sql = 'ALTER TABLE `fcms_address`
+                    ADD COLUMN `country` CHAR(2) DEFAULT NULL AFTER `user`';
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
             $sql = "INSERT INTO `fcms_config` (`name`, `value`)
                     VALUES ('country', 'US')";
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1018,105 +965,101 @@ class Upgrade
         // Birthday and date of death
         $dob_dod_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_users`";
+        $sql = 'SHOW COLUMNS FROM `fcms_users`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'dob_year')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'dob_year') {
                 $dob_dod_fixed = true;
             }
         }
 
-        if (!$dob_dod_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_users`
+        if (!$dob_dod_fixed) {
+            $sql = 'ALTER TABLE `fcms_users`
                     ADD COLUMN `dob_year` CHAR(4) AFTER `birthday`,
                     ADD COLUMN `dob_month` CHAR(2) AFTER `dob_year`,
                     ADD COLUMN `dob_day` CHAR(2) AFTER `dob_month`,
                     ADD COLUMN `dod_year` CHAR(4) AFTER `dob_day`,
                     ADD COLUMN `dod_month` CHAR(2) AFTER `dod_year`,
-                    ADD COLUMN `dod_day` CHAR(2) AFTER `dod_month`";
+                    ADD COLUMN `dod_day` CHAR(2) AFTER `dod_month`';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
-            $sql = "SELECT `id`, `birthday`, `death`
-                    FROM `fcms_users`";
+            $sql = 'SELECT `id`, `birthday`, `death`
+                    FROM `fcms_users`';
 
             $rows = $this->fcmsDatabase->getRows($sql);
-            if ($rows === false)
-            {
+            if ($rows === false) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
-            if (count($rows))
-            {
-                $this->fcmsError->add(array(
+            if (count($rows)) {
+                $this->fcmsError->add([
                     'type'    => 'operation',
                     'message' => T_('No user birthday\'s found.'),
                     'line'    => __LINE__,
                     'file'    => __FILE__,
-                ));
+                ]);
+
                 return false;
             }
 
-            foreach ($rows as $r)
-            {
+            foreach ($rows as $r) {
                 $id = $r['id'];
 
-                $bYear  = substr($r['birthday'], 0, 4);
+                $bYear = substr($r['birthday'], 0, 4);
                 $bMonth = substr($r['birthday'], 5, 2);
-                $bDay   = substr($r['birthday'], 8, 2);
+                $bDay = substr($r['birthday'], 8, 2);
 
-                $dYear  = substr($r['death'], 0, 4);
+                $dYear = substr($r['death'], 0, 4);
                 $dMonth = substr($r['death'], 5, 2);
-                $dDay   = substr($r['death'], 8, 2);
+                $dDay = substr($r['death'], 8, 2);
 
-                $sql = "UPDATE `fcms_users`
+                $sql = 'UPDATE `fcms_users`
                         SET `dob_year`  = ?,
                             `dob_month` = ?,
                             `dob_day`   = ?,
                             `dod_year`  = ?,
                             `dod_month` = ?,
                             `dod_day`   = ?
-                        WHERE `id`      = ?";
+                        WHERE `id`      = ?';
 
-                $params = array(
+                $params = [
                     $bYear,
                     $bMonth,
                     $bDay,
                     $dYear,
                     $dMonth,
                     $dDay,
-                    $id
-                );
+                    $id,
+                ];
 
-                if (!$this->fcmsDatabase->update($sql, $params))
-                {
+                if (!$this->fcmsDatabase->update($sql, $params)) {
                     $this->fcmsError->setMessage($errorMessage);
+
                     return false;
                 }
             }
 
-            $sql = "ALTER TABLE `fcms_users`
+            $sql = 'ALTER TABLE `fcms_users`
                     DROP COLUMN `birthday`,
-                    DROP COLUMN `death`";
+                    DROP COLUMN `death`';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1125,13 +1068,13 @@ class Upgrade
     }
 
     /**
-     * upgrade280
-     * 
+     * upgrade280.
+     *
      * Upgrade database to version 2.8.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade280 ()
+    public function upgrade280()
     {
         global $cfg_mysql_db;
 
@@ -1140,31 +1083,28 @@ class Upgrade
         // category description
         $desc_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_category`";
+        $sql = 'SHOW COLUMNS FROM `fcms_category`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'description')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'description') {
                 $desc_fixed = true;
             }
         }
 
-        if (!$desc_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_category`
-                    ADD COLUMN `description` VARCHAR(255) NULL";
+        if (!$desc_fixed) {
+            $sql = 'ALTER TABLE `fcms_category`
+                    ADD COLUMN `description` VARCHAR(255) NULL';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1175,24 +1115,22 @@ class Upgrade
         $sql = "SELECT `name` FROM `fcms_config` WHERE `name` = 'debug'";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $debug_fixed = true;
         }
 
-        if (!$debug_fixed)
-        {
+        if (!$debug_fixed) {
             $sql = "INSERT INTO `fcms_config` (`name`, `value`)
                     VALUES ('debug', '0')";
 
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1201,13 +1139,13 @@ class Upgrade
     }
 
     /**
-     * upgrade290
-     * 
+     * upgrade290.
+     *
      * Upgrade database to version 2.9.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade290 ()
+    public function upgrade290()
     {
         global $cfg_mysql_db;
 
@@ -1224,26 +1162,24 @@ class Upgrade
                 LIMIT 1";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $foursquare_fixed = true;
         }
 
-        if (!$foursquare_fixed)
-        {
+        if (!$foursquare_fixed) {
             $adminOrder = getNextAdminNavigationOrder();
 
             $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
                     VALUES ('admin_foursquare', 6, ?, 0)";
 
-            if (!$this->fcmsDatabase->insert($sql, $adminOrder))
-            {
+            if (!$this->fcmsDatabase->insert($sql, $adminOrder)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1257,25 +1193,23 @@ class Upgrade
                 LIMIT 1";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $awards_fixed = true;
         }
 
-        if (!$awards_fixed)
-        {
+        if (!$awards_fixed) {
             $sql = "INSERT INTO `fcms_schedule` (`type`, `repeat`)
                     VALUES ('awards', 'daily')";
 
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
@@ -1283,18 +1217,16 @@ class Upgrade
             $sql = "DELETE FROM `fcms_navigation`
                     WHERE `link` = 'admin_awards'";
 
-            if (!$this->fcmsDatabase->delete($sql))
-            {
+            if (!$this->fcmsDatabase->delete($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
             // delete file
-            if (file_exists('awards.php'))
-            {
+            if (file_exists('awards.php')) {
                 unlink('awards.php');
             }
-
         }
 
         // Start of week
@@ -1305,25 +1237,23 @@ class Upgrade
                 WHERE `name` = 'start_week'";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $start_fixed = true;
         }
 
-        if (!$start_fixed)
-        {
+        if (!$start_fixed) {
             $sql = "INSERT INTO `fcms_config` (`name`, `value`)
                     VALUES ('start_week', '0')";
 
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1334,19 +1264,19 @@ class Upgrade
         $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r[0] == 'fcms_notification') { $notification_fixed = true; }
+        foreach ($rows as $r) {
+            if ($r[0] == 'fcms_notification') {
+                $notification_fixed = true;
+            }
         }
 
-        if (!$notification_fixed)
-        {
+        if (!$notification_fixed) {
             $sql = "CREATE TABLE `fcms_notification` (
                         `id` INT(25) NOT NULL AUTO_INCREMENT,
                         `user` INT(25) NOT NULL DEFAULT '0',
@@ -1360,18 +1290,18 @@ class Upgrade
                         CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
             $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
                     VALUES ('notification', 2, 4, 1)";
 
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1380,13 +1310,13 @@ class Upgrade
     }
 
     /**
-     * upgrade300
-     * 
+     * upgrade300.
+     *
      * Upgrade database to version 3.0.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade300 ()
+    public function upgrade300()
     {
         global $cfg_mysql_db;
 
@@ -1400,25 +1330,23 @@ class Upgrade
                 WHERE `name` = 'instagram_client_id'";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $instagram_client_id_fixed = true;
         }
 
-        if (!$instagram_client_id_fixed)
-        {
+        if (!$instagram_client_id_fixed) {
             $sql = "INSERT INTO `fcms_config` (`name`, `value`)
                     VALUES ('instagram_client_id', NULL)";
 
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1431,25 +1359,23 @@ class Upgrade
                 WHERE `name` = 'instagram_client_secret'";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $instagram_client_secret_fixed = true;
         }
 
-        if (!$instagram_client_secret_fixed)
-        {
+        if (!$instagram_client_secret_fixed) {
             $sql = "INSERT INTO `fcms_config` (`name`, `value`)
                     VALUES ('instagram_client_secret', NULL)";
 
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1462,27 +1388,25 @@ class Upgrade
                 WHERE `link` = 'admin_instagram'";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $instagram_admin_nav_fixed = true;
         }
 
-        if (!$instagram_admin_nav_fixed)
-        {
+        if (!$instagram_admin_nav_fixed) {
             $adminOrder = getNextAdminNavigationOrder();
 
             $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
                     VALUES ('admin_instagram', 6, ?, 1)";
 
-            if (!$this->fcmsDatabase->insert($sql, $adminOrder))
-            {
+            if (!$this->fcmsDatabase->insert($sql, $adminOrder)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1490,31 +1414,28 @@ class Upgrade
         // instagram user access code
         $instagram_user_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+        $sql = 'SHOW COLUMNS FROM `fcms_user_settings`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'instagram_access_token')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'instagram_access_token') {
                 $instagram_user_fixed = true;
             }
         }
 
-        if (!$instagram_user_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_user_settings` 
-                    ADD `instagram_access_token` VARCHAR(255) NULL";
+        if (!$instagram_user_fixed) {
+            $sql = 'ALTER TABLE `fcms_user_settings` 
+                    ADD `instagram_access_token` VARCHAR(255) NULL';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1522,31 +1443,28 @@ class Upgrade
         // external
         $external_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_gallery_photos`";
+        $sql = 'SHOW COLUMNS FROM `fcms_gallery_photos`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'external_id')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'external_id') {
                 $external_fixed = true;
             }
         }
 
-        if (!$external_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_gallery_photos` 
-                    ADD `external_id` INT(11) DEFAULT NULL AFTER `filename`";
+        if (!$external_fixed) {
+            $sql = 'ALTER TABLE `fcms_gallery_photos` 
+                    ADD `external_id` INT(11) DEFAULT NULL AFTER `filename`';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1557,23 +1475,20 @@ class Upgrade
         $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r[0] == 'fcms_gallery_external_photo')
-            {
+        foreach ($rows as $r) {
+            if ($r[0] == 'fcms_gallery_external_photo') {
                 $external_photos_fixed = true;
             }
         }
 
-        if (!$external_photos_fixed)
-        {
-            $sql = "CREATE TABLE `fcms_gallery_external_photo` (
+        if (!$external_photos_fixed) {
+            $sql = 'CREATE TABLE `fcms_gallery_external_photo` (
                         `id` INT(11) NOT NULL AUTO_INCREMENT, 
                         `source_id` VARCHAR(255) NOT NULL,
                         `thumbnail` VARCHAR(255) NOT NULL, 
@@ -1581,11 +1496,11 @@ class Upgrade
                         `full` VARCHAR(255) NOT NULL, 
                         PRIMARY KEY (`id`)
                     ) 
-                    ENGINE=InnoDB DEFAULT CHARSET=utf8";
+                    ENGINE=InnoDB DEFAULT CHARSET=utf8';
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1596,27 +1511,24 @@ class Upgrade
         $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r[0] == 'fcms_gallery_photo_comment')
-            {
+        foreach ($rows as $r) {
+            if ($r[0] == 'fcms_gallery_photo_comment') {
                 $photo_com_fixed = true;
             }
         }
 
-        if (!$photo_com_fixed)
-        {
-            $sql = "RENAME TABLE `fcms_gallery_comments` TO `fcms_gallery_photo_comment`";
+        if (!$photo_com_fixed) {
+            $sql = 'RENAME TABLE `fcms_gallery_comments` TO `fcms_gallery_photo_comment`';
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1627,22 +1539,19 @@ class Upgrade
         $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r[0] == 'fcms_gallery_category_comment')
-            {
+        foreach ($rows as $r) {
+            if ($r[0] == 'fcms_gallery_category_comment') {
                 $cat_com_fixed = true;
             }
         }
 
-        if (!$cat_com_fixed)
-        {
+        if (!$cat_com_fixed) {
             $sql = "CREATE TABLE `fcms_gallery_category_comment` (
                         `id` INT(11) NOT NULL AUTO_INCREMENT, 
                         `category_id` INT(11) NOT NULL, 
@@ -1653,9 +1562,9 @@ class Upgrade
                     ) 
                     ENGINE=InnoDB DEFAULT CHARSET=utf8";
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1663,31 +1572,28 @@ class Upgrade
         // instagram automatic
         $instagram_auto_upload_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+        $sql = 'SHOW COLUMNS FROM `fcms_user_settings`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'instagram_auto_upload')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'instagram_auto_upload') {
                 $instagram_auto_upload_fixed = true;
             }
         }
 
-        if (!$instagram_auto_upload_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_user_settings` 
-                    ADD `instagram_auto_upload` TINYINT(1) DEFAULT 0";
+        if (!$instagram_auto_upload_fixed) {
+            $sql = 'ALTER TABLE `fcms_user_settings` 
+                    ADD `instagram_auto_upload` TINYINT(1) DEFAULT 0';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1701,25 +1607,23 @@ class Upgrade
                 LIMIT 1";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $instagram_sched_fixed = true;
         }
 
-        if (!$instagram_sched_fixed)
-        {
+        if (!$instagram_sched_fixed) {
             $sql = "INSERT INTO `fcms_schedule` (`type`, `repeat`)
                     VALUES ('instagram', 'hourly')";
 
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1728,13 +1632,13 @@ class Upgrade
     }
 
     /**
-     * upgrade310
-     * 
+     * upgrade310.
+     *
      * Upgrade database to version 3.1.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade310 ()
+    public function upgrade310()
     {
         global $cfg_mysql_db;
 
@@ -1746,22 +1650,19 @@ class Upgrade
         $sql = "SHOW TABLES FROM `$cfg_mysql_db`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r[0] == 'fcms_poll_comment')
-            {
+        foreach ($rows as $r) {
+            if ($r[0] == 'fcms_poll_comment') {
                 $poll_com_fixed = true;
             }
         }
 
-        if (!$poll_com_fixed)
-        {
+        if (!$poll_com_fixed) {
             $sql = "CREATE TABLE `fcms_poll_comment` (
                         `id` INT(11) NOT NULL AUTO_INCREMENT, 
                         `poll_id` INT(11) NOT NULL, 
@@ -1772,9 +1673,9 @@ class Upgrade
                     ) 
                     ENGINE=InnoDB DEFAULT CHARSET=utf8";
 
-            if (!$this->fcmsDatabase->execute($sql))
-            {
+            if (!$this->fcmsDatabase->execute($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1783,13 +1684,13 @@ class Upgrade
     }
 
     /**
-     * upgrade320
-     * 
+     * upgrade320.
+     *
      * Upgrade database to version 3.2.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade320 ()
+    public function upgrade320()
     {
         $errorMessage = sprintf(T_('Could not upgrade database to version %s.'), '3.2');
 
@@ -1800,25 +1701,23 @@ class Upgrade
                 WHERE `Field` = 'joindate'";
 
         $r = $this->fcmsDatabase->getRow($sql);
-        if ($r === false)
-        {
+        if ($r === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        if ($r['Type'] == 'datetime')
-        {
+        if ($r['Type'] == 'datetime') {
             $joindate_fixed = true;
         }
 
-        if (!$joindate_fixed)
-        {
+        if (!$joindate_fixed) {
             $sql = "ALTER TABLE `fcms_users`
                     CHANGE `joindate` `joindate` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00'";
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1826,31 +1725,28 @@ class Upgrade
         // picasa
         $picasa_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+        $sql = 'SHOW COLUMNS FROM `fcms_user_settings`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'picasa_session_token')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'picasa_session_token') {
                 $picasa_fixed = true;
             }
         }
 
-        if (!$picasa_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_user_settings`
-                    ADD COLUMN `picasa_session_token` VARCHAR(255) NULL";
+        if (!$picasa_fixed) {
+            $sql = 'ALTER TABLE `fcms_user_settings`
+                    ADD COLUMN `picasa_session_token` VARCHAR(255) NULL';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1859,44 +1755,41 @@ class Upgrade
     }
 
     /**
-     * upgrade330
-     * 
+     * upgrade330.
+     *
      * Upgrade database to version 3.3.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade330 ()
+    public function upgrade330()
     {
         $errorMessage = sprintf(T_('Could not upgrade database to version %s.'), '3.3');
 
         // new phpass password style
         $pw_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_users`";
+        $sql = 'SHOW COLUMNS FROM `fcms_users`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'phpass')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'phpass') {
                 $pw_fixed = true;
             }
         }
 
-        if (!$pw_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_users`
-                    ADD COLUMN `phpass` VARCHAR(255) NULL AFTER `password`";
+        if (!$pw_fixed) {
+            $sql = 'ALTER TABLE `fcms_users`
+                    ADD COLUMN `phpass` VARCHAR(255) NULL AFTER `password`';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -1904,39 +1797,35 @@ class Upgrade
         // new login token
         $token_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_users`";
+        $sql = 'SHOW COLUMNS FROM `fcms_users`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'token')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'token') {
                 $token_fixed = true;
             }
         }
 
-        if (!$token_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_users`
-                    ADD COLUMN `token` VARCHAR(255) NULL AFTER `phpass`";
+        if (!$token_fixed) {
+            $sql = 'ALTER TABLE `fcms_users`
+                    ADD COLUMN `token` VARCHAR(255) NULL AFTER `phpass`';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
 
         // We need to upgrade the user's old pw to new pw
-        if (isset($_SESSION['login_pw']))
-        {
-            $hasher         = new PasswordHash(8, FALSE);
+        if (isset($_SESSION['login_pw'])) {
+            $hasher = new PasswordHash(8, false);
             $hashedPassword = $hasher->HashPassword($_SESSION['login_pw']);
 
             $sql = "UPDATE `fcms_users`
@@ -1944,80 +1833,89 @@ class Upgrade
                         `phpass` = ?
                     WHERE `id` = ?";
 
-            $params = array($hashedPassword, (int)$_SESSION['login_id']);
-            if (!$this->fcmsDatabase->update($sql, $params))
-            {
+            $params = [$hashedPassword, (int) $_SESSION['login_id']];
+            if (!$this->fcmsDatabase->update($sql, $params)) {
                 $this->fcmsError->setMessage(T_('Your password could not be upgraded using enhanced security.'));
+
                 return false;
             }
 
             // We need to login the user again using the new security features
-            if (!loginUser((int)$_SESSION['login_id'], 0))
-            {
+            if (!loginUser((int) $_SESSION['login_id'], 0)) {
                 $this->fcmsError->setMessage(T_('You could not be logged in using enhanced security.'));
+
                 return false;
             }
 
             // Now, lets delete the old style login info
-            if (isset($_SESSION['login_id'])) { unset($_SESSION['login_id']); }
-            if (isset($_SESSION['login_uname'])) { unset($_SESSION['login_uname']); }
-            if (isset($_SESSION['login_pw'])) { unset($_SESSION['login_pw']); }
-            if (isset($_COOKIE['fcms_login_id'])) { setcookie('fcms_login_id', '', time() - 3600, '/'); }
-            if (isset($_COOKIE['fcms_login_uname'])) { setcookie('fcms_login_uname', '', time() - 3600, '/'); }
-            if (isset($_COOKIE['fcms_login_pw'])) { setcookie('fcms_login_pw', '', time() - 3600, '/'); }
+            if (isset($_SESSION['login_id'])) {
+                unset($_SESSION['login_id']);
+            }
+            if (isset($_SESSION['login_uname'])) {
+                unset($_SESSION['login_uname']);
+            }
+            if (isset($_SESSION['login_pw'])) {
+                unset($_SESSION['login_pw']);
+            }
+            if (isset($_COOKIE['fcms_login_id'])) {
+                setcookie('fcms_login_id', '', time() - 3600, '/');
+            }
+            if (isset($_COOKIE['fcms_login_uname'])) {
+                setcookie('fcms_login_uname', '', time() - 3600, '/');
+            }
+            if (isset($_COOKIE['fcms_login_pw'])) {
+                setcookie('fcms_login_pw', '', time() - 3600, '/');
+            }
         }
 
         return true;
     }
 
     /**
-     * upgrade340
-     * 
+     * upgrade340.
+     *
      * Upgrade database to version 3.4.0
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade340 ()
+    public function upgrade340()
     {
         $errorMessage = sprintf(T_('Could not upgrade database to version %s.'), '3.4.0');
 
         // uploader type
         $uploader_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+        $sql = 'SHOW COLUMNS FROM `fcms_user_settings`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'uploader')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'uploader') {
                 $uploader_fixed = true;
             }
         }
 
-        if (!$uploader_fixed)
-        {
+        if (!$uploader_fixed) {
             $sql = "ALTER TABLE `fcms_user_settings`
                     ADD COLUMN `uploader` SET('plupload', 'java', 'basic') NOT NULL DEFAULT 'plupload'";
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
-            $sql = "ALTER TABLE `fcms_user_settings`
-                    DROP COLUMN `advanced_upload`";
+            $sql = 'ALTER TABLE `fcms_user_settings`
+                    DROP COLUMN `advanced_upload`';
 
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -2026,13 +1924,13 @@ class Upgrade
     }
 
     /**
-     * upgrade360
-     * 
+     * upgrade360.
+     *
      * Upgrade database to version 3.6.0
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade360 ()
+    public function upgrade360()
     {
         $errorMessage = sprintf(T_('Could not upgrade database to version %s.'), '3.6.0');
 
@@ -2042,25 +1940,23 @@ class Upgrade
         $sql = "SELECT `name` FROM `fcms_config` WHERE `name` = 'google_client_id'";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $google_id_fixed = true;
         }
 
-        if (!$google_id_fixed)
-        {
+        if (!$google_id_fixed) {
             $sql = "INSERT INTO `fcms_config` (`name`, `value`)
                     VALUES ('google_client_id', NULL)";
 
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -2071,25 +1967,23 @@ class Upgrade
         $sql = "SELECT `name` FROM `fcms_config` WHERE `name` = 'google_client_secret'";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $google_secret_fixed = true;
         }
 
-        if (!$google_secret_fixed)
-        {
+        if (!$google_secret_fixed) {
             $sql = "INSERT INTO `fcms_config` (`name`, `value`)
                     VALUES ('google_client_secret', NULL)";
 
-            if (!$this->fcmsDatabase->insert($sql))
-            {
+            if (!$this->fcmsDatabase->insert($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -2098,60 +1992,54 @@ class Upgrade
         $google_user_fixed = false;
         $youtube_user_exists = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+        $sql = 'SHOW COLUMNS FROM `fcms_user_settings`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'google_session_token')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'google_session_token') {
                 $google_user_fixed = true;
             }
-            if ($r['Field'] == 'youtube_session_token')
-            {
+            if ($r['Field'] == 'youtube_session_token') {
                 $youtube_user_exists = true;
             }
         }
 
-        if (!$google_user_fixed)
-        {
+        if (!$google_user_fixed) {
             // change youtube column to google
-            if ($youtube_user_exists)
-            {
-                $sql = "ALTER TABLE `fcms_user_settings`
-                        CHANGE COLUMN `youtube_session_token` `google_session_token` VARCHAR(255) NULL";
+            if ($youtube_user_exists) {
+                $sql = 'ALTER TABLE `fcms_user_settings`
+                        CHANGE COLUMN `youtube_session_token` `google_session_token` VARCHAR(255) NULL';
 
-                if (!$this->fcmsDatabase->alter($sql))
-                {
+                if (!$this->fcmsDatabase->alter($sql)) {
                     $this->fcmsError->setMessage($errorMessage);
+
                     return false;
                 }
 
                 // Set all existing youtube session to null
-                $sql = "UPDATE `fcms_user_settings`
-                        SET `google_session_token` = NULL";
+                $sql = 'UPDATE `fcms_user_settings`
+                        SET `google_session_token` = NULL';
 
-                if (!$this->fcmsDatabase->update($sql))
-                {
+                if (!$this->fcmsDatabase->update($sql)) {
                     $this->fcmsError->setMessage($errorMessage);
+
                     return false;
                 }
             }
             // create new column for google
-            else
-            {
-                $sql = "ALTER TABLE `fcms_user_settings`
-                        ADD COLUMN `google_session_token` VARCHAR(255) NULL";
+            else {
+                $sql = 'ALTER TABLE `fcms_user_settings`
+                        ADD COLUMN `google_session_token` VARCHAR(255) NULL';
 
-                if (!$this->fcmsDatabase->alter($sql))
-                {
+                if (!$this->fcmsDatabase->alter($sql)) {
                     $this->fcmsError->setMessage($errorMessage);
+
                     return false;
                 }
             }
@@ -2163,59 +2051,54 @@ class Upgrade
         $sql = "SELECT `link` FROM `fcms_navigation` WHERE `link` = 'admin_google'";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $google_nav_fixed = true;
         }
 
-        if (!$google_nav_fixed)
-        {
+        if (!$google_nav_fixed) {
             // changing youtube to google?
             $change_youtube = false;
 
             $sql = "SELECT `link` FROM `fcms_navigation` WHERE `link` = 'admin_youtube'";
 
             $row = $this->fcmsDatabase->getRow($sql);
-            if ($row === false)
-            {
+            if ($row === false) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
 
-            if (!empty($row))
-            {
+            if (!empty($row)) {
                 $change_youtube = true;
             }
 
-            if ($change_youtube)
-            {
+            if ($change_youtube) {
                 $sql = "UPDATE `fcms_navigation`
                         SET `link` = 'admin_google'
                         WHERE `link` = 'admin_youtube'";
 
-                if (!$this->fcmsDatabase->update($sql))
-                {
+                if (!$this->fcmsDatabase->update($sql)) {
                     $this->fcmsError->setMessage($errorMessage);
+
                     return false;
                 }
             }
             // new google
-            else
-            {
+            else {
                 $adminOrder = getNextAdminNavigationOrder();
 
                 $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
                         VALUES ('admin_google', 6, ?, 1)";
 
-                if (!$this->fcmsDatabase->insert($sql, $adminOrder))
-                {
+                if (!$this->fcmsDatabase->insert($sql, $adminOrder)) {
                     $this->fcmsError->setMessage($errorMessage);
+
                     return false;
                 }
             }
@@ -2224,29 +2107,26 @@ class Upgrade
         // facebook user id
         $facebook_user_id_fixed = false;
 
-        $sql = "SHOW COLUMNS FROM `fcms_user_settings`";
+        $sql = 'SHOW COLUMNS FROM `fcms_user_settings`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
 
-        foreach ($rows as $r)
-        {
-            if ($r['Field'] == 'fb_user_id')
-            {
+        foreach ($rows as $r) {
+            if ($r['Field'] == 'fb_user_id') {
                 $facebook_user_id_fixed = true;
             }
         }
 
-        if (!$facebook_user_id_fixed)
-        {
-            $sql = "ALTER TABLE `fcms_user_settings` ADD `fb_user_id` VARCHAR(255) NULL";
-            if (!$this->fcmsDatabase->alter($sql))
-            {
+        if (!$facebook_user_id_fixed) {
+            $sql = 'ALTER TABLE `fcms_user_settings` ADD `fb_user_id` VARCHAR(255) NULL';
+            if (!$this->fcmsDatabase->alter($sql)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }
@@ -2255,13 +2135,13 @@ class Upgrade
     }
 
     /**
-     * upgrade370
-     * 
+     * upgrade370.
+     *
      * Upgrade database to version 3.7.0
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function upgrade370 ()
+    public function upgrade370()
     {
         $errorMessage = sprintf(T_('Could not upgrade database to version %s.'), '3.7.0');
 
@@ -2274,26 +2154,24 @@ class Upgrade
                 LIMIT 1";
 
         $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->setMessage($errorMessage);
+
             return false;
         }
-        if (!empty($row))
-        {
+        if (!empty($row)) {
             $debug_fixed = true;
         }
 
-        if (!$debug_fixed)
-        {
+        if (!$debug_fixed) {
             $adminOrder = getNextAdminNavigationOrder();
 
             $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
                     VALUES ('admin_debug', 6, ?, 0)";
 
-            if (!$this->fcmsDatabase->insert($sql, $adminOrder))
-            {
+            if (!$this->fcmsDatabase->insert($sql, $adminOrder)) {
                 $this->fcmsError->setMessage($errorMessage);
+
                 return false;
             }
         }

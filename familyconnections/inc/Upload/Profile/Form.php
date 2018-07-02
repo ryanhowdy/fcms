@@ -1,11 +1,9 @@
 <?php
 /**
- * Basic Form
- * 
- * @package Upload
- * @subpackage UploadProfile
+ * Basic Form.
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class UploadProfileForm
@@ -14,38 +12,37 @@ class UploadProfileForm
     protected $data;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
-   }
+        $this->fcmsUser = $fcmsUser;
+    }
 
     /**
-     * display 
-     * 
+     * display.
+     *
      * @return void
      */
-    public function display ()
+    public function display()
     {
         $this->setAvatarTypes();
 
-        if (!$this->getAvatarData())
-        {
+        if (!$this->getAvatarData()) {
             $this->fcmsError->displayError();
+
             return;
         }
 
         $avatarOptions = buildHtmlSelectOptions($this->avatarTypes, $this->data['currentAvatarType']);
-
 
         echo '
                 <form id="frm" name="frm" enctype="multipart/form-data" action="profile.php?view=picture" method="post">
@@ -102,11 +99,11 @@ class UploadProfileForm
     }
 
     /**
-     * displayUploadArea 
-     * 
+     * displayUploadArea.
+     *
      * @return void
      */
-    protected function displayUploadArea ()
+    protected function displayUploadArea()
     {
         echo '
                             <div class="field-label">&nbsp;</div>
@@ -117,52 +114,47 @@ class UploadProfileForm
     }
 
     /**
-     * setAvatarTypes 
-     * 
+     * setAvatarTypes.
+     *
      * @return void
      */
-    protected function setAvatarTypes ()
+    protected function setAvatarTypes()
     {
-        $this->avatarTypes  = array(
+        $this->avatarTypes = [
             'fcms'      => T_('Upload Avatar'),
             'gravatar'  => T_('Use Gravatar'),
-            'default'   => T_('Use Default')
-        );
+            'default'   => T_('Use Default'),
+        ];
     }
 
     /**
-     * getAvatarData 
-     * 
+     * getAvatarData.
+     *
      * Sets the data property
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    protected function getAvatarData ()
+    protected function getAvatarData()
     {
-        $sql = "SELECT `avatar`, `gravatar`, `email`
+        $sql = 'SELECT `avatar`, `gravatar`, `email`
                 FROM `fcms_users`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $row = $this->fcmsDatabase->getRow($sql, $this->fcmsUser->id);
-        if ($row === false)
-        {
-            return false;;
+        if ($row === false) {
+            return false;
         }
 
         // Default the Gravatar email to user's current email
-        if (empty($row['gravatar']))
-        {
+        if (empty($row['gravatar'])) {
             $row['gravatar'] = $row['email'];
         }
 
         $row['currentAvatarType'] = 'upload';
 
-        if ($row['avatar'] == 'no_avatar.jpg')
-        {
+        if ($row['avatar'] == 'no_avatar.jpg') {
             $row['currentAvatarType'] = 'default';
-        }
-        else if ($row['avatar'] == 'gravatar')
-        {
+        } elseif ($row['avatar'] == 'gravatar') {
             $row['currentAvatarType'] = 'gravatar';
         }
 

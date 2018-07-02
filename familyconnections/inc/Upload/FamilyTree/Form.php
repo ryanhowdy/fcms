@@ -1,11 +1,9 @@
 <?php
 /**
- * Basic Form
- * 
- * @package Upload
- * @subpackage UploadFamilyTree
+ * Basic Form.
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class UploadFamilyTreeForm
@@ -14,39 +12,39 @@ class UploadFamilyTreeForm
     protected $data;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
-   }
+        $this->fcmsUser = $fcmsUser;
+    }
 
     /**
-     * display 
-     * 
+     * display.
+     *
      * @return void
      */
-    public function display ()
+    public function display()
     {
-        $id = (int)$_GET['avatar'];
+        $id = (int) $_GET['avatar'];
 
         // Get user info
-        $sql = "SELECT `id`, `fname`, `lname`, `maiden`, `avatar`, `gravatar`
+        $sql = 'SELECT `id`, `fname`, `lname`, `maiden`, `avatar`, `gravatar`
                 FROM `fcms_users`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $row = $this->fcmsDatabase->getRow($sql, $id);
-        if ($row === false)
-        {
+        if ($row === false) {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -76,11 +74,11 @@ class UploadFamilyTreeForm
     }
 
     /**
-     * displayUploadArea 
-     * 
+     * displayUploadArea.
+     *
      * @return void
      */
-    protected function displayUploadArea ()
+    protected function displayUploadArea()
     {
         echo '
                         <div class="field-row">

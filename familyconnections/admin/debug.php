@@ -1,14 +1,15 @@
 <?php
 /**
- * Debug
- * 
+ * Debug.
+ *
  * PHP version 5
  *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2015 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -33,45 +34,43 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
 
-        $this->fcmsTemplate = array(
+        $this->fcmsTemplate = [
             'sitename'      => getSiteName(),
             'nav-link'      => getAdminNavLinks(),
             'pagetitle'     => T_('Administration: Debug'),
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
-        if ($this->fcmsUser->access > 1)
-        {
+        if ($this->fcmsUser->access > 1) {
             $this->displayInvalidAccessLevel();
+
             return;
-        }
-        else
-        {
+        } else {
             $this->displayHeader();
             $this->displayDebug();
             $this->displayFooter();
@@ -79,11 +78,11 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -98,11 +97,11 @@ class Page
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -113,13 +112,13 @@ class Page
     }
 
     /**
-     * displayInvalidAccessLevel 
-     * 
+     * displayInvalidAccessLevel.
+     *
      * Display an error message for users who do not have admin access.
-     * 
+     *
      * @return void
      */
-    function displayInvalidAccessLevel ()
+    public function displayInvalidAccessLevel()
     {
         $this->displayHeader();
 
@@ -134,59 +133,57 @@ class Page
     }
 
     /**
-     * displayDebug
-     * 
+     * displayDebug.
+     *
      * @return void
      */
-    function displayDebug ()
+    public function displayDebug()
     {
         global $cfg_mysql_host, $cfg_mysql_db, $cfg_mysql_user;
 
         $this->displayHeader();
 
         // Get Config data
-        $config = array();
+        $config = [];
 
-        $sql = "SELECT `name`, `value`
-                FROM `fcms_config`";
+        $sql = 'SELECT `name`, `value`
+                FROM `fcms_config`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        foreach ($rows as $r)
-        {
+        foreach ($rows as $r) {
             $config[$r['name']] = $r['value'];
         }
 
         // Get Plugin data
-        $disabledPlugins = array();
+        $disabledPlugins = [];
 
-        $sql = "SELECT `id`, `link`, `col`, `order`, `req`
+        $sql = 'SELECT `id`, `link`, `col`, `order`, `req`
                 FROM `fcms_navigation` 
                 WHERE (`col` = 3 OR `col` = 4)
-                AND `order` = 0";
+                AND `order` = 0';
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        foreach ($rows as $r)
-        {
+        foreach ($rows as $r) {
             $disabledPlugins[] = getPluginName($r['link']);
         }
 
         // Get MySQL attributes
         $mysqlVersion = $this->fcmsDatabase->getAttribute('PDO::ATTR_SERVER_VERSION');
-        $mysqlClient  = $this->fcmsDatabase->getAttribute('PDO::ATTR_CLIENT_VERSION');
+        $mysqlClient = $this->fcmsDatabase->getAttribute('PDO::ATTR_CLIENT_VERSION');
 
         echo '
             <ul class="tabs" data-tabs="tabs">

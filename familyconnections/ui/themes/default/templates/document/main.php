@@ -1,6 +1,6 @@
 
     <?php if (isset($TMPL['pageNavigation'])): ?>
-        <?php require_once(TEMPLATES.'global/page-navigation.php'); ?>
+        <?php require_once TEMPLATES.'global/page-navigation.php'; ?>
     <?php endif; ?>
 
     <?php if (isset($TMPL['documents'])): ?>

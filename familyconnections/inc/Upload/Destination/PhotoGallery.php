@@ -1,54 +1,51 @@
 <?php
 /**
- * PhotoGallery Destination 
- * 
+ * PhotoGallery Destination.
+ *
  * Saves photos to the local uploads directory.
  *  - uploads/photos/memberX/
- * 
- * @package Destination
- * @subpackage PhotoGallery
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class PhotoGalleryDestination extends Destination
 {
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
-        $this->fcmsUser     = $fcmsUser;
-        $this->relativePath = URL_PREFIX . 'uploads/photos/';
-        $this->absolutePath = ROOT       . 'uploads/photos/';
+        $this->fcmsError = $fcmsError;
+        $this->fcmsUser = $fcmsUser;
+        $this->relativePath = URL_PREFIX.'uploads/photos/';
+        $this->absolutePath = ROOT.'uploads/photos/';
 
-        $this->destinationPath = $this->absolutePath.'member'.(int)$this->fcmsUser->id.'/';
+        $this->destinationPath = $this->absolutePath.'member'.(int) $this->fcmsUser->id.'/';
     }
 
     /**
-     * getPhotoPaths 
-     * 
-     * @param string $fileName 
-     * @param string $uid 
-     * 
+     * getPhotoPaths.
+     *
+     * @param string $fileName
+     * @param string $uid
+     *
      * @return array
      */
-    public function getPhotoPaths ($fileName, $uid)
+    public function getPhotoPaths($fileName, $uid)
     {
         $fileName = basename($fileName);
-        $uid      = (int)$uid;
+        $uid = (int) $uid;
 
         $photoPath[0] = $this->absolutePath."member$uid/$fileName";
         $photoPath[1] = $this->absolutePath."member$uid/$fileName";
 
-        if (usingFullSizePhotos())
-        {
+        if (usingFullSizePhotos()) {
             $photoPath[1] = $this->absolutePath."member$uid/full_$fileName";
         }
 
@@ -56,35 +53,31 @@ class PhotoGalleryDestination extends Destination
     }
 
     /**
-     * getPhotoSource 
-     * 
-     * @param array  $data 
-     * @param string $size 
-     * 
+     * getPhotoSource.
+     *
+     * @param array  $data
+     * @param string $size
+     *
      * @return string
      */
-    public function getPhotoSource ($data, $size = 'thumbnail')
+    public function getPhotoSource($data, $size = 'thumbnail')
     {
         $prefix = '';
-        if ($size == 'thumbnail')
-        {
+        if ($size == 'thumbnail') {
             $prefix = 'tb_';
-        }
-        elseif ($size == 'full')
-        {
+        } elseif ($size == 'full') {
             $prefix = 'full_';
         }
 
-        $path = $this->relativePath.'member'.(int)$data['user'].'/';
+        $path = $this->relativePath.'member'.(int) $data['user'].'/';
 
         $photoSrc = $path.$prefix.basename($data['filename']);
 
-        // XXX: we may have uploaded this photo before we 
+        // XXX: we may have uploaded this photo before we
         // starting using full sized photos, so this full
         // sized photo may not exist.
         // Give them main size instead
-        if ($size == 'full' && !file_exists($photoSrc))
-        {
+        if ($size == 'full' && !file_exists($photoSrc)) {
             $photoSrc = $path.basename($data['filename']);
         }
 

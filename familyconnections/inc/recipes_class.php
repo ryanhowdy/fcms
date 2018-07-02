@@ -1,50 +1,49 @@
 <?php
 /**
- * Recipes 
- * 
- * @package     Family Connections
+ * Recipes.
+ *
  * @copyright   Copyright (c) 2010 Haudenschilt LLC
- * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
 class Recipes
 {
-    var $fcmsError;
-    var $fcmsDatabase;
-    var $fcmsUser;
+    public $fcmsError;
+    public $fcmsDatabase;
+    public $fcmsUser;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
      * @param Database   $fcmsDatabase
-     * @param User       $fcmsUser 
-     * 
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
     }
 
     /**
-     * showRecipes 
-     * 
-     * Displays a list of the current categories with recipe counts, and 
+     * showRecipes.
+     *
+     * Displays a list of the current categories with recipe counts, and
      * the last added recipe.
      *
-     * @param   int     $page 
-     * @return  void
+     * @param int $page
+     *
+     * @return void
      */
-    function showRecipes ($page = 1)
+    public function showRecipes($page = 1)
     {
-        $page = (int)$page;
+        $page = (int) $page;
         $from = (($page * 5) - 5);
 
-        if ($this->fcmsUser->access <= 5)
-        {
+        if ($this->fcmsUser->access <= 5) {
             echo '
             <div id="actions_menu">
                 <ul><li><a class="add" href="?addrecipe=yes">'.T_('Add Recipe').'</a></li></ul>
@@ -61,6 +60,7 @@ class Recipes
                 <h3>'.T_('Currently no one has added any recipes').'</h3>
                 <h3><a href="?addrecipe=yes">'.T_('Why don\'t you share a recipe now?').'</a></h3>
             </div>';
+
             return;
         }
 
@@ -74,15 +74,13 @@ class Recipes
                 LIMIT $from, 5";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
 
             return;
         }
 
-        if (count($rows) <= 0)
-        {
+        if (count($rows) <= 0) {
             echo '
             <div class="info-alert">
                 <p><i>'.T_('Currently no one has added any recipes.').'</i></p>
@@ -94,8 +92,7 @@ class Recipes
 
         $path = 'uploads/upimages/';
 
-        if (defined('UPLOADS'))
-        {
+        if (defined('UPLOADS')) {
             $path = 'file.php?u=';
         }
 
@@ -103,14 +100,13 @@ class Recipes
                 <h2>'.T_('Latest Recipes').'</h2>
                 <ul id="recipe-list">';
 
-        foreach ($rows as $r)
-        {
+        foreach ($rows as $r) {
             $since = getHumanTimeSince(strtotime($r['date']));
 
             echo '
                     <li>
-                        <a href="?category=' . (int)$r['category'] . '&amp;id=' . (int)$r['id'] . '">
-                            <span>' . T_('Click to view recipe') . '</span>
+                        <a href="?category='.(int) $r['category'].'&amp;id='.(int) $r['id'].'">
+                            <span>'.T_('Click to view recipe').'</span>
                             <img src="'.URL_PREFIX.$path.basename($r['thumbnail']).'"/>
                             <b>'.cleanOutput($r['name']).'</b>
                             <i>'.$since.'</i>
@@ -124,12 +120,11 @@ class Recipes
             </div>';
 
         // Display Pagination
-        $sql = "SELECT count(`id`) AS c 
-                FROM `fcms_recipes`";
+        $sql = 'SELECT count(`id`) AS c 
+                FROM `fcms_recipes`';
 
         $r = $this->fcmsDatabase->getRow($sql);
-        if ($r === false)
-        {
+        if ($r === false) {
             $this->fcmsError->displayError();
 
             return;
@@ -142,18 +137,19 @@ class Recipes
     }
 
     /**
-     * showRecipeInCategory 
+     * showRecipeInCategory.
      *
      * Displays up to 5 recipes for the given category and page.
-     * 
-     * @param   int     $cat 
-     * @param   int     $page 
-     * @return  void
+     *
+     * @param int $cat
+     * @param int $page
+     *
+     * @return void
      */
-    function showRecipeInCategory ($cat, $page = 1)
+    public function showRecipeInCategory($cat, $page = 1)
     {
-        $cat  = (int)$cat;
-        $page = (int)$page;
+        $cat = (int) $cat;
+        $page = (int) $page;
         $from = (($page * 5) - 5);
 
         // Display Menu
@@ -162,8 +158,7 @@ class Recipes
                 <ul>
                     <li><a href="recipes.php">'.T_('Recipe Categories').'</a></li>';
 
-        if ($this->fcmsUser->access <= 5)
-        {
+        if ($this->fcmsUser->access <= 5) {
             echo '
                 </ul>
             </div>
@@ -182,7 +177,6 @@ class Recipes
         echo '
             <div id="maincolumn">';
 
-
         // Get Recipes for this category
         $sql = "SELECT r.`id`, r.`name`, r.`category`, r.`thumbnail`, c.`name` AS category_name, r.`user`, r.`date`
                 FROM `fcms_recipes` AS r, `fcms_category` AS c
@@ -192,8 +186,7 @@ class Recipes
                 LIMIT $from, 5";
 
         $rows = $this->fcmsDatabase->getRows($sql, $cat);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
 
             return;
@@ -202,24 +195,20 @@ class Recipes
         $categoryName = '';
 
         // Display Recipes
-        if (count($rows) > 0)
-        {
+        if (count($rows) > 0) {
             $displayed_category = false;
 
             $path = 'uploads/upimages/';
 
-            if (defined('UPLOADS'))
-            {
+            if (defined('UPLOADS')) {
                 $path = 'file.php?u=';
             }
 
-            foreach ($rows as $r)
-            {
+            foreach ($rows as $r) {
                 // Category
-                if (!$displayed_category)
-                {
+                if (!$displayed_category) {
                     $displayed_category = true;
-                    $categoryName       = cleanOutput($r['category_name']);
+                    $categoryName = cleanOutput($r['category_name']);
 
                     echo '
             <h2>'.$categoryName.'</h2>
@@ -230,7 +219,7 @@ class Recipes
 
                 echo '
                 <li>
-                    <a href="?category='.$cat.'&amp;id='.(int)$r['id'].'">
+                    <a href="?category='.$cat.'&amp;id='.(int) $r['id'].'">
                         <span>'.T_('Click to view recipe').'</span>
                         <img src="'.URL_PREFIX.$path.basename($r['thumbnail']).'"/>
                         <b>'.cleanOutput($r['name']).'</b>
@@ -243,13 +232,12 @@ class Recipes
             </ul>';
 
             // Display Pagination
-            $sql = "SELECT count(`id`) AS c 
+            $sql = 'SELECT count(`id`) AS c 
                     FROM `fcms_recipes` 
-                    WHERE `category` = ?";
+                    WHERE `category` = ?';
 
             $r = $this->fcmsDatabase->getRow($sql, $cat);
-            if ($r === false)
-            {
+            if ($r === false) {
                 $this->fcmsError->displayError();
 
                 return;
@@ -261,9 +249,7 @@ class Recipes
             displayPagination('recipes.php?category='.$cat, $page, $total_pages);
 
         // No recipes for this category
-        }
-        else
-        {
+        } else {
             echo '
             <div class="info-alert">
                 <h2>'.$categoryName.'</h2>
@@ -277,18 +263,19 @@ class Recipes
     }
 
     /**
-     * showRecipe
+     * showRecipe.
      *
-     * Display a single recipe.  Display options for editing/deleting. 
-     * 
-     * @param   int     $cat 
-     * @param   int     $id 
-     * @return  void
+     * Display a single recipe.  Display options for editing/deleting.
+     *
+     * @param int $cat
+     * @param int $id
+     *
+     * @return void
      */
-    function showRecipe ($cat, $id)
+    public function showRecipe($cat, $id)
     {
-        $cat = (int)$cat;
-        $id  = (int)$id;
+        $cat = (int) $cat;
+        $id = (int) $id;
 
         // Display Menu
         echo '
@@ -320,9 +307,8 @@ class Recipes
                 AND r.`category` = c.`id`
                 LIMIT 1";
 
-        $r = $this->fcmsDatabase->getRow($sql, array($id, $cat));
-        if ($r === false)
-        {
+        $r = $this->fcmsDatabase->getRow($sql, [$id, $cat]);
+        if ($r === false) {
             $this->fcmsError->displayError();
 
             return;
@@ -331,25 +317,24 @@ class Recipes
         // Invalid id/category
         if (empty($r)) {
             echo '
-            <div class="error-alert">' . T_('Recipe does not exist.') . '</div>';
+            <div class="error-alert">'.T_('Recipe does not exist.').'</div>';
 
             return;
         }
 
         $displayname = getUserDisplayName($r['user']);
         $displayname = '<a href="profile.php?member='.$r['user'].'">'.$displayname.'</a>';
-        $date        = fixDate(T_('F j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
+        $date = fixDate(T_('F j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
 
-        $cleanName        = cleanOutput($r['name']);
-        $cleanCategory    = (int)$r['category'];
-        $cleanThumb       = basename($r['thumbnail']);
+        $cleanName = cleanOutput($r['name']);
+        $cleanCategory = (int) $r['category'];
+        $cleanThumb = basename($r['thumbnail']);
         $cleanIngredients = cleanOutput($r['ingredients']);
-        $cleanDirections  = cleanOutput($r['directions']);
+        $cleanDirections = cleanOutput($r['directions']);
 
         $path = 'uploads/upimages/';
 
-        if (defined('UPLOADS'))
-        {
+        if (defined('UPLOADS')) {
             $path = 'file.php?u=';
         }
 
@@ -361,12 +346,11 @@ class Recipes
                 <span class="date">
                     '.sprintf(T_('Submitted by %s on %s.'), $displayname, $date);
 
-        if ($this->fcmsUser->id == $r['user'] || $this->fcmsUser->access < 2)
-        {
+        if ($this->fcmsUser->id == $r['user'] || $this->fcmsUser->access < 2) {
             echo ' &nbsp;
                     <form method="post" action="recipes.php">
                         <div>
-                            <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
+                            <input type="hidden" name="id" value="'.(int) $r['id'].'"/>
                             <input type="hidden" name="name" value="'.$cleanName.'"/>
                             <input type="hidden" name="thumbnail" value="'.$cleanThumb.'"/>
                             <input type="hidden" name="category" value="'.$cleanCategory.'"/>
@@ -377,7 +361,7 @@ class Recipes
                     </form> &nbsp;
                     <form class="delrec" method="post" action="recipes.php">
                         <div>
-                            <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
+                            <input type="hidden" name="id" value="'.(int) $r['id'].'"/>
                             <input type="submit" name="delrecipe" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Recipe').'"/>
                         </div>
                     </form>';
@@ -402,23 +386,24 @@ class Recipes
     }
 
     /**
-     * displayAddRecipeForm 
-     * 
+     * displayAddRecipeForm.
+     *
      * Displays the form for adding a recipe.
      *
-     * @param   int     $category 
-     * @return  void
+     * @param int $category
+     *
+     * @return void
      */
-    function displayAddRecipeForm ($category = 0)
+    public function displayAddRecipeForm($category = 0)
     {
         $categories = $this->getCategoryList();
 
-        if (count($categories) <= 0)
-        {
+        if (count($categories) <= 0) {
             echo '
             <p class="info-alert">'.T_('You need to create a category before you add a recipe.').'</p>';
 
             $this->displayAddCategoryForm();
+
             return;
         }
 
@@ -446,9 +431,9 @@ class Recipes
                         <label for="category">'.T_('Category').'</label>
                         <select name="category" id="category">
                             <option></option>
-                            ' . buildHtmlSelectOptions($categories, $category) . '
+                            '.buildHtmlSelectOptions($categories, $category).'
                         </select>&nbsp;
-                        <a href="?add=category">' . T_('New Category') . '</a>
+                        <a href="?add=category">'.T_('New Category').'</a>
                         <script type="text/javascript">
                             var fcategory = new LiveValidation(\'category\', { onlyOnSubmit: true });
                             fcategory.add(Validate.Presence, {failureMessage: ""});
@@ -482,27 +467,26 @@ class Recipes
     }
 
     /**
-     * displayEditRecipeForm 
-     * 
+     * displayEditRecipeForm.
+     *
      * Displays the form for editing a recipe.
      *
-     * @param int    $id 
-     * @param string $name 
+     * @param int    $id
+     * @param string $name
      * @param string $thumbnail
-     * @param string $category 
-     * @param string $ingredients 
+     * @param string $category
+     * @param string $ingredients
      * @param string $directions
      *
-     * @return  void
+     * @return void
      */
-    function displayEditRecipeForm ($id, $name, $thumbnail, $category, $ingredients, $directions)
+    public function displayEditRecipeForm($id, $name, $thumbnail, $category, $ingredients, $directions)
     {
         $categories = $this->getCategoryList();
 
         $path = 'uploads/upimages/';
 
-        if (defined('UPLOADS'))
-        {
+        if (defined('UPLOADS')) {
             $path = 'file.php?u=';
         }
 
@@ -527,7 +511,7 @@ class Recipes
                     <div>
                         <label for="category">'.T_('Category').'</label>
                         <select name="category">
-                            ' . buildHtmlSelectOptions($categories, $category) . '
+                            '.buildHtmlSelectOptions($categories, $category).'
                         </select>
                     </div>
                     <div>
@@ -547,20 +531,20 @@ class Recipes
                         </script>
                     </div>
                     <p>
-                        <input type="hidden" name="id" value="'.(int)$id.'"/>
-                        <input class="sub1" type="submit" name="submitedit" value="' . T_('Edit') . '"/> &nbsp;
-                        <a href="recipes.php">' . T_('Cancel') . '</a>
+                        <input type="hidden" name="id" value="'.(int) $id.'"/>
+                        <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'"/> &nbsp;
+                        <a href="recipes.php">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>';
     }
 
     /**
-     * displayAddCategoryForm 
-     * 
+     * displayAddCategoryForm.
+     *
      * @return void
      */
-    function displayAddCategoryForm ()
+    public function displayAddCategoryForm()
     {
         echo '
             <script type="text/javascript" src="inc/livevalidation.js"></script>
@@ -576,39 +560,38 @@ class Recipes
                         fname.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <p>
-                        <input class="sub1" type="submit" name="submit-category" value="' . T_('Create') . '"/> &nbsp;
-                        <a href="recipes.php?addrecipe=yes">' . T_('Cancel') . '</a>
+                        <input class="sub1" type="submit" name="submit-category" value="'.T_('Create').'"/> &nbsp;
+                        <a href="recipes.php?addrecipe=yes">'.T_('Cancel').'</a>
                     </p>
                 </fieldset>
             </form>';
     }
 
     /**
-     * getCategoryList
+     * getCategoryList.
      *
-     * Returns an array of the current Recipe Categories. 
-     * 
+     * Returns an array of the current Recipe Categories.
+     *
      * @return array
      */
-    function getCategoryList ()
+    public function getCategoryList()
     {
-        $categories = array();
+        $categories = [];
 
         // Get Recipes for this category
         $sql = "SELECT `id`, `name` 
                 FROM `fcms_category` 
                 WHERE `type` = 'recipe' 
-                ORDER BY `name`"; 
+                ORDER BY `name`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
+
             return $categories;
         }
 
-        foreach ($rows as $r)
-        {
+        foreach ($rows as $r) {
             $categories[$r['id']] = cleanOutput($r['name']);
         }
 
@@ -616,13 +599,13 @@ class Recipes
     }
 
     /**
-     * showCategoryMenu 
-     * 
+     * showCategoryMenu.
+     *
      * Displays the left side category menu. Returns true if categories exist.
      *
-     * @return  boolean
+     * @return bool
      */
-    function showCategoryMenu ()
+    public function showCategoryMenu()
     {
         $sql = "SELECT 'cat' AS type, `id`, `name`
                 FROM `fcms_category`
@@ -636,52 +619,43 @@ class Recipes
                 ORDER BY `name`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
 
             return false;
         }
 
-        if (count($rows) <= 0)
-        {
+        if (count($rows) <= 0) {
             return false;
         }
 
-        $categories = array();
-        $counts     = array();
+        $categories = [];
+        $counts = [];
 
-        foreach ($rows as $r)
-        {
-            if ($r['type'] == 'cat')
-            {
+        foreach ($rows as $r) {
+            if ($r['type'] == 'cat') {
                 $categories[$r['id']] = cleanOutput($r['name']);
-            }
-            else
-            {
+            } else {
                 $counts[$r['id']] = cleanOutput($r['name']);
             }
         }
 
         echo '
             <div id="leftcolumn">
-                <h3>' . T_('Recipe Categories') . '</h3>
+                <h3>'.T_('Recipe Categories').'</h3>
                 <ul class="menu">';
 
-
-        foreach ($categories as $id => $name)
-        {
+        foreach ($categories as $id => $name) {
             echo '
-                    <li><a href="?category=' . (int)$id . '">' . $name . '<span>(' . (int)$counts[$id] . ')</span></a></li>';
+                    <li><a href="?category='.(int) $id.'">'.$name.'<span>('.(int) $counts[$id].')</span></a></li>';
         }
 
         echo '
                 </ul>';
 
-        if ($this->fcmsUser->access <= 2)
-        {
+        if ($this->fcmsUser->access <= 2) {
             echo '<br/>
-                <h3>' . T_('Admin Options') . '</h3>
+                <h3>'.T_('Admin Options').'</h3>
                 <ul class="menu">
                     <li><a href="?categoryedit=1">'.T_('Edit Categories').'</a></li>
                 </ul>';
@@ -694,18 +668,19 @@ class Recipes
     }
 
     /**
-     * showComments 
-     * 
+     * showComments.
+     *
      * Show the comments for the given recipe.
-     * 
-     * @param   int     $id 
-     * @param   int     $category 
-     * @return  void
+     *
+     * @param int $id
+     * @param int $category
+     *
+     * @return void
      */
-    function showComments ($id, $category)
+    public function showComments($id, $category)
     {
-        $id       = (int)$id;
-        $category = (int)$category;
+        $id = (int) $id;
+        $category = (int) $category;
 
         $sql = "SELECT rc.`id`, rc.`recipe`, rc.`comment`, rc.`date`, rc.`user`, u.`avatar` 
                 FROM `fcms_recipe_comment` AS rc, `fcms_users` AS u 
@@ -714,26 +689,23 @@ class Recipes
                 ORDER BY `date`";
 
         $rows = $this->fcmsDatabase->getRows($sql, $id);
-        if ($rows === false)
-        {
+        if ($rows === false) {
             $this->fcmsError->displayError();
 
             return;
         }
 
         // Display current comments
-        if (count($rows) >= 0)
-        {
-            foreach ($rows as $r)
-            {
+        if (count($rows) >= 0) {
+            foreach ($rows as $r) {
                 $del_comment = '';
                 $date = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $r['date']);
                 $displayname = getUserDisplayName($r['user']);
                 $comment = $r['comment'];
                 if ($this->fcmsUser->id == $r['user'] || $this->fcmsUser->access < 2) {
                     $del_comment .= '<input type="submit" name="delcom" id="delcom" '
-                        . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
-                        . T_('Delete this Comment') . '"/>';
+                        .'value="'.T_('Delete').'" class="gal_delcombtn" title="'
+                        .T_('Delete this Comment').'"/>';
                 }
 
                 echo '
@@ -768,11 +740,11 @@ class Recipes
     }
 
     /**
-     * displayEditCategoryForm 
-     * 
+     * displayEditCategoryForm.
+     *
      * @return void
      */
-    function displayEditCategoryForm ()
+    public function displayEditCategoryForm()
     {
         $categories = $this->getCategoryList();
 
@@ -794,8 +766,7 @@ class Recipes
                     </thead>
                     <tbody>';
 
-        foreach ($categories as $id => $category)
-        {
+        foreach ($categories as $id => $category) {
             echo '
                         <tr>
                             <td>'.$id.'</td>
@@ -817,10 +788,9 @@ class Recipes
                     </tbody>
                 </table>
                 <p>
-                    <input class="sub1" type="submit" id="submit_cat_edit" name="submit_cat_edit" value="' . T_('Save Changes') . '"/> &nbsp;
-                    <a href="recipes.php">' . T_('Cancel') . '</a>
+                    <input class="sub1" type="submit" id="submit_cat_edit" name="submit_cat_edit" value="'.T_('Save Changes').'"/> &nbsp;
+                    <a href="recipes.php">'.T_('Cancel').'</a>
                 </p>
             </form>';
     }
-
 }

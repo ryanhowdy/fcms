@@ -2,13 +2,15 @@
 <html lang="<?php echo T_pgettext('Language Code for this translation', 'lang'); ?>">
 <head>
 <meta charset="utf-8">
-<title><?php echo $TMPL['sitename'] . " - " . T_('powered by') . " " . $TMPL['version']; ?></title>
+<title><?php echo $TMPL['sitename'].' - '.T_('powered by').' '.$TMPL['version']; ?></title>
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>themes/favicon.ico"/>
 <link href="../ui/twitter-bootstrap/bootstrap.min.css" rel="stylesheet">
 <link href="<?php echo $TMPL['path']; ?>ui/admin/style.css" rel="stylesheet"/>
 <style>body { padding-top: 40px; }</style>
-<?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
+<?php if (isset($TMPL['javascript'])) {
+    echo $TMPL['javascript'];
+} ?>
 </head>
 <body id="top">
 

@@ -1,14 +1,15 @@
 <?php
 /**
- * Foursquare
- * 
+ * Foursquare.
+ *
  * PHP versions 5
  *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2011 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     2.6
  */
@@ -35,25 +36,25 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
 
-        $this->fcmsTemplate = array(
+        $this->fcmsTemplate = [
             'sitename'      => cleanOutput(getSiteName()),
             'nav-link'      => getAdminNavLinks(),
             'pagetitle'     => T_('Administration: Foursquare'),
             'path'          => URL_PREFIX,
             'displayname'   => $fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         $this->checkPermissions();
 
@@ -61,30 +62,27 @@ class Page
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
-        if (isset($_POST['submit']))
-        {
+        if (isset($_POST['submit'])) {
             $this->displayFormSubmitPage();
-        }
-        else
-        {
+        } else {
             $this->displayFormPage();
         }
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -95,11 +93,11 @@ class Page
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -110,14 +108,13 @@ class Page
     }
 
     /**
-     * checkPermissions 
-     * 
+     * checkPermissions.
+     *
      * @return void
      */
-    function checkPermissions ()
+    public function checkPermissions()
     {
-        if ($this->fcmsUser->access > 2)
-        {
+        if ($this->fcmsUser->access > 2) {
             $this->displayHeader();
 
             echo '
@@ -133,26 +130,26 @@ class Page
     }
 
     /**
-     * displayFormSubmitPage 
-     * 
+     * displayFormSubmitPage.
+     *
      * @return void
      */
-    function displayFormSubmitPage ()
+    public function displayFormSubmitPage()
     {
-        $id     = isset($_POST['id'])     ? $_POST['id']     : '';
+        $id = isset($_POST['id']) ? $_POST['id'] : '';
         $secret = isset($_POST['secret']) ? $_POST['secret'] : '';
-        $url    = isset($_POST['url'])    ? $_POST['url']    : '';
+        $url = isset($_POST['url']) ? $_POST['url'] : '';
 
         $sql = "DELETE FROM `fcms_config`
                 WHERE `name` = 'fs_client_id'
                 OR `name` = 'fs_client_secret'
                 OR `name` = 'fs_callback_url'";
 
-        if (!$this->fcmsDatabase->delete($sql))
-        {
+        if (!$this->fcmsDatabase->delete($sql)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -162,39 +159,38 @@ class Page
                     ('fs_client_secret', ?), 
                     ('fs_callback_url', ?)";
 
-        $params = array(
+        $params = [
             $id,
-            $secret, 
-            $url
-        );
+            $secret,
+            $url,
+        ];
 
         $result = $this->fcmsDatabase->insert($sql, $params);
-        if ($result === false)
-        {
+        if ($result === false) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $_SESSION['success'] = 1;
 
-        header("Location: foursquare.php");
+        header('Location: foursquare.php');
     }
 
     /**
-     * displayFormPage 
-     * 
-     * @param string $displayMessage 
-     * 
+     * displayFormPage.
+     *
+     * @param string $displayMessage
+     *
      * @return void
      */
-    function displayFormPage ($displayMessage = '')
+    public function displayFormPage($displayMessage = '')
     {
         $this->displayHeader();
 
-        if (isset($_SESSION['success']))
-        {
+        if (isset($_SESSION['success'])) {
             echo '
         <div class="alert-message success">
             <a class="close" href="#" onclick="$(this).up(\'div\').hide(); return false;">&times;</a>
@@ -206,12 +202,11 @@ class Page
 
         $r = getFoursquareConfigData();
 
-        $id     = isset($r['fs_client_id'])     ? cleanOutput($r['fs_client_id'])     : '';
+        $id = isset($r['fs_client_id']) ? cleanOutput($r['fs_client_id']) : '';
         $secret = isset($r['fs_client_secret']) ? cleanOutput($r['fs_client_secret']) : '';
-        $url    = isset($r['fs_callback_url'])  ? cleanOutput($r['fs_callback_url'])  : '';
+        $url = isset($r['fs_callback_url']) ? cleanOutput($r['fs_callback_url']) : '';
 
-        if (empty($id) || empty($secret) || empty($url))
-        {
+        if (empty($id) || empty($secret) || empty($url)) {
             echo '
         <div class="row">
             <div class="span4">
@@ -266,8 +261,7 @@ class Page
                     </fieldset>
                 </form>';
 
-        if (empty($id) || empty($secret) || empty($url))
-        {
+        if (empty($id) || empty($secret) || empty($url)) {
             echo '
             </div><!-- /span12 -->
         </div><!-- /row -->';

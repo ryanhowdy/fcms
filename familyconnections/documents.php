@@ -1,14 +1,15 @@
 <?php
 /**
- * Documents
- * 
+ * Documents.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2009 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     1.8
  */
@@ -37,59 +38,50 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsDocument)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsDocument)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
         $this->fcmsDocument = $fcmsDocument;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
-        if (isset($_GET['download']))
-        {
+        if (isset($_GET['download'])) {
             $this->displayDownloadDocument();
-        }
-        elseif (isset($_GET['adddoc']))
-        {
+        } elseif (isset($_GET['adddoc'])) {
             $this->displayAddDocumentForm();
-        }
-        elseif (isset($_POST['submitadd']))
-        {
+        } elseif (isset($_POST['submitadd'])) {
             $this->displayAddDocumentSubmit();
-        }
-        elseif (isset($_POST['deldoc']))
-        {
+        } elseif (isset($_POST['deldoc'])) {
             $this->displayDeleteDocumentSubmit();
-        }
-        else
-        {
+        } else {
             $this->displayDocuments();
         }
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -98,60 +90,60 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         displayPageHeader($params);
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'      => URL_PREFIX,
             'version'   => getCurrentVersion(),
-            'year'      => date('Y')
-        );
+            'year'      => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
     /**
-     * displayDownloadDocument 
-     * 
+     * displayDownloadDocument.
+     *
      * Download a document.
-     * 
+     *
      * @return void
      */
-    function displayDownloadDocument ()
+    public function displayDownloadDocument()
     {
         $uploadsPath = getUploadsAbsolutePath();
 
         $filename = $uploadsPath.'documents/'.basename($_GET['download']);
         $mimetype = isset($_GET['mime']) ? $_GET['mime'] : 'application/download';
 
-        header("Cache-control: private");
-        header("Pragma: public");
-        header("Expires: 0");
-        header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-        header("Content-Type: ".$mimetype);
-        header("Content-Disposition: attachment; filename=".basename($filename).";");
-        header("Content-Transfer-Encoding: binary");
-        header("Content-Length: ".filesize($filename));
+        header('Cache-control: private');
+        header('Pragma: public');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Content-Type: '.$mimetype);
+        header('Content-Disposition: attachment; filename='.basename($filename).';');
+        header('Content-Transfer-Encoding: binary');
+        header('Content-Length: '.filesize($filename));
         @readfile($filename);
         exit(0);
     }
 
     /**
-     * displayAddDocumentForm 
-     * 
+     * displayAddDocumentForm.
+     *
      * @return void
      */
-    function displayAddDocumentForm ()
+    public function displayAddDocumentForm()
     {
         $this->displayHeader();
         $this->fcmsDocument->displayForm();
@@ -159,41 +151,41 @@ class Page
     }
 
     /**
-     * displayAddDocumentSubmit 
-     * 
+     * displayAddDocumentSubmit.
+     *
      * @return void
      */
-    function displayAddDocumentSubmit ()
+    public function displayAddDocumentSubmit()
     {
-        $doc  = $_FILES['doc']['name'];
-        $doc  = cleanFilename($doc);
+        $doc = $_FILES['doc']['name'];
+        $doc = cleanFilename($doc);
         $desc = $_POST['desc'];
         $mime = $_FILES['doc']['type'];
 
         $result = $this->fcmsDocument->uploadDocument($_FILES['doc'], $doc);
-        if ($result === false)
-        {
+        if ($result === false) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        $sql = "INSERT INTO `fcms_documents` (
+        $sql = 'INSERT INTO `fcms_documents` (
                     `name`, `description`, `mime`, `user`, `date`
                 ) VALUES(
                     ?, ?, ?, ?, NOW()
-                )";
+                )';
 
-        $params = array(
-            $doc, $desc, $mime, $this->fcmsUser->id
-        );
+        $params = [
+            $doc, $desc, $mime, $this->fcmsUser->id,
+        ];
 
-        if (!$this->fcmsDatabase->insert($sql, $params))
-        {
+        if (!$this->fcmsDatabase->insert($sql, $params)) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -205,17 +197,15 @@ class Page
 
         $rows = $this->fcmsDatabase->getRows($sql);
 
-        if (count($rows) > 0)
-        {
-            $name          = getUserDisplayName($this->fcmsUser->id);
-            $url           = getDomainAndDir();
-            $subject       = sprintf(T_('%s has added a new document (%s).'), $name, $doc);
+        if (count($rows) > 0) {
+            $name = getUserDisplayName($this->fcmsUser->id);
+            $url = getDomainAndDir();
+            $subject = sprintf(T_('%s has added a new document (%s).'), $name, $doc);
             $email_headers = getEmailHeaders();
 
-            foreach($rows as $r)
-            {
-                $to      = getUserDisplayName($r['user']);
-                $email   = $r['email'];
+            foreach ($rows as $r) {
+                $to = getUserDisplayName($r['user']);
+                $email = $r['email'];
 
                 $msg = T_('Dear').' '.$to.',
 
@@ -237,21 +227,20 @@ class Page
 
         $_SESSION['ok'] = 1;
 
-        header("Location: documents.php");
+        header('Location: documents.php');
     }
 
     /**
-     * displayDeleteDocumentSubmit 
-     * 
+     * displayDeleteDocumentSubmit.
+     *
      * @return void
      */
-    function displayDeleteDocumentSubmit ()
+    public function displayDeleteDocumentSubmit()
     {
-        $sql = "DELETE FROM `fcms_documents` 
-                WHERE `id` = ?";
+        $sql = 'DELETE FROM `fcms_documents` 
+                WHERE `id` = ?';
 
-        if (!$this->fcmsDatabase->delete($sql, $_POST['id']))
-        {
+        if (!$this->fcmsDatabase->delete($sql, $_POST['id'])) {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -261,28 +250,27 @@ class Page
 
         $uploadsPath = getUploadsAbsolutePath();
 
-        if (!unlink($uploadsPath.'documents/'.basename($_POST['name'])))
-        {
+        if (!unlink($uploadsPath.'documents/'.basename($_POST['name']))) {
             $this->displayHeader();
             echo '<p class="error-alert">'.T_('Document could not be deleted from the server.').'</p>';
             $this->displayFooter();
+
             return;
         }
 
-        header("Location: documents.php");
+        header('Location: documents.php');
     }
 
     /**
-     * displayDocuments 
-     * 
+     * displayDocuments.
+     *
      * @return void
      */
-    function displayDocuments ()
+    public function displayDocuments()
     {
         $this->displayHeader();
 
-        if (isset($_SESSION['ok']))
-        {
+        if (isset($_SESSION['ok'])) {
             unset($_SESSION['ok']);
             displayOkMessage();
         }
