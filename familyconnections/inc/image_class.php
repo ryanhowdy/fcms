@@ -57,7 +57,7 @@ class Image
      *
      * @param array $img
      *
-     * @return boolean
+     * @return bool
      */
     public function upload($img)
     {
@@ -112,7 +112,7 @@ class Image
      *
      * Checks that the image is of a valid mimetype and extension.
      *
-     * @return boolean
+     * @return bool
      */
     public function isValid()
     {
@@ -153,7 +153,7 @@ class Image
      * @param int $maxWidth
      * @param int $maxHeight
      *
-     * @return boolean
+     * @return bool
      */
     public function resize($maxWidth, $maxHeight)
     {
@@ -218,7 +218,7 @@ class Image
      *
      * @param int $degrees
      *
-     * @return boolean
+     * @return bool
      */
     public function rotate($degrees = 90)
     {
@@ -295,7 +295,7 @@ class Image
      *
      * @param image resource $source
      *
-     * @return boolean
+     * @return bool
      */
     public function writeImage($source)
     {
@@ -499,7 +499,7 @@ class Image
      *
      * Calculates whether the given image can be resized with the current available memory.
      *
-     * @return boolean
+     * @return bool
      */
     public function haveEnoughMemory()
     {

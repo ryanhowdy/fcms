@@ -53,7 +53,7 @@
                     </li>
             <?php if (isset($TMPL['nav-link'][6])): ?>
                     <li>
-                        <a href="<?php echo $TMPL['path'].'admin/index.php';?>"><?php echo T_('Administration');?></a>
+                        <a href="<?php echo $TMPL['path'].'admin/index.php'; ?>"><?php echo T_('Administration'); ?></a>
                     </li>
             <?php endif; ?>
                 </ul>

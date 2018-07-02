@@ -37,7 +37,7 @@
             <!--[if lte IE 6]></td></tr></table></a><![endif]--></li>
 <?php if (isset($TMPL['nav-link'][6])): ?>
             <li class="main">
-                <a class="main adminlink" href="<?php echo $TMPL['path'].'admin/index.php'; ?>"><?php echo T_('Administration');?></a>
+                <a class="main adminlink" href="<?php echo $TMPL['path'].'admin/index.php'; ?>"><?php echo T_('Administration'); ?></a>
             </li>
 <?php endif; ?>
         </ul>
