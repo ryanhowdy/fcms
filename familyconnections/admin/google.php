@@ -1,14 +1,15 @@
 <?php
 /**
- * Google
- * 
+ * Google.
+ *
  * PHP version 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2011 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     3.5.1
  */
@@ -35,37 +36,37 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
 
-        $this->fcmsTemplate = array(
+        $this->fcmsTemplate = [
             'sitename'      => cleanOutput(getSiteName()),
             'nav-link'      => getAdminNavLinks(),
             'pagetitle'     => T_('Administration: Google'),
             'path'          => URL_PREFIX,
             'displayname'   => $fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if (isset($_POST['submit']))
         {
@@ -78,11 +79,11 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -93,11 +94,11 @@ class Page
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -108,13 +109,13 @@ class Page
     }
 
     /**
-     * displayFormPage
-     * 
+     * displayFormPage.
+     *
      * Displays the form for configuring a google api.
-     * 
+     *
      * @return void
      */
-    function displayFormPage ()
+    public function displayFormPage()
     {
         global $fcmsUser;
 
@@ -133,7 +134,7 @@ class Page
 
         $r = getGoogleConfigData();
 
-        $clientId     = isset($r['google_client_id'])     ? cleanOutput($r['google_client_id'])     : '';
+        $clientId = isset($r['google_client_id']) ? cleanOutput($r['google_client_id']) : '';
         $clientSecret = isset($r['google_client_secret']) ? cleanOutput($r['google_client_secret']) : '';
 
         echo '
@@ -219,11 +220,11 @@ class Page
     }
 
     /**
-     * displayFormSubmitPage
-     * 
+     * displayFormSubmitPage.
+     *
      * @return void
      */
-    function displayFormSubmitPage ()
+    public function displayFormSubmitPage()
     {
         if (isset($_SESSION['google_client_id']))
         {
@@ -234,7 +235,7 @@ class Page
             unset($_SESSION['google_client_secret']);
         }
 
-        $clientId     = isset($_POST['client_id'])     ? $_POST['client_id']     : '';
+        $clientId = isset($_POST['client_id']) ? $_POST['client_id'] : '';
         $clientSecret = isset($_POST['client_secret']) ? $_POST['client_secret'] : '';
 
         $sql = "UPDATE `fcms_config` 
@@ -246,6 +247,7 @@ class Page
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -258,11 +260,12 @@ class Page
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $_SESSION['success'] = 1;
 
-        header("Location: google.php");
+        header('Location: google.php');
     }
 }

@@ -20,7 +20,7 @@
                 <select style="background-color:#e9f3fb; border:none;" onchange="window.location.href='?lang='+this.options[this.selectedIndex].value;">
                     <option><?php echo T_('Language'); ?>:</option>
                 <?php foreach ($TMPL['languageOptions'] as $o): ?>
-                    <option value="<?php echo $o['value']; ?>" <?php echo $o['selected'];?>>
+                    <option value="<?php echo $o['value']; ?>" <?php echo $o['selected']; ?>>
                         <?php echo $o['language']; ?>
                     </option>
                 <?php endforeach; ?>
