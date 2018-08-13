@@ -4,8 +4,6 @@
 [![GitHub version](https://badge.fury.io/gh/ryanhowdy%2Ffcms.svg)](https://badge.fury.io/gh/ryanhowdy%2Ffcms)
 [![Build Status](https://travis-ci.org/ryanhowdy/fcms.svg?branch=master)](https://travis-ci.org/ryanhowdy/fcms)
 [![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/ryanhowdy/fcms/badges/quality-score.png?s=755b6ade4f4add05acf377fbaf03bb3a201f471c)](https://scrutinizer-ci.com/g/ryanhowdy/fcms/)
-<a href="https://app.codesponsor.io/link/PkZcmRkSgZicxeVQcwFN5gC6/ryanhowdy/fcms" rel="nofollow"><img src="https://app.codesponsor.io/embed/PkZcmRkSgZicxeVQcwFN5gC6/ryanhowdy/fcms.svg" style="width: 888px; height: 68px;" alt="Sponsor" /></a>
-
 
 # What is it?
 Family Connections is a private social networking site for families or small groups of people.
@@ -14,6 +12,7 @@ Family Connections is a private social networking site for families or small gro
 Because social networking sites like Facebook/Google+ are not private enough for family use. Family Connections allows you more control over your site: from who can access it, to what it looks like and what features it has.
 
 # Contribute
+[![](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/images/0)](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/links/0)[![](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/images/1)](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/links/1)[![](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/images/2)](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/links/2)[![](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/images/3)](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/links/3)[![](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/images/4)](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/links/4)[![](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/images/5)](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/links/5)[![](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/images/6)](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/links/6)[![](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/images/7)](https://sourcerer.io/fame/ryanhowdy/ryanhowdy/fcms/links/7)
 * Find [open issues](https://github.com/ryanhowdy/fcms/issues?labels=&page=1&state=open) and fix one
 * Fork the [fcms repo](https://github.com/ryanhowdy/fcms) on GitHub
 * Send a pull request (don't forget to add yourself to the [AUTHORS](https://github.com/ryanhowdy/fcms/blob/master/AUTHORS) file)
