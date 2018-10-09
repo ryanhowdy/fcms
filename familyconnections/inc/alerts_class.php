@@ -1,47 +1,46 @@
 <?php
 /**
- * Alerts 
- * 
- * @package     Family Connections
+ * Alerts.
+ *
  * @copyright   Copyright (c) 2010 Haudenschilt LLC
- * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
 class Alerts
 {
-    var $fcmsError;
-    var $fcmsDatabase;
-    var $fcmsUser;
+    public $fcmsError;
+    public $fcmsDatabase;
+    public $fcmsUser;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
      * @param Database   $fcmsDatabase
-     * @param User       $fcmsUser 
+     * @param User       $fcmsUser
      *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
     }
-    
+
     /**
-     * displayNewUserHome 
-     * 
-     * @param  int  $userid 
-     * 
-     * @return boolean
+     * displayNewUserHome.
+     *
+     * @param int $userid
+     *
+     * @return bool
      */
-    function displayNewUserHome ($userid)
+    public function displayNewUserHome($userid)
     {
         include_once 'addressbook_class.php';
         $addressObj = new AddressBook($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
 
-        $userid = (int)$userid;
+        $userid = (int) $userid;
 
         $sql = "SELECT `id`
                 FROM `fcms_alerts` 
@@ -53,6 +52,7 @@ class Alerts
         if ($row === false)
         {
             $this->fcmsError->displayError();
+
             return false;
         }
 
@@ -105,20 +105,22 @@ class Alerts
         if ($r === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
         $currentPoll = $r['max'];
 
-        $sql = "SELECT `id`
+        $sql = 'SELECT `id`
                 FROM `fcms_poll_votes`
                 WHERE `user` = ?
-                AND `poll_id` = ?";
+                AND `poll_id` = ?';
 
-        $rows = $this->fcmsDatabase->getRows($sql, array($userid, $currentPoll));
+        $rows = $this->fcmsDatabase->getRows($sql, [$userid, $currentPoll]);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -150,14 +152,15 @@ class Alerts
     }
 
     /**
-     * displayPoll 
-     * 
-     * @param  int  $userid 
+     * displayPoll.
+     *
+     * @param int $userid
+     *
      * @return void
      */
-    function displayPoll ($userid)
+    public function displayPoll($userid)
     {
-        $userid = (int)$userid;
+        $userid = (int) $userid;
 
         $sql = "SELECT * 
                 FROM `fcms_alerts` 
@@ -169,6 +172,7 @@ class Alerts
         if ($row === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -188,16 +192,17 @@ class Alerts
             </div>';
         }
     }
- 
+
     /**
-     * displayAddress 
-     * 
-     * @param  int  $userid 
+     * displayAddress.
+     *
+     * @param int $userid
+     *
      * @return void
      */
-    function displayAddress ($userid)
+    public function displayAddress($userid)
     {
-        $userid = (int)$userid;
+        $userid = (int) $userid;
 
         $sql = "SELECT * 
                 FROM `fcms_alerts` 
@@ -209,6 +214,7 @@ class Alerts
         if ($row === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -225,14 +231,15 @@ class Alerts
     }
 
     /**
-     * displayScheduler
-     * 
-     * @param  int  $userid 
+     * displayScheduler.
+     *
+     * @param int $userid
+     *
      * @return void
      */
-    function displayScheduler ($userid)
+    public function displayScheduler($userid)
     {
-        $userid = (int)$userid;
+        $userid = (int) $userid;
 
         $sql = "SELECT * 
                 FROM `fcms_alerts` 
@@ -244,6 +251,7 @@ class Alerts
         if ($rows === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -261,5 +269,4 @@ class Alerts
             </div>';
         }
     }
-
 }
