@@ -9,7 +9,9 @@
             <?php if ($TMPL['canEdit']): ?>
                 <li><a href="?edit=<?php echo $TMPL['familyTreeId']; ?>"><?php echo T_('Edit This Person'); ?></a></li>
             <?php endif; ?>
-                <li><a class="add" href="#<?php echo $TMPL['familyTreeId']; ?>"><?php echo T_('Add Family Member'); ?></a></li>
+                <span class="tools">
+                    <li><a class="add" href="#<?php echo $TMPL['familyTreeId']; ?>"><?php echo T_('Add Family Member'); ?></a></li>
+                </span>
             </ul>
         </div>
         <div class="person-details">
