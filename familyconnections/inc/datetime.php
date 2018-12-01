@@ -318,6 +318,7 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $mins = 1;
         }
+        $mins  = (int)$mins;
         $since = sprintf(T_ngettext('%s minute ago', '%s minutes ago', (int)$mins), $mins);
     }
     // hours
@@ -329,6 +330,7 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $hours = 1;
         }
+        $hours = (int)$hours;
         $since = sprintf(T_ngettext('%s hour ago', '%s hours ago', (int)$hours), $hours);
     }
     // days
@@ -340,6 +342,7 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $days = 1;
         }
+        $days  = (int)$days;
         $since = sprintf(T_ngettext('%s day ago', '%s days ago', (int)$days), $days);
     }
     // months
@@ -351,7 +354,8 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $months = 1;
         }
-        $since = sprintf(T_ngettext('%s month ago', '%s months ago', (int)$months), $months);
+        $months = (int)$months;
+        $since  = sprintf(T_ngettext('%s month ago', '%s months ago', (int)$months), $months);
     }
     // years
     // 365+ days ago
