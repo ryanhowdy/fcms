@@ -1,72 +1,73 @@
 <?php
+
 include_once 'thirdparty/php-gettext/gettext.inc';
 
 /**
- * dropTables 
- * 
+ * dropTables.
+ *
  * @return void
  */
-function dropTables ($connection)
+function dropTables($connection)
 {
-    $connection->query("DROP TABLE IF EXISTS `fcms_config`")                   or die("fcms_config<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_notification`")             or die("fcms_notification<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_video_comment`")            or die("fcms_video_comment<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_video`")                    or die("fcms_video<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_changelog`")                or die("fcms_changelog<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_schedule`")                 or die("fcms_schedule<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_status`")                   or die("fcms_status<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_navigation`")               or die("fcms_navigation<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_chat_online`")              or die("fcms_chat_oneline<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_chat_messages`")            or die("fcms_chat_messages<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_address`")                  or die("fcms_address<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_alerts`")                   or die("fcms_alerts<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_privatemsg`")               or die("fcms_privatemsg<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_documents`")                or die("fcms_documents<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_calendar`")                 or die("fcms_calendar<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_invitation`")               or die("fcms_invitation<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_gallery_photo_comment`")    or die("fcms_gallery_photo_comment<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_gallery_category_comment`") or die("fcms_gallery_category_comment<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_gallery_photos_tags`")      or die("fcms_gallery_photos_tags<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_gallery_external_photo`")   or die("fcms_gallery_external_photo<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_gallery_photos`")           or die("fcms_gallery_photos<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_news_comments`")            or die("fcms_news_comments<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_news`")                     or die("fcms_news<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_poll_comment`")             or die("fcms_poll_comment<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_poll_votes`")               or die("fcms_poll_votes<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_poll_options`")             or die("fcms_poll_options<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_polls`")                    or die("fcms_polls<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_prayers`")                  or die("fcms_prayers<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_board_posts`")              or die("fcms_board_posts<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_board_threads`")            or die("fcms_board_threads<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_recipes`")                  or die("fcms_recipes<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_recipe_comment`")           or die("fcms_recipe_comment<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_category`")                 or die("fcms_category<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_user_awards`")              or die("fcms_user_awards<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_user_settings`")            or die("fcms_user_settings<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_relationship`")             or die("fcms_relationship<br/>" . $connection->error);
-    $connection->query("DROP TABLE IF EXISTS `fcms_users`")                    or die("fcms_users<br/>" . $connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_config`') or die('fcms_config<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_notification`') or die('fcms_notification<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_video_comment`') or die('fcms_video_comment<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_video`') or die('fcms_video<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_changelog`') or die('fcms_changelog<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_schedule`') or die('fcms_schedule<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_status`') or die('fcms_status<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_navigation`') or die('fcms_navigation<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_chat_online`') or die('fcms_chat_oneline<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_chat_messages`') or die('fcms_chat_messages<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_address`') or die('fcms_address<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_alerts`') or die('fcms_alerts<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_privatemsg`') or die('fcms_privatemsg<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_documents`') or die('fcms_documents<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_calendar`') or die('fcms_calendar<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_invitation`') or die('fcms_invitation<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_gallery_photo_comment`') or die('fcms_gallery_photo_comment<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_gallery_category_comment`') or die('fcms_gallery_category_comment<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_gallery_photos_tags`') or die('fcms_gallery_photos_tags<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_gallery_external_photo`') or die('fcms_gallery_external_photo<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_gallery_photos`') or die('fcms_gallery_photos<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_news_comments`') or die('fcms_news_comments<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_news`') or die('fcms_news<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_poll_comment`') or die('fcms_poll_comment<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_poll_votes`') or die('fcms_poll_votes<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_poll_options`') or die('fcms_poll_options<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_polls`') or die('fcms_polls<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_prayers`') or die('fcms_prayers<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_board_posts`') or die('fcms_board_posts<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_board_threads`') or die('fcms_board_threads<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_recipes`') or die('fcms_recipes<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_recipe_comment`') or die('fcms_recipe_comment<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_category`') or die('fcms_category<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_user_awards`') or die('fcms_user_awards<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_user_settings`') or die('fcms_user_settings<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_relationship`') or die('fcms_relationship<br/>'.$connection->error);
+    $connection->query('DROP TABLE IF EXISTS `fcms_users`') or die('fcms_users<br/>'.$connection->error);
 
-    $connection->query("SET NAMES utf8") or die("Encoding<br/>" . $connection->error);
+    $connection->query('SET NAMES utf8') or die('Encoding<br/>'.$connection->error);
 }
 
 /**
- * installConfig 
- * 
- * @param mysqli  $connection
- * @param string  $sitename 
- * @param string  $contact 
- * @param string  $version 
- * 
+ * installConfig.
+ *
+ * @param mysqli $connection
+ * @param string $sitename
+ * @param string $contact
+ * @param string $version
+ *
  * @return void
  */
-function installConfig ($connection, $sitename, $contact, $version)
+function installConfig($connection, $sitename, $contact, $version)
 {
-    $sql = "CREATE TABLE `fcms_config` (
+    $sql = 'CREATE TABLE `fcms_config` (
                 `name` VARCHAR(50) NOT NULL,
                 `value` VARCHAR(255) NULL
             ) 
-            ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ENGINE=InnoDB DEFAULT CHARSET=utf8';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     $sql = "INSERT INTO `fcms_config` (`name`, `value`)
             VALUES
@@ -93,28 +94,28 @@ function installConfig ($connection, $sitename, $contact, $version)
                 ('instagram_client_secret', NULL),
                 ('google_client_id', NULL),
                 ('google_client_secret', NULL)";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 }
 
 /**
- * installNavigation 
- * 
- * @param mysqli  $connection
- * @param string  $sections 
+ * installNavigation.
+ *
+ * @param mysqli $connection
+ * @param string $sections
  *
  * @return void
  */
-function installNavigation ($connection, $sections)
+function installNavigation($connection, $sections)
 {
-    $sql = "CREATE TABLE `fcms_navigation` (
+    $sql = 'CREATE TABLE `fcms_navigation` (
                 `id` INT(25) NOT NULL AUTO_INCREMENT,
                 `link` VARCHAR(30) NOT NULL,
                 `col` TINYINT(1) NOT NULL,
                 `order` TINYINT(2) NOT NULL,
                 `req` TINYINT(1) NOT NULL DEFAULT 0,
                 PRIMARY KEY (`id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
             VALUES
@@ -144,8 +145,8 @@ function installNavigation ($connection, $sections)
                 ('admin_instagram',     6, 11, 1)";
     $connection->query($sql) or die("$sql<br/>".$connection->error);
 
-    $sql = "INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
-            VALUES ";
+    $sql = 'INSERT INTO `fcms_navigation` (`link`, `col`, `order`, `req`)
+            VALUES ';
 
     foreach ($sections as $table => $section)
     {
@@ -154,20 +155,20 @@ function installNavigation ($connection, $sections)
 
     $sql = substr($sql, 0, -2); // Remove the comma at the end
 
-    $connection->query($sql) or die($sql . "<br/><br/>" . $connection->error);
+    $connection->query($sql) or die($sql.'<br/><br/>'.$connection->error);
 }
 
 /**
- * installUsers 
- * 
+ * installUsers.
+ *
  * Installs the users, user_settings and address tables.
- * 
+ *
  * @param mysqli $connection
- * @param array  $fname 
- * 
+ * @param array  $fname
+ *
  * @return void
  */
-function installUsers ($connection, $params)
+function installUsers($connection, $params)
 {
     $sql = "CREATE TABLE `fcms_users` (
                 `id` INT(25) NOT NULL AUTO_INCREMENT, 
@@ -201,7 +202,7 @@ function installUsers ($connection, $params)
                 UNIQUE KEY `username` (`username`)
             )
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // insert users
     $sql = "INSERT INTO `fcms_users` (
@@ -220,7 +221,7 @@ function installUsers ($connection, $params)
                 '".$params['password']."', 
                 1
             )";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create user_settings
     $sql = "CREATE TABLE `fcms_user_settings` (
@@ -252,19 +253,19 @@ function installUsers ($connection, $params)
                 KEY `user_ind` (`user`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter user_settings
-    $sql = "ALTER TABLE `fcms_user_settings` 
+    $sql = 'ALTER TABLE `fcms_user_settings` 
             ADD CONSTRAINT `fcms_user_stgs_ibfk_1` 
             FOREIGN KEY (`user`) 
-            REFERENCES `fcms_users` (`id`) ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            REFERENCES `fcms_users` (`id`) ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // insert user_settings
-    $sql = "INSERT INTO `fcms_user_settings` (`id`, `user`) 
-            VALUES (NULL, 1)";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $sql = 'INSERT INTO `fcms_user_settings` (`id`, `user`) 
+            VALUES (NULL, 1)';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create address
     $sql = "CREATE TABLE `fcms_address` (
@@ -288,33 +289,33 @@ function installUsers ($connection, $params)
                 KEY `update_ind` (`updated_id`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter address
-    $sql = "ALTER TABLE `fcms_address` 
+    $sql = 'ALTER TABLE `fcms_address` 
             ADD CONSTRAINT `fcms_address_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // insert address
-    $sql = "INSERT INTO `fcms_address` (`id`, `user`, `created_id`, `created`, `updated_id`, `updated`) 
-            VALUES (NULL, 1, 1, NOW(), 1, NOW())";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $sql = 'INSERT INTO `fcms_address` (`id`, `user`, `created_id`, `created`, `updated_id`, `updated`) 
+            VALUES (NULL, 1, 1, NOW(), 1, NOW())';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 }
 
 /**
- * installCategory 
- * 
+ * installCategory.
+ *
  * @param mysqli $connection
- * 
+ *
  * @return void
  */
-function installCategory ($connection)
+function installCategory($connection)
 {
     // create fcms_category
-    $sql = "CREATE TABLE `fcms_category` (
+    $sql = 'CREATE TABLE `fcms_category` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT,
                 `name` VARCHAR(50) NOT NULL,
                 `type` VARCHAR(20) NOT NULL,
@@ -325,8 +326,8 @@ function installCategory ($connection)
                 PRIMARY KEY (`id`),
                 KEY `user_ind` (`user`)
             )
-            ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ENGINE=InnoDB DEFAULT CHARSET=utf8';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // insert fcms_category
     $sql = "INSERT INTO `fcms_category` (`name`, `type`, `user`, `date`, `color`)
@@ -335,18 +336,18 @@ function installCategory ($connection)
                 ('".T_('Anniversary')."', 'calendar', 1, NOW(), 'green'),
                 ('".T_('Birthday')."', 'calendar', 1, NOW(), 'red'),
                 ('".T_('Holiday')."', 'calendar', 1, NOW(), 'indigo')";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
 }
 
 /**
- * installCalendar 
- * 
+ * installCalendar.
+ *
  * @param mysqli $connection
- * 
+ *
  * @return void
  */
-function installCalendar ($connection)
+function installCalendar($connection)
 {
     // create calendar
     $sql = "CREATE TABLE `fcms_calendar` (
@@ -366,15 +367,15 @@ function installCalendar ($connection)
                 KEY `by_ind` (`created_by`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter calendar
-    $sql = "ALTER TABLE `fcms_calendar` 
+    $sql = 'ALTER TABLE `fcms_calendar` 
             ADD CONSTRAINT `fcms_calendar_ibfk_1` 
             FOREIGN KEY (`created_by`) 
             REFERENCES `fcms_users` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
     $sql = "INSERT INTO `fcms_calendar` 
                 (`id`, `date`, `date_added`, `title`, `created_by`, `category`, `repeat`) 
             VALUES 
@@ -386,17 +387,17 @@ function installCalendar ($connection)
                 (NULL, '2007-03-17', '2007-03-17 01:00:00', \"".T_('St. Patrick\'s Day')."\", 1, 4, 'yearly'), 
                 (NULL, '2007-04-01', '2007-04-01 01:00:00', \"".T_('April Fools Day')."\", 1, 4, 'yearly'), 
                 (NULL, '2007-10-31', '2007-10-31 01:00:00', \"".T_('Halloween')."\", 1, 4, 'yearly')";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 }
 
 /**
- * installTables 
- * 
+ * installTables.
+ *
  * @param mysqli $connection
- * 
+ *
  * @return void
  */
-function installTables ($connection)
+function installTables($connection)
 {
     // create video
     $sql = "CREATE TABLE `fcms_video` (
@@ -415,7 +416,7 @@ function installTables ($connection)
                 `updated_id`        INT(25) NOT NULL,
                 PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     $sql = "CREATE TABLE `fcms_video_comment` (
                 `id`            INT(25) NOT NULL AUTO_INCREMENT,
@@ -428,7 +429,7 @@ function installTables ($connection)
                 PRIMARY KEY (`id`),
                 CONSTRAINT FOREIGN KEY (`video_id`) REFERENCES `fcms_video` (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create schedule
     $sql = "CREATE TABLE `fcms_schedule` (
@@ -439,7 +440,7 @@ function installTables ($connection)
                 `status`    TINYINT(1) NOT NULL DEFAULT 0,
                 PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // populate schedule
     $sql = "INSERT INTO `fcms_schedule` (`type`, `repeat`)
@@ -448,7 +449,7 @@ function installTables ($connection)
                 ('familynews', 'hourly'),
                 ('youtube', 'hourly'),
                 ('instagram', 'hourly')";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create changelog
     $sql = "CREATE TABLE `fcms_changelog` (
@@ -460,7 +461,7 @@ function installTables ($connection)
                 PRIMARY KEY (`id`),
                 CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create invitation
     $sql = "CREATE TABLE `fcms_invitation` (
@@ -476,7 +477,7 @@ function installTables ($connection)
                 PRIMARY KEY (`id`),
                 KEY `event_id` (`event_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create gallery_photos
     $sql = "CREATE TABLE `fcms_gallery_photos` (
@@ -495,10 +496,10 @@ function installTables ($connection)
                 KEY `user_ind` (`user`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter gallery_photos
-    $sql = "ALTER TABLE `fcms_gallery_photos` 
+    $sql = 'ALTER TABLE `fcms_gallery_photos` 
             ADD CONSTRAINT `fcms_gallery_photos_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
@@ -506,8 +507,8 @@ function installTables ($connection)
             ADD CONSTRAINT `fcms_gallery_photos_ibfk_2` 
             FOREIGN KEY (`category`) 
             REFERENCES `fcms_category` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create gallery_photo_comment
     $sql = "CREATE TABLE `fcms_gallery_photo_comment` (
@@ -521,10 +522,10 @@ function installTables ($connection)
                 KEY `user_ind` (`user`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter gallery_photo_comment
-    $sql = "ALTER TABLE `fcms_gallery_photo_comment` 
+    $sql = 'ALTER TABLE `fcms_gallery_photo_comment` 
             ADD CONSTRAINT `fcms_gallery_photo_comment_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
@@ -532,8 +533,8 @@ function installTables ($connection)
             ADD CONSTRAINT `fcms_gallery_photo_comment_ibfk_2` 
             FOREIGN KEY (`photo`) 
             REFERENCES `fcms_gallery_photos` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create gallery_category_comment
     $sql = "CREATE TABLE `fcms_gallery_category_comment` (
@@ -545,7 +546,7 @@ function installTables ($connection)
                 PRIMARY KEY (`id`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create gallery_photos_tags
     $sql = "CREATE TABLE `fcms_gallery_photos_tags` (
@@ -557,10 +558,10 @@ function installTables ($connection)
                 KEY `tag_user_ind` (`user`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter gallery_photos_tags
-    $sql = "ALTER TABLE `fcms_gallery_photos_tags` 
+    $sql = 'ALTER TABLE `fcms_gallery_photos_tags` 
             ADD CONSTRAINT `fcms_gallery_photos_tags_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
@@ -568,11 +569,11 @@ function installTables ($connection)
             ADD CONSTRAINT `fcms_gallery_photos_tags_ibfk_2` 
             FOREIGN KEY (`photo`) 
             REFERENCES `fcms_gallery_photos` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create gallery_external_photo
-    $sql = "CREATE TABLE `fcms_gallery_external_photo` (
+    $sql = 'CREATE TABLE `fcms_gallery_external_photo` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `source_id` VARCHAR(255) NOT NULL,
                 `thumbnail` VARCHAR(255) NOT NULL, 
@@ -580,8 +581,8 @@ function installTables ($connection)
                 `full` VARCHAR(255) NOT NULL, 
                 PRIMARY KEY (`id`)
             ) 
-            ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ENGINE=InnoDB DEFAULT CHARSET=utf8';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create news
     $sql = "CREATE TABLE `fcms_news` (
@@ -597,15 +598,15 @@ function installTables ($connection)
                 KEY `userindx` (`user`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter news
-    $sql = "ALTER TABLE `fcms_news` 
+    $sql = 'ALTER TABLE `fcms_news` 
             ADD CONSTRAINT `fcms_news_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create news_comments
     $sql = "CREATE TABLE `fcms_news_comments` (
@@ -619,10 +620,10 @@ function installTables ($connection)
                 KEY `user_ind` (`user`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter news_comments
-    $sql = "ALTER TABLE `fcms_news_comments` 
+    $sql = 'ALTER TABLE `fcms_news_comments` 
             ADD CONSTRAINT `fcms_news_comments_ibfk_2` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
@@ -630,8 +631,8 @@ function installTables ($connection)
             ADD CONSTRAINT `fcms_news_comments_ibfk_1` 
             FOREIGN KEY (`news`) 
             REFERENCES `fcms_news` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create polls
     $sql = "CREATE TABLE `fcms_polls` (
@@ -641,12 +642,12 @@ function installTables ($connection)
                 PRIMARY KEY  (`id`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // insert poll
     $sql = "INSERT INTO `fcms_polls` (`id`, `question`, `started`) 
             VALUES (NULL, '".T_('Family Connections software is...')."', NOW())";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create poll_options
     $sql = "CREATE TABLE `fcms_poll_options` (
@@ -658,15 +659,15 @@ function installTables ($connection)
                 KEY `pollid_ind` (`poll_id`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter poll_options
-    $sql = "ALTER TABLE `fcms_poll_options` 
+    $sql = 'ALTER TABLE `fcms_poll_options` 
             ADD CONSTRAINT `fcms_poll_options_ibfk_1` 
             FOREIGN KEY (`poll_id`) 
             REFERENCES `fcms_polls` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // insert poll_options
     $sql = "INSERT INTO `fcms_poll_options` (`id`, `poll_id`, `option`, `votes`) 
@@ -674,7 +675,7 @@ function installTables ($connection)
                 (NULL, 1, '".T_('Easy to use!')."', 0), 
                 (NULL, 1, '".T_('Visually appealing!')."', 0), 
                 (NULL, 1, '".T_('Just what our family needed!')."', 0)";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create poll_votes
     $sql = "CREATE TABLE `fcms_poll_votes` (
@@ -688,10 +689,10 @@ function installTables ($connection)
                 KEY `poll_id_ind` (`poll_id`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter poll_votes
-    $sql = "ALTER TABLE `fcms_poll_votes` 
+    $sql = 'ALTER TABLE `fcms_poll_votes` 
             ADD CONSTRAINT `fcms_poll_votes_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
@@ -703,8 +704,8 @@ function installTables ($connection)
             ADD CONSTRAINT `fcms_poll_votes_ibfk_3` 
             FOREIGN KEY (`poll_id`) 
             REFERENCES `fcms_polls` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create poll_comment
     $sql = "CREATE TABLE `fcms_poll_comment` (
@@ -716,7 +717,7 @@ function installTables ($connection)
                 PRIMARY KEY (`id`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create prayers
     $sql = "CREATE TABLE `fcms_prayers` (
@@ -729,15 +730,15 @@ function installTables ($connection)
                 KEY `userindx` (`user`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter prayers
-    $sql = "ALTER TABLE `fcms_prayers` 
+    $sql = 'ALTER TABLE `fcms_prayers` 
             ADD CONSTRAINT `fcms_prayers_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create board_threads
     $sql = "CREATE TABLE `fcms_board_threads` (
@@ -752,10 +753,10 @@ function installTables ($connection)
                 KEY `up_ind` (`updated_by`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter board_threads
-    $sql = "ALTER TABLE `fcms_board_threads` 
+    $sql = 'ALTER TABLE `fcms_board_threads` 
             ADD CONSTRAINT `fcms_threads_ibfk_1` 
             FOREIGN KEY (`started_by`) 
             REFERENCES `fcms_users` (`id`) 
@@ -763,13 +764,13 @@ function installTables ($connection)
             ADD CONSTRAINT `fcms_threads_ibfk_2` 
             FOREIGN KEY (`updated_by`) 
             REFERENCES `fcms_users` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // insert board_threads
     $sql = "INSERT INTO `fcms_board_threads` (`id`, `subject`, `started_by`, `updated`, `updated_by`, `views`) 
             VALUES (1, '".T_('Welcome')."', 1, NOW(), 1, 0)";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create board_posts
     $sql = "CREATE TABLE `fcms_board_posts` (
@@ -783,10 +784,10 @@ function installTables ($connection)
                 KEY `user_ind` (`user`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // altert board_posts
-    $sql = "ALTER TABLE `fcms_board_posts` 
+    $sql = 'ALTER TABLE `fcms_board_posts` 
             ADD CONSTRAINT `fcms_posts_ibfk_1` 
             FOREIGN KEY (`thread`) 
             REFERENCES `fcms_board_threads` (`id`) 
@@ -794,13 +795,13 @@ function installTables ($connection)
             ADD CONSTRAINT `fcms_posts_ibfk_2` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // insert board_posts
     $sql = "INSERT INTO `fcms_board_posts` (`id`, `date`, `thread`, `user`, `post`) 
             VALUES (NULL, NOW(), 1, 1, '".sprintf(T_('Welcome to the %s Message Board.'), 'Family Connections')."')";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create recipes
     $sql = "CREATE TABLE `fcms_recipes` (
@@ -815,18 +816,18 @@ function installTables ($connection)
                 PRIMARY KEY (`id`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter recipes
-    $sql = "ALTER TABLE `fcms_recipes` 
+    $sql = 'ALTER TABLE `fcms_recipes` 
             ADD CONSTRAINT `fcms_recipes_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // recipe comments
-    $sql = "CREATE TABLE `fcms_recipe_comment` (
+    $sql = 'CREATE TABLE `fcms_recipe_comment` (
                 `id` INT(25) NOT NULL AUTO_INCREMENT,
                 `recipe` INT(25) NOT NULL,
                 `comment` TEXT NOT NULL,
@@ -834,8 +835,8 @@ function installTables ($connection)
                 `user` INT(25) NOT NULL,
                 PRIMARY KEY (`id`),
                 KEY `recipe` (`recipe`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create privatemsg
     $sql = "CREATE TABLE `fcms_privatemsg` (
@@ -851,10 +852,10 @@ function installTables ($connection)
                 KEY `from_ind` (`from`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter privatemsg
-    $sql = "ALTER TABLE `fcms_privatemsg` 
+    $sql = 'ALTER TABLE `fcms_privatemsg` 
             ADD CONSTRAINT `fcms_privatemsg_ibfk_1` 
             FOREIGN KEY (`to`) 
             REFERENCES `fcms_users` (`id`) 
@@ -862,8 +863,8 @@ function installTables ($connection)
             ADD CONSTRAINT `fcms_privatemsg_ibfk_2` 
             FOREIGN KEY (`from`) 
             REFERENCES `fcms_users` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create documents
     $sql = "CREATE TABLE `fcms_documents` (
@@ -876,18 +877,18 @@ function installTables ($connection)
                 PRIMARY KEY (`id`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter documents
-    $sql = "ALTER TABLE `fcms_documents` 
+    $sql = 'ALTER TABLE `fcms_documents` 
             ADD CONSTRAINT `fcms_documents_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create family tree
-    $sql = "CREATE TABLE `fcms_relationship` (
+    $sql = 'CREATE TABLE `fcms_relationship` (
                 `id` INT(25) NOT NULL AUTO_INCREMENT,
                 `user` INT(25) NOT NULL,
                 `relationship` VARCHAR(4) NOT NULL,
@@ -895,22 +896,22 @@ function installTables ($connection)
                 PRIMARY KEY (`id`),
                 KEY `user_ind` (`user`),
                 KEY `rel_user` (`rel_user`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8';
     $connection->query($sql) or die("$sql<br/>".$connection->error);
 
     // creat fcms_chat_online
-    $sql = "CREATE TABLE fcms_chat_online (
+    $sql = 'CREATE TABLE fcms_chat_online (
                 userID INT(11) NOT NULL,
                 userName VARCHAR(64) NOT NULL,
                 userRole INT(1) NOT NULL,
                 channel INT(11) NOT NULL,
                 dateTime DATETIME NOT NULL,
                 ip VARBINARY(16) NOT NULL
-            ) DEFAULT CHARSET=utf8 COLLATE=utf8_bin";
+            ) DEFAULT CHARSET=utf8 COLLATE=utf8_bin';
     $connection->query($sql) or die("$sql<br/>".$connection->error);
 
     // creat fcms_chat_messages
-    $sql = "CREATE TABLE fcms_chat_messages (
+    $sql = 'CREATE TABLE fcms_chat_messages (
                 id INT(11) NOT NULL AUTO_INCREMENT,
                 userID INT(11) NOT NULL,
                 userName VARCHAR(64) NOT NULL,
@@ -920,7 +921,7 @@ function installTables ($connection)
                 ip VARBINARY(16) NOT NULL,
                 text TEXT,
                 PRIMARY KEY (id)
-            ) DEFAULT CHARSET=utf8 COLLATE=utf8_bin";
+            ) DEFAULT CHARSET=utf8 COLLATE=utf8_bin';
     $connection->query($sql) or die("$sql<br/>".$connection->error);
 
     // create user_awards
@@ -936,15 +937,15 @@ function installTables ($connection)
                 KEY `user` (`user`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // alter user_awards
-    $sql = "ALTER TABLE `fcms_user_awards` 
+    $sql = 'ALTER TABLE `fcms_user_awards` 
             ADD CONSTRAINT `fcms_user_awards_ibfk_1` 
             FOREIGN KEY (`user`) 
             REFERENCES `fcms_users` (`id`) 
-            ON DELETE CASCADE";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+            ON DELETE CASCADE';
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create fcms_alerts
     $sql = "CREATE TABLE `fcms_alerts` (
@@ -956,7 +957,7 @@ function installTables ($connection)
                 KEY `alert_ind` (`alert`),
                 KEY `user_ind` (`user`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create fcms_status
     $sql = "CREATE TABLE `fcms_status` (
@@ -969,7 +970,7 @@ function installTables ($connection)
                 PRIMARY KEY (`id`),
                 CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 
     // create fcms_notification
     $sql = "CREATE TABLE `fcms_notification` (
@@ -984,5 +985,5 @@ function installTables ($connection)
                 PRIMARY KEY (`id`),
                 CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
-    $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+    $connection->query($sql) or die($sql.'<br/>'.$connection->error);
 }

@@ -2,7 +2,7 @@
 <html lang="<?php echo T_pgettext('Language Code for this translation', 'lang'); ?>">
 <head>
 <meta charset="utf-8">
-<title><?php echo $TMPL['sitename'] . " - " . T_('powered by') . " " . $TMPL['version']; ?></title>
+<title><?php echo $TMPL['sitename'].' - '.T_('powered by').' '.$TMPL['version']; ?></title>
 <meta name="author" content="Ryan Haudenschilt" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>themes/favicon.ico"/>
 <link href="../ui/twitter-bootstrap/bootstrap.min.css" rel="stylesheet">
