@@ -1,26 +1,27 @@
 <?php
 /**
- * Cron
+ * Cron.
  *
  * Helper functions for the FCMS Scheduler.
  *
  * PHP versions 4 and 5
- *  
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2011 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     2.6
  */
 
 /**
- * runAwardsJob 
- * 
+ * runAwardsJob.
+ *
  * @return void
  */
-function runAwardsJob ()
+function runAwardsJob()
 {
     global $fcmsError, $fcmsDatabase, $fcmsUser;
 
@@ -45,18 +46,18 @@ function runAwardsJob ()
 }
 
 /**
- * runFamilyNewsJob 
- * 
+ * runFamilyNewsJob.
+ *
  * Checks if any user has an external blog setup.
  * Imports posts from those blogs if they haven't been imported already.
- * 
+ *
  * @return void
  */
-function runFamilyNewsJob ()
+function runFamilyNewsJob()
 {
     include_once 'familynews_class.php';
 
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     $newsObj = new FamilyNews($fcmsError, $fcmsDatabase, 1);
@@ -84,8 +85,8 @@ function runFamilyNewsJob ()
     }
 
     // Get import blog settings
-    $sql = "SELECT `user`, `blogger`, `tumblr`, `wordpress`, `posterous`
-            FROM `fcms_user_settings`";
+    $sql = 'SELECT `user`, `blogger`, `tumblr`, `wordpress`, `posterous`
+            FROM `fcms_user_settings`';
 
     $rows = $fcmsDatabase->getRows($sql);
     if ($rows === false)
@@ -167,13 +168,13 @@ function runFamilyNewsJob ()
 }
 
 /**
- * runYouTubeJob 
- * 
+ * runYouTubeJob.
+ *
  * Imports YouTube videos.
- * 
+ *
  * @return void
  */
-function runYouTubeJob ()
+function runYouTubeJob()
 {
     require_once 'constants.php';
     require_once 'socialmedia.php';
@@ -183,16 +184,16 @@ function runYouTubeJob ()
     set_include_path(get_include_path().PATH_SEPARATOR.THIRDPARTY.'google-api-php-client/src/');
     require_once THIRDPARTY.'google-api-php-client/src/Google/autoload.php';
 
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     $existingIds = getExistingYouTubeIds();
 
     // Get all google session tokens
-    $sql = "SELECT u.`id`, s.`google_session_token`
+    $sql = 'SELECT u.`id`, s.`google_session_token`
             FROM `fcms_user_settings` AS s
             LEFT JOIN `fcms_users` AS u ON s.`user` = u.`id`
-            WHERE s.`google_session_token` IS NOT NULL";
+            WHERE s.`google_session_token` IS NOT NULL';
 
     $rows = $fcmsDatabase->getRows($sql);
     if ($rows === false)
@@ -201,7 +202,7 @@ function runYouTubeJob ()
         die();
     }
 
-    $sessionTokens = array();
+    $sessionTokens = [];
     foreach ($rows as $row)
     {
         $sessionTokens[$row['id']] = $row['google_session_token'];
@@ -210,9 +211,9 @@ function runYouTubeJob ()
     // Get videos for each user
     foreach ($sessionTokens as $userId => $token)
     {
-        $values     = '';
+        $values = '';
         $videoCount = 0;
-        $params     = array();
+        $params = [];
 
         try
         {
@@ -220,22 +221,22 @@ function runYouTubeJob ()
 
             $youtube = new Google_Service_YouTube($googleClient);
 
-            $channelsResponse = $youtube->channels->listChannels('id,snippet,status,contentDetails,statistics', array('mine' => true));
+            $channelsResponse = $youtube->channels->listChannels('id,snippet,status,contentDetails,statistics', ['mine' => true]);
 
             foreach ($channelsResponse['items'] as $channel)
             {
                 $uploadsListId = $channel['contentDetails']['relatedPlaylists']['uploads'];
 
-                $playlistItemsResponse = $youtube->playlistItems->listPlaylistItems('snippet', array(
+                $playlistItemsResponse = $youtube->playlistItems->listPlaylistItems('snippet', [
                     'playlistId' => $uploadsListId,
-                    'maxResults' => 50
-                ));
+                    'maxResults' => 50,
+                ]);
 
                 foreach ($playlistItemsResponse['items'] as $playlistItem) {
-                    $id          = $playlistItem['snippet']['resourceId']['videoId'];
-                    $title       = $playlistItem['snippet']['title'];
+                    $id = $playlistItem['snippet']['resourceId']['videoId'];
+                    $title = $playlistItem['snippet']['title'];
                     $description = $playlistItem['snippet']['description'];
-                    $created     = formatDate('Y-m-d H:i:s', $playlistItem['snippet']['publishedAt']);
+                    $created = formatDate('Y-m-d H:i:s', $playlistItem['snippet']['publishedAt']);
 
                     if (isset($existingIds[$id]))
                     {
@@ -283,11 +284,11 @@ function runYouTubeJob ()
 }
 
 /**
- * runInstagramJob 
- * 
+ * runInstagramJob.
+ *
  * @return void
  */
-function runInstagramJob ()
+function runInstagramJob()
 {
     require_once 'inc/config_inc.php';
     require_once 'inc/constants.php';
@@ -296,15 +297,15 @@ function runInstagramJob ()
     require_once THIRDPARTY.'php-gettext/gettext.inc';
     require_once THIRDPARTY.'Instagram.php';
 
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     // Get user's access tokens
-    $sql = "SELECT u.`id`, s.`instagram_access_token`
+    $sql = 'SELECT u.`id`, s.`instagram_access_token`
             FROM `fcms_user_settings` AS s, `fcms_users` AS u
             WHERE s.`user` = u.`id`
             AND s.`instagram_auto_upload` = 1
-            AND s.`instagram_access_token` IS NOT NULL";
+            AND s.`instagram_access_token` IS NOT NULL';
 
     $rows = $fcmsDatabase->getRows($sql);
     if ($rows === false)
@@ -313,21 +314,21 @@ function runInstagramJob ()
         die();
     }
 
-    $accessTokens = array();
+    $accessTokens = [];
 
     foreach ($rows as $row)
     {
         $accessTokens[$row['id']] = $row['instagram_access_token'];
     }
 
-    $config      = getInstagramConfigData();
+    $config = getInstagramConfigData();
     $existingIds = getExistingInstagramIds();
 
     // Get pics for each user
     foreach ($accessTokens as $userId => $token)
     {
         $categoryId = getUserInstagramCategory($userId);
-        $instagram  = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $token);
+        $instagram = new Instagram($config['instagram_client_id'], $config['instagram_client_secret'], $token);
 
         try
         {
@@ -339,18 +340,18 @@ function runInstagramJob ()
             die();
         }
 
-        $sql = "INSERT INTO `fcms_gallery_photos`
+        $sql = 'INSERT INTO `fcms_gallery_photos`
                     (`date`, `path`, `caption`, `category`, `user`)
-                VALUES ";
+                VALUES ';
 
         foreach ($feed->data as $photo)
         {
-            $sourceId  = $photo->id;
+            $sourceId = $photo->id;
             $thumbnail = $photo->images->thumbnail->url;
-            $medium    = $photo->images->low_resolution->url;
-            $full      = $photo->images->standard_resolution->url;
-            $caption   = $photo->caption->text;
-            $caption  .= ' ['.sprintf(T_('Filter: %s.'), $photo->filter).']';
+            $medium = $photo->images->low_resolution->url;
+            $full = $photo->images->standard_resolution->url;
+            $caption = $photo->caption->text;
+            $caption .= ' ['.sprintf(T_('Filter: %s.'), $photo->filter).']';
 
             // Skip existing photos
             if (isset($existingIds[$sourceId]))
@@ -359,17 +360,17 @@ function runInstagramJob ()
             }
 
             // Save external paths
-            $sql = "INSERT INTO `fcms_gallery_external_photo`
+            $sql = 'INSERT INTO `fcms_gallery_external_photo`
                         (`source_id`, `thumbnail`, `medium`, `full`)
                     VALUES
-                        (?, ?, ?, ?)";
+                        (?, ?, ?, ?)';
 
-            $params = array(
+            $params = [
                 $sourceId,
                 $thumbnail,
                 $medium,
-                $full
-            );
+                $full,
+            ];
 
             $id = $fcmsDatabase->insert($sql, $params);
             if ($id === false)
@@ -379,17 +380,17 @@ function runInstagramJob ()
             }
 
             // Insert new photo
-            $sql = "INSERT INTO `fcms_gallery_photos`
+            $sql = 'INSERT INTO `fcms_gallery_photos`
                         (`date`, `external_id`, `caption`, `category`, `user`)
                     VALUES
-                        (NOW(), ?, ?, ?, ?)";
+                        (NOW(), ?, ?, ?, ?)';
 
-            $params = array(
+            $params = [
                 $id,
                 $caption,
                 $categoryId,
-                $userId
-            );
+                $userId,
+            ];
 
             if (!$fcmsDatabase->insert($sql, $params))
             {
@@ -404,16 +405,16 @@ function runInstagramJob ()
 }
 
 /**
- * updateLastRun 
- * 
- * @param date   $now 
- * @param string $type 
- * 
+ * updateLastRun.
+ *
+ * @param date   $now
+ * @param string $type
+ *
  * @return void
  */
-function updateLastRun ($now, $type)
+function updateLastRun($now, $type)
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     // Update date we last ran this job
@@ -421,7 +422,7 @@ function updateLastRun ($now, $type)
             SET `lastrun` = '$now'
             WHERE `type` = '$type'";
 
-    if (!$fcmsDatabase->update($sql, array($now, $type)))
+    if (!$fcmsDatabase->update($sql, [$now, $type]))
     {
         logError(__FILE__.' ['.__LINE__.'] - Could not update last run date for '.$type.' job.');
         die();

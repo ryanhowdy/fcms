@@ -1,19 +1,21 @@
 <?php
 /**
- * Activate
- *  
+ * Activate.
+ *
  * PHP versions 4 and 5
- *  
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2008 Haudenschilt LLC
  * @php       4.4
+ *
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     1.7
  */
-header("Cache-control: private");
+header('Cache-control: private');
 
 require 'fcms.php';
 
@@ -37,9 +39,9 @@ if (isset($_GET['uid']))
     <div id="login_box">
         <h1 id="reset_header">'.T_('Account Activation').'</h1>';
 
-        $sql = "SELECT `activate_code` 
+        $sql = 'SELECT `activate_code` 
                 FROM `fcms_users` 
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $row = $fcmsDatabase->getRow($sql, $uid);
         if ($row === false)
@@ -55,9 +57,9 @@ if (isset($_GET['uid']))
             // Code is valid
             if ($row['activate_code'] == $_GET['code'])
             {
-                $sql = "UPDATE `fcms_users` 
+                $sql = 'UPDATE `fcms_users` 
                         SET `activated` = 1, `joindate` = NOW() 
-                        WHERE `id` = ?";
+                        WHERE `id` = ?';
 
                 if (!$fcmsDatabase->update($sql, $uid))
                 {
