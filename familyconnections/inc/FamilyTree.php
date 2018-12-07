@@ -1,14 +1,13 @@
 <?php
 
 /**
- * FamilyTree 
- * 
+ * FamilyTree.
+ *
  * XXX: The family tree creates a relationship of HUSB/WIFE for both biological
  * parents of a child and also for married couples.
- * 
- * @package     Family Connections
+ *
  * @copyright   Copyright (c) 2010 Haudenschilt LLC
- * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
 class FamilyTree
@@ -23,26 +22,26 @@ class FamilyTree
     public $hasEnoughMemory = true;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
      * @param Database   $fcmsDatabase
-     * @param User       $fcmsUser 
-     * 
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
 
         $this->memoryAvailable = getMemoryLimitBytes();
 
         // Set the user's tree we are currently viewing
         if (isset($_GET['view']))
         {
-            $this->currentTreeUserId = (int)$_GET['view'];
+            $this->currentTreeUserId = (int) $_GET['view'];
         }
         else
         {
@@ -53,35 +52,35 @@ class FamilyTree
     }
 
     /**
-     * getParentsOfUsers 
-     * 
+     * getParentsOfUsers.
+     *
      * Given a list of user ids, will return all the users' parents.
-     * 
+     *
      * idList option will return a single array with key as spouse id
-     * 
-     * @param array $ids 
-     * @param boolean $idList 
-     * 
+     *
+     * @param array $ids
+     * @param bool  $idList
+     *
      * @return mixed - array on success or false on failure
      */
-    function getParentsOfUsers (array $ids, $idList = false)
+    public function getParentsOfUsers(array $ids, $idList = false)
     {
         if (count($ids) < 1)
         {
-            return array();
+            return [];
         }
 
-        $params = array();
+        $params = [];
 
         $where = '';
         foreach ($ids as $k => $v)
         {
             if (count($params) > 0)
             {
-                $where .= "OR ";
+                $where .= 'OR ';
             }
 
-            $where .= "`rel_user` = ? ";
+            $where .= '`rel_user` = ? ';
 
             if (is_array($v))
             {
@@ -109,7 +108,7 @@ class FamilyTree
         // Return just list of parent ids
         if ($idList)
         {
-            $parentIds = array();
+            $parentIds = [];
 
             foreach ($parents as $parent)
             {
@@ -123,35 +122,35 @@ class FamilyTree
     }
 
     /**
-     * getSpousesOfUsers 
-     * 
+     * getSpousesOfUsers.
+     *
      * Given a list of user ids, will return all the users' spouses.
-     * 
+     *
      * idList option will return a single array with key as spouse id
-     * 
-     * @param array $ids 
-     * @param boolean $idList 
-     * 
+     *
+     * @param array $ids
+     * @param bool  $idList
+     *
      * @return mixed - array on success or false on failure
      */
-    function getSpousesOfUsers (array $ids, $idList = false)
+    public function getSpousesOfUsers(array $ids, $idList = false)
     {
         if (count($ids) < 1)
         {
-            return array();
+            return [];
         }
 
-        $params = array();
+        $params = [];
 
         $where = '';
         foreach ($ids as $k => $v)
         {
             if (count($params) > 0)
             {
-                $where .= "OR ";
+                $where .= 'OR ';
             }
 
-            $where .= "`rel_user` = ? ";
+            $where .= '`rel_user` = ? ';
 
             if (is_array($v))
             {
@@ -182,7 +181,7 @@ class FamilyTree
         // Return just list of spouse ids
         if ($idList)
         {
-            $spouses = array();
+            $spouses = [];
 
             foreach ($parents as $spouse)
             {
@@ -196,35 +195,35 @@ class FamilyTree
     }
 
     /**
-     * getChildrenOfUsers 
-     * 
+     * getChildrenOfUsers.
+     *
      * Given a list of user ids, will return all the users' children.
-     * 
+     *
      * idList option will return a single array with key as child id
-     * 
-     * @param array   $ids 
-     * @param boolean $idList 
-     * 
+     *
+     * @param array $ids
+     * @param bool  $idList
+     *
      * @return mixed - array on success or false on failure
      */
-    function getChildrenOfUsers (array $ids, $idList = false)
+    public function getChildrenOfUsers(array $ids, $idList = false)
     {
         if (count($ids) < 1)
         {
-            return array();
+            return [];
         }
 
-        $params = array();
+        $params = [];
 
         $where = '';
         foreach ($ids as $k => $v)
         {
             if (count($params) > 0)
             {
-                $where .= "OR ";
+                $where .= 'OR ';
             }
 
-            $where .= "`user` = ? ";
+            $where .= '`user` = ? ';
 
             if (is_array($v))
             {
@@ -249,7 +248,7 @@ class FamilyTree
             return false;
         }
 
-        $children = array();
+        $children = [];
 
         // Return just list of children ids
         if ($idList)
@@ -282,50 +281,51 @@ class FamilyTree
     }
 
     /**
-     * getUserTreeInfo 
-     * 
-     * @param int $id 
-     * 
+     * getUserTreeInfo.
+     *
+     * @param int $id
+     *
      * @return array
      */
-    function getUserTreeInfo ($id)
+    public function getUserTreeInfo($id)
     {
-        $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`, `dob_year`, `dob_month`, `dob_day`, `dod_year`, `dod_month`, `dod_day`, 
+        $sql = 'SELECT `id`, `fname`, `mname`, `lname`, `maiden`, `dob_year`, `dob_month`, `dob_day`, `dod_year`, `dod_month`, `dod_day`, 
                     `avatar`, `gravatar`, `sex`, `phpass`
                 FROM `fcms_users` AS u
-                WHERE u.`id` = ?";
+                WHERE u.`id` = ?';
 
-        $user = $this->fcmsDatabase->getRow($sql, (int)$id);
+        $user = $this->fcmsDatabase->getRow($sql, (int) $id);
         if ($user === false)
         {
-            return array();
+            return [];
         }
 
         return $user;
     }
 
     /**
-     * displaySpousesAndKids
-     * 
+     * displaySpousesAndKids.
+     *
      * Displays the spouse and kids of the given person, and their spouse and kids,
      * recursively, until we run out of data.
-     * 
+     *
      * @param array $parent
-     * @param array $data 
-     * 
+     * @param array $data
+     *
      * @return void
      */
-    function displaySpousesAndKids ($parent, $data)
+    public function displaySpousesAndKids($parent, $data)
     {
         $spouses = array_shift($data);
-        $kids    = array_shift($data);
+        $kids = array_shift($data);
 
         // Lets make sure we have enough memory for all this
-        $currentMemoryUsage  = memory_get_usage();
+        $currentMemoryUsage = memory_get_usage();
         $currentMemoryUsage += 256000; // the standard php increment size
         if ($currentMemoryUsage >= $this->memoryAvailable)
         {
             $this->hasEnoughMemory = false;
+
             return;
         }
 
@@ -334,17 +334,17 @@ class FamilyTree
 
         if ($spouseCount > 1)
         {
-            $htmlParentAllOpen  = '<ul class="p">';
+            $htmlParentAllOpen = '<ul class="p">';
             $htmlParentAllClose = '</ul>';
-            $htmlParentOpen     = '<li>';
-            $htmlParentClose    = '</li>';
+            $htmlParentOpen = '<li>';
+            $htmlParentClose = '</li>';
         }
         elseif ($spouseCount == 1)
         {
-            $htmlParentAllOpen  = '<div class="p1">';
+            $htmlParentAllOpen = '<div class="p1">';
             $htmlParentAllClose = '</div>';
-            $htmlParentOpen     = '';
-            $htmlParentClose    = '';
+            $htmlParentOpen = '';
+            $htmlParentClose = '';
         }
 
         // We have spouses for this parent
@@ -389,7 +389,7 @@ class FamilyTree
         // This parent has no spouse, but still have kids
         else
         {
-            $thisKids = $this->getKids($parent, array(), $kids);
+            $thisKids = $this->getKids($parent, [], $kids);
             $kidCount = count($thisKids);
 
             if ($kidCount > 0)
@@ -412,20 +412,20 @@ class FamilyTree
     }
 
     /**
-     * getSpouses 
-     * 
+     * getSpouses.
+     *
      * Given a parent and a list of possible spouses,
      * will determine if any of the spouses are a spouse
      * of the given parent.
-     * 
-     * @param array $parent 
-     * @param array $spouses 
-     * 
+     *
+     * @param array $parent
+     * @param array $spouses
+     *
      * @return void
      */
-    function getSpouses ($parent, $spouses)
+    public function getSpouses($parent, $spouses)
     {
-        $foundSpouses = array();
+        $foundSpouses = [];
 
         if (count($spouses) > 0)
         {
@@ -443,22 +443,22 @@ class FamilyTree
     }
 
     /**
-     * getKids 
-     * 
+     * getKids.
+     *
      * Given two parents and a list of possible kids,
      * will determine if any of the kids are children
      * of the two parents.
-     * 
-     * @param array $parent1 
-     * @param array $parent2 
-     * @param array $kids 
-     * 
+     *
+     * @param array $parent1
+     * @param array $parent2
+     * @param array $kids
+     *
      * @return array
      */
-    function getKids ($parent1, $parent2, $kids)
+    public function getKids($parent1, $parent2, $kids)
     {
-        $foundKids = array();
-        $idsFound  = array();
+        $foundKids = [];
+        $idsFound = [];
 
         if (!is_null($kids) && count($kids) > 0)
         {
@@ -501,16 +501,16 @@ class FamilyTree
     }
 
     /**
-     * displayPerson 
-     * 
+     * displayPerson.
+     *
      * Displays the anchor representing a single
      * person on the tree.
-     * 
-     * @param array $data 
-     * 
+     *
+     * @param array $data
+     *
      * @return void
      */
-    function displayPerson ($data)
+    public function displayPerson($data)
     {
         $data['sex'] = strtolower($data['sex']);
 
@@ -520,21 +520,21 @@ class FamilyTree
         // Just birthday
         if (isset($data['dob_year']) && !empty($data['dob_year']))
         {
-            $bday  = (int)$data['dob_year'];
+            $bday = (int) $data['dob_year'];
             $bday .= ' - ';
-            $dday  = '<i>'.T_('Living').'</i>';
+            $dday = '<i>'.T_('Living').'</i>';
 
             // Birthday and Deceased date
             if (isset($data['dod_year']) && !empty($data['dod_year']))
             {
-                $dday  = (int)$data['dod_year'];
+                $dday = (int) $data['dod_year'];
             }
         }
         // Just Deceased date
-        else if (isset($data['dod_year']) && !empty($data['dod_year']))
+        elseif (isset($data['dod_year']) && !empty($data['dod_year']))
         {
             $bday = '? - ';
-            $dday = (int)$data['dod_year'];
+            $dday = (int) $data['dod_year'];
         }
 
         $middleName = isset($data['mname']) && !empty($data['mname']) ? $data['mname'].'<br/>' : '';
@@ -548,13 +548,13 @@ class FamilyTree
         $avatarPath = getAvatarPath($data['avatar'], $data['gravatar']);
 
         $edit = '';
-        $add  = '';
-        $del  = '';
+        $add = '';
+        $del = '';
         if ($data['phpass'] == 'NONMEMBER' || $this->fcmsUser->access == 1 || $this->fcmsUser->id == $data['id'])
         {
             $edit = '<a class="edit" href="?view='.$data['id'].'&amp;edit='.$data['id'].'">'.T_('Edit').'</a>';
-            $add  = '<a class="add" href="#'.$data['id'].'">'.T_('Add Family Member').'</a>';
-            $del  = '<a class="delete" href="?delete='.$data['id'].'">'.T_('Delete All Relationships').'</a>';
+            $add = '<a class="add" href="#'.$data['id'].'">'.T_('Add Family Member').'</a>';
+            $del = '<a class="delete" href="?delete='.$data['id'].'">'.T_('Delete All Relationships').'</a>';
             $del .= '<script type="text/javascript">';
             $del .= '$(\'a.delete\').each(function() {';
             $del .= '    var jqLink = $(this);';
@@ -593,43 +593,43 @@ class FamilyTree
     }
 
     /**
-     * getFormattedBirthdayAndDeath 
-     * 
+     * getFormattedBirthdayAndDeath.
+     *
      * Will return an array with two dates, one bday and one death day.
-     * 
-     * @param array $data 
-     * 
+     *
+     * @param array $data
+     *
      * @return array
      */
-    function getFormattedBirthdayAndDeath (array $data)
+    public function getFormattedBirthdayAndDeath(array $data)
     {
-        $bday  = T_('Unknown');
+        $bday = T_('Unknown');
         $death = '';
 
         if (!empty($data['dob_year']))
         {
-            $bday  = '<b>'.T_('Born').':</b> ';
+            $bday = '<b>'.T_('Born').':</b> ';
             $bday .= formatBirthday($data['dob_year'], $data['dob_month'], $data['dob_day']);
 
             if (empty($data['dod_year']) && !empty($data['dob_month']) && !empty($data['dob_day']))
             {
-                $age   = getAge($data['dob_year'], $data['dob_month'], $data['dob_day']);
+                $age = getAge($data['dob_year'], $data['dob_month'], $data['dob_day']);
                 $bday .= ' ('.sprintf(T_pgettext('Ex: age 30', 'age %d'), $age).')';
             }
         }
         if (!empty($data['dod_year']))
         {
-            $death  = '<b>'.T_('Passed Away').':</b> ';
+            $death = '<b>'.T_('Passed Away').':</b> ';
             $death .= formatBirthday($data['dod_year'], $data['dod_month'], $data['dod_day']);
 
-            $checkDates = array(
+            $checkDates = [
                 'dob_year'  => 'Y',
                 'dob_month' => 'm',
                 'dob_day'   => 'd',
                 'dod_year'  => 'Y',
                 'dod_month' => 'm',
-                'dod_day'   => 'd'
-            );
+                'dod_day'   => 'd',
+            ];
             $haveAllDates = 0;
             foreach ($checkDates as $d => $k)
             {
@@ -663,24 +663,24 @@ class FamilyTree
             $death .= ' ('.sprintf(T_pgettext('Ex: at age ~81', 'at age %s'), $age).')';
         }
 
-        return array($bday, $death);
+        return [$bday, $death];
     }
 
     /**
-     * displayEditPersonForm 
-     * 
-     * @param int $userId 
-     * 
+     * displayEditPersonForm.
+     *
+     * @param int $userId
+     *
      * @return void
      */
-    function displayEditPersonForm ($userId)
+    public function displayEditPersonForm($userId)
     {
         $validator = new FormValidator();
 
         // Get user info
-        $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`, `dob_year`, `dob_month`, `dob_day`, `dod_year`, `dod_month`, `dod_day`, `sex`, `bio`
+        $sql = 'SELECT `id`, `fname`, `mname`, `lname`, `maiden`, `dob_year`, `dob_month`, `dob_day`, `dod_year`, `dod_month`, `dod_day`, `sex`, `bio`
                 FROM `fcms_users`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $row = $this->fcmsDatabase->getRow($sql, $userId);
         if ($row === false)
@@ -690,8 +690,8 @@ class FamilyTree
             return;
         }
 
-        $dayList   = array();
-        $monthList = array();
+        $dayList = [];
+        $monthList = [];
 
         $i = 1;
         while ($i <= 31)
@@ -708,12 +708,12 @@ class FamilyTree
         }
 
         // Living or Deceased?
-        $living   = 'checked="checked"';
+        $living = 'checked="checked"';
         $deceased = '';
 
         if (!empty($row['dod_year']) || !empty($row['dod_month']) || !empty($row['dod_day']))
         {
-            $living   = '';
+            $living = '';
             $deceased = 'checked="checked"';
         }
 
@@ -743,7 +743,7 @@ class FamilyTree
                 <p>
                     <label><b>'.T_('Sex').'</b></label><br/>
                     <select id="sex" name="sex">
-                        '.buildHtmlSelectOptions(array('M' => T_('Male'), 'F' => T_('Female')), $row['sex']).'
+                        '.buildHtmlSelectOptions(['M' => T_('Male'), 'F' => T_('Female')], $row['sex']).'
                     </select>
                 </p>
                 <p>
@@ -813,22 +813,23 @@ class FamilyTree
     }
 
     /**
-     * displayAddFatherMotherSpouseForm 
-     * 
-     * @param int    $userId 
-     * @param string $type 
-     * 
+     * displayAddFatherMotherSpouseForm.
+     *
+     * @param int    $userId
+     * @param string $type
+     *
      * @return void
      */
-    function displayAddFatherMotherSpouseForm ($userId, $type)
+    public function displayAddFatherMotherSpouseForm($userId, $type)
     {
-        $sql = "SELECT `id`, `fname`, `mname`, `lname`
+        $sql = 'SELECT `id`, `fname`, `mname`, `lname`
                 FROM `fcms_users`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
         $user = $this->fcmsDatabase->getRow($sql, $userId);
         if ($user === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -837,34 +838,36 @@ class FamilyTree
         switch ($type)
         {
             case 'father':
-                $legend     = sprintf(T_pgettext('%s is a persons name', 'Add new father for %s'), $name);
-                $label      = T_('Father');
+                $legend = sprintf(T_pgettext('%s is a persons name', 'Add new father for %s'), $name);
+                $label = T_('Father');
                 $createLink = T_('Create father not listed above');
-                $members    = $this->getPossibleFatherList($userId);
+                $members = $this->getPossibleFatherList($userId);
                 break;
 
             case 'mother':
-                $legend     = sprintf(T_pgettext('%s is a persons name', 'Add new mother for %s'), $name);
-                $label      = T_('Mother');
+                $legend = sprintf(T_pgettext('%s is a persons name', 'Add new mother for %s'), $name);
+                $label = T_('Mother');
                 $createLink = T_('Create mother not listed above');
-                $members    = $this->getPossibleMotherList($userId);
+                $members = $this->getPossibleMotherList($userId);
                 break;
 
             case 'spouse':
-                $legend     = sprintf(T_pgettext('%s is a persons name', 'Add new spouse for %s'), $name);
-                $label      = T_('Spouse');
+                $legend = sprintf(T_pgettext('%s is a persons name', 'Add new spouse for %s'), $name);
+                $label = T_('Spouse');
                 $createLink = T_('Create spouse not listed above');
-                $members    = $this->getPossibleSpouseList($userId);
+                $members = $this->getPossibleSpouseList($userId);
                 break;
 
             default:
                 echo '<div class="error-alert">'.T_('Invalid relationship type.').'</div>';
+
                 return;
         }
 
         if ($members === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -873,14 +876,16 @@ class FamilyTree
         {
             // can't send header because we already started printing to the page
             echo '<meta http-equiv="refresh" content="0; url=?create='.$type.'&amp;user='.$userId.'">';
+
             return;
         }
 
         // Get parents
-        $parents = $this->getParentsOfUsers(array($userId));
+        $parents = $this->getParentsOfUsers([$userId]);
         if ($parents === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -891,6 +896,7 @@ class FamilyTree
             if ($children === false)
             {
                 $this->fcmsError->displayError();
+
                 return;
             }
         }
@@ -921,22 +927,23 @@ class FamilyTree
     }
 
     /**
-     * displayAddChildForm 
-     * 
-     * @param int $userId 
-     * 
+     * displayAddChildForm.
+     *
+     * @param int $userId
+     *
      * @return void
      */
-    function displayAddChildForm ($userId)
+    public function displayAddChildForm($userId)
     {
         // Get user info
-        $sql = "SELECT `id`, `fname`, `mname`, `lname`
+        $sql = 'SELECT `id`, `fname`, `mname`, `lname`
                 FROM `fcms_users`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
         $user = $this->fcmsDatabase->getRow($sql, $userId);
         if ($user === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -947,6 +954,7 @@ class FamilyTree
         if ($members === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -955,6 +963,7 @@ class FamilyTree
         {
             // can't send header because we already started printing to the page
             echo '<meta http-equiv="refresh" content="0; url=?create=child&amp;user='.$userId.'">';
+
             return;
         }
 
@@ -986,23 +995,24 @@ class FamilyTree
     }
 
     /**
-     * displayAddBrotherSisterForm 
-     * 
-     * @param int    $userId 
-     * @param string $type 
-     * 
+     * displayAddBrotherSisterForm.
+     *
+     * @param int    $userId
+     * @param string $type
+     *
      * @return void
      */
-    function displayAddBrotherSisterForm ($userId, $type)
+    public function displayAddBrotherSisterForm($userId, $type)
     {
         // Get user info
-        $sql = "SELECT `id`, `fname`, `mname`, `lname`
+        $sql = 'SELECT `id`, `fname`, `mname`, `lname`
                 FROM `fcms_users`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
         $user = $this->fcmsDatabase->getRow($sql, $userId);
         if ($user === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -1011,17 +1021,17 @@ class FamilyTree
         // Get possible children
         if ($type == 'brother')
         {
-            $members    = $this->getPossibleBrotherList($userId);
-            $legend     = sprintf(T_pgettext('%s is a persons name', 'Add new brother for %s'), $name);
-            $label      = T_('Brother');
+            $members = $this->getPossibleBrotherList($userId);
+            $legend = sprintf(T_pgettext('%s is a persons name', 'Add new brother for %s'), $name);
+            $label = T_('Brother');
             $createText = T_('Create brother not listed above.');
             $createLink = '?create=brother&amp;user='.$userId;
         }
         else
         {
-            $members    = $this->getPossibleSisterList($userId);
-            $legend     = sprintf(T_pgettext('%s is a persons name', 'Add new sister for %s'), $name);
-            $label      = T_('Sister');
+            $members = $this->getPossibleSisterList($userId);
+            $legend = sprintf(T_pgettext('%s is a persons name', 'Add new sister for %s'), $name);
+            $label = T_('Sister');
             $createText = T_('Create sister not listed above.');
             $createLink = '?create=sister&amp;user='.$userId;
         }
@@ -1029,6 +1039,7 @@ class FamilyTree
         if ($members === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -1037,6 +1048,7 @@ class FamilyTree
         {
             // can't send header because we already started printing to the page
             echo '<meta http-equiv="refresh" content="0; url='.$createLink.'">';
+
             return;
         }
 
@@ -1066,13 +1078,13 @@ class FamilyTree
     }
 
     /**
-     * getPossibleFatherList 
-     * 
-     * @param int $userId 
-     * 
+     * getPossibleFatherList.
+     *
+     * @param int $userId
+     *
      * @return mixed - string on success false on failure
      */
-    function getPossibleFatherList ($userId)
+    public function getPossibleFatherList($userId)
     {
         // Get list of all males
         $sql = "SELECT `id`, `fname`, `mname`, `lname`
@@ -1088,7 +1100,7 @@ class FamilyTree
         }
 
         // Get parents
-        $parents = $this->getParentsOfUsers(array($userId));
+        $parents = $this->getParentsOfUsers([$userId]);
         if ($parents === false)
         {
             return false;
@@ -1105,8 +1117,8 @@ class FamilyTree
             }
         }
 
-        $fathersRelatives = array();
-        $mothersRelatives = array();
+        $fathersRelatives = [];
+        $mothersRelatives = [];
 
         $mothersOldestRelativeId = $userId;
 
@@ -1115,9 +1127,8 @@ class FamilyTree
             $mothersOldestRelativeId = $this->getOldestRelativeId($mother['id']);
         }
 
-
-        $fathersRelatives = $this->getDescendantsAndSpousesIds(array($userId));
-        $mothersRelatives = $this->getDescendantsAndSpousesIds(array($mothersOldestRelativeId));
+        $fathersRelatives = $this->getDescendantsAndSpousesIds([$userId]);
+        $mothersRelatives = $this->getDescendantsAndSpousesIds([$mothersOldestRelativeId]);
 
         $mothersRelatives[$mothersOldestRelativeId] = 1;
 
@@ -1142,13 +1153,13 @@ class FamilyTree
     }
 
     /**
-     * getPossibleMotherList 
-     * 
-     * @param int $userId 
-     * 
+     * getPossibleMotherList.
+     *
+     * @param int $userId
+     *
      * @return mixed - string on success false on failure
      */
-    function getPossibleMotherList ($userId)
+    public function getPossibleMotherList($userId)
     {
         // Get list of all females
         $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`
@@ -1164,7 +1175,7 @@ class FamilyTree
         }
 
         // Get parents
-        $parents = $this->getParentsOfUsers(array($userId));
+        $parents = $this->getParentsOfUsers([$userId]);
         if ($parents === false)
         {
             return false;
@@ -1181,8 +1192,8 @@ class FamilyTree
             }
         }
 
-        $fathersRelatives = array();
-        $mothersRelatives = array();
+        $fathersRelatives = [];
+        $mothersRelatives = [];
 
         $fathersOldestRelativeId = $userId;
 
@@ -1191,8 +1202,8 @@ class FamilyTree
             $fathersOldestRelativeId = $this->getOldestRelativeId($father['id']);
         }
 
-        $fathersRelatives = $this->getDescendantsAndSpousesIds(array($fathersOldestRelativeId));
-        $mothersRelatives = $this->getDescendantsAndSpousesIds(array($userId));
+        $fathersRelatives = $this->getDescendantsAndSpousesIds([$fathersOldestRelativeId]);
+        $mothersRelatives = $this->getDescendantsAndSpousesIds([$userId]);
 
         $fathersRelatives[$fathersOldestRelativeId] = 1;
 
@@ -1217,43 +1228,43 @@ class FamilyTree
     }
 
     /**
-     * getPossibleBrotherList 
-     * 
-     * @param int $userId 
+     * getPossibleBrotherList.
+     *
+     * @param int $userId
      *
      * @return mixed - string on success false on failure
      */
-    function getPossibleBrotherList ($userId)
+    public function getPossibleBrotherList($userId)
     {
         return $this->getPossibleFatherList($userId);
     }
 
     /**
-     * getPossibleSisterList 
-     * 
-     * @param int $userId 
+     * getPossibleSisterList.
+     *
+     * @param int $userId
      *
      * @return mixed - string on success false on failure
      */
-    function getPossibleSisterList ($userId)
+    public function getPossibleSisterList($userId)
     {
         return $this->getPossibleMotherList($userId);
     }
 
     /**
-     * getPossibleSpouseList 
-     * 
-     * @param int $userId 
+     * getPossibleSpouseList.
+     *
+     * @param int $userId
      *
      * @return mixed - string on success false on failure
      */
-    function getPossibleSpouseList ($userId)
+    public function getPossibleSpouseList($userId)
     {
         // Get list of all members
-        $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`
+        $sql = 'SELECT `id`, `fname`, `mname`, `lname`, `maiden`
                 FROM `fcms_users` 
                 WHERE `id` != ?
-                ORDER BY `lname`, `fname`";
+                ORDER BY `lname`, `fname`';
 
         $rows = $this->fcmsDatabase->getRows($sql, $userId);
         if ($rows === false)
@@ -1262,7 +1273,7 @@ class FamilyTree
         }
 
         // Get parents
-        $parents = $this->getParentsOfUsers(array($userId));
+        $parents = $this->getParentsOfUsers([$userId]);
         if ($parents === false)
         {
             return false;
@@ -1279,8 +1290,8 @@ class FamilyTree
             }
         }
 
-        $fathersRelatives = array();
-        $mothersRelatives = array();
+        $fathersRelatives = [];
+        $mothersRelatives = [];
 
         if (!isset($father['id']))
         {
@@ -1291,12 +1302,12 @@ class FamilyTree
         {
             $mother['id'] = $userId;
         }
-        
+
         $fathersOldestRelativeId = $this->getOldestRelativeId($father['id']);
         $mothersOldestRelativeId = $this->getOldestRelativeId($mother['id']);
 
-        $fathersRelatives = $this->getDescendantsAndSpousesIds(array($fathersOldestRelativeId));
-        $mothersRelatives = $this->getDescendantsAndSpousesIds(array($mothersOldestRelativeId));
+        $fathersRelatives = $this->getDescendantsAndSpousesIds([$fathersOldestRelativeId]);
+        $mothersRelatives = $this->getDescendantsAndSpousesIds([$mothersOldestRelativeId]);
 
         $fathersRelatives[$fathersOldestRelativeId] = 1;
         $mothersRelatives[$mothersOldestRelativeId] = 1;
@@ -1322,28 +1333,28 @@ class FamilyTree
     }
 
     /**
-     * getPossibleChildList 
-     * 
-     * @param int $userId 
+     * getPossibleChildList.
+     *
+     * @param int $userId
      *
      * @return mixed - string on success false on failure
      */
-    function getPossibleChildList ($userId)
+    public function getPossibleChildList($userId)
     {
         return $this->getPossibleSpouseList($userId);
     }
 
     /**
-     * getDescendantsAndSpouses
-     * 
+     * getDescendantsAndSpouses.
+     *
      * Will recursively get the data of children from an array of ids,
      * and their spouses untill no children are found.
-     * 
-     * @param array $ids 
-     * 
+     *
+     * @param array $ids
+     *
      * @return mixed - array on success or false on failure
      */
-    function getDescendantsAndSpouses ($ids)
+    public function getDescendantsAndSpouses($ids)
     {
         $this->count++;
         if ($this->count > 50)
@@ -1351,7 +1362,7 @@ class FamilyTree
             die('too many descendants');
         }
 
-        $descendants = array();
+        $descendants = [];
 
         foreach ($ids as $id)
         {
@@ -1368,7 +1379,7 @@ class FamilyTree
         // No spouse found
         if (empty($spouses))
         {
-            $descendants[] = array();
+            $descendants[] = [];
         }
         // We have a spouse
         else
@@ -1393,7 +1404,7 @@ class FamilyTree
         if (!empty($children))
         {
             // get children ids
-            $childrenIds = array();
+            $childrenIds = [];
             foreach ($children as $child)
             {
                 $childrenIds[] = $child['id'];
@@ -1418,16 +1429,16 @@ class FamilyTree
     }
 
     /**
-     * getDescendantsAndSpousesIds
-     * 
+     * getDescendantsAndSpousesIds.
+     *
      * Will recursively get ids of children from an array of ids,
      * and their spouses untill no children are found.
-     * 
-     * @param array $ids 
-     * 
+     *
+     * @param array $ids
+     *
      * @return mixed - array on success or false on failure
      */
-    function getDescendantsAndSpousesIds ($ids)
+    public function getDescendantsAndSpousesIds($ids)
     {
         $this->count++;
         if ($this->count > 50)
@@ -1438,7 +1449,7 @@ class FamilyTree
         foreach ($ids as $id)
         {
             $descendants[$id] = 1;
-            $parents[$id]     = 1;
+            $parents[$id] = 1;
         }
 
         $spouses = $this->getSpousesOfUsers($ids, true);
@@ -1449,7 +1460,7 @@ class FamilyTree
 
         if (!empty($spouses))
         {
-            $parents     = $parents + $spouses;
+            $parents = $parents + $spouses;
             $descendants = $descendants + $spouses;
         }
 
@@ -1462,7 +1473,7 @@ class FamilyTree
         if (!empty($children))
         {
             $descendants = $descendants + $children;
-            $children    = $this->getDescendantsAndSpousesIds(array_keys($children));
+            $children = $this->getDescendantsAndSpousesIds(array_keys($children));
         }
 
         $descendants = $descendants + $children;
@@ -1471,20 +1482,20 @@ class FamilyTree
     }
 
     /**
-     * getOldestRelativeId 
-     * 
+     * getOldestRelativeId.
+     *
      * Will recursively get the father of the given user
      * until no father is found.
-     * 
-     * @param int $userId 
+     *
+     * @param int $userId
      *
      * @return mixed - int on success or false on failure
      */
-    function getOldestRelativeId ($userId)
+    public function getOldestRelativeId($userId)
     {
         $oldest = $userId;
 
-        $parents = $this->getParentsOfUsers(array($userId));
+        $parents = $this->getParentsOfUsers([$userId]);
         if ($parents === false)
         {
             return false;
@@ -1508,10 +1519,10 @@ class FamilyTree
     }
 
     /**
-     * addParent 
-     * 
+     * addParent.
+     *
      * Adds a new biologoical parent in the db for the given user.
-     * 
+     *
      * XXX: This is for adding BIOLOGICAL parents.
      * Users can only add one mother and one father,
      * if they have multiple, they must be added through
@@ -1519,18 +1530,18 @@ class FamilyTree
      *
      * @param array $newParents
      * @param int   $userId
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function addParent (array $newParent1, $userId, array $newParent2 = array())
+    public function addParent(array $newParent1, $userId, array $newParent2 = [])
     {
-        $params = array(
+        $params = [
             'userId'     => $userId,
-            'parentId1'  => (isset($newParent1['id'])  ? $newParent1['id']  : null),
+            'parentId1'  => (isset($newParent1['id']) ? $newParent1['id'] : null),
             'parentSex1' => (isset($newParent1['sex']) ? $newParent1['sex'] : null),
-            'parentId2'  => (isset($newParent2['id'])  ? $newParent2['id']  : null),
+            'parentId2'  => (isset($newParent2['id']) ? $newParent2['id'] : null),
             'parentSex2' => (isset($newParent2['sex']) ? $newParent2['sex'] : null),
-        );
+        ];
 
         $validator = new FormValidator();
 
@@ -1539,13 +1550,13 @@ class FamilyTree
         {
             foreach ($errors as $msg)
             {
-                $this->fcmsError->add(array(
+                $this->fcmsError->add([
                     'type'    => 'operation',
                     'message' => $msg,
                     'error'   => $params,
                     'file'    => __FILE__,
                     'line'    => __LINE__,
-                ));
+                ]);
             }
 
             return false;
@@ -1554,9 +1565,9 @@ class FamilyTree
         // Get sex if missing
         if (!isset($newParent1['sex']) || is_null($newParent1['sex']))
         {
-            $sql = "SELECT `sex`
+            $sql = 'SELECT `sex`
                     FROM `fcms_users`
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
 
             $sqlParams[] = $newParent1['id'];
 
@@ -1564,11 +1575,11 @@ class FamilyTree
             {
                 if (!isset($newParent2['sex']) || is_null($newParent2['sex']))
                 {
-                    $sql .= "
+                    $sql .= '
                             UNION
                             SELECT `sex`
                             FROM `fcms_users`
-                            WHERE `id` = ?";
+                            WHERE `id` = ?';
 
                     $sqlParams[] = $newParent2['id'];
                 }
@@ -1584,9 +1595,8 @@ class FamilyTree
             $newParent2['sex'] = isset($newParent2['id']) ? $newParentsInfo[1]['sex'] : null;
         }
 
-
         // Get existing parents of $user
-        $existingParents = $this->getParentsOfUsers(array($userId));
+        $existingParents = $this->getParentsOfUsers([$userId]);
         if ($existingParents === false)
         {
             return false;
@@ -1597,10 +1607,11 @@ class FamilyTree
         // 2 existing parents
         if ($existingParentsCount > 1)
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Both parents already exist.'),
-                'details' => '<p>'.T_('Please add only biological parents. Step parents should be added as spouses, not parents.').'</p>'
-            ));
+                'details' => '<p>'.T_('Please add only biological parents. Step parents should be added as spouses, not parents.').'</p>',
+            ]);
+
             return false;
         }
         // 1 existing parent
@@ -1609,10 +1620,11 @@ class FamilyTree
             // Can't add multiple parents if we already have atleast one existing
             if (isset($newParent2['id']))
             {
-                $this->fcmsError->add(array(
+                $this->fcmsError->add([
                     'message' => T_('Parents already exist.'),
-                    'details' => '<p>'.T_('Please add only biological parents. Step parents should be added as spouses, not parents.').'</p>'
-                ));
+                    'details' => '<p>'.T_('Please add only biological parents. Step parents should be added as spouses, not parents.').'</p>',
+                ]);
+
                 return false;
             }
 
@@ -1621,16 +1633,17 @@ class FamilyTree
             {
                 $message = $newParent1['sex'] == 'M' ? T_('Father already exists.') : T_('Mother already exists.');
 
-                $this->fcmsError->add(array(
+                $this->fcmsError->add([
                     'message' => $message,
-                    'details' => '<p>'.T_('Please add only biological parents. Same-sex parents should be added as spouses, not parents.').'</p>'
-                ));
+                    'details' => '<p>'.T_('Please add only biological parents. Same-sex parents should be added as spouses, not parents.').'</p>',
+                ]);
+
                 return false;
             }
         }
 
         // Add $userId as a child of $newParent1
-        if (!$this->addChildren(array($userId), $newParent1))
+        if (!$this->addChildren([$userId], $newParent1))
         {
             return false;
         }
@@ -1639,7 +1652,7 @@ class FamilyTree
         if ($existingParentsCount < 1 && isset($newParent2['id']))
         {
             // Add $userId as a child of $newParent2
-            if (!$this->addChildren(array($userId), $newParent2))
+            if (!$this->addChildren([$userId], $newParent2))
             {
                 return false;
             }
@@ -1656,21 +1669,21 @@ class FamilyTree
     }
 
     /**
-     * addSibling 
-     * 
-     * @param int   $userId 
-     * @param int   $siblingId 
+     * addSibling.
+     *
+     * @param int   $userId
+     * @param int   $siblingId
      * @param array $parents
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function addSibling ($userId, $siblingId, array $parents)
+    public function addSibling($userId, $siblingId, array $parents)
     {
-        $params = array(
+        $params = [
             'userId'    => $userId,
             'siblingId' => $siblingId,
-            'parentId'  => $parents
-        );
+            'parentId'  => $parents,
+        ];
 
         $validator = new FormValidator();
 
@@ -1679,23 +1692,23 @@ class FamilyTree
         {
             foreach ($errors as $msg)
             {
-                $this->fcmsError->add(array(
+                $this->fcmsError->add([
                     'type'    => 'operation',
                     'message' => $msg,
                     'error'   => $params,
                     'file'    => __FILE__,
                     'line'    => __LINE__,
-                ));
+                ]);
             }
 
             return false;
         }
 
-        $sql = "INSERT INTO `fcms_relationship`
+        $sql = 'INSERT INTO `fcms_relationship`
                     (`user`, `relationship`, `rel_user`) 
-                VALUES ";
+                VALUES ';
 
-        $params = array();
+        $params = [];
 
         // Add each child to the parents
         foreach ($parents as $parentId)
@@ -1717,24 +1730,24 @@ class FamilyTree
     }
 
     /**
-     * addChildren
-     * 
+     * addChildren.
+     *
      * Adds an array of childen to a given parent or set of parents.
-     * 
-     * @param array $child 
+     *
+     * @param array $child
      * @param array $parent1
      * @param array $parent2
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function addChildren (array $children, array $parent1, array $parent2 = array())
+    public function addChildren(array $children, array $parent1, array $parent2 = [])
     {
-        $params = array(
-            'parentId1'  => (isset($parent1['id'])  ? $parent1['id']  : null),
+        $params = [
+            'parentId1'  => (isset($parent1['id']) ? $parent1['id'] : null),
             'parentSex1' => (isset($parent1['sex']) ? $parent1['sex'] : null),
-            'parentId2'  => (isset($parent2['id'])  ? $parent2['id']  : null),
+            'parentId2'  => (isset($parent2['id']) ? $parent2['id'] : null),
             'parentSex2' => (isset($parent2['sex']) ? $parent2['sex'] : null),
-        );
+        ];
 
         foreach ($children as $id)
         {
@@ -1748,27 +1761,27 @@ class FamilyTree
         {
             foreach ($errors as $msg)
             {
-                $this->fcmsError->add(array(
+                $this->fcmsError->add([
                     'type'    => 'operation',
                     'message' => $msg,
                     'error'   => $params,
                     'file'    => __FILE__,
                     'line'    => __LINE__,
-                ));
+                ]);
             }
 
             return false;
         }
 
         // lets get existing children for the parents
-        $existingChildren1 = $this->getChildrenOfUsers(array($parent1), true);
+        $existingChildren1 = $this->getChildrenOfUsers([$parent1], true);
         if ($existingChildren1 === false)
         {
             return false;
         }
         if (isset($parent2['id']))
         {
-            $existingChildren2 = $this->getChildrenOfUsers(array($parent2), true);
+            $existingChildren2 = $this->getChildrenOfUsers([$parent2], true);
             if ($existingChildren2 === false)
             {
                 return false;
@@ -1776,11 +1789,11 @@ class FamilyTree
         }
 
         // start sql
-        $sql = "INSERT INTO `fcms_relationship`
+        $sql = 'INSERT INTO `fcms_relationship`
                     (`user`, `relationship`, `rel_user`) 
-                VALUES ";
+                VALUES ';
 
-        $params = array();
+        $params = [];
         $childrenAdded = false;
 
         // Add each child to the parents
@@ -1825,24 +1838,24 @@ class FamilyTree
     }
 
     /**
-     * addSpouse 
-     * 
+     * addSpouse.
+     *
      * Adds a spouse to a given user.  Will also add optional children to the user and spouse.
-     * 
+     *
      * @param array $user
      * @param array $spouse
      * @param array $children
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function addSpouse (array $user, array $spouse, array $children = array())
+    public function addSpouse(array $user, array $spouse, array $children = [])
     {
-        $params = array(
-            'userId'    => (isset($user['id'])    ? $user['id']    : null),
-            'spouseId'  => (isset($spouse['id'])  ? $user['id']    : null),
-            'userSex'   => (isset($user['sex'])   ? $spouse['sex'] : null),
+        $params = [
+            'userId'    => (isset($user['id']) ? $user['id'] : null),
+            'spouseId'  => (isset($spouse['id']) ? $user['id'] : null),
+            'userSex'   => (isset($user['sex']) ? $spouse['sex'] : null),
             'spouseSex' => (isset($spouse['sex']) ? $spouse['sex'] : null),
-        );
+        ];
 
         foreach ($children as $id)
         {
@@ -1856,13 +1869,13 @@ class FamilyTree
         {
             foreach ($errors as $msg)
             {
-                $this->fcmsError->add(array(
+                $this->fcmsError->add([
                     'type'    => 'operation',
                     'message' => $msg,
                     'error'   => $params,
                     'file'    => __FILE__,
                     'line'    => __LINE__,
-                ));
+                ]);
             }
 
             return false;
@@ -1871,22 +1884,22 @@ class FamilyTree
         // Get sex for user and spouse
         if (!isset($user['sex']) || is_null($user['sex']) || !isset($spouse['sex']) || is_null($spouse['sex']))
         {
-            $sql = "SELECT `sex`
+            $sql = 'SELECT `sex`
                     FROM `fcms_users`
                     WHERE `id` = ?
                     UNION
                     SELECT `sex`
                     FROM `fcms_users`
-                    WHERE `id` = ?";
-            $userSpouseInfo = $this->fcmsDatabase->getRows($sql, array($user['id'], $spouse['id']));
+                    WHERE `id` = ?';
+            $userSpouseInfo = $this->fcmsDatabase->getRows($sql, [$user['id'], $spouse['id']]);
             if ($userSpouseInfo === false)
             {
                 return false;
             }
 
-            $userInfo      = $userSpouseInfo[0];
-            $spouseInfo    = isset($userSpouseInfo[1]) ? $userSpouseInfo[1] : null;
-            $user['sex']   = $userInfo['sex'];
+            $userInfo = $userSpouseInfo[0];
+            $spouseInfo = isset($userSpouseInfo[1]) ? $userSpouseInfo[1] : null;
+            $user['sex'] = $userInfo['sex'];
             $spouse['sex'] = $spouseInfo['sex'];
         }
 
@@ -1905,17 +1918,17 @@ class FamilyTree
         }
 
         // Insert relationships for both users
-        $sql = "INSERT INTO `fcms_relationship` (
+        $sql = 'INSERT INTO `fcms_relationship` (
                     `user`, `relationship`, `rel_user`
                 ) 
                 VALUES 
                     (?, ?, ?),
-                    (?, ?, ?)";
+                    (?, ?, ?)';
 
-        $params = array(
+        $params = [
             $user['id'], $relationship, $spouse['id'],
-            $spouse['id'], $spouseRelationship, $user['id']
-        );
+            $spouse['id'], $spouseRelationship, $user['id'],
+        ];
 
         if (!$this->fcmsDatabase->insert($sql, $params))
         {
@@ -1935,79 +1948,81 @@ class FamilyTree
     }
 
     /**
-     * displayCreateUserForm 
-     * 
+     * displayCreateUserForm.
+     *
      * Displays the form for creating a new user to be added to the family tree
-     * 
-     * @param string $type 
-     * @param int    $userId 
-     * 
+     *
+     * @param string $type
+     * @param int    $userId
+     *
      * @return void
      */
-    function displayCreateUserForm ($type, $userId)
+    public function displayCreateUserForm($type, $userId)
     {
-        $userId = (int)$userId;
+        $userId = (int) $userId;
 
         $displayname = getUserDisplayName($userId, 2);
 
         switch ($type)
         {
             case 'father':
-                $sex     = 'M';
-                $legend  = sprintf(T_('Add New Father for %s'), $displayname);
+                $sex = 'M';
+                $legend = sprintf(T_('Add New Father for %s'), $displayname);
                 $options = $this->getAddFatherMotherAdditionalOptions($userId, $type);
                 break;
 
             case 'mother':
-                $sex     = 'F';
-                $legend  = sprintf(T_('Add New Mother for %s'), $displayname);
+                $sex = 'F';
+                $legend = sprintf(T_('Add New Mother for %s'), $displayname);
                 $options = $this->getAddFatherMotherAdditionalOptions($userId, $type);
                 break;
 
             case 'brother':
-                $sex     = 'M';
-                $legend  = sprintf(T_('Add New Brother for %s'), $displayname);
+                $sex = 'M';
+                $legend = sprintf(T_('Add New Brother for %s'), $displayname);
                 $options = $this->getAddBrotherSisterAdditionalOptions($userId);
                 break;
 
             case 'sister':
-                $sex     = 'F';
-                $legend  = sprintf(T_('Add New Sister for %s'), $displayname);
+                $sex = 'F';
+                $legend = sprintf(T_('Add New Sister for %s'), $displayname);
                 $options = $this->getAddBrotherSisterAdditionalOptions($userId);
                 break;
 
             case 'spouse':
-                $sex     = '?';
-                $legend  = sprintf(T_('Add New Spouse for %s'), $displayname);
+                $sex = '?';
+                $legend = sprintf(T_('Add New Spouse for %s'), $displayname);
                 $options = $this->getAddSpouseAdditionalOptions($userId);
                 break;
 
             case 'child':
-                $sex     = '?';
-                $legend  = sprintf(T_('Add New Child for %s'), $displayname);
+                $sex = '?';
+                $legend = sprintf(T_('Add New Child for %s'), $displayname);
                 $options = $this->getAddChildAdditionalOptions($userId);
                 break;
 
             default:
                 echo '
             <div class="error-alert">'.T_('Invalid Display Type').'</div>';
+
                 return;
         }
 
         if ($options === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
-        $dayList = array();
+        $dayList = [];
         $i = 1;
         while ($i <= 31) {
             $dayList[$i] = $i;
             $i++;
         }
 
-        $monthList = array();
+        $monthList = [];
         $i = 1;
         while ($i <= 12) {
             $monthList[$i] = getMonthAbbr($i);
@@ -2052,7 +2067,7 @@ class FamilyTree
                 <p>
                     <label><b>'.T_('Sex').'</b></label><br/>
                     <select id="sex" name="sex">
-                        '.buildHtmlSelectOptions(array('M' => T_('Male'), 'F' => T_('Female')), '-1').'
+                        '.buildHtmlSelectOptions(['M' => T_('Male'), 'F' => T_('Female')], '-1').'
                     </select>
                 </p>';
         }
@@ -2078,11 +2093,11 @@ class FamilyTree
                         <label for="day"><b>'.T_('Birthday').'</b></label><br/>
                         <select id="bday" name="bday">
                             <option value="">'.T_('Day').'</option>
-                            '.buildHtmlSelectOptions($dayList, "").'
+                            '.buildHtmlSelectOptions($dayList, '').'
                         </select>
                         <select id="bmonth" name="bmonth">
                             <option value="">'.T_('Month').'</option>
-                            '.buildHtmlSelectOptions($monthList, "").'
+                            '.buildHtmlSelectOptions($monthList, '').'
                         </select>
                         <input class="frm_text" type="text" name="byear" id="byear" size="5" maxlength="4" placeholder="'.T_('Year').'"/>
                     </div>
@@ -2090,11 +2105,11 @@ class FamilyTree
                         <label for="day"><b>'.T_('Date Deceased').'</b></label><br/>
                         <select id="dday" name="dday">
                             <option value="">'.T_('Day').'</option>
-                            '.buildHtmlSelectOptions($dayList, "").'
+                            '.buildHtmlSelectOptions($dayList, '').'
                         </select>
                         <select id="dmonth" name="dmonth">
                             <option value="">'.T_('Month').'</option>
-                            '.buildHtmlSelectOptions($monthList, "").'
+                            '.buildHtmlSelectOptions($monthList, '').'
                         </select>
                         <input class="frm_text" type="text" name="dyear" id="dyear" size="5" maxlength="4" placeholder="'.T_('Year').'"/>
                     </div>
@@ -2112,15 +2127,15 @@ class FamilyTree
     }
 
     /**
-     * getAddFatherMotherAdditionalOptions 
-     * 
-     * @param int    $userId 
-     * @param string $type 
-     * @param int    $parentId 
-     * 
+     * getAddFatherMotherAdditionalOptions.
+     *
+     * @param int    $userId
+     * @param string $type
+     * @param int    $parentId
+     *
      * @return mixed - string on success, false on failure
      */
-    function getAddFatherMotherAdditionalOptions ($userId, $type, $parentId = null)
+    public function getAddFatherMotherAdditionalOptions($userId, $type, $parentId = null)
     {
         $options = '';
 
@@ -2130,9 +2145,9 @@ class FamilyTree
         }
 
         // get parentId info
-        $sql = "SELECT `id`, `fname`, `lname`
+        $sql = 'SELECT `id`, `fname`, `lname`
                 FROM `fcms_users`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
         $parentInfo = $this->fcmsDatabase->getRow($sql, $parentId);
         if ($parentInfo === false)
         {
@@ -2140,14 +2155,14 @@ class FamilyTree
         }
 
         // get children of parentId
-        $parentChildren = $this->getChildrenOfUsers(array($parentId));
+        $parentChildren = $this->getChildrenOfUsers([$parentId]);
         if ($parentChildren === false)
         {
             return false;
         }
 
         // get other parent
-        $spouses = $this->getSpousesOfUsers(array($parentId));
+        $spouses = $this->getSpousesOfUsers([$parentId]);
         if ($spouses === false)
         {
             return false;
@@ -2160,13 +2175,13 @@ class FamilyTree
             $options .= '<label for="other-parent'.$parent['id'].'">'.$parent['fname'].' '.$parent['lname'].'</label><br/>';
 
             // other parent's children
-            $children = $this->getChildrenOfUsers(array($parent['id']));
+            $children = $this->getChildrenOfUsers([$parent['id']]);
             if ($children === false)
             {
                 return false;
             }
 
-            $otherParentChildren = array();
+            $otherParentChildren = [];
 
             if (count($children) > 0)
             {
@@ -2202,22 +2217,22 @@ class FamilyTree
     }
 
     /**
-     * getAddSpouseAdditionalOptions 
-     * 
+     * getAddSpouseAdditionalOptions.
+     *
      * If kids exist for user or spouse, then we need
      * to display option to choose which children belong
      * to this couple.
-     * 
-     * @param int $userId 
+     *
+     * @param int $userId
      * @param int $spouseId
-     * 
+     *
      * @return mixed - string on success, false on failure
      */
-    function getAddSpouseAdditionalOptions ($userId, $spouseId = null)
+    public function getAddSpouseAdditionalOptions($userId, $spouseId = null)
     {
         $options = '';
 
-        $children = $this->getChildrenOfUsers(array($userId));
+        $children = $this->getChildrenOfUsers([$userId]);
         if ($children === false)
         {
             return false;
@@ -2226,7 +2241,7 @@ class FamilyTree
         // if spouse exists, get their children too
         if (!empty($spouseId))
         {
-            $spouseChildren = $this->getChildrenOfUsers(array($spouseId));
+            $spouseChildren = $this->getChildrenOfUsers([$spouseId]);
             if ($spouseChildren === false)
             {
                 return false;
@@ -2254,31 +2269,31 @@ class FamilyTree
     }
 
     /**
-     * getAddChildAdditionalOptions 
-     * 
+     * getAddChildAdditionalOptions.
+     *
      * We need to know who the other parent is.
-     * 
-     * @param int $userId 
-     * @param int $childId 
-     * 
+     *
+     * @param int $userId
+     * @param int $childId
+     *
      * @return mixed - string on success, false on failure
      */
-    function getAddChildAdditionalOptions ($userId, $childId = null)
+    public function getAddChildAdditionalOptions($userId, $childId = null)
     {
         $options = '';
 
         // Get spouses of user
-        $spouses = $this->getSpousesOfUsers(array($userId));
+        $spouses = $this->getSpousesOfUsers([$userId]);
         if ($spouses === false)
         {
             return false;
         }
 
         // if child exists already, get his parents
-        $parents = array();
+        $parents = [];
         if (!empty($childId))
         {
-            $parents = $this->getParentsOfUsers(array($childId));
+            $parents = $this->getParentsOfUsers([$childId]);
             if ($parents === false)
             {
                 return false;
@@ -2286,13 +2301,14 @@ class FamilyTree
 
             if (count($parents) > 1)
             {
-                $this->fcmsError->add(array(
+                $this->fcmsError->add([
                     'type'    => 'operation',
                     'message' => T_('Cannot add child relationship. Child already has 2 parents.'),
                     'error'   => $siblingParents,
                     'file'    => __FILE__,
                     'line'    => __LINE__,
-                ));
+                ]);
+
                 return false;
             }
 
@@ -2302,7 +2318,7 @@ class FamilyTree
 
         if (count($parents) == 1)
         {
-            $children = $this->getChildrenOfUsers(array($parents[0]['id']));
+            $children = $this->getChildrenOfUsers([$parents[0]['id']]);
             if ($children === false)
             {
                 return false;
@@ -2352,52 +2368,53 @@ class FamilyTree
     }
 
     /**
-     * getAddBrotherSisterAdditionalOptions 
-     * 
-     * @param int $userId 
-     * @param int $siblingId 
-     * 
+     * getAddBrotherSisterAdditionalOptions.
+     *
+     * @param int $userId
+     * @param int $siblingId
+     *
      * @return mixed - string on success, false on failure
      */
-    function getAddBrotherSisterAdditionalOptions ($userId, $siblingId = null)
+    public function getAddBrotherSisterAdditionalOptions($userId, $siblingId = null)
     {
         $options = '';
 
-        $userParents = $this->getParentsOfUsers(array($userId));
+        $userParents = $this->getParentsOfUsers([$userId]);
         if ($userParents === false)
         {
             return false;
         }
 
-        $siblingParents = array();
+        $siblingParents = [];
 
         if (!empty($siblingId))
         {
-            $siblingParents = $this->getParentsOfUsers(array($siblingId));
+            $siblingParents = $this->getParentsOfUsers([$siblingId]);
             if ($siblingParents === false)
             {
                 return false;
             }
         }
 
-        $userParentCount    = count($userParents);
+        $userParentCount = count($userParents);
         $siblingParentCount = count($siblingParents);
-        $totalParentCount   = $userParentCount + $siblingParentCount;
+        $totalParentCount = $userParentCount + $siblingParentCount;
 
         // we can't have more than 2 total parents
         if ($totalParentCount > 2)
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot add sibling relationship, incompatible number of parents.'),
                 'error'   => $siblingParents,
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-            ));
+            ]);
+
             return false;
         }
 
-        /* 
+        /*
         user  sibling
          2       2      error
          2       1      error
@@ -2435,13 +2452,14 @@ class FamilyTree
             {
                 if ($userParents[0]['sex'] == $siblingParents[0]['sex'])
                 {
-                    $this->fcmsError->add(array(
+                    $this->fcmsError->add([
                         'type'    => 'operation',
                         'message' => T_('Cannot add sibling relationship, parents can not be of the same sex.'),
                         'error'   => $siblingParents,
                         'file'    => __FILE__,
                         'line'    => __LINE__,
-                    ));
+                    ]);
+
                     return false;
                 }
 
@@ -2466,13 +2484,14 @@ class FamilyTree
         {
             if ($siblingParentCount == 0)
             {
-                $this->fcmsError->add(array(
+                $this->fcmsError->add([
                     'type'    => 'operation',
                     'message' => T_('Cannot add sibling relationship, no parents can be found.'),
                     'error'   => $siblingParents,
                     'file'    => __FILE__,
                     'line'    => __LINE__,
-                ));
+                ]);
+
                     return false;
             }
 
@@ -2486,19 +2505,19 @@ class FamilyTree
     }
 
     /**
-     * displayMembersTreeList
-     * 
+     * displayMembersTreeList.
+     *
      * Displays the list of members for viewing their family tree
-     * 
+     *
      * @return void
      */
-    function displayMembersTreeList ()
+    public function displayMembersTreeList()
     {
         // Get list of available users
-        $sql = "SELECT `id`, `fname`, `mname`, `lname`, `maiden`
+        $sql = 'SELECT `id`, `fname`, `mname`, `lname`, `maiden`
                 FROM `fcms_users` 
                 WHERE `id` != ?
-                ORDER BY `lname`, `fname`";
+                ORDER BY `lname`, `fname`';
 
         $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);
         if ($rows === false)
@@ -2523,7 +2542,7 @@ class FamilyTree
         foreach ($rows as $r)
         {
             $selected = $this->currentTreeUserId == $r['id'] ? ' selected="selected"' : '';
-            $maiden   = empty($r['maiden']) ? ', ' : ' ('.$r['maiden'].'), ';
+            $maiden = empty($r['maiden']) ? ', ' : ' ('.$r['maiden'].'), ';
 
             echo '
                     <option value="'.$r['id'].'"'.$selected.'>'.cleanOutput($r['lname']).$maiden.' '.cleanOutput($r['fname']).' '.cleanOutput($r['mname']).'</option>';
@@ -2537,48 +2556,48 @@ class FamilyTree
     }
 
     /**
-     * getProfile 
-     * 
-     * @param string $name 
-     * 
+     * getProfile.
+     *
+     * @param string $name
+     *
      * @return array
      */
-    function getProfile ($name)
+    public function getProfile($name)
     {
-        $profile = array(
-            'edit' => array(
-                'required' => array(
-                    'fname', 'lname'
-                ),
-                'constraints' => array(
-                    'sex' => array(
-                        'format' => '/(M|F)/'
-                    ),
-                    'bday' => array(
-                        'integer' => 1
-                    ),
-                    'bmonth' => array(
-                        'integer' => 1
-                    ),
-                    'byear' => array(
-                        'integer' => 1
-                    ),
-                    'dday' => array(
-                        'integer' => 1
-                    ),
-                    'dmonth' => array(
-                        'integer' => 1
-                    ),
-                    'dyear' => array(
-                        'integer' => 1
-                    ),
-                ),
-                'messages' => array(
-                    'constraints' => array(
+        $profile = [
+            'edit' => [
+                'required' => [
+                    'fname', 'lname',
+                ],
+                'constraints' => [
+                    'sex' => [
+                        'format' => '/(M|F)/',
+                    ],
+                    'bday' => [
+                        'integer' => 1,
+                    ],
+                    'bmonth' => [
+                        'integer' => 1,
+                    ],
+                    'byear' => [
+                        'integer' => 1,
+                    ],
+                    'dday' => [
+                        'integer' => 1,
+                    ],
+                    'dmonth' => [
+                        'integer' => 1,
+                    ],
+                    'dyear' => [
+                        'integer' => 1,
+                    ],
+                ],
+                'messages' => [
+                    'constraints' => [
                         'fname' => T_('Required'),
-                        'lname' => T_('Required')
-                    ),
-                    'names' => array(
+                        'lname' => T_('Required'),
+                    ],
+                    'names' => [
                         'fname'  => T_('First Name'),
                         'lname'  => T_('Last Name'),
                         'sex'    => T_('Sex'),
@@ -2588,176 +2607,176 @@ class FamilyTree
                         'dday'   => T_('Deceased Day'),
                         'dmonth' => T_('Deceased Month'),
                         'dyear'  => T_('Deceased Year'),
-                    ),
-                ),
-            ),
-            'add' => array(
-                'constraints' => array(
-                    'id' => array(
+                    ],
+                ],
+            ],
+            'add' => [
+                'constraints' => [
+                    'id' => [
                         'required' => 1,
-                        'integer'  => 1
-                    ),
-                    'rel_user' => array(
+                        'integer'  => 1,
+                    ],
+                    'rel_user' => [
                         'required' => 1,
-                        'integer'  => 1
-                    ),
-                    'type' => array(
+                        'integer'  => 1,
+                    ],
+                    'type' => [
                         'required' => 1,
-                        'format'   => '/(father|mother|spouse|brother|sister|child)/'
-                    ),
-                ),
-                'messages' => array(
-                    'constraints' => array(
+                        'format'   => '/(father|mother|spouse|brother|sister|child)/',
+                    ],
+                ],
+                'messages' => [
+                    'constraints' => [
                         'type' => T_('Type is invalid, must be one of: father, mother, spouse, brother, sister, child.'),
-                    ),
-                ),
-            ),
-            'create' => array(
-                'required' => array(
-                    'id', 'type', 'fname', 'lname', 'sex'
-                ),
-                'constraints' => array(
-                    'id' => array(
+                    ],
+                ],
+            ],
+            'create' => [
+                'required' => [
+                    'id', 'type', 'fname', 'lname', 'sex',
+                ],
+                'constraints' => [
+                    'id' => [
                         'integer'  => 1,
-                    ),
-                    'type' => array(
-                        'format'   => '/(father|mother|spouse|brother|sister|child)/'
-                    ),
-                    'sex' => array(
-                        'format'   => '/(M|F)/'
-                    ),
-                    'bday' => array(
+                    ],
+                    'type' => [
+                        'format'   => '/(father|mother|spouse|brother|sister|child)/',
+                    ],
+                    'sex' => [
+                        'format'   => '/(M|F)/',
+                    ],
+                    'bday' => [
                         'integer' => 1,
-                    ),
-                    'bmonth' => array(
+                    ],
+                    'bmonth' => [
                         'integer' => 1,
-                    ),
-                    'byear' => array(
+                    ],
+                    'byear' => [
                         'integer' => 1,
-                    ),
-                    'dday' => array(
+                    ],
+                    'dday' => [
                         'integer' => 1,
-                    ),
-                    'dmonth' => array(
+                    ],
+                    'dmonth' => [
                         'integer' => 1,
-                    ),
-                    'dyear' => array(
+                    ],
+                    'dyear' => [
                         'integer' => 1,
-                    ),
-                    'child' => array(
-                        'integer' => 1,
-                        'array'   => 1
-                    ),
-                ),
-            ),
-            'add_parent' => array(
-                'required' => array(
-                    'userId', 'parentId1'
-                ),
-                'constraints' => array(
-                    'userId' => array(
-                        'integer' => 1,
-                    ),
-                    'parentId1' => array(
-                        'integer'  => 1,
-                    ),
-                    'parentSex1' => array(
-                        'format' => '/(M|F)/'
-                    ),
-                    'parentId2' => array(
-                        'integer' => 1
-                    ),
-                    'parentSex2' => array(
-                        'format' => '/(M|F)/'
-                    ),
-                ),
-                'constraint_functions' => array(
-                    'parentId1' => array(
-                        'name'     => 'parents_opposite_sex',
-                        'function' => 'addChildOppositeSexParents'
-                    ),
-                ),
-                'messages' => array(
-                    'constraint_functions' => array(
-                        'parents_opposite_sex' => T_('Parents are of the same sex.  Must only add biological parents.'),
-                    ),
-                ),
-            ),
-            'add_spouse' => array(
-                'required' => array(
-                    'userId', 'spouseId'
-                ),
-                'constraints' => array(
-                    'userId' => array(
-                        'integer' => 1
-                    ),
-                    'spouseId' => array(
-                        'integer' => 1
-                    ),
-                    'childId' => array(
-                        'integer' => 1,
-                        'array'   => 1
-                    ),
-                    'userSex' => array(
-                        'format' => '/(M|F)/'
-                    ),
-                    'spouseSex' => array(
-                        'format' => '/(M|F)/'
-                    ),
-                ),
-            ),
-            'add_child' => array(
-                'required' => array(
-                    'childId', 'parentId1'
-                ),
-                'constraints' => array(
-                    'childId' => array(
-                        'integer' => 1,
-                        'array'   => 1
-                    ),
-                    'parentId1' => array(
-                        'integer'  => 1,
-                    ),
-                    'parentSex1' => array(
-                        'format' => '/(M|F)/'
-                    ),
-                    'parentId2' => array(
-                        'integer' => 1
-                    ),
-                    'parentSex2' => array(
-                        'format' => '/(M|F)/'
-                    ),
-                ),
-                'constraint_functions' => array(
-                    'parentId1' => array(
-                        'name'     => 'parents_opposite_sex',
-                        'function' => 'addChildOppositeSexParents'
-                    ),
-                ),
-                'messages' => array(
-                    'constraint_functions' => array(
-                        'parents_opposite_sex' => T_('Parents are of the same sex.  Children must be added to biological parents.'),
-                    ),
-                ),
-            ),
-            'add_sibling' => array(
-                'required' => array(
-                    'userId', 'siblingId', 'parentId'
-                ),
-                'constraints' => array(
-                    'userId' => array(
-                        'integer' => 1,
-                    ),
-                    'siblingId' => array(
-                        'integer' => 1,
-                    ),
-                    'parentId' => array(
+                    ],
+                    'child' => [
                         'integer' => 1,
                         'array'   => 1,
-                    ),
-                ),
-            ),
-        );
+                    ],
+                ],
+            ],
+            'add_parent' => [
+                'required' => [
+                    'userId', 'parentId1',
+                ],
+                'constraints' => [
+                    'userId' => [
+                        'integer' => 1,
+                    ],
+                    'parentId1' => [
+                        'integer'  => 1,
+                    ],
+                    'parentSex1' => [
+                        'format' => '/(M|F)/',
+                    ],
+                    'parentId2' => [
+                        'integer' => 1,
+                    ],
+                    'parentSex2' => [
+                        'format' => '/(M|F)/',
+                    ],
+                ],
+                'constraint_functions' => [
+                    'parentId1' => [
+                        'name'     => 'parents_opposite_sex',
+                        'function' => 'addChildOppositeSexParents',
+                    ],
+                ],
+                'messages' => [
+                    'constraint_functions' => [
+                        'parents_opposite_sex' => T_('Parents are of the same sex.  Must only add biological parents.'),
+                    ],
+                ],
+            ],
+            'add_spouse' => [
+                'required' => [
+                    'userId', 'spouseId',
+                ],
+                'constraints' => [
+                    'userId' => [
+                        'integer' => 1,
+                    ],
+                    'spouseId' => [
+                        'integer' => 1,
+                    ],
+                    'childId' => [
+                        'integer' => 1,
+                        'array'   => 1,
+                    ],
+                    'userSex' => [
+                        'format' => '/(M|F)/',
+                    ],
+                    'spouseSex' => [
+                        'format' => '/(M|F)/',
+                    ],
+                ],
+            ],
+            'add_child' => [
+                'required' => [
+                    'childId', 'parentId1',
+                ],
+                'constraints' => [
+                    'childId' => [
+                        'integer' => 1,
+                        'array'   => 1,
+                    ],
+                    'parentId1' => [
+                        'integer'  => 1,
+                    ],
+                    'parentSex1' => [
+                        'format' => '/(M|F)/',
+                    ],
+                    'parentId2' => [
+                        'integer' => 1,
+                    ],
+                    'parentSex2' => [
+                        'format' => '/(M|F)/',
+                    ],
+                ],
+                'constraint_functions' => [
+                    'parentId1' => [
+                        'name'     => 'parents_opposite_sex',
+                        'function' => 'addChildOppositeSexParents',
+                    ],
+                ],
+                'messages' => [
+                    'constraint_functions' => [
+                        'parents_opposite_sex' => T_('Parents are of the same sex.  Children must be added to biological parents.'),
+                    ],
+                ],
+            ],
+            'add_sibling' => [
+                'required' => [
+                    'userId', 'siblingId', 'parentId',
+                ],
+                'constraints' => [
+                    'userId' => [
+                        'integer' => 1,
+                    ],
+                    'siblingId' => [
+                        'integer' => 1,
+                    ],
+                    'parentId' => [
+                        'integer' => 1,
+                        'array'   => 1,
+                    ],
+                ],
+            ],
+        ];
 
         return $profile[$name];
     }

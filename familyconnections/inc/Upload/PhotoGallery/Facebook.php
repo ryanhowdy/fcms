@@ -1,13 +1,11 @@
 <?php
 /**
- * FacebookUploadPhotoGallery 
- * 
+ * FacebookUploadPhotoGallery.
+ *
  * Handles uploading photos from facebook.
- * 
- * @package Upload
- * @subpackage Photo
+ *
  * @copyright 2015 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class FacebookUploadPhotoGallery extends UploadPhotoGallery
@@ -16,13 +14,13 @@ class FacebookUploadPhotoGallery extends UploadPhotoGallery
     private $newPhotoIds;
 
     /**
-     * upload
-     * 
-     * @param array $formData 
-     * 
-     * @return boolean
+     * upload.
+     *
+     * @param array $formData
+     *
+     * @return bool
      */
-    public function upload ($formData)
+    public function upload($formData)
     {
         // Save necessary form data
         $this->setFormData($formData);
@@ -45,7 +43,7 @@ class FacebookUploadPhotoGallery extends UploadPhotoGallery
             return false;
         }
 
-        $newPhotoFilenames = array();
+        $newPhotoFilenames = [];
 
         $usingFullSizePhotos = $this->usingFullSizePhotos;
 
@@ -60,8 +58,8 @@ class FacebookUploadPhotoGallery extends UploadPhotoGallery
             }
 
             $thumbnail = '';
-            $medium    = '';
-            $full      = '';
+            $medium = '';
+            $full = '';
 
             // Loop over the images smallest to largest
             $images = array_reverse($photo['images']);
@@ -97,15 +95,15 @@ class FacebookUploadPhotoGallery extends UploadPhotoGallery
             $extension = $this->uploadPhoto->getFileExtension($thumbnail);
 
             // Save photo to db
-            $params = array(
+            $params = [
                 $this->newCategoryId,
-                $this->fcmsUser->id
-            );
+                $this->fcmsUser->id,
+            ];
 
-            $sql = "INSERT INTO `fcms_gallery_photos`
+            $sql = 'INSERT INTO `fcms_gallery_photos`
                         (`date`, `category`, `user`)
                     VALUES 
-                        (NOW(), ?, ?)";
+                        (NOW(), ?, ?)';
 
             $newPhotoId = $this->fcmsDatabase->insert($sql, $params);
             if ($newPhotoId === false)
@@ -126,7 +124,7 @@ class FacebookUploadPhotoGallery extends UploadPhotoGallery
             }
 
             // Resize the thumbnail (facebook doesn't give us a square photo)
-            $this->uploadPhoto->fileName  = 'tb_'.$newFilename;
+            $this->uploadPhoto->fileName = 'tb_'.$newFilename;
             $this->uploadPhoto->extension = $extension;
 
             $this->uploadPhoto->resize(150, 150, 'square');
@@ -137,11 +135,11 @@ class FacebookUploadPhotoGallery extends UploadPhotoGallery
         // Update the filenames
         foreach ($newPhotoFilenames as $id => $filename)
         {
-            $sql = "UPDATE `fcms_gallery_photos` 
+            $sql = 'UPDATE `fcms_gallery_photos` 
                     SET `filename` = ?
-                    WHERE `id`     = ?";
+                    WHERE `id`     = ?';
 
-            if (!$this->fcmsDatabase->update($sql, array($filename, $id)))
+            if (!$this->fcmsDatabase->update($sql, [$filename, $id]))
             {
                 return false;
             }
@@ -151,28 +149,28 @@ class FacebookUploadPhotoGallery extends UploadPhotoGallery
     }
 
     /**
-     * validate 
-     * 
-     * @return boolean
+     * validate.
+     *
+     * @return bool
      */
-    public function validate ()
+    public function validate()
     {
         if (empty($this->formData['albums']))
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('You must choose a Facebook album.').'</p>'
-            ));
+                'details' => '<p>'.T_('You must choose a Facebook album.').'</p>',
+            ]);
 
             return false;
         }
 
         if (empty($this->formData['photos']))
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('You must choose at least one photo.').'</p>'
-            ));
+                'details' => '<p>'.T_('You must choose at least one photo.').'</p>',
+            ]);
 
             return false;
         }
@@ -181,27 +179,27 @@ class FacebookUploadPhotoGallery extends UploadPhotoGallery
     }
 
     /**
-     * setFormData 
-     * 
+     * setFormData.
+     *
      * Saves all the data passed in from the form upload.
-     * 
+     *
      * @param array $formData
-     * 
+     *
      * @return void
      */
-    public function setFormData ($formData)
+    public function setFormData($formData)
     {
         $this->formData = $formData;
 
         $albumId = $formData['albums'];
 
-        $config      = getFacebookConfigData();
+        $config = getFacebookConfigData();
         $accessToken = getUserFacebookAccessToken($this->fcmsUser->id);
 
-        $facebook = new Facebook(array(
+        $facebook = new Facebook([
             'appId'  => $config['fb_app_id'],
             'secret' => $config['fb_secret'],
-        ));
+        ]);
 
         $facebook->setAccessToken($accessToken);
 
@@ -211,17 +209,17 @@ class FacebookUploadPhotoGallery extends UploadPhotoGallery
         }
         catch (FacebookApiException $e)
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'type'    => 'operation',
                 'message' => T_('Could not get Facebook photos.'),
                 'error'   => $e,
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-            ));
+            ]);
+
             return false;
         }
 
         $this->albumFeed = $fbPhotos;
     }
-
 }

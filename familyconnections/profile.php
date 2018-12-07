@@ -1,14 +1,15 @@
 <?php
 /**
- * Profile
- *  
+ * Profile.
+ *
  * PHP versions 4 and 5
- *  
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -22,14 +23,14 @@ load('awards', 'FamilyTree', 'profile', 'image', 'datetime', 'address', 'address
 
 init();
 
-$tree    = new FamilyTree($fcmsError, $fcmsDatabase, $fcmsUser);
-$book    = new AddressBook($fcmsError, $fcmsDatabase, $fcmsUser);
-$mBoard  = new MessageBoard($fcmsError, $fcmsDatabase, $fcmsUser);
+$tree = new FamilyTree($fcmsError, $fcmsDatabase, $fcmsUser);
+$book = new AddressBook($fcmsError, $fcmsDatabase, $fcmsUser);
+$mBoard = new MessageBoard($fcmsError, $fcmsDatabase, $fcmsUser);
 $gallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
-$awards  = new Awards($fcmsError, $fcmsDatabase, $fcmsUser, $mBoard, $gallery);
+$awards = new Awards($fcmsError, $fcmsDatabase, $fcmsUser, $mBoard, $gallery);
 $profile = new Profile($fcmsError, $fcmsDatabase, $fcmsUser, $tree, $awards, $book);
-$img     = new Image($fcmsUser->id);
-$page    = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $profile, $awards, $img, $gallery);
+$img = new Image($fcmsUser->id);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $profile, $awards, $img, $gallery);
 
 exit();
 
@@ -45,31 +46,31 @@ class Page
     private $fcmsPhotoGallery;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsProfile, $fcmsAward, $fcmsImage, $fcmsPhotoGallery)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsProfile, $fcmsAward, $fcmsImage, $fcmsPhotoGallery)
     {
-        $this->fcmsError         = $fcmsError;
-        $this->fcmsDatabase      = $fcmsDatabase;
-        $this->fcmsUser          = $fcmsUser;
-        $this->fcmsProfile       = $fcmsProfile;
-        $this->fcmsAward         = $fcmsAward;
-        $this->fcmsImage         = $fcmsImage;
-        $this->fcmsPhotoGallery  = $fcmsPhotoGallery;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
+        $this->fcmsProfile = $fcmsProfile;
+        $this->fcmsAward = $fcmsAward;
+        $this->fcmsImage = $fcmsImage;
+        $this->fcmsPhotoGallery = $fcmsPhotoGallery;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if ($this->fcmsUser->access == 11)
         {
@@ -123,7 +124,7 @@ class Page
             }
             else
             {
-                header("Location: profile.php");
+                header('Location: profile.php');
             }
         }
         elseif (isset($_POST['editsubmit']))
@@ -157,13 +158,13 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ($memberId = 0)
+    public function displayHeader($memberId = 0)
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -172,8 +173,8 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         $params['javascript'] = '
 <link rel="stylesheet" type="text/css" href="ui/css/datechooser.css"/>
@@ -193,9 +194,9 @@ $(document).ready(function() {
 
         if ($memberId > 0)
         {
-            $sql = "SELECT `fname`, `lname`, `username`, `email`
+            $sql = 'SELECT `fname`, `lname`, `username`, `email`
                     FROM `fcms_users`
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
 
             $row = $this->fcmsDatabase->getRow($sql, $memberId);
             if ($row === false)
@@ -241,11 +242,11 @@ $(document).ready(function() {
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ($memberId = 0)
+    public function displayFooter($memberId = 0)
     {
         if ($memberId > 0)
         {
@@ -253,37 +254,37 @@ $(document).ready(function() {
             </div><!-- /maincolumn -->';
         }
 
-        $params = array(
+        $params = [
             'path'    => URL_PREFIX,
             'version' => getCurrentVersion(),
-            'year'    => date('Y')
-        );
+            'year'    => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
     /**
-     * displayAdvancedAvatarUploadSubmit 
-     * 
+     * displayAdvancedAvatarUploadSubmit.
+     *
      * @return void
      */
-    function displayAdvancedAvatarUploadSubmit ()
+    public function displayAdvancedAvatarUploadSubmit()
     {
         // Figure out where we are currently saving photos
         $photoDestinationType = getDestinationType().'ProfileDestination';
 
         $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
-        $uploadPhoto      = new UploadPhoto($this->fcmsError, $photoDestination);
-        $profileUploader  = new UploadProfile($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+        $profileUploader = new UploadProfile($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $formData = $_POST;
 
         if (isset($_FILES['file']))
         {
             $_FILES['file']['name'] = $_POST['name'];
-            $formData['avatar']     = $_FILES['file'];
+            $formData['avatar'] = $_FILES['file'];
         }
-        else if (isset($_FILES['avatar']))
+        elseif (isset($_FILES['avatar']))
         {
             $formData['avatar'] = $_FILES['avatar'];
         }
@@ -293,6 +294,7 @@ $(document).ready(function() {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -300,11 +302,11 @@ $(document).ready(function() {
     }
 
     /**
-     * displayInvalidPermission 
-     * 
+     * displayInvalidPermission.
+     *
      * @return void
      */
-    function displayInvalidPermission ()
+    public function displayInvalidPermission()
     {
         $this->displayHeader();
 
@@ -318,13 +320,13 @@ $(document).ready(function() {
     }
 
     /**
-     * displayProfile 
-     * 
+     * displayProfile.
+     *
      * @return void
      */
-    function displayProfile ()
+    public function displayProfile()
     {
-        $memberId = (int)$_GET['member'];
+        $memberId = (int) $_GET['member'];
 
         $this->displayHeader($memberId);
 
@@ -337,16 +339,17 @@ $(document).ready(function() {
             </p>';
 
             $this->displayFooter();
+
             return;
         }
 
-        $sql = "SELECT u.fname, u.lname, u.email, u.`bio`, u.`dob_year`, u.`dob_month`, u.`dob_day`, 
+        $sql = 'SELECT u.fname, u.lname, u.email, u.`bio`, u.`dob_year`, u.`dob_month`, u.`dob_day`, 
                     u.`dod_year`, u.`dod_month`, u.`dod_day`, u.avatar, u.username, u.joindate, 
                     u.`activity`, u.`sex`, a.`id` AS aid, a.`address`, a.`city`, a.`state`, a.`zip`, 
                     a.`home`, a.`cell`, a.`work`  
                 FROM fcms_users AS u, fcms_address AS a 
                 WHERE u.id = ?
-                AND u.id = a.user";
+                AND u.id = a.user';
 
         $row = $this->fcmsDatabase->getRow($sql, $memberId);
         if ($row === false)
@@ -357,14 +360,14 @@ $(document).ready(function() {
             return;
         }
 
-        $tzOffset     = getTimezone($memberId);
-        $joinDate     = fixDate(T_('F j, Y'), $tzOffset, $row['joindate']);
-        $address      = formatAddress($row);
-        $contact      = '';
+        $tzOffset = getTimezone($memberId);
+        $joinDate = fixDate(T_('F j, Y'), $tzOffset, $row['joindate']);
+        $address = formatAddress($row);
+        $contact = '';
         $activityDate = T_('Never visited');
 
         $points = getUserParticipationPoints($memberId);
-        $level  = getUserParticipationLevel($points);
+        $level = getUserParticipationLevel($points);
 
         // Contacts - Email
         if (!empty($row['cell']))
@@ -387,21 +390,21 @@ $(document).ready(function() {
 
         // Call
         $hasPhone = false;
-        $call     = '';
-        $tel      = '';
+        $call = '';
+        $tel = '';
         if (!empty($row['cell']))
         {
-            $tel     = $row['cell'];
+            $tel = $row['cell'];
             $hasPhone = true;
         }
-        else if (!empty($row['home']))
+        elseif (!empty($row['home']))
         {
-            $tel     = $row['home'];
+            $tel = $row['home'];
             $hasPhone = true;
         }
-        else if (!empty($row['work']))
+        elseif (!empty($row['work']))
         {
-            $tel     = $row['work'];
+            $tel = $row['work'];
             $hasPhone = true;
         }
 
@@ -417,7 +420,7 @@ $(document).ready(function() {
         }
 
         $bday = formatDate('F j, Y', $row['dob_year'].'-'.$row['dob_month'].'-'.$row['dob_day']);
-        $age  = getAge($row['dob_year'], $row['dob_month'], $row['dob_day']);
+        $age = getAge($row['dob_year'], $row['dob_month'], $row['dob_day']);
 
         $gender = $row['sex'] == 'M' ? T_('Male') : T_('Female');
 
@@ -482,13 +485,13 @@ $(document).ready(function() {
     }
 
     /**
-     * displayAwards 
-     * 
+     * displayAwards.
+     *
      * @return void
      */
-    function displayAwards ()
+    public function displayAwards()
     {
-        $memberId = (int)$_GET['member'];
+        $memberId = (int) $_GET['member'];
 
         $this->displayHeader($memberId);
 
@@ -500,14 +503,14 @@ $(document).ready(function() {
     }
 
     /**
-     * displayAward 
-     * 
+     * displayAward.
+     *
      * @return void
      */
-    function displayAward ()
+    public function displayAward()
     {
-        $memberId = (int)$_GET['member'];
-        $type     = $_GET['award'];
+        $memberId = (int) $_GET['member'];
+        $type = $_GET['award'];
 
         $this->displayHeader($memberId);
 
@@ -517,13 +520,13 @@ $(document).ready(function() {
     }
 
     /**
-     * displayContributions 
-     * 
+     * displayContributions.
+     *
      * @return void
      */
-    function displayContributions ()
+    public function displayContributions()
     {
-        $memberId = (int)$_GET['member'];
+        $memberId = (int) $_GET['member'];
 
         $this->displayHeader($memberId);
 
@@ -534,23 +537,23 @@ $(document).ready(function() {
     }
 
     /**
-     * displayLatestMessageBoardPosts 
-     * 
-     * @param int $memberId 
-     * 
+     * displayLatestMessageBoardPosts.
+     *
+     * @param int $memberId
+     *
      * @return void
      */
-    function displayLatestMessageBoardPosts ($memberId)
+    public function displayLatestMessageBoardPosts($memberId)
     {
-        $memberId = (int)$memberId;
+        $memberId = (int) $memberId;
 
-        $sql = "SELECT t.`id`, `subject`, `date`, `post` 
+        $sql = 'SELECT t.`id`, `subject`, `date`, `post` 
                 FROM `fcms_board_posts` AS p, `fcms_board_threads` AS t, `fcms_users` AS u 
                 WHERE t.`id` = p.`thread` 
                 AND p.`user` = u.`id` 
                 AND u.`id` = ?
                 ORDER BY `date` DESC 
-                LIMIT 0, 5";
+                LIMIT 0, 5';
 
         $rows = $this->fcmsDatabase->getRows($sql, $memberId);
         if ($rows === false)
@@ -572,15 +575,15 @@ $(document).ready(function() {
 
         foreach ($rows as $row)
         {
-            $date    = fixDate(T_('F j, Y, g:i a'), $tzOffset, $row['date']);
+            $date = fixDate(T_('F j, Y, g:i a'), $tzOffset, $row['date']);
             $subject = $row['subject'];
-            $post    = removeBBCode($row['post']);
-            $post    = cleanOutput($post);
-            $pos     = strpos($subject, '#ANOUNCE#');
+            $post = removeBBCode($row['post']);
+            $post = cleanOutput($post);
+            $pos = strpos($subject, '#ANOUNCE#');
 
             if ($pos !== false)
             {
-                $subject = substr($subject, 9, strlen($subject)-9);
+                $subject = substr($subject, 9, strlen($subject) - 9);
             }
 
             $subject = cleanOutput($subject);
@@ -595,15 +598,15 @@ $(document).ready(function() {
     }
 
     /**
-     * displayLatestPhotoGalleryPhotos 
-     * 
-     * @param int $memberId 
-     * 
-     * @return  void
+     * displayLatestPhotoGalleryPhotos.
+     *
+     * @param int $memberId
+     *
+     * @return void
      */
-    function displayLatestPhotoGalleryPhotos ($memberId)
+    public function displayLatestPhotoGalleryPhotos($memberId)
     {
-        $memberId = (int)$memberId;
+        $memberId = (int) $memberId;
 
         $sql = "SELECT p.`id`, p.`category`, p.`user`, p.`filename`, p.`external_id`, e.`thumbnail`
                 FROM `fcms_gallery_photos` AS p
@@ -637,7 +640,7 @@ $(document).ready(function() {
 
             echo '
                 <li class="photo">
-                    <a href="gallery/index.php?uid='.$memberId.'&amp;cid='.(int)$row['category'].'&amp;pid='.(int)$row['id'].'">
+                    <a href="gallery/index.php?uid='.$memberId.'&amp;cid='.(int) $row['category'].'&amp;pid='.(int) $row['id'].'">
                         <img class="photo" src="'.$photoSrc.'" alt=""/>
                     </a>
                 </li>';
@@ -648,19 +651,19 @@ $(document).ready(function() {
     }
 
     /**
-     * displayParticipation 
-     * 
+     * displayParticipation.
+     *
      * @return void
      */
-    function displayParticipation ()
+    public function displayParticipation()
     {
-        $memberId = (int)$_GET['member'];
+        $memberId = (int) $_GET['member'];
 
         $this->displayHeader($memberId);
 
         $statsData = $this->fcmsProfile->getStats($memberId);
-        $points    = getUserParticipationPoints($memberId);
-        $level     = getUserParticipationLevel($points);
+        $points = getUserParticipationPoints($memberId);
+        $level = getUserParticipationLevel($points);
 
         echo '
             <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/easy-pie-chart/2.1.4/jquery.easypiechart.min.js"></script>
@@ -695,11 +698,11 @@ $(document).ready(function() {
     }
 
     /**
-     * displayEditProfileForm 
-     * 
+     * displayEditProfileForm.
+     *
      * @return void
      */
-    function displayEditProfileForm ()
+    public function displayEditProfileForm()
     {
         $this->displayHeader();
 
@@ -709,11 +712,11 @@ $(document).ready(function() {
     }
 
     /**
-     * displayEditProfileInfoForm 
-     * 
+     * displayEditProfileInfoForm.
+     *
      * @return void
      */
-    function displayEditProfileInfoForm ()
+    public function displayEditProfileInfoForm()
     {
         $this->displayHeader();
 
@@ -729,50 +732,50 @@ $(document).ready(function() {
     }
 
     /**
-     * displayEditProfileInfoFormSubmit 
-     * 
+     * displayEditProfileInfoFormSubmit.
+     *
      * @return void
      */
-    function displayEditProfileInfoFormSubmit ()
+    public function displayEditProfileInfoFormSubmit()
     {
         $fname = strip_tags($_POST['fname']);
         $lname = strip_tags($_POST['lname']);
-        $sex   = $_POST['sex'];
+        $sex = $_POST['sex'];
 
-        $year  = (int)$_POST['syear'];
-        $month = (int)$_POST['smonth']; 
-        $month = str_pad($month, 2, "0", STR_PAD_LEFT);
-        $day   = (int)$_POST['sday'];
-        $day   = str_pad($day, 2, "0", STR_PAD_LEFT);
+        $year = (int) $_POST['syear'];
+        $month = (int) $_POST['smonth'];
+        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+        $day = (int) $_POST['sday'];
+        $day = str_pad($day, 2, '0', STR_PAD_LEFT);
 
-        $params = array(
+        $params = [
             $fname,
             $lname,
-            $sex
-        );
+            $sex,
+        ];
 
-        $sql = "UPDATE `fcms_users`
+        $sql = 'UPDATE `fcms_users`
                 SET `fname` = ?,
                     `lname` = ?,
-                    `sex`   = ?, ";
+                    `sex`   = ?, ';
 
         if ($_POST['mname'])
         {
             $params[] = strip_tags($_POST['mname']);
 
-            $sql .= "`mname` = ?, ";
+            $sql .= '`mname` = ?, ';
         }
         if ($_POST['maiden'])
         {
             $params[] = strip_tags($_POST['maiden']);
 
-            $sql .= "`maiden` = ?, ";
+            $sql .= '`maiden` = ?, ';
         }
         if ($_POST['bio'])
         {
             $params[] = strip_tags($_POST['bio']);
 
-            $sql .= "`bio` = ?, ";
+            $sql .= '`bio` = ?, ';
         }
 
         $params[] = $year;
@@ -780,10 +783,10 @@ $(document).ready(function() {
         $params[] = $day;
         $params[] = $this->fcmsUser->id;
 
-        $sql .= "`dob_year` = ?,
+        $sql .= '`dob_year` = ?,
                  `dob_month` = ?,
                  `dob_day` = ?
-                WHERE id = ?";
+                WHERE id = ?';
 
         if (!$this->fcmsDatabase->update($sql, $params))
         {
@@ -796,15 +799,15 @@ $(document).ready(function() {
 
         $_SESSION['success'] = 1;
 
-        header("Location: profile.php?view=info");
+        header('Location: profile.php?view=info');
     }
 
     /**
-     * displayEditProfilePictureForm 
-     * 
+     * displayEditProfilePictureForm.
+     *
      * @return void
      */
-    function displayEditProfilePictureForm ()
+    public function displayEditProfilePictureForm()
     {
         $this->displayHeader();
 
@@ -820,18 +823,18 @@ $(document).ready(function() {
     }
 
     /**
-     * displayEditProfilePictureFormSubmit 
-     * 
+     * displayEditProfilePictureFormSubmit.
+     *
      * @return void
      */
-    function displayEditProfilePictureFormSubmit ()
+    public function displayEditProfilePictureFormSubmit()
     {
         // Figure out where we are currently saving photos, and create new destination object
         $photoDestinationType = getDestinationType().'ProfileDestination';
 
         $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
-        $uploadPhoto      = new UploadPhoto($this->fcmsError, $photoDestination);
-        $profileUploader  = new UploadProfile($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
+        $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
+        $profileUploader = new UploadProfile($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $formData = $_POST;
 
@@ -845,20 +848,21 @@ $(document).ready(function() {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $_SESSION['success'] = 1;
 
-        header("Location: profile.php?view=picture");
+        header('Location: profile.php?view=picture');
     }
 
     /**
-     * displayEditProfileAddressForm 
-     * 
+     * displayEditProfileAddressForm.
+     *
      * @return void
      */
-    function displayEditProfileAddressForm ()
+    public function displayEditProfileAddressForm()
     {
         $this->displayHeader();
 
@@ -874,26 +878,26 @@ $(document).ready(function() {
     }
 
     /**
-     * displayEditProfileAddressFormSubmit 
-     * 
+     * displayEditProfileAddressFormSubmit.
+     *
      * @return void
      */
-    function displayEditProfileAddressFormSubmit ()
+    public function displayEditProfileAddressFormSubmit()
     {
-        $uid     = (int)$_POST['uid'];
-        $aid     = (int)$_POST['aid'];
+        $uid = (int) $_POST['uid'];
+        $aid = (int) $_POST['aid'];
 
-        $email   = strip_tags($_POST['email']);
+        $email = strip_tags($_POST['email']);
         $country = strip_tags($_POST['country']);
         $address = strip_tags($_POST['address']);
-        $city    = strip_tags($_POST['city']);
-        $state   = strip_tags($_POST['state']);
-        $zip     = strip_tags($_POST['zip']);
-        $home    = strip_tags($_POST['home']);
-        $work    = strip_tags($_POST['work']);
-        $cell    = strip_tags($_POST['cell']);
+        $city = strip_tags($_POST['city']);
+        $state = strip_tags($_POST['state']);
+        $zip = strip_tags($_POST['zip']);
+        $home = strip_tags($_POST['home']);
+        $work = strip_tags($_POST['work']);
+        $cell = strip_tags($_POST['cell']);
 
-        $sql = "UPDATE `fcms_address` 
+        $sql = 'UPDATE `fcms_address` 
                 SET `updated` = NOW(), 
                     `country` = ?,
                     `address` = ?, 
@@ -903,19 +907,19 @@ $(document).ready(function() {
                     `home`    = ?, 
                     `work`    = ?, 
                     `cell`    = ? 
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        $params = array(
-            $country, 
-            $address, 
-            $city, 
-            $state, 
-            $zip, 
-            $home, 
-            $work, 
+        $params = [
+            $country,
+            $address,
+            $city,
+            $state,
+            $zip,
+            $home,
+            $work,
             $cell,
-            $aid
-        );
+            $aid,
+        ];
 
         if (!$this->fcmsDatabase->update($sql, $params))
         {
@@ -926,11 +930,11 @@ $(document).ready(function() {
             return;
         }
 
-        $sql = "UPDATE `fcms_users`
+        $sql = 'UPDATE `fcms_users`
                 SET `email`= ?
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        if (!$this->fcmsDatabase->update($sql, array($email, $uid)))
+        if (!$this->fcmsDatabase->update($sql, [$email, $uid]))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
@@ -941,6 +945,6 @@ $(document).ready(function() {
 
         $_SESSION['success'] = 1;
 
-        header("Location: profile.php?view=address");
+        header('Location: profile.php?view=address');
     }
 }
