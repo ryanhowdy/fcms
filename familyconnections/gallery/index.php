@@ -1,14 +1,15 @@
 <?php
 /**
- * Photo Gallery
- * 
+ * Photo Gallery.
+ *
  * PHP versions 4 and 5
  *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -19,9 +20,9 @@ define('GALLERY_PREFIX', '');
 require URL_PREFIX.'fcms.php';
 
 load(
-    'gallery', 
-    'socialmedia', 
-    'datetime', 
+    'gallery',
+    'socialmedia',
+    'datetime',
     'image',
     'google',
     'facebook'
@@ -30,9 +31,9 @@ load(
 init('gallery/');
 
 // Globals
-$img     = new Image($fcmsUser->id);
+$img = new Image($fcmsUser->id);
 $gallery = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser, $img);
-$page    = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $gallery, $img);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $gallery, $img);
 
 exit();
 
@@ -45,29 +46,29 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsPhotoGallery, $fcmsImage)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsPhotoGallery, $fcmsImage)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
         $this->fcmsPhotoGallery = $fcmsPhotoGallery;
-        $this->fcmsImage        = $fcmsImage;
+        $this->fcmsImage = $fcmsImage;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if (isset($_POST['ajax']))
         {
@@ -93,6 +94,7 @@ class Page
             {
                 die('Uknown AJAX Request');
             }
+
             return;
         }
         // Edit Photo
@@ -164,7 +166,7 @@ class Page
         {
             $this->checkActionPermissions();
 
-            if ($_GET['action'] == "upload")
+            if ($_GET['action'] == 'upload')
             {
                 if (isset($_POST['addphoto']))
                 {
@@ -191,7 +193,7 @@ class Page
             {
                 $this->displayUploadAdvancedEditCategory();
             }
-            elseif ($_GET['action'] == "category")
+            elseif ($_GET['action'] == 'category')
             {
                 if (isset($_POST['editcat']))
                 {
@@ -254,13 +256,13 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ($options = null)
+    public function displayHeader($options = null)
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => cleanOutput(getSiteName()),
             'nav-link'      => getNavLinks(),
@@ -269,86 +271,87 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         if ($options === null)
         {
-            $options = array(
+            $options = [
                 'jsOnload' => 'deleteConfirmationLink("deletephoto", "'.T_('Are you sure you want to DELETE this Photo?').'");'
-                            . 'deleteConfirmationLinks("gal_delcombtn", "'.T_('Are you sure you want to DELETE this Comment?').'");'
-                            . 'deleteConfirmationLinks("delcategory", "'.T_('Are you sure you want to DELETE this Category?').'");'
-                            . 'initNewWindow();',
-            );
+                            .'deleteConfirmationLinks("gal_delcombtn", "'.T_('Are you sure you want to DELETE this Comment?').'");'
+                            .'deleteConfirmationLinks("delcategory", "'.T_('Are you sure you want to DELETE this Category?').'");'
+                            .'initNewWindow();',
+            ];
         }
 
         displayPageHeader($params, $options);
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'    => URL_PREFIX,
             'version' => getCurrentVersion(),
-            'year'    => date('Y')
-        );
+            'year'    => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
     /**
-     * displayEditPhotoForm 
-     * 
+     * displayEditPhotoForm.
+     *
      * @return void
      */
-    function displayEditPhotoForm ()
+    public function displayEditPhotoForm()
     {
         $this->displayHeader(
-            array('modules' => array('autocomplete'))
+            ['modules' => ['autocomplete']]
         );
         $this->fcmsPhotoGallery->displayEditPhotoForm($_POST['photo'], $_POST['url']);
         $this->displayFooter();
     }
 
     /**
-     * displayEditPhotoSubmit 
-     * 
+     * displayEditPhotoSubmit.
+     *
      * @return void
      */
-    function displayEditPhotoSubmit ()
+    public function displayEditPhotoSubmit()
     {
-        $uid           = (int)$_GET['uid'];
+        $uid = (int) $_GET['uid'];
         $photo_caption = strip_tags($_POST['photo_caption']);
-        $category      = strip_tags($_POST['category']);
-        $cid           = $category;
-        $pid           = (int)$_POST['photo_id'];
+        $category = strip_tags($_POST['category']);
+        $cid = $category;
+        $pid = (int) $_POST['photo_id'];
 
-        $sql = "UPDATE `fcms_gallery_photos` 
+        $sql = 'UPDATE `fcms_gallery_photos` 
                 SET `category` = ?, 
                     `caption` = ?
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        $params = array(
+        $params = [
             $category,
             $photo_caption,
-            $pid
-        );
+            $pid,
+        ];
 
         if (!$this->fcmsDatabase->update($sql, $params))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        $tagged = isset($_POST['tagged'])            ? $_POST['tagged']            : null;
-        $prev   = isset($_POST['prev_tagged_users']) ? $_POST['prev_tagged_users'] : null;
+        $tagged = isset($_POST['tagged']) ? $_POST['tagged'] : null;
+        $prev = isset($_POST['prev_tagged_users']) ? $_POST['prev_tagged_users'] : null;
 
         if (!$this->tagMembersInPhoto($pid, $tagged, $prev))
         {
@@ -359,14 +362,15 @@ class Page
         // Rotating Image?
         if (isset($_POST['rotate']))
         {
-            $sql = "SELECT `id`, `user`, `filename`, `external_id`
+            $sql = 'SELECT `id`, `user`, `filename`, `external_id`
                     FROM `fcms_gallery_photos`
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
 
             $row = $this->fcmsDatabase->getRow($sql, $pid);
             if ($row === false)
             {
                 $this->fcmsError->displayError();
+
                 return;
             }
 
@@ -380,10 +384,10 @@ class Page
             }
 
             // Setup the array of photos that need uploaded
-            $photoPrefixes = array(
+            $photoPrefixes = [
                 'main'      => '',
                 'thumbnail' => 'tb_',
-            );
+            ];
             if ($this->fcmsPhotoGallery->usingFullSizePhotos())
             {
                 $photoPrefixes['full'] = 'full_';
@@ -399,7 +403,7 @@ class Page
             foreach ($photoPrefixes as $key => $prefix)
             {
                 $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
-                $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+                $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
                 $photoDestination->rotate($prefix.$row['filename'], $rotate);
 
@@ -413,20 +417,20 @@ class Page
     }
 
     /**
-     * tagMembersInPhoto 
-     * 
-     * Will tag a group of members in a photo. Will also remove members who were 
+     * tagMembersInPhoto.
+     *
+     * Will tag a group of members in a photo. Will also remove members who were
      * tagged, but now are not.
-     * 
+     *
      * Since 2.9 - Adds a new record to the notification table.
-     * 
+     *
      * @param int   $photoId           Id of photo
      * @param array $taggedMembers     Array of member id's who are being tagged
      * @param array $prevTaggedMembers Array of member id's who are being untagged
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function tagMembersInPhoto ($photoId, $taggedMembers = null, $prevTaggedMembers = null)
+    public function tagMembersInPhoto($photoId, $taggedMembers = null, $prevTaggedMembers = null)
     {
         $ids = getAddRemoveTaggedMembers($taggedMembers, $prevTaggedMembers);
         if ($ids === false)
@@ -449,14 +453,14 @@ class Page
 
         if (count($ids['add']) > 0)
         {
-            $sql = "INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`) 
-                    VALUES ";
+            $sql = 'INSERT INTO `fcms_gallery_photos_tags` (`user`, `photo`) 
+                    VALUES ';
 
-            $params = array();
+            $params = [];
 
             foreach ($ids['add'] as $userId)
             {
-                $sql .= "(?, ?),";
+                $sql .= '(?, ?),';
 
                 $params[] = $userId;
                 $params[] = $photoId;
@@ -469,6 +473,7 @@ class Page
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return false;
             }
 
@@ -478,7 +483,7 @@ class Page
         if (count($ids['remove']) > 0)
         {
             // TODO - this should be changed
-            $in = implode(",", $ids['remove']);
+            $in = implode(',', $ids['remove']);
 
             $sql = "DELETE FROM `fcms_gallery_photos_tags` 
                     WHERE `photo` = '$photoId' 
@@ -488,6 +493,7 @@ class Page
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return false;
             }
         }
@@ -496,19 +502,19 @@ class Page
     }
 
     /**
-     * addTaggedNotifications 
-     * 
-     * @param int   $photoId 
-     * @param array $ids 
-     * 
+     * addTaggedNotifications.
+     *
+     * @param int   $photoId
+     * @param array $ids
+     *
      * @return void
      */
-    function addTaggedNotifications ($photoId, $ids)
+    public function addTaggedNotifications($photoId, $ids)
     {
         // Get photo info
-        $sql = "SELECT `user`, `category`, `filename`
+        $sql = 'SELECT `user`, `category`, `filename`
                 FROM `fcms_gallery_photos`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $photoInfo = $this->fcmsDatabase->getRow($sql, $photoId);
         if ($photoInfo === false)
@@ -516,15 +522,15 @@ class Page
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
+        $sql = 'INSERT INTO `fcms_notification` (`user`, `created_id`, `notification`, `data`, `read`, `created`, `updated`)
+                VALUES ';
 
-        $sql = "INSERT INTO `fcms_notification` (`user`, `created_id`, `notification`, `data`, `read`, `created`, `updated`)
-                VALUES ";
-
-        $params = array();
-        $data   = $photoInfo['user'].':'.$photoInfo['category'].':'.$photoId.':'.$photoInfo['filename'];
+        $params = [];
+        $data = $photoInfo['user'].':'.$photoInfo['category'].':'.$photoId.':'.$photoInfo['filename'];
 
         foreach ($ids as $id)
         {
@@ -544,17 +550,18 @@ class Page
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
         }
     }
 
     /**
-     * displayConfirmDeletePhotoForm 
-     * 
+     * displayConfirmDeletePhotoForm.
+     *
      * @return void
      */
-    function displayConfirmDeletePhotoForm ()
+    public function displayConfirmDeletePhotoForm()
     {
         $this->displayHeader();
 
@@ -574,18 +581,18 @@ class Page
     }
 
     /**
-     * displayDeletePhotoSubmit 
-     * 
+     * displayDeletePhotoSubmit.
+     *
      * @return void
      */
-    function displayDeletePhotoSubmit ()
+    public function displayDeletePhotoSubmit()
     {
-        $photoId = (int)$_POST['photo'];
+        $photoId = (int) $_POST['photo'];
 
         // Get photo info
-        $sql = "SELECT `user`, `category`, `filename`, `external_id`
+        $sql = 'SELECT `user`, `category`, `filename`, `external_id`
                 FROM `fcms_gallery_photos` 
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $filerow = $this->fcmsDatabase->getRow($sql, $photoId);
         if ($filerow === false)
@@ -593,18 +600,20 @@ class Page
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        $photoUserId   = $filerow['user'];
+        $photoUserId = $filerow['user'];
         $photoCategory = $filerow['category'];
 
-        $worked = $this->fcmsPhotoGallery->deletePhotos(array($photoId));
+        $worked = $this->fcmsPhotoGallery->deletePhotos([$photoId]);
         if (!$worked)
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -614,16 +623,16 @@ class Page
     }
 
     /**
-     * checkActionPermissions 
-     * 
+     * checkActionPermissions.
+     *
      * @return void
      */
-    function checkActionPermissions ()
+    public function checkActionPermissions()
     {
         $access = $this->fcmsUser->access;
 
         // Catch users who can't upload photos, create categories, etc.
-        if (   $access == NON_POSTER_USER
+        if ($access == NON_POSTER_USER
             || $access == PHOTOGRAPHER_USER
             || $access == GUEST_USER
             || $access == NON_EDIT_USER
@@ -641,17 +650,17 @@ class Page
     }
 
     /**
-     * displayUploadForm 
-     * 
+     * displayUploadForm.
+     *
      * @return void
      */
-    function displayUploadForm ()
+    public function displayUploadForm()
     {
         $this->displayHeader(
-            array(
-                'modules'  => array('autocomplete'),
+            [
+                'modules'  => ['autocomplete'],
                 'jsOnload' => 'hideUploadOptions(\''.T_('Rotate Photo').'\', \''.T_('Use Existing Category').'\', \''.T_('Create New Category').'\');',
-            )
+            ]
         );
 
         $this->fcmsPhotoGallery->displayGalleryMenu('none');
@@ -663,50 +672,50 @@ class Page
         }
 
         // Figure out what type of photo gallery uploader we are using, and create new object
-        $photoGalleryType  = getPhotoGallery();
+        $photoGalleryType = getPhotoGallery();
         $photoGalleryType .= 'Form';
-        $photoGalleryForm  = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
+        $photoGalleryForm = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
 
         $photoGalleryForm->display();
 
         $this->displayFooter();
 
-        return;
     }
 
     /**
-     * displayUploadFormSubmit 
-     * 
+     * displayUploadFormSubmit.
+     *
      * @return void
      */
-    function displayUploadFormSubmit ()
+    public function displayUploadFormSubmit()
     {
         // Figure out where we are currently saving photos, and create new destination object
         $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
-        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+        $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
 
         // Figure out what type of photo gallery uploader we are using, and create new object
-        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryType = getPhotoGallery();
         $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
-        $formData = array(
+        $formData = [
             'photo'       => $_FILES['photo_filename'],
             'newCategory' => $_POST['new-category'],
             'caption'     => $_POST['photo_caption'],
-        );
+        ];
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
-        $formData['rotate']   = isset($_POST['rotate'])   ? $_POST['rotate']   : null;
+        $formData['rotate'] = isset($_POST['rotate']) ? $_POST['rotate'] : null;
 
         // Upload the photo
         if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload');
+
             return;
         }
 
-        $photoId    = $photoGalleryUploader->getLastPhotoId();
+        $photoId = $photoGalleryUploader->getLastPhotoId();
         $categoryId = $photoGalleryUploader->getLastCategoryId();
 
         // Tag photo
@@ -724,24 +733,24 @@ class Page
 
         // Redirect to new photo
         header('Location: index.php?uid='.$this->fcmsUser->id.'&cid='.$categoryId.'&pid='.$photoId);
-        return;
+
     }
 
     /**
-     * displayPluploadFormSubmit 
-     * 
+     * displayPluploadFormSubmit.
+     *
      * @return void
      */
-    function displayPluploadFormSubmit ()
+    public function displayPluploadFormSubmit()
     {
         // Figure out where we are currently saving photos, and create new destination object
         $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
-        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+        $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
 
         // Figure out what type of photo gallery uploader we are using, and create new object
-        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryType = getPhotoGallery();
         $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
         $type = key($_FILES);
@@ -749,65 +758,66 @@ class Page
 
         $file['name'] = $_POST['name'];
 
-        $formData = array(
+        $formData = [
             'photo_type'  => $type,
             'photo'       => $file,
             'newCategory' => $_POST['new-category'],
-        );
+        ];
 
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
 
         // Upload the photo
         if (!$photoGalleryUploader->upload($formData))
         {
-            $error   = $photoGalleryUploader->fcmsUser->getError();
-            $message = $error['message']. ' - '.$error['details'];
+            $error = $photoGalleryUploader->fcmsUser->getError();
+            $message = $error['message'].' - '.$error['details'];
 
             die('{"jsonrpc" : "2.0", "error" : {"code": 500, "message": "'.$message.'"}, "id" : "id"}');
         }
     }
 
     /**
-     * displayJavaUploadFormSubmit 
-     * 
+     * displayJavaUploadFormSubmit.
+     *
      * @return void
      */
-    function displayJavaUploadFormSubmit ()
+    public function displayJavaUploadFormSubmit()
     {
         // Figure out where we are currently saving photos, and create new destination object
         $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
-        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+        $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
 
         // Figure out what type of photo gallery uploader we are using, and create new object
-        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryType = getPhotoGallery();
         $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
-        $formData = array(
+        $formData = [
             'thumb'       => $_FILES['thumb'],
             'main'        => $_FILES['main'],
             'newCategory' => $_POST['new-category'],
-        );
+        ];
 
-        $formData['full']     = isset($_FILES['full'])    ? $_FILES['full']    : null;
+        $formData['full'] = isset($_FILES['full']) ? $_FILES['full'] : null;
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
 
         if (!$photoGalleryUploader->upload($formData))
         {
-            echo "Upload Failure";
+            echo 'Upload Failure';
+
             return;
         }
 
-        echo "Success";
+        echo 'Success';
     }
 
     /**
-     * displayInstagramUploadFormSubmit 
-     * 
+     * displayInstagramUploadFormSubmit.
+     *
      * @return void
      */
-    function displayInstagramUploadFormSubmit ()
+    public function displayInstagramUploadFormSubmit()
     {
         // Turn on auto upload for Instagram
         if (isset($_POST['automatic']))
@@ -821,6 +831,7 @@ class Page
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
 
@@ -848,6 +859,7 @@ class Page
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
 
@@ -868,53 +880,55 @@ class Page
         $photoDestination = new Destination($this->fcmsError, $this->fcmsUser);
 
         // Figure out what type of photo gallery uploader we are using, and create new object
-        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryType = getPhotoGallery();
         $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination);
 
-        $formData = array(
+        $formData = [
             'photos' => $_POST['photos'],
-        );
+        ];
 
         if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload&type=instagram');
+
             return;
         }
 
         $categoryId = $photoGalleryUploader->getLastCategoryId();
 
-        header("Location: index.php?uid=".$this->fcmsUser->id."&cid=$categoryId");
+        header('Location: index.php?uid='.$this->fcmsUser->id."&cid=$categoryId");
     }
 
     /**
-     * displayPicasaUploadFormSubmit 
-     * 
+     * displayPicasaUploadFormSubmit.
+     *
      * @return void
      */
-    function displayPicasaUploadFormSubmit ()
+    public function displayPicasaUploadFormSubmit()
     {
         // Figure out where we are currently saving photos, and create new destination object
         $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
-        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+        $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
 
         // Figure out what type of photo gallery uploader we are using, and create new object
-        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryType = getPhotoGallery();
         $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
-        $formData = array(
+        $formData = [
             'photos'      => $_POST['photos'],
             'albums'      => $_POST['albums'],
             'picasa_user' => $_POST['picasa_user'],
             'newCategory' => $_POST['new-category'],
-        );
+        ];
 
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
 
         if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload&type=picasa');
+
             return;
         }
 
@@ -924,35 +938,36 @@ class Page
     }
 
     /**
-     * displayFacebookUploadFormSubmit 
-     * 
+     * displayFacebookUploadFormSubmit.
+     *
      * @return void
      */
-    function displayFacebookUploadFormSubmit ()
+    public function displayFacebookUploadFormSubmit()
     {
         load('facebook');
 
         // Figure out where we are currently saving photos, and create new destination object
         $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
-        $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+        $photoDestination = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
 
         $uploadPhoto = new UploadPhoto($this->fcmsError, $photoDestination);
 
         // Figure out what type of photo gallery uploader we are using, and create new object
-        $photoGalleryType     = getPhotoGallery();
+        $photoGalleryType = getPhotoGallery();
         $photoGalleryUploader = new $photoGalleryType($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser, $photoDestination, $uploadPhoto);
 
-        $formData = array(
+        $formData = [
             'photos'      => $_POST['photos'],
             'albums'      => $_POST['albums'],
             'newCategory' => $_POST['new-category'],
-        );
+        ];
 
         $formData['category'] = isset($_POST['category']) ? $_POST['category'] : null;
 
         if (!$photoGalleryUploader->upload($formData))
         {
             header('Location: index.php?action=upload&type=facebook');
+
             return;
         }
 
@@ -962,17 +977,17 @@ class Page
     }
 
     /**
-     * displayUploadAdvancedEditCategory
-     * 
+     * displayUploadAdvancedEditCategory.
+     *
      * Handles the form submission after uploading photos using advanced uploader.
      * This just redirects to the category edit form.
-     * 
+     *
      * @return void
      */
-    function displayUploadAdvancedEditCategory ()
+    public function displayUploadAdvancedEditCategory()
     {
-        $category = (int)$_SESSION['mass_photos_category'];
-        $user     = $this->fcmsUser->id;
+        $category = (int) $_SESSION['mass_photos_category'];
+        $user = $this->fcmsUser->id;
 
         // Do we have a valid category?
         if (isset($_SESSION['photos']['error']))
@@ -984,6 +999,7 @@ class Page
             echo '<div class="error-alert">'.T_('You must create a new category, or select an existing category.').'</div>';
             $this->displayJavaUploadForm('');
             $this->displayFooter();
+
             return;
         }
 
@@ -996,14 +1012,14 @@ class Page
     }
 
     /**
-     * displayEditCategoriesFormSubmit 
-     * 
+     * displayEditCategoriesFormSubmit.
+     *
      * @return void
      */
-    function displayEditCategoriesFormSubmit ()
+    public function displayEditCategoriesFormSubmit()
     {
-        $categoryId     = (int)$_POST['cid'];
-        $categoryName   = strip_tags($_POST['cat_name']);
+        $categoryId = (int) $_POST['cid'];
+        $categoryName = strip_tags($_POST['cat_name']);
 
         if (empty($categoryName))
         {
@@ -1013,34 +1029,35 @@ class Page
             $this->displayFooter();
         }
 
-        $sql = "UPDATE fcms_category 
+        $sql = 'UPDATE fcms_category 
                 SET `name` = ?
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        $params = array(
+        $params = [
             $categoryName,
-            $categoryId
-        );
+            $categoryId,
+        ];
 
         if (!$this->fcmsDatabase->update($sql, $params))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
-        $_SESSION['message'] = sprintf(T_('The Category %s was Updated Successfully'), "<b>".$categoryName."</b>");
+        $_SESSION['message'] = sprintf(T_('The Category %s was Updated Successfully'), '<b>'.$categoryName.'</b>');
 
-        header("Location: index.php?action=category");
+        header('Location: index.php?action=category');
     }
 
     /**
-     * displayEditCategoriesForm 
-     * 
+     * displayEditCategoriesForm.
+     *
      * @return void
      */
-    function displayEditCategoriesForm ()
+    public function displayEditCategoriesForm()
     {
         $this->displayHeader();
 
@@ -1058,11 +1075,11 @@ class Page
     }
 
     /**
-     * displayConfirmDeleteCategoryForm 
-     * 
+     * displayConfirmDeleteCategoryForm.
+     *
      * @return void
      */
-    function displayConfirmDeleteCategoryForm ()
+    public function displayConfirmDeleteCategoryForm()
     {
         $this->displayHeader();
 
@@ -1072,7 +1089,7 @@ class Page
                         <h2>'.T_('Are you sure you want to DELETE this category?').'</h2>
                         <p><b><i>'.T_('This can NOT be undone.').'</i></b></p>
                         <div>
-                            <input type="hidden" name="cid" value="'.(int)$_POST['cid'].'"/>
+                            <input type="hidden" name="cid" value="'.(int) $_POST['cid'].'"/>
                             <input style="float:left;" type="submit" id="delcat" name="delcat" value="'.T_('Yes').'"/>
                             <a style="float:right;" href="index.php?action=category">'.T_('Cancel').'</a>
                         </div>
@@ -1083,35 +1100,36 @@ class Page
     }
 
     /**
-     * displayDeleteCategorySubmit 
-     * 
+     * displayDeleteCategorySubmit.
+     *
      * @return void
      */
-    function displayDeleteCategorySubmit ()
+    public function displayDeleteCategorySubmit()
     {
         $cid = 0;
 
         if (isset($_GET['delcat']))
         {
-            $cid = (int)$_GET['delcat'];
+            $cid = (int) $_GET['delcat'];
         }
         elseif (isset($_POST['cid']))
         {
-            $cid = (int)$_POST['cid'];
+            $cid = (int) $_POST['cid'];
         }
         else
         {
             $this->displayHeader();
             echo '<p class="error-alert">'.T_('Missing or invalid id.').'</p>';
             $this->displayFooter();
+
             return;
         }
 
         // Get category info
-        $sql = "SELECT `user`
+        $sql = 'SELECT `user`
                 FROM `fcms_category`
                 WHERE `id` = ?
-                LIMIT 1";
+                LIMIT 1';
 
         $row = $this->fcmsDatabase->getRow($sql, $cid);
         if ($row === false)
@@ -1119,6 +1137,7 @@ class Page
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -1128,44 +1147,46 @@ class Page
             $this->displayHeader();
             echo '<p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
             $this->displayFooter();
+
             return;
         }
 
-        $sql = "DELETE FROM fcms_category 
+        $sql = 'DELETE FROM fcms_category 
                 WHERE `id` = ?
-                AND `user` = ?";
+                AND `user` = ?';
 
-        $params = array(
+        $params = [
             $cid,
-            $this->fcmsUser->id
-        );
+            $this->fcmsUser->id,
+        ];
 
         if (!$this->fcmsDatabase->delete($sql, $params))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $_SESSION['message'] = T_('Category Deleted Successfully');
 
-        header("Location: index.php?action=category");
+        header('Location: index.php?action=category');
     }
 
     /**
-     * displayEditCategoryForm
-     * 
+     * displayEditCategoryForm.
+     *
      * @return void
      */
-    function displayEditCategoryForm ()
+    public function displayEditCategoryForm()
     {
         $this->displayHeader(
-            array('modules' => array('autocomplete'))
+            ['modules' => ['autocomplete']]
         );
 
-        $category = (int)$_GET['edit-category'];
-        $user     = (int)$_GET['user'];
+        $category = (int) $_GET['edit-category'];
+        $user = (int) $_GET['user'];
 
         $this->fcmsPhotoGallery->displayEditCategoryForm($category, $user);
 
@@ -1173,29 +1194,30 @@ class Page
     }
 
     /**
-     * displayEditCategoryFormSubmit 
-     * 
+     * displayEditCategoryFormSubmit.
+     *
      * @return void
      */
-    function displayEditCategoryFormSubmit ()
+    public function displayEditCategoryFormSubmit()
     {
-        $uid = (int)$_GET['uid'];
-        $cid = (int)$_GET['cid'];
+        $uid = (int) $_GET['uid'];
+        $cid = (int) $_GET['cid'];
 
         // Save description
         if (isset($_POST['description']))
         {
             $description = strip_tags($_POST['description']);
 
-            $sql = "UPDATE `fcms_category`
+            $sql = 'UPDATE `fcms_category`
                     SET `description` = ?
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
 
-            if (!$this->fcmsDatabase->update($sql, array($description, $cid)))
+            if (!$this->fcmsDatabase->update($sql, [$description, $cid]))
             {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
         }
@@ -1205,24 +1227,25 @@ class Page
         {
             foreach ($_POST['caption'] as $pid => $caption)
             {
-                $pid     = (int)$pid;
+                $pid = (int) $pid;
                 $caption = strip_tags($caption);
 
                 // Update the caption
-                $sql = "UPDATE `fcms_gallery_photos` 
+                $sql = 'UPDATE `fcms_gallery_photos` 
                         SET `caption` = ?
-                        WHERE `id` = ?";
+                        WHERE `id` = ?';
 
-                $params = array(
+                $params = [
                     $caption,
                     $pid,
-                );
+                ];
 
                 if (!$this->fcmsDatabase->update($sql, $params))
                 {
                     $this->displayHeader();
                     $this->fcmsError->displayError();
                     $this->displayFooter();
+
                     return;
                 }
             }
@@ -1231,9 +1254,9 @@ class Page
         // Save tags
         if (isset($_POST['tagged']))
         {
-            $photos   = array();
-            $photos1  = array();
-            $photos2  = array();
+            $photos = [];
+            $photos1 = [];
+            $photos2 = [];
 
             // Get all photo ids
             if (isset($_POST['tagged']))
@@ -1251,8 +1274,8 @@ class Page
             // Loop through each photo
             foreach ($photos as $pid)
             {
-                $tagged = isset($_POST['tagged'][$pid])            ? $_POST['tagged'][$pid]            : null;
-                $prev   = isset($_POST['prev_tagged_users'][$pid]) ? $_POST['prev_tagged_users'][$pid] : null;
+                $tagged = isset($_POST['tagged'][$pid]) ? $_POST['tagged'][$pid] : null;
+                $prev = isset($_POST['prev_tagged_users'][$pid]) ? $_POST['prev_tagged_users'][$pid] : null;
 
                 if (!$this->tagMembersInPhoto($pid, $tagged, $prev))
                 {
@@ -1268,39 +1291,39 @@ class Page
     }
 
     /**
-     * displayMassTagForm 
-     * 
+     * displayMassTagForm.
+     *
      * Prints the mass edit category function with caption and desc turned off.
-     * 
+     *
      * @return void
      */
-    function displayMassTagForm ()
+    public function displayMassTagForm()
     {
         $this->displayHeader(
-            array('modules' => array('autocomplete'))
+            ['modules' => ['autocomplete']]
         );
 
-        $category = (int)$_GET['tag'];
-        $user     = (int)$_GET['user'];
+        $category = (int) $_GET['tag'];
+        $user = (int) $_GET['user'];
 
         $this->fcmsPhotoGallery->displayEditCategoryForm(
-            $category, 
-            $user, 
-            array(
+            $category,
+            $user,
+            [
                 'description' => 1,
-                'caption'     => 1
-            )
+                'caption'     => 1,
+            ]
         );
 
         $this->displayFooter();
     }
 
     /**
-     * displayPhoto 
-     * 
+     * displayPhoto.
+     *
      * @return void
      */
-    function displayPhoto ()
+    public function displayPhoto()
     {
         $this->displayHeader();
 
@@ -1311,9 +1334,9 @@ class Page
             displayOkMessage();
         }
 
-        $uid = (int)$_GET['uid'];
+        $uid = (int) $_GET['uid'];
         $cid = $_GET['cid']; // not always an #
-        $pid = (int)$_GET['pid'];
+        $pid = (int) $_GET['pid'];
 
         $this->fcmsPhotoGallery->showPhoto($uid, $cid, $pid);
 
@@ -1321,11 +1344,11 @@ class Page
     }
 
     /**
-     * displayCategory 
-     * 
+     * displayCategory.
+     *
      * @return void
      */
-    function displayCategory ()
+    public function displayCategory()
     {
         $this->displayHeader();
 
@@ -1345,11 +1368,11 @@ class Page
     }
 
     /**
-     * displayUserCategory 
-     * 
+     * displayUserCategory.
+     *
      * @return void
      */
-    function displayUserCategory ()
+    public function displayUserCategory()
     {
         $this->displayHeader();
 
@@ -1362,30 +1385,30 @@ class Page
     }
 
     /**
-     * displayAddCategoryCommentSubmit 
-     * 
+     * displayAddCategoryCommentSubmit.
+     *
      * @return void
      */
-    function displayAddCategoryCommentSubmit ()
+    public function displayAddCategoryCommentSubmit()
     {
-        $uid       = (int)$_GET['uid'];
-        $cid       = (int)$_GET['cid'];
-        $com       = ltrim($_POST['comment']);
-        $com       = strip_tags($com);
+        $uid = (int) $_GET['uid'];
+        $cid = (int) $_GET['cid'];
+        $com = ltrim($_POST['comment']);
+        $com = strip_tags($com);
         $commentId = 0;
 
         if (!empty($com))
         {
-            $sql = "INSERT INTO `fcms_gallery_category_comment`
+            $sql = 'INSERT INTO `fcms_gallery_category_comment`
                         (`category_id`, `comment`, `created`, `created_id`)
                     VALUES
-                        (?, ?, NOW(), ?)";
+                        (?, ?, NOW(), ?)';
 
-            $params = array(
-                $cid, 
-                $com, 
-                $this->fcmsUser->id
-            );
+            $params = [
+                $cid,
+                $com,
+                $this->fcmsUser->id,
+            ];
 
             $commentId = $this->fcmsDatabase->insert($sql, $params);
             if ($commentId === false)
@@ -1393,6 +1416,7 @@ class Page
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
         }
@@ -1401,31 +1425,31 @@ class Page
     }
 
     /**
-     * displayAddPhotoCommentSubmit 
-     * 
+     * displayAddPhotoCommentSubmit.
+     *
      * @return void
      */
-    function displayAddPhotoCommentSubmit ()
+    public function displayAddPhotoCommentSubmit()
     {
-        $uid       = (int)$_GET['uid'];
-        $cid       = $_GET['cid']; // not always an #
-        $pid       = (int)$_GET['pid'];
-        $com       = ltrim($_POST['post']);
-        $com       = strip_tags($com);
+        $uid = (int) $_GET['uid'];
+        $cid = $_GET['cid']; // not always an #
+        $pid = (int) $_GET['pid'];
+        $com = ltrim($_POST['post']);
+        $com = strip_tags($com);
         $commentId = 0;
 
         if (!empty($com))
         {
-            $sql = "INSERT INTO `fcms_gallery_photo_comment`
+            $sql = 'INSERT INTO `fcms_gallery_photo_comment`
                         (`photo`, `comment`, `date`, `user`)
                     VALUES
-                        (?, ?, NOW(), ?)";
+                        (?, ?, NOW(), ?)';
 
-            $params = array(
-                $pid, 
-                $com, 
-                $this->fcmsUser->id
-            );
+            $params = [
+                $pid,
+                $com,
+                $this->fcmsUser->id,
+            ];
 
             $commentId = $this->fcmsDatabase->insert($sql, $params);
             if ($commentId === false)
@@ -1433,6 +1457,7 @@ class Page
                 $this->displayHeader();
                 $this->fcmsError->displayError();
                 $this->displayFooter();
+
                 return;
             }
         }
@@ -1441,16 +1466,16 @@ class Page
     }
 
     /**
-     * displayAddVoteSubmit 
-     * 
+     * displayAddVoteSubmit.
+     *
      * @return void
      */
-    function displayAddVoteSubmit ()
+    public function displayAddVoteSubmit()
     {
-        $uid  = (int)$_GET['uid'];
-        $cid  = $_GET['cid']; // not always an #
-        $pid  = (int)$_GET['pid'];
-        $vote = (int)$_GET['vote'];
+        $uid = (int) $_GET['uid'];
+        $cid = $_GET['cid']; // not always an #
+        $pid = (int) $_GET['pid'];
+        $vote = (int) $_GET['vote'];
 
         $sql = "UPDATE `fcms_gallery_photos` 
                 SET `votes` = `votes` + 1, 
@@ -1462,6 +1487,7 @@ class Page
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -1469,25 +1495,26 @@ class Page
     }
 
     /**
-     * displayDeleteCommentSubmit 
-     * 
+     * displayDeleteCommentSubmit.
+     *
      * @return void
      */
-    function displayDeleteCommentSubmit ()
+    public function displayDeleteCommentSubmit()
     {
-        $uid = (int)$_POST['uid'];
+        $uid = (int) $_POST['uid'];
         $cid = $_POST['cid']; // not always an #
-        $pid = (int)$_POST['pid'];
-        $id  = (int)$_POST['id'];
+        $pid = (int) $_POST['pid'];
+        $id = (int) $_POST['id'];
 
-        $sql = "DELETE FROM `fcms_gallery_photo_comment` 
-                WHERE `id` = ?";
+        $sql = 'DELETE FROM `fcms_gallery_photo_comment` 
+                WHERE `id` = ?';
 
         if (!$this->fcmsDatabase->delete($sql, $id))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -1495,16 +1522,16 @@ class Page
     }
 
     /**
-     * displayConfirmDeleteCommentForm 
-     * 
+     * displayConfirmDeleteCommentForm.
+     *
      * @return void
      */
-    function displayConfirmDeleteCommentForm ()
+    public function displayConfirmDeleteCommentForm()
     {
-        $uid = (int)$_GET['uid'];
+        $uid = (int) $_GET['uid'];
         $cid = $_GET['cid']; // not always an #
-        $pid = (int)$_GET['pid'];
-        $id  = (int)$_POST['id'];
+        $pid = (int) $_GET['pid'];
+        $id = (int) $_POST['id'];
         $this->displayHeader();
 
         echo '
@@ -1527,11 +1554,11 @@ class Page
     }
 
     /**
-     * displaySearchForm 
-     * 
+     * displaySearchForm.
+     *
      * @return void
      */
-    function displaySearchForm ()
+    public function displaySearchForm()
     {
         $this->displayHeader();
 
@@ -1542,11 +1569,11 @@ class Page
     }
 
     /**
-     * displayLatest 
-     * 
+     * displayLatest.
+     *
      * @return void
      */
-    function displayLatest ()
+    public function displayLatest()
     {
         $this->displayHeader();
 
@@ -1566,42 +1593,42 @@ class Page
     }
 
     /**
-     * displayEditDescriptionForm 
-     * 
+     * displayEditDescriptionForm.
+     *
      * Prints the mass edit category function with caption and tagg turned off.
-     * 
+     *
      * @return void
      */
-    function displayEditDescriptionForm ()
+    public function displayEditDescriptionForm()
     {
         $this->displayHeader();
 
-        $uid = (int)$_GET['user'];
-        $cid = (int)$_GET['description'];
+        $uid = (int) $_GET['user'];
+        $cid = (int) $_GET['description'];
 
         $this->fcmsPhotoGallery->displayEditCategoryForm(
             $cid,
             $uid,
-            array(
+            [
                 'caption' => 1,
-                'tag'     => 1
-            )
+                'tag'     => 1,
+            ]
         );
 
         $this->displayFooter();
     }
 
     /**
-     * getAjaxPicasaPhotos
-     * 
+     * getAjaxPicasaPhotos.
+     *
      * Will get the first 25 photos for the given album id.  Then calls js to get next 25.
      * Or, if photos have been loaded, will return all photos from the session.
-     * 
+     *
      * @return string
      */
-    function getAjaxPicasaPhotos ()
+    public function getAjaxPicasaPhotos()
     {
-        $token   = $_POST['picasa_session_token'];
+        $token = $_POST['picasa_session_token'];
         $albumId = $_POST['albumId'];
 
         $photos = '';
@@ -1636,13 +1663,13 @@ class Page
             $curl = curl_init();
 
             curl_setopt_array(
-                $curl, 
-                array(
+                $curl,
+                [
                     CURLOPT_CUSTOMREQUEST  => 'GET',
                     CURLOPT_URL            => 'https://picasaweb.google.com/data/feed/api/user/default/albumid/'.$albumId.'?max-results=25',
-                    CURLOPT_HTTPHEADER     => array('GData-Version: 2', 'Authorization: Bearer '.$token),
+                    CURLOPT_HTTPHEADER     => ['GData-Version: 2', 'Authorization: Bearer '.$token],
                     CURLOPT_RETURNTRANSFER => 1,
-                )
+                ]
             );
 
             $response = curl_exec($curl);
@@ -1658,13 +1685,14 @@ class Page
                     </p>';
 
                 logError(__FILE__.' ['.__LINE__.'] - Could not get Picasa album data. - '.$response);
+
                 return;
             }
 
             $xml = new SimpleXMLElement($response);
 
-            $_SESSION['picasa_photos'] = array();
-            $_SESSION['picasa_user']   = (string)$xml->title;
+            $_SESSION['picasa_photos'] = [];
+            $_SESSION['picasa_user'] = (string) $xml->title;
 
             $i = 1;
             foreach ($xml->entry as $photo)
@@ -1680,27 +1708,27 @@ class Page
                     }
                 }
 
-                $sourceId = (int)$photo->children('gphoto', true)->id;
+                $sourceId = (int) $photo->children('gphoto', true)->id;
 
-                $w = (int)$photo->children('gphoto', true)->width;
-                $h = (int)$photo->children('gphoto', true)->height;
+                $w = (int) $photo->children('gphoto', true)->width;
+                $h = (int) $photo->children('gphoto', true)->height;
 
-                $width  = '100%;';
+                $width = '100%;';
                 $height = 'auto;';
 
                 if ($w > $h)
                 {
-                    $width  = 'auto;';
+                    $width = 'auto;';
                     $height = '100%;';
                 }
 
-                $thumbnail = (string)$group->thumbnail[1]->attributes()->url;
+                $thumbnail = (string) $group->thumbnail[1]->attributes()->url;
 
-                $_SESSION['picasa_photos'][$sourceId] = array(
+                $_SESSION['picasa_photos'][$sourceId] = [
                     'thumbnail' => $thumbnail,
                     'width'     => $width,
                     'height'    => $height,
-                );
+                ];
 
                 $photos .= '<li>';
                 $photos .= '<label for="picasa'.$i.'">';
@@ -1730,31 +1758,31 @@ class Page
     }
 
     /**
-     * getAjaxMorePicasaPhotos
-     * 
+     * getAjaxMorePicasaPhotos.
+     *
      * Will get the next 25 photos for the given album id, starting with given index.
      * Then calls js to get next 25.
-     * 
+     *
      * @return string
      */
-    function getAjaxMorePicasaPhotos ()
+    public function getAjaxMorePicasaPhotos()
     {
-        $token      = $_POST['picasa_session_token'];
-        $albumId    = $_POST['albumId'];
+        $token = $_POST['picasa_session_token'];
+        $albumId = $_POST['albumId'];
         $startIndex = $_POST['start_index'];
-        $photos     = '';
+        $photos = '';
 
         // Get the album data
         $curl = curl_init();
 
         curl_setopt_array(
-            $curl, 
-            array(
+            $curl,
+            [
                 CURLOPT_CUSTOMREQUEST  => 'GET',
                 CURLOPT_URL            => 'https://picasaweb.google.com/data/feed/api/user/default/albumid/'.$albumId.'?start-index='.$startIndex.'&max-results=25',
-                CURLOPT_HTTPHEADER     => array('GData-Version: 2', 'Authorization: Bearer '.$token),
+                CURLOPT_HTTPHEADER     => ['GData-Version: 2', 'Authorization: Bearer '.$token],
                 CURLOPT_RETURNTRANSFER => 1,
-            )
+            ]
         );
 
         $response = curl_exec($curl);
@@ -1770,6 +1798,7 @@ class Page
                 </p>';
 
             logError(__FILE__.' ['.__LINE__.'] - Could not get Picasa album data. - '.$response);
+
             return;
         }
 
@@ -1789,27 +1818,27 @@ class Page
                 }
             }
 
-            $sourceId = (int)$photo->children('gphoto', true)->id;
+            $sourceId = (int) $photo->children('gphoto', true)->id;
 
-            $thumbnail = (string)$group->thumbnail[1]->attributes()->url;
+            $thumbnail = (string) $group->thumbnail[1]->attributes()->url;
 
-            $w = (int)$photo->children('gphoto', true)->width;
-            $h = (int)$photo->children('gphoto', true)->height;
+            $w = (int) $photo->children('gphoto', true)->width;
+            $h = (int) $photo->children('gphoto', true)->height;
 
-            $width  = '100%;';
+            $width = '100%;';
             $height = 'auto;';
 
             if ($w > $h)
             {
-                $width  = 'auto;';
+                $width = 'auto;';
                 $height = '100%;';
             }
 
-            $_SESSION['picasa_photos'][$sourceId] = array(
+            $_SESSION['picasa_photos'][$sourceId] = [
                 'thumbnail' => $thumbnail,
                 'width'     => $width,
                 'height'    => $height,
-            );
+            ];
 
             $photos .= '<li>';
             $photos .= '<label for="picasa'.$startIndex.'">';
@@ -1836,13 +1865,13 @@ class Page
     }
 
     /**
-     * getAjaxPicasaAlbums
-     * 
+     * getAjaxPicasaAlbums.
+     *
      * Will get all albums for the user.
-     * 
+     *
      * @return string
      */
-    function getAjaxPicasaAlbums ()
+    public function getAjaxPicasaAlbums()
     {
         $token = $_POST['picasa_session_token'];
 
@@ -1862,13 +1891,13 @@ class Page
             $curl = curl_init();
 
             curl_setopt_array(
-                $curl, 
-                array(
+                $curl,
+                [
                     CURLOPT_CUSTOMREQUEST  => 'GET',
                     CURLOPT_URL            => 'https://picasaweb.google.com/data/feed/api/user/default',
-                    CURLOPT_HTTPHEADER     => array('GData-Version: 2', 'Authorization: Bearer '.$token),
+                    CURLOPT_HTTPHEADER     => ['GData-Version: 2', 'Authorization: Bearer '.$token],
                     CURLOPT_RETURNTRANSFER => 1,
-                )
+                ]
             );
 
             $response = curl_exec($curl);
@@ -1884,6 +1913,7 @@ class Page
                     </p>';
 
                 logError(__FILE__.' ['.__LINE__.'] - Could not get user picasa data. - '.$response);
+
                 return;
             }
 
@@ -1891,12 +1921,12 @@ class Page
 
             $albums = '<select id="albums" name="albums">';
 
-            $_SESSION['picasa_albums'] = array();
+            $_SESSION['picasa_albums'] = [];
 
             foreach ($xml->entry as $album)
             {
-                $id    = (int)$album->children('gphoto', true)->id;
-                $title = (string)$album->title;
+                $id = (int) $album->children('gphoto', true)->id;
+                $title = (string) $album->title;
 
                 $_SESSION['picasa_albums'][$id] = $title;
 
@@ -1919,29 +1949,29 @@ class Page
     }
 
     /**
-     * getAjaxFacebookPhotos 
-     * 
+     * getAjaxFacebookPhotos.
+     *
      * Will print a list of photos from facebook.
-     * 
+     *
      * @return null
      */
-    function getAjaxFacebookPhotos()
+    public function getAjaxFacebookPhotos()
     {
-        $config      = getFacebookConfigData();
+        $config = getFacebookConfigData();
         $accessToken = getUserFacebookAccessToken($this->fcmsUser->id);
 
-        $facebook = new Facebook(array(
+        $facebook = new Facebook([
             'appId'  => $config['fb_app_id'],
             'secret' => $config['fb_secret'],
-        ));
+        ]);
 
         $facebook->setAccessToken($accessToken);
 
-        $albumId = (int)$_POST['albumId'];
-        $photos  = '';
-        $i       = 1;
+        $albumId = (int) $_POST['albumId'];
+        $photos = '';
+        $i = 1;
 
-        $_SESSION['facebook_photos'] = array();
+        $_SESSION['facebook_photos'] = [];
 
         try
         {
@@ -1952,23 +1982,23 @@ class Page
                 $w = $photo['width'];
                 $h = $photo['height'];
 
-                $width  = '100%;';
+                $width = '100%;';
                 $height = 'auto;';
 
                 if ($w > $h)
                 {
-                    $width  = 'auto;';
+                    $width = 'auto;';
                     $height = '100%;';
                 }
 
-                $sourceId  = $photo['id'];
+                $sourceId = $photo['id'];
                 $thumbnail = $photo['picture'];
 
-                $_SESSION['facebook_photos'][$sourceId] = array(
+                $_SESSION['facebook_photos'][$sourceId] = [
                     'thumbnail' => $thumbnail,
                     'width'     => $width,
                     'height'    => $height,
-                );
+                ];
 
                 $photos .= '<li>';
                 $photos .= '<label for="facebook'.$i.'">';
@@ -1985,13 +2015,14 @@ class Page
         {
             echo '<p class="error-alert">'.T_('Could not get Facebook photos.').'</p>';
 
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'type'    => 'operation',
                 'message' => T_('Could not get Facebook photos.'),
                 'error'   => $e,
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-             ));
+             ]);
+
             return;
         }
 

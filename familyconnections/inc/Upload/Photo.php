@@ -1,10 +1,9 @@
 <?php
 /**
- * Upload Photo
- * 
- * @package Upload
+ * Upload Photo.
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class UploadPhoto
@@ -16,49 +15,49 @@ class UploadPhoto
     public $fileName;
     public $extension;
 
-    private $validMimeTypes = array(
+    private $validMimeTypes = [
         'image/pjpeg'   => 1,
-        'image/jpeg'    => 1, 
-        'image/gif'     => 1, 
-        'image/bmp'     => 1, 
-        'image/x-png'   => 1, 
-        'image/png'     => 1
-    );
-    private $validExtensions = array(
+        'image/jpeg'    => 1,
+        'image/gif'     => 1,
+        'image/bmp'     => 1,
+        'image/x-png'   => 1,
+        'image/png'     => 1,
+    ];
+    private $validExtensions = [
         'jpeg'  => 1,
         'jpg'   => 1,
         'gif'   => 1,
         'bmp'   => 1,
-        'png'   => 1
-    );
+        'png'   => 1,
+    ];
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error  $fcmsError 
-     * @param Destination $destination 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error  $fcmsError
+     * @param Destination $destination
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Destination $destination)
+    public function __construct(FCMS_Error $fcmsError, Destination $destination)
     {
-        $this->fcmsError   = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->destination = $destination;
     }
 
     /**
-     * load 
-     * 
-     * Takes a $_FILES object and sets the photo, filename and extension 
+     * load.
+     *
+     * Takes a $_FILES object and sets the photo, filename and extension
      * variables. Then does some validation.
-     * 
-     * @param FILES $photo 
-     * 
+     *
+     * @param FILES $photo
+     *
      * @return UploadPhoto
      */
-    public function load ($photo)
+    public function load($photo)
     {
-        $this->photo    = $photo;
+        $this->photo = $photo;
         $this->fileName = cleanFilename($this->photo['name']);
 
         $this->setExtension();
@@ -73,21 +72,21 @@ class UploadPhoto
     }
 
     /**
-     * validate 
-     * 
+     * validate.
+     *
      * @return UploadPhoto
      */
-    private function validate ()
+    private function validate()
     {
         // Catch photos that are too large
         if ($this->photo['error'] == 1)
         {
             $max = ini_get('upload_max_filesize');
 
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.sprintf(T_('Your photo exceeds the maximum size allowed by your PHP settings [%s].'), $max).'</p>'
-            ));
+                'details' => '<p>'.sprintf(T_('Your photo exceeds the maximum size allowed by your PHP settings [%s].'), $max).'</p>',
+            ]);
 
             return $this;
         }
@@ -95,10 +94,10 @@ class UploadPhoto
         // Make sure we have an image
         if ($this->photo['error'] == 4)
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('You must choose a photo first.').'</p>'
-            ));
+                'details' => '<p>'.T_('You must choose a photo first.').'</p>',
+            ]);
 
             return $this;
         }
@@ -106,21 +105,21 @@ class UploadPhoto
         // Another check that we have a photo
         if ($this->photo['size'] <= 0)
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('Photo is corrupt or missing.').'</p>'
-            ));
+                'details' => '<p>'.T_('Photo is corrupt or missing.').'</p>',
+            ]);
 
             return $this;
         }
 
         // Validate mimetype/extension for real photo
-        if (!isset($this->validMimeTypes[ $this->photo['type'] ]) || !isset($this->validExtensions[$this->extension]))
+        if (!isset($this->validMimeTypes[$this->photo['type']]) || !isset($this->validExtensions[$this->extension]))
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->fileName).'</p>'
-            ));
+                'details' => '<p>'.sprintf(T_('Photo [%s] is not a supported photo type.  Photos must be of type (.jpg, .jpeg, .gif, .bmp or .png).'), $this->fileName).'</p>',
+            ]);
 
             return $this;
         }
@@ -129,13 +128,13 @@ class UploadPhoto
     }
 
     /**
-     * save 
-     * 
-     * @param string $savedFileName 
-     * 
+     * save.
+     *
+     * @param string $savedFileName
+     *
      * @return UploadPhoto
      */
-    public function save ($savedFileName = null)
+    public function save($savedFileName = null)
     {
         if ($this->fcmsError->hasUserError())
         {
@@ -147,7 +146,7 @@ class UploadPhoto
         if (is_null($savedFileName))
         {
             // Make file name unique
-            $id = uniqid("");
+            $id = uniqid('');
             $this->fileName = $id.'.'.$this->extension;
         }
 
@@ -158,13 +157,13 @@ class UploadPhoto
     }
 
     /**
-     * getFileExtension 
-     * 
-     * @param string $file 
-     * 
+     * getFileExtension.
+     *
+     * @param string $file
+     *
      * @return string
      */
-    public function getFileExtension ($file)
+    public function getFileExtension($file)
     {
         $ext = '';
         $arr = explode('.', $file);
@@ -188,25 +187,25 @@ class UploadPhoto
     }
 
     /**
-     * setExtension 
-     * 
+     * setExtension.
+     *
      * @return void
      */
-    private function setExtension ()
+    private function setExtension()
     {
         $this->extension = $this->getFileExtension($this->fileName);
     }
 
     /**
-     * resize 
-     * 
-     * @param int    $maxWidth 
-     * @param int    $maxHeight 
-     * @param string $resizeType 
-     * 
+     * resize.
+     *
+     * @param int    $maxWidth
+     * @param int    $maxHeight
+     * @param string $resizeType
+     *
      * @return UploadPhoto
      */
-    public function resize ($maxWidth, $maxHeight, $resizeType = 'default')
+    public function resize($maxWidth, $maxHeight, $resizeType = 'default')
     {
         if ($this->fcmsError->hasUserError())
         {
@@ -237,59 +236,59 @@ class UploadPhoto
         if ($resizeType == 'square')
         {
             $resizeSize = $this->getResizeSizeSquare(
-                $currentSize[0], 
-                $currentSize[1], 
+                $currentSize[0],
+                $currentSize[1],
                 $maxWidth
             );
-            $destinationWidth   = $resizeSize[0];
-            $destinationHeight  = $resizeSize[1];
-            $trueColorWidth     = $resizeSize[2];
-            $trueColorHeight    = $resizeSize[3];
+            $destinationWidth = $resizeSize[0];
+            $destinationHeight = $resizeSize[1];
+            $trueColorWidth = $resizeSize[2];
+            $trueColorHeight = $resizeSize[3];
         }
         // Get widths and heights for proportional image
         else
-        {        
+        {
             $resizeSize = $this->getResizeSize(
-                $currentSize[0], 
-                $currentSize[1], 
-                $maxWidth, 
+                $currentSize[0],
+                $currentSize[1],
+                $maxWidth,
                 $maxHeight
             );
-            $destinationWidth   = $resizeSize[0];
-            $destinationHeight  = $resizeSize[1];
-            $trueColorWidth     = $resizeSize[0];
-            $trueColorHeight    = $resizeSize[1];
+            $destinationWidth = $resizeSize[0];
+            $destinationHeight = $resizeSize[1];
+            $trueColorWidth = $resizeSize[0];
+            $trueColorHeight = $resizeSize[1];
         }
 
         $sourceIdentifier = $this->destination->createImageIdentifier($this->fileName, $this->extension);
 
-        $destinationIdentifier = ImageCreateTrueColor($trueColorWidth, $trueColorHeight);
+        $destinationIdentifier = imagecreatetruecolor($trueColorWidth, $trueColorHeight);
 
         // Resize image
-        if (!ImageCopyResampled(
-            $destinationIdentifier, 
-            $sourceIdentifier, 
-            0, 0, 0, 0, 
-            $destinationWidth, 
+        if (!imagecopyresampled(
+            $destinationIdentifier,
+            $sourceIdentifier,
+            0, 0, 0, 0,
+            $destinationWidth,
             $destinationHeight,
-            $currentSize[0], 
+            $currentSize[0],
             $currentSize[1]
         ))
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('Could not resample photo.').'</p>'
-            ));
+                'details' => '<p>'.T_('Could not resample photo.').'</p>',
+            ]);
 
             return $this;
         }
 
         if (!$this->destination->writeImage($destinationIdentifier, $this->fileName, $this->extension))
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('Could not save resized photo.').'</p>'
-            ));
+                'details' => '<p>'.T_('Could not save resized photo.').'</p>',
+            ]);
 
             return $this;
         }
@@ -298,13 +297,13 @@ class UploadPhoto
     }
 
     /**
-     * rotate 
-     * 
-     * @param int $degrees 
-     * 
+     * rotate.
+     *
+     * @param int $degrees
+     *
      * @return UploadPhoto
      */
-    public function rotate ($degrees = 90)
+    public function rotate($degrees = 90)
     {
         if ($this->fcmsError->hasUserError())
         {
@@ -321,10 +320,10 @@ class UploadPhoto
 
         if ($identifier === false)
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('Could not create new rotated photo.').'</p>'
-            ));
+                'details' => '<p>'.T_('Could not create new rotated photo.').'</p>',
+            ]);
 
             return $this;
         }
@@ -333,20 +332,20 @@ class UploadPhoto
 
         if ($source === false)
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('Could not rotate photo.').'</p>'
-            ));
+                'details' => '<p>'.T_('Could not rotate photo.').'</p>',
+            ]);
 
             return $this;
         }
 
         if (!$this->destination->writeImage($source, $this->fileName, $this->extension))
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('Could not save rotated photo.').'</p>'
-            ));
+                'details' => '<p>'.T_('Could not save rotated photo.').'</p>',
+            ]);
 
             return $this;
         }
@@ -355,9 +354,9 @@ class UploadPhoto
     }
 
     /**
-     * getResizeSize 
-     * 
-     * Given a photo's width/height, and the maximum resized width/height, it will calculate 
+     * getResizeSize.
+     *
+     * Given a photo's width/height, and the maximum resized width/height, it will calculate
      * the width/height while not distorting.
      *
      * For example, a 800x600 photo with a max size of 500x500 will return 500x375
@@ -367,9 +366,9 @@ class UploadPhoto
      * @param int $max_width   the maximum width for the new photo size
      * @param int $max_height  the maximum height for the new photo size
      *
-     * @return  array   the new width/height
+     * @return array the new width/height
      */
-    private function getResizeSize ($orig_width, $orig_height, $max_width, $max_height)
+    private function getResizeSize($orig_width, $orig_height, $max_width, $max_height)
     {
         // Wider than tall
         if ($orig_width > $orig_height)
@@ -377,21 +376,21 @@ class UploadPhoto
             // Check width
             if ($orig_width > $max_width)
             {
-                $height = (int)($max_width * $orig_height / $orig_width);
+                $height = (int) ($max_width * $orig_height / $orig_width);
 
-                return array($max_width, $height);
+                return [$max_width, $height];
             }
             // Check height
             elseif ($orig_height > $max_height)
             {
-                $width = (int)($max_height * $orig_width / $orig_height);
+                $width = (int) ($max_height * $orig_width / $orig_height);
 
-                return array($width, $max_height);
+                return [$width, $max_height];
             }
             // No need to resize if it's smaller than max
             else
             {
-                return array($orig_width, $orig_height);
+                return [$orig_width, $orig_height];
             }
 
         }
@@ -401,50 +400,50 @@ class UploadPhoto
             // Check height
             if ($orig_height > $max_height)
             {
-                $width = (int)($max_height * $orig_width / $orig_height);
+                $width = (int) ($max_height * $orig_width / $orig_height);
 
-                return array($width, $max_height);
+                return [$width, $max_height];
             }
             // Check width
             elseif ($orig_width > $max_width)
             {
-                $height = (int)($max_width * $orig_height / $orig_width);
+                $height = (int) ($max_width * $orig_height / $orig_width);
 
-                return array($max_width, $height);
+                return [$max_width, $height];
             }
             // No need to resize if it's smaller than max
             else
             {
-                return array($orig_width, $orig_height);
+                return [$orig_width, $orig_height];
             }
         }
 
-        return array($orig_width, $orig_height);
+        return [$orig_width, $orig_height];
     }
 
     /**
-     * getResizeSizeSquare 
-     * 
+     * getResizeSizeSquare.
+     *
      * Given the photos width/height and a max, it will resize the photo to as close to
      * square as possible, allowing the smallest amount of cropping possible.
      * Photos smaller than the max will not be square and will not be resized/cropped.
-     * 
+     *
      * Returns an array with the photo demensions and crop demensions:
      *      array( resize_width, resize_height, crop_width, crop_height )
      *
      * For example: given a photo of 800x600 and max size of 150
      *      will return:  array(200, 150, 150, 150)
-     * 
+     *
      * For example: given a photo of 45x20 and max size of 150
      *      will return:  array(45, 20, 45, 20)
-     * 
-     * @param int $width 
-     * @param int $height 
-     * @param int $max 
-     * 
-     * @return  array
+     *
+     * @param int $width
+     * @param int $height
+     * @param int $max
+     *
+     * @return array
      */
-    private function getResizeSizeSquare ($width, $height, $max)
+    private function getResizeSizeSquare($width, $height, $max)
     {
         // Is either side smaller than max
         $small = ($width < $max or $height < $max) ? true : false;
@@ -455,22 +454,22 @@ class UploadPhoto
             // Check height
             if ($height > $max)
             {
-                $width = (int)($max * $width / $height);
+                $width = (int) ($max * $width / $height);
 
-                return array($width, $max, $max, $max);
+                return [$width, $max, $max, $max];
             }
             // Check width
             elseif ($width > $max)
             {
                 if ($small)
                 {
-                    return array($width, $height, $max, $max);
+                    return [$width, $height, $max, $max];
                 }
                 else
                 {
-                    $height = (int)($max * $height / $width);
+                    $height = (int) ($max * $height / $width);
 
-                    return array($max, $height, $max, $max);
+                    return [$max, $height, $max, $max];
                 }
             }
         }
@@ -480,31 +479,31 @@ class UploadPhoto
             // Check width
             if ($width > $max)
             {
-                $height = (int)($max * $height / $width);
+                $height = (int) ($max * $height / $width);
 
-                return array($max, $height, $max, $max);
+                return [$max, $height, $max, $max];
             }
             // Check height
             elseif ($height > $max)
             {
-                $width = (int)($max * $width / $height);
+                $width = (int) ($max * $width / $height);
 
-                return array($width, $max, $max, $max);
+                return [$width, $max, $max, $max];
             }
         }
 
         // if all else fails return orig dimensions
-        return array($width, $height, $width, $height);
+        return [$width, $height, $width, $height];
     }
 
     /**
-     * haveEnoughMemory 
-     * 
+     * haveEnoughMemory.
+     *
      * Calculates whether the given image can be resized with the current available memory.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    private function haveEnoughMemory ()
+    private function haveEnoughMemory()
     {
         $this->memoryAvailable = ini_get('memory_limit');
         $this->memoryAvailable = substr($this->memoryAvailable, 0, -1);
@@ -520,18 +519,18 @@ class UploadPhoto
             $size['bits'] = 8;
         }
 
-        $this->memoryNeeded = Round(($size[0] * $size[1] * $size['bits'] * $size['channels'] / 8 + Pow(2, 16)) * 1.65);
+        $this->memoryNeeded = round(($size[0] * $size[1] * $size['bits'] * $size['channels'] / 8 + pow(2, 16)) * 1.65);
 
         if ($this->memoryNeeded > $this->memoryAvailable)
         {
             // Try to delete from server
             $this->destination->deleteFile($this->fileName);
 
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Out of Memory Warning'),
                 'details' => '<p>'.T_('The photo you are trying to upload is quite large and the server might run out of memory if you continue.')
-                             .'<small>('.number_format($this->memoryNeeded).' / '.number_format($this->memoryAvailable).')</small></p>'
-            ));
+                             .'<small>('.number_format($this->memoryNeeded).' / '.number_format($this->memoryAvailable).')</small></p>',
+            ]);
 
             return false;
         }
