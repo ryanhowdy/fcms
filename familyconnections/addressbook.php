@@ -1,14 +1,15 @@
 <?php
 /**
- * AddressBook 
- * 
+ * AddressBook.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -22,9 +23,9 @@ load('datetime', 'addressbook', 'alerts', 'phone', 'address', 'FormValidator');
 
 init();
 
-$book  = new AddressBook($fcmsError, $fcmsDatabase, $fcmsUser);
+$book = new AddressBook($fcmsError, $fcmsDatabase, $fcmsUser);
 $alert = new Alerts($fcmsError, $fcmsDatabase, $fcmsUser);
-$page  = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $book, $alert);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $book, $alert);
 
 exit();
 
@@ -38,29 +39,29 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsBook, $fcmsAlert)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsBook, $fcmsAlert)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
-        $this->fcmsBook     = $fcmsBook;
-        $this->fcmsAlert    = $fcmsAlert;
+        $this->fcmsUser = $fcmsUser;
+        $this->fcmsBook = $fcmsBook;
+        $this->fcmsAlert = $fcmsAlert;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if (isset($_GET['alert']))
         {
@@ -132,15 +133,15 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
-     * @param array $options 
-     * 
+     * displayHeader.
+     *
+     * @param array $options
+     *
      * @return void
      */
-    function displayHeader ($options = null)
+    public function displayHeader($options = null)
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -149,38 +150,38 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-        );
+        ];
 
         displayPageHeader($params, $options);
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'    => URL_PREFIX,
             'version' => getCurrentVersion(),
-            'year'    => date('Y')
-        );
+            'year'    => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
     /**
-     * displayExportSubmit 
-     * 
+     * displayExportSubmit.
+     *
      * @return void
      */
-    function displayExportSubmit ()
+    public function displayExportSubmit()
     {
-        $sql = "SELECT `lname`, `fname`, `address`, `city`, `state`, `zip`, `email`, `home`, `work`, `cell` 
+        $sql = 'SELECT `lname`, `fname`, `address`, `city`, `state`, `zip`, `email`, `home`, `work`, `cell` 
                 FROM `fcms_address` AS a, `fcms_users` AS u 
                 WHERE a.`user` = u.`id` 
-                ORDER BY `lname`, `fname`";
+                ORDER BY `lname`, `fname`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
         if ($rows === false)
@@ -201,18 +202,18 @@ class Page
 
         $date = fixDate('Y-m-d', $this->fcmsUser->tzOffset);
 
-        header("Content-type: text/plain");
+        header('Content-type: text/plain');
         header("Content-disposition: csv; filename=FCMS_Addresses_$date.csv; size=".strlen($csv));
 
         echo $csv;
     }
 
     /**
-     * displayMassEmailForm
-     * 
+     * displayMassEmailForm.
+     *
      * @return void
      */
-    function displayMassEmailForm ()
+    public function displayMassEmailForm()
     {
         $massEmails = $_POST['massemail'];
 
@@ -226,6 +227,7 @@ class Page
                 </p>';
 
             $this->displayFooter();
+
             return;
         }
 
@@ -238,6 +240,7 @@ class Page
             </p>';
 
             $this->displayFooter();
+
             return;
         }
 
@@ -246,15 +249,15 @@ class Page
     }
 
     /**
-     * displayMassEmailSubmit 
-     * 
+     * displayMassEmailSubmit.
+     *
      * @return void
      */
-    function displayMassEmailSubmit ()
+    public function displayMassEmailSubmit()
     {
         $this->displayHeader();
 
-        $requiredFields = array('subject', 'email', 'name', 'msg');
+        $requiredFields = ['subject', 'email', 'name', 'msg'];
 
         $missingRequired = false;
 
@@ -269,11 +272,11 @@ class Page
         if ($missingRequired)
         {
             $this->fcmsBook->displayMassEmailForm(
-                $_POST['emailaddress'], 
-                $_POST['email'], 
-                $_POST['name'], 
-                $_POST['subject'], 
-                $_POST['msg'], 
+                $_POST['emailaddress'],
+                $_POST['email'],
+                $_POST['name'],
+                $_POST['subject'],
+                $_POST['msg'],
                 'Yes'
             );
             $this->displayFooter();
@@ -295,36 +298,36 @@ class Page
     }
 
     /**
-     * displayEditSubmit 
-     * 
+     * displayEditSubmit.
+     *
      * @return void
      */
-    function displayEditSubmit ()
+    public function displayEditSubmit()
     {
         $this->displayHeader();
 
-        $aid = (int)$_POST['aid'];
-        $uid = (int)$_POST['uid'];
+        $aid = (int) $_POST['aid'];
+        $uid = (int) $_POST['uid'];
         $cat = $_POST['cat'];
 
         $country = strip_tags($_POST['country']);
         $address = strip_tags($_POST['address']);
-        $city    = strip_tags($_POST['city']);
-        $state   = strip_tags($_POST['state']);
-        $zip     = strip_tags($_POST['zip']);
-        $home    = strip_tags($_POST['home']);
-        $work    = strip_tags($_POST['work']);
-        $cell    = strip_tags($_POST['cell']);
-        $email   = strip_tags($_POST['email']);
+        $city = strip_tags($_POST['city']);
+        $state = strip_tags($_POST['state']);
+        $zip = strip_tags($_POST['zip']);
+        $home = strip_tags($_POST['home']);
+        $work = strip_tags($_POST['work']);
+        $cell = strip_tags($_POST['cell']);
+        $email = strip_tags($_POST['email']);
 
         // Get current address and email
-        $sql = "SELECT a.`country`, a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`email`
+        $sql = 'SELECT a.`country`, a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`email`
                 FROM `fcms_address` AS a
                 LEFT JOIN `fcms_users` AS u ON a.`user` = u.`id`
                 WHERE a.`id` = ? 
-                AND a.`user` = ?";
+                AND a.`user` = ?';
 
-        $row = $this->fcmsDatabase->getRow($sql, array($aid, $uid));
+        $row = $this->fcmsDatabase->getRow($sql, [$aid, $uid]);
         if ($row === false)
         {
             $this->fcmsError->displayError();
@@ -333,18 +336,18 @@ class Page
             return;
         }
 
-        $changes = array();
-        $columns = array(
-            'country' => 'address', 
-            'address' => 'address', 
-            'city'    => 'address', 
-            'state'   => 'address', 
-            'zip'     => 'address', 
-            'home'    => 'home', 
-            'work'    => 'work', 
-            'cell'    => 'cell', 
-            'email'   => 'email'
-        );
+        $changes = [];
+        $columns = [
+            'country' => 'address',
+            'address' => 'address',
+            'city'    => 'address',
+            'state'   => 'address',
+            'zip'     => 'address',
+            'home'    => 'home',
+            'work'    => 'work',
+            'cell'    => 'cell',
+            'email'   => 'email',
+        ];
 
         // See what changed
         foreach ($columns as $column => $type)
@@ -368,7 +371,7 @@ class Page
         $changes = array_unique($changes);
 
         // Save Address
-        $sql = "UPDATE `fcms_address` 
+        $sql = 'UPDATE `fcms_address` 
                 SET `updated`    = NOW(), 
                     `updated_id` = ?,
                     `country`    = ?,
@@ -379,9 +382,9 @@ class Page
                     `home`       = ?,
                     `work`       = ?,
                     `cell`       = ?
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        $params = array($this->fcmsUser->id, $country, $address, $city, $state, $zip, $home, $work, $cell, $aid);
+        $params = [$this->fcmsUser->id, $country, $address, $city, $state, $zip, $home, $work, $cell, $aid];
 
         if (!$this->fcmsDatabase->update($sql, $params))
         {
@@ -392,11 +395,11 @@ class Page
         }
 
         // Save Email
-        $sql = "UPDATE `fcms_users` 
+        $sql = 'UPDATE `fcms_users` 
                 SET `email` = ?
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        if (!$this->fcmsDatabase->update($sql, array($email, $uid)))
+        if (!$this->fcmsDatabase->update($sql, [$email, $uid]))
         {
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -405,10 +408,10 @@ class Page
         }
 
         // Update changelog
-        $sql = "INSERT INTO `fcms_changelog` (`user`, `table`, `column`, `created`)
-                VALUES ";
+        $sql = 'INSERT INTO `fcms_changelog` (`user`, `table`, `column`, `created`)
+                VALUES ';
 
-        $params = array();
+        $params = [];
 
         foreach ($changes as $column)
         {
@@ -435,27 +438,27 @@ class Page
     }
 
     /**
-     * displayAddSubmit 
-     * 
+     * displayAddSubmit.
+     *
      * @return void
      */
-    function displayAddSubmit ()
+    public function displayAddSubmit()
     {
         $this->displayHeader();
 
-        $uniq    = uniqid("");
+        $uniq = uniqid('');
 
-        $fname   = strip_tags($_POST['fname']);
-        $lname   = strip_tags($_POST['lname']);
-        $email   = strip_tags($_POST['email']);
+        $fname = strip_tags($_POST['fname']);
+        $lname = strip_tags($_POST['lname']);
+        $email = strip_tags($_POST['email']);
         $country = strip_tags($_POST['country']);
         $address = strip_tags($_POST['address']);
-        $city    = strip_tags($_POST['city']);
-        $state   = strip_tags($_POST['state']);
-        $zip     = strip_tags($_POST['zip']);
-        $home    = strip_tags($_POST['home']);
-        $work    = strip_tags($_POST['work']);
-        $cell    = strip_tags($_POST['cell']);
+        $city = strip_tags($_POST['city']);
+        $state = strip_tags($_POST['state']);
+        $zip = strip_tags($_POST['zip']);
+        $home = strip_tags($_POST['home']);
+        $work = strip_tags($_POST['work']);
+        $cell = strip_tags($_POST['cell']);
 
         $validator = new FormValidator();
 
@@ -465,6 +468,7 @@ class Page
             displayErrors($errors);
             $this->fcmsBook->displayAddForm();
             $this->displayFooter();
+
             return;
         }
 
@@ -475,13 +479,13 @@ class Page
             $pw = 'PRIVATE';
         }
 
-        $sql = "INSERT INTO `fcms_users` (
+        $sql = 'INSERT INTO `fcms_users` (
                     `access`, `joindate`, `fname`, `lname`, `email`, `username`, `phpass`
                 ) VALUES (
                     ?, NULL, ?, ?, ?, ?, ?
-                )";
+                )';
 
-        $id = $this->fcmsDatabase->insert($sql, array('10', $fname, $lname, $email, 'NONMEMBER-'.$uniq, $pw));
+        $id = $this->fcmsDatabase->insert($sql, ['10', $fname, $lname, $email, 'NONMEMBER-'.$uniq, $pw]);
 
         if ($id === false)
         {
@@ -491,26 +495,26 @@ class Page
             return;
         }
 
-        $sql = "INSERT INTO `fcms_address`(
+        $sql = 'INSERT INTO `fcms_address`(
                     `user`, `created_id`, `created`, `updated_id`, `updated`, 
                     `country`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`
                 ) VALUES (
                     ?, ?, NOW(), ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?
-                )";
+                )';
 
-        $params = array(
-            $id, 
-            $this->fcmsUser->id, 
-            $this->fcmsUser->id, 
-            $country, 
-            $address, 
-            $city, 
-            $state, 
-            $zip, 
-            $home, 
-            $work, 
-            $cell
-        );
+        $params = [
+            $id,
+            $this->fcmsUser->id,
+            $this->fcmsUser->id,
+            $country,
+            $address,
+            $city,
+            $state,
+            $zip,
+            $home,
+            $work,
+            $cell,
+        ];
 
         if (!$this->fcmsDatabase->insert($sql, $params))
         {
@@ -520,8 +524,8 @@ class Page
             return;
         }
 
-        $sql = "INSERT INTO `fcms_user_settings` (`user`)
-                VALUES (?)";
+        $sql = 'INSERT INTO `fcms_user_settings` (`user`)
+                VALUES (?)';
 
         if (!$this->fcmsDatabase->insert($sql, $id))
         {
@@ -537,15 +541,15 @@ class Page
     }
 
     /**
-     * displayConfirmDeleteForm 
-     * 
+     * displayConfirmDeleteForm.
+     *
      * @return void
      */
-    function displayConfirmDeleteForm ()
+    public function displayConfirmDeleteForm()
     {
         $this->displayHeader();
 
-        $aid = (int)$_GET['delete'];
+        $aid = (int) $_GET['delete'];
         $cat = cleanOutput($_GET['cat']);
 
         echo '
@@ -566,11 +570,11 @@ class Page
     }
 
     /**
-     * displayDeleteSubmit 
-     * 
+     * displayDeleteSubmit.
+     *
      * @return void
      */
-    function displayDeleteSubmit ()
+    public function displayDeleteSubmit()
     {
         $aid = $_GET['delete'];
         $cat = $_GET['cat'];
@@ -586,6 +590,7 @@ class Page
 
             $this->fcmsBook->displayAddressList($cat);
             $this->displayFooter();
+
             return;
         }
 
@@ -596,13 +601,14 @@ class Page
             displayErrors($errors);
             $this->fcmsBook->displayAddressList($cat);
             $this->displayFooter();
+
             return;
         }
 
-        $sql = "SELECT a.`user`, u.`phpass`
+        $sql = 'SELECT a.`user`, u.`phpass`
                 FROM `fcms_address` AS a, `fcms_users` AS u
                 WHERE a.`id` = ?
-                AND a.`user` = u.`id`";
+                AND a.`user` = u.`id`';
 
         $r = $this->fcmsDatabase->getRow($sql, $aid);
         if ($r === false)
@@ -630,8 +636,8 @@ class Page
             return;
         }
 
-        $sql = "DELETE FROM `fcms_users` 
-                WHERE `id` = ?";
+        $sql = 'DELETE FROM `fcms_users` 
+                WHERE `id` = ?';
         if (!$this->fcmsDatabase->delete($sql, $user))
         {
             $this->displayHeader();
@@ -641,8 +647,8 @@ class Page
             return;
         }
 
-        $sql = "DELETE FROM fcms_address 
-                WHERE id = ?";
+        $sql = 'DELETE FROM fcms_address 
+                WHERE id = ?';
         if (!$this->fcmsDatabase->delete($sql, $aid))
         {
             $this->displayHeader();
@@ -658,15 +664,15 @@ class Page
     }
 
     /**
-     * displayEditForm 
-     * 
+     * displayEditForm.
+     *
      * @return void
      */
-    function displayEditForm ()
+    public function displayEditForm()
     {
         $this->displayHeader();
 
-        $id  = (int)$_GET['edit'];
+        $id = (int) $_GET['edit'];
         $cat = cleanOutput($_GET['cat']);
 
         $this->fcmsBook->displayEditForm($id, 'addressbook.php?cat='.$cat.'&amp;address='.$id);
@@ -674,11 +680,11 @@ class Page
     }
 
     /**
-     * displayAddForm 
-     * 
+     * displayAddForm.
+     *
      * @return void
      */
-    function displayAddForm ()
+    public function displayAddForm()
     {
         $this->displayHeader();
 
@@ -688,6 +694,7 @@ class Page
             <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
 
             $this->displayFooter();
+
             return;
         }
 
@@ -696,18 +703,18 @@ class Page
     }
 
     /**
-     * displayAddress 
-     * 
+     * displayAddress.
+     *
      * @return void
      */
-    function displayAddress ()
+    public function displayAddress()
     {
         $this->displayHeader(
-            array('jsOnload' => 'deleteConfirmationLink("del_address", "'.T_('Are you sure you want to DELETE this address?').'");')
+            ['jsOnload' => 'deleteConfirmationLink("del_address", "'.T_('Are you sure you want to DELETE this address?').'");']
         );
 
-        $address = (int)$_GET['address'];
-        $cat     = 'all';
+        $address = (int) $_GET['address'];
+        $cat = 'all';
 
         if (isset($_GET['cat']))
         {
@@ -719,16 +726,16 @@ class Page
     }
 
     /**
-     * removeAlert 
-     * 
+     * removeAlert.
+     *
      * @return void
      */
-    function removeAlert ()
+    public function removeAlert()
     {
-        $sql = "INSERT INTO `fcms_alerts` (`alert`, `user`)
-                VALUES (?, ?)";
+        $sql = 'INSERT INTO `fcms_alerts` (`alert`, `user`)
+                VALUES (?, ?)';
 
-        if (!$this->fcmsDatabase->insert($sql, array($_GET['alert'], $this->fcmsUser->id)))
+        if (!$this->fcmsDatabase->insert($sql, [$_GET['alert'], $this->fcmsUser->id]))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
@@ -738,14 +745,14 @@ class Page
     }
 
     /**
-     * displayAddressList 
-     * 
+     * displayAddressList.
+     *
      * @return void
      */
-    function displayAddressList ()
+    public function displayAddressList()
     {
         $this->displayHeader(
-            array('jsOnload' => 'initCheckAll("'.T_('Select All').'"); initAddressBookClickRow();')
+            ['jsOnload' => 'initCheckAll("'.T_('Select All').'"); initAddressBookClickRow();']
         );
 
         $cat = 'members';

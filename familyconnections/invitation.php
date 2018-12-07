@@ -1,18 +1,18 @@
 <?php
 /**
- * Invitation
- *  
+ * Invitation.
+ *
  * PHP versions 4 and 5
- *  
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2008 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     2.4
  */
-
 define('URL_PREFIX', '');
 define('GALLERY_PREFIX', 'gallery/');
 
@@ -20,8 +20,8 @@ require 'fcms.php';
 
 load('datetime', 'calendar');
 
-$calendar   = new Calendar($fcmsError, $fcmsDatabase, $fcmsUser);
-$page       = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $calendar);
+$calendar = new Calendar($fcmsError, $fcmsDatabase, $fcmsUser);
+$page = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $calendar);
 
 exit();
 
@@ -33,26 +33,26 @@ class Page
     private $fcmsCalendar;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsCalendar)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsCalendar)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
         $this->fcmsCalendar = $fcmsCalendar;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if (!isset($_GET['code']) or !isset($_GET['event']))
         {
@@ -73,11 +73,11 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
         echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -98,11 +98,11 @@ $(document).ready(function() {
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         echo '
 </body>
@@ -110,23 +110,23 @@ $(document).ready(function() {
     }
 
     /**
-     * displayAttendForm 
-     * 
+     * displayAttendForm.
+     *
      * @return void
      */
-    function displayAttendForm ()
+    public function displayAttendForm()
     {
         $this->displayHeader();
 
-        $id   = (int)$_GET['event'];
+        $id = (int) $_GET['event'];
         $code = $_GET['code'];
 
-        $sql = "SELECT `id`, `event_id`, `user`, `created`, `updated`, `attending`, `code`, `response`
+        $sql = 'SELECT `id`, `event_id`, `user`, `created`, `updated`, `attending`, `code`, `response`
                 FROM `fcms_invitation` 
                 WHERE `event_id` = ?
-                AND `code` = ?";
+                AND `code` = ?';
 
-        $params = array($id, $code);
+        $params = [$id, $code];
 
         $invitation = $this->fcmsDatabase->getRow($sql, $params);
         if ($invitation === false)
@@ -145,12 +145,12 @@ $(document).ready(function() {
             return;
         }
 
-        $sql = "SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, 
+        $sql = 'SELECT c.`id`, c.`date`, c.`time_start`, c.`time_end`, c.`date_added`, 
                     c.`title`, c.`desc`, c.`created_by`, cat.`name` AS category, c.`repeat`, c.`private`
                 FROM `fcms_calendar` AS c, `fcms_category` AS cat 
                 WHERE c.`id` = ?
                     AND c.`category` = cat.`id` 
-                LIMIT 1";
+                LIMIT 1';
 
         $event = $this->fcmsDatabase->getRow($sql, $id);
         if ($event === false)
@@ -170,12 +170,12 @@ $(document).ready(function() {
         }
 
         $times = $this->fcmsCalendar->getTimesList();
-        $date  = formatDate(T_('F j, Y'), $event['date']);
+        $date = formatDate(T_('F j, Y'), $event['date']);
         $title = cleanOutput($event['title']);
-        $host  = getUserDisplayname($event['created_by'], 2);
+        $host = getUserDisplayname($event['created_by'], 2);
 
         $time = '';
-        $cat  = '';
+        $cat = '';
         $desc = '';
 
         list($year, $month, $day) = explode('-', $event['date']);
@@ -262,11 +262,11 @@ $(document).ready(function() {
             return;
         }
 
-        $yesCount       = 0;
-        $noCount        = 0;
-        $maybeCount     = 0;
+        $yesCount = 0;
+        $noCount = 0;
+        $maybeCount = 0;
         $undecidedCount = 0;
-        $responses      = array();
+        $responses = [];
 
         foreach ($rows as $r)
         {
@@ -299,14 +299,14 @@ $(document).ready(function() {
                 $displayname = getUserDisplayName($r['user'], 2);
             }
 
-            $responses[] = array(
+            $responses[] = [
                 'user'        => $r['user'],
                 'updated'     => $r['updated'],
                 'displayname' => $displayname,
                 'response'    => $r['response'],
                 'attending'   => $r['attending'],
-                'img'         => $img
-            );
+                'img'         => $img,
+            ];
         }
 
         echo '
@@ -342,24 +342,24 @@ $(document).ready(function() {
     }
 
     /**
-     * displayAttendSubmit 
-     * 
+     * displayAttendSubmit.
+     *
      * @return void
      */
-    function displayAttendSubmit ()
+    public function displayAttendSubmit()
     {
-        $attending = isset($_POST['attending']) ? (int)$_POST['attending'] : "NULL";
+        $attending = isset($_POST['attending']) ? (int) $_POST['attending'] : 'NULL';
 
-        $sql = "UPDATE `fcms_invitation`
+        $sql = 'UPDATE `fcms_invitation`
                 SET `response`  = ?,
                     `attending` = ?
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        $params = array(
+        $params = [
             $_POST['response'],
             $attending,
-            $_POST['id']
-        );
+            $_POST['id'],
+        ];
 
         if (!$this->fcmsDatabase->update($sql, $params))
         {
