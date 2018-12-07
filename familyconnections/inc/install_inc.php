@@ -351,7 +351,7 @@ function installCalendar ($connection)
     // create calendar
     $sql = "CREATE TABLE `fcms_calendar` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
-                `date` DATE NOT NULL DEFAULT '0000-00-00', 
+                `date` DATE NOT NULL, 
                 `time_start` TIME NULL, 
                 `time_end` TIME NULL, 
                 `date_added` DATETIME DEFAULT NULL, 
