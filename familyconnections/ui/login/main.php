@@ -1,11 +1,11 @@
 
     <div id="login_box">
 
-    <?php if (isset($TMPL['sitename'])): ?>
         <a href="index.php" id="login_header">
+        <?php if (isset($TMPL['sitename'])): ?>
             <?php echo T_('Login to'); echo ' '.$TMPL['sitename']; ?>
+        <?php endif; ?>
         </a>
-    <?php endif; ?>
 
     <?php if (isset($TMPL['message'])): ?>
         <div class="<?php echo $TMPL['message']['type']; ?>">
