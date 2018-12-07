@@ -1,14 +1,15 @@
 <?php
 /**
- * Register
- *  
+ * Register.
+ *
  * PHP versions 4 and 5
- *  
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -31,28 +32,28 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
-        $this->fcmsTemplate     = array();
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
+        $this->fcmsTemplate = [];
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this page.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if (!isRegistrationOn())
         {
@@ -75,13 +76,13 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
-        print '
+        echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_pgettext('Language Code for this translation', 'lang').'" lang="'.T_pgettext('Language Code for this translation', 'lang').'">
 <head>
@@ -129,11 +130,11 @@ function checkAvailability() {
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         echo '
 </body>
@@ -141,11 +142,11 @@ function checkAvailability() {
     }
 
     /**
-     * displayClosed 
-     * 
+     * displayClosed.
+     *
      * @return void
      */
-    function displayClosed ()
+    public function displayClosed()
     {
         $this->displayHeader();
 
@@ -157,13 +158,13 @@ function checkAvailability() {
     }
 
     /**
-     * displaySubmit 
-     * 
+     * displaySubmit.
+     *
      * @param string $formParams The params that have been submitted to the form.
-     * 
+     *
      * @return void
      */
-    function displaySubmit ($formParams = '')
+    public function displaySubmit($formParams = '')
     {
         $this->displayHeader();
 
@@ -177,33 +178,34 @@ function checkAvailability() {
         }
 
         // Make sure they filled out all required fields
-        $required_fields = array('username', 'password', 'fname', 'lname', 'email');
+        $required_fields = ['username', 'password', 'fname', 'lname', 'email'];
         foreach ($required_fields as $f)
         {
             if (strlen($formData[$f]) < 1)
             {
                 $this->displayHtmlForm('<p class="error">'.T_('You forgot to fill out a required field.').'</p>');
                 $this->displayFooter();
+
                 return;
             }
         }
 
-        $email    = strip_tags($formData['email']);
+        $email = strip_tags($formData['email']);
         $username = strip_tags($formData['username']);
-        $fname    = strip_tags($formData['fname']);
-        $lname    = strip_tags($formData['lname']);
+        $fname = strip_tags($formData['fname']);
+        $lname = strip_tags($formData['lname']);
         $password = $formData['password'];
 
         if ($formParams == '')
         {
-            $hasher   = new PasswordHash(8, FALSE);
+            $hasher = new PasswordHash(8, false);
             $password = $hasher->HashPassword($password);
         }
 
         // Is email available?
-        $sql = "SELECT `email` 
+        $sql = 'SELECT `email` 
                 FROM `fcms_users` 
-                WHERE `email` = ?";
+                WHERE `email` = ?';
 
         $rows = $this->fcmsDatabase->getRows($sql, $email);
         if ($rows === false)
@@ -225,9 +227,9 @@ function checkAvailability() {
         }
 
         // Is username availabel?
-        $sql = "SELECT `username` 
+        $sql = 'SELECT `username` 
                 FROM `fcms_users` 
-                WHERE `username` = ?";
+                WHERE `username` = ?';
 
         $rows = $this->fcmsDatabase->getRows($sql, $username);
         if ($rows === false)
@@ -256,19 +258,19 @@ function checkAvailability() {
         }
 
         // Create new user
-        $sql = "INSERT INTO `fcms_users`
+        $sql = 'INSERT INTO `fcms_users`
                     (`access`, `joindate`, `fname`, `lname`, `sex`, `email`, `username`, `phpass`) 
                 VALUES 
-                    (3, NOW(), ?, ?, ?, ?, ?, ?)";
+                    (3, NOW(), ?, ?, ?, ?, ?, ?)';
 
-        $params = array(
-            $fname, 
-            $lname, 
-            $sex, 
-            $email, 
-            $username, 
-            $password
-        );
+        $params = [
+            $fname,
+            $lname,
+            $sex,
+            $email,
+            $username,
+            $password,
+        ];
 
         $lastid = $this->fcmsDatabase->insert($sql, $params);
         if ($lastid === false)
@@ -282,12 +284,12 @@ function checkAvailability() {
         $fbAccessToken = isset($formData['accessToken']) ? $formData['accessToken'] : '';
 
         // Create user's settings
-        $sql = "INSERT INTO `fcms_user_settings`
+        $sql = 'INSERT INTO `fcms_user_settings`
                     (`user`, `fb_access_token`)
                 VALUES 
-                    (?, ?)";
+                    (?, ?)';
 
-        if (!$this->fcmsDatabase->insert($sql, array($lastid, $fbAccessToken)))
+        if (!$this->fcmsDatabase->insert($sql, [$lastid, $fbAccessToken]))
         {
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -296,12 +298,12 @@ function checkAvailability() {
         }
 
         // Create user's address
-        $sql = "INSERT INTO `fcms_address`
+        $sql = 'INSERT INTO `fcms_address`
                     (`user`, `updated`) 
                 VALUES 
-                    (?, NOW())";
+                    (?, NOW())';
 
-        if (!$this->fcmsDatabase->insert($sql, array($lastid)))
+        if (!$this->fcmsDatabase->insert($sql, [$lastid]))
         {
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -311,9 +313,9 @@ function checkAvailability() {
 
         // Setup some stuff for sending email
         $sitename = getSiteName();
-        $now      = gmdate('F j, Y, g:i a'); // TODO: use admin's tz?
-        $subject  = $sitename.' '.T_('Membership');
-        $message  = '';
+        $now = gmdate('F j, Y, g:i a'); // TODO: use admin's tz?
+        $subject = $sitename.' '.T_('Membership');
+        $message = '';
 
         // Which activation method?
         $sql = "SELECT `value` AS 'auto_activate'
@@ -377,11 +379,11 @@ function checkAvailability() {
     }
 
     /**
-     * displayForm 
-     * 
+     * displayForm.
+     *
      * @return void
      */
-    function displayForm ()
+    public function displayForm()
     {
         $this->displayHeader();
         $this->displayHtmlForm();
@@ -389,22 +391,22 @@ function checkAvailability() {
     }
 
     /**
-     * displayHtmlForm 
-     * 
+     * displayHtmlForm.
+     *
      * @param string $error Any errors from the previous form
-     * 
+     *
      * @return void
      */
-    function displayHtmlForm ($error = '0')
+    public function displayHtmlForm($error = '0')
     {
-        $user  = isset($_POST['username']) ? cleanOutput($_POST['username'])   : '';
-        $first = isset($_POST['fname'])    ? cleanOutput($_POST['fname'])      : '';
-        $last  = isset($_POST['lname'])    ? cleanOutput($_POST['lname'])      : '';
-        $email = isset($_POST['email'])    ? cleanOutput($_POST['email'])      : '';
+        $user = isset($_POST['username']) ? cleanOutput($_POST['username']) : '';
+        $first = isset($_POST['fname']) ? cleanOutput($_POST['fname']) : '';
+        $last = isset($_POST['lname']) ? cleanOutput($_POST['lname']) : '';
+        $email = isset($_POST['email']) ? cleanOutput($_POST['email']) : '';
 
         $fbData = getFacebookConfigData();
 
-        $fbUser   = null;
+        $fbUser = null;
         $facebook = null;
 
         echo '
@@ -419,10 +421,10 @@ function checkAvailability() {
         // Print the facebook register button
         if (!empty($fbData['fb_app_id']) && !empty($fbData['fb_secret']))
         {
-            $facebook = new Facebook(array(
+            $facebook = new Facebook([
                 'appId'  => $fbData['fb_app_id'],
                 'secret' => $fbData['fb_secret'],
-            ));
+            ]);
 
             // Check if the user is logged in and authed
             $fbUser = $facebook->getUser();
@@ -450,7 +452,7 @@ function checkAvailability() {
 
         if (!$fbUser && $facebook)
         {
-            $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_actions');
+            $params = ['scope' => 'user_about_me,user_birthday,user_location,email,publish_actions'];
 
             echo '
         <p style="text-align:right">
@@ -525,24 +527,24 @@ function checkAvailability() {
     }
 
     /**
-     * handleAutoActivation 
-     * 
+     * handleAutoActivation.
+     *
      * @param string $email    email address to send email to
      * @param string $subject  subject of email
      * @param int    $id       id of user being activated
      * @param string $sitename sitename
-     * 
+     *
      * @return void
      */
-    function handleAutoActivation ($email, $subject, $id, $sitename)
+    public function handleAutoActivation($email, $subject, $id, $sitename)
     {
         $code = uniqid(''); //bug in some versions of php, needs some value here
 
-        $sql = "UPDATE `fcms_users` 
+        $sql = 'UPDATE `fcms_users` 
                 SET `activate_code` = ?
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        if (!$this->fcmsDatabase->update($sql, array($code, $id)))
+        if (!$this->fcmsDatabase->update($sql, [$code, $id]))
         {
             $this->fcmsError->displayError();
             $this->displayFooter();
@@ -568,17 +570,17 @@ function checkAvailability() {
     }
 
     /**
-     * checkUsername 
-     * 
+     * checkUsername.
+     *
      * @return void
      */
-    function checkUsername ()
+    public function checkUsername()
     {
-        $username = strip_tags($_GET['username']); 
+        $username = strip_tags($_GET['username']);
 
-        $sql = "SELECT `username` 
+        $sql = 'SELECT `username` 
                 FROM `fcms_users` 
-                WHERE `username` = ?"; 
+                WHERE `username` = ?';
 
         $row = $this->fcmsDatabase->getRow($sql, $username);
 
@@ -593,13 +595,13 @@ function checkAvailability() {
     }
 
     /**
-     * displayFacebookRegister 
-     * 
+     * displayFacebookRegister.
+     *
      * @return void
      */
-    function handleFacebookRegister ()
+    public function handleFacebookRegister()
     {
-        $fbData    = getFacebookConfigData();
+        $fbData = getFacebookConfigData();
         $fbProfile = '';
 
         if (empty($fbData['fb_app_id']) && empty($fbData['fb_secret']))
@@ -607,13 +609,14 @@ function checkAvailability() {
             $this->displayHeader();
             $this->displayHtmlForm(T_('Facebook isn\'t Configured Yet.'));
             $this->displayFooter();
+
             return;
         }
 
-        $facebook = new Facebook(array(
+        $facebook = new Facebook([
             'appId'  => $fbData['fb_app_id'],
             'secret' => $fbData['fb_secret'],
-        ));
+        ]);
 
         // Check if the user is logged in and authed
         $fbUser = $facebook->getUser();
@@ -633,21 +636,22 @@ function checkAvailability() {
         if (!$fbUser)
         {
             displayForm();
+
             return;
         }
 
         // Register new user
         $accessToken = $facebook->getAccessToken();
 
-        $params = array(
+        $params = [
             'fname'       => $fbProfile['first_name'],
             'lname'       => $fbProfile['last_name'],
             'email'       => $fbProfile['email'],
             'sex'         => $fbProfile['gender'] == 'male' ? 'M' : 'F',
             'username'    => $fbProfile['email'],
             'password'    => 'FACEBOOK',
-            'accessToken' => $accessToken
-        );
+            'accessToken' => $accessToken,
+        ];
 
         $this->displaySubmit($params);
     }

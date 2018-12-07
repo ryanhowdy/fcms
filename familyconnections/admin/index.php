@@ -1,14 +1,15 @@
 <?php
 /**
- * Admin Dashboard
- * 
+ * Admin Dashboard.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2011 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     2.9
  */
@@ -33,17 +34,17 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
 
-        $this->fcmsTemplate = array(
+        $this->fcmsTemplate = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => cleanOutput(getSiteName()),
             'nav-link'      => getAdminNavLinks(),
@@ -51,21 +52,20 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         $this->control();
     }
 
-
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if ($this->fcmsUser->access > 2)
         {
@@ -82,11 +82,11 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -97,11 +97,11 @@ class Page
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -112,29 +112,29 @@ class Page
     }
 
     /**
-     * displayDashboard
-     * 
+     * displayDashboard.
+     *
      * @return void
      */
-    function displayDashboard ()
+    public function displayDashboard()
     {
         $this->displayHeader();
 
         $hasPendingItems = false;
-        $update          = '';
-        $members         = '';
+        $update = '';
+        $members = '';
 
         // Upgrade?
         $currentVersion = getCurrentVersion();
-        $latestVersion  = file('http://www.familycms.com/latest/version.php');
-        $latestVersion  = $latestVersion[0];
-        $versionNumber  = substr($latestVersion, 19);
+        $latestVersion = file('http://www.familycms.com/latest/version.php');
+        $latestVersion = $latestVersion[0];
+        $versionNumber = substr($latestVersion, 19);
 
         if (!$this->versionUpToDate($currentVersion, $latestVersion))
         {
             $hasPendingItems = true;
 
-            $update  = '<h4>'.T_('New Version').'</h4>';
+            $update = '<h4>'.T_('New Version').'</h4>';
             $update .= '<p>'.T_('A new version is available for upgrade.');
             $update .= ' <a class="btn" href="upgrade.php">'.T_('Upgrade Now').'</a></p>';
         }
@@ -183,7 +183,7 @@ class Page
 
         $links = '';
 
-        foreach ($this->fcmsTemplate['nav-link'] AS $type => $nav)
+        foreach ($this->fcmsTemplate['nav-link'] as $type => $nav)
         {
             // Remove 'admin_' from in front
             $class = substr($type, 6);
@@ -202,48 +202,50 @@ class Page
     }
 
     /**
-     * displayActivateMemberSubmit 
-     * 
+     * displayActivateMemberSubmit.
+     *
      * @return void
      */
-    function displayActivateMemberSubmit ()
+    public function displayActivateMemberSubmit()
     {
-        $id       = (int)$_GET['activate'];
+        $id = (int) $_GET['activate'];
         $sitename = getSiteName();
 
         // Get Member info
-        $sql = "SELECT `id`, `activity`, `joindate`, `fname`, `lname`, `email` 
+        $sql = 'SELECT `id`, `activity`, `joindate`, `fname`, `lname`, `email` 
                 FROM `fcms_users` 
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $member = $this->fcmsDatabase->getRow($sql, $id);
         if ($member === false)
         {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         // User is being activated for first time (just joined)
         if (is_null($member['joindate']))
         {
-            $sql = "UPDATE `fcms_users` 
+            $sql = 'UPDATE `fcms_users` 
                     SET `activated` = 1, 
                         `joindate` = NOW()
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
         }
         // User has already joined, just reactivating
         else
         {
-            $sql = "UPDATE `fcms_users` 
+            $sql = 'UPDATE `fcms_users` 
                     SET `activated` = 1
-                    WHERE `id` = ?";
+                    WHERE `id` = ?';
         }
 
         if (!$this->fcmsDatabase->update($sql, $id))
         {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
@@ -256,17 +258,17 @@ class Page
 
         $_SESSION['activate_success'] = 1;
 
-        header("Location: index.php");
+        header('Location: index.php');
     }
 
     /**
-     * displayInvalidAccessLevel 
-     * 
+     * displayInvalidAccessLevel.
+     *
      * Display an error message for users who do not have admin access.
-     * 
+     *
      * @return void
      */
-    function displayInvalidAccessLevel ()
+    public function displayInvalidAccessLevel()
     {
         $this->displayHeader();
 
@@ -281,18 +283,18 @@ class Page
     }
 
     /**
-     * versionUpToDate 
-     * 
-     * @param string $current 
-     * @param string $latest 
+     * versionUpToDate.
+     *
+     * @param string $current
+     * @param string $latest
      *
      * @return void
      */
-    function versionUpToDate ($current, $latest)
+    public function versionUpToDate($current, $latest)
     {
-        $current = str_pad(trim(str_replace(".", "", substr($current, 18))), 4, "0");
-        $latest  = str_pad(trim(str_replace(".", "", substr($latest,  18))), 4, "0");
-        
+        $current = str_pad(trim(str_replace('.', '', substr($current, 18))), 4, '0');
+        $latest = str_pad(trim(str_replace('.', '', substr($latest, 18))), 4, '0');
+
         if ($latest <= $current)
         {
             return true;
