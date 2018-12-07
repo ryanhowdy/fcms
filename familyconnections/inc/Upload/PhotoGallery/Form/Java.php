@@ -1,50 +1,48 @@
 <?php
 /**
- * Java Form
- * 
- * @package Upload
- * @subpackage UploadPhotoGallery
+ * Java Form.
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class JavaUploadPhotoGalleryForm extends UploadPhotoGalleryForm
 {
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
     }
 
     /**
-     * display 
-     * 
-     * @return boolean
+     * display.
+     *
+     * @return bool
      */
-    public function display ()
+    public function display()
     {
         $_SESSION['fcms_uploader_type'] = 'java';
 
         // Setup some applet params
-        $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="thumb,main"/>';
+        $scaledInstanceNames = '<param name="uc_scaledInstanceNames" value="thumb,main"/>';
         $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit"/>';
-        $fullSizedPhotos          = '';
+        $fullSizedPhotos = '';
 
         if (usingFullSizePhotos())
         {
-            $scaledInstanceNames      = '<param name="uc_scaledInstanceNames" value="thumb,main,full"/>';
+            $scaledInstanceNames = '<param name="uc_scaledInstanceNames" value="thumb,main,full"/>';
             $scaledInstanceDimensions = '<param name="uc_scaledInstanceDimensions" value="150x150xcrop,600x600xfit,1400x1400xfit"/>';
-            $fullSizedPhotos          = '
+            $fullSizedPhotos = '
                 function sendFullSizedPhotos() {
                     var uploader = document.jumpLoaderApplet.getUploader();
                     var attrSet = uploader.getAttributeSet();
