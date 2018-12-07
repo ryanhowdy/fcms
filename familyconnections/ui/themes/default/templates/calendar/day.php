@@ -17,7 +17,7 @@
                 <tr>
                     <td class="all-day"></td>
                     <td class="time-event-data">
-            <?php foreach($TMPL['allDayEvents'] AS $e): ?>
+            <?php foreach($TMPL['allDayEvents'] as $e): ?>
                         <div class="event">
                             <a class="<?php echo $e['class']; ?>" href="<?php echo $e['url']; ?>">
                                 <?php echo $e['title']; ?>
@@ -27,11 +27,11 @@
             <?php endforeach; ?>
                     </td>
                 </tr>
-            <?php foreach($TMPL['times'] AS $t): ?>
+            <?php foreach($TMPL['times'] as $t): ?>
                 <tr>
                     <td class="time <?php echo $t['class']; ?>"><?php echo $t['time']; ?></td>
                     <td class="time-event-data">
-                <?php foreach($t['events'] AS $e): ?>
+                <?php foreach($t['events'] as $e): ?>
                         <div class="event">
                             <a class="<?php echo $e['class']; ?>" href="<?php echo $e['url']; ?>">
                                 <i><?php echo $e['start']; ?> - <?php echo $e['end']; ?></i>

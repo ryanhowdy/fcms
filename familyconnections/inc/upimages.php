@@ -1,4 +1,5 @@
 <?php
+
 // TODO
 // Move this file out of inc/ and possibly rename it.
 
@@ -21,13 +22,13 @@ control();
 exit();
 
 /**
- * control 
- * 
+ * control.
+ *
  * The controlling structure for this script.
- * 
+ *
  * @return void
  */
-function control ()
+function control()
 {
     if (isset($_POST['delimg']))
     {
@@ -44,11 +45,11 @@ function control ()
 }
 
 /**
- * displayHeader 
- * 
+ * displayHeader.
+ *
  * @return void
  */
-function displayHeader ()
+function displayHeader()
 {
     echo '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -90,11 +91,11 @@ function insertUpImage(str) {
 }
 
 /**
- * displayFooter 
- * 
+ * displayFooter.
+ *
  * @return void
  */
-function displayFooter ()
+function displayFooter()
 {
     echo '
 </body>
@@ -102,11 +103,11 @@ function displayFooter ()
 }
 
 /**
- * displayDeleteSubmit 
- * 
+ * displayDeleteSubmit.
+ *
  * @return void
  */
-function displayDeleteSubmit ()
+function displayDeleteSubmit()
 {
     global $fcmsUser;
 
@@ -115,6 +116,7 @@ function displayDeleteSubmit ()
         displayHeader();
         echo '<p class="error-alert">'.T_('You do not have access to delete this image.').'</p>';
         displayFooter();
+
         return;
     }
 
@@ -128,17 +130,17 @@ function displayDeleteSubmit ()
 }
 
 /**
- * displayUploadSubmit 
- * 
+ * displayUploadSubmit.
+ *
  * @return void
  */
-function displayUploadSubmit ()
+function displayUploadSubmit()
 {
     global $img;
 
     displayHeader();
 
-    $uploadsPath      = getUploadsAbsolutePath();
+    $uploadsPath = getUploadsAbsolutePath();
     $img->destination = $uploadsPath.'upimages/';
 
     $img->upload($_FILES['upfile']);
@@ -151,6 +153,7 @@ function displayUploadSubmit ()
     </p>';
 
         displayFooter();
+
         return;
     }
 
@@ -164,6 +167,7 @@ function displayUploadSubmit ()
     </p>';
 
         displayFooter();
+
         return;
     }
 
@@ -185,11 +189,11 @@ function displayUploadSubmit ()
 }
 
 /**
- * displayImages 
- * 
+ * displayImages.
+ *
  * @return void
  */
-function displayImages ()
+function displayImages()
 {
     global $fcmsUser;
 
@@ -213,7 +217,7 @@ function displayImages ()
     <table>';
 
     $uploadsPath = getUploadsAbsolutePath();
-    $img_dir     = opendir($uploadsPath.'upimages');
+    $img_dir = opendir($uploadsPath.'upimages');
 
     while ($file = readdir($img_dir))
     {
@@ -237,12 +241,12 @@ function displayImages ()
             continue;
         }
 
-        $img_name_arr = explode(".", $file);
-        $img_type     = end($img_name_arr);
+        $img_name_arr = explode('.', $file);
+        $img_type = end($img_name_arr);
 
-        $this_size   = filesize($uploadsPath.'upimages/'.$file);
+        $this_size = filesize($uploadsPath.'upimages/'.$file);
         $total_size += $this_size;
-        $img_info    = getimagesize($uploadsPath.'upimages/'.$file);
+        $img_info = getimagesize($uploadsPath.'upimages/'.$file);
 
         $win_w = $img_info[0] + 50;
         $win_h = $img_info[1] + 50;
