@@ -172,8 +172,8 @@ function installUsers ($connection, $params)
     $sql = "CREATE TABLE `fcms_users` (
                 `id` INT(25) NOT NULL AUTO_INCREMENT, 
                 `access` TINYINT(1) NOT NULL DEFAULT '3', 
-                `activity` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
-                `joindate` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `activity` DATETIME DEFAULT NULL, 
+                `joindate` DATETIME DEFAULT NULL, 
                 `fname` VARCHAR(25) NOT NULL DEFAULT 'fname', 
                 `mname` VARCHAR(25) NULL,
                 `lname` VARCHAR(25) NOT NULL DEFAULT 'lname', 
@@ -196,7 +196,7 @@ function installUsers ($connection, $params)
                 `activate_code` CHAR(13) NULL, 
                 `activated` TINYINT(1) NOT NULL DEFAULT '0', 
                 `login_attempts` TINYINT(1) NOT NULL DEFAULT '0', 
-                `locked` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `locked` DATETIME DEFAULT NULL, 
                 PRIMARY KEY (`id`), 
                 UNIQUE KEY `username` (`username`)
             )
@@ -279,7 +279,7 @@ function installUsers ($connection, $params)
                 `work` VARCHAR(20) DEFAULT NULL, 
                 `cell` VARCHAR(20) DEFAULT NULL, 
                 `created_id` INT(11) NOT NULL DEFAULT '0', 
-                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `created` DATETIME NOT NULL, 
                 `updated_id` INT(11) NOT NULL DEFAULT '0', 
                 `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                 PRIMARY KEY (`id`), 
@@ -354,7 +354,7 @@ function installCalendar ($connection)
                 `date` DATE NOT NULL DEFAULT '0000-00-00', 
                 `time_start` TIME NULL, 
                 `time_end` TIME NULL, 
-                `date_added` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `date_added` DATETIME DEFAULT NULL, 
                 `title` VARCHAR(50) NOT NULL DEFAULT 'MyDate', 
                 `desc` TEXT, 
                 `created_by` INT(11) NOT NULL DEFAULT '0', 
@@ -409,9 +409,9 @@ function installTables ($connection)
                 `height`            INT(4) NOT NULL DEFAULT '420',
                 `width`             INT(4) NOT NULL DEFAULT '780',
                 `active`            TINYINT(1) NOT NULL DEFAULT '1',
-                `created`           DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `created`           DATETIME NOT NULL,
                 `created_id`        INT(25) NOT NULL,
-                `updated`           DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `updated`           DATETIME NOT NULL,
                 `updated_id`        INT(25) NOT NULL,
                 PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
@@ -421,9 +421,9 @@ function installTables ($connection)
                 `id`            INT(25) NOT NULL AUTO_INCREMENT,
                 `video_id`      INT(25) NOT NULL,
                 `comment`       TEXT NOT NULL,
-                `created`       DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `created`       DATETIME NOT NULL,
                 `created_id`    INT(25) NOT NULL,
-                `updated`       DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `updated`       DATETIME NOT NULL,
                 `updated_id`    INT(25) NOT NULL,
                 PRIMARY KEY (`id`),
                 CONSTRAINT FOREIGN KEY (`video_id`) REFERENCES `fcms_video` (`id`)
@@ -435,7 +435,7 @@ function installTables ($connection)
                 `id`        INT(25) NOT NULL AUTO_INCREMENT,
                 `type`      VARCHAR(50) NOT NULL DEFAULT 'familynews',
                 `repeat`    VARCHAR(50) NOT NULL DEFAULT 'hourly',
-                `lastrun`   DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `lastrun`   DATETIME DEFAULT NULL,
                 `status`    TINYINT(1) NOT NULL DEFAULT 0,
                 PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
@@ -456,7 +456,7 @@ function installTables ($connection)
                 `user` INT(25) NOT NULL DEFAULT '0',
                 `table` VARCHAR(50) NOT NULL,
                 `column` VARCHAR(50) NOT NULL,
-                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `created` DATETIME NOT NULL,
                 PRIMARY KEY (`id`),
                 CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
@@ -468,7 +468,7 @@ function installTables ($connection)
                 `event_id` INT(25) NOT NULL DEFAULT '0',
                 `user` INT(25) NOT NULL DEFAULT '0',
                 `email` VARCHAR(50) NULL, 
-                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `created` DATETIME NOT NULL,
                 `updated` DATETIME DEFAULT NULL,
                 `attending` TINYINT(1) DEFAULT NULL,
                 `code` CHAR(13) DEFAULT NULL,
@@ -481,7 +481,7 @@ function installTables ($connection)
     // create gallery_photos
     $sql = "CREATE TABLE `fcms_gallery_photos` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
-                `date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `date` TIMESTAMP DEFAULT NULL, 
                 `filename` VARCHAR(25) NOT NULL DEFAULT 'noimage.gif', 
                 `external_id` INT(11) DEFAULT NULL, 
                 `caption` TEXT, 
@@ -514,7 +514,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `photo` INT(11) NOT NULL DEFAULT '0', 
                 `comment` TEXT NOT NULL, 
-                `date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `date` TIMESTAMP DEFAULT NULL, 
                 `user` INT(11) NOT NULL DEFAULT '0', 
                 PRIMARY KEY (`id`), 
                 KEY `photo_ind` (`photo`), 
@@ -540,7 +540,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `category_id` INT(11) NOT NULL, 
                 `comment` TEXT NOT NULL, 
-                `created` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `created` TIMESTAMP NOT NULL, 
                 `created_id` INT(11) NOT NULL, 
                 PRIMARY KEY (`id`)
             ) 
@@ -589,8 +589,8 @@ function installTables ($connection)
                 `title` VARCHAR(50) NOT NULL DEFAULT '', 
                 `news` TEXT NOT NULL, 
                 `user` INT(11) NOT NULL DEFAULT '0', 
-                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
-                `updated` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `created` DATETIME NOT NULL,
+                `updated` DATETIME NOT NULL,
                 `external_type` VARCHAR(20) NULL,
                 `external_id` VARCHAR(255) NULL,
                 PRIMARY KEY (`id`), 
@@ -612,7 +612,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `news` INT(11) NOT NULL DEFAULT '0', 
                 `comment` TEXT NOT NULL, 
-                `date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `date` TIMESTAMP DEFAULT NULL, 
                 `user` INT(11) NOT NULL DEFAULT '0', 
                 PRIMARY KEY (`id`), 
                 KEY `photo_ind` (`news`), 
@@ -637,7 +637,7 @@ function installTables ($connection)
     $sql = "CREATE TABLE `fcms_polls` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `question` TEXT NOT NULL, 
-                `started` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `started` DATETIME DEFAULT NULL, 
                 PRIMARY KEY  (`id`)
             ) 
             ENGINE=InnoDB DEFAULT CHARSET=utf8";
@@ -711,7 +711,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `poll_id` INT(11) NOT NULL, 
                 `comment` TEXT NOT NULL, 
-                `created` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `created` TIMESTAMP NOT NULL, 
                 `created_id` INT(11) NOT NULL, 
                 PRIMARY KEY (`id`)
             ) 
@@ -724,7 +724,7 @@ function installTables ($connection)
                 `for` VARCHAR(50) NOT NULL DEFAULT '', 
                 `desc` TEXT NOT NULL, 
                 `user` INT(11) NOT NULL DEFAULT '0', 
-                `date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `date` DATETIME DEFAULT NULL, 
                 PRIMARY KEY (`id`), 
                 KEY `userindx` (`user`)
             ) 
@@ -744,7 +744,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `subject` VARCHAR(50) NOT NULL DEFAULT 'Subject', 
                 `started_by` INT(11) NOT NULL DEFAULT '0', 
-                `updated` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `updated` TIMESTAMP DEFAULT NULL, 
                 `updated_by` INT(11) NOT NULL DEFAULT '0', 
                 `views` SMALLINT(6) NOT NULL DEFAULT '0', 
                 PRIMARY KEY (`id`), 
@@ -774,7 +774,7 @@ function installTables ($connection)
     // create board_posts
     $sql = "CREATE TABLE `fcms_board_posts` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
-                `date` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `date` TIMESTAMP DEFAULT NULL, 
                 `thread` INT(11) NOT NULL DEFAULT '0', 
                 `user` INT(11) NOT NULL DEFAULT '0', 
                 `post` TEXT NOT NULL, 
@@ -842,7 +842,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `to` INT(11) NOT NULL, 
                 `from` INT(11) NOT NULL, 
-                `date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `date` DATETIME DEFAULT NULL, 
                 `title` VARCHAR(50) NOT NULL DEFAULT 'PM Title', 
                 `msg` TEXT, 
                 `read` TINYINT(1) NOT NULL DEFAULT '0', 
@@ -929,7 +929,7 @@ function installTables ($connection)
                 `user` INT(11) NOT NULL DEFAULT '0', 
                 `award` VARCHAR(100) NOT NULL, 
                 `month` INT(6) NOT NULL, 
-                `date` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', 
+                `date` DATETIME DEFAULT NULL, 
                 `item_id` INT(11) NULL, 
                 `count` SMALLINT(4) NOT NULL default '0', 
                 PRIMARY KEY (`id`), 
@@ -964,8 +964,8 @@ function installTables ($connection)
                 `user` INT(25) NOT NULL DEFAULT '0',
                 `status` TEXT DEFAULT NULL,
                 `parent` INT(25) NOT NULL DEFAULT '0',
-                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
-                `updated` DATETIME DEFAULT NULL,
+                `created` DATETIME NOT NULL,
+                `updated` DATETIME NOT NULL,
                 PRIMARY KEY (`id`),
                 CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
@@ -979,7 +979,7 @@ function installTables ($connection)
                 `notification` VARCHAR(50) DEFAULT NULL,
                 `data` VARCHAR(50) NOT NULL,
                 `read` TINYINT(1) NOT NULL DEFAULT '0',
-                `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `created` DATETIME NOT NULL,
                 `updated` DATETIME DEFAULT NULL,
                 PRIMARY KEY (`id`),
                 CONSTRAINT FOREIGN KEY (`user`) REFERENCES `fcms_users` (`id`)

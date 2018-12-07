@@ -276,7 +276,7 @@ class Page
             {
                 $display = '<td></td>';
 
-                if ($row['activity'] != '0000-00-00 00:00:00')
+                if (!is_null($row['activity']))
                 {
                     $display = '<td>'.fixDate(T_('M. j, Y (g:i a)'), $tzOffset, $row['activity']).'</td>';
                 }
