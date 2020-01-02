@@ -1064,9 +1064,8 @@ class Page
 
         $sql = "SELECT `id`, `link`, `col`, `order`, `req`
                 FROM `fcms_navigation` 
-                WHERE `col` = 3 
-                OR `col` = 4
-                AND `order` > 0
+                WHERE `order` > 0
+                AND (`col` = 3 OR `col` = 4)
                 ORDER BY `order`";
 
         $rows = $this->fcmsDatabase->getRows($sql);
