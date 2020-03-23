@@ -225,7 +225,7 @@ class Page
         }
 
         // User is being activated for first time (just joined)
-        if ($member['joindate'] == '0000-00-00 00:00:00')
+        if (is_null($member['joindate']))
         {
             $sql = "UPDATE `fcms_users` 
                     SET `activated` = 1, 

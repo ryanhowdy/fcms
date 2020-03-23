@@ -716,9 +716,9 @@ $(document).ready(function() {
         $this->displayHeader();
 
         // Get list of new members -- members with no activity and not activated
-        $sql = "SELECT `id`, `activity`, `fname`, `lname`, `email` 
-                FROM `fcms_users` 
-                WHERE `activity` = '0000-00-00 00:00:00'
+        $sql = "SELECT `id`, `activity`, `fname`, `lname`, `email`
+                FROM `fcms_users`
+                WHERE `activity` IS NULL
                 AND `activated` = 0";
 
         $rows = $this->fcmsDatabase->getRows($sql);

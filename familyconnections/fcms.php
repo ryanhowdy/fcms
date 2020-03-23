@@ -403,7 +403,7 @@ function checkScheduler ($subdir = '')
         $type    = cleanOutput($row['type']);
 
         // Job has never been run
-        if ($row['lastrun'] == '0000-00-00 00:00:00')
+        if (is_null($row['lastrun']))
         {
             $runJob = true;
         }
