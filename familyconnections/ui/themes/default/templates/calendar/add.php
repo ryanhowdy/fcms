@@ -1,7 +1,7 @@
 
-        <?php if (isset($TMPL['error'])): ?>
+        <?php if (isset($TMPL['error'])) { ?>
             <div class="error-alert"><?php echo $TMPL['error']; ?></div>
-        <?php else: ?>
+        <?php } else { ?>
 
             <form id="frm" method="post" action="calendar.php">
                 <fieldset>
@@ -34,15 +34,15 @@
                             </div>
                             <div class="field-widget">
                                 <select id="timestart" name="timestart">
-                            <?php foreach ($TMPL['startTimes'] as $t): ?>
+                            <?php foreach ($TMPL['startTimes'] as $t) { ?>
                                     <option value="<?php echo $t['value']; ?>" <?php echo $t['selected']; ?>><?php echo $t['text']; ?></option>
-                            <?php endforeach; ?>
+                            <?php } ?>
                                 </select> &nbsp;
                                 <?php echo $TMPL['throughText']; ?> &nbsp;
                                 <select id="timeend" name="timeend">
-                            <?php foreach ($TMPL['endTimes'] as $t): ?>
+                            <?php foreach ($TMPL['endTimes'] as $t) { ?>
                                     <option value="<?php echo $t['value']; ?>" <?php echo $t['selected']; ?>><?php echo $t['text']; ?></option>
-                            <?php endforeach; ?>
+                            <?php } ?>
                                 </select> &nbsp;
                                 <input id="all-day" name="all-day" type="checkbox" 
                                     onclick="toggleDisable($('#timestart'), $('#timeend'))"/>
@@ -59,9 +59,9 @@
                                 </div>
                                 <div class="field-widget">
                                     <select id="category" name="category">
-                                <?php foreach ($TMPL['categories'] as $c): ?>
+                                <?php foreach ($TMPL['categories'] as $c) { ?>
                                         <option value="<?php echo $c['value']; ?>"><?php echo $c['text']; ?></option>
-                                <?php endforeach; ?>
+                                <?php } ?>
                                     </select>
                                 </div>
                             </div>
@@ -94,4 +94,4 @@
                     </p>
                 </form>
             </fieldset>
-        <?php endif; ?>
+        <?php } ?>

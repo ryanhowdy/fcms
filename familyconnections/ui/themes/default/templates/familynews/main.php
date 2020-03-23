@@ -6,7 +6,7 @@
                 <span class="date">
                     <?php echo $TMPL['updated']; ?> - <?php echo $TMPL['username']; ?>
 
-                    <?php if (isset($TMPL['edit'])): ?>
+                    <?php if (isset($TMPL['edit'])) { ?>
                          &nbsp;
                         <form method="post" action="familynews.php">
                             <div>
@@ -18,8 +18,8 @@
                                     class="editbtn" title="<?php echo $TMPL['edit']['editThisFamilyNewsText']; ?>"/>
                             </div>
                         </form>
-                    <?php endif; ?>
-                    <?php if (isset($TMPL['delete'])): ?>
+                    <?php } ?>
+                    <?php if (isset($TMPL['delete'])) { ?>
                          &nbsp;
                         <form class="delnews" method="post" action="familynews.php?getnews=<?php echo $TMPL['delete']['user']; ?>">
                             <div>
@@ -29,14 +29,14 @@
                                     class="delbtn" title="<?php echo $TMPL['delete']['deleteThisFamilyNewsText']; ?>"/>
                             </div>
                         </form>
-                    <?php endif; ?>
+                    <?php } ?>
                 </span>
                 <p>
-                    <?php if (isset($TMPL['external'])): ?>
+                    <?php if (isset($TMPL['external'])) { ?>
                         <span style="background-color:#eee; color:#999; font-size:13px;">
                             <?php echo $TMPL['external']; ?>
                         </span><br/>
-                    <?php endif; ?>
+                    <?php } ?>
                     <?php echo $TMPL['news']; ?>
                 </p>
                 <p class="news-comments">
@@ -56,24 +56,24 @@
 
             <p>&nbsp;</p>
 
-            <?php if (count($TMPL['comments']) > 0): ?>
+            <?php if (count($TMPL['comments']) > 0) { ?>
 
-                <?php foreach ($TMPL['comments'] as $c): ?>
+                <?php foreach ($TMPL['comments'] as $c) { ?>
                     <div class="comment_block">
-                        <?php if (isset($c['delete'])): ?>
+                        <?php if (isset($c['delete'])) { ?>
                         <form class="delcom" action="<?php echo $c['delete']['url']; ?>" method="post">
                             <input type="submit" name="delcom" id="delcom" value="<?php echo $c['delete']['deleteText']; ?>" 
                                 class="gal_delcombtn" title="<?php echo $c['delete']['deleteThisCommentText']; ?>"/>
                             <input type="hidden" name="id" value="<?php echo $c['delete']['id']; ?>">
                         </form>
-                        <?php endif; ?>
+                        <?php } ?>
                         <img class="avatar" alt="avatar" src="<?php echo $c['avatar']; ?>"/>
                         <b><?php echo $c['username']; ?></b>
                         <span><?php echo $c['date']; ?></span>
                         <p><?php echo $c['comment']; ?></p>
                     </div>
-                <?php endforeach; ?>
+                <?php } ?>
 
-            <?php else: ?>
+            <?php } else { ?>
                 <p class="center"><?php echo $TMPL['noCommentsText']; ?></p>
-            <?php endif; ?>
+            <?php } ?>

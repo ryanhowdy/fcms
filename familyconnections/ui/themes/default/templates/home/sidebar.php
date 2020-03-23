@@ -9,32 +9,32 @@
                         </th>
                     </tr>
                     <tr>
-                <?php foreach ($TMPL['weekDays'] as $wd): ?>
+                <?php foreach ($TMPL['weekDays'] as $wd) { ?>
                         <td class="weekDays"><?php echo $wd; ?></td>
-                <?php endforeach; ?>
+                <?php } ?>
                     </tr>
 
-                <?php foreach ($TMPL['days'] as $week => $days): ?>
+                <?php foreach ($TMPL['days'] as $week => $days) { ?>
                     <tr>
-                    <?php foreach ($days as $day): ?>
+                    <?php foreach ($days as $day) { ?>
                         <td class="<?php echo $day['class']; ?>"><?php echo $day['data']; ?></td>
-                    <?php endforeach; ?>
+                    <?php } ?>
                     </tr>
-                <?php endforeach; ?>
+                <?php } ?>
                 </table>
                 
                 <h3><?php echo $TMPL['textUpcoming']; ?></h3>
 
-            <?php foreach ($TMPL['events'] as $event): ?>
+            <?php foreach ($TMPL['events'] as $event) { ?>
                 <div class="events">
                     <a title="<?php echo $event['desc']; ?>" href="calendar.php?event=<?php echo $event['id']; ?>">
                         <?php echo $event['title']; ?>
                     </a><br/>
                     <?php echo $event['date']; ?>
                 </div>
-            <?php endforeach; ?>
+            <?php } ?>
 
-            <?php if (isset($TMPL['pollId'])): ?>
+            <?php if (isset($TMPL['pollId'])) { ?>
                 <h2 class="pollmenu"><?php echo $TMPL['textPolls']; ?></h2>
                 <?php
                 if (isset($TMPL['pollOptions']))
@@ -45,14 +45,14 @@
                 {
                     require_once 'ui/themes/default/templates/poll/result.php';
                 } ?>
-            <?php endif; ?>
+            <?php } ?>
 
                 <h2 class="membermenu"><?php echo $TMPL['textMembersOnline']; ?></h2>
                 <div class="membermenu">
                     <h3><?php echo $TMPL['textLastSeen']; ?>:</h3>
                     <ul class="avatar-member-list">
-            <?php if (isset($TMPL['membersOnline'])): ?>
-                <?php foreach ($TMPL['membersOnline'] as $member): ?>
+            <?php if (isset($TMPL['membersOnline'])) { ?>
+                <?php foreach ($TMPL['membersOnline'] as $member) { ?>
                         <li>
                             <a href="profile.php?member=<?php echo $member['id']; ?>" class="tooltip" onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">
                                 <img alt="avatar" src="<?php echo $member['avatar']; ?>"/>
@@ -62,8 +62,8 @@
                                 <span><?php echo $member['since']; ?></span>
                             </div>
                         </li>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                <?php } ?>
+            <?php } ?>
                     </ul>
                     <br/><br/>
                 </div>

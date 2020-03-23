@@ -1,54 +1,56 @@
 <?php
 /**
- * FormValidator
- * 
+ * FormValidator.
+ *
  * PHP version 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2013 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     3.3
  */
 require_once 'validation.php';
 
 /**
- * FormValidator
- * 
+ * FormValidator.
+ *
  * @category  FCMS
- * @package   Family_Connections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2013 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 class FormValidator
 {
-    public $valid   = array();
-    public $invalid = array();
-    public $missing = array();
+    public $valid = [];
+    public $invalid = [];
+    public $missing = [];
 
     private $messagesLkup;
 
     /**
-     * validate 
-     * 
+     * validate.
+     *
      * Returns true on success, array of errors otherwise.
-     * 
-     * @param array $input 
-     * @param array $profile 
-     * 
+     *
+     * @param array $input
+     * @param array $profile
+     *
      * @return boolean/array
      */
-    public function validate ($input, $profile)
+    public function validate($input, $profile)
     {
-        $this->valid   = array();
-        $this->invalid = array();
-        $this->missing = array();
-        $errors        = array();
-        $missingLkup   = array();
+        $this->valid = [];
+        $this->invalid = [];
+        $this->missing = [];
+        $errors = [];
+        $missingLkup = [];
 
         $this->validateProfile($profile);
         $this->setMessagesLookup($profile);
@@ -60,7 +62,7 @@ class FormValidator
             {
                 if (!isset($input[$fieldName]))
                 {
-                    $this->missing[]         = $fieldName;
+                    $this->missing[] = $fieldName;
                     $missingLkup[$fieldName] = 1;
                     continue;
                 }
@@ -69,13 +71,13 @@ class FormValidator
                 {
                     if (empty($input[$fieldName]))
                     {
-                        $this->missing[]         = $fieldName;
+                        $this->missing[] = $fieldName;
                         $missingLkup[$fieldName] = 1;
                     }
                 }
                 elseif (strlen($input[$fieldName]) == 0)
                 {
-                    $this->missing[]         = $fieldName;
+                    $this->missing[] = $fieldName;
                     $missingLkup[$fieldName] = 1;
                 }
             }
@@ -166,12 +168,12 @@ class FormValidator
             foreach ($profile['constraint_functions'] as $fieldName => $function)
             {
                 $constraintName = $fieldName;
-                $functionCall   = $function;
+                $functionCall = $function;
 
                 if (is_array($function))
                 {
                     $constraintName = $function['name'];
-                    $functionCall   = $function['function'];
+                    $functionCall = $function['function'];
                 }
 
                 // Call the function
@@ -194,15 +196,15 @@ class FormValidator
     }
 
     /**
-     * getJsValidation 
-     * 
-     * @param array $profile 
-     * 
+     * getJsValidation.
+     *
+     * @param array $profile
+     *
      * @return string
      */
-    public function getJsValidation ($profile)
+    public function getJsValidation($profile)
     {
-        $js  = "\n";
+        $js = "\n";
         $js .= '<script type="text/javascript" src="ui/js/livevalidation.js"></script>';
         $js .= '<script type="text/javascript">';
 
@@ -260,7 +262,7 @@ class FormValidator
                 {
                     $js .= 'f'.$fieldName.'.add(Validate.Numericality, { onlyInteger: true, failureMessage: "'.$message.'" });'."\n";
                 }
-                
+
             }
 
             // Length
@@ -302,40 +304,40 @@ class FormValidator
     }
 
     /**
-     * validateProfile 
-     * 
+     * validateProfile.
+     *
      * Validates the profile. Will die if profile is invalid.
-     * 
-     * @param array $profile 
-     * 
+     *
+     * @param array $profile
+     *
      * @return void
      */
-    private function validateProfile ($profile)
+    private function validateProfile($profile)
     {
-        $constraintNames = array();
+        $constraintNames = [];
 
         // List of valid options
-        $validOptions = array(
-            'required'             => 1, 
-            'constraints'          => array(
+        $validOptions = [
+            'required'             => 1,
+            'constraints'          => [
                 'acceptance' => 1,
                 'array'      => 1,
                 'format'     => 1,
                 'integer'    => 1,
                 'length'     => 1,
                 'name'       => 1,
-                'required'   => 1
-            ),
-            'constraint_functions' => array(
+                'required'   => 1,
+            ],
+            'constraint_functions' => [
                 'function' => 1,
-                'name'     => 1
-             ),
-            'messages'             => array(
+                'name'     => 1,
+            ],
+            'messages'             => [
                 'constraints'          => 1,
                 'constraint_functions' => 1,
-                'names'                => 1
-            )
-        );
+                'names'                => 1,
+            ],
+        ];
 
         // Validate the sections
         foreach ($profile as $section => $value)
@@ -419,20 +421,20 @@ class FormValidator
     }
 
     /**
-     * setMessageLookup 
-     * 
+     * setMessageLookup.
+     *
      * Creates an array for looking up messages by constraint name.
      *
-     * Sets the $messagesLkup object variable. 
+     * Sets the $messagesLkup object variable.
      * Will die if profile is invalid.
-     * 
-     * @param array $profile 
+     *
+     * @param array $profile
      *
      * @return void
      */
-    private function setMessagesLookup ($profile)
+    private function setMessagesLookup($profile)
     {
-        $this->messagesLkup = array();
+        $this->messagesLkup = [];
 
         if (!isset($profile['messages']))
         {
@@ -442,7 +444,7 @@ class FormValidator
         $messages = $profile['messages'];
 
         // go through each type of messages
-        foreach (array('constraint_functions', 'constraints') as $type)
+        foreach (['constraint_functions', 'constraints'] as $type)
         {
             if (isset($messages[$type]))
             {
@@ -467,7 +469,7 @@ class FormValidator
                 // )
                 foreach ($messages[$type] as $fieldName => $value)
                 {
-                    $name    = $fieldName;
+                    $name = $fieldName;
                     $message = $value;
 
                     // constraint name is given
@@ -482,7 +484,7 @@ class FormValidator
                             die('Invalid Profile: $profile[\'messages\'][\''.$type.'\'] found without a constraint message.');
                         }
 
-                        $name    = $value['name'];
+                        $name = $value['name'];
                         $message = $value['message'];
                     }
 
@@ -499,18 +501,18 @@ class FormValidator
     }
 
     /**
-     * getErrors 
-     * 
+     * getErrors.
+     *
      * Returns an array of nicely formatted error messages for
      * each failed constraint.
-     * 
-     * @param array $profile 
-     * 
+     *
+     * @param array $profile
+     *
      * @return array
      */
-    private function getErrors ($profile)
+    private function getErrors($profile)
     {
-        $errors = array();
+        $errors = [];
 
         // Missing
         if (count($this->missing))
@@ -560,18 +562,18 @@ class FormValidator
     }
 
     /**
-     * getConstraintMessage 
-     * 
+     * getConstraintMessage.
+     *
      * Used with the js validation, will return any message for
      * the given constraint name.
-     * 
-     * @param array  $profile 
+     *
+     * @param array  $profile
      * @param string $constraintName
      * @param string $type           - missing|invalid
-     * 
+     *
      * @return boolean/string
      */
-    private function getConstraintMessage ($profile, $constraintName, $type)
+    private function getConstraintMessage($profile, $constraintName, $type)
     {
         if (isset($this->messagesLkup[$constraintName]))
         {
@@ -594,21 +596,21 @@ class FormValidator
     }
 
     /**
-     * updateName 
-     * 
+     * updateName.
+     *
      * Turns the names in invalid and missing array from the name of the
      * field into the message supplied to represent that field.
-     * 
-     * @param string $profile 
-     * 
+     *
+     * @param string $profile
+     *
      * @return void
      */
-    private function updateNames ($profile)
+    private function updateNames($profile)
     {
         // Update field names with messages if available
         if (isset($profile['messages']) && isset($profile['messages']['names']))
         {
-            foreach (array('missing', 'invalid') as $type)
+            foreach (['missing', 'invalid'] as $type)
             {
                 foreach ($this->{$type} as $key => $field)
                 {
@@ -622,14 +624,14 @@ class FormValidator
     }
 
     /**
-     * isValidFormat 
-     * 
+     * isValidFormat.
+     *
      * @param mixed $value   - form data array or string
      * @param array $options
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function isValidFormat ($value, $options)
+    public function isValidFormat($value, $options)
     {
         // array
         if (is_array($value))
@@ -660,14 +662,14 @@ class FormValidator
     }
 
     /**
-     * isValidInteger 
-     * 
+     * isValidInteger.
+     *
      * @param mixed $value   - form data array or string
      * @param array $options
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function isValidInteger ($value, $options)
+    public function isValidInteger($value, $options)
     {
         // array
         if (is_array($value))
@@ -698,14 +700,14 @@ class FormValidator
     }
 
     /**
-     * isValidLength 
-     * 
+     * isValidLength.
+     *
      * @param mixed $value   - form data array or string
      * @param array $options
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function isValidLength ($value, $options)
+    public function isValidLength($value, $options)
     {
         // array
         if (is_array($value))
@@ -731,5 +733,4 @@ class FormValidator
 
         return true;
     }
-
 }

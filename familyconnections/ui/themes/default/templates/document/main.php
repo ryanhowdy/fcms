@@ -1,9 +1,9 @@
 
-    <?php if (isset($TMPL['pageNavigation'])): ?>
-        <?php require_once(TEMPLATES.'global/page-navigation.php'); ?>
-    <?php endif; ?>
+    <?php if (isset($TMPL['pageNavigation'])) { ?>
+        <?php require_once TEMPLATES.'global/page-navigation.php'; ?>
+    <?php } ?>
 
-    <?php if (isset($TMPL['documents'])): ?>
+    <?php if (isset($TMPL['documents'])) { ?>
 
             <script type="text/javascript" src="ui/js/tablesorter/js/jquery.tablesorter.js"></script>
             <table id="docs" class="sortable">
@@ -17,22 +17,22 @@
                 </thead>
                 <tbody>
 
-        <?php foreach ($TMPL['documents'] as $d): ?>
+        <?php foreach ($TMPL['documents'] as $d) { ?>
                     <tr>
                         <td>
                             <a href="?download=<?php echo $d['name']; ?>"><?php echo $d['name']; ?></a>
-                            <?php if (isset($d['delete'])): ?><?php echo $d['delete']; ?><?php endif; ?>
+                            <?php if (isset($d['delete'])) { ?><?php echo $d['delete']; ?><?php } ?>
                         </td>
                         <td><?php echo $d['description']; ?></td>
                         <td><?php echo $d['user']; ?></td>
                         <td><?php echo $d['date']; ?></td>
                     </tr>
-        <?php endforeach; ?>
+        <?php } ?>
 
                 </tbody>
             </table>
 
-    <?php else: ?>
+    <?php } else { ?>
 
             <div class="blank-state">
                 <h2><?php echo $TMPL['blankStateHeaderText']; ?></h2>
@@ -40,4 +40,4 @@
                 <h3><a href="?adddoc=yes"><?php echo $TMPL['blankStateLinkText']; ?></a></h3>
             </div>
 
-    <?php endif; ?>
+    <?php } ?>

@@ -17,21 +17,21 @@
                 <tr>
                     <td class="all-day"></td>
                     <td class="time-event-data">
-            <?php foreach($TMPL['allDayEvents'] AS $e): ?>
+            <?php foreach($TMPL['allDayEvents'] as $e) { ?>
                         <div class="event">
                             <a class="<?php echo $e['class']; ?>" href="<?php echo $e['url']; ?>">
                                 <?php echo $e['title']; ?>
                                 <span><?php $e['desc']; ?></span>
                             </a>
                         </div>
-            <?php endforeach; ?>
+            <?php } ?>
                     </td>
                 </tr>
-            <?php foreach($TMPL['times'] AS $t): ?>
+            <?php foreach($TMPL['times'] as $t) { ?>
                 <tr>
                     <td class="time <?php echo $t['class']; ?>"><?php echo $t['time']; ?></td>
                     <td class="time-event-data">
-                <?php foreach($t['events'] AS $e): ?>
+                <?php foreach($t['events'] as $e) { ?>
                         <div class="event">
                             <a class="<?php echo $e['class']; ?>" href="<?php echo $e['url']; ?>">
                                 <i><?php echo $e['start']; ?> - <?php echo $e['end']; ?></i>
@@ -39,20 +39,20 @@
                                 <span><?php echo $e['desc']; ?></span>
                             </a>
                         </div>
-                <?php endforeach; ?>
+                <?php } ?>
                     </td>
                 </tr>
-            <?php endforeach; ?>
+            <?php } ?>
                 <tr class="actions">
                     <td style="text-align:left;">
                         <b><?php echo $TMPL['categoriesText']; ?></b><br/>
                         <ul id="category_menu">
-                    <?php foreach ($TMPL['categories'] as $c): ?>
+                    <?php foreach ($TMPL['categories'] as $c) { ?>
                             <li class="cat <?php echo $c['class']; ?>">
                                 <a title="<?php echo $TMPL['editCategoryText']; ?>" 
                                     href="<?php echo $c['url']; ?>"><?php echo $c['name']; ?></a>
                             </li>
-                    <?php endforeach; ?>
+                    <?php } ?>
                             <li><a href="?category=add"><?php echo $TMPL['addCategoryText']; ?></a></li>
                         </ul>
                     </td>

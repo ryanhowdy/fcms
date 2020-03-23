@@ -1,6 +1,6 @@
 
             <div id="leftcolumn">
-                <?php require_once(TEMPLATES.'addressbook/menu.php'); ?>
+                <?php require_once TEMPLATES.'addressbook/menu.php'; ?>
             </div>
 
             <div id="maincolumn">
@@ -22,22 +22,22 @@
                                 <td><?php echo $TMPL['phoneText']; ?></td> 
                             </tr>
 
-                    <?php if (isset($TMPL['addresses'])): ?>
-                        <?php foreach ($TMPL['addresses'] as $a): ?>
+                    <?php if (isset($TMPL['addresses'])) { ?>
+                        <?php foreach ($TMPL['addresses'] as $a) { ?>
                             <tr>
                                 <td class="chk"><?php echo $a['checkbox']; ?></td>
                                 <td><a href="<?php echo $a['addressUrl']; ?>"><?php echo $a['name']; ?></a></td>
                                 <td><?php echo $a['address']; ?></td>
                                 <td><?php echo $a['phone']; ?></td>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                        <?php } ?>
+                    <?php } ?>
 
                         </tbody>
                     </table>
 
-                <?php if (isset($TMPL['allowedToEmail'])): ?>
+                <?php if (isset($TMPL['allowedToEmail'])) { ?>
                     <p class="alignright"><input class="sub1" type="submit" name="emailsubmit" value="<?php echo $TMPL['emailSelectedText']; ?>"/></p>
-                <?php endif; ?>
+                <?php } ?>
 
                 </form>

@@ -1,7 +1,7 @@
                 <form class="<?php echo $TMPL['pollFormClass']; ?>" method="post" action="polls.php">
                     <h3><?php echo $TMPL['pollQuestion']; ?></h3>
                     <ul class="poll-results">
-                <?php foreach ($TMPL['pollResults'] as $result): ?>
+                <?php foreach ($TMPL['pollResults'] as $result) { ?>
                         <li>
                             <b><?php echo $result['text']; ?></b>
                             <span><?php echo $result['votes']; ?></span>
@@ -10,8 +10,8 @@
                             </a>
                             <div id="who<?php echo $result['count']; ?>" class="who-voted" style="display:none">
                                 <ul class="avatar-member-list-small">
-                    <?php foreach ($result['users'] as $user): ?>
-                        <?php if (is_array($user)): ?>
+                    <?php foreach ($result['users'] as $user) { ?>
+                        <?php if (is_array($user)) { ?>
                                     <li>
                                         <div onmouseover="showTooltip(this)" onmouseout="hideTooltip(this)">
                                             <img src="<?php echo $user['avatar']; ?>"/>
@@ -20,21 +20,21 @@
                                             <h5><?php echo $user['name']; ?></h5>
                                         </div>
                                     </li>
-                        <?php else: ?>
+                        <?php } else { ?>
                                     <li><?php echo $user; ?></li>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
+                        <?php } ?>
+                    <?php } ?>
                                 </ul><!--/.avatar-member-list-small-->
                             </div><!--/#whoX-->
                         </li>
-                <?php endforeach; ?>
+                <?php } ?>
                     </ul><!--/.poll-results-->
-                <?php if (isset($TMPL['textCommentsCount'])): ?>
+                <?php if (isset($TMPL['textCommentsCount'])) { ?>
                     <p class="actions">
                         <a href="#comments"><?php echo $TMPL['textCommentsCount']; ?></a><br/>
                         <input type="submit" class="disabled" disabled="disabled" id="vote" name="vote" value="<?php echo $TMPL['textAlreadyVoted']; ?>"/>
                     </p>
-                <?php else: ?>
+                <?php } else { ?>
                     <a href="polls.php?action=pastpolls"><?php echo $TMPL['textPastPolls']; ?></a>
-                <?php endif; ?>
+                <?php } ?>
                 </form>

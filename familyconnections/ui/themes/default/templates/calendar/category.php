@@ -52,7 +52,7 @@
                             </label>
                         </div>
                     </div>
-                <?php if (isset($TMPL['edit'])): ?>
+                <?php if (isset($TMPL['edit'])) { ?>
                     <p>
                         <input type="hidden" id="id" name="id" value="<?php echo $TMPL['id']; ?>"/> 
                         <input class="sub1" type="submit" id="editcat" name="editcat" value="<?php echo T_('Edit'); ?>"/> 
@@ -60,12 +60,12 @@
                         <?php echo T_('or'); ?>&nbsp;
                         <a href="calendar.php"><?php echo T_('Cancel'); ?></a>
                     </p>
-                <?php else: ?>
+                <?php } else { ?>
                     <p>
                         <input class="sub1" type="submit" id="addcat" name="addcat" value="<?php echo T_('Add'); ?>"/>
                         <?php echo T_('or'); ?>&nbsp;
                         <a href="calendar.php"><?php echo T_('Cancel'); ?></a>
                     </p>
-                <?php endif; ?>
+                <?php } ?>
                 </fieldset>
             </form>

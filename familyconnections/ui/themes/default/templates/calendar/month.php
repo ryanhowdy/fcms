@@ -14,20 +14,20 @@
                 </tr>
 
                 <tr>
-        <?php foreach ($TMPL['weekDays'] as $name): ?>
+        <?php foreach ($TMPL['weekDays'] as $name) { ?>
                     <td class="weekDays"><?php echo $name; ?></td>
-        <?php endforeach; ?>
+        <?php } ?>
                 </tr>
 
-        <?php foreach ($TMPL['weeks'] as $w): ?>
+        <?php foreach ($TMPL['weeks'] as $w) { ?>
                 <tr>
-            <?php foreach ($w as $d): ?>
+            <?php foreach ($w as $d) { ?>
                     <td class="<?php echo $d['class']; ?>">
-                        <?php if (isset($d['addUrl'])): ?><a class="add" href="<?php echo $d['addUrl']; ?>"><?php echo $d['addText']; ?></a><?php endif; ?>
-                        <?php if (isset($d['dayUrl'])): ?><a href="<?php echo $d['dayUrl']; ?>"><?php echo $d['day']; ?></a><?php endif; ?>
+                        <?php if (isset($d['addUrl'])) { ?><a class="add" href="<?php echo $d['addUrl']; ?>"><?php echo $d['addText']; ?></a><?php } ?>
+                        <?php if (isset($d['dayUrl'])) { ?><a href="<?php echo $d['dayUrl']; ?>"><?php echo $d['day']; ?></a><?php } ?>
 
-                <?php if (isset($d['events'])): ?>
-                <?php foreach ($d['events'] as $e): ?>
+                <?php if (isset($d['events'])) { ?>
+                <?php foreach ($d['events'] as $e) { ?>
                         <div class="event">
                             <a class="<?php echo $e['class']; ?> tooltip" 
                                 title="<?php echo $e['start']; ?><?php echo $e['end']; ?> <?php echo $e['title']; ?>" 
@@ -36,23 +36,23 @@
                                 onmouseout="hideTooltip(this)"><i><?php echo $e['start']; ?></i> <?php echo $e['title']; ?></a>
                             <div class="tooltip" style="display:none"><?php echo $e['details']; ?></div>
                         </div>
-                <?php endforeach; ?>
-                <?php endif; ?>
+                <?php } ?>
+                <?php } ?>
 
                     </td>
-            <?php endforeach; ?>
+            <?php } ?>
                 </tr>
-        <?php endforeach; ?>
+        <?php } ?>
 
                 <tr class="actions">
                     <td style="text-align:left;" colspan="3">
                         <b><?php echo $TMPL['categoriesText']; ?></b><br/>
                         <ul id="category_menu">
-                    <?php foreach ($TMPL['categories'] as $c): ?>
+                    <?php foreach ($TMPL['categories'] as $c) { ?>
                             <li class="cat <?php echo $c['class']; ?>">
                                 <a title="<?php echo $TMPL['editCategoryText']; ?>" href="<?php echo $c['url']; ?>"><?php echo $c['name']; ?></a>
                             </li>
-                    <?php endforeach; ?>
+                    <?php } ?>
                             <li><a href="?category=add"><?php echo $TMPL['addCategoryText']; ?></a></li>
                         </ul>
                     </td>

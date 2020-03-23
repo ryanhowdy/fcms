@@ -17,7 +17,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            <?php foreach ($TMPL['rows'] as $r): ?>
+                            <?php foreach ($TMPL['rows'] as $r) { ?>
                                 <tr>
                                     <td class="chk">
                                         <input type="checkbox" id="member<?php echo $r['id']; ?>" name="member[]" value="<?php echo $r['id']; ?>"/>
@@ -28,7 +28,7 @@
                                         <input type="hidden" name="id<?php echo $r['id']; ?>" value="<?php echo $r['email']; ?>"/>
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php } ?>
                             </tbody>
                         </table>
                     </div>

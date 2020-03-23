@@ -1,27 +1,27 @@
-    <?php if (isset($TMPL['pageNavigation'])): ?>
+    <?php if (isset($TMPL['pageNavigation'])) { ?>
 
-        <?php if (isset($TMPL['pageNavigation']['section'])): ?>
+        <?php if (isset($TMPL['pageNavigation']['section'])) { ?>
 
             <div id="sections_menu">
                 <ul>
-            <?php foreach ($TMPL['pageNavigation']['section'] as $nav): ?>
+            <?php foreach ($TMPL['pageNavigation']['section'] as $nav) { ?>
                     <li><a href="<?php echo $nav['url']; ?>"><?php echo $nav['text']; ?></a></li>
-            <?php endforeach; ?>
+            <?php } ?>
                 </ul>
             </div>
 
-        <?php endif; ?>
+        <?php } ?>
 
-        <?php if (isset($TMPL['pageNavigation']['action'])): ?>
+        <?php if (isset($TMPL['pageNavigation']['action'])) { ?>
 
             <div id="actions_menu">
                 <ul>
-            <?php foreach ($TMPL['pageNavigation']['action'] as $action): ?>
+            <?php foreach ($TMPL['pageNavigation']['action'] as $action) { ?>
                     <li><a href="<?php echo $action['url']; ?>"><?php echo $action['text']; ?></a></li>
-            <?php endforeach; ?>
+            <?php } ?>
                 </ul>
             </div>
 
-        <?php endif; ?>
+        <?php } ?>
 
-    <?php endif; ?>
+    <?php } ?>

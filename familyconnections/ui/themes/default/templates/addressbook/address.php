@@ -1,17 +1,17 @@
 
             <div id="leftcolumn">
-                <?php require_once(TEMPLATES.'addressbook/menu.php'); ?>
+                <?php require_once TEMPLATES.'addressbook/menu.php'; ?>
             </div>
 
             <div id="maincolumn">
 
                 <div id="address-options">
                     <ul>
-                        <?php foreach ($TMPL['addressOptions'] as $o): ?>
+                        <?php foreach ($TMPL['addressOptions'] as $o) { ?>
                         <li id="<?php echo $o['liId']; ?>">
                             <a id="<?php echo $o['aId']; ?>" href="<?php echo $o['url']; ?>"><?php echo $o['text']; ?></a>
                         </li>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </ul>
                 </div>
 
@@ -24,9 +24,9 @@
                         <b class="label"><?php echo $TMPL['addressText']; ?>:</b>
                         <span class="data">
                             <?php echo $TMPL['address']; ?>
-                            <?php if (isset($TMPL['mapText'])): ?>
+                            <?php if (isset($TMPL['mapText'])) { ?>
                             <a href="http://maps.google.com/maps?q=<?php echo $TMPL['addressUrl']; ?>"><?php echo $TMPL['mapText']; ?></a>
-                            <?php endif; ?>
+                            <?php } ?>
                         </span>
                     </p>
                     <p>

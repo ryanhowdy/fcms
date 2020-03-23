@@ -1,28 +1,29 @@
 <?php
 /**
- * Database
- * 
+ * Database.
+ *
  * PHP version 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2012 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     3.2
  */
-
 require_once 'config_inc.php';
 
 /**
- * Database 
- * 
+ * Database.
+ *
  * @category  FCMS
- * @package   Family_Connections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2012 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 class Database
@@ -38,38 +39,38 @@ class Database
     private $error;
     private $fetchType;
     private $rowCount;
-    
+
     public static $instance = null;
 
     /**
-     * __construct 
-     * 
+     * __construct.
+     *
      * @return void
      */
-    private function __construct ($error)
+    private function __construct($error)
     {
         global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
 
-        $this->error     = $error;
-        $this->host      = $cfg_mysql_host;
-        $this->db        = $cfg_mysql_db;
-        $this->user      = $cfg_mysql_user;
-        $this->pass      = $cfg_mysql_pass;
+        $this->error = $error;
+        $this->host = $cfg_mysql_host;
+        $this->db = $cfg_mysql_db;
+        $this->user = $cfg_mysql_user;
+        $this->pass = $cfg_mysql_pass;
         $this->fetchType = PDO::FETCH_ASSOC;
         //$this->port     = $cfg_mysql_port;
-        $this->rowCount  = 0;
+        $this->rowCount = 0;
 
         $this->connect();
     }
 
     /**
-     * getInstance 
-     * 
-     * @param object $error 
-     * 
+     * getInstance.
+     *
+     * @param object $error
+     *
      * @return object
      */
-    public static function getInstance ($error)
+    public static function getInstance($error)
     {
         if (!isset(self::$instance))
         {
@@ -80,13 +81,13 @@ class Database
     }
 
     /**
-     * connect 
-     * 
+     * connect.
+     *
      * Opens a connection to the MySQL database.
-     * 
+     *
      * @return void
      */
-    private function connect ()
+    private function connect()
     {
         if ($this->dbh)
         {
@@ -95,23 +96,23 @@ class Database
 
         // Connect
         try
-        {  
+        {
             $this->dbh = new PDO(
-                'mysql:host='.$this->host.';dbname='.$this->db, 
-                $this->user, 
-                $this->pass, 
-                array(PDO::ATTR_PERSISTENT => true)
-            );  
-        }  
+                'mysql:host='.$this->host.';dbname='.$this->db,
+                $this->user,
+                $this->pass,
+                [PDO::ATTR_PERSISTENT => true]
+            );
+        }
         catch (PDOException $e)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => sprintf(T_('Could not connect to host [%s] with user [%s].'), $this->host, $this->user),
                 'error'   => $e,
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-             ));
+            ]);
 
             return false;
         }
@@ -120,12 +121,12 @@ class Database
         $result = $this->dbh->exec("SET NAMES 'utf8'");
         if ($result === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'message' => T_('Could not set names utf8.'),
                 'error'   => $this->dbh->errorInfo(),
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-             ));
+            ]);
 
             return false;
         }
@@ -134,30 +135,30 @@ class Database
     }
 
     /**
-     * setFetchType 
-     * 
-     * @param string  $type 
-     * 
+     * setFetchType.
+     *
+     * @param string $type
+     *
      * @return void
      */
-    public function setFetchType ($type)
+    public function setFetchType($type)
     {
         $this->fetchType = $type;
     }
 
     /**
-     * getRow 
-     * 
+     * getRow.
+     *
      * Will return an array of results from the db.
-     * 
+     *
      * If params are given, will prepare the sql statement and then execute it.
-     * 
-     * @param string $sql 
-     * @param mixed  $params 
-     * 
+     *
+     * @param string $sql
+     * @param mixed  $params
+     *
      * @return mixed
      */
-    public function getRow ($sql, $params = null)
+    public function getRow($sql, $params = null)
     {
         $this->sql = $sql;
 
@@ -174,23 +175,23 @@ class Database
     }
 
     /**
-     * getRowQuery 
-     * 
+     * getRowQuery.
+     *
      * @return mixed
      */
-    function getRowQuery ()
+    public function getRowQuery()
     {
         $result = $this->dbh->query($this->sql);
         if ($result === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot query database.'),
                 'error'   => $this->dbh->errorInfo(),
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-                'sql'     => $this->sql
-            ));
+                'sql'     => $this->sql,
+            ]);
 
             return false;
         }
@@ -199,38 +200,38 @@ class Database
 
         if ($row === false)
         {
-            return array();
+            return [];
         }
 
         return $row;
     }
 
     /**
-     * getRowPrepared 
-     * 
-     * @param mixed $params 
-     * 
+     * getRowPrepared.
+     *
+     * @param mixed $params
+     *
      * @return mixed
      */
-    function getRowPrepared ($params)
+    public function getRowPrepared($params)
     {
         if (!is_array($params))
         {
-            $params = array($params);
+            $params = [$params];
         }
 
         // Prepare
         $stmt = $this->dbh->prepare($this->sql);
         if ($stmt === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot prepare SQL statement.'),
                 'error'   => $this->dbh->errorInfo(),
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-                'sql'     => $this->sql
-            ));
+                'sql'     => $this->sql,
+            ]);
 
             return false;
         }
@@ -238,14 +239,14 @@ class Database
         // Execute
         if ($stmt->execute($params) === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot execute SQL statement.'),
                 'error'   => $stmt->errorInfo(),
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-                'sql'     => $this->sql
-            ));
+                'sql'     => $this->sql,
+            ]);
 
             return false;
         }
@@ -254,44 +255,44 @@ class Database
         $result = $stmt->fetch($this->fetchType);
         if ($result === false)
         {
-            return array();
+            return [];
         }
 
         return $result;
     }
 
     /**
-     * getRows
-     * 
+     * getRows.
+     *
      * Will return an array of all the results from the db.
-     * 
-     * @param string $sql 
-     * @param mixed  $params 
-     * 
+     *
+     * @param string $sql
+     * @param mixed  $params
+     *
      * @return mixed
      */
-    public function getRows ($sql, $params = null)
+    public function getRows($sql, $params = null)
     {
         $this->sql = $sql;
 
         // params must be null or an array
         if (!is_null($params) && !is_array($params))
         {
-            $params = array($params);
+            $params = [$params];
         }
 
         // Prepare
         $stmt = $this->dbh->prepare($this->sql);
         if ($stmt === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot prepare SQL statement.'),
                 'error'   => $this->dbh->errorInfo(),
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-                'sql'     => $this->sql
-            ));
+                'sql'     => $this->sql,
+            ]);
 
             return false;
         }
@@ -299,14 +300,14 @@ class Database
         // Execute
         if ($stmt->execute($params) === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot execute SQL statement.'),
                 'error'   => $stmt->errorInfo(),
                 'file'    => __FILE__,
                 'line'    => __LINE__,
-                'sql'     => $this->sql
-            ));
+                'sql'     => $this->sql,
+            ]);
 
             return false;
         }
@@ -322,35 +323,35 @@ class Database
     }
 
     /**
-     * insert 
-     * 
+     * insert.
+     *
      * If successful, will return last insert id, otherwise false.
-     * 
-     * @param string $sql 
-     * @param mixed  $params 
-     * 
+     *
+     * @param string $sql
+     * @param mixed  $params
+     *
      * @return mixed
      */
-    function insert ($sql, $params = null)
+    public function insert($sql, $params = null)
     {
         $this->sql = $sql;
 
         if (!is_null($params) && !is_array($params))
         {
-            $params = array($params);
+            $params = [$params];
         }
 
         $stmt = $this->dbh->prepare($sql);
         if ($stmt === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot prepare SQL statement.'),
                 'error'   => $this->dbh->errorInfo(),
                 'file'    => __FILE__,
                 'line'    => __LINE__,
                 'sql'     => $this->sql,
-            ));
+            ]);
 
             return false;
         }
@@ -358,14 +359,14 @@ class Database
         $result = $stmt->execute($params);
         if ($result === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot insert SQL statement.'),
                 'error'   => $stmt->errorInfo(),
                 'file'    => __FILE__,
                 'line'    => __LINE__,
                 'sql'     => $this->sql,
-            ));
+            ]);
 
             return false;
         }
@@ -374,27 +375,27 @@ class Database
     }
 
     /**
-     * update 
-     * 
-     * @param string $sql 
-     * @param array  $params 
-     * 
-     * @return boolean
+     * update.
+     *
+     * @param string $sql
+     * @param array  $params
+     *
+     * @return bool
      */
-    function update ($sql, $params = null)
+    public function update($sql, $params = null)
     {
         $this->sql = $sql;
 
         if (substr($this->sql, 0, 6) != 'UPDATE')
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Could not query database.'),
                 'error'   => 'Called update on non UPDATE',
                 'line'    => __LINE__,
                 'file'    => __FILE__,
-                'sql'     => $this->sql
-            ));
+                'sql'     => $this->sql,
+            ]);
 
             return false;
         }
@@ -403,14 +404,14 @@ class Database
         {
             if ($this->dbh->exec($sql) === false)
             {
-                $this->error->add(array(
+                $this->error->add([
                     'type'    => 'operation',
                     'message' => T_('Cannot update SQL statement.'),
                     'error'   => $this->dbh->errorInfo(),
                     'line'    => __LINE__,
                     'file'    => __FILE__,
-                    'sql'     => $this->sql
-                ));
+                    'sql'     => $this->sql,
+                ]);
 
                 return false;
             }
@@ -420,34 +421,34 @@ class Database
             $stmt = $this->dbh->prepare($sql);
             if ($stmt === false)
             {
-                $this->error->add(array(
+                $this->error->add([
                     'type'    => 'operation',
                     'message' => T_('Cannot prepare SQL statement.'),
                     'error'   => $this->dbh->errorInfo(),
                     'line'    => __LINE__,
                     'file'    => __FILE__,
-                    'sql'     => $this->sql
-                ));
+                    'sql'     => $this->sql,
+                ]);
 
                 return false;
             }
 
             if (!is_null($params) && !is_array($params))
             {
-                $params = array($params);
+                $params = [$params];
             }
 
             $result = $stmt->execute($params);
             if ($result === false)
             {
-                $this->error->add(array(
+                $this->error->add([
                     'type'    => 'operation',
                     'message' => T_('Cannot update SQL statement.'),
                     'error'   => $stmt->errorInfo(),
                     'line'    => __LINE__,
                     'file'    => __FILE__,
-                    'sql'     => $this->sql
-                ));
+                    'sql'     => $this->sql,
+                ]);
 
                 return false;
             }
@@ -459,48 +460,48 @@ class Database
     }
 
     /**
-     * delete 
-     * 
-     * @param string $sql 
-     * @param array  $params 
-     * 
-     * @return boolean
+     * delete.
+     *
+     * @param string $sql
+     * @param array  $params
+     *
+     * @return bool
      */
-    function delete ($sql, $params = null)
+    public function delete($sql, $params = null)
     {
         $this->sql = $sql;
 
         $stmt = $this->dbh->prepare($sql);
         if ($stmt === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot prepare SQL DELETE statement.'),
                 'error'   => $this->dbh->errorInfo(),
                 'line'    => __LINE__,
                 'file'    => __FILE__,
-                'sql'     => $this->sql
-            ));
+                'sql'     => $this->sql,
+            ]);
 
             return false;
         }
 
         if (!is_null($params) && !is_array($params))
         {
-            $params = array($params);
+            $params = [$params];
         }
 
         $result = $stmt->execute($params);
         if ($result === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot delete SQL statement.'),
                 'error'   => $stmt->errorInfo(),
                 'line'    => __LINE__,
                 'file'    => __FILE__,
-                'sql'     => $this->sql
-            ));
+                'sql'     => $this->sql,
+            ]);
 
             return false;
         }
@@ -509,27 +510,27 @@ class Database
     }
 
     /**
-     * alter
-     * 
-     * @param string $sql 
-     * @param array  $params 
-     * 
-     * @return boolean
+     * alter.
+     *
+     * @param string $sql
+     * @param array  $params
+     *
+     * @return bool
      */
-    function alter ($sql, $params = null)
+    public function alter($sql, $params = null)
     {
         $this->sql = $sql;
 
         if (substr($this->sql, 0, 5) != 'ALTER')
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Could not alter database.'),
                 'error'   => 'Called alter on non ALTER statement',
                 'line'    => __LINE__,
                 'file'    => __FILE__,
-                'sql'     => $this->sql
-            ));
+                'sql'     => $this->sql,
+            ]);
 
             return false;
         }
@@ -538,14 +539,14 @@ class Database
         {
             if ($this->dbh->exec($sql) === false)
             {
-                $this->error->add(array(
+                $this->error->add([
                     'type'    => 'operation',
                     'message' => T_('Cannot alter SQL statement.'),
                     'error'   => $this->dbh->errorInfo(),
                     'line'    => __LINE__,
                     'file'    => __FILE__,
-                    'sql'     => $this->sql
-                ));
+                    'sql'     => $this->sql,
+                ]);
 
                 return false;
             }
@@ -555,34 +556,34 @@ class Database
             $stmt = $this->dbh->prepare($sql);
             if ($stmt === false)
             {
-                $this->error->add(array(
+                $this->error->add([
                     'type'    => 'operation',
                     'message' => T_('Cannot prepare SQL statement.'),
                     'error'   => $this->dbh->errorInfo(),
                     'line'    => __LINE__,
                     'file'    => __FILE__,
-                    'sql'     => $this->sql
-                ));
+                    'sql'     => $this->sql,
+                ]);
 
                 return false;
             }
 
             if (!is_null($params) && !is_array($params))
             {
-                $params = array($params);
+                $params = [$params];
             }
 
             $result = $stmt->execute($params);
             if ($result === false)
             {
-                $this->error->add(array(
+                $this->error->add([
                     'type'    => 'operation',
                     'message' => T_('Cannot alter SQL statement.'),
                     'error'   => $stmt->errorInfo(),
                     'line'    => __LINE__,
                     'file'    => __FILE__,
-                    'sql'     => $this->sql
-                ));
+                    'sql'     => $this->sql,
+                ]);
 
                 return false;
             }
@@ -592,26 +593,26 @@ class Database
     }
 
     /**
-     * execute
-     * 
-     * @param string $sql 
-     * 
-     * @return boolean
+     * execute.
+     *
+     * @param string $sql
+     *
+     * @return bool
      */
-    function execute ($sql)
+    public function execute($sql)
     {
         $this->sql = $sql;
 
         if ($this->dbh->exec($sql) === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot execute SQL statement.'),
                 'error'   => $this->dbh->errorInfo(),
                 'line'    => __LINE__,
                 'file'    => __FILE__,
-                'sql'     => $this->sql
-            ));
+                'sql'     => $this->sql,
+            ]);
 
             return false;
         }
@@ -620,26 +621,26 @@ class Database
     }
 
     /**
-     * getAttribute 
-     * 
-     * @param string $attribute 
-     * 
+     * getAttribute.
+     *
+     * @param string $attribute
+     *
      * @return string
      */
-    function getAttribute ($attribute)
+    public function getAttribute($attribute)
     {
         $return = $this->dbh->getAttribute(constant($attribute));
 
         if ($return === false)
         {
-            $this->error->add(array(
+            $this->error->add([
                 'type'    => 'operation',
                 'message' => T_('Cannot get attribute.'),
                 'error'   => $this->dbh->errorInfo(),
                 'line'    => __LINE__,
                 'file'    => __FILE__,
-                'sql'     => ''
-            ));
+                'sql'     => '',
+            ]);
 
             return false;
         }
@@ -648,13 +649,12 @@ class Database
     }
 
     /**
-     * getRowCount 
-     * 
+     * getRowCount.
+     *
      * @return int
      */
-    function getRowCount ()
+    public function getRowCount()
     {
         return $this->rowCount;
     }
-
 }
