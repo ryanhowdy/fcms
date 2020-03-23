@@ -596,8 +596,14 @@ class Page
             // Get new data
             else
             {
-                $displayname = getUserDisplayName($parent['userid']);
-                $avatar      = getCurrentAvatar($parent['userid']);
+                $displayname = T_('System');
+                if (!startsWith($groupType, 'poll'))
+                {
+                    // polls don't have user ids
+                    $displayname = getUserDisplayName($parent['userid']);
+                }
+
+                $avatar = getCurrentAvatar($parent['userid']);
 
                 // Save this for later
                 $cachedUserData[ $parent['userid'] ]['avatar']      = $avatar;
