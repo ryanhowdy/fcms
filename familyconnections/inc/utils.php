@@ -3564,7 +3564,7 @@ function getFoursquareWhatsNewData ($whatsNewData)
 }
 
 /**
- * ImageCreateFromBMP 
+ * ImageCreateFromBMP2
  * 
  * @author  DHKold
  * @contact admin@dhkold.com
@@ -3574,7 +3574,7 @@ function getFoursquareWhatsNewData ($whatsNewData)
  * @param   string  $filename 
  * @return  void
  */
-function ImageCreateFromBMP ($filename)
+function ImageCreateFromBMP2 ($filename)
 {
     if (! $f1 = fopen($filename,"rb")) return FALSE;
     

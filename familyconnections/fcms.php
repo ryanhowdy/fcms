@@ -25,7 +25,7 @@ error_reporting(-1);
 ini_set('log_errors', 0);
 set_error_handler("fcmsErrorHandler");
 
-fixMagicQuotes();
+//fixMagicQuotes();
 
 checkSiteStatus();
 
