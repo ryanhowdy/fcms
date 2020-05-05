@@ -460,7 +460,7 @@ class FamilyTree
         $foundKids = array();
         $idsFound  = array();
 
-        if (count($kids) > 0)
+        if (!is_null($kids) && count($kids) > 0)
         {
             // If no 2nd parent, fake it
             if (!isset($parent2['id']))

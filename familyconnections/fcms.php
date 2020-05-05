@@ -219,18 +219,20 @@ function stripSlashesDeep ($value)
  */
 function setLanguage ()
 {
+    $lang = 'en_US';
+
     if (isset($_SESSION['language']))
     {
-        putenv('LC_ALL='.$_SESSION['language']);
-        T_setlocale(LC_MESSAGES, $_SESSION['language']);
+        $lang = $_SESSION['language'];
     }
     else
     {
         $lang = getLanguage();
-        putenv('LC_ALL='.$lang);
-        T_setlocale(LC_MESSAGES, $lang);
     }
-    T_bindtextdomain('messages', './language');
+
+    putenv('LC_ALL='.$lang);
+    T_setlocale(LC_MESSAGES, $lang);
+    T_bindtextdomain('messages', ROOT . './language');
     T_bind_textdomain_codeset('messages', 'UTF-8');
     T_textdomain('messages');
 }
@@ -401,7 +403,7 @@ function checkScheduler ($subdir = '')
         $type    = cleanOutput($row['type']);
 
         // Job has never been run
-        if ($row['lastrun'] == '0000-00-00 00:00:00')
+        if (is_null($row['lastrun']))
         {
             $runJob = true;
         }

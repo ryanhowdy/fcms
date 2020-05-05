@@ -269,7 +269,7 @@ class Page
                 $status = '<span class="label success">'.T_('On').'</span>';
             }
 
-            if ($lastrun == '0000-00-00 00:00:00')
+            if (is_null($lastrun))
             {
                 $lastrun = '<i>'.T_('never').'</i>';
             }

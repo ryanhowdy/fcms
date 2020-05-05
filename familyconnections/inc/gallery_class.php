@@ -44,9 +44,6 @@ class PhotoGallery
         $this->fcmsDatabase = $fcmsDatabase;
         $this->fcmsUser     = $fcmsUser;
         $this->fcmsImage    = $fcmsImage;
-
-        // TODO - this could be fixed by using ROOT
-        T_bindtextdomain('messages', '.././language');
     }
 
     /**
@@ -251,6 +248,12 @@ class PhotoGallery
 
             $date     = fixDate(T_('M. j, Y'), $this->fcmsUser->tzOffset, $row['date']);
             $photoSrc = $this->getPhotoSource($row);
+
+            // Do we need to invalidate the browser cache because of a change to this photo?
+            if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][ $row['id'] ]))
+            {
+                $photoSrc .= '?'.time();
+            }
 
             echo '
                     <div class="category">
@@ -518,7 +521,14 @@ class PhotoGallery
                                 <input type="submit" name="deletephoto" id="deletephoto" value="'.T_('Delete').'" class="delbtn"/>
                             </li>';
         }
-        
+
+        // Do we need to invalidate the browser cache because of a change to this photo?
+        if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][$pid]))
+        {
+            $mediumSrc .= '?'.time();
+            $fullSrc   .= '?'.time();
+        }
+
         // Display
         echo '
             <div class="breadcrumbs">
@@ -970,6 +980,12 @@ class PhotoGallery
             $row['user'] = $row['uid'];
             $photoSrc    = $this->getPhotoSource($row);
 
+            // Do we need to invalidate the browser cache because of a change to this photo?
+            if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][$pid]))
+            {
+                $photoSrc .= '?'.time();
+            }
+
             echo '
                 <li class="category">
                     <a href="index.php?uid=0&amp;cid=comments&amp;pid='.$pid.'">
@@ -1063,6 +1079,12 @@ class PhotoGallery
             $row['user'] = $row['uid'];
             $photoSrc    = $this->getPhotoSource($row);
 
+            // Do we need to invalidate the browser cache because of a change to this photo?
+            if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][ $row['id'] ]))
+            {
+                $photoSrc .= '?'.time();
+            }
+
             echo '
                 <li class="category">
                     <a href="index.php'.$url.'">
@@ -1155,6 +1177,12 @@ class PhotoGallery
             $row['user'] = $row['uid'];
             $photoSrc    = $this->getPhotoSource($row);
 
+            // Do we need to invalidate the browser cache because of a change to this photo?
+            if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][ $row['id'] ]))
+            {
+                $photoSrc .= '?'.time();
+            }
+
             echo '
                 <li class="category">
                     <a href="index.php?uid='.$uid.'&amp;cid='.$cid.'">
@@ -1240,6 +1268,12 @@ class PhotoGallery
             $row['id']   = $row['pid'];
             $row['user'] = $row['uid'];
             $photoSrc    = $this->getPhotoSource($row);
+
+            // Do we need to invalidate the browser cache because of a change to this photo?
+            if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][$pid]))
+            {
+                $photoSrc .= '?'.time();
+            }
 
             $photos .= '
                     <li class="photo">
@@ -1443,6 +1477,12 @@ class PhotoGallery
             $row['user'] = $row['uid'];
             $photoSrc    = $this->getPhotoSource($row);
 
+            // Do we need to invalidate the browser cache because of a change to this photo?
+            if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][$pid]))
+            {
+                $photoSrc .= '?'.time();
+            }
+
             echo '
                 <li class="category">
                     <a href="'.$url.'">
@@ -1553,6 +1593,12 @@ class PhotoGallery
             $row['user'] = $row['uid'];
             $photoSrc    = $this->getPhotoSource($row);
 
+            // Do we need to invalidate the browser cache because of a change to this photo?
+            if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][$pid]))
+            {
+                $photoSrc .= '?'.time();
+            }
+
             echo '
                 <li class="category">
                     <a href="?uid='.$user.'&amp;cid=mostviewed&amp;pid='.$pid.'">
@@ -1641,6 +1687,12 @@ class PhotoGallery
             $row['user'] = $row['uid'];
             $photoSrc    = $this->getPhotoSource($row);
 
+            // Do we need to invalidate the browser cache because of a change to this photo?
+            if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][$pid]))
+            {
+                $photoSrc .= '?'.time();
+            }
+
             echo '
                 <li class="photo">
                     <a href="index.php?uid=0&amp;cid=tagged'.$userId.'&amp;pid='.$pid.'">
@@ -1721,6 +1773,12 @@ class PhotoGallery
             $row['id']   = $row['pid'];
             $row['user'] = $row['uid'];
             $photoSrc    = $this->getPhotoSource($row);
+
+            // Do we need to invalidate the browser cache because of a change to this photo?
+            if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][$pid]))
+            {
+                $photoSrc .= '?'.time();
+            }
 
             echo '
                 <li class="photo">
@@ -1804,6 +1862,8 @@ class PhotoGallery
             $this->fcmsError->displayError();
             return;
         }
+
+        $prev_tagged_options = '';
 
         if (!empty($row))
         {
@@ -1936,6 +1996,15 @@ class PhotoGallery
                                     });
                                 });
                                 </script>
+                            </div>
+                        </div>
+                        <div class="field-row rotate-options">
+                            <div class="field-label"><label><b>'.T_('Rotate').'</b></label></div>
+                            <div class="field-widget">
+                                <input type="radio" id="left" name="rotate" value="left"/>
+                                <label for="left" class="radio_label left">'.T_('Left').'</label>&nbsp;&nbsp; 
+                                <input type="radio" id="right" name="rotate" value="right"/>
+                                <label for="right" class="radio_label right">'.T_('Right').'</label>
                             </div>
                         </div>
                         <p>
@@ -2089,6 +2158,12 @@ class PhotoGallery
             $row['user'] = $row['uid'];
 
             $photoSrc = $this->getPhotoSource($row);
+
+            // Do we need to invalidate the browser cache because of a change to this photo?
+            if (isset($_SESSION['updatedPhotos']) && isset($_SESSION['updatedPhotos'][ $row['pid'] ]))
+            {
+                $photoSrc .= '?'.time();
+            }
 
             if ($displayCaption || $displayTag)
             {

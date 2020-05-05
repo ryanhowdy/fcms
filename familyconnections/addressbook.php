@@ -478,7 +478,7 @@ class Page
         $sql = "INSERT INTO `fcms_users` (
                     `access`, `joindate`, `fname`, `lname`, `email`, `username`, `phpass`
                 ) VALUES (
-                    ?, '0000-00-00 00:00:00', ?, ?, ?, ?, ?
+                    ?, NULL, ?, ?, ?, ?, ?
                 )";
 
         $id = $this->fcmsDatabase->insert($sql, array('10', $fname, $lname, $email, 'NONMEMBER-'.$uniq, $pw));

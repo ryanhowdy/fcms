@@ -1,0 +1,15 @@
+preset: recommended
+
+risky: false
+
+disabled:
+  - braces
+
+finder:
+  exclude:
+    - "dev"
+    - "tests"
+    - "familyconnections/inc/chat"
+    - "familyconnections/inc/thirdparty"
+  name:
+    - "*.php"

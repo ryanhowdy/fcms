@@ -352,7 +352,7 @@ function installCalendar ($connection)
     // create calendar
     $sql = "CREATE TABLE `fcms_calendar` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
-                `date` DATE NOT NULL DEFAULT '1000-01-01', 
+                `date` DATE NOT NULL, 
                 `time_start` TIME NULL, 
                 `time_end` TIME NULL, 
                 `date_added` DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -389,6 +389,7 @@ function installCalendar ($connection)
                 (NULL, '2007-04-01', '2007-04-01 01:00:00', \"".T_('April Fools Day')."\", 1, 4, 'yearly'), 
                 (NULL, '2007-10-31', '2007-10-31 01:00:00', \"".T_('Halloween')."\", 1, 4, 'yearly')";
     $connection->query($sql) or die($sql . '<br/>' . $connection->error);
+
     */
 }
 
@@ -417,6 +418,7 @@ function installTables ($connection)
                 `created_id`        INT(25) NOT NULL,
                 `updated`           DATETIME DEFAULT CURRENT_TIMESTAMP
                 ON UPDATE CURRENT_TIMESTAMP,
+
                 `updated_id`        INT(25) NOT NULL,
                 PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8";

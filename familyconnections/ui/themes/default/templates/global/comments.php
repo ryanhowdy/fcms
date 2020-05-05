@@ -3,7 +3,7 @@
         <?php foreach ($TMPL['comments'] as $comment): ?>
             <div class="comment">
                 <form class="<?php echo $comment['formClass']; ?>" action="<?php echo $comment['formUrl']; ?>" method="post">
-                <?php if ($comment['textDelete']): ?>
+                <?php if (isset($comment['textDelete'])): ?>
                     <input type="submit" name="delcom" id="delcom" value="<?php echo $comment['textDelete']; ?>" 
                         class="<?php echo $comment['deleteClass']; ?>" title="<?php echo $comment['deleteTitle']; ?>"/>
                 <?php endif; ?>

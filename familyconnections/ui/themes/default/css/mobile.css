@@ -17,37 +17,43 @@ body {
     padding: 5px;
     width: auto;
 }
-#mobile-topmenu {
-    display: block;
-    margin: 10px;
-    width: 460px;
+.navbar-default .navbar-toggle
+{
+    border-color: #fff;
 }
-#topmenu {
-    display: none;
+.navbar-default .navbar-toggle .icon-bar
+{
+    background-color: #fff;
 }
-#navigation {
-    background: #1A7AB0;
-    float: none;
-    position: static;
-    margin: 10px;
-    width: auto;
+.navbar-default .navbar-toggle:focus, 
+.navbar-default .navbar-toggle:hover
+{
+    background-color: #016290;
 }
-#navigation li {
-    float: none;
+nav.navbar ul.nav > li a
+{
+    font: normal 14px Verdana, Arial, sans-serif !important;
 }
-#navigation li ul {
-    display: block;
-    position: static;
+.navbar-default .navbar-nav>.open>a, 
+.navbar-default .navbar-nav>.open>a:focus, 
+.navbar-default .navbar-nav>.open>a:hover
+{
+    color: #fff;
+    background-color: #0a85c4;
 }
-#navigation li:hover {
-    position: static;
+nav.navbar ul.nav > li.open > a,
+nav.navbar ul.nav > li.open > a:hover
+{
+    color: #fff;
+    background-color: #016290;
 }
-#navigation li.dropdown > a {
-    display: none;
+nav.navbar ul.nav > li.open > ul.dropdown-menu > li > a
+{
+    padding: 10px 30px 10px 50px;
+    color: #fff;
 }
-#navigation a,
-#navigation li:hover a {
-    font-size: medium;
+.ok-msg {
+    width: 100%;
 }
 #content {
     width: auto;
@@ -155,6 +161,38 @@ fieldset #post {
     float: none;
     width: auto;
 }
+.photo-uploader {
+    height: 468px;
+}
+.photo-uploader .header label {
+    display: block;
+}
+.photo-uploader #new-category,
+.photo-uploader #existing-categories {
+    width: 100%;
+}
+.photo-uploader .header span {
+    float: right;
+    margin-top: -55px;
+}
+.photo-uploader .upload-types {
+    position: static;
+    width: auto;
+}
+.photo-uploader .upload-types li {
+    float: left;
+}
+.photo-uploader .upload-area {
+    clear: left;
+    position: static;
+    width: auto;
+}
+.edit-category-form #description {
+    width: 100%;
+}
+#gallery .edit-category-form fieldset div.photo_edit_area p {
+    clear: left;
+}
 #gallery_menu {
     padding-bottom: 20px;
 }
@@ -171,9 +209,6 @@ fieldset #post {
 #gallery_menu #sections_menu li {
     border: none;
     padding: 0 2px;
-}
-#gallery_menu #actions_menu .upload {
-    display: none;
 }
 #gallery #photos {
     width: 480px;
