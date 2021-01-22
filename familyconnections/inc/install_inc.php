@@ -481,7 +481,7 @@ function installTables ($connection)
     // create gallery_photos
     $sql = "CREATE TABLE `fcms_gallery_photos` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
-                `date` TIMESTAMP DEFAULT NULL, 
+                `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                 `filename` VARCHAR(25) NOT NULL DEFAULT 'noimage.gif', 
                 `external_id` INT(11) DEFAULT NULL, 
                 `caption` TEXT, 
@@ -514,7 +514,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `photo` INT(11) NOT NULL DEFAULT '0', 
                 `comment` TEXT NOT NULL, 
-                `date` TIMESTAMP DEFAULT NULL, 
+                `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                 `user` INT(11) NOT NULL DEFAULT '0', 
                 PRIMARY KEY (`id`), 
                 KEY `photo_ind` (`photo`), 
@@ -540,7 +540,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `category_id` INT(11) NOT NULL, 
                 `comment` TEXT NOT NULL, 
-                `created` TIMESTAMP NOT NULL, 
+                `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                 `created_id` INT(11) NOT NULL, 
                 PRIMARY KEY (`id`)
             ) 
@@ -612,7 +612,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `news` INT(11) NOT NULL DEFAULT '0', 
                 `comment` TEXT NOT NULL, 
-                `date` TIMESTAMP DEFAULT NULL, 
+                `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                 `user` INT(11) NOT NULL DEFAULT '0', 
                 PRIMARY KEY (`id`), 
                 KEY `photo_ind` (`news`), 
@@ -711,7 +711,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `poll_id` INT(11) NOT NULL, 
                 `comment` TEXT NOT NULL, 
-                `created` TIMESTAMP NOT NULL, 
+                `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                 `created_id` INT(11) NOT NULL, 
                 PRIMARY KEY (`id`)
             ) 
@@ -744,7 +744,7 @@ function installTables ($connection)
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
                 `subject` VARCHAR(50) NOT NULL DEFAULT 'Subject', 
                 `started_by` INT(11) NOT NULL DEFAULT '0', 
-                `updated` TIMESTAMP DEFAULT NULL, 
+                `updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                 `updated_by` INT(11) NOT NULL DEFAULT '0', 
                 `views` SMALLINT(6) NOT NULL DEFAULT '0', 
                 PRIMARY KEY (`id`), 
@@ -774,7 +774,7 @@ function installTables ($connection)
     // create board_posts
     $sql = "CREATE TABLE `fcms_board_posts` (
                 `id` INT(11) NOT NULL AUTO_INCREMENT, 
-                `date` TIMESTAMP DEFAULT NULL, 
+                `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                 `thread` INT(11) NOT NULL DEFAULT '0', 
                 `user` INT(11) NOT NULL DEFAULT '0', 
                 `post` TEXT NOT NULL, 
