@@ -1,14 +1,15 @@
 <?php
 /**
- * Prayers
- *  
+ * Prayers.
+ *
  * PHP versions 4 and 5
- *  
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -34,25 +35,25 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if (isset($_GET['addconcern']) && $this->fcmsUser->access <= 5)
         {
@@ -85,15 +86,15 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
-     * @param array $options 
-     * 
+     * displayHeader.
+     *
+     * @param array $options
+     *
      * @return void
      */
-    function displayHeader ($options = null)
+    public function displayHeader($options = null)
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -102,38 +103,38 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         displayPageHeader($params, $options);
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'    => URL_PREFIX,
             'version' => getCurrentVersion(),
-            'year'    => date('Y')
-        );
+            'year'    => date('Y'),
+        ];
 
         loadTemplate('global', 'footer', $params);
     }
 
     /**
-     * displayAddForm 
-     * 
+     * displayAddForm.
+     *
      * @return void
      */
-    function displayAddForm ()
+    public function displayAddForm()
     {
-        $this->displayHeader(array(
-            'modules' => array('livevalidation'),
-        ));
+        $this->displayHeader([
+            'modules' => ['livevalidation'],
+        ]);
 
         echo '
             <form method="post" name="addform" action="prayers.php">
@@ -165,25 +166,25 @@ class Page
     }
 
     /**
-     * displayAddFormSubmit 
-     * 
+     * displayAddFormSubmit.
+     *
      * @return void
      */
-    function displayAddFormSubmit ()
+    public function displayAddFormSubmit()
     {
-        $for  = strip_tags($_POST['for']);
+        $for = strip_tags($_POST['for']);
         $desc = strip_tags($_POST['desc']);
 
-        $sql = "INSERT INTO `fcms_prayers`
+        $sql = 'INSERT INTO `fcms_prayers`
                     (`for`, `desc`, `user`, `date`) 
                 VALUES
-                    (?, ?, ?, NOW())";
+                    (?, ?, ?, NOW())';
 
-        $params = array(
-            $for, 
-            $desc, 
-            $this->fcmsUser->id
-        );
+        $params = [
+            $for,
+            $desc,
+            $this->fcmsUser->id,
+        ];
 
         if (!$this->fcmsDatabase->insert($sql, $params))
         {
@@ -212,16 +213,16 @@ class Page
 
         if (count($rows) > 0)
         {
-            $name          = getUserDisplayName($this->fcmsUser->id);
-            $subject       = sprintf(T_('%s added a new Prayer Concern for %s'), $name, $for);
-            $url           = getDomainAndDir();
+            $name = getUserDisplayName($this->fcmsUser->id);
+            $subject = sprintf(T_('%s added a new Prayer Concern for %s'), $name, $for);
+            $url = getDomainAndDir();
             $email_headers = getEmailHeaders();
 
             foreach ($rows as $r)
             {
-                $to    = getUserDisplayName($r['user']);
+                $to = getUserDisplayName($r['user']);
                 $email = $r['email'];
-                $msg   = T_('Dear').' '.$to.',
+                $msg = T_('Dear').' '.$to.',
 
 '.$subject.'
 
@@ -239,22 +240,22 @@ class Page
 
         $_SESSION['success'] = 1;
 
-        header("Location: prayers.php");
+        header('Location: prayers.php');
     }
 
     /**
-     * displayEditForm 
-     * 
+     * displayEditForm.
+     *
      * @return void
      */
-    function displayEditForm ()
+    public function displayEditForm()
     {
-        $this->displayHeader(array(
-            'modules' => array('livevalidation'),
-        ));
+        $this->displayHeader([
+            'modules' => ['livevalidation'],
+        ]);
 
-        $id   = (int)$_POST['id'];
-        $for  = cleanOutput($_POST['for']);
+        $id = (int) $_POST['id'];
+        $for = cleanOutput($_POST['for']);
         $desc = $_POST['desc'];
 
         echo '
@@ -277,7 +278,7 @@ class Page
                         fdesc.add(Validate.Presence, {failureMessage: ""});
                     </script>
                     <div>
-                        <input type="hidden" name="id" value="'.(int)$id.'"/>
+                        <input type="hidden" name="id" value="'.(int) $id.'"/>
                         <input class="sub1" type="submit" name="submitedit" value="'.T_('Edit').'" tabindex="3"/> &nbsp;
                         <a href="prayers.php">'.T_('Cancel').'</a>
                     </div>
@@ -288,26 +289,26 @@ class Page
     }
 
     /**
-     * displayEditFormSubmit 
-     * 
+     * displayEditFormSubmit.
+     *
      * @return void
      */
-    function displayEditFormSubmit ()
+    public function displayEditFormSubmit()
     {
-        $id   = (int)$_POST['id'];
-        $for  = strip_tags($_POST['for']);
+        $id = (int) $_POST['id'];
+        $for = strip_tags($_POST['for']);
         $desc = strip_tags($_POST['desc']);
 
-        $sql = "UPDATE `fcms_prayers` 
+        $sql = 'UPDATE `fcms_prayers` 
                 SET `for` = ?, 
                     `desc` = ?
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
-        $params = array(
-            $for, 
+        $params = [
+            $for,
             $desc,
-            $id
-        );
+            $id,
+        ];
 
         if (!$this->fcmsDatabase->update($sql, $params))
         {
@@ -320,19 +321,19 @@ class Page
 
         $_SESSION['success'] = 1;
 
-        header("Location: prayers.php");
+        header('Location: prayers.php');
     }
 
     /**
-     * displayConfirmDelete 
-     * 
+     * displayConfirmDelete.
+     *
      * @return void
      */
-    function displayConfirmDelete ()
+    public function displayConfirmDelete()
     {
         $this->displayHeader();
 
-        $id = (int)$_POST['id'];
+        $id = (int) $_POST['id'];
 
         echo '
             <div class="info-alert">
@@ -351,16 +352,16 @@ class Page
     }
 
     /**
-     * displayDeleteSubmit 
-     * 
+     * displayDeleteSubmit.
+     *
      * @return void
      */
-    function displayDeleteSubmit ()
+    public function displayDeleteSubmit()
     {
-        $id = (int)$_POST['id'];
+        $id = (int) $_POST['id'];
 
-        $sql = "DELETE FROM `fcms_prayers` 
-                WHERE `id` = ?";
+        $sql = 'DELETE FROM `fcms_prayers` 
+                WHERE `id` = ?';
 
         if (!$this->fcmsDatabase->delete($sql, $id))
         {
@@ -373,22 +374,22 @@ class Page
 
         $_SESSION['delete_success'] = 1;
 
-        header("Location: prayers.php");
+        header('Location: prayers.php');
     }
 
     /**
-     * displayPrayers 
-     * 
+     * displayPrayers.
+     *
      * @return void
      */
-    function displayPrayers ()
+    public function displayPrayers()
     {
-        $this->displayHeader(array(
+        $this->displayHeader([
             'jsOnload' => '
     $(\'.delform input[type="submit"]\').click(function(e) {
         return confirmDeleteLink(this, "'.T_('Are you sure you want to DELETE this?').'", e);
-    });'
-        ));
+    });',
+        ]);
 
         if (isset($_SESSION['success']))
         {
@@ -414,7 +415,7 @@ class Page
 
         $page = getPage();
 
-        $from = (($page * 5) - 5); 
+        $from = (($page * 5) - 5);
 
         $sql = "SELECT p.`id`, `for`, `desc`, `user`, `date` 
                 FROM `fcms_prayers` AS p, `fcms_users` AS u 
@@ -447,7 +448,7 @@ class Page
 
         foreach ($rows as $r)
         {
-            $date        = fixDate(T_('F j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
+            $date = fixDate(T_('F j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
             $displayname = getUserDisplayName($r['user']);
 
             echo '
@@ -460,7 +461,7 @@ class Page
             {
                 echo '
             <form method="post" action="prayers.php">
-                <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
+                <input type="hidden" name="id" value="'.(int) $r['id'].'"/>
                 <input type="hidden" name="for" value="'.cleanOutput($r['for']).'"/>
                 <input type="hidden" name="desc" value="'.cleanOutput($r['desc']).'"/>
                 <input type="submit" name="editprayer" value="'.T_('Edit').'" class="editbtn" title="'.T_('Edit this Prayer Concern').'"/>
@@ -472,7 +473,7 @@ class Page
             {
                 echo '
             <form class="delform" method="post" action="prayers.php">
-                <input type="hidden" name="id" value="'.(int)$r['id'].'"/>
+                <input type="hidden" name="id" value="'.(int) $r['id'].'"/>
                 <input type="submit" name="delprayer" value="'.T_('Delete').'" class="delbtn" title="'.T_('Delete this Prayer Concern').'"/>
             </form>';
             }
@@ -480,7 +481,7 @@ class Page
             echo '
             </div>
             <div class="for">
-                <b>'.sprintf(T_('%s asks that you please pray for...'), '<a href="profile.php?member='.(int)$r['user'].'">'.$displayname.'</a>').'</b>
+                <b>'.sprintf(T_('%s asks that you please pray for...'), '<a href="profile.php?member='.(int) $r['user'].'">'.$displayname.'</a>').'</b>
                 <div>'.cleanOutput($r['for']).'</div>
             </div>
             <div class="because">
@@ -491,8 +492,8 @@ class Page
         }
 
         // Display Pagination
-        $sql = "SELECT count(`id`) AS c 
-                FROM `fcms_prayers`";
+        $sql = 'SELECT count(`id`) AS c 
+                FROM `fcms_prayers`';
 
         $r = $this->fcmsDatabase->getRow($sql);
         if ($r === false)
@@ -503,8 +504,8 @@ class Page
             return;
         }
 
-        $prayercount = (int)$r['c'];
-        $total_pages = ceil($prayercount / 5); 
+        $prayercount = (int) $r['c'];
+        $total_pages = ceil($prayercount / 5);
 
         displayPagination('prayers.php', $page, $total_pages);
 

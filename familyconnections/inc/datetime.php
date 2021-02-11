@@ -1,16 +1,17 @@
 <?php
-include_once('utils.php');
+
+include_once 'utils.php';
 
 /**
- * getDayName 
- * 
+ * getDayName.
+ *
  * Given a number of the weekday 0-6, returns the translated word for that day.
- * 
- * @param int $d 
- * 
+ *
+ * @param int $d
+ *
  * @return string
  */
-function getDayName ($d)
+function getDayName($d)
 {
     $day = getDayNames();
 
@@ -18,13 +19,13 @@ function getDayName ($d)
 }
 
 /**
- * getDayNames 
- * 
+ * getDayNames.
+ *
  * Returns an array of translated weekday names.
- * 
+ *
  * @return array
  */
-function getDayNames ()
+function getDayNames()
 {
     $day[0] = T_('Sunday');
     $day[1] = T_('Monday');
@@ -38,15 +39,15 @@ function getDayNames ()
 }
 
 /**
- * getDayInitial 
- * 
+ * getDayInitial.
+ *
  * Given a number of the weekday 0-6, returns the translated initial for that day.
- * 
+ *
  * @param int $d
- * 
+ *
  * @return string
  */
-function getDayInitial ($w)
+function getDayInitial($w)
 {
     $day_initial = getDayInitials();
 
@@ -54,13 +55,13 @@ function getDayInitial ($w)
 }
 
 /**
- * getDayInitials 
- * 
+ * getDayInitials.
+ *
  * Returns an array of translated weekday initials.
- * 
+ *
  * @return array
  */
-function getDayInitials ()
+function getDayInitials()
 {
     $day_initial[0] = T_pgettext('One letter abbreviation for Sunday.', 'S');
     $day_initial[1] = T_pgettext('One letter abbreviation for Monday.', 'M');
@@ -74,15 +75,15 @@ function getDayInitials ()
 }
 
 /**
- * getDayAbbr 
- * 
+ * getDayAbbr.
+ *
  * Given a number of the weekday 0-6, returns the translated 3 letter abbreviation for that day.
- * 
+ *
  * @param int $d
  *
  * @return string
  */
-function getDayAbbr ($d)
+function getDayAbbr($d)
 {
     $day_abbr[0] = T_pgettext('Three letter abbreviation for Sunday.', 'Sun');
     $day_abbr[1] = T_pgettext('Three letter abbreviation for Monday.', 'Mon');
@@ -96,25 +97,25 @@ function getDayAbbr ($d)
 }
 
 /**
- * getMonthName 
- * 
+ * getMonthName.
+ *
  * Given a number of the month 1-12, returns the translated month.
- * 
- * @param int $m 
- * 
+ *
+ * @param int $m
+ *
  * @return string
  */
-function getMonthName ($m)
+function getMonthName($m)
 {
-    $month[1]  = T_('January');
-    $month[2]  = T_('February');
-    $month[3]  = T_('March');
-    $month[4]  = T_('April');
-    $month[5]  = T_('May');
-    $month[6]  = T_('June');
-    $month[7]  = T_('July');
-    $month[8]  = T_('August');
-    $month[9]  = T_('September');
+    $month[1] = T_('January');
+    $month[2] = T_('February');
+    $month[3] = T_('March');
+    $month[4] = T_('April');
+    $month[5] = T_('May');
+    $month[6] = T_('June');
+    $month[7] = T_('July');
+    $month[8] = T_('August');
+    $month[9] = T_('September');
     $month[10] = T_('October');
     $month[11] = T_('November');
     $month[12] = T_('December');
@@ -123,25 +124,25 @@ function getMonthName ($m)
 }
 
 /**
- * getMonthAbbr 
- * 
+ * getMonthAbbr.
+ *
  * Given a number of the month 1-12, returns the translated 3 letter abbreviated month.
- * 
+ *
  * @param int $m
- * 
+ *
  * @return string
  */
-function getMonthAbbr ($m)
+function getMonthAbbr($m)
 {
-    $month_abbr[1]  = T_pgettext('Three letter abbreviation for January.', 'Jan');
-    $month_abbr[2]  = T_pgettext('Three letter abbreviation for February.', 'Feb');
-    $month_abbr[3]  = T_pgettext('Three letter abbreviation for March.', 'Mar');
-    $month_abbr[4]  = T_pgettext('Three letter abbreviation for April.', 'Apr');
-    $month_abbr[5]  = T_pgettext('Three letter abbreviation for May.', 'May');
-    $month_abbr[6]  = T_pgettext('Three letter abbreviation for June.', 'Jun');
-    $month_abbr[7]  = T_pgettext('Three letter abbreviation for July.', 'Jul');
-    $month_abbr[8]  = T_pgettext('Three letter abbreviation for August.', 'Aug');
-    $month_abbr[9]  = T_pgettext('Three letter abbreviation for September.', 'Sep');
+    $month_abbr[1] = T_pgettext('Three letter abbreviation for January.', 'Jan');
+    $month_abbr[2] = T_pgettext('Three letter abbreviation for February.', 'Feb');
+    $month_abbr[3] = T_pgettext('Three letter abbreviation for March.', 'Mar');
+    $month_abbr[4] = T_pgettext('Three letter abbreviation for April.', 'Apr');
+    $month_abbr[5] = T_pgettext('Three letter abbreviation for May.', 'May');
+    $month_abbr[6] = T_pgettext('Three letter abbreviation for June.', 'Jun');
+    $month_abbr[7] = T_pgettext('Three letter abbreviation for July.', 'Jul');
+    $month_abbr[8] = T_pgettext('Three letter abbreviation for August.', 'Aug');
+    $month_abbr[9] = T_pgettext('Three letter abbreviation for September.', 'Sep');
     $month_abbr[10] = T_pgettext('Three letter abbreviation for October.', 'Oct');
     $month_abbr[11] = T_pgettext('Three letter abbreviation for November.', 'Nov');
     $month_abbr[12] = T_pgettext('Three letter abbreviation for December.', 'Dec');
@@ -150,15 +151,15 @@ function getMonthAbbr ($m)
 }
 
 /**
- * getMeridiem 
- * 
+ * getMeridiem.
+ *
  * Given a meridiem (am pm AM PM), returns the translated version.
- * 
- * @param string $a 
- * 
+ *
+ * @param string $a
+ *
  * @return string
  */
-function getMeridiem ($a)
+function getMeridiem($a)
 {
     $meridiem['am'] = T_pgettext('Lowercase Ante meridiem.', 'am');
     $meridiem['pm'] = T_pgettext('Lowercase Post meridiem.', 'pm');
@@ -169,7 +170,7 @@ function getMeridiem ($a)
 }
 
 /**
- * fixDate
+ * fixDate.
  *
  * Used to output all date/time info.  Fixes timezone, dst and translation.
  *
@@ -180,23 +181,23 @@ function getMeridiem ($a)
  *
  * @return string the formatted and translated date
  */
-function fixDate ($dateFormat, $tzOffset = '', $date = '', $userid = '')
+function fixDate($dateFormat, $tzOffset = '', $date = '', $userid = '')
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     $fixedDate = $date;
-    $dst       = '';
+    $dst = '';
 
     if ($userid == '')
     {
-        $userid = (int)$_SESSION['fcms_id'];
+        $userid = (int) $_SESSION['fcms_id'];
     }
 
     // Get DST
-    $sql = "SELECT `dst` 
+    $sql = 'SELECT `dst` 
             FROM `fcms_user_settings` 
-            WHERE `user` = ?";
+            WHERE `user` = ?';
 
     $row = $fcmsDatabase->getRow($sql, $userid);
     if ($row === false)
@@ -206,11 +207,11 @@ function fixDate ($dateFormat, $tzOffset = '', $date = '', $userid = '')
 
     if ($row['dst'] > 0)
     {
-        $dst = " +1 hours";
+        $dst = ' +1 hours';
     }
 
     // Fix Timezone / DST
-    $fixedDate = gmdate("Y-m-d H:i:s", strtotime("$fixedDate $tzOffset$dst"));
+    $fixedDate = gmdate('Y-m-d H:i:s', strtotime("$fixedDate $tzOffset$dst"));
 
     // Formate date
     $fixedDate = formatDate($dateFormat, $fixedDate);
@@ -219,38 +220,38 @@ function fixDate ($dateFormat, $tzOffset = '', $date = '', $userid = '')
 }
 
 /**
- * formatDate 
- * 
+ * formatDate.
+ *
  * Formats a date with translation.
  *
  * @param string $dateFormat
- * @param date   $date 
+ * @param date   $date
  *
  * @return string
  */
-function formatDate ($dateFormat, $date)
+function formatDate($dateFormat, $date)
 {
     // Get translatable parts of the date
-    $m = date('n', strtotime($date)); # month 1-12
-    $d = date('w', strtotime($date)); # weekday 0-6
-    $a = date('a', strtotime($date)); # meridiem am or pm
-    $A = date('A', strtotime($date)); # merideim AM or PM
+    $m = date('n', strtotime($date)); // month 1-12
+    $d = date('w', strtotime($date)); // weekday 0-6
+    $a = date('a', strtotime($date)); // meridiem am or pm
+    $A = date('A', strtotime($date)); // merideim AM or PM
 
     // Get translated forms
-    $month      = getMonthName($m);
+    $month = getMonthName($m);
     $month_abbr = getMonthAbbr($m);
-    $day        = getDayName($d);
-    $day_abbr   = getDayAbbr($d);
+    $day = getDayName($d);
+    $day_abbr = getDayAbbr($d);
     $l_meridiem = getMeridiem($a);
     $u_meridiem = getMeridiem($A);
 
     // Replace translatable parts of date with the translated versions
-    $dateFormat = preg_replace( "/(?<!\\\)F/", addBackSlashes($month), $dateFormat);      # full month
-    $dateFormat = preg_replace( "/(?<!\\\)l/", addBackSlashes($day), $dateFormat);        # full weekday
-    $dateFormat = preg_replace( "/(?<!\\\)M/", addBackSlashes($month_abbr), $dateFormat); # 3 letter month
-    $dateFormat = preg_replace( "/(?<!\\\)D/", addBackSlashes($day_abbr), $dateFormat);   # 3 letter weekday
-    $dateFormat = preg_replace( "/(?<!\\\)a/", addBackSlashes($l_meridiem), $dateFormat); # lowercase merideim
-    $dateFormat = preg_replace( "/(?<!\\\)A/", addBackSlashes($u_meridiem), $dateFormat); # uppercase merideim
+    $dateFormat = preg_replace("/(?<!\\\)F/", addBackSlashes($month), $dateFormat);      // full month
+    $dateFormat = preg_replace("/(?<!\\\)l/", addBackSlashes($day), $dateFormat);        // full weekday
+    $dateFormat = preg_replace("/(?<!\\\)M/", addBackSlashes($month_abbr), $dateFormat); // 3 letter month
+    $dateFormat = preg_replace("/(?<!\\\)D/", addBackSlashes($day_abbr), $dateFormat);   // 3 letter weekday
+    $dateFormat = preg_replace("/(?<!\\\)a/", addBackSlashes($l_meridiem), $dateFormat); // lowercase merideim
+    $dateFormat = preg_replace("/(?<!\\\)A/", addBackSlashes($u_meridiem), $dateFormat); // uppercase merideim
 
     // Format date with translated data
     $fixedDate = date($dateFormat, strtotime($date));
@@ -259,15 +260,15 @@ function formatDate ($dateFormat, $date)
 }
 
 /**
- * addBackSlashes
- * 
+ * addBackSlashes.
+ *
  * Adds backslashes before letters and before a number at the start of a string.
- * 
- * @param string $string 
- * 
+ *
+ * @param string $string
+ *
  * @return string
  */
-function addBackSlashes ($string)
+function addBackSlashes($string)
 {
     $string = preg_replace('/^([0-9])/', '\\\\\\\\\1', $string);
     $string = preg_replace('/([a-z])/i', '\\\\\1', $string);
@@ -276,26 +277,26 @@ function addBackSlashes ($string)
 }
 
 /**
- * getHumanTimeSince 
- * 
+ * getHumanTimeSince.
+ *
  * Returns a nice, human readable difference between two dates.
  * ex: "5 days", "24 minutes"
  *
  * to time will be set to time() if not supplied
- * 
- * @param int $from 
- * @param int $to 
- * 
+ *
+ * @param int $from
+ * @param int $to
+ *
  * @return void
  */
-function getHumanTimeSince ($from, $to = 0)
+function getHumanTimeSince($from, $to = 0)
 {
     if ($to == 0)
     {
         $to = time();
     }
 
-    $diff = (int)abs($to - $from);
+    $diff = (int) abs($to - $from);
 
     // now
     // 0 seconds ago
@@ -307,7 +308,7 @@ function getHumanTimeSince ($from, $to = 0)
     // 1 - 59 seconds ago
     elseif ($diff < MINUTE_IN_SECONDS)
     {
-        $since = sprintf(T_ngettext('%s second ago', '%s seconds ago', (int)$diff), $diff);
+        $since = sprintf(T_ngettext('%s second ago', '%s seconds ago', (int) $diff), $diff);
     }
     // minutes
     // 1 - 59 minutes ago
@@ -318,8 +319,8 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $mins = 1;
         }
-        $mins  = (int)$mins;
-        $since = sprintf(T_ngettext('%s minute ago', '%s minutes ago', (int)$mins), $mins);
+        $mins = (int) $mins;
+        $since = sprintf(T_ngettext('%s minute ago', '%s minutes ago', (int) $mins), $mins);
     }
     // hours
     // 1 - 23 hours ago
@@ -330,8 +331,8 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $hours = 1;
         }
-        $hours = (int)$hours;
-        $since = sprintf(T_ngettext('%s hour ago', '%s hours ago', (int)$hours), $hours);
+        $hours = (int) $hours;
+        $since = sprintf(T_ngettext('%s hour ago', '%s hours ago', (int) $hours), $hours);
     }
     // days
     // 1 - 29 days ago
@@ -342,8 +343,8 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $days = 1;
         }
-        $days  = (int)$days;
-        $since = sprintf(T_ngettext('%s day ago', '%s days ago', (int)$days), $days);
+        $days = (int) $days;
+        $since = sprintf(T_ngettext('%s day ago', '%s days ago', (int) $days), $days);
     }
     // months
     // 30 - 364 days ago
@@ -354,8 +355,8 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $months = 1;
         }
-        $months = (int)$months;
-        $since  = sprintf(T_ngettext('%s month ago', '%s months ago', (int)$months), $months);
+        $months = (int) $months;
+        $since = sprintf(T_ngettext('%s month ago', '%s months ago', (int) $months), $months);
     }
     // years
     // 365+ days ago
@@ -366,31 +367,31 @@ function getHumanTimeSince ($from, $to = 0)
         {
             $years = 1;
         }
-        $since = sprintf(T_ngettext('%s year ago', '%s years ago', (int)$years), $years);
+        $since = sprintf(T_ngettext('%s year ago', '%s years ago', (int) $years), $years);
     }
 
     return $since;
 }
 
 /**
- * formatBirthday 
- * 
+ * formatBirthday.
+ *
  * Because birthdays are not required, user can have parts of a birthday.
  * This will format those partial dates in a nice way.
- * 
+ *
  * Shows the following partial dates:
  *  Y-m-d   - 2011-03-15
  *  F, Y    - March, 2011
  *  M. j    - Mar. 15
  *  Y       - 2011
- * 
- * @param string $year 
- * @param string $month 
- * @param string $day 
- * 
+ *
+ * @param string $year
+ * @param string $month
+ * @param string $day
+ *
  * @return string
  */
-function formatBirthday ($year, $month, $day)
+function formatBirthday($year, $month, $day)
 {
     if (!empty($year))
     {
@@ -398,11 +399,11 @@ function formatBirthday ($year, $month, $day)
         {
             if (!empty($day))
             {
-                return getMonthName((int)$month).', '.$day.' '.$year;
+                return getMonthName((int) $month).', '.$day.' '.$year;
             }
             else
             {
-                return getMonthName((int)$month).', '.$year;
+                return getMonthName((int) $month).', '.$year;
             }
         }
         else
@@ -414,7 +415,7 @@ function formatBirthday ($year, $month, $day)
     {
         if (!empty($day))
         {
-            return getMonthAbbr((int)$month).'. '.$day;
+            return getMonthAbbr((int) $month).'. '.$day;
         }
     }
 
@@ -422,16 +423,16 @@ function formatBirthday ($year, $month, $day)
 }
 
 /**
- * getAge 
- * 
- * @param int    $year 
- * @param int    $month 
- * @param int    $day 
+ * getAge.
+ *
+ * @param int    $year
+ * @param int    $month
+ * @param int    $day
  * @param string $dateToCompare defaults to today
- * 
+ *
  * @return int
  */
-function getAge ($year, $month, $day, $dateToCompare = false)
+function getAge($year, $month, $day, $dateToCompare = false)
 {
     global $currentUserId;
 
@@ -440,15 +441,15 @@ function getAge ($year, $month, $day, $dateToCompare = false)
 
     if ($dateToCompare === false)
     {
-        $yearDiff  = gmdate("Y") - $year;
-        $monthDiff = gmdate("m") - $month;
-        $dayDiff   = gmdate("d") - $day;
+        $yearDiff = gmdate('Y') - $year;
+        $monthDiff = gmdate('m') - $month;
+        $dayDiff = gmdate('d') - $day;
     }
     else
     {
-        $yearDiff  = gmdate("Y", strtotime($dateToCompare)) - $year;
-        $monthDiff = gmdate("m", strtotime($dateToCompare)) - $month;
-        $dayDiff   = gmdate("d", strtotime($dateToCompare)) - $day;
+        $yearDiff = gmdate('Y', strtotime($dateToCompare)) - $year;
+        $monthDiff = gmdate('m', strtotime($dateToCompare)) - $month;
+        $dayDiff = gmdate('d', strtotime($dateToCompare)) - $day;
     }
 
     if ($monthDiff < 0)

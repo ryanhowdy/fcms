@@ -1,39 +1,40 @@
 <?php
 /**
- * Family Connections - www.familycms.com
- * 
+ * Family Connections - www.familycms.com.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * Copyright (C) 2007 Ryan Haudenschilt
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
-
 session_start();
 
 // Site has NOT been installed yet
 if (!file_exists('inc/config_inc.php'))
 {
     displayNoConfig();
+
     return;
 }
 
@@ -44,14 +45,15 @@ load('facebook', 'socialmedia', 'phpass');
 setLanguage();
 
 control();
+
 return;
 
 /**
- * control 
- * 
+ * control.
+ *
  * @return void
  */
-function control ()
+function control()
 {
     if (isset($_GET['lang']))
     {
@@ -72,11 +74,11 @@ function control ()
 }
 
 /**
- * displayNoConfig 
- * 
+ * displayNoConfig.
+ *
  * @return void
  */
-function displayNoConfig ()
+function displayNoConfig()
 {
     include_once 'inc/constants.php';
     include_once THIRDPARTY.'php-gettext/gettext.inc';
@@ -89,66 +91,67 @@ function displayNoConfig ()
 
     displayHeader(false);
 
-    $TMPL = array(
-        'message' => array(
+    $TMPL = [
+        'message' => [
             'type'     => 'err-msg',
             'title'    => T_('Oops!'),
-            'messages' => array(
+            'messages' => [
                 T_('This site hasn\'t been installed yet.')
                     .' <a href="install.php">'.T_('You must finish the installation before using the site.').'</a>',
-            ),
-        ),
+            ],
+        ],
         'noForm' => 1,
-    );
+    ];
 
-    require_once('ui/login/main.php');
+    require_once 'ui/login/main.php';
 }
 
 /**
- * displayChangeLanguage 
- * 
+ * displayChangeLanguage.
+ *
  * Changes the language and redirects the page to the login form.
- * 
+ *
  * @return void
  */
-function displayChangeLanguage ()
+function displayChangeLanguage()
 {
     $_SESSION['language'] = $_GET['lang'];
 
     T_setlocale(LC_MESSAGES, $_SESSION['language']);
 
-    header("Location: index.php");
+    header('Location: index.php');
 }
 
 /**
- * displayLoginSubmit 
- * 
+ * displayLoginSubmit.
+ *
  * @return void
  */
-function displayLoginSubmit ()
+function displayLoginSubmit()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+    $fcmsUser = User::getInstance($fcmsError, $fcmsDatabase);
 
-    $user     = $_POST['user'];
-    $pass     = $_POST['pass'];
+    $user = $_POST['user'];
+    $pass = $_POST['pass'];
     $redirect = 'home.php';
-    $rem      = 0;
+    $rem = 0;
 
     if (isset($_POST['rem']))
     {
         $rem = 1;
     }
 
-    $sql = "SELECT `id`, `username`, `password`, `phpass`, `activated`, `locked` 
+    $sql = 'SELECT `id`, `username`, `password`, `phpass`, `activated`, `locked` 
             FROM `fcms_users` 
-            WHERE `username` = ?";
+            WHERE `username` = ?';
 
     $row = $fcmsDatabase->getRow($sql, $user);
     if ($row === false)
     {
         $fcmsError->displayError();
+
         return;
     }
 
@@ -156,18 +159,20 @@ function displayLoginSubmit ()
     if (count($row) <= 0)
     {
         handleBadLogin($user);
+
         return;
     }
 
     // New password style
     if ($row['password'] == '0')
     {
-        $hasher = new PasswordHash(8, FALSE);
+        $hasher = new PasswordHash(8, false);
 
         // Does the pw supplied match the db?
         if (!$hasher->CheckPassword($pass, $row['phpass']))
         {
             handleBadLogin($user);
+
             return;
         }
     }
@@ -177,6 +182,7 @@ function displayLoginSubmit ()
         if (md5($pass) !== $row['password'])
         {
             handleBadLogin($user);
+
             return;
         }
 
@@ -188,6 +194,7 @@ function displayLoginSubmit ()
             $fcmsError->displayError();
             echo '</div>';
             displayLogin();
+
             return;
         }
     }
@@ -203,6 +210,7 @@ function displayLoginSubmit ()
             $fcmsError->displayError();
             echo '</div>';
             displayLogin();
+
             return;
         }
 
@@ -227,6 +235,7 @@ function displayLoginSubmit ()
                 $fcmsError->displayError();
                 echo '</div>';
                 displayLogin();
+
                 return;
             }
 
@@ -238,6 +247,7 @@ function displayLoginSubmit ()
                 $fcmsError->displayError();
                 echo '</div>';
                 displayLogin();
+
                 return;
             }
 
@@ -260,55 +270,55 @@ function displayLoginSubmit ()
 }
 
 /**
- * displayAlreadyLoggedIn 
- * 
+ * displayAlreadyLoggedIn.
+ *
  * @return void
  */
-function displayAlreadyLoggedIn ()
+function displayAlreadyLoggedIn()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+    $fcmsUser = User::getInstance($fcmsError, $fcmsDatabase);
 
     if (isset($_COOKIE['fcms_cookie_id']))
     {
-        $_SESSION['fcms_id']    = (int)$_COOKIE['fcms_cookie_id'];
+        $_SESSION['fcms_id'] = (int) $_COOKIE['fcms_cookie_id'];
         $_SESSION['fcms_token'] = $_COOKIE['fcms_cookie_token'];
     }
 
     // Redirect to desired page
-    header("Location: home.php");
+    header('Location: home.php');
 }
 
 /**
- * displayHeader 
- * 
- * @param boolean $login Are we displaying the login screen?
- * 
- * @return  void
+ * displayHeader.
+ *
+ * @param bool $login Are we displaying the login screen?
+ *
+ * @return void
  */
 function displayHeader($login = true)
 {
-    $TMPL = array(
+    $TMPL = [
         'sitename' => 'Family Connections',
         'body'     => '',
-    );
+    ];
 
     if ($login)
     {
         $TMPL['sitename'] = getSiteName().' - '.T_('powered by').' '.getCurrentVersion();
-        $TMPL['body']     = ' onload="document.getElementById(\'user\').focus()"';
+        $TMPL['body'] = ' onload="document.getElementById(\'user\').focus()"';
     }
 
-    require_once('ui/login/header.php');
+    require_once 'ui/login/header.php';
 }
 
 /**
- * displayLoginForm 
- * 
+ * displayLoginForm.
+ *
  * @return void
  */
-function displayLoginForm ()
+function displayLoginForm()
 {
     $msg = handleFacebookLogin();
 
@@ -317,47 +327,47 @@ function displayLoginForm ()
 }
 
 /**
- * displayLogin 
- * 
+ * displayLogin.
+ *
  * @return void
  */
 function displayLogin($msg = null)
 {
-    $TMPL = array(
+    $TMPL = [
         'sitename'           => getSiteName(),
-        'languageOptions'    => array(),
+        'languageOptions'    => [],
         'usernameText'       => T_('Username'),
         'passwordText'       => T_('Password'),
         'rememberMeText'     => T_('Remember Me'),
         'loginText'          => T_('Login'),
         'forgotPasswordText' => T_('Forgot Password?'),
         'currentVersion'     => getCurrentVersion(),
-    );
+    ];
 
     // Display any errors, that were redirected here
     if (isset($_GET['err']))
     {
         if ($_GET['err'] == 'login')
         {
-            $TMPL['message'] = array(
+            $TMPL['message'] = [
                 'type'     => 'err-msg',
                 'title'    => T_('Access Denied'),
-                'messages' => array(
+                'messages' => [
                     T_('You must be logged in to view that page.'),
-                ),
-            );
+                ],
+            ];
         }
         elseif ($_GET['err'] == 'off')
         {
-            $TMPL['noForm']  = 1;
-            $TMPL['message'] = array(
+            $TMPL['noForm'] = 1;
+            $TMPL['message'] = [
                 'type'     => 'err-msg',
                 'title'    => T_('Hold On a Second!'),
-                'messages' => array(
+                'messages' => [
                     T_('The site has been closed by an administrator.'),
                     T_('Please come back later.'),
-                ),
-            );
+                ],
+            ];
         }
     }
 
@@ -373,7 +383,7 @@ function displayLogin($msg = null)
     }
 
     // Get available languages
-    $lang_dir     = "language/";
+    $lang_dir = 'language/';
     $lang_options = '';
 
     if (is_dir($lang_dir))
@@ -406,11 +416,11 @@ function displayLogin($msg = null)
                     $selected = 'selected="selected"';
                 }
 
-                $TMPL['languageOptions'][] = array(
+                $TMPL['languageOptions'][] = [
                     'value'    => $file,
                     'language' => getLangName($file),
                     'selected' => $selected,
-                );
+                ];
             }
 
             $TMPL['languageOptions'] = subval_sort($TMPL['languageOptions'], 'language');
@@ -425,43 +435,43 @@ function displayLogin($msg = null)
     }
 
     $fbData = getFacebookConfigData();
-    $params = array('scope' => 'user_about_me,user_birthday,user_location,email,publish_actions');
+    $params = ['scope' => 'user_about_me,user_birthday,user_location,email,publish_actions'];
 
     // Print the facebook register button
     if (!empty($fbData['fb_app_id']) && !empty($fbData['fb_secret']))
     {
-        $facebook = new Facebook(array(
+        $facebook = new Facebook([
             'appId'  => $fbData['fb_app_id'],
             'secret' => $fbData['fb_secret'],
-        ));
+        ]);
 
-        $TMPL['facebookLogin'] = array(
+        $TMPL['facebookLogin'] = [
             'url'  => $facebook->getLoginUrl($params),
             'text' => T_('Login using Facebook'),
-        );
+        ];
     }
 
-    require_once('ui/login/main.php');
+    require_once 'ui/login/main.php';
 }
 
 /**
- * handleBadLogin 
- * 
+ * handleBadLogin.
+ *
  * @param string $user The username login being attempted on
- * 
+ *
  * @return void
  */
-function handleBadLogin ($user)
+function handleBadLogin($user)
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+    $fcmsUser = User::getInstance($fcmsError, $fcmsDatabase);
 
-    $sql = "SELECT `id`, `login_attempts` 
+    $sql = 'SELECT `id`, `login_attempts` 
             FROM `fcms_users` 
-            WHERE `username` = ?";
+            WHERE `username` = ?';
 
-    $row = $fcmsDatabase->getRow($sql, $user);    
+    $row = $fcmsDatabase->getRow($sql, $user);
     if ($row === false)
     {
         $fcmsError->displayError();
@@ -488,13 +498,14 @@ function handleBadLogin ($user)
             }
 
             displayLockedOut();
+
             return;
         }
 
         // Increase login attempts
-        $sql = "UPDATE `fcms_users` 
+        $sql = 'UPDATE `fcms_users` 
                 SET `login_attempts` = `login_attempts`+1 
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         if (!$fcmsDatabase->update($sql, $row['id']))
         {
@@ -506,28 +517,28 @@ function handleBadLogin ($user)
 
     displayHeader();
 
-    $msg = array(
+    $msg = [
         'type'     => 'err-msg',
         'title'    => T_('Oops!'),
-        'messages' => array(
+        'messages' => [
             T_('That login information wasn\'t quite right.'),
             T_('Be sure and check that you typed your username/password correctly.'),
-        ),
-    );
+        ],
+    ];
 
     displayLogin($msg);
 }
 
 /**
- * handleFacebookLogin 
- * 
+ * handleFacebookLogin.
+ *
  * @return void
  */
-function handleFacebookLogin ()
+function handleFacebookLogin()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+    $fcmsUser = User::getInstance($fcmsError, $fcmsDatabase);
 
     $msg = null;
 
@@ -538,13 +549,13 @@ function handleFacebookLogin ()
         return;
     }
 
-    $facebook = new Facebook(array(
+    $facebook = new Facebook([
         'appId'  => $fbData['fb_app_id'],
         'secret' => $fbData['fb_secret'],
-    ));
+    ]);
 
     // Check if the user is logged in and authed
-    $fbUser    = $facebook->getUser();
+    $fbUser = $facebook->getUser();
     $fbProfile = '';
 
     if ($fbUser)
@@ -565,35 +576,36 @@ function handleFacebookLogin ()
         return $msg;
     }
 
-    $sql = "SELECT u.`id`, u.`username`, u.`phpass`, u.`activated`, u.`locked`
+    $sql = 'SELECT u.`id`, u.`username`, u.`phpass`, u.`activated`, u.`locked`
             FROM `fcms_users` AS u, `fcms_user_settings` AS s
             WHERE s.`user` = u.`id`
             AND (
                 u.`username` = ?
                 OR s.`fb_user_id` = ?
-            )";
+            )';
 
-    $params = array(
+    $params = [
         $fbProfile['email'],
-        $fbUser
-    );
+        $fbUser,
+    ];
 
     $row = $fcmsDatabase->getRow($sql, $params);
     if ($row === false)
     {
         $fcmsError->displayError();
+
         return $msg;
     }
 
     if (empty($row))
     {
-        $msg = array(
+        $msg = [
             'type'     => 'err-msg',
             'title'    => T_('Oops!'),
-            'messages' => array(
+            'messages' => [
                 T_('Your account hasn\'t been connected to Facebook yet.  You need to connect your existing account with Facebook or register a new account using Facebook.'),
-            ),
-        );
+            ],
+        ];
 
         return $msg;
     }
@@ -602,77 +614,78 @@ function handleFacebookLogin ()
     if ($row['activated'] == 0)
     {
         displayNotActive();
-        die(); // we don't want to return to displaying the login, we already did 
+        die(); // we don't want to return to displaying the login, we already did
     }
 
     // We made it past all the checks, then the user can be logged in
     if (!loginUser($row['id'], 0))
     {
         $fcmsError->displayError();
+
         return $msg;
     }
 
-    header("Location: home.php");
+    header('Location: home.php');
 }
 
 /**
- * displayNotActive 
- * 
+ * displayNotActive.
+ *
  * @return void
  */
-function displayNotActive ()
+function displayNotActive()
 {
     displayHeader();
 
-    $msg = array(
+    $msg = [
         'type'     => 'err-msg',
         'title'    => T_('Not So Fast'),
-        'messages' => array(
+        'messages' => [
             T_('Your account isn\'t active yet.  Your website administrator must activate your account before you can login and begin using the website.'),
-        ),
-    );
+        ],
+    ];
 
     displayLogin($msg);
 }
 
 /**
- * displayLockedOut 
- * 
+ * displayLockedOut.
+ *
  * @return void
  */
-function displayLockedOut ()
+function displayLockedOut()
 {
     displayHeader();
 
-    $msg = array(
+    $msg = [
         'type'     => 'err-msg',
         'title'    => T_('Hold On a Second!'),
-        'messages' => array(
+        'messages' => [
             T_('You have exceeded the number of allowed login attempts.'),
             T_('Your account has been locked for 1 hour.'),
-        ),
-    );
+        ],
+    ];
 
     displayLogin($msg);
 }
 
 /**
- * upgradeNewPassword 
- * 
+ * upgradeNewPassword.
+ *
  * Saves the password in the new format, deletes old pw.
- * 
+ *
  * @param int    $userId
- * @param string $password 
- * 
- * @return boolean
+ * @param string $password
+ *
+ * @return bool
  */
 function upgradeNewPassword($userId, $password)
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     // Hash the pw
-    $hasher         = new PasswordHash(8, FALSE);
+    $hasher = new PasswordHash(8, false);
     $hashedPassword = $hasher->HashPassword($password);
 
     $sql = "UPDATE `fcms_users`
@@ -680,7 +693,7 @@ function upgradeNewPassword($userId, $password)
                 `phpass` = ?
             WHERE `id` = ?";
 
-    $params = array($hashedPassword, $userId);
+    $params = [$hashedPassword, $userId];
 
     if (!$fcmsDatabase->update($sql, $params))
     {

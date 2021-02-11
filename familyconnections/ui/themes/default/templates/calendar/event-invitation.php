@@ -1,4 +1,4 @@
-        <?php if (isset($TMPL['showAttendingForm'])): ?>
+        <?php if (isset($TMPL['showAttendingForm'])) { ?>
             <form action="calendar.php?event=<?php echo $TMPL['eventId']; ?>" method="post">
                 <h1 id="attending_header"><?php echo T_('Are you attending?'); ?></h1>
                 <ul id="attending">
@@ -30,7 +30,7 @@
                     </li>
                 </ul>
             </form>';
-        <?php endif; ?>
+        <?php } ?>
 
             <div id="leftcolumn">
                 <div id="whos_coming">
@@ -39,51 +39,51 @@
                         <span class="ok"></span><?php echo T_('Yes'); ?> <i><?php echo $TMPL['whosComing']['yes']['count']; ?></i>
                     </h3>
                     <div class="coming_details">
-                <?php if (count($TMPL['whosComing']['yes']['users']) > 0): ?>
-                    <?php foreach ($TMPL['whosComing']['yes']['users'] as $u): ?>
+                <?php if (count($TMPL['whosComing']['yes']['users']) > 0) { ?>
+                    <?php foreach ($TMPL['whosComing']['yes']['users'] as $u) { ?>
                         <p><?php echo $u; ?></p>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                    <?php } ?>
+                <?php } ?>
                     </div>
                     <h3 class="coming">
                         <span class="maybe"></span><?php echo T_('Maybe'); ?> <i><?php echo $TMPL['whosComing']['maybe']['count']; ?></i>
                     </h3>
                     <div class="coming_details">
-                <?php if (count($TMPL['whosComing']['maybe']['users']) > 0): ?>
-                    <?php foreach ($TMPL['whosComing']['maybe']['users'] as $u): ?>
+                <?php if (count($TMPL['whosComing']['maybe']['users']) > 0) { ?>
+                    <?php foreach ($TMPL['whosComing']['maybe']['users'] as $u) { ?>
                         <p><?php echo $u; ?></p>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                    <?php } ?>
+                <?php } ?>
                     </div>
                     <h3 class="coming">
                         <span class="no"></span><?php echo T_('No'); ?> <i><?php echo $TMPL['whosComing']['no']['count']; ?></i>
                     </h3>
                     <div class="coming_details">
-                <?php if (count($TMPL['whosComing']['no']['users']) > 0): ?>
-                    <?php foreach ($TMPL['whosComing']['no']['users'] as $u): ?>
+                <?php if (count($TMPL['whosComing']['no']['users']) > 0) { ?>
+                    <?php foreach ($TMPL['whosComing']['no']['users'] as $u) { ?>
                         <p><?php echo $u; ?></p>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                    <?php } ?>
+                <?php } ?>
                     </div>
                     <h3 class="coming">
                         <?php echo T_('Undecided'); ?> <i><?php echo $TMPL['whosComing']['undecided']['count']; ?></i>
                     </h3>
                     <div class="coming_details">
-                <?php if (count($TMPL['whosComing']['undecided']['users']) > 0): ?>
-                    <?php foreach ($TMPL['whosComing']['undecided']['users'] as $u): ?>
+                <?php if (count($TMPL['whosComing']['undecided']['users']) > 0) { ?>
+                    <?php foreach ($TMPL['whosComing']['undecided']['users'] as $u) { ?>
                         <p><?php echo $u; ?></p>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                    <?php } ?>
+                <?php } ?>
                     </div>
                 </div>
             </div>
 
             <div id="maincolumn">
-            <?php foreach ($TMPL['responses'] as $r): ?>
+            <?php foreach ($TMPL['responses'] as $r) { ?>
                 <div class="comment_block">
                     <img class="avatar" src="ui/img/attend_<?php echo $r['responseType']; ?>.png" alt="<?php echo $r['responseText']; ?>"/>
                     <b><?php echo $r['name']; ?></b> <i><?php echo $r['updated']; ?></i>
                     <p><?php echo $r['text']; ?></p>
                 </div>
-            <?php endforeach; ?>
+            <?php } ?>
             </div>

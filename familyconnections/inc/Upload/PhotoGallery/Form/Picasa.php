@@ -1,52 +1,51 @@
 <?php
 /**
- * Picasa Form
- * 
- * @package Upload
- * @subpackage UploadPhotoGallery
+ * Picasa Form.
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class PicasaUploadPhotoGalleryForm extends UploadPhotoGalleryForm
 {
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
     }
 
     /**
-     * display 
-     * 
+     * display.
+     *
      * @return void
      */
-    public function display ()
+    public function display()
     {
         $_SESSION['fcms_uploader_type'] = 'picasa';
 
         $googleClient = getAuthedGoogleClient($this->fcmsUser->id);
 
         $picasaInfo = '';
-        $token      = '';
-        $js         = '';
+        $token = '';
+        $js = '';
 
         if ($this->fcmsError->hasError())
         {
             $this->fcmsError->displayError();
+
             return;
         }
-        else if ($googleClient === false)
+        elseif ($googleClient === false)
         {
             $picasaInfo = '
             <div class="info-alert">
@@ -59,9 +58,9 @@ class PicasaUploadPhotoGalleryForm extends UploadPhotoGalleryForm
         {
             $json = json_decode($_SESSION['googleSessionToken']);
 
-            $token      = $json->access_token;
+            $token = $json->access_token;
             $picasaInfo = '<p></p>';
-            $js         = 'loadPicasaAlbums("'.$token.'", "'.T_('Could not get albums.').'");';
+            $js = 'loadPicasaAlbums("'.$token.'", "'.T_('Could not get albums.').'");';
         }
 
         // Display the form

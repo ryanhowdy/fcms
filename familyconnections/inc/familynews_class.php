@@ -1,47 +1,46 @@
 <?php
 /**
- * FamilyNews 
- * 
- * @package     Family Connections
+ * FamilyNews.
+ *
  * @copyright   2010 Haudenschilt LLC
- * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
 class FamilyNews
 {
-    var $fcmsError;
-    var $fcmsDatabase;
-    var $fcmsUser;
+    public $fcmsError;
+    public $fcmsDatabase;
+    public $fcmsUser;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
      * @param Database   $fcmsDatabase
-     * @param User       $fcmsUser 
-     * 
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError       = $fcmsError;
-        $this->fcmsDatabase    = $fcmsDatabase;
-        $this->fcmsUser        = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
     }
 
     /**
-     * getNewsListMenu
+     * getNewsListMenu.
      *
      * Returns the template params for the family news list menu.
-     * 
+     *
      * @return array
      */
-    function getNewsListMenu ()
+    public function getNewsListMenu()
     {
-        $sql = "SELECT u.`id`, `fname`, `lname`, `displayname`, `username`, MAX(`updated`) AS d 
+        $sql = 'SELECT u.`id`, `fname`, `lname`, `displayname`, `username`, MAX(`updated`) AS d 
                 FROM `fcms_news` AS n, `fcms_users` AS u, `fcms_user_settings` AS s 
                 WHERE u.`id` = n.`user` 
-                AND u.`id` = s.`user` GROUP BY id ORDER BY d DESC";
+                AND u.`id` = s.`user` GROUP BY id ORDER BY d DESC';
 
         $rows = $this->fcmsDatabase->getRows($sql);
         if ($rows === false)
@@ -49,19 +48,19 @@ class FamilyNews
             return false;
         }
 
-        $templateParams = array(
+        $templateParams = [
             'familyNewsText' => T_('Family News'),
-        );
+        ];
 
         if (count($rows) > 0)
         {
             foreach ($rows as $r)
             {
-                $templateParams['newsMenu'][] = array(
-                    'id'          => (int)$r['id'],
+                $templateParams['newsMenu'][] = [
+                    'id'          => (int) $r['id'],
                     'displayname' => getUserDisplayName($r['id']),
                     'date'        => fixDate(T_('M. j'), $this->fcmsUser->tzOffset, $r['d']),
-                );
+                ];
             }
         }
 
@@ -69,19 +68,19 @@ class FamilyNews
     }
 
     /**
-     * displayUserFamilyNews 
-     * 
+     * displayUserFamilyNews.
+     *
      * Prints the listing of family news for a given user.
-     * 
+     *
      * @param int $user
-     * @param int $page 
-     * 
-     * @return  void
+     * @param int $page
+     *
+     * @return void
      */
-    function displayUserFamilyNews ($user, $page = 1)
+    public function displayUserFamilyNews($user, $page = 1)
     {
-        $user = (int)$user;
-        $from = (($page * 5) - 5); 
+        $user = (int) $user;
+        $from = (($page * 5) - 5);
 
         // Get family news
         $sql = "SELECT n.`id`, n.`user`, n.`title`, n.`news`, n.`updated`, n.`created`, 
@@ -122,9 +121,9 @@ class FamilyNews
         }
 
         // Display Pagination
-        $sql = "SELECT COUNT(`id`) AS c 
+        $sql = 'SELECT COUNT(`id`) AS c 
                 FROM `fcms_news` 
-                WHERE `user` = ?";
+                WHERE `user` = ?';
 
         $row = $this->fcmsDatabase->getRow($sql, $user);
         if ($row === false)
@@ -140,36 +139,36 @@ class FamilyNews
     }
 
     /**
-     * displayFamilyNews 
-     * 
+     * displayFamilyNews.
+     *
      * Displays a single family news entry.
-     * 
+     *
      * @param int $user
-     * @param int $id 
-     * 
-     * @return  void
+     * @param int $id
+     *
+     * @return void
      */
-    function displayFamilyNews ($user, $id)
+    public function displayFamilyNews($user, $id)
     {
-        $user = (int)$user;
-        $id   = (int)$id;
+        $user = (int) $user;
+        $id = (int) $id;
 
-        $templateParams = array(
+        $templateParams = [
             'username'        => getUserDisplayName($user),
             'commentsText'    => T_('Comments'),
             'addText'         => T_('Add'),
             'addCommentText'  => T_('Add Comment'),
             'addACommentText' => T_('Add a comment'),
             'addCommentUrl'   => '?getnews='.$user.'&amp;newsid='.$id.'#footer',
-            'comments'        => array(),
+            'comments'        => [],
             'noCommentsText'  => T_('no comments'),
-        );
+        ];
 
-        $sql = "SELECT n.`id`, n.`title`, n.`news`, n.`updated`, n.`created`,
+        $sql = 'SELECT n.`id`, n.`title`, n.`news`, n.`updated`, n.`created`,
                     n.`external_type`, n.`external_id`
                 FROM `fcms_news` AS n, `fcms_users` AS u 
                 WHERE n.`id` = ? 
-                    AND `user` = u.`id`";
+                    AND `user` = u.`id`';
 
         $row = $this->fcmsDatabase->getRow($sql, $id);
         if ($row === false)
@@ -179,21 +178,21 @@ class FamilyNews
 
         if ($this->fcmsUser->id == $user || $this->fcmsUser->access < 2)
         {
-            $templateParams['edit'] = array(
+            $templateParams['edit'] = [
                 'user'                   => $user,
-                'id'                     => (int)$row['id'],
+                'id'                     => (int) $row['id'],
                 'title'                  => cleanOutput($row['title']),
                 'news'                   => cleanOutput($row['news']),
                 'editText'               => T_('Edit'),
                 'editThisFamilyNewsText' => T_('Edit this Family News'),
-            );
+            ];
 
-            $templateParams['delete'] = array(
+            $templateParams['delete'] = [
                 'user'                     => $user,
-                'id'                       => (int)$row['id'],
+                'id'                       => (int) $row['id'],
                 'deleteText'               => T_('Delete'),
                 'deleteThisFamilyNewsText' => T_('Delete this Family News'),
-            );
+            ];
         }
 
         $updated = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['updated']);
@@ -208,25 +207,25 @@ class FamilyNews
         else
         {
             $templateParams['external'] = sprintf(T_('Originally from %s, %s.'), $row['external_type'], $created);
-            $templateParams['news']     = $row['news'];
+            $templateParams['news'] = $row['news'];
 
             unset($templateParams['edit']); // can't edit external
         }
 
-        $templateParams['updated']      = $updated;
-        $templateParams['created']      = $created;
-        $templateParams['url']          = '?getnews='.$user.'&amp;newsid='.(int)$row['id'];
-        $templateParams['commentUrl']   = '?getnews='.$user.'&amp;newsid='.(int)$row['id'].'#comments';
+        $templateParams['updated'] = $updated;
+        $templateParams['created'] = $created;
+        $templateParams['url'] = '?getnews='.$user.'&amp;newsid='.(int) $row['id'];
+        $templateParams['commentUrl'] = '?getnews='.$user.'&amp;newsid='.(int) $row['id'].'#comments';
         $templateParams['commentCount'] = getNewsComments($row['id']);
 
         $templateParams['title'] = !empty($row['title']) ? cleanOutput($row['title']) : T_('untitled');
 
         // Comments
-        $sql = "SELECT c.id, comment, `date`, fname, lname, username, user, avatar  
+        $sql = 'SELECT c.id, comment, `date`, fname, lname, username, user, avatar  
                 FROM fcms_news_comments AS c, fcms_users AS u 
                 WHERE news = ?
                 AND c.user = u.id 
-                ORDER BY `date`";
+                ORDER BY `date`';
 
         $rows = $this->fcmsDatabase->getRows($sql, $id);
         if ($rows === false)
@@ -238,21 +237,21 @@ class FamilyNews
 
         foreach ($rows as $row)
         {
-            $commentParams = array(
+            $commentParams = [
                 'avatar'   => getCurrentAvatar($row['user']),
                 'username' => getUserDisplayName($row['user']),
                 'date'     => fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $row['date']),
                 'comment'  => cleanOutput($row['comment']),
-            );
+            ];
 
             if ($this->fcmsUser->id == $row['user'] || $this->fcmsUser->access < 2)
             {
-                $commentParams['delete'] = array(
+                $commentParams['delete'] = [
                     'url'                   => '?getnews='.$user.'&amp;newsid='.$id,
-                    'id'                    => (int)$row['id'],
+                    'id'                    => (int) $row['id'],
                     'deleteText'            => T_('Delete'),
                     'deleteThisCommentText' => T_('Delete this comment'),
-                );
+                ];
             }
 
             $templateParams['comments'][] = $commentParams;
@@ -262,74 +261,75 @@ class FamilyNews
     }
 
     /**
-     * displayForm 
-     * 
-     * @param   string  $type 
-     * @param   int     $user 
-     * @param   int     $newsid 
-     * @param   string  $title 
-     * @param   string  $news 
-     * 
-     * @return  void
+     * displayForm.
+     *
+     * @param string $type
+     * @param int    $user
+     * @param int    $newsid
+     * @param string $title
+     * @param string $news
+     *
+     * @return void
      */
-    function displayForm ($type, $user = 0, $newsid = 0, $title='error', $news = 'error')
+    public function displayForm($type, $user = 0, $newsid = 0, $title = 'error', $news = 'error')
     {
-        $templateParams = array(
+        $templateParams = [
             'titleText'                 => T_('Title'),
             'titleOfYourFamilyNewsText' => T_('Title of your Family News'),
             'orText'                    => T_('or'),
             'cancelText'                => T_('Cancel'),
-        );
+        ];
 
         if ($type == 'edit')
         {
-            $templateParams['editText']     = T_('Edit');
+            $templateParams['editText'] = T_('Edit');
             $templateParams['editNewsText'] = T_('Edit News');
-            $templateParams['title']        = $title;
-            $templateParams['news']         = $news;
-            $templateParams['id']           = (int)$newsid;
-            $templateParams['user']         = (int)$user;
+            $templateParams['title'] = $title;
+            $templateParams['news'] = $news;
+            $templateParams['id'] = (int) $newsid;
+            $templateParams['user'] = (int) $user;
         }
         else
         {
-            $templateParams['addText']     = T_('Add');
+            $templateParams['addText'] = T_('Add');
             $templateParams['addNewsText'] = T_('Add News');
         }
 
         // get the bbcode toolbar params
         $bbcodeToolbarParams = getBBCodeToolbarTemplateParams();
-        $templateParams      = array_merge($templateParams, $bbcodeToolbarParams);
+        $templateParams = array_merge($templateParams, $bbcodeToolbarParams);
 
         loadTemplate('familynews', $type, $templateParams);
     }
 
     /**
-     * displayLast5News 
-     * 
+     * displayLast5News.
+     *
      * @return void
      */
-    function displayLast5News ()
+    public function displayLast5News()
     {
-        $sql = "SELECT * 
+        $sql = 'SELECT * 
                 FROM `fcms_news` 
                 ORDER BY `updated` DESC 
-                LIMIT 5";
+                LIMIT 5';
 
         $rows = $this->fcmsDatabase->getRows($sql);
         if ($rows === false)
         {
             $this->fcmsDatabase->displayError();
+
             return;
         }
 
-        $templateParams = array(
+        $templateParams = [
             'nothingToSeeHereText'  => T_('Nothing to see here'),
             'noOneAddedNewsText'    => T_('Currently no one has added any news'),
             'beFirstAddNewsText'    => T_('Why don\'t you be the first to add news?'),
             'addFamilyNewsText'     => T_('Add Family News'),
             'importExistinBlogText' => T_('Import News from existing blog'),
-            'news'                  => array(),
-        );
+            'news'                  => [],
+        ];
 
         foreach ($rows as $row)
         {
@@ -340,19 +340,20 @@ class FamilyNews
     }
 
     /**
-     * hasNews 
-     * 
-     * @param  int  $userid 
+     * hasNews.
+     *
+     * @param int $userid
+     *
      * @return void
      */
-    function hasNews ($userid)
+    public function hasNews($userid)
     {
-        $userid = (int)$userid;
+        $userid = (int) $userid;
 
-        $sql = "SELECT `id` 
+        $sql = 'SELECT `id` 
                 FROM `fcms_news` 
                 WHERE `user` = ?
-                LIMIT 1";
+                LIMIT 1';
 
         $row = $this->fcmsDatabase->getRow($sql, $userid);
         if ($row === false)
@@ -372,14 +373,14 @@ class FamilyNews
     }
 
     /**
-     * importExternalPosts 
-     * 
+     * importExternalPosts.
+     *
      * Checks if any user has an external blog setup.
      * Imports posts from those blogs if they haven't been imported already.
-     * 
+     *
      * @return void
      */
-    function importExternalPosts ()
+    public function importExternalPosts()
     {
         // get date we last checked for external news
         $sql = "SELECT `value` AS 'external_news_date'
@@ -398,7 +399,7 @@ class FamilyNews
         $last_checked = strtotime($r['external_news_date']);
 
         // have checked in the last 8 hours?
-        if (time() - $last_checked <= (8*3600))
+        if (time() - $last_checked <= (8 * 3600))
         {
             return;
         }
@@ -411,8 +412,8 @@ class FamilyNews
         }
 
         // Get import blog settings
-        $sql = "SELECT `user`, `blogger`, `tumblr`, `wordpress`, `posterous`
-                FROM `fcms_user_settings`";
+        $sql = 'SELECT `user`, `blogger`, `tumblr`, `wordpress`, `posterous`
+                FROM `fcms_user_settings`';
 
         $rows = $this->fcmsDatabase->getRows($sql);
         if ($rows === false)
@@ -486,25 +487,25 @@ class FamilyNews
     }
 
     /**
-     * getNewsTemplateParams
-     * 
+     * getNewsTemplateParams.
+     *
      * Prints out the news info when looping through a list of news.
      * Used when viewing last 5 and users news.
-     * 
-     * @param array $data 
-     * 
+     *
+     * @param array $data
+     *
      * @return array
      */
-    function getNewsTemplateParams ($data)
+    public function getNewsTemplateParams($data)
     {
-        $templateParams = array(
+        $templateParams = [
             'displayname'   => getUserDisplayName($data['user']),
             'updated'       => fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $data['updated']),
             'title'         => cleanOutput($data['title']),
-            'url'           => '?getnews='.(int)$data['user'].'&amp;newsid='.(int)$data['id'],
+            'url'           => '?getnews='.(int) $data['user'].'&amp;newsid='.(int) $data['id'],
             'commentsText'  => T_('Comments'),
             'commentCount'  => getNewsComments($data['id']),
-        );
+        ];
 
         // Imported news
         if (strlen($data['external_type']) > 0)
@@ -512,7 +513,7 @@ class FamilyNews
             $created = fixDate(T_('F j, Y g:i a'), $this->fcmsUser->tzOffset, $data['created']);
 
             $templateParams['external'] = sprintf(T_('Originally from %s, %s.'), $data['external_type'], $created);
-            $templateParams['news']     = strip_tags($data['news']);
+            $templateParams['news'] = strip_tags($data['news']);
         }
         // Family News
         else
@@ -524,7 +525,7 @@ class FamilyNews
         if (strlen($data['news']) > 300)
         {
             $templateParams['news'] = substr($templateParams['news'], 0, 300);
-            $templateParams['news'] .= '...<br/><br/><a href="?getnews='.$data['user'].'&amp;newsid='.(int)$data['id'].'">'.T_('Read More').'</a>';
+            $templateParams['news'] .= '...<br/><br/><a href="?getnews='.$data['user'].'&amp;newsid='.(int) $data['id'].'">'.T_('Read More').'</a>';
         }
 
         if (empty($data['title']))
@@ -536,20 +537,20 @@ class FamilyNews
     }
 
     /**
-     * getExternalPostIds 
-     * 
+     * getExternalPostIds.
+     *
      * Returns an array of ids for blog posts that were imported from outside blogs.
-     * 
+     *
      * @return void
      */
-    function getExternalPostIds ()
+    public function getExternalPostIds()
     {
-        $external_ids = array();
+        $external_ids = [];
 
         // Check existing external posts
-        $sql = "SELECT `external_id`, `external_type`
+        $sql = 'SELECT `external_id`, `external_type`
                 FROM `fcms_news`
-                WHERE `external_id` IS NOT NULL";
+                WHERE `external_id` IS NOT NULL';
 
         $rows = $this->fcmsDatabase->getRows($sql);
         if ($rows === false)
@@ -568,27 +569,27 @@ class FamilyNews
     }
 
     /**
-     * importBloggerPosts 
-     * 
+     * importBloggerPosts.
+     *
      * Will return the number of posts imported or false if failures.
-     * 
-     * @param string $bloggerUrl 
-     * @param int    $userid 
-     * @param string $atomDate 
-     * @param array  $externalIds 
-     * 
+     *
+     * @param string $bloggerUrl
+     * @param int    $userid
+     * @param string $atomDate
+     * @param array  $externalIds
+     *
      * @return int or boolean false
      */
-    function importBloggerPosts ($bloggerUrl, $userid, $atomDate, $externalIds)
+    public function importBloggerPosts($bloggerUrl, $userid, $atomDate, $externalIds)
     {
         // User entered blogger url instead of blog id, lets fix it for them
         if (!ctype_digit($bloggerUrl))
         {
-            $xml        = $bloggerUrl;
+            $xml = $bloggerUrl;
             $bloggerUrl = '';
 
             $beginning = substr($xml, 0, 4);
-            $ending    = substr($xml, -1);
+            $ending = substr($xml, -1);
 
             if ($beginning !== 'http')
             {
@@ -605,6 +606,7 @@ class FamilyNews
             if (!$this->url_exists($xml))
             {
                 echo '<div class="error-alert">'.sprintf(T_('Invalid url [%s].'), $xml).'</div>';
+
                 return false;
             }
 
@@ -643,11 +645,11 @@ class FamilyNews
         }
 
         // Insert new external posts
-        $sql = "INSERT INTO `fcms_news`
+        $sql = 'INSERT INTO `fcms_news`
                     (`title`, `news`, `user`, `created`, `updated`, `external_type`, `external_id`)
-                VALUES ";
+                VALUES ';
 
-        $allParams = array();
+        $allParams = [];
 
         $importCount = 0;
         foreach ($xml->entry as $post)
@@ -661,13 +663,13 @@ class FamilyNews
             }
 
             $sql .= "(?, ?, ?, ?, NOW(), 'blogger', ?), ";
-            $params = array(
+            $params = [
                 "$post->title",
                 "$post->content",
                 $userid,
                 date('Y-m-d H:i:s', strtotime($post->published)),
-                $bid
-            );
+                $bid,
+            ];
 
             $allParams = array_merge($allParams, $params);
 
@@ -697,18 +699,18 @@ class FamilyNews
     }
 
     /**
-     * importTumblrPosts 
-     * 
+     * importTumblrPosts.
+     *
      * Will return the number of posts imported or false if failures.
-     * 
-     * @param string $tumblrUrl 
+     *
+     * @param string $tumblrUrl
      * @param int    $userid
-     * @param string $atomDate 
-     * @param array  $externalIds 
-     * 
+     * @param string $atomDate
+     * @param array  $externalIds
+     *
      * @return int or boolean false
      */
-    function importTumblrPosts ($tumblrUrl, $userid, $atomDate, $externalIds)
+    public function importTumblrPosts($tumblrUrl, $userid, $atomDate, $externalIds)
     {
         // Tumblr api doesn't allow you to limit the search by date or id
         // it will get the last 20 every time
@@ -732,16 +734,16 @@ class FamilyNews
         }
 
         // Insert new external posts
-        $sql = "INSERT INTO `fcms_news` (`title`, `news`, `user`, 
+        $sql = 'INSERT INTO `fcms_news` (`title`, `news`, `user`, 
                     `created`, `updated`, `external_type`, `external_id`)
-                VALUES ";
+                VALUES ';
 
-        $allParams = array();
+        $allParams = [];
 
         $importCount = 0;
         foreach($xml->posts->post as $post)
         {
-            $id = (float)$post->attributes()->id;
+            $id = (float) $post->attributes()->id;
 
             // skip ids that already exist
             if (isset($externalIds["$id"]))
@@ -752,7 +754,7 @@ class FamilyNews
             switch ($post->attributes()->type)
             {
                 case 'photo':
-                    $news  = '<img src="'.$post->{'photo-url'}[3].'"/>';
+                    $news = '<img src="'.$post->{'photo-url'}[3].'"/>';
                     $title = '';
                     if (isset($post->{'photo-caption'}))
                     {
@@ -762,7 +764,7 @@ class FamilyNews
 
                 case 'regular':
                     $title = $post->{'regular-title'};
-                    $news  = $post->{'regular-body'};
+                    $news = $post->{'regular-body'};
                     break;
 
                 case 'quote':
@@ -772,13 +774,13 @@ class FamilyNews
 
             $sql .= "(?, ?, ?, ?, NOW(), 'tumblr', ?), ";
 
-            $params = array(
+            $params = [
                 $title,
                 $news,
                 $userid,
                 date('Y-m-d H:i:s', strtotime($post->attributes()->date)),
-                $id
-            );
+                $id,
+            ];
 
             $allParams = array_merge($allParams, $params);
 
@@ -808,18 +810,18 @@ class FamilyNews
     }
 
     /**
-     * importWordpressPosts 
-     * 
+     * importWordpressPosts.
+     *
      * Will return the number of posts imported or false if failures.
-     * 
-     * @param string $wordpressUrl 
-     * @param int    $userId 
-     * @param string $atomDate 
-     * @param string $external_ids 
-     * 
+     *
+     * @param string $wordpressUrl
+     * @param int    $userId
+     * @param string $atomDate
+     * @param string $external_ids
+     *
      * @return int or boolean false
      */
-    function importWordpressPosts ($wordpressUrl, $userId, $atomDate, $external_ids)
+    public function importWordpressPosts($wordpressUrl, $userId, $atomDate, $external_ids)
     {
         // Wordpress doesn't have an api to limit posts by date or id
         if ($this->url_exists($wordpressUrl))
@@ -840,11 +842,11 @@ class FamilyNews
         }
 
         // Insert new external posts
-        $sql = "INSERT INTO `fcms_news` (`title`, `news`, `user`, 
+        $sql = 'INSERT INTO `fcms_news` (`title`, `news`, `user`, 
                     `created`, `updated`, `external_type`, `external_id`)
-                VALUES ";
+                VALUES ';
 
-        $allParams = array();
+        $allParams = [];
 
         $importCount = 0;
         foreach($xml->channel->item as $post)
@@ -859,13 +861,13 @@ class FamilyNews
 
             $sql .= "(?, ?, ?, ?, NOW(), 'wordpress', ?), ";
 
-            $params = array(
+            $params = [
                 "$post->title",
                 "$post->description",
                 $userId,
                 date('Y-m-d H:i:s', strtotime($post->pubDate)),
-                $bid
-            );
+                $bid,
+            ];
 
             $allParams = array_merge($allParams, $params);
 
@@ -895,22 +897,22 @@ class FamilyNews
     }
 
     /**
-     * importPosterousPosts 
-     * 
+     * importPosterousPosts.
+     *
      * Will return the number of posts imported or false if failures.
-     * 
-     * @param string $posterousUrl 
-     * @param int    $userId 
-     * @param string $atomDate 
-     * @param string $external_ids 
-     * 
+     *
+     * @param string $posterousUrl
+     * @param int    $userId
+     * @param string $atomDate
+     * @param string $external_ids
+     *
      * @return int or boolean false
      */
-    function importPosterousPosts ($posterousUrl, $userId, $atomDate, $external_ids)
+    public function importPosterousPosts($posterousUrl, $userId, $atomDate, $external_ids)
     {
         $maxId = 0;
 
-        # get the highest id from existing external posts, if any
+        // get the highest id from existing external posts, if any
         foreach ($external_ids as $id => $type)
         {
             if ($type != 'posterous')
@@ -921,7 +923,7 @@ class FamilyNews
             if ($id > $maxId)
             {
                 $maxId = $id;
-            }                    
+            }
         }
 
         $url = 'http://posterous.com/api/readposts?hostname='.$posterousUrl;
@@ -949,11 +951,11 @@ class FamilyNews
         }
 
         // Insert new external posts
-        $sql = "INSERT INTO `fcms_news` (`title`, `news`, `user`, 
+        $sql = 'INSERT INTO `fcms_news` (`title`, `news`, `user`, 
                     `created`, `updated`, `external_type`, `external_id`)
-                VALUES ";
+                VALUES ';
 
-        $allParams = array();
+        $allParams = [];
 
         $importCount = 0;
         foreach($xml->post as $post)
@@ -968,13 +970,13 @@ class FamilyNews
 
             $sql .= "(?, ?, ?, ?, NOW(), 'posterous', ?), ";
 
-            $params = array(
+            $params = [
                 "$post->title",
                 "$post->body",
                 $userId,
                 date('Y-m-d H:i:s', strtotime($post->date)),
-                $bid
-            );
+                $bid,
+            ];
 
             $allParams = array_merge($allParams, $params);
 
@@ -1004,15 +1006,16 @@ class FamilyNews
     }
 
     /**
-     * url_exists 
-     * 
-     * @param string $url 
+     * url_exists.
      *
-     * @return boolean
+     * @param string $url
+     *
+     * @return bool
      */
-    function url_exists($url)
-    { 
-        $hdrs = @get_headers($url); 
-        return is_array($hdrs) ? preg_match('/^HTTP\\/\\d+\\.\\d+\\s+2\\d\\d\\s+.*$/',$hdrs[0]) : false; 
-    } 
+    public function url_exists($url)
+    {
+        $hdrs = @get_headers($url);
+
+        return is_array($hdrs) ? preg_match('/^HTTP\\/\\d+\\.\\d+\\s+2\\d\\d\\s+.*$/', $hdrs[0]) : false;
+    }
 }

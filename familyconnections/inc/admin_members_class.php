@@ -1,103 +1,105 @@
 <?php
 /**
- * AdminMembers
- * 
+ * AdminMembers.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 require_once 'utils.php';
 require_once 'datetime.php';
 
 /**
- * AdminMembers 
- * 
+ * AdminMembers.
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 class AdminMembers
 {
-    var $fcmsError;
-    var $fcmsDatabase;
-    var $fcmsUser;
-    var $configuration = array(
+    public $fcmsError;
+    public $fcmsDatabase;
+    public $fcmsUser;
+    public $configuration = [
         // Table Name                           Column Name(s)
-        array('fcms_address',                   'user'),
-        array('fcms_alerts',                    'user'),
-        array('fcms_board_posts',               'user'),
-        array('fcms_board_threads',             array('started_by', 'updated_by')),
-        array('fcms_calendar',                  'created_by'),
-        array('fcms_category',                  'user'),
-        array('fcms_changelog',                 'user'),
-        array('fcms_chat_messages',             ''),
-        array('fcms_chat_online',               ''),
-        array('fcms_config',                    ''),
-        array('fcms_documents',                 'user'),
-        array('fcms_gallery_category_comment',  'created_id'),
-        array('fcms_gallery_external_photo',    ''),
-        array('fcms_gallery_photos',            'user'),
-        array('fcms_gallery_photos_tags',       'user'),
-        array('fcms_gallery_photo_comment',     'user'),
-        array('fcms_invitation',                'user'),
-        array('fcms_navigation',                ''),
-        array('fcms_news',                      'user'),
-        array('fcms_news_comments',             'user'),
-        array('fcms_notification',              array('user', 'created_id')),
-        array('fcms_polls',                     ''),
-        array('fcms_poll_comment',              'created_id'),
-        array('fcms_poll_options',              ''),
-        array('fcms_poll_votes',                'user'),
-        array('fcms_prayers',                   'user'),
-        array('fcms_privatemsg',                array('to', 'from')),
-        array('fcms_recipes',                   'user'),
-        array('fcms_recipe_comment',            'user'),
-        array('fcms_relationship',              array('user', 'rel_user')),
-        array('fcms_schedule',                  ''),
-        array('fcms_status',                    'user'),
-        array('fcms_users',                     'id'),
-        array('fcms_user_awards',               'user'),
-        array('fcms_user_settings',             ''),
-        array('fcms_video',                     array('created_id', 'updated_id')),
-        array('fcms_video_comment',             array('created_id', 'updated_id')),
-    );
+        ['fcms_address',                   'user'],
+        ['fcms_alerts',                    'user'],
+        ['fcms_board_posts',               'user'],
+        ['fcms_board_threads',             ['started_by', 'updated_by']],
+        ['fcms_calendar',                  'created_by'],
+        ['fcms_category',                  'user'],
+        ['fcms_changelog',                 'user'],
+        ['fcms_chat_messages',             ''],
+        ['fcms_chat_online',               ''],
+        ['fcms_config',                    ''],
+        ['fcms_documents',                 'user'],
+        ['fcms_gallery_category_comment',  'created_id'],
+        ['fcms_gallery_external_photo',    ''],
+        ['fcms_gallery_photos',            'user'],
+        ['fcms_gallery_photos_tags',       'user'],
+        ['fcms_gallery_photo_comment',     'user'],
+        ['fcms_invitation',                'user'],
+        ['fcms_navigation',                ''],
+        ['fcms_news',                      'user'],
+        ['fcms_news_comments',             'user'],
+        ['fcms_notification',              ['user', 'created_id']],
+        ['fcms_polls',                     ''],
+        ['fcms_poll_comment',              'created_id'],
+        ['fcms_poll_options',              ''],
+        ['fcms_poll_votes',                'user'],
+        ['fcms_prayers',                   'user'],
+        ['fcms_privatemsg',                ['to', 'from']],
+        ['fcms_recipes',                   'user'],
+        ['fcms_recipe_comment',            'user'],
+        ['fcms_relationship',              ['user', 'rel_user']],
+        ['fcms_schedule',                  ''],
+        ['fcms_status',                    'user'],
+        ['fcms_users',                     'id'],
+        ['fcms_user_awards',               'user'],
+        ['fcms_user_settings',             ''],
+        ['fcms_video',                     ['created_id', 'updated_id']],
+        ['fcms_video_comment',             ['created_id', 'updated_id']],
+    ];
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
      * @param Database   $fcmsDatabase
-     * @param User       $fcmsUser 
-     * 
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
     }
-    
+
     /**
-     * getUsersEmail 
-     * 
+     * getUsersEmail.
+     *
      * @param int $id The id of the user
-     * 
+     *
      * @return void
      */
-    function getUsersEmail ($id)
+    public function getUsersEmail($id)
     {
-        $sql = "SELECT `email`
+        $sql = 'SELECT `email`
                 FROM `fcms_users`
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $r = $this->fcmsDatabase->getRow($sql, $id);
         if ($r === false)
@@ -107,26 +109,26 @@ class AdminMembers
 
         return $r['email'];
     }
-    
+
     /**
-     * displayCreateMemberForm 
-     * 
+     * displayCreateMemberForm.
+     *
      * @param string $error Any errors from previous form
-     * 
+     *
      * @return void
      */
-    function displayCreateMemberForm ($error = '')
+    public function displayCreateMemberForm($error = '')
     {
         $username = isset($_POST['username']) ? $_POST['username'] : '';
-        $fname    = isset($_POST['fname'])    ? $_POST['fname']    : '';
-        $mname    = isset($_POST['mname'])    ? $_POST['mname']    : '';
-        $lname    = isset($_POST['lname'])    ? $_POST['lname']    : '';
-        $maiden   = isset($_POST['maiden'])   ? $_POST['maiden']   : '';
-        $sex      = isset($_POST['sex'])      ? $_POST['sex']      : '';
-        $email    = isset($_POST['email'])    ? $_POST['email']    : '';
-        $year     = isset($_POST['year'])     ? $_POST['year']     : date('Y');
-        $month    = isset($_POST['month'])    ? $_POST['month']    : date('m');
-        $day      = isset($_POST['day'])      ? $_POST['day']      : date('d');
+        $fname = isset($_POST['fname']) ? $_POST['fname'] : '';
+        $mname = isset($_POST['mname']) ? $_POST['mname'] : '';
+        $lname = isset($_POST['lname']) ? $_POST['lname'] : '';
+        $maiden = isset($_POST['maiden']) ? $_POST['maiden'] : '';
+        $sex = isset($_POST['sex']) ? $_POST['sex'] : '';
+        $email = isset($_POST['email']) ? $_POST['email'] : '';
+        $year = isset($_POST['year']) ? $_POST['year'] : date('Y');
+        $month = isset($_POST['month']) ? $_POST['month'] : date('m');
+        $day = isset($_POST['day']) ? $_POST['day'] : date('d');
 
         for ($i = 1; $i <= 31; $i++)
         {
@@ -143,7 +145,7 @@ class AdminMembers
             echo '
             <p class="alert-message error">'.$error.'</p>';
         }
-        
+
         // Display the form
         echo '
             <form method="post" action="members.php">
@@ -243,27 +245,28 @@ class AdminMembers
     }
 
     /**
-     * displayEditMemberForm 
-     * 
+     * displayEditMemberForm.
+     *
      * @param int    $id    The id of the user
      * @param string $error Any errors from previous form
-     * 
-     * @return  void
+     *
+     * @return void
      */
-    function displayEditMemberForm ($id, $error = '')
+    public function displayEditMemberForm($id, $error = '')
     {
-        $member = (int)$id;
+        $member = (int) $id;
 
-        $sql = "SELECT `id`, `username`, `fname`, `mname`, `lname`, `maiden`, `sex`, 
+        $sql = 'SELECT `id`, `username`, `fname`, `mname`, `lname`, `maiden`, `sex`, 
                     `email`, `dob_year`, `dob_month`, `dob_day`, `dod_year`, `dod_month`,
                     `dod_day`, `access` 
                 FROM `fcms_users` 
-                WHERE `id` = ?";
+                WHERE `id` = ?';
 
         $r = $this->fcmsDatabase->getRow($sql, $member);
         if ($r === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -274,7 +277,7 @@ class AdminMembers
 
             return;
         }
-        
+
         // Display applicable errors
         if ($error != '')
         {
@@ -282,21 +285,21 @@ class AdminMembers
             <p class="error-alert">'.$error.'</p>';
         }
 
-        $id       = isset($_POST['id'])       ? $_POST['id']       : $r['id'];
+        $id = isset($_POST['id']) ? $_POST['id'] : $r['id'];
         $username = isset($_POST['username']) ? $_POST['username'] : $r['username'];
-        $fname    = isset($_POST['fname'])    ? $_POST['fname']    : $r['fname'];
-        $mname    = isset($_POST['mname'])    ? $_POST['mname']    : $r['mname'];
-        $lname    = isset($_POST['lname'])    ? $_POST['lname']    : $r['lname'];
-        $maiden   = isset($_POST['maiden'])   ? $_POST['maiden']   : $r['maiden'];
-        $sex      = isset($_POST['sex'])      ? $_POST['sex']      : $r['sex'];
-        $email    = isset($_POST['email'])    ? $_POST['email']    : $r['email'];
-        $bYear    = isset($_POST['byear'])    ? $_POST['byear']    : $r['dob_year'];
-        $bMonth   = isset($_POST['bmonth'])   ? $_POST['bmonth']   : $r['dob_month'];
-        $bDay     = isset($_POST['bday'])     ? $_POST['bday']     : $r['dob_day'];
-        $dYear    = isset($_POST['dyear'])    ? $_POST['dyear']    : $r['dod_year'];
-        $dMonth   = isset($_POST['dmonth'])   ? $_POST['dmonth']   : $r['dod_month'];
-        $dDay     = isset($_POST['dday'])     ? $_POST['dday']     : $r['dod_day'];
-        $access   = isset($_POST['access'])   ? $_POST['access']   : $r['access'];
+        $fname = isset($_POST['fname']) ? $_POST['fname'] : $r['fname'];
+        $mname = isset($_POST['mname']) ? $_POST['mname'] : $r['mname'];
+        $lname = isset($_POST['lname']) ? $_POST['lname'] : $r['lname'];
+        $maiden = isset($_POST['maiden']) ? $_POST['maiden'] : $r['maiden'];
+        $sex = isset($_POST['sex']) ? $_POST['sex'] : $r['sex'];
+        $email = isset($_POST['email']) ? $_POST['email'] : $r['email'];
+        $bYear = isset($_POST['byear']) ? $_POST['byear'] : $r['dob_year'];
+        $bMonth = isset($_POST['bmonth']) ? $_POST['bmonth'] : $r['dob_month'];
+        $bDay = isset($_POST['bday']) ? $_POST['bday'] : $r['dob_day'];
+        $dYear = isset($_POST['dyear']) ? $_POST['dyear'] : $r['dod_year'];
+        $dMonth = isset($_POST['dmonth']) ? $_POST['dmonth'] : $r['dod_month'];
+        $dDay = isset($_POST['dday']) ? $_POST['dday'] : $r['dod_day'];
+        $access = isset($_POST['access']) ? $_POST['access'] : $r['access'];
 
         for ($i = 1; $i <= 31; $i++)
         {
@@ -367,7 +370,7 @@ class AdminMembers
                     </div>';
         }
 
-        $maleSelected   = '';
+        $maleSelected = '';
         $femaleSelected = '';
         if ($sex == 'M')
         {
@@ -378,15 +381,15 @@ class AdminMembers
             $femaleSelected = 'selected="selected"';
         }
 
-        $accessSelected1  = '';
-        $accessSelected2  = '';
-        $accessSelected3  = '';
-        $accessSelected4  = '';
-        $accessSelected5  = '';
-        $accessSelected6  = '';
-        $accessSelected7  = '';
-        $accessSelected8  = '';
-        $accessSelected9  = '';
+        $accessSelected1 = '';
+        $accessSelected2 = '';
+        $accessSelected3 = '';
+        $accessSelected4 = '';
+        $accessSelected5 = '';
+        $accessSelected6 = '';
+        $accessSelected7 = '';
+        $accessSelected8 = '';
+        $accessSelected9 = '';
         $accessSelected10 = '';
         $accessSelected11 = '';
         if ($access == 1)
@@ -491,9 +494,9 @@ class AdminMembers
                                 <option value="1" '.$accessSelected1.'>1. '.T_('Admin').'</option>
                                 <option value="2" '.$accessSelected2.'>2. '.T_('Helper').'</option>
                                 <option value="3" '.$accessSelected3.'>3. '.T_('Member').'</option>
-                                <option value="'.(int)$access.'"></option>
-                                <option value="'.(int)$access.'">'.T_('Advanced Options').'</option>
-                                <option value="'.(int)$access.'">-------------------------------------</option>
+                                <option value="'.(int) $access.'"></option>
+                                <option value="'.(int) $access.'">'.T_('Advanced Options').'</option>
+                                <option value="'.(int) $access.'">-------------------------------------</option>
                                 <option value="4" '.$accessSelected4.'>4. '.T_('Non-Photographer').'</option>
                                 <option value="5" '.$accessSelected5.'>5. '.T_('Non-Poster').'</option>
                                 <option value="6" '.$accessSelected6.'>6. '.T_('Commenter').'</option>
@@ -506,7 +509,7 @@ class AdminMembers
                         </div>
                     </div>
                     <div class="actions">
-                        <input type="hidden" id="id" name="id" value="'.(int)$id.'"/>
+                        <input type="hidden" id="id" name="id" value="'.(int) $id.'"/>
                         <input class="btn primary" type="submit" id="edit" name="edit" value="'.T_('Save Changes').'"/>
                         <input class="btn danger" type="submit" id="delete" name="delete" value="'.T_('Delete').'"/>
                         <a class="btn secondary" href="members.php">'.T_('Cancel').'</a>
@@ -516,44 +519,46 @@ class AdminMembers
     }
 
     /**
-     * displayMergeMemberForm 
-     * 
+     * displayMergeMemberForm.
+     *
      * @param int $id The id of current member
-     * 
+     *
      * @return void
      */
-    function displayMergeMemberForm ($id)
+    public function displayMergeMemberForm($id)
     {
-        $id = (int)$id;
+        $id = (int) $id;
 
         // Get current member info
-        $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, 
+        $sql = 'SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, 
                     u.`dob_year`, u.`dob_month`, u.`dob_day`,
                     a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`bio`
                 FROM `fcms_users` AS u, `fcms_address` AS a
                 WHERE u.`id` = ?
-                AND u.`id` = a.`user`";
+                AND u.`id` = a.`user`';
 
         $r = $this->fcmsDatabase->getRow($sql, $id);
         if ($r === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
         // Get member list
-        $sql = "SELECT `id`, `username`, `phpass`,`fname`, `lname`
+        $sql = 'SELECT `id`, `username`, `phpass`,`fname`, `lname`
                 FROM `fcms_users` 
-                WHERE `id` != ?";
+                WHERE `id` != ?';
 
         $rows = $this->fcmsDatabase->getRows($sql, $id);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
-        $members = array();
+        $members = [];
 
         foreach ($rows as $row)
         {
@@ -643,7 +648,7 @@ class AdminMembers
                         </div><!-- /span8 -->
                     </div><!-- /row -->
                     <div class="actions">
-                        <input type="hidden" id="id" name="id" value="'.(int)$id.'"/>
+                        <input type="hidden" id="id" name="id" value="'.(int) $id.'"/>
                         <input class="btn primary" type="submit" id="merge-review" name="merge-review" value="'.T_('Next').'"/>
                         <a class="btn" href="members.php">'.T_('Cancel').'</a>
                     </div>
@@ -652,29 +657,30 @@ class AdminMembers
     }
 
     /**
-     * displayMergeMemberFormReview
-     * 
+     * displayMergeMemberFormReview.
+     *
      * @param int $id    The id of the current member
      * @param int $merge The id of the member you are merging with
-     * 
+     *
      * @return void
      */
-    function displayMergeMemberFormReview ($id, $merge)
+    public function displayMergeMemberFormReview($id, $merge)
     {
-        $id    = (int)$id;
-        $merge = (int)$merge;
+        $id = (int) $id;
+        $merge = (int) $merge;
 
-        $sql = "SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, 
+        $sql = 'SELECT u.`id`, u.`username`, u.`fname`, u.`mname`, u.`lname`, u.`maiden`, u.`email`, 
                     u.`dob_year`, u.`dob_month`, u.`dob_day`, 
                     a.`address`, a.`city`, a.`state`, a.`zip`, a.`home`, a.`work`, a.`cell`, u.`bio`
                 FROM `fcms_users` AS u, `fcms_address` AS a
                 WHERE u.`id` IN (?, ?) 
-                AND u.`id` = a.`user`";
+                AND u.`id` = a.`user`';
 
-        $rows = $this->fcmsDatabase->getRows($sql, array($id, $merge));
+        $rows = $this->fcmsDatabase->getRows($sql, [$id, $merge]);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -683,12 +689,12 @@ class AdminMembers
             $members[$r['id']] = $r;
         }
 
-        $year1  = empty($members[$id]['dob_year'])     ? '0000' : $members[$id]['dob_year'];
-        $month1 = empty($members[$id]['dob_month'])    ? '00'   : $members[$id]['dob_month'];
-        $day1   = empty($members[$id]['dob_day'])      ? '00'   : $members[$id]['dob_day'];
-        $year2  = empty($members[$merge]['dob_year'])  ? '0000' : $members[$merge]['dob_year'];
-        $month2 = empty($members[$merge]['dob_month']) ? '00'   : $members[$merge]['dob_month'];
-        $day2   = empty($members[$merge]['dob_day'])   ? '00'   : $members[$merge]['dob_day'];
+        $year1 = empty($members[$id]['dob_year']) ? '0000' : $members[$id]['dob_year'];
+        $month1 = empty($members[$id]['dob_month']) ? '00' : $members[$id]['dob_month'];
+        $day1 = empty($members[$id]['dob_day']) ? '00' : $members[$id]['dob_day'];
+        $year2 = empty($members[$merge]['dob_year']) ? '0000' : $members[$merge]['dob_year'];
+        $month2 = empty($members[$merge]['dob_month']) ? '00' : $members[$merge]['dob_month'];
+        $day2 = empty($members[$merge]['dob_day']) ? '00' : $members[$merge]['dob_day'];
 
         $birthday1 = $year1.'-'.$month1.'-'.$day1;
         $birthday2 = $year2.'-'.$month2.'-'.$day2;
@@ -1110,8 +1116,8 @@ class AdminMembers
     }
 
     /**
-     * displayMemberList 
-     * 
+     * displayMemberList.
+     *
      * Displays the list of members, by default list all or list based on search results.
      *
      * @param int    $page  which page to display
@@ -1119,34 +1125,34 @@ class AdminMembers
      * @param string $lname search parameter for last name
      * @param string $uname search parameter for username
      *
-     * @return  void
+     * @return void
      */
-    function displayMemberList ($page, $fname = '', $lname = '', $uname = '')
+    public function displayMemberList($page, $fname = '', $lname = '', $uname = '')
     {
         $valid_search = 0;
-        $perPage      = 30;
+        $perPage = 30;
 
         $from = (($page * $perPage) - $perPage);
 
         $view = 'members';
-        $url  = '?view=members';
+        $url = '?view=members';
 
-        $allActive     = '';
+        $allActive = '';
         $membersActive = '';
-        $nonActive     = '';
+        $nonActive = '';
 
         if (isset($_GET['view']))
         {
             if ($_GET['view'] == 'all')
             {
-                $view      = 'all';
-                $url       = '?view=all';
+                $view = 'all';
+                $url = '?view=all';
                 $allActive = 'active';
             }
             elseif ($_GET['view'] == 'non')
             {
-                $view      = 'non';
-                $url       = '?view=non';
+                $view = 'non';
+                $url = '?view=non';
                 $nonActive = 'active';
             }
             else
@@ -1158,7 +1164,7 @@ class AdminMembers
         {
             $membersActive = 'active';
         }
-        
+
         // Display the add link, search box and table header
         echo '
             <ul class="tabs">
@@ -1193,7 +1199,7 @@ class AdminMembers
                         </tr>
                     </thead>
                     <tbody>';
-        
+
         // prevent sql injections - only allow letters, numbers, a space and the % sign
         if (strlen($fname) > 0)
         {
@@ -1217,10 +1223,10 @@ class AdminMembers
             }
         }
 
-        $params = array();
+        $params = [];
 
-        $sql = "SELECT *
-                FROM `fcms_users` ";
+        $sql = 'SELECT *
+                FROM `fcms_users` ';
 
         if ($view == 'members')
         {
@@ -1237,23 +1243,23 @@ class AdminMembers
                         OR (`phpass` IS NULL AND `password` = 'NONMEMBER')
                      )";
         }
-        
+
         // Search - one or valid search parameters
         if ($valid_search < 1)
         {
-            if (strlen($fname) > 0) 
-            {    
-                $sql     .= $view == 'all' ? "WHERE `fname` LIKE ? " : "AND `fname` LIKE ? ";
+            if (strlen($fname) > 0)
+            {
+                $sql .= $view == 'all' ? 'WHERE `fname` LIKE ? ' : 'AND `fname` LIKE ? ';
                 $params[] = "%$fname%";
             }
-            if (strlen($lname) > 0) 
-            {    
-                $sql     .= $view == 'all' ? "WHERE `lname` LIKE ? " : "AND `lname` LIKE ? ";
+            if (strlen($lname) > 0)
+            {
+                $sql .= $view == 'all' ? 'WHERE `lname` LIKE ? ' : 'AND `lname` LIKE ? ';
                 $params[] = "%$lname%";
             }
-            if (strlen($uname) > 0) 
-            {    
-                $sql     .= $view == 'all' ? "WHERE `username` LIKE ? " : "AND `username` LIKE ? ";
+            if (strlen($uname) > 0)
+            {
+                $sql .= $view == 'all' ? 'WHERE `username` LIKE ? ' : 'AND `username` LIKE ? ';
                 $params[] = "%$uname%";
             }
 
@@ -1273,9 +1279,10 @@ class AdminMembers
         if ($rows === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
-        
+
         // Display the member list
         foreach ($rows as $r)
         {
@@ -1286,25 +1293,25 @@ class AdminMembers
                 $member = ($r['password'] == 'NONMEMBER') ? T_('No') : T_('Yes');
             }
 
-            $active = ($r['activated'] <= 0)        ? T_('No') : T_('Yes');
+            $active = ($r['activated'] <= 0) ? T_('No') : T_('Yes');
 
             if ($r['id'] > 1)
             {
                 echo '
                         <tr>
-                            <td><b>'.(int)$r['id'].'</b>:</td>
-                            <td><a href="?edit='.(int)$r['id'].'">'.cleanOutput($r['username']).'</a></td>
+                            <td><b>'.(int) $r['id'].'</b>:</td>
+                            <td><a href="?edit='.(int) $r['id'].'">'.cleanOutput($r['username']).'</a></td>
                             <td>'.cleanOutput($r['lname']).'</td>
                             <td>'.cleanOutput($r['fname']).'</td>
                             <td>'; echo $this->displayAccessType($r['access']); echo '</td>
                             <td style="text-align:center">'.$member.'</td>
                             <td style="text-align:center">'.$active.'</td>
-                            <td style="text-align:center"><input type="checkbox" name="massupdate[]" value="'.(int)$r['id'].'"/></td>
+                            <td style="text-align:center"><input type="checkbox" name="massupdate[]" value="'.(int) $r['id'].'"/></td>
                         </tr>';
             } else {
                 echo '
                         <tr>
-                            <td><b>'.(int)$r['id'].'</b>:</td>
+                            <td><b>'.(int) $r['id'].'</b>:</td>
                             <td><b>'.cleanOutput($r['username']).'</b></td>
                             <td>'.cleanOutput($r['lname']).'</td>
                             <td>'.cleanOutput($r['fname']).'</td>
@@ -1325,7 +1332,7 @@ class AdminMembers
                 </p>
             </form>';
 
-        // Remove the LIMIT from the $sql statement 
+        // Remove the LIMIT from the $sql statement
         // used above, so we can get the total count
         $sql = substr($sql, 0, strpos($sql, 'LIMIT'));
 
@@ -1341,92 +1348,94 @@ class AdminMembers
         if ($mrows === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
-        $count       = count($mrows);
-        $total_pages = ceil($count / $perPage); 
+        $count = count($mrows);
+        $total_pages = ceil($count / $perPage);
 
         displayPages("members.php?view=$view", $page, $total_pages);
     }
-    
+
     /**
-     * displayAccessType 
-     * 
+     * displayAccessType.
+     *
      * Displays the access type based on access level code
      *
      * @param int $access_level The level of access
      *
-     * @return  void
+     * @return void
      */
-    function displayAccessType ($access_level)
+    public function displayAccessType($access_level)
     {
         switch ($access_level)
         {
             case 1:
-                echo "1. ".T_('Admin');
+                echo '1. '.T_('Admin');
                 break;
             case 2:
-                echo "2. ".T_('Helper');
+                echo '2. '.T_('Helper');
                 break;
             case 3:
-                echo "3. ".T_('Member');
+                echo '3. '.T_('Member');
                 break;
             case 4:
-                echo "4. ".T_('Non-Photographer');
+                echo '4. '.T_('Non-Photographer');
                 break;
             case 5:
-                echo "5. ".T_('Non-Poster');
+                echo '5. '.T_('Non-Poster');
                 break;
             case 6:
-                echo "6. ".T_('Commenter');
+                echo '6. '.T_('Commenter');
                 break;
             case 7:
-                echo "7. ".T_('Poster');
+                echo '7. '.T_('Poster');
                 break;
             case 8:
-                echo "8. ".T_('Photographer');
+                echo '8. '.T_('Photographer');
                 break;
             case 9:
-                echo "9. ".T_('Blogger');
+                echo '9. '.T_('Blogger');
                 break;
             case 10:
-                echo "10. ".T_('Guest');
+                echo '10. '.T_('Guest');
                 break;
             case 11:
-                echo "11. ".T_('Non-editable Member');
+                echo '11. '.T_('Non-editable Member');
                 break;
             default:
-                echo "10. ".T_('Guest');
+                echo '10. '.T_('Guest');
                 break;
         }
     }
 
     /**
-     * mergeMember 
-     * 
+     * mergeMember.
+     *
      * Will change all occurrances of $fromId to $toId in the db.
-     * 
+     *
      * @param int $toId   The id of the good member
      * @param int $fromId The id of the old (bad) member - will be deleted
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    function mergeMember ($toId, $fromId)
+    public function mergeMember($toId, $fromId)
     {
         if (!ctype_digit("$toId") || !ctype_digit("$fromId"))
         {
             echo '<p class="error-alert">Invalid ID(s) passed to mergeMember().</p>';
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => 'Invalid ID',
-                'details' => '<p>Invalid ID passed to mergeMember().</p>'
-            ));
+                'details' => '<p>Invalid ID passed to mergeMember().</p>',
+            ]);
+
             return false;
         }
 
         foreach ($this->configuration as $config)
         {
-            $tableName      = $config[0];
+            $tableName = $config[0];
             $userFieldNames = $config[1];
 
             // Skip user/address tables
@@ -1437,7 +1446,7 @@ class AdminMembers
 
             if (!is_array($userFieldNames))
             {
-                $userFieldNames = array($userFieldNames);
+                $userFieldNames = [$userFieldNames];
             }
 
             foreach ($userFieldNames as $fieldName)
@@ -1452,7 +1461,7 @@ class AdminMembers
                         SET `$fieldName` = ?
                         WHERE `$fieldName` = ?";
 
-                if (!$this->fcmsDatabase->update($sql, array($toId, $fromId)))
+                if (!$this->fcmsDatabase->update($sql, [$toId, $fromId]))
                 {
                     return false;
                 }
@@ -1464,31 +1473,32 @@ class AdminMembers
     }
 
     /**
-     * deleteMember 
-     * 
-     * @param int $id 
-     * 
-     * @return boolean
+     * deleteMember.
+     *
+     * @param int $id
+     *
+     * @return bool
      */
-    function deleteMember ($id)
+    public function deleteMember($id)
     {
         if (!ctype_digit("$id"))
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => 'Invalid ID',
-                'details' => '<p>Invalid ID passed to deleteMember().</p>'
-            ));
+                'details' => '<p>Invalid ID passed to deleteMember().</p>',
+            ]);
+
             return false;
         }
 
         foreach ($this->configuration as $config)
         {
-            $tableName      = $config[0];
+            $tableName = $config[0];
             $userFieldNames = $config[1];
 
             if (!is_array($userFieldNames))
             {
-                $userFieldNames = array($userFieldNames);
+                $userFieldNames = [$userFieldNames];
             }
 
             foreach ($userFieldNames as $fieldName)

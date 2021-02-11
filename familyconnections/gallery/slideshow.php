@@ -1,14 +1,15 @@
 <?php
 /**
- * Slideshow
- * 
+ * Slideshow.
+ *
  * PHP versions 4 and 5
  *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -69,12 +70,12 @@ if (!isset($_GET['category']))
     exit();
 }
 
-$cid = (int)$_GET['category'];
+$cid = (int) $_GET['category'];
 
-$sql = "SELECT p.`id`, p.`caption`, p.`filename`, p.`user`, p.`external_id`, e.`medium`
+$sql = 'SELECT p.`id`, p.`caption`, p.`filename`, p.`user`, p.`external_id`, e.`medium`
         FROM `fcms_gallery_photos` AS p
         LEFT JOIN `fcms_gallery_external_photo` AS e ON p.`external_id` = e.`id`
-        WHERE `category` = ?";
+        WHERE `category` = ?';
 
 $rows = $fcmsDatabase->getRows($sql, $cid);
 if ($rows === false)
@@ -94,9 +95,9 @@ if (count($rows) > 0)
     {
         $i++;
 
-        $user     = (int)$r['user'];
+        $user = (int) $r['user'];
         $filename = basename($r['filename']);
-        $caption  = cleanOutput($r['caption']);
+        $caption = cleanOutput($r['caption']);
 
         $photoSrc = $fcmsGallery->getPhotoSource($r, 'medium');
 

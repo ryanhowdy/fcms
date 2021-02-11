@@ -12,7 +12,7 @@
                         ftitle.add(Validate.Presence, { failureMessage: "" });
                     </script>
                     <script type="text/javascript">var bb = new BBCode();</script>
-<?php require_once(TEMPLATES.'global/bbcode-toolbar.php'); ?>
+<?php require_once TEMPLATES.'global/bbcode-toolbar.php'; ?>
                     <div>
                         <textarea name="post" id="post" rows="10" cols="63" tabindex="2"><?php echo $TMPL['news']; ?></textarea>
                     </div>

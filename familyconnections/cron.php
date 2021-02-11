@@ -1,6 +1,6 @@
 <?php
 /**
- * Cron
+ * Cron.
  *
  * Part of the FCMS Scheduler, which allows users without cron to run scheduled jobs.
  *
@@ -8,16 +8,16 @@
  * the scheduled jobs are being run.
  *
  * PHP versions 4 and 5
- *  
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2011 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     2.6
  */
-
 require 'fcms.php';
 
 load('cron');

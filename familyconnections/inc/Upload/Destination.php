@@ -1,13 +1,11 @@
 <?php
 /**
- * Destination 
- * 
+ * Destination.
+ *
  * The base Destination class.
- * 
- * @package Upload
- * @subpackage Destination
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class Destination
@@ -17,39 +15,39 @@ class Destination
     public $relativePath;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, User $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsUser         = $fcmsUser;
-        $this->relativePath     = URL_PREFIX . 'uploads/';
-        $this->absolutePath     = ROOT       . 'uploads/';
-        $this->destinationPath  = $this->absolutePath;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsUser = $fcmsUser;
+        $this->relativePath = URL_PREFIX.'uploads/';
+        $this->absolutePath = ROOT.'uploads/';
+        $this->destinationPath = $this->absolutePath;
     }
 
     /**
-     * createDirectory 
-     * 
+     * createDirectory.
+     *
      * Creates a new directory to save upload to, if needed.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    public function createDirectory ()
+    public function createDirectory()
     {
         if (!file_exists($this->destinationPath))
         {
             if (!@mkdir($this->destinationPath))
             {
-                $this->fcmsError->add(array(
+                $this->fcmsError->add([
                     'message' => T_('Upload Destination Error'),
-                    'details' => '<p>'.T_('Could not create new photo directory.').'</p>'
-                ));
+                    'details' => '<p>'.T_('Could not create new photo directory.').'</p>',
+                ]);
 
                 return false;
             }
@@ -59,34 +57,34 @@ class Destination
     }
 
     /**
-     * copy 
-     * 
+     * copy.
+     *
      * @param string $photo
-     * @param string $fileName 
-     * 
+     * @param string $fileName
+     *
      * @return void
      */
-    public function copy ($photo, $fileName)
+    public function copy($photo, $fileName)
     {
         if (!@copy($photo, $this->destinationPath.$fileName))
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Destination Error'),
-                'details' => '<p>'.T_('Could not save photo.').'</p>'
-            ));
+                'details' => '<p>'.T_('Could not save photo.').'</p>',
+            ]);
         }
 
         return true;
     }
 
     /**
-     * getPhotoFileSize 
-     * 
-     * @param string $file 
-     * 
+     * getPhotoFileSize.
+     *
+     * @param string $file
+     *
      * @return string
      */
-    public function getPhotoFileSize ($file)
+    public function getPhotoFileSize($file)
     {
         $size = '0';
 
@@ -100,30 +98,30 @@ class Destination
     }
 
     /**
-     * getImageSize 
-     * 
+     * getImageSize.
+     *
      * @param string $file
-     * 
+     *
      * @return array
      */
-    public function getImageSize ($file)
+    public function getImageSize($file)
     {
         if (!file_exists($file))
         {
-            return array('?','?');
+            return ['?', '?'];
         }
 
-        return GetImageSize($file);
+        return getimagesize($file);
     }
 
     /**
-     * deleteFile 
-     * 
-     * @param string $fileName 
-     * 
+     * deleteFile.
+     *
+     * @param string $fileName
+     *
      * @return void
      */
-    public function deleteFile ($fileName)
+    public function deleteFile($fileName)
     {
         if (file_exists($this->destinationPath.$fileName))
         {
@@ -132,13 +130,13 @@ class Destination
     }
 
     /**
-     * createImageIdentifier 
-     * 
+     * createImageIdentifier.
+     *
      * Creates an image identifer representing and image obtained from a filename.
-     * 
+     *
      * @return image identifier
      */
-    public function createImageIdentifier ($fileName, $extension)
+    public function createImageIdentifier($fileName, $extension)
     {
         switch ($extension)
         {
@@ -149,7 +147,7 @@ class Destination
 
             case 'gif':
                 // Handle transparent gifs
-                $fp     = fopen($this->destinationPath.$fileName, 'rb');
+                $fp = fopen($this->destinationPath.$fileName, 'rb');
                 $result = fread($fp, 13);
 
                 $color_flag = ord(substr($result, 10, 1)) >> 7;
@@ -160,9 +158,9 @@ class Destination
                     $size = ($background + 1) * 3;
                     $result = fread($fp, $size);
 
-                    $this->transparent_red      = ord(substr($result, $background * 3,     1));
-                    $this->transparent_green    = ord(substr($result, $background * 3 + 1, 1));
-                    $this->transparent_blue     = ord(substr($result, $background * 3 + 2, 1));
+                    $this->transparent_red = ord(substr($result, $background * 3, 1));
+                    $this->transparent_green = ord(substr($result, $background * 3 + 1, 1));
+                    $this->transparent_blue = ord(substr($result, $background * 3 + 2, 1));
                 }
 
                 fclose($fp);
@@ -185,26 +183,26 @@ class Destination
 
         if ($identifier === false)
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Destination Error'),
-                'details' => '<p>'.T_('Could not create new photo.').'</p>'
-            ));
+                'details' => '<p>'.T_('Could not create new photo.').'</p>',
+            ]);
         }
 
         return $identifier;
     }
 
     /**
-     * writeImage 
-     * 
-     * Takes an image resource (from imagerotate or imagecreatefrom*) 
+     * writeImage.
+     *
+     * Takes an image resource (from imagerotate or imagecreatefrom*)
      * and creates a new image.
-     * 
+     *
      * @param $source image resource
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    public function writeImage ($source, $fileName, $extension)
+    public function writeImage($source, $fileName, $extension)
     {
         switch($extension)
         {
@@ -213,20 +211,20 @@ class Destination
 
                 if (!function_exists('imagejpeg'))
                 {
-                    $this->fcmsError->add(array(
+                    $this->fcmsError->add([
                         'message' => T_('Upload Error'),
-                        'details' => '<p>'.T_('GD Library is either not installed or does not support this file type.').'</p>'
-                    ));
-                    
+                        'details' => '<p>'.T_('GD Library is either not installed or does not support this file type.').'</p>',
+                    ]);
+
                     return false;
                 }
 
                 if (@!imagejpeg($source, $this->destinationPath.$fileName))
                 {
-                    $this->fcmsError->add(array(
+                    $this->fcmsError->add([
                         'message' => T_('Upload Error'),
-                        'details' => '<p>'.T_('Could not write file, check folder permissions.').'</p>'
-                    ));
+                        'details' => '<p>'.T_('Could not write file, check folder permissions.').'</p>',
+                    ]);
 
                     return false;
                 }
@@ -237,20 +235,20 @@ class Destination
 
                 if (!function_exists('imagegif'))
                 {
-                    $this->fcmsError->add(array(
+                    $this->fcmsError->add([
                         'message' => T_('Upload Error'),
-                        'details' => '<p>'.T_('GD Library is either not installed or does not support this file type.').'</p>'
-                    ));
+                        'details' => '<p>'.T_('GD Library is either not installed or does not support this file type.').'</p>',
+                    ]);
 
                     return false;
                 }
 
                 if (@!imagegif($source, $this->destinationPath.$fileName))
                 {
-                    $this->fcmsError->add(array(
+                    $this->fcmsError->add([
                         'message' => T_('Upload Error'),
-                        'details' => '<p>'.T_('Could not write file, check folder permissions.').'</p>'
-                    ));
+                        'details' => '<p>'.T_('Could not write file, check folder permissions.').'</p>',
+                    ]);
 
                     return false;
                 }
@@ -261,20 +259,20 @@ class Destination
 
                 if (!function_exists('imagewbmp'))
                 {
-                    $this->fcmsError->add(array(
+                    $this->fcmsError->add([
                         'message' => T_('Upload Error'),
-                        'details' => '<p>'.T_('GD Library is either not installed or does not support this file type.').'</p>'
-                    ));
+                        'details' => '<p>'.T_('GD Library is either not installed or does not support this file type.').'</p>',
+                    ]);
 
                     return false;
                 }
 
                 if (@!imagewbmp($source, $this->destinationPath.$fileName))
                 {
-                    $this->fcmsError->add(array(
+                    $this->fcmsError->add([
                         'message' => T_('Upload Error'),
-                        'details' => '<p>'.T_('Could not write file, check folder permissions.').'</p>'
-                    ));
+                        'details' => '<p>'.T_('Could not write file, check folder permissions.').'</p>',
+                    ]);
 
                     return false;
                 }
@@ -285,20 +283,20 @@ class Destination
 
                 if (!function_exists('imagepng'))
                 {
-                    $this->fcmsError->add(array(
+                    $this->fcmsError->add([
                         'message' => T_('Upload Error'),
-                        'details' => '<p>'.T_('GD Library is either not installed or does not support this file type.').'</p>'
-                    ));
+                        'details' => '<p>'.T_('GD Library is either not installed or does not support this file type.').'</p>',
+                    ]);
 
                     return false;
                 }
 
                 if (@!imagepng($source, $this->destinationPath.$fileName))
                 {
-                    $this->fcmsError->add(array(
+                    $this->fcmsError->add([
                         'message' => T_('Upload Error'),
-                        'details' => '<p>'.T_('Could not write file, check folder permissions.').'</p>'
-                    ));
+                        'details' => '<p>'.T_('Could not write file, check folder permissions.').'</p>',
+                    ]);
 
                     return false;
                 }
@@ -310,14 +308,14 @@ class Destination
     }
 
     /**
-     * savePhotoFromSource 
-     * 
+     * savePhotoFromSource.
+     *
      * @param string $source
      * @param string $filename
-     * 
+     *
      * @return void
      */
-    public function savePhotoFromSource ($source, $filename)
+    public function savePhotoFromSource($source, $filename)
     {
         $ch = curl_init($source);
         $fh = fopen($this->destinationPath.$filename, 'w');
@@ -328,13 +326,13 @@ class Destination
     }
 
     /**
-     * rotate 
-     * 
-     * @param int $degrees 
-     * 
-     * @return boolean
+     * rotate.
+     *
+     * @param int $degrees
+     *
+     * @return bool
      */
-    function rotate ($filename, $degrees = 90)
+    public function rotate($filename, $degrees = 90)
     {
         $arr = explode('.', $filename);
 

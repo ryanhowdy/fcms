@@ -1,44 +1,42 @@
 <?php
 /**
- * Instagram Upload PhotoGallery 
- * 
+ * Instagram Upload PhotoGallery.
+ *
  * Handles uploading of photos from the Instagram uploader.
- * 
- * @package Upload
- * @subpackage Photo
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class InstagramUploadPhotoGallery extends UploadPhotoGallery
 {
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error  $fcmsError 
-     * @param Database    $fcmsDatabase 
-     * @param User        $fcmsUser 
-     * @param Destination $destination 
-     * @param UploadPhoto $uploadPhoto 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error  $fcmsError
+     * @param Database    $fcmsDatabase
+     * @param User        $fcmsUser
+     * @param Destination $destination
+     * @param UploadPhoto $uploadPhoto
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, Destination $destination, UploadPhoto $uploadPhoto = null)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, Destination $destination, UploadPhoto $uploadPhoto = null)
     {
-        $this->fcmsError           = $fcmsError;
-        $this->fcmsDatabase        = $fcmsDatabase;
-        $this->fcmsUser            = $fcmsUser;
-        $this->destination         = $destination;
-        $this->uploadPhoto         = $uploadPhoto;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
+        $this->destination = $destination;
+        $this->uploadPhoto = $uploadPhoto;
         $this->usingFullSizePhotos = usingFullSizePhotos();
     }
 
     /**
-     * upload
-     * 
-     * @return boolean
+     * upload.
+     *
+     * @return bool
      */
-    public function upload ($formData)
+    public function upload($formData)
     {
         $this->setFormData($formData);
 
@@ -50,7 +48,7 @@ class InstagramUploadPhotoGallery extends UploadPhotoGallery
 
         $existingIds = getExistingInstagramIds();
 
-        foreach ($this->formData['photos'] AS $data)
+        foreach ($this->formData['photos'] as $data)
         {
             list($sourceId, $thumbnail, $medium, $full, $caption) = explode('|', $data);
 
@@ -61,17 +59,17 @@ class InstagramUploadPhotoGallery extends UploadPhotoGallery
             }
 
             // Save external paths
-            $sql = "INSERT INTO `fcms_gallery_external_photo`
+            $sql = 'INSERT INTO `fcms_gallery_external_photo`
                         (`source_id`, `thumbnail`, `medium`, `full`)
                     VALUES
-                        (?, ?, ?, ?)";
+                        (?, ?, ?, ?)';
 
-            $params = array(
+            $params = [
                 $sourceId,
                 $thumbnail,
                 $medium,
-                $full
-            );
+                $full,
+            ];
 
             $id = $this->fcmsDatabase->insert($sql, $params);
             if ($id === false)
@@ -82,17 +80,17 @@ class InstagramUploadPhotoGallery extends UploadPhotoGallery
             $this->newPhotoIds[] = $id;
 
             // Insert new photo
-            $sql = "INSERT INTO `fcms_gallery_photos`
+            $sql = 'INSERT INTO `fcms_gallery_photos`
                         (`date`, `external_id`, `caption`, `category`, `user`)
                     VALUES
-                        (NOW(), ?, ?, ?, ?)";
+                        (NOW(), ?, ?, ?, ?)';
 
-            $params = array(
+            $params = [
                 $id,
                 $caption,
                 $this->newCategoryId,
-                $this->fcmsUser->id
-            );
+                $this->fcmsUser->id,
+            ];
 
             if (!$this->fcmsDatabase->insert($sql, $params))
             {
@@ -104,39 +102,38 @@ class InstagramUploadPhotoGallery extends UploadPhotoGallery
     }
 
     /**
-     * setFormData 
-     * 
+     * setFormData.
+     *
      * Saves all the data passed in from the form upload.
-     * 
+     *
      * @param array $formData
-     * 
+     *
      * @return void
      */
-    protected function setFormData ($formData)
+    protected function setFormData($formData)
     {
         $this->formData = $formData;
 
-        $this->newCategoryId  = getUserInstagramCategory($this->fcmsUser->id);
+        $this->newCategoryId = getUserInstagramCategory($this->fcmsUser->id);
     }
 
     /**
-     * validate 
-     * 
-     * @return boolean
+     * validate.
+     *
+     * @return bool
      */
-    protected function validate ()
+    protected function validate()
     {
         if (empty($this->formData['photos']))
         {
-            $this->fcmsError->add(array(
+            $this->fcmsError->add([
                 'message' => T_('Upload Error'),
-                'details' => '<p>'.T_('You must choose at least one photo.').'</p>'
-            ));
+                'details' => '<p>'.T_('You must choose at least one photo.').'</p>',
+            ]);
 
             return false;
         }
 
         return true;
     }
-
 }

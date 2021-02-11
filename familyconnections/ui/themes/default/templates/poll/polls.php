@@ -8,12 +8,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($TMPL['polls'] as $poll): ?>
+                <?php foreach ($TMPL['polls'] as $poll) { ?>
                     <tr>
                         <td><a href="<?php echo $poll['url']; ?>"><?php echo $poll['question']; ?></a></td>
                         <td><?php echo $poll['date']; ?></td>
                         <td><?php echo $poll['vote']; ?></td>
                     </tr>
-                <?php endforeach; ?>
+                <?php } ?>
                 </tbody>
             </table>

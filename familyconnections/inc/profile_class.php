@@ -1,49 +1,48 @@
 <?php
 /**
- * Profile 
- * 
- * @package     Family Connections
+ * Profile.
+ *
  * @copyright   2010 Haudenschilt LLC
- * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author      Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license     http://www.gnu.org/licenses/gpl-2.0.html
  */
 class Profile
 {
-    var $fcmsError;
-    var $fcmsDatabase;
-    var $fcmsUser;
-    var $fcmsFamilyTree;
-    var $fcmsAward;
-    var $fcmsAddressBook;
+    public $fcmsError;
+    public $fcmsDatabase;
+    public $fcmsUser;
+    public $fcmsFamilyTree;
+    public $fcmsAward;
+    public $fcmsAddressBook;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error    $fcmsError 
-     * @param Database      $fcmsDatabase
-     * @param User          $fcmsUser 
-     * @param FamilyTree    $fcmsFamilyTree
-     * @param Awards        $fcmsAward
-     * @param AddressBook   $fcmsAddressBook
+     * __construct.
+     *
+     * @param FCMS_Error  $fcmsError
+     * @param Database    $fcmsDatabase
+     * @param User        $fcmsUser
+     * @param FamilyTree  $fcmsFamilyTree
+     * @param Awards      $fcmsAward
+     * @param AddressBook $fcmsAddressBook
      *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, FamilyTree $fcmsFamilyTree, Awards $fcmsAward, $fcmsAddressBook = null)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, FamilyTree $fcmsFamilyTree, Awards $fcmsAward, $fcmsAddressBook = null)
     {
-        $this->fcmsError       = $fcmsError;
-        $this->fcmsDatabase    = $fcmsDatabase;
-        $this->fcmsUser        = $fcmsUser;
-        $this->fcmsFamilyTree  = $fcmsFamilyTree;
-        $this->fcmsAward       = $fcmsAward;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
+        $this->fcmsFamilyTree = $fcmsFamilyTree;
+        $this->fcmsAward = $fcmsAward;
         $this->fcmsAddressBook = $fcmsAddressBook;
     }
 
     /**
-     * displayEditProfile 
-     * 
+     * displayEditProfile.
+     *
      * @return void
      */
-    function displayEditProfile ()
+    public function displayEditProfile()
     {
         $stats = $this->getStats($this->fcmsUser->id);
 
@@ -90,11 +89,11 @@ class Profile
     }
 
     /**
-     * displayEditBasicInfo 
-     * 
+     * displayEditBasicInfo.
+     *
      * @return void
      */
-    function displayEditBasicInfo ()
+    public function displayEditBasicInfo()
     {
         $sql = "SELECT `fname`, `mname`, `lname`, `maiden`, `bio`, `sex`, 
                     `dob_year`, `dob_month`, `dob_day`
@@ -105,14 +104,15 @@ class Profile
         if ($row === false)
         {
            $this->fcmsError->displayError();
+
             return;
         }
 
         // Gender
-        $gender_options = buildHtmlSelectOptions(array('M' => T_('Male'), 'F' => T_('Female')), $row['sex']);
+        $gender_options = buildHtmlSelectOptions(['M' => T_('Male'), 'F' => T_('Female')], $row['sex']);
 
         // Birthday
-        $day_list = array();
+        $day_list = [];
         $i = 1;
         while ($i <= 31)
         {
@@ -121,7 +121,7 @@ class Profile
         }
         $day_options = buildHtmlSelectOptions($day_list, $row['dob_day']);
 
-        $month_list = array();
+        $month_list = [];
         $i = 1;
         while ($i <= 12)
         {
@@ -130,7 +130,7 @@ class Profile
         }
         $month_options = buildHtmlSelectOptions($month_list, $row['dob_month']);
 
-        $year_list = array();
+        $year_list = [];
         $i = 1900;
         $year_end = fixDate('Y', $this->fcmsUser->tzOffset);
         while ($i <= $year_end)
@@ -245,11 +245,11 @@ class Profile
     }
 
     /**
-     * displayEditProfilePicture 
-     * 
+     * displayEditProfilePicture.
+     *
      * @return void
      */
-    function displayEditProfilePicture ()
+    public function displayEditProfilePicture()
     {
         echo '
             <div id="sections_menu">
@@ -265,7 +265,7 @@ class Profile
             </div>
             <div id="maincolumn">';
 
-        $profileClassName  = getProfileClassName();
+        $profileClassName = getProfileClassName();
         $profileClassName .= 'Form';
 
         $profileForm = new $profileClassName($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
@@ -277,11 +277,11 @@ class Profile
     }
 
     /**
-     * displayEditAddress 
-     * 
+     * displayEditAddress.
+     *
      * @return void
      */
-    function displayEditAddress ()
+    public function displayEditAddress()
     {
         $sql = "SELECT `id`
                 FROM `fcms_address`
@@ -318,19 +318,19 @@ class Profile
     }
 
     /**
-     * getStats 
-     * 
-     * @param int $userid 
-     * 
+     * getStats.
+     *
+     * @param int $userid
+     *
      * @return void
      */
-    function getStats ($userid)
+    public function getStats($userid)
     {
-        $data = array();
+        $data = [];
 
-        $postsCount     = getPostsById($userid, 'array');
-        $photosCount    = getPhotosById($userid, 'array');
-        $commentsCount  = getCommentsById($userid, 'array');
+        $postsCount = getPostsById($userid, 'array');
+        $photosCount = getPhotosById($userid, 'array');
+        $commentsCount = getCommentsById($userid, 'array');
         $calendarsCount = getCalendarEntriesById($userid, 'array');
 
         $data['posts'] = '

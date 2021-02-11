@@ -1,14 +1,15 @@
 <?php
 /**
- * Private Message
- *  
+ * Private Message.
+ *
  * PHP versions 4 and 5
- *  
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -34,25 +35,25 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if (isset($_GET['compose']))
         {
@@ -89,13 +90,13 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ($options = null)
+    public function displayHeader($options = null)
     {
-        $params = array(
+        $params = [
             'currentUserId' => $this->fcmsUser->id,
             'sitename'      => getSiteName(),
             'nav-link'      => getNavLinks(),
@@ -104,7 +105,7 @@ class Page
             'path'          => URL_PREFIX,
             'displayname'   => $this->fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-        );
+        ];
 
         displayPageHeader($params, $options);
 
@@ -131,17 +132,17 @@ class Page
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
-        $params = array(
+        $params = [
             'path'    => URL_PREFIX,
             'version' => getCurrentVersion(),
-            'year'    => date('Y')
-        );
+            'year'    => date('Y'),
+        ];
 
         echo '
             </div><!--/#maincolumn-->';
@@ -150,20 +151,20 @@ class Page
     }
 
     /**
-     * displayComposeForm 
-     * 
+     * displayComposeForm.
+     *
      * @return void
      */
-    function displayComposeForm ()
+    public function displayComposeForm()
     {
         $this->displayHeader();
 
-        $id    = '';
+        $id = '';
         $title = '';
 
         if (isset($_GET['id']))
         {
-            $id = (int)$_GET['id'];
+            $id = (int) $_GET['id'];
         }
 
         if (isset($_GET['title']))
@@ -238,34 +239,35 @@ class Page
     }
 
     /**
-     * displayComposeFormSubmit 
-     * 
+     * displayComposeFormSubmit.
+     *
      * @return void
      */
-    function displayComposeFormSubmit ()
+    public function displayComposeFormSubmit()
     {
-        $to    = (int)$_POST['to']; 
+        $to = (int) $_POST['to'];
         $title = strip_tags($_POST['title']);
-        $msg   = strip_tags($_POST['post']);
+        $msg = strip_tags($_POST['post']);
 
         if (strlen($title) <= 0 || strlen($msg) <= 0)
         {
-            header("Location: privatemsg.php");
+            header('Location: privatemsg.php');
+
             return;
         }
 
         // Insert the PM into the DB
-        $sql = "INSERT INTO `fcms_privatemsg` 
+        $sql = 'INSERT INTO `fcms_privatemsg` 
                     (`to`, `from`, `date`, `title`, `msg`) 
                 VALUES
-                    (?, ?, NOW(), ?, ?)";
+                    (?, ?, NOW(), ?, ?)';
 
-        $params = array(
-            $to, 
-            $this->fcmsUser->id, 
-            $title, 
-            $msg
-        );
+        $params = [
+            $to,
+            $this->fcmsUser->id,
+            $title,
+            $msg,
+        ];
 
         if (!$this->fcmsDatabase->insert($sql, $params))
         {
@@ -277,8 +279,8 @@ class Page
         }
 
         // Email the PM to the user
-        $sql = "SELECT `email` FROM `fcms_users` 
-                WHERE `id` = ?";
+        $sql = 'SELECT `email` FROM `fcms_users` 
+                WHERE `id` = ?';
 
         $r = $this->fcmsDatabase->getRow($sql, $to);
         if ($r === false)
@@ -290,16 +292,16 @@ class Page
             return;
         }
 
-        $from     = $this->fcmsUser->displayName;
-        $reply    = $this->fcmsUser->email;
-        $toName   = getUserDisplayName($to);
+        $from = $this->fcmsUser->displayName;
+        $reply = $this->fcmsUser->email;
+        $toName = getUserDisplayName($to);
         $sitename = getSiteName();
         $sitename = html_entity_decode($sitename);
-        $subject  = sprintf(T_('A new Private Message at %s'), $sitename);
-        $email    = $r['email'];
-        $url      = getDomainAndDir();
+        $subject = sprintf(T_('A new Private Message at %s'), $sitename);
+        $email = $r['email'];
+        $url = getDomainAndDir();
 
-        $email_headers  = 'From: '.$sitename.' <'.getContactEmail().'>'."\r\n";
+        $email_headers = 'From: '.$sitename.' <'.getContactEmail().'>'."\r\n";
         $email_headers .= 'Reply-To: '.$reply."\r\n";
         $email_headers .= 'Content-Type: text/plain; charset=UTF-8;'."\r\n";
         $email_headers .= 'MIME-Version: 1.0'."\r\n";
@@ -326,15 +328,15 @@ class Page
 
         $_SESSION['success'] = 1;
 
-        header("Location: privatemsg.php");
+        header('Location: privatemsg.php');
     }
 
     /**
-     * displayConfirmDelete 
-     * 
+     * displayConfirmDelete.
+     *
      * @return void
      */
-    function displayConfirmDelete ()
+    public function displayConfirmDelete()
     {
         $this->displayHeader();
 
@@ -348,7 +350,7 @@ class Page
         foreach ($_POST['del'] as $id)
         {
             echo '
-                            <input type="hidden" name="del[]" value="'.(int)$id.'"/>';
+                            <input type="hidden" name="del[]" value="'.(int) $id.'"/>';
         }
 
         echo '
@@ -362,16 +364,16 @@ class Page
     }
 
     /**
-     * displayDeleteSubmit 
-     * 
+     * displayDeleteSubmit.
+     *
      * @return void
      */
-    function displayDeleteSubmit ()
+    public function displayDeleteSubmit()
     {
         foreach ($_POST['del'] as $id)
         {
-            $sql = "DELETE FROM `fcms_privatemsg` 
-                    WHERE `id` = ?";
+            $sql = 'DELETE FROM `fcms_privatemsg` 
+                    WHERE `id` = ?';
 
             if (!$this->fcmsDatabase->delete($sql, $id))
             {
@@ -385,27 +387,27 @@ class Page
 
         $_SESSION['success'] = 1;
 
-        header("Location: privatemsg.php");
+        header('Location: privatemsg.php');
     }
 
     /**
-     * displayPrivateMessage 
-     * 
+     * displayPrivateMessage.
+     *
      * @return void
      */
-    function displayPrivateMessage ()
+    public function displayPrivateMessage()
     {
-        $id = (int)$_GET['pm'];
+        $id = (int) $_GET['pm'];
 
         $this->displayHeader();
 
-        $sql = "SELECT p.`id`, `to`, `from`, `title`, `msg`, `date`, `read`, u.`avatar`, u.`gravatar`
+        $sql = 'SELECT p.`id`, `to`, `from`, `title`, `msg`, `date`, `read`, u.`avatar`, u.`gravatar`
                 FROM `fcms_privatemsg` AS p
                 LEFT JOIN `fcms_users` AS u ON p.`from` = u.`id`
                 WHERE p.`id` = ?
-                AND `to` = ?";
+                AND `to` = ?';
 
-        $r = $this->fcmsDatabase->getRow($sql, array($id, $this->fcmsUser->id));
+        $r = $this->fcmsDatabase->getRow($sql, [$id, $this->fcmsUser->id]);
         if ($r === false)
         {
             $this->fcmsError->displayError();
@@ -436,10 +438,10 @@ class Page
             return;
         }
 
-        $tzOffset   = getTimezone($this->fcmsUser->id);
-        $date       = fixDate(T_('n/j/Y g:i a'), $tzOffset, $r['date']);
+        $tzOffset = getTimezone($this->fcmsUser->id);
+        $date = fixDate(T_('n/j/Y g:i a'), $tzOffset, $r['date']);
         $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
-        $from       = getUserDisplayName($r['from']);
+        $from = getUserDisplayName($r['from']);
 
         echo '
             <div id="pm_msg">
@@ -452,30 +454,30 @@ class Page
                 <p>
                     '.parse($r['msg']).'
                 </p>
-                <a href="?compose=new&amp;id='.(int)$r['from'].'&amp;title='.cleanOutput($r['title']).'">'.T_('Reply').'
+                <a href="?compose=new&amp;id='.(int) $r['from'].'&amp;title='.cleanOutput($r['title']).'">'.T_('Reply').'
             </div>';
 
         $this->displayFooter();
     }
 
     /**
-     * displaySentPrivateMessage ()
-     * 
+     * displaySentPrivateMessage ().
+     *
      * @return void
      */
-    function displaySentPrivateMessage ()
+    public function displaySentPrivateMessage()
     {
-        $id = (int)$_GET['sent'];
+        $id = (int) $_GET['sent'];
 
         $this->displayHeader();
 
-        $sql = "SELECT p.`id`, `to`, `from`, `title`, `msg`, `date`, `read`, u.`avatar`, u.`gravatar`
+        $sql = 'SELECT p.`id`, `to`, `from`, `title`, `msg`, `date`, `read`, u.`avatar`, u.`gravatar`
                 FROM `fcms_privatemsg` AS p
                 LEFT JOIN `fcms_users` AS u ON p.`to` = u.`id`
                 WHERE p.`id` = ?
-                AND `from` = ?";
+                AND `from` = ?';
 
-        $r = $this->fcmsDatabase->getRow($sql, array($id, $this->fcmsUser->id));
+        $r = $this->fcmsDatabase->getRow($sql, [$id, $this->fcmsUser->id]);
         if ($r === false)
         {
             $this->fcmsError->displayError();
@@ -496,10 +498,10 @@ class Page
             return;
         }
 
-        $tzOffset   = getTimezone($this->fcmsUser->id);
-        $date       = fixDate(T_('n/j/Y g:i a'), $tzOffset, $r['date']);
+        $tzOffset = getTimezone($this->fcmsUser->id);
+        $date = fixDate(T_('n/j/Y g:i a'), $tzOffset, $r['date']);
         $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
-        $to         = getUserDisplayName($r['to']);
+        $to = getUserDisplayName($r['to']);
 
         echo '
             <div id="pm_msg">
@@ -518,11 +520,11 @@ class Page
     }
 
     /**
-     * displaySentFolder 
-     * 
+     * displaySentFolder.
+     *
      * @return void
      */
-    function displaySentFolder ()
+    public function displaySentFolder()
     {
         $this->displayHeader();
 
@@ -532,25 +534,26 @@ class Page
                         <th colspan="5" class="pm_header">'.T_('Sent Messages').'</th>
                     </tr>';
 
-        $sql = "SELECT p.`id`, `to`, `from`, `title`, `date`, `read`, u.`avatar`, u.`gravatar`
+        $sql = 'SELECT p.`id`, `to`, `from`, `title`, `date`, `read`, u.`avatar`, u.`gravatar`
                 FROM `fcms_privatemsg` AS p
                 LEFT JOIN `fcms_users` AS u ON p.`to` = u.`id`
                 WHERE `from` = ?
-                ORDER BY `date` DESC";
+                ORDER BY `date` DESC';
 
         $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         foreach ($rows as $r)
         {
-            $date       = fixDate(T_('M. j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
+            $date = fixDate(T_('M. j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
             $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
-            $to         = getUserDisplayName($r['to']);
+            $to = getUserDisplayName($r['to']);
 
             echo '
                     <tr>
@@ -558,7 +561,7 @@ class Page
                             <div class="user">
                                 <img src="'.$avatarPath.'" alt="'.$to.'" title="'.$to.'"/>
                             </div>
-                            <a href="?sent='.(int)$r['id'].'">'.cleanOutput($r['title']).'</a>
+                            <a href="?sent='.(int) $r['id'].'">'.cleanOutput($r['title']).'</a>
                             <span>'.$date.'</span>
                         </td>
                     </tr>';
@@ -572,19 +575,19 @@ class Page
     }
 
     /**
-     * displayInbox 
-     * 
+     * displayInbox.
+     *
      * @return void
      */
-    function displayInbox ()
+    public function displayInbox()
     {
         $this->displayHeader(
-            array(
+            [
                 'jsOnload' => '
     $(\'.pm_footer input[type="submit"]\').click(function(e) {
         return confirmDeleteLink(this, "'.T_('Are you sure you want to DELETE this?').'", e);
-    });'
-            )
+    });',
+            ]
         );
 
         if (isset($_SESSION['success']))
@@ -599,7 +602,7 @@ class Page
         {
             $header = sprintf(T_('Inbox (%d)'), $_SESSION['private_messages']);
         }
-            
+
         echo '
             <form method="post" action="privatemsg.php">
                 <table id="pm" cellpadding="0" cellspacing="0">
@@ -607,11 +610,11 @@ class Page
                         <th colspan="3" class="pm_header">'.$header.'</th>
                     </tr>';
 
-        $sql = "SELECT p.`id`, `to`, `from`, `title`, `date`, `read`, u.`avatar`, u.`gravatar`
+        $sql = 'SELECT p.`id`, `to`, `from`, `title`, `date`, `read`, u.`avatar`, u.`gravatar`
                 FROM `fcms_privatemsg` AS p
                 LEFT JOIN `fcms_users` AS u ON p.`from` = u.`id`
                 WHERE `to` = ?
-                ORDER BY `date` DESC";
+                ORDER BY `date` DESC';
 
         $rows = $this->fcmsDatabase->getRows($sql, $this->fcmsUser->id);
         if ($rows === false)
@@ -624,15 +627,15 @@ class Page
 
         foreach ($rows as $r)
         {
-            $date       = fixDate(T_('M. j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
+            $date = fixDate(T_('M. j, Y, g:i a'), $this->fcmsUser->tzOffset, $r['date']);
             $avatarPath = getAvatarPath($r['avatar'], $r['gravatar']);
-            $from       = getUserDisplayName($r['from']);
-            $rowClass   = '';
-            $linkClass  = 'read';
+            $from = getUserDisplayName($r['from']);
+            $rowClass = '';
+            $linkClass = 'read';
 
             if ($r['read'] < 1)
             {
-                $rowClass  = 'new';
+                $rowClass = 'new';
                 $linkClass = '';
             }
 
@@ -643,10 +646,10 @@ class Page
                             <div class="user">
                                 <img src="'.$avatarPath.'" alt="'.$from.'" title="'.$from.'"/>
                             </div>
-                            <a class="'.$linkClass.'" href="?pm='.(int)$r['id'].'">'.cleanOutput($r['title']).'</a>
+                            <a class="'.$linkClass.'" href="?pm='.(int) $r['id'].'">'.cleanOutput($r['title']).'</a>
                             <span>'.$date.'</span>
                         </td>
-                        <td class="check"><input type="checkbox" name="del[]" value="'.(int)$r['id'].'"/></td>
+                        <td class="check"><input type="checkbox" name="del[]" value="'.(int) $r['id'].'"/></td>
                     </tr>';
         }
 

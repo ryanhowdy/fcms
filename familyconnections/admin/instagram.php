@@ -1,14 +1,15 @@
 <?php
 /**
- * Instagram
- * 
+ * Instagram.
+ *
  * PHP version 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2012 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     3.0
  */
@@ -35,41 +36,42 @@ class Page
     private $fcmsTemplate;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct($fcmsError, $fcmsDatabase, $fcmsUser)
     {
-        $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
-        $this->fcmsUser         = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsDatabase = $fcmsDatabase;
+        $this->fcmsUser = $fcmsUser;
 
-        $this->fcmsTemplate = array(
+        $this->fcmsTemplate = [
             'sitename'      => cleanOutput(getSiteName()),
             'nav-link'      => getAdminNavLinks(),
             'pagetitle'     => T_('Administration: Instagram'),
             'path'          => URL_PREFIX,
             'displayname'   => $fcmsUser->displayName,
             'version'       => getCurrentVersion(),
-            'year'          => date('Y')
-        );
+            'year'          => date('Y'),
+        ];
 
         $this->control();
     }
 
     /**
-     * control 
-     * 
+     * control.
+     *
      * The controlling structure for this script.
-     * 
+     *
      * @return void
      */
-    function control ()
+    public function control()
     {
         if ($this->fcmsUser->access > 1)
         {
             $this->displayInvalidAccessLevel();
+
             return;
         }
 
@@ -84,11 +86,11 @@ class Page
     }
 
     /**
-     * displayHeader 
-     * 
+     * displayHeader.
+     *
      * @return void
      */
-    function displayHeader ()
+    public function displayHeader()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -99,11 +101,11 @@ class Page
     }
 
     /**
-     * displayFooter 
-     * 
+     * displayFooter.
+     *
      * @return void
      */
-    function displayFooter ()
+    public function displayFooter()
     {
         $TMPL = $this->fcmsTemplate;
 
@@ -114,13 +116,13 @@ class Page
     }
 
     /**
-     * displayInvalidAccessLevel 
-     * 
+     * displayInvalidAccessLevel.
+     *
      * Display an error message for users who do not have admin access.
-     * 
+     *
      * @return void
      */
-    function displayInvalidAccessLevel ()
+    public function displayInvalidAccessLevel()
     {
         $this->displayHeader();
 
@@ -133,15 +135,15 @@ class Page
 
         $this->displayFooter();
     }
-    
+
     /**
-     * displayFormPage
-     * 
+     * displayFormPage.
+     *
      * Displays the form for configuring a instagram app.
-     * 
+     *
      * @return void
      */
-    function displayFormPage ()
+    public function displayFormPage()
     {
         global $fcmsUser;
 
@@ -160,7 +162,7 @@ class Page
 
         $r = getInstagramConfigData();
 
-        $client_id     = isset($r['instagram_client_id'])     ? cleanOutput($r['instagram_client_id'])     : '';
+        $client_id = isset($r['instagram_client_id']) ? cleanOutput($r['instagram_client_id']) : '';
         $client_secret = isset($r['instagram_client_secret']) ? cleanOutput($r['instagram_client_secret']) : '';
 
         echo '
@@ -238,11 +240,11 @@ class Page
     }
 
     /**
-     * displayFormSubmitPage
-     * 
+     * displayFormSubmitPage.
+     *
      * @return void
      */
-    function displayFormSubmitPage ()
+    public function displayFormSubmitPage()
     {
         if (isset($_SESSION['instagram_client_id']))
         {
@@ -254,35 +256,37 @@ class Page
             unset($_SESSION['instagram_client_secret']);
         }
 
-        $id     = isset($_POST['id'])     ? $_POST['id']     : '';
+        $id = isset($_POST['id']) ? $_POST['id'] : '';
         $secret = isset($_POST['secret']) ? $_POST['secret'] : '';
 
         $sql = "UPDATE `fcms_config` 
                 SET `value` = ?
                 WHERE `name` = 'instagram_client_id'";
-        
+
         if (!$this->fcmsDatabase->update($sql, $id))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $sql = "UPDATE `fcms_config` 
                 SET `value` = ?
                 WHERE `name` = 'instagram_client_secret'";
-        
+
         if (!$this->fcmsDatabase->update($sql, $secret))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
             $this->displayFooter();
+
             return;
         }
 
         $_SESSION['success'] = 1;
 
-        header("Location: instagram.php");
+        header('Location: instagram.php');
     }
 }

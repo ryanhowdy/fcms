@@ -1,14 +1,14 @@
 <?php
 /**
- * Family Connections Error
- * 
+ * Family Connections Error.
+ *
  * There are two types of errors in FCMS.
  *
  *   operation - A logic, run-time, or compliation error
  *   user      - A user or validation error.
  *
  * Operation Errors consist of:
- * 
+ *
  *   message       - a user friendly message that is displayed to the user
  *   error         - the error details, usually mysql_error or php errstr
  *   line          - the line number the error occurred on
@@ -18,29 +18,29 @@
  *   mysql_version - mysql version
  *   os            - operating system
  *   sql           - the sql statement (if available)
- *   
+ *
  * User Errors consist of:
- * 
+ *
  *   message - a user friendly message that is displayed to the user
  *   details - an optional area for more user friendly info
- *   
+ *
  * PHP 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2012 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     2.9
  */
 
 /**
- * FCMS_Error
- * 
- * @package   Family Connections
+ * FCMS_Error.
+ *
  * @copyright 2012 Haudenschilt LLC
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license   http://www.gnu.org/licenses/gpl-2.0.html
  */
 class FCMS_Error
@@ -57,28 +57,28 @@ class FCMS_Error
     public static $instance = null;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @return void
      */
-    private function __construct ()
+    private function __construct()
     {
-        $this->type    = isset($_SESSION['user_error']) ? 'user'                             : null;
+        $this->type = isset($_SESSION['user_error']) ? 'user' : null;
         $this->message = isset($_SESSION['user_error']) ? $_SESSION['user_error']['message'] : null;
         $this->details = isset($_SESSION['user_error']) ? $_SESSION['user_error']['details'] : null;
-        $this->error   = null;
-        $this->line    = null;
-        $this->file    = null;
-        $this->stack   = null;
-        $this->sql     = null;
+        $this->error = null;
+        $this->line = null;
+        $this->file = null;
+        $this->stack = null;
+        $this->sql = null;
     }
 
     /**
-     * getInstance 
-     * 
+     * getInstance.
+     *
      * @return object
      */
-    public static function getInstance ()
+    public static function getInstance()
     {
         if (!isset(self::$instance))
         {
@@ -89,13 +89,13 @@ class FCMS_Error
     }
 
     /**
-     * hasError
-     * 
+     * hasError.
+     *
      * Checks whether non user error has occured.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    public function hasError ()
+    public function hasError()
     {
         if (!is_null($this->message) && $this->type != 'user')
         {
@@ -106,13 +106,13 @@ class FCMS_Error
     }
 
     /**
-     * hasAnyError
-     * 
+     * hasAnyError.
+     *
      * Checks whether any error has occured.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    public function hasAnyError ()
+    public function hasAnyError()
     {
         if (!is_null($this->message))
         {
@@ -123,13 +123,13 @@ class FCMS_Error
     }
 
     /**
-     * hasUserError
-     * 
+     * hasUserError.
+     *
      * Checks whether any user error has occured.
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
-    public function hasUserError ()
+    public function hasUserError()
     {
         if (!is_null($this->message) && $this->type == 'user')
         {
@@ -140,13 +140,13 @@ class FCMS_Error
     }
 
     /**
-     * getError 
-     * 
+     * getError.
+     *
      * @return array
      */
-    public function getError ()
+    public function getError()
     {
-        return array(
+        return [
             'message'       => $this->message,
             'details'       => $this->details,
             'error'         => $this->error,
@@ -155,18 +155,18 @@ class FCMS_Error
             'stack'         => $this->stack,
             'php_version'   => PHP_VERSION,
             'os'            => PHP_OS,
-            'sql'           => $this->sql
-        );
+            'sql'           => $this->sql,
+        ];
     }
 
     /**
-     * displayError 
-     * 
+     * displayError.
+     *
      * Prints out the error.
-     * 
+     *
      * @return void
      */
-    public function displayError ()
+    public function displayError()
     {
         if (!$this->hasAnyError())
         {
@@ -181,6 +181,7 @@ class FCMS_Error
             }
 
             $this->displayUserError();
+
             return;
         }
 
@@ -205,37 +206,37 @@ class FCMS_Error
     }
 
     /**
-     * displayUserError 
-     * 
+     * displayUserError.
+     *
      * Prints out the error.
-     * 
+     *
      * @return void
      */
-    public function displayUserError ()
+    public function displayUserError()
     {
         echo '<div class="error-alert"><h2>'.$this->message.'</h2>'.$this->details.'</div>';
     }
 
     /**
-     * setMessage 
-     * 
-     * @param string $msg 
-     * 
+     * setMessage.
+     *
+     * @param string $msg
+     *
      * @return void
      */
-    public function setMessage ($msg)
+    public function setMessage($msg)
     {
         $this->message = $msg;
     }
 
     /**
-     * setError
-     * 
-     * @param mixed $error 
-     * 
+     * setError.
+     *
+     * @param mixed $error
+     *
      * @return void
      */
-    public function setError ($error)
+    public function setError($error)
     {
         if (is_array($error) || is_object($error))
         {
@@ -246,10 +247,10 @@ class FCMS_Error
     }
 
     /**
-     * add 
-     * 
+     * add.
+     *
      * Logs the error and keeps track of the error info.
-     * 
+     *
      * Params:
      *
      *   type          - operation | user
@@ -259,23 +260,23 @@ class FCMS_Error
      *   line          - the line number the error occurred on
      *   file          - the file the error occurred on
      *   sql           - the sql statement
-     * 
-     * @param array   $params
-     * 
+     *
+     * @param array $params
+     *
      * @return void
      */
-    public function add ($args)
+    public function add($args)
     {
         // Get params
-        $type    = isset($args['type'])    ? $args['type']    : 'user';
+        $type = isset($args['type']) ? $args['type'] : 'user';
         $message = isset($args['message']) ? $args['message'] : 'Unknown Error';
         $details = isset($args['details']) ? $args['details'] : null;
-        $error   = isset($args['error'])   ? $args['error']   : null;
-        $file    = isset($args['file'])    ? $args['file']    : null;
-        $line    = isset($args['line'])    ? $args['line']    : null;
-        $sql     = isset($args['sql'])     ? $args['sql']     : null;
+        $error = isset($args['error']) ? $args['error'] : null;
+        $file = isset($args['file']) ? $args['file'] : null;
+        $line = isset($args['line']) ? $args['line'] : null;
+        $sql = isset($args['sql']) ? $args['sql'] : null;
 
-        $stack    = '';
+        $stack = '';
         $logStack = '';
 
         // Get stack trace
@@ -283,24 +284,24 @@ class FCMS_Error
 
         for ($i = 0; $i < count($trace); $i++)
         {
-            $stack    .= '#'.$i.' '.$trace[$i]['function'].' called at ['.$trace[$i]['file'].':'.$trace[$i]['line'].']<br/>';
+            $stack .= '#'.$i.' '.$trace[$i]['function'].' called at ['.$trace[$i]['file'].':'.$trace[$i]['line'].']<br/>';
             $logStack .= '    #'.$i.' '.$trace[$i]['function'].' called at ['.$trace[$i]['file'].':'.$trace[$i]['line']."]\n";
         }
 
         $this->setError($error);
 
-        $this->type    = $type;
+        $this->type = $type;
         $this->message = $message;
         $this->details = $details;
-        $this->line    = $line;
-        $this->file    = $file;
-        $this->stack   = $stack;
-        $this->sql     = $sql;
+        $this->line = $line;
+        $this->file = $file;
+        $this->stack = $stack;
+        $this->sql = $sql;
 
         // Log Operation errors
         if ($this->type == 'operation')
         {
-            $log  = $this->message." - ";
+            $log = $this->message.' - ';
             $log .= $this->error."\n";
             $log .= '  FILE  - '.$this->file.' ['.$this->line."]\n";
             $log .= '  PHP   - '.PHP_VERSION.' ('.PHP_OS.")\n";
@@ -316,12 +317,12 @@ class FCMS_Error
             logError($log);
         }
         // Save User errors in session
-        else 
+        else
         {
-            $_SESSION['user_error'] = array(
+            $_SESSION['user_error'] = [
                 'message' => $this->message,
-                'details' => $this->details
-            );
+                'details' => $this->details,
+            ];
         }
     }
 }

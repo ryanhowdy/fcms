@@ -1,25 +1,23 @@
 <?php
 /**
- * Java Photo Gallery
- * 
- * @package Upload
- * @subpackage PhotoGallery
+ * Java Photo Gallery.
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class JavaUploadPhotoGallery extends UploadPhotoGallery
 {
     /**
-     * setFormData 
-     * 
+     * setFormData.
+     *
      * Saves all the data passed in from the form upload.
-     * 
+     *
      * @param array $formData
-     * 
+     *
      * @return void
      */
-    protected function setFormData ($formData)
+    protected function setFormData($formData)
     {
         $this->formData = $formData;
 
@@ -30,11 +28,11 @@ class JavaUploadPhotoGallery extends UploadPhotoGallery
     }
 
     /**
-     * insertCategory 
-     * 
-     * @return boolean
+     * insertCategory.
+     *
+     * @return bool
      */
-    protected function insertCategory ()
+    protected function insertCategory()
     {
         // If mass_photos_category is set, we already created the category
         // just set the newCategoryId and move on
@@ -58,16 +56,16 @@ class JavaUploadPhotoGallery extends UploadPhotoGallery
     }
 
     /**
-     * savePhoto 
-     * 
-     * @return boolean
+     * savePhoto.
+     *
+     * @return bool
      */
-    protected function savePhoto ()
+    protected function savePhoto()
     {
-        $photoTypes = array(
+        $photoTypes = [
             'main'  => '',
-            'thumb' => 'tb_'
-        );
+            'thumb' => 'tb_',
+        ];
 
         if ($this->usingFullSizePhotos)
         {
@@ -86,15 +84,14 @@ class JavaUploadPhotoGallery extends UploadPhotoGallery
             // only on main, so we don't get both full size and thumbnail
             if ($type == 'main')
             {
-                $_SESSION['photos'][] = array(
+                $_SESSION['photos'][] = [
                     'id'       => $this->newPhotoId,
                     'filename' => $this->fileName,
-                    'category' => $this->newCategoryId
-                );
+                    'category' => $this->newCategoryId,
+                ];
             }
         }
 
         return true;
     }
-
 }

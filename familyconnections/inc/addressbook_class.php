@@ -1,51 +1,53 @@
 <?php
 /**
- * AddressBook 
- * 
+ * AddressBook.
+ *
  * PHP versions 4 and 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 
 /**
- * AddressBook 
- * 
+ * AddressBook.
+ *
  * @category  FCMS
- * @package   Family_Connections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 class AddressBook
 {
-    var $fcmsError;
-    var $fcmsDatabase;
-    var $fcmsUser;
+    public $fcmsError;
+    public $fcmsDatabase;
+    public $fcmsUser;
 
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
      * @param Database   $fcmsDatabase
-     * @param User       $fcmsUser 
-     * 
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
     }
 
     /**
-     *  displayAddress
+     *  displayAddress.
      *
      *  Displays the address details.
      *
@@ -54,21 +56,22 @@ class AddressBook
      *
      *  @return void
      */
-    function displayAddress ($aid, $cat)
+    public function displayAddress($aid, $cat)
     {
-        $aid = (int)$aid;
+        $aid = (int) $aid;
         $cat = cleanOutput($cat);
 
-        $sql = "SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `country`, `address`, `city`, `state`, 
+        $sql = 'SELECT a.`id`, a.`user`, `fname`, `lname`, `avatar`, `updated`, `country`, `address`, `city`, `state`, 
                     `zip`, `home`, `work`, `cell`, `email`, `phpass` 
                 FROM `fcms_address` AS a, `fcms_users` AS u 
                 WHERE a.`user` = u.`id` 
-                AND a.`id` = ?";
+                AND a.`id` = ?';
 
         $r = $this->fcmsDatabase->getRow($sql, $aid);
         if ($r === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -80,7 +83,7 @@ class AddressBook
             return;
         }
 
-        $templateParams = array(
+        $templateParams = [
             'addressText'     => T_('Address'),
             'emailText'       => T_('Email'),
             'homeText'        => T_pgettext('The dwelling where you live.', 'Home'),
@@ -89,58 +92,58 @@ class AddressBook
             'emailMemberText' => T_('Email This Member'),
             'avatar'          => getCurrentAvatar($r['user']),
             'name'            => cleanOutput($r['fname']).' '.cleanOutput($r['lname']),
-            'addressOptions' => array(
-                array(
+            'addressOptions'  => [
+                [
                     'liId' => 'back',
                     'aId'  => '',
                     'url'  => '?cat='.$cat,
                     'text' => T_('Back to Addresses'),
-                ),
-                array(
+                ],
+                [
                     'liId' => 'email',
                     'aId'  => '',
                     'url'  => 'mailto:'.cleanOutput($r['email']),
                     'text' => T_('Email'),
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
 
         // Edit / Delete links
         if ($this->fcmsUser->id == $r['user'] || $this->fcmsUser->access < 2)
         {
-            $templateParams['addressOptions'][] = array(
+            $templateParams['addressOptions'][] = [
                 'liId' => 'edit',
                 'aId'  => '',
-                'url'  => '?cat='.$cat.'&amp;edit='.(int)$r['id'],
+                'url'  => '?cat='.$cat.'&amp;edit='.(int) $r['id'],
                 'text' => T_('Edit'),
-            );
+            ];
 
             if ($r['phpass'] == 'NONMEMBER' || $r['phpass'] == 'PRIVATE')
             {
-                $templateParams['addressOptions'][] = array(
+                $templateParams['addressOptions'][] = [
                     'liId' => 'delete',
                     'aId'  => 'del_address',
-                    'url'  => '?cat='.$cat.'&amp;delete='.(int)$r['id'],
+                    'url'  => '?cat='.$cat.'&amp;delete='.(int) $r['id'],
                     'text' => T_('Delete'),
-                );
+                ];
             }
         }
 
         // Address
-        $templateParams['address']    = formatAddress($r);
+        $templateParams['address'] = formatAddress($r);
         $templateParams['addressUrl'] = formatAddressUrl($templateParams['address']);
 
         if ($templateParams['address'] == '')
         {
-            $templateParams['address'] = "<i>(".T_('none').")</i>";
+            $templateParams['address'] = '<i>('.T_('none').')</i>';
         }
 
         // Email
-        $templateParams['email'] = empty($r['email']) ? "<i>(".T_('none').")</i>" : cleanOutput($r['email']); 
+        $templateParams['email'] = empty($r['email']) ? '<i>('.T_('none').')</i>' : cleanOutput($r['email']);
 
         // Phone Number
-        $templateParams['home']   = empty($r['home']) ? '<i>('.T_('none').')</i>' : formatPhone($r['home'], $r['country']);
-        $templateParams['work']   = empty($r['work']) ? '<i>('.T_('none').')</i>' : formatPhone($r['work'], $r['country']);
+        $templateParams['home'] = empty($r['home']) ? '<i>('.T_('none').')</i>' : formatPhone($r['home'], $r['country']);
+        $templateParams['work'] = empty($r['work']) ? '<i>('.T_('none').')</i>' : formatPhone($r['work'], $r['country']);
         $templateParams['mobile'] = empty($r['cell']) ? '<i>('.T_('none').')</i>' : formatPhone($r['cell'], $r['country']);
 
         $categories = $this->getCategoryParams($cat);
@@ -151,32 +154,32 @@ class AddressBook
     }
 
     /**
-     * displayAddressList 
-     * 
+     * displayAddressList.
+     *
      * Displays the categories and the user's in that category.
      *
      * @param string $cat Category name
      *
      * @return void
      */
-    function displayAddressList ($cat = '')
+    public function displayAddressList($cat = '')
     {
-        $templateParams = array(
+        $templateParams = [
             'addNewAddressText' => T_('Add New Address'),
             'nameText'          => T_('Name'),
             'addressText'       => T_('Address'),
             'phoneText'         => T_('Phone'),
-        );
+        ];
 
         $categories = $this->getCategoryParams($cat);
-        $addresses  = $this->getAddressInCategoryParams($cat);
+        $addresses = $this->getAddressInCategoryParams($cat);
 
         $templateParams = array_merge($templateParams, $categories);
         $templateParams = array_merge($templateParams, $addresses);
 
         if ($this->fcmsUser->access <= 3)
         {
-            $templateParams['allowedToEmail']    = 1;
+            $templateParams['allowedToEmail'] = 1;
             $templateParams['emailSelectedText'] = T_('Email Selected');
         }
 
@@ -184,7 +187,7 @@ class AddressBook
     }
 
     /**
-     * getCategoryParams
+     * getCategoryParams.
      *
      * Returns an array of template parameters for showing the list of categories.
      *
@@ -192,11 +195,11 @@ class AddressBook
      *
      * @return array
      */
-    function getCategoryParams ($selected = 'members')
+    public function getCategoryParams($selected = 'members')
     {
-        $rv  = array();
+        $rv = [];
         $all = '';
-        $my  = '';
+        $my = '';
         $mem = '';
         $non = '';
 
@@ -217,52 +220,52 @@ class AddressBook
             $non = 'selected';
         }
 
-        $rv['viewText']   = T_('View');
+        $rv['viewText'] = T_('View');
         $rv['optionText'] = T_('Options');
 
-        $rv['categories'] = array(
-            array(
+        $rv['categories'] = [
+            [
                 'liClass' => $all,
                 'url'     => '?cat=all',
                 'title'   => '',
                 'text'    => T_('All'),
-            ),
-            array(
+            ],
+            [
                 'liClass' => $my,
                 'url'     => '?cat=my',
                 'title'   => T_('Only show My personal Addresses'),
                 'text'    => T_('My Addresses'),
-            ),
-            array(
+            ],
+            [
                 'liClass' => $mem,
                 'url'     => '?cat=members',
                 'title'   => T_('Only show Addresses for members of the site'),
                 'text'    => T_('Members'),
-            ),
-            array(
+            ],
+            [
                 'liClass' => $non,
                 'url'     => '?cat=non',
                 'title'   => T_('Only show Addresses for non-members'),
                 'text'    => T_('Non-Members'),
-            ),
-        );
+            ],
+        ];
 
-        $rv['options'] = array(
-            array(
+        $rv['options'] = [
+            [
                 'url'  => '?csv=import',
                 'text' => T_('Import'),
-            ),
-            array(
+            ],
+            [
                 'url'  => '?csv=export',
                 'text' => T_('Export'),
-            ),
-        );
+            ],
+        ];
 
         return $rv;
     }
 
     /**
-     * getAddressInCategoryParams
+     * getAddressInCategoryParams.
      *
      * Returns an array of template params for all the addresses in the given category.
      *
@@ -270,9 +273,9 @@ class AddressBook
      *
      * @return array
      */
-    function getAddressInCategoryParams ($category = '')
+    public function getAddressInCategoryParams($category = '')
     {
-        $rv = array();
+        $rv = [];
 
         // All addresses
         $cat = 'cat=all&amp;';
@@ -297,10 +300,10 @@ class AddressBook
                 )
                 ORDER BY `lname`";
 
-        $params = array(
+        $params = [
             $this->fcmsUser->id,
-            $this->fcmsUser->id
-        );
+            $this->fcmsUser->id,
+        ];
 
         // Member addresses
         if ($category == 'members')
@@ -323,10 +326,10 @@ class AddressBook
                     )
                     ORDER BY `lname`";
 
-            $params = array();
+            $params = [];
         }
         // Non-member addresses
-        else if ($category == 'non')
+        elseif ($category == 'non')
         {
             $cat = 'cat=non&amp;';
             $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
@@ -336,10 +339,10 @@ class AddressBook
                     AND (`phpass` = 'NONMEMBER' OR `password` = 'NONMEMBER')
                     ORDER BY `lname`";
 
-            $params = array();
+            $params = [];
         }
         // My (private) addresses
-        else if ($category == 'my')
+        elseif ($category == 'my')
         {
             $cat = 'cat=my&amp;';
             $sql = "SELECT a.`id`, `user`, `fname`, `lname`, `updated`, `home`, `email`,
@@ -350,7 +353,7 @@ class AddressBook
                     AND (`phpass` = 'PRIVATE' OR `password` = 'PRIVATE')
                     ORDER BY `lname`";
 
-            $params = array($this->fcmsUser->id);
+            $params = [$this->fcmsUser->id];
         }
 
         if (count($params) > 0)
@@ -365,6 +368,7 @@ class AddressBook
         if ($rows === false)
         {
             $this->fcmsError->displayError();
+
             return;
         }
 
@@ -398,20 +402,20 @@ class AddressBook
                 $address .= cleanOutput($r['zip']);
             }
 
-            $rv['addresses'][] = array(
+            $rv['addresses'][] = [
                 'checkbox'   => $email,
-                'addressUrl' => '?'.$cat.'address='.(int)$r['id'],
+                'addressUrl' => '?'.$cat.'address='.(int) $r['id'],
                 'name'       => cleanOutput($r['lname']).', '.cleanOutput($r['fname']),
                 'address'    => $address,
                 'phone'      => formatPhone($r['home'], $r['country']),
-            );
+            ];
         }
 
         return $rv;
     }
 
     /**
-     * displayEditForm
+     * displayEditForm.
      *
      * Displays the form for editing an address.
      *
@@ -421,9 +425,9 @@ class AddressBook
      *
      * @return void
      */
-    function displayEditForm ($addressid, $cancel, $submit = 'addressbook.php')
+    public function displayEditForm($addressid, $cancel, $submit = 'addressbook.php')
     {
-        $addressid = (int)$addressid;
+        $addressid = (int) $addressid;
 
         $sql = "SELECT a.`id`, u.`id` AS uid, `fname`, `lname`, `email`, `country`,
                     `address`, `city`, `state`, `zip`, `home`, `work`, `cell` 
@@ -443,20 +447,21 @@ class AddressBook
         {
             echo '
                     <p class="error-alert">'.T_('You do not have permission to perform this task.').'</p>';
+
             return;
         }
 
         // Setup vars for output
-        $email   = cleanOutput($row['email']);
+        $email = cleanOutput($row['email']);
         $address = cleanOutput($row['address']);
-        $city    = cleanOutput($row['city']);
-        $state   = cleanOutput($row['state']);
-        $zip     = cleanOutput($row['zip']);
-        $home    = cleanOutput($row['home']);
-        $work    = cleanOutput($row['work']);
-        $cell    = cleanOutput($row['cell']);
+        $city = cleanOutput($row['city']);
+        $state = cleanOutput($row['state']);
+        $zip = cleanOutput($row['zip']);
+        $home = cleanOutput($row['home']);
+        $work = cleanOutput($row['work']);
+        $cell = cleanOutput($row['cell']);
 
-        $country_list    = buildCountryList();
+        $country_list = buildCountryList();
         $country_options = buildHtmlSelectOptions($country_list, $row['country']);
 
         // Print the form
@@ -526,8 +531,8 @@ class AddressBook
                     </script>
                     <div>
                         <input type="hidden" name="aid" value="'.$addressid.'"/>
-                        <input type="hidden" name="uid" value="'.(int)$row['uid'].'"/>
-                        <input type="hidden" name="cat" value="'.(isset($_GET['cat']) ? (int)$_GET['cat'] : 0).'"/>
+                        <input type="hidden" name="uid" value="'.(int) $row['uid'].'"/>
+                        <input type="hidden" name="cat" value="'.(isset($_GET['cat']) ? (int) $_GET['cat'] : 0).'"/>
                     </div>
                     <p>
                         <input class="sub1" type="submit" name="editsubmit" value="'.T_('Edit').'"/>';
@@ -539,25 +544,25 @@ class AddressBook
                         <a href="'.$cancel.'">'.T_('Cancel').'</a>';
         }
 
-        print '
+        echo '
                     </p>
                 </fieldset>
             </form>';
     }
 
     /**
-     * displayAddForm
+     * displayAddForm.
      *
      * Displays the form for adding an address.
      *
      * @return void
      */
-    function displayAddForm ()
+    public function displayAddForm()
     {
-        $country_list    = buildCountryList();
-        $selected        = getDefaultCountry();
+        $country_list = buildCountryList();
+        $selected = getDefaultCountry();
         $country_options = buildHtmlSelectOptions($country_list, $selected);
-        $validator       = new FormValidator();
+        $validator = new FormValidator();
 
         // TODO
         // Make this a removable alert message (part of Alerts table)
@@ -634,48 +639,48 @@ class AddressBook
     }
 
     /**
-     * displayMassEmailForm 
+     * displayMassEmailForm.
      *
      * Displays the form for sending out mass emails.
-     * 
+     *
      * @param array  $emails  The email addresses you are mass mailing to
      * @param string $email   The email address you are sending from
      * @param string $name    The name you are sending from
      * @param string $subject The subject of the email
      * @param string $message The body of the email
      * @param string $show    Show errors or not
-     * 
-     * @return  void
+     *
+     * @return void
      */
-    function displayMassEmailForm ($emails, $email = '', $name = '', $subject = '', $message = '', $show = '')
+    public function displayMassEmailForm($emails, $email = '', $name = '', $subject = '', $message = '', $show = '')
     {
-        $errors      = false;
-        $err_email   = '';
-        $err_name    = '';
+        $errors = false;
+        $err_email = '';
+        $err_name = '';
         $err_subject = '';
-        $err_msg     = '';
+        $err_msg = '';
 
         // Are we allowed to show errors?
         if (!empty($show))
         {
             if (empty($email))
             {
-                $errors    = true;
+                $errors = true;
                 $err_email = '<br/><span class="error">'.T_('Required').'</span>';
             }
             if (empty($name))
             {
-                $errors   = true;
+                $errors = true;
                 $err_name = '<br/><span class="error">'.T_('Required').'</span>';
             }
             if (empty($subject))
             {
-                $errors      = true;
+                $errors = true;
                 $err_subject = '<br/><span class="error">'.T_('Required').'</span>';
             }
             if (empty($message))
             {
-                $errors  = true;
+                $errors = true;
                 $err_msg = '<br/><span class="error">'.T_('Required').'</span>';
             }
         }
@@ -758,24 +763,25 @@ class AddressBook
     }
 
     /**
-     * userHasAddress
+     * userHasAddress.
      *
      * Checks whether or not the user has entered address info.
      *
      * @param int $id The user's id
      *
-     * @return boolean
+     * @return bool
      */
-    function userHasAddress ($id)
+    public function userHasAddress($id)
     {
-        $sql = "SELECT `state`, `home`, `work`, `cell`
+        $sql = 'SELECT `state`, `home`, `work`, `cell`
                 FROM `fcms_address` 
-                WHERE `user` = ?";
+                WHERE `user` = ?';
 
         $r = $this->fcmsDatabase->getRow($sql, $id);
         if ($r === false)
         {
             $this->fcmsError->displayError();
+
             return false;
         }
 
@@ -799,13 +805,13 @@ class AddressBook
     }
 
     /**
-     * displayImportForm 
+     * displayImportForm.
      *
      * Displays the form to allow csv imports.
-     * 
+     *
      * @return void
      */
-    function displayImportForm ()
+    public function displayImportForm()
     {
         echo '
             <h2>'.T_('Import').'</h2><br/>
@@ -824,7 +830,7 @@ class AddressBook
     }
 
     /**
-     * importAddressCsv
+     * importAddressCsv.
      *
      * Imports a CSV file into the address book
      *
@@ -832,9 +838,9 @@ class AddressBook
      *
      * @return void
      */
-    function importAddressCsv ($file)
+    public function importAddressCsv($file)
     {
-        if (!in_array($file['type'], array('text/plain', 'text/x-csv', 'text/csv', 'application/vnd.ms-excel', 'application/octet-stream')))
+        if (!in_array($file['type'], ['text/plain', 'text/x-csv', 'text/csv', 'application/vnd.ms-excel', 'application/octet-stream']))
         {
             echo '
             <p class="error-alert">'.sprintf(T_('%s (%s) is not a CSV file.'), $file['name'], $file['type']).'</p>';
@@ -843,11 +849,11 @@ class AddressBook
         }
 
         // Read in the file and parse the data to an array of arrays
-        $addresses = array();
-        $handle    = fopen($file['tmp_name'], "r");
+        $addresses = [];
+        $handle = fopen($file['tmp_name'], 'r');
 
         $row = 0;
-        while (($data = fgetcsv($handle, 4096, ",")) !== false)
+        while (($data = fgetcsv($handle, 4096, ',')) !== false)
         {
             if ($row == 0)
             {
@@ -860,7 +866,7 @@ class AddressBook
                 $num = count($data);
                 $row++;
 
-                for ($i=0; $i < $num; $i++)
+                for ($i = 0; $i < $num; $i++)
                 {
                     if ($data[$i])
                     {
@@ -930,9 +936,9 @@ class AddressBook
 
             // Street Address
             $street = '';
-            $city   = '';
-            $state  = '';
-            $zip    = '';
+            $city = '';
+            $state = '';
+            $zip = '';
             if (isset($address['address']))
             {
                 // FCMS
@@ -946,20 +952,20 @@ class AddressBook
                 $endStreet = strpos($address['Home Address'], "\n");
                 if ($endStreet !== false)
                 {
-                    $street  = substr($address['Home Address'], 0, $endStreet-1);
-                    $endCity = strpos($address['Home Address'], ",", $endStreet);
+                    $street = substr($address['Home Address'], 0, $endStreet - 1);
+                    $endCity = strpos($address['Home Address'], ',', $endStreet);
                     if ($endCity !== false)
                     {
-                        $city   = substr($address['Home Address'], $endStreet+1, ($endCity - $endStreet)-1);
+                        $city = substr($address['Home Address'], $endStreet + 1, ($endCity - $endStreet) - 1);
                         $tmpZip = substr($address['Home Address'], -5);
                         if (is_numeric($tmpZip))
                         {
                             $endZip = strpos($address['Home Address'], $tmpZip, $endCity);
                             if ($endZip !== false)
                             {
-                                $state = substr($address['Home Address'], $endCity+2);
+                                $state = substr($address['Home Address'], $endCity + 2);
                                 $state = substr($state, 0, -6);  // 5 zip + space
-                                $zip   = $tmpZip;
+                                $zip = $tmpZip;
                             }
                         }
                         else
@@ -987,20 +993,20 @@ class AddressBook
                 $endStreet = strpos($address['Address 1 - Formatted'], "\n");
                 if ($endStreet !== false)
                 {
-                    $street  = substr($address['Address 1 - Formatted'], 0, $endStreet-1);
-                    $endCity = strpos($address['Address 1 - Formatted'], ",", $endStreet);
+                    $street = substr($address['Address 1 - Formatted'], 0, $endStreet - 1);
+                    $endCity = strpos($address['Address 1 - Formatted'], ',', $endStreet);
                     if ($endCity !== false)
                     {
-                        $city   = substr($address['Address 1 - Formatted'], $endStreet+1, ($endCity - $endStreet)-1);
+                        $city = substr($address['Address 1 - Formatted'], $endStreet + 1, ($endCity - $endStreet) - 1);
                         $tmpZip = substr($address['Address 1 - Formatted'], -5);
                         if (is_numeric($tmpZip))
                         {
                             $endZip = strpos($address['Address 1 - Formatted'], $tmpZip, $endCity);
                             if ($endZip !== false)
                             {
-                                $state = substr($address['Address 1 - Formatted'], $endCity+2);
+                                $state = substr($address['Address 1 - Formatted'], $endCity + 2);
                                 $state = substr($state, 0, -6);  // 5 zip + space
-                                $zip   = $tmpZip;
+                                $zip = $tmpZip;
                             }
                         }
                         else
@@ -1150,8 +1156,8 @@ class AddressBook
             }
 
             // Create non-member
-            $uniq = uniqid("");
-            $pw   = 'NONMEMBER';
+            $uniq = uniqid('');
+            $pw = 'NONMEMBER';
 
             if (isset($_POST['private']))
             {
@@ -1162,12 +1168,12 @@ class AddressBook
                         (`access`, `joindate`, `fname`, `lname`, `email`, `username`, `phpass`)
                     VALUES (3, NOW(), ?, ?, ?, 'NONMEMBER-$uniq', ?)";
 
-            $params = array(
-                $fname, 
-                $lname, 
-                $email, 
-                $pw
-            );
+            $params = [
+                $fname,
+                $lname,
+                $email,
+                $pw,
+            ];
 
             $id = $this->fcmsDatabase->insert($sql, $params);
             if ($id === false)
@@ -1178,23 +1184,23 @@ class AddressBook
             }
 
             // Create address for non-member
-            $sql = "INSERT INTO `fcms_address`
+            $sql = 'INSERT INTO `fcms_address`
                         (`user`, `created_id`, `created`, `updated_id`, `updated`, `address`, `city`, `state`, `zip`, `home`, `work`, `cell`)
                     VALUES
-                        (?, ?, NOW(), ?, NOW(), ?, ?, ?, ?, ?, ?, ?)";
+                        (?, ?, NOW(), ?, NOW(), ?, ?, ?, ?, ?, ?, ?)';
 
-            $params = array(
-                $id, 
-                $this->fcmsUser->id, 
-                $this->fcmsUser->id, 
-                $street, 
-                $city, 
-                $state, 
-                $zip, 
-                $home, 
-                $work, 
-                $cell
-            );
+            $params = [
+                $id,
+                $this->fcmsUser->id,
+                $this->fcmsUser->id,
+                $street,
+                $city,
+                $state,
+                $zip,
+                $home,
+                $work,
+                $cell,
+            ];
 
             if ($this->fcmsDatabase->insert($sql, $params))
             {
@@ -1212,46 +1218,46 @@ class AddressBook
     }
 
     /**
-     * getProfile 
-     * 
-     * @param string $name 
-     * 
+     * getProfile.
+     *
+     * @param string $name
+     *
      * @return array
      */
-    function getProfile ($name)
+    public function getProfile($name)
     {
-        $profile = array(
-            'add' => array(
-                'constraints' => array(
-                    'fname' => array(
+        $profile = [
+            'add' => [
+                'constraints' => [
+                    'fname' => [
                         'required' => 1,
-                    ),
-                    'lname' => array(
+                    ],
+                    'lname' => [
                         'required' => 1,
-                    ),
-                    'email' => array(
+                    ],
+                    'email' => [
                         'format' => '/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/',
-                    ),
-                    'country' => array(
+                    ],
+                    'country' => [
                         'required' => 1,
                         'format'   => '/^[A-Za-z]{2,3}$/',
-                    ),
-                    'home' => array(
+                    ],
+                    'home' => [
                         'format' => '/^[0-9\.\-\x\s\+\(\)]+$/',
-                    ),
-                    'work' => array(
+                    ],
+                    'work' => [
                         'format' => '/^[0-9\.\-\x\s\+\(\)]+$/',
-                    ),
-                    'cell' => array(
+                    ],
+                    'cell' => [
                         'format' => '/^[0-9\.\-\x\s\+\(\)]+$/',
-                    )
-                ),
-                'messages' => array(
-                    'constraints' => array(
+                    ],
+                ],
+                'messages' => [
+                    'constraints' => [
                         'fname' => T_('Required'),
                         'lname' => T_('Required'),
-                    ),
-                    'names' => array(
+                    ],
+                    'names' => [
                         'fname'   => T_('First Name'),
                         'lname'   => T_('Last Name'),
                         'email'   => T_('Email Address'),
@@ -1262,23 +1268,23 @@ class AddressBook
                         'zip'     => T_('Zip Code'),
                         'home'    => T_('Home Phone Number'),
                         'work'    => T_('Work Phone Number'),
-                        'cell'    => T_('Cellular Phone Number')
-                    )
-                )
-            ),
-            'delete' => array(
-                'constraints' => array(
-                    'delete' => array(
+                        'cell'    => T_('Cellular Phone Number'),
+                    ],
+                ],
+            ],
+            'delete' => [
+                'constraints' => [
+                    'delete' => [
                         'required' => 1,
                         'integer'  => 1,
-                    ),
-                    'cat'   => array(
+                    ],
+                    'cat'   => [
                         'required' => 1,
                         'format'   => '/(all|my|members|non)/',
-                    )
-                )
-            )
-        );
+                    ],
+                ],
+            ],
+        ];
 
         return $profile[$name];
     }

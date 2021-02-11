@@ -1,37 +1,35 @@
 <?php
 /**
- * Basic Form
- * 
- * @package Upload
- * @subpackage UploadProfile
+ * Basic Form.
+ *
  * @copyright 2014 Haudenschilt LLC
- * @author Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ * @author Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.html
  */
 class PluploadUploadProfileForm extends UploadProfileForm
 {
     /**
-     * __construct 
-     * 
-     * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase 
-     * @param User       $fcmsUser 
-     * 
+     * __construct.
+     *
+     * @param FCMS_Error $fcmsError
+     * @param Database   $fcmsDatabase
+     * @param User       $fcmsUser
+     *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct(FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
+        $this->fcmsError = $fcmsError;
         $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsUser = $fcmsUser;
     }
 
     /**
-     * displayUploadArea 
-     * 
+     * displayUploadArea.
+     *
      * @return void
      */
-    protected function displayUploadArea ()
+    protected function displayUploadArea()
     {
         echo '
             <script type="text/javascript" src="inc/thirdparty/plupload/js/plupload.full.min.js"></script>

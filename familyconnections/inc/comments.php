@@ -1,8 +1,8 @@
 <?php
 
 /**
- * displayComments 
- * 
+ * displayComments.
+ *
  * Valid params:
  *
  *  currentUserId - The current user's id.
@@ -12,16 +12,16 @@
  *  submit        - The value for the submit button. Defaults to 'Comment'.
  *  submitClass   - The class for the style of the submit button.  Defaults to 'sub1'.
  *  hidden        - An array of hidden inputs for the add form. Key is name, value is value.
- * 
- * @param string $url 
+ *
+ * @param string $url
  * @param string $type
- * @param array  $params 
- * 
+ * @param array  $params
+ *
  * @return void
  */
-function displayComments ($url, $type, $params = null)
+function displayComments($url, $type, $params = null)
 {
-    $addForm  = getAddCommentsForm($url, $params);
+    $addForm = getAddCommentsForm($url, $params);
     $comments = getComments($url, $type, $params);
 
     $header = '';
@@ -39,15 +39,15 @@ function displayComments ($url, $type, $params = null)
 }
 
 /**
- * getComments 
- * 
+ * getComments.
+ *
  * @param string $url
  * @param string $type
- * @param string $params 
- * 
+ * @param string $params
+ *
  * @return void
  */
-function getComments ($url, $type, $params)
+function getComments($url, $type, $params)
 {
     $comments = '';
 
@@ -61,7 +61,7 @@ function getComments ($url, $type, $params)
         default:
 
             printr(debug_backtrace());
-            die("Invalid Type for getComments");
+            die('Invalid Type for getComments');
             break;
     }
 
@@ -69,22 +69,22 @@ function getComments ($url, $type, $params)
 }
 
 /**
- * getAddCommentsForm 
- * 
+ * getAddCommentsForm.
+ *
  * See params for displayComments
- * 
- * @param string $url 
- * @param array  $params 
- * 
+ *
+ * @param string $url
+ * @param array  $params
+ *
  * @return string
  */
-function getAddCommentsForm ($url, $params = null)
+function getAddCommentsForm($url, $params = null)
 {
     // Defaults
-    $label       = '<h3>'.T_('Add Comment').'</h2>';
-    $submit      = T_('Comment');
+    $label = '<h3>'.T_('Add Comment').'</h2>';
+    $submit = T_('Comment');
     $submitClass = 'sub1';
-    $hidden      = '';
+    $hidden = '';
 
     // Handle any params
     if (is_array($params))
@@ -126,29 +126,29 @@ function getAddCommentsForm ($url, $params = null)
 }
 
 /**
- * getVideoComments 
- * 
+ * getVideoComments.
+ *
  * Valid params:
- * 
+ *
  *  currentUserId - The current user's id.
  *  id            - The id of the video.
- * 
+ *
  * @param string $url
- * @param string $params 
- * 
+ * @param string $params
+ *
  * @return void
  */
-function getVideoComments ($url, $params)
+function getVideoComments($url, $params)
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = new User($fcmsError, $fcmsDatabase);
+    $fcmsUser = new User($fcmsError, $fcmsDatabase);
 
     $comments = '';
 
     if (!isset($params['id']))
     {
-        die("Missing Video ID or User ID for getVideoComments");
+        die('Missing Video ID or User ID for getVideoComments');
     }
 
     $id = $params['id'];
@@ -164,22 +164,23 @@ function getVideoComments ($url, $params)
     if ($rows === false)
     {
         $fcmsError->displayError();
+
         return;
     }
 
     foreach ($rows as $row)
     {
         $del_comment = '';
-        $date        = fixDate(T_('F j, Y g:i a'), $row['timezone'], $row['updated']);
+        $date = fixDate(T_('F j, Y g:i a'), $row['timezone'], $row['updated']);
         $displayname = $row['fname'].' '.$row['lname'];
-        $comment     = $row['comment'];
-        $avatarPath  = getAvatarPath($row['avatar'], $row['gravatar']);
+        $comment = $row['comment'];
+        $avatarPath = getAvatarPath($row['avatar'], $row['gravatar']);
 
         if ($fcmsUser->id == $row['created'] || $fcmsUser->access < 2)
         {
             $del_comment .= '<input type="submit" name="delcom" id="delcom" '
-                . 'value="'.T_('Delete').'" class="gal_delcombtn" title="'
-                . T_('Delete this Comment') . '"/>';
+                .'value="'.T_('Delete').'" class="gal_delcombtn" title="'
+                .T_('Delete this Comment').'"/>';
         }
 
         $comments .= '

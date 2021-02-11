@@ -1,14 +1,15 @@
 <?php
 /**
- * WhereIsEveryone
- * 
+ * WhereIsEveryone.
+ *
  * PHP version 5
  *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2010 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  * @since     2.4
  */
@@ -23,7 +24,7 @@ load('datetime', 'socialmedia', 'foursquare');
 
 init();
 
-$templateParams = array(
+$templateParams = [
     'currentUserId' => $fcmsUser->id,
     'sitename'      => getSiteName(),
     'nav-link'      => getNavLinks(),
@@ -32,16 +33,16 @@ $templateParams = array(
     'path'          => URL_PREFIX,
     'displayname'   => $fcmsUser->displayName,
     'version'       => getCurrentVersion(),
-    'year'          => date('Y')
-);
-$options = array('modules' => array('livevalidation'));
+    'year'          => date('Y'),
+];
+$options = ['modules' => ['livevalidation']];
 
 displayPageHeader($templateParams, $options);
 
 //-------------------------------------
 // Show Latest checkins
 //-------------------------------------
-$users  = getFoursquareUsersData();
+$users = getFoursquareUsersData();
 $config = getFoursquareConfigData();
 
 if (count($users[0]) <= 0)
@@ -51,6 +52,7 @@ if (count($users[0]) <= 0)
                 <p>'.T_('No users with foursquare data found.').'</p>
             </div>';
     loadTemplate('global', 'footer', $templateParams);
+
     return;
 }
 
@@ -70,7 +72,7 @@ if (empty($config['fs_client_id']) or empty($config['fs_client_secret']))
     // this would happen if foursquare was setup, users granted access, then foursquare was removed.
 }
 
-$historyData = array();
+$historyData = [];
 
 $i = 0;
 foreach ($users as $k => $data)
@@ -111,20 +113,20 @@ foreach ($users as $k => $data)
         }
 
         $address = isset($checkin->venue->location->address) ? $checkin->venue->location->address : '';
-        $shout   = isset($checkin->shout)                    ? $checkin->shout                    : '';
+        $shout = isset($checkin->shout) ? $checkin->shout : '';
 
         $date = fixDate('F j, Y', $data['timezone'], date('Y-m-d H:i:s', $checkin->createdAt));
         $sort = $checkin->createdAt;
 
-        $historyData[$i] = array(
+        $historyData[$i] = [
             'photo'     => $photo,
             'name'      => $data['name'],
             'venue'     => $checkin->venue->name,
             'address'   => $address,
             'date'      => $date,
             'sort'      => $sort,
-            'shout'     => $shout
-        );
+            'shout'     => $shout,
+        ];
         $i++;
     }
 }

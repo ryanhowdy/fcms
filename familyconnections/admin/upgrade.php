@@ -1,14 +1,15 @@
 <?php
 /**
- * Upgrade
- * 
+ * Upgrade.
+ *
  * PHP 5
- * 
+ *
  * @category  FCMS
- * @package   FamilyConnections
- * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com> 
+ *
+ * @author    Ryan Haudenschilt <r.haudenschilt@gmail.com>
  * @copyright 2007 Haudenschilt LLC
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ *
  * @link      http://www.familycms.com/wiki/
  */
 session_start();
@@ -16,11 +17,11 @@ session_start();
 error_reporting(-1);
 ini_set('log_errors', 0);
 
-define('ROOT', dirname(dirname(__FILE__)) . '/');
+define('ROOT', dirname(dirname(__FILE__)).'/');
 define('INC', ROOT.'inc/');
 define('THIRDPARTY', INC.'/thirdparty/');
 define('LATEST_VERSION_URL', 'http://www.familycms.com/latest/version.php');
-define('LATEST_FILE_URL',    'http://www.familycms.com/latest/latest.zip');
+define('LATEST_FILE_URL', 'http://www.familycms.com/latest/latest.zip');
 
 require_once INC.'config_inc.php';
 require_once THIRDPARTY.'php-gettext/gettext.inc';
@@ -37,16 +38,16 @@ control();
 exit();
 
 /**
- * control 
- * 
+ * control.
+ *
  * @return void
  */
-function control ()
+function control()
 {
     // Automatic Upgrade
     if (isset($_GET['auto']))
     {
-        $step = (int)$_GET['auto'];
+        $step = (int) $_GET['auto'];
 
         // Turn Off Site
         if ($step == 1)
@@ -105,13 +106,12 @@ function control ()
     }
 }
 
-
 /**
- * displayHeader 
- * 
+ * displayHeader.
+ *
  * @return void
  */
-function displayHeader ()
+function displayHeader()
 {
     echo '
 <html>
@@ -164,11 +164,11 @@ li.complete { color: green; background: transparent url(../ui/img/complete.png) 
 }
 
 /**
- * displayFooter 
- * 
+ * displayFooter.
+ *
  * @return void
  */
-function displayFooter ()
+function displayFooter()
 {
     echo '
 </body>
@@ -176,20 +176,20 @@ function displayFooter ()
 }
 
 /**
- * checkLoginAndPermission 
- * 
+ * checkLoginAndPermission.
+ *
  * Will verify the user is logged in and is admin.
- * 
+ *
  * @return void - or die if user not logged in
  */
-function checkLoginAndPermission ()
+function checkLoginAndPermission()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     if (isset($_COOKIE['fcms_cookie_id']))
     {
-        $_SESSION['fcms_id']    = $_COOKIE['fcms_cookie_id'];
+        $_SESSION['fcms_id'] = $_COOKIE['fcms_cookie_id'];
         $_SESSION['fcms_token'] = $_COOKIE['fcms_cookie_token'];
     }
     elseif (isset($_SESSION['fcms_id']))
@@ -216,6 +216,7 @@ function checkLoginAndPermission ()
 
             // allow old style login
             checkOldLoginAndPermission();
+
             return;
         }
     }
@@ -227,7 +228,7 @@ function checkLoginAndPermission ()
         die();
     }
 
-    $id    = $_SESSION['fcms_id'];
+    $id = $_SESSION['fcms_id'];
     $token = $_SESSION['fcms_token'];
 
     if (!ctype_digit("$id"))
@@ -238,10 +239,10 @@ function checkLoginAndPermission ()
         die();
     }
 
-    $sql = "SELECT `access`, `token`
+    $sql = 'SELECT `access`, `token`
             FROM `fcms_users` 
             WHERE `id` = ? 
-            LIMIT 1";
+            LIMIT 1';
 
     $userInfo = $fcmsDatabase->getRow($sql, $id);
     if ($userInfo === false)
@@ -279,23 +280,23 @@ function checkLoginAndPermission ()
 }
 
 /**
- * checkOldLoginAndPermission 
- * 
+ * checkOldLoginAndPermission.
+ *
  * Allow users to use old login creds to access admin/upgrade page.
  * This is needed when upgrading from any version prior to 3.3.
- * 
+ *
  * @return void - or die if user not logged in
  */
-function checkOldLoginAndPermission ()
+function checkOldLoginAndPermission()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
 
     if (isset($_COOKIE['fcms_login_id']))
     {
-        $_SESSION['login_id']    = $_COOKIE['fcms_login_id'];
+        $_SESSION['login_id'] = $_COOKIE['fcms_login_id'];
         $_SESSION['login_uname'] = $_COOKIE['fcms_login_uname'];
-        $_SESSION['login_pw']    = $_COOKIE['fcms_login_pw'];
+        $_SESSION['login_pw'] = $_COOKIE['fcms_login_pw'];
     }
     elseif (!isset($_SESSION['login_id']))
     {
@@ -305,7 +306,7 @@ function checkOldLoginAndPermission ()
         die();
     }
 
-    $id       = $_SESSION['login_id'];
+    $id = $_SESSION['login_id'];
     $username = $_SESSION['login_uname'];
     $password = $_SESSION['login_pw'];
 
@@ -317,10 +318,10 @@ function checkOldLoginAndPermission ()
         die();
     }
 
-    $sql = "SELECT `username`, `password`, `access`
+    $sql = 'SELECT `username`, `password`, `access`
             FROM `fcms_users` 
             WHERE `id` = ?
-            LIMIT 1";
+            LIMIT 1';
 
     $r = $fcmsDatabase->getRow($sql, $id);
     if ($r === false)
@@ -358,25 +359,25 @@ function checkOldLoginAndPermission ()
 }
 
 /**
- * displaySteps 
- * 
- * @param int $step 
- * 
+ * displaySteps.
+ *
+ * @param int $step
+ *
  * @return void
  */
-function displaySteps ($step)
+function displaySteps($step)
 {
     $latestVersion = $_SESSION['latestVersion'];
 
-    $steps = array(
+    $steps = [
         1 => T_('Turning off site.'),
         2 => T_('Downloading latest version.'),
         3 => T_('Unpacking files.'),
         4 => T_('Installing files.'),
         5 => T_('Upgrading database.'),
         6 => T_('Upgrading version number.'),
-        7 => T_('Turning site back on.')
-    );
+        7 => T_('Turning site back on.'),
+    ];
 
     echo '<ul><li><h2>'.sprintf(T_('Upgrading to %s'), $latestVersion).'</h2></li>';
 
@@ -400,18 +401,18 @@ function displaySteps ($step)
 }
 
 /**
- * displayStart
- * 
+ * displayStart.
+ *
  * @return void
  */
-function displayStart ()
+function displayStart()
 {
     displayHeader();
 
     $currentVersion = getCurrentVersion();
-    $latestVersion  = file(LATEST_VERSION_URL);
-    $latestVersion  = $latestVersion[0];
-    $versionNumber  = substr($latestVersion, 19);
+    $latestVersion = file(LATEST_VERSION_URL);
+    $latestVersion = $latestVersion[0];
+    $versionNumber = substr($latestVersion, 19);
 
     $_SESSION['latestVersion'] = $latestVersion;
 
@@ -473,18 +474,18 @@ function displayStart ()
 }
 
 /**
- * versionUpToDate 
- * 
- * @param string $current 
- * @param string $latest 
+ * versionUpToDate.
+ *
+ * @param string $current
+ * @param string $latest
  *
  * @return void
  */
-function versionUpToDate ($current, $latest)
+function versionUpToDate($current, $latest)
 {
-    $current = str_pad(trim(str_replace(".", "", substr($current, 18))), 4, "0");
-    $latest  = str_pad(trim(str_replace(".", "", substr($latest,  18))), 4, "0");
-    
+    $current = str_pad(trim(str_replace('.', '', substr($current, 18))), 4, '0');
+    $latest = str_pad(trim(str_replace('.', '', substr($latest, 18))), 4, '0');
+
     if ($latest <= $current)
     {
         return true;
@@ -494,15 +495,15 @@ function versionUpToDate ($current, $latest)
 }
 
 /**
- * displayStepOne
- * 
+ * displayStepOne.
+ *
  * @return void
  */
-function displayStepOne ()
+function displayStepOne()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+    $fcmsUpgrade = new Upgrade($fcmsError, $fcmsDatabase);
 
     displayHeader();
     displaySteps(1);
@@ -514,15 +515,15 @@ function displayStepOne ()
 }
 
 /**
- * displayStepTwo 
- * 
+ * displayStepTwo.
+ *
  * @return void
  */
-function displayStepTwo ()
+function displayStepTwo()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+    $fcmsUpgrade = new Upgrade($fcmsError, $fcmsDatabase);
 
     displayHeader();
     displaySteps(2);
@@ -533,15 +534,15 @@ function displayStepTwo ()
 }
 
 /**
- * displayStepThree 
- * 
+ * displayStepThree.
+ *
  * @return void
  */
-function displayStepThree ()
+function displayStepThree()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+    $fcmsUpgrade = new Upgrade($fcmsError, $fcmsDatabase);
 
     displayHeader();
     displaySteps(3);
@@ -555,15 +556,15 @@ function displayStepThree ()
 }
 
 /**
- * displayStepFour 
- * 
+ * displayStepFour.
+ *
  * @return void
  */
-function displayStepFour ()
+function displayStepFour()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+    $fcmsUpgrade = new Upgrade($fcmsError, $fcmsDatabase);
 
     displayHeader();
     displaySteps(4);
@@ -576,15 +577,15 @@ function displayStepFour ()
 }
 
 /**
- * displayStepFive 
- * 
+ * displayStepFive.
+ *
  * @return void
  */
-function displayStepFive ()
+function displayStepFive()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+    $fcmsUpgrade = new Upgrade($fcmsError, $fcmsDatabase);
 
     displayHeader();
     displaySteps(5);
@@ -596,15 +597,15 @@ function displayStepFive ()
 }
 
 /**
- * displayStepSix 
- * 
+ * displayStepSix.
+ *
  * @return void
  */
-function displayStepSix ()
+function displayStepSix()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+    $fcmsUpgrade = new Upgrade($fcmsError, $fcmsDatabase);
 
     displayHeader();
     displaySteps(6);
@@ -619,15 +620,15 @@ function displayStepSix ()
 }
 
 /**
- * displayStepSeven 
- * 
+ * displayStepSeven.
+ *
  * @return void
  */
-function displayStepSeven ()
+function displayStepSeven()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+    $fcmsUpgrade = new Upgrade($fcmsError, $fcmsDatabase);
 
     displayHeader();
     displaySteps(7);
@@ -637,22 +638,22 @@ function displayStepSeven ()
     {
         unset($_SESSION['latestVersion']);
 
-        // Go back to orig screen, 
+        // Go back to orig screen,
         // it will be updated with message saying we're up to date
         echo '<meta http-equiv="refresh" content="0; url=upgrade.php">';
     }
 }
 
 /**
- * displayManualUpgrade 
- * 
+ * displayManualUpgrade.
+ *
  * @return void
  */
-function displayManualUpgrade ()
+function displayManualUpgrade()
 {
     displayHeader();
 
-    $statusSiteOff  = '';
+    $statusSiteOff = '';
     $statusDatabase = '';
 
     if (file_exists(INC.'siteoff'))
@@ -669,8 +670,8 @@ function displayManualUpgrade ()
     }
 
     $currentVersion = getCurrentVersion();
-    $latestVersion  = file(LATEST_VERSION_URL);
-    $latestVersion  = $latestVersion[0];
+    $latestVersion = file(LATEST_VERSION_URL);
+    $latestVersion = $latestVersion[0];
 
     $_SESSION['latestVersion'] = $latestVersion;
 
@@ -711,17 +712,17 @@ function displayManualUpgrade ()
 }
 
 /**
- * displayUpgradeSiteStatus 
- * 
- * @param string $status 
- * 
+ * displayUpgradeSiteStatus.
+ *
+ * @param string $status
+ *
  * @return void
  */
-function displayUpgradeSiteStatus ($status)
+function displayUpgradeSiteStatus($status)
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+    $fcmsUpgrade = new Upgrade($fcmsError, $fcmsDatabase);
 
     // Turn On
     if ($status == 'on')
@@ -756,15 +757,15 @@ function displayUpgradeSiteStatus ($status)
 }
 
 /**
- * displayUpgradeDatabase
- * 
+ * displayUpgradeDatabase.
+ *
  * @return void
  */
-function displayUpgradeDatabase ()
+function displayUpgradeDatabase()
 {
-    $fcmsError    = FCMS_Error::getInstance();
+    $fcmsError = FCMS_Error::getInstance();
     $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUpgrade  = new Upgrade($fcmsError, $fcmsDatabase);
+    $fcmsUpgrade = new Upgrade($fcmsError, $fcmsDatabase);
 
     $latestVersion = $_SESSION['latestVersion'];
 
