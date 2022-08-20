@@ -517,7 +517,7 @@ function displayStepFive ($error = '0')
     $_POST['contact']  = $connection->real_escape_string($_POST['contact']);
 
     // Setup Config
-    installConfig($connection, $_POST['sitename'], $_POST['contact'], 'Family Connections 3.7.0');
+    installConfig($connection, $_POST['sitename'], $_POST['contact'], 'Family Connections 3.8.0');
 
     // Setup Navigation
     $order  = 0;
