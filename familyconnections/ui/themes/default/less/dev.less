@@ -413,7 +413,6 @@ body {
     width: @totalWidth;
 }
 #header {
-    float: left;
     height: 145px;
     font-size: 12px;
     text-align: left;
@@ -768,76 +767,24 @@ a.u:hover {
     position: relative;
     z-index: 5;
 }
-#navigation {
+nav.navbar {
     background: #0a85c4 url(../img/nav_bg.png) 0 0 repeat-x;
-    display: block;
-    float: left;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    position: relative;
-    width: @totalWidth;
-    zoom: 1;
-}
-#navigation ul {
-    background-color: @linkColor;
-    color: #fff;
-    display: none;
-    left: -1px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    position: absolute;
-    top: 98%;
-}
-#navigation li:hover > ul { display: block; }
-#navigation li {
-    display: block;
-    font-size: 0px;
-}
-#navigation table { border-collapse: collapse; }
-#navigation a:active, #navigation a:focus { outline-style: none; }
-#navigation a {
-    color: #fff;
-    display: block;
-    vertical-align: middle;
-    text-align: left;
-    text-decoration: none;
-    padding: 10px 30px;
-    font: normal 11px @baseFontFamily;
-    text-decoration: none;
-}
-#navigation span { overflow: hidden; }
-#navigation li { float: left; }
-#navigation ul li { float: none; }
-#navigation ul { _margin-left: -30px; }
-#navigation ul a {
-    text-align: left;
-    white-space: nowrap;
-}
-#navigation li:hover { position: relative; }
-#navigation li:hover > a {
-    background-color: @linkColor;
-    font: normal 11px @baseFontFamily;
-    text-decoration: none;
-}
-#navigation li a:hover {
-    position: relative;
-    background-color: @linkColorDark;
-    font: normal 11px @baseFontFamily;
-    text-decoration: none;
-}
-#navigation a:hover ul {
-    display: block;
-    padding: 0;
-}
-#navigation a:hover ul, #navigation a:hover a:hover ul, #navigation a:hover a:hover a:hover ul { display: block; }
-#navigation a:hover ul ul, #navigation a:hover a:hover ul ul { display: none; }
-#navigation .main b {
-    .border-radius(5px);
-    background-color: #444;
-    padding: 3px;
-    margin: 0 10px 0 0;
+    min-height: auto;
+    border: none;
+    border-radius: initial;
+
+    ul.nav > li > a
+    {
+        font: normal 11px Verdana, Arial, sans-serif;
+        padding: 10px 30px;
+        color: #fff;
+
+        &:hover
+        {
+            color: #fff;
+            background-color: #016290;
+        }
+    }
 }
 ul.menu {
     background-color: @altBackgroundColor;
@@ -1133,7 +1080,6 @@ ol.todo li span {
     padding: 5px 30px;
 }
 #status_reply #status {
-    height: 20px;
     width: 400px;
 }
 .newstatus:hover #status_submit {
@@ -1590,9 +1536,7 @@ li.tag_photo label span {
 .photo-uploader .footer {
     border-bottom: 1px solid #ddd;
     .gradient(#eeeeee, #dfdfdf);
-    height: 26px;
     padding: 10px;
-    width: 938px;
 }
 .photo-uploader .header {
     .border-radius-top(3px);
@@ -1650,8 +1594,23 @@ li.tag_photo label span {
     padding: 20px;
     height: 260px;
 }
+#gallery fieldset .rotate-options,
 .basic .rotate-options {
     margin: 10px 0 0 0;
+
+    .radio_label {
+        text-indent: -999px;
+        overflow: hidden;
+        width: 45px;
+        height: 45px;
+        display: inline-block;
+        vertical-align: middle;
+        background: transparent url(../img/rotate_right.png) -15px -10px no-repeat;
+
+        &.left {
+            background: transparent url(../img/rotate_left.png) -15px -10px no-repeat;
+        }
+    }
 }
 .basic .multi-checkbox {
     float: left;

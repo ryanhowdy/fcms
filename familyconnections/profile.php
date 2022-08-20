@@ -411,7 +411,7 @@ $(document).ready(function() {
         }
 
         // Activity
-        if ($row['activity'] != '0000-00-00 00:00:00')
+        if (!is_null($row['activity']))
         {
             $activityDate = fixDate(T_('F j, Y g:i a'), $tzOffset, $row['activity']);
         }

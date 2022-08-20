@@ -6,10 +6,12 @@
 <meta name="author" content="Ryan Haudenschilt" />
 <meta name="viewport" content="width=device-width" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>ui/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/css/style.css?version=350"/>
-<link rel="stylesheet" type="text/css" media="only screen and (max-width: 480px)" href="<?php echo $TMPL["path"]; ?>ui/themes/default/css/mobile.css"/>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/jquery.js?version=360"></script>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js?version=360"></script>
+<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>inc/thirdparty/bootstrap/css/bootstrap.min.css?v=380"/>
+<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/css/style.css?v=380"/>
+<link rel="stylesheet" type="text/css" media="only screen and (max-width: 480px)" href="<?php echo $TMPL["path"]; ?>ui/themes/default/css/mobile.css?v=380"/>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/jquery.js?v=380"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/thirdparty/bootstrap/js/bootstrap.min.js?v=380"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js?v=380"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
 </head>
 <body id="top">

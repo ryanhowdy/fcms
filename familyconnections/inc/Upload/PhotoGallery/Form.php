@@ -72,7 +72,7 @@ class UploadPhotoGalleryForm
                         </p>
                         <p>
                             <label><b>'.T_('Photo').'</b></label><br/>
-                            <input name="photo_filename" type="file" size="50"/>
+                            <input name="photo_filename" type="file" accept="image/*" size="50"/>
                         </p>
                         <p>
                             <label><b>'.T_('Caption').'</b></label><br/>
@@ -113,9 +113,9 @@ class UploadPhotoGalleryForm
                         <p class="rotate-options">
                             <label><b>'.T_('Rotate').'</b></label><br/>
                             <input type="radio" id="left" name="rotate" value="left"/>
-                            <label for="left" class="radio_label">'.T_('Left').'</label>&nbsp;&nbsp; 
+                            <label for="left" class="radio_label left">'.T_('Left').'</label>&nbsp;&nbsp; 
                             <input type="radio" id="right" name="rotate" value="right"/>
-                            <label for="right" class="radio_label">'.T_('Right').'</label>
+                            <label for="right" class="radio_label right">'.T_('Right').'</label>
                         </p>
                     </div><!--/basic-->
                 </div>

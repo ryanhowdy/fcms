@@ -356,6 +356,57 @@ class Page
             return;
         }
 
+        // Rotating Image?
+        if (isset($_POST['rotate']))
+        {
+            $sql = "SELECT `id`, `user`, `filename`, `external_id`
+                    FROM `fcms_gallery_photos`
+                    WHERE `id` = ?";
+
+            $row = $this->fcmsDatabase->getRow($sql, $pid);
+            if ($row === false)
+            {
+                $this->fcmsError->displayError();
+                return;
+            }
+
+            // TODO - Instagram hack -- needs to go away
+            // We should never keep photos externally like this
+            // We should download the photos locally like we do with Picasa
+            if ($row['filename'] == 'noimage.gif' && $row['external_id'] != null)
+            {
+                $_SESSION['message'] = T_('The photo cannot be editted.  Please go to Instagram to edit this photo.');
+                header('Location: index.php?uid='.$uid.'&cid='.$cid.'&pid='.$pid);
+            }
+
+            // Setup the array of photos that need uploaded
+            $photoPrefixes = array(
+                'main'      => '',
+                'thumbnail' => 'tb_',
+            );
+            if ($this->fcmsPhotoGallery->usingFullSizePhotos())
+            {
+                $photoPrefixes['full'] = 'full_';
+            }
+
+            $rotate = 270;
+            if ($_POST['rotate'] == 'left')
+            {
+                $rotate = 90;
+            }
+
+            // Loop through each photo that needs uploaded
+            foreach ($photoPrefixes as $key => $prefix)
+            {
+                $photoDestinationType = getDestinationType().'PhotoGalleryDestination';
+                $photoDestination     = new $photoDestinationType($this->fcmsError, $this->fcmsUser);
+
+                $photoDestination->rotate($prefix.$row['filename'], $rotate);
+
+                $_SESSION['updatedPhotos'][$pid] = 1;
+            }
+        }
+
         $_SESSION['message'] = 1;
 
         header('Location: index.php?uid='.$uid.'&cid='.$cid.'&pid='.$pid);

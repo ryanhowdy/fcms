@@ -1751,7 +1751,7 @@ class Calendar
                 if ($r['private'] > 0) {
                     $cal .= "CLASS:PRIVATE\r\n";
                 }
-                if ($r['date_added'] != '0000-00-00 00:00:00') {
+                if (!is_null($r['date_added'])) {
                     // datetime must be 20080609T152552Z format
                     $cal .= "CREATED:".date('Ymd\THis\Z', strtotime($r['date_added']))."\r\n";
                 }

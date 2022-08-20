@@ -2,7 +2,9 @@
     <div id="login_box">
 
         <a href="index.php" id="login_header">
+        <?php if (isset($TMPL['sitename'])): ?>
             <?php echo T_('Login to'); echo ' '.$TMPL['sitename']; ?>
+        <?php endif; ?>
         </a>
 
     <?php if (isset($TMPL['message'])): ?>
@@ -28,11 +30,11 @@
             </div>
             <p>
                 <label for="user"><?php echo $TMPL['usernameText']; ?>:</label>
-                <input type="text" name="user" id="user"/>
+                <input type="text" name="user" id="user" autocorrect="off" autocapitalize="none"/>
             </p>
             <p>
                 <label for="pass"><?php echo $TMPL['passwordText']; ?>:</label>
-                <input type="password" name="pass" id="pass"/>
+                <input type="password" name="pass" id="pass" autocorrect="off" autocapitalize="none"/>
             </p>
             <p>
                 <label class="rem" for="rem"><?php echo $TMPL['rememberMeText']; ?></label>
