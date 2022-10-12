@@ -1,15 +1,14 @@
-preset: recommended
-
-risky: false
-
-disabled:
-  - braces
-
-finder:
-  exclude:
-    - "dev"
-    - "tests"
-    - "familyconnections/inc/chat"
-    - "familyconnections/inc/thirdparty"
-  name:
-    - "*.php"
+php:
+  preset: laravel
+  version: 8
+  disabled:
+    - no_unused_imports
+  finder:
+    not-name:
+      - index.php
+      - server.php
+js:
+  finder:
+    not-name:
+      - webpack.mix.js
+css: true
