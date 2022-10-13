@@ -178,7 +178,8 @@ function _encode($text) {
   if (function_exists("mb_detect_encoding")) {
     $source_encoding = mb_detect_encoding($text);
     if ($source_encoding != $target_encoding)
-      $text = mb_convert_encoding($text, $target_encoding, $source_encoding);
+      if (strlen($target_encoding) > 0)
+        $text = mb_convert_encoding($text, $target_encoding, $source_encoding);
   }
   return $text;
 }

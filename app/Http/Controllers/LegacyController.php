@@ -19,10 +19,10 @@ class LegacyController extends Controller
     /**
      * Capture the echo output from our legacy code.
      */
-    public function __invoke()
+    public function __invoke($path = 'index.php')
     {
         ob_start();
-        require app_path('Http') . '/legacy.php';
+        require app_path() . '/Legacy/' . $path;
         $output = ob_get_clean();
 
         // be sure to import Illuminate\Http\Response

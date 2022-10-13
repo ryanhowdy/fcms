@@ -37,15 +37,6 @@ T_bindtextdomain('messages', './language');
 T_bind_textdomain_codeset('messages', 'UTF-8');
 T_textdomain('messages');
 
-// Fix magic quotes
-if (get_magic_quotes_gpc())
-{
-    $_REQUEST = array_map('stripslashes', $_REQUEST);
-    $_GET     = array_map('stripslashes', $_GET);
-    $_POST    = array_map('stripslashes', $_POST);
-    $_COOKIE  = array_map('stripslashes', $_COOKIE);
-}
-
 define('URL_PREFIX', '');
 define('GALLERY_PREFIX', 'gallery/');
 
@@ -751,7 +742,7 @@ function setupDatabase ()
  */
 function isWritable ($path)
 {
-    if ($path{strlen($path)-1}=='/') // recursively return a temporary file path
+    if ($path[strlen($path)-1]=='/') // recursively return a temporary file path
         return isWritable($path.uniqid(mt_rand()).'.tmp');
     else if (@is_dir($path))
         return isWritable($path.'/'.uniqid(mt_rand()).'.tmp');
