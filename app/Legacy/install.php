@@ -92,12 +92,11 @@ function main ()
  */
 function displayHeader ()
 {
-    echo '
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'.T_pgettext('Language Code for this translation', 'lang').'" lang="'.T_pgettext('Language Code for this translation', 'lang').'">
+    echo '<!DOCTYPE html>
+<html lang="'.T_pgettext('Language Code for this translation', 'lang').'">
 <head>
 <title>Family Connections '.T_('Installation').'</title>
-<link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css" />
+<link rel="stylesheet" type="text/css" href="css/core.css" />
 <script type="text/javascript" src="ui/js/jquery.js"></script>
 <script type="text/javascript" src="ui/js/livevalidation.js"></script>
 <link rel="stylesheet" type="text/css" href="ui/css/datechooser.css"/>
@@ -164,53 +163,8 @@ function displayAlreadyInstalled ()
  */
 function displayStepOne ()
 {
-    $inc    = "<span class=\"bad\">".T_('BAD')."</span>";
-    $avatar = "<span class=\"bad\">".T_('BAD')."</span>";
-    $docs   = "<span class=\"bad\">".T_('BAD')."</span>";
-    $photos = "<span class=\"bad\">".T_('BAD')."</span>";
-    $up     = "<span class=\"bad\">".T_('BAD')."</span>";
     $curl   = "<span class=\"bad\">".T_('BAD')."</span>";
     $php    = "<span class=\"bad\">".T_('BAD')."</span>";
-
-    // Check inc
-    $check_inc = false;
-    if (isWritable('inc/'))
-    {
-        $check_inc = true;
-        $inc       = "<span class=\"ok\">".T_('OK')."</span>";
-    }
-
-    // Check avatar
-    $check_avatar = false;
-    if (isWritable('uploads/avatar/'))
-    {
-        $check_avatar = true;
-        $avatar       = "<span class=\"ok\">".T_('OK')."</span>";
-    }
-
-    // Check documents
-    $check_docs = false;
-    if (isWritable('uploads/documents/'))
-    {
-        $check_docs = true;
-        $docs       = "<span class=\"ok\">".T_('OK')."</span>";
-    }
-
-    // Check photos
-    $check_photos = false;
-    if (isWritable('uploads/photos/'))
-    {
-        $check_photos = true;
-        $photos       = "<span class=\"ok\">".T_('OK')."</span>";
-    }
-
-    // Check upimages
-    $check_up = false;
-    if (isWritable('uploads/upimages/'))
-    {
-        $check_up = true;
-        $up       = "<span class=\"ok\">".T_('OK')."</span>";
-    }
 
     // Check curl support
     $check_curl = false;
@@ -237,21 +191,9 @@ function displayStepOne ()
             <div><div class="dir">PHP 5+</div> <div class="status">'.$php.'</div></div>
             <div style="clear:both;"></div>
             <div><div class="dir">cURL</div> <div class="status">'.$curl.'</div></div>
-            <div style="clear:both;"></div>
-            <p>&nbsp;</p>
-            <div><b>'.T_('Checking Folder Permissions').'</b></div>
-            <div><div class="dir">inc/</div> <div class="status">'.$inc.'</div></div>
-            <div style="clear:both;"></div>
-            <div><div class="dir">'.'uploads/avatar/</div> <div class="status">'.$avatar.'</div></div>
-            <div style="clear:both;"></div>
-            <div><div class="dir">'.'uploads/documents/</div> <div class="status">'.$docs.'</div></div>
-            <div style="clear:both;"></div>
-            <div><div class="dir">'.'uploads/photos/</div> <div class="status">'.$photos.'</div></div>
-            <div style="clear:both;"></div>
-            <div><div class="dir">'.'uploads/upimages/</div> <div class="status">'.$up.'</div></div>
             <div style="clear:both;"></div>';
 
-    if ($check_inc && $check_avatar && $check_docs && $check_photos && $check_up && $check_curl && $check_php)
+    if ($check_curl && $check_php)
     {
         echo '
             <p>'.T_('Your site is ready to be installed.  Please proceed to the next step.').'</p>

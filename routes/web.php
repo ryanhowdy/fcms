@@ -15,5 +15,3 @@ use Illuminate\Support\Facades\Route;
 */
 
 //Auth::routes();
-
-Route::any('{path}', LegacyController::class)->where('path', '.*');

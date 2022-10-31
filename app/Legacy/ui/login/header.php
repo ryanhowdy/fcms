@@ -6,6 +6,6 @@
 <meta name="author" content="Ryan Haudenschilt"/>
 <meta name="viewport" content="width=device-width" />
 <link rel="shortcut icon" href="ui/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="ui/css/fcms-core.css?version370"/>
+<link rel="stylesheet" type="text/css" href="css/core.css?version400"/>
 </head>
 <body <?php if (isset($TMPL['body'])) { echo $TMPL['body']; } ?>>

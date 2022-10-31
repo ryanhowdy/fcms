@@ -1,4 +1,4 @@
-html { font: 14px/160% Verdana, Arial, sans-serif; color: #555; text-align: center; background: #9ccef0 url(../img/bg.png) repeat-x; padding: 50px 0; }
+html { font: 14px/160% Verdana, Arial, sans-serif; color: #555; text-align: center; background: #9ccef0 url(/img/bg.png) repeat-x; padding: 50px 0; }
 form { background-color: #e9f3fb; padding: 10px; }
 label { font-weight: bold; cursor: pointer; cursor: hand; }
 .field-label label { display: block; font-weight: bold; cursor: default; }
@@ -21,7 +21,7 @@ a:hover { color: #000; background-color: #9ccef0; }
 /* =LOGIN
 ------------------*/
 #login_box { width: 320px; margin: 0 auto; padding: 20px 20px 60px 20px; background-color: #fff; text-align: left; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px; }
-#login_header { display: block; text-indent: -9999px; background: #fff url(../img/logo.gif) center center no-repeat; height: 90px; margin: 20px 0; }
+#login_header { display: block; text-indent: -9999px; background: #fff url(/img/logo.gif) center center no-repeat; height: 90px; margin: 20px 0; }
 #login_box label.rem { display: inline; padding-right: 15px; }
 #login_box .rem { margin-top: 10px; float: left; }
 #login_box #user, #login_box #pass, #login_box #email { width: 290px; }
@@ -148,7 +148,7 @@ a { color:#000; }
 .statusContainerOn {background-color: #9ccef0; border-radius: 25px;}
 .statusContainerOff {background-color: #d8e9f8; border-radius: 25px;}
 .statusContainerAlert {background-color: #efc7a4; border-radius: 25px;}
-#content #chatList .delete { background:url('../inc/chat/img/delete.png') no-repeat right;}
+//#content #chatList .delete { background:url('../inc/chat/img/delete.png') no-repeat right;}
 
 /* =INVITATION
 ------------------*/
