@@ -25,23 +25,20 @@
 class AddressBook
 {
     var $fcmsError;
-    var $fcmsDatabase;
     var $fcmsUser;
 
     /**
      * __construct 
      * 
      * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase
      * @param User       $fcmsUser 
      * 
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct (FCMS_Error $fcmsError, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
-        $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsUser  = $fcmsUser;
     }
 
     /**
@@ -65,7 +62,7 @@ class AddressBook
                 WHERE a.`user` = u.`id` 
                 AND a.`id` = ?";
 
-        $r = $this->fcmsDatabase->getRow($sql, $aid);
+        $r = DB::select($sql, $aid);
         if ($r === false)
         {
             $this->fcmsError->displayError();
@@ -355,11 +352,11 @@ class AddressBook
 
         if (count($params) > 0)
         {
-            $rows = $this->fcmsDatabase->getRows($sql, $params);
+            $rows = DB::select($sql, $params);
         }
         else
         {
-            $rows = $this->fcmsDatabase->getRows($sql);
+            $rows = DB::select($sql);
         }
 
         if ($rows === false)
@@ -431,7 +428,7 @@ class AddressBook
                 WHERE a.`id` = '$addressid' 
                 AND a.`user` = u.`id`";
 
-        $row = $this->fcmsDatabase->getRow($sql);
+        $row = DB::select($sql);
         if ($row == false)
         {
             $this->fcmsError->displayError();
@@ -772,18 +769,13 @@ class AddressBook
                 FROM `fcms_address` 
                 WHERE `user` = ?";
 
-        $r = $this->fcmsDatabase->getRow($sql, $id);
-        if ($r === false)
-        {
-            $this->fcmsError->displayError();
-            return false;
-        }
+        $r = DB::select($sql, array($id));
 
         if (count($r) >= 1)
         {
             // Must fill in at least state and one phone number to be
             // considered having address info filled out
-            if (!empty($r['state']) && (!empty($r['home']) || !empty($r['work']) || !empty($r['cell'])))
+            if (!empty($r[0]->state) && (!empty($r[0]->home) || !empty($r[0]->work) || !empty($r[0]->cell)))
             {
                 return true;
             }
@@ -1169,11 +1161,9 @@ class AddressBook
                 $pw
             );
 
-            $id = $this->fcmsDatabase->insert($sql, $params);
+            $id = DB::insert($sql, $params);
             if ($id === false)
             {
-                $this->fcmsError->displayError();
-
                 return;
             }
 
@@ -1196,10 +1186,8 @@ class AddressBook
                 $cell
             );
 
-            if ($this->fcmsDatabase->insert($sql, $params))
+            if (DB::insert($sql, $params))
             {
-                $this->fcmsError->displayError();
-
                 return;
             }
 

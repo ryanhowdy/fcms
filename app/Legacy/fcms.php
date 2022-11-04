@@ -13,13 +13,11 @@
  * @since     2.5
  */
 
-require_once 'inc/config_inc.php';
 require_once 'inc/thirdparty/php-gettext/gettext.inc';
 require_once 'inc/utils.php';
 require_once 'inc/constants.php';
 require_once 'inc/Error.php';
 require_once 'inc/User.php';
-require_once 'inc/Database.php';
 
 error_reporting(-1);
 ini_set('log_errors', 0);
@@ -29,15 +27,14 @@ fixMagicQuotes();
 
 checkSiteStatus();
 
-$fcmsError    = FCMS_Error::getInstance();
-$fcmsDatabase = Database::getInstance($fcmsError);
+$fcmsError = FCMS_Error::getInstance();
 if ($fcmsError->hasError())
 {
     $fcmsError->displayError();
     return;
 }
 
-$fcmsUser = new User($fcmsError, $fcmsDatabase);
+$fcmsUser = new User($fcmsError);
 if ($fcmsError->hasError())
 {
     $fcmsError->displayError();
@@ -184,13 +181,6 @@ function init ($dir = '')
  */
 function fixMagicQuotes ()
 {
-    if (get_magic_quotes_gpc())
-    {
-        $_REQUEST = stripSlashesDeep($_REQUEST);
-        $_GET     = stripSlashesDeep($_GET);
-        $_POST    = stripSlashesDeep($_POST);
-        $_COOKIE  = stripSlashesDeep($_COOKIE);
-    }
 }
 
 /**
@@ -246,7 +236,7 @@ function setLanguage ()
  */
 function getLanguage ()
 {
-    global $fcmsDatabase, $fcmsError;
+    global $fcmsError;
 
     if (isset($_SESSION['fcms_id']))
     {
@@ -256,16 +246,15 @@ function getLanguage ()
                 FROM `fcms_user_settings` 
                 WHERE `id` = ?";
 
-        $row = $fcmsDatabase->getRow($sql, $id);
-        if ($row === false)
+        $row = DB::select($sql, array($id));
+        if (empty($row))
         {
-            $this->fcmsError->displayError();
-            return;
+            return 'en_US';
         }
 
         if (count($row) > 0)
         {
-            return $row['language'];
+            return $row[0]->language;
         }
     }
 
@@ -368,13 +357,13 @@ function fcmsErrorHandler($errno, $errstr, $errfile, $errline)
  */
 function checkScheduler ($subdir = '')
 {
-    global $fcmsDatabase, $fcmsError;
+    global $fcmsError;
 
     $sql = "SELECT `id`, `type`, `repeat`, `lastrun`
             FROM `fcms_schedule`
             WHERE `status` = 1";
 
-    $rows = $fcmsDatabase->getRows($sql);
+    $rows = DB::select($sql);
     if ($rows === false)
     {
         $fcmsError->displayError();
@@ -444,8 +433,7 @@ function isLoggedIn ()
 {
     global $fcmsUser;
 
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     // User has a session
     if (isset($_SESSION['fcms_id']))
@@ -466,7 +454,7 @@ function isLoggedIn ()
     else
     {
         $url = basename($_SERVER["REQUEST_URI"]);
-        header('Location: '.URL_PREFIX.'index.php?err=login&url='.URL_PREFIX.$url);
+        redirect()->to(URL_PREFIX.'/index.php?err=login&url='.URL_PREFIX.$url)->send();
         exit();
     }
 
@@ -474,7 +462,7 @@ function isLoggedIn ()
     if (!is_numeric($id))
     {
         $url = basename($_SERVER["REQUEST_URI"]);
-        header('Location: '.URL_PREFIX.'index.php?err=login&url='.URL_PREFIX.$url);
+        redirect()->to(URL_PREFIX.'/index.php?err=login&url='.URL_PREFIX.$url)->send();
         exit();
     }
 
@@ -489,27 +477,27 @@ function isLoggedIn ()
                 FROM `fcms_config`
                 WHERE `name` = ?";
 
-        $rows = $fcmsDatabase->getRows($sql, array($id, 'site_off'));
+        $rows = DB::select($sql, array($id, 'site_off'));
         if ($rows === false)
         {
             $error->displayError();
             return;
         }
 
-        $site_off = $rows[0]['val'];
-        $access   = $rows[1]['val'];
+        $site_off = $rows[0]->val;
+        $access   = $rows[1]->val;
 
         // Site is off and your not an admin
         if ($site_off == 1 && $access > 1)
         {
-            header('Location: '.URL_PREFIX.'index.php?err=off');
+            redirect()->to(URL_PREFIX.'/index.php?err=off&url='.URL_PREFIX.$url)->send();
             exit();
         }
         // Good login, you may proceed
         else
         {
             // Load logged in user
-            $fcmsUser = new User($fcmsError, $fcmsDatabase);
+            $fcmsUser = new User($fcmsError);
             return;
         }
     }
@@ -524,7 +512,7 @@ function isLoggedIn ()
             setcookie('fcms_cookie_id', '', time() - 3600, '/');
             setcookie('fcms_cookie_token', '', time() - 3600, '/');
         }
-        header('Location: '.URL_PREFIX.'index.php?err=login');
+        redirect()->to(URL_PREFIX.'/index.php?err=login')->send();
         exit();
     }
 }

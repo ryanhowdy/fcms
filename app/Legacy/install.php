@@ -54,7 +54,7 @@ function main ()
 
     if (isset($_POST['submit1']))
     {
-        displayStepTwo();
+        displayStepThree();
     }
     elseif (isset($_POST['submit2']))
     {
@@ -72,13 +72,13 @@ function main ()
     {
         setupDatabase();
     }
-    elseif (file_exists('inc/config_inc.php'))
-    {
-        displayAlreadyInstalled();
-        displayStepOne();
-        displayFooter();
-        return;
-    }
+    //elseif (file_exists('inc/config_inc.php'))
+    //{
+    //    displayAlreadyInstalled();
+    //    displayStepOne();
+    //    displayFooter();
+    //    return;
+    //}
     else
     {
         displayStepOne();
@@ -299,59 +299,38 @@ function displayStepTwo ($error = '0')
  */
 function displayStepThree ()
 {
-    // Check required fields
-    $requiredFields  = array('dbhost', 'dbname', 'dbuser', 'dbpass');
-    $missingRequired = false;
-
-    foreach ($requiredFields as $field)
-    {
-        if (!isset($_POST[$field]))
-        {
-            $missingRequired = true;
-        }
-    }
-    if ($missingRequired)
-    {
-        echo '
-        <script type="text/javascript">
-        $(document).ready(function() { $(\'#dbhost\').focus(); });
-        </script>';
-
-        displayStepTwo("<p class=\"error\">".T_('You forgot a required field.  Please fill out all required fields.')."</p>");
-        return;
-    }
-
-    $connection = new mysqli($_POST['dbhost'], $_POST['dbuser'], $_POST['dbpass']);
-    
-    if ($connection->connect_errno) 
-    {
-        displayStepTwo("<p class\"error\">".T_('Could not connect to the database. Please try again.' . $connection->connect_errno)."</p>") . $connection->connect_error;
-        return;
-    }
-                       
-    $connection->select_db($_POST['dbname']) or die("<h1>Error</hr><p><b>Connection made, but database could not be found!</b></p> ( " . $connection->errno . ") " . $connection->error);
-
-    $file = fopen('inc/config_inc.php', 'w') or die("<h1>Error Creating Config File</h1>");
-    $str  = "<?php \$cfg_mysql_host = '".$_POST['dbhost']."'; \$cfg_mysql_db = '".$_POST['dbname']."'; \$cfg_mysql_user = '".$_POST['dbuser']."'; \$cfg_mysql_pass = '".$_POST['dbpass']."'; ?".">";
-
-    fwrite($file, $str) or die("<h1>Could not write to config.</h1>");
-    fclose($file);
-
     include_once 'inc/install_inc.php';
+
     echo '
     <div id="column">
-        <h1>'.T_('Install').'Family Connections</h1>
+        <h1>'.T_('Install').' Family Connections</h1>
         <form class="nofields" action="install.php" method="post">
         <h2>'.T_('Checking Database Connection').'</h2>
         <p style="text-align:center">'.T_('Step 3 of 5').'</p>
         <div class="progress"><div style="width:60%"></div></div>';
 
-    dropTables($connection);
+    try
+    {
+        DB::connection()->getPDO();
 
-    echo '
+        dropTables();
+
+        echo '
         <h3>'.T_('Awesome!').'</h3>
         <div>'.T_('A connection was successfully made to the database.  Please proceed to the next step.').'</div>
-        <p style="text-align:right;"><input id="submit" name="submit3" type="submit"  value="'.T_('Next').' >>"/></p>
+        <p style="text-align:right;"><input id="submit" name="submit3" type="submit"  value="'.T_('Next').' >>"/></p>';
+
+    }
+    catch (\Exception $e)
+    {
+        echo '
+        <h3>'.T_('Bummer!').'</h3>
+        <p class"error">'.T_('Could not connect to the database. Please check your .env settings.').'</p>';
+
+        dump($e);
+    }
+
+    echo '
         <div class="clear"></div>
         </form>
     </div><!-- /column -->';
@@ -431,26 +410,17 @@ function displayStepFour ($error = '0')
  */
 function displayStepFive ($error = '0')
 {
-    global $cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass, $cfg_mysql_db;
-
     if (empty($_POST['sitename']) || empty($_POST['contact']))
     {
         displayStepFour("<p class=\"error\">".T_('You forgot a required field.  Please fill out all required fields.')."</p>");
         return;
     }
 
-    include_once 'inc/config_inc.php';
     include_once 'inc/install_inc.php';
     include_once 'inc/datetime.php';
 
-    $connection = new mysqli($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-    $connection->select_db($cfg_mysql_db);
-
-    $_POST['sitename'] = $connection->real_escape_string($_POST['sitename']);
-    $_POST['contact']  = $connection->real_escape_string($_POST['contact']);
-
     // Setup Config
-    installConfig($connection, $_POST['sitename'], $_POST['contact'], 'Family Connections 3.8.0');
+    installConfig($_POST['sitename'], $_POST['contact'], 'Family Connections 4.0.0');
 
     // Setup Navigation
     $order  = 0;
@@ -514,7 +484,7 @@ function displayStepFive ($error = '0')
     }
     $params['whereiseveryone'] = array(4, $order, 0);
 
-    installNavigation($connection, $params);
+    installNavigation($params);
 
     echo '
     <div id="column">
@@ -616,7 +586,6 @@ function setupDatabase ()
         return;
     }
 
-    include_once 'inc/config_inc.php';
     include_once 'inc/install_inc.php';
     include_once 'inc/utils.php';
     include_once 'inc/thirdparty/phpass/PasswordHash.php';
@@ -625,27 +594,17 @@ function setupDatabase ()
     $hasher   = new PasswordHash(8, FALSE);
     $password = $hasher->HashPassword($_POST['password']);
 
-    $connection = new mysqli($cfg_mysql_host, $cfg_mysql_user, $cfg_mysql_pass);
-
-    if (!$connection)
-    {
-        die("<h1>Connection Error [".__FILE__.__LINE__."]</h1>".mysql_error());
-    }
-
-    $connection->select_db($cfg_mysql_db);
-
-    $fname    = $connection->real_escape_string($_POST['fname']);
-    $lname    = $connection->real_escape_string($_POST['lname']);
-    $email    = $connection->real_escape_string($_POST['email']);
+    $fname    = $_POST['fname'];
+    $lname    = $_POST['lname'];
+    $email    = $_POST['email'];
     $bYear    = (int)$_POST['year'];
     $bMonth   = (int)$_POST['month'];
     $bMonth   = str_pad($bMonth, 2, "0", STR_PAD_LEFT);
     $bDay     = (int)$_POST['day'];
     $bDay     = str_pad($bDay, 2, "0", STR_PAD_LEFT);
-    $username = $connection->real_escape_string($_POST['username']);
+    $username = $_POST['username'];
 
     installUsers(
-        $connection,
         array(
             'fname'     => $fname, 
             'lname'     => $lname, 
@@ -657,9 +616,9 @@ function setupDatabase ()
             'password'  => $password
         )
     );
-    installCategory($connection);
-    installCalendar($connection);
-    installTables($connection);
+    installCategory();
+    installCalendar();
+    installTables();
 
     echo '
     <div id="install">

@@ -10,22 +10,19 @@
 class Poll
 {
     private $fcmsError;
-    private $fcmsDatabase;
     private $fcmsUser;
 
     /**
      * __construct 
      * 
      * @param object $fcmsError 
-     * @param object $fcmsDatabase
      * @param object $fcmsUser 
      *
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser)
+    public function __construct ($fcmsError, $fcmsUser)
     {
         $this->fcmsError    = $fcmsError;
-        $this->fcmsDatabase = $fcmsDatabase;
         $this->fcmsUser     = $fcmsUser;
     }
 
@@ -44,21 +41,13 @@ class Poll
         $sql = "SELECT MAX(`id`) AS max 
                 FROM `fcms_polls`";
 
-        $row = $this->fcmsDatabase->getRow($sql);
-        if ($row === false)
+        $row = DB::select($sql);
+        if (empty($row))
         {
-            $this->fcmsError->setMessage(T_('Could not get latest poll information.'));
-
-            return false;
+            return $row;
         }
 
-        $pollId = $row['max'];
-
-        // No polls exist
-        if (is_null($pollId))
-        {
-            return;
-        }
+        $pollId = $row[0]->max;
 
         return $this->getPollData($pollId);
     }
@@ -131,21 +120,21 @@ class Poll
                 LEFT JOIN `fcms_poll_options` AS o ON p.`id` = o.`poll_id`
                 WHERE p.`id` = ?";
 
-        $rows = $this->fcmsDatabase->getRows($sql, $id);
-        if ($rows === false)
+        $rows = DB::select($sql, array($id));
+        if (empty($rows))
         {
-            $this->fcmsError->setMessage(T_('Could not get poll information.'));
-
-            return false;
+            return $rows;
         }
+
+        $data = [];
 
         foreach ($rows as $r)
         {
-            $data[$r['id']]['question']    = $r['question'];
-            $data[$r['id']]['total_votes'] = 0;
+            $data[$r->id]['question']    = $r->question;
+            $data[$r->id]['total_votes'] = 0;
 
-            $data[$r['id']]['options'][$r['option_id']] = array(
-                'option' => $r['option'],
+            $data[$r->id]['options'][$r->option_id] = array(
+                'option' => $r->option,
                 'votes'  => array(
                     'total' => 0,
                     'users' => array(),
@@ -158,21 +147,19 @@ class Poll
                 FROM `fcms_poll_votes` 
                 WHERE `poll_id` = ?";
 
-        $rows = $this->fcmsDatabase->getRows($sql, $id);
-        if ($rows === false)
+        $rows = DB::select($sql, array($id));
+        if (empty($rows))
         {
-            $this->fcmsError->setMessage(T_('Could not get poll information.'));
-
-            return false;
+            return $data;
         }
 
         foreach ($rows as $r)
         {
-            $data[$r['poll_id']]['total_votes']++;
-            $data[$r['poll_id']]['options'][$r['option']]['votes']['total']++;
+            $data[$r->poll_id]['total_votes']++;
+            $data[$r->poll_id]['options'][$r->option]['votes']['total']++;
 
-            $data[$r['poll_id']]['options'][$r['option']]['votes']['users'][$r['user']] = 1;
-            $data['users_who_voted'][$r['user']] = 1;
+            $data[$r->poll_id]['options'][$r->option]['votes']['users'][$r->user] = 1;
+            $data['users_who_voted'][$r->user] = 1;
         }
 
         return $data;
@@ -266,7 +253,7 @@ class Poll
                 ORDER BY started DESC 
                 LIMIT $from, 25";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
+        $rows = DB::select($sql);
         if ($rows === false)
         {
             $this->fcmsError->setMessage(T_('Could not get poll information.'));
@@ -307,7 +294,7 @@ class Poll
             $pollId
         );
 
-        $row = $this->fcmsDatabase->getRow($sql, $params);
+        $row = DB::select($sql, $params);
         if ($row === false)
         {
             $this->fcmsError->setMessage(T_('Could not get poll information.'));
@@ -374,7 +361,7 @@ class Poll
                 WHERE p.`id` IN ($ids)
                 GROUP BY `id`";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
+        $rows = DB::select($sql);
         if ($rows === false)
         {
             $this->fcmsError->setMessage(T_('Could not get polls votes.'));
@@ -406,7 +393,7 @@ class Poll
                 LEFT JOIN `fcms_users` AS u ON c.`created_id` = u.`id`
                 WHERE `poll_id` = ?";
 
-        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        $rows = DB::select($sql, $id);
         if ($rows === false)
         {
             $this->fcmsError->setMessage(T_('Could not get poll comments.'));
@@ -443,7 +430,7 @@ class Poll
                 FROM `fcms_users`
                 WHERE `id` IN ($ids)";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
+        $rows = DB::select($sql);
         if ($rows === false)
         {
             $this->fcmsError->setMessage(T_('Could not get member information.'));

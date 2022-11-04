@@ -24,7 +24,6 @@
 class PhotoGallery
 {
     var $fcmsError;
-    var $fcmsDatabase;
     var $fcmsUser;
     var $fcmsImage;
 
@@ -32,16 +31,14 @@ class PhotoGallery
      * __construct 
      * 
      * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase
      * @param User       $fcmsUser 
      * @param Image      $fcmsImage
      * 
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser, $fcmsImage = null)
+    public function __construct (FCMS_Error $fcmsError, User $fcmsUser, $fcmsImage = null)
     {
         $this->fcmsError    = $fcmsError;
-        $this->fcmsDatabase = $fcmsDatabase;
         $this->fcmsUser     = $fcmsUser;
         $this->fcmsImage    = $fcmsImage;
     }

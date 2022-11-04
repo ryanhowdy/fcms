@@ -31,7 +31,7 @@
 session_start();
 
 // Site has NOT been installed yet
-if (!file_exists('inc/config_inc.php'))
+if (!isSiteInstalled())
 {
     displayNoConfig();
     return;
@@ -69,6 +69,27 @@ function control ()
     {
         displayLoginForm();
     }
+}
+
+function isSiteInstalled ()
+{
+    try
+    {
+        DB::connection()->getPDO();
+    }
+    catch (\Exception $e)
+    {
+        return false;
+    }
+
+    $users = DB::select('select * from `fcms_users` limit 1');
+
+    if ($users)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -117,7 +138,7 @@ function displayChangeLanguage ()
 
     T_setlocale(LC_MESSAGES, $_SESSION['language']);
 
-    header("Location: index.php");
+    redirect()->to('index.php')->send();
 }
 
 /**
@@ -127,9 +148,8 @@ function displayChangeLanguage ()
  */
 function displayLoginSubmit ()
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+    $fcmsError = FCMS_Error::getInstance();
+    $fcmsUser  = User::getInstance($fcmsError);
 
     $user     = $_POST['user'];
     $pass     = $_POST['pass'];
@@ -145,12 +165,7 @@ function displayLoginSubmit ()
             FROM `fcms_users` 
             WHERE `username` = ?";
 
-    $row = $fcmsDatabase->getRow($sql, $user);
-    if ($row === false)
-    {
-        $fcmsError->displayError();
-        return;
-    }
+    $row = DB::select($sql, array($user));
 
     // Can't find username
     if (count($row) <= 0)
@@ -160,12 +175,12 @@ function displayLoginSubmit ()
     }
 
     // New password style
-    if ($row['password'] == '0')
+    if ($row[0]->password == '0')
     {
         $hasher = new PasswordHash(8, FALSE);
 
         // Does the pw supplied match the db?
-        if (!$hasher->CheckPassword($pass, $row['phpass']))
+        if (!$hasher->CheckPassword($pass, $row[0]->phpass))
         {
             handleBadLogin($user);
             return;
@@ -174,14 +189,14 @@ function displayLoginSubmit ()
     // Old password style
     else
     {
-        if (md5($pass) !== $row['password'])
+        if (md5($pass) !== $row[0]->password)
         {
             handleBadLogin($user);
             return;
         }
 
         // Lets update the user's old pw to the new style
-        if (!upgradeNewPassword($row['id'], $pass))
+        if (!upgradeNewPassword($row[0]->id, $pass))
         {
             displayHeader();
             echo '<div class="err-msg">';
@@ -193,10 +208,10 @@ function displayLoginSubmit ()
     }
 
     // User is active
-    if ($row['activated'] > 0)
+    if ($row[0]->activated > 0)
     {
         // Login the user
-        if (!loginUser($row['id'], $rem))
+        if (!loginUser($row[0]->id, $rem))
         {
             displayHeader();
             echo '<div class="err-msg">';
@@ -207,20 +222,20 @@ function displayLoginSubmit ()
         }
 
         // Redirect to desired page
-        header("Location: $redirect");
+        redirect()->to($redirect)->send();
     }
     // User has been locked out for failed attempts
-    elseif ($row['activated'] < 0)
+    elseif ($row[0]->activated < 0)
     {
         // User's lockout has ended
-        if (gmdate('YmdHis') > gmdate('YmdHis', strtotime($row['locked'])))
+        if (gmdate('YmdHis') > gmdate('YmdHis', strtotime($row[0]->locked)))
         {
             // Set user as active
             $sql = "UPDATE `fcms_users` 
                     SET `activated` = '1' 
                     WHERE `id` = ?";
 
-            if (!$fcmsDatabase->update($sql, $row['id']))
+            if (!DB::update($sql, array($row[0]->id)))
             {
                 displayHeader();
                 echo '<div class="err-msg">';
@@ -231,7 +246,7 @@ function displayLoginSubmit ()
             }
 
             // Login the user
-            if (!loginUser($row['id'], $rem))
+            if (!loginUser($row[0]->id, $rem))
             {
                 displayHeader();
                 echo '<div class="err-msg">';
@@ -242,7 +257,7 @@ function displayLoginSubmit ()
             }
 
             // Redirect to desired page
-            header("Location: $redirect");
+            redirect()->to($redirect)->send();
 
         }
         // User is still locked out
@@ -266,9 +281,8 @@ function displayLoginSubmit ()
  */
 function displayAlreadyLoggedIn ()
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+    $fcmsError= FCMS_Error::getInstance();
+    $fcmsUser = User::getInstance($fcmsError);
 
     if (isset($_COOKIE['fcms_cookie_id']))
     {
@@ -277,7 +291,7 @@ function displayAlreadyLoggedIn ()
     }
 
     // Redirect to desired page
-    header("Location: home.php");
+    redirect()->to('home.php')->send();
 }
 
 /**
@@ -453,19 +467,17 @@ function displayLogin($msg = null)
  */
 function handleBadLogin ($user)
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+    $fcmsError = FCMS_Error::getInstance();
+    $fcmsUser  = User::getInstance($fcmsError);
 
     $sql = "SELECT `id`, `login_attempts` 
             FROM `fcms_users` 
             WHERE `username` = ?";
 
-    $row = $fcmsDatabase->getRow($sql, $user);    
-    if ($row === false)
+    $row = DB::select($sql, array($user));    
+    if (empty($row))
     {
         $fcmsError->displayError();
-
         return;
     }
 
@@ -473,17 +485,16 @@ function handleBadLogin ($user)
     if (!empty($row))
     {
         // user exceeded max login attempts
-        if ($row['login_attempts'] > 4)
+        if ($row[0]->login_attempts > 4)
         {
             // Lock users account
             $sql = "UPDATE `fcms_users` 
                     SET `activated` = '-1', `locked` = DATE_ADD(NOW(), INTERVAL 1 HOUR) 
                     WHERE `id` = ?";
 
-            if (!$fcmsDatabase->update($sql, $row['id']))
+            if (!DB::update($sql, array($row[0]->id)))
             {
                 $fcmsError->displayError();
-
                 return;
             }
 
@@ -496,7 +507,7 @@ function handleBadLogin ($user)
                 SET `login_attempts` = `login_attempts`+1 
                 WHERE `id` = ?";
 
-        if (!$fcmsDatabase->update($sql, $row['id']))
+        if (!DB::update($sql, array($row[0]->id)))
         {
             $fcmsError->displayError();
 
@@ -525,9 +536,8 @@ function handleBadLogin ($user)
  */
 function handleFacebookLogin ()
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
-    $fcmsUser     = User::getInstance($fcmsError, $fcmsDatabase);
+    $fcmsError = FCMS_Error::getInstance();
+    $fcmsUser  = User::getInstance($fcmsError);
 
     $msg = null;
 
@@ -578,12 +588,7 @@ function handleFacebookLogin ()
         $fbUser
     );
 
-    $row = $fcmsDatabase->getRow($sql, $params);
-    if ($row === false)
-    {
-        $fcmsError->displayError();
-        return $msg;
-    }
+    $row = DB::select($sql, $params);
 
     if (empty($row))
     {
@@ -599,20 +604,20 @@ function handleFacebookLogin ()
     }
 
     // Check account is active
-    if ($row['activated'] == 0)
+    if ($row[0]->activated == 0)
     {
         displayNotActive();
         die(); // we don't want to return to displaying the login, we already did 
     }
 
     // We made it past all the checks, then the user can be logged in
-    if (!loginUser($row['id'], 0))
+    if (!loginUser($row[0]->d, 0))
     {
         $fcmsError->displayError();
         return $msg;
     }
 
-    header("Location: home.php");
+    redirect()->to('home.php')->send();
 }
 
 /**
@@ -668,8 +673,7 @@ function displayLockedOut ()
  */
 function upgradeNewPassword($userId, $password)
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     // Hash the pw
     $hasher         = new PasswordHash(8, FALSE);
@@ -682,7 +686,7 @@ function upgradeNewPassword($userId, $password)
 
     $params = array($hashedPassword, $userId);
 
-    if (!$fcmsDatabase->update($sql, $params))
+    if (!DB::update($sql, $params))
     {
         return false;
     }

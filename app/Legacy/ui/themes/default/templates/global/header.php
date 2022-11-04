@@ -6,20 +6,20 @@
 <meta name="author" content="Ryan Haudenschilt" />
 <meta name="viewport" content="width=device-width" />
 <link rel="shortcut icon" href="<?php echo $TMPL['path']; ?>ui/favicon.ico"/>
-<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>inc/thirdparty/bootstrap/css/bootstrap.min.css?v=380"/>
-<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>ui/themes/default/css/style.css?v=380"/>
+<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>css/bootstrap337.min.css"/>
+<link rel="stylesheet" type="text/css" href="<?php echo $TMPL['path']; ?>css/legacy.css?v=400"/>
 <link rel="stylesheet" type="text/css" media="only screen and (max-width: 480px)" href="<?php echo $TMPL["path"]; ?>ui/themes/default/css/mobile.css?v=380"/>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/jquery.js?v=380"></script>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>inc/thirdparty/bootstrap/js/bootstrap.min.js?v=380"></script>
-<script type="text/javascript" src="<?php echo $TMPL['path']; ?>ui/js/fcms.js?v=380"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>js/legacy/jquery1.11.0.js"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>js/legacy/bootstrap.min.js"></script>
+<script type="text/javascript" src="<?php echo $TMPL['path']; ?>js/legacy/fcms.js?v=400"></script>
 <?php if (isset($TMPL['javascript'])) { echo $TMPL['javascript']; } ?>
 </head>
 <body id="top">
 
     <div id="header">
         <div id="logo">
-            <a href="<?php echo $TMPL['path']; ?>index.php">
-                <img src="<?php echo $TMPL['path']; ?>ui/img/logo.gif" alt="<?php echo $TMPL['sitename'];?>"/>
+            <a href="<?php echo $TMPL['path']; ?>home.php">
+                <img src="<?php echo $TMPL['path']; ?>/img/logo.gif" alt="<?php echo $TMPL['sitename'];?>"/>
             </a>
         </div>
         <p>

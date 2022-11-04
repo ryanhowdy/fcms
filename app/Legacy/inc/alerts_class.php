@@ -10,23 +10,20 @@
 class Alerts
 {
     var $fcmsError;
-    var $fcmsDatabase;
     var $fcmsUser;
 
     /**
      * __construct 
      * 
      * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase
      * @param User       $fcmsUser 
      *
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct (FCMS_Error $fcmsError, User $fcmsUser)
     {
-        $this->fcmsError    = $fcmsError;
-        $this->fcmsDatabase = $fcmsDatabase;
-        $this->fcmsUser     = $fcmsUser;
+        $this->fcmsError = $fcmsError;
+        $this->fcmsUser  = $fcmsUser;
     }
     
     /**
@@ -39,7 +36,7 @@ class Alerts
     function displayNewUserHome ($userid)
     {
         include_once 'addressbook_class.php';
-        $addressObj = new AddressBook($this->fcmsError, $this->fcmsDatabase, $this->fcmsUser);
+        $addressObj = new AddressBook($this->fcmsError, $this->fcmsUser);
 
         $userid = (int)$userid;
 
@@ -49,12 +46,7 @@ class Alerts
                 AND `user` = ? 
                 AND `hide` = 1";
 
-        $row = $this->fcmsDatabase->getRow($sql, $userid);
-        if ($row === false)
-        {
-            $this->fcmsError->displayError();
-            return false;
-        }
+        $row = DB::select($sql, array($userid));
 
         if (count($row) >= 1)
         {
@@ -101,24 +93,22 @@ class Alerts
         $sql = "SELECT MAX(`id`) AS 'max'
                 FROM `fcms_polls`";
 
-        $r = $this->fcmsDatabase->getRow($sql);
-        if ($r === false)
+        $r = DB::select($sql);
+        if (empty($r))
         {
-            $this->fcmsError->displayError();
             return;
         }
 
-        $currentPoll = $r['max'];
+        $currentPoll = $r[0]->max;
 
         $sql = "SELECT `id`
                 FROM `fcms_poll_votes`
                 WHERE `user` = ?
                 AND `poll_id` = ?";
 
-        $rows = $this->fcmsDatabase->getRows($sql, array($userid, $currentPoll));
-        if ($rows === false)
+        $rows = DB::select($sql, array($userid, $currentPoll));
+        if (empty($rows))
         {
-            $this->fcmsError->displayError();
             return;
         }
 
@@ -165,10 +155,9 @@ class Alerts
                 AND `user` = ? 
                 AND `hide` = 1";
 
-        $row = $this->fcmsDatabase->getRow($sql, $userid);
-        if ($row === false)
+        $row = DB::select($sql, array($userid));
+        if (empty($row))
         {
-            $this->fcmsError->displayError();
             return;
         }
 
@@ -205,10 +194,9 @@ class Alerts
                 AND `user` = ?
                 AND `hide` = 1";
 
-        $row = $this->fcmsDatabase->getRow($sql, $userid);
-        if ($row === false)
+        $row = DB::select($sql, array($userid));
+        if (empty($row))
         {
-            $this->fcmsError->displayError();
             return;
         }
 
@@ -240,10 +228,9 @@ class Alerts
                 AND `user` = ?
                 AND `hide` = 1";
 
-        $rows = $this->fcmsDatabase->getRows($sql, $userid);
-        if ($rows === false)
+        $rows = DB::select($sql, array($userid));
+        if (empty($rows))
         {
-            $this->fcmsError->displayError();
             return;
         }
 

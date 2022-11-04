@@ -8,7 +8,6 @@ class User
     public $email;
 
     private $error;
-    private $db;
     
     public static $instance = null;
 
@@ -16,12 +15,11 @@ class User
      * __construct 
      * 
      * @param FCMS_Error $error 
-     * @param Database   $db
      * @param int        $id
      * 
      * @return void
      */
-    public function __construct (FCMS_Error $error, Database $db, $id = null)
+    public function __construct (FCMS_Error $error, $id = null)
     {
         if (!isset($_SESSION['fcms_id']) && is_null($id))
         {
@@ -44,7 +42,6 @@ class User
         }
 
         $this->error = $error;
-        $this->db    = $db;
 
 
         // Get User info
@@ -53,17 +50,17 @@ class User
                 LEFT JOIN `fcms_user_settings` AS s ON u.`id` = s.`user`
                 WHERE u.`id` = ?";
 
-        $userInfo = $this->db->getRow($sql, $this->id);
-        if ($userInfo === false)
+        $userInfo = DB::select($sql, array($this->id));
+        if (empty($userInfo))
         {
             $this->error->setMessage(sprintf(T_('Could not get information for user [%s].'), $this->id));
             return;
         }
 
-        $this->displayName = $this->getDisplayNameFromData($userInfo);
-        $this->email       = $userInfo['email'];
-        $this->tzOffset    = $userInfo['timezone'];
-        $this->access      = $userInfo['access'];
+        $this->displayName = $this->getDisplayNameFromData($userInfo[0]);
+        $this->email       = $userInfo[0]->email;
+        $this->tzOffset    = $userInfo[0]->timezone;
+        $this->access      = $userInfo[0]->access;
 
         return;
     }
@@ -73,11 +70,11 @@ class User
      * 
      * @return object
      */
-    public static function getInstance ($error, $db)
+    public static function getInstance ($error)
     {
         if (!isset(self::$instance))
         {
-            self::$instance = new User($error, $db);
+            self::$instance = new User($error);
         }
 
         return self::$instance;
@@ -94,22 +91,22 @@ class User
     {
         $ret = '';
 
-        switch($data['displayname'])
+        switch($data->displayname)
         {
             case '1':
-                $ret = cleanOutput($data['fname']);
+                $ret = cleanOutput($data->fname);
                 break;
 
             case '2':
-                $ret = cleanOutput($data['fname']).' '.cleanOutput($data['lname']);
+                $ret = cleanOutput($data->fname).' '.cleanOutput($data->lname);
                 break;
 
             case '3':
-                $ret = cleanOutput($data['username']);
+                $ret = cleanOutput($data->username);
                 break;
 
             default:
-                $ret = cleanOutput($data['username']);
+                $ret = cleanOutput($data->username);
                 break;
         }
 

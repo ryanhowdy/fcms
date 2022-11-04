@@ -39,11 +39,11 @@
                 <?php
                 if (isset($TMPL['pollOptions']))
                 {
-                    require_once 'ui/themes/default/templates/poll/view.php';
+                    require_once app_path().'/Legacy/ui/themes/default/templates/poll/view.php';
                 }
                 else
                 {
-                    require_once 'ui/themes/default/templates/poll/result.php';
+                    require_once app_path().'/Legacy/ui/themes/default/templates/poll/result.php';
                 } ?>
             <?php endif; ?>
 

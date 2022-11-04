@@ -9,15 +9,14 @@
  */
 function getFacebookConfigData ()
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `name`, `value`
             FROM `fcms_config`
             WHERE `name` = 'fb_app_id'
             OR `name` = 'fb_secret'";
 
-    $rows = $fcmsDatabase->getRows($sql);
+    $rows = DB::select($sql);
     if ($rows === false)
     {
         return false;
@@ -27,7 +26,7 @@ function getFacebookConfigData ()
 
     foreach ($rows as $r)
     {
-        $data[$r['name']] = $r['value'];
+        $data[$r->name] = $r->value;
     }
 
     return $data;
@@ -44,16 +43,15 @@ function getFacebookConfigData ()
  */
 function getUserFacebookAccessToken ($user)
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `fb_access_token`
             FROM `fcms_user_settings`
             WHERE `user` = ?
             LIMIT 1";
 
-    $r = $fcmsDatabase->getRow($sql, $user);
-    if ($r === false)
+    $r = DB::select($sql, array($user));
+    if (empty($r))
     {
         return;
     }
@@ -63,7 +61,7 @@ function getUserFacebookAccessToken ($user)
         return;
     }
 
-    return $r['fb_access_token'];
+    return $r[0]->fb_access_token;
 }
 
 /**
@@ -75,15 +73,14 @@ function getUserFacebookAccessToken ($user)
  */
 function getVimeoConfigData ()
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `name`, `value`
             FROM `fcms_config`
             WHERE `name` = 'vimeo_key'
             OR `name` = 'vimeo_secret'";
 
-    $rows = $fcmsDatabase->getRows($sql);
+    $rows = DB::select($sql);
     if ($rows === false)
     {
         return false;
@@ -97,7 +94,7 @@ function getVimeoConfigData ()
     $data = array();
     foreach ($rows as $r)
     {
-        $data[$r['name']] = $r['value'];
+        $data[$r->name] = $r->value;
     }
 
     return $data;
@@ -112,15 +109,14 @@ function getVimeoConfigData ()
  */
 function getVimeoUserData ($user)
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `vimeo_access_token`, `vimeo_access_token_secret`
             FROM `fcms_user_settings`
             WHERE `user` = ?
             LIMIT 1";
 
-    $r = $fcmsDatabase->getRow($sql, $user);
+    $r = DB::select($sql, array($user));
     if ($r === false)
     {
         return false;
@@ -141,8 +137,7 @@ function getVimeoUserData ($user)
  */
 function getFoursquareConfigData ()
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `name`, `value`
             FROM `fcms_config`
@@ -150,7 +145,7 @@ function getFoursquareConfigData ()
             OR `name` = 'fs_client_secret'
             OR `name` = 'fs_callback_url'";
 
-    $rows = $fcmsDatabase->getRows($sql);
+    $rows = DB::select($sql);
     if ($rows === false)
     {
         return false;
@@ -165,7 +160,7 @@ function getFoursquareConfigData ()
 
     foreach ($rows as $r)
     {
-        $data[$r['name']] = $r['value'];
+        $data[$r->name] = $r->value;
     }
 
     return $data;
@@ -180,15 +175,14 @@ function getFoursquareConfigData ()
  */
 function getFoursquareUserData ($user)
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `fs_user_id`, `fs_access_token`
             FROM `fcms_user_settings`
             WHERE `user` = ?
             LIMIT 1";
 
-    $r = $fcmsDatabase->getRow($sql, $user);
+    $r = DB::select($sql, array($user));
     if ($r === false)
     {
         return false;
@@ -221,8 +215,7 @@ function getFoursquareUserData ($user)
  */
 function getFoursquareUsersData ()
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `user` AS 'userid', `fs_user_id`, `fs_access_token`, `fname`, `lname`, 
                 `avatar`, `gravatar`, `timezone`
@@ -230,7 +223,7 @@ function getFoursquareUsersData ()
             WHERE `fs_user_id` IS NOT NULL
             AND s.`user` = u.`id`";
 
-    $rows = $fcmsDatabase->getRows($sql);
+    $rows = DB::select($sql);
     if ($rows === false)
     {
         return false;
@@ -267,15 +260,14 @@ function getFoursquareUsersData ()
  */
 function getGoogleConfigData ()
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `name`, `value`
             FROM `fcms_config`
             WHERE `name` = 'google_client_id'
             OR `name` = 'google_client_secret'";
 
-    $rows = $fcmsDatabase->getRows($sql);
+    $rows = DB::select($sql);
     if ($rows === false)
     {
         return;
@@ -306,15 +298,14 @@ function getGoogleConfigData ()
  */
 function getGoogleUserData ($user)
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `google_session_token`
             FROM `fcms_user_settings`
             WHERE `user` = ?
             LIMIT 1";
 
-    $r = $fcmsDatabase->getRow($sql, $user);
+    $r = DB::select($sql, array($user));
     if ($r === false)
     {
         return;
@@ -424,8 +415,7 @@ function getAuthedGoogleClient ($userId)
  */
 function getInstagramConfigData ()
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     if (   isset($_SESSION['instagram_client_id']) 
         && isset($_SESSION['instagram_client_secret'])
@@ -443,7 +433,7 @@ function getInstagramConfigData ()
             WHERE `name` = 'instagram_client_id'
             OR `name` = 'instagram_client_secret'";
 
-    $rows = $fcmsDatabase->getRows($sql);
+    $rows = DB::select($sql);
     if ($rows === false)
     {
         return;
@@ -474,15 +464,14 @@ function getInstagramConfigData ()
  */
 function getUserInstagramAccessToken ($user)
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `instagram_access_token`
             FROM `fcms_user_settings`
             WHERE `user` = ?
             LIMIT 1";
 
-    $r = $fcmsDatabase->getRow($sql, $user);
+    $r = DB::select($sql, array($user));
     if ($r === false)
     {
         return null;
@@ -510,15 +499,14 @@ function getUserInstagramAccessToken ($user)
  */
 function getUserPicasaSessionToken ($user)
 {
-    $fcmsError    = FCMS_Error::getInstance();
-    $fcmsDatabase = Database::getInstance($fcmsError);
+    $fcmsError = FCMS_Error::getInstance();
 
     $sql = "SELECT `picasa_session_token`
             FROM `fcms_user_settings`
             WHERE `user` = ?
             LIMIT 1";
 
-    $r = $fcmsDatabase->getRow($sql, $user);
+    $r = DB::select($sql, array($user));
     if ($r === false)
     {
         return null;

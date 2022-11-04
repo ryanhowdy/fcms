@@ -33,18 +33,17 @@ load(
 
 init();
 
-$calendar = new Calendar($fcmsError, $fcmsDatabase, $fcmsUser);
-$poll     = new Poll($fcmsError, $fcmsDatabase, $fcmsUser);
-$alert    = new Alerts($fcmsError, $fcmsDatabase, $fcmsUser);
-$gallery  = new PhotoGallery($fcmsError, $fcmsDatabase, $fcmsUser);
-$page     = new Page($fcmsError, $fcmsDatabase, $fcmsUser, $calendar, $poll, $alert, $gallery);
+$calendar = new Calendar($fcmsError, $fcmsUser);
+$poll     = new Poll($fcmsError, $fcmsUser);
+$alert    = new Alerts($fcmsError, $fcmsUser);
+$gallery  = new PhotoGallery($fcmsError, $fcmsUser);
+$page     = new Page($fcmsError, $fcmsUser, $calendar, $poll, $alert, $gallery);
 
 exit();
 
 class Page
 {
     private $fcmsError;
-    private $fcmsDatabase;
     private $fcmsUser;
     private $fcmsCalendar;
     private $fcmsPoll;
@@ -56,10 +55,9 @@ class Page
      * 
      * @return void
      */
-    public function __construct ($fcmsError, $fcmsDatabase, $fcmsUser, $fcmsCalendar, $fcmsPoll, $fcmsAlert, $fcmsPhotoGallery)
+    public function __construct ($fcmsError, $fcmsUser, $fcmsCalendar, $fcmsPoll, $fcmsAlert, $fcmsPhotoGallery)
     {
         $this->fcmsError        = $fcmsError;
-        $this->fcmsDatabase     = $fcmsDatabase;
         $this->fcmsUser         = $fcmsUser;
         $this->fcmsCalendar     = $fcmsCalendar;
         $this->fcmsPoll         = $fcmsPoll;
@@ -83,7 +81,7 @@ class Page
                 SET `activity` = NOW()
                 WHERE `id` = ?";
 
-        $this->fcmsDatabase->update($sql, $this->fcmsUser->id);
+        DB::update($sql, array($this->fcmsUser->id));
 
         if (isset($_POST['status_submit']))
         {
@@ -218,7 +216,7 @@ class Page
 
             $params = array($alert, $this->fcmsUser->id);
 
-            if (!$this->fcmsDatabase->insert($sql, $params))
+            if (!DB::insert($sql, $params))
             {
                 $this->fcmsError->displayError();
                 $this->displayFooter();
@@ -290,7 +288,7 @@ class Page
         // Submited blank form?
         if (empty($_POST['status']))
         {
-            header("Location: home.php");
+            redirect()->to('home.php')->send();
             return;
         }
 
@@ -311,7 +309,7 @@ class Page
             $parent,
         );
 
-        if (!$this->fcmsDatabase->insert($sql, $params))
+        if (!DB::insert($sql, $params))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
@@ -327,7 +325,7 @@ class Page
                     WHERE `id` = ?
                     LIMIT 1;";
 
-            if (!$this->fcmsDatabase->update($sql, $parent))
+            if (!DB::update($sql, $parent))
             {
                 $this->displayHeader();
                 $this->fcmsError->displayError();
@@ -371,8 +369,8 @@ class Page
                 WHERE `email_updates` = '1'
                 AND u.`id` = s.`user`";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
+        $rows = DB::select($sql);
+        if (empty($rows))
         {
             $this->displayHeader();
             $this->fcmsError->displayError();
@@ -388,9 +386,9 @@ class Page
 
             foreach ($rows as $r)
             {
-                $to      = getUserDisplayName($r['user']);
+                $to      = getUserDisplayName($r->user);
                 $subject = sprintf(T_('%s added a new status update.'), $name);
-                $email   = $r['email'];
+                $email   = $r->email;
 
                 $msg = T_('Dear').' '.$to.',
 
@@ -409,7 +407,7 @@ class Page
             }
         }
 
-        header("Location: home.php");
+        redirect()->to('home.php')->send();
     }
 
     /**
@@ -588,10 +586,10 @@ class Page
             $object    = $this->getWhatsNewDataObject($parent);
 
             // Use cached data
-            if (isset($cachedUserData[$parent['userid']]))
+            if (isset($cachedUserData[$parent->userid]))
             {
-                $displayname = $cachedUserData[ $parent['userid'] ]['displayname'];
-                $avatar      = $cachedUserData[ $parent['userid'] ]['avatar'];
+                $displayname = $cachedUserData[$parent->userid]['displayname'];
+                $avatar      = $cachedUserData[$parent->userid]['avatar'];
             }
             // Get new data
             else
@@ -600,22 +598,22 @@ class Page
                 if (!startsWith($groupType, 'poll'))
                 {
                     // polls don't have user ids
-                    $displayname = getUserDisplayName($parent['userid']);
+                    $displayname = getUserDisplayName($parent->userid);
                 }
 
-                $avatar = getCurrentAvatar($parent['userid']);
+                $avatar = getCurrentAvatar($parent->userid);
 
                 // Save this for later
-                $cachedUserData[ $parent['userid'] ]['avatar']      = $avatar;
-                $cachedUserData[ $parent['userid'] ]['displayname'] = $displayname;
+                $cachedUserData[$parent->userid]['avatar']      = $avatar;
+                $cachedUserData[$parent->userid]['displayname'] = $displayname;
             }
 
             $params = array(
                 'position'      => $position,
-                'class'         => 'new'.strtolower($parent['type']),
+                'class'         => 'new'.strtolower($parent->type),
                 'avatar'        => $avatar,
                 'displayname'   => $displayname,
-                'userId'        => (int)$parent['userid'],
+                'userId'        => (int)$parent->userid,
                 'timeSince'     => $timeSince,
                 'textInfo'      => $textInfo,
                 'title'         => $object['title'],
@@ -654,14 +652,14 @@ class Page
     {
         $time = '';
 
-        switch ($data['type'])
+        switch ($data->type)
         {
             case 'STATUS':
-                $time = getHumanTimeSince(strtotime($data['id3']));
+                $time = getHumanTimeSince(strtotime($data->id3));
                 break;
 
             default:
-                $time = getHumanTimeSince(strtotime($data['date']));
+                $time = getHumanTimeSince(strtotime($data->date));
                 break;
         }
 
@@ -679,11 +677,11 @@ class Page
     {
         $text = '';
 
-        switch ($data['type'])
+        switch ($data->type)
         {
             case 'ADDRESSADD':
-                $displayname = getUserDisplayName($data['id2']);
-                $for         = '<a href="addressbook.php?address='.(int)$data['id'].'">'.getUserDisplayName($data['userid'], 2, false).'</a>';
+                $displayname = getUserDisplayName($data->id2);
+                $for         = '<a href="addressbook.php?address='.(int)$data->id.'">'.getUserDisplayName($data->userid, 2, false).'</a>';
                 $text        = sprintf(T_('Added address information for %s.'), $for);
                 break;
 
@@ -692,8 +690,7 @@ class Page
                 break;
 
             case 'AVATAR':
-                $text = $data['id3'] == 'M' ? T_('Changed his profile picture.')
-                                            : T_('Changed her profile picture.');
+                $text = $data->id3 == 'M' ? T_('Changed his profile picture.') : T_('Changed her profile picture.');
                 break;
 
             case 'CALENDAR':
@@ -710,7 +707,7 @@ class Page
             case 'POLLCOM':
             case 'RECIPECOM':
             case 'VIDEOCOM':
-                $text = cleanOutput($data['details']);
+                $text = cleanOutput($data->details);
                 break;
 
             case 'GALCOM':
@@ -718,7 +715,7 @@ class Page
                 break;
 
             case 'GALLERY':
-                $text = sprintf(T_('Added %d new photos.'), (int)$data['id2']);
+                $text = sprintf(T_('Added %d new photos.'), (int)$data->id2);
                 break;
 
             case 'JOINED':
@@ -750,7 +747,7 @@ class Page
                 break;
 
             default:
-                $text = cleanOutput($data['title']);
+                $text = cleanOutput($data->title);
                 $text = nl2br_nospaces($text);
                 break;
         }
@@ -788,16 +785,16 @@ class Page
             $titleType = T_('cell phone number');
         }
 
-        $address = '<a href="addressbook.php?address='.(int)$data['id'].'">'.$titleType.'</a>';
+        $address = '<a href="addressbook.php?address='.(int)$data->id.'">'.$titleType.'</a>';
 
-        if ($data['id2'] != $data['userid'])
+        if ($data->id2 != $data->userid)
         {
-            $user = getUserDisplayName($data['userid']);
+            $user = getUserDisplayName($data->userid);
             $text = sprintf(T_pgettext('Example: "Updated the <address/phone/email> for <name>."', 'Updated the %s for %s.'), $address, $user);
         }
         else
         {
-            if ($data['id3'] == 'F')
+            if ($data->id3 == 'F')
             {
                 $text = sprintf(T_pgettext('Example: "Updated her <address/phone/email>."', 'Updated her %s.'), $address);
             }
@@ -822,71 +819,71 @@ class Page
         $title   = '';
         $details = '';
 
-        switch ($data['type'])
+        switch ($data->type)
         {
             case 'CALENDAR':
-                $title   = '<a href="calendar.php?event='.$data['id'].'">'.cleanOutput($data['title']).'</a>';
-                $details = date('F j, Y', strtotime($data['id2']));
+                $title   = '<a href="calendar.php?event='.$data->id.'">'.cleanOutput($data->title).'</a>';
+                $details = date('F j, Y', strtotime($data->id2));
                 break;
 
             case 'DOCS':
-                $title   = '<a href="documents.php">'.cleanOutput($data['title']).'</a>';
-                $details = cleanOutput($data['details']);
+                $title   = '<a href="documents.php">'.cleanOutput($data->title).'</a>';
+                $details = cleanOutput($data->details);
                 break;
 
             case 'GALCOM':
-                foreach ($data['photos'] as $p)
+                foreach ($data->photos as $p)
                 {
                     $photoSrc = $this->fcmsPhotoGallery->getPhotoSource($p);
-                    $title    = '<a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.(int)$data['id'].'"><img src="'.$photoSrc.'"/></a>';
+                    $title    = '<a href="gallery/index.php?uid=0&amp;cid=comments&amp;pid='.(int)$data->id.'"><img src="'.$photoSrc.'"/></a>';
                 }
-                $details = cleanOutput($data['title']);
+                $details = cleanOutput($data->title);
                 break;
 
             case 'GALLERY':
-                $title   = '<a href="gallery/index.php?uid='.(int)$data['userid'].'&amp;cid='.$data['id'].'">'.cleanOutput($data['title']).'</a>';
+                $title   = '<a href="gallery/index.php?uid='.(int)$data->userid.'&amp;cid='.$data->id.'">'.cleanOutput($data->title).'</a>';
                 $details = '';
 
-                foreach ($data['photos'] as $p)
+                foreach ($data->photos as $p)
                 {
                     $photoSrc = $this->fcmsPhotoGallery->getPhotoSource($p);
 
                     $details .= '
-                            <a href="gallery/index.php?uid='.(int)$data['userid'].'&amp;cid='.$data['id'].'&amp;pid='.(int)$p['id'].'">
+                            <a href="gallery/index.php?uid='.(int)$data->userid.'&amp;cid='.$data->id.'&amp;pid='.(int)$p['id'].'">
                                 <img src="'.$photoSrc.'" alt="'.cleanOutput($p['caption']).'"/>
                             </a> &nbsp;';
                 }
                 break;
 
             case 'NEWS':
-                $name  = !empty($data['title']) ? cleanOutput($data['title']) : T_('untitled');
-                $title = '<a href="familynews.php?getnews='.$data['userid'].'&amp;newsid='.$data['id'].'">'.$name.'</a>'; 
+                $name  = !empty($data->title) ? cleanOutput($data->title) : T_('untitled');
+                $title = '<a href="familynews.php?getnews='.$data->userid.'&amp;newsid='.$data->id.'">'.$name.'</a>'; 
 
-                $details = removeBBCode($data['details']);
+                $details = removeBBCode($data->details);
                 $details = cleanOutput($details);
                 if (strlen($details) > 300)
                 {
                     $details = substr($details, 0, 300);
-                    $details .= '...<br/><br/><a href="familynews.php?getnews='.$data['userid'].'&amp;newsid='.(int)$data['id'].'">'.T_('Read More').'</a>';
+                    $details .= '...<br/><br/><a href="familynews.php?getnews='.$data->userid.'&amp;newsid='.(int)$data->id.'">'.T_('Read More').'</a>';
                 }
 
                 break;
 
             case 'POLL':
-                $title = '<a href="polls.php?id='.(int)$data['id'].'">'.cleanOutput($data['title']).'</a>';
+                $title = '<a href="polls.php?id='.(int)$data->id.'">'.cleanOutput($data->title).'</a>';
                 break;
 
             case 'PRAYERS':
-                $title   = '<a href="prayers.php">'.cleanOutput($data['title']).'</a>';
-                $details = cleanOutput($data['details']);
+                $title   = '<a href="prayers.php">'.cleanOutput($data->title).'</a>';
+                $details = cleanOutput($data->details);
                 break;
 
             case 'RECIPES':
-                $title   = '<a href="recipes.php?category='.$data['id2'].'&amp;id='.$data['id'].'">'.cleanOutput($data['title']).'</a>';
+                $title   = '<a href="recipes.php?category='.$data->id2.'&amp;id='.$data->id.'">'.cleanOutput($data->title).'</a>';
                 break;
 
             case 'THREAD':
-                $subject  = $data['title'];
+                $subject  = $data->title;
                 $pos      = strpos($subject, '#ANOUNCE#');
                 if ($pos !== false)
                 {
@@ -894,20 +891,20 @@ class Page
                 }
 
                 $subject = cleanOutput($subject);
-                $title   = '<a href="messageboard.php?thread='.(int)$data['id2'].'" title="'.$subject.'">'.$subject.'</a>';
+                $title   = '<a href="messageboard.php?thread='.(int)$data->id2.'" title="'.$subject.'">'.$subject.'</a>';
 
-                $details = removeBBCode($data['details']);
+                $details = removeBBCode($data->details);
                 $details = cleanOutput($details);
                 if (strlen($details) > 300)
                 {
                     $details = substr($details, 0, 300);
-                    $details .= '...<br/><br/><a href="messageboard.php?thread='.(int)$data['id2'].'">'.T_('Read More').'</a>';
+                    $details .= '...<br/><br/><a href="messageboard.php?thread='.(int)$data->id2.'">'.T_('Read More').'</a>';
                 }
 
                 break;
 
             case 'VIDEO':
-                $title = '<a href="video.php?u='.(int)$data['userid'].'&amp;id='.(int)$data['id'].'"><img src="http://i.ytimg.com/vi/'.$data['id2'].'/default.jpg"/></a>';
+                $title = '<a href="video.php?u='.(int)$data->userid.'&amp;id='.(int)$data->id.'"><img src="http://i.ytimg.com/vi/'.$data->id2.'/default.jpg"/></a>';
                 break;
 
             default:
@@ -942,20 +939,15 @@ class Page
                 WHERE UNIX_TIMESTAMP(`activity`) >= ?
                 ORDER BY `activity` DESC";
 
-        $rows = $this->fcmsDatabase->getRows($sql, $last24hours);    
-        if ($rows === false)
-        {
-            $this->fcmsError->setMessage('Could not get members online.');
-            return false;
-        }
+        $rows = DB::select($sql, array($last24hours));    
 
         foreach ($rows as $r)
         {
             $membersOnline['membersOnline'][] = array(
-                'id'          => (int)$r['id'],
-                'avatar'      => getCurrentAvatar($r['id']),
-                'displayname' => getUserDisplayName($r['id']),
-                'since'       => getHumanTimeSince(strtotime($r['activity'])),
+                'id'          => (int)$r->id,
+                'avatar'      => getCurrentAvatar($r->id),
+                'displayname' => getUserDisplayName($r->id),
+                'since'       => getHumanTimeSince(strtotime($r->activity)),
             );
         }
 

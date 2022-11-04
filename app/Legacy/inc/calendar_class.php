@@ -10,7 +10,6 @@
 class Calendar
 {
     var $fcmsError;
-    var $fcmsDatabase;
     var $fcmsUser;
     var $weekStartOffset;
 
@@ -18,15 +17,13 @@ class Calendar
      * __construct 
      * 
      * @param FCMS_Error $fcmsError 
-     * @param Database   $fcmsDatabase
      * @param User       $fcmsUser 
      * 
      * @return void
      */
-    public function __construct (FCMS_Error $fcmsError, Database $fcmsDatabase, User $fcmsUser)
+    public function __construct (FCMS_Error $fcmsError, User $fcmsUser)
     {
         $this->fcmsError       = $fcmsError;
-        $this->fcmsDatabase    = $fcmsDatabase;
         $this->fcmsUser        = $fcmsUser;
         $this->weekStartOffset = getCalendarWeekStart();
     }
@@ -58,10 +55,9 @@ class Calendar
                 OR (`date` LIKE '%%%%-$month-%%' AND `repeat` = 'yearly') 
                 ORDER BY day";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
+        $rows = DB::select($sql);
+        if (empty($rows))
         {
-            $this->fcmsError->displayError();
             return $days;
         }
 
@@ -69,17 +65,17 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                if ($r['private'] == 1)
+                if ($r->private == 1)
                 {
                     // only the user who created the private event can see it
-                    if ($r['created_by'] == $this->fcmsUser->id)
+                    if ($r->created_by == $this->fcmsUser->id)
                     {
-                        $days[] = $r['day'];
+                        $days[] = $r->day;
                     }
                 }
                 else
                 {
-                    $days[] = $r['day'];
+                    $days[] = $r->day;
                 }
             }
         }
@@ -90,10 +86,9 @@ class Calendar
                 WHERE `dob_month` = '$month' 
                 ORDER BY `dob_day`";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
+        $rows = DB::select($sql);
+        if (empty($rows))
         {
-            $this->fcmsError->displayError();
             return $days;
         }
 
@@ -101,7 +96,7 @@ class Calendar
         {
             foreach ($rows as $r)
             {
-                $days[] = $r['dob_day'];
+                $days[] = $r->dob_day;
             }
         }
 
@@ -363,50 +358,45 @@ class Calendar
                     AND c.`category` = ca.`id`
                 ORDER BY c.`time_start`";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
+        $rows = DB::select($sql);
 
         if (count($rows) > 0)
         {
             foreach ($rows as $row)
             {
-                if (empty($row['time_start']))
+                if (empty($row->time_start))
                 {
                     $templateParams['allDayEvents'][] = array(
-                        'class' => cleanOutput($row['color']),
-                        'url'   => '?event='.(int)$row['id'],
-                        'title' => cleanOutput($row['title'], 'html'),
-                        'desc'  => cleanOutput($row['desc'], 'html'),
+                        'class' => cleanOutput($row->color),
+                        'url'   => '?event='.(int)$row->id,
+                        'title' => cleanOutput($row->title, 'html'),
+                        'desc'  => cleanOutput($row->desc, 'html'),
                     );
                 }
                 else
                 {
-                    list($hour, $min, $sec) = explode(':', $row['time_start']);
+                    list($hour, $min, $sec) = explode(':', $row->time_start);
 
                     if (isset($timeEvents[$hour]))
                     {
                         $timeEvents[$hour][] = array(
-                            'class' => cleanOutput($row['color']),
-                            'url'   => '?event='.(int)$row['id'],
-                            'start' => cleanOutput($row['time_start']),
-                            'end'   => cleanOutput($row['time_end']),
-                            'title' => cleanOutput($row['title'], 'html'),
-                            'desc'  => cleanOutput($row['desc'], 'html'),
+                            'class' => cleanOutput($row->color),
+                            'url'   => '?event='.(int)$row->id,
+                            'start' => cleanOutput($row->time_start),
+                            'end'   => cleanOutput($row->time_end),
+                            'title' => cleanOutput($row->title, 'html'),
+                            'desc'  => cleanOutput($row->desc, 'html'),
                         );
                     }
                     else
                     {
                         $timeEvents[$hour] = array(array(
-                            'class' => cleanOutput($row['color']),
-                            'url'   => '?event='.(int)$row['id'],
-                            'start' => cleanOutput($row['time_start']),
-                            'end'   => cleanOutput($row['time_end']),
-                            'title' => cleanOutput($row['title'], 'html'),
-                            'desc'  => cleanOutput($row['desc'], 'html'),
+                            'class' => cleanOutput($row->color),
+                            'url'   => '?event='.(int)$row->id,
+                            'start' => cleanOutput($row->time_start),
+                            'end'   => cleanOutput($row->time_end),
+                            'title' => cleanOutput($row->title, 'html'),
+                            'desc'  => cleanOutput($row->desc, 'html'),
                         ));
                     }
                 }
@@ -423,12 +413,7 @@ class Calendar
                 WHERE `name` = 'Birthday'
                 LIMIT 1";
 
-        $r = $this->fcmsDatabase->getRow($sql);
-        if ($r === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
+        $r = DB::select($sql);
 
         if (count($r) > 0)
         {
@@ -443,30 +428,27 @@ class Calendar
                 WHERE `dob_month` = ?
                 AND `dob_day` = ?";
 
-        $rows = $this->fcmsDatabase->getRows($sql, array($month, $day));
-        if ($rows === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
+        $rows = DB::select($sql, array($month, $day));
 
         if (count($rows) > 0)
         {
             foreach ($rows as $row)
             {
-                if (!empty($row['dod_year']) || !empty($row['dod_month']) || !empty($row['dod_day']))
+                if (!empty($row->dod_year) || !empty($row->dod_month) || !empty($row->dod_day))
                 {
                     continue;
                 }
 
-                $age = getAge($row['dob_year'], $row['dob_month'], $row['dob_day'], "$year-$month-$day");
+                $age = getAge($row->dob_year, $row->dob_month, $row->dob_day, "$year-$month-$day");
 
-                $row['id']    = 'birthday'.$row['id'];
-                $row['color'] = $birthdayColor;
-                $row['title'] = $row['fname'].' '.$row['lname'];
-                $row['desc']  = sprintf(T_('%s turns %s today.'), $row['fname'], $age);
+                $data = [
+                    'id'    => 'birthday'.$row->id,
+                    'color' => $birthdayColor,
+                    'title' => $row->fname.' '.$row->lname,
+                    'desc'  => sprintf(T_('%s turns %s today.'), $row->fname, $age),
+                ];
 
-                $allDayEvents[] = $row;
+                $allDayEvents[] = $data;
             }
         }
 
@@ -698,12 +680,7 @@ class Calendar
             "%%%%-$nextMonth-%%",
         );
 
-        $rows = $this->fcmsDatabase->getRows($sql, $params);
-        if ($rows === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
+        $rows = DB::select($sql, $params);
 
         $events = array();
 
@@ -711,7 +688,16 @@ class Calendar
         {
             foreach ($rows as $row)
             {
-                $events[] = $row;
+                $events[] = [
+                    'id'         => $row->id,
+                    'day'        => $row->day,
+                    'title'      => $row->title,
+                    'desc'       => $row->desc,
+                    'date'       => $row->date,
+                    'private'    => $row->private,
+                    'created_by' => $row->created_by,
+                    'repeat'     => $row->repeat,
+                ];
             }
         }
 
@@ -721,39 +707,36 @@ class Calendar
                 FROM `fcms_users` 
                 WHERE `dob_month` = ?";
 
-        $rows = $this->fcmsDatabase->getRows($sql, $month);
-        if ($rows === false)
-        {
-            $this->fcmsError->displayError();
-            return;
-        }
+        $rows = DB::select($sql, array($month));
 
         if (count($rows) > 0)
         {
             foreach ($rows as $r)
             {
-                if (empty($r['dob_month']) || empty($r['dob_day']))
+                if (empty($r->dob_month) || empty($r->dob_day))
                 {
                     continue;
                 }
 
-                if (!empty($r['dod_year']) || !empty($r['dod_month']) || !empty($r['dod_day']))
+                if (!empty($r->dod_year) || !empty($r->dod_month) || !empty($r->dod_day))
                 {
                     continue;
                 }
 
-                $age = getAge($r['dob_year'], $r['dob_month'], $r['dob_day'], "$year-$month-".$r['dob_day']);
+                $age = getAge($r->dob_year, $r->dob_month, $r->dob_day, "$year-$month-".$r->dob_day);
 
-                $r['created_by'] = $r['id'];
-                $r['id']         = 'birthday'.$r['id'];
-                $r['day']        = $r['dob_month'].$r['dob_day'];
-                $r['date']       = $r['dob_year'].'-'.$r['dob_month'].'-'.$r['dob_day'];
-                $r['title']      = $r['fname'].' '.$r['lname'];
-                $r['desc']       = sprintf(T_('%s turns %s today.'), $r['fname'], $age);
-                $r['private']    = 0;
-                $r['repeat']     = 'yearly';
+                $e = [
+                    'created_by' => $r->id,
+                    'id'         => 'birthday'.$r->id,
+                    'day'        => $r->dob_month.$r->dob_day,
+                    'date'       => $r->dob_year.'-'.$r->dob_month.'-'.$r->dob_day,
+                    'title'      => $r->fname.' '.$r->lname,
+                    'desc'       => sprintf(T_('%s turns %s today.'), $r->fname, $age),
+                    'private'    => 0,
+                    'repeat'     => 'yearly',
+                ];
 
-                $events[] = $r;
+                $events[] = $e;
             }
         }
 
@@ -857,7 +840,7 @@ class Calendar
             "%%%%-$month-$day"
         );
 
-        $rows = $this->fcmsDatabase->getRows($sql, $params);
+        $rows = DB::select($sql, $params);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
@@ -881,7 +864,7 @@ class Calendar
                 WHERE `dob_month` = ?
                 AND `dob_day` = ?";
 
-        $rows = $this->fcmsDatabase->getRows($sql, array($month, $day));
+        $rows = DB::select($sql, array($month, $day));
         if ($rows === false)
         {
             $this->fcmsError->displayError();
@@ -985,7 +968,7 @@ class Calendar
                     AND c.`category` = ca.`id`
                 ORDER BY c.`time_start`";
 
-        $events = $this->fcmsDatabase->getRows($sql);
+        $events = DB::select($sql);
         if ($events === false)
         {
             $this->fcmsError->displayError();
@@ -1001,7 +984,7 @@ class Calendar
                 WHERE `name` = 'Birthday'
                 LIMIT 1";
 
-        $r = $this->fcmsDatabase->getRow($sql);
+        $r = DB::select($sql);
         if ($r === false)
         {
             $this->fcmsError->displayError();
@@ -1021,7 +1004,7 @@ class Calendar
                 WHERE `dob_month` = ?
                 AND `dob_day` = ?";
 
-        $rows = $this->fcmsDatabase->getRows($sql, array($month, $day));
+        $rows = DB::select($sql, array($month, $day));
         if ($rows === false)
         {
             $this->fcmsError->displayError();
@@ -1237,7 +1220,7 @@ class Calendar
                 FROM `fcms_category` 
                 WHERE `type` = 'calendar'";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
+        $rows = DB::select($sql);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
@@ -1273,7 +1256,7 @@ class Calendar
                 WHERE `id` = ?
                 LIMIT 1";
 
-        $calendar = $this->fcmsDatabase->getRow($sql, $id);
+        $calendar = DB::select($sql, $id);
         if ($calendar === false)
         {
             $this->fcmsError->displayError();
@@ -1353,7 +1336,7 @@ class Calendar
                 FROM `fcms_category` 
                 WHERE `type` = 'calendar'";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
+        $rows = DB::select($sql);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
@@ -1395,7 +1378,7 @@ class Calendar
                 AND c.`category` = cat.`id` 
                 LIMIT 1";
 
-        $row = $this->fcmsDatabase->getRow($sql, $id);
+        $row = DB::select($sql, $id);
         if ($row === false)
         {
             $this->fcmsError->displayError();
@@ -1494,7 +1477,7 @@ class Calendar
                 FROM `fcms_users`
                 WHERE `id` = ?";
 
-        $row = $this->fcmsDatabase->getRow($sql, $id);
+        $row = DB::select($sql, $id);
         if ($row === false)
         {
             $this->fcmsError->displayError();
@@ -1565,7 +1548,7 @@ class Calendar
                 WHERE `event_id` = ?
                 ORDER BY `updated` DESC";
 
-        $rows = $this->fcmsDatabase->getRows($sql, $id);
+        $rows = DB::select($sql, $id);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
@@ -1690,7 +1673,7 @@ class Calendar
                     WHERE `id` = ?
                     LIMIT 1";
 
-            $row = $this->fcmsDatabase->getRow($sql, $id);
+            $row = DB::select($sql, $id);
             if ($row === false)
             {
                 $this->fcmsError->displayError();
@@ -1729,7 +1712,7 @@ class Calendar
                 FROM `fcms_calendar` AS c, `fcms_users` AS u 
                 WHERE c.`created_by` = u.`id";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
+        $rows = DB::select($sql);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
@@ -1898,7 +1881,7 @@ class Calendar
                 $params[] = 0;
             }
 
-            if (!$this->fcmsDatabase->insert($sql, $params))
+            if (!DB::insert($sql, $params))
             {
                 $this->fcmsError->displayError();
                 return false;
@@ -1936,7 +1919,7 @@ class Calendar
                 WHERE `type` = 'calendar'
                 AND `name` != ''";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
+        $rows = DB::select($sql);
         if ($rows === false)
         {
             $this->fcmsError->displayError();
@@ -1970,21 +1953,16 @@ class Calendar
                 WHERE `type` = 'calendar'
                 AND `name` != ''";
 
-        $rows = $this->fcmsDatabase->getRows($sql);
-        if ($rows === false)
-        {
-            $this->fcmsError->displayError();
-            return $ret;
-        }
+        $rows = DB::select($sql);
 
         if (count($rows) > 0)
         {
             foreach ($rows as $r)
             {
                 $categories[] = array(
-                    'class' => cleanOutput($r['color']),
-                    'url'   => '?category=edit&amp;id='.(int)$r['id'],
-                    'name'  => cleanOutput($r['name'], 'html'),
+                    'class' => cleanOutput($r->color),
+                    'url'   => '?category=edit&amp;id='.(int)$r->id,
+                    'name'  => cleanOutput($r->name, 'html'),
                 );
             }
         }
