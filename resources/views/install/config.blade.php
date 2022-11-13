@@ -13,23 +13,6 @@
             </div>
             <form action="{{ route('install.config') }}" method="post">
                 @csrf
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <h4 class="alert-heading">{{ __('An error has occurred') }}</h4>
-                    <p>{{ __('Please fill out the required fields below.') }}</p>
-                </div>
-            @endif
-                <div class="mb-3 required">
-                    <label for="sitename">{{ __('Website Name') }}</label>
-                    <input type="text" class="form-control" name="sitename" id="sitename" value="{{ old('sitename') }}" 
-                        title="{{ __('What do you want your website to be called?') }}">
-                    <div class="form-text">{{ __('Examples: "The Smith\'s" or "The Johnson Family Website"') }}</div>
-                </div>
-                <div class="mb-3 required">
-                    <label for="contact">{{ __('Contact Email') }}</label>
-                    <input type="text" class="form-control" name="contact" id="contact" value="{{ old('contact') }}">
-                    <div class="form-text">{{ __('The email address you want all questions, comments and concerns about the site to go.') }}</div>
-                </div>
                 <div class="mb-3">
                     <label>{{ __('Optional Plugins') }}</label>
                     <div class="form-text">{{ __('Which plugins would you like to use on your site?') }}</div>

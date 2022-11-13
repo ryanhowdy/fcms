@@ -3,6 +3,9 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\User;
+use App\Models\Event;
+use App\Models\EventCategory;
 
 class Install400 extends Migration
 {
@@ -13,6 +16,40 @@ class Install400 extends Migration
      */
     public function up()
     {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->boolean('access')->default(false);
+            $table->string('email')->unique();
+            $table->string('password')->default('0');
+            $table->string('fname');
+            $table->string('mname')->nullable();
+            $table->string('lname');
+            $table->string('maiden', 25)->nullable();
+            $table->char('sex', 1)->default('M');
+            $table->char('dob_year', 4)->nullable();
+            $table->char('dob_month', 2)->nullable();
+            $table->char('dob_day', 2)->nullable();
+            $table->char('dod_year', 4)->nullable();
+            $table->char('dod_month', 2)->nullable();
+            $table->char('dod_day', 2)->nullable();
+            $table->string('token')->nullable();
+            $table->string('avatar', 25)->default('no_avatar.jpg');
+            $table->string('gravatar')->nullable();
+            $table->string('bio', 200)->nullable();
+            $table->char('activate_code', 13)->nullable();
+            $table->boolean('activated')->default(false);
+            $table->boolean('login_attempts')->default(false);
+            $table->dateTime('locked')->nullable();
+            $table->timestamps();
+        });
+
+        $user = new User();
+
+        $user->email = 'noreply@domain.com';
+        $user->fname = 'system';
+        $user->lname = 'system';
+        $user->save();
+
         Schema::create('addresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id');
@@ -64,7 +101,7 @@ class Install400 extends Migration
             $table->time('time_end')->nullable();
             $table->string('title', 50);
             $table->text('desc')->nullable();
-            $table->foreignId('calendar_category_id');
+            $table->foreignId('event_category_id');
             $table->string('repeat', 20)->nullable();
             $table->boolean('private')->default(false);
             $table->boolean('invite')->default(false);
@@ -72,6 +109,57 @@ class Install400 extends Migration
             $table->foreignId('updated_user_id');
             $table->timestamps();
         });
+
+        $data = [
+            [
+                'date'  => '2007-01-01',
+                'title' => __('New Year\'s Day'),
+            ],
+            [
+                'date'  => '2007-02-02',
+                'title' => __('Groundhog Day'),
+            ],
+            [
+                'date'  => '2007-02-14',
+                'title' => __('Valentine\'s Day'),
+            ],
+            [
+                'date'  => '2007-03-17',
+                'title' => __('St. Patrick\'s Day'),
+            ],
+            [
+                'date'  => '2007-04-01',
+                'title' => __('April Fools\' Day'),
+            ],
+            [
+                'date'  => '2007-07-04',
+                'title' => __('Independence Day'),
+            ],
+            [
+                'date'  => '2007-10-31',
+                'title' => __('Halloween'),
+            ],
+            [
+                'date'  => '2007-11-11',
+                'title' => __('Veterans Day'),
+            ],
+            [
+                'date'  => '2007-12-25',
+                'title' => __('Christmas'),
+            ]
+        ];
+        foreach ($data as $d)
+        {
+            $event = new Event();
+ 
+            $event->date              = $d['date'];
+            $event->title             = $d['title'];
+            $event->event_category_id = 4;
+            $event->repeat            = 'yearly';
+            $event->created_user_id   = 1;
+            $event->updated_user_id   = 1;
+            $event->save();
+        }
 
         Schema::create('event_categories', function (Blueprint $table) {
             $table->id();
@@ -83,6 +171,36 @@ class Install400 extends Migration
             $table->timestamps();
         });
 
+        // https://dribbble.com/shots/19770670-Dashboard-Calendar
+        $data = [
+            [
+                'name'  => 'default',
+                'color' => null,
+            ],
+            [
+                'name'  => __('Anniversary'),
+                'color' => '#af85ee',
+            ],
+            [
+                'name'  => __('Birthday'),
+                'color' => '#fd764d',
+            ],
+            [
+                'name'  => __('Holiday'),
+                'color' => '#8bc48a'
+            ]
+        ];
+        foreach ($data as $d)
+        {
+            $category = new EventCategory();
+ 
+            $category->name            = $d['name'];
+            $category->color           = $d['color'];
+            $category->created_user_id = 1;
+            $category->updated_user_id = 1;
+            $category->save();
+        }
+
         Schema::create('changelogs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id');
@@ -90,12 +208,6 @@ class Install400 extends Migration
             $table->string('column', 50);
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
-            $table->timestamps();
-        });
-
-        Schema::create('configurations', function (Blueprint $table) {
-            $table->string('name', 50);
-            $table->string('value')->nullable();
             $table->timestamps();
         });
 
@@ -348,33 +460,6 @@ class Install400 extends Migration
             $table->string('picasa_session_token')->nullable();
         });
 
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->boolean('access')->default(false);
-            $table->string('email')->unique();
-            $table->string('password')->default('0');
-            $table->string('fname');
-            $table->string('mname')->nullable();
-            $table->string('lname');
-            $table->string('maiden', 25)->nullable();
-            $table->char('sex', 1)->default('M');
-            $table->char('dob_year', 4)->nullable();
-            $table->char('dob_month', 2)->nullable();
-            $table->char('dob_day', 2)->nullable();
-            $table->char('dod_year', 4)->nullable();
-            $table->char('dod_month', 2)->nullable();
-            $table->char('dod_day', 2)->nullable();
-            $table->string('token')->nullable();
-            $table->string('avatar', 25)->default('no_avatar.jpg');
-            $table->string('gravatar')->nullable();
-            $table->string('bio', 200)->nullable();
-            $table->char('activate_code', 13)->nullable();
-            $table->boolean('activated')->default(false);
-            $table->boolean('login_attempts')->default(false);
-            $table->dateTime('locked')->nullable();
-            $table->timestamps();
-        });
-
         Schema::create('video_comments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('video_id');
@@ -412,7 +497,6 @@ class Install400 extends Migration
         Schema::dropIfExists('board_posts');
         Schema::dropIfExists('board_threads');
         Schema::dropIfExists('changelogs');
-        Schema::dropIfExists('configurations');
         Schema::dropIfExists('documents');
         Schema::dropIfExists('events');
         Schema::dropIfExists('gallery_category_comments');

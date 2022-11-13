@@ -1,4 +1,5 @@
 @extends('layouts.main')
+@section('body-id', 'home')
 
 @section('content')
 <div class="d-flex flex-nowrap">

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Configuration;
+use App\Models\NavigationLink;
 
 class LoginController extends Controller
 {
@@ -17,12 +17,23 @@ class LoginController extends Controller
      */
     public function create()
     {
-        $config = Configuration::where('name', 'registration')
-            ->select('value as registration')
-            ->first();
+        try
+        {
+            $links = NavigationLink::where('route_name', 'home')
+                ->get();
+
+            if ($links->isEmpty())
+            {
+                return redirect()->to('/install');
+            }
+        }
+        catch (\Exception $e)
+        {
+            return redirect()->to('/install');
+        }
 
         return view('auth.login', [
-            'registrationOn' => $config->registration == 1 ? true : false,
+            'registrationOn' => env('FCMS_ALLOW_REGISTRATION'),
         ]);
     }
 
@@ -49,4 +60,19 @@ class LoginController extends Controller
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
     }
+
+    /**
+     * logout
+     *
+     * @param Request $request
+     * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
+     */
+    public function logout(Request $request)
+    {
+         Auth::guard()->logout();
+         $request->session()->flush();
+    
+         return redirect()->route('index');
+    }
+
 }

@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\UserSetting;
-use App\Models\Configuration;
 use App\Models\NavigationLink;
 
 class InstallController extends Controller
@@ -25,7 +24,7 @@ class InstallController extends Controller
     {
         if ($this->isStepThreeComplete())
         {
-            return redirect()->route('auth.login');
+            return redirect()->route('login');
         }
         else if ($this->isStepTwoComplete())
         {
@@ -66,11 +65,10 @@ class InstallController extends Controller
      */
     private function isStepTwoComplete()
     {
-        $config = Configuration::where('name', 'registration')
-            ->select('value as registration')
-            ->first();
+        $links = NavigationLink::where('route_name', 'home')
+            ->get();
 
-        if (empty($config))
+        if ($links->isEmpty())
         {
             return false;
         }
@@ -86,9 +84,10 @@ class InstallController extends Controller
     private function isStepThreeComplete()
     {
         $admin = User::select()
-            ->first();
+            ->where('fname', '!=', 'system')
+            ->get();
 
-        if (empty($admin))
+        if ($admin->isEmpty())
         {
             return false;
         }
@@ -128,46 +127,6 @@ class InstallController extends Controller
      */
     public function configurationStore(Request $request)
     {
-        $validated = $request->validate([
-            'sitename' => ['required', 'max:255'],
-            'contact'  => ['required', 'email'],
-        ]);
-
-        Configuration::insert([
-            [
-                'name'  => 'current_version',
-                'value' => '4.0.0',
-            ],
-            [
-                'name'  => 'sitename',
-                'value' => $request->sitename,
-            ],
-            [
-                'name'  => 'contact',
-                'value' => $request->contact,
-            ],
-            [
-                'name'  => 'auto_activate',
-                'value' => 0,
-            ],
-            [
-                'name'  => 'registration',
-                'value' => 1,
-            ],
-            [
-                'name'  => 'full_size_photos',
-                'value' => 0,
-            ],
-            [
-                'name'  => 'site_off',
-                'value' => 0,
-            ],
-            [
-                'name'  => 'country',
-                'value' => 'US',
-            ],
-        ]);
-
         NavigationLink::insert([
             [
                 'link'       => __('Home'),

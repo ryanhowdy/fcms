@@ -1,6 +1,6 @@
 @include('header')
 
-<body id="home">
+<body id="@yield('body-id')">
 
 @include('layouts.navigation')
 
