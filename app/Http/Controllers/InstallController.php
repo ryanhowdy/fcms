@@ -127,7 +127,7 @@ class InstallController extends Controller
      */
     public function configurationStore(Request $request)
     {
-        NavigationLink::insert([
+        $insertParams = [
             [
                 'link'       => __('Home'),
                 'route_name' => null,
@@ -260,7 +260,7 @@ class InstallController extends Controller
                 'group'      => 5,
                 'order'      => 8,
             ],
-        ]);
+        ];
 
         $communicatePlugins = [
             'familynews' => [
@@ -295,11 +295,9 @@ class InstallController extends Controller
         $communicateOrder = 3;
         $shareOrder       = 4;
 
-        $insertParams = [];
-
         foreach ($request->sections as $key => $section)
         {
-            if (in_array($section, $communicatePlugins))
+            if (isset($communicatePlugins[$section]))
             {
                 $insertParams[] = [
                     'link'       => $communicatePlugins[$section]['link'],
@@ -309,7 +307,7 @@ class InstallController extends Controller
                 ];
                 $communicateOrder++;
             }
-            else if (in_array($section, $sharePlugins))
+            else if (isset($sharePlugins[$section]))
             {
                 $insertParams[] = [
                     'link'       => $sharePlugins[$section]['link'],
@@ -320,6 +318,8 @@ class InstallController extends Controller
                 $shareOrder++;
             }
         }
+
+        NavigationLink::insert($insertParams);
 
         return redirect()->route('install.admin');
     }

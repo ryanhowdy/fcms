@@ -68,6 +68,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/contact', [ HomeController::class, 'home' ])->name('contact');
     Route::get( '/help', [ HomeController::class, 'home' ])->name('help');
 
+    Route::get( '/familynews', [ HomeController::class, 'home' ])->name('familynews');
+    Route::get( '/prayers', [ HomeController::class, 'home' ])->name('prayers');
+    Route::get( '/recipes', [ HomeController::class, 'home' ])->name('recipes');
+    Route::get( '/familytree', [ HomeController::class, 'home' ])->name('familytree');
+    Route::get( '/documents', [ HomeController::class, 'home' ])->name('documents');
+
     Route::get( '/admin/upgrade', [ HomeController::class, 'home' ])->name('admin.upgrade');
     Route::get( '/admin/config', [ HomeController::class, 'home' ])->name('admin.config');
     Route::get( '/admin/members', [ HomeController::class, 'home' ])->name('admin.members');
