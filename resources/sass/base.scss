@@ -1,20 +1,43 @@
+// All avatars are 45x45 by default
+img.avatar
+{
+    width: 45px;
+}
+
+form div.required > label:after
+{
+    content: "*";
+    color: red;
+}
+
+.dropdown.no-caret
+{
+    &:hover
+    {
+        cursor: pointer;
+    }
+    > .dropdown-toggle::after
+    {
+        display: none;
+    }
+}
+
+.text-editor
+{
+    .menu i:hover
+    {
+        background: var(--bs-gray-200);
+        cursor: pointer;
+    }
+}
+
 body nav.navbar
 {
-    img.avatar
-    {
-        height: 45px;
-    }
-
     li.nav-item
     {
         form
         {
             margin-top: 12px;
-        }
-
-        &.dropdown > a.nav-link.dropdown-toggle::after
-        {
-            display: none;
         }
 
         .avatar-wrapper

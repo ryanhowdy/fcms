@@ -8,12 +8,5 @@ body#install
     main
     {
         max-width: 600px;
-
-        form .required > label:after
-        {
-            content: "*";
-            color: red;
-        }
     }
-
 }

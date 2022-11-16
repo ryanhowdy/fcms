@@ -9,7 +9,7 @@
 
             @include('layouts.sidebar')
 
-            <div class="col px-0">
+            <div class="col px-0 @yield('main-bg')">
                 <main>
 
                 @yield('content')

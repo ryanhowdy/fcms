@@ -37,6 +37,7 @@ class Install400 extends Migration
             $table->string('gravatar')->nullable();
             $table->string('bio', 200)->nullable();
             $table->char('activate_code', 13)->nullable();
+            $table->rememberToken();
             $table->boolean('activated')->default(false);
             $table->boolean('login_attempts')->default(false);
             $table->dateTime('locked')->nullable();
@@ -71,24 +72,6 @@ class Install400 extends Migration
             $table->string('alert', 50);
             $table->foreignId('user_id');
             $table->boolean('hide');
-            $table->foreignId('created_user_id');
-            $table->foreignId('updated_user_id');
-            $table->timestamps();
-        });
-
-        Schema::create('board_posts', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('board_thread_id');
-            $table->text('post');
-            $table->foreignId('created_user_id');
-            $table->foreignId('updated_user_id');
-            $table->timestamps();
-        });
-
-        Schema::create('board_threads', function (Blueprint $table) {
-            $table->id();
-            $table->string('subject', 50);
-            $table->smallInteger('views')->default(0);
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
@@ -216,6 +199,24 @@ class Install400 extends Migration
             $table->string('name', 50);
             $table->text('description')->nullable();
             $table->string('mime', 50)->default('application/download');
+            $table->foreignId('created_user_id');
+            $table->foreignId('updated_user_id');
+            $table->timestamps();
+        });
+
+        Schema::create('discussions', function (Blueprint $table) {
+            $table->id();
+            $table->string('title', 50);
+            $table->smallInteger('views')->default(0);
+            $table->foreignId('created_user_id');
+            $table->foreignId('updated_user_id');
+            $table->timestamps();
+        });
+
+        Schema::create('discussion_comments', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('discussion_id');
+            $table->text('comments');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
@@ -438,7 +439,7 @@ class Install400 extends Migration
             $table->foreignId('user_id');
             $table->string('theme', 25)->default('default');
             $table->set('boardsort', ['ASC', 'DESC'])->default('ASC');
-            $table->set('displayname', ['1', '2', '3'])->default('1');
+            $table->tinyInteger('displayname')->default('1');
             $table->set('frontpage', ['1', '2'])->default('1');
             $table->string('timezone')->default('-5 hours');
             $table->boolean('dst')->default(false);
@@ -494,10 +495,10 @@ class Install400 extends Migration
     {
         Schema::dropIfExists('addresses');
         Schema::dropIfExists('alerts');
-        Schema::dropIfExists('board_posts');
-        Schema::dropIfExists('board_threads');
         Schema::dropIfExists('changelogs');
         Schema::dropIfExists('documents');
+        Schema::dropIfExists('discussions');
+        Schema::dropIfExists('discussion_comments');
         Schema::dropIfExists('events');
         Schema::dropIfExists('gallery_category_comments');
         Schema::dropIfExists('gallery_categories');

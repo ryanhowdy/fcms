@@ -9,7 +9,7 @@ $pink:    #d63384;
 $red:     #dc3545;
 $orange:  #fd7e14;
 $yellow:  #ffc107;
-$green:   #198754;
+$green:   #57aa73; //#198754;
 $teal:    #20c997;
 $cyan:    #0dcaf0;
 
@@ -23,10 +23,6 @@ $danger:    $red;
 $light:     #f8f9fa;
 $dark:      #212529;
 
-// Brand Colors
-//$brand-orange:     #e65e3c;
-//$brand-darkblue:   #27395a;
-
 // Custom Colors
 $theme-colors: (
     "primary":          $primary,
@@ -37,7 +33,7 @@ $theme-colors: (
     "danger":           $danger,
     "light":            $light,
     "dark":             $dark,
-//    "brand-orange":     $brand-orange,
-//    "brand-darkblue":   $brand-darkblue,
+    "indigo":           $indigo,
+    "purple":           $purple,
 );
 

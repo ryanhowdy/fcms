@@ -1,0 +1,56 @@
+
+body#discussions
+{
+    // Show
+    .comments
+    {
+        > .comment
+        {
+            .mini-toolbar
+            {
+                display: none;
+
+                .buttons
+                {
+                    .button
+                    {
+                        min-width: 32px;
+                        text-align: center;
+
+                        &:hover
+                        {
+                            background: var(--bs-gray-200);
+                            cursor: pointer;
+                        }
+                        &.bi-trash3:hover
+                        {
+                            background: transparent;
+                            color: var(--bs-danger);
+                        }
+                    }
+                }
+                .reactions > img
+                {
+                    height: 45px;
+                    width: 45px;
+                    filter: grayscale(1);
+
+                    &:hover
+                    {
+                        background: var(--bs-light);
+                        cursor: pointer;
+                        filter: grayscale(0);
+                    }
+                }
+            }
+            &:hover .mini-toolbar
+            {
+                display: block;
+            }
+            &:last-child
+            {
+                border: none;
+            }
+        }
+    }
+}

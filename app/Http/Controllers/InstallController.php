@@ -360,7 +360,7 @@ class InstallController extends Controller
             'progress' => $percent,
             'days'     => $days,
             'months'   => $months,
-            'years'    => array_reverse($years),
+            'years'    => array_reverse($years, true),
         ]);
     }
 

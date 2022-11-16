@@ -159,10 +159,15 @@ class Calendar
 
         foreach ($birthdays as $b)
         {
+            $carbonBirthday = Carbon::createFromDate($b->dob_year.'-'.$b->dob_month.'-'.$b->dob_day);
+
+            if ($date->lt($carbonBirthday))
+            {
+                continue;
+            }
+
             $bMonth = $this->fixMonth($b->dob_month);
             $bDay   = $this->fixDay($b->dob_day);
-
-            $carbonBirthday = Carbon::createFromDate($b->dob_year.'-'.$b->dob_month.'-'.$b->dob_day);
 
             $age = $date->diff($carbonBirthday)->format('%y');
 
@@ -173,7 +178,7 @@ class Calendar
                 'time_start'        => null,
                 'time_end'          => null,
                 'title'             => $b->fname.' '.$b->lname,
-                'desc'              => __('Turns :age years old today.', [ 'age' => $age ]),
+                'desc'              => trans('Turns :age years old today.', [ 'age' => $age ]),
                 'event_category_id' => 3,
                 'category_name'     => $birthdayCategory['name'],
                 'category_color'    => $birthdayCategory['color'],

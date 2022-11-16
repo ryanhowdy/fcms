@@ -13,7 +13,7 @@
                         <input class="form-control me-2 rounded-5" type="search" placeholder="Search" aria-label="Search">
                     </form>
                 </li>
-                <li class="nav-item dropdown mx-2">
+                <li class="nav-item dropdown no-caret mx-2">
                     <a class="nav-link dropdown-toggle fs-4" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <img class="avatar rounded-5" src="{{ asset('avatars/' . Auth()->user()->avatar) }}" title="{{ __('avatar') }}">
                     </a>

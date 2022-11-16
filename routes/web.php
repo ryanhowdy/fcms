@@ -7,6 +7,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\DiscussionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,14 +46,23 @@ Route::middleware(['auth'])->group(function () {
     Route::any( '/me/notifications', [ HomeController::class, 'home' ])->name('my.notifications');
     Route::any( '/me/settings',      [ HomeController::class, 'home' ])->name('my.settings');
 
-    Route::get( '/calendar',                            [ CalendarController::class, 'index' ])->name('calendar');
+    Route::get( '/calendar',                               [ CalendarController::class, 'index' ])->name('calendar');
     Route::get( '/calendar/month/{year?}/{month?}/{day?}', [ CalendarController::class, 'index' ])->name('calendar.month');
     Route::get( '/calendar/week/{year?}/{month?}/{day?}',  [ CalendarController::class, 'weekView' ])->name('calendar.week');
     Route::get( '/calendar/day/{year?}/{month?}/{day?}',   [ CalendarController::class, 'dayView' ])->name('calendar.day');
 
     Route::get( '/members', [ HomeController::class, 'home' ])->name('members');
     Route::get( '/addresses', [ HomeController::class, 'home' ])->name('addresses');
-    Route::get( '/discussions', [ HomeController::class, 'home' ])->name('discussions');
+
+    Route::get( '/discussions',                   [ DiscussionController::class, 'index' ])->name('discussions');
+    Route::get( '/discussions/new',               [ DiscussionController::class, 'create' ])->name('discussions.create');
+    Route::post('/discussions/new',               [ DiscussionController::class, 'store' ]);
+    Route::get( '/discussions/{id}',              [ DiscussionController::class, 'show' ])->name('discussions.show');
+    Route::get( '/discussions/{id}/edit',         [ DiscussionController::class, 'edit' ])->name('discussions.edit');
+    Route::post('/discussions/{id}/edit',         [ DiscussionController::class, 'update' ]);
+    Route::post('/discussions/{id}/delete',       [ DiscussionController::class, 'destroy' ]);
+    Route::post('/discussions/{id}/comments/new', [ DiscussionController::class, 'commentsStore' ])->name('discussions.comments.store');
+
     Route::get( '/photos', [ HomeController::class, 'home' ])->name('photos');
     Route::get( '/videos', [ HomeController::class, 'home' ])->name('videos');
     Route::get( '/contact', [ HomeController::class, 'home' ])->name('contact');

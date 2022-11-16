@@ -15,7 +15,6 @@
             <form action="{{ route('install.admin') }}" method="post">
                 @csrf
             @if ($errors->any())
-<?php dump($errors); ?>
                 <div class="alert alert-danger">
                     <h4 class="alert-heading">{{ __('An error has occurred') }}</h4>
                     <p>{{ __('Please fill out the required fields below.') }}</p>
