@@ -15,12 +15,12 @@
                 </li>
                 <li class="nav-item dropdown no-caret mx-2">
                     <a class="nav-link dropdown-toggle fs-4" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img class="avatar rounded-5" src="{{ asset('avatars/' . Auth()->user()->avatar) }}" title="{{ __('avatar') }}">
+                        <img class="avatar rounded-5" src="{{ route('avatar', Auth()->user()->avatar) }}" title="{{ __('avatar') }}">
                     </a>
                     <div class="dropdown-menu dropdown-menu-end">
                         <div class="d-flex">
                             <div class="px-3 py-1 avatar-wrapper position-relative">
-                                <img class="avatar rounded-5" src="{{ asset('avatars/' . Auth()->user()->avatar) }}" title="{{ __('avatar') }}">
+                                <img class="avatar rounded-5" src="{{ route('avatar', Auth()->user()->avatar) }}" title="{{ __('avatar') }}">
                                 <i class="bi-pencil position-absolute"></i>
                             </div>
                             <div>

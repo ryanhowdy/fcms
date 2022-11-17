@@ -34,9 +34,6 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
 |
 */
 
-// Legacy Fix
-require __DIR__.'/../app/Legacy/inc/thirdparty/php-gettext/gettext.inc';
-// Legacy Fix
 require __DIR__.'/../vendor/autoload.php';
 
 /*

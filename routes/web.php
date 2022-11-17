@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\LegacyController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LoginController;
@@ -8,6 +7,7 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DiscussionController;
+use App\Http\Controllers\ImageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -73,6 +73,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/recipes', [ HomeController::class, 'home' ])->name('recipes');
     Route::get( '/familytree', [ HomeController::class, 'home' ])->name('familytree');
     Route::get( '/documents', [ HomeController::class, 'home' ])->name('documents');
+
+    Route::get( '/uploads/avatars/{file}', [ImageController::class, 'showAvatar' ])->name('avatar');
+    Route::get( '/uploads/documents/{file}', [ImageController::class, 'showAvatar' ])->name('document');
+    Route::get( '/uploads/photos/{file}', [ImageController::class, 'showAvatar' ])->name('photo');
+    Route::get( '/uploads/videos/{file}', [ImageController::class, 'showAvatar' ])->name('video');
 
     Route::get( '/admin/upgrade', [ HomeController::class, 'home' ])->name('admin.upgrade');
     Route::get( '/admin/config', [ HomeController::class, 'home' ])->name('admin.config');

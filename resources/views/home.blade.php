@@ -6,7 +6,7 @@
     <div class="col border-end min-vh-100 p-5">
         <form>
             <div class="share-box position-relative">
-                <img class="avatar rounded-5 position-absolute" src="{{ asset('avatars/' . Auth()->user()->avatar) }}" title="{{ __('avatar') }}">
+                <img class="avatar rounded-5 position-absolute" src="{{ route('avatar', Auth()->user()->avatar) }}" title="{{ __('avatar') }}">
                 <input class="form-control" type="text" placeholder="Have something to share?">
             </div>
         </form>
