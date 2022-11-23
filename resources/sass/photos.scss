@@ -1,0 +1,113 @@
+body#photos
+{
+    // Index
+    .photo-nav
+    {
+        margin: 0 -3rem;
+        padding: 0 3rem;
+
+        ul.nav
+        {
+            li a.nav-link
+            {
+                color: var(--bs-gray-800);
+                border-bottom: 2px solid white;
+                padding: 0.5rem 0;
+                margin: 0 1rem;
+
+                &:hover
+                {
+                    color: var(--bs-primary);
+                }
+                &:first-child
+                {
+                    margin-left: 0;
+                }
+                &.active
+                {
+                    color: black;
+                    border-bottom: 2px solid var(--bs-primary);
+                }
+            }
+        }
+
+        .search-filter
+        {
+            padding: 0.5rem;
+        }
+    }
+
+    .albums
+    {
+        .album
+        {
+            .large > img
+            {
+                max-height: 200px;
+                max-width: 200px;
+            }
+            .small > img
+            {
+                max-height: 100px;
+                max-width: 100px;
+            }
+            .description
+            {
+                width: 300px;
+            }
+        }
+    }
+
+    // Album
+    .album
+    {
+        .photos
+        {
+            height: 200px;
+            overflow: hidden;
+
+            .large img
+            {
+                max-height: 200px;
+                max-width: 200px;
+            }
+            .small
+            {
+                font-size: 0;
+
+                img
+                {
+                    max-height: 100px;
+                    max-width: 100px;
+                }
+            }
+        }
+    }
+
+    // Photo
+    #photo-controls .details-col
+    {
+        .photo-nav
+        {
+            margin: 0 -0.75rem;
+            padding: 0 1rem;
+            border-color: var(--bs-gray-700)!important;
+
+            li a.nav-link
+            {
+                color: var(--bs-gray-300);
+                border-color: var(--bs-dark);
+
+                &:hover
+                {
+                    color: var(--bs-primary);
+                }
+                &.active
+                {
+                    color: white;
+                    border-bottom: 2px solid var(--bs-primary);
+                }
+            }
+        }
+    }
+}

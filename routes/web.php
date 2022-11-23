@@ -8,6 +8,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\PhotoController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -63,7 +64,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/discussions/{id}/delete',       [ DiscussionController::class, 'destroy' ]);
     Route::post('/discussions/{id}/comments/new', [ DiscussionController::class, 'commentsStore' ])->name('discussions.comments.store');
 
-    Route::get( '/photos', [ HomeController::class, 'home' ])->name('photos');
+    Route::get( '/photos',              [ PhotoController::class, 'index' ])->name('photos');
+    Route::get( '/photos/albums',       [ PhotoController::class, 'albumsIndex' ])->name('photos.albums');
+    Route::get( '/photos/people',       [ PhotoController::class, 'usersIndex' ])->name('photos.users');
+    Route::get( '/photos/places',       [ PhotoController::class, 'placesIndex' ])->name('photos.places');
+    Route::get( '/photos/upload',       [ PhotoController::class, 'create' ])->name('photos.create');
+    Route::post('/photos/upload',       [ PhotoController::class, 'store' ]);
+    Route::get( '/photos/albums/{id}',  [ PhotoController::class, 'albumsShow' ])->name('photos.albums.show');
+    Route::get( '/photos/albums/{aid}/photos/{pid}', [ PhotoController::class, 'photosShow' ])->name('photos.show');
+
     Route::get( '/videos', [ HomeController::class, 'home' ])->name('videos');
     Route::get( '/contact', [ HomeController::class, 'home' ])->name('contact');
     Route::get( '/help', [ HomeController::class, 'home' ])->name('help');
@@ -74,10 +83,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/familytree', [ HomeController::class, 'home' ])->name('familytree');
     Route::get( '/documents', [ HomeController::class, 'home' ])->name('documents');
 
-    Route::get( '/uploads/avatars/{file}', [ImageController::class, 'showAvatar' ])->name('avatar');
-    Route::get( '/uploads/documents/{file}', [ImageController::class, 'showAvatar' ])->name('document');
-    Route::get( '/uploads/photos/{file}', [ImageController::class, 'showAvatar' ])->name('photo');
-    Route::get( '/uploads/videos/{file}', [ImageController::class, 'showAvatar' ])->name('video');
+    Route::get( '/uploads/avatars/{file}',                     [ImageController::class, 'showAvatar' ])->name('avatar');
+    Route::get( '/uploads/documents/{file}',                   [ImageController::class, 'showAvatar' ])->name('document');
+    Route::get( '/uploads/users/{id}/photos/main/{file}',      [ImageController::class, 'showPhoto' ])->name('photo');
+    Route::get( '/uploads/users/{id}/photos/thumbnail/{file}', [ImageController::class, 'showPhotoThumbnail' ])->name('photo.thumbnail');
+    Route::get( '/uploads/users/{id}/photos/full/{file}',      [ImageController::class, 'showPhotoFull' ])->name('photo.full');
+    Route::get( '/uploads/videos/{file}',                      [ImageController::class, 'showAvatar' ])->name('video');
 
     Route::get( '/admin/upgrade', [ HomeController::class, 'home' ])->name('admin.upgrade');
     Route::get( '/admin/config', [ HomeController::class, 'home' ])->name('admin.config');

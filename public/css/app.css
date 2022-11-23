@@ -19162,3 +19162,69 @@ body#discussions .comments > .comment:hover .mini-toolbar {
 body#discussions .comments > .comment:last-child {
   border: none;
 }
+
+body#photos .photo-nav {
+  margin: 0 -3rem;
+  padding: 0 3rem;
+}
+body#photos .photo-nav ul.nav li a.nav-link {
+  color: var(--bs-gray-800);
+  border-bottom: 2px solid white;
+  padding: 0.5rem 0;
+  margin: 0 1rem;
+}
+body#photos .photo-nav ul.nav li a.nav-link:hover {
+  color: var(--bs-primary);
+}
+body#photos .photo-nav ul.nav li a.nav-link:first-child {
+  margin-left: 0;
+}
+body#photos .photo-nav ul.nav li a.nav-link.active {
+  color: black;
+  border-bottom: 2px solid var(--bs-primary);
+}
+body#photos .photo-nav .search-filter {
+  padding: 0.5rem;
+}
+body#photos .albums .album .large > img {
+  max-height: 200px;
+  max-width: 200px;
+}
+body#photos .albums .album .small > img {
+  max-height: 100px;
+  max-width: 100px;
+}
+body#photos .albums .album .description {
+  width: 300px;
+}
+body#photos .album .photos {
+  height: 200px;
+  overflow: hidden;
+}
+body#photos .album .photos .large img {
+  max-height: 200px;
+  max-width: 200px;
+}
+body#photos .album .photos .small {
+  font-size: 0;
+}
+body#photos .album .photos .small img {
+  max-height: 100px;
+  max-width: 100px;
+}
+body#photos #photo-controls .details-col .photo-nav {
+  margin: 0 -0.75rem;
+  padding: 0 1rem;
+  border-color: var(--bs-gray-700) !important;
+}
+body#photos #photo-controls .details-col .photo-nav li a.nav-link {
+  color: var(--bs-gray-300);
+  border-color: var(--bs-dark);
+}
+body#photos #photo-controls .details-col .photo-nav li a.nav-link:hover {
+  color: var(--bs-primary);
+}
+body#photos #photo-controls .details-col .photo-nav li a.nav-link.active {
+  color: white;
+  border-bottom: 2px solid var(--bs-primary);
+}

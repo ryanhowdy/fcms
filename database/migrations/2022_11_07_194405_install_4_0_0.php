@@ -222,26 +222,25 @@ class Install400 extends Migration
             $table->timestamps();
         });
 
-        Schema::create('gallery_category_comments', function (Blueprint $table) {
+        Schema::create('photo_album_comments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id');
+            $table->foreignId('photo_album_id');
             $table->text('comment');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
         });
 
-        Schema::create('gallery_categories', function (Blueprint $table) {
+        Schema::create('photo_albums', function (Blueprint $table) {
             $table->id();
             $table->string('name', 50);
-            $table->string('color', 20)->nullable();
             $table->string('description')->nullable();
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
         });
 
-        Schema::create('gallery_external_photos', function (Blueprint $table) {
+        Schema::create('external_photos', function (Blueprint $table) {
             $table->id();
             $table->string('source_id');
             $table->string('thumbnail');
@@ -249,7 +248,7 @@ class Install400 extends Migration
             $table->string('full');
         });
 
-        Schema::create('gallery_photo_comments', function (Blueprint $table) {
+        Schema::create('photo_comments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('photo_id');
             $table->text('comment');
@@ -258,12 +257,12 @@ class Install400 extends Migration
             $table->timestamps();
         });
 
-        Schema::create('gallery_photos', function (Blueprint $table) {
+        Schema::create('photos', function (Blueprint $table) {
             $table->id();
             $table->string('filename', 25)->default('noimage.gif');
-            $table->integer('gallery_external_id')->nullable();
+            $table->integer('external_photo_id')->nullable();
             $table->text('caption')->nullable();
-            $table->foreignId('gallery_category_id');
+            $table->foreignId('photo_album_id');
             $table->smallInteger('views')->default(0);
             $table->smallInteger('votes')->default(0);
             $table->float('rating', 10, 0)->default(0);
@@ -272,7 +271,7 @@ class Install400 extends Migration
             $table->timestamps();
         });
 
-        Schema::create('gallery_photo_tags', function (Blueprint $table) {
+        Schema::create('photo_tags', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id');
             $table->foreignId('photo_id');
