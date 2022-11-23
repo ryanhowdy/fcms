@@ -9,6 +9,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\PhotoController;
+use App\Http\Controllers\MemberController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,7 +53,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/calendar/week/{year?}/{month?}/{day?}',  [ CalendarController::class, 'weekView' ])->name('calendar.week');
     Route::get( '/calendar/day/{year?}/{month?}/{day?}',   [ CalendarController::class, 'dayView' ])->name('calendar.day');
 
-    Route::get( '/members', [ HomeController::class, 'home' ])->name('members');
+    Route::get( '/members',   [ MemberController::class, 'index' ])->name('members');
+
     Route::get( '/addresses', [ HomeController::class, 'home' ])->name('addresses');
 
     Route::get( '/discussions',                   [ DiscussionController::class, 'index' ])->name('discussions');

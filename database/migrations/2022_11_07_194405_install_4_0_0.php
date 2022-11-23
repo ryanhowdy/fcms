@@ -41,6 +41,7 @@ class Install400 extends Migration
             $table->boolean('activated')->default(false);
             $table->boolean('login_attempts')->default(false);
             $table->dateTime('locked')->nullable();
+            $table->dateTime('activity')->nullable();
             $table->timestamps();
         });
 
