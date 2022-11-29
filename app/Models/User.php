@@ -29,4 +29,9 @@ class User extends Authenticatable
         'password',
         'token',
     ];
+
+    public function address()
+    {
+        return $this->hasOne(Address::class);
+    }
 }

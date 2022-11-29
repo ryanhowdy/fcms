@@ -10,6 +10,8 @@ use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\AddressBookController;
+use App\Http\Controllers\MeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -43,10 +45,15 @@ Route::post('/register',        [ RegisterController::class, 'store' ]);
 Route::middleware(['auth'])->group(function () {
     Route::any( '/home',   [ HomeController::class, 'home' ])->name('home');
 
-    Route::any( '/me/profile',       [ HomeController::class, 'home' ])->name('my.profile');
-    Route::any( '/me/messages',      [ HomeController::class, 'home' ])->name('my.messages');
-    Route::any( '/me/notifications', [ HomeController::class, 'home' ])->name('my.notifications');
-    Route::any( '/me/settings',      [ HomeController::class, 'home' ])->name('my.settings');
+    Route::get( '/me/profile',         [ MeController::class, 'profileCreate' ])->name('my.profile');
+    Route::post('/me/profile',         [ MeController::class, 'profileStore' ]);
+    Route::get( '/me/profile/avatar',  [ MeController::class, 'avatarCreate' ])->name('my.avatar');
+    Route::post('/me/profile/avatar',  [ MeController::class, 'avatarStore' ]);
+    Route::get( '/me/profile/address', [ MeController::class, 'addressCreate' ])->name('my.address');
+    Route::post('/me/profile/address', [ MeController::class, 'addressStore' ]);
+    Route::get( '/me/messages',        [ MeController::class, 'messages' ])->name('my.messages');
+    Route::get( '/me/notifications',   [ MeController::class, 'notifications' ])->name('my.notifications');
+    Route::get( '/me/settings',        [ MeController::class, 'settings' ])->name('my.settings');
 
     Route::get( '/calendar',                               [ CalendarController::class, 'index' ])->name('calendar');
     Route::get( '/calendar/month/{year?}/{month?}/{day?}', [ CalendarController::class, 'index' ])->name('calendar.month');
@@ -55,7 +62,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get( '/members',   [ MemberController::class, 'index' ])->name('members');
 
-    Route::get( '/addresses', [ HomeController::class, 'home' ])->name('addresses');
+    Route::get( '/addressbook',      [ AddressBookController::class, 'index' ])->name('addressbook');
+    Route::get( '/addressbook/{id}', [ AddressBookController::class, 'show' ])->name('addressbook.show');
 
     Route::get( '/discussions',                   [ DiscussionController::class, 'index' ])->name('discussions');
     Route::get( '/discussions/new',               [ DiscussionController::class, 'create' ])->name('discussions.create');

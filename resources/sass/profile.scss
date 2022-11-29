@@ -1,0 +1,21 @@
+body#profile
+{
+    li
+    {
+        a
+        {
+            color: var(--bs-secondary);
+
+            &:hover
+            {
+                color: var(--bs-dark);
+            }
+        }
+
+        &.active a
+        {
+            font-weight: bold;
+            color: #000;
+        }
+    }
+}

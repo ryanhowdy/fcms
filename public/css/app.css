@@ -19228,3 +19228,14 @@ body#photos #photo-controls .details-col .photo-nav li a.nav-link.active {
   color: white;
   border-bottom: 2px solid var(--bs-primary);
 }
+
+body#profile li a {
+  color: var(--bs-secondary);
+}
+body#profile li a:hover {
+  color: var(--bs-dark);
+}
+body#profile li.active a {
+  font-weight: bold;
+  color: #000;
+}

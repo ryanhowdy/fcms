@@ -25,7 +25,6 @@ class Install400 extends Migration
             $table->string('mname')->nullable();
             $table->string('lname');
             $table->string('maiden', 25)->nullable();
-            $table->char('sex', 1)->default('M');
             $table->char('dob_year', 4)->nullable();
             $table->char('dob_month', 2)->nullable();
             $table->char('dob_day', 2)->nullable();

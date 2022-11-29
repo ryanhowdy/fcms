@@ -32,12 +32,12 @@
                                 </p>
                             </div>
                         </div>
-                        <a class="dropdown-item" href="{{ route('my.profile') }}">Profile</a>
-                        <a class="dropdown-item" href="{{ route('my.messages') }}">Messages</a>
-                        <a class="dropdown-item" href="{{ route('my.notifications') }}">Notifications</a>
-                        <a class="dropdown-item" href="{{ route('my.settings') }}">Settings</a>
+                        <a class="dropdown-item" href="{{ route('my.profile') }}">{{ __('Profile') }}</a>
+                        <a class="dropdown-item" href="{{ route('my.messages') }}">{{ __('Messages') }}</a>
+                        <a class="dropdown-item" href="{{ route('my.notifications') }}">{{ __('Notifications') }}</a>
+                        <a class="dropdown-item" href="{{ route('my.settings') }}">{{ __('Settings') }}</a>
                         <hr class="dropdown-divider">
-                        <a class="dropdown-item" href="{{ route('auth.logout') }}">Logout</a>
+                        <a class="dropdown-item" href="{{ route('auth.logout') }}">{{ __('Logout') }}</a>
                     </div>
                 </li>
             </ul>

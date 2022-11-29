@@ -153,8 +153,8 @@ class InstallController extends Controller
                 'order'      => 4,
             ],
             [
-                'link'       => __('Addresses'),
-                'route_name' => 'addresses',
+                'link'       => __('Address Book'),
+                'route_name' => 'addressbook',
                 'group'      => 1,
                 'order'      => 5,
             ],
@@ -407,6 +407,13 @@ class InstallController extends Controller
         $settings->user_id = $admin->id;
 
         $settings->save();
+
+        // Create an address for the admin user
+        $address = new Address;
+
+        $address->user_id = $admin->id;
+
+        $address->save();
 
         return redirect()->route('home');
     }

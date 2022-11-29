@@ -1,4 +1,4 @@
-@include('header')
+@include('layouts.header')
 
 <body id="@yield('body-id')">
 

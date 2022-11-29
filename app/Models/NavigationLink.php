@@ -20,7 +20,7 @@ class NavigationLink extends Model
             'home'              => 'house',
             'calendar'          => 'calendar-date',
             'members'           => 'person',
-            'addresses'         => 'person-rolodex',
+            'addressbook'       => 'person-rolodex',
             'discussions'       => 'chat-text',
             'photos'            => 'images',
             'videos'            => 'camera-video',
