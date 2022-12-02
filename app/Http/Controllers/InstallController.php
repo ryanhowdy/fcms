@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\UserSetting;
+use App\Models\Address;
 use App\Models\NavigationLink;
 
 class InstallController extends Controller
@@ -411,7 +412,9 @@ class InstallController extends Controller
         // Create an address for the admin user
         $address = new Address;
 
-        $address->user_id = $admin->id;
+        $address->user_id         = $admin->id;
+        $address->created_user_id = $admin->id;
+        $address->updated_user_id = $admin->id;
 
         $address->save();
 

@@ -225,7 +225,7 @@ class Install400 extends Migration
         Schema::create('photo_album_comments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('photo_album_id');
-            $table->text('comment');
+            $table->text('comments');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
@@ -251,7 +251,7 @@ class Install400 extends Migration
         Schema::create('photo_comments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('photo_id');
-            $table->text('comment');
+            $table->text('comments');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
@@ -302,7 +302,7 @@ class Install400 extends Migration
         Schema::create('news_comments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('news_id');
-            $table->text('comment');
+            $table->text('comments');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
@@ -333,7 +333,7 @@ class Install400 extends Migration
         Schema::create('poll_comments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('poll_id');
-            $table->text('comment');
+            $table->text('comments');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
@@ -386,7 +386,7 @@ class Install400 extends Migration
         Schema::create('recipe_comments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('recipe_id');
-            $table->text('comment');
+            $table->text('comments');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
@@ -463,7 +463,7 @@ class Install400 extends Migration
         Schema::create('video_comments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('video_id');
-            $table->text('comment');
+            $table->text('comments');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();

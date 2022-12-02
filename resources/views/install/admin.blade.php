@@ -1,4 +1,4 @@
-@include('header')
+@include('layouts.header')
 
 <body id="install" class="bg-light">
     <main class="m-auto bg-white border p-5">
