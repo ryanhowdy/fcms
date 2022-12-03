@@ -1,4 +1,4 @@
-@include('header')
+@include('layouts.header')
 
 <body id="register" class="text-center bg-light">
     <main class="m-auto bg-white border p-5">
