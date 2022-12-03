@@ -12,6 +12,7 @@ use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\AddressBookController;
 use App\Http\Controllers\MeController;
+use App\Http\Controllers\NewsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -87,7 +88,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/contact', [ HomeController::class, 'home' ])->name('contact');
     Route::get( '/help', [ HomeController::class, 'home' ])->name('help');
 
-    Route::get( '/familynews', [ HomeController::class, 'home' ])->name('familynews');
+    Route::get( '/familynews',                   [ NewsController::class, 'index' ])->name('familynews');
+    Route::get( '/familynews/add',               [ NewsController::class, 'create' ])->name('familynews.create');
+    Route::post('/familynews/add',               [ NewsController::class, 'store' ]);
+    Route::get( '/familynews/{id}',              [ NewsController::class, 'show' ])->name('familynews.show');
+    Route::post('/familynews/{id}/comments/new', [ NewsController::class, 'commentsStore' ])->name('familynews.comments.store');
+
     Route::get( '/prayers', [ HomeController::class, 'home' ])->name('prayers');
     Route::get( '/recipes', [ HomeController::class, 'home' ])->name('recipes');
     Route::get( '/familytree', [ HomeController::class, 'home' ])->name('familytree');
