@@ -19239,3 +19239,82 @@ body#profile li.active a {
   font-weight: bold;
   color: #000;
 }
+
+body#familytree .tree {
+  white-space: nowrap;
+  min-width: 800px;
+  min-height: 500px;
+}
+body#familytree .tree ul:not(.dropdown-menu) {
+  padding-top: 20px;
+  position: relative;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel {
+  float: left;
+  list-style-type: none;
+  position: relative;
+  padding: 20px 5px 0 5px;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel::before, body#familytree .tree ul:not(.dropdown-menu) li.rel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 50%;
+  border-top: 1px solid var(--bs-border-color);
+  width: 50%;
+  height: 20px;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel::after {
+  right: auto;
+  left: 50%;
+  border-left: 1px solid var(--bs-border-color);
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel:only-child::after, body#familytree .tree ul:not(.dropdown-menu) li.rel:only-child::before {
+  display: none;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel:only-child {
+  padding-top: 0;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel:first-child::before, body#familytree .tree ul:not(.dropdown-menu) li.rel:last-child::after {
+  border: 0 none;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel:last-child::before {
+  border-right: 1px solid var(--bs-border-color);
+  border-radius: 0 5px 0 0;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel:first-child::after {
+  border-radius: 5px 0 0 0;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div {
+  border: 1px solid var(--bs-border-color);
+  padding: 5px 10px;
+  text-decoration: none;
+  display: inline-block;
+  min-width: 175px;
+  min-height: 105px;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person + div.person {
+  margin-left: 20px;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person {
+  padding: 10px;
+  text-align: left;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > .dropdown {
+  display: none;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person:hover > .dropdown {
+  display: block;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > span.text-muted {
+  font-size: 0.75rem;
+}
+body#familytree .tree ul:not(.dropdown-menu) ul:not(.dropdown-menu)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  border-left: 1px solid var(--bs-border-color);
+  width: 0;
+  height: 20px;
+}

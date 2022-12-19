@@ -13,6 +13,7 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\AddressBookController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\FamilyTreeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -96,7 +97,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get( '/prayers', [ HomeController::class, 'home' ])->name('prayers');
     Route::get( '/recipes', [ HomeController::class, 'home' ])->name('recipes');
-    Route::get( '/familytree', [ HomeController::class, 'home' ])->name('familytree');
+
+    Route::get( '/familytree',     [ FamilyTreeController::class, 'index' ])->name('familytree');
+    Route::get( '/familytree/new', [ FamilyTreeController::class, 'create' ])->name('familytree.create');
+    Route::post('/familytree/new', [ FamilyTreeController::class, 'store' ])->name('familytree.store');
+
     Route::get( '/documents', [ HomeController::class, 'home' ])->name('documents');
 
     Route::get( '/uploads/avatars/{file}',                     [ImageController::class, 'showAvatar' ])->name('avatar');

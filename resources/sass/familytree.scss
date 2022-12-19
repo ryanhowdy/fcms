@@ -1,0 +1,118 @@
+body#familytree
+{
+    .tree
+    {
+        white-space: nowrap;
+        min-width: 800px;
+        min-height:500px;
+
+        ul:not(.dropdown-menu)
+        {
+            padding-top: 20px;
+            position: relative;
+
+            li.rel
+            {
+                float: left;
+                list-style-type: none;
+                position: relative;
+                padding: 20px 5px 0 5px;
+
+                // Add the connection lines
+                &::before,
+                &::after
+                {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    right: 50%;
+                    border-top: 1px solid var(--bs-border-color);
+                    width: 50%;
+                    height: 20px;
+                }
+                &::after
+                {
+                    right: auto;
+                    left: 50%;
+                    border-left: 1px solid var(--bs-border-color);
+                }
+                // Remove the left & right lines for people without siblings
+                &:only-child::after,
+                &:only-child::before
+                {
+                    display: none;
+                }
+                // Remove space from top of single child
+                &:only-child
+                {
+                    padding-top: 0;
+                }
+                // Remove left line from first child and right line from last child
+                &:first-child::before,
+                &:last-child::after
+                {
+                    border: 0 none;
+                }
+                // Add back the line to the last node
+                &:last-child::before
+                {
+                    border-right: 1px solid var(--bs-border-color);
+                    border-radius: 0 5px 0 0;
+                }
+                &:first-child::after
+                {
+                    border-radius: 5px 0 0 0;
+                }
+
+                > div
+                {
+                    border: 1px solid var(--bs-border-color);
+                    padding: 5px 10px;
+                    text-decoration: none;
+                    display: inline-block;
+                    min-width: 175px;
+                    min-height: 105px;
+
+                    > div.person + div.person
+                    {
+                        margin-left: 20px;
+                    }
+                    > div.person
+                    {
+                        padding: 10px;
+                        text-align: left;
+
+                        > .dropdown
+                        {
+                            display: none;
+                        }
+                        &:hover
+                        {
+                            > .dropdown
+                            {
+                                display: block;
+                            }
+                        }
+
+                        > span.text-muted
+                        {
+                            font-size: 0.75rem;
+                        }
+                    }
+                }
+            }
+
+            // Add vertical line from parents
+            ul:not(.dropdown-menu)::before
+            {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 50%;
+                border-left: 1px solid var(--bs-border-color);
+                width: 0;
+                height: 20px;
+            }
+        }
+    }
+}
