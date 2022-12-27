@@ -392,6 +392,15 @@ class Install400 extends Migration
             $table->timestamps();
         });
 
+        Schema::create('recipe_categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 50);
+            $table->string('description')->nullable();
+            $table->foreignId('created_user_id');
+            $table->foreignId('updated_user_id');
+            $table->timestamps();
+        });
+
         Schema::create('recipes', function (Blueprint $table) {
             $table->id();
             $table->string('name', 50);

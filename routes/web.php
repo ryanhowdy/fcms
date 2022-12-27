@@ -14,6 +14,7 @@ use App\Http\Controllers\AddressBookController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\FamilyTreeController;
+use App\Http\Controllers\RecipeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -96,7 +97,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/familynews/{id}/comments/new', [ NewsController::class, 'commentsStore' ])->name('familynews.comments.store');
 
     Route::get( '/prayers', [ HomeController::class, 'home' ])->name('prayers');
-    Route::get( '/recipes', [ HomeController::class, 'home' ])->name('recipes');
+
+    Route::get( '/recipes',                [ RecipeController::class, 'index' ])->name('recipes');
+    Route::get( '/recipes/add',            [ RecipeController::class, 'create' ])->name('recipes.create');
+    Route::post('/recipes/add',            [ RecipeController::class, 'store' ]);
+    Route::get( '/recipes/categories/add', [ RecipeController::class, 'categoryCreate' ])->name('recipes.categories.create');
+    Route::post('/recipes/categories/add', [ RecipeController::class, 'categoryStore' ]);
+    Route::get( '/recipes/{id}',           [ RecipeController::class, 'show' ])->name('recipes.show');
 
     Route::get( '/familytree',     [ FamilyTreeController::class, 'index' ])->name('familytree');
     Route::get( '/familytree/new', [ FamilyTreeController::class, 'create' ])->name('familytree.create');
