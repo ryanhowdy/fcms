@@ -38,4 +38,12 @@ class ImageController extends Controller
     {
         return response()->file(storage_path('app/photos').'/'.$userId.'/full/'.$file);
     }
+
+    /**
+     * Show the video for the given user
+     */
+    public function showVideo($userId, $file)
+    {
+        return response()->file(storage_path('app/videos').'/'.$userId.'/'.$file);
+    }
 }

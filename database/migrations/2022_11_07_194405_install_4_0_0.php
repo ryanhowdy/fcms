@@ -478,16 +478,25 @@ class Install400 extends Migration
             $table->timestamps();
         });
 
-        Schema::create('videos', function (Blueprint $table) {
+        Schema::create('external_videos', function (Blueprint $table) {
             $table->id();
             $table->string('source_id');
-            $table->string('title');
-            $table->string('description')->nullable();
             $table->integer('duration')->nullable();
             $table->string('source', 50)->nullable();
             $table->integer('height')->default(420);
             $table->integer('width')->default(780);
             $table->boolean('active')->default(true);
+            $table->foreignId('created_user_id');
+            $table->foreignId('updated_user_id');
+            $table->timestamps();
+        });
+
+        Schema::create('videos', function (Blueprint $table) {
+            $table->id();
+            $table->string('filename');
+            $table->string('title');
+            $table->string('description')->nullable();
+            $table->string('external_video_id')->nullable();
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();

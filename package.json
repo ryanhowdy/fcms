@@ -19,7 +19,8 @@
         "postcss": "^8.1.14",
         "resolve-url-loader": "^5.0.0",
         "sass": "^1.54.9",
-        "sass-loader": "^12.6.0"
+        "sass-loader": "^12.6.0",
+        "video.js": "^7.20.3"
     },
     "dependencies": {
         "@popperjs/core": "^2.10.2",

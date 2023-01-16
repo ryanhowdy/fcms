@@ -15,6 +15,7 @@ use App\Http\Controllers\MeController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\FamilyTreeController;
 use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -86,7 +87,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/photos/albums/{id}',  [ PhotoController::class, 'albumsShow' ])->name('photos.albums.show');
     Route::get( '/photos/albums/{aid}/photos/{pid}', [ PhotoController::class, 'photosShow' ])->name('photos.show');
 
-    Route::get( '/videos', [ HomeController::class, 'home' ])->name('videos');
+    Route::get( '/videos',        [ VideoController::class, 'index' ])->name('videos');
+    Route::get( '/videos/upload', [ VideoController::class, 'create' ])->name('videos.create');
+    Route::post('/videos/upload', [ VideoController::class, 'store' ]);
+    Route::get( '/videos/{id}',   [ VideoController::class, 'show' ])->name('videos.show');
+
     Route::get( '/contact', [ HomeController::class, 'home' ])->name('contact');
     Route::get( '/help', [ HomeController::class, 'home' ])->name('help');
 
@@ -116,7 +121,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/uploads/users/{id}/photos/main/{file}',      [ImageController::class, 'showPhoto' ])->name('photo');
     Route::get( '/uploads/users/{id}/photos/thumbnail/{file}', [ImageController::class, 'showPhotoThumbnail' ])->name('photo.thumbnail');
     Route::get( '/uploads/users/{id}/photos/full/{file}',      [ImageController::class, 'showPhotoFull' ])->name('photo.full');
-    Route::get( '/uploads/videos/{file}',                      [ImageController::class, 'showAvatar' ])->name('video');
+    Route::get( '/uploads/users/{id}/videos/{file}',           [ImageController::class, 'showVideo' ])->name('video');
 
     Route::get( '/admin/upgrade', [ HomeController::class, 'home' ])->name('admin.upgrade');
     Route::get( '/admin/config', [ HomeController::class, 'home' ])->name('admin.config');
