@@ -80,24 +80,31 @@ class FamilyTreeController extends Controller
 
         $branches = array_keys($sorted);
 
-        $tree[$startingId] = $sorted[$startingId];
-
-        foreach ($tree[$startingId]['kids'] as $i => $t)
+        if (isset($sorted[$startingId]))
         {
-            // do these kids have branches of their own?
-            if (in_array($t['rel_user_id'], $branches))
+            $tree[$startingId] = $sorted[$startingId];
+
+            foreach ($tree[$startingId]['kids'] as $i => $t)
             {
-                // add spouses
-                foreach ($sorted[ $t['rel_user_id'] ]['spouses'] as $z)
+                // do these kids have branches of their own?
+                if (in_array($t['rel_user_id'], $branches))
                 {
-                    $tree[$startingId]['kids'][$i]['spouses'][] = $z;
-                }
-                // add kids
-                foreach ($sorted[ $t['rel_user_id'] ]['kids'] as $z)
-                {
-                    $tree[$startingId]['kids'][$i]['kids'][] = $z;
+                    // add spouses
+                    foreach ($sorted[ $t['rel_user_id'] ]['spouses'] as $z)
+                    {
+                        $tree[$startingId]['kids'][$i]['spouses'][] = $z;
+                    }
+                    // add kids
+                    foreach ($sorted[ $t['rel_user_id'] ]['kids'] as $z)
+                    {
+                        $tree[$startingId]['kids'][$i]['kids'][] = $z;
+                    }
                 }
             }
+        }
+        else
+        {
+            $tree[$startingId] = $user;
         }
 
         return view('tree.index', [
