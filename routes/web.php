@@ -16,6 +16,7 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\FamilyTreeController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\VideoController;
+use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -114,7 +115,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/familytree/new', [ FamilyTreeController::class, 'create' ])->name('familytree.create');
     Route::post('/familytree/new', [ FamilyTreeController::class, 'store' ])->name('familytree.store');
 
-    Route::get( '/documents', [ HomeController::class, 'home' ])->name('documents');
+    Route::get( '/documents',                 [ DocumentController::class, 'index' ])->name('documents');
+    Route::get( '/documents/upload',          [ DocumentController::class, 'create' ])->name('documents.create');
+    Route::post('/documents/upload',          [ DocumentController::class, 'store' ]);
+    Route::get( '/documents/{file}/download', [ DocumentController::class, 'download' ])->name('documents.download');
 
     Route::get( '/uploads/avatars/{file}',                     [ImageController::class, 'showAvatar' ])->name('avatar');
     Route::get( '/uploads/documents/{file}',                   [ImageController::class, 'showAvatar' ])->name('document');

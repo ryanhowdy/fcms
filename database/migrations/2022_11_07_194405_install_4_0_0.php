@@ -196,9 +196,10 @@ class Install400 extends Migration
 
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 50);
+            $table->string('filename');
+            $table->string('name');
             $table->text('description')->nullable();
-            $table->string('mime', 50)->default('application/download');
+            $table->string('mime')->default('application/download');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
