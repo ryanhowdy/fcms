@@ -93,7 +93,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/videos/upload', [ VideoController::class, 'store' ]);
     Route::get( '/videos/{id}',   [ VideoController::class, 'show' ])->name('videos.show');
 
-    Route::get( '/contact', [ HomeController::class, 'home' ])->name('contact');
+    Route::get( '/contact', [ HomeController::class, 'contact' ])->name('contact');
+    Route::post('/contact', [ HomeController::class, 'contactSend' ]);
+
     Route::get( '/help', [ HomeController::class, 'home' ])->name('help');
 
     Route::get( '/familynews',                   [ NewsController::class, 'index' ])->name('familynews');

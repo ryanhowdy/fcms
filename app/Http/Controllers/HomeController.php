@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use App\Models\NavigationLink;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Contact;
 
 class HomeController extends Controller
 {
@@ -36,6 +38,29 @@ class HomeController extends Controller
     public function home()
     {
         return view('home');
+    }
+
+    /**
+     * Show the contact page
+     *
+     * @return Illuminate\View\View
+     */
+    public function contact()
+    {
+        return view('contact');
+    }
+
+    /**
+     * Send the contact message
+     *
+     * @param  Illuminate\Http\Request  $request
+     * @return Illuminate\View\View
+     */
+    public function contactSend(Request $request)
+    {
+        Mail::to(env('FCMS_CONTACT'))->send(new Contact($request->subject, $request->message));
+
+        return redirect()->route('contact');
     }
 
     /**
