@@ -296,27 +296,30 @@ class InstallController extends Controller
         $communicateOrder = 3;
         $shareOrder       = 4;
 
-        foreach ($request->sections as $key => $section)
+        if ($request->has('sections'))
         {
-            if (isset($communicatePlugins[$section]))
+            foreach ($request->sections as $key => $section)
             {
-                $insertParams[] = [
-                    'link'       => $communicatePlugins[$section]['link'],
-                    'route_name' => $communicatePlugins[$section]['route_name'],
-                    'group'      => $communicatePlugins[$section]['group'],
-                    'order'      => $communicateOrder,
-                ];
-                $communicateOrder++;
-            }
-            else if (isset($sharePlugins[$section]))
-            {
-                $insertParams[] = [
-                    'link'       => $sharePlugins[$section]['link'],
-                    'route_name' => $sharePlugins[$section]['route_name'],
-                    'group'      => $sharePlugins[$section]['group'],
-                    'order'      => $shareOrder,
-                ];
-                $shareOrder++;
+                if (isset($communicatePlugins[$section]))
+                {
+                    $insertParams[] = [
+                        'link'       => $communicatePlugins[$section]['link'],
+                        'route_name' => $communicatePlugins[$section]['route_name'],
+                        'group'      => $communicatePlugins[$section]['group'],
+                        'order'      => $communicateOrder,
+                    ];
+                    $communicateOrder++;
+                }
+                else if (isset($sharePlugins[$section]))
+                {
+                    $insertParams[] = [
+                        'link'       => $sharePlugins[$section]['link'],
+                        'route_name' => $sharePlugins[$section]['route_name'],
+                        'group'      => $sharePlugins[$section]['group'],
+                        'order'      => $shareOrder,
+                    ];
+                    $shareOrder++;
+                }
             }
         }
 
