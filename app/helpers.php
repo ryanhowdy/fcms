@@ -54,3 +54,29 @@ if (!function_exists('getUserDisplayName'))
         return trim($display);
     }
 }
+
+if (!function_exists('getUserAvatar'))
+{
+    /*
+     * getUserAvatar
+     *
+     * Will return the users avatar
+     *
+     * @param Array $user
+     * @return String
+     */
+    function getUserAvatar(array $user)
+    {
+        if (!isset($user['avatar']))
+        {
+            return 'no_avatar.jpg';
+        }
+
+        if ($user['avatar'] == 'gravatar' && isset($user['gravatar']))
+        {
+            return 'http://www.gravatar.com/avatar.php?gravatar_id='.md5(strtolower($user['gravatar'])).'&amp;s=80';
+        }
+
+        return $user['avatar'];
+    }
+}

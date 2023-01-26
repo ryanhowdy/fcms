@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\NavigationLink;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\Contact;
+use App\Models\ViewWhatsNewUpdate;
 
 class HomeController extends Controller
 {
@@ -37,7 +38,13 @@ class HomeController extends Controller
      */
     public function home()
     {
-        return view('home');
+        $updates = ViewWhatsNewUpdate::latest()
+            ->orderBy('updated_at')
+            ->paginate(30);
+
+        return view('home', [
+            'updates' => $updates
+        ]);
     }
 
     /**

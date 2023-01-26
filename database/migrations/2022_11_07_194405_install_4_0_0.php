@@ -184,7 +184,7 @@ class Install400 extends Migration
             $category->save();
         }
 
-        Schema::create('changelogs', function (Blueprint $table) {
+        Schema::create('user_changes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id');
             $table->string('table', 50);
@@ -502,6 +502,52 @@ class Install400 extends Migration
             $table->foreignId('updated_user_id');
             $table->timestamps();
         });
+
+        \DB::statement("
+            CREATE OR REPLACE VIEW view_whats_new_updates
+            AS
+            (SELECT
+                'DISCUSSION' AS type,   -- object type
+                dc.id,                  -- object id
+                dc.created_at,
+                dc.updated_at,
+                dc.updated_user_id,
+                u.fname,
+                u.mname,
+                u.lname,
+                u.avatar,
+                u.gravatar,
+                us.displayname,
+                d.title,                -- object title
+                dc.comments             -- object comments
+            FROM
+                discussion_comments AS dc
+                LEFT JOIN discussions AS d ON dc.discussion_id = dc.id
+                LEFT JOIN users AS u ON dc.updated_user_id = u.id
+                LEFT JOIN user_settings as us ON dc.updated_user_id = us.user_id)
+            UNION
+            (SELECT
+                'ADDRESS_ADD' AS type, a.id, a.created_at, a.updated_at, a.updated_user_id, u.fname, u.mname, u.lname, u.avatar, u.gravatar, us.displayname, 'n/a' AS title, 'n/a' as comments
+            FROM
+                addresses AS a, users AS u, user_settings AS us
+            WHERE
+                a.updated_user_id = u.id AND a.updated_user_id = us.user_id)
+            UNION
+            (SELECT
+                'NEW_USER' AS type, u.id, u.created_at, u.updated_at, u.id, u.fname, u.mname, u.lname, u.avatar, u.gravatar, us.displayname, 'n/a', 'n/a'
+            FROM
+                users AS u, user_settings AS us
+            WHERE
+                activated > 0)
+            UNION
+            (SELECT
+                'PHOTOS' AS type, p.filename, p.created_at, p.updated_at, p.updated_user_id, u.fname, u.mname, u.lname, u.avatar, u.gravatar, us.displayname, a.name, a.description
+            FROM
+                photos AS p
+                LEFT JOIN photo_albums AS a ON p.photo_album_id = a.id
+                LEFT JOIN users AS u ON p.updated_user_id = u.id
+                LEFT JOIN user_settings as us ON p.updated_user_id = us.user_id)
+        ");
     }
 
     /**
@@ -513,7 +559,7 @@ class Install400 extends Migration
     {
         Schema::dropIfExists('addresses');
         Schema::dropIfExists('alerts');
-        Schema::dropIfExists('changelogs');
+        Schema::dropIfExists('user_changes');
         Schema::dropIfExists('documents');
         Schema::dropIfExists('discussions');
         Schema::dropIfExists('discussion_comments');
