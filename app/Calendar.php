@@ -219,6 +219,76 @@ class Calendar
     }
 
     /**
+     * Get the calendar params for a day
+     *
+     * @param  Carbon\Carbon $date
+     * @return array
+     */
+    public function getCalendarDay(Carbon $date)
+    {
+        $params = [
+            'header'       => $date->format('M Y'),
+            'weekDayNames' => [],
+            'calendar'     => [],
+            'categories'   => EventCategory::where('id', '!=', 1)->get()->keyBy('id')->toArray(),
+        ];
+
+        $nextDate = $date->copy()->addDay();
+        $prevDate = $date->copy()->subDay();
+
+        $params['previousLink'] = route('calendar.day', [ $prevDate->format('Y'), $prevDate->format('m'), $prevDate->format('d') ]);
+        $params['nextLink']     = route('calendar.day', [ $nextDate->format('Y'), $nextDate->format('m'), $nextDate->format('d') ]);
+
+        $curDate = $date->copy();
+
+        // Get the week day names
+        $params['weekDays'][] = [
+            'name' => $this->daysOfWeekLkup[$curDate->format('w')],
+            'day'  => $curDate->format('j'),
+            'link' => route('calendar.day', [ $curDate->format('Y'), $curDate->format('m'), $curDate->format('d') ]),
+        ];
+
+        $day = $curDate->format('Y-m-d');
+
+        $dayData = [
+            'fullDate' => $day,
+            'day'      => $curDate->format('j'),
+            'class'    => 'today',
+            'events'   => [],
+        ];
+
+        for ($h = 0; $h <= 24; $h++)
+        {
+            $hour = $this->fixDay($h);
+
+            $params['calendar'][$day][$hour] = ['events' => [],];
+        }
+
+        // Get events
+        $events = $this->getEvents($date);
+
+        foreach ($events as $day => $dayEvents)
+        {
+            foreach ($dayEvents as $event)
+            {
+                $hour = '00';
+
+                if (!is_null($event['time_start']))
+                {
+                    $hour = $this->fixDay($event['time_start']);
+                }
+
+                if (isset($params['calendar'][$day]))
+                {
+                    $params['calendar'][$day][$hour]['events'][] = $event;
+                }
+            }
+        }
+
+        return $params;
+    }
+
+    /**
      * Get the calendar events for the given date
      *
      * @param  Carbon\Carbon $date
