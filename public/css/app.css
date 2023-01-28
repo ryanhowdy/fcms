@@ -20881,6 +20881,23 @@ body#calendar .btn-group .btn.active {
   background-color: white;
   border-color: var(--bs-btn-border-color);
 }
+body#calendar .calendar-header a.previous,
+body#calendar .calendar-header a.next {
+  height: 27px;
+  width: 27px;
+  text-align: center;
+  border-radius: 15px;
+  margin-top: 6px;
+}
+body#calendar .calendar-header a.previous:hover,
+body#calendar .calendar-header a.next:hover {
+  background: var(--bs-gray-300);
+}
+body#calendar .calendar-header a.previous i,
+body#calendar .calendar-header a.next i {
+  display: block;
+  line-height: 27px;
+}
 body#calendar div#calendar {
   font-family: Arial;
   font-size: 12px;
@@ -20888,6 +20905,14 @@ body#calendar div#calendar {
 body#calendar div#calendar div.week-days div.day {
   text-align: center;
   color: var(--bs-gray-500);
+}
+body#calendar div#calendar div.week-days div.time {
+  color: var(--bs-gray-500);
+  width: 40px;
+}
+body#calendar div#calendar div.week div.time {
+  color: var(--bs-gray-500);
+  width: 40px;
 }
 body#calendar div#calendar div.week div.day {
   min-height: 100px;

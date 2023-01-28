@@ -7,6 +7,30 @@ body#calendar
         border-color: var(--bs-btn-border-color);
     }
 
+    .calendar-header
+    {
+        a.previous,
+        a.next
+        {
+            height: 27px;
+            width: 27px;
+            text-align: center;
+            border-radius: 15px;
+            margin-top: 6px;
+
+            &:hover
+            {
+                background: var(--bs-gray-300);
+            }
+            i
+            {
+                display: block;
+                line-height: 27px;
+            }
+
+        }
+    }
+
     div#calendar
     {
         font-family: Arial;
@@ -17,8 +41,19 @@ body#calendar
             text-align: center;
             color: var(--bs-gray-500);
         }
+        div.week-days div.time
+        {
+            color: var(--bs-gray-500);
+            width: 40px;
+        }
         div.week
         {
+            div.time
+            {
+                color: var(--bs-gray-500);
+                width: 40px;
+            }
+
             div.day
             {
                 min-height: 100px;

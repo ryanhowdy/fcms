@@ -46,6 +46,7 @@ class Calendar
             'header'       => $date->format('M Y'),
             'weekDayNames' => [],
             'calendar'     => [],
+            'categories'   => EventCategory::where('id', '!=', 1)->get()->keyBy('id')->toArray(),
         ];
 
         $nextDate = $date->copy()->addMonth();
@@ -100,6 +101,7 @@ class Calendar
                 'fullDate' => $curDate->format('Y-m-d'),
                 'day'      => $curDate->format('j'),
                 'class'    => $classes,
+                'link'     => route('calendar.day', [ $curDate->format('Y'), $curDate->format('m'), $curDate->format('d') ]),
                 'events'   => [],
             ];
 
@@ -112,6 +114,105 @@ class Calendar
 
             $curDate->addDay();
             $d++;
+        }
+
+        return $params;
+    }
+
+    /**
+     * Get the calendar params for a week
+     *
+     * @param  Carbon\Carbon $date
+     * @return array
+     */
+    public function getCalendarWeek(Carbon $date)
+    {
+        $params = [
+            'header'       => $date->format('M Y'),
+            'weekDayNames' => [],
+            'calendar'     => [],
+            'categories'   => EventCategory::where('id', '!=', 1)->get()->keyBy('id')->toArray(),
+        ];
+
+        $nextDate = $date->copy()->addWeek();
+        $prevDate = $date->copy()->subWeek();
+
+        $params['previousLink'] = route('calendar.week', [ $prevDate->format('Y'), $prevDate->format('m'), $prevDate->format('d') ]);
+        $params['nextLink']     = route('calendar.week', [ $nextDate->format('Y'), $nextDate->format('m'), $nextDate->format('d') ]);
+
+        // Get the week day names
+        for ($w = 0; $w <= 6; $w++)
+        {
+            $params['weekDays'][] = [
+                'name' => $this->daysOfWeekLkup[($w + $this->startOfWeek) % 7],
+            ];
+        }
+
+        $startOfCalendar = $date->copy()->startOfWeek($this->startOfWeek);
+        $endOfCalendar   = $date->copy()->endOfWeek($this->endOfWeek);
+
+        $curDate = $startOfCalendar->copy();
+
+        $i = 0;
+        while ($curDate <= $endOfCalendar)
+        {
+            $day = $curDate->format('Y-m-d');
+
+            $params['weekDays'][$i]['day']  = $curDate->format('j');
+            $params['weekDays'][$i]['link'] = route('calendar.day', [ $curDate->format('Y'), $curDate->format('m'), $curDate->format('d') ]);
+
+            $classes = '';
+            if ($curDate->format('n') < $date->format('n'))
+            {
+                $classes .= 'previous ';
+            }
+            else if ($curDate->format('n') > $date->format('n'))
+            {
+                $classes .= 'next ';
+            }
+
+            if ($date->format('Ymd') === $curDate->format('Ymd'))
+            {
+                $classes .= 'today ';
+            }
+
+            $dayData = [
+                'fullDate' => $day,
+                'day'      => $curDate->format('j'),
+                'class'    => $classes,
+                'events'   => [],
+            ];
+
+            for ($h = 0; $h <= 24; $h++)
+            {
+                $hour = $this->fixDay($h);
+
+                $params['calendar'][$day][$hour] = ['events' => [],];
+            }
+
+            $curDate->addDay();
+            $i++;
+        }
+
+        // Get events
+        $events = $this->getEvents($date);
+
+        foreach ($events as $day => $dayEvents)
+        {
+            foreach ($dayEvents as $event)
+            {
+                $hour = '00';
+
+                if (!is_null($event['time_start']))
+                {
+                    $hour = $this->fixDay($event['time_start']);
+                }
+
+                if (isset($params['calendar'][$day]))
+                {
+                    $params['calendar'][$day][$hour]['events'][] = $event;
+                }
+            }
         }
 
         return $params;
