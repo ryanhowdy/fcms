@@ -44,6 +44,9 @@ class Calendar
     {
         $params = [
             'header'       => $date->format('M Y'),
+            'dayLink'      => route('calendar.day', [ $date->format('Y'), $date->format('m'), $date->format('d') ]),
+            'weekLink'     => route('calendar.week', [ $date->format('Y'), $date->format('m'), $date->format('d') ]),
+            'monthLink'    => route('calendar.month', [ $date->format('Y'), $date->format('m'), $date->format('d') ]),
             'weekDayNames' => [],
             'calendar'     => [],
             'categories'   => EventCategory::where('id', '!=', 1)->get()->keyBy('id')->toArray(),
@@ -129,6 +132,9 @@ class Calendar
     {
         $params = [
             'header'       => $date->format('M Y'),
+            'dayLink'      => route('calendar.day', [ $date->format('Y'), $date->format('m'), $date->format('d') ]),
+            'weekLink'     => route('calendar.week', [ $date->format('Y'), $date->format('m'), $date->format('d') ]),
+            'monthLink'    => route('calendar.month', [ $date->format('Y'), $date->format('m'), $date->format('d') ]),
             'weekDayNames' => [],
             'calendar'     => [],
             'categories'   => EventCategory::where('id', '!=', 1)->get()->keyBy('id')->toArray(),
@@ -185,7 +191,7 @@ class Calendar
 
             for ($h = 0; $h <= 24; $h++)
             {
-                $hour = $this->fixDay($h);
+                $hour = $this->fixHour($h);
 
                 $params['calendar'][$day][$hour] = ['events' => [],];
             }
@@ -205,7 +211,7 @@ class Calendar
 
                 if (!is_null($event['time_start']))
                 {
-                    $hour = $this->fixDay($event['time_start']);
+                    $hour = substr($event['time_start'], 0, 2);
                 }
 
                 if (isset($params['calendar'][$day]))
@@ -228,6 +234,9 @@ class Calendar
     {
         $params = [
             'header'       => $date->format('M Y'),
+            'dayLink'      => route('calendar.day', [ $date->format('Y'), $date->format('m'), $date->format('d') ]),
+            'weekLink'     => route('calendar.week', [ $date->format('Y'), $date->format('m'), $date->format('d') ]),
+            'monthLink'    => route('calendar.month', [ $date->format('Y'), $date->format('m'), $date->format('d') ]),
             'weekDayNames' => [],
             'calendar'     => [],
             'categories'   => EventCategory::where('id', '!=', 1)->get()->keyBy('id')->toArray(),
@@ -259,7 +268,7 @@ class Calendar
 
         for ($h = 0; $h <= 24; $h++)
         {
-            $hour = $this->fixDay($h);
+            $hour = $this->fixHour($h);
 
             $params['calendar'][$day][$hour] = ['events' => [],];
         }
@@ -275,7 +284,7 @@ class Calendar
 
                 if (!is_null($event['time_start']))
                 {
-                    $hour = $this->fixDay($event['time_start']);
+                    $hour = substr($event['time_start'], 0, 2);
                 }
 
                 if (isset($params['calendar'][$day]))
@@ -332,7 +341,7 @@ class Calendar
         {
             $carbonBirthday = Carbon::createFromDate($b->dob_year.'-'.$b->dob_month.'-'.$b->dob_day);
 
-            if ($date->lt($carbonBirthday))
+            if ($endOfCalendar->lt($carbonBirthday))
             {
                 continue;
             }
@@ -340,16 +349,22 @@ class Calendar
             $bMonth = $this->fixMonth($b->dob_month);
             $bDay   = $this->fixDay($b->dob_day);
 
-            $age = $date->diff($carbonBirthday)->format('%y');
+            $age = $endOfCalendar->diff($carbonBirthday)->format('%y');
 
-            $dateKey = $date->format('Y').'-'.$bMonth.'-'.$bDay;
+            $desc = trans_choice('{1} Turns :age year old today.|[2,*] Turns :age years old today.', $age, [ 'age' => $age ]);
+            if ($age == 0)
+            {
+                $desc = trans('Was born today.');
+            }
+
+            $dateKey = $endOfCalendar->format('Y').'-'.$bMonth.'-'.$bDay;
 
             $formattedEvents[$dateKey][] = [
                 'date'              => $b->dob_year.'-'.$bMonth.'-'.$bDay,
                 'time_start'        => null,
                 'time_end'          => null,
                 'title'             => $b->fname.' '.$b->lname,
-                'desc'              => trans('Turns :age years old today.', [ 'age' => $age ]),
+                'desc'              => $desc,
                 'event_category_id' => 3,
                 'category_name'     => $birthdayCategory['name'],
                 'category_color'    => $birthdayCategory['color'],
@@ -384,5 +399,16 @@ class Calendar
     private function fixDay($day)
     {
         return str_pad($day, 2, 0, STR_PAD_LEFT);
+    }
+
+    /**
+     * Make sure the hour number is 2 digits
+     *
+     * @param string $hour
+     * @return string
+     */
+    private function fixHour($hour)
+    {
+        return str_pad($hour, 2, 0, STR_PAD_LEFT);
     }
 }

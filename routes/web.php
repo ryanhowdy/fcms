@@ -65,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/calendar/week/{year?}/{month?}/{day?}',  [ CalendarController::class, 'weekView' ])->name('calendar.week');
     Route::get( '/calendar/day/{year?}/{month?}/{day?}',   [ CalendarController::class, 'dayView' ])->name('calendar.day');
     Route::get( '/calendar/create',                        [ CalendarController::class, 'create' ])->name('calendar.create');
+    Route::post('/calendar/create',                        [ CalendarController::class, 'store' ])->name('calendar.store');
 
     Route::get( '/members',   [ MemberController::class, 'index' ])->name('members');
 

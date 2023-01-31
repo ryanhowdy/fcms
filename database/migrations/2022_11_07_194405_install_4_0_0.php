@@ -158,7 +158,7 @@ class Install400 extends Migration
         $data = [
             [
                 'name'  => 'default',
-                'color' => null,
+                'color' => '#555555',
             ],
             [
                 'name'  => __('Anniversary'),

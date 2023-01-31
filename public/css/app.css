@@ -20941,6 +20941,7 @@ body#calendar div#calendar div.week div.day div.event a {
   padding: 2px 6px;
   color: white;
   text-decoration: none;
+  cursor: pointer;
 }
 body#calendar div#calendar div.week:last-of-type div.day {
   border-bottom: none !important;
