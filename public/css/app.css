@@ -20832,9 +20832,6 @@ form div.required > label:after {
 body nav.navbar li.nav-item form {
   margin-top: 12px;
 }
-body nav.navbar li.nav-item .avatar-wrapper:hover {
-  cursor: pointer;
-}
 body nav.navbar li.nav-item .avatar-wrapper i {
   display: none;
   top: 4px;
@@ -20848,7 +20845,10 @@ body nav.navbar li.nav-item .avatar-wrapper i {
   text-align: center;
   padding-left: 3px;
 }
-body nav.navbar li.nav-item .avatar-wrapper i:hover i {
+body nav.navbar li.nav-item .avatar-wrapper:hover {
+  cursor: pointer;
+}
+body nav.navbar li.nav-item .avatar-wrapper:hover i {
   display: block;
 }
 

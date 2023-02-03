@@ -27,7 +27,7 @@
         <div class="comment d-flex justify-content-between align-items-start py-5 border-bottom">
             <div class="d-flex flex-row">
                 <div>
-                    <img class="avatar rounded-5 mx-3" src="{{ route('avatar', Auth()->user()->avatar) }}" title="{{ __('avatar') }}">
+                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ __('avatar') }}">
                 </div>
                 <div>
                     <p>

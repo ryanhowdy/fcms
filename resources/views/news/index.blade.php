@@ -62,7 +62,7 @@
         <div class="vstack gap-3">
             <div class="">
                 <a class="text-decoration-none text-dark" href="#">
-                    <img class="avatar rounded-5 me-3" src="{{ route('avatar', Auth()->user()->avatar) }}" title="{{ __('avatar') }}">
+                    <img class="avatar rounded-5 me-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ __('avatar') }}">
                     Ryan
                 </a>
             </div>

@@ -10,7 +10,7 @@
             <li><a class="dropdown-item text-danger" href="#">{{ __('Delete') }}</a></li>
         </ul>
     </div>
-    <img class="avatar rounded-5" src="{{ route('avatar', $person['avatar']) }}" title="{{ __('avatar') }}">
+    <img class="avatar rounded-5" src="{{ getUserAvatar($person) }}" title="{{ __('avatar') }}">
     <div class="d-block">
         {{ $person['fname'] }} {{ $person['mname'] }} {{ $person['lname'] }}
         @if (!empty($person['maiden']))

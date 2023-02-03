@@ -33,7 +33,6 @@ class Install400 extends Migration
             $table->char('dod_day', 2)->nullable();
             $table->string('token')->nullable();
             $table->string('avatar', 25)->default('no_avatar.jpg');
-            $table->string('gravatar')->nullable();
             $table->string('bio', 200)->nullable();
             $table->char('activate_code', 13)->nullable();
             $table->rememberToken();
@@ -516,7 +515,7 @@ class Install400 extends Migration
                 u.mname,
                 u.lname,
                 u.avatar,
-                u.gravatar,
+                u.email,
                 us.displayname,
                 d.title,                -- object title
                 dc.comments             -- object comments
@@ -527,21 +526,21 @@ class Install400 extends Migration
                 LEFT JOIN user_settings as us ON dc.updated_user_id = us.user_id)
             UNION
             (SELECT
-                'ADDRESS_ADD' AS type, a.id, a.created_at, a.updated_at, a.updated_user_id, u.fname, u.mname, u.lname, u.avatar, u.gravatar, us.displayname, 'n/a' AS title, 'n/a' as comments
+                'ADDRESS_ADD' AS type, a.id, a.created_at, a.updated_at, a.updated_user_id, u.fname, u.mname, u.lname, u.avatar, u.email, us.displayname, 'n/a' AS title, 'n/a' as comments
             FROM
                 addresses AS a, users AS u, user_settings AS us
             WHERE
                 a.updated_user_id = u.id AND a.updated_user_id = us.user_id)
             UNION
             (SELECT
-                'NEW_USER' AS type, u.id, u.created_at, u.updated_at, u.id, u.fname, u.mname, u.lname, u.avatar, u.gravatar, us.displayname, 'n/a', 'n/a'
+                'NEW_USER' AS type, u.id, u.created_at, u.updated_at, u.id, u.fname, u.mname, u.lname, u.avatar, u.email, us.displayname, 'n/a', 'n/a'
             FROM
                 users AS u, user_settings AS us
             WHERE
                 activated > 0)
             UNION
             (SELECT
-                'PHOTOS' AS type, p.filename, p.created_at, p.updated_at, p.updated_user_id, u.fname, u.mname, u.lname, u.avatar, u.gravatar, us.displayname, a.name, a.description
+                'PHOTOS' AS type, p.filename, p.created_at, p.updated_at, p.updated_user_id, u.fname, u.mname, u.lname, u.avatar, u.email, us.displayname, a.name, a.description
             FROM
                 photos AS p
                 LEFT JOIN photo_albums AS a ON p.photo_album_id = a.id

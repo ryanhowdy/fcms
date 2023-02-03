@@ -120,7 +120,12 @@ class MeController extends Controller
     public function avatarStore(Request $request)
     {
         $validated = $request->validate([
-            'avatar' => ['required', 'mimetypes: image/bmp,image/gif,image/jpeg,image/png,image/svg+xml,image/webp'],
+            'avatar'       => ['required_without:avatar-other', 'mimetypes: image/bmp,image/gif,image/jpeg,image/png,image/svg+xml,image/webp'],
+            'avatar-other' => ['required_without:avatar'],
+        ],
+        [
+            'avatar.required_without'       => __('Uploaded avatar must be an image.'),
+            'avatar-other.required_without' => __('You must upload an avatar or choose an existing avatar from the list.'),
         ]);
 
         // Get the right path for avatars and make sure it exists
@@ -129,16 +134,40 @@ class MeController extends Controller
 
         Storage::makeDirectory($relPath);
 
-        $file = $request->file('avatar');
+        $filename = 'no_avatar.jpg';
 
-        // Resize and Save the avatar file
-        $filename = uniqid("").'.'.$file->extension();
+        // Upload new avatar
+        if ($request->has('avatar'))
+        {
+            $file = $request->file('avatar');
 
-        $file->storeAs($relPath, $filename);
+            // Resize and Save the avatar file
+            $filename = uniqid("").'.'.$file->extension();
 
-        $regular = Image::make($fullPath.'/'.$filename);
-        $regular->fit(80, 80);
-        $regular->save($fullPath.'/'.$filename);
+            $file->storeAs($relPath, $filename);
+
+            $regular = Image::make($fullPath.'/'.$filename);
+            $regular->fit(80, 80);
+            $regular->save($fullPath.'/'.$filename);
+        }
+        // Choose existing avatar
+        elseif ($request->has('avatar-other'))
+        {
+            switch ($request->input('avatar-other'))
+            {
+                case 'default':
+                    $filename = 'no_avatar.jpg';
+                    break;
+
+                case 'gravatar':
+                    $filename = 'gravatar';
+                    break;
+
+                default:
+                    $filename = 'avataaars'.$request->input('avatar-other').'.png';
+                    break;
+            }
+        }
 
         // Save the avatar in the db
         $user = User::findOrFail(Auth()->user()->id);

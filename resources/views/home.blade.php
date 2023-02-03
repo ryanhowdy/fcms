@@ -7,7 +7,7 @@
     <div class="col border-end min-vh-100 p-5">
         <form class="mb-5">
             <div class="share-box position-relative">
-                <img class="avatar rounded-5 position-absolute" src="{{ route('avatar', Auth()->user()->avatar) }}" title="{{ __('avatar') }}">
+                <img class="avatar rounded-5 position-absolute" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ __('avatar') }}">
                 <input class="form-control" type="text" placeholder="Have something to share?">
             </div>
         </form>
@@ -17,7 +17,7 @@
         <div class="card mb-3">
             <div class="card-body">
                 <div class="">
-                    <img class="avatar rounded-5 float-start me-3" src="{{ route('avatar', getUserAvatar($update->toArray())) }}">
+                    <img class="avatar rounded-5 float-start me-3" src="{{ getUserAvatar($update->toArray()) }}">
         @switch($update->type)
             @case('ADDRESS_ADD')
                     {{ trans(':name has added a new address.', [ 'name' => getUserDisplayName($update->toArray()) ]) }}<br/>

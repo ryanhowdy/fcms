@@ -42,10 +42,6 @@ body nav.navbar
 
         .avatar-wrapper
         {
-            &:hover
-            {
-                cursor: pointer;
-            }
             i
             {
                 display: none;
@@ -59,8 +55,13 @@ body nav.navbar
                 border-radius: 24px;
                 text-align: center;
                 padding-left: 3px;
+            }
 
-                &:hover i
+            &:hover
+            {
+                cursor: pointer;
+
+                i
                 {
                     display: block;
                 }
