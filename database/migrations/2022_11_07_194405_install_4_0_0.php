@@ -18,7 +18,7 @@ class Install400 extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->boolean('access')->default(false);
+            $table->smallInteger('access')->default(3);
             $table->string('email')->unique();
             $table->string('password')->default('0');
             $table->string('fname');

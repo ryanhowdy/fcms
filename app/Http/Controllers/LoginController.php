@@ -32,9 +32,7 @@ class LoginController extends Controller
             return redirect()->to('/install');
         }
 
-        return view('auth.login', [
-            'registrationOn' => env('FCMS_ALLOW_REGISTRATION'),
-        ]);
+        return view('auth.login');
     }
 
     /**

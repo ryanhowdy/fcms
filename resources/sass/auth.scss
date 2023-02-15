@@ -1,5 +1,4 @@
-body#login,
-body#register
+body#login
 {
     display: flex;
     align-items: center;
@@ -9,5 +8,17 @@ body#register
     form
     {
         width: 330px;
+    }
+}
+body#register
+{
+    display: flex;
+    align-items: center;
+    padding-top: 40px;
+    padding-bottom: 40px;
+
+    main
+    {
+        max-width: 600px;
     }
 }

@@ -8,11 +8,14 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Registration;
 
 class RegisterController extends Controller
 {
     /**
-     * Display the login view
+     * Display the register view
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
@@ -22,7 +25,7 @@ class RegisterController extends Controller
     }
 
     /**
-     * Handle the login request
+     * Handle the registration request
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -32,18 +35,38 @@ class RegisterController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'email', 'max:255', 'unique:fcms_users'],
+            'email'    => ['required', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed'],
+            'fname'    => ['required', 'max:255'],
+            'bday'     => ['required', 'date'],
+        ],
+        [
+            'email.required'     => __('Email is required.'),
+            'password.required'  => __('Password is required.'),
+            'password.confirmed' => __('The passwords do not match.'),
+            'fname.required'     => __('First Name is required.'),
+            'bday.required'      => __('Birthday is required.'),
         ]);
 
-        $user = User::create([
-            'fname'    => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $birthday = Carbon::createFromDate($request->bday);
 
-        Auth::login($user);
+        $user = new User;
+
+        $user->email     = $request->email;
+        $user->password  = Hash::make($request->password);
+        $user->fname     = $request->fname;
+        $user->dob_year  = $birthday->format('Y');
+        $user->dob_month = $birthday->format('m');
+        $user->dob_day   = $birthday->format('d');
+
+        if ($request->has('lname'))
+        {
+            $user->lname = $request->lname;
+        }
+
+        $user->save();
+
+        Mail::to($user->email)->send(new Registration($user));
 
         return redirect()->route('index');
     }

@@ -26,7 +26,7 @@
         </form>
         <p class="mt-3">
             <a href="{{ route('auth.password.request') }}">{{ __('Forgot Password') }}</a>
-            @if ($registrationOn)
+            @if (env('FCMS_ALLOW_REGISTRATION'))
             | <a href="{{ route('auth.register') }}">{{ __('Register') }}</a>
             @endif
         </p>

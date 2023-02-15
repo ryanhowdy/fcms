@@ -7,20 +7,16 @@ use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Content;
 
-class Contact extends Mailable
+class Registration extends Mailable
 {
-    protected $messageFromUser;
-    protected $subjectFromUser;
-
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($sub, $msg)
+    public function __construct($user)
     {
-        $this->subjectFromUser = $sub;
-        $this->messageFromUser = $msg;
+        $this->user = $user;
     }
 
     /**
@@ -32,7 +28,7 @@ class Contact extends Mailable
     {
         return new Envelope(
             from: new Address(env('MAIL_FROM_ADDRESS')),
-            subject: $this->subjectFromUser,
+            subject: __(':sitename Membership', ['sitename' => env('APP_NAME')]),
         );
     }
 
@@ -44,10 +40,10 @@ class Contact extends Mailable
     public function content()
     {
         return new Content(
-            view: 'emails.contact',
-            text: 'emails.contact-text',
+            view: 'emails.registration',
+            text: 'emails.registration-text',
             with: [
-                'messageFromUser' => $this->messageFromUser,
+                'user' => $this->user,
             ],
         );
     }

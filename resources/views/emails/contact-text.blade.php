@@ -1,4 +1,4 @@
 {{ $messageFromUser }}
 
 ------------------------------
-Sent from Family Connections
+__('Sent from Family Connections')
