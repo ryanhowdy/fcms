@@ -4,7 +4,23 @@
     <main class="m-auto bg-white border p-5">
         <form action="{{ route('login') }}" method="post">
             @csrf
-            <img class="mb-5" src="{{ asset('img/logo.gif') }}">
+            <a href="{{ route('index') }}">
+                <img class="mb-5" src="{{ asset('img/logo.gif') }}">
+            </a>
+
+            @if (\Session::has('header') && \Session::has('message'))
+                <div class="alert alert-danger text-start">
+                    <h2>{{ \Session::get('header') }}</h2>
+                    <p>{{ \Session::get('message') }}</p>
+                </div>
+            @endif
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                @foreach ($errors->all() as $error)
+                    <p>{{ $error }}</p>
+                @endforeach
+                </div>
+            @endif
 
             <div class="form-floating">
                 <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com">
