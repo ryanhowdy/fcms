@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Models\NavigationLink;
 use App\Models\User;
+use Carbon\Carbon;
 
 class LoginController extends Controller
 {
@@ -71,6 +72,10 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $remember))
         {
             $request->session()->regenerate();
+
+            // Update the user activity
+            $user->activity = Carbon::now();
+            $user->save();
 
             return redirect()->route('home');
         }

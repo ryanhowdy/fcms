@@ -15,8 +15,9 @@ class MemberController extends Controller
     public function index()
     {
         $users = User::latest()
-            ->join('user_settings as cus', 'users.id', '=', 'cus.user_id')
+            ->leftJoin('user_settings as cus', 'users.id', '=', 'cus.user_id')
             ->select('users.*', 'cus.displayname')
+            ->where('users.id', '!=', 1)
             ->get();
 
         return view('members.index', ['users' => $users]);

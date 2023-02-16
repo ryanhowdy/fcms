@@ -66,6 +66,22 @@ class RegisterController extends Controller
 
         $user->save();
 
+        // Create the user settings for the new user
+        $settings = new UserSetting;
+
+        $settings->user_id = $user->id;
+
+        $settings->save();
+
+        // Create an address for the new user
+        $address = new Address;
+
+        $address->user_id         = $user->id;
+        $address->created_user_id = $user->id;
+        $address->updated_user_id = $user->id;
+
+        $address->save();
+
         Mail::to($user->email)->send(new Registration($user));
 
         return redirect()->route('index');

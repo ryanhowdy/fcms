@@ -9,6 +9,8 @@ use App\Models\NavigationLink;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\Contact;
 use App\Models\ViewWhatsNewUpdate;
+use App\Models\User;
+use Carbon\Carbon;
 
 class HomeController extends Controller
 {
@@ -38,6 +40,12 @@ class HomeController extends Controller
      */
     public function home()
     {
+        // Update the user activity
+        $user = User::findOrFail(Auth()->user()->id);
+
+        $user->activity = Carbon::now();
+        $user->save();
+
         $updates = ViewWhatsNewUpdate::latest()
             ->orderBy('updated_at')
             ->paginate(30);

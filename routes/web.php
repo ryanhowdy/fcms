@@ -17,6 +17,7 @@ use App\Http\Controllers\FamilyTreeController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\AdminMemberController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -131,14 +132,24 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/uploads/users/{id}/photos/full/{file}',      [ImageController::class, 'showPhotoFull' ])->name('photo.full');
     Route::get( '/uploads/users/{id}/videos/{file}',           [ImageController::class, 'showVideo' ])->name('video');
 
-    Route::get( '/admin/upgrade', [ HomeController::class, 'home' ])->name('admin.upgrade');
-    Route::get( '/admin/config', [ HomeController::class, 'home' ])->name('admin.config');
-    Route::get( '/admin/members', [ HomeController::class, 'home' ])->name('admin.members');
-    Route::get( '/admin/photos', [ HomeController::class, 'home' ])->name('admin.photos');
-    Route::get( '/admin/polls', [ HomeController::class, 'home' ])->name('admin.polls');
-    Route::get( '/admin/facebook', [ HomeController::class, 'home' ])->name('admin.facebook');
-    Route::get( '/admin/google', [ HomeController::class, 'home' ])->name('admin.google');
-    Route::get( '/admin/instagram', [ HomeController::class, 'home' ])->name('admin.instagram');
+    // Must have helper privilege or higher
+    Route::middleware('can:help')->prefix('admin')->group(function() {
+    });
+
+    // Must have adminstrator privilege or higher
+    Route::middleware('can:administrate')->prefix('admin')->group(function() {
+        Route::get( '/upgrade', [ HomeController::class, 'home' ])->name('admin.upgrade');
+        Route::get( '/config', [ HomeController::class, 'home' ])->name('admin.config');
+
+        Route::get( '/members',           [ AdminMemberController::class, 'index' ])->name('admin.members');
+        Route::post('/members/{id}/edit', [ AdminMemberController::class, 'update' ])->name('admin.members.update');
+
+        Route::get( '/photos', [ HomeController::class, 'home' ])->name('admin.photos');
+        Route::get( '/polls', [ HomeController::class, 'home' ])->name('admin.polls');
+        Route::get( '/facebook', [ HomeController::class, 'home' ])->name('admin.facebook');
+        Route::get( '/google', [ HomeController::class, 'home' ])->name('admin.google');
+        Route::get( '/instagram', [ HomeController::class, 'home' ])->name('admin.instagram');
+    });
 
     Route::get( '/logout', [ LoginController::class, 'logout' ])->name('auth.logout');
 });
