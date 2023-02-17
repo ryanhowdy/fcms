@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\Contact;
 use App\Models\ViewWhatsNewUpdate;
 use App\Models\User;
+use App\Models\Poll;
+use App\Models\PollOption;
+use App\Models\PollVote;
 use Carbon\Carbon;
 
 class HomeController extends Controller
@@ -50,9 +53,63 @@ class HomeController extends Controller
             ->orderBy('updated_at')
             ->paginate(30);
 
+        $poll = Poll::latest()->first();
+
+        $pollData = $poll->toArray();
+
+        $pollData['options']     = [];
+        $pollData['total_votes'] = 0;
+
+        foreach ($poll->options as $option)
+        {
+            $pollData['options'][$option->id]                = $option->toArray();
+            $pollData['options'][$option->id]['total_votes'] = $pollData['options'][$option->id]['votes'];
+            $pollData['options'][$option->id]['votes']       = [];
+        }
+
+        foreach ($poll->votes as $vote)
+        {
+            $pollData['options'][$vote->option_id]['votes'][] = $vote->toArray();
+            $pollData['total_votes'] += 1;
+
+            if ($vote->created_user_id == $user->id)
+            {
+                $pollData['current_user_voted'] = true;
+            }
+        }
+
         return view('home', [
-            'updates' => $updates
+            'updates' => $updates,
+            'poll'    => $pollData
         ]);
+    }
+
+    /**
+     * vote
+     *
+     * @param  Illuminate\Http\Request  $request
+     * @return Illuminate\View\View
+     */
+    public function vote(Request $request)
+    {
+        $request->validate([
+            'option' => ['required', 'int'],
+        ]);
+
+        $option = PollOption::findOrFail($request->option);
+
+        $option->votes++;
+        $option->save();
+
+        $vote = new PollVote();
+
+        $vote->option_id       = $request->option;
+        $vote->poll_id         = $option->poll_id;
+        $vote->created_user_id = Auth()->user()->id;
+        $vote->updated_user_id = Auth()->user()->id;
+        $vote->save();
+
+        return redirect()->route('home');
     }
 
     /**

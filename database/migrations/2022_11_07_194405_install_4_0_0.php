@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\User;
 use App\Models\Event;
 use App\Models\EventCategory;
+use App\Models\Poll;
+use App\Models\PollOption;
 
 class Install400 extends Migration
 {
@@ -348,7 +350,7 @@ class Install400 extends Migration
 
         Schema::create('poll_votes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('option');
+            $table->foreignId('option_id');
             $table->foreignId('poll_id');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
@@ -362,6 +364,30 @@ class Install400 extends Migration
             $table->foreignId('updated_user_id');
             $table->timestamps();
         });
+
+        $poll = new Poll();
+
+        $poll->question        = __('What do you think of Family Connections?');
+        $poll->created_user_id = 1;
+        $poll->updated_user_id = 1;
+
+        $poll->save();
+
+        $pollOptionData = [
+            __('Easy to use!'),
+            __('Visually appealing!'),
+            __('Just what our family needed!'),
+        ];
+
+        foreach ($pollOptionData as $i => $option)
+        {
+            $pollOption = new PollOption();
+ 
+            $pollOption->poll_id = 1;
+            $pollOption->option  = $option;
+
+            $pollOption->save();
+        }
 
         Schema::create('prayers', function (Blueprint $table) {
             $table->id();

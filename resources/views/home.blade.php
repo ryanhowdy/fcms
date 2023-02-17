@@ -62,7 +62,41 @@
     @endfor
     </div>
     <div class="col-auto col-3 p-5">
-        right sidebar
+        <div class="card mb-3">
+            <div class="card-header">
+                {{ __('Latest Poll') }}
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ $poll['question'] }}</h5>
+            @if (isset($poll['current_user_voted']))
+                @foreach ($poll['options'] as $option)
+                    @php($percent = round(($option['total_votes'] / $poll['total_votes'] * 100), 0))
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <div class="fw-bold">{{ $option['option'] }}</div>
+                        <div class="small text-muted">{{ $option['total_votes'] }}</div>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ $percent }}%;" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                @endforeach
+            @else
+                <form action="{{ route('poll.vote') }}" method="post">
+                    @csrf
+                    <div class="mb-3">
+                    @foreach ($poll['options'] as $option)
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="option" id="option-{{ $option['id'] }}" value="{{ $option['id'] }}">
+                            <label class="form-check-label" for="option-{{ $option['id'] }}">{{ $option['option'] }}</label>
+                        </div>
+                    @endforeach
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-info">{{ __('Vote') }}</button>
+                </form>
+            @endif
+            </div><!-- /.card-body -->
+        </div><!-- /.card -->
     </div>
 </div>
 @endsection

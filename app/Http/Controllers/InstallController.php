@@ -395,6 +395,7 @@ class InstallController extends Controller
         $admin->dob_month = $request->bmonth;
         $admin->dob_day   = $request->bday;
         $admin->activated = true;
+        $admin->access    = 1;
 
         if ($request->has('lname'))
         {

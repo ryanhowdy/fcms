@@ -18,6 +18,7 @@ use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\AdminMemberController;
+use App\Http\Controllers\AdminPollController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,6 +51,8 @@ Route::post('/register',        [ RegisterController::class, 'store' ]);
 // Must be authed
 Route::middleware(['auth'])->group(function () {
     Route::any( '/home',   [ HomeController::class, 'home' ])->name('home');
+
+    Route::post('/poll/vote', [ HomeController::class, 'vote' ])->name('poll.vote');
 
     Route::get( '/me/profile',         [ MeController::class, 'profileCreate' ])->name('my.profile');
     Route::post('/me/profile',         [ MeController::class, 'profileStore' ]);
@@ -145,7 +148,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/members/{id}/edit', [ AdminMemberController::class, 'update' ])->name('admin.members.update');
 
         Route::get( '/photos', [ HomeController::class, 'home' ])->name('admin.photos');
-        Route::get( '/polls', [ HomeController::class, 'home' ])->name('admin.polls');
+
+        Route::get( '/polls',           [ AdminPollController::class, 'index' ])->name('admin.polls');
+        Route::get( '/create',          [ AdminPollController::class, 'create' ])->name('admin.polls.create');
+        Route::post('/create',          [ AdminPollController::class, 'store' ]);
+        Route::get( '/polls/{id}',      [ AdminPollController::class, 'show' ])->name('admin.polls.show');
+        Route::get( '/polls/{id}/edit', [ AdminPollController::class, 'edit' ])->name('admin.polls.show');
+        Route::post('/polls/{id}/edit', [ AdminPollController::class, 'update' ]);
+
         Route::get( '/facebook', [ HomeController::class, 'home' ])->name('admin.facebook');
         Route::get( '/google', [ HomeController::class, 'home' ])->name('admin.google');
         Route::get( '/instagram', [ HomeController::class, 'home' ])->name('admin.instagram');
