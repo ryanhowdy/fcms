@@ -19,8 +19,7 @@ class PhotoController extends Controller
     {
         $albums = PhotoAlbum::latest()
             ->join('users as cu', 'photo_albums.created_user_id', '=', 'cu.id')
-            ->join('user_settings as cus', 'photo_albums.created_user_id', '=', 'cus.user_id')
-            ->select('photo_albums.*', 'cu.fname', 'cu.mname', 'cu.lname', 'cus.displayname')
+            ->select('photo_albums.*', 'cu.name', 'cu.displayname')
             ->with('photos')
             ->get();
 
@@ -137,8 +136,7 @@ class PhotoController extends Controller
     {
         $album = PhotoAlbum::where('photo_albums.id',$id)
             ->join('users as cu', 'photo_albums.created_user_id', '=', 'cu.id')
-            ->join('user_settings as cus', 'photo_albums.created_user_id', '=', 'cus.user_id')
-            ->select('photo_albums.*', 'cu.fname', 'cu.mname', 'cu.lname', 'cus.displayname')
+            ->select('photo_albums.*', 'cu.name', 'cu.displayname')
             ->with('photos')
             ->get();
 
@@ -156,8 +154,7 @@ class PhotoController extends Controller
     {
         $album = PhotoAlbum::where('photo_albums.id',$albumId)
             ->join('users as cu', 'photo_albums.created_user_id', '=', 'cu.id')
-            ->join('user_settings as cus', 'photo_albums.created_user_id', '=', 'cus.user_id')
-            ->select('photo_albums.*', 'cu.fname', 'cu.mname', 'cu.lname', 'cus.displayname')
+            ->select('photo_albums.*', 'cu.name', 'cu.displayname')
             ->with('photos')
             ->get();
 

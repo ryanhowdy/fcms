@@ -37,15 +37,14 @@
                     <label for="password_confirmation">{{ __('Confirm Password') }}</label>
                     <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
                 </div>
-                <div class="mb-3 row">
-                    <div class="col required">
-                        <label for="fname">{{ __('First Name') }}</label>
-                        <input type="text" class="form-control" name="fname" id="fname" value="{{ old('fname') }}">
-                    </div>
-                    <div class="col">
-                        <label for="lname">{{ __('Last Name') }}</label>
-                        <input type="text" class="form-control" name="lname" id="lname" value="{{ old('lname') }}">
-                    </div>
+                <div class="mb-3 required">
+                    <label for="name">{{ __('Full Name') }}</label>
+                    <input type="text" class="form-control" name="name" id="name" value="{{ old('name') }}">
+                </div>
+                <div class="mb-3">
+                    <label for="displayname">{{ __('Display Name') }}</label>
+                    <input type="text" class="form-control" name="displayname" id="displayname" value="{{ old('displayname') }}">
+                    <div class="form-text">{{ __('What do you want to be called on the site?  Leave blank if it is the same as Full Name.') }}</div>
                 </div>
                 <div class="mb-3 required">
                     <label for="bday">{{ __('Birthday') }}</label>

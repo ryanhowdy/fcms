@@ -17,8 +17,7 @@ class NewsController extends Controller
     {
         $recentNews = News::latest()
             ->join('users as cu', 'news.created_user_id', '=', 'cu.id')
-            ->join('user_settings as cus', 'news.created_user_id', '=', 'cus.user_id')
-            ->select('news.*', 'cu.fname', 'cu.mname', 'cu.lname', 'cus.displayname')
+            ->select('news.*', 'cu.name', 'cu.displayname')
             ->limit(4)
             ->get();
 
@@ -40,8 +39,7 @@ class NewsController extends Controller
 
         $news = News::latest()
             ->join('users as cu', 'news.created_user_id', '=', 'cu.id')
-            ->join('user_settings as cus', 'news.created_user_id', '=', 'cus.user_id')
-            ->select('news.*', 'cu.fname', 'cu.mname', 'cu.lname', 'cus.displayname')
+            ->select('news.*', 'cu.name', 'cu.displayname')
             ->limit(8)
             ->get();
 
@@ -101,8 +99,7 @@ class NewsController extends Controller
 
         $comments = NewsComment::where('news_id', $id)
             ->join('users as cu', 'news_comments.created_user_id', '=', 'cu.id')
-            ->join('user_settings as cus', 'news_comments.created_user_id', '=', 'cus.user_id')
-            ->select('news_comments.*', 'cu.fname', 'cu.mname', 'cu.lname', 'cus.displayname')
+            ->select('news_comments.*', 'cu.name', 'cu.displayname')
             ->simplePaginate(25);
 
         return view('news.show', [

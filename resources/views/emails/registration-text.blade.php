@@ -1,4 +1,4 @@
-{{ __('Dear :name,', ['name' => $user->fname]) }}
+{{ __('Dear :name,', ['name' => $user->displayname]) }}
 
 {{ __('Thank you for registering at :sitename.', ['sitename' => env('APP_NAME')]) }}
 

@@ -9,7 +9,7 @@
             <li class="header ps-4">{{ $letter }}</li>
         @foreach ($addresses[$letter] as $i => $address)
             <li class="p-4">
-                <a data-id="{{ $address->id }}" href="#">{{ $address->lname }}, {{ $address->fname }}</a>
+                <a data-id="{{ $address->id }}" href="#">{{ $address->name }}</a>
             </li>
         @endforeach
     @endforeach

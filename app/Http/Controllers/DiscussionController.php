@@ -19,8 +19,7 @@ class DiscussionController extends Controller
     {
         $discussions = Discussion::latest()
             ->join('users as cu', 'discussions.created_user_id', '=', 'cu.id')
-            ->join('user_settings as cus', 'discussions.created_user_id', '=', 'cus.user_id')
-            ->select('discussions.*', 'cu.fname', 'cu.mname', 'cu.lname', 'cus.displayname')
+            ->select('discussions.*', 'cu.name', 'cu.displayname')
             ->simplePaginate(25);
 
         return view('discussions.index', ['discussions' => $discussions]);
@@ -84,8 +83,7 @@ class DiscussionController extends Controller
 
         $comments = DiscussionComment::where('discussion_id', $id)
             ->join('users as cu', 'discussion_comments.created_user_id', '=', 'cu.id')
-            ->join('user_settings as cus', 'discussion_comments.created_user_id', '=', 'cus.user_id')
-            ->select('discussion_comments.*', 'cu.fname', 'cu.mname', 'cu.lname', 'cus.displayname')
+            ->select('discussion_comments.*', 'cu.name', 'cu.displayname')
             ->simplePaginate(25);
 
         return view('discussions.show', [

@@ -19,34 +19,8 @@ class MeController extends Controller
     {
         $user = User::findOrFail(Auth()->user()->id);
 
-        $days   = [];
-        $months = [];
-        $years  = [];
-
-        $d = 1;
-        while ($d <= 31)
-        {
-            $days[$d] = $d;
-            $d++;
-        }
-        $m = 1;
-        while ($m <= 12)
-        {
-            $months[$m] = date('F', mktime(0, 0, 0, $m));
-            $m++;
-        }
-        $y = 1900;
-        while ($y + 13 <= gmdate('Y'))
-        {
-            $years[$y] = $y;
-            $y++;
-        }
-
         return view('me.profile', [
-            'days'     => $days,
-            'months'   => $months,
-            'years'    => array_reverse($years, true),
-            'user'     => $user,
+            'user' => $user,
         ]);
     }
 
@@ -59,26 +33,21 @@ class MeController extends Controller
     public function profileStore(Request $request)
     {
         $validated = $request->validate([
-            'fname'  => ['required', 'string'],
-            'lname'  => ['required', 'string'],
-            'bday'   => ['required', 'integer', 'min:1', 'max:31'],
-            'bmonth' => ['required', 'integer', 'min:1', 'max:12'],
-            'byear'  => ['required', 'integer', 'min:1900'],
-            'mname'  => ['nullable', 'string'],
-            'maiden' => ['nullable', 'string'],
-            'bio'    => ['nullable', 'string'],
+            'name'     => ['required', 'string'],
+            'birthday' => ['required', 'date'],
+            'bio'      => ['nullable', 'string'],
         ]);
 
         $user = User::findOrFail(Auth()->user()->id);
 
-        $user->fname     = $request->fname;
-        $user->mname     = $request->mname;
-        $user->lname     = $request->lname;
-        $user->maiden    = $request->maiden;
-        $user->bio       = $request->bio;
-        $user->dob_day   = $request->bday;
-        $user->dob_month = $request->bmonth;
-        $user->dob_year  = $request->byear;
+        $user->name     = $request->name;
+        $user->bio      = $request->bio;
+        $user->birthday = $request->bday;
+
+        if ($request->has('displayname'))
+        {
+            $user->displayname = $request->displayname;
+        }
 
         $user->save();
 

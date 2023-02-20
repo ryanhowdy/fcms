@@ -334,22 +334,20 @@ class Calendar
         $birthdayCategory = EventCategory::find(3)->toArray();
 
         // Get users birthdays for this month
-        $birthdays = User::where('dob_month', $date->format('n'))
+        $birthdays = User::where('birthday', 'like', '%%%%-'.$date->format('m').'-%%')
             ->get();
 
         foreach ($birthdays as $b)
         {
-            $carbonBirthday = Carbon::createFromDate($b->dob_year.'-'.$b->dob_month.'-'.$b->dob_day);
-
-            if ($endOfCalendar->lt($carbonBirthday))
+            if ($endOfCalendar->lt($b->birthday))
             {
                 continue;
             }
 
-            $bMonth = $this->fixMonth($b->dob_month);
-            $bDay   = $this->fixDay($b->dob_day);
+            $bMonth = $b->birthday->format('m');
+            $bDay   = $b->birthday->format('d');
 
-            $age = $endOfCalendar->diff($carbonBirthday)->format('%y');
+            $age = $endOfCalendar->diff($b->birthday)->format('%y');
 
             $desc = trans_choice('{1} Turns :age year old today.|[2,*] Turns :age years old today.', $age, [ 'age' => $age ]);
             if ($age == 0)
@@ -360,10 +358,10 @@ class Calendar
             $dateKey = $endOfCalendar->format('Y').'-'.$bMonth.'-'.$bDay;
 
             $formattedEvents[$dateKey][] = [
-                'date'              => $b->dob_year.'-'.$bMonth.'-'.$bDay,
+                'date'              => $b->birthday->format('Y-m-d'),
                 'time_start'        => null,
                 'time_end'          => null,
-                'title'             => $b->fname.' '.$b->lname,
+                'title'             => getUserDisplayName($b->toArray()),
                 'desc'              => $desc,
                 'event_category_id' => 3,
                 'category_name'     => $birthdayCategory['name'],

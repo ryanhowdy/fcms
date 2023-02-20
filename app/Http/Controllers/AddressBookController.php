@@ -15,8 +15,8 @@ class AddressBookController extends Controller
     public function index()
     {
         $addresses = Address::join('users as u', 'addresses.user_id', '=', 'u.id')
-            ->select('addresses.*', 'u.fname', 'u.lname')
-            ->orderBy('u.lname')
+            ->select('addresses.*', 'u.name')
+            ->orderBy('u.name')
             ->get();
 
         $grouped = [];
@@ -25,7 +25,7 @@ class AddressBookController extends Controller
 
         foreach ($addresses as $i => $address)
         {
-            $letter = substr($address->lname, 0, 1);
+            $letter = substr($address->name, 0, 1);
 
             if ($prevLetter !== $letter)
             {

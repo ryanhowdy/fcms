@@ -91,8 +91,7 @@ class VideoController extends Controller
 
         $comments = VideoComment::where('video_id', $id)
             ->join('users as cu', 'video_comments.created_user_id', '=', 'cu.id')
-            ->join('user_settings as cus', 'video_comments.created_user_id', '=', 'cus.user_id')
-            ->select('video_comments.*', 'cu.fname', 'cu.mname', 'cu.lname', 'cus.displayname')
+            ->select('video_comments.*', 'cu.name', 'cu.displayname')
             ->simplePaginate(25);
 
         return view('videos.show', [

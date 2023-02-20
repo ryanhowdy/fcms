@@ -1,4 +1,4 @@
-<p>{{ __('Dear :name,', ['name' => $user->fname]) }}</p>
+<p>{{ __('Dear :name,', ['name' => $user->displayname]) }}</p>
 <p>{{ __('Thank you for registering at :sitename.', ['sitename' => env('APP_NAME')]) }}</p>
 <p>{{ __('In order to login and begin using the site, your administrator must activate your account.  You will get an email when this has been done.') }}</p>
 <p>

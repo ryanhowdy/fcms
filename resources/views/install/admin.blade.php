@@ -32,35 +32,18 @@
                     <label for="password_confirmation">{{ __('Confirm Password') }}</label>
                     <input type="password" class="form-control" name="password_confirmation" id="password_confirmation">
                 </div>
-                <div class="mb-3 row">
-                    <div class="col required">
-                        <label for="fname">{{ __('First Name') }}</label>
-                        <input type="text" class="form-control" name="fname" id="fname" value="{{ old('fname') }}">
-                    </div>
-                    <div class="col">
-                        <label for="lname">{{ __('Last Name') }}</label>
-                        <input type="text" class="form-control" name="lname" id="lname" value="{{ old('lname') }}">
-                    </div>
+                <div class="mb-3 required">
+                    <label for="name">{{ __('Full Name') }}</label>
+                    <input type="text" class="form-control" name="name" id="name" value="{{ old('name') }}">
+                </div>
+                <div class="mb-3">
+                    <label for="displayname">{{ __('Display Name') }}</label>
+                    <input type="text" class="form-control" name="displayname" id="displayname" value="{{ old('displayname') }}">
+                    <div class="form-text">{{ __('What do you want to be called on the site?  Leave blank if it is the same as Full Name.') }}</div>
                 </div>
                 <div class="mb-3 required">
                     <label for="bday">{{ __('Birthday') }}</label>
-                    <div class="d-flex flex-row">
-                        <select class="form-select w-auto" id="bday" name="bday">
-                            @foreach($days as $d => $val)
-                            <option value="{{ $d }}" {{ old('bday') == $d ? 'selected' : '' }}>{{ $val }}</option>
-                            @endforeach
-                        </select>
-                        <select class="form-select w-auto" id="bmonth" name="bmonth">
-                            @foreach($months as $m => $val)
-                            <option value="{{ $m }}" {{ old('bmonth') == $m ? 'selected' : '' }}>{{ $val }}</option>
-                            @endforeach
-                        </select>
-                        <select class="form-select w-auto" id="byear" name="byear">
-                            @foreach($years as $y => $val)
-                            <option value="{{ $y }}" {{ old('byear') == $y ? 'selected' : '' }}>{{ $val }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <input type="date" class="form-control" id="bday" name="bday" value="{{ old('bday') }}">
                 </div>
                 <div class="text-end">
                     <input type="submit" class="btn btn-primary" value="{{ __('Next') }}">

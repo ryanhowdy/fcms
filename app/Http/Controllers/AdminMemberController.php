@@ -15,8 +15,6 @@ class AdminMemberController extends Controller
     public function index()
     {
         $users = User::latest()
-            ->leftJoin('user_settings as cus', 'users.id', '=', 'cus.user_id')
-            ->select('users.*', 'cus.displayname')
             ->where('users.id', '!=', 1)
             ->get();
 

@@ -17,7 +17,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'fname',
+        'name',
     ];
 
     /**
@@ -26,6 +26,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $dates = [
+        'birthday',
         'locked',
         'activity',
         'created_at',

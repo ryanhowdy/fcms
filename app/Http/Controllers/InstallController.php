@@ -85,7 +85,7 @@ class InstallController extends Controller
     private function isStepThreeComplete()
     {
         $admin = User::select()
-            ->where('fname', '!=', 'system')
+            ->where('name', '!=', 'system')
             ->get();
 
         if ($admin->isEmpty())
@@ -379,27 +379,23 @@ class InstallController extends Controller
         $validated = $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required', 'confirmed'],
-            'fname'    => ['required'],
-            'bday'     => ['required', 'integer'],
-            'bmonth'   => ['required', 'integer'],
-            'byear'    => ['required', 'integer'],
+            'name'     => ['required'],
+            'bday'     => ['required', 'date'],
         ]);
 
         // Create the admin user
         $admin = new User;
 
-        $admin->fname     = $request->fname;
+        $admin->name      = $request->name;
         $admin->email     = $request->email;
         $admin->password  = Hash::make($request->password);
-        $admin->dob_year  = $request->byear;
-        $admin->dob_month = $request->bmonth;
-        $admin->dob_day   = $request->bday;
+        $admin->birthday  = $request->bday;
         $admin->activated = true;
         $admin->access    = 1;
 
-        if ($request->has('lname'))
+        if ($request->has('displayname'))
         {
-            $admin->lname = $request->lname;
+            $admin->displayname = $request->displayname;
         }
 
         $admin->save();

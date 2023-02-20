@@ -23,16 +23,9 @@ class Install400 extends Migration
             $table->smallInteger('access')->default(3);
             $table->string('email')->unique();
             $table->string('password')->default('0');
-            $table->string('fname');
-            $table->string('mname')->nullable();
-            $table->string('lname');
-            $table->string('maiden', 25)->nullable();
-            $table->char('dob_year', 4)->nullable();
-            $table->char('dob_month', 2)->nullable();
-            $table->char('dob_day', 2)->nullable();
-            $table->char('dod_year', 4)->nullable();
-            $table->char('dod_month', 2)->nullable();
-            $table->char('dod_day', 2)->nullable();
+            $table->string('name');
+            $table->string('displayname')->nullable();
+            $table->date('birthday')->nullable();
             $table->string('token')->nullable();
             $table->string('avatar', 25)->default('no_avatar.jpg');
             $table->string('bio', 200)->nullable();
@@ -47,9 +40,9 @@ class Install400 extends Migration
 
         $user = new User();
 
-        $user->email = 'noreply@domain.com';
-        $user->fname = 'system';
-        $user->lname = 'system';
+        $user->access = 10;
+        $user->email  = 'noreply@domain.com';
+        $user->name   = 'system';
         $user->save();
 
         Schema::create('addresses', function (Blueprint $table) {
@@ -473,7 +466,6 @@ class Install400 extends Migration
             $table->foreignId('user_id');
             $table->string('theme', 25)->default('default');
             $table->set('boardsort', ['ASC', 'DESC'])->default('ASC');
-            $table->tinyInteger('displayname')->default('1');
             $table->set('frontpage', ['1', '2'])->default('1');
             $table->string('timezone')->default('-5 hours');
             $table->boolean('dst')->default(false);
@@ -537,41 +529,37 @@ class Install400 extends Migration
                 dc.created_at,
                 dc.updated_at,
                 dc.updated_user_id,
-                u.fname,
-                u.mname,
-                u.lname,
+                u.name,
+                u.displayname,
                 u.avatar,
                 u.email,
-                us.displayname,
                 d.title,                -- object title
                 dc.comments             -- object comments
             FROM
                 discussion_comments AS dc
                 LEFT JOIN discussions AS d ON dc.discussion_id = dc.id
-                LEFT JOIN users AS u ON dc.updated_user_id = u.id
-                LEFT JOIN user_settings as us ON dc.updated_user_id = us.user_id)
+                LEFT JOIN users AS u ON dc.updated_user_id = u.id)
             UNION
             (SELECT
-                'ADDRESS_ADD' AS type, a.id, a.created_at, a.updated_at, a.updated_user_id, u.fname, u.mname, u.lname, u.avatar, u.email, us.displayname, 'n/a' AS title, 'n/a' as comments
+                'ADDRESS_ADD' AS type, a.id, a.created_at, a.updated_at, a.updated_user_id, u.name, u.displayname, u.avatar, u.email, 'n/a' AS title, 'n/a' as comments
             FROM
-                addresses AS a, users AS u, user_settings AS us
+                addresses AS a, users AS u
             WHERE
-                a.updated_user_id = u.id AND a.updated_user_id = us.user_id)
+                a.updated_user_id = u.id)
             UNION
             (SELECT
-                'NEW_USER' AS type, u.id, u.created_at, u.updated_at, u.id, u.fname, u.mname, u.lname, u.avatar, u.email, us.displayname, 'n/a', 'n/a'
+                'NEW_USER' AS type, u.id, u.created_at, u.updated_at, u.id, u.name, u.displayname, u.avatar, u.email, 'n/a', 'n/a'
             FROM
-                users AS u, user_settings AS us
+                users AS u
             WHERE
                 activated > 0)
             UNION
             (SELECT
-                'PHOTOS' AS type, p.filename, p.created_at, p.updated_at, p.updated_user_id, u.fname, u.mname, u.lname, u.avatar, u.email, us.displayname, a.name, a.description
+                'PHOTOS' AS type, p.filename, p.created_at, p.updated_at, p.updated_user_id, u.name, u.displayname, u.avatar, u.email, a.name, a.description
             FROM
                 photos AS p
                 LEFT JOIN photo_albums AS a ON p.photo_album_id = a.id
-                LEFT JOIN users AS u ON p.updated_user_id = u.id
-                LEFT JOIN user_settings as us ON p.updated_user_id = us.user_id)
+                LEFT JOIN users AS u ON p.updated_user_id = u.id)
         ");
     }
 

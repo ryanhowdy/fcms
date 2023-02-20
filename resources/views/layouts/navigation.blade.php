@@ -25,7 +25,7 @@
                             </a>
                             <div>
                                 <p class="fw-bold pe-3 m-0">
-                                    {{ Auth()->user()->fname }} {{ Auth()->user()->lname }}
+                                    {{ Auth()->user()->displayname }}
                                 </p>
                                 <p class="pe-3">
                                     {{ Auth()->user()->email }}
