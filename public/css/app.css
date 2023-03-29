@@ -21114,8 +21114,6 @@ body#familytree .tree ul:not(.dropdown-menu) li.rel > div {
   padding: 5px 10px;
   text-decoration: none;
   display: inline-block;
-  min-width: 175px;
-  min-height: 105px;
 }
 body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person + div.person {
   margin-left: 20px;
@@ -21123,12 +21121,23 @@ body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person + div.per
 body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person {
   padding: 10px;
   text-align: left;
+  position: relative;
+  min-width: 175px;
+  min-height: 115px;
 }
-body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > .dropdown {
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > .options {
   display: none;
+  border: 1px solid var(--bs-border-color);
+  position: absolute;
+  top: 0;
+  right: 0;
 }
-body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person:hover > .dropdown {
-  display: block;
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > .options > div.dropdown,
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > .options > a {
+  padding: 5px 10px;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person:hover > .options {
+  display: flex;
 }
 body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > span.text-muted {
   font-size: 0.75rem;

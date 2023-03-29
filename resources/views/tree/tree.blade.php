@@ -8,7 +8,7 @@
             @endforeach
         @endisset
     </div>
-    @isset($person['kids'])
+    @if (isset($person['kids']) && !empty($person['kids']))
         <ul class="list-unstyled">
         @foreach ($person['kids'] as $k)
             {{-- magic recursion --}}

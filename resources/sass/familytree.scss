@@ -70,8 +70,6 @@ body#familytree
                     padding: 5px 10px;
                     text-decoration: none;
                     display: inline-block;
-                    min-width: 175px;
-                    min-height: 105px;
 
                     > div.person + div.person
                     {
@@ -81,16 +79,29 @@ body#familytree
                     {
                         padding: 10px;
                         text-align: left;
+                        position: relative;
+                        min-width: 175px;
+                        min-height: 115px;
 
-                        > .dropdown
+                        > .options
                         {
                             display: none;
+                            border: 1px solid var(--bs-border-color);
+                            position: absolute;
+                            top: 0;
+                            right: 0;
+
+                            > div.dropdown,
+                            > a
+                            {
+                                padding: 5px 10px;
+                            }
                         }
                         &:hover
                         {
-                            > .dropdown
+                            > .options
                             {
-                                display: block;
+                                display: flex;
                             }
                         }
 

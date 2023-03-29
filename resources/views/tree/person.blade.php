@@ -1,20 +1,45 @@
 <div class="person">
-    <div class="dropdown no-caret float-end">
-        <i class="bi-three-dots-vertical dropdown-toggle" data-bs-toggle="dropdown"></i>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" data-user="{{ $person['id'] }}" data-type="parent" href="#">{{ __('Add Parent') }}</a></li>
-            <li><a class="dropdown-item" data-user="{{ $person['id'] }}" data-type="spouse" href="#">{{ __('Add Spouse') }}</a></li>
-            <li><a class="dropdown-item" data-user="{{ $person['id'] }}" data-type="child" href="#">{{ __('Add Child') }}</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-muted" href="#">{{ __('Edit') }}</a></li>
-            <li><a class="dropdown-item text-danger" href="#">{{ __('Delete') }}</a></li>
-        </ul>
-    </div>
+    <div class="options">
+        <div class="dropdown no-caret">
+            <i class="bi-person-plus dropdown-toggle" data-bs-toggle="dropdown"></i>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item" data-individual="{{ $person['id'] }}" data-type="parent" data-family="{{ $person['family_id'] }}" href="#"
+                        data-header="{{ $person['strings']['parent']['header'] }}">
+                        {{ __('Add Parent') }}
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" data-individual="{{ $person['id'] }}" data-type="spouse" data-family="{{ $person['family_id'] }}" href="#"
+                        data-header="{{ $person['strings']['spouse']['header'] }}" data-surname="{{ $person['surname'] }}">
+                        {{ __('Add Spouse') }}
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" data-individual="{{ $person['id'] }}" data-type="sibling" data-family="{{ $person['family_id'] }}" href="#"
+                        data-header="{{ $person['strings']['sibling']['header'] }}">
+                        {{ __('Add Sibling') }}
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" data-individual="{{ $person['id'] }}" data-type="child" data-family="{{ $person['family_id'] }}" href="#"
+                        data-header="{{ $person['strings']['child']['header'] }}">
+                        {{ __('Add Child') }}
+                    </a>
+                </li>
+            </ul>
+        </div><!-- /.dropdown.no-caret -->
+        <a href="">
+            <i class="bi-pencil"></i>
+        </a>
+    </div><!-- /.options -->
     <img class="avatar rounded-5" src="{{ getUserAvatar($person) }}" title="{{ __('avatar') }}">
     <div class="d-block">
-        {{ $person['fname'] }} {{ $person['mname'] }} {{ $person['lname'] }}
+        {{ $person['given_name'] }}
         @if (!empty($person['maiden']))
             {{ '('.$person['maiden'].')' }}
+        @else
+            {{ $person['surname'] }}
         @endif
     </div>
     <span class="text-muted">

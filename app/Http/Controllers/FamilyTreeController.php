@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Relationship;
+use App\Models\TreeFamily;
+use App\Models\TreeIndividual;
+use App\Models\TreeRelationship;
 use App\Models\User;
 use App\FamilyTree;
 
@@ -18,97 +20,72 @@ class FamilyTreeController extends Controller
     {
         $user = User::findOrFail(Auth()->user()->id);
 
-        // Needs to be in the following format
-        // [
-        //   id => ...
-        //   ...
-        //   spouses => [...],
-        //   kids    => [...],
-        // ]
-        $tree = [];
+        // TODO - allow $user to be selected
 
         $familyTree = new FamilyTree();
 
-        // Get starting user id for this user, either this user or this user's parent
-        $startingId = $familyTree->getStartingUserId($user->id);
+        // See if the current user has any family tree data
+        $individuals = TreeIndividual::where('user_id', $user->id)->get();
 
-        $relationships = Relationship::join('users as u', 'relationships.user_id', '=', 'u.id')
-            ->join('users as ru', 'relationships.rel_user_id', '=', 'ru.id')
-            ->select('relationships.*', 'u.fname as user_fname', 'u.mname as user_mname', 'u.lname as user_lname', 
-                'u.maiden as user_maiden', 'u.dob_year as user_dob_year', 'u.dod_year as user_dod_year', 'u.avatar as user_avatar', 
-                'ru.fname', 'ru.mname', 'ru.lname', 'ru.maiden', 'ru.dob_year', 'ru.dod_year', 'ru.avatar')
-            ->get();
-
-        $sorted = [];
-        foreach ($relationships as $rel)
+        if ($individuals->isEmpty())
         {
-            if (!isset($sorted[$rel->user_id]))
-            {
-                $sorted[$rel->user_id] = [
-                    'id'          => $rel->user_id,
-                    'user_id'     => $rel->user_id,
-                    'rel_user_id' => $rel->rel_user_id,
-                    'fname'       => $rel->user_fname,
-                    'mname'       => $rel->user_mname,
-                    'lname'       => $rel->user_lname,
-                    'maiden'      => $rel->user_maiden,
-                    'dob_year'    => $rel->user_dob_year,
-                    'dod_year'    => $rel->user_dod_year,
-                    'avatar'      => $rel->user_avatar,
-                    'spouse'      => [],
-                    'kids'        => [],
-                ];
-            }
+            $userData = $user->toArray();
 
-            if ($rel->relationship == 'CHIL')
-            {
-                $arr = $rel->toArray();
+            $names = explode(' ', $userData['name']);
 
-                $arr['id'] = $rel->rel_user_id;
+            $userData['given_name'] = $names[0];
+            $userData['surname']    = end($names);
+            $userData['dob']        = $user->birthday->format('Y-m-d');
 
-                $sorted[$rel->user_id]['kids'][] = $arr;
-            }
-            else if (in_array($rel->relationship, ['HUSB', 'WIFE']))
-            {
-                $arr = $rel->toArray();
-
-                $arr['id'] = $rel->rel_user_id;
-
-                $sorted[$rel->user_id]['spouses'][] = $arr;
-            }
+            return view('tree.empty', [
+                'user' => $userData,
+            ]);
         }
 
-        $branches = array_keys($sorted);
+        $individual = $individuals[0];
 
-        if (isset($sorted[$startingId]))
+        $tree     = [];
+        $families = [];
+
+        // Get the family ids of the current user
+        $familyId        = $individual->family_id;
+        $parentsFamilyId = $familyTree->getParentsFamilyId($individual->id);
+
+        if ($parentsFamilyId)
         {
-            $tree[$startingId] = $sorted[$startingId];
+            $families = $families + $familyTree->getFamilyUnit($parentsFamilyId);
+        }
+        $families = $families + $familyTree->getFamilyUnit($familyId);
 
-            foreach ($tree[$startingId]['kids'] as $i => $t)
+        // Put all the families in the tree in the proper spots
+        foreach ($families as $id => $fam)
+        {
+            $nextFamily = next($families);
+            if (!$nextFamily)
             {
-                // do these kids have branches of their own?
-                if (in_array($t['rel_user_id'], $branches))
+                continue;
+            }
+
+            foreach ($fam['kids'] as $kidId => $kid)
+            {
+                if ($nextFamily['id'] == $kidId)
                 {
-                    // add spouses
-                    foreach ($sorted[ $t['rel_user_id'] ]['spouses'] as $z)
-                    {
-                        $tree[$startingId]['kids'][$i]['spouses'][] = $z;
-                    }
-                    // add kids
-                    foreach ($sorted[ $t['rel_user_id'] ]['kids'] as $z)
-                    {
-                        $tree[$startingId]['kids'][$i]['kids'][] = $z;
-                    }
+                    $families[$id]['kids'][$kidId] = $families[$nextFamily['id']];
+                    unset($families[$nextFamily['id']]);
                 }
             }
         }
-        else
-        {
-            $tree[$startingId] = $user;
-        }
+        $tree = $families;
+
+        $allUsers = User::where('id', '>', 1)
+            ->where('id', '!=', $user->id)
+            ->orderBy('name', 'desc')
+            ->get()
+            ->pluck('name', 'id');
 
         return view('tree.index', [
-            'tree' => $tree,
+            'users' => $allUsers,
+            'tree'  => $tree,
         ]);
     }
 
@@ -120,73 +97,163 @@ class FamilyTreeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'fname'        => ['required'],
-            'lname'        => ['required'],
-            'user_id'      => ['required', 'integer'],
-            'relationship' => ['required'],
-            'dob'          => ['sometimes', 'nullable', 'before_or_equal:today'],
-            'dod'          => ['sometimes', 'nullable', 'before_or_equal:today'],
+            'user_id'       => ['sometimes', 'nullable', 'integer'],
+            'family_id'     => ['sometimes', 'nullable', 'integer'],
+            'individual_id' => ['sometimes', 'nullable', 'integer'],
+            'given_name'    => ['sometimes', 'nullable', 'max:255'],
+            'surname'       => ['sometimes', 'nullable', 'max:255'],
+            'maiden'        => ['sometimes', 'nullable', 'max:255'],
+            'alias'         => ['sometimes', 'nullable', 'max:255'],
+            'nickname'      => ['sometimes', 'nullable', 'max:255'],
+            'name_prefix'   => ['sometimes', 'nullable', 'max:255'],
+            'name_suffix'   => ['sometimes', 'nullable', 'max:255'],
+            'dob'           => ['sometimes', 'nullable', 'before_or_equal:today'],
+            'dod'           => ['sometimes', 'nullable', 'before_or_equal:today'],
+            'sex'           => ['sometimes', 'in:U,O,M,F'],
         ]);
 
-        // Create the new user
-        $newUser = new User;
+        $familyId = 0;
 
-        $newUser->fname = $request->input('fname');
-        $newUser->lname = $request->input('lname');
-        $newUser->email = $newUser->fname.'-'.$newUser->lname.'@email.com';
-
-        // names
-        if ($request->has('mname'))
+        //
+        // Create the family record
+        //
+        if (!$request->has('family_id'))
         {
-            $newUser->mname = $request->input('mname');
+            $family = new TreeFamily();
+
+            if ($request->has('description'))
+            {
+                $family->description = $request->description;
+            }
+
+            $family->created_user_id = Auth()->user()->id;
+            $family->updated_user_id = Auth()->user()->id;
+
+            $family->save();
+
+            $familyId = $family->id;
+        }
+        else
+        {
+            $familyId = $request->family_id;
+        }
+
+        //
+        // Create the individual record
+        //
+        $individual = new TreeIndividual();
+
+        $individual->family_id       = $familyId;
+        $individual->created_user_id = Auth()->user()->id;
+        $individual->updated_user_id = Auth()->user()->id;
+        $individual->given_name      = $request->has('given_name') ? $request->given_name : __('Unknown');
+
+        if ($request->has('user_id'))
+        {
+            $individual->user_id = $request->user_id;
+        }
+        if ($request->has('surname'))
+        {
+            $individual->surname = $request->surname;
         }
         if ($request->has('maiden'))
         {
-            $newUser->maiden = $request->input('maiden');
+            $individual->maiden = $request->maiden;
         }
-
-        // dates
-        if ($request->has('dob'))
+        if ($request->has('alias'))
         {
-            $newUser->dob_year  = substr($request->input('dob'), 0, 4);
-            $newUser->dob_month = substr($request->input('dob'), 5, 2);
-            $newUser->dob_day   = substr($request->input('dob'), 8, 2);
+            $individual->alias = $request->alias;
         }
-        if ($request->has('dod'))
+        if ($request->has('nickname'))
         {
-            $newUser->dod_year  = substr($request->input('dod'), 0, 4);
-            $newUser->dod_month = substr($request->input('dod'), 5, 2);
-            $newUser->dod_day   = substr($request->input('dod'), 8, 2);
+            $individual->nickname = $request->nickname;
         }
-
-        $newUser->save();
-
-        // Create the new relationship
-        $relationship = new Relationship;
-
-        $relationship->created_user_id = Auth()->user()->id;
-        $relationship->updated_user_id = Auth()->user()->id;
-
-        if ($request->input('relationship') == 'parent')
+        if ($request->has('name_prefix'))
         {
-            $relationship->user_id      = $newUser->id;
-            $relationship->relationship = 'CHIL';
-            $relationship->rel_user_id  = $request->input('user_id');
+            $individual->name_prefix = $request->name_prefix;
         }
-        if ($request->input('relationship') == 'spouse')
+        if ($request->has('name_suffix'))
         {
-            $relationship->user_id      = $request->input('user_id');
-            $relationship->relationship = 'WIFE';
-            $relationship->rel_user_id  = $newUser->id;
+            $individual->name_suffix = $request->name_suffix;
         }
-        if ($request->input('relationship') == 'child')
+        if ($request->has('sex'))
         {
-            $relationship->user_id      = $request->input('user_id');
-            $relationship->relationship = 'CHIL';
-            $relationship->rel_user_id  = $newUser->id;
+            $individual->sex = $request->sex;
+        }
+        if ($request->filled('dob'))
+        {
+            $individual->dob_year  = substr($request->dob, 0, 4);
+            $individual->dob_month = substr($request->dob, 5, 2);
+            $individual->dob_day   = substr($request->dob, 8, 2);
+        }
+        if ($request->filled('dod'))
+        {
+            $individual->dod_year  = substr($request->dod, 0, 4);
+            $individual->dod_month = substr($request->dod, 5, 2);
+            $individual->dod_day   = substr($request->dod, 8, 2);
         }
 
-        $relationship->save();
+        $individual->save();
+
+        //
+        // Create the relationship record
+        //
+        if ($request->has('relationship'))
+        {
+            $familyTree = new FamilyTree();
+
+            // parent
+            if ($request->input('relationship') == 'parent')
+            {
+                $familyTree->addNewParent($individual, $request);
+            }
+            // spouse
+            if ($request->input('relationship') == 'spouse')
+            {
+                $relationship = new TreeRelationship;
+
+                $relationship->individual_id   = $individual->id;
+                $relationship->family_id       = $familyId;
+                $relationship->relationship    = $individual->sex == 'F' ? 'WIFE' : 'HUSB';
+                $relationship->created_user_id = Auth()->user()->id;
+                $relationship->updated_user_id = Auth()->user()->id;
+
+                $relationship->save();
+            }
+            // sibling
+            if ($request->input('relationship') == 'sibling')
+            {
+                $familyTree->addNewSibling($individual, $request);
+            }
+            // child
+            if ($request->input('relationship') == 'child')
+            {
+                $relationship = new TreeRelationship;
+
+                $relationship->individual_id   = $individual->id;
+                $relationship->family_id       = $familyId;
+                $relationship->relationship    = 'CHIL';
+                $relationship->created_user_id = Auth()->user()->id;
+                $relationship->updated_user_id = Auth()->user()->id;
+
+                $relationship->save();
+            }
+        }
+        // For new individual records, we still make a default HUSB/WIFE relationship for the user
+        // as kind of a head of household record
+        else
+        {
+            $relationship = new TreeRelationship;
+
+            $relationship->created_user_id = Auth()->user()->id;
+            $relationship->updated_user_id = Auth()->user()->id;
+
+            $relationship->individual_id = $individual->id;
+            $relationship->family_id     = $familyId;
+            $relationship->relationship  = $individual->sex == 'F' ? 'WIFE' : 'HUSB';
+
+            $relationship->save();
+        }
 
         return redirect()->route('familytree');
     }

@@ -432,20 +432,83 @@ class Install400 extends Migration
             $table->timestamps();
         });
 
-        Schema::create('relationships', function (Blueprint $table) {
+        Schema::create('statuses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
-            $table->string('relationship', 4);
-            $table->foreignId('rel_user_id');
+            $table->text('status');
+            $table->foreignId('parent_id')->default(0);
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
         });
 
-        Schema::create('statuses', function (Blueprint $table) {
+        Schema::create('tree_individuals', function (Blueprint $table) {
             $table->id();
-            $table->text('status');
-            $table->foreignId('parent_id')->default(0);
+            $table->foreignId('user_id')->nullable();
+            $table->foreignId('family_id')->nullable();
+            $table->string('given_name')->nullable();
+            $table->string('surname')->nullable();
+            $table->string('maiden')->nullable();
+            $table->string('alias')->nullable();
+            $table->string('nickname')->nullable();
+            $table->string('name_prefix')->nullable();                  // Mr. Mrs. Dr. etc.
+            $table->string('name_suffix')->nullable();                  // Jr. Sr. I II BA. MD. etc.
+            $table->char('dob_year', 4)->nullable();
+            $table->char('dob_month', 2)->nullable();
+            $table->char('dob_day', 2)->nullable();
+            $table->char('dod_year', 4)->nullable();
+            $table->char('dod_month', 2)->nullable();
+            $table->char('dod_day', 2)->nullable();
+            $table->enum('sex', ['U', 'O', 'M', 'F'])->default('U');    // Unknown, Other, Male, Female
+            $table->string('description')->nullable();
+            $table->foreignId('created_user_id');
+            $table->foreignId('updated_user_id');
+            $table->timestamps();
+        });
+
+        Schema::create('tree_families', function (Blueprint $table) {
+            $table->id();
+            $table->string('description')->nullable();
+            $table->foreignId('created_user_id');
+            $table->foreignId('updated_user_id');
+            $table->timestamps();
+        });
+
+        Schema::create('tree_events', function (Blueprint $table) {
+            $table->id();
+            $table->string('type', 4);                  // BIRT, MARR, BAPM, DEAT, etc.
+            $table->string('description')->nullable();
+            $table->date('date')->nullable();
+            $table->foreignId('places_id')->nullable();
+            $table->foreignId('created_user_id');
+            $table->foreignId('updated_user_id');
+            $table->timestamps();
+        });
+
+        Schema::create('tree_relationships', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('individual_id');
+            $table->foreignId('family_id');
+            $table->string('relationship', 4);
+            $table->foreignId('created_user_id');
+            $table->foreignId('updated_user_id');
+            $table->timestamps();
+        });
+
+        Schema::create('tree_places', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->string('description')->nullable();
+            $table->foreignId('created_user_id');
+            $table->foreignId('updated_user_id');
+            $table->timestamps();
+        });
+
+        Schema::create('tree_media', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('event_id');
+            $table->string('title');
+            $table->string('description')->nullable();
+            $table->string('filename');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
