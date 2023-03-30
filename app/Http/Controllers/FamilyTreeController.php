@@ -18,67 +18,17 @@ class FamilyTreeController extends Controller
      */
     public function index()
     {
-        $user = User::findOrFail(Auth()->user()->id);
-
-        // TODO - allow $user to be selected
-
         $familyTree = new FamilyTree();
 
-        // See if the current user has any family tree data
-        $individuals = TreeIndividual::where('user_id', $user->id)->get();
-
-        if ($individuals->isEmpty())
+        if (!$familyTree->doesCurrentUserHaveFamilyTree())
         {
-            $userData = $user->toArray();
-
-            $names = explode(' ', $userData['name']);
-
-            $userData['given_name'] = $names[0];
-            $userData['surname']    = end($names);
-            $userData['dob']        = $user->birthday->format('Y-m-d');
-
-            return view('tree.empty', [
-                'user' => $userData,
-            ]);
+            return $familyTree->getEmptyTree();
         }
 
-        $individual = $individuals[0];
-
-        $tree     = [];
-        $families = [];
-
-        // Get the family ids of the current user
-        $familyId        = $individual->family_id;
-        $parentsFamilyId = $familyTree->getParentsFamilyId($individual->id);
-
-        if ($parentsFamilyId)
-        {
-            $families = $families + $familyTree->getFamilyUnit($parentsFamilyId);
-        }
-        $families = $families + $familyTree->getFamilyUnit($familyId);
-
-        // Put all the families in the tree in the proper spots
-        foreach ($families as $id => $fam)
-        {
-            $nextFamily = next($families);
-            if (!$nextFamily)
-            {
-                continue;
-            }
-
-            foreach ($fam['kids'] as $kidId => $kid)
-            {
-                if ($nextFamily['id'] == $kidId)
-                {
-                    $families[$id]['kids'][$kidId] = $families[$nextFamily['id']];
-                    unset($families[$nextFamily['id']]);
-                }
-            }
-        }
-        $tree = $families;
+        $tree = $familyTree->getFamilyTree();
 
         $allUsers = User::where('id', '>', 1)
-            ->where('id', '!=', $user->id)
+            ->where('id', '!=', Auth()->user()->id)
             ->orderBy('name', 'desc')
             ->get()
             ->pluck('name', 'id');

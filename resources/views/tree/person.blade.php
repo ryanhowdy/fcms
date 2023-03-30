@@ -33,7 +33,7 @@
             <i class="bi-pencil"></i>
         </a>
     </div><!-- /.options -->
-    <img class="avatar rounded-5" src="{{ getUserAvatar($person) }}" title="{{ __('avatar') }}">
+    <img class="avatar rounded-5" src="{{ getIndividualPicture($person) }}" title="{{ __('avatar') }}">
     <div class="d-block">
         {{ $person['given_name'] }}
         @if (!empty($person['maiden']))

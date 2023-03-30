@@ -6,9 +6,17 @@ use Illuminate\Http\Request;
 use App\Models\TreeIndividual;
 use App\Models\TreeRelationship;
 use App\Models\TreeFamily;
+use App\Models\User;
 
 class FamilyTree
 {
+    protected $currentUser;
+    protected $currentIndividual;
+    protected $individuals;
+    protected $trees;
+    protected $tree;
+    protected $oldestLkup;
+
     protected $relationshipSortOrder = ['HUSB', 'WIFE', 'CHIL'];
 
     /**
@@ -18,97 +26,228 @@ class FamilyTree
      */
     public function __construct()
     {
+        $this->currentUser = User::findOrFail(Auth()->user()->id);
+
+        $this->currentIndividual = TreeIndividual::where('user_id', $this->currentUser->id)
+             ->first();
     }
 
     /**
-     * getParentsFamilyId 
-     * 
-     * Will return the family id of the given individual's parents.
+     * getFamilyTree 
      *
-     * @param int $individualId 
-     * @return int|bool
-     */
-    public function getParentsFamilyId (int $individualId)
-    {
-        $parents = TreeRelationship::where('individual_id', $individualId)
-            ->where('relationship', 'CHIL')
-            ->get();
-
-        if ($parents->count())
-        {
-            return $parents[0]->family_id;
-        }
-
-        return false;
-    }
-
-    /**
-     * getFamilyUnit 
+     * Will return the family tree array for the given user.
      * 
-     * Will return the individuals for the given family, formatted for tree display:
-     * [
-     *   id => ...
-     *   ...
-     *   spouses => [...],
-     *   kids    => [...],
-     * ]
-     *
-     * @param int $familyId 
      * @return array
      */
-    public function getFamilyUnit (int $familyId)
+    public function getFamilyTree ()
     {
-        $tree = [];
+        $this->getAllIndividuals();
+        $this->groupIndividualsByFamily();
+        $this->combineFamilies();
+        $this->buildLkup($this->trees);
 
-        // Get all individuals and their relationships for this family
-        $individuals = TreeRelationship::from('tree_relationships as r')
-            ->select('i.id', 'given_name', 'surname', 'maiden', 'dob_year', 'dob_month', 'dob_day', 'r.family_id', 'r.relationship')
-            ->where('r.family_id', $familyId)
+        $oldestId = $this->oldestLkup[$this->currentIndividual->id];
+
+        $this->tree = [ $oldestId => $this->trees[$oldestId] ];
+
+        $this->tree = $this->addTranslatedStrings($this->tree);
+
+        return $this->tree;
+    }
+
+    /**
+     * getAllIndividuals 
+     * 
+     * Gets all the individuals and their relationships from the database;
+     *
+     * @return null
+     */
+    private function getAllIndividuals ()
+    {
+        $this->individuals = TreeRelationship::from('tree_relationships as r')
+            ->select('i.id', 'i.user_id', 'given_name', 'surname', 'maiden', 'sex', 'avatar', 'dob_year', 'dob_month', 'dob_day', 'r.family_id', 'r.relationship')
             ->join('tree_individuals as i', 'r.individual_id', '=', 'i.id')
+            ->leftJoin('users as u', 'i.user_id', '=', 'u.id')
+            ->orderBy('r.family_id')
+            ->orderByRaw('case when relationship = "HUSB" then 1 when relationship = "WIFE" then 2 else 4 end')
             ->orderBy('dob_year')
             ->orderBy('dob_month')
             ->orderBy('dob_day')
             ->get();
+    }
 
-        // sort the relationships
-        $individuals = $individuals->sortBy(function($item) {
-            return array_search($item['relationship'], $this->relationshipSortOrder);
-        });
+    /**
+     * groupIndividualsByFamily 
+     * 
+     * Takes all the individuals from the db and groups them in families.
+     *
+     * Fills the $this->trees array that is keyed by the head of household's individual id.
+     *
+     * @return null
+     */
+    private function groupIndividualsByFamily ()
+    {
+        $lastFamilyId = 0;
 
-        $headOfHouseholdId = 0;
-
-        // group and order the individuals/relationships
-        foreach ($individuals as $ind)
+        foreach ($this->individuals as $ind)
         {
-            //if (!isset($tree[$ind->family_id]))
-            if (empty($tree))
+            if ($lastFamilyId !== $ind->family_id)
             {
-                $headOfHouseholdId                   = $ind->id;
-                $tree[$headOfHouseholdId]            = $ind->toArray();
-                $tree[$headOfHouseholdId]['spouses'] = [];
-                $tree[$headOfHouseholdId]['kids']    = [];
+                if (!isset($this->trees[ $ind->id ]))
+                {
+                    $headOfHouseholdId = $ind->id;
+                }
             }
-            else if ($ind->relationship == 'CHIL')
+
+            if (!isset($this->trees[$headOfHouseholdId]))
             {
-                $tree[$headOfHouseholdId]['kids'][$ind->id] = $ind->toArray();
+                $this->trees[$headOfHouseholdId]            = $ind->toArray();
+                $this->trees[$headOfHouseholdId]['spouses'] = [];
+                $this->trees[$headOfHouseholdId]['kids']    = [];
             }
             else if (in_array($ind->relationship, ['HUSB', 'WIFE']))
             {
-                $tree[$headOfHouseholdId]['spouses'][$ind->id] = $ind->toArray();
+                $this->trees[$headOfHouseholdId]['spouses'][$ind->id] = $ind->toArray();
+            }
+            else if ($ind->relationship == 'CHIL')
+            {
+                $this->trees[$headOfHouseholdId]['kids'][$ind->id] = $ind->toArray();
+            }
+
+            $lastFamilyId = $ind->family_id;
+        }
+    }
+
+    /**
+     * combineFamilies 
+     * 
+     * Alters the $this->trees array by combining related families.
+     * 
+     * @return null
+     */
+    private function combineFamilies ()
+    {
+        foreach ($this->trees as $thisId => $thisFamily)
+        {
+            // do any of these spouses have their own family?
+            foreach ($thisFamily['spouses'] as $spouseId => $spouseFamily)
+            {
+                foreach ($this->trees as $otherId => $otherFamily)
+                {
+                    if ($thisId === $otherId)
+                    {
+                        continue;
+                    }
+
+                    if ($spouseId === $otherId)
+                    {
+                        $this->trees[$thisId]['spouses'][$spouseId] = $this->trees[$spouseId];
+                        unset($this->trees[$spouseId]);
+                        break;
+                    }
+                }
+            }
+
+            // do any of these kids have their own family?
+            foreach ($thisFamily['kids'] as $kidId => $kidFamily)
+            {
+                foreach ($this->trees as $otherId => $otherFamily)
+                {
+                    if ($thisId === $otherId)
+                    {
+                        continue;
+                    }
+
+                    if ($kidId === $otherId)
+                    {
+                        $this->trees[$thisId]['kids'][$kidId] = $this->trees[$kidId];
+                        unset($this->trees[$kidId]);
+                        break;
+                    }
+                }
             }
         }
+    }
 
-        // now add the action strings
-        $tree = $this->addTranslatedStrings($tree);
+    /**
+     * buildLkup 
+     *
+     * Will populate $this->oldestLkup with the oldest relative of each individual.
+     * 
+     * @param array $trees 
+     * @param int   $oldestId 
+     * @return null
+     */
+    private function buildLkup (array $trees, int $oldestId = null)
+    {
+        foreach ($trees as $individualId => $individual)
+        {
+            if ($oldestId != null)
+            {
+                $id = $oldestId;
+            }
+            else
+            {
+                $id = $individualId;
+            }
 
-        return $tree;
+            $this->oldestLkup[$individualId] = $id;
+
+            if (isset($individual['spouses']))
+            {
+                foreach ($individual['spouses'] as $spouseId => $spouse)
+                {
+                    $this->oldestLkup[$spouseId] = $id;
+                }
+            }
+
+            if (isset($individual['kids']))
+            {
+                $this->buildLkup($individual['kids'], $id);
+            }
+        }
+    }
+
+    /**
+     * doesCurrentUserHaveFamilyTree 
+     * 
+     * @return boolean
+     */
+    public function doesCurrentUserHaveFamilyTree ()
+    {
+        if (!$this->currentIndividual)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * displayEmptyTree 
+     * 
+     * @return Illuminate\View\View
+     */
+    public function getEmptyTree ()
+    {
+        $userData = $this->currentUser->toArray();
+
+        $names = explode(' ', $userData['name']);
+
+        $userData['given_name'] = $names[0];
+        $userData['surname']    = end($names);
+        $userData['dob']        = $user->birthday->format('Y-m-d');
+
+        return view('tree.empty', [
+            'user' => $userData,
+        ]);
     }
 
     /**
      * addTranslatedStrings 
      * 
-     * @param string  $tree 
-     * @return null
+     * @param array $tree 
+     * @return array
      */
     public function addTranslatedStrings ($tree)
     {
@@ -122,7 +261,6 @@ class FamilyTree
 
             if (isset($ind['spouses']) && count($ind['spouses']))
             {
-
                 $parent2 = $ind['spouses'][$spouseKey]['given_name'].' '.$ind['spouses'][$spouseKey]['surname'];
             }
 

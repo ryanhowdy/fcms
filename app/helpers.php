@@ -62,3 +62,32 @@ if (!function_exists('getUserAvatar'))
         return route('avatar', $user['avatar']);
     }
 }
+
+if (!function_exists('getIndividualPicture'))
+{
+    /*
+     * getindividualPicture
+     *
+     * Will return the asset for the family tree individual's picture.
+     *
+     * If the individual is also a user, it will use their configured avatar, else
+     * it will use the standard male/female.
+     *
+     * @param array $individual 
+     * @return String
+     */
+    function getIndividualPicture(array $individual)
+    {
+        if (isset($individual['user_id']) && !empty($individual['user_id']))
+        {
+            return getUserAvatar($individual);
+        }
+
+        if (isset($individual['sex']) && $individual['sex'] == 'F')
+        {
+            return asset('img/tree-female.png');
+        }
+
+        return asset('img/tree-male.png');
+    }
+}
