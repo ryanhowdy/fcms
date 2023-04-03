@@ -35,6 +35,7 @@ class Install400 extends Migration
             $table->boolean('login_attempts')->default(false);
             $table->dateTime('locked')->nullable();
             $table->dateTime('activity')->nullable();
+            $table->string('timezone')->default('America/New_York');
             $table->timestamps();
         });
 
@@ -452,6 +453,7 @@ class Install400 extends Migration
             $table->string('nickname')->nullable();
             $table->string('name_prefix')->nullable();                  // Mr. Mrs. Dr. etc.
             $table->string('name_suffix')->nullable();                  // Jr. Sr. I II BA. MD. etc.
+            $table->boolean('living')->default(true);
             $table->char('dob_year', 4)->nullable();
             $table->char('dob_month', 2)->nullable();
             $table->char('dob_day', 2)->nullable();

@@ -8,6 +8,7 @@ use App\Models\TreeIndividual;
 use App\Models\TreeRelationship;
 use App\Models\User;
 use App\FamilyTree;
+use Carbon\Carbon;
 
 class FamilyTreeController extends Controller
 {
@@ -18,11 +19,29 @@ class FamilyTreeController extends Controller
      */
     public function index()
     {
-        $familyTree = new FamilyTree();
+        return $this->showTree(0);
+    }
 
-        if (!$familyTree->doesCurrentUserHaveFamilyTree())
+    /**
+     * showTree 
+     * 
+     * Show the family tree main page for a specific user.
+     * 
+     * @param int $individualId 
+     * @return Illuminate\View\View
+     */
+    public function showTree (int $individualId)
+    {
+        $familyTree = new FamilyTree($individualId);
+
+        if ($individualId == 0)
         {
-            return $familyTree->getEmptyTree();
+            $familyTree->setUserId(Auth()->user()->id);
+
+            if (!$familyTree->doesCurrentUserHaveFamilyTree())
+            {
+                return $familyTree->getEmptyTree();
+            }
         }
 
         $tree = $familyTree->getFamilyTree();
@@ -57,6 +76,7 @@ class FamilyTreeController extends Controller
             'nickname'      => ['sometimes', 'nullable', 'max:255'],
             'name_prefix'   => ['sometimes', 'nullable', 'max:255'],
             'name_suffix'   => ['sometimes', 'nullable', 'max:255'],
+            'status'        => ['sometimes', 'in:living,deceased'],
             'dob'           => ['sometimes', 'nullable', 'before_or_equal:today'],
             'dod'           => ['sometimes', 'nullable', 'before_or_equal:today'],
             'sex'           => ['sometimes', 'in:U,O,M,F'],
@@ -129,6 +149,10 @@ class FamilyTreeController extends Controller
         if ($request->has('sex'))
         {
             $individual->sex = $request->sex;
+        }
+        if ($request->has('status'))
+        {
+            $individual->living = $request->status == 'living' ? true : false;
         }
         if ($request->filled('dob'))
         {
@@ -206,5 +230,45 @@ class FamilyTreeController extends Controller
         }
 
         return redirect()->route('familytree');
+    }
+
+    public function show(int $id)
+    {
+        $individual = TreeRelationship::from('tree_relationships as r')
+            ->select('i.*', 'avatar', 'r.family_id', 'r.relationship')
+            ->join('tree_individuals as i', 'r.individual_id', '=', 'i.id')
+            ->leftJoin('users as u', 'i.user_id', '=', 'u.id')
+            ->where('i.id', $id)
+            ->first()
+            ->toArray();
+
+        if (!empty($individual['dob_year']) && !empty($individual['dob_month']) && !empty($individual['dob_day']))
+        {
+            $dob = Carbon::CreateFromDate($individual['dob_year'], $individual['dob_month'], $individual['dob_day'], Auth()->user()->timezone);
+
+            $individual['dob'] = $dob->isoFormat('LL');
+        }
+        if (!empty($individual['dod_year']) && !empty($individual['dod_month']) && !empty($individual['dod_day']))
+        {
+            $dod = Carbon::CreateFromDate($individual['dod_year'], $individual['dod_month'], $individual['dod_day'], Auth()->user()->timezone);
+
+            $individual['dod'] = $dod->isoFormat('LL');
+        }
+
+        return view('tree.individual', [
+            'individual' => $individual,
+        ]);
+    }
+
+    public function edit(int $id)
+    {
+        $individual = TreeIndividual::findOrFail($id);
+        dd($individual->toArray());
+    }
+
+    public function update(int $id)
+    {
+        $individual = TreeIndividual::findOrFail($id);
+        dd($individual->toArray());
     }
 }

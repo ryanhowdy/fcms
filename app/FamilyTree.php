@@ -24,9 +24,24 @@ class FamilyTree
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(int $individualId = 0)
     {
-        $this->currentUser = User::findOrFail(Auth()->user()->id);
+        if (!empty($individualId))
+        {
+            $this->currentIndividual = TreeIndividual::where('id', $individualId)
+                 ->first();
+        }
+    }
+
+    /**
+     * setUserId 
+     * 
+     * @param int $userId 
+     * @return null
+     */
+    public function setUserId (int $userId)
+    {
+        $this->currentUser = User::findOrFail($userId);
 
         $this->currentIndividual = TreeIndividual::where('user_id', $this->currentUser->id)
              ->first();
@@ -236,7 +251,7 @@ class FamilyTree
 
         $userData['given_name'] = $names[0];
         $userData['surname']    = end($names);
-        $userData['dob']        = $user->birthday->format('Y-m-d');
+        $userData['dob']        = $this->currentUser->birthday->format('Y-m-d');
 
         return view('tree.empty', [
             'user' => $userData,
@@ -287,6 +302,28 @@ class FamilyTree
         }
 
         return $tree;
+    }
+
+    /**
+     * getParentsFamilyId
+     *
+     * Will return the family id of the given individual's parents.
+     *
+     * @param int $individualId
+     * @return int|bool
+     */
+    public function getParentsFamilyId (int $individualId)
+    {
+        $parents = TreeRelationship::where('individual_id', $individualId)
+            ->where('relationship', 'CHIL')
+            ->get();
+
+        if ($parents->count())
+        {
+            return $parents[0]->family_id;
+        }
+
+        return false;
     }
 
     /**

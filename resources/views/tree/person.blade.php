@@ -1,4 +1,4 @@
-<div class="person">
+<div class="person {{ strtolower($person['sex']) }}" data-url="{{ route('familytree.show', $person['id']) }}">
     <div class="options">
         <div class="dropdown no-caret">
             <i class="bi-person-plus dropdown-toggle" data-bs-toggle="dropdown"></i>
@@ -29,7 +29,12 @@
                 </li>
             </ul>
         </div><!-- /.dropdown.no-caret -->
-        <a href="">
+        @if ($person['relationship'] == 'WIFE' && $person['sex'] == 'F')
+        <a href="{{ route('familytree.showTree', $person['id']) }}">
+            <i class="bi-diagram-3-fill"></i>
+        </a>
+        @endif
+        <a href="{{ route('familytree.edit', $person['id']) }}">
             <i class="bi-pencil"></i>
         </a>
     </div><!-- /.options -->

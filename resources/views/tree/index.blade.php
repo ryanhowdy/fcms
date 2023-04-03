@@ -23,7 +23,7 @@
 </div>
 
 <div class="modal" tabindex="-1">
-    <form id="modal-form" action="{{ route('familytree.store') }}" method="post">
+    <form id="modal-form" action="{{ route('familytree.create') }}" method="post">
         @csrf
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -145,6 +145,16 @@
 
 <script>
 $(function() {
+    $('div.person').click(function(e) {
+        let $person = $(this);
+        let url     = $person.data('url');
+
+        window.location.href = url;
+    });
+
+    $('.person > .options').click(function(e) {
+        e.stopPropagation();
+    });
     $('ul.dropdown-menu li a').click(function(e) {
         e.preventDefault();
 

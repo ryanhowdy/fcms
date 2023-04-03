@@ -5,7 +5,7 @@
 @section('content')
 <div class="p-5">
     
-    <form class="p-5 border rounded bg-white" action="{{ route('familytree.store') }}" method="post">
+    <form class="p-5 border rounded bg-white" action="{{ route('familytree.create') }}" method="post">
         @csrf
         <input type="hidden" name="user_id" value="{{ $user['id'] }}">
 

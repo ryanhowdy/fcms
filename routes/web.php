@@ -119,9 +119,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/recipes/categories/add', [ RecipeController::class, 'categoryStore' ]);
     Route::get( '/recipes/{id}',           [ RecipeController::class, 'show' ])->name('recipes.show');
 
-    Route::get( '/familytree',     [ FamilyTreeController::class, 'index' ])->name('familytree');
-    Route::get( '/familytree/new', [ FamilyTreeController::class, 'create' ])->name('familytree.create');
-    Route::post('/familytree/new', [ FamilyTreeController::class, 'store' ])->name('familytree.store');
+    Route::get( '/familytree',                           [ FamilyTreeController::class, 'index' ])->name('familytree');
+    Route::get( '/familytree/individual/new',            [ FamilyTreeController::class, 'create' ])->name('familytree.create');
+    Route::post('/familytree/individual/new',            [ FamilyTreeController::class, 'store' ]);
+    Route::get( '/familytree/individual/{id}',           [ FamilyTreeController::class, 'show' ])->name('familytree.show');
+    Route::get( '/familytree/individual/{id}/tree',      [ FamilyTreeController::class, 'showTree' ])->name('familytree.showTree');
+    Route::get( '/familytree/individual/{id}/edit',      [ FamilyTreeController::class, 'edit' ])->name('familytree.edit');
+    Route::post('/familytree/individual/{id}/edit',      [ FamilyTreeController::class, 'update' ]);
+    Route::post('/familytree/individual/{id}/event/new', [ FamilyTreeController::class, 'createEvent' ])->name('familytree.createEvent');
 
     Route::get( '/documents',                 [ DocumentController::class, 'index' ])->name('documents');
     Route::get( '/documents/upload',          [ DocumentController::class, 'create' ])->name('documents.create');

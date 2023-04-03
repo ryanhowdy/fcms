@@ -21111,7 +21111,6 @@ body#familytree .tree ul:not(.dropdown-menu) li.rel:first-child::after {
 }
 body#familytree .tree ul:not(.dropdown-menu) li.rel > div {
   border: 1px solid var(--bs-border-color);
-  padding: 5px 10px;
   text-decoration: none;
   display: inline-block;
 }
@@ -21119,7 +21118,8 @@ body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person + div.per
   margin-left: 20px;
 }
 body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person {
-  padding: 10px;
+  border: 1px solid white;
+  padding: 10px 15px;
   text-align: left;
   position: relative;
   min-width: 175px;
@@ -21135,6 +21135,20 @@ body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > .option
 body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > .options > div.dropdown,
 body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > .options > a {
   padding: 5px 10px;
+  color: var(--bs-body-color);
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > .options > div.dropdown:hover,
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person > .options > a:hover {
+  color: var(--bs-link-color);
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person:hover {
+  cursor: pointer;
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person:hover.f {
+  border-color: var(--bs-code-color);
+}
+body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person:hover.m, body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person:hover.u {
+  border-color: var(--bs-link-color);
 }
 body#familytree .tree ul:not(.dropdown-menu) li.rel > div > div.person:hover > .options {
   display: flex;

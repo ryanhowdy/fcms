@@ -67,7 +67,6 @@ body#familytree
                 > div
                 {
                     border: 1px solid var(--bs-border-color);
-                    padding: 5px 10px;
                     text-decoration: none;
                     display: inline-block;
 
@@ -77,7 +76,8 @@ body#familytree
                     }
                     > div.person
                     {
-                        padding: 10px;
+                        border: 1px solid white;
+                        padding: 10px 15px;
                         text-align: left;
                         position: relative;
                         min-width: 175px;
@@ -95,10 +95,28 @@ body#familytree
                             > a
                             {
                                 padding: 5px 10px;
+                                color: var(--bs-body-color);
+
+                                &:hover
+                                {
+                                    color: var(--bs-link-color);
+                                }
                             }
                         }
                         &:hover
                         {
+                            cursor: pointer;
+
+                            &.f
+                            {
+                                border-color: var(--bs-code-color);
+                            }
+                            &.m,
+                            &.u
+                            {
+                                border-color: var(--bs-link-color);
+                            }
+
                             > .options
                             {
                                 display: flex;
