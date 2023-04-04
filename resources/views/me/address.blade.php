@@ -4,16 +4,8 @@
 @section('content')
 <div class="d-flex flex-nowrap">
     <div class="col-auto col-3 p-5">
-        <ul class="list-unstyled float-end">
-            <li class="">
-                <a class="text-decoration-none" href="{{ route('my.profile') }}">General</a>
-            </li>
-            <li class="">
-                <a class="text-decoration-none" href="{{ route('my.avatar') }}">Picture</a>
-            </li>
-            <li class="active">
-                <a class="text-decoration-none" href="{{ route('my.address') }}">Address</a>
-            </li>
+        @section('profile.address', 'active')
+        @include('me.navigation')
         </ul>
     </div>
     <div class="col border-start min-vh-100 p-5">
@@ -68,8 +60,8 @@
                 <label for="work" class="form-label">{{ __('Work') }}</label>
                 <input type="tel" class="form-control" id="work" name="work" value="{{ old('work', $address->work) }}">
             </div>
-            <div class="text-end">
-                <button class="btn btn-secondary px-5" type="submit" id="submit" name="submit">
+            <div class="pt-3">
+                <button class="btn btn-success text-white px-5" type="submit" id="submit" name="submit">
                     <i class="bi-check-square me-1"></i>
                     {{ __('Save') }}
                 </button>

@@ -43,6 +43,11 @@ class User extends Authenticatable
         'token',
     ];
 
+    public function settings()
+    {
+        return $this->hasOne(UserSetting::class);
+    }
+
     public function address()
     {
         return $this->hasOne(Address::class);

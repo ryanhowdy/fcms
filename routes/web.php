@@ -54,15 +54,18 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/poll/vote', [ HomeController::class, 'vote' ])->name('poll.vote');
 
-    Route::get( '/me/profile',         [ MeController::class, 'profileCreate' ])->name('my.profile');
-    Route::post('/me/profile',         [ MeController::class, 'profileStore' ]);
-    Route::get( '/me/profile/avatar',  [ MeController::class, 'avatarCreate' ])->name('my.avatar');
-    Route::post('/me/profile/avatar',  [ MeController::class, 'avatarStore' ]);
-    Route::get( '/me/profile/address', [ MeController::class, 'addressCreate' ])->name('my.address');
-    Route::post('/me/profile/address', [ MeController::class, 'addressStore' ]);
+    Route::get( '/me/profile',         [ MeController::class, 'profileEdit' ])->name('my.profile');
+    Route::post('/me/profile',         [ MeController::class, 'profileUpdate' ]);
+    Route::get( '/me/profile/avatar',  [ MeController::class, 'avatarEdit' ])->name('my.avatar');
+    Route::post('/me/profile/avatar',  [ MeController::class, 'avatarUpdate' ]);
+    Route::get( '/me/profile/address', [ MeController::class, 'addressEdit' ])->name('my.address');
+    Route::post('/me/profile/address', [ MeController::class, 'addressUpdate' ]);
     Route::get( '/me/messages',        [ MeController::class, 'messages' ])->name('my.messages');
     Route::get( '/me/notifications',   [ MeController::class, 'notifications' ])->name('my.notifications');
-    Route::get( '/me/settings',        [ MeController::class, 'settings' ])->name('my.settings');
+    Route::get( '/me/settings',        [ MeController::class, 'settingsEdit' ])->name('my.settings');
+    Route::post('/me/settings',        [ MeController::class, 'settingsUpdate' ]);
+    Route::get( '/me/account',         [ MeController::class, 'accountEdit' ])->name('my.account');
+    Route::post('/me/account',         [ MeController::class, 'accountUpdate' ]);
 
     Route::get( '/calendar',                               [ CalendarController::class, 'index' ])->name('calendar');
     Route::get( '/calendar/month/{year?}/{month?}/{day?}', [ CalendarController::class, 'index' ])->name('calendar.month');

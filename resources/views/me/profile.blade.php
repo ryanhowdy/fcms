@@ -4,17 +4,8 @@
 @section('content')
 <div class="d-flex flex-nowrap">
     <div class="col-auto col-3 p-5">
-        <ul class="list-unstyled float-end">
-            <li class="active">
-                <a class="text-decoration-none" href="{{ route('my.profile') }}">General</a>
-            </li>
-            <li class="">
-                <a class="text-decoration-none" href="{{ route('my.avatar') }}">Picture</a>
-            </li>
-            <li class="">
-                <a class="text-decoration-none" href="{{ route('my.address') }}">Address</a>
-            </li>
-        </ul>
+        @section('profile.general', 'active')
+        @include('me.navigation')
     </div>
     <div class="col border-start min-vh-100 p-5">
         <form class="" action="{{ route('my.profile') }}" method="post">
@@ -30,11 +21,11 @@
         @endif
             <div class="mb-3 required">
                 <label for="name">{{ __('Full Name') }}</label>
-                <input type="text" class="form-control" name="name" id="name" value="{{ old('name') }}">
+                <input type="text" class="form-control" name="name" id="name" value="{{ old('name', $user->name) }}">
             </div>
             <div class="mb-3">
                 <label for="displayname">{{ __('Display Name') }}</label>
-                <input type="text" class="form-control" name="displayname" id="displayname" value="{{ old('displayname') }}">
+                <input type="text" class="form-control" name="displayname" id="displayname" value="{{ old('displayname', $user->displayname) }}">
                 <div class="form-text">{{ __('What do you want to be called on the site?  Leave blank if it is the same as Full Name.') }}</div>
             </div>
             <h2 class="pt-5">{{ __('Bio') }}</h2>
@@ -43,10 +34,10 @@
             </div>
             <h2 class="pt-5">{{ __('Birthday') }}</h2>
             <div class="mb-3 required">
-                <input type="date" class="form-control" id="bday" name="bday" value="{{ old('bday') }}">
+                <input type="date" class="form-control" id="bday" name="bday" value="{{ old('bday', $user->birthday->format('Y-m-d')) }}">
             </div>
-            <div class="text-end">
-                <button class="btn btn-secondary px-5" type="submit" id="submit" name="submit">
+            <div class="pt-5">
+                <button class="btn btn-success text-white px-5" type="submit" id="submit" name="submit">
                     <i class="bi-check-square me-1"></i>
                     {{ __('Save') }}
                 </button>

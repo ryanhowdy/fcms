@@ -32,7 +32,18 @@
                     {{ trans(':name has joined the site.', [ 'name' => getUserDisplayName($update->toArray()) ]) }}<br/>
                 @break
         @endswitch
-                    <small class="text-muted" title="{{ $update->updated_at }}">{{ $update->updated_at->diffForHumans() }}</small>
+        @switch($update->type)
+            @case('NEW_USER')
+                    <small class="text-muted" title="{{ $update->created_at->timezone(Auth()->user()->settings->timezone)->isoFormat('lll') }}">
+                        {{ $update->created_at->diffForHumans() }}
+                    </small>
+                @break
+            @default
+                    <small class="text-muted" title="{{ $update->updated_at->timezone(Auth()->user()->settings->timezone)->isoFormat('lll') }}">
+                        {{ $update->updated_at->diffForHumans() }}
+                    </small>
+                @break
+        @endswitch
                 </div>
                 <div class="border-top mt-3 pt-3 ps-5">
         @switch($update->type)

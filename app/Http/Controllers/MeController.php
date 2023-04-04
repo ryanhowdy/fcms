@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\Address;
+use App\Models\UserSetting;
 use Image;
+use DateTimeZone;
 
 class MeController extends Controller
 {
@@ -15,12 +17,10 @@ class MeController extends Controller
      *
      * @return Illuminate\View\View
      */
-    public function profileCreate()
+    public function profileEdit()
     {
-        $user = User::findOrFail(Auth()->user()->id);
-
         return view('me.profile', [
-            'user' => $user,
+            'user' => Auth()->user(),
         ]);
     }
 
@@ -30,12 +30,13 @@ class MeController extends Controller
      * @param  Illuminate\Http\Request $request
      * @return Illuminate\Support\Facades\View
      */
-    public function profileStore(Request $request)
+    public function profileUpdate(Request $request)
     {
         $validated = $request->validate([
-            'name'     => ['required', 'string'],
-            'birthday' => ['required', 'date'],
-            'bio'      => ['nullable', 'string'],
+            'name'        => ['required', 'string'],
+            'displayname' => ['sometimes', 'nullable', 'string'],
+            'birthday'    => ['required', 'date'],
+            'bio'         => ['nullable', 'string'],
         ]);
 
         $user = User::findOrFail(Auth()->user()->id);
@@ -59,7 +60,7 @@ class MeController extends Controller
      *
      * @return Illuminate\View\View
      */
-    public function avatarCreate()
+    public function avatarEdit()
     {
         $user = User::findOrFail(Auth()->user()->id);
 
@@ -86,15 +87,15 @@ class MeController extends Controller
      * @param  Illuminate\Http\Request $request
      * @return Illuminate\Support\Facades\View
      */
-    public function avatarStore(Request $request)
+    public function avatarUpdate(Request $request)
     {
         $validated = $request->validate([
             'avatar'       => ['required_without:avatar-other', 'mimetypes: image/bmp,image/gif,image/jpeg,image/png,image/svg+xml,image/webp'],
             'avatar-other' => ['required_without:avatar'],
         ],
         [
-            'avatar.required_without'       => __('Uploaded avatar must be an image.'),
-            'avatar-other.required_without' => __('You must upload an avatar or choose an existing avatar from the list.'),
+            'avatar.required_without'       => gettext('Uploaded avatar must be an image.'),
+            'avatar-other.required_without' => gettext('You must upload an avatar or choose an existing avatar from the list.'),
         ]);
 
         // Get the right path for avatars and make sure it exists
@@ -152,7 +153,7 @@ class MeController extends Controller
      *
      * @return Illuminate\View\View
      */
-    public function addressCreate()
+    public function addressEdit()
     {
         $user    = User::findOrFail(Auth()->user()->id);
         $address = Address::where('user_id', Auth()->user()->id)->get();
@@ -175,7 +176,7 @@ class MeController extends Controller
      * @param  Illuminate\Http\Request $request
      * @return Illuminate\Support\Facades\View
      */
-    public function addressStore(Request $request)
+    public function addressUpdate(Request $request)
     {
         $validated = $request->validate([
             'country' => ['nullable', 'string', 'min:2', 'max:2'],
@@ -202,5 +203,56 @@ class MeController extends Controller
         $address[0]->save();
 
         return redirect()->route('my.address');
+    }
+
+    /**
+     * settingsEdit 
+     * 
+     * @return Illuminate\View\View
+     */
+    public function settingsEdit()
+    {
+        $timezones = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
+
+        return view('me.settings', [
+            'user'      => Auth()->user(),
+            'settings'  => Auth()->user()->settings,
+            'timezones' => $timezones,
+        ]);
+    }
+
+    /**
+     * settingsUpdate
+     *
+     * @param  Illuminate\Http\Request $request
+     * @return Illuminate\Support\Facades\View
+     */
+    public function settingsUpdate(Request $request)
+    {
+        $validated = $request->validate([
+            'country' => ['nullable', 'string', 'min:2', 'max:2'],
+            'address' => ['nullable', 'string'],
+            'city'    => ['nullable', 'string'],
+            'state'   => ['nullable', 'string'],
+            'zip'     => ['nullable', 'string'],
+            'cell'    => ['nullable', 'string'],
+            'home'    => ['nullable', 'string'],
+            'work'    => ['nullable', 'string'],
+        ]);
+
+        $address = Address::where('user_id', Auth()->user()->id)->get();
+
+        $address[0]->country = $request->country;
+        $address[0]->address = $request->address;
+        $address[0]->city    = $request->city;
+        $address[0]->state   = $request->state;
+        $address[0]->zip     = $request->zip;
+        $address[0]->cell    = $request->cell;
+        $address[0]->home    = $request->home;
+        $address[0]->work    = $request->work;
+
+        $address[0]->save();
+
+        return redirect()->route('my.settings');
     }
 }

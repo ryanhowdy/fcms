@@ -35,7 +35,6 @@ class Install400 extends Migration
             $table->boolean('login_attempts')->default(false);
             $table->dateTime('locked')->nullable();
             $table->dateTime('activity')->nullable();
-            $table->string('timezone')->default('America/New_York');
             $table->timestamps();
         });
 
@@ -529,27 +528,9 @@ class Install400 extends Migration
         Schema::create('user_settings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id');
-            $table->string('theme', 25)->default('default');
             $table->set('boardsort', ['ASC', 'DESC'])->default('ASC');
-            $table->set('frontpage', ['1', '2'])->default('1');
-            $table->string('timezone')->default('-5 hours');
-            $table->boolean('dst')->default(false);
-            $table->boolean('email_updates')->default(false);
-            $table->set('uploader', ['plupload', 'java', 'basic'])->default('plupload');
-            $table->boolean('advanced_tagging')->default(true);
             $table->string('language', 6)->default('en_US');
-            $table->integer('fs_user_id')->nullable();
-            $table->char('fs_access_token', 50)->nullable();
-            $table->string('blogger')->nullable();
-            $table->string('tumblr')->nullable();
-            $table->string('wordpress')->nullable();
-            $table->string('posterous')->nullable();
-            $table->string('fb_user_id')->nullable();
-            $table->string('fb_access_token')->nullable();
-            $table->string('google_session_token')->nullable();
-            $table->string('instagram_access_token')->nullable();
-            $table->boolean('instagram_auto_upload')->nullable()->default(false);
-            $table->string('picasa_session_token')->nullable();
+            $table->string('timezone')->default('America/New_York');
         });
 
         Schema::create('video_comments', function (Blueprint $table) {
