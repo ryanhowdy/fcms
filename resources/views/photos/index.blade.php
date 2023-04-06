@@ -4,25 +4,25 @@
 @section('content')
 <div class="p-5">
     <div class="d-flex justify-content-between">
-        <h2>{{ __('Photos') }}</h2>
+        <h2>{{ gettext('Photos') }}</h2>
         <div>
-            <a href="{{ route('photos.create') }}" class="btn btn-success text-white">{{ __('Upload') }}</a>
+            <a href="{{ route('photos.create') }}" class="btn btn-success text-white">{{ gettext('Upload') }}</a>
         </div>
     </div>
 
     <div class="photo-nav d-flex justify-content-between pt-4 border-bottom">
         <ul class="nav">
             <li class="nav-item">
-                <a class="nav-link active" href="{{ route('photos') }}">{{ __('Dashboard') }}</a>
+                <a class="nav-link active" href="{{ route('photos') }}">{{ gettext('Dashboard') }}</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('photos.albums') }}">{{ __('Albums') }}</a>
+                <a class="nav-link" href="{{ route('photos.albums') }}">{{ gettext('Albums') }}</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('photos.users') }}">{{ __('People') }}</a>
+                <a class="nav-link" href="{{ route('photos.users') }}">{{ gettext('People') }}</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('photos.places') }}">{{ __('Places') }}</a>
+                <a class="nav-link" href="{{ route('photos.places') }}">{{ gettext('Places') }}</a>
             </li>
         </ul>
         <div class="search-filter">
@@ -30,14 +30,14 @@
             <div class="dropdown no-caret d-inline-block" data-bs-toggle="dropdown">
                 <a class="dropdown-toggle text-muted" href="#"><i class="bi-sliders"></i></a>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">{{ __('Top Rated') }}</a></li>
-                    <li><a class="dropdown-item" href="#">{{ __('Most Viewed') }}</a></li>
+                    <li><a class="dropdown-item" href="#">{{ gettext('Top Rated') }}</a></li>
+                    <li><a class="dropdown-item" href="#">{{ gettext('Most Viewed') }}</a></li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <h6 class="pt-5">{{ __('Latest') }}</h6>
+    <h6 class="pt-5">{{ gettext('Latest') }}</h6>
 
 @if ($albums->isEmpty())
     <x-empty-state/>
@@ -89,6 +89,6 @@
     </div>
 -->
 
-    <h6 class="pt-5">{{ __('On This Day') }}</h6>
+    <h6 class="pt-5">{{ gettext('On This Day') }}</h6>
 </div>
 @endsection

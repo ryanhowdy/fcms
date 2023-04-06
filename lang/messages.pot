@@ -1,0 +1,1239 @@
+# Translation for Family Connections
+# Copyright (C) 2007 Haudenschilt LLC
+# This file is distributed under the same license as the Family Connections package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 4.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-06 12:56+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: app/Calendar.php:27
+msgid "Sunday"
+msgstr ""
+
+#: app/Calendar.php:28
+msgid "Monday"
+msgstr ""
+
+#: app/Calendar.php:29
+msgid "Tuesday"
+msgstr ""
+
+#: app/Calendar.php:30
+msgid "Wednesday"
+msgstr ""
+
+#: app/Calendar.php:31
+msgid "Thursday"
+msgstr ""
+
+#: app/Calendar.php:32
+msgid "Friday"
+msgstr ""
+
+#: app/Calendar.php:33
+msgid "Saturday"
+msgstr ""
+
+#: app/Calendar.php:352
+#, php-format
+msgid "Turns %d year old today."
+msgid_plural "Turns %d years old today."
+msgstr[0] ""
+msgstr[1] ""
+
+#: app/Calendar.php:355
+msgid "Was born today."
+msgstr ""
+
+#: app/FamilyTree.php:273
+msgid "unknown parent"
+msgstr ""
+
+#: app/FamilyTree.php:283 app/FamilyTree.php:291
+#, php-format
+msgid "Add a parent for %s"
+msgstr ""
+
+#: app/FamilyTree.php:284 app/FamilyTree.php:292
+#, php-format
+msgid "Add a spouse for %s"
+msgstr ""
+
+#: app/FamilyTree.php:285 app/FamilyTree.php:293
+#, php-format
+msgid "Add a sibling for %s"
+msgstr ""
+
+#: app/FamilyTree.php:286 app/FamilyTree.php:294
+#, php-format
+msgid "Add a child for %s and %s"
+msgstr ""
+
+#: app/Http/Controllers/AdminMemberController.php:61
+#: resources/views/admin/members-index.blade.php:37
+msgid "Yes"
+msgstr ""
+
+#: app/Http/Controllers/AdminMemberController.php:61
+#: resources/views/admin/members-index.blade.php:39
+msgid "No"
+msgstr ""
+
+#: app/Http/Controllers/FamilyTreeController.php:119
+#: resources/views/tree/empty.blade.php:46
+#: resources/views/tree/index.blade.php:72
+msgid "Unknown"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:133
+#: app/Http/Controllers/InstallController.php:139
+#: resources/views/me/address.blade.php:56
+msgid "Home"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:145
+msgid "Calendar"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:151
+#: app/Http/Controllers/InstallController.php:229
+#: resources/views/admin/members-index.blade.php:6
+#: resources/views/members/index.blade.php:6
+msgid "Members"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:157
+msgid "Address Book"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:163
+msgid "Communicate"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:169
+#: resources/views/discussions/index.blade.php:7
+msgid "Discussions"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:175
+msgid "Share"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:181
+#: resources/views/photos/album.blade.php:7
+#: resources/views/photos/create.blade.php:77
+#: resources/views/photos/index.blade.php:7
+msgid "Photos"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:187
+#: resources/views/videos/index.blade.php:8
+msgid "Videos"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:193
+msgid "Misc."
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:199
+#: resources/views/contact.blade.php:9
+msgid "Contact"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:205
+msgid "Help"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:211
+msgid "Admin"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:217
+msgid "Upgrade"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:223
+msgid "Configuration"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:235
+msgid "Photo Gallery"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:241
+#: resources/views/admin/polls-index.blade.php:6
+msgid "Polls"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:247
+msgid "Facebook"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:253
+msgid "Google"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:259
+msgid "Instagram"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:268
+#: resources/views/install/config.blade.php:21
+msgid "Family News"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:273
+#: resources/views/install/config.blade.php:37
+msgid "Prayer Concerns"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:280
+#: resources/views/install/config.blade.php:25
+#: resources/views/recipes/index.blade.php:7
+msgid "Recipes"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:285
+#: resources/views/install/config.blade.php:29
+msgid "Family Tree"
+msgstr ""
+
+#: app/Http/Controllers/InstallController.php:290
+#: resources/views/documents/index.blade.php:16
+#: resources/views/install/config.blade.php:33
+msgid "Documents"
+msgstr ""
+
+#: app/Http/Controllers/LoginController.php:54
+#: app/Http/Controllers/RegisterController.php:46
+msgid "Email is required."
+msgstr ""
+
+#: app/Http/Controllers/LoginController.php:55
+#: app/Http/Controllers/RegisterController.php:47
+msgid "Password is required."
+msgstr ""
+
+#: app/Http/Controllers/LoginController.php:63
+msgid "Not so fast."
+msgstr ""
+
+#: app/Http/Controllers/LoginController.php:64
+msgid "Your account isn't active yet.  Your website administrator must activate your account before you can login and begin using the website."
+msgstr ""
+
+#: app/Http/Controllers/LoginController.php:83
+msgid "Oops!"
+msgstr ""
+
+#: app/Http/Controllers/LoginController.php:84
+msgid "That login information wasn't quite right. Be sure and check that you typed your email/password correctly."
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:97
+msgid "Uploaded avatar must be an image."
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:98
+msgid "You must upload an avatar or choose an existing avatar from the list."
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:311
+msgid "Arabic"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:314
+msgid "Danish (Denmark)"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:317
+msgid "German (Germany)"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:320
+msgid "Spanish (Spain)"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:323
+msgid "English"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:326
+msgid "French (France)"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:329
+msgid "Italian (Italy)"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:332
+msgid "Dutch (Netherlands)"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:335
+msgid "Portuguese (Brazil)"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:338
+msgid "Russian (Russia)"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:341
+msgid "Slovak (Slovakia)"
+msgstr ""
+
+#: app/Http/Controllers/MeController.php:344
+msgid "Turkish (Turkey)"
+msgstr ""
+
+#: app/Http/Controllers/RegisterController.php:48
+msgid "The passwords do not match."
+msgstr ""
+
+#: app/Http/Controllers/RegisterController.php:49
+msgid "Full Name is required."
+msgstr ""
+
+#: app/Http/Controllers/RegisterController.php:50
+msgid "Birthday is required."
+msgstr ""
+
+#: app/Mail/Registration.php:31
+#, php-format
+msgid "%s Membership"
+msgstr ""
+
+#: resources/views/addressbook/index.blade.php:23
+#: resources/views/me/address.blade.php:14
+#: resources/views/me/navigation.blade.php:10
+msgid "Address"
+msgstr ""
+
+#: resources/views/addressbook/index.blade.php:33
+msgid "Cell Phone"
+msgstr ""
+
+#: resources/views/addressbook/index.blade.php:42
+msgid "Home Phone"
+msgstr ""
+
+#: resources/views/addressbook/index.blade.php:51
+msgid "Work Phone"
+msgstr ""
+
+#: resources/views/addressbook/index.blade.php:61
+msgid "A map view could not be created for this address."
+msgstr ""
+
+#: resources/views/admin/members-index.blade.php:11
+#: resources/views/admin/polls-index.blade.php:11
+msgid "Id"
+msgstr ""
+
+#: resources/views/admin/members-index.blade.php:12
+#: resources/views/documents/create.blade.php:29
+#: resources/views/members/index.blade.php:11
+#: resources/views/me/profile.blade.php:13
+#: resources/views/photos/create.blade.php:33
+#: resources/views/recipes/category-create.blade.php:17
+#: resources/views/recipes/create.blade.php:17
+#: resources/views/tree/individual.blade.php:32
+msgid "Name"
+msgstr ""
+
+#: resources/views/admin/members-index.blade.php:13
+#: resources/views/members/index.blade.php:12
+msgid "Registered"
+msgstr ""
+
+#: resources/views/admin/members-index.blade.php:14
+#: resources/views/members/index.blade.php:13
+msgid "Last Seen"
+msgstr ""
+
+#: resources/views/admin/members-index.blade.php:15
+msgid "Can Login?"
+msgstr ""
+
+#: resources/views/admin/members-index.blade.php:16
+msgid "Access"
+msgstr ""
+
+#: resources/views/admin/members-index.blade.php:30
+#: resources/views/members/index.blade.php:23
+msgid "Never"
+msgstr ""
+
+#: resources/views/admin/members-index.blade.php:55
+msgid "Loading..."
+msgstr ""
+
+#: resources/views/admin/polls-index.blade.php:12
+msgid "Question"
+msgstr ""
+
+#: resources/views/admin/polls-index.blade.php:13
+#: resources/views/calendar/create.blade.php:22
+msgid "Date"
+msgstr ""
+
+#: resources/views/admin/polls-index.blade.php:14
+msgid "Votes"
+msgstr ""
+
+#: resources/views/auth/login.blade.php:27
+#: resources/views/auth/register.blade.php:29
+#: resources/views/install/admin.blade.php:24
+msgid "Email"
+msgstr ""
+
+#: resources/views/auth/login.blade.php:32
+#: resources/views/auth/register.blade.php:33
+#: resources/views/install/admin.blade.php:28
+msgid "Password"
+msgstr ""
+
+#: resources/views/auth/login.blade.php:37
+msgid "Remember Me"
+msgstr ""
+
+#: resources/views/auth/login.blade.php:41
+msgid "Sign In"
+msgstr ""
+
+#: resources/views/auth/login.blade.php:44
+msgid "Forgot Password"
+msgstr ""
+
+#: resources/views/auth/login.blade.php:46
+msgid "Register"
+msgstr ""
+
+#: resources/views/auth/register.blade.php:10
+msgid "Request Access"
+msgstr ""
+
+#: resources/views/auth/register.blade.php:11
+msgid "In order to login and begin using the site, your administrator must activate your account."
+msgstr ""
+
+#: resources/views/auth/register.blade.php:12
+msgid "Please fill out the form below to request access."
+msgstr ""
+
+#: resources/views/auth/register.blade.php:21
+#: resources/views/calendar/create.blade.php:13
+#: resources/views/contact.blade.php:12
+#: resources/views/discussions/create.blade.php:13
+#: resources/views/documents/create.blade.php:13
+#: resources/views/install/admin.blade.php:19
+#: resources/views/me/address.blade.php:17
+#: resources/views/me/avatar.blade.php:17
+#: resources/views/me/profile.blade.php:16
+#: resources/views/me/settings.blade.php:15
+#: resources/views/news/create.blade.php:13
+#: resources/views/recipes/category-create.blade.php:12
+#: resources/views/recipes/create.blade.php:12
+#: resources/views/tree/empty.blade.php:22
+#: resources/views/tree/index.blade.php:9
+#: resources/views/videos/create.blade.php:13
+msgid "An error has occurred"
+msgstr ""
+
+#: resources/views/auth/register.blade.php:37
+#: resources/views/install/admin.blade.php:32
+msgid "Confirm Password"
+msgstr ""
+
+#: resources/views/auth/register.blade.php:41
+#: resources/views/install/admin.blade.php:36
+#: resources/views/me/profile.blade.php:23
+msgid "Full Name"
+msgstr ""
+
+#: resources/views/auth/register.blade.php:45
+#: resources/views/install/admin.blade.php:40
+#: resources/views/me/profile.blade.php:27
+msgid "Display Name"
+msgstr ""
+
+#: resources/views/auth/register.blade.php:47
+#: resources/views/install/admin.blade.php:42
+#: resources/views/me/profile.blade.php:29
+msgid "What do you want to be called on the site?  Leave blank if it is the same as Full Name."
+msgstr ""
+
+#: resources/views/auth/register.blade.php:50
+#: resources/views/install/admin.blade.php:45
+#: resources/views/me/profile.blade.php:35
+msgid "Birthday"
+msgstr ""
+
+#: resources/views/calendar/create.blade.php:10
+msgid "Create New Event"
+msgstr ""
+
+#: resources/views/calendar/create.blade.php:14
+#: resources/views/contact.blade.php:13
+#: resources/views/discussions/create.blade.php:14
+#: resources/views/documents/create.blade.php:14
+#: resources/views/install/admin.blade.php:20
+#: resources/views/news/create.blade.php:14
+#: resources/views/recipes/category-create.blade.php:13
+#: resources/views/recipes/create.blade.php:13
+#: resources/views/tree/empty.blade.php:23
+#: resources/views/videos/create.blade.php:14
+msgid "Please fill out the required fields below."
+msgstr ""
+
+#: resources/views/calendar/create.blade.php:18
+#: resources/views/discussions/create.blade.php:18
+#: resources/views/news/create.blade.php:18
+#: resources/views/videos/create.blade.php:29
+msgid "Title"
+msgstr ""
+
+#: resources/views/calendar/create.blade.php:55
+msgid "Repeat Every Year"
+msgstr ""
+
+#: resources/views/calendar/create.blade.php:62
+msgid "Private"
+msgstr ""
+
+#: resources/views/calendar/create.blade.php:69
+msgid "Invite Guests"
+msgstr ""
+
+#: resources/views/calendar/create.blade.php:77
+#: resources/views/me/address.blade.php:66
+#: resources/views/me/avatar.blade.php:61
+#: resources/views/me/profile.blade.php:42
+#: resources/views/me/settings.blade.php:44
+#: resources/views/tree/empty.blade.php:66
+#: resources/views/tree/index.blade.php:139
+msgid "Save"
+msgstr ""
+
+#: resources/views/calendar/create.blade.php:79
+msgid "More Options"
+msgstr ""
+
+#: resources/views/calendar/day.blade.php:10
+#: resources/views/calendar/index.blade.php:10
+#: resources/views/calendar/week.blade.php:10
+msgid "Day"
+msgstr ""
+
+#: resources/views/calendar/day.blade.php:11
+#: resources/views/calendar/index.blade.php:11
+#: resources/views/calendar/week.blade.php:11
+msgid "Week"
+msgstr ""
+
+#: resources/views/calendar/day.blade.php:12
+#: resources/views/calendar/index.blade.php:12
+#: resources/views/calendar/week.blade.php:12
+msgid "Month"
+msgstr ""
+
+#: resources/views/calendar/day.blade.php:15
+#: resources/views/calendar/index.blade.php:15
+#: resources/views/calendar/week.blade.php:15
+msgid "Today"
+msgstr ""
+
+#: resources/views/calendar/sidebar.blade.php:4
+msgid "Create Event"
+msgstr ""
+
+#: resources/views/calendar/sidebar.blade.php:8
+msgid "Categories"
+msgstr ""
+
+#: resources/views/components/empty-state.blade.php:3
+msgid "Nothing is here"
+msgstr ""
+
+#: resources/views/components/empty-state.blade.php:4
+msgid "Looks like no one has added anything here yet."
+msgstr ""
+
+#: resources/views/contact.blade.php:17
+msgid "Subject"
+msgstr ""
+
+#: resources/views/contact.blade.php:21
+msgid "Message"
+msgstr ""
+
+#: resources/views/contact.blade.php:26
+msgid "Send"
+msgstr ""
+
+#: resources/views/discussions/create.blade.php:10
+msgid "Create New Discussion"
+msgstr ""
+
+#: resources/views/discussions/index.blade.php:9
+msgid "New Discussion"
+msgstr ""
+
+#: resources/views/discussions/index.blade.php:33
+#, python-format
+msgid "%s view"
+msgid_plural "%s views"
+msgstr[0] ""
+msgstr[1] ""
+
+#: resources/views/discussions/show.blade.php:14
+msgid "Reply"
+msgstr ""
+
+#: resources/views/discussions/show.blade.php:16
+#: resources/views/news/show.blade.php:9
+msgid "Back"
+msgstr ""
+
+#: resources/views/documents/create.blade.php:10
+msgid "Upload Document"
+msgstr ""
+
+#: resources/views/documents/create.blade.php:22
+msgid "Select a document to upload"
+msgstr ""
+
+#: resources/views/documents/create.blade.php:25
+#: resources/views/photos/create.blade.php:85
+#: resources/views/videos/create.blade.php:25
+msgid "or drag and drop it here"
+msgstr ""
+
+#: resources/views/documents/create.blade.php:33
+#: resources/views/photos/album.blade.php:67
+#: resources/views/photos/create.blade.php:37
+#: resources/views/recipes/category-create.blade.php:21
+#: resources/views/tree/individual.blade.php:131
+#: resources/views/videos/create.blade.php:33
+msgid "Description"
+msgstr ""
+
+#: resources/views/documents/create.blade.php:38
+#: resources/views/documents/index.blade.php:85
+#: resources/views/me/avatar.blade.php:32
+#: resources/views/photos/album.blade.php:9
+#: resources/views/photos/index.blade.php:9
+#: resources/views/videos/create.blade.php:38
+#: resources/views/videos/index.blade.php:10
+msgid "Upload"
+msgstr ""
+
+#: resources/views/documents/index.blade.php:9
+msgid "Folders"
+msgstr ""
+
+#: resources/views/documents/index.blade.php:17
+#: resources/views/documents/index.blade.php:26
+#: resources/views/documents/index.blade.php:35
+#: resources/views/documents/index.blade.php:44
+#: resources/views/documents/index.blade.php:53
+#, python-format
+msgid "%d Files"
+msgstr ""
+
+#: resources/views/documents/index.blade.php:25
+msgid "Presentation"
+msgstr ""
+
+#: resources/views/documents/index.blade.php:34
+msgid "Archives"
+msgstr ""
+
+#: resources/views/documents/index.blade.php:43
+msgid "Multimedia"
+msgstr ""
+
+#: resources/views/documents/index.blade.php:52
+msgid "Other"
+msgstr ""
+
+#: resources/views/documents/index.blade.php:58
+#: resources/views/news/index.blade.php:16
+msgid "Recent"
+msgstr ""
+
+#: resources/views/emails/contact-text.blade.php:4
+msgid "Sent from Family Connections"
+msgstr ""
+
+#: resources/views/emails/registration.blade.php:1
+#: resources/views/emails/registration-text.blade.php:1
+#, python-format
+msgid "Dear %s,"
+msgstr ""
+
+#: resources/views/emails/registration.blade.php:2
+#: resources/views/emails/registration-text.blade.php:3
+#, python-format
+msgid "Thank you for registering at %s."
+msgstr ""
+
+#: resources/views/emails/registration.blade.php:3
+#: resources/views/emails/registration-text.blade.php:5
+msgid "In order to login and begin using the site, your administrator must activate your account.  You will get an email when this has been done."
+msgstr ""
+
+#: resources/views/emails/registration.blade.php:5
+#: resources/views/emails/registration-text.blade.php:7
+msgid "Thanks,"
+msgstr ""
+
+#: resources/views/emails/registration.blade.php:6
+#: resources/views/emails/registration-text.blade.php:8
+#, python-format
+msgid "The %s Webmaster"
+msgstr ""
+
+#: resources/views/emails/registration.blade.php:9
+#: resources/views/emails/registration-text.blade.php:10
+msgid "This is an automated response, please do not reply."
+msgstr ""
+
+#: resources/views/home.blade.php:23
+#, python-format
+msgid "%s has added a new address."
+msgstr ""
+
+#: resources/views/home.blade.php:26
+#, python-format
+msgid "%s has started a new discussion."
+msgstr ""
+
+#: resources/views/home.blade.php:29
+#, python-format
+msgid "%s has added some new photos."
+msgstr ""
+
+#: resources/views/home.blade.php:32
+#, python-format
+msgid "%s has joined the site."
+msgstr ""
+
+#: resources/views/home.blade.php:78
+msgid "Latest Poll"
+msgstr ""
+
+#: resources/views/home.blade.php:106
+msgid "Vote"
+msgstr ""
+
+#: resources/views/install/admin.blade.php:11
+msgid "3. Create Admin User"
+msgstr ""
+
+#: resources/views/install/admin.blade.php:12
+msgid "Everyone will be required to have an account and be logged in at all times to use this website.  This will help protect your site."
+msgstr ""
+
+#: resources/views/install/admin.blade.php:13
+msgid "You must have at least one administrative account.  Please fill out the information below for the person who will be the administrator of this site."
+msgstr ""
+
+#: resources/views/install/config.blade.php:11
+msgid "2. Site Configuration"
+msgstr ""
+
+#: resources/views/install/config.blade.php:12
+msgid "Please fill out the form below to configure your site."
+msgstr ""
+
+#: resources/views/install/config.blade.php:17
+msgid "Optional Plugins"
+msgstr ""
+
+#: resources/views/install/config.blade.php:18
+msgid "Which plugins would you like to use on your site?"
+msgstr ""
+
+#: resources/views/install/database.blade.php:11
+msgid "This site hasn't been install yet"
+msgstr ""
+
+#: resources/views/install/database.blade.php:12
+msgid "You must finish the installation before using the site."
+msgstr ""
+
+#: resources/views/install/database.blade.php:15
+msgid "1. Database setup"
+msgstr ""
+
+#: resources/views/install/database.blade.php:16
+msgid "Please run the following command to configure your database"
+msgstr ""
+
+#: resources/views/install/database.blade.php:17
+msgid "php artisan migrate:fresh"
+msgstr ""
+
+#: resources/views/install/database.blade.php:20
+#: resources/views/photos/create.blade.php:53
+#: resources/views/photos/create.blade.php:105
+#: resources/views/photos/create.blade.php:131
+msgid "Next"
+msgstr ""
+
+#: resources/views/layouts/navigation.blade.php:35
+#: resources/views/me/navigation.blade.php:1
+msgid "Profile"
+msgstr ""
+
+#: resources/views/layouts/navigation.blade.php:36
+msgid "Messages"
+msgstr ""
+
+#: resources/views/layouts/navigation.blade.php:37
+msgid "Notifications"
+msgstr ""
+
+#: resources/views/layouts/navigation.blade.php:38
+#: resources/views/me/navigation.blade.php:13
+#: resources/views/me/navigation.blade.php:16
+msgid "Settings"
+msgstr ""
+
+#: resources/views/layouts/navigation.blade.php:40
+msgid "Logout"
+msgstr ""
+
+#: resources/views/me/address.blade.php:24
+msgid "Country"
+msgstr ""
+
+#: resources/views/me/address.blade.php:33
+msgid "Street Address"
+msgstr ""
+
+#: resources/views/me/address.blade.php:37
+msgid "City"
+msgstr ""
+
+#: resources/views/me/address.blade.php:42
+msgid "State"
+msgstr ""
+
+#: resources/views/me/address.blade.php:46
+msgid "Zip Code"
+msgstr ""
+
+#: resources/views/me/address.blade.php:50
+msgid "Contacts"
+msgstr ""
+
+#: resources/views/me/address.blade.php:52
+msgid "Cell"
+msgstr ""
+
+#: resources/views/me/address.blade.php:60
+msgid "Work"
+msgstr ""
+
+#: resources/views/me/avatar.blade.php:14
+msgid "Current Picture"
+msgstr ""
+
+#: resources/views/me/avatar.blade.php:28
+msgid "Change"
+msgstr ""
+
+#: resources/views/me/navigation.blade.php:4
+msgid "General"
+msgstr ""
+
+#: resources/views/me/navigation.blade.php:7
+msgid "Picture"
+msgstr ""
+
+#: resources/views/me/navigation.blade.php:19
+msgid "Account"
+msgstr ""
+
+#: resources/views/me/profile.blade.php:31
+msgid "Bio"
+msgstr ""
+
+#: resources/views/me/settings.blade.php:21
+#: resources/views/me/settings.blade.php:23
+msgid "Language"
+msgstr ""
+
+#: resources/views/me/settings.blade.php:31
+msgid "Timezone"
+msgstr ""
+
+#: resources/views/news/create.blade.php:10
+msgid " Add new Family News"
+msgstr ""
+
+#: resources/views/news/index.blade.php:9
+msgid "Add News"
+msgstr ""
+
+#: resources/views/news/index.blade.php:35
+msgid "My News"
+msgstr ""
+
+#: resources/views/news/index.blade.php:38
+msgid "Popular"
+msgstr ""
+
+#: resources/views/news/index.blade.php:61
+msgid "Latest news from"
+msgstr ""
+
+#: resources/views/photos/album.blade.php:16
+#: resources/views/photos/index.blade.php:16
+msgid "Dashboard"
+msgstr ""
+
+#: resources/views/photos/album.blade.php:19
+#: resources/views/photos/index.blade.php:19
+msgid "Albums"
+msgstr ""
+
+#: resources/views/photos/album.blade.php:22
+#: resources/views/photos/album.blade.php:71
+#: resources/views/photos/index.blade.php:22
+#: resources/views/photos/photo.blade.php:53
+msgid "People"
+msgstr ""
+
+#: resources/views/photos/album.blade.php:25
+#: resources/views/photos/album.blade.php:74
+#: resources/views/photos/index.blade.php:25
+msgid "Places"
+msgstr ""
+
+#: resources/views/photos/album.blade.php:33
+#: resources/views/photos/index.blade.php:33
+msgid "Top Rated"
+msgstr ""
+
+#: resources/views/photos/album.blade.php:34
+#: resources/views/photos/index.blade.php:34
+msgid "Most Viewed"
+msgstr ""
+
+#: resources/views/photos/album.blade.php:46
+#, python-format
+msgid "Created %s"
+msgstr ""
+
+#: resources/views/photos/album.blade.php:47
+#, python-format
+msgid "%d photo"
+msgid_plural "%d photos"
+msgstr[0] ""
+msgstr[1] ""
+
+#: resources/views/photos/album.blade.php:64
+#: resources/views/photos/photo.blade.php:21
+msgid "Details"
+msgstr ""
+
+#: resources/views/photos/create.blade.php:25
+#: resources/views/photos/create.blade.php:31
+msgid "Album"
+msgstr ""
+
+#: resources/views/photos/create.blade.php:26
+msgid "Upload your photos to a new or existing album"
+msgstr ""
+
+#: resources/views/photos/create.blade.php:43
+msgid "Existing Album"
+msgstr ""
+
+#: resources/views/photos/create.blade.php:71
+msgid "Upload Photos"
+msgstr ""
+
+#: resources/views/photos/create.blade.php:72
+msgid "Choose 1 or more photos to upload"
+msgstr ""
+
+#: resources/views/photos/create.blade.php:82
+msgid "Select photos to upload"
+msgstr ""
+
+#: resources/views/photos/create.blade.php:104
+#: resources/views/photos/create.blade.php:130
+msgid "Previous"
+msgstr ""
+
+#: resources/views/photos/create.blade.php:122
+msgid "Finishing Up"
+msgstr ""
+
+#: resources/views/photos/create.blade.php:123
+msgid "Your photos have been uploaded successfully.  Feel free to tag people and add comments."
+msgstr ""
+
+#: resources/views/photos/create.blade.php:128
+msgid "Success"
+msgstr ""
+
+#: resources/views/photos/index.blade.php:40
+msgid "Latest"
+msgstr ""
+
+#: resources/views/photos/index.blade.php:92
+msgid "On This Day"
+msgstr ""
+
+#: resources/views/photos/photo.blade.php:18
+#: resources/views/videos/show.blade.php:24
+msgid "Comments"
+msgstr ""
+
+#: resources/views/recipes/category-create.blade.php:9
+msgid "Add Category"
+msgstr ""
+
+#: resources/views/recipes/category-create.blade.php:27
+#: resources/views/recipes/create.blade.php:59
+msgid "Add"
+msgstr ""
+
+#: resources/views/recipes/create.blade.php:9
+#: resources/views/recipes/index.blade.php:9
+msgid "Add Recipe"
+msgstr ""
+
+#: resources/views/recipes/create.blade.php:21
+msgid "Thumbnail"
+msgstr ""
+
+#: resources/views/recipes/create.blade.php:32
+msgid "Category"
+msgstr ""
+
+#: resources/views/recipes/create.blade.php:43
+msgid "New Category"
+msgstr ""
+
+#: resources/views/recipes/create.blade.php:48
+#: resources/views/recipes/show.blade.php:24
+msgid "Ingredients"
+msgstr ""
+
+#: resources/views/recipes/create.blade.php:50
+msgid "Add ingredient"
+msgstr ""
+
+#: resources/views/recipes/create.blade.php:53
+#: resources/views/recipes/show.blade.php:20
+msgid "Directions"
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:12
+msgid "Start Family Tree"
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:15
+msgid "You do not have a Family Tree record yet."
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:16
+msgid "Please verify the information below and make any changes or additions as needed."
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:17
+msgid "Notice that your Member record and Family Tree record are different."
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:29
+#: resources/views/tree/index.blade.php:51
+msgid "First and optional Middle Name"
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:33
+#: resources/views/tree/index.blade.php:55
+msgid "Surname"
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:37
+#: resources/views/tree/index.blade.php:63
+msgid "Suffix"
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:42
+#: resources/views/tree/index.blade.php:68
+msgid "Sex"
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:50
+#: resources/views/tree/index.blade.php:76
+msgid "Male"
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:54
+#: resources/views/tree/index.blade.php:80
+msgid "Female"
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:58
+#: resources/views/tree/index.blade.php:84
+msgid "Not Listed or Prefer not to share"
+msgstr ""
+
+#: resources/views/tree/empty.blade.php:63
+#: resources/views/tree/index.blade.php:103
+msgid "Date of Birth"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:31
+msgid "Add Relationship"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:39
+msgid "Create New Person"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:43
+msgid "Choose Existing Person"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:59
+msgid "Maiden Name"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:89
+msgid "Status"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:93
+#: resources/views/tree/individual.blade.php:20
+#: resources/views/tree/person.blade.php:57
+#: resources/views/tree/person.blade.php:63
+msgid "Living"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:97
+#: resources/views/tree/individual.blade.php:22
+msgid "Deceased"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:107
+msgid "Date of Death"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:112
+msgid "Parents"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:122
+msgid "Existing Member?"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:125
+msgid "Create New"
+msgstr ""
+
+#: resources/views/tree/index.blade.php:138
+msgid "Close"
+msgstr ""
+
+#: resources/views/tree/individual.blade.php:26
+msgid "View Tree"
+msgstr ""
+
+#: resources/views/tree/individual.blade.php:49
+msgid "Alias"
+msgstr ""
+
+#: resources/views/tree/individual.blade.php:52
+msgid "Nickname"
+msgstr ""
+
+#: resources/views/tree/individual.blade.php:56
+#: resources/views/tree/individual.blade.php:84
+#: resources/views/tree/individual.blade.php:116
+msgid "Events, Media, More"
+msgstr ""
+
+#: resources/views/tree/individual.blade.php:61
+#: resources/views/tree/individual.blade.php:89
+#: resources/views/tree/individual.blade.php:121
+#: resources/views/tree/individual.blade.php:147
+msgid "Edit"
+msgstr ""
+
+#: resources/views/tree/individual.blade.php:64
+#: resources/views/tree/individual.blade.php:92
+#: resources/views/tree/individual.blade.php:124
+#: resources/views/tree/individual.blade.php:150
+msgid "Add Event"
+msgstr ""
+
+#: resources/views/tree/individual.blade.php:71
+msgid "Birth"
+msgstr ""
+
+#: resources/views/tree/individual.blade.php:79
+#: resources/views/tree/individual.blade.php:108
+msgid "unknown"
+msgstr ""
+
+#: resources/views/tree/individual.blade.php:99
+msgid "Death"
+msgstr ""
+
+#: resources/views/tree/individual.blade.php:111
+#: resources/views/tree/individual.blade.php:137
+msgid "none"
+msgstr ""
+
+#: resources/views/tree/person.blade.php:9
+msgid "Add Parent"
+msgstr ""
+
+#: resources/views/tree/person.blade.php:15
+msgid "Add Spouse"
+msgstr ""
+
+#: resources/views/tree/person.blade.php:21
+msgid "Add Sibling"
+msgstr ""
+
+#: resources/views/tree/person.blade.php:27
+msgid "Add Child"
+msgstr ""
+
+#: resources/views/tree/person.blade.php:61
+#, python-format
+msgid "Died in %d"
+msgstr ""
+
+#: resources/views/videos/create.blade.php:10
+msgid "Upload Video"
+msgstr ""
+
+#: resources/views/videos/create.blade.php:22
+msgid "Select a video to upload"
+msgstr ""
+
+#: resources/views/videos/show.blade.php:18
+#, python-format
+msgid "To view this video please enable JavaScript, and consider upgrading to a web browser that %s supports HTML5 video %s"
+msgstr ""

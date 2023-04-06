@@ -28,7 +28,7 @@ class Registration extends Mailable
     {
         return new Envelope(
             from: new Address(env('MAIL_FROM_ADDRESS')),
-            subject: __(':sitename Membership', ['sitename' => env('APP_NAME')]),
+            subject: sprintf(gettext('%s Membership'), env('APP_NAME')),
         );
     }
 

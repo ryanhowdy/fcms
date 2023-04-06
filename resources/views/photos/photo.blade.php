@@ -11,14 +11,14 @@
                     <img class="d-block h-100" src="{{ route('photo', ['id' => $album[0]->created_user_id, 'file' => $photo->filename]) }}">
                 </div>
                 <div class="col-2 details-col bg-dark pt-5">
-                    <a href="{{ route('photos.albums.show', $album[0]->id) }}" class="btn-close bg-white position-absolute top-0 end-0 me-3 mt-3" aria-label="Close"></a>
+                    <a href="{{ route('photos.albums.show', $album[0]->id) }}" class="btn-close bg-white position-absolute top-0 end-0 me-3 mt-3" aria-label="{{ gettext('Close') }}"></a>
                     <div class="photo-nav border-bottom">
                         <ul class="nav" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <a href="#" class="nav-link active" id="comments-tab-{{ $photo->id }}" data-bs-toggle="tab" data-bs-target="#comments-pane-{{ $photo->id }}">Comments</a>
+                                <a href="#" class="nav-link active" id="comments-tab-{{ $photo->id }}" data-bs-toggle="tab" data-bs-target="#comments-pane-{{ $photo->id }}">{{ gettext('Comments') }}</a>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <a href="#" class="nav-link" id="details-tab-{{ $photo->id }}" data-bs-toggle="tab" data-bs-target="#details-pane-{{ $photo->id }}">Details</a>
+                                <a href="#" class="nav-link" id="details-tab-{{ $photo->id }}" data-bs-toggle="tab" data-bs-target="#details-pane-{{ $photo->id }}">{{ gettext('Details') }}</a>
                             </li>
                         </ul>
                     </div>
@@ -50,7 +50,7 @@
                                 <div class="">{{ $photo->rating }}</div>
                             </div>
                             <div class="d-flex align-items-center mb-3">
-                                <b>{{ __('People') }}</b>
+                                <b>{{ gettext('People') }}</b>
                             </div>
                         </div><!-- /#details-pane -->
                     </div>

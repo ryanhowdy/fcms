@@ -6,14 +6,14 @@
     <div class="col border-end min-vh-100 p-5 position-relative">
 
         <div class="position-absolute end-0 top-0 me-5 mt-5">
-            <a href="{{ route('familynews.create') }}" class="btn btn-success text-white">{{ __('Add News') }}</a>
+            <a href="{{ route('familynews.create') }}" class="btn btn-success text-white">{{ gettext('Add News') }}</a>
         </div>
 
 @if ($news->isEmpty())
     <p>&nbsp;</p>
     <x-empty-state/>
 @else
-        <h3>{{ __('Recent') }}</h3>
+        <h3>{{ gettext('Recent') }}</h3>
         <div class="recent-news d-flex flex-wrap border-bottom pb-5">
         @foreach ($recent as $i => $n)
             <div class="d-flex my-3 position-relative">
@@ -32,10 +32,10 @@
 
         <ul class="nav nav-pills mt-5">
             <li class="nav-item">
-                <a class="nav-link active" href="#">{{ __('My News') }}</a>
+                <a class="nav-link active" href="#">{{ gettext('My News') }}</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">{{ __('Popular') }}</a>
+                <a class="nav-link" href="#">{{ gettext('Popular') }}</a>
             </li>
         </ul>
 
@@ -58,11 +58,11 @@
 
     </div>
     <div class="col-auto col-3 p-5">
-        <h6 class="mb-4">{{ __('Latest news from') }}</h6>
+        <h6 class="mb-4">{{ gettext('Latest news from') }}</h6>
         <div class="vstack gap-3">
             <div class="">
                 <a class="text-decoration-none text-dark" href="#">
-                    <img class="avatar rounded-5 me-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ __('avatar') }}">
+                    <img class="avatar rounded-5 me-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ gettext('avatar') }}">
                     Ryan
                 </a>
             </div>

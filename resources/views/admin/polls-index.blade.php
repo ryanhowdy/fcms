@@ -3,15 +3,15 @@
 
 @section('content')
 <div class="p-5">
-    <h2>{{ __('Polls') }}</h2>
+    <h2>{{ gettext('Polls') }}</h2>
 
     <table class="table table-hover">
         <thead>
             <tr>
-                <th>{{ __('Id') }}</th>
-                <th>{{ __('Question') }}</th>
-                <th>{{ __('Date') }}</th>
-                <th>{{ __('Votes') }}</th>
+                <th>{{ gettext('Id') }}</th>
+                <th>{{ gettext('Question') }}</th>
+                <th>{{ gettext('Date') }}</th>
+                <th>{{ gettext('Votes') }}</th>
             </tr>
         </thead>
         <tbody>

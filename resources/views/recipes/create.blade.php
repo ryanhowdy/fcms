@@ -6,19 +6,19 @@
 
     <form class="p-5 border rounded bg-white" action="{{ route('recipes.create') }}" method="post">
         @csrf
-        <h2 class="mb-5">{{ __('Add Recipe') }}</h2>
+        <h2 class="mb-5">{{ gettext('Add Recipe') }}</h2>
     @if ($errors->any())
         <div class="alert alert-danger">
-            <h4 class="alert-heading">{{ __('An error has occurred') }}</h4>
-            <p>{{ __('Please fill out the required fields below.') }}</p>
+            <h4 class="alert-heading">{{ gettext('An error has occurred') }}</h4>
+            <p>{{ gettext('Please fill out the required fields below.') }}</p>
         </div>
     @endif
         <div class="mb-3 required">
-            <label for="name" class="form-label">{{ __('Name') }}</label>
+            <label for="name" class="form-label">{{ gettext('Name') }}</label>
             <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}">
         </div>
         <div class="mb-3 required">
-            <label for="thumbnail" class="form-label">{{ __('Thumbnail') }}</label>
+            <label for="thumbnail" class="form-label">{{ gettext('Thumbnail') }}</label>
             <div>
             @for ($i=1; $i<=6; $i++)
                 <div class="form-check form-check-inline">
@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="mb-3 required">
-            <label for="category" class="form-label">{{ __('Category') }}</label>
+            <label for="category" class="form-label">{{ gettext('Category') }}</label>
             <div class="row">
                 <div class="col-9">
                     <select class="form-select" id="category" name="category">
@@ -40,23 +40,23 @@
                     </select>
                 </div>
                 <div class="col-3">
-                    <a href="{{ route('recipes.categories.create') }}">{{ __('New Category') }}</a>
+                    <a href="{{ route('recipes.categories.create') }}">{{ gettext('New Category') }}</a>
                 </div>
             </div>
         </div>
         <div class="mb-3 required">
-            <label for="ingredients[]" class="form-label">{{ __('Ingredients') }}</label>
+            <label for="ingredients[]" class="form-label">{{ gettext('Ingredients') }}</label>
             <input type="text" class="form-control mb-2" id="ingredients[]" name="ingredients[]" value="{{ old('ingredients') }}">
-            <div class="add-ingredient form-text">{{ __('Add ingredient') }}</div>
+            <div class="add-ingredient form-text">{{ gettext('Add ingredient') }}</div>
         </div>
         <div class="mb-5 required">
-            <label for="directions" class="form-label">{{ __('Directions') }}</label>
+            <label for="directions" class="form-label">{{ gettext('Directions') }}</label>
             <x-text-editor :name="'directions'" :remove="['images', 'emojis', 'submit']"/>
         </div>
         <div class="">
             <button class="btn btn-success px-5" type="submit" id="submit" name="submit">
                 <i class="bi-check-square me-1"></i>
-                {{ __('Add') }}
+                {{ gettext('Add') }}
             </button>
         </div>
     </form>

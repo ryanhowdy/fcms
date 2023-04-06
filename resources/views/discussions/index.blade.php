@@ -4,9 +4,9 @@
 @section('content')
 <div class="p-5">
     <div class="d-flex justify-content-between">
-        <h2>{{ __('Discussions') }}</h2>
+        <h2>{{ gettext('Discussions') }}</h2>
         <div>
-            <a href="{{ route('discussions.create') }}" class="btn btn-success text-white">{{ __('New Discussion') }}</a>
+            <a href="{{ route('discussions.create') }}" class="btn btn-success text-white">{{ gettext('New Discussion') }}</a>
         </div>
     </div>
 
@@ -18,7 +18,7 @@
         <div class="discussion d-flex justify-content-between pb-4 border-bottom">
             <div class="d-flex flex-row p-3">
                 <div>
-                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ __('avatar') }}">
+                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ gettext('avatar') }}">
                 </div>
                 <div>
                     <a href="{{ route('discussions.show', $d->id) }}" class="h3 py-1 d-block text-black text-decoration-none">{{ $d->title }}</a>
@@ -30,7 +30,7 @@
                         </div>
                         <div class="d-inline-block border p-2">
                             <i class="bi-eye me-2"></i>
-                            {{ trans_choice('{0} :count views|{1} :count view|[2,*] :count views', $d->views, ['count' => $d->views]) }}
+                            {{ sprintf(ngettext('%s view', '%s views', $d->views), $d->views) }}
                         </div>
                     </div>
                 </div>

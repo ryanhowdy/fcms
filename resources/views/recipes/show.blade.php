@@ -17,11 +17,11 @@
 
             <div class="d-flex justify-content-between">
                 <div class="directions pe-5">
-                    <h5>{{ __('Directions') }}</h5>
+                    <h5>{{ gettext('Directions') }}</h5>
                     {!! $recipe->directions !!}
                 </div>
                 <div class="ingredients bg-info p-4 rounded">
-                    <h5>{{ __('Ingredients') }}</h5>
+                    <h5>{{ gettext('Ingredients') }}</h5>
                     <ul>
                     @foreach (explode("\r\n", $recipe->ingredients) as $key => $i)
                         @if (!empty($i))

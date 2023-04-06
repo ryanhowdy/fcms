@@ -58,7 +58,7 @@ class AdminMemberController extends Controller
         {
             $user = $user->toArray();
 
-            $user['text'] = $user['activated'] == 1 ? __('Yes') : __('No');
+            $user['text'] = $user['activated'] == 1 ? gettext('Yes') : gettext('No');
 
             return response()->json($user);
         }

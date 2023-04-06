@@ -24,13 +24,13 @@ class Calendar
         $this->endOfWeek   = env('FCMS_WEEK_END');
 
         $this->daysOfWeekLkup = [
-            0 => __('Sunday'),
-            1 => __('Monday'),
-            2 => __('Tuesday'),
-            3 => __('Wednesday'),
-            4 => __('Thursday'),
-            5 => __('Friday'),
-            6 => __('Saturday'),
+            0 => gettext('Sunday'),
+            1 => gettext('Monday'),
+            2 => gettext('Tuesday'),
+            3 => gettext('Wednesday'),
+            4 => gettext('Thursday'),
+            5 => gettext('Friday'),
+            6 => gettext('Saturday'),
         ];
     }
 
@@ -349,10 +349,10 @@ class Calendar
 
             $age = $endOfCalendar->diff($b->birthday)->format('%y');
 
-            $desc = trans_choice('{1} Turns :age year old today.|[2,*] Turns :age years old today.', $age, [ 'age' => $age ]);
+            $desc = sprintf(ngettext('Turns %d year old today.', 'Turns %d years old today.', $age), $age);
             if ($age == 0)
             {
-                $desc = trans('Was born today.');
+                $desc = gettext('Was born today.');
             }
 
             $dateKey = $endOfCalendar->format('Y').'-'.$bMonth.'-'.$bDay;

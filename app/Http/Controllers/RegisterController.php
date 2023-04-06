@@ -43,11 +43,11 @@ class RegisterController extends Controller
             'bday'     => ['required', 'date'],
         ],
         [
-            'email.required'     => __('Email is required.'),
-            'password.required'  => __('Password is required.'),
-            'password.confirmed' => __('The passwords do not match.'),
-            'name.required'      => __('Full Name is required.'),
-            'bday.required'      => __('Birthday is required.'),
+            'email.required'     => gettext('Email is required.'),
+            'password.required'  => gettext('Password is required.'),
+            'password.confirmed' => gettext('The passwords do not match.'),
+            'name.required'      => gettext('Full Name is required.'),
+            'bday.required'      => gettext('Birthday is required.'),
         ]);
 
         $user = new User;

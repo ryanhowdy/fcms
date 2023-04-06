@@ -1,12 +1,23 @@
 [Language Info]
 
+ Install missing locales
+
+    locale -a
+
+    sudo locale-gen ru_RU
+
+    sudo update-locale 
+
+    sudo systemctl restart apache
+
  Create dev/list File
 
-    find . \! -path "./test/*" \! -path "./dev/*" \! -path "./familyconnections/inc/chat/lib/*" \! -path "./familyconnections/inc/thirdparty/*" -type f -name "*.php" | sort > dev/list
+    find ./app/ \! -path './app/Legacy/*' -type f -name '*.php' | sort > dev/list
+    find ./resources/views/ -type f -name '*.php' | sort > dev/list-blade
 
  Create POT File
 
-    xgettext --files-from=dev/list --keyword=T_ --keyword=T_ngettext:1,2 --keyword=T_pgettext:1c,2 --language=PHP --no-wrap -o familyconnections/language/messages.pot
+    xgettext --files-from=./dev/list -kpgettext:1c,2 -knpgettext:1c,2,3 --language=PHP --no-wrap -o ./lang/messages.pot | xargs xgettext --files-from=./dev/list-blade -kpgettext:1c,2 -knpgettext:1c,2,3 --language=Python --no-wrap -j -o ./lang/messages.pot
 
  Create mo file from po
 

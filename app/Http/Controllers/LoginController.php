@@ -51,8 +51,8 @@ class LoginController extends Controller
             'password' => ['required'],
         ],
         [
-            'email.required'    => __('Email is required.'),
-            'password.required' => __('Password is required.'),
+            'email.required'    => gettext('Email is required.'),
+            'password.required' => gettext('Password is required.'),
         ]);
 
         // Check if the user is activated
@@ -60,8 +60,8 @@ class LoginController extends Controller
 
         if (!$user->activated)
         {
-            Session::flash('header',  __('Not so fast.'));
-            Session::flash('message', __('Your account isn\'t active yet.  Your website administrator must activate your account before you can login and begin using the website.'));
+            Session::flash('header',  gettext('Not so fast.'));
+            Session::flash('message', gettext('Your account isn\'t active yet.  Your website administrator must activate your account before you can login and begin using the website.'));
 
             return back();
         }
@@ -80,8 +80,8 @@ class LoginController extends Controller
             return redirect()->route('home');
         }
 
-        Session::flash('header',  __('Oops!'));
-        Session::flash('message', __("That login information wasn't quite right. Be sure and check that you typed your email/password correctly."));
+        Session::flash('header',  gettext('Oops!'));
+        Session::flash('message', gettext("That login information wasn't quite right. Be sure and check that you typed your email/password correctly."));
 
         return back();
     }

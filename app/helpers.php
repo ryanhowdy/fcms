@@ -6,6 +6,64 @@
  * Some usefule global helper/utility functions
  */
 
+if (!function_exists('pgettext'))
+{
+    /**
+     * pgettext 
+     * 
+     * Same as gettext() but with context
+     * 
+     * @param string $context 
+     * @param string $msgid 
+     * @return string
+     */
+    function pgettext($context, $msgid)
+    {
+        $contextString = "{$context}\004{$msgid}";
+
+        $translation = gettext($contextString, LC_MESSAGES);
+
+        if ($translation == $contextString)
+        {
+            return $msgid;
+        }
+        else
+        {
+            return $translation;
+        }
+    }
+}
+
+if (!function_exists('npgettext'))
+{
+    /**
+     * npgettext 
+     * 
+     * Same as ngettext() but with context
+     * 
+     * @param string $context 
+     * @param string $msgid 
+     * @param string $msgid_plural 
+     * @param string $n 
+     * @return string
+     */
+    function npgettext($context, $msgid, $msgid_plural, $n)
+    {
+        $contextString = "{$context}\004{$msgid}";
+
+        $translation = ngettext($contextString, $msgid_plural, $n, LC_MESSAGES);
+
+        if ($translation == $contextString || $translation == $msgid_plural)
+        {
+            return $n == 1 ? $msgid : $msgid_plural;
+        }
+        else
+        {
+            return $translation;
+        }
+    }
+}
+
 if (!function_exists('getUserDisplayName'))
 {
     /*

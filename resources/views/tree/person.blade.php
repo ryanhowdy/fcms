@@ -6,25 +6,25 @@
                 <li>
                     <a class="dropdown-item" data-individual="{{ $person['id'] }}" data-type="parent" data-family="{{ $person['family_id'] }}" href="#"
                         data-header="{{ $person['strings']['parent']['header'] }}">
-                        {{ __('Add Parent') }}
+                        {{ gettext('Add Parent') }}
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item" data-individual="{{ $person['id'] }}" data-type="spouse" data-family="{{ $person['family_id'] }}" href="#"
                         data-header="{{ $person['strings']['spouse']['header'] }}" data-surname="{{ $person['surname'] }}">
-                        {{ __('Add Spouse') }}
+                        {{ gettext('Add Spouse') }}
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item" data-individual="{{ $person['id'] }}" data-type="sibling" data-family="{{ $person['family_id'] }}" href="#"
                         data-header="{{ $person['strings']['sibling']['header'] }}">
-                        {{ __('Add Sibling') }}
+                        {{ gettext('Add Sibling') }}
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item" data-individual="{{ $person['id'] }}" data-type="child" data-family="{{ $person['family_id'] }}" href="#"
                         data-header="{{ $person['strings']['child']['header'] }}">
-                        {{ __('Add Child') }}
+                        {{ gettext('Add Child') }}
                     </a>
                 </li>
             </ul>
@@ -38,7 +38,7 @@
             <i class="bi-pencil"></i>
         </a>
     </div><!-- /.options -->
-    <img class="avatar rounded-5" src="{{ getIndividualPicture($person) }}" title="{{ __('avatar') }}">
+    <img class="avatar rounded-5" src="{{ getIndividualPicture($person) }}" title="{{ gettext('avatar') }}">
     <div class="d-block">
         {{ $person['given_name'] }}
         @if (!empty($person['maiden']))
@@ -54,13 +54,13 @@
             @if (!empty($person['dod_year']))
                 {{ $person['dod_year'] }}
             @else
-                {{ __('Living') }}
+                {{ gettext('Living') }}
             @endif
         @else
             @if (!empty($person['dod_year']))
-                {{ trans('Died in :year', ['year' => $person['dod_year']]) }}
+                {{ sprintf(gettext('Died in %d'), $person['dod_year']) }}
             @else
-                {{ __('Living') }}
+                {{ gettext('Living') }}
             @endif
 
         @endif

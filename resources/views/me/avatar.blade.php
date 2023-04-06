@@ -11,10 +11,10 @@
         <form class="" action="{{ route('my.avatar') }}" method="post" enctype="multipart/form-data">
             @csrf
             <input type="hidden" id="avatar-other" name="avatar-other">
-            <h2>{{ __('Current Picture') }}</h2>
+            <h2>{{ gettext('Current Picture') }}</h2>
         @if ($errors->any())
             <div class="alert alert-danger">
-                <h4 class="alert-heading">{{ __('An error has occurred') }}</h4>
+                <h4 class="alert-heading">{{ gettext('An error has occurred') }}</h4>
             @foreach ($errors->all() as $error)
                 <p>{{ $error }}</p>
             @endforeach
@@ -22,20 +22,20 @@
         @endif
             <div class="avatar-preview border mb-5 d-flex justify-content-center align-items-center">
                 <div class="p-2">
-                    <img class="" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ __('avatar') }}">
+                    <img class="" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ gettext('avatar') }}">
                 </div>
             </div>
-            <h2>{{ __('Change') }}</h2>
+            <h2>{{ gettext('Change') }}</h2>
             <div class="avatars d-flex">
                 <div class="me-3 mb-3 border text-center">
                     <input type="file" class="d-none" id="photo-picker" name="avatar" accept="image/*">
-                    <a href="#" class="uploader d-block pt-2"><i class="bi-upload"></i><br>{{ __('Upload') }}</a>
+                    <a href="#" class="uploader d-block pt-2"><i class="bi-upload"></i><br>{{ gettext('Upload') }}</a>
                 </div>
                 <div class="me-3 mb-3 border text-center">
-                    <a href="#" data-id="default" title="{{ __('Use Default Picture') }}"><img src="{{ route('avatar', 'no_avatar.jpg') }}"></a>
+                    <a href="#" data-id="default" title="{{ gettext('Use Default Picture') }}"><img src="{{ route('avatar', 'no_avatar.jpg') }}"></a>
                 </div>
                 <div class="me-3 mb-3 border text-center">
-                    <a href="#" data-id="gravatar" title="{{ __('Use Gravatar') }}"><img src="https://www.gravatar.com/avatar/{{ md5(strtolower(trim(Auth()->user()->email))) }}"></a>
+                    <a href="#" data-id="gravatar" title="{{ gettext('Use Gravatar') }}"><img src="https://www.gravatar.com/avatar/{{ md5(strtolower(trim(Auth()->user()->email))) }}"></a>
                 </div>
             </div>
             <div class="avatars d-flex mb-5">
@@ -58,7 +58,7 @@
             <div class="">
                 <button class="btn btn-success text-white px-5" type="submit" id="submit" name="submit">
                     <i class="bi-check-square me-1"></i>
-                    {{ __('Save') }}
+                    {{ gettext('Save') }}
                 </button>
             </div>
         </form>

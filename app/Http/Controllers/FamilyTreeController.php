@@ -116,7 +116,7 @@ class FamilyTreeController extends Controller
         $individual->family_id       = $familyId;
         $individual->created_user_id = Auth()->user()->id;
         $individual->updated_user_id = Auth()->user()->id;
-        $individual->given_name      = $request->has('given_name') ? $request->given_name : __('Unknown');
+        $individual->given_name      = $request->has('given_name') ? $request->given_name : gettext('Unknown');
 
         if ($request->has('user_id'))
         {

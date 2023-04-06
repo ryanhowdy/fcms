@@ -214,10 +214,13 @@ class MeController extends Controller
     {
         $timezones = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
 
+        $languages = $this->getListOfAvailableLanguages();
+
         return view('me.settings', [
             'user'      => Auth()->user(),
             'settings'  => Auth()->user()->settings,
             'timezones' => $timezones,
+            'languages' => $languages,
         ]);
     }
 
@@ -230,29 +233,119 @@ class MeController extends Controller
     public function settingsUpdate(Request $request)
     {
         $validated = $request->validate([
-            'country' => ['nullable', 'string', 'min:2', 'max:2'],
-            'address' => ['nullable', 'string'],
-            'city'    => ['nullable', 'string'],
-            'state'   => ['nullable', 'string'],
-            'zip'     => ['nullable', 'string'],
-            'cell'    => ['nullable', 'string'],
-            'home'    => ['nullable', 'string'],
-            'work'    => ['nullable', 'string'],
+            'language' => ['required', 'string'],
+            'timezone' => ['required', 'string'],
         ]);
 
-        $address = Address::where('user_id', Auth()->user()->id)->get();
+        $setting = UserSetting::findOrFail(Auth()->user()->settings->id);
 
-        $address[0]->country = $request->country;
-        $address[0]->address = $request->address;
-        $address[0]->city    = $request->city;
-        $address[0]->state   = $request->state;
-        $address[0]->zip     = $request->zip;
-        $address[0]->cell    = $request->cell;
-        $address[0]->home    = $request->home;
-        $address[0]->work    = $request->work;
+        $setting->language = $request->language;
+        $setting->timezone = $request->timezone;
 
-        $address[0]->save();
+        $setting->save();
 
         return redirect()->route('my.settings');
+    }
+
+    /**
+     * getListOfAvailableLanguages 
+     * 
+     * @return array
+     */
+    private function getListOfAvailableLanguages()
+    {
+        $languages = ['en_US' => $this->getLanguageName('en')];
+
+        $dir = base_path().'/lang/';
+
+        if (is_dir($dir))
+        {
+            if ($dh = opendir($dir))
+            {
+                while (($file = readdir($dh)) !== false)
+                {
+                    // Skip directories that start with a period
+                    if ($file[0] === '.')
+                    {
+                        continue;
+                    }
+
+                    // Skip files (messages.pot)
+                    if (!is_dir("$dir$file"))
+                    {
+                        continue;
+                    }
+
+                    // Skip directories that don't include a messages.mo file
+                    if (!file_exists($dir.$file.'/LC_MESSAGES/messages.mo'))
+                    {
+                        continue;
+                    }
+
+                    $languages[$file] = $this->getLanguageName($file);
+                }
+
+                closedir($dh);
+            }
+        }
+
+        return $languages;
+    }
+
+    /**
+     * getLanguageName 
+     * 
+     * Given a locale usually in the ll_CC format where 
+     * ll is an ISO 639 2-letter language code and
+     * CC is an ISO 3166 2-letter country code
+     * Will return a string of the language name and country name if applicable
+     * 
+     * @param string $locale 
+     * @return string
+     */
+    private function getLanguageName(string $locale)
+    {
+        switch($locale)
+        {
+            case 'ar':
+                return gettext('Arabic');
+                break;
+            case 'da_DK':
+                return gettext('Danish (Denmark)');
+                break;
+            case 'de_DE':
+                return gettext('German (Germany)');
+                break;
+            case 'es_ES':
+                return gettext('Spanish (Spain)');
+                break;
+            case 'en':
+                return gettext('English');
+                break;
+            case 'fr_FR':
+                return gettext('French (France)');
+                break;
+            case 'it_IT':
+                return gettext('Italian (Italy)');
+                break;
+            case 'nl_NL':
+                return gettext('Dutch (Netherlands)');
+                break;
+            case 'pt_BR':
+                return gettext('Portuguese (Brazil)');
+                break;
+            case 'ru_RU':
+                return gettext('Russian (Russia)');
+                break;
+            case 'sk_SK':
+                return gettext('Slovak (Slovakia)');
+                break;
+            case 'tr_TR':
+                return gettext('Turkish (Turkey)');
+                break;
+            default:
+                return $locale;
+                break;
+        }
     }
 }

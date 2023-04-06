@@ -3,17 +3,17 @@
 
 @section('content')
 <div class="p-5">
-    <h2>{{ __('Members') }}</h2>
+    <h2>{{ gettext('Members') }}</h2>
 
     <table class="table table-hover">
         <thead>
             <tr>
-                <th>{{ __('Id') }}</th>
-                <th>{{ __('Name') }}</th>
-                <th>{{ __('Registered') }}</th>
-                <th>{{ __('Last Seen') }}</th>
-                <th>{{ __('Can Login?') }}</th>
-                <th>{{ __('Access') }}</th>
+                <th>{{ gettext('Id') }}</th>
+                <th>{{ gettext('Name') }}</th>
+                <th>{{ gettext('Registered') }}</th>
+                <th>{{ gettext('Last Seen') }}</th>
+                <th>{{ gettext('Can Login?') }}</th>
+                <th>{{ gettext('Access') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -27,16 +27,16 @@
                 <td>{{ $user->created_at->format('M j, Y') }}</td>
                 <td>
                 @if (is_null($user->activity))
-                    {{ __('Never') }}
+                    {{ gettext('Never') }}
                 @else
                     {{ $user->activity->diffForHumans() }}
                 @endif
                 </td>
                 <td>
                 @if ($user->activated)
-                    <span data-id="{{ $user->id }}" class="alert alert-success py-1 px-2 m-0 small">{{ __('Yes') }}</span>
+                    <span data-id="{{ $user->id }}" class="alert alert-success py-1 px-2 m-0 small">{{ gettext('Yes') }}</span>
                 @else
-                    <span data-id="{{ $user->id }}" class="alert alert-danger py-1 px-2 m-0 small">{{ __('No') }}</span>
+                    <span data-id="{{ $user->id }}" class="alert alert-danger py-1 px-2 m-0 small">{{ gettext('No') }}</span>
                 @endif
                 </td>
                 <td>
@@ -52,7 +52,7 @@
     </table>
 
     <div id="spinner" class="spinner-grow d-none" role="status">
-        <span class="visually-hidden">{{ __('Loading...') }}</span>
+        <span class="visually-hidden">{{ gettext('Loading...') }}</span>
     </div>
 
 </div>
