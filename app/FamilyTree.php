@@ -270,7 +270,7 @@ class FamilyTree
         {
             $fullName = $ind['given_name'].' '.$ind['surname'];
             $parent1  = $fullName;
-            $parent2  = gettext('unknown parent');
+            $parent2  = _gettext('unknown parent');
 
             $spouseKey = isset($ind['spouses']) ? array_key_first($ind['spouses']) : 0;
 
@@ -280,18 +280,18 @@ class FamilyTree
             }
 
             $tree[$key]['strings'] = [
-                'parent'  => [ 'header' => sprintf(gettext('Add a parent for %s'), $fullName) ],
-                'spouse'  => [ 'header' => sprintf(gettext('Add a spouse for %s'), $fullName) ],
-                'sibling' => [ 'header' => sprintf(gettext('Add a sibling for %s'), $fullName) ],
-                'child'   => [ 'header' => sprintf(gettext('Add a child for %s and %s'), $parent1, $parent2) ],
+                'parent'  => [ 'header' => sprintf(_gettext('Add a parent for %s'), $fullName) ],
+                'spouse'  => [ 'header' => sprintf(_gettext('Add a spouse for %s'), $fullName) ],
+                'sibling' => [ 'header' => sprintf(_gettext('Add a sibling for %s'), $fullName) ],
+                'child'   => [ 'header' => sprintf(_gettext('Add a child for %s and %s'), $parent1, $parent2) ],
             ];
             if (isset($ind['spouses']) && count($ind['spouses']))
             {
                 $tree[$key]['spouses'][$spouseKey]['strings'] = [
-                    'parent'  => [ 'header' => sprintf(gettext('Add a parent for %s'), $parent2) ],
-                    'spouse'  => [ 'header' => sprintf(gettext('Add a spouse for %s'), $parent2) ],
-                    'sibling' => [ 'header' => sprintf(gettext('Add a sibling for %s'), $parent2) ],
-                    'child'   => [ 'header' => sprintf(gettext('Add a child for %s and %s'), $parent1, $parent2) ],
+                    'parent'  => [ 'header' => sprintf(_gettext('Add a parent for %s'), $parent2) ],
+                    'spouse'  => [ 'header' => sprintf(_gettext('Add a spouse for %s'), $parent2) ],
+                    'sibling' => [ 'header' => sprintf(_gettext('Add a sibling for %s'), $parent2) ],
+                    'child'   => [ 'header' => sprintf(_gettext('Add a child for %s and %s'), $parent1, $parent2) ],
                 ];
             }
 

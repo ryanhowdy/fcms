@@ -3,6 +3,8 @@ error_reporting(E_ALL);
 ini_set('error_reporting', E_ALL);
 ini_set("display_errors", 1);
 
+require __DIR__.'/../vendor/phpmyadmin/motranslator/src/functions.php';
+
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 

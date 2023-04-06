@@ -22,32 +22,16 @@ class SetLocale
 
             App()->setLocale($locale);
 
-            if ($locale !== 'en_US')
-            {
-                $path   = base_path() . '/lang';
-                $domain = 'messages';
+            $path   = base_path() . '/lang';
+            $domain = 'messages';
 
-                $putenv = putenv('LC_ALL='.$locale);
-                if (!$putenv)
-                {
-                    die('putenv failed');
-                }
+            putenv('LC_ALL='.$locale);
 
-                $setlocale = setlocale(LC_MESSAGES, $locale);
-                if (!$setlocale)
-                {
-                    die('setlocale failed');
-                }
-
-                $bindtextdomain = bindtextdomain($domain, $path);
-                if (!$bindtextdomain)
-                {
-                    die('bindtextdomain failed');
-                }
-
-                bind_textdomain_codeset($domain, 'UTF-8');
-                textdomain($domain);
-            }
+            // Call the MoTranslator gettext replacement functions
+            _setlocale(LC_MESSAGES, $locale);
+            _textdomain($domain);
+            _bindtextdomain($domain, $path);
+            _bind_textdomain_codeset($domain, 'UTF-8');
         }
 
         return $next($request);

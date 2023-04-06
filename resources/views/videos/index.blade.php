@@ -5,9 +5,9 @@
 <div class="p-5">
 
     <div class="d-flex justify-content-between">
-        <h2>{{ gettext('Videos') }}</h2>
+        <h2>{{ _gettext('Videos') }}</h2>
         <div>
-            <a href="{{ route('videos.create') }}" class="btn btn-success text-white">{{ gettext('Upload') }}</a>
+            <a href="{{ route('videos.create') }}" class="btn btn-success text-white">{{ _gettext('Upload') }}</a>
         </div>
     </div>
 

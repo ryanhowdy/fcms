@@ -15,12 +15,12 @@
                 </li>
                 <li class="nav-item dropdown no-caret mx-2">
                     <a class="nav-link dropdown-toggle fs-4" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img class="avatar rounded-5" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ gettext('avatar') }}">
+                        <img class="avatar rounded-5" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ _gettext('avatar') }}">
                     </a>
                     <div class="dropdown-menu dropdown-menu-end">
                         <div class="d-flex">
                             <a class="px-3 py-1 avatar-wrapper position-relative" href="{{ route('my.avatar') }}">
-                                <img class="avatar rounded-5" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ gettext('avatar') }}">
+                                <img class="avatar rounded-5" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ _gettext('avatar') }}">
                                 <i class="bi-pencil position-absolute"></i>
                             </a>
                             <div>
@@ -32,12 +32,12 @@
                                 </p>
                             </div>
                         </div>
-                        <a class="dropdown-item" href="{{ route('my.profile') }}">{{ gettext('Profile') }}</a>
-                        <a class="dropdown-item" href="{{ route('my.messages') }}">{{ gettext('Messages') }}</a>
-                        <a class="dropdown-item" href="{{ route('my.notifications') }}">{{ gettext('Notifications') }}</a>
-                        <a class="dropdown-item" href="{{ route('my.settings') }}">{{ gettext('Settings') }}</a>
+                        <a class="dropdown-item" href="{{ route('my.profile') }}">{{ _gettext('Profile') }}</a>
+                        <a class="dropdown-item" href="{{ route('my.messages') }}">{{ _gettext('Messages') }}</a>
+                        <a class="dropdown-item" href="{{ route('my.notifications') }}">{{ _gettext('Notifications') }}</a>
+                        <a class="dropdown-item" href="{{ route('my.settings') }}">{{ _gettext('Settings') }}</a>
                         <hr class="dropdown-divider">
-                        <a class="dropdown-item" href="{{ route('auth.logout') }}">{{ gettext('Logout') }}</a>
+                        <a class="dropdown-item" href="{{ route('auth.logout') }}">{{ _gettext('Logout') }}</a>
                     </div>
                 </li>
             </ul>

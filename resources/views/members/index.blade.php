@@ -3,14 +3,14 @@
 
 @section('content')
 <div class="p-5">
-    <h2>{{ gettext('Members') }}</h2>
+    <h2>{{ _gettext('Members') }}</h2>
 
     <table class="table table-hover">
         <thead>
             <tr>
-                <th>{{ gettext('Name') }}</th>
-                <th>{{ gettext('Registered') }}</th>
-                <th>{{ gettext('Last Seen') }}</th>
+                <th>{{ _gettext('Name') }}</th>
+                <th>{{ _gettext('Registered') }}</th>
+                <th>{{ _gettext('Last Seen') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -20,7 +20,7 @@
                 <td>{{ $user->created_at->format('M j, Y') }}</td>
                 <td>
                 @if (is_null($user->activity))
-                    {{ gettext('Never') }}
+                    {{ _gettext('Never') }}
                 @else
                     {{ $user->activity->diffForHumans() }}
                 @endif

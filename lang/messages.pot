@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 4.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-06 12:56+0000\n"
+"POT-Creation-Date: 2023-04-06 16:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -297,6 +297,10 @@ msgstr ""
 msgid "Turkish (Turkey)"
 msgstr ""
 
+#: app/Http/Controllers/MeController.php:347
+msgid "XX (Test)"
+msgstr ""
+
 #: app/Http/Controllers/RegisterController.php:48
 msgid "The passwords do not match."
 msgstr ""
@@ -342,7 +346,7 @@ msgid "Id"
 msgstr ""
 
 #: resources/views/admin/members-index.blade.php:12
-#: resources/views/documents/create.blade.php:29
+#: resources/views/documents/create.blade.php:28
 #: resources/views/members/index.blade.php:11
 #: resources/views/me/profile.blade.php:13
 #: resources/views/photos/create.blade.php:33
@@ -606,21 +610,35 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
+#: resources/views/discussions/show.blade.php:20
+#: resources/views/news/show.blade.php:13
+#: resources/views/tree/individual.blade.php:61
+#: resources/views/tree/individual.blade.php:89
+#: resources/views/tree/individual.blade.php:121
+#: resources/views/tree/individual.blade.php:147
+msgid "Edit"
+msgstr ""
+
+#: resources/views/discussions/show.blade.php:21
+#: resources/views/news/show.blade.php:14
+msgid "Delete"
+msgstr ""
+
 #: resources/views/documents/create.blade.php:10
 msgid "Upload Document"
 msgstr ""
 
-#: resources/views/documents/create.blade.php:22
+#: resources/views/documents/create.blade.php:21
 msgid "Select a document to upload"
 msgstr ""
 
-#: resources/views/documents/create.blade.php:25
+#: resources/views/documents/create.blade.php:24
 #: resources/views/photos/create.blade.php:85
 #: resources/views/videos/create.blade.php:25
 msgid "or drag and drop it here"
 msgstr ""
 
-#: resources/views/documents/create.blade.php:33
+#: resources/views/documents/create.blade.php:32
 #: resources/views/photos/album.blade.php:67
 #: resources/views/photos/create.blade.php:37
 #: resources/views/recipes/category-create.blade.php:21
@@ -629,7 +647,7 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: resources/views/documents/create.blade.php:38
+#: resources/views/documents/create.blade.php:37
 #: resources/views/documents/index.blade.php:85
 #: resources/views/me/avatar.blade.php:32
 #: resources/views/photos/album.blade.php:9
@@ -1169,14 +1187,8 @@ msgstr ""
 #: resources/views/tree/individual.blade.php:56
 #: resources/views/tree/individual.blade.php:84
 #: resources/views/tree/individual.blade.php:116
+#: resources/views/tree/individual.blade.php:142
 msgid "Events, Media, More"
-msgstr ""
-
-#: resources/views/tree/individual.blade.php:61
-#: resources/views/tree/individual.blade.php:89
-#: resources/views/tree/individual.blade.php:121
-#: resources/views/tree/individual.blade.php:147
-msgid "Edit"
 msgstr ""
 
 #: resources/views/tree/individual.blade.php:64

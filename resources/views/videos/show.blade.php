@@ -15,18 +15,18 @@
         <video class="video-js" controls preload="auto" data-setup='{"fluid": true}'>
             <source src="{{ route('video', ['id' => $video->created_user_id, 'file' => $video->filename ]) }}" type="video/mp4">
             <p class="vjs-no-js">
-                {{ sprintf(gettext('To view this video please enable JavaScript, and consider upgrading to a web browser that %s supports HTML5 video %s'), '<a href="https://videojs.com/html5-video-support/" target="_blank">', '</a>') }}
+                {{ sprintf(_gettext('To view this video please enable JavaScript, and consider upgrading to a web browser that %s supports HTML5 video %s'), '<a href="https://videojs.com/html5-video-support/" target="_blank">', '</a>') }}
             </p>
         </video>
     </div>
 
     <div class="comments my-5">
-        <h4>{{ gettext('Comments') }}</h4>
+        <h4>{{ _gettext('Comments') }}</h4>
     @foreach($comments as $c)
         <div class="comment d-flex justify-content-between align-items-start py-5 border-bottom">
             <div class="d-flex flex-row">
                 <div>
-                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ gettext('avatar') }}">
+                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ _gettext('avatar') }}">
                 </div>
                 <div>
                     <p>
@@ -45,12 +45,12 @@
                     <i class="button p-1 mx-1 rounded-5 bi-trash3"></i>
                 </div>
                 <div class="reactions d-none position-absolute end-0 d-flex flex-row border rounded-5">
-                    <img title="{{ gettext('Like') }}" src="{{ asset('img/emoji/color/1F44D.svg') }}"/>
-                    <img title="{{ gettext('Love') }}" src="{{ asset('img/emoji/color/2764.svg') }}"/>
-                    <img title="{{ gettext('Happy') }}" src="{{ asset('img/emoji/color/1F600.svg') }}"/>
-                    <img title="{{ gettext('Shocked') }}" src="{{ asset('img/emoji/color/1F62E.svg') }}"/>
-                    <img title="{{ gettext('Sad') }}" src="{{ asset('img/emoji/color/1F622.svg') }}"/>
-                    <img title="{{ gettext('Angry') }}" src="{{ asset('img/emoji/color/1F621.svg') }}"/>
+                    <img title="{{ _gettext('Like') }}" src="{{ asset('img/emoji/color/1F44D.svg') }}"/>
+                    <img title="{{ _gettext('Love') }}" src="{{ asset('img/emoji/color/2764.svg') }}"/>
+                    <img title="{{ _gettext('Happy') }}" src="{{ asset('img/emoji/color/1F600.svg') }}"/>
+                    <img title="{{ _gettext('Shocked') }}" src="{{ asset('img/emoji/color/1F62E.svg') }}"/>
+                    <img title="{{ _gettext('Sad') }}" src="{{ asset('img/emoji/color/1F622.svg') }}"/>
+                    <img title="{{ _gettext('Angry') }}" src="{{ asset('img/emoji/color/1F621.svg') }}"/>
                 </div>
             </div>
         </div><!-- /.comment -->

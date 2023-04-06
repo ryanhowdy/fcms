@@ -94,8 +94,8 @@ class MeController extends Controller
             'avatar-other' => ['required_without:avatar'],
         ],
         [
-            'avatar.required_without'       => gettext('Uploaded avatar must be an image.'),
-            'avatar-other.required_without' => gettext('You must upload an avatar or choose an existing avatar from the list.'),
+            'avatar.required_without'       => _gettext('Uploaded avatar must be an image.'),
+            'avatar-other.required_without' => _gettext('You must upload an avatar or choose an existing avatar from the list.'),
         ]);
 
         // Get the right path for avatars and make sure it exists
@@ -308,40 +308,43 @@ class MeController extends Controller
         switch($locale)
         {
             case 'ar':
-                return gettext('Arabic');
+                return _gettext('Arabic');
                 break;
             case 'da_DK':
-                return gettext('Danish (Denmark)');
+                return _gettext('Danish (Denmark)');
                 break;
             case 'de_DE':
-                return gettext('German (Germany)');
+                return _gettext('German (Germany)');
                 break;
             case 'es_ES':
-                return gettext('Spanish (Spain)');
+                return _gettext('Spanish (Spain)');
                 break;
             case 'en':
-                return gettext('English');
+                return _gettext('English');
                 break;
             case 'fr_FR':
-                return gettext('French (France)');
+                return _gettext('French (France)');
                 break;
             case 'it_IT':
-                return gettext('Italian (Italy)');
+                return _gettext('Italian (Italy)');
                 break;
             case 'nl_NL':
-                return gettext('Dutch (Netherlands)');
+                return _gettext('Dutch (Netherlands)');
                 break;
             case 'pt_BR':
-                return gettext('Portuguese (Brazil)');
+                return _gettext('Portuguese (Brazil)');
                 break;
             case 'ru_RU':
-                return gettext('Russian (Russia)');
+                return _gettext('Russian (Russia)');
                 break;
             case 'sk_SK':
-                return gettext('Slovak (Slovakia)');
+                return _gettext('Slovak (Slovakia)');
                 break;
             case 'tr_TR':
-                return gettext('Turkish (Turkey)');
+                return _gettext('Turkish (Turkey)');
+                break;
+            case 'xx_XX':
+                return _gettext('XX (Test)');
                 break;
             default:
                 return $locale;

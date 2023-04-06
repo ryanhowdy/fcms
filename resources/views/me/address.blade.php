@@ -11,17 +11,17 @@
     <div class="col border-start min-vh-100 p-5">
         <form class="" action="{{ route('my.address') }}" method="post">
             @csrf
-            <h2>{{ gettext('Address') }}</h2>
+            <h2>{{ _gettext('Address') }}</h2>
         @if ($errors->any())
             <div class="alert alert-danger">
-                <h4 class="alert-heading">{{ gettext('An error has occurred') }}</h4>
+                <h4 class="alert-heading">{{ _gettext('An error has occurred') }}</h4>
             @foreach ($errors->all() as $error)
                 <p>{{ $error }}</p>
             @endforeach
             </div>
         @endif
             <div class="mb-3">
-                <label for="country" class="form-label">{{ gettext('Country') }}</label>
+                <label for="country" class="form-label">{{ _gettext('Country') }}</label>
                 <select class="form-select" id="country" name="country">
                     <option></option>
                     @foreach($countries as $iso => $name)
@@ -30,40 +30,40 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label for="address" class="form-label">{{ gettext('Street Address') }}</label>
+                <label for="address" class="form-label">{{ _gettext('Street Address') }}</label>
                 <input type="text" class="form-control" id="address" name="address" value="{{ old('address', $address->address) }}">
             </div>
             <div class="mb-3">
-                <label for="city" class="form-label">{{ gettext('City') }}</label>
+                <label for="city" class="form-label">{{ _gettext('City') }}</label>
                 <input type="text" class="form-control" id="city" name="city" value="{{ old('cit', $address->city) }}">
             </div>
             <div class="row mb-3">
                 <div class="col">
-                    <label for="state" class="form-label">{{ gettext('State') }}</label>
+                    <label for="state" class="form-label">{{ _gettext('State') }}</label>
                     <input type="text" class="form-control" id="state" name="state" value="{{ old('state', $address->state) }}">
                 </div>
                 <div class="col">
-                    <label for="zip" class="form-label">{{ gettext('Zip Code') }}</label>
+                    <label for="zip" class="form-label">{{ _gettext('Zip Code') }}</label>
                     <input type="text" class="form-control" id="zip" name="zip" value="{{ old('state', $address->zip) }}">
                 </div>
             </div>
-            <h2 class="pt-5">{{ gettext('Contacts') }}</h2>
+            <h2 class="pt-5">{{ _gettext('Contacts') }}</h2>
             <div class="mb-3">
-                <label for="cell" class="form-label">{{ gettext('Cell') }}</label>
+                <label for="cell" class="form-label">{{ _gettext('Cell') }}</label>
                 <input type="tel" class="form-control" id="cell" name="cell" value="{{ old('cell', $address->cell) }}">
             </div>
             <div class="mb-3">
-                <label for="home" class="form-label">{{ gettext('Home') }}</label>
+                <label for="home" class="form-label">{{ _gettext('Home') }}</label>
                 <input type="tel" class="form-control" id="home" name="home" value="{{ old('home', $address->home) }}">
             </div>
             <div class="mb-3">
-                <label for="work" class="form-label">{{ gettext('Work') }}</label>
+                <label for="work" class="form-label">{{ _gettext('Work') }}</label>
                 <input type="tel" class="form-control" id="work" name="work" value="{{ old('work', $address->work) }}">
             </div>
             <div class="pt-3">
                 <button class="btn btn-success text-white px-5" type="submit" id="submit" name="submit">
                     <i class="bi-check-square me-1"></i>
-                    {{ gettext('Save') }}
+                    {{ _gettext('Save') }}
                 </button>
             </div>
         </form>

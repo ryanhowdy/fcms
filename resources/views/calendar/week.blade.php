@@ -7,12 +7,12 @@
 
         <div class="calendar-header mb-5 d-flex justify-content-between">
             <div class="btn-group">
-                <a href="{{ $dayLink }}" class="btn btn-light">{{ gettext('Day') }}</a>
-                <a href="{{ $weekLink }}" class="btn btn-light active">{{ gettext('Week') }}</a>
-                <a href="{{ $monthLink }}" class="btn btn-light">{{ gettext('Month') }}</a>
+                <a href="{{ $dayLink }}" class="btn btn-light">{{ _gettext('Day') }}</a>
+                <a href="{{ $weekLink }}" class="btn btn-light active">{{ _gettext('Week') }}</a>
+                <a href="{{ $monthLink }}" class="btn btn-light">{{ _gettext('Month') }}</a>
             </div>
             <div class="d-flex flex-row">
-                <a href="{{ route('calendar') }}" class="btn btn-outline-secondary me-5">{{ gettext('Today') }}</a>
+                <a href="{{ route('calendar') }}" class="btn btn-outline-secondary me-5">{{ _gettext('Today') }}</a>
                 <h2 class="mb-0 me-2">{{ $header }}</h2>
                 <a class="text-secondary previous fs-4" href="{{ $previousLink }}"><i class="bi-chevron-compact-left"></i></a>
                 <a class="text-secondary next fs-4" href="{{ $nextLink }}"><i class="bi-chevron-compact-right"></i></a>

@@ -1,10 +1,10 @@
-{{ sprintf(gettext('Dear %s,'), $user->displayname) }}
+{{ sprintf(_gettext('Dear %s,'), $user->displayname) }}
 
-{{ sprintf(gettext('Thank you for registering at %s.'), env('APP_NAME')) }}
+{{ sprintf(_gettext('Thank you for registering at %s.'), env('APP_NAME')) }}
 
-{{ gettext('In order to login and begin using the site, your administrator must activate your account.  You will get an email when this has been done.') }}
+{{ _gettext('In order to login and begin using the site, your administrator must activate your account.  You will get an email when this has been done.') }}
 
-{{ gettext('Thanks,') }}
-{{ sprintf(gettext('The %s Webmaster'), env('APP_NAME')) }}
+{{ _gettext('Thanks,') }}
+{{ sprintf(_gettext('The %s Webmaster'), env('APP_NAME')) }}
 
-{{ gettext('This is an automated response, please do not reply.') }}
+{{ _gettext('This is an automated response, please do not reply.') }}

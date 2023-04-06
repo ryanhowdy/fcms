@@ -7,19 +7,19 @@
     
     <form class="p-5 border rounded bg-white" action="{{ route('calendar.create') }}" method="post">
         @csrf
-        <h2 class="mb-3">{{ gettext('Create New Event') }}</h2>
+        <h2 class="mb-3">{{ _gettext('Create New Event') }}</h2>
     @if ($errors->any())
         <div class="alert alert-danger">
-            <h4 class="alert-heading">{{ gettext('An error has occurred') }}</h4>
-            <p>{{ gettext('Please fill out the required fields below.') }}</p>
+            <h4 class="alert-heading">{{ _gettext('An error has occurred') }}</h4>
+            <p>{{ _gettext('Please fill out the required fields below.') }}</p>
         </div>
     @endif
         <div class="mb-3 required">
-            <label for="title" class="form-label">{{ gettext('Title') }}</label>
+            <label for="title" class="form-label">{{ _gettext('Title') }}</label>
             <input type="text" class="w-auto form-control" id="title" name="title" value="{{ old('title') }}">
         </div>
         <div class="mb-3 required">
-            <label for="date" class="form-label">{{ gettext('Date') }}</label>
+            <label for="date" class="form-label">{{ _gettext('Date') }}</label>
             <div class="d-flex">
                 <div class="row">
                     <div class="col-6">
@@ -52,21 +52,21 @@
                 <span class="bi-repeat text-muted fs-3 me-3"></span>
                 <div class="">
                     <input class="btn-check" type="checkbox" value="1" id="repeat-yearly" name="repeat-yearly">
-                    <label class="btn btn-outline-purple" for="repeat-yearly">{{ gettext('Repeat Every Year') }}</label>
+                    <label class="btn btn-outline-purple" for="repeat-yearly">{{ _gettext('Repeat Every Year') }}</label>
                 </div>
             </div>
             <div class="mb-3 d-flex">
                 <span class="bi-lock text-muted fs-3 me-3"></span>
                 <div class="">
                     <input class="btn-check" type="checkbox" value="1" id="private" name="private">
-                    <label class="btn btn-outline-purple" for="private">{{ gettext('Private') }}</label>
+                    <label class="btn btn-outline-purple" for="private">{{ _gettext('Private') }}</label>
                 </div>
             </div>
             <div class="mb-3 d-flex">
                 <span class="bi-people text-muted fs-3 me-3"></span>
                 <div class="">
                     <input class="btn-check" type="checkbox" value="1" id="invite" name="invite">
-                    <label class="btn btn-outline-purple" for="invite">{{ gettext('Invite Guests') }}</label>
+                    <label class="btn btn-outline-purple" for="invite">{{ _gettext('Invite Guests') }}</label>
                 </div>
             </div>
 
@@ -74,9 +74,9 @@
 
         <div class="pt-5">
             <button class="btn btn-primary px-5 me-3 text-white" type="submit" id="submit" name="submit">
-                {{ gettext('Save') }}
+                {{ _gettext('Save') }}
             </button>
-            <a href="#" class="btn btn-secondary">{{ gettext('More Options') }}</a>
+            <a href="#" class="btn btn-secondary">{{ _gettext('More Options') }}</a>
         </div>
     </form>
 

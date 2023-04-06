@@ -20,7 +20,7 @@
             <ul class="list-unstyled d-none">
                 <li id="address" class="d-none pb-5 d-flex align-items-center">
                     <div class="pe-5">
-                        <div class="text-muted">{{ gettext('Address') }}</div>
+                        <div class="text-muted">{{ _gettext('Address') }}</div>
                         <div id="street" class="fs-4"></div>
                         <span id="city"></span> <span id="state"></span> <span id="zip"></span>
                     </div>
@@ -30,7 +30,7 @@
                 </li>
                 <li id="cell" class="d-none pb-5 d-flex align-items-center">
                     <div class="pe-5">
-                        <div class="text-muted">{{ gettext('Cell Phone') }}</div>
+                        <div class="text-muted">{{ _gettext('Cell Phone') }}</div>
                         <span></span>
                     </div>
                     <div class="flex-fill text-end">
@@ -39,7 +39,7 @@
                 </li>
                 <li id="home" class="d-none pb-5 d-flex align-items-center">
                     <div class="pe-5">
-                        <div class="text-muted">{{ gettext('Home Phone') }}</div>
+                        <div class="text-muted">{{ _gettext('Home Phone') }}</div>
                         <span></span>
                     </div>
                     <div class="flex-fill text-end">
@@ -48,7 +48,7 @@
                 </li>
                 <li id="work" class="d-none pb-5 d-flex align-items-center">
                     <div class="pe-5">
-                        <div class="text-muted">{{ gettext('Work Phone') }}</div>
+                        <div class="text-muted">{{ _gettext('Work Phone') }}</div>
                         <span></span>
                     </div>
                     <div class="flex-fill text-end">
@@ -58,7 +58,7 @@
             </ul>
         </div>
         <div id="address-map" class="p-5 border-top">
-            <div id="map-error" class="alert alert-secondary d-none" role="alert">{{ gettext('A map view could not be created for this address.') }}</div>
+            <div id="map-error" class="alert alert-secondary d-none" role="alert">{{ _gettext('A map view could not be created for this address.') }}</div>
             <iframe width="100%" height="500" src=""></iframe>
         </div>
     </div>

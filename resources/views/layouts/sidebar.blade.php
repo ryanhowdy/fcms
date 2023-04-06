@@ -6,11 +6,11 @@
             @isset($link['route_name'])
             <li class="nav-item link w-100">
                 <a class="nav-link align-middle w-100" href="{{ route($link['route_name']) }}">
-                    <i class="bi-{{ $link['icon'] }}"></i><span class="ms-3 d-none d-xxl-inline">{{ gettext($link['link']) }}</span>
+                    <i class="bi-{{ $link['icon'] }}"></i><span class="ms-3 d-none d-xxl-inline">{{ _gettext($link['link']) }}</span>
                 </a>
             </li>
             @else
-            <li class="nav-item header d-none d-xxl-block">{{ gettext($link['link']) }}</li>
+            <li class="nav-item header d-none d-xxl-block">{{ _gettext($link['link']) }}</li>
             @endif
         @endforeach
         </ul>

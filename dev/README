@@ -17,7 +17,9 @@
 
  Create POT File
 
-    xgettext --files-from=./dev/list -kpgettext:1c,2 -knpgettext:1c,2,3 --language=PHP --no-wrap -o ./lang/messages.pot | xargs xgettext --files-from=./dev/list-blade -kpgettext:1c,2 -knpgettext:1c,2,3 --language=Python --no-wrap -j -o ./lang/messages.pot
+    rm ./lang/messages.pot; touch ./lang/messages.pot
+
+    xgettext --files-from=./dev/list -k_gettext -k_ngettext:1,2 -k_pgettext:1c,2 -k_npgettext:1c,2,3 --language=PHP --no-wrap -o ./lang/messages.pot | xargs xgettext --files-from=./dev/list-blade -k_gettext -k_ngettext:1,2 -k_pgettext:1c,2 -k_npgettext:1c,2,3 --language=Python --no-wrap -j -o ./lang/messages.pot
 
  Create mo file from po
 

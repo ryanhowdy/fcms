@@ -24,26 +24,26 @@
 
             <div class="form-floating">
                 <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com">
-                <label for="email">{{ gettext('Email') }}</label>
+                <label for="email">{{ _gettext('Email') }}</label>
             </div>
 
             <div class="form-floating mb-3">
-                <input type="password" class="form-control" id="password" name="password" placeholder="{{ gettext('Password') }}">
-                <label for="password">{{ gettext('Password') }}</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="{{ _gettext('Password') }}">
+                <label for="password">{{ _gettext('Password') }}</label>
             </div>
 
             <div class="checkbox mb-3">
                 <label>
-                    <input type="checkbox" class="me-1" name="remember-me" value="1">{{ gettext('Remember Me') }}
+                    <input type="checkbox" class="me-1" name="remember-me" value="1">{{ _gettext('Remember Me') }}
                 </label>
             </div>
 
-            <button class="w-100 btn btn-lg btn-primary" type="submit">{{ gettext('Sign In') }}</button>
+            <button class="w-100 btn btn-lg btn-primary" type="submit">{{ _gettext('Sign In') }}</button>
         </form>
         <p class="mt-3">
-            <a href="{{ route('auth.password.request') }}">{{ gettext('Forgot Password') }}</a>
+            <a href="{{ route('auth.password.request') }}">{{ _gettext('Forgot Password') }}</a>
             @if (env('FCMS_ALLOW_REGISTRATION'))
-            | <a href="{{ route('auth.register') }}">{{ gettext('Register') }}</a>
+            | <a href="{{ route('auth.register') }}">{{ _gettext('Register') }}</a>
             @endif
         </p>
     </main>

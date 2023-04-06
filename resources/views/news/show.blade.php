@@ -6,12 +6,12 @@
     <div class="d-flex justify-content-between">
         <h2>{{ $news->title }}</h2>
         <div class="d-flex justify-content-end align-items-start">
-            <a href="javascript: history.go(-1)" class="btn me-3 btn-light">{{ gettext('Back') }}</a>
+            <a href="javascript: history.go(-1)" class="btn me-3 btn-light">{{ _gettext('Back') }}</a>
             <div class="dropdown no-caret">
                 <i class="bi-three-dots-vertical dropdown-toggle" data-bs-toggle="dropdown"></i>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Edit</a></li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
+                    <li><a class="dropdown-item" href="#">{{ _gettext('Edit') }}</a></li>
+                    <li><a class="dropdown-item text-danger" href="#">{{ _gettext('Delete') }}</a></li>
                 </ul>
             </div>
         </div>
@@ -26,7 +26,7 @@
         <div class="comment d-flex justify-content-between align-items-start py-5 border-bottom">
             <div class="d-flex flex-row">
                 <div>
-                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ gettext('avatar') }}">
+                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ _gettext('avatar') }}">
                 </div>
                 <div>
                     <p>

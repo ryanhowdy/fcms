@@ -7,15 +7,15 @@
 
     <form class="p-5 border rounded bg-white" action="{{ route('familynews.create') }}" method="post">
         @csrf
-        <h2 class="mb-5">{{ gettext(' Add new Family News') }}</h2>
+        <h2 class="mb-5">{{ _gettext(' Add new Family News') }}</h2>
     @if ($errors->any())
         <div class="alert alert-danger">
-            <h4 class="alert-heading">{{ gettext('An error has occurred') }}</h4>
-            <p>{{ gettext('Please fill out the required fields below.') }}</p>
+            <h4 class="alert-heading">{{ _gettext('An error has occurred') }}</h4>
+            <p>{{ _gettext('Please fill out the required fields below.') }}</p>
         </div>
     @endif
         <div class="mb-3 required"
-            <label for="title" class="form-label">{{ gettext('Title') }}</label>
+            <label for="title" class="form-label">{{ _gettext('Title') }}</label>
             <input type="text" class="form-control" id="title" name="title" value="{{ old('title') }}">
         </div>
         <x-text-editor/>

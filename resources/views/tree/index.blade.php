@@ -6,7 +6,7 @@
 
 @if ($errors->any())
     <div class="alert alert-danger">
-        <h4 class="alert-heading">{{ gettext('An error has occurred') }}</h4>
+        <h4 class="alert-heading">{{ _gettext('An error has occurred') }}</h4>
     @foreach ($errors->all() as $error)
         <p>{{ $error }}</p>
 @php dump($errors) @endphp
@@ -28,19 +28,19 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ gettext('Add Relationship') }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ gettext('Close') }}"></button>
+                    <h5 class="modal-title">{{ _gettext('Add Relationship') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _gettext('Close') }}"></button>
                 </div>
                 <div class="modal-body">
                     <nav>
                         <div class="nav nav-tabs" id="nav-tab" role="tablist">
                             <button class="nav-link active" id="nav-new-tab" data-bs-toggle="tab" data-bs-target="#nav-new" type="button" role="tab" aria-controls="nav-new" aria-selected="true">
                                 <i class="bi-person-plus pe-1"></i>
-                                {{ gettext('Create New Person') }}
+                                {{ _gettext('Create New Person') }}
                             </button>
                             <button class="nav-link" id="nav-existing-tab" data-bs-toggle="tab" data-bs-target="#nav-existing" type="button" role="tab" aria-controls="nav-existing" aria-selected="false">
                                 <i class="bi-search pe-1"></i>
-                                {{ gettext('Choose Existing Person') }}
+                                {{ _gettext('Choose Existing Person') }}
                             </button>
                         </div>
                     </nav>
@@ -48,68 +48,68 @@
                         <div class="tab-pane show active" id="nav-new" role="tabpanel" aria-labelledby="nav-new" tabindex="0">
                             <div class="row mb-3">
                                 <div class="col-5">
-                                    <label for="given_name" class="form-label fw-bold">{{ gettext('First and optional Middle Name') }}</label>
+                                    <label for="given_name" class="form-label fw-bold">{{ _gettext('First and optional Middle Name') }}</label>
                                     <input type="text" class="form-control" id="given_name" name="given_name" value="{{ old('given_name') }}">
                                 </div>
                                 <div id="rel_surname" class="col-5">
-                                    <label for="surname" class="form-label fw-bold">{{ gettext('Surname') }}</label>
+                                    <label for="surname" class="form-label fw-bold">{{ _gettext('Surname') }}</label>
                                     <input type="text" class="form-control" id="surname" name="surname" value="{{ old('surname') }}">
                                 </div>
                                 <div id="rel_maiden" class="col-5 d-none">
-                                    <label for="maiden" class="form-label fw-bold">{{ gettext('Maiden Name') }}</label>
+                                    <label for="maiden" class="form-label fw-bold">{{ _gettext('Maiden Name') }}</label>
                                     <input type="text" class="form-control" id="maiden" name="maiden" value="{{ old('maiden') }}">
                                 </div>
                                 <div class="col-2">
-                                    <label for="name_suffix" class="form-label fw-bold">{{ gettext('Suffix') }}</label>
+                                    <label for="name_suffix" class="form-label fw-bold">{{ _gettext('Suffix') }}</label>
                                     <input type="text" class="form-control" id="name_suffix" name="name_suffix" value="{{ old('name_suffix') }}">
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-bold">{{ gettext('Sex') }}</label>
+                                <label class="form-label fw-bold">{{ _gettext('Sex') }}</label>
                                 <div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="sex" id="sex_unknown" value="U" checked>
-                                        <label class="form-check-label" for="sex_unknown">{{ gettext('Unknown') }}</label>
+                                        <label class="form-check-label" for="sex_unknown">{{ _gettext('Unknown') }}</label>
                                     </div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="sex" id="sex_male" value="M">
-                                        <label class="form-check-label" for="sex_male">{{ gettext('Male') }}</label>
+                                        <label class="form-check-label" for="sex_male">{{ _gettext('Male') }}</label>
                                     </div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="sex" id="sex_female" value="F">
-                                        <label class="form-check-label" for="sex_female">{{ gettext('Female') }}</label>
+                                        <label class="form-check-label" for="sex_female">{{ _gettext('Female') }}</label>
                                     </div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="sex" id="sex_other" value="O">
-                                        <label class="form-check-label" for="sex_other">{{ gettext('Not Listed or Prefer not to share') }}</label>
+                                        <label class="form-check-label" for="sex_other">{{ _gettext('Not Listed or Prefer not to share') }}</label>
                                     </div>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-bold">{{ gettext('Status') }}</label>
+                                <label class="form-label fw-bold">{{ _gettext('Status') }}</label>
                                 <div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="status" id="living" value="living" checked>
-                                        <label class="form-check-label" for="living">{{ gettext('Living') }}</label>
+                                        <label class="form-check-label" for="living">{{ _gettext('Living') }}</label>
                                     </div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="status" id="deceased" value="deceased">
-                                        <label class="form-check-label" for="deceased">{{ gettext('Deceased') }}</label>
+                                        <label class="form-check-label" for="deceased">{{ _gettext('Deceased') }}</label>
                                     </div>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col">
-                                    <label for="dob" class="form-label fw-bold">{{ gettext('Date of Birth') }}</label>
+                                    <label for="dob" class="form-label fw-bold">{{ _gettext('Date of Birth') }}</label>
                                     <input type="date" class="form-control" id="dob" name="dob" value="{{ old('dob') }}">
                                 </div>
                                 <div id="deceased_date" class="col d-none">
-                                    <label for="dod" class="form-label fw-bold">{{ gettext('Date of Death') }}</label>
+                                    <label for="dod" class="form-label fw-bold">{{ _gettext('Date of Death') }}</label>
                                     <input type="date" class="form-control" id="dod" name="dod" value="{{ old('dod') }}">
                                 </div>
                             </div>
                             <div id="child-extra" class="mb-3 d-none">
-                                <label class="form-label">{{ gettext('Parents') }}</label>
+                                <label class="form-label">{{ _gettext('Parents') }}</label>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="" id="" value="">
                                     <label class="form-check-label" for=""></label>
@@ -119,11 +119,11 @@
                         <div class="tab-pane" id="nav-existing" role="tabpanel" aria-labelledby="nav-existing" tabindex="0">
                         @if (count($users))
                             <div class="mb-3">
-                                <label for="existing_user" class="form-label fw-bold">{{ gettext('Existing Member?') }}</label>
+                                <label for="existing_user" class="form-label fw-bold">{{ _gettext('Existing Member?') }}</label>
                                 <select class="form-select" id="existing_user" name="existing_user">
                                     <option></option>
-                                    <option value="CREATE_NEW">{{ gettext('Create New') }}</option>
-                                    <optgroup label="{{ gettext('Existing Members') }}">
+                                    <option value="CREATE_NEW">{{ _gettext('Create New') }}</option>
+                                    <optgroup label="{{ _gettext('Existing Members') }}">
                                         @foreach($users as $id => $name)
                                         <option value="{{ $id }}" {{ old('existing_user') == $id ? 'selected' : '' }}>{{ $name }}</option>
                                         @endforeach
@@ -135,8 +135,8 @@
                     </div><!-- .tab-content -->
                 </div><!-- /.modal-body -->
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ gettext('Close') }}</button>
-                    <button type="submit" class="btn btn-success">{{ gettext('Save') }}</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _gettext('Close') }}</button>
+                    <button type="submit" class="btn btn-success">{{ _gettext('Save') }}</button>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->

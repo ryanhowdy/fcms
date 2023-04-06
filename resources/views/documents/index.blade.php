@@ -6,15 +6,15 @@
 
     {{-- Main Column --}}
     <div class="col border-end min-vh-100 p-5">
-        <h3>{{ gettext('Folders') }}</h3>
+        <h3>{{ _gettext('Folders') }}</h3>
         <div class="row mb-5">
             <div class="col">
                 <a class="text-decoration-none text-dark float-start w-100 border p-2" href="">
                     <div class="alert alert-primary p-2 float-start fs-3 m-0 me-3">
                         <i class="bi-file-earmark-word"></i>
                     </div>
-                    <div class="pt-3">{{ gettext('Documents') }}</div>
-                    <span class="text-muted">{{ sprintf(gettext('%d Files'), $counts['document']) }}</span>
+                    <div class="pt-3">{{ _gettext('Documents') }}</div>
+                    <span class="text-muted">{{ sprintf(_gettext('%d Files'), $counts['document']) }}</span>
                 </a>
             </div>
             <div class="col">
@@ -22,8 +22,8 @@
                     <div class="alert alert-danger p-2 float-start fs-3 m-0 me-3">
                         <i class="bi-file-earmark-easel"></i>
                     </div>
-                    <div class="pt-3">{{ gettext('Presentation') }}</div>
-                    <span class="text-muted">{{ sprintf(gettext('%d Files'), $counts['presentation']) }}</span>
+                    <div class="pt-3">{{ _gettext('Presentation') }}</div>
+                    <span class="text-muted">{{ sprintf(_gettext('%d Files'), $counts['presentation']) }}</span>
                 </a>
             </div>
             <div class="col">
@@ -31,8 +31,8 @@
                     <div class="alert alert-secondary p-2 float-start fs-3 m-0 me-3">
                         <i class="bi-file-earmark-zip"></i>
                     </div>
-                    <div class="pt-3">{{ gettext('Archives') }}</div>
-                    <span class="text-muted">{{ sprintf(gettext('%d Files'), $counts['archive']) }}</span>
+                    <div class="pt-3">{{ _gettext('Archives') }}</div>
+                    <span class="text-muted">{{ sprintf(_gettext('%d Files'), $counts['archive']) }}</span>
                 </a>
             </div>
             <div class="col">
@@ -40,8 +40,8 @@
                     <div class="alert alert-success p-2 float-start fs-3 m-0 me-3">
                         <i class="bi-file-earmark-music"></i>
                     </div>
-                    <div class="pt-3">{{ gettext('Multimedia') }}</div>
-                    <span class="text-muted">{{ sprintf(gettext('%d Files'), $counts['multimedia']) }}</span>
+                    <div class="pt-3">{{ _gettext('Multimedia') }}</div>
+                    <span class="text-muted">{{ sprintf(_gettext('%d Files'), $counts['multimedia']) }}</span>
                 </a>
             </div>
             <div class="col">
@@ -49,13 +49,13 @@
                     <div class="alert alert-warning p-2 float-start fs-3 m-0 me-3">
                         <i class="bi-file-earmark"></i>
                     </div>
-                    <div class="pt-3">{{ gettext('Other') }}</div>
-                    <span class="text-muted">{{ sprintf(gettext('%d Files'), $counts['other']) }}</span>
+                    <div class="pt-3">{{ _gettext('Other') }}</div>
+                    <span class="text-muted">{{ sprintf(_gettext('%d Files'), $counts['other']) }}</span>
                 </a>
             </div>
         </div>
 
-        <h3>{{ gettext('Recent') }}</h3>
+        <h3>{{ _gettext('Recent') }}</h3>
     @if ($documents->isEmpty())
         <x-empty-state/>
     @else
@@ -82,7 +82,7 @@
     {{-- Sidebar --}}
     <div class="col-auto col-3 p-5">
         <div>
-            <a href="{{ route('documents.create') }}" class="btn btn-success text-white">{{ gettext('Upload') }}</a>
+            <a href="{{ route('documents.create') }}" class="btn btn-success text-white">{{ _gettext('Upload') }}</a>
         </div>
     </div>
 </div>

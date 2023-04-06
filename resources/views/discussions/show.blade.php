@@ -11,14 +11,14 @@
         <div class="d-flex justify-content-end align-items-start">
             <a href="#reply-comment" class="btn me-3 btn-success pe-5 align-start text-white">
                 <i class="bi-reply-fill me-1"></i>
-                {{ gettext('Reply') }}
+                {{ _gettext('Reply') }}
             </a>
-            <a href="javascript: history.go(-1)" class="btn me-3 btn-light">{{ gettext('Back') }}</a>
+            <a href="javascript: history.go(-1)" class="btn me-3 btn-light">{{ _gettext('Back') }}</a>
             <div class="dropdown no-caret">
                 <i class="bi-three-dots-vertical dropdown-toggle" data-bs-toggle="dropdown"></i>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Edit</a></li>
-                    <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
+                    <li><a class="dropdown-item" href="#">{{ _gettext('Edit') }}</a></li>
+                    <li><a class="dropdown-item text-danger" href="#">{{ _gettext('Delete') }}</a></li>
                 </ul>
             </div>
         </div>
@@ -29,7 +29,7 @@
         <div class="comment d-flex justify-content-between align-items-start py-5 border-bottom">
             <div class="d-flex flex-row">
                 <div>
-                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ gettext('avatar') }}">
+                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ _gettext('avatar') }}">
                 </div>
                 <div>
                     <p>
@@ -48,12 +48,12 @@
                     <i class="button p-1 mx-1 rounded-5 bi-trash3"></i>
                 </div>
                 <div class="reactions d-none position-absolute end-0 d-flex flex-row border rounded-5">
-                    <img title="{{ gettext('Like') }}" src="{{ asset('img/emoji/color/1F44D.svg') }}"/>
-                    <img title="{{ gettext('Love') }}" src="{{ asset('img/emoji/color/2764.svg') }}"/>
-                    <img title="{{ gettext('Happy') }}" src="{{ asset('img/emoji/color/1F600.svg') }}"/>
-                    <img title="{{ gettext('Shocked') }}" src="{{ asset('img/emoji/color/1F62E.svg') }}"/>
-                    <img title="{{ gettext('Sad') }}" src="{{ asset('img/emoji/color/1F622.svg') }}"/>
-                    <img title="{{ gettext('Angry') }}" src="{{ asset('img/emoji/color/1F621.svg') }}"/>
+                    <img title="{{ _gettext('Like') }}" src="{{ asset('img/emoji/color/1F44D.svg') }}"/>
+                    <img title="{{ _gettext('Love') }}" src="{{ asset('img/emoji/color/2764.svg') }}"/>
+                    <img title="{{ _gettext('Happy') }}" src="{{ asset('img/emoji/color/1F600.svg') }}"/>
+                    <img title="{{ _gettext('Shocked') }}" src="{{ asset('img/emoji/color/1F62E.svg') }}"/>
+                    <img title="{{ _gettext('Sad') }}" src="{{ asset('img/emoji/color/1F622.svg') }}"/>
+                    <img title="{{ _gettext('Angry') }}" src="{{ asset('img/emoji/color/1F621.svg') }}"/>
                 </div>
             </div>
         </div><!-- /.comment -->

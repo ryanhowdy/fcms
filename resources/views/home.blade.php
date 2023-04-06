@@ -7,7 +7,7 @@
     <div class="col border-end min-vh-100 p-5">
         <form class="mb-5">
             <div class="share-box position-relative">
-                <img class="avatar rounded-5 position-absolute" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ gettext('avatar') }}">
+                <img class="avatar rounded-5 position-absolute" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ _gettext('avatar') }}">
                 <input class="form-control" type="text" placeholder="Have something to share?">
             </div>
         </form>
@@ -20,16 +20,16 @@
                     <img class="avatar rounded-5 float-start me-3" src="{{ getUserAvatar($update->toArray()) }}">
         @switch($update->type)
             @case('ADDRESS_ADD')
-                    {{ sprintf(gettext('%s has added a new address.'), getUserDisplayName($update->toArray())) }}<br/>
+                    {{ sprintf(_gettext('%s has added a new address.'), getUserDisplayName($update->toArray())) }}<br/>
                 @break
             @case('DISCUSSION')
-                    {{ sprintf(gettext('%s has started a new discussion.'), getUserDisplayName($update->toArray())) }}<br/>
+                    {{ sprintf(_gettext('%s has started a new discussion.'), getUserDisplayName($update->toArray())) }}<br/>
                 @break
             @case('PHOTOS')
-                    {{ sprintf(gettext('%s has added some new photos.'), getUserDisplayName($update->toArray())) }}<br/>
+                    {{ sprintf(_gettext('%s has added some new photos.'), getUserDisplayName($update->toArray())) }}<br/>
                 @break
             @case('NEW_USER')
-                    {{ sprintf(gettext('%s has joined the site.'), getUserDisplayName($update->toArray())) }}<br/>
+                    {{ sprintf(_gettext('%s has joined the site.'), getUserDisplayName($update->toArray())) }}<br/>
                 @break
         @endswitch
         @switch($update->type)
@@ -75,7 +75,7 @@
     <div class="col-auto col-3 p-5">
         <div class="card mb-3">
             <div class="card-header">
-                {{ gettext('Latest Poll') }}
+                {{ _gettext('Latest Poll') }}
             </div>
             <div class="card-body">
                 <h5 class="card-title">{{ $poll['question'] }}</h5>
@@ -103,7 +103,7 @@
                         </div>
                     @endforeach
                     </div>
-                    <button type="submit" class="btn btn-sm btn-info">{{ gettext('Vote') }}</button>
+                    <button type="submit" class="btn btn-sm btn-info">{{ _gettext('Vote') }}</button>
                 </form>
             @endif
             </div><!-- /.card-body -->

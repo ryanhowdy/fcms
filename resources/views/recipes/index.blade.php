@@ -4,9 +4,9 @@
 @section('content')
 <div class="p-5">
     <div class="d-flex justify-content-between">
-        <h2>{{ gettext('Recipes') }}</h2>
+        <h2>{{ _gettext('Recipes') }}</h2>
         <div>
-            <a href="{{ route('recipes.create') }}" class="btn btn-success text-white">{{ gettext('Add Recipe') }}</a>
+            <a href="{{ route('recipes.create') }}" class="btn btn-success text-white">{{ _gettext('Add Recipe') }}</a>
         </div>
     </div>
 

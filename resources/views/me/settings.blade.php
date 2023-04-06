@@ -12,15 +12,15 @@
             @csrf
         @if ($errors->any())
             <div class="alert alert-danger">
-                <h4 class="alert-heading">{{ gettext('An error has occurred') }}</h4>
+                <h4 class="alert-heading">{{ _gettext('An error has occurred') }}</h4>
             @foreach ($errors->all() as $error)
                 <p>{{ $error }}</p>
             @endforeach
             </div>
         @endif
-            <h2>{{ gettext('Language') }}</h2>
+            <h2>{{ _gettext('Language') }}</h2>
             <div class="mb-3 required">
-                <label for="language">{{ gettext('Language') }}</label>
+                <label for="language">{{ _gettext('Language') }}</label>
                 <select id="language" name="language" class="form-select">
                 @foreach ($languages as $locale => $language)
                     <option value="{{ $locale }}" @selected(old('language', $user->settings->language) == $locale)>{{ $language }}</option>
@@ -28,7 +28,7 @@
                 </select>
             </div>
             <div class="mb-3 required">
-                <label for="timezone">{{ gettext('Timezone') }}</label>
+                <label for="timezone">{{ _gettext('Timezone') }}</label>
                 <select id="timezone" name="timezone" class="form-select">
                 @foreach ($timezones as $timezone)
                     <option value="{{ $timezone }}" @selected(old('timezone', $user->settings->timezone) == $timezone)>
@@ -41,7 +41,7 @@
             <div class="pt-3">
                 <button class="btn btn-success text-white px-5" type="submit" id="submit" name="submit">
                     <i class="bi-check-square me-1"></i>
-                    {{ gettext('Save') }}
+                    {{ _gettext('Save') }}
                 </button>
             </div>
         </form>

@@ -22,25 +22,25 @@
                             <div class="instructions text-center text-muted">
                                 <img style="width: 90px;" src="{{ asset('img/albums.jpg') }}"/>
                                 <p class="p-5 pt-1">
-                                    <b>{{ gettext('Album') }}</b><br/>
-                                    {{ gettext('Upload your photos to a new or existing album') }}
+                                    <b>{{ _gettext('Album') }}</b><br/>
+                                    {{ _gettext('Upload your photos to a new or existing album') }}
                                 </p>
                             </div>
                         </div><!-- /.uploader-sidebar -->
                         <div class="uploader-main col p-5">
-                            <h5>{{ gettext('Album') }}</h5>
+                            <h5>{{ _gettext('Album') }}</h5>
                             <div class="mb-3 required">
-                                <label for="title" class="form-label">{{ gettext('Name') }}</label>
+                                <label for="title" class="form-label">{{ _gettext('Name') }}</label>
                                 <input type="text" class="form-control" id="album-name" name="album-name" value="{{ old('album-name') }}">
                             </div>
                             <div class="mb-3">
-                                <label for="title" class="form-label">{{ gettext('Description') }}</label>
+                                <label for="title" class="form-label">{{ _gettext('Description') }}</label>
                                 <textarea class="form-control" id="album-description" name="album-description" value="{{ old('album-description') }}"></textarea>
                             </div>
                         @if ($albums->isNotEmpty())
                             <p class="text-center">-- or --</p>
                             <div class="mb-3 required">
-                                <label for="title" class="form-label">{{ gettext('Existing Album') }}</label>
+                                <label for="title" class="form-label">{{ _gettext('Existing Album') }}</label>
                                 <select class="form-select" id="album-id" name="album-id">
                                     <option></option>
                                 @foreach ($albums as $album)
@@ -50,7 +50,7 @@
                             </div>
                         @endif
                             <div class="uploader-footer d-flex justify-content-end mt-5">
-                                <a href="#" class="next btn btn-primary px-4 text-white rounded-5">{{ gettext('Next') }}<i class="bi-chevron-compact-right ms-2"></i>
+                                <a href="#" class="next btn btn-primary px-4 text-white rounded-5">{{ _gettext('Next') }}<i class="bi-chevron-compact-right ms-2"></i>
                                 </a>
                             </div><!-- /.uploader-footer -->
                         </div><!-- /.uploader-main -->
@@ -68,26 +68,26 @@
                             <div class="instructions text-center text-muted">
                                 <img style="width: 90px;" src="{{ asset('img/photos.jpg') }}"/>
                                 <p class="p-5 pt-1">
-                                    <b>{{ gettext('Upload Photos') }}</b><br/>
-                                    {{ gettext('Choose 1 or more photos to upload') }}
+                                    <b>{{ _gettext('Upload Photos') }}</b><br/>
+                                    {{ _gettext('Choose 1 or more photos to upload') }}
                                 </p>
                             </div>
                         </div><!-- /.uploader-sidebar -->
                         <div class="uploader-main col p-5">
-                            <h5>{{ gettext('Photos') }}</h5>
+                            <h5>{{ _gettext('Photos') }}</h5>
                             <div class="photo-area alert alert-info text-center">
                                 <p class="mb-1">
                                     <a class="fs-5 text-decoration-none d-block" href="#">
                                         <i class="bi-cloud-arrow-up fs-1 d-block"></i>
-                                        {{ gettext('Select photos to upload') }}
+                                        {{ _gettext('Select photos to upload') }}
                                     </a>
                                 </p>
-                                <p class="fs-6"><small>{{ gettext('or drag and drop it here') }}</small></a>
+                                <p class="fs-6"><small>{{ _gettext('or drag and drop it here') }}</small></a>
                                 <input type="file" class="d-none" id="photo-picker" multiple accept="image/*">
                             </div>
                             <ul id="photo-list" class="list-unstyled">
                                 <li class="template p-2 my-2 border">
-                                    <button type="button" class="btn-close float-end" aria-label="{{ gettext('Close') }}"></button>
+                                    <button type="button" class="btn-close float-end" aria-label="{{ _gettext('Close') }}"></button>
                                     <div class="d-flex align-items-center">
                                         <div class="w-25">
                                         </div>
@@ -101,8 +101,8 @@
                                 </li>
                             </ul>
                             <div class="uploader-footer d-flex justify-content-between mt-5">
-                                <a href="#" class="prev btn btn-outline-secondary px-4 rounded-5"><i class="bi-chevron-compact-left me-2"></i>{{ gettext('Previous') }}</a>
-                                <a href="#" class="next btn btn-primary px-4 text-white rounded-5">{{ gettext('Next') }}<i class="bi-chevron-compact-right ms-2"></i></a>
+                                <a href="#" class="prev btn btn-outline-secondary px-4 rounded-5"><i class="bi-chevron-compact-left me-2"></i>{{ _gettext('Previous') }}</a>
+                                <a href="#" class="next btn btn-primary px-4 text-white rounded-5">{{ _gettext('Next') }}<i class="bi-chevron-compact-right ms-2"></i></a>
                             </div><!-- /.uploader-footer -->
                         </div><!-- /.uploader-main -->
                     </div>
@@ -119,16 +119,16 @@
                             <div class="instructions text-center text-muted">
                                 <img style="width: 90px;" src="{{ asset('img/photos.jpg') }}"/>
                                 <p class="p-5 pt-1">
-                                    <b>{{ gettext('Finishing Up') }}</b><br/>
-                                    {{ gettext('Your photos have been uploaded successfully.  Feel free to tag people and add comments.') }}
+                                    <b>{{ _gettext('Finishing Up') }}</b><br/>
+                                    {{ _gettext('Your photos have been uploaded successfully.  Feel free to tag people and add comments.') }}
                                 </p>
                             </div>
                         </div><!-- /.uploader-sidebar -->
                         <div class="uploader-main col p-5">
-                            <h5>{{ gettext('Success') }}</h5>
+                            <h5>{{ _gettext('Success') }}</h5>
                             <div class="uploader-footer d-flex justify-content-between mt-5">
-                                <a href="#" class="prev btn btn-outline-secondary px-4 rounded-5"><i class="bi-chevron-compact-left me-2"></i>{{ gettext('Previous') }}</a>
-                                <a href="#" class="next btn btn-primary px-4 text-white rounded-5">{{ gettext('Next') }}<i class="bi-chevron-compact-right ms-2"></i></a>
+                                <a href="#" class="prev btn btn-outline-secondary px-4 rounded-5"><i class="bi-chevron-compact-left me-2"></i>{{ _gettext('Previous') }}</a>
+                                <a href="#" class="next btn btn-primary px-4 text-white rounded-5">{{ _gettext('Next') }}<i class="bi-chevron-compact-right ms-2"></i></a>
                             </div><!-- /.uploader-footer -->
                         </div><!-- /.uploader-main -->
                     </div>

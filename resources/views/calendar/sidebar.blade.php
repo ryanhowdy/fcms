@@ -1,11 +1,11 @@
 <div class="mb-5">
     <a href="{{ route('calendar.create') }}" class="btn btn-success px-5 text-white">
         <i class="bi-calendar2-plus me-1"></i>
-        {{ gettext('Create Event') }}
+        {{ _gettext('Create Event') }}
     </a>
 </div>
 
-<h4>{{ gettext('Categories') }}</h4>
+<h4>{{ _gettext('Categories') }}</h4>
 <ul class="category-list list-unstyled">
 @foreach($categories as $id => $category)
     <li class="lh-1 mb-3 d-flex">

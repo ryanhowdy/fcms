@@ -8,16 +8,16 @@
                 <div class="progress-bar" style="width: {{ $progress }}%" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
             <div class="alert alert-warning" role="alert">
-                <h4 class="alert-heading">{{ gettext('This site hasn\'t been install yet') }}</h4>
-                <p>{{ gettext('You must finish the installation before using the site.') }}</p>
+                <h4 class="alert-heading">{{ _gettext('This site hasn\'t been install yet') }}</h4>
+                <p>{{ _gettext('You must finish the installation before using the site.') }}</p>
             </div>
             <div class="alert alert-info" role="alert">
-                <h4 class="alert-heading">{{ gettext('1. Database setup') }}</h4>
-                <p>{{ gettext('Please run the following command to configure your database') }}</p>
-                <code>{{ gettext('php artisan migrate:fresh') }}</code>
+                <h4 class="alert-heading">{{ _gettext('1. Database setup') }}</h4>
+                <p>{{ _gettext('Please run the following command to configure your database') }}</p>
+                <code>{{ _gettext('php artisan migrate:fresh') }}</code>
             </div>
             <div class="text-end">
-                <a href="{{ route('install.config') }}" class="btn btn-primary">{{ gettext('Next') }}</a>
+                <a href="{{ route('install.config') }}" class="btn btn-primary">{{ _gettext('Next') }}</a>
             </div>
         </div>
     </main>
