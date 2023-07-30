@@ -6,9 +6,10 @@ Build it using the docker/.env.example file
 Run `docker build -t fcms -f docker/Dockerfile .`
 
 # Running the image
-If you built your own image, no need to change the docker-compose file, otherwise change the name:tag of the image to pick it from a repo (ie  leolivier/fcms:experimental).
-Run `docker compose -f docker/docker-compose.yml up -d`
-This will download the images for nginx, mariadb, and use the previously built image of fcms or download the image from the repo
+Copy the docker/docker-compose.yml file in a new directory, create in this directory a .env file based on the example in the docker directory.
+If you built your own image, change the docker-compose file to use this image, otherwise change the name:tag of the image to pick it from a repo (ie  ghcr.io/leolivier/fcms:apache).
+Run `docker compose up -d` in this directory
+This will download the image for mariadb, and use the previously built image of fcms or download the image from the repo
 and start them.
 Go to http://<your host>:8003 (if you didn't change the defaultport in .env)
 Enjoy...
