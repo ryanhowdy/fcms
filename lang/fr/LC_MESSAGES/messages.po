@@ -99,9 +99,12 @@ msgstr "Inconnu"
 
 #: app/Http/Controllers/InstallController.php:133
 #: app/Http/Controllers/InstallController.php:139
-#: resources/views/me/address.blade.php:56
 msgid "Home"
 msgstr "Accueil"
+
+#: resources/views/me/address.blade.php:56
+msgid "Home"
+msgstr "Domicile"
 
 #: app/Http/Controllers/InstallController.php:145
 msgid "Calendar"
@@ -179,11 +182,11 @@ msgstr "Sondages"
 
 #: app/Http/Controllers/InstallController.php:247
 msgid "Facebook"
-msgstr "Facebook"
+msgstr ""
 
 #: app/Http/Controllers/InstallController.php:253
 msgid "Google"
-msgstr "Google"
+msgstr ""
 
 #: app/Http/Controllers/InstallController.php:259
 msgid "Instagram"
@@ -197,7 +200,7 @@ msgstr "Nouvelles de la Famille"
 #: app/Http/Controllers/InstallController.php:273
 #: resources/views/install/config.blade.php:37
 msgid "Prayer Concerns"
-msgstr "Hum"
+msgstr "Prières"
 
 #: app/Http/Controllers/InstallController.php:280
 #: resources/views/install/config.blade.php:25
@@ -231,20 +234,25 @@ msgid "Not so fast."
 msgstr "Pas si vite"
 
 #: app/Http/Controllers/LoginController.php:64
-msgid "Your account isn't active yet.  Your website administrator must activate "
+msgid ""
+"Your account isn't active yet.  Your website administrator must activate "
 "your account before you can login and begin using the website."
-msgstr "Ton compte n'est pas encore activé. L'administrateur du site doit activer"
-"ton compte avant que tu puisses te connecter et commencer à utiliser le site"
+msgstr ""
+"Ton compte n'est pas encore activé. L'administrateur du site doit "
+"activerton compte avant que tu puisses te connecter et commencer à "
+"utiliser le site"
 
 #: app/Http/Controllers/LoginController.php:83
 msgid "Oops!"
 msgstr "Oups!"
 
 #: app/Http/Controllers/LoginController.php:84
-msgid "That login information wasn't quite right. Be sure and check that you "
+msgid ""
+"That login information wasn't quite right. Be sure and check that you "
 "typed your email/password correctly."
-msgstr "Ces informations de connexion ne sont pas bonnes. Vérifie que tu as"
-"tapé ton email et ton mot de passe correctement"
+msgstr ""
+"Ces informations de connexion ne sont pas bonnes. Vérifie que tu as tapé "
+"ton email et ton mot de passe correctement"
 
 #: app/Http/Controllers/MeController.php:97
 msgid "Uploaded avatar must be an image."
@@ -252,7 +260,9 @@ msgstr "L'avatar téléversé doit être une image"
 
 #: app/Http/Controllers/MeController.php:98
 msgid "You must upload an avatar or choose an existing avatar from the list."
-msgstr "Tu dois téléverser un avater ou bien choisir un avatar existant dans la liste"
+msgstr "
+"Tu dois téléverser un avater ou bien choisir un avatar existant dans la "
+"liste"
 
 #: app/Http/Controllers/MeController.php:311
 msgid "Arabic"
@@ -260,7 +270,7 @@ msgstr "Arabe"
 
 #: app/Http/Controllers/MeController.php:314
 msgid "Danish (Denmark)"
-msgstr "Danois (Danemark)"
+msgstr "Danois"
 
 #: app/Http/Controllers/MeController.php:317
 msgid "German (Germany)"
@@ -280,48 +290,48 @@ msgstr "Français (France)"
 
 #: app/Http/Controllers/MeController.php:329
 msgid "Italian (Italy)"
-msgstr ""
+msgstr "Italien"
 
 #: app/Http/Controllers/MeController.php:332
 msgid "Dutch (Netherlands)"
-msgstr ""
+msgstr "Néerlandais (Pays-Bas)"
 
 #: app/Http/Controllers/MeController.php:335
 msgid "Portuguese (Brazil)"
-msgstr ""
+msgstr "Portugais (Brésil)"
 
 #: app/Http/Controllers/MeController.php:338
 msgid "Russian (Russia)"
-msgstr ""
+msgstr "Russe"
 
 #: app/Http/Controllers/MeController.php:341
 msgid "Slovak (Slovakia)"
-msgstr ""
+msgstr "Slovaque"
 
 #: app/Http/Controllers/MeController.php:344
 msgid "Turkish (Turkey)"
-msgstr ""
+msgstr "Turc"
 
 #: app/Http/Controllers/MeController.php:347
 msgid "XX (Test)"
-msgstr ""
+msgstr "XX (Test)"
 
 #: app/Http/Controllers/RegisterController.php:48
 msgid "The passwords do not match."
-msgstr ""
+msgstr "Les mots de passe ne correspondent pas."
 
 #: app/Http/Controllers/RegisterController.php:49
 msgid "Full Name is required."
-msgstr ""
+msgstr "Le nom complet est obligatoire"
 
 #: app/Http/Controllers/RegisterController.php:50
 msgid "Birthday is required."
-msgstr ""
+msgstr "La date de naissance est obligatoire"
 
 #: app/Mail/Registration.php:31
 #, php-format, python-format
 msgid "%s Membership"
-msgstr "Appartencance de %s"
+msgstr "Appartencance à %s"
 
 #: resources/views/addressbook/index.blade.php:23
 #: resources/views/me/address.blade.php:14
@@ -343,7 +353,9 @@ msgstr "Tel. Travail"
 
 #: resources/views/addressbook/index.blade.php:61
 msgid "A map view could not be created for this address."
-msgstr "Il n'a pas été possible de créer une vue cartographique pour cette adresse."
+msgstr ""
+"Il n'a pas été possible de créer une vue cartographique pour cette "
+"adresse."
 
 #: resources/views/admin/members-index.blade.php:11
 #: resources/views/admin/polls-index.blade.php:11
@@ -364,12 +376,12 @@ msgstr "Nom"
 #: resources/views/admin/members-index.blade.php:13
 #: resources/views/members/index.blade.php:12
 msgid "Registered"
-msgstr "Enregistré"
+msgstr "Enregistré.e le"
 
 #: resources/views/admin/members-index.blade.php:14
 #: resources/views/members/index.blade.php:13
 msgid "Last Seen"
-msgstr "Vu la dernière fois"
+msgstr "Vu.e la dernière fois"
 
 #: resources/views/admin/members-index.blade.php:15
 msgid "Can Login?"
@@ -434,9 +446,12 @@ msgid "Request Access"
 msgstr "Demander l'accès"
 
 #: resources/views/auth/register.blade.php:11
-msgid "In order to login and begin using the site, your administrator must "
+msgid ""
+"In order to login and begin using the site, your administrator must "
 "activate your account."
-msgstr "Pour pouvoir se connecter et commencer à utiliser ce site, ton administrateur doit activer ton compte "
+msgstr ""
+"Pour pouvoir se connecter et commencer à utiliser ce site, ton "
+"administrateur doit activer ton compte "
 
 #: resources/views/auth/register.blade.php:12
 msgid "Please fill out the form below to request access."
@@ -481,9 +496,12 @@ msgstr "Nom affiché"
 #: resources/views/auth/register.blade.php:47
 #: resources/views/install/admin.blade.php:42
 #: resources/views/me/profile.blade.php:29
-msgid "What do you want to be called on the site?  Leave blank if it is the same"
+msgid ""
+"What do you want to be called on the site?  Leave blank if it is the same"
 " as Full Name."
-msgstr "Comment veux-tu être appelé sur le site? Laisse en blanc si c'est par ton nom complet"
+msgstr ""
+"Comment veux-tu être appelé sur le site? Laisse en blanc si c'est par ton"
+" nom complet"
 
 #: resources/views/auth/register.blade.php:50
 #: resources/views/install/admin.blade.php:45
@@ -506,26 +524,26 @@ msgstr "Créer un nouvel évènement"
 #: resources/views/tree/empty.blade.php:23
 #: resources/views/videos/create.blade.php:14
 msgid "Please fill out the required fields below."
-msgstr ""
+msgstr "Merci de renseigner les champs obligatoires ci-dessous"
 
 #: resources/views/calendar/create.blade.php:18
 #: resources/views/discussions/create.blade.php:18
 #: resources/views/news/create.blade.php:18
 #: resources/views/videos/create.blade.php:29
 msgid "Title"
-msgstr ""
+msgstr "Titre"
 
 #: resources/views/calendar/create.blade.php:55
 msgid "Repeat Every Year"
-msgstr ""
+msgstr "Répéter tous les ans"
 
 #: resources/views/calendar/create.blade.php:62
 msgid "Private"
-msgstr ""
+msgstr "Privé"
 
 #: resources/views/calendar/create.blade.php:69
 msgid "Invite Guests"
-msgstr ""
+msgstr "Inviter des amis"
 
 #: resources/views/calendar/create.blade.php:77
 #: resources/views/me/address.blade.php:66
@@ -535,87 +553,87 @@ msgstr ""
 #: resources/views/tree/empty.blade.php:66
 #: resources/views/tree/index.blade.php:139
 msgid "Save"
-msgstr ""
+msgstr "Enregistrer"
 
 #: resources/views/calendar/create.blade.php:79
 msgid "More Options"
-msgstr ""
+msgstr "Plus d'options"
 
 #: resources/views/calendar/day.blade.php:10
 #: resources/views/calendar/index.blade.php:10
 #: resources/views/calendar/week.blade.php:10
 msgid "Day"
-msgstr ""
+msgstr "Jour"
 
 #: resources/views/calendar/day.blade.php:11
 #: resources/views/calendar/index.blade.php:11
 #: resources/views/calendar/week.blade.php:11
 msgid "Week"
-msgstr ""
+msgstr "Semaine"
 
 #: resources/views/calendar/day.blade.php:12
 #: resources/views/calendar/index.blade.php:12
 #: resources/views/calendar/week.blade.php:12
 msgid "Month"
-msgstr ""
+msgstr "Mois"
 
 #: resources/views/calendar/day.blade.php:15
 #: resources/views/calendar/index.blade.php:15
 #: resources/views/calendar/week.blade.php:15
 msgid "Today"
-msgstr ""
+msgstr "Aujourd'hui"
 
 #: resources/views/calendar/sidebar.blade.php:4
 msgid "Create Event"
-msgstr ""
+msgstr "Créer un évènemenet"
 
 #: resources/views/calendar/sidebar.blade.php:8
 msgid "Categories"
-msgstr ""
+msgstr "Catégories"
 
 #: resources/views/components/empty-state.blade.php:3
 msgid "Nothing is here"
-msgstr ""
+msgstr "Il n'y a rien ici"
 
 #: resources/views/components/empty-state.blade.php:4
 msgid "Looks like no one has added anything here yet."
-msgstr ""
+msgstr "Il semble que personne n'a encore rien ajouté ici"
 
 #: resources/views/contact.blade.php:17
 msgid "Subject"
-msgstr ""
+msgstr "Sujet"
 
 #: resources/views/contact.blade.php:21
 msgid "Message"
-msgstr ""
+msgstr "Message"
 
 #: resources/views/contact.blade.php:26
 msgid "Send"
-msgstr ""
+msgstr "Envoyer"
 
 #: resources/views/discussions/create.blade.php:10
 msgid "Create New Discussion"
-msgstr ""
+msgstr "Créer une discussion"
 
 #: resources/views/discussions/index.blade.php:9
 msgid "New Discussion"
-msgstr ""
+msgstr "Nouvelle discussion"
 
 #: resources/views/discussions/index.blade.php:33
 #, python-format
 msgid "%s view"
 msgid_plural "%s views"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "vu %s fois"
+msgstr[1] "vu %s fois"
 
 #: resources/views/discussions/show.blade.php:14
 msgid "Reply"
-msgstr ""
+msgstr "Répondre"
 
 #: resources/views/discussions/show.blade.php:16
 #: resources/views/news/show.blade.php:9
 msgid "Back"
-msgstr ""
+msgstr "Retour"
 
 #: resources/views/discussions/show.blade.php:20
 #: resources/views/news/show.blade.php:13
@@ -624,26 +642,26 @@ msgstr ""
 #: resources/views/tree/individual.blade.php:121
 #: resources/views/tree/individual.blade.php:147
 msgid "Edit"
-msgstr ""
+msgstr "Editer"
 
 #: resources/views/discussions/show.blade.php:21
 #: resources/views/news/show.blade.php:14
 msgid "Delete"
-msgstr ""
+msgstr "Supprimer"
 
 #: resources/views/documents/create.blade.php:10
 msgid "Upload Document"
-msgstr ""
+msgstr "Téléverser un document"
 
 #: resources/views/documents/create.blade.php:21
 msgid "Select a document to upload"
-msgstr ""
+msgstr "Sélectionner un document à téléverser"
 
 #: resources/views/documents/create.blade.php:24
 #: resources/views/photos/create.blade.php:85
 #: resources/views/videos/create.blade.php:25
 msgid "or drag and drop it here"
-msgstr ""
+msgstr "ou le glisser-déposer ici"
 
 #: resources/views/documents/create.blade.php:32
 #: resources/views/photos/album.blade.php:67
@@ -652,7 +670,7 @@ msgstr ""
 #: resources/views/tree/individual.blade.php:131
 #: resources/views/videos/create.blade.php:33
 msgid "Description"
-msgstr ""
+msgstr "Description"
 
 #: resources/views/documents/create.blade.php:37
 #: resources/views/documents/index.blade.php:85
@@ -662,11 +680,11 @@ msgstr ""
 #: resources/views/videos/create.blade.php:38
 #: resources/views/videos/index.blade.php:10
 msgid "Upload"
-msgstr ""
+msgstr "Téléverser"
 
 #: resources/views/documents/index.blade.php:9
 msgid "Folders"
-msgstr ""
+msgstr "Dossiers"
 
 #: resources/views/documents/index.blade.php:17
 #: resources/views/documents/index.blade.php:26
@@ -675,44 +693,44 @@ msgstr ""
 #: resources/views/documents/index.blade.php:53
 #, python-format
 msgid "%d Files"
-msgstr ""
+msgstr "%d Fichiers"
 
 #: resources/views/documents/index.blade.php:25
 msgid "Presentation"
-msgstr ""
+msgstr "Présentations"
 
 #: resources/views/documents/index.blade.php:34
 msgid "Archives"
-msgstr ""
+msgstr "Archives"
 
 #: resources/views/documents/index.blade.php:43
 msgid "Multimedia"
-msgstr ""
+msgstr "Multimédia"
 
 #: resources/views/documents/index.blade.php:52
 msgid "Other"
-msgstr ""
+msgstr "Autres"
 
 #: resources/views/documents/index.blade.php:58
 #: resources/views/news/index.blade.php:16
 msgid "Recent"
-msgstr ""
+msgstr "Récent"
 
 #: resources/views/emails/contact-text.blade.php:4
 msgid "Sent from Family Connections"
-msgstr ""
+msgstr "Envoyé depuis Family Connections"
 
 #: resources/views/emails/registration-text.blade.php:1
 #: resources/views/emails/registration.blade.php:1
 #, python-format
 msgid "Dear %s,"
-msgstr ""
+msgstr "Cher.e %s,"
 
 #: resources/views/emails/registration-text.blade.php:3
 #: resources/views/emails/registration.blade.php:2
 #, python-format
 msgid "Thank you for registering at %s."
-msgstr ""
+msgstr "Merci de t'être enregistré.e sur %s"
 
 #: resources/views/emails/registration-text.blade.php:5
 #: resources/views/emails/registration.blade.php:3
@@ -720,60 +738,65 @@ msgid ""
 "In order to login and begin using the site, your administrator must "
 "activate your account.  You will get an email when this has been done."
 msgstr ""
+"Pour pouvoir te connecter et commencer à utiliser le site, "
+"l'administrateur doitactiver ton compte. Tu recevras un email lorsque ce "
+"sera fait."
 
 #: resources/views/emails/registration-text.blade.php:7
 #: resources/views/emails/registration.blade.php:5
 msgid "Thanks,"
-msgstr ""
+msgstr "Merci,"
 
 #: resources/views/emails/registration-text.blade.php:8
 #: resources/views/emails/registration.blade.php:6
 #, python-format
 msgid "The %s Webmaster"
-msgstr ""
+msgstr "Le Webmaster de %s"
 
 #: resources/views/emails/registration-text.blade.php:10
 #: resources/views/emails/registration.blade.php:9
 msgid "This is an automated response, please do not reply."
-msgstr ""
+msgstr "Ceci est une réponse automatique, merci de ne pas y répondre."
 
 #: resources/views/home.blade.php:23
 #, python-format
 msgid "%s has added a new address."
-msgstr ""
+msgstr "%s a ajouté une nouvelle adresse"
 
 #: resources/views/home.blade.php:26
 #, python-format
 msgid "%s has started a new discussion."
-msgstr ""
+msgstr "%s a démarré une nouvelle discussion."
 
 #: resources/views/home.blade.php:29
 #, python-format
 msgid "%s has added some new photos."
-msgstr ""
+msgstr "%s a ajouté de nouvelles photos."
 
 #: resources/views/home.blade.php:32
 #, python-format
 msgid "%s has joined the site."
-msgstr ""
+msgstr "%s a rejoint le site."
 
 #: resources/views/home.blade.php:78
 msgid "Latest Poll"
-msgstr ""
+msgstr "Dernier Sondage"
 
 #: resources/views/home.blade.php:106
 msgid "Vote"
-msgstr ""
+msgstr "Voter"
 
 #: resources/views/install/admin.blade.php:11
 msgid "3. Create Admin User"
-msgstr ""
+msgstr "3. Créer un utilisateur d'admin"
 
 #: resources/views/install/admin.blade.php:12
 msgid ""
 "Everyone will be required to have an account and be logged in at all "
 "times to use this website.  This will help protect your site."
 msgstr ""
+"Tout le monde devra avoir un compte et s'y connecter à chaque foispour "
+"pouvoir utiliser ce site web. Cela aidera à protéger le site."
 
 #: resources/views/install/admin.blade.php:13
 msgid ""
@@ -781,38 +804,40 @@ msgid ""
 "information below for the person who will be the administrator of this "
 "site."
 msgstr ""
+"Il doit y avoir au moins un compte administrateur. Merci de remplir "
+"lesinformations ci-dessous pour la personne qui va administrer ce site"
 
 #: resources/views/install/config.blade.php:11
 msgid "2. Site Configuration"
-msgstr ""
+msgstr "2. Configuration du site"
 
 #: resources/views/install/config.blade.php:12
 msgid "Please fill out the form below to configure your site."
-msgstr ""
+msgstr "Merci de remplir le formulaire ci-dessous pour configurer votre site."
 
 #: resources/views/install/config.blade.php:17
 msgid "Optional Plugins"
-msgstr ""
+msgstr "Plugins optionnels"
 
 #: resources/views/install/config.blade.php:18
 msgid "Which plugins would you like to use on your site?"
-msgstr ""
+msgstr "Quel plugins voudrais tu utiliser sur ton site?"
 
 #: resources/views/install/database.blade.php:11
 msgid "This site hasn't been install yet"
-msgstr ""
+msgstr "Ce site n'a pas encore été installé"
 
 #: resources/views/install/database.blade.php:12
 msgid "You must finish the installation before using the site."
-msgstr ""
+msgstr "Il faut finir l'installation avant d'utiliser le site."
 
 #: resources/views/install/database.blade.php:15
 msgid "1. Database setup"
-msgstr ""
+msgstr "1. Paramétrage de la base de données"
 
 #: resources/views/install/database.blade.php:16
 msgid "Please run the following command to configure your database"
-msgstr ""
+msgstr "Merci de lancer la commande suivante pour configurer ta database."
 
 #: resources/views/install/database.blade.php:17
 msgid "php artisan migrate:fresh"
@@ -823,153 +848,153 @@ msgstr ""
 #: resources/views/photos/create.blade.php:105
 #: resources/views/photos/create.blade.php:131
 msgid "Next"
-msgstr ""
+msgstr "Suite"
 
 #: resources/views/layouts/navigation.blade.php:35
 #: resources/views/me/navigation.blade.php:1
 msgid "Profile"
-msgstr ""
+msgstr "Profil"
 
 #: resources/views/layouts/navigation.blade.php:36
 msgid "Messages"
-msgstr ""
+msgstr "Messages"
 
 #: resources/views/layouts/navigation.blade.php:37
 msgid "Notifications"
-msgstr ""
+msgstr "Notifications"
 
 #: resources/views/layouts/navigation.blade.php:38
 #: resources/views/me/navigation.blade.php:13
 #: resources/views/me/navigation.blade.php:16
 msgid "Settings"
-msgstr ""
+msgstr "Paramètres"
 
 #: resources/views/layouts/navigation.blade.php:40
 msgid "Logout"
-msgstr ""
+msgstr "Déconnexion"
 
 #: resources/views/me/address.blade.php:24
 msgid "Country"
-msgstr ""
+msgstr "Pays"
 
 #: resources/views/me/address.blade.php:33
 msgid "Street Address"
-msgstr ""
+msgstr "N° et nom de rue"
 
 #: resources/views/me/address.blade.php:37
 msgid "City"
-msgstr ""
+msgstr "Ville"
 
 #: resources/views/me/address.blade.php:42
 msgid "State"
-msgstr ""
+msgstr "Etat/Province"
 
 #: resources/views/me/address.blade.php:46
 msgid "Zip Code"
-msgstr ""
+msgstr "Code postal"
 
 #: resources/views/me/address.blade.php:50
 msgid "Contacts"
-msgstr ""
+msgstr "Contacts"
 
 #: resources/views/me/address.blade.php:52
 msgid "Cell"
-msgstr ""
+msgstr "Tel. Mobile"
 
 #: resources/views/me/address.blade.php:60
 msgid "Work"
-msgstr ""
+msgstr "Tel. Pro."
 
 #: resources/views/me/avatar.blade.php:14
 msgid "Current Picture"
-msgstr ""
+msgstr "Photo actuelle"
 
 #: resources/views/me/avatar.blade.php:28
 msgid "Change"
-msgstr ""
+msgstr "Changer"
 
 #: resources/views/me/navigation.blade.php:4
 msgid "General"
-msgstr ""
+msgstr "Général"
 
 #: resources/views/me/navigation.blade.php:7
 msgid "Picture"
-msgstr ""
+msgstr "Photo"
 
 #: resources/views/me/navigation.blade.php:19
 msgid "Account"
-msgstr ""
+msgstr "Compte"
 
 #: resources/views/me/profile.blade.php:31
 msgid "Bio"
-msgstr ""
+msgstr "Bio"
 
 #: resources/views/me/settings.blade.php:21
 #: resources/views/me/settings.blade.php:23
 msgid "Language"
-msgstr ""
+msgstr "Langue"
 
 #: resources/views/me/settings.blade.php:31
 msgid "Timezone"
-msgstr ""
+msgstr "Fuseau horaire"
 
 #: resources/views/news/create.blade.php:10
 msgid " Add new Family News"
-msgstr ""
+msgstr "Ajouter des Nouvelles de la Famille"
 
 #: resources/views/news/index.blade.php:9
 msgid "Add News"
-msgstr ""
+msgstr "Ajouter des Nouvelles"
 
 #: resources/views/news/index.blade.php:35
 msgid "My News"
-msgstr ""
+msgstr "Mes Nouvelles"
 
 #: resources/views/news/index.blade.php:38
 msgid "Popular"
-msgstr ""
+msgstr "Populaire"
 
 #: resources/views/news/index.blade.php:61
 msgid "Latest news from"
-msgstr ""
+msgstr "Dernière Nouvelles de"
 
 #: resources/views/photos/album.blade.php:16
 #: resources/views/photos/index.blade.php:16
 msgid "Dashboard"
-msgstr ""
+msgstr "Tableau de Bord"
 
 #: resources/views/photos/album.blade.php:19
 #: resources/views/photos/index.blade.php:19
 msgid "Albums"
-msgstr ""
+msgstr "Albums"
 
 #: resources/views/photos/album.blade.php:22
 #: resources/views/photos/album.blade.php:71
 #: resources/views/photos/index.blade.php:22
 #: resources/views/photos/photo.blade.php:53
 msgid "People"
-msgstr ""
+msgstr "Personnes"
 
 #: resources/views/photos/album.blade.php:25
 #: resources/views/photos/album.blade.php:74
 #: resources/views/photos/index.blade.php:25
 msgid "Places"
-msgstr ""
+msgstr "Endroits"
 
 #: resources/views/photos/album.blade.php:33
 #: resources/views/photos/index.blade.php:33
 msgid "Top Rated"
-msgstr ""
+msgstr "Mieux Notées"
 
 #: resources/views/photos/album.blade.php:34
 #: resources/views/photos/index.blade.php:34
 msgid "Most Viewed"
-msgstr ""
+msgstr "Plus Vues"
 
 #: resources/views/photos/album.blade.php:46
 #, python-format
 msgid "Created %s"
-msgstr ""
+msgstr "Créé %s"
 
 #: resources/views/photos/album.blade.php:47
 #, python-format
@@ -981,7 +1006,7 @@ msgstr[1] ""
 #: resources/views/photos/album.blade.php:64
 #: resources/views/photos/photo.blade.php:21
 msgid "Details"
-msgstr ""
+msgstr "Détails"
 
 #: resources/views/photos/create.blade.php:25
 #: resources/views/photos/create.blade.php:31
@@ -990,90 +1015,92 @@ msgstr ""
 
 #: resources/views/photos/create.blade.php:26
 msgid "Upload your photos to a new or existing album"
-msgstr ""
+msgstr "Téléverser vos photos vers un album existant ou un nouveau"
 
 #: resources/views/photos/create.blade.php:43
 msgid "Existing Album"
-msgstr ""
+msgstr "Album existant"
 
 #: resources/views/photos/create.blade.php:71
 msgid "Upload Photos"
-msgstr ""
+msgstr "Télécharger des Photos"
 
 #: resources/views/photos/create.blade.php:72
 msgid "Choose 1 or more photos to upload"
-msgstr ""
+msgstr "Choisr un ou plusieurs Photos à Télécharger"
 
 #: resources/views/photos/create.blade.php:82
 msgid "Select photos to upload"
-msgstr ""
+msgstr "Sélectionner les Photos à Télécharger"
 
 #: resources/views/photos/create.blade.php:104
 #: resources/views/photos/create.blade.php:130
 msgid "Previous"
-msgstr ""
+msgstr "Précédent"
 
 #: resources/views/photos/create.blade.php:122
 msgid "Finishing Up"
-msgstr ""
+msgstr "En cours de finition"
 
 #: resources/views/photos/create.blade.php:123
 msgid ""
 "Your photos have been uploaded successfully.  Feel free to tag people and"
 " add comments."
 msgstr ""
+"Tes photos ont été téléchargées avec succès. N'hésite pas à étiqueter les"
+" gens et ajouter des commentaires."
 
 #: resources/views/photos/create.blade.php:128
 msgid "Success"
-msgstr ""
+msgstr "Succès"
 
 #: resources/views/photos/index.blade.php:40
 msgid "Latest"
-msgstr ""
+msgstr "Plus récentes"
 
 #: resources/views/photos/index.blade.php:92
 msgid "On This Day"
-msgstr ""
+msgstr "Ce jour-là"
 
 #: resources/views/photos/photo.blade.php:18
 #: resources/views/videos/show.blade.php:24
 msgid "Comments"
-msgstr ""
+msgstr "Commentaires"
 
 #: resources/views/recipes/category-create.blade.php:9
 msgid "Add Category"
-msgstr ""
+msgstr "Ajouter une Catégorie"
 
 #: resources/views/recipes/category-create.blade.php:27
 #: resources/views/recipes/create.blade.php:59
 msgid "Add"
-msgstr ""
+msgstr "Ajouter"
 
 #: resources/views/recipes/create.blade.php:9
 #: resources/views/recipes/index.blade.php:9
 msgid "Add Recipe"
-msgstr ""
+msgstr "Ajouter une Recette"
 
 #: resources/views/recipes/create.blade.php:21
 msgid "Thumbnail"
-msgstr ""
+msgstr "Vignette"
 
 #: resources/views/recipes/create.blade.php:32
 msgid "Category"
-msgstr ""
+msgstr "Catégorie"
 
 #: resources/views/recipes/create.blade.php:43
 msgid "New Category"
-msgstr ""
+msgstr "Nouvelle Catégorie"
 
 #: resources/views/recipes/create.blade.php:48
 #: resources/views/recipes/show.blade.php:24
 msgid "Ingredients"
-msgstr ""
+msgstr "Ingrédients"
 
 #: resources/views/recipes/create.blade.php:50
 msgid "Add ingredient"
-msgstr ""
+msgstr "Ajouter un Ingrédient"
 
 #: resources/views/recipes/create.blade.php:53
 #: resources/views/recipes/show.blade.php:20
@@ -1082,97 +1109,101 @@ msgstr ""
 
 #: resources/views/tree/empty.blade.php:12
 msgid "Start Family Tree"
-msgstr ""
+msgstr "Démarrer l'arbre généalogique"
 
 #: resources/views/tree/empty.blade.php:15
 msgid "You do not have a Family Tree record yet."
-msgstr ""
+msgstr "Il n'y pas encore d'arbre généalogique"
 
 #: resources/views/tree/empty.blade.php:16
 msgid ""
 "Please verify the information below and make any changes or additions as "
 "needed."
 msgstr ""
+"Mercide vérifier les informations ci-dessous et apporter les "
+"modifications ou ajouts nécessaires."
 
 #: resources/views/tree/empty.blade.php:17
 msgid "Notice that your Member record and Family Tree record are different."
 msgstr ""
+"Attention: ton dossier de membre et ton dossier d'arbre généalogique sont"
+" différents."
 
 #: resources/views/tree/empty.blade.php:29
 #: resources/views/tree/index.blade.php:51
 msgid "First and optional Middle Name"
-msgstr ""
+msgstr "Prénom et second prénom (facultatif)"
 
 #: resources/views/tree/empty.blade.php:33
 #: resources/views/tree/index.blade.php:55
 msgid "Surname"
-msgstr ""
+msgstr "Nom de famille"
 
 #: resources/views/tree/empty.blade.php:37
 #: resources/views/tree/index.blade.php:63
 msgid "Suffix"
-msgstr ""
+msgstr "Suffixe"
 
 #: resources/views/tree/empty.blade.php:42
 #: resources/views/tree/index.blade.php:68
 msgid "Sex"
-msgstr ""
+msgstr "Sexe"
 
 #: resources/views/tree/empty.blade.php:50
 #: resources/views/tree/index.blade.php:76
 msgid "Male"
-msgstr ""
+msgstr "Homme"
 
 #: resources/views/tree/empty.blade.php:54
 #: resources/views/tree/index.blade.php:80
 msgid "Female"
-msgstr ""
+msgstr "Femme"
 
 #: resources/views/tree/empty.blade.php:58
 #: resources/views/tree/index.blade.php:84
 msgid "Not Listed or Prefer not to share"
-msgstr ""
+msgstr "Non listé ou préfère ne pas partager"
 
 #: resources/views/tree/empty.blade.php:63
 #: resources/views/tree/index.blade.php:103
 msgid "Date of Birth"
-msgstr ""
+msgstr "Date de Naissance"
 
 #: resources/views/tree/index.blade.php:31
 msgid "Add Relationship"
-msgstr ""
+msgstr "Ajouter une Relation"
 
 #: resources/views/tree/index.blade.php:39
 msgid "Create New Person"
-msgstr ""
+msgstr "Créer une Nouvelle Personne"
 
 #: resources/views/tree/index.blade.php:43
 msgid "Choose Existing Person"
-msgstr ""
+msgstr "Choisir une Personne Existante"
 
 #: resources/views/tree/index.blade.php:59
 msgid "Maiden Name"
-msgstr ""
+msgstr "Nom de naissance"
 
 #: resources/views/tree/index.blade.php:89
 msgid "Status"
-msgstr ""
+msgstr "Statut"
 
 #: resources/views/tree/index.blade.php:93
 #: resources/views/tree/individual.blade.php:20
 #: resources/views/tree/person.blade.php:57
 #: resources/views/tree/person.blade.php:63
 msgid "Living"
-msgstr ""
+msgstr "Vivant"
 
 #: resources/views/tree/index.blade.php:97
 #: resources/views/tree/individual.blade.php:22
 msgid "Deceased"
-msgstr ""
+msgstr "Décédé"
 
 #: resources/views/tree/index.blade.php:107
 msgid "Date of Death"
-msgstr ""
+msgstr "Date de Décès"
 
 #: resources/views/tree/index.blade.php:112
 msgid "Parents"
@@ -1180,88 +1211,88 @@ msgstr ""
 
 #: resources/views/tree/index.blade.php:122
 msgid "Existing Member?"
-msgstr ""
+msgstr "Membre existant?"
 
 #: resources/views/tree/index.blade.php:125
 msgid "Create New"
-msgstr ""
+msgstr "Créer un Nouveau"
 
 #: resources/views/tree/index.blade.php:138
 msgid "Close"
-msgstr ""
+msgstr "Fermer"
 
 #: resources/views/tree/individual.blade.php:26
 msgid "View Tree"
-msgstr ""
+msgstr "Voir l'Arbre"
 
 #: resources/views/tree/individual.blade.php:49
 msgid "Alias"
-msgstr ""
+msgstr "Pseudo"
 
 #: resources/views/tree/individual.blade.php:52
 msgid "Nickname"
-msgstr ""
+msgstr "Surnom"
 
 #: resources/views/tree/individual.blade.php:56
 #: resources/views/tree/individual.blade.php:84
 #: resources/views/tree/individual.blade.php:116
 #: resources/views/tree/individual.blade.php:142
 msgid "Events, Media, More"
-msgstr ""
+msgstr "Événements, médias, autres"
 
 #: resources/views/tree/individual.blade.php:64
 #: resources/views/tree/individual.blade.php:92
 #: resources/views/tree/individual.blade.php:124
 #: resources/views/tree/individual.blade.php:150
 msgid "Add Event"
-msgstr ""
+msgstr "Ajouter un Evènement"
 
 #: resources/views/tree/individual.blade.php:71
 msgid "Birth"
-msgstr ""
+msgstr "Naissance"
 
 #: resources/views/tree/individual.blade.php:79
 #: resources/views/tree/individual.blade.php:108
 msgid "unknown"
-msgstr ""
+msgstr "inconnu"
 
 #: resources/views/tree/individual.blade.php:99
 msgid "Death"
-msgstr ""
+msgstr "Décès"
 
 #: resources/views/tree/individual.blade.php:111
 #: resources/views/tree/individual.blade.php:137
 msgid "none"
-msgstr ""
+msgstr "aucun"
 
 #: resources/views/tree/person.blade.php:9
 msgid "Add Parent"
-msgstr ""
+msgstr "Ajouter un Parent"
 
 #: resources/views/tree/person.blade.php:15
 msgid "Add Spouse"
-msgstr ""
+msgstr "Ajouter un Conjoint"
 
 #: resources/views/tree/person.blade.php:21
 msgid "Add Sibling"
-msgstr ""
+msgstr "Ajouter un frère ou une sœur"
 
 #: resources/views/tree/person.blade.php:27
 msgid "Add Child"
-msgstr ""
+msgstr "Ajouter un enfant"
 
 #: resources/views/tree/person.blade.php:61
 #, python-format
 msgid "Died in %d"
-msgstr ""
+msgstr "Décédé en %d"
 
 #: resources/views/videos/create.blade.php:10
 msgid "Upload Video"
-msgstr ""
+msgstr "Téléverser une vidéo"
 
 #: resources/views/videos/create.blade.php:22
 msgid "Select a video to upload"
-msgstr ""
+msgstr "Sélectionner une vidéo à télécharger"
 
 #: resources/views/videos/show.blade.php:18
 #, python-format
@@ -1269,4 +1300,5 @@ msgid ""
 "To view this video please enable JavaScript, and consider upgrading to a "
 "web browser that %s supports HTML5 video %s"
 msgstr ""
-
+"Pour visionner cette vidéo, merci d'activer JavaScript, et envisage de "
+"passer à un navigateur web qui %s prend en charge la vidéo HTML5 %s"
