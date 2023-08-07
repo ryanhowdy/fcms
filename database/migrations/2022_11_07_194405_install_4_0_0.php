@@ -606,6 +606,12 @@ class Install400 extends Migration
                 photos AS p
                 LEFT JOIN photo_albums AS a ON p.photo_album_id = a.id
                 LEFT JOIN users AS u ON p.updated_user_id = u.id)
+            UNION
+            (SELECT
+                'EVENT' AS type, e.id, e.created_at, e.updated_at, e.updated_user_id, u.name, u.displayname, u.avatar, u.email, e.title, e.date
+            FROM
+                events AS e
+                LEFT JOIN users as u ON e.updated_user_id = u.id)
         ");
     }
 
