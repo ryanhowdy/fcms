@@ -278,7 +278,7 @@ class Install400 extends Migration
         Schema::create('invitations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('event_id');
-            $table->foreignId('user_id');
+            $table->foreignId('user_id')->nullable();
             $table->string('email', 50)->nullable();
             $table->boolean('attending')->nullable();
             $table->char('code', 13)->nullable();

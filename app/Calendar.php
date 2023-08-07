@@ -101,11 +101,12 @@ class Calendar
             }
 
             $dayData = [
-                'fullDate' => $curDate->format('Y-m-d'),
-                'day'      => $curDate->format('j'),
-                'class'    => $classes,
-                'link'     => route('calendar.day', [ $curDate->format('Y'), $curDate->format('m'), $curDate->format('d') ]),
-                'events'   => [],
+                'fullDate'   => $curDate->format('Y-m-d'),
+                'day'        => $curDate->format('j'),
+                'class'      => $classes,
+                'createLink' => route('calendar.createDate', [ $curDate->format('Y'), $curDate->format('m'), $curDate->format('d') ]),
+                'link'       => route('calendar.day', [ $curDate->format('Y'), $curDate->format('m'), $curDate->format('d') ]),
+                'events'     => [],
             ];
 
             if (isset($events[ $curDate->format('Y-m-d') ]))

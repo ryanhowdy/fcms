@@ -20938,21 +20938,41 @@ body#calendar div#calendar div.week div.day.today {
 body#calendar div#calendar div.week div.day:last-of-type {
   border-right: none !important;
 }
+body#calendar div#calendar div.week div.day a.add {
+  display: none;
+}
+body#calendar div#calendar div.week div.day:hover a.add {
+  display: block;
+}
 body#calendar div#calendar div.week div.day a.day {
   color: var(--bs-gray-500);
   text-decoration: none;
   font-weight: bold;
   display: inline-block;
   margin-bottom: 5px;
+  height: 18px;
+  width: 18px;
+  text-align: center;
+  border-radius: 15px;
+}
+body#calendar div#calendar div.week div.day a.day:hover {
+  background: var(--bs-gray-400);
+  color: black;
 }
 body#calendar div#calendar div.week div.day div.event a {
   padding: 2px 6px;
   color: white;
   text-decoration: none;
   cursor: pointer;
+  height: 22px;
+  margin-bottom: 2px;
 }
 body#calendar div#calendar div.week:last-of-type div.day {
   border-bottom: none !important;
+}
+body#calendar form input#start,
+body#calendar form input#end {
+  width: 125px;
 }
 
 body#discussions .comments > .comment .mini-toolbar {

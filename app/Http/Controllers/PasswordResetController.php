@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class RegisterController extends Controller
+class PasswordResetController extends Controller
 {
     /**
      * Display the login view

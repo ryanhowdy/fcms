@@ -29,6 +29,7 @@
             <div class="week row g-0">
             @foreach ($weekData as $day)
                 <div class="day col p-2 border-end border-bottom {{ $day['class'] }}">
+                    <a href="{{ $day['createLink'] }}" class="add float-end text-success fs-6"><i class="bi-plus-circle-fill"></i></a>
                     <a href="{{ $day['link'] }}" class="day">{{ $day['day'] }}</a>
                 @foreach ($day['events'] as $e)
                     <div class="event">

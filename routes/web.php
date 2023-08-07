@@ -6,6 +6,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\PhotoController;
@@ -39,7 +40,7 @@ Route::get( '/install/database', [ InstallController::class, 'database' ])->name
 Route::get( '/install/config',   [ InstallController::class, 'configurationCreate' ])->name('install.config');
 Route::post('/install/config',   [ InstallController::class, 'configurationStore' ]);
 Route::get( '/install/admin',    [ InstallController::class, 'adminCreate' ])->name('install.admin');
-Route::post('/install/admin',    [ InstallController::class, 'adminStore' ])->name('install.admin');
+Route::post('/install/admin',    [ InstallController::class, 'adminStore' ]);
 
 Route::get( '/login',           [ LoginController::class, 'create' ])->name('login');
 Route::post('/login',           [ LoginController::class, 'store' ]);
@@ -47,6 +48,8 @@ Route::get( '/forgot-password', [ PasswordResetController::class, 'create' ])->n
 Route::post('/forgot-password', [ PasswordResetController::class, 'store' ])->name('auth.password.email');
 Route::get( '/register',        [ RegisterController::class, 'create' ])->name('auth.register');
 Route::post('/register',        [ RegisterController::class, 'store' ]);
+
+Route::get( '/calendar/invitation/{id}/code/{code}', [ InvitationController::class, 'show' ])->name('invitations.show');
 
 // Must be authed
 Route::middleware(['auth'])->group(function () {
@@ -72,7 +75,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get( '/calendar/week/{year?}/{month?}/{day?}',  [ CalendarController::class, 'weekView' ])->name('calendar.week');
     Route::get( '/calendar/day/{year?}/{month?}/{day?}',   [ CalendarController::class, 'dayView' ])->name('calendar.day');
     Route::get( '/calendar/create',                        [ CalendarController::class, 'create' ])->name('calendar.create');
+    Route::get( '/calendar/create/{year}/{month}/{day}',   [ CalendarController::class, 'createDate' ])->name('calendar.createDate');
     Route::post('/calendar/create',                        [ CalendarController::class, 'store' ])->name('calendar.store');
+    Route::get( '/calendar/event/{id}',                    [ CalendarController::class, 'show' ])->name('calendar.show');
+
+    Route::get( '/calendar/event/{eid}/invitation/create',    [ InvitationController::class, 'create' ])->name('invitations.create');
+    Route::post('/calendar/event/{eid}/invitation/create',    [ InvitationController::class, 'store' ])->name('invitations.store');
+    Route::post('/calendar/event/{eid}/invitation/{id}/edit', [ InvitationController::class, 'update' ])->name('invitations.update');
 
     Route::get( '/members',   [ MemberController::class, 'index' ])->name('members');
 
@@ -161,7 +170,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get( '/create',          [ AdminPollController::class, 'create' ])->name('admin.polls.create');
         Route::post('/create',          [ AdminPollController::class, 'store' ]);
         Route::get( '/polls/{id}',      [ AdminPollController::class, 'show' ])->name('admin.polls.show');
-        Route::get( '/polls/{id}/edit', [ AdminPollController::class, 'edit' ])->name('admin.polls.show');
+        Route::get( '/polls/{id}/edit', [ AdminPollController::class, 'edit' ])->name('admin.polls.edit');
         Route::post('/polls/{id}/edit', [ AdminPollController::class, 'update' ]);
 
         Route::get( '/facebook', [ HomeController::class, 'home' ])->name('admin.facebook');
