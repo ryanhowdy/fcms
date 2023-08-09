@@ -3,6 +3,7 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\CalendarController;
@@ -42,12 +43,14 @@ Route::post('/install/config',   [ InstallController::class, 'configurationStore
 Route::get( '/install/admin',    [ InstallController::class, 'adminCreate' ])->name('install.admin');
 Route::post('/install/admin',    [ InstallController::class, 'adminStore' ]);
 
-Route::get( '/login',           [ LoginController::class, 'create' ])->name('login');
-Route::post('/login',           [ LoginController::class, 'store' ]);
-Route::get( '/forgot-password', [ PasswordResetController::class, 'create' ])->name('auth.password.request');
-Route::post('/forgot-password', [ PasswordResetController::class, 'store' ])->name('auth.password.email');
-Route::get( '/register',        [ RegisterController::class, 'create' ])->name('auth.register');
-Route::post('/register',        [ RegisterController::class, 'store' ]);
+Route::get( '/login',                 [ LoginController::class, 'create' ])->name('login');
+Route::post('/login',                 [ LoginController::class, 'store' ]);
+Route::get( '/forgot-password',       [ ForgotPasswordController::class, 'create' ])->name('password.request');
+Route::post('/forgot-password',       [ ForgotPasswordController::class, 'store' ])->name('password.email');
+Route::get( '/reset-password/{code}', [ PasswordResetController::class, 'create' ])->name('password.reset');
+Route::post('/reset-password/{code}', [ PasswordResetController::class, 'store' ])->name('password.store');
+Route::get( '/register',              [ RegisterController::class, 'create' ])->name('register');
+Route::post('/register',              [ RegisterController::class, 'store' ]);
 
 Route::get( '/calendar/invitation/{id}/code/{code}', [ InvitationController::class, 'show' ])->name('invitations.show');
 

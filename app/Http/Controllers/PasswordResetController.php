@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class PasswordResetController extends Controller
 {
@@ -13,9 +13,9 @@ class PasswordResetController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function create()
+    public function create($token)
     {
-        return view('auth.register');
+        return view('auth.password-reset', ['token' => $token]);
     }
 
     /**
@@ -28,22 +28,19 @@ class PasswordResetController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        $validated = $request->validate([
+            'email'    => ['required', 'email', 'exists:users,email'],
+            'token'    => ['required', 'exists:password_resets,token'],
+            'password' => ['required', 'confirmed'],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = User::where('email', $request->email)
+            ->first();
 
-        event(new Registered($user));
+        $user->password = Hash::make($request->password);
 
-        Auth::login($user);
+        $user->save();
 
-        return redirect()->route('index');
+        return redirect()->route('login');
     }
 }

@@ -18,19 +18,26 @@ class Install400 extends Migration
      */
     public function up()
     {
+        Schema::create('password_resets', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->smallInteger('access')->default(3);
-            $table->string('email')->unique();
-            $table->string('password')->default('0');
             $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password')->default('0');
+            $table->rememberToken();
+            $table->smallInteger('access')->default(3);
             $table->string('displayname')->nullable();
             $table->date('birthday')->nullable();
             $table->string('token')->nullable();
             $table->string('avatar', 25)->default('no_avatar.jpg');
             $table->string('bio', 200)->nullable();
             $table->char('activate_code', 13)->nullable();
-            $table->rememberToken();
             $table->boolean('activated')->default(false);
             $table->boolean('login_attempts')->default(false);
             $table->dateTime('locked')->nullable();
@@ -360,16 +367,16 @@ class Install400 extends Migration
 
         $poll = new Poll();
 
-        $poll->question        = __('What do you think of Family Connections?');
+        $poll->question        = _gettext('What do you think of Family Connections?');
         $poll->created_user_id = 1;
         $poll->updated_user_id = 1;
 
         $poll->save();
 
         $pollOptionData = [
-            __('Easy to use!'),
-            __('Visually appealing!'),
-            __('Just what our family needed!'),
+            _gettext('Easy to use!'),
+            _gettext('Visually appealing!'),
+            _gettext('Just what our family needed!'),
         ];
 
         foreach ($pollOptionData as $i => $option)
@@ -528,7 +535,6 @@ class Install400 extends Migration
         Schema::create('user_settings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id');
-            $table->set('boardsort', ['ASC', 'DESC'])->default('ASC');
             $table->string('language', 6)->default('en_US');
             $table->string('timezone')->default('America/New_York');
         });
@@ -629,17 +635,19 @@ class Install400 extends Migration
         Schema::dropIfExists('discussions');
         Schema::dropIfExists('discussion_comments');
         Schema::dropIfExists('events');
-        Schema::dropIfExists('gallery_category_comments');
-        Schema::dropIfExists('gallery_categories');
-        Schema::dropIfExists('gallery_external_photos');
-        Schema::dropIfExists('gallery_photo_comments');
-        Schema::dropIfExists('gallery_photos');
-        Schema::dropIfExists('gallery_photo_tags');
+        Schema::dropIfExists('event_categories');
+        Schema::dropIfExists('photo_album_comments');
+        Schema::dropIfExists('photo_albums');
+        Schema::dropIfExists('external_photos');
+        Schema::dropIfExists('photo_comments');
+        Schema::dropIfExists('photos');
+        Schema::dropIfExists('photo_tags');
         Schema::dropIfExists('invitations');
         Schema::dropIfExists('navigation_links');
         Schema::dropIfExists('news_comments');
         Schema::dropIfExists('news');
         Schema::dropIfExists('notifications');
+        Schema::dropIfExists('password_resets');
         Schema::dropIfExists('poll_comments');
         Schema::dropIfExists('poll_options');
         Schema::dropIfExists('poll_votes');
@@ -647,12 +655,21 @@ class Install400 extends Migration
         Schema::dropIfExists('prayers');
         Schema::dropIfExists('private_messages');
         Schema::dropIfExists('recipe_comments');
+        Schema::dropIfExists('recipe_categories');
         Schema::dropIfExists('recipes');
         Schema::dropIfExists('relationships');
         Schema::dropIfExists('statuses');
+        Schema::dropIfExists('tree_individuals');
+        Schema::dropIfExists('tree_families');
+        Schema::dropIfExists('tree_events');
+        Schema::dropIfExists('tree_relationships');
+        Schema::dropIfExists('tree_places');
+        Schema::dropIfExists('tree_media');
         Schema::dropIfExists('user_awards');
+        Schema::dropIfExists('user_settings');
         Schema::dropIfExists('users');
         Schema::dropIfExists('video_comments');
+        Schema::dropIfExists('external_videos');
         Schema::dropIfExists('videos');
     }
 }

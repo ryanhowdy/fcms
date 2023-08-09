@@ -7,16 +7,17 @@ use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Content;
 
-class Registration extends Mailable
+class PasswordReset extends Mailable
 {
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($user)
+    public function __construct($user, $token)
     {
-        $this->user = $user;
+        $this->user  = $user;
+        $this->token = $token;
     }
 
     /**
@@ -28,7 +29,7 @@ class Registration extends Mailable
     {
         return new Envelope(
             from: new Address(env('MAIL_FROM_ADDRESS')),
-            subject: sprintf(_gettext('%s Membership'), env('APP_NAME')),
+            subject: _gettext('Password Reset'),
         );
     }
 
@@ -40,10 +41,11 @@ class Registration extends Mailable
     public function content()
     {
         return new Content(
-            view: 'emails.registration',
-            text: 'emails.registration-text',
+            view: 'emails.password-reset',
+            text: 'emails.password-reset-text',
             with: [
-                'user' => $this->user,
+                'user'  => $this->user,
+                'token' => $this->token,
             ],
         );
     }
