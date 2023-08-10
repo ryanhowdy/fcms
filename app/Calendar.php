@@ -359,6 +359,8 @@ class Calendar
             $dateKey = $endOfCalendar->format('Y').'-'.$bMonth.'-'.$bDay;
 
             $formattedEvents[$dateKey][] = [
+                'id'                => 0,
+                'isBirthday'        => true,
                 'date'              => $b->birthday->format('Y-m-d'),
                 'time_start'        => null,
                 'time_end'          => null,

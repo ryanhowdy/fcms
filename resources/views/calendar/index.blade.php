@@ -34,7 +34,10 @@
                 @foreach ($day['events'] as $e)
                     <div class="event">
                         <a class="d-block text-white rounded-1 overflow-hidden" style="background-color: {{ $e['category_color'] }}" tabindex="0"
+                        @if(isset($e['isBirthday']))
+                        @else
                             href="{{ route('calendar.show', $e['id']) }}"
+                        @endif
                             data-bs-toggle="popover" data-bs-placement="top" data-bs-title="{{ $e['title'] }}" 
                             data-bs-custom-class="event-detail-popover" data-bs-content="{{ $e['desc'] }}">
                             <span class="me-2">{{ substr($e['time_start'], 0, 5) }}</span>{{ $e['title'] }}
