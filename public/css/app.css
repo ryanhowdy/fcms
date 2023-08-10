@@ -20818,6 +20818,9 @@ body#install main {
 
 img.avatar {
   width: 45px;
+  height: 45px;
+  -o-object-fit: cover;
+     object-fit: cover;
 }
 
 form div.required > label:after {

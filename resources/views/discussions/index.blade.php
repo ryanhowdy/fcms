@@ -18,7 +18,7 @@
         <div class="discussion d-flex justify-content-between pb-4 border-bottom">
             <div class="d-flex flex-row p-3">
                 <div>
-                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ _gettext('avatar') }}">
+                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar($d->toArray()) }}" title="{{ _gettext('avatar') }}">
                 </div>
                 <div>
                     <a href="{{ route('discussions.show', $d->id) }}" class="h3 py-1 d-block text-black text-decoration-none">{{ $d->title }}</a>
