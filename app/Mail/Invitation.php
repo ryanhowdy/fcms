@@ -38,7 +38,7 @@ class Invitation extends Mailable
     public function envelope()
     {
         return new Envelope(
-            from: new Address(env('MAIL_FROM_ADDRESS')),
+            from: new Address(config('mail.from.address')),
             subject: sprintf(_pgettext('%s is the title of an event', 'Invitation: %s'), $this->eventTitle),
         );
     }

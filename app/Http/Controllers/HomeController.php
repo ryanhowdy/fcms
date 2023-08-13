@@ -130,7 +130,7 @@ class HomeController extends Controller
      */
     public function contactSend(Request $request)
     {
-        Mail::to(env('FCMS_CONTACT'))->send(new Contact($request->subject, $request->message));
+        Mail::to(config('fcms.contact'))->send(new Contact($request->subject, $request->message));
 
         return redirect()->route('contact');
     }

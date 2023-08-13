@@ -20,8 +20,8 @@ class Calendar
      */
     public function __construct()
     {
-        $this->startOfWeek = env('FCMS_WEEK_START');
-        $this->endOfWeek   = env('FCMS_WEEK_END');
+        $this->startOfWeek = config('fcms.week.start');
+        $this->endOfWeek   = config('fcms.week.end');
 
         $this->daysOfWeekLkup = [
             0 => _gettext('Sunday'),
