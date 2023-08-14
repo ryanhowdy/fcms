@@ -6,7 +6,9 @@
     <div class="d-flex justify-content-between pb-5 border-bottom">
         <div>
             <h2>{{ $discussion->title }}</h2>
-            <span>0 replies</span>
+            <span>
+                {{ sprintf(_ngettext('%s reply', '%s replies', $comments->total()-1), $comments->total()-1) }}
+            </span>
         </div>
         <div class="d-flex justify-content-end align-items-start">
             <a href="#reply-comment" class="btn me-3 btn-success pe-5 align-start text-white">
@@ -35,8 +37,8 @@
                     <p>
                         <b class="me-3">{{ getUserDisplayName($c->toArray()) }}</b><span class="text-indigo">{{ $c->updated_at->diffForHumans() }}</span>
                     </p>
-                    <div>
-                        {{ $c->comments }}
+                    <div class="bg-light rounded-3 p-3">
+                        {!! displayUserComments($c->comments) !!}
                     </div>
                 </div>
             </div>
@@ -60,6 +62,11 @@
             </div>
         </div><!-- /.comment -->
     @endforeach
+
+    <div class="d-flex justify-content-center pt-3">
+    {{ $comments->links() }}
+    </div>
+
     </div><!-- /.comments -->
 
     <form id="reply-comment" class="text-editor mt-5 mx-5" action="{{ route('discussions.comments.store', $discussion->id) }}" method="post">

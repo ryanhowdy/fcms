@@ -20978,6 +20978,14 @@ body#calendar form input#end {
   width: 125px;
 }
 
+body#discussions .discussion a.title:hover {
+  color: var(--bs-primary) !important;
+  text-decoration: underline !important;
+}
+body#discussions .comments > .comment img.smiley {
+  vertical-align: baseline;
+  padding: 0 1px;
+}
 body#discussions .comments > .comment .mini-toolbar {
   display: none;
 }

@@ -4,8 +4,57 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "caffad7fa2d3c0fb07294965dfb90ee7",
+    "content-hash": "90613981c703a7d764bbf1b19e7111ca",
     "packages": [
+        {
+            "name": "ammarkannas/laravel-bbcode-parser",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ammarkannas/laravel-bbcode-parser.git",
+                "reference": "521c2802d45676b731baa881f0adf71fb87c3b8f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ammarkannas/laravel-bbcode-parser/zipball/521c2802d45676b731baa881f0adf71fb87c3b8f",
+                "reference": "521c2802d45676b731baa881f0adf71fb87c3b8f",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "*"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Ammar\\BBCode\\BBCodeServiceProvider"
+                    ],
+                    "aliases": {
+                        "BBCode": "Ammar\\BBCode\\Facades\\BBCode"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Ammar\\BBCode\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Parse your bbcode easy with this library.",
+            "keywords": [
+                "bbcode",
+                "laravel",
+                "parser"
+            ],
+            "support": {
+                "issues": "https://github.com/ammarkannas/laravel-bbcode-parser/issues",
+                "source": "https://github.com/ammarkannas/laravel-bbcode-parser/tree/v1.0.1"
+            },
+            "time": "2023-01-04T09:34:34+00:00"
+        },
         {
             "name": "asm89/stack-cors",
             "version": "v2.1.1",
