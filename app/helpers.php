@@ -203,10 +203,10 @@ if (!function_exists('getLanguageName'))
     }
 }
 
-if (!function_exists('displayUserComments'))
+if (!function_exists('cleanUserComments'))
 {
     /**
-     * displayUserComments
+     * cleanUserComments
      * 
      * Will run all user comments through htmlspecialchars to prevent xss attacks.
      *
@@ -215,114 +215,110 @@ if (!function_exists('displayUserComments'))
      * @param string $locale 
      * @return string
      */
-    function displayUserComments(string $dirty)
+    function cleanUserComments(string $dirty, $remove = false)
     {
         $clean = htmlspecialchars($dirty, ENT_QUOTES, 'UTF-8');
 
-        // legacy code used bbcode, emojis, etc, lets convert that to html 
+        // handle legacy data
         if (config('fcms.legacy'))
         {
-            // Convert smileys
-            $clean = parseLegacySmilies($clean);
+            // Are we parsing bbcode/smileys or removing them
+            if ($remove)
+            {
+                // Remove bbcode
+                $clean = stripBBCode($clean);
+            }
+            else
+            {
+                // Convert smileys
+                $clean = parseLegacySmilies($clean);
 
-            // Ammar BBcode size is different than what fcms 3.8.0 used
-            // so convert it to the correct style
-            $clean = str_replace('[size=small]', '[size=80]', $clean);
+                // Ammar BBcode size is different than what fcms 3.8.0 used
+                // so convert it to the correct style
+                $clean = str_replace('[size=small]', '[size=80]', $clean);
 
-            // Convert bbcode
-            $clean = \Ammar\BBCode\Facades\BBCode::parseCaseInsensitive($clean);
+                // Convert bbcode
+                $clean = parseBBCode($clean);
+            }
         }
+
+        $clean = \Illuminate\Mail\Markdown::parse($clean);
 
         return $clean;
     }
 }
 
-if (!function_exists('parseLegacySmilies'))
+if (!function_exists('parseBBCode'))
 {
-    function parseLegacySmilies(string $string)
+    /**
+     * parseBBCode 
+     * 
+     * Converts bbcode to html in a given string.
+     *
+     * @param string $source 
+     * @return string
+     */
+    function parseBBCode(string $source)
     {
-        $smileys = [
-            ':smile:', ':none:', ':)', '=)', 
-            ':wink:', ';)', 
-            ':tongue:', 
-            ':biggrin:', 
-            ':sad:', ':(', 
-            ':sick:', 
-            ':cry:', 
-            ':shocked:', 
-            ':cool:', 
-            ':sleep:', 'zzz', 
-            ':angry:', ':mad:', 
-            ':embarrassed:', ':shy:', 
-            ':rolleyes:', 
-            ':nervous:', 
-            ':doh:', 
-            ':love:', 
-            ':please:', ':1please:', 
-            ':hrmm:', 
-            ':quiet:', 
-            ':clap:', 
-            ':twitch:', 
-            ':blah:', 
-            ':bored:', 
-            ':crazy:', 
-            ':excited:', 
-            ':noidea:', 
-            ':disappointed:', 
-            ':banghead:', 
-            ':dance:', 
-            ':laughat:', 
-            ':ninja:', 
-            ':pirate:', 
-            ':thumbup:', 
-            ':thumbdown:', 
-            ':twocents:',
-        ];
-        $images = [
-            'smile.gif', 'smile.gif', 'smile.gif', 'smile.gif', 
-            'wink.gif', 'wink.gif', 
-            'tongue.gif', 
-            'biggrin.gif', 
-            'sad.gif', 'sad.gif', 
-            'sick.gif', 
-            'cry.gif', 
-            'shocked.gif', 
-            'cool.gif', 
-            'sleep.gif', 'sleep.gif', 
-            'angry.gif', 'angry.gif', 
-            'embarrassed.gif', 'embarrassed.gif', 
-            'rolleyes.gif', 
-            'nervous.gif', 
-            'doh.gif', 
-            'love.gif', 
-            'please.gif', 'please.gif', 
-            'hrmm.gif', 
-            'quiet.gif', 
-            'clap.gif', 
-            'twitch.gif', 
-            'blah.gif', 
-            'bored.gif', 
-            'crazy.gif', 
-            'excited.gif', 
-            'noidea.gif', 
-            'disappointed.gif', 
-            'banghead.gif', 
-            'dance.gif', 
-            'laughat.gif', 
-            'ninja.gif', 
-            'pirate.gif', 
-            'thumbup.gif', 
-            'thumbdown.gif', 
-            'twocents.gif'
-        ];
+        $bbcodes = config('bbcodes');
 
-        foreach ($smileys as $i => $smiley)
+        foreach ($bbcodes as $name => $config)
         {
-            $img = '<img src="' . asset('img/smileys/' . $images[$i]) . '" alt="' . $smiley . '" class="smiley">';
-
-            $string = str_replace($smiley, $img, $string);
+            $source = preg_replace($config['pattern'], $config['replace'], $source);
         }
 
-        return $string;
+        return $source;
+    }
+}
+
+if (!function_exists('stripBBCode'))
+{
+    /**
+     * parseBBCode 
+     * 
+     * Removes bbcode from a given string.
+     *
+     * @param string $source 
+     * @return string
+     */
+    function stripBBCode(string $source)
+    {
+        $bbcodes = config('bbcodes');
+
+        foreach ($bbcodes as $name => $config)
+        {
+            $source = preg_replace($config['pattern'], $config['content'], $source);
+        }
+
+        return $source;
+    }
+}
+
+if (!function_exists('parseLegacySmilies'))
+{
+    /**
+     * parseLegacySmilies 
+     * 
+     * @param string $source 
+     * @return string
+     */
+    function parseLegacySmilies(string $source)
+    {
+        $smileys = config('smileys');
+
+        foreach ($smileys as $name => $config)
+        {
+            $search  = [ $config['search'] ];
+            $replace = [ $config['replace'] ];
+
+            foreach ($search as $i => $s)
+            {
+                $img = '<img src="' . asset('img/smileys/' . $replace[$i]) . '" alt="' . $search[$i] . '" class="smiley">';
+
+                $source = str_replace($search[$i], $img, $source);
+            }
+        }
+
+        return $source;
     }
 }

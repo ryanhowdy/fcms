@@ -21196,3 +21196,29 @@ body#familytree .tree ul:not(.dropdown-menu) ul:not(.dropdown-menu)::before {
   width: 0;
   height: 20px;
 }
+
+body#news .recent-news > div {
+  height: 200px;
+}
+body#news .recent-news .summary {
+  display: block;
+  height: 100px;
+  overflow: hidden;
+  width: 300px;
+}
+body#news .recent-news .title {
+  height: 24px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 300px;
+}
+body#news .news .date,
+body#news .recent-news .date {
+  font-size: 0.8rem;
+}
+body#news .news .user .avatar,
+body#news .recent-news .user .avatar {
+  width: 25px;
+  height: 25px;
+}

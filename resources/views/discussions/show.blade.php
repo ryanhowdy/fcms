@@ -38,7 +38,7 @@
                         <b class="me-3">{{ getUserDisplayName($c->toArray()) }}</b><span class="text-indigo">{{ $c->updated_at->diffForHumans() }}</span>
                     </p>
                     <div class="bg-light rounded-3 p-3">
-                        {!! displayUserComments($c->comments) !!}
+                        {!! cleanUserComments($c->comments) !!}
                     </div>
                 </div>
             </div>

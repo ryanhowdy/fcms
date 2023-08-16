@@ -124,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/familynews/add',               [ NewsController::class, 'store' ]);
     Route::get( '/familynews/{id}',              [ NewsController::class, 'show' ])->name('familynews.show');
     Route::post('/familynews/{id}/comments/new', [ NewsController::class, 'commentsStore' ])->name('familynews.comments.store');
+    Route::get( '/familynews/users/{id}',        [ NewsController::class, 'usersIndex' ])->name('familynews.users.index');
 
     Route::get( '/prayers', [ HomeController::class, 'home' ])->name('prayers');
 

@@ -18,7 +18,7 @@
     </div>
 
     <div class="pt-5 w-75 lh-lg">
-        {!! $news->news !!}
+        {!! cleanUserComments($news->news) !!}
     </div>
 
     <div class="comments mx-5">
@@ -26,14 +26,14 @@
         <div class="comment d-flex justify-content-between align-items-start py-5 border-bottom">
             <div class="d-flex flex-row">
                 <div>
-                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ _gettext('avatar') }}">
+                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar($c->toArray()) }}" title="{{ _gettext('avatar') }}">
                 </div>
                 <div>
                     <p>
                         <b class="me-3">{{ getUserDisplayName($c->toArray()) }}</b><span class="text-indigo">{{ $c->updated_at->diffForHumans() }}</span>
                     </p>
                     <div>
-                        {{ $c->comments }}
+                        {!! cleanUserComments($c->comments) !!}
                     </div>
                 </div>
             </div>
