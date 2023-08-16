@@ -31,7 +31,7 @@ class NewsController extends Controller
 
         $users = News::select('cu.id', 'cu.name', 'cu.displayname', 'cu.avatar', 'cu.email')
             ->join('users as cu', 'news.created_user_id', '=', 'cu.id')
-            ->orderBy('news.updated_at')
+            ->orderBy('news.created_at', 'desc')
             ->get()
             ->unique('id');
 
@@ -174,7 +174,7 @@ class NewsController extends Controller
 
         $users = News::select('cu.id', 'cu.name', 'cu.displayname', 'cu.avatar', 'cu.email')
             ->join('users as cu', 'news.created_user_id', '=', 'cu.id')
-            ->orderBy('news.updated_at')
+            ->orderBy('news.created_at', 'desc')
             ->get()
             ->unique('id');
 
