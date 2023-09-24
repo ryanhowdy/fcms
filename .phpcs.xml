@@ -1,0 +1,25 @@
+<ruleset name="coding-style">
+    <!-- Use colors in output -->
+    <arg name="colors"/>
+    <!-- Show progress of the run -->
+    <arg value="p"/>
+    <!-- Show sniff codes in all reports -->
+    <arg value="s"/>
+  
+    <!-- Exlude Legacy Code -->
+    <exclude-pattern>/app/Legacy/*</exclude-pattern>
+    <!-- Exlude node modules -->
+    <exclude-pattern>/node_modules/*</exclude-pattern>
+    <!-- Exlude laravel storage -->
+    <exclude-pattern>/storage/*</exclude-pattern>
+    <!-- Exlude composer packages -->
+    <exclude-pattern>/vendor/*</exclude-pattern>
+    <!-- Exlude blade templates -->
+    <exclude-pattern>*.blade.php</exclude-pattern>
+
+    <!-- Follow PSR12 rules -->
+    <rule ref="PSR12">
+        <!-- ignore line length warnings -->
+        <exclude name="Generic.Files.LineLength"/>
+    </rule>
+</ruleset>
