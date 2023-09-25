@@ -37,25 +37,25 @@
         </div>
     </div>
 
-@if ($album->isEmpty())
+@if (empty($album))
     <x-empty-state/>
 @else
     <div class="album">
-        <h3 class="text-primary pt-5">{{ $album[0]->name }}</h3>
+        <h3 class="text-primary pt-5">{{ $album->album_name }}</h3>
         <p class="text-muted mb-1">
-            {{ sprintf(_gettext('Created %s'), $album[0]->created_at->format('M j, Y')]) }} - 
-            {{ sprintf(_ngettext('%d photo', '%d photos', 10), 10) }}
+            {{ sprintf(_gettext('Created %s'), $album->created_at->format('M j, Y')) }} - 
+            {{ sprintf(_ngettext('%d photo', '%d photos', count($album->photos)), count($album->photos)) }}
         </p>
-        <p>{{ getUserDisplayName($album[0]->toArray()) }}</p>
+        <p>{{ getUserDisplayName($album->toArray()) }}</p>
         <div class="photos d-flex">
-            <a href="{{ route('photos.show', ['aid' => $album[0]->id, 'pid' => $album[0]->photos[0]->id]) }}" class="large">
-                <img class="ps-0 p-2" src="{{ route('photo.thumbnail', ['id' => $album[0]->created_user_id, 'file' => $album[0]->photos[0]->filename]) }}">
+            <a href="{{ route('photos.show', ['aid' => $album->id, 'pid' => $album->photos[0]->id]) }}" class="large">
+                <img class="ps-0 p-2" src="{{ route('photo.thumbnail', ['id' => $album->photos[0]->created_user_id, 'file' => $album->photos[0]->filename]) }}">
             </a>
             <div class="small">
-        @foreach ($album[0]->photos as $k => $photo)
+        @foreach ($album->photos as $k => $photo)
             @if ($k == 0) @continue @endif
-                <a href="{{ route('photos.show', ['aid' => $album[0]->id, 'pid' => $photo->id]) }}">
-                    <img class="p-2" src="{{ route('photo.thumbnail', ['id' => $album[0]->created_user_id, 'file' => $photo->filename]) }}">
+                <a href="{{ route('photos.show', ['aid' => $album->id, 'pid' => $photo->id]) }}">
+                    <img class="p-2" src="{{ route('photo.thumbnail', ['id' => $photo->created_user_id, 'file' => $photo->filename]) }}">
                 </a>
         @endforeach
             </div>
@@ -65,7 +65,7 @@
         <div class="row details">
             <div class="col-6">
                 <p class="text-muted">{{ _gettext('Description') }}:</p>
-                <p>{{ $album[0]->description }}</p>
+                <p>{{ $album->description }}</p>
             </div>
             <div class="col-3">
                 <p class="text-muted">{{ _gettext('People') }}:</p>

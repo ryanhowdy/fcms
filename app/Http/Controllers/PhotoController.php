@@ -18,9 +18,8 @@ class PhotoController extends Controller
     public function index()
     {
         $albums = PhotoAlbum::latest()
-            ->join('users as cu', 'photo_albums.created_user_id', '=', 'cu.id')
-            ->select('photo_albums.*', 'cu.name', 'cu.displayname')
             ->with('photos')
+            ->limit(16)
             ->get();
 
         return view('photos.index', ['albums' => $albums]);
@@ -127,6 +126,23 @@ class PhotoController extends Controller
     }
 
     /**
+     * albumsIndex
+     *
+     * Show the listing of albums
+     *
+     * @return Illuminate\View\View
+     */
+    public function albumsIndex()
+    {
+        $albums = PhotoAlbum::latest()
+            ->with('photos')
+            ->paginate(20);
+
+        return view('photos.albums', ['albums' => $albums]);
+    }
+
+
+    /**
      * Show an album
      *
      * @param  int
@@ -134,11 +150,11 @@ class PhotoController extends Controller
      */
     public function albumsShow(int $id)
     {
-        $album = PhotoAlbum::where('photo_albums.id',$id)
+        $album = PhotoAlbum::where('photo_albums.id', $id)
             ->join('users as cu', 'photo_albums.created_user_id', '=', 'cu.id')
-            ->select('photo_albums.*', 'cu.name', 'cu.displayname')
+            ->select('photo_albums.*', 'photo_albums.name as album_name', 'cu.name', 'cu.displayname')
             ->with('photos')
-            ->get();
+            ->first();
 
         return view('photos.album', ['album' => $album]);
     }
@@ -152,18 +168,27 @@ class PhotoController extends Controller
      */
     public function photosShow(int $albumId, int $photoId)
     {
-        $album = PhotoAlbum::where('photo_albums.id',$albumId)
+        $album = PhotoAlbum::where('photo_albums.id', $albumId)
             ->join('users as cu', 'photo_albums.created_user_id', '=', 'cu.id')
-            ->select('photo_albums.*', 'cu.name', 'cu.displayname')
+            ->select('photo_albums.*', 'photo_albums.name as album_name', 'cu.name', 'cu.displayname')
             ->with('photos')
             ->get();
 
         $exif = [];
         foreach ($album[0]->photos as $photo)
         {
-            $exif[ $photo->id ] = Image::make(storage_path('app/photos').'/'.$photo->created_user_id.'/full/'.$photo->filename)->exif();
+            $path = storage_path('app/photos') . '/' . $photo->created_user_id . '/';
+
+            if (file_exists($path . 'full/' . $photo->filename))
+            {
+                $exif[ $photo->id ] = Image::make($path . 'full/' . $photo->filename)->exif();
+            }
         }
 
-        return view('photos.photo', ['album' => $album, 'exif' => $exif]);
+        return view('photos.photo', [
+            'activePhoto' => $photoId,
+            'album'       => $album,
+            'exif'        => $exif
+        ]);
     }
 }

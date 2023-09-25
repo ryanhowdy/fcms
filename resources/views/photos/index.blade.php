@@ -48,14 +48,14 @@
             <a href="{{ route('photos.albums.show', $album->id) }}" class="d-flex">
             @isset($album->photos[0])
                 <div class="large">
-                    <img class="" src="{{ route('photo.thumbnail', ['id' => $album->created_user_id, 'file' => $album->photos[0]->filename]) }}">
+                    <img class="" src="{{ route('photo.thumbnail', ['id' => $album->photos[0]->created_user_id, 'file' => $album->photos[0]->filename]) }}">
                 </div>
                 <div class="small d-flex flex-column">
                 @isset($album->photos[1])
-                    <img class="" src="{{ route('photo.thumbnail', ['id' => $album->created_user_id, 'file' => $album->photos[1]->filename]) }}">
+                    <img class="" src="{{ route('photo.thumbnail', ['id' => $album->photos[1]->created_user_id, 'file' => $album->photos[1]->filename]) }}">
                 @endisset
                 @isset($album->photos[2])
-                    <img class="" src="{{ route('photo.thumbnail', ['id' => $album->created_user_id, 'file' => $album->photos[2]->filename]) }}">
+                    <img class="" src="{{ route('photo.thumbnail', ['id' => $album->photos[2]->created_user_id, 'file' => $album->photos[2]->filename]) }}">
                 @endisset
                 </div>
             @endisset
