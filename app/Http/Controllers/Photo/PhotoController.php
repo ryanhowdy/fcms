@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Photo;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
@@ -10,21 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class PhotoController extends Controller
 {
-    /**
-     * Show the main photos
-     *
-     * @return Illuminate\View\View
-     */
-    public function index()
-    {
-        $albums = PhotoAlbum::latest()
-            ->with('photos')
-            ->limit(16)
-            ->get();
-
-        return view('photos.index', ['albums' => $albums]);
-    }
-
     /**
      * Show the photo upload screen
      *
@@ -126,57 +112,28 @@ class PhotoController extends Controller
     }
 
     /**
-     * albumsIndex
-     *
-     * Show the listing of albums
-     *
-     * @return Illuminate\View\View
-     */
-    public function albumsIndex()
-    {
-        $albums = PhotoAlbum::latest()
-            ->with('photos')
-            ->paginate(20);
-
-        return view('photos.albums', ['albums' => $albums]);
-    }
-
-
-    /**
-     * Show an album
-     *
-     * @param  int
-     * @return Illuminate\View\View
-     */
-    public function albumsShow(int $id)
-    {
-        $album = PhotoAlbum::where('photo_albums.id', $id)
-            ->join('users as cu', 'photo_albums.created_user_id', '=', 'cu.id')
-            ->select('photo_albums.*', 'photo_albums.name as album_name', 'cu.name', 'cu.displayname')
-            ->with('photos')
-            ->first();
-
-        return view('photos.album', ['album' => $album]);
-    }
-
-    /**
      * Show a photo from an album
      *
-     * @param  int
-     * @param  int
+     * @param int $albumId 
+     * @param int $photoId 
      * @return Illuminate\View\View
      */
-    public function photosShow(int $albumId, int $photoId)
+    public function show(int $albumId, int $photoId)
     {
         $album = PhotoAlbum::where('photo_albums.id', $albumId)
             ->join('users as cu', 'photo_albums.created_user_id', '=', 'cu.id')
             ->select('photo_albums.*', 'photo_albums.name as album_name', 'cu.name', 'cu.displayname')
             ->with('photos')
-            ->get();
+            ->with('photos.comments')
+            ->first();
 
-        $exif = [];
-        foreach ($album[0]->photos as $photo)
+        $photoIds = [];
+        $exif     = [];
+
+        foreach ($album->photos as $photo)
         {
+            $photoIds[] = $photo->id;
+
             $path = storage_path('app/photos') . '/' . $photo->created_user_id . '/';
 
             if (file_exists($path . 'full/' . $photo->filename))

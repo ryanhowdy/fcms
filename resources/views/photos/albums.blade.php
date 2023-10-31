@@ -10,7 +10,7 @@
         </div>
     </div>
 
-    @include('photos.navigation', ['active' => 'dashboard'])
+    @include('photos.navigation', ['active' => 'albums'])
 
     <h6 class="pt-5">{{ _gettext('Latest') }}</h6>
 
@@ -42,28 +42,10 @@
         </div><!-- /.album -->
     @endforeach
     </div><!-- /.albums -->
+
+    {{ $albums->links() }}
 @endif
 
-<!--
-    <div class="albums d-flex flex-wrap">
-        <div class="album me-3 mb-3">
-            <div class="d-flex">
-                <div class="large">
-                    <img src="https://picsum.photos/200?random1"/>
-                </div>
-                <div class="small d-flex flex-column">
-                    <img src="https://picsum.photos/100?random2"/>
-                    <img src="https://picsum.photos/100?random3"/>
-                </div>
-            </div>
-            <div class="description p-1">
-                <b>Landscapes</b>
-                <p>A short description about landscapes</p>
-            </div>
-        </div>
-    </div>
--->
-
-    <h6 class="pt-5">{{ _gettext('On This Day') }}</h6>
 </div>
 @endsection
+

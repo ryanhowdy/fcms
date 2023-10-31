@@ -10,7 +10,10 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\ImageController;
-use App\Http\Controllers\PhotoController;
+use App\Http\Controllers\Photo\DashboardController as PhotoDashboardController;
+use App\Http\Controllers\Photo\AlbumController as PhotoAlbumController;
+use App\Http\Controllers\Photo\PhotoController as PhotoController;
+use App\Http\Controllers\Photo\UserController as PhotoUserController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\AddressBookController;
 use App\Http\Controllers\MeController;
@@ -100,14 +103,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/discussions/{id}/delete',       [ DiscussionController::class, 'destroy' ]);
     Route::post('/discussions/{id}/comments/new', [ DiscussionController::class, 'commentsStore' ])->name('discussions.comments.store');
 
-    Route::get( '/photos',              [ PhotoController::class, 'index' ])->name('photos');
-    Route::get( '/photos/albums',       [ PhotoController::class, 'albumsIndex' ])->name('photos.albums');
-    Route::get( '/photos/people',       [ PhotoController::class, 'usersIndex' ])->name('photos.users');
-    Route::get( '/photos/places',       [ PhotoController::class, 'placesIndex' ])->name('photos.places');
-    Route::get( '/photos/upload',       [ PhotoController::class, 'create' ])->name('photos.create');
-    Route::post('/photos/upload',       [ PhotoController::class, 'store' ]);
-    Route::get( '/photos/albums/{id}',  [ PhotoController::class, 'albumsShow' ])->name('photos.albums.show');
-    Route::get( '/photos/albums/{aid}/photos/{pid}', [ PhotoController::class, 'photosShow' ])->name('photos.show');
+    Route::get( '/photos',                           [ PhotoDashboardController::class, 'index' ])->name('photos');
+    Route::get( '/photos/albums',                    [ PhotoAlbumController::class, 'index' ])->name('photos.albums');
+    Route::get( '/photos/people',                    [ PhotoUserController::class, 'index' ])->name('photos.users');
+    Route::get( '/photos/people/{id}',               [ PhotoUserController::class, 'show' ])->name('photos.users.show');
+    Route::get( '/photos/people/{uid}/photos/{pid}', [ PhotoUserController::class, 'showPhoto' ])->name('photos.users.photo.show');
+    Route::get( '/photos/places',                    [ PhotoPlaceController::class, 'index' ])->name('photos.places');
+    Route::get( '/photos/upload',                    [ PhotoController::class, 'create' ])->name('photos.create');
+    Route::post('/photos/upload',                    [ PhotoController::class, 'store' ]);
+    Route::get( '/photos/albums/{id}',               [ PhotoAlbumController::class, 'show' ])->name('photos.albums.show');
+    Route::get( '/photos/albums/{aid}/photos/{pid}', [ PhotoController::class, 'show' ])->name('photos.show');
 
     Route::get( '/videos',        [ VideoController::class, 'index' ])->name('videos');
     Route::get( '/videos/upload', [ VideoController::class, 'create' ])->name('videos.create');

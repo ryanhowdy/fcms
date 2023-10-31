@@ -273,10 +273,10 @@ class Install400 extends Migration
             $table->timestamps();
         });
 
-        Schema::create('photo_tags', function (Blueprint $table) {
+        Schema::create('photo_users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
             $table->foreignId('photo_id');
+            $table->foreignId('user_id');
             $table->foreignId('created_user_id');
             $table->foreignId('updated_user_id');
             $table->timestamps();
@@ -641,7 +641,7 @@ class Install400 extends Migration
         Schema::dropIfExists('external_photos');
         Schema::dropIfExists('photo_comments');
         Schema::dropIfExists('photos');
-        Schema::dropIfExists('photo_tags');
+        Schema::dropIfExists('photo_users');
         Schema::dropIfExists('invitations');
         Schema::dropIfExists('navigation_links');
         Schema::dropIfExists('news_comments');
