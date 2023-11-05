@@ -202,3 +202,123 @@ if (!function_exists('getLanguageName'))
         }
     }
 }
+
+if (!function_exists('cleanUserComments'))
+{
+    /**
+     * cleanUserComments
+     * 
+     * Will run all user comments through htmlspecialchars to prevent xss attacks.
+     *
+     * Also handles legacy data if needed.
+     * 
+     * @param string $locale 
+     * @return string
+     */
+    function cleanUserComments(string $dirty, $remove = false)
+    {
+        $clean = htmlspecialchars($dirty, ENT_QUOTES, 'UTF-8');
+
+        // handle legacy data
+        if (config('fcms.legacy'))
+        {
+            // Are we parsing bbcode/smileys or removing them
+            if ($remove)
+            {
+                // Remove bbcode
+                $clean = stripBBCode($clean);
+            }
+            else
+            {
+                // Convert smileys
+                $clean = parseLegacySmilies($clean);
+
+                // Ammar BBcode size is different than what fcms 3.8.0 used
+                // so convert it to the correct style
+                $clean = str_replace('[size=small]', '[size=80]', $clean);
+
+                // Convert bbcode
+                $clean = parseBBCode($clean);
+            }
+        }
+
+        $clean = \Illuminate\Mail\Markdown::parse($clean);
+
+        return $clean;
+    }
+}
+
+if (!function_exists('parseBBCode'))
+{
+    /**
+     * parseBBCode 
+     * 
+     * Converts bbcode to html in a given string.
+     *
+     * @param string $source 
+     * @return string
+     */
+    function parseBBCode(string $source)
+    {
+        $bbcodes = config('bbcodes');
+
+        foreach ($bbcodes as $name => $config)
+        {
+            $source = preg_replace($config['pattern'], $config['replace'], $source);
+        }
+
+        return $source;
+    }
+}
+
+if (!function_exists('stripBBCode'))
+{
+    /**
+     * parseBBCode 
+     * 
+     * Removes bbcode from a given string.
+     *
+     * @param string $source 
+     * @return string
+     */
+    function stripBBCode(string $source)
+    {
+        $bbcodes = config('bbcodes');
+
+        foreach ($bbcodes as $name => $config)
+        {
+            $source = preg_replace($config['pattern'], $config['content'], $source);
+        }
+
+        return $source;
+    }
+}
+
+if (!function_exists('parseLegacySmilies'))
+{
+    /**
+     * parseLegacySmilies 
+     * 
+     * @param string $source 
+     * @return string
+     */
+    function parseLegacySmilies(string $source)
+    {
+        $smileys = config('smileys');
+
+        foreach ($smileys as $name => $config)
+        {
+            $search  = [ $config['search'] ];
+            $replace = [ $config['replace'] ];
+
+            foreach ($search as $i => $s)
+            {
+                $img = '<img src="' . asset('img/smileys/' . $replace[$i]) . '" alt="' . $search[$i] . '" class="smiley">';
+
+                $source = str_replace($search[$i], $img, $source);
+            }
+        }
+
+        return $source;
+    }
+}

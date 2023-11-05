@@ -1,0 +1,69 @@
+body#photo-carousel
+{
+    overflow: hidden;
+
+    .carousel
+    {
+        height: 100vh;
+        font-size: 0.85rem;
+
+        .carousel-item
+        {
+            .img-col
+            {
+                img 
+                {
+                    height: 100%;
+                    width: 100%;
+                    object-fit: contain;
+                    object-position: center;
+                    margin: auto;
+                }
+            }
+            .details-col
+            {
+                .user-info
+                {
+                    margin: 0 -0.75rem;
+                    border-color: var(--bs-gray-700) !important;
+                }
+                .photo-nav
+                {
+                    margin: 0 -0.75rem;
+                    padding: 0 1rem;
+                    border-color: var(--bs-gray-700)!important;
+
+                    li a.nav-link
+                    {
+                        color: var(--bs-gray-300);
+                        border-color: var(--bs-dark);
+
+                        &:hover
+                        {
+                            color: var(--bs-primary);
+                        }
+                        &.active
+                        {
+                            color: white;
+                            border-bottom: 2px solid var(--bs-primary);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    .carousel-control-next
+    {
+        right: 16.66666667%;
+    }
+
+    .carousel-inner,
+    .carousel-item,
+    .row,
+    .img-col,
+    .details-col
+    {
+        height: 100%;
+    }
+}
+

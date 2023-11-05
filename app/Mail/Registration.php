@@ -27,8 +27,8 @@ class Registration extends Mailable
     public function envelope()
     {
         return new Envelope(
-            from: new Address(env('MAIL_FROM_ADDRESS')),
-            subject: sprintf(gettext('%s Membership'), env('APP_NAME')),
+            from: new Address(config('mail.from.address')),
+            subject: sprintf(_gettext('%s Membership'), config('app.name')),
         );
     }
 

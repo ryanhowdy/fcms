@@ -41,9 +41,9 @@
             <button class="w-100 btn btn-lg btn-primary" type="submit">{{ _gettext('Sign In') }}</button>
         </form>
         <p class="mt-3">
-            <a href="{{ route('auth.password.request') }}">{{ _gettext('Forgot Password') }}</a>
+            <a href="{{ route('password.request') }}">{{ _gettext('Forgot Password') }}</a>
             @if (env('FCMS_ALLOW_REGISTRATION'))
-            | <a href="{{ route('auth.register') }}">{{ _gettext('Register') }}</a>
+            | <a href="{{ route('register') }}">{{ _gettext('Register') }}</a>
             @endif
         </p>
     </main>

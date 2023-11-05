@@ -82,7 +82,7 @@ class CreatePotFile extends Command
                 '-j',
                 '--copyright-holder=Haudenschilt LLC',
                 '--package-name=Family Connections',
-                '--package-version='.env('FCMS_VERSION'),
+                '--package-version='.config('fcms.version'),
                 '-o',
                 './lang/messages.pot'
             ]);

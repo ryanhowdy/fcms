@@ -45,6 +45,7 @@ body#photos
             {
                 max-height: 200px;
                 max-width: 200px;
+                height: 200px;
             }
             .small > img
             {
@@ -70,6 +71,7 @@ body#photos
             {
                 max-height: 200px;
                 max-width: 200px;
+                height: 200px;
             }
             .small
             {
@@ -84,30 +86,4 @@ body#photos
         }
     }
 
-    // Photo
-    #photo-controls .details-col
-    {
-        .photo-nav
-        {
-            margin: 0 -0.75rem;
-            padding: 0 1rem;
-            border-color: var(--bs-gray-700)!important;
-
-            li a.nav-link
-            {
-                color: var(--bs-gray-300);
-                border-color: var(--bs-dark);
-
-                &:hover
-                {
-                    color: var(--bs-primary);
-                }
-                &.active
-                {
-                    color: white;
-                    border-bottom: 2px solid var(--bs-primary);
-                }
-            }
-        }
-    }
 }

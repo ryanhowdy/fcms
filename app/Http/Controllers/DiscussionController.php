@@ -18,9 +18,10 @@ class DiscussionController extends Controller
     public function index()
     {
         $discussions = Discussion::latest()
+            ->select('discussions.*', 'cu.name', 'cu.displayname', 'cu.avatar', 'cu.email')
             ->join('users as cu', 'discussions.created_user_id', '=', 'cu.id')
-            ->select('discussions.*', 'cu.name', 'cu.displayname')
-            ->simplePaginate(25);
+            ->withCount('comments')
+            ->paginate(25);
 
         return view('discussions.index', ['discussions' => $discussions]);
     }
@@ -83,8 +84,8 @@ class DiscussionController extends Controller
 
         $comments = DiscussionComment::where('discussion_id', $id)
             ->join('users as cu', 'discussion_comments.created_user_id', '=', 'cu.id')
-            ->select('discussion_comments.*', 'cu.name', 'cu.displayname')
-            ->simplePaginate(25);
+            ->select('discussion_comments.*', 'cu.name', 'cu.displayname', 'cu.avatar', 'cu.email')
+            ->paginate(25);
 
         return view('discussions.show', [
             'discussion' => $discussion,

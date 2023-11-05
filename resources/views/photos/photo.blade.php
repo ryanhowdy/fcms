@@ -1,17 +1,35 @@
 @extends('layouts.photo')
-@section('body-id', 'photos')
+@section('body-id', 'photo-carousel')
 
 @section('photo')
 <div id="photo-controls" class="carousel slide bg-black text-white" data-bs-ride="carousel" data-bs-pause="hover">
+
     <div class="carousel-inner">
-    @foreach ($album[0]->photos as $k => $photo)
-        <div class="carousel-item @if ($k == 0) active @endif">
+
+    @foreach ($album->photos as $k => $photo)
+
+        <div class="carousel-item @if ($activePhoto == $photo->id) active @endif" data-id="{{ $photo->id }}">
             <div class="row">
+
+                {{-- Photo --}}
                 <div class="col-10 img-col">
-                    <img class="d-block h-100" src="{{ route('photo', ['id' => $album[0]->created_user_id, 'file' => $photo->filename]) }}">
+                    <img class="d-block h-100" src="{{ route('photo', ['id' => $album->created_user_id, 'file' => $photo->filename]) }}">
                 </div>
+
+                {{-- Sidebar --}}
                 <div class="col-2 details-col bg-dark pt-5">
-                    <a href="{{ route('photos.albums.show', $album[0]->id) }}" class="btn-close bg-white position-absolute top-0 end-0 me-3 mt-3" aria-label="{{ _gettext('Close') }}"></a>
+                    <a href="{{ route('photos.albums.show', $album->id) }}" class="btn-close bg-white position-absolute top-0 end-0 me-3 mt-3" aria-label="{{ _gettext('Close') }}"></a>
+                    <div class="d-flex flex-row user-info border-bottom pb-3 mb-3">
+                        <div>
+                            <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar($album->toArray()) }}" title="{{ _gettext('avatar') }}">
+                        </div>
+                        <div>
+                            <p class="mb-1">{{ getUserDisplayName($album->toArray()) }}</p>
+                            <span class="text-muted">{{ $photo->updated_at->diffForHumans() }}</span>
+                        </div>
+                    </div>
+                    <p class="fs-6">{{ $photo->caption }}</p>
+                    <p class="text-muted">{{ sprintf(_gettext('Photo %d of %d'), $k+1, count($album->photos)) }}</p>
                     <div class="photo-nav border-bottom">
                         <ul class="nav" role="tablist">
                             <li class="nav-item" role="presentation">
@@ -22,12 +40,34 @@
                             </li>
                         </ul>
                     </div>
+
+                    {{-- Comments/Photo Exif Details--}}
                     <div class="tab-content">
                         <div class="tab-pane show active" id="comments-pane-{{ $photo->id }}" role="tabpanel" tabindex="0">
 
+                            <div class="comments">
+                            @foreach($photo->comments as $c)
+                                <div class="comment py-4">
+                                    <div class="d-flex flex-row">
+                                        <div>
+                                            <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar($c->toArray()) }}" title="{{ _gettext('avatar') }}">
+                                        </div>
+                                        <div>
+                                            <div class="mb-2">
+                                                <b class="me-3">{{ getUserDisplayName($c->toArray()) }}</b><span class="text-primary">{{ $c->updated_at->diffForHumans() }}</span>
+                                            </div>
+                                            <div class="">
+                                                {!! cleanUserComments($c->comments) !!}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div><!-- /.comment -->
+                            @endforeach
+                            </div>
                         </div><!-- /#comments-pane -->
+
                         <div class="tab-pane py-3" id="details-pane-{{ $photo->id }}" role="tabpanel" tabindex="0">
-                            <p>{{ $photo->caption }}</p>
+                        @isset($exif[ $photo->id ])
                             <div class="d-flex align-items-center mb-3">
                                 <i class="bi-calendar-date fs-3 me-3"></i>
                                 <div class="">
@@ -41,6 +81,7 @@
                                     {{ $exif[ $photo->id ]['Make'] }} {{ $exif[ $photo->id ]['Model'] }}
                                 </div>
                             </div>
+                        @endisset
                             <div class="d-flex align-items-center mb-3">
                                 <i class="bi-eye fs-3 me-3"></i>
                                 <div class="">{{ $photo->views }}</div>
@@ -54,11 +95,14 @@
                             </div>
                         </div><!-- /#details-pane -->
                     </div>
-                </div>
+                </div><!-- /.details-col -->
+
             </div>
         </div>
     @endforeach
+
     </div>
+
     <button class="carousel-control-prev" type="button" data-bs-target="#photo-controls" data-bs-slide="prev">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Previous</span>
@@ -67,14 +111,13 @@
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Next</span>
     </button>
-</div>
-<style>
-body#photos { overflow: hidden; }
-.carousel { height: 100vh;}
-.carousel-inner,.carousel-item, .row, .img-col, .details-col { height: 100%;}
-.carousel-item img { height: 100%; object-fit: cover; object-position: center; margin: auto;}
-.carousel-control-next { right: 16.66666667%; }
 
-.carousel { font-size: 0.85rem; }
-</style>
+</div>
+<script>
+$('#photo-controls').on('slide.bs.carousel', function(e) {
+    let photoId = $('.carousel-item').eq(e.to).data('id');
+
+    window.history.replaceState(null, '', '/photos/albums/{{ $album->id }}/photos/' + photoId);
+});
+</script>
 @endsection 

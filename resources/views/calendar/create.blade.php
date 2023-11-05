@@ -21,15 +21,21 @@
         <div class="mb-3 required">
             <label for="date" class="form-label">{{ _gettext('Date') }}</label>
             <div class="d-flex">
-                <div class="row">
-                    <div class="col-6">
-                        <input type="date" class="form-control" id="date" name="date" value="{{ old('date') }}">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <input type="date" class="form-control" id="date" name="date" value="{{ old('date', (isset($date) ? $date : '')) }}">
                     </div>
-                    <div class="col-3">
+                    <div class="col-auto">
                         <input type="time" class="form-control" id="start" name="start" value="{{ old('start') }}">
                     </div>
-                    <div class="col-3">
+                    <div class="col-auto">
                         <input type="time" class="form-control" id="end" name="end" value="{{ old('end') }}">
+                    </div>
+                    <div class="col-auto">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="all_day">
+                            <label class="form-check-label" for="all_day">{{ _gettext('All Day') }}</label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -77,6 +83,7 @@
                 {{ _gettext('Save') }}
             </button>
             <a href="#" class="btn btn-secondary">{{ _gettext('More Options') }}</a>
+            <button type="button" onclick="history.back()" class="btn btn-link">{{ _gettext('Cancel') }}</button>
         </div>
     </form>
 
@@ -86,6 +93,18 @@ $(function() {
     $('.btn-secondary').click(function(e) {
         e.preventDefault();
         $('.more').toggleClass('d-none');
+    });
+    $('#all_day').click(function(e) {
+        if ($(this).is(':checked'))
+        {
+            $('#start').prop('disabled', true);
+            $('#end').prop('disabled', true);
+        }
+        else
+        {
+            $('#start').prop('disabled', false);
+            $('#end').prop('disabled', false);
+        }
     });
 });
 </script>

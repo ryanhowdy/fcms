@@ -31,7 +31,7 @@ class Contact extends Mailable
     public function envelope()
     {
         return new Envelope(
-            from: new Address(env('MAIL_FROM_ADDRESS')),
+            from: new Address(config('mail.from.address')),
             subject: $this->subjectFromUser,
         );
     }

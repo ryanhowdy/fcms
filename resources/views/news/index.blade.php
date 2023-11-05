@@ -1,5 +1,5 @@
 @extends('layouts.main')
-@section('body-id', 'home')
+@section('body-id', 'news')
 
 @section('content')
 <div class="d-flex flex-nowrap">
@@ -9,22 +9,27 @@
             <a href="{{ route('familynews.create') }}" class="btn btn-success text-white">{{ _gettext('Add News') }}</a>
         </div>
 
-@if ($news->isEmpty())
-    <p>&nbsp;</p>
-    <x-empty-state/>
-@else
+    @if ($news->isEmpty())
+        <p>&nbsp;</p>
+        <x-empty-state/>
+    @else
         <h3>{{ _gettext('Recent') }}</h3>
         <div class="recent-news d-flex flex-wrap border-bottom pb-5">
         @foreach ($recent as $i => $n)
             <div class="d-flex my-3 position-relative">
                 <div>
-                    <img src="https://picsum.photos/200/200?random=1"/>
+                    <img src="https://picsum.photos/200/200?random={{ $n->id }}"/>
                 </div>
                 <div class="details pt-1 p-3">
-                    <h5 class="title">{{ $n['title'] }}</h5>
-                    <a href="{{ route('familynews.show', $n['id']) }}" class="summary text-decoration-none text-dark stretched-link">{{ $n['summary'] }}</a>
-                    <div class="user">{{ getUserDisplayName($n) }}</div>
-                    <div class="date text-muted">{{ $n['human_time'] }}</div>
+                    <h5 class="title">{{ $n->title }}</h5>
+                    <a href="{{ route('familynews.show', $n->id) }}" class="summary text-decoration-none text-dark stretched-link">
+                        {!! cleanUserComments($n->summary, true) !!}
+                    </a>
+                    <div class="user">
+                        <img class="avatar rounded-5 me-1" src="{{ getUserAvatar($n->toArray()) }}" title="{{ _gettext('avatar') }}">
+                        {{ getUserDisplayName($n->toArray()) }}
+                    </div>
+                    <div class="date text-muted">{{ $n->human_time }}</div>
                 </div>
             </div>
         @endforeach
@@ -39,59 +44,43 @@
             </li>
         </ul>
 
-        <div class="news d-flex flex-wrap">
+        <div class="news">
         @foreach ($news as $i => $n)
             <div class="d-flex my-3 position-relative">
                 <div>
-                    <img src="https://picsum.photos/200/200?random=1"/>
+                    <img src="https://picsum.photos/200/200?random={{ $n->id }}"/>
                 </div>
                 <div class="details pt-1 p-3">
-                    <h5 class="title">{{ $n->title }}</h5>
-                    <a href="{{ route('familynews.show', $n->id) }}" class="summary text-decoration-none text-dark stretched-link">{{ $n->summary }}</a>
-                    <div class="user">{{ getUserDisplayName($n->toArray()) }}</div>
-                    <div class="date text-muted">{{ $n->created_at->diffForHumans() }}</div>
+                    <div class="d-flex">
+                        <h5 class="title">{{ $n->title }}</h5>
+                        <div class="date text-muted ps-3">{{ $n->formattedTime }}</div>
+                    </div>
+                    <a href="{{ route('familynews.show', $n->id) }}" class="summary text-decoration-none text-dark stretched-link">
+                        {!! cleanUserComments($n->summary, true) !!}
+                    </a>
+                    <div class="user">
+                        <img class="avatar rounded-5 me-1" src="{{ getUserAvatar($n->toArray()) }}" title="{{ _gettext('avatar') }}">
+                        {{ getUserDisplayName($n->toArray()) }}
+                    </div>
                 </div>
             </div>
         @endforeach
         </div><!-- /.news -->
-@endif
+    @endif
 
     </div>
     <div class="col-auto col-3 p-5">
         <h6 class="mb-4">{{ _gettext('Latest news from') }}</h6>
         <div class="vstack gap-3">
+        @foreach($users as $u)
             <div class="">
-                <a class="text-decoration-none text-dark" href="#">
-                    <img class="avatar rounded-5 me-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ _gettext('avatar') }}">
-                    Ryan
+                <a class="text-decoration-none text-dark" href="{{ route('familynews.users.index', $u->id) }}">
+                    <img class="avatar rounded-5 me-3" src="{{ getUserAvatar($u->toArray()) }}" title="{{ _gettext('avatar') }}">
+                    {{ getUserDisplayName($u->toArray()) }}
                 </a>
             </div>
+        @endforeach
         </div>
     </div>
 </div>
-<style>
-.recent-news > div
-{
-    height: 200px;
-}
-.recent-news .title
-{
-    height: 24px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    width: 300px;
-}
-.recent-news .summary
-{
-    display: block;
-    height: 100px;
-    overflow: hidden;
-    width: 300px;
-}
-.recent-news .date
-{
-    font-size: 0.8rem;
-}
-</style>
 @endsection
