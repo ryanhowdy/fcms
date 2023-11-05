@@ -8,6 +8,8 @@ use App\Calendar;
 use Carbon\Carbon;
 use App\Models\Event;
 use App\Models\EventCategory;
+use App\Models\User;
+use App\Models\Invitation;
 
 class CalendarController extends Controller
 {
@@ -21,11 +23,11 @@ class CalendarController extends Controller
      */
     public function index(int $year = null, int $month = null, int $day = null)
     {
-        $date = Carbon::now();
+        $date = Carbon::now(Auth()->user()->settings->timezone);
 
         if (!is_null($year) && !is_null($month) && !is_null($day))
         {
-            $date = Carbon::createFromDate("$year-$month-$day");
+            $date = Carbon::createFromDate($year, $month, $day, Auth()->user()->settings->timezone);
         }
 
         $calendar = new Calendar();
@@ -45,11 +47,11 @@ class CalendarController extends Controller
      */
     public function weekView(int $year = null, int $month = null, int $day = null)
     {
-        $date = Carbon::now();
+        $date = Carbon::now(Auth()->user()->settings->timezone);
 
         if (!is_null($year) && !is_null($month) && !is_null($day))
         {
-            $date = Carbon::createFromDate("$year-$month-$day");
+            $date = Carbon::createFromDate($year, $month, $day, Auth()->user()->settings->timezone);
         }
 
         $calendar = new Calendar();
@@ -69,11 +71,11 @@ class CalendarController extends Controller
      */
     public function dayView(int $year = null, int $month = null, int $day = null)
     {
-        $date = Carbon::now();
+        $date = Carbon::now(Auth()->user()->settings->timezone);
 
         if (!is_null($year) && !is_null($month) && !is_null($day))
         {
-            $date = Carbon::createFromDate("$year-$month-$day");
+            $date = Carbon::createFromDate($year, $month, $day, Auth()->user()->settings->timezone);
         }
 
         $calendar = new Calendar();
@@ -95,6 +97,25 @@ class CalendarController extends Controller
             ->get();
 
         return view('calendar.create', [
+            'categories' => $categories,
+        ]);
+    }
+
+    /**
+     * createDate
+     * 
+     * @return Illuminate\View\View
+     */
+    public function createDate(int $year, int $month, int $day)
+    {
+        $categories = EventCategory::orderBy('name')
+            ->where('id', '!=', 1)
+            ->get();
+
+        $date = Carbon::createFromDate($year, $month, $day, Auth()->user()->settings->timezone);
+
+        return view('calendar.create', [
+            'date'       => $date->format('Y-m-d'),
             'categories' => $categories,
         ]);
     }
@@ -128,27 +149,134 @@ class CalendarController extends Controller
 
         if ($request->has('start'))
         {
-            $event->time_start = $request->input('start');
+            $event->time_start = $request->start;
         }
         if ($request->has('end'))
         {
-            $event->time_end = $request->input('end');
+            $event->time_end = $request->end;
         }
         if ($request->has('category'))
         {
-            $event->event_category_id = $request->has('category');
+            $event->event_category_id = $request->category;
         }
         if ($request->has('description'))
         {
-            $event->desc = $request->input('description');
+            $event->desc = $request->description;
         }
-        if ($request->has('repeat_yearly'))
+        if ($request->has('repeat-yearly'))
         {
             $event->repeat = 'yearly';
         }
 
         $event->save();
 
+        if ($event->invite)
+        {
+            return redirect()->route('invitations.create', [ $event->id ]);
+        }
+
         return redirect()->route('calendar.month', [ $date->format('Y'), $date->format('m'), $date->format('d') ]);
+    }
+
+    /**
+     * show
+     * 
+     * @param int $id 
+     * @return Illuminate\Support\Facades\View
+     */
+    public function show(int $id)
+    {
+        $event = Event::findOrFail($id)->toArray();
+
+        $cDatetime = Carbon::parse($event['date'] . ' ' . $event['time_start'], Auth()->user()->settings->timezone);
+
+        $event['dateFormatted']      = $cDatetime->format('l, F j, Y');
+        $event['timeStartFormatted'] = $cDatetime->format('g:ia');
+
+        $invitations = Invitation::where('event_id', $id)
+            ->leftJoin('users as u', 'invitations.user_id', '=', 'u.id')
+            ->select('invitations.*', 'u.name', 'u.displayname')
+            ->get();
+
+        $counts = [
+            'attending' => 0,
+            'maybe'     => 0,
+            'no'        => 0,
+            'none'      => 0,
+        ];
+        $groupInvitations = [
+            'all'       => [],
+            'attending' => [],
+            'maybe'     => [],
+            'no'        => [],
+            'none'      => [],
+        ];
+
+        foreach($invitations as $invite)
+        {
+            if (!is_null($invite->attending))
+            {
+                if ($rsvp->attending)
+                {
+                    $counts['attending']++;
+
+                    $invite->status = 'Attending';
+
+                    $groupInvitations['attending'][] = $invite->toArray();
+                }
+                else
+                {
+                    $counts['no']++;
+
+                    $invite->status = 'No';
+
+                    $groupInvitations['no'][] = $invite->toArray();
+                }
+            }
+            elseif(!is_null($invite->response))
+            {
+                $counts['maybe']++;
+
+                $invite->status = 'Maybe';
+
+                $groupInvitations['maybe'][] = $invite->toArray();
+            }
+            else
+            {
+                $counts['none']++;
+
+                $invite->status = 'None';
+
+                $groupInvitations['none'][] = $invite->toArray();
+            }
+
+            $groupInvitations['all'][] = $invite->toArray();
+        }
+
+        $rsvp = Invitation::where('user_id', Auth()->user()->id)
+            ->first();
+
+        if ($rsvp)
+        {
+            $rsvp->rsvp = 'none';
+
+            if (!is_null($rsvp->attending))
+            {
+                $rsvp->rsvp = $rsvp->attending ? 'attending' : 'no';
+            }
+            elseif(!is_null($rsvp->response))
+            {
+                $rsvp->rsvp = 'maybe';
+            }
+
+            $rsvp = $rsvp->toArray();
+        }
+
+        return view('calendar.show', [
+            'event'       => $event,
+            'invitations' => $groupInvitations,
+            'counts'      => $counts,
+            'rsvp'        => $rsvp,
+        ]);
     }
 }

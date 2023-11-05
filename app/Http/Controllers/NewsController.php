@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\News;
 use App\Models\NewsComment;
+use App\Models\User;
 
 class NewsController extends Controller
 {
@@ -17,35 +18,59 @@ class NewsController extends Controller
     {
         $recentNews = News::latest()
             ->join('users as cu', 'news.created_user_id', '=', 'cu.id')
-            ->select('news.*', 'cu.name', 'cu.displayname')
+            ->select('news.*', 'cu.name', 'cu.displayname', 'cu.avatar', 'cu.email')
+            ->limit(6)
+            ->get();
+
+        $myNews = News::latest()
+            ->join('users as cu', 'news.created_user_id', '=', 'cu.id')
+            ->select('news.*', 'cu.name', 'cu.displayname', 'cu.avatar', 'cu.email')
+            ->where('created_user_id', Auth()->user()->id)
             ->limit(4)
             ->get();
 
-        $recent = [];
+        $users = News::select('cu.id', 'cu.name', 'cu.displayname', 'cu.avatar', 'cu.email')
+            ->join('users as cu', 'news.created_user_id', '=', 'cu.id')
+            ->orderBy('news.created_at', 'desc')
+            ->get()
+            ->unique('id');
+
         foreach ($recentNews as $n)
         {
-            $data = $n->toArray();
+            $n->summary    = $n->news;
+            $n->human_time = _gettext('Unknown');
 
-            $data['summary']    = $n->news;
-            $data['human_time'] = $n->created_at->diffForHumans();
-
-            if (strlen($data['summary']) > 150)
+            if ($n->created_at)
             {
-                $data['summary'] = substr($data['summary'], 0, 150);
+                $n->human_time = $n->created_at->diffForHumans();
             }
 
-            $recent[] = $data;
+            if (strlen($n->summary) > 150)
+            {
+                $n->summary = substr($n->summary, 0, 150);
+            }
         }
 
-        $news = News::latest()
-            ->join('users as cu', 'news.created_user_id', '=', 'cu.id')
-            ->select('news.*', 'cu.name', 'cu.displayname')
-            ->limit(8)
-            ->get();
+        foreach ($myNews as $n)
+        {
+            $n->summary       = $n->news;
+            $n->formattedTime = _gettext('Unknown');
+
+            if ($n->created_at)
+            {
+                $n->formattedTime = $n->created_at->format('M jS');
+            }
+
+            if (strlen($n->summary) > 400)
+            {
+                $n->summary = substr($n->summary, 0, 400);
+            }
+        }
 
         return view('news.index', [
-            'recent' => $recent,
-            'news'   => $news
+            'recent' => $recentNews,
+            'news'   => $myNews,
+            'users'  => $users
         ]);
     }
 
@@ -94,13 +119,10 @@ class NewsController extends Controller
     {
         $news = News::findOrFail($id);
 
-        $news->news = htmlspecialchars($news->news, ENT_QUOTES, 'UTF-8');
-        $news->news = \Illuminate\Mail\Markdown::parse($news->news);
-
         $comments = NewsComment::where('news_id', $id)
             ->join('users as cu', 'news_comments.created_user_id', '=', 'cu.id')
-            ->select('news_comments.*', 'cu.name', 'cu.displayname')
-            ->simplePaginate(25);
+            ->select('news_comments.*', 'cu.name', 'cu.displayname', 'cu.avatar', 'cu.email')
+            ->paginate(25);
 
         return view('news.show', [
             'news'     => $news,
@@ -131,5 +153,51 @@ class NewsController extends Controller
         $comments->save();
 
         return redirect()->route('familynews');
+    }
+
+    /**
+     * usersIndex
+     *
+     * Show the family news for a given user
+     *
+     * @param int $id
+     * @return Illuminate\View\View
+     */
+    public function usersIndex(int $id)
+    {
+        $user = User::findOrFail($id);
+
+        $news = News::where('created_user_id', $id)
+            ->join('users as cu', 'news.created_user_id', '=', 'cu.id')
+            ->select('news.*', 'cu.name', 'cu.displayname', 'cu.avatar', 'cu.email')
+            ->paginate(25);
+
+        $users = News::select('cu.id', 'cu.name', 'cu.displayname', 'cu.avatar', 'cu.email')
+            ->join('users as cu', 'news.created_user_id', '=', 'cu.id')
+            ->orderBy('news.created_at', 'desc')
+            ->get()
+            ->unique('id');
+
+        foreach ($news as $n)
+        {
+            $n->summary       = $n->news;
+            $n->formattedTime = _gettext('Unknown');
+
+            if ($n->created_at)
+            {
+                $n->formattedTime = $n->created_at->format('M jS');
+            }
+
+            if (strlen($n->summary) > 400)
+            {
+                $n->summary = substr($n->summary, 0, 400);
+            }
+        }
+
+        return view('news.usersIndex', [
+            'user'  => $user,
+            'news'  => $news,
+            'users' => $users
+        ]);
     }
 }
