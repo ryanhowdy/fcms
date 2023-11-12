@@ -1,9 +1,19 @@
-#!/bin/bash
+#!/bin/sh
 
-set -eux
-# generate the key
-php artisan key:generate
+# entrypoint file for starting fcms
+
+set -e
+# generate the key if it does not already exist
+case `grep APP_KEY .env | sed -e 's/APP_KEY=\s*//'` in
+    'base64:'*)
+        echo "artisan key already exists...";;
+    *)
+        echo "generating artisan key..."
+        php artisan key:generate;;
+esac
 # create or update database
-php artisan migrate
+echo "create or update database..."
+php artisan migrate --force
 
-exec "apache2-foreground"
+echo "starting server"
+exec "$@"

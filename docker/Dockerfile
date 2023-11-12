@@ -1,4 +1,4 @@
-FROM php:apache
+FROM php:8.2-fpm-alpine
 
 # Arguments defined in docker-compose.yml
 ARG user=fcms
@@ -14,22 +14,19 @@ RUN chmod +x /usr/local/bin/install-php-extensions && \
 WORKDIR /var/www
 
 # Create system user to run Composer and Artisan Commands
-RUN useradd -G www-data,root -u $uid -d /home/$user $user
-RUN mkdir -p /home/$user/.composer && \
+RUN addgroup -S $user && \
+    adduser -G $user -G www-data -G root -u $uid -h /home/$user -S $user && \
+    mkdir -p /home/$user/.composer && \
     chown -R $user:$user /home/$user
-# Copy the fcms code 
+# Copy the fcms code
 COPY --chown=$user:www-data . .
 RUN \
-    # create apache site
-    mv docker/apache/fcms.conf /etc/apache2/sites-available/ && \
-    a2ensite fcms && \
-    a2enmod rewrite negotiation && \
-    # move the right init file (which exec apache2-foreground at the end)
+    # move the init file
     mv docker/apache/init.sh ./docker_init.sh && \
-    # clean unused folders and blocking files
-    rm -rf docker vendor composer.lock && \
+    # clean unused folders and locking files
+    rm -rf docker vendor composer.lock .git && \
     # Install everything
-    composer install --no-dev   
+    composer install --no-dev
 
 # Set user
 USER $user
@@ -37,4 +34,6 @@ USER $user
 HEALTHCHECK --interval=5m --timeout=3s --start-period=10s \
   CMD curl -f http://localhost/ || exit 1
 
-CMD ["./docker_init.sh"]
+ENTRYPOINT [ "./docker_init.sh" ]
+CMD [ "php", "artisan", "serve", "--host=0.0.0.0", "--port", "8000" ]
+EXPOSE 8000
