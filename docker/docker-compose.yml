@@ -3,7 +3,7 @@
 version: "3.7"
 services:
   app:
-    image: ghcr.io/leolivier/fcms:apache
+    image: ghcr.io/leolivier/fcms:artisan
     container_name: fcms-app
     volumes:
       - ./.env:/var/www/.env
