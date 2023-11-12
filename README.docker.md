@@ -4,6 +4,7 @@ Build it using the docker/.env.example file
 
 # Building a docker image
 Run `docker build -t fcms -f docker/Dockerfile .`
+Or for multiple targets: `docker buildx build -t fcms -f docker/Dockerfile --platform linux/arm64,linux/amd64 .`
 
 # Running the image
 Copy the docker/docker-compose.yml file in a new directory, create in this directory a .env file based on the example in the docker directory.
