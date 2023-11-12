@@ -8,8 +8,10 @@ services:
     volumes:
       - ./.env:/var/www/.env
     ports:
-      - ${APP_PORT}:80
+      - ${APP_PORT}:8000
     restart: unless-stopped
+    depends_on:
+      - db
     networks:
       - fcms-network
 
@@ -17,6 +19,8 @@ services:
     image: mariadb
     container_name: fcms-db
     restart: unless-stopped
+    volumes:
+      - ./data:/var/lib/mysql
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
