@@ -11,7 +11,7 @@ RUN chmod +x /usr/local/bin/install-php-extensions && \
    install-php-extensions @composer pdo_mysql exif pcntl gd imagick
 
 # Set working directory
-WORKDIR /var/www
+WORKDIR /fcms
 
 # Create system user to run Composer and Artisan Commands
 RUN addgroup -S $user && \
@@ -21,10 +21,8 @@ RUN addgroup -S $user && \
 # Copy the fcms code
 COPY --chown=$user:www-data . .
 RUN \
-    # move the init file
-    mv docker/apache/init.sh ./docker_init.sh && \
     # clean unused folders and locking files
-    rm -rf docker vendor composer.lock .git && \
+    rm -rf vendor composer.lock .git tests && \
     # Install everything
     composer install --no-dev
 

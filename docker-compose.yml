@@ -6,7 +6,7 @@ services:
     image: ghcr.io/leolivier/fcms:artisan
     container_name: fcms-app
     volumes:
-      - ./.env:/var/www/.env
+      - ./.env:./.env
     ports:
       - ${APP_PORT}:8000
     restart: unless-stopped
