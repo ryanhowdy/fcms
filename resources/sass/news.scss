@@ -1,0 +1,38 @@
+body#news
+{
+    .recent-news
+    {
+        > div
+        {
+            height: 200px;
+        }
+        .summary
+        {
+            display: block;
+            height: 100px;
+            overflow: hidden;
+            width: 300px;
+        }
+        .title
+        {
+            height: 24px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            width: 300px;
+        }
+    }
+    .news,
+    .recent-news
+    {
+        .date
+        {
+            font-size: 0.8rem;
+        }
+        .user .avatar
+        {
+            width: 25px;
+            height: 25px;
+        }
+    }
+}

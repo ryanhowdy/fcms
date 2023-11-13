@@ -6,7 +6,9 @@
     <div class="d-flex justify-content-between pb-5 border-bottom">
         <div>
             <h2>{{ $discussion->title }}</h2>
-            <span>0 replies</span>
+            <span>
+                {{ sprintf(_ngettext('%s reply', '%s replies', $comments->total()-1), $comments->total()-1) }}
+            </span>
         </div>
         <div class="d-flex justify-content-end align-items-start">
             <a href="#reply-comment" class="btn me-3 btn-success pe-5 align-start text-white">
@@ -26,38 +28,45 @@
 
     <div class="comments mx-5">
     @foreach($comments as $c)
-        <div class="comment d-flex justify-content-between align-items-start py-5 border-bottom">
+        <div class="comment position-relative py-5 border-bottom">
             <div class="d-flex flex-row">
                 <div>
-                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar(Auth()->user()->toArray()) }}" title="{{ _gettext('avatar') }}">
+                    <img class="avatar rounded-5 mx-3" src="{{ getUserAvatar($c->toArray()) }}" title="{{ _gettext('avatar') }}">
                 </div>
                 <div>
                     <p>
                         <b class="me-3">{{ getUserDisplayName($c->toArray()) }}</b><span class="text-indigo">{{ $c->updated_at->diffForHumans() }}</span>
                     </p>
-                    <div>
-                        {{ $c->comments }}
+                    <div class="bg-light rounded-3 p-3">
+                        {!! cleanUserComments($c->comments) !!}
                     </div>
                 </div>
             </div>
-            <div class="mini-toolbar position-relative">
-                <div class="buttons mb-1 p-1 border rounded-1 d-flex flex-row">
-                    <i class="button p-1 mx-1 rounded-5 bi-emoji-smile"></i>
-                    <i class="button p-1 mx-1 rounded-5 bi-chat-quote"></i>
-                    <i class="button p-1 mx-1 rounded-5 bi-pencil"></i>
-                    <i class="button p-1 mx-1 rounded-5 bi-trash3"></i>
-                </div>
-                <div class="reactions d-none position-absolute end-0 d-flex flex-row border rounded-5">
-                    <img title="{{ _gettext('Like') }}" src="{{ asset('img/emoji/color/1F44D.svg') }}"/>
-                    <img title="{{ _gettext('Love') }}" src="{{ asset('img/emoji/color/2764.svg') }}"/>
-                    <img title="{{ _gettext('Happy') }}" src="{{ asset('img/emoji/color/1F600.svg') }}"/>
-                    <img title="{{ _gettext('Shocked') }}" src="{{ asset('img/emoji/color/1F62E.svg') }}"/>
-                    <img title="{{ _gettext('Sad') }}" src="{{ asset('img/emoji/color/1F622.svg') }}"/>
-                    <img title="{{ _gettext('Angry') }}" src="{{ asset('img/emoji/color/1F621.svg') }}"/>
+            <div class="position-absolute top-0 end-0">
+                <div class="mini-toolbar position-relative">
+                    <div class="buttons mb-1 p-1 border rounded-1 d-flex flex-row">
+                        <i class="button p-1 mx-1 rounded-5 bi-emoji-smile"></i>
+                        <i class="button p-1 mx-1 rounded-5 bi-chat-quote"></i>
+                        <i class="button p-1 mx-1 rounded-5 bi-pencil"></i>
+                        <i class="button p-1 mx-1 rounded-5 bi-trash3"></i>
+                    </div>
+                    <div class="reactions d-none position-absolute end-0 d-flex flex-row border rounded-5">
+                        <img title="{{ _gettext('Like') }}" src="{{ asset('img/emoji/color/1F44D.svg') }}"/>
+                        <img title="{{ _gettext('Love') }}" src="{{ asset('img/emoji/color/2764.svg') }}"/>
+                        <img title="{{ _gettext('Happy') }}" src="{{ asset('img/emoji/color/1F600.svg') }}"/>
+                        <img title="{{ _gettext('Shocked') }}" src="{{ asset('img/emoji/color/1F62E.svg') }}"/>
+                        <img title="{{ _gettext('Sad') }}" src="{{ asset('img/emoji/color/1F622.svg') }}"/>
+                        <img title="{{ _gettext('Angry') }}" src="{{ asset('img/emoji/color/1F621.svg') }}"/>
+                    </div>
                 </div>
             </div>
         </div><!-- /.comment -->
     @endforeach
+
+    <div class="d-flex justify-content-center pt-3">
+    {{ $comments->links() }}
+    </div>
+
     </div><!-- /.comments -->
 
     <form id="reply-comment" class="text-editor mt-5 mx-5" action="{{ route('discussions.comments.store', $discussion->id) }}" method="post">

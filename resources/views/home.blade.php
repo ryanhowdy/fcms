@@ -31,6 +31,9 @@
             @case('NEW_USER')
                     {{ sprintf(_gettext('%s has joined the site.'), getUserDisplayName($update->toArray())) }}<br/>
                 @break
+            @case('EVENT')
+                    {{ sprintf(_gettext('%s has created a new event.'), getUserDisplayName($update->toArray())) }}<br/>
+                @break
         @endswitch
         @switch($update->type)
             @case('NEW_USER')
@@ -62,6 +65,12 @@
                     @php($skip++)
                 @endwhile
                 @php($index += $skip -1)
+                @break
+            @case('EVENT')
+                <a href="{{ route('calendar.show', $update->id) }}">
+                    <h5 class="card-title">{{ $update->title }}</h5>
+                </a>
+                <p>{{ $update->comments }}</p>
                 @break
             @default
                 <h5 class="card-title">{{ $update->title }}</h5>

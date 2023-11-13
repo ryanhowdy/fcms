@@ -20,8 +20,8 @@ class Calendar
      */
     public function __construct()
     {
-        $this->startOfWeek = env('FCMS_WEEK_START');
-        $this->endOfWeek   = env('FCMS_WEEK_END');
+        $this->startOfWeek = config('fcms.week.start');
+        $this->endOfWeek   = config('fcms.week.end');
 
         $this->daysOfWeekLkup = [
             0 => _gettext('Sunday'),
@@ -101,11 +101,12 @@ class Calendar
             }
 
             $dayData = [
-                'fullDate' => $curDate->format('Y-m-d'),
-                'day'      => $curDate->format('j'),
-                'class'    => $classes,
-                'link'     => route('calendar.day', [ $curDate->format('Y'), $curDate->format('m'), $curDate->format('d') ]),
-                'events'   => [],
+                'fullDate'   => $curDate->format('Y-m-d'),
+                'day'        => $curDate->format('j'),
+                'class'      => $classes,
+                'createLink' => route('calendar.createDate', [ $curDate->format('Y'), $curDate->format('m'), $curDate->format('d') ]),
+                'link'       => route('calendar.day', [ $curDate->format('Y'), $curDate->format('m'), $curDate->format('d') ]),
+                'events'     => [],
             ];
 
             if (isset($events[ $curDate->format('Y-m-d') ]))
@@ -358,6 +359,8 @@ class Calendar
             $dateKey = $endOfCalendar->format('Y').'-'.$bMonth.'-'.$bDay;
 
             $formattedEvents[$dateKey][] = [
+                'id'                => 0,
+                'isBirthday'        => true,
                 'date'              => $b->birthday->format('Y-m-d'),
                 'time_start'        => null,
                 'time_end'          => null,

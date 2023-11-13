@@ -12,7 +12,7 @@ class ImageController extends Controller
      */
     public function showAvatar($file)
     {
-        return response()->file(storage_path('app/avatars').'/'.$file);
+        return response()->file(storage_path('app/avatars') . '/' . $file);
     }
 
     /**
@@ -20,7 +20,7 @@ class ImageController extends Controller
      */
     public function showPhoto($userId, $file)
     {
-        return response()->file(storage_path('app/photos').'/'.$userId.'/main/'.$file);
+        return response()->file(storage_path('app/photos') . '/' . $userId . '/main/' . $file);
     }
 
     /**
@@ -28,11 +28,22 @@ class ImageController extends Controller
      */
     public function showPhotoThumbnail($userId, $file)
     {
-        return response()->file(storage_path('app/photos').'/'.$userId.'/thumbnail/'.$file);
+        $path = storage_path('app/photos') . '/' . $userId . '/thumbnail/';
+
+        // Prior to fcms 4.0.0 we used to prefix the thumbnails with 'tb_'
+        if (config('fcms.legacy'))
+        {
+            if (file_exists($path . 'tb_' . $file))
+            {
+                $file = 'tb_' . $file;
+            }
+        }
+
+        return response()->file($path . $file);
     }
 
     /**
-     * Show the fulle size photo for the given user
+     * Show the full size photo for the given user
      */
     public function showPhotoFull($userId, $file)
     {

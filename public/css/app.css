@@ -20818,6 +20818,9 @@ body#install main {
 
 img.avatar {
   width: 45px;
+  height: 45px;
+  -o-object-fit: cover;
+     object-fit: cover;
 }
 
 form div.required > label:after {
@@ -20938,23 +20941,51 @@ body#calendar div#calendar div.week div.day.today {
 body#calendar div#calendar div.week div.day:last-of-type {
   border-right: none !important;
 }
+body#calendar div#calendar div.week div.day a.add {
+  display: none;
+}
+body#calendar div#calendar div.week div.day:hover a.add {
+  display: block;
+}
 body#calendar div#calendar div.week div.day a.day {
   color: var(--bs-gray-500);
   text-decoration: none;
   font-weight: bold;
   display: inline-block;
   margin-bottom: 5px;
+  height: 18px;
+  width: 18px;
+  text-align: center;
+  border-radius: 15px;
+}
+body#calendar div#calendar div.week div.day a.day:hover {
+  background: var(--bs-gray-400);
+  color: black;
 }
 body#calendar div#calendar div.week div.day div.event a {
   padding: 2px 6px;
   color: white;
   text-decoration: none;
   cursor: pointer;
+  height: 22px;
+  margin-bottom: 2px;
 }
 body#calendar div#calendar div.week:last-of-type div.day {
   border-bottom: none !important;
 }
+body#calendar form input#start,
+body#calendar form input#end {
+  width: 125px;
+}
 
+body#discussions .discussion a.title:hover {
+  color: var(--bs-primary) !important;
+  text-decoration: underline !important;
+}
+body#discussions .comments > .comment img.smiley {
+  vertical-align: baseline;
+  padding: 0 1px;
+}
 body#discussions .comments > .comment .mini-toolbar {
   display: none;
 }
@@ -21013,6 +21044,7 @@ body#photos .photo-nav .search-filter {
 body#photos .albums .album .large > img {
   max-height: 200px;
   max-width: 200px;
+  height: 200px;
 }
 body#photos .albums .album .small > img {
   max-height: 100px;
@@ -21028,6 +21060,7 @@ body#photos .album .photos {
 body#photos .album .photos .large img {
   max-height: 200px;
   max-width: 200px;
+  height: 200px;
 }
 body#photos .album .photos .small {
   font-size: 0;
@@ -21036,21 +21069,52 @@ body#photos .album .photos .small img {
   max-height: 100px;
   max-width: 100px;
 }
-body#photos #photo-controls .details-col .photo-nav {
+
+body#photo-carousel {
+  overflow: hidden;
+}
+body#photo-carousel .carousel {
+  height: 100vh;
+  font-size: 0.85rem;
+}
+body#photo-carousel .carousel .carousel-item .img-col img {
+  height: 100%;
+  width: 100%;
+  -o-object-fit: contain;
+     object-fit: contain;
+  -o-object-position: center;
+     object-position: center;
+  margin: auto;
+}
+body#photo-carousel .carousel .carousel-item .details-col .user-info {
+  margin: 0 -0.75rem;
+  border-color: var(--bs-gray-700) !important;
+}
+body#photo-carousel .carousel .carousel-item .details-col .photo-nav {
   margin: 0 -0.75rem;
   padding: 0 1rem;
   border-color: var(--bs-gray-700) !important;
 }
-body#photos #photo-controls .details-col .photo-nav li a.nav-link {
+body#photo-carousel .carousel .carousel-item .details-col .photo-nav li a.nav-link {
   color: var(--bs-gray-300);
   border-color: var(--bs-dark);
 }
-body#photos #photo-controls .details-col .photo-nav li a.nav-link:hover {
+body#photo-carousel .carousel .carousel-item .details-col .photo-nav li a.nav-link:hover {
   color: var(--bs-primary);
 }
-body#photos #photo-controls .details-col .photo-nav li a.nav-link.active {
+body#photo-carousel .carousel .carousel-item .details-col .photo-nav li a.nav-link.active {
   color: white;
   border-bottom: 2px solid var(--bs-primary);
+}
+body#photo-carousel .carousel-control-next {
+  right: 16.66666667%;
+}
+body#photo-carousel .carousel-inner,
+body#photo-carousel .carousel-item,
+body#photo-carousel .row,
+body#photo-carousel .img-col,
+body#photo-carousel .details-col {
+  height: 100%;
 }
 
 body#profile li a {
@@ -21164,4 +21228,30 @@ body#familytree .tree ul:not(.dropdown-menu) ul:not(.dropdown-menu)::before {
   border-left: 1px solid var(--bs-border-color);
   width: 0;
   height: 20px;
+}
+
+body#news .recent-news > div {
+  height: 200px;
+}
+body#news .recent-news .summary {
+  display: block;
+  height: 100px;
+  overflow: hidden;
+  width: 300px;
+}
+body#news .recent-news .title {
+  height: 24px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 300px;
+}
+body#news .news .date,
+body#news .recent-news .date {
+  font-size: 0.8rem;
+}
+body#news .news .user .avatar,
+body#news .recent-news .user .avatar {
+  width: 25px;
+  height: 25px;
 }

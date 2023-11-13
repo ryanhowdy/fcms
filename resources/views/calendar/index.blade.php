@@ -29,10 +29,15 @@
             <div class="week row g-0">
             @foreach ($weekData as $day)
                 <div class="day col p-2 border-end border-bottom {{ $day['class'] }}">
+                    <a href="{{ $day['createLink'] }}" class="add float-end text-success fs-6 lh-1"><i class="bi-plus-circle-fill"></i></a>
                     <a href="{{ $day['link'] }}" class="day">{{ $day['day'] }}</a>
                 @foreach ($day['events'] as $e)
                     <div class="event">
-                        <a class="d-block text-white rounded-1" style="background-color: {{ $e['category_color'] }}" tabindex="0"
+                        <a class="d-block text-white rounded-1 overflow-hidden" style="background-color: {{ $e['category_color'] }}" tabindex="0"
+                        @if(isset($e['isBirthday']))
+                        @else
+                            href="{{ route('calendar.show', $e['id']) }}"
+                        @endif
                             data-bs-toggle="popover" data-bs-placement="top" data-bs-title="{{ $e['title'] }}" 
                             data-bs-custom-class="event-detail-popover" data-bs-content="{{ $e['desc'] }}">
                             <span class="me-2">{{ substr($e['time_start'], 0, 5) }}</span>{{ $e['title'] }}
@@ -52,7 +57,7 @@
 </div>
 <script>
 $(function() {
-    $('[data-bs-toggle="popover"]').popover({ trigger: 'focus' });
+    $('[data-bs-toggle="popover"]').popover({ trigger: 'hover' });
 });
 </script>
 @endsection
