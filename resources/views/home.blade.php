@@ -60,7 +60,7 @@
                 @break
             @case('PHOTOS')
                 @php($skip = 0)
-                @while($update->title == $updates[$index + $skip]->title)
+                @while(isset($updates[$index + $skip]) && $update->title == $updates[$index + $skip]->title)
                 <img class="" src="{{ route('photo.thumbnail', ['id' => $updates[$index + $skip]->updated_user_id, 'file' => $updates[$index + $skip]->id]) }}">
                     @php($skip++)
                 @endwhile
