@@ -1,0 +1,34 @@
+# this is an example of working docker compose file for fcms
+# create an .env file based on the example (don't forget to add the APP_PORT variable)
+version: "3.7"
+services:
+  app:
+    image: ghcr.io/leolivier/fcms:artisan
+    container_name: fcms-app
+    volumes:
+      - ./.env:/fcms/.env
+    ports:
+      - ${APP_PORT}:8000
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - fcms-network
+
+  db:
+    image: mariadb
+    container_name: fcms-db
+    restart: unless-stopped
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+    networks:
+      - fcms-network
+
+networks:
+  fcms-network:
+    driver: bridge
