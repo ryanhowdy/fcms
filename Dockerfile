@@ -30,7 +30,7 @@ RUN \
 USER $user
 
 HEALTHCHECK --interval=5m --timeout=3s --start-period=10s \
-  CMD curl -f http://localhost/ || exit 1
+  CMD curl -f http://localhost:8000/ || exit 1
 
 ENTRYPOINT [ "./docker_init.sh" ]
 CMD [ "php", "artisan", "serve", "--host=0.0.0.0", "--port", "8000" ]
