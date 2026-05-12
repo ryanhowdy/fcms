@@ -2769,6 +2769,12 @@ function loginUser ($userId, $remember)
         return false;
     }
 
+    if (session_id() !== '' && !session_regenerate_id(true))
+    {
+        $fcmsError->setMessage(T_('Could not complete login.'));
+        return false;
+    }
+
     // Setup Cookie/Session
     if ($remember >= 1)
     {
