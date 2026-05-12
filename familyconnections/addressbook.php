@@ -192,11 +192,33 @@ class Page
             return;
         }
 
-        $csv = "lname, fname, address, city, state, zip, email, home, work, cell\015\012";
+        $csv    = '';
+        $handle = fopen('php://temp', 'w+');
+
+        if ($handle !== false)
+        {
+            fputcsv($handle, array('lname', 'fname', 'address', 'city', 'state', 'zip', 'email', 'home', 'work', 'cell'));
+        }
 
         foreach ($rows as $row)
         {
-            $csv .= '"'.join('","', str_replace('"', '""', $row))."\"\015\012";
+            $safeRow = array();
+            foreach ($row as $field)
+            {
+                $safeRow[] = cleanCsvField($field);
+            }
+
+            if ($handle !== false)
+            {
+                fputcsv($handle, $safeRow);
+            }
+        }
+
+        if ($handle !== false)
+        {
+            rewind($handle);
+            $csv = stream_get_contents($handle);
+            fclose($handle);
         }
 
         $date = fixDate('Y-m-d', $this->fcmsUser->tzOffset);

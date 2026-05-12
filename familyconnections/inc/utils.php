@@ -1223,6 +1223,28 @@ function cleanFilename ($filename)
 
     return $filename;
 }
+
+/**
+ * cleanCsvField
+ *
+ * Prevents spreadsheet formula execution when exporting user-controlled CSV.
+ *
+ * @param string $field
+ *
+ * @return string
+ */
+function cleanCsvField ($field)
+{
+    $field = (string)$field;
+
+    if (preg_match('/^\s*[=+\-@]/', $field))
+    {
+        return "'".$field;
+    }
+
+    return $field;
+}
+
 /**
  * unhtmlentities 
  *
