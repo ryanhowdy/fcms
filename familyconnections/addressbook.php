@@ -196,7 +196,7 @@ class Page
 
         foreach ($rows as $row)
         {
-            $csv .= '"'.join('","', str_replace('"', '""', $row))."\"\015\012";
+            $csv .= '"'.join('","', array_map(array($this, 'escapeCsvCell'), $row))."\"\015\012";
         }
 
         $date = fixDate('Y-m-d', $this->fcmsUser->tzOffset);
@@ -205,6 +205,25 @@ class Page
         header("Content-disposition: csv; filename=FCMS_Addresses_$date.csv; size=".strlen($csv));
 
         echo $csv;
+    }
+
+    /**
+     * escapeCsvCell
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    function escapeCsvCell ($value)
+    {
+        $value = (string)$value;
+
+        if (preg_match('/^\s*[=+\-@]/', $value))
+        {
+            $value = "'".$value;
+        }
+
+        return str_replace('"', '""', $value);
     }
 
     /**
