@@ -55,6 +55,14 @@
                         <div id="cal-details">
                             <div class="field-row">
                                 <div class="field-label">
+                                    <label for="date-end"><b>End Date</b></label>
+                                </div>
+                                <div class="field-widget">
+                                    <input type="text" id="date-end" name="date-end" size="10">
+                                </div>
+                            </div>
+                            <div class="field-row">
+                                <div class="field-label">
                                     <label for="category"><b><?php echo $TMPL['categoryText']; ?></b></label>
                                 </div>
                                 <div class="field-widget">
@@ -63,6 +71,21 @@
                                         <option value="<?php echo $c['value']; ?>"><?php echo $c['text']; ?></option>
                                 <?php endforeach; ?>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="field-row">
+                                <div class="field-label">
+                                    <label for="repeat-frequency"><b>Repeat</b></label>
+                                </div>
+                                <div class="field-widget">
+                                    <select id="repeat-frequency" name="repeat-frequency">
+                                        <option value="">None</option>
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                    Repeat Until
+                                    <input type="text" id="repeat-until" name="repeat-until" size="10">
                                 </div>
                             </div>
                             <div class="field-row">

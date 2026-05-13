@@ -1146,6 +1146,105 @@ class Calendar
     }
 
     /**
+     * getExpandedEventDates
+     *
+     * Builds the list of dates to create for multi-day and recurring events.
+     *
+     * @param string $startDate
+     * @param string $endDate
+     * @param string $repeat
+     * @param string $repeatUntil
+     *
+     * @return array
+     */
+    function getExpandedEventDates ($startDate, $endDate = '', $repeat = '', $repeatUntil = '')
+    {
+        $start = $this->getCalendarTimestamp($startDate);
+        if ($start === false)
+        {
+            return array();
+        }
+
+        $end = empty($endDate) ? $start : $this->getCalendarTimestamp($endDate);
+        if ($end === false || $end < $start)
+        {
+            return array();
+        }
+
+        $repeat = strtolower(trim($repeat));
+        if (!in_array($repeat, array('daily', 'weekly', 'monthly')))
+        {
+            $repeat = '';
+        }
+
+        $durationDays = (int)(($end - $start) / 86400);
+        $dates        = array();
+
+        if (empty($repeat))
+        {
+            for ($date = $start; $date <= $end; $date = strtotime('+1 day', $date))
+            {
+                $dates[] = date('Y-m-d', $date);
+            }
+
+            return $dates;
+        }
+
+        $until = $this->getCalendarTimestamp($repeatUntil);
+        if ($until === false || $until < $start)
+        {
+            return array();
+        }
+
+        $intervals = array(
+            'daily'   => '+1 day',
+            'weekly'  => '+1 week',
+            'monthly' => '+1 month',
+        );
+        $interval = $intervals[$repeat];
+        for ($date = $start; $date <= $until; $date = strtotime($interval, $date))
+        {
+            for ($i = 0; $i <= $durationDays; $i++)
+            {
+                $eventDate = strtotime("+$i day", $date);
+                if ($eventDate <= $until)
+                {
+                    $dates[] = date('Y-m-d', $eventDate);
+                }
+            }
+        }
+
+        return array_values(array_unique($dates));
+    }
+
+    /**
+     * getCalendarTimestamp
+     *
+     * @param string $date
+     *
+     * @return int|boolean
+     */
+    private function getCalendarTimestamp ($date)
+    {
+        if (!preg_match('/^\d{4}-\d{1,2}-\d{1,2}$/', $date))
+        {
+            return false;
+        }
+
+        list($year, $month, $day) = explode('-', $date);
+        $year  = (int)$year;
+        $month = (int)$month;
+        $day   = (int)$day;
+
+        if (!checkdate($month, $day, $year))
+        {
+            return false;
+        }
+
+        return mktime(0, 0, 0, $month, $day, $year);
+    }
+
+    /**
      * displayAddForm
      * 
      * Displays the Form to add a new event.

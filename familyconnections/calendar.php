@@ -273,6 +273,13 @@ class Page
         $repeat    = null;
         $private   = 0;
         $invite    = 0;
+        $date      = isset($_POST['date']) ? strip_tags($_POST['date']) : '';
+        $title     = isset($_POST['title']) ? strip_tags($_POST['title']) : '';
+        $desc      = isset($_POST['desc']) ? strip_tags($_POST['desc']) : '';
+        $category  = isset($_POST['category']) ? strip_tags($_POST['category']) : '';
+        $frequency = '';
+        $endDate   = isset($_POST['date-end']) ? strip_tags($_POST['date-end']) : '';
+        $untilDate = isset($_POST['repeat-until']) ? strip_tags($_POST['repeat-until']) : '';
 
         if (isset($_POST['timestart']) and !isset($_POST['all-day']))
         {
@@ -286,6 +293,10 @@ class Page
         {
             $repeat = 'yearly';
         }
+        elseif (isset($_POST['repeat-frequency']))
+        {
+            $frequency = strip_tags($_POST['repeat-frequency']);
+        }
         if (isset($_POST['private']))
         {
             $private = 1;
@@ -295,11 +306,26 @@ class Page
             $invite = 1;
         }
 
-        // Can't make a yearly event also an invitation
-        $notify_user_changed_event = 0;
-        if ($repeat == 'yearly' && $invite == 1)
+        if ($repeat == 'yearly')
         {
-            // Let's turn off the invitation, submit the event and tell the user what we did
+            $endDate   = $date;
+            $frequency = '';
+        }
+
+        $dates = $this->fcmsCalendar->getExpandedEventDates($date, $endDate, $frequency, $untilDate);
+        if (count($dates) <= 0)
+        {
+            $this->displayHeader();
+            loadTemplate('calendar', 'add', array('error' => T_('Invalid Date.')));
+            $this->displayFooter();
+            return;
+        }
+
+        // Can't make a repeating or multi-day event also an invitation.
+        $notify_user_changed_event = 0;
+        if (($repeat == 'yearly' || count($dates) > 1) && $invite == 1)
+        {
+            // Let's turn off the invitation, submit the event and tell the user what we did.
             $invite = 0;
             $notify_user_changed_event = 1;
         }
@@ -310,33 +336,42 @@ class Page
                 ) 
                 VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?)";
 
-        $params = array(
-            $_POST['date'], 
-            $timeStart, 
-            $timeEnd, 
-            $_POST['title'], 
-            $_POST['desc'], 
-            $this->fcmsUser->id, 
-            $_POST['category'], 
-            $repeat, 
-            $private, 
-            $invite
-        );
-
-        $id = $this->fcmsDatabase->insert($sql, $params);
-
-        if ($id === false)
+        $eventId = false;
+        foreach ($dates as $date)
         {
-            $this->displayHeader();
-            $this->fcmsError->displayError();
-            $this->displayFooter();
-            return;
+            $params = array(
+                $date,
+                $timeStart,
+                $timeEnd,
+                $title,
+                $desc,
+                $this->fcmsUser->id,
+                $category,
+                $repeat,
+                $private,
+                $invite
+            );
+
+            $insertedId = $this->fcmsDatabase->insert($sql, $params);
+
+            if ($insertedId === false)
+            {
+                $this->displayHeader();
+                $this->fcmsError->displayError();
+                $this->displayFooter();
+                return;
+            }
+
+            if ($eventId === false)
+            {
+                $eventId = $insertedId;
+            }
         }
 
         // Display the invitation screen
         if ($invite == 1)
         {
-            header("Location: calendar.php?invite=$id");
+            header("Location: calendar.php?invite=$eventId");
             return;
         }
 
@@ -353,7 +388,7 @@ class Page
                 'header'   => T_('You cannot invite guests to a repeating event.'),
                 'errors'   => array(
                     T_('Your event was created, but no invitations were sent.'),
-                    T_('Please create a new non-repeating event and invite guests to that.'),
+                    T_('Please create a new single-day non-repeating event and invite guests to that.'),
                 ),
             );
         }
@@ -362,7 +397,7 @@ class Page
             displayOkMessage();
         }
 
-        $this->fcmsCalendar->displayEvent($id, $templateParams);
+        $this->fcmsCalendar->displayEvent($eventId, $templateParams);
         $this->displayFooter();
     }
 
