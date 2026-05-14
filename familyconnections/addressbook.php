@@ -196,6 +196,14 @@ class Page
 
         foreach ($rows as $row)
         {
+            // Sanitize cell values to prevent CSV injection (Fixes #539)
+            $row = array_map(function($val) {
+                // Prefix dangerous characters to prevent formula execution in spreadsheets
+                if (preg_match('/^[=+\-@\t\r]/', $val)) {
+                    return "'" . $val;
+                }
+                return $val;
+            }, $row);
             $csv .= '"'.join('","', str_replace('"', '""', $row))."\"\015\012";
         }
 
