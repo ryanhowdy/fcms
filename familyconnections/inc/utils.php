@@ -2776,6 +2776,9 @@ function loginUser ($userId, $remember)
         setcookie('fcms_cookie_token', $token, time() + (30*(24*3600)), '/'); // 30 days
     }
 
+    // Regenerate session ID to prevent session fixation attacks (Fixes #537)
+    session_regenerate_id(true);
+
     $_SESSION['fcms_id']    = $userId;
     $_SESSION['fcms_token'] = $token;
 
